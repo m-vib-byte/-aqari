@@ -1,0 +1,59 @@
+{
+  "version": "V198",
+  "required": [
+    {
+      "name": "DATABASE_URL",
+      "purpose": "Production PostgreSQL connection"
+    },
+    {
+      "name": "AUTH_SECRET",
+      "purpose": "Authentication/session signing secret"
+    },
+    {
+      "name": "MFA_ENCRYPTION_KEY",
+      "purpose": "Encrypt MFA secrets"
+    },
+    {
+      "name": "S3_ENDPOINT",
+      "purpose": "Private object storage endpoint"
+    },
+    {
+      "name": "S3_BUCKET",
+      "purpose": "Private object storage bucket"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "purpose": "Object storage access key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "purpose": "Object storage secret"
+    },
+    {
+      "name": "RESEND_API_KEY",
+      "purpose": "Transactional email provider"
+    },
+    {
+      "name": "WHATSAPP_ACCESS_TOKEN",
+      "purpose": "WhatsApp Cloud API"
+    },
+    {
+      "name": "WHATSAPP_PHONE_NUMBER_ID",
+      "purpose": "WhatsApp sender phone number ID"
+    },
+    {
+      "name": "PAYMENT_WEBHOOK_SECRET",
+      "purpose": "Payment webhook verification"
+    }
+  ],
+  "optional": [
+    {
+      "name": "APP_BASE_URL",
+      "purpose": "Canonical application URL"
+    },
+    {
+      "name": "OPS_STATUS_TOKEN",
+      "purpose": "Protected operations status endpoint"
+    }
+  ]
+}

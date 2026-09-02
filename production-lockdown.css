@@ -1,0 +1,17 @@
+html.aqari-production-mode .aq-v180-cleanup,
+html.aqari-production-mode .aq-v184-prod,
+html.aqari-production-mode .aq-v185-ready,
+html.aqari-production-mode .aq-v192-wizard,
+html.aqari-production-mode .aq-v193-autosync,
+html.aqari-production-mode .aq-v195-prod-status,
+html.aqari-production-mode .aq-v196-final{
+  display:none !important;
+}
+
+html.aqari-production-mode body{
+  overscroll-behavior-y:none;
+}
+
+html.aqari-production-mode .aq-v171-commandbar{
+  top:max(0px, env(safe-area-inset-top, 0px));
+}

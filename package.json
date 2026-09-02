@@ -1,0 +1,27 @@
+{
+  "name": "aqari-v198",
+  "private": true,
+  "version": "198.0.0",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "predeploy": "node scripts/check.mjs",
+    "postdeploy": "node scripts/smoke.mjs",
+    "verify:deploy": "node scripts/verify-deployment.mjs",
+    "preflight:env": "node scripts/preflight-env.mjs",
+    "deploy:ready": "node scripts/deploy-ready.mjs",
+    "check:sync": "node scripts/cloud-sync-selftest.mjs",
+    "check:migration": "node scripts/migration-selftest.mjs",
+    "check:autosync": "node scripts/autosync-selftest.mjs",
+    "test:e2e": "node tests/preview.e2e.mjs",
+    "check:preview-e2e": "node scripts/preview-e2e-selftest.mjs",
+    "check:routes": "node scripts/route-contract-selftest.mjs",
+    "check:final": "node scripts/final-release-selftest.mjs",
+    "check:production-ui": "node scripts/production-lockdown-selftest.mjs",
+    "check:freeze": "node scripts/release-freeze-selftest.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}

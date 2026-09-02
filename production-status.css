@@ -1,0 +1,20 @@
+.aq-v195-prod-status{
+  margin:12px 0 16px;
+  padding:14px;
+  border:1px solid rgba(180,145,55,.22);
+  border-radius:18px;
+  background:rgba(255,255,255,.98);
+}
+.aq-v195-prod-status strong{display:block;margin-bottom:4px}
+.aq-v195-prod-status small{display:block;opacity:.72;line-height:1.45}
+.aq-v195-prod-result{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin:10px 0 0;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(0,0,0,.035);
+  font-size:.78rem;
+  direction:ltr;
+  text-align:left;
+}
