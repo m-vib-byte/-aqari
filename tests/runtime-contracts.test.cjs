@@ -79,3 +79,21 @@ test('V168 cloud controller replaces local-only authentication', () => {
   assert.doesNotMatch(html, /id="aqari-v167-cloud-js"/);
   assert.doesNotMatch(html, /key\.startsWith\('eyJ'\)/);
 });
+
+
+test('operational endpoints report the V168 cloud mode', () => {
+  const health = invoke(require(path.join(root, 'api/health.js')), 'GET').body;
+  const deep = invoke(require(path.join(root, 'api/health/deep.js')), 'GET').body;
+  const ops = invoke(require(path.join(root, 'api/ops/status.js')), 'GET').body;
+  const release = invoke(require(path.join(root, 'api/release.js')), 'GET').body;
+
+  assert.equal(health.version, 'V168');
+  assert.equal(deep.version, 'V168');
+  assert.equal(deep.mode, 'supabase_cloud');
+  assert.equal(deep.checks.cloudIntegration.required, true);
+  assert.equal(ops.version, 'V168');
+  assert.equal(ops.mode, 'supabase_cloud');
+  assert.equal(ops.capabilities.cloudAuth, 'supabase_rls');
+  assert.equal(ops.capabilities.centralizedDataApi, true);
+  assert.equal(release.version, 'V168');
+});

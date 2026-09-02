@@ -17,7 +17,7 @@ module.exports = function handler(req, res) {
     ok: true,
     status: 'healthy',
     service: 'aqari',
-    version: 'V167',
+    version: 'V168',
     environment: process.env.VERCEL_ENV || 'unknown',
     deployment: {
       gitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
