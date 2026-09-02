@@ -12,20 +12,21 @@ module.exports = function handler(req, res) {
   const payload = {
     ok: true,
     status: 'operational',
-    mode: 'local_safe_mode',
+    mode: 'supabase_cloud',
     capabilities: {
       appShell: true,
       healthApi: true,
       releaseApi: true,
       pwaMetadata: true,
-      cloudAuth: 'client_configurable',
-      centralizedDataApi: false,
+      cloudAuth: 'supabase_rls',
+      centralizedDataApi: true,
+      cloudState: 'workspace_jsonb_revisioned',
     },
     notices: [
-      'Property and tenant records remain browser-local until the cloud data migration is completed.',
-      'Do not treat the local PIN gate as production authentication.',
+      'First sign-in requires an authorized account and may require email confirmation.',
+      'Initial core-data upload or restore is an explicit user choice; a local recovery cache remains on the device.',
     ],
-    version: 'V167',
+    version: 'V168',
     gitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
     timestamp: new Date().toISOString(),
   };
