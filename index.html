@@ -1,4 +1,4 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V166 • Production QA & Release</title><style>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V167 • Secure Cloud Onboarding</title><style>
 :root{--g:#b88927;--l:#eadfc8;--bg:#f7f6f2}*{box-sizing:border-box}body{margin:0;font-family:Arial;background:var(--bg);color:#26221b}header{background:#fff;border-bottom:1px solid var(--l);padding:14px;position:sticky;top:0;z-index:4}.w{max-width:1260px;margin:auto}.r{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.brand{color:var(--g);font-weight:900;font-size:23px}button,input,select{padding:9px;border:1px solid var(--l);border-radius:10px;background:#fff}.g{background:var(--g);color:#fff}.tabs{display:flex;gap:6px;overflow:auto;padding:12px 0}.tabs button{white-space:nowrap}.tabs .on{background:var(--g);color:#fff}.p{display:none}.p.on{display:block}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.c{background:#fff;border:1px solid var(--l);border-radius:16px;padding:14px;margin-bottom:10px}.m b{display:block;color:var(--g);font-size:22px;margin-top:5px}table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #f1eadc;text-align:right;font-size:13px}.modal{display:none;position:fixed;inset:0;background:#0008;place-items:center;padding:15px;z-index:7}.modal.on{display:grid}.box{background:#fff;border-radius:18px;padding:16px;width:min(650px,100%)}.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.f{grid-template-columns:1fr}}.mobilebar{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--l);z-index:30;padding:7px;gap:6px;justify-content:space-around}.mobilebar button{flex:1;font-size:11px;padding:8px 4px}.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:#26221b;color:#fff;padding:10px 14px;border-radius:12px;z-index:50;display:none}.statusdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2d8b57;margin-inline:4px}@media(max-width:700px){body{padding-bottom:72px}.mobilebar{display:flex}header .brand{font-size:20px}.tabs{display:none}.c{border-radius:13px}.grid{grid-template-columns:repeat(2,1fr)}}@media print{header,.tabs,.mobilebar,.modal,.toast{display:none!important}body{background:#fff;padding:0}.c{border:0;box-shadow:none}}
 @media(max-width:760px){
  body{font-size:14px}
@@ -2713,7 +2713,7 @@ box-shadow:0 18px 46px rgba(74,50,11,.075)}
 
 </head><body>
 <div id="auth" style="position:fixed;inset:0;z-index:99;background:#f7f6f2;display:grid;place-items:center;padding:20px"><div class="c" style="width:min(430px,100%);padding:24px"><h1 style="color:var(--g);text-align:center">عقاري</h1><p style="text-align:center">AQARI Property Management</p><input id="loginName" value="المدير العام" placeholder="اسم المستخدم" style="width:100%;margin:5px 0"><select id="loginRole" style="width:100%;margin:5px 0"><option value="admin">المدير العام</option><option value="accountant">المحاسب</option><option value="collection">التحصيل</option><option value="maintenance">الصيانة</option><option value="property">العقارات</option></select><input id="loginPin" type="password" placeholder="رمز الدخول 1234" style="width:100%;margin:5px 0"><button class="g" style="width:100%;margin-top:8px" onclick="login()">دخول</button><div style="display:flex;gap:8px;margin-top:8px"><button style="flex:1" onclick="fillDemoLogin()">تعبئة دخول المدير</button><button style="flex:1" onclick="clearLoginSession()">مسح الجلسة</button></div><p id="loginHelp" style="font-size:12px;color:#7a7267;text-align:center;margin-top:8px">للتجربة: الرمز 1234</p></div></div>
-<header><div class="w r"><div><div class="brand">عقاري</div><small>AQARI • V166 PRODUCTION QA & RELEASE</small></div><div><span id="sessionBadge" style="font-size:12px;color:#7a7267;margin-left:8px">غير مسجل</span> <button onclick="showNotifications()">🔔 <span id="notifCount">0</span></button> <input id="search" placeholder="بحث شامل..." oninput="doSearch(this.value)"> <select id="lang" onchange="setLang(this.value)"><option value="ar">العربية</option><option value="en">English</option><option value="hi">हिन्दी</option></select> <button onclick="backup()">نسخة احتياطية</button><button onclick="logout()">خروج</button><button onclick="restoreFile.click()">استعادة</button><input id="restoreFile" type="file" accept=".json" style="display:none" onchange="restore(event)"><button class="g" onclick="add()">+ إضافة</button></div></div></header>
+<header><div class="w r"><div><div class="brand">عقاري</div><small>AQARI • V167 SECURE CLOUD ONBOARDING</small></div><div><span id="sessionBadge" style="font-size:12px;color:#7a7267;margin-left:8px">غير مسجل</span> <button onclick="showNotifications()">🔔 <span id="notifCount">0</span></button> <input id="search" placeholder="بحث شامل..." oninput="doSearch(this.value)"> <select id="lang" onchange="setLang(this.value)"><option value="ar">العربية</option><option value="en">English</option><option value="hi">हिन्दी</option></select> <button onclick="backup()">نسخة احتياطية</button><button onclick="logout()">خروج</button><button onclick="restoreFile.click()">استعادة</button><input id="restoreFile" type="file" accept=".json" style="display:none" onchange="restore(event)"><button class="g" onclick="add()">+ إضافة</button></div></div></header>
 <main class="w"><div class="tabs" id="tabs"></div><section id="home" class="p on"><div class="grid" id="kpis"></div><div class="c"><h3>مركز العمليات اليومي</h3><div id="ops"></div></div>
 <div class="c"><div class="r"><h3>اختصارات حسب الصلاحية</h3><span><span class="statusdot"></span><span id="onlineState">متصل</span></span></div><div id="roleShortcuts" class="grid"></div></div>
 <div class="c"><h3>تشغيل تلقائي</h3><div class="r">
@@ -15053,6 +15053,122 @@ Verify failed delivery count</div>
   if(typeof old==='function'&&!old.__v166){const w=function(){const r=old.apply(this,arguments);setTimeout(build,0);return r};w.__v166=true;window.render=w}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
   setTimeout(build,300);setTimeout(build,800);
+})();
+</script>
+
+<style id="aqari-v167-cloud-css">
+.aq-v167-cloud{border:1px solid #dbc38f;background:linear-gradient(145deg,#fff,#fbf5e9);border-radius:18px;padding:15px;margin:12px 0;box-shadow:0 10px 28px #5b43100d}
+.aq-v167-head,.aq-v167-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.aq-v167-head h3{margin:0}.aq-v167-head small{display:block;color:#746b5d;margin-top:4px}
+.aq-v167-badge,.aq-v167-state{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}
+.aq-v167-badge{background:#1f2937;color:#f4cf77}.aq-v167-state.ready{background:#e4f6eb;color:#17673a}.aq-v167-state.wait{background:#fff2cc;color:#805d00}.aq-v167-state.bad{background:#fde8e8;color:#9c2424}
+.aq-v167-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.aq-v167-card{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:12px}
+.aq-v167-card b{display:block;margin-bottom:5px}.aq-v167-card small{color:#746b5d;line-height:1.55}.aq-v167-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.aq-v167-modal{display:none;position:fixed;inset:0;background:#0009;z-index:60000;align-items:center;justify-content:center;padding:15px}.aq-v167-modal.on{display:flex}
+.aq-v167-dialog{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:17px}.aq-v167-dialog input{width:100%;margin:5px 0}.aq-v167-msg{padding:9px;border-radius:10px;background:#f7f6f2;margin-top:8px;white-space:pre-wrap}
+@media(max-width:760px){.aq-v167-grid{grid-template-columns:1fr}}
+</style>
+
+<div class="aq-v167-modal" id="aqariV167Modal" role="dialog" aria-modal="true" aria-labelledby="aqariV167Title">
+  <div class="aq-v167-dialog">
+    <div class="aq-v167-row"><h3 id="aqariV167Title">ربط عقاري الآمن</h3><button type="button" onclick="closeCloudV167()">إغلاق</button></div>
+    <p>استخدم رابط مشروع Supabase والمفتاح القابل للنشر فقط. يمنع عقاري حفظ أو قبول Service Role داخل المتصفح.</p>
+    <label>رابط المشروع<input id="cloudUrlV167" inputmode="url" placeholder="https://project.supabase.co"></label>
+    <label>Publishable key<input id="cloudKeyV167" type="password" autocomplete="off" placeholder="sb_publishable_..."></label>
+    <div class="aq-v167-actions">
+      <button class="g" type="button" onclick="saveCloudConfigV167()">حفظ واختبار</button>
+      <button type="button" onclick="clearCloudConfigV167()">إزالة الربط المحلي</button>
+    </div>
+    <hr>
+    <label>البريد الإلكتروني<input id="cloudEmailV167" type="email" autocomplete="username" placeholder="name@example.com"></label>
+    <label>كلمة المرور<input id="cloudPasswordV167" type="password" autocomplete="current-password" placeholder="••••••••"></label>
+    <div class="aq-v167-actions">
+      <button class="g" type="button" onclick="cloudLoginV167()">دخول سحابي</button>
+      <button type="button" onclick="cloudLogoutV167()">خروج سحابي</button>
+    </div>
+    <div class="aq-v167-msg" id="cloudMsgV167">لم يتم اختبار الربط بعد.</div>
+  </div>
+</div>
+
+<script id="aqari-v167-cloud-js">
+(function(){
+  const CONFIG_KEY='aqari_cloud_config_v167',SESSION_KEY='aqari_cloud_session_v167';
+  const byId=id=>document.getElementById(id);
+  function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'null')}catch{return null}}
+  function session(){try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null')}catch{return null}}
+  function safeUrl(raw){
+    const u=new URL(String(raw||'').trim());
+    if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co'))throw new Error('رابط Supabase غير صحيح');
+    return u.origin;
+  }
+  function safeKey(raw){
+    const key=String(raw||'').trim();
+    if(!key)throw new Error('المفتاح القابل للنشر مطلوب');
+    if(/service[_-]?role|secret/i.test(key))throw new Error('مرفوض: لا تضع Service Role أو Secret Key في المتصفح');
+    if(!(key.startsWith('sb_publishable_')||key.startsWith('eyJ')))throw new Error('استخدم Publishable key أو anon key فقط');
+    return key;
+  }
+  async function request(path,options={}){
+    const c=config();if(!c)throw new Error('أدخل إعدادات الربط أولاً');
+    const s=session(),headers={apikey:c.key,'Content-Type':'application/json',...(options.headers||{})};
+    if(s?.access_token)headers.Authorization='Bearer '+s.access_token;
+    const res=await fetch(c.url+path,{...options,headers});
+    const text=await res.text();let data=null;try{data=text?JSON.parse(text):null}catch{data={message:text}}
+    if(!res.ok)throw new Error(data?.msg||data?.message||data?.error_description||('HTTP '+res.status));
+    return data;
+  }
+  function setMessage(text,kind='wait'){
+    const el=byId('cloudMsgV167');if(el)el.textContent=text;
+    const badge=byId('cloudStateV167');if(badge){badge.className='aq-v167-state '+kind;badge.textContent=kind==='ready'?'● مرتبط':kind==='bad'?'● خطأ':'● بانتظار الربط'}
+  }
+  function update(){
+    const c=config(),s=session();
+    const mode=byId('cloudModeV167'),auth=byId('cloudAuthV167'),rls=byId('cloudRlsV167');
+    if(mode)mode.textContent=c?'Cloud Ready':'Local Safe Mode';
+    if(auth)auth.textContent=s?.user?.email?'مسجل: '+s.user.email:'لا توجد جلسة سحابية';
+    if(rls)rls.textContent=c?'يتطلب تطبيق migration V167':'غير مطبق بعد';
+    setMessage(c?(s?'الربط والجلسة السحابية جاهزان.':'الإعدادات محفوظة محليًا. اختبر الاتصال أو سجل الدخول.'):'لم يتم إدخال إعدادات Supabase؛ الموقع مستمر بوضع Local Safe Mode.',c?'ready':'wait')
+  }
+  function build(){
+    const home=byId('home');if(!home)return;
+    let box=byId('aqariV167Cloud');
+    if(!box){
+      box=document.createElement('div');box.id='aqariV167Cloud';box.className='aq-v167-cloud';
+      const anchor=byId('aqariV166QA')||home.firstChild;
+      if(anchor&&anchor.parentNode===home)anchor.insertAdjacentElement('afterend',box);else home.insertBefore(box,home.firstChild);
+      box.innerHTML=`
+        <div class="aq-v167-head"><div><h3>Secure Cloud Onboarding</h3><small>تهيئة Supabase Auth وRLS بدون تعريض المفاتيح السرية أو تعطيل الوضع المحلي</small></div><div><span class="aq-v167-badge">V167 SECURE CLOUD</span> <span id="cloudStateV167" class="aq-v167-state wait">● بانتظار الربط</span></div></div>
+        <div class="aq-v167-grid">
+          <div class="aq-v167-card"><b>وضع التشغيل</b><small id="cloudModeV167">Local Safe Mode</small></div>
+          <div class="aq-v167-card"><b>المصادقة</b><small id="cloudAuthV167">لا توجد جلسة سحابية</small></div>
+          <div class="aq-v167-card"><b>حماية البيانات RLS</b><small id="cloudRlsV167">غير مطبق بعد</small></div>
+        </div>
+        <div class="aq-v167-actions"><button class="g" onclick="openCloudV167()">إعداد الربط الآمن</button><button onclick="testCloudV167()">اختبار الاتصال</button></div>`;
+    }
+    update();
+  }
+  window.openCloudV167=function(){const c=config();byId('cloudUrlV167').value=c?.url||'';byId('cloudKeyV167').value='';byId('aqariV167Modal').classList.add('on');update()}
+  window.closeCloudV167=function(){byId('aqariV167Modal').classList.remove('on');byId('cloudPasswordV167').value='';byId('cloudKeyV167').value=''}
+  window.saveCloudConfigV167=async function(){
+    try{const url=safeUrl(byId('cloudUrlV167').value),key=safeKey(byId('cloudKeyV167').value);localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,updatedAt:new Date().toISOString()}));await window.testCloudV167()}
+    catch(e){setMessage(e.message,'bad')}
+  }
+  window.clearCloudConfigV167=function(){localStorage.removeItem(CONFIG_KEY);sessionStorage.removeItem(SESSION_KEY);update()}
+  window.testCloudV167=async function(){try{await request('/auth/v1/settings',{method:'GET'});setMessage('تم الاتصال بخدمة المصادقة بنجاح.','ready');update();return true}catch(e){setMessage('فشل الاتصال: '+e.message,'bad');return false}}
+  window.cloudLoginV167=async function(){
+    try{
+      const email=byId('cloudEmailV167').value.trim(),password=byId('cloudPasswordV167').value;
+      if(!email||!password)throw new Error('أدخل البريد وكلمة المرور');
+      const data=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+      sessionStorage.setItem(SESSION_KEY,JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+(data.expires_in||3600)*1000,user:data.user}));
+      byId('cloudPasswordV167').value='';update();setMessage('تم تسجيل الدخول السحابي بنجاح.','ready')
+    }catch(e){setMessage('تعذر تسجيل الدخول: '+e.message,'bad')}
+  }
+  window.cloudLogoutV167=async function(){try{if(session())await request('/auth/v1/logout',{method:'POST'})}catch{}sessionStorage.removeItem(SESSION_KEY);update()}
+  const old=window.render;
+  if(typeof old==='function'&&!old.__v167){const wrapped=function(){const value=old.apply(this,arguments);setTimeout(build,0);return value};wrapped.__v167=true;window.render=wrapped}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
+  setTimeout(build,300);setTimeout(build,900);
 })();
 </script>
 
