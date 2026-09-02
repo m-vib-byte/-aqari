@@ -65,3 +65,17 @@ test('Vercel security headers are configured', () => {
     assert.ok(names.has(name), `missing ${name}`);
   }
 });
+
+
+test('V168 cloud controller replaces local-only authentication', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.match(html, /id="aqari-v168-cloud-js"/);
+  assert.match(html, /window\.login=window\.cloudLoginV168/);
+  assert.match(html, /window\.loginLocalV120=window\.cloudLoginV168/);
+  assert.match(html, /window\.persist=wrapped/);
+  assert.match(html, /\/rest\/v1\/aqari_memberships/);
+  assert.match(html, /\/rest\/v1\/aqari_app_state/);
+  assert.match(html, /revision=eq\./);
+  assert.doesNotMatch(html, /id="aqari-v167-cloud-js"/);
+  assert.doesNotMatch(html, /key\.startsWith\('eyJ'\)/);
+});
