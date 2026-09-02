@@ -1,0 +1,20 @@
+{
+  "name": "عقاري",
+  "short_name": "عقاري",
+  "description": "نظام إدارة الأملاك والعقارات",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#b88927",
+  "icons": [
+    {
+      "src": "/aqari-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
