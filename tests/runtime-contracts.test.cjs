@@ -30,7 +30,12 @@ function invoke(handler, method = 'GET') {
   return output;
 }
 
-for (const relativePath of ['api/health.js', 'api/health/deep.js', 'api/release.js']) {
+for (const relativePath of [
+  'api/health.js',
+  'api/health/deep.js',
+  'api/ops/status.js',
+  'api/release.js',
+]) {
   test(`${relativePath} follows the HTTP contract`, () => {
     const handler = require(path.join(root, relativePath));
     const get = invoke(handler, 'GET');
