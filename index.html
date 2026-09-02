@@ -1,4 +1,4 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V167 • Secure Cloud Onboarding</title><style>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V168 • Supabase Connected</title><style>
 :root{--g:#b88927;--l:#eadfc8;--bg:#f7f6f2}*{box-sizing:border-box}body{margin:0;font-family:Arial;background:var(--bg);color:#26221b}header{background:#fff;border-bottom:1px solid var(--l);padding:14px;position:sticky;top:0;z-index:4}.w{max-width:1260px;margin:auto}.r{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.brand{color:var(--g);font-weight:900;font-size:23px}button,input,select{padding:9px;border:1px solid var(--l);border-radius:10px;background:#fff}.g{background:var(--g);color:#fff}.tabs{display:flex;gap:6px;overflow:auto;padding:12px 0}.tabs button{white-space:nowrap}.tabs .on{background:var(--g);color:#fff}.p{display:none}.p.on{display:block}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.c{background:#fff;border:1px solid var(--l);border-radius:16px;padding:14px;margin-bottom:10px}.m b{display:block;color:var(--g);font-size:22px;margin-top:5px}table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #f1eadc;text-align:right;font-size:13px}.modal{display:none;position:fixed;inset:0;background:#0008;place-items:center;padding:15px;z-index:7}.modal.on{display:grid}.box{background:#fff;border-radius:18px;padding:16px;width:min(650px,100%)}.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.f{grid-template-columns:1fr}}.mobilebar{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--l);z-index:30;padding:7px;gap:6px;justify-content:space-around}.mobilebar button{flex:1;font-size:11px;padding:8px 4px}.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:#26221b;color:#fff;padding:10px 14px;border-radius:12px;z-index:50;display:none}.statusdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2d8b57;margin-inline:4px}@media(max-width:700px){body{padding-bottom:72px}.mobilebar{display:flex}header .brand{font-size:20px}.tabs{display:none}.c{border-radius:13px}.grid{grid-template-columns:repeat(2,1fr)}}@media print{header,.tabs,.mobilebar,.modal,.toast{display:none!important}body{background:#fff;padding:0}.c{border:0;box-shadow:none}}
 @media(max-width:760px){
  body{font-size:14px}
@@ -2713,7 +2713,7 @@ box-shadow:0 18px 46px rgba(74,50,11,.075)}
 
 </head><body>
 <div id="auth" style="position:fixed;inset:0;z-index:99;background:#f7f6f2;display:grid;place-items:center;padding:20px"><div class="c" style="width:min(430px,100%);padding:24px"><h1 style="color:var(--g);text-align:center">عقاري</h1><p style="text-align:center">AQARI Property Management</p><input id="loginName" value="المدير العام" placeholder="اسم المستخدم" style="width:100%;margin:5px 0"><select id="loginRole" style="width:100%;margin:5px 0"><option value="admin">المدير العام</option><option value="accountant">المحاسب</option><option value="collection">التحصيل</option><option value="maintenance">الصيانة</option><option value="property">العقارات</option></select><input id="loginPin" type="password" placeholder="رمز الدخول 1234" style="width:100%;margin:5px 0"><button class="g" style="width:100%;margin-top:8px" onclick="login()">دخول</button><div style="display:flex;gap:8px;margin-top:8px"><button style="flex:1" onclick="fillDemoLogin()">تعبئة دخول المدير</button><button style="flex:1" onclick="clearLoginSession()">مسح الجلسة</button></div><p id="loginHelp" style="font-size:12px;color:#7a7267;text-align:center;margin-top:8px">للتجربة: الرمز 1234</p></div></div>
-<header><div class="w r"><div><div class="brand">عقاري</div><small>AQARI • V167 SECURE CLOUD ONBOARDING</small></div><div><span id="sessionBadge" style="font-size:12px;color:#7a7267;margin-left:8px">غير مسجل</span> <button onclick="showNotifications()">🔔 <span id="notifCount">0</span></button> <input id="search" placeholder="بحث شامل..." oninput="doSearch(this.value)"> <select id="lang" onchange="setLang(this.value)"><option value="ar">العربية</option><option value="en">English</option><option value="hi">हिन्दी</option></select> <button onclick="backup()">نسخة احتياطية</button><button onclick="logout()">خروج</button><button onclick="restoreFile.click()">استعادة</button><input id="restoreFile" type="file" accept=".json" style="display:none" onchange="restore(event)"><button class="g" onclick="add()">+ إضافة</button></div></div></header>
+<header><div class="w r"><div><div class="brand">عقاري</div><small>AQARI • V168 SUPABASE CONNECTED</small></div><div><span id="sessionBadge" style="font-size:12px;color:#7a7267;margin-left:8px">غير مسجل</span> <button onclick="showNotifications()">🔔 <span id="notifCount">0</span></button> <input id="search" placeholder="بحث شامل..." oninput="doSearch(this.value)"> <select id="lang" onchange="setLang(this.value)"><option value="ar">العربية</option><option value="en">English</option><option value="hi">हिन्दी</option></select> <button onclick="backup()">نسخة احتياطية</button><button onclick="logout()">خروج</button><button onclick="restoreFile.click()">استعادة</button><input id="restoreFile" type="file" accept=".json" style="display:none" onchange="restore(event)"><button class="g" onclick="add()">+ إضافة</button></div></div></header>
 <main class="w"><div class="tabs" id="tabs"></div><section id="home" class="p on"><div class="grid" id="kpis"></div><div class="c"><h3>مركز العمليات اليومي</h3><div id="ops"></div></div>
 <div class="c"><div class="r"><h3>اختصارات حسب الصلاحية</h3><span><span class="statusdot"></span><span id="onlineState">متصل</span></span></div><div id="roleShortcuts" class="grid"></div></div>
 <div class="c"><h3>تشغيل تلقائي</h3><div class="r">
@@ -15056,119 +15056,554 @@ Verify failed delivery count</div>
 })();
 </script>
 
-<style id="aqari-v167-cloud-css">
-.aq-v167-cloud{border:1px solid #dbc38f;background:linear-gradient(145deg,#fff,#fbf5e9);border-radius:18px;padding:15px;margin:12px 0;box-shadow:0 10px 28px #5b43100d}
-.aq-v167-head,.aq-v167-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.aq-v167-head h3{margin:0}.aq-v167-head small{display:block;color:#746b5d;margin-top:4px}
-.aq-v167-badge,.aq-v167-state{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}
-.aq-v167-badge{background:#1f2937;color:#f4cf77}.aq-v167-state.ready{background:#e4f6eb;color:#17673a}.aq-v167-state.wait{background:#fff2cc;color:#805d00}.aq-v167-state.bad{background:#fde8e8;color:#9c2424}
-.aq-v167-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.aq-v167-card{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:12px}
-.aq-v167-card b{display:block;margin-bottom:5px}.aq-v167-card small{color:#746b5d;line-height:1.55}.aq-v167-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
-.aq-v167-modal{display:none;position:fixed;inset:0;background:#0009;z-index:60000;align-items:center;justify-content:center;padding:15px}.aq-v167-modal.on{display:flex}
-.aq-v167-dialog{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:17px}.aq-v167-dialog input{width:100%;margin:5px 0}.aq-v167-msg{padding:9px;border-radius:10px;background:#f7f6f2;margin-top:8px;white-space:pre-wrap}
-@media(max-width:760px){.aq-v167-grid{grid-template-columns:1fr}}
+<style id="aqari-v168-cloud-css">
+.aq-v168-gate{position:fixed;inset:0;z-index:90000;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at top,#4a391a 0,#17130d 58%,#090806 100%)}
+.aq-v168-gate.on{display:flex}.aq-v168-login{width:min(440px,96vw);background:#fff;border:1px solid #d9bd7d;border-radius:24px;padding:24px;box-shadow:0 28px 90px #000a}
+.aq-v168-logo{text-align:center}.aq-v168-logo h1{margin:0;color:#a77920;font-size:34px}.aq-v168-logo p{margin:7px 0 18px;color:#746b5d}
+.aq-v168-login label,.aq-v168-dialog label{display:block;margin-top:10px;font-weight:700}.aq-v168-login input,.aq-v168-dialog input{width:100%;margin-top:6px}
+.aq-v168-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.aq-v168-actions button{flex:1;min-width:125px}
+.aq-v168-note{font-size:12px;line-height:1.7;color:#6d6456;background:#fbf5e9;border:1px solid #ead9b6;border-radius:12px;padding:10px;margin-top:12px}
+.aq-v168-msg{padding:10px;border-radius:11px;background:#f7f6f2;margin-top:10px;white-space:pre-wrap;font-size:12px;line-height:1.6}
+.aq-v168-msg.ready{background:#e7f7ed;color:#17673a}.aq-v168-msg.bad{background:#fde8e8;color:#922828}.aq-v168-msg.wait{background:#fff5d9;color:#725400}
+.aq-v168-cloud{border:1px solid #d8bd80;background:linear-gradient(145deg,#fff,#fbf5e9);border-radius:18px;padding:15px;margin:12px 0;box-shadow:0 10px 28px #5b43100d}
+.aq-v168-head,.aq-v168-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.aq-v168-head h3{margin:0}.aq-v168-head small{display:block;color:#746b5d;margin-top:4px}
+.aq-v168-badge,.aq-v168-state{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}
+.aq-v168-badge{background:#1f2937;color:#f4cf77}.aq-v168-state.ready{background:#e4f6eb;color:#17673a}.aq-v168-state.wait{background:#fff2cc;color:#805d00}.aq-v168-state.bad{background:#fde8e8;color:#9c2424}
+.aq-v168-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}.aq-v168-card{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:12px}.aq-v168-card b{display:block;margin-bottom:5px}.aq-v168-card small{color:#746b5d;line-height:1.55}
+.aq-v168-modal{display:none;position:fixed;inset:0;background:#0009;z-index:91000;align-items:center;justify-content:center;padding:15px}.aq-v168-modal.on{display:flex}
+.aq-v168-dialog{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:17px}
+@media(max-width:760px){.aq-v168-grid{grid-template-columns:1fr 1fr}.aq-v168-actions button{min-width:100%}}@media(max-width:420px){.aq-v168-grid{grid-template-columns:1fr}}
 </style>
 
-<div class="aq-v167-modal" id="aqariV167Modal" role="dialog" aria-modal="true" aria-labelledby="aqariV167Title">
-  <div class="aq-v167-dialog">
-    <div class="aq-v167-row"><h3 id="aqariV167Title">ربط عقاري الآمن</h3><button type="button" onclick="closeCloudV167()">إغلاق</button></div>
-    <p>استخدم رابط مشروع Supabase والمفتاح القابل للنشر فقط. يمنع عقاري حفظ أو قبول Service Role داخل المتصفح.</p>
-    <label>رابط المشروع<input id="cloudUrlV167" inputmode="url" placeholder="https://project.supabase.co"></label>
-    <label>Publishable key<input id="cloudKeyV167" type="password" autocomplete="off" placeholder="sb_publishable_..."></label>
-    <div class="aq-v167-actions">
-      <button class="g" type="button" onclick="saveCloudConfigV167()">حفظ واختبار</button>
-      <button type="button" onclick="clearCloudConfigV167()">إزالة الربط المحلي</button>
+<div class="aq-v168-gate on" id="aqariCloudGateV168" role="dialog" aria-modal="true" aria-labelledby="aqariCloudGateTitleV168">
+  <div class="aq-v168-login">
+    <div class="aq-v168-logo"><h1 id="aqariCloudGateTitleV168">عقاري</h1><p>دخول آمن عبر Supabase</p></div>
+    <label>البريد الإلكتروني<input id="cloudEmailV168" type="email" autocomplete="username" inputmode="email" placeholder="name@example.com"></label>
+    <label>كلمة المرور<input id="cloudPasswordV168" type="password" autocomplete="current-password" placeholder="10 أحرف أو أكثر"></label>
+    <div class="aq-v168-actions">
+      <button class="g" type="button" data-cloud-auth-action onclick="cloudLoginV168()">دخول</button>
+      <button type="button" data-cloud-auth-action onclick="cloudSignupV168()">إنشاء حساب المدير لأول مرة</button>
     </div>
-    <hr>
-    <label>البريد الإلكتروني<input id="cloudEmailV167" type="email" autocomplete="username" placeholder="name@example.com"></label>
-    <label>كلمة المرور<input id="cloudPasswordV167" type="password" autocomplete="current-password" placeholder="••••••••"></label>
-    <div class="aq-v167-actions">
-      <button class="g" type="button" onclick="cloudLoginV167()">دخول سحابي</button>
-      <button type="button" onclick="cloudLogoutV167()">خروج سحابي</button>
-    </div>
-    <div class="aq-v167-msg" id="cloudMsgV167">لم يتم اختبار الربط بعد.</div>
+    <div class="aq-v168-actions"><button type="button" data-cloud-auth-action onclick="cloudRecoveryV168()">نسيت كلمة المرور</button></div>
+    <div class="aq-v168-note">الحسابات غير المصرح بها مرفوضة من قاعدة البيانات. أول مرة فقط: أنشئ الحساب ثم أكّد البريد إذا وصلتك رسالة تأكيد.</div>
+    <div class="aq-v168-msg wait" id="cloudGateMsgV168">جاري التحقق من الجلسة الآمنة…</div>
   </div>
 </div>
 
-<script id="aqari-v167-cloud-js">
+<div class="aq-v168-modal" id="aqariCloudModalV168" role="dialog" aria-modal="true" aria-labelledby="aqariCloudTitleV168">
+  <div class="aq-v168-dialog">
+    <div class="aq-v168-row"><h3 id="aqariCloudTitleV168">حساب عقاري السحابي</h3><button type="button" onclick="closeCloudV168()">إغلاق</button></div>
+    <div class="aq-v168-msg wait" id="cloudAccountV168">لا توجد جلسة.</div>
+    <label>كلمة مرور جديدة<input id="cloudNewPasswordV168" type="password" autocomplete="new-password" placeholder="10 أحرف أو أكثر"></label>
+    <div class="aq-v168-actions">
+      <button class="g" type="button" onclick="changeCloudPasswordV168()">تغيير كلمة المرور</button>
+      <button type="button" onclick="cloudLogoutV168()">تسجيل الخروج</button>
+    </div>
+  </div>
+</div>
+
+<script id="aqari-v168-cloud-js">
 (function(){
-  const CONFIG_KEY='aqari_cloud_config_v167',SESSION_KEY='aqari_cloud_session_v167';
-  const byId=id=>document.getElementById(id);
-  function config(){try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||'null')}catch{return null}}
-  function session(){try{return JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null')}catch{return null}}
-  function safeUrl(raw){
-    const u=new URL(String(raw||'').trim());
-    if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co'))throw new Error('رابط Supabase غير صحيح');
-    return u.origin;
+  'use strict';
+
+  const CLOUD_URL='https://qtavnufzbkdfeauyukot.supabase.co';
+  const CLOUD_KEY='sb_publishable_5REcxBsqd-bODrDyuGVYxw_QEH50mgZ';
+  const SESSION_KEY='aqari_cloud_session_v168';
+  const AUTO_KEY='aqari_cloud_autosync_v168';
+  const LAST_REV_KEY='aqari_cloud_last_revision_v168';
+  const PENDING_KEY='aqari_cloud_pending_v168';
+  const ROLE_MAP={
+    general_manager:{legacy:'admin',local:'مدير عام',label:'مدير عام',write:true},
+    property_manager:{legacy:'property',local:'مدير عقار',label:'مدير عقار',write:true},
+    accountant:{legacy:'accountant',local:'تحصيل',label:'محاسب',write:true},
+    viewer:{legacy:'viewer',local:'مشاهدة فقط',label:'مشاهدة فقط',write:false}
+  };
+  const byId=function(id){return document.getElementById(id)};
+  let cloudContext=null;
+  let remoteState=null;
+  let saveTimer=null;
+  let saveInFlight=false;
+  let saveAgain=false;
+  let suppressSave=false;
+  let basePersist=null;
+
+  function readJson(storage,key){
+    try{return JSON.parse(storage.getItem(key)||'null')}catch{return null}
   }
-  function safeKey(raw){
-    const key=String(raw||'').trim();
-    if(!key)throw new Error('المفتاح القابل للنشر مطلوب');
-    if(/service[_-]?role|secret/i.test(key))throw new Error('مرفوض: لا تضع Service Role أو Secret Key في المتصفح');
-    if(!(key.startsWith('sb_publishable_')||key.startsWith('eyJ')))throw new Error('استخدم Publishable key أو anon key فقط');
-    return key;
+  function session(){return readJson(sessionStorage,SESSION_KEY)}
+  function saveSession(data){
+    const old=session()||{};
+    const next={
+      access_token:data.access_token||old.access_token,
+      refresh_token:data.refresh_token||old.refresh_token,
+      expires_at:Date.now()+Number(data.expires_in||3600)*1000,
+      user:data.user||old.user||null
+    };
+    sessionStorage.setItem(SESSION_KEY,JSON.stringify(next));
+    return next
   }
-  async function request(path,options={}){
-    const c=config();if(!c)throw new Error('أدخل إعدادات الربط أولاً');
-    const s=session(),headers={apikey:c.key,'Content-Type':'application/json',...(options.headers||{})};
-    if(s?.access_token)headers.Authorization='Bearer '+s.access_token;
-    const res=await fetch(c.url+path,{...options,headers});
-    const text=await res.text();let data=null;try{data=text?JSON.parse(text):null}catch{data={message:text}}
-    if(!res.ok)throw new Error(data?.msg||data?.message||data?.error_description||('HTTP '+res.status));
-    return data;
+  function clearSession(){sessionStorage.removeItem(SESSION_KEY)}
+  function setBusy(value){
+    document.querySelectorAll('[data-cloud-auth-action]').forEach(function(button){button.disabled=!!value})
   }
-  function setMessage(text,kind='wait'){
-    const el=byId('cloudMsgV167');if(el)el.textContent=text;
-    const badge=byId('cloudStateV167');if(badge){badge.className='aq-v167-state '+kind;badge.textContent=kind==='ready'?'● مرتبط':kind==='bad'?'● خطأ':'● بانتظار الربط'}
+  function notice(text,kind){
+    ['cloudGateMsgV168','cloudMsgV168'].forEach(function(id){
+      const el=byId(id);if(el){el.textContent=text;el.className='aq-v168-msg '+(kind||'wait')}
+    })
   }
-  function update(){
-    const c=config(),s=session();
-    const mode=byId('cloudModeV167'),auth=byId('cloudAuthV167'),rls=byId('cloudRlsV167');
-    if(mode)mode.textContent=c?'Cloud Ready':'Local Safe Mode';
-    if(auth)auth.textContent=s?.user?.email?'مسجل: '+s.user.email:'لا توجد جلسة سحابية';
-    if(rls)rls.textContent=c?'يتطلب تطبيق migration V167':'غير مطبق بعد';
-    setMessage(c?(s?'الربط والجلسة السحابية جاهزان.':'الإعدادات محفوظة محليًا. اختبر الاتصال أو سجل الدخول.'):'لم يتم إدخال إعدادات Supabase؛ الموقع مستمر بوضع Local Safe Mode.',c?'ready':'wait')
+  function errorText(error){
+    const raw=String(error&&error.message||error||'خطأ غير معروف');
+    if(/invalid login credentials/i.test(raw))return 'البريد أو كلمة المرور غير صحيحة.';
+    if(/email not confirmed/i.test(raw))return 'أكد بريدك الإلكتروني أولاً ثم حاول الدخول.';
+    if(/user already registered/i.test(raw))return 'الحساب موجود؛ استخدم زر الدخول.';
+    if(/database error saving new user|not authorized/i.test(raw))return 'هذا البريد غير مصرح له باستخدام عقاري.';
+    if(/failed to fetch|network/i.test(raw))return 'تعذر الاتصال بالخدمة السحابية. تحقق من الإنترنت.';
+    return raw
   }
-  function build(){
+  async function rawRequest(path,options,token){
+    options=options||{};
+    const headers=Object.assign({
+      apikey:CLOUD_KEY,
+      'Content-Type':'application/json',
+      Accept:'application/json'
+    },options.headers||{});
+    if(token)headers.Authorization='Bearer '+token;
+    const response=await fetch(CLOUD_URL+path,Object.assign({},options,{headers:headers}));
+    const body=await response.text();
+    let data=null;
+    try{data=body?JSON.parse(body):null}catch(_){data={message:body}}
+    if(!response.ok){
+      const error=new Error(data&&(
+        data.error_description||data.msg||data.message||data.error
+      )||('HTTP '+response.status));
+      error.status=response.status;error.data=data;throw error
+    }
+    return data
+  }
+  async function refreshSession(){
+    const current=session();
+    if(!current||!current.refresh_token)return null;
+    try{
+      const data=await rawRequest('/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',body:JSON.stringify({refresh_token:current.refresh_token})
+      });
+      return saveSession(data)
+    }catch(error){
+      clearSession();throw error
+    }
+  }
+  async function freshSession(){
+    let current=session();
+    if(!current)return null;
+    if(!current.expires_at||Date.now()>current.expires_at-60000)current=await refreshSession();
+    return current
+  }
+  async function authedRequest(path,options){
+    const current=await freshSession();
+    if(!current)throw new Error('انتهت الجلسة. سجل الدخول مرة أخرى.');
+    try{return await rawRequest(path,options,current.access_token)}
+    catch(error){
+      if(error.status===401&&current.refresh_token){
+        const renewed=await refreshSession();
+        return rawRequest(path,options,renewed.access_token)
+      }
+      throw error
+    }
+  }
+  function clearCompatibility(){
+    ['aqari_session_v120'].forEach(function(key){sessionStorage.removeItem(key)});
+    ['aqari_session_v31','aqari_session_v44'].forEach(function(key){
+      localStorage.removeItem(key);sessionStorage.removeItem(key)
+    })
+  }
+  function roleInfo(){return ROLE_MAP[cloudContext&&cloudContext.role]||ROLE_MAP.viewer}
+  function setCompatibility(){
+    if(!cloudContext)return;
+    const role=roleInfo();
+    sessionStorage.setItem('aqari_session_v120',JSON.stringify({
+      username:cloudContext.displayName,
+      email:cloudContext.email,
+      role:role.local,
+      loginAt:new Date().toISOString(),
+      source:'supabase'
+    }));
+    localStorage.setItem('aqari_session_v31',JSON.stringify({
+      name:cloudContext.displayName,
+      role:role.legacy,
+      source:'supabase'
+    }));
+    const oldAuth=byId('auth');if(oldAuth)oldAuth.style.display='none';
+    const oldGate=byId('loginGateV120');if(oldGate)oldGate.style.display='none';
+    if(typeof window.applyRole==='function')window.applyRole(role.legacy)
+  }
+  function showGate(message,kind){
+    cloudContext=null;remoteState=null;clearCompatibility();
+    const oldAuth=byId('auth');if(oldAuth)oldAuth.style.display='none';
+    const oldGate=byId('loginGateV120');if(oldGate)oldGate.style.display='none';
+    const gate=byId('aqariCloudGateV168');if(gate)gate.classList.add('on');
+    updateCloudUI();
+    notice(message||'سجل الدخول للمتابعة.',''+(kind||'wait'))
+  }
+  function unlock(){
+    setCompatibility();
+    const gate=byId('aqariCloudGateV168');if(gate)gate.classList.remove('on');
+    const oldAuth=byId('auth');if(oldAuth)oldAuth.style.display='none';
+    const oldGate=byId('loginGateV120');if(oldGate)oldGate.style.display='none';
+    updateCloudUI()
+  }
+  function captureAuthCallback(){
+    if(!location.hash||location.hash.indexOf('access_token=')<0)return false;
+    const params=new URLSearchParams(location.hash.slice(1));
+    const access=params.get('access_token'),refresh=params.get('refresh_token');
+    if(!access)return false;
+    saveSession({
+      access_token:access,
+      refresh_token:refresh,
+      expires_in:Number(params.get('expires_in')||3600)
+    });
+    history.replaceState(null,document.title,location.pathname+location.search);
+    return true
+  }
+  async function loadIdentity(){
+    const current=await freshSession();
+    if(!current)return null;
+    const user=await authedRequest('/auth/v1/user',{method:'GET'});
+    const memberships=await authedRequest(
+      '/rest/v1/aqari_memberships?select=workspace_id,role,is_active&user_id=eq.'+
+      encodeURIComponent(user.id)+'&is_active=eq.true&limit=1',{method:'GET'}
+    );
+    if(!Array.isArray(memberships)||!memberships.length)throw new Error('الحساب غير مفعل في مساحة عمل عقاري.');
+    const profiles=await authedRequest(
+      '/rest/v1/aqari_profiles?select=display_name&user_id=eq.'+
+      encodeURIComponent(user.id)+'&limit=1',{method:'GET'}
+    );
+    if(!Array.isArray(profiles)||!profiles.length)throw new Error('ملف الحساب غير موجود.');
+    const membership=memberships[0];
+    cloudContext={
+      userId:user.id,
+      email:user.email||'',
+      displayName:profiles[0].display_name,
+      workspaceId:membership.workspace_id,
+      role:membership.role
+    };
+    const updated=session()||{};updated.user=user;sessionStorage.setItem(SESSION_KEY,JSON.stringify(updated));
+    return cloudContext
+  }
+  async function fetchRemoteState(){
+    if(!cloudContext)return null;
+    const rows=await authedRequest(
+      '/rest/v1/aqari_app_state?select=workspace_id,payload,revision,updated_at&workspace_id=eq.'+
+      encodeURIComponent(cloudContext.workspaceId)+'&limit=1',{method:'GET'}
+    );
+    remoteState=Array.isArray(rows)&&rows.length?rows[0]:null;
+    updateCloudUI();
+    return remoteState
+  }
+  function payloadEmpty(payload){
+    return !payload||typeof payload!=='object'||Array.isArray(payload)||Object.keys(payload).length===0
+  }
+  function canonical(value){
+    if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
+    if(value&&typeof value==='object'){
+      return '{'+Object.keys(value).sort().map(function(key){
+        return JSON.stringify(key)+':'+canonical(value[key])
+      }).join(',')+'}'
+    }
+    return JSON.stringify(value)
+  }
+  async function checksum(value){
+    const plain=canonical(value);
+    if(!window.crypto||!crypto.subtle)return plain;
+    const bytes=new TextEncoder().encode(plain);
+    const hash=await crypto.subtle.digest('SHA-256',bytes);
+    return Array.from(new Uint8Array(hash)).map(function(byte){return byte.toString(16).padStart(2,'0')}).join('')
+  }
+  function snapshotDb(){
+    if(typeof db!=='object'||!db)throw new Error('بيانات الجهاز غير متاحة.');
+    return JSON.parse(JSON.stringify(db))
+  }
+  function canWrite(){return !!roleInfo().write}
+  function autosync(){return localStorage.getItem(AUTO_KEY)==='true'}
+  function setAutosync(value){
+    localStorage.setItem(AUTO_KEY,value?'true':'false');
+    updateCloudUI()
+  }
+  async function writeSnapshot(snapshot,manual){
+    if(!cloudContext)throw new Error('سجل الدخول أولاً.');
+    if(!canWrite())throw new Error('صلاحيتك للعرض فقط.');
+    if(saveInFlight){saveAgain=true;return null}
+    saveInFlight=true;
+    try{
+      if(!remoteState)await fetchRemoteState();
+      const select='select=workspace_id,payload,revision,updated_at';
+      let rows;
+      if(remoteState){
+        rows=await authedRequest(
+          '/rest/v1/aqari_app_state?workspace_id=eq.'+encodeURIComponent(cloudContext.workspaceId)+
+          '&revision=eq.'+encodeURIComponent(remoteState.revision)+'&'+select,
+          {
+            method:'PATCH',
+            headers:{Prefer:'return=representation'},
+            body:JSON.stringify({payload:snapshot})
+          }
+        );
+        if(!Array.isArray(rows)||!rows.length){
+          await fetchRemoteState();
+          setAutosync(false);
+          throw new Error('تعارض مزامنة: توجد نسخة أحدث في السحابة. استرجعها أو راجعها قبل الرفع.')
+        }
+      }else{
+        rows=await authedRequest('/rest/v1/aqari_app_state?'+select,{
+          method:'POST',
+          headers:{Prefer:'return=representation'},
+          body:JSON.stringify({workspace_id:cloudContext.workspaceId,payload:snapshot})
+        })
+      }
+      const saved=rows&&rows[0];
+      if(!saved)throw new Error('لم تُرجع السحابة نسخة محفوظة.');
+      const localHash=await checksum(snapshot),cloudHash=await checksum(saved.payload);
+      if(localHash!==cloudHash)throw new Error('فشل التحقق من النسخة السحابية.');
+      remoteState=saved;
+      localStorage.setItem(LAST_REV_KEY,String(saved.revision));
+      localStorage.removeItem(PENDING_KEY);
+      if(manual)setAutosync(true);
+      notice('محفوظ سحابيًا ومتحقق منه • المراجعة '+saved.revision,'ready');
+      updateCloudUI();
+      return saved
+    }finally{
+      saveInFlight=false;
+      if(saveAgain){saveAgain=false;scheduleCloudSave()}
+    }
+  }
+  function scheduleCloudSave(){
+    if(suppressSave||!autosync()||!cloudContext||!canWrite())return;
+    localStorage.setItem(PENDING_KEY,'true');
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(async function(){
+      try{await writeSnapshot(snapshotDb(),false)}
+      catch(error){notice('تعذر الحفظ السحابي: '+errorText(error),'bad')}
+    },750)
+  }
+  function installPersistHook(){
+    if(typeof window.persist!=='function'||window.persist.__v168)return;
+    basePersist=window.persist;
+    const wrapped=function(){
+      const value=basePersist.apply(this,arguments);
+      scheduleCloudSave();
+      return value
+    };
+    wrapped.__v168=true;
+    window.persist=wrapped
+  }
+  function applyRemoteToDevice(remote,automatic){
+    if(!remote||payloadEmpty(remote.payload))throw new Error('لا توجد بيانات سحابية للاسترجاع.');
+    if(!automatic&&!window.confirm('سيتم استبدال بيانات عقاري الأساسية على هذا الجهاز بالنسخة السحابية. متابعة؟'))return false;
+    suppressSave=true;
+    try{
+      db=JSON.parse(JSON.stringify(remote.payload));
+      if(basePersist)basePersist();else localStorage.setItem('aqari_v30',JSON.stringify(db));
+      localStorage.setItem(LAST_REV_KEY,String(remote.revision));
+      localStorage.removeItem(PENDING_KEY);
+      setAutosync(true);
+      if(typeof window.render==='function')window.render();
+      notice('تم استرجاع النسخة السحابية • المراجعة '+remote.revision,'ready');
+      updateCloudUI();
+      return true
+    }finally{suppressSave=false}
+  }
+  function updateCloudUI(){
+    const connected=!!cloudContext;
+    const state=byId('cloudStateV168');
+    if(state){
+      state.className='aq-v168-state '+(connected?'ready':'wait');
+      state.textContent=connected?'● مرتبط':'● يتطلب دخول'
+    }
+    const mode=byId('cloudModeV168');if(mode)mode.textContent='Supabase Production';
+    const auth=byId('cloudAuthV168');if(auth)auth.textContent=connected?(cloudContext.displayName+' • '+roleInfo().label):'غير مسجل';
+    const revision=byId('cloudRevisionV168');if(revision)revision.textContent=remoteState?('مراجعة '+remoteState.revision):'لم تُحمّل';
+    const sync=byId('cloudSyncV168');if(sync)sync.textContent=autosync()?'تلقائية ومفعلة':'يدوية حتى اختيار نسخة';
+    const toggle=byId('cloudToggleV168');if(toggle)toggle.textContent=autosync()?'إيقاف المزامنة':'تشغيل المزامنة';
+    const account=byId('cloudAccountV168');
+    if(account){
+      account.textContent=connected?
+        (cloudContext.email+' • '+roleInfo().label+' • مساحة العمل '+cloudContext.workspaceId):
+        'لا توجد جلسة.';
+      account.className='aq-v168-msg '+(connected?'ready':'wait')
+    }
+  }
+  function buildPanel(){
     const home=byId('home');if(!home)return;
-    let box=byId('aqariV167Cloud');
+    let box=byId('aqariV168Cloud');
     if(!box){
-      box=document.createElement('div');box.id='aqariV167Cloud';box.className='aq-v167-cloud';
+      box=document.createElement('div');box.id='aqariV168Cloud';box.className='aq-v168-cloud';
       const anchor=byId('aqariV166QA')||home.firstChild;
       if(anchor&&anchor.parentNode===home)anchor.insertAdjacentElement('afterend',box);else home.insertBefore(box,home.firstChild);
-      box.innerHTML=`
-        <div class="aq-v167-head"><div><h3>Secure Cloud Onboarding</h3><small>تهيئة Supabase Auth وRLS بدون تعريض المفاتيح السرية أو تعطيل الوضع المحلي</small></div><div><span class="aq-v167-badge">V167 SECURE CLOUD</span> <span id="cloudStateV167" class="aq-v167-state wait">● بانتظار الربط</span></div></div>
-        <div class="aq-v167-grid">
-          <div class="aq-v167-card"><b>وضع التشغيل</b><small id="cloudModeV167">Local Safe Mode</small></div>
-          <div class="aq-v167-card"><b>المصادقة</b><small id="cloudAuthV167">لا توجد جلسة سحابية</small></div>
-          <div class="aq-v167-card"><b>حماية البيانات RLS</b><small id="cloudRlsV167">غير مطبق بعد</small></div>
-        </div>
-        <div class="aq-v167-actions"><button class="g" onclick="openCloudV167()">إعداد الربط الآمن</button><button onclick="testCloudV167()">اختبار الاتصال</button></div>`;
+      box.innerHTML=
+        '<div class="aq-v168-head"><div><h3>سحابة عقاري</h3><small>مصادقة وصلاحيات RLS ونسخة مشتركة محمية</small></div>'+
+        '<div><span class="aq-v168-badge">V168 SUPABASE</span> <span id="cloudStateV168" class="aq-v168-state wait">● يتطلب دخول</span></div></div>'+
+        '<div class="aq-v168-grid">'+
+        '<div class="aq-v168-card"><b>البيئة</b><small id="cloudModeV168">Supabase Production</small></div>'+
+        '<div class="aq-v168-card"><b>الحساب</b><small id="cloudAuthV168">غير مسجل</small></div>'+
+        '<div class="aq-v168-card"><b>نسخة السحابة</b><small id="cloudRevisionV168">لم تُحمّل</small></div>'+
+        '<div class="aq-v168-card"><b>المزامنة</b><small id="cloudSyncV168">يدوية حتى اختيار نسخة</small></div></div>'+
+        '<div class="aq-v168-actions">'+
+        '<button class="g" type="button" onclick="uploadLocalToCloudV168()">رفع بيانات هذا الجهاز</button>'+
+        '<button type="button" onclick="restoreCloudToDeviceV168()">استرجاع السحابة</button>'+
+        '<button id="cloudToggleV168" type="button" onclick="toggleCloudAutoSyncV168()">تشغيل المزامنة</button>'+
+        '<button type="button" onclick="openCloudV168()">الحساب والأمان</button></div>'+
+        '<div class="aq-v168-msg wait" id="cloudMsgV168">الربط جاهز.</div>'
     }
-    update();
+    updateCloudUI()
   }
-  window.openCloudV167=function(){const c=config();byId('cloudUrlV167').value=c?.url||'';byId('cloudKeyV167').value='';byId('aqariV167Modal').classList.add('on');update()}
-  window.closeCloudV167=function(){byId('aqariV167Modal').classList.remove('on');byId('cloudPasswordV167').value='';byId('cloudKeyV167').value=''}
-  window.saveCloudConfigV167=async function(){
-    try{const url=safeUrl(byId('cloudUrlV167').value),key=safeKey(byId('cloudKeyV167').value);localStorage.setItem(CONFIG_KEY,JSON.stringify({url,key,updatedAt:new Date().toISOString()}));await window.testCloudV167()}
-    catch(e){setMessage(e.message,'bad')}
-  }
-  window.clearCloudConfigV167=function(){localStorage.removeItem(CONFIG_KEY);sessionStorage.removeItem(SESSION_KEY);update()}
-  window.testCloudV167=async function(){try{await request('/auth/v1/settings',{method:'GET'});setMessage('تم الاتصال بخدمة المصادقة بنجاح.','ready');update();return true}catch(e){setMessage('فشل الاتصال: '+e.message,'bad');return false}}
-  window.cloudLoginV167=async function(){
+  async function bootstrap(){
+    captureAuthCallback();
+    installOverrides();
+    installPersistHook();
+    buildPanel();
+    if(!session()){showGate('سجل الدخول بحساب عقاري المصرح.','wait');return}
     try{
-      const email=byId('cloudEmailV167').value.trim(),password=byId('cloudPasswordV167').value;
-      if(!email||!password)throw new Error('أدخل البريد وكلمة المرور');
-      const data=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
-      sessionStorage.setItem(SESSION_KEY,JSON.stringify({access_token:data.access_token,refresh_token:data.refresh_token,expires_at:Date.now()+(data.expires_in||3600)*1000,user:data.user}));
-      byId('cloudPasswordV167').value='';update();setMessage('تم تسجيل الدخول السحابي بنجاح.','ready')
-    }catch(e){setMessage('تعذر تسجيل الدخول: '+e.message,'bad')}
+      await loadIdentity();
+      await fetchRemoteState();
+      unlock();
+      if(autosync()&&remoteState&&!payloadEmpty(remoteState.payload)){
+        applyRemoteToDevice(remoteState,true)
+      }else if(remoteState&&payloadEmpty(remoteState.payload)){
+        setAutosync(false);
+        notice('السحابة جاهزة وفارغة. اضغط «رفع بيانات هذا الجهاز» مرة واحدة.','wait')
+      }else{
+        notice('تم الاتصال بالسحابة. اختر رفع بيانات الجهاز أو استرجاع النسخة السحابية.','ready')
+      }
+      if(localStorage.getItem(PENDING_KEY)==='true'&&autosync())scheduleCloudSave()
+    }catch(error){
+      clearSession();
+      showGate(errorText(error),'bad')
+    }
   }
-  window.cloudLogoutV167=async function(){try{if(session())await request('/auth/v1/logout',{method:'POST'})}catch{}sessionStorage.removeItem(SESSION_KEY);update()}
-  const old=window.render;
-  if(typeof old==='function'&&!old.__v167){const wrapped=function(){const value=old.apply(this,arguments);setTimeout(build,0);return value};wrapped.__v167=true;window.render=wrapped}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build);else build();
-  setTimeout(build,300);setTimeout(build,900);
+  function installOverrides(){
+    window.login=window.cloudLoginV168;
+    window.loginLocalV120=window.cloudLoginV168;
+    window.logout=window.cloudLogoutV168;
+    window.lockNowV120=window.cloudLogoutV168;
+    window.cloudLoginV167=window.cloudLoginV168;
+    window.cloudLogoutV167=window.cloudLogoutV168;
+    window.openCloudV167=window.openCloudV168;
+    window.localAccessV120=function(){
+      const role=roleInfo();
+      return {username:cloudContext&&cloudContext.displayName||'cloud',pin:'',role:role.local}
+    };
+    window.usersV121=function(){
+      if(!cloudContext)return [];
+      return [{id:cloudContext.userId,username:cloudContext.displayName,pin:'',role:roleInfo().local,status:'نشط',source:'supabase'}]
+    };
+    window.saveUsersV121=function(){notice('إدارة المستخدمين المحليين متوقفة؛ الصلاحيات من Supabase.','wait')};
+    window.saveLocalAccessV120=window.saveUsersV121;
+    window.saveUserV121=window.saveUsersV121;
+    if(typeof window.migratePinsV122==='function')window.migratePinsV122=window.saveUsersV121;
+    ['agUsernameV120','agPinV120','agRoleV120','ucNameV121','ucPinV121','ucRoleV121','ucStatusV121'].forEach(function(id){
+      const element=byId(id);if(element)element.disabled=true
+    })
+  }
+
+  window.cloudLoginV168=async function(){
+    setBusy(true);
+    try{
+      const email=String(byId('cloudEmailV168').value||'').trim().toLowerCase();
+      const password=byId('cloudPasswordV168').value;
+      if(!email||!password)throw new Error('أدخل البريد وكلمة المرور.');
+      const data=await rawRequest('/auth/v1/token?grant_type=password',{
+        method:'POST',body:JSON.stringify({email:email,password:password})
+      });
+      saveSession(data);byId('cloudPasswordV168').value='';
+      notice('تم الدخول؛ جاري تحميل الصلاحيات…','wait');
+      await bootstrap()
+    }catch(error){notice(errorText(error),'bad')}
+    finally{setBusy(false)}
+  };
+  window.cloudSignupV168=async function(){
+    setBusy(true);
+    try{
+      const email=String(byId('cloudEmailV168').value||'').trim().toLowerCase();
+      const password=byId('cloudPasswordV168').value;
+      if(!email||!password)throw new Error('أدخل البريد وكلمة المرور.');
+      if(password.length<10)throw new Error('كلمة المرور يجب أن تكون 10 أحرف على الأقل.');
+      const path='/auth/v1/signup?redirect_to='+encodeURIComponent(location.origin);
+      const data=await rawRequest(path,{method:'POST',body:JSON.stringify({email:email,password:password})});
+      byId('cloudPasswordV168').value='';
+      if(data&&data.access_token){
+        saveSession(data);await bootstrap()
+      }else{
+        notice('تم إنشاء الحساب. افتح رسالة تأكيد البريد ثم ارجع وسجل الدخول.','ready')
+      }
+    }catch(error){notice(errorText(error),'bad')}
+    finally{setBusy(false)}
+  };
+  window.cloudRecoveryV168=async function(){
+    setBusy(true);
+    try{
+      const email=String(byId('cloudEmailV168').value||'').trim().toLowerCase();
+      if(!email)throw new Error('أدخل البريد الإلكتروني أولاً.');
+      await rawRequest('/auth/v1/recover?redirect_to='+encodeURIComponent(location.origin),{
+        method:'POST',body:JSON.stringify({email:email})
+      });
+      notice('إذا كان الحساب موجودًا ستصل رسالة استعادة كلمة المرور.','ready')
+    }catch(error){notice(errorText(error),'bad')}
+    finally{setBusy(false)}
+  };
+  window.cloudLogoutV168=async function(){
+    const current=session();
+    try{if(current)await rawRequest('/auth/v1/logout',{method:'POST'},current.access_token)}catch(_){}
+    clearSession();setAutosync(false);showGate('تم تسجيل الخروج بأمان.','ready')
+  };
+  window.uploadLocalToCloudV168=async function(){
+    try{
+      if(!window.confirm('رفع بيانات عقاري الأساسية الموجودة على هذا الجهاز إلى السحابة وتفعيل المزامنة؟'))return;
+      notice('جاري الرفع والتحقق…','wait');
+      await writeSnapshot(snapshotDb(),true)
+    }catch(error){notice(errorText(error),'bad')}
+  };
+  window.restoreCloudToDeviceV168=async function(){
+    try{
+      notice('جاري قراءة النسخة السحابية…','wait');
+      const remote=await fetchRemoteState();
+      applyRemoteToDevice(remote,false)
+    }catch(error){notice(errorText(error),'bad')}
+  };
+  window.toggleCloudAutoSyncV168=function(){
+    if(autosync()){
+      setAutosync(false);notice('تم إيقاف المزامنة التلقائية؛ الحفظ المحلي مستمر.','wait');return
+    }
+    if(!remoteState||localStorage.getItem(LAST_REV_KEY)!==String(remoteState.revision)){
+      notice('اختر أولاً «رفع بيانات هذا الجهاز» أو «استرجاع السحابة» حتى لا تُستبدل نسخة بالخطأ.','wait');return
+    }
+    setAutosync(true);notice('تم تشغيل المزامنة التلقائية.','ready')
+  };
+  window.openCloudV168=function(){updateCloudUI();byId('aqariCloudModalV168').classList.add('on')};
+  window.closeCloudV168=function(){byId('aqariCloudModalV168').classList.remove('on');byId('cloudNewPasswordV168').value=''};
+  window.changeCloudPasswordV168=async function(){
+    try{
+      const password=byId('cloudNewPasswordV168').value;
+      if(password.length<10)throw new Error('كلمة المرور يجب أن تكون 10 أحرف على الأقل.');
+      await authedRequest('/auth/v1/user',{method:'PUT',body:JSON.stringify({password:password})});
+      byId('cloudNewPasswordV168').value='';
+      notice('تم تغيير كلمة المرور.','ready')
+    }catch(error){notice(errorText(error),'bad')}
+  };
+
+  window.addEventListener('online',function(){
+    if(localStorage.getItem(PENDING_KEY)==='true')scheduleCloudSave()
+  });
+  const oldRender=window.render;
+  if(typeof oldRender==='function'&&!oldRender.__v168){
+    const wrappedRender=function(){
+      const value=oldRender.apply(this,arguments);
+      setTimeout(function(){buildPanel();updateCloudUI()},0);
+      return value
+    };
+    wrappedRender.__v168=true;window.render=wrappedRender
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bootstrap);
+  else bootstrap();
+  setTimeout(function(){installOverrides();installPersistHook();buildPanel();updateCloudUI()},500)
 })();
 </script>
 
