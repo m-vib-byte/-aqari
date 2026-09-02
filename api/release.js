@@ -12,8 +12,8 @@ module.exports = function handler(req, res) {
   const payload = {
     ok: true,
     app: 'عقاري',
-    version: 'V167',
-    patch: 'runtime-contracts-1',
+    version: 'V168',
+    patch: 'supabase-cloud-1',
     gitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
     gitBranch: process.env.VERCEL_GIT_COMMIT_REF || null,
     deploymentUrl: process.env.VERCEL_URL || null,
