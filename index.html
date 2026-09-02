@@ -15483,7 +15483,10 @@ Verify failed delivery count</div>
     window.login=window.cloudLoginV168;
     window.loginLocalV120=window.cloudLoginV168;
     window.logout=window.cloudLogoutV168;
-    window.lockNowV120=window.cloudLogoutV168;
+    window.lockNowV120=function(){
+      const oldGate=byId('loginGateV120');if(oldGate)oldGate.style.display='none';
+      if(!session())showGate('سجل الدخول بحساب عقاري المصرح.','wait')
+    };
     window.cloudLoginV167=window.cloudLoginV168;
     window.cloudLogoutV167=window.cloudLogoutV168;
     window.openCloudV167=window.openCloudV168;
