@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV207SmartCollections(){
+    document.body?.classList.add('aq-v207');
+
+    if(!document.getElementById('aqari-v207-smart-collections-css')){
+      const smartCss=document.createElement('link');
+      smartCss.id='aqari-v207-smart-collections-css';
+      smartCss.rel='stylesheet';
+      smartCss.href='/v207-smart-collections.css';
+      document.head.appendChild(smartCss);
+    }
+
+    if(!document.getElementById('aqari-v207-smart-collections-js')){
+      const smartJs=document.createElement('script');
+      smartJs.id='aqari-v207-smart-collections-js';
+      smartJs.src='/v207-smart-collections.js';
+      document.body.appendChild(smartJs);
+    }
+  }
+
   function installV205SimplifiedShell(){
     document.body?.classList.add('aq-v205');
 
@@ -110,7 +129,10 @@
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
       shell.src = '/v205-simplified-shell.js';
+      shell.addEventListener('load', installV207SmartCollections, { once:true });
       document.body.appendChild(shell);
+    }else{
+      installV207SmartCollections();
     }
   }
 
