@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV205SimplifiedShell(){
+    document.body?.classList.add('aq-v205');
+
+    if(!document.getElementById('aqari-v205-simple-css')){
+      const simple = document.createElement('link');
+      simple.id = 'aqari-v205-simple-css';
+      simple.rel = 'stylesheet';
+      simple.href = '/v205-simple.css';
+      document.head.appendChild(simple);
+    }
+
+    if(!document.getElementById('aqari-v205-simplified-shell-js')){
+      const shell = document.createElement('script');
+      shell.id = 'aqari-v205-simplified-shell-js';
+      shell.src = '/v205-simplified-shell.js';
+      document.body.appendChild(shell);
+    }
+  }
+
   function installV202PropertyOS(){
     document.body?.classList.add('aq-v202');
 
@@ -102,7 +121,12 @@
       const propertyOS = document.createElement('script');
       propertyOS.id = 'aqari-v202-property-os-js';
       propertyOS.src = '/v202-property-os.js';
+      propertyOS.addEventListener('load', installV205SimplifiedShell, { once:true });
       document.body.appendChild(propertyOS);
+    }else if(document.body?.getAttribute('data-v202-ready') === 'true'){
+      installV205SimplifiedShell();
+    }else{
+      document.getElementById('aqari-v202-property-os-js')?.addEventListener('load', installV205SimplifiedShell, { once:true });
     }
   }
 

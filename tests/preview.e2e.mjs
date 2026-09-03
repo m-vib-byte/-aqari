@@ -35,7 +35,7 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('V204 tenant rent statement loads on the secure V198 runtime', async () => {
+await check('V205 simplified platform loads on the secure V198 runtime', async () => {
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
@@ -53,6 +53,10 @@ await check('V204 tenant rent statement loads on the secure V198 runtime', async
     unitDirectory:document.body.classList.contains('aq-v203'),
     propertyOSReady:document.body.getAttribute('data-v202-ready'),
     propertyOSVersion:window.AQARI_V202?.version,
+    simplified:document.body.classList.contains('aq-v205'),
+    simplifiedReady:document.body.getAttribute('data-v205-ready'),
+    simplifiedVersion:window.AQARI_V205?.version,
+    simpleHome:Boolean(document.getElementById('v205SimpleHome')),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
     dashboard:Boolean(document.getElementById('aqariV199Dashboard')),
     mobileItems:document.querySelectorAll('.mobilebar .v199-bottom-button').length,
@@ -74,7 +78,7 @@ await check('V204 tenant rent statement loads on the secure V198 runtime', async
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V204-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V204-preview' || !state.shell || !state.dashboard) throw new Error('V204 presentation layer unavailable');
+  if(state.design !== 'V204-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V204-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V205 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
@@ -84,6 +88,86 @@ await check('V204 tenant rent statement loads on the secure V198 runtime', async
   if(!state.priorityFirst) throw new Error('today priorities must precede KPIs');
   for(const label of ['الدخل المسجل','المقبوضات المسجلة','إيجار مستحق','طلبات صيانة مفتوحة']) if(!state.labels.includes(label)) throw new Error(`${label} missing`);
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
+});
+
+await check('V205 RTL home keeps exactly five clear primary sections', async () => {
+  await page.waitForSelector('body[data-v205-ready="true"]');
+  const state=await page.evaluate(() => {
+    const root=document.getElementById('v205SimpleHome');
+    const sections=Array.from(document.querySelectorAll('#v205PrimarySections [data-v205-section]')).map(node => {
+      const rect=node.getBoundingClientRect();
+      return {
+        key:node.getAttribute('data-v205-section'),
+        route:node.getAttribute('data-v199-go'),
+        label:node.textContent.trim(),
+        current:node.getAttribute('aria-current'),
+        width:rect.width,
+        height:rect.height
+      };
+    });
+    return {
+      lang:document.documentElement.lang,
+      dir:document.documentElement.dir,
+      rootDirection:root?getComputedStyle(root).direction:'',
+      navLabel:document.getElementById('v205PrimarySections')?.getAttribute('aria-label')||'',
+      sections,
+      overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
+    };
+  });
+  const expected=[
+    ['home','home','الرئيسية'],
+    ['properties','properties','العقارات'],
+    ['tenants','tenants','المستأجرون'],
+    ['collectionProPage','collectionProPage','التحصيل'],
+    ['maintenanceProPage','maintenanceProPage','الصيانة']
+  ];
+  if(state.lang!=='ar'||state.dir!=='rtl'||state.rootDirection!=='rtl')throw new Error('V205 must stay Arabic RTL');
+  if(!state.navLabel)throw new Error('primary navigation needs an accessible label');
+  if(state.sections.length!==5)throw new Error(`primary section count ${state.sections.length}`);
+  if(new Set(state.sections.map(item => item.key)).size!==5)throw new Error('primary section keys must be unique');
+  expected.forEach(([key,route,label],index) => {
+    const actual=state.sections[index];
+    if(actual?.key!==key||actual?.route!==route||!actual?.label.includes(label))throw new Error(`primary section ${index+1} mismatch`);
+    if(actual.width<44||actual.height<44)throw new Error(`${key} touch target is ${actual.width}x${actual.height}`);
+  });
+  if(state.sections.filter(item => item.current==='page').length!==1)throw new Error('exactly one primary section must be current');
+  if(state.overflow)throw new Error('V205 home overflows horizontally at 390px');
+});
+
+await check('V205 daily actions are complete and safe before property selection', async () => {
+  const actions=await page.evaluate(() => Array.from(document.querySelectorAll('#v205DailyActions [data-v205-daily-action]')).map(node => {
+    const rect=node.getBoundingClientRect();
+    return {
+      key:node.getAttribute('data-v205-daily-action'),
+      route:node.getAttribute('data-v199-go'),
+      label:node.textContent.trim(),
+      disabled:node.disabled,
+      width:rect.width,
+      height:rect.height
+    };
+  }));
+  const expected=['contract','payment','statement','maintenance'];
+  if(JSON.stringify(actions.map(item => item.key))!==JSON.stringify(expected))throw new Error(`daily actions: ${actions.map(item => item.key).join(',')}`);
+  for(const action of actions){
+    if(!action.label||!action.route||action.disabled)throw new Error(`${action.key} is not actionable`);
+    if(action.width<44||action.height<44)throw new Error(`${action.key} touch target is too small`);
+  }
+});
+
+await check('V205 signed-out home exposes no protected tenant data', async () => {
+  const state=await page.evaluate(() => {
+    const root=document.getElementById('v205SimpleHome');
+    const normalized=String(root?.innerText||'').replace(/[٠-٩]/g,digit => String('٠١٢٣٤٥٦٧٨٩'.indexOf(digit)));
+    return {
+      authenticated:Boolean(window.AQARI_SUPABASE?.context?.user),
+      civilIdVisible:/\b\d{12}\b/.test(normalized),
+      protectedCards:root?.querySelectorAll('[data-v202-unit-index],[data-v202-tenant-statement],[data-v202-civil-reveal]').length||0,
+      contactLinks:root?.querySelectorAll('a[href^="mailto:"],a[href^="tel:"]').length||0,
+      rawSensitiveValues:root?.querySelectorAll('.aq-unit-sensitive-value,.v204-sensitive-value:not(.is-masked)').length||0
+    };
+  });
+  if(state.authenticated)throw new Error('test requires a signed-out Preview');
+  if(state.civilIdVisible||state.protectedCards||state.contactLinks||state.rawSensitiveValues)throw new Error('protected tenant data leaked into the public V205 home');
 });
 
 await check('each property has a complete V204 operating workspace', async () => {
@@ -206,8 +290,8 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V204 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js']){
+await check('PWA and V205 presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -217,4 +301,4 @@ await check('PWA and V204 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V204 Tenant Rent Statement Preview E2E on V198 runtime: PASS');
+console.log('AQARI V205 Simplified Platform Preview E2E on V198 runtime: PASS');

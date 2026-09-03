@@ -630,6 +630,18 @@ test('V204 active protected import stays in memory and clears without mutating l
   assert.equal(JSON.stringify(local), before, 'protected tenant data must not be persisted into the local database object');
   const protectedContext = runtime.contextFor('SYNTHETIC TEST PROPERTY');
   assert.equal(protectedContext.propertyContracts.length, 4);
+  assert.equal(
+    protectedContext.propertyLedger.length,
+    remote.rentLedgerV202.filter((record) => (
+      record.property === 'SYNTHETIC TEST PROPERTY' && record.source === 'protected-rent-import-v202'
+    )).length,
+    'protected ledger must remain available after an in-memory hydrate',
+  );
+  assert.equal(
+    protectedContext.propertyCollections.some((row) => row[0] === 'R-A-PAID'),
+    true,
+    'a hydrated settled payment must remain available for receipts and statements',
+  );
   assert.equal(runtime.tenantDirectory().length, 3, 'cross-property directory rows stay outside the active property cache');
   assert.equal(runtime.protectedPropertyActive('SYNTHETIC TEST PROPERTY'), true);
   assert.doesNotMatch(runtime.unitsPanel(protectedContext, '2026-08', true), /data-v202-unit-payment=/, 'protected-only tenants cannot enter an unscoped local payment path');

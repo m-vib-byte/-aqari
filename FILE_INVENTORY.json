@@ -8,13 +8,13 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1762,
-      "sha256": "8cf834f22051398c9d9575b886a9faad6a8b61a7c5ac118d93d92948bd098847"
+      "size": 1771,
+      "sha256": "8c7db8ede0a1412bd9f8b983f028a2a7f83b5e8de8783d759c73b63197232484"
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "size": 2032,
-      "sha256": "3c1e2de8cbe2c96c91e375d7a2de8d441539e39bd9762864398178c8270fc294"
+      "size": 2269,
+      "sha256": "32b46727dafbb7c774c44f71f26d3c551cf86a38909163e25099ea014e054903"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 5687,
-      "sha256": "24dabef176eec327cd9ecd6534532e0e58fb6b35a611386f83a45ce8f4f791b5"
+      "size": 6656,
+      "sha256": "411fa32011077157efe36673dd3c63f55336bdb7341455339a55fd66b43e696f"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -333,18 +333,18 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 14118,
-      "sha256": "c402edd23023a3a243f7b7776798fff1a1996f6f2149539488f940e37dce9c55"
+      "size": 18920,
+      "sha256": "850bf74e4d131d6fa0a4321b43ba07dc7ce06ec32d14023913afdc119e1a394b"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 13681,
-      "sha256": "71407f6168ba9a787e099ee627c398856dd506ef46bbe1f9bc956853d85003b7"
+      "size": 15888,
+      "sha256": "fbc6f2f972d9076b0e4934a7f49f9d37ff4b9b7844fd8adba13711fd003dbdbc"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 32951,
-      "sha256": "3afb685123629a90eaf61093b2bb56e9fa5cfac82d1952950a14ec915d4d5b4f"
+      "size": 33447,
+      "sha256": "f3d4c00f387e9eb5a4a00a6c4379cf7de1d7cdd772eb926d13d110bcdaf47b44"
     },
     {
       "path": "v199-ui.css",
@@ -378,8 +378,18 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 140476,
-      "sha256": "b8d3aa6d0229157647f1b8598ac59ae697cb448a9671e2e6abff62a5680dde2b"
+      "size": 140427,
+      "sha256": "a4d5ebce4b64c092c3844dbe83f4a2cff212e947c165863115fe594105807aca"
+    },
+    {
+      "path": "v205-simple.css",
+      "size": 19088,
+      "sha256": "3249b2a9882566b2cf6a4fa6509fcad7915e4d4c5c0824d683b907425a27ebed"
+    },
+    {
+      "path": "v205-simplified-shell.js",
+      "size": 20441,
+      "sha256": "32c7c15bb6857f2c1fca15c879f51905d7d40eb8ac2b28936c1b28109ae04888"
     },
     {
       "path": "vercel.json",

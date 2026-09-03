@@ -197,6 +197,51 @@ test('V204 tenant rent statement preserves the V198 secure runtime', () => {
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
 });
 
+test('V205 simplified shell preserves every secure V204 property workflow', () => {
+  const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+  const shell = fs.readFileSync(path.join(root, 'v205-simplified-shell.js'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'v205-simple.css'), 'utf8');
+  const propertyOS = fs.readFileSync(path.join(root, 'v202-property-os.js'), 'utf8');
+
+  assert.match(loader, /function installV205SimplifiedShell\s*\(/);
+  assert.match(loader, /simple\.href = '\/v205-simple\.css'/);
+  assert.match(loader, /shell\.src = '\/v205-simplified-shell\.js'/);
+  assert.match(loader, /propertyOS\.addEventListener\('load', installV205SimplifiedShell/);
+
+  assert.match(shell, /V205-preview/);
+  assert.match(shell, /root\.id='v205SimpleHome'/);
+  assert.match(shell, /id="v205PrimarySections"/);
+  assert.match(shell, /id="v205DailyActions"/);
+  assert.match(shell, /data-v205-ready/);
+  assert.match(shell, /window\.AQARI_V202\?\.openProperty/);
+  assert.match(shell, /window\.go\?\./);
+  for (const action of ['contract', 'payment', 'statement', 'maintenance']) {
+    assert.match(shell, new RegExp("\\['" + action + "'"));
+  }
+  for (const stage of ['العقار', 'الوحدة', 'المستأجر', 'العقد', 'التحصيل']) {
+    assert.match(shell, new RegExp(stage));
+  }
+  assert.doesNotMatch(shell, /AQARI_SUPABASE\s*=/);
+  assert.doesNotMatch(shell, /localStorage|sessionStorage|civilId|phone|mailto:/i);
+
+  assert.match(css, /AQARI V205 simplified white-and-gold operating shell/);
+  assert.match(css, /body\.aq-v199\.aq-v205 #home>#v205SimpleHome/);
+  assert.match(css, /grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css, /prefers-reduced-motion/);
+  assert.match(css, /forced-colors/);
+  assert.match(css, /safe-area-inset-bottom/);
+
+  assert.match(propertyOS, /function rawLedgerRecords\(\)\{\s*return rows\('rentLedgerV202'\);\s*\}/);
+  for (const hook of [
+    'data-v202-unit-statement',
+    'data-v202-unit-contract',
+    'data-v202-unit-receipt',
+    'data-v202-tenant-contract',
+    'data-v202-tenant-receipt',
+    'data-v202-tenant-civil-reveal',
+  ]) assert.match(propertyOS, new RegExp(hook));
+});
+
 test('P0 tenant statement contract is bilingual, unit-scoped, printable, and uses safe document actions', () => {
   const propertyOS = fs.readFileSync(path.join(root, 'v202-property-os.js'), 'utf8');
   const prestige = fs.readFileSync(path.join(root, 'v202-prestige.css'), 'utf8');
