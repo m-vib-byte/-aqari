@@ -36,9 +36,13 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(rent, /data-v206-action="payment"/);
   assert.match(rent, /data-v206-action="print"/);
   assert.match(rent, /data-v206-action="csv"/);
-  assert.match(rent, /function exportCsv\s*\(/);
-  assert.match(rent, /function openPayment\s*\(/);
+  assert.match(rent, /data-v206-due-contract/);
+  assert.match(rent, /function dueList\s*\(/);
+  assert.match(rent, /function openPaymentFor\s*\(/);
+  assert.match(rent, /v202PaymentContract/);
+  assert.match(rent, /v202PaymentAmount/);
   assert.match(rent, /مركز تحصيل الإيجارات/);
+  assert.match(rent, /المطلوب تحصيله الآن/);
   assert.match(rent, /المتبقي/);
   assert.match(rent, /نسبة التحصيل/);
   assert.match(rent, /dhahawi/i);
@@ -52,6 +56,7 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(css, /v206-paper/);
   assert.match(css, /v206-command/);
   assert.match(css, /v206-stats/);
-  assert.match(css, /v206-due/);
+  assert.match(css, /v206-due-panel/);
+  assert.match(css, /v206-due-item/);
   assert.match(css, /body\.aq-v206 \.v206-command\{display:none!important\}/);
 });
