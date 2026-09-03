@@ -78,5 +78,11 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(css, /v206-search/);
   assert.match(css, /v206-filters/);
   assert.match(css, /v206-queue-status/);
+  assert.match(css, /v206-queue-status\.is-due/);
+  assert.match(css, /v206-queue-status\.is-partial/);
+  assert.match(css, /v206-queue-status\.is-paid/);
+  assert.match(css, /tr\.v206-partial td/);
+  assert.match(css, /tr\.v206-due td/);
+  assert.match(css, /tr\.v206-paid td/);
   assert.match(css, /body\.aq-v206 \.v206-command\{display:none!important\}/);
 });
