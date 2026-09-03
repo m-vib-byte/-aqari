@@ -20,7 +20,7 @@ const context = await browser.newContext({
 const page = await context.newPage();
 const pageErrors = [];
 const responseErrors = [];
-page.on('pageerror', error => pageErrors.push(error.message));
+page.on('pageerror', error => pageErrors.push(error.stack || error.message));
 page.on('response', response => {
   try{
     if(new URL(response.url()).origin === previewUrl.origin && response.status() >= 400){
