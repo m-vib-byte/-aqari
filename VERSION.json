@@ -1,8 +1,8 @@
 {
   "name": "AQARI",
   "version": "V198",
-  "design_version": "V203-preview",
-  "design_stage": "protected-unit-directory-preview-review",
+  "design_version": "V204-preview",
+  "design_stage": "bilingual-tenant-rent-statement-preview-review",
   "stage": "release-freeze",
   "index_sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244",
   "syntax_checks": 80,

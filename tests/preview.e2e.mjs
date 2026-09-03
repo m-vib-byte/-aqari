@@ -35,7 +35,7 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('V203 protected unit directory loads on the secure V198 runtime', async () => {
+await check('V204 tenant rent statement loads on the secure V198 runtime', async () => {
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
@@ -74,7 +74,7 @@ await check('V203 protected unit directory loads on the secure V198 runtime', as
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V203-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V203-preview' || !state.shell || !state.dashboard) throw new Error('V203 presentation layer unavailable');
+  if(state.design !== 'V204-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V204-preview' || !state.shell || !state.dashboard) throw new Error('V204 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
@@ -86,7 +86,7 @@ await check('V203 protected unit directory loads on the secure V198 runtime', as
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
 });
 
-await check('each property has a complete V203 operating workspace', async () => {
+await check('each property has a complete V204 operating workspace', async () => {
   const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
   if(!trigger) throw new Error('property management trigger missing');
   await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
@@ -206,7 +206,7 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V203 presentation assets', async () => {
+await check('PWA and V204 presentation assets', async () => {
   for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
@@ -217,4 +217,4 @@ await check('PWA and V203 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V203 Protected Unit Directory Preview E2E on V198 runtime: PASS');
+console.log('AQARI V204 Tenant Rent Statement Preview E2E on V198 runtime: PASS');
