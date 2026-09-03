@@ -87,6 +87,21 @@
 (function(){
   'use strict';
 
+  function installV203Simple(){
+    if(!document.getElementById('aqari-v203-simple-css')){
+      const simpleCss=document.createElement('link');
+      simpleCss.id='aqari-v203-simple-css';
+      simpleCss.rel='stylesheet';
+      simpleCss.href='/v203-simple.css';
+      document.head.appendChild(simpleCss);
+    }
+    if(document.getElementById('aqari-v203-simple-js'))return;
+    const simple=document.createElement('script');
+    simple.id='aqari-v203-simple-js';
+    simple.src='/v203-simple.js';
+    document.body.appendChild(simple);
+  }
+
   function installDhahawiRentLedger(){
     if(!document.getElementById('aqari-v202-rent-css')){
       const rentCss = document.createElement('link');
@@ -96,10 +111,14 @@
       document.head.appendChild(rentCss);
     }
 
-    if(document.getElementById('aqari-v202-rent-js')) return;
+    if(document.getElementById('aqari-v202-rent-js')){
+      installV203Simple();
+      return;
+    }
     const rent = document.createElement('script');
     rent.id = 'aqari-v202-rent-js';
     rent.src = '/v202-rent-operations.js';
+    rent.addEventListener('load', installV203Simple, { once:true });
     document.body.appendChild(rent);
   }
 
