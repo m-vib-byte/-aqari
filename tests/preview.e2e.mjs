@@ -35,7 +35,7 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('V205 simplified platform loads on the secure V198 runtime', async () => {
+await check('V206 rent office loads on the secure V205/V198 runtime', async () => {
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
@@ -56,6 +56,10 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     simplified:document.body.classList.contains('aq-v205'),
     simplifiedReady:document.body.getAttribute('data-v205-ready'),
     simplifiedVersion:window.AQARI_V205?.version,
+    rentOffice:document.body.classList.contains('aq-v206'),
+    rentOfficeDesign:document.querySelector('meta[name="aqari-rent-ledger"]')?.content,
+    rentOfficeVersion:window.AQARI_V206?.version,
+    rentOfficeApi:typeof window.AQARI_V202?.rentOfficeData==='function'&&typeof window.AQARI_V202?.rentOfficeAction==='function',
     simpleHome:Boolean(document.getElementById('v205SimpleHome')),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
     dashboard:Boolean(document.getElementById('aqariV199Dashboard')),
@@ -78,7 +82,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V204-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V204-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V205 presentation layer unavailable');
+  if(state.design !== 'V204-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V204-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.rentOffice || state.rentOfficeDesign !== 'V206-mainline-rent-ledger' || state.rentOfficeVersion !== 'V206-mainline-rent-ledger' || !state.rentOfficeApi || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V206 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
@@ -176,6 +180,37 @@ await check('V205 signed-out home exposes no protected tenant data', async () =>
   });
   if(state.authenticated)throw new Error('test requires a signed-out Preview');
   if(state.civilIdVisible||state.protectedCards||state.contactLinks||state.rawSensitiveValues)throw new Error('protected tenant data leaked into the public V205 home');
+});
+
+await check('V206 refuses to render a rent ledger after sign-out', async () => {
+  const state=await page.evaluate(() => {
+    const overlay=document.getElementById('v202DocumentDialog');
+    const body=document.getElementById('v202DocumentBody');
+    const heading=document.getElementById('v202DocumentDialogTitle');
+    if(!overlay||!body||!heading)throw new Error('V202 document shell missing');
+    overlay.classList.add('on');
+    overlay.removeAttribute('inert');
+    overlay.setAttribute('aria-hidden','false');
+    overlay.dataset.v202Document='rent-office';
+    heading.textContent='كشف إيجار العقار';
+    body.innerHTML='<p data-private-sentinel>PRIVATE TENANT SENTINEL</p>';
+    const rendered=window.AQARI_V206?.render('2026-08');
+    const result={
+      rendered,
+      locked:Boolean(body.querySelector('.v206-locked')),
+      ledger:Boolean(body.querySelector('[data-v206-ledger]')),
+      sentinel:String(body.textContent||'').includes('PRIVATE TENANT SENTINEL'),
+      authenticated:Boolean(window.AQARI_SUPABASE?.context?.user)
+    };
+    overlay.classList.remove('on');
+    overlay.setAttribute('inert','');
+    overlay.setAttribute('aria-hidden','true');
+    delete overlay.dataset.v202Document;
+    body.textContent='';
+    return result;
+  });
+  if(state.authenticated)throw new Error('test requires a signed-out Preview');
+  if(state.rendered!==false||!state.locked||state.ledger||state.sentinel)throw new Error('signed-out V206 ledger did not fail closed');
 });
 
 await check('each property has a complete V204 operating workspace', async () => {
@@ -314,8 +349,8 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V205 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js']){
+await check('PWA and V206 presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-rent-ledger.css','/v206-rent-ledger.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -325,4 +360,4 @@ await check('PWA and V205 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V205 Simplified Platform Preview E2E on V198 runtime: PASS');
+console.log('AQARI V206 Rent Office Preview E2E on V205/V198 runtime: PASS');

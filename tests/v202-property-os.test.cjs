@@ -30,6 +30,8 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}) {
       paymentKey,
       tenantDirectory,
       unitDirectoryRecords,
+      rentOfficeData,
+      rentOfficeAction,
       filterUnitRecords,
       maskCivilId,
       unitsPanel,
@@ -396,6 +398,55 @@ test('V204 protected unit directory keeps units exact, searchable, and masked by
 
   const payment = runtime.paymentDialogMarkup(context, 'contract-a');
   assert.match(payment, /<option value="contract-a" selected>/);
+});
+
+test('V206 rent office snapshot is authorized, official, settled-only, and privacy-minimized', () => {
+  const data = fixture();
+  data.rentStatementsV202 = [{
+    id: 'official-august', property: 'SYNTHETIC TEST PROPERTY', period: '2026-08',
+    totalRent: 700, totalCollected: 90, totalAdvance: 1250, totalInsurance: 5850,
+    totalCleaning: 520, unitCount: 31, sourcePages: '1-31', source: 'synthetic-test-import',
+  }];
+  const auth = {
+    user: { id: 'user-test' }, workspace: { id: 'workspace-test' },
+    membership: { is_active: true, user_id: 'user-test', workspace_id: 'workspace-test' },
+  };
+  const runtime = loadRuntime(data, [], { AQARI_SUPABASE: { context: auth } });
+  const snapshot = runtime.rentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08');
+
+  assert.ok(snapshot);
+  assert.equal(snapshot.period, '2026-08');
+  assert.equal(snapshot.official, true);
+  assert.equal(snapshot.unitCount, 31);
+  assert.equal(snapshot.totalRent, 700);
+  assert.equal(snapshot.totalCollected, 90);
+  assert.equal(snapshot.totalBalance, 610);
+  assert.equal(snapshot.totalAdvance, 1250);
+  assert.equal(snapshot.totalInsurance, 5850);
+  assert.equal(snapshot.totalCleaning, 520);
+  assert.equal(snapshot.canRecordPayment, true);
+
+  const unitA = snapshot.records.find((record) => record.unit === 'A');
+  assert.ok(unitA);
+  assert.equal(unitA.contractRent, 150);
+  assert.equal(unitA.currentRent, 100);
+  assert.equal(unitA.paid, 40);
+  assert.equal(unitA.pending, 20);
+  assert.equal(unitA.balance, 60);
+  assert.equal(unitA.receiptNo, 'R-A-PAID');
+  assert.equal(unitA.transactionNo, '012345');
+  assert.equal(unitA.insurance, 40);
+  assert.equal(unitA.advance, 10);
+  assert.equal(unitA.cleaningFee, 5);
+  assert.equal(unitA.email, 'a@example.test');
+  for (const forbidden of ['civilId', 'phone', 'nationality', 'notes', 'evictionNotice']) {
+    assert.equal(Object.prototype.hasOwnProperty.call(unitA, forbidden), false, forbidden + ' must not leave the protected office API');
+  }
+  assert.doesNotMatch(JSON.stringify(snapshot), /123456789012|55500001|<img/i);
+  assert.equal(runtime.rentOfficeData('SYNTHETIC TEST PROPERTY', '2026-13'), null);
+
+  auth.membership.workspace_id = 'workspace-other';
+  assert.equal(runtime.rentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08'), null);
 });
 
 test('P0 tenant rent statement is bilingual, complete, and isolated by contract and unit', () => {

@@ -1317,7 +1317,7 @@
     const record=tenantStatementRecord(context,period);
     const requested=String(receiptNo||button?.getAttribute('data-v202-tenant-receipt')||'').trim();
     const entries=tenantLedgerEntries(context,record,period);
-    const entry=entries.find(function(item){return normalized(item?.receiptNo)===normalized(requested)});
+    const entry=entries.find(function(item){return normalized(item?.receiptNo||item?.voucherNo)===normalized(requested)});
     if(!record||!requested||!entry)return false;
     openDocument('وصل الإيجار / Rent Receipt',tenantReceiptDocument(context,record,entry,period),button,'#v202PropertyWorkspace [data-v202-unit-statement]');
     return true;
@@ -1333,6 +1333,97 @@
     if(!record?.hasContract||!requested||requested!==current)return false;
     openDocument('عقد الإيجار / Tenancy Contract',tenantContractDocument(context,record),button,'#v202PropertyWorkspace [data-v202-unit-statement]');
     return true;
+  }
+
+  function rentOfficeData(name,periodValue){
+    if(!protectedAccessReady())return null;
+    if(periodValue!=null&&String(periodValue).trim()&&!validPeriod(periodValue))return null;
+    const context=contextFor(name);
+    const exactProperty=String(context?.property?.[0]||'').trim();
+    if(!context||!exactProperty||normalized(exactProperty)!==normalized(name))return null;
+    const period=validPeriod(periodValue)?String(periodValue):latestOfficialPeriod(exactProperty);
+    const official=officialStatementFor(exactProperty,period);
+    const records=unitDirectoryRecords(context,period).map(function(record){
+      const entries=tenantLedgerEntries(context,record,period);
+      const settled=entries.filter(function(entry){return settledPayment(entry?.status)});
+      const latest=settled[settled.length-1]||null;
+      const email=emailAddresses(record.email)[0]||'';
+      return Object.freeze({
+        key:String(record.key||''),property:exactProperty,period,
+        unit:String(record.unit||'—'),tenant:String(record.tenant||''),
+        contractNo:String(record.contractNo||''),contractId:String(record.contractId||''),
+        hasContract:Boolean(record.hasContract),contractStatus:String(record.contractStatus||''),
+        contractRent:numberFrom(record.contractRent),currentRent:numberFrom(record.currentRent),rent:numberFrom(record.rent),
+        insurance:numberFrom(record.insurance),advance:numberFrom(record.advance),cleaningFee:numberFrom(record.cleaningFee),
+        paid:numberFrom(record.paid),pending:numberFrom(record.pending),balance:numberFrom(record.balance),
+        paymentStatus:String(record.paymentStatus||''),paidAt:String(latest?.paidAt||''),
+        method:String(latest?.method||''),transactionNo:ledgerTransactionNo(latest),
+        receiptNo:String(latest?.receiptNo||latest?.voucherNo||''),
+        contractReceived:String(record.contractReceived||record.contractReceipt||''),
+        accountant:String(record.accountant||latest?.accountant||''),email,
+        canRecordPayment:!protectedPropertyActive(exactProperty)
+      });
+    });
+    const computedRent=records.reduce(function(total,record){return total+record.rent},0);
+    const computedCollected=records.reduce(function(total,record){return total+record.paid},0);
+    const totalRent=statementValue(official,'totalRent',computedRent);
+    const totalCollected=statementValue(official,'totalCollected',computedCollected);
+    return Object.freeze({
+      property:exactProperty,period,latestPeriod:latestOfficialPeriod(exactProperty),
+      records:Object.freeze(records),official:Boolean(official),sourcePages:String(official?.sourcePages||''),
+      canRecordPayment:!protectedPropertyActive(exactProperty),
+      unitCount:official&&hasField(official,'unitCount')?numberFrom(official.unitCount):records.length,
+      totalRent,totalCollected,totalBalance:Math.max(0,totalRent-totalCollected),
+      totalInsurance:statementValue(official,'totalInsurance',records.reduce(function(total,record){return total+record.insurance},0)),
+      totalAdvance:statementValue(official,'totalAdvance',records.reduce(function(total,record){return total+record.advance},0)),
+      totalCleaning:statementValue(official,'totalCleaning',records.reduce(function(total,record){return total+record.cleaningFee},0))
+    });
+  }
+
+  function rentOfficeAction(name,key,periodValue,action,trigger){
+    if(!protectedAccessReady())return false;
+    const exactName=String(name||'').trim();
+    if(!exactName||normalized(activeProperty)!==normalized(exactName))return false;
+    if(periodValue!=null&&String(periodValue).trim()&&!validPeriod(periodValue))return false;
+    const workspace=document.getElementById('v202PropertyWorkspace');
+    const title=document.getElementById('v202PropertyTitle');
+    if(!workspace?.classList.contains('on')||!title||String(title.textContent||'').trim()!==exactName)return false;
+    const context=contextFor(exactName);
+    if(String(context?.property?.[0]||'').trim()!==exactName)return false;
+    const period=validPeriod(periodValue)?String(periodValue):latestOfficialPeriod(exactName);
+    const matches=context?unitDirectoryRecords(context,period).filter(function(item){return item.key===String(key||'')}):[];
+    if(matches.length!==1)return false;
+    const record=matches[0];
+    const requested=String(action||'').trim();
+    if(requested==='payment'){
+      const paymentReturn=workspace.querySelector('[data-v202-action="payment"]');
+      closeDocument();
+      if(protectedPropertyActive(exactName)){
+        activeTab='collections';
+        renderPanel(context);
+        document.getElementById('v202TabCollections')?.focus();
+        return true;
+      }
+      openPayment(paymentReturn,record.contractId||'');
+      return true;
+    }
+    activeTenantStatementKey=record.key;
+    if(requested==='statement'){
+      openDocument('كشف المستأجر / Tenant Statement',tenantStatementDocument(context,record,period),trigger,'#v202PropertyWorkspace [data-v202-unit-statement]');
+      return true;
+    }
+    if(requested==='contract'){
+      if(!record.hasContract)return false;
+      return openTenantContract(trigger,record.contractId||record.contractNo,period);
+    }
+    if(requested==='receipt'){
+      const settled=tenantLedgerEntries(context,record,period).filter(function(entry){
+        return settledPayment(entry?.status)&&String(entry?.receiptNo||entry?.voucherNo||'').trim();
+      });
+      const receipt=String(settled[settled.length-1]?.receiptNo||settled[settled.length-1]?.voucherNo||'');
+      return receipt?openTenantReceipt(trigger,receipt,period):false;
+    }
+    return false;
   }
 
   function nextReceiptNumber(){
@@ -1846,6 +1937,7 @@
     documentTrigger=trigger||document.activeElement;
     documentFallbackSelector=fallbackSelector||'';
     const overlay=document.getElementById('v202DocumentDialog');
+    delete overlay.dataset.v202Document;
     const heading=document.getElementById('v202DocumentDialogTitle');
     const body=document.getElementById('v202DocumentBody');
     if(heading)heading.textContent=title;
@@ -1865,9 +1957,14 @@
   }
 
   function openStatementDocument(period,trigger){
+    if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
     activeTenantStatementKey='';
-    if(context)openDocument('كشف إيجار العقار',statementDocument(context,period||latestOfficialPeriod(activeProperty)),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    if(!context)return false;
+    openDocument('كشف إيجار العقار',statementDocument(context,period||latestOfficialPeriod(activeProperty)),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    const overlay=document.getElementById('v202DocumentDialog');
+    if(overlay)overlay.dataset.v202Document='rent-office';
+    return true;
   }
 
   function closeDocument(){
@@ -1876,6 +1973,7 @@
     overlay.classList.remove('on');
     overlay.setAttribute('inert','');
     overlay.setAttribute('aria-hidden','true');
+    delete overlay.dataset.v202Document;
     document.body.classList.remove('v202-print-document');
     suspendLayer('v202PaymentDialog',false);
     suspendLayer('v202PropertyWorkspace',false);
@@ -2143,6 +2241,8 @@
     window.AQARI_V202=Object.freeze({
       version:V202_DESIGN,
       openProperty:function(name){openWorkspace(name,document.activeElement)},
+      rentOfficeData:function(name,period){return rentOfficeData(name,period)},
+      rentOfficeAction:function(name,key,period,action,trigger){return rentOfficeAction(name,key,period,action,trigger)},
       propertyContext:function(name){
         const context=contextFor(name);
         if(!context)return null;

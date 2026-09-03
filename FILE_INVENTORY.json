@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1763,
-      "sha256": "744c3dde15284d98b2e71f51f9e554f09c2860c6667db51a1cb8152dbcb2aceb"
+      "size": 1766,
+      "sha256": "188d116f066e09c968f5b4fade5b327b25f7959d0ac4fcd4d90a3f299d1c0656"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 356,
-      "sha256": "833ad4de39140a394be69b7c1c3623c8eb3555215f9b909bc9c3412dfb285d92"
+      "size": 420,
+      "sha256": "3dd3aed9c5f7191d7ab4c58a195ae7a16a3657cf76982705b96ef699631f9f5b"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 6656,
-      "sha256": "411fa32011077157efe36673dd3c63f55336bdb7341455339a55fd66b43e696f"
+      "size": 7368,
+      "sha256": "e5a38b5c973c4b6860d43128e945ae7d02d2d5fd31d95bffde7e7e582990da15"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -333,8 +333,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 20426,
-      "sha256": "89292fdf825b2815a7d732e8eed94ccdf1965f824c2a758c6ae69d5bc7f473cf"
+      "size": 22459,
+      "sha256": "3c2437df40469dfd759b3ea6a7304ad973a34df58ce71c3b560f57d18dc8184d"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -343,8 +343,13 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 33447,
-      "sha256": "f3d4c00f387e9eb5a4a00a6c4379cf7de1d7cdd772eb926d13d110bcdaf47b44"
+      "size": 35788,
+      "sha256": "5f8b10d752cc263d16f307e8578a0cc71b27d4394552123f192bcd7846b0dc83"
+    },
+    {
+      "path": "tests/v206-rent-ledger.test.cjs",
+      "size": 8967,
+      "sha256": "10c7a4b16680e0b44bacd2b0b0e757d5d785893e1ca06c2eec56f03bd3a6d544"
     },
     {
       "path": "v199-ui.css",
@@ -378,8 +383,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 140427,
-      "sha256": "a4d5ebce4b64c092c3844dbe83f4a2cff212e947c165863115fe594105807aca"
+      "size": 146577,
+      "sha256": "73df1fe646c23ec0c989523e2366d5d572f682a72462e6b6d7d3b867e5404d24"
     },
     {
       "path": "v205-simple.css",
@@ -390,6 +395,16 @@
       "path": "v205-simplified-shell.js",
       "size": 22696,
       "sha256": "8349cd9d83fcc6574cdb7afa0b30e6dc9a345a0d596a478fd233e7bb75c7f276"
+    },
+    {
+      "path": "v206-rent-ledger.css",
+      "size": 17325,
+      "sha256": "ee366cd84b96da52a3a180f478c9111dfe2c2be6f5651d0a491cb2cc952eedb4"
+    },
+    {
+      "path": "v206-rent-ledger.js",
+      "size": 24513,
+      "sha256": "e6ca4e509f3071d761ef1757c9da575b5ca55ed989cc9ca617e443e193b0d857"
     },
     {
       "path": "vercel.json",
