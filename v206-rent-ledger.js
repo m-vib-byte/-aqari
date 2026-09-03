@@ -3,6 +3,8 @@
 
   const DESIGN='V206-mainline-rent-ledger';
   let lastView=null;
+  let queueFilter='due';
+  let queueQuery='';
 
   function app(){try{return typeof db!=='undefined'&&db?db:{}}catch(_){return {}}}
   function rows(key){const v=app()[key];return Array.isArray(v)?v:[]}
@@ -60,7 +62,7 @@
     window.go?.('collectionProPage');
   }
 
-  function openPaymentFor(id){
+  function openPaymentFor(id,balance){
     const wanted=String(id||'').trim();
     openPayment();
     if(!wanted)return;
@@ -74,7 +76,11 @@
           select.value=wanted;
           select.dispatchEvent(new Event('change',{bubbles:true}));
           const amount=document.getElementById('v202PaymentAmount');
-          if(amount instanceof HTMLInputElement){amount.focus();amount.select?.()}
+          if(amount instanceof HTMLInputElement){
+            const remaining=num(balance);
+            if(remaining>0&&!num(amount.value))amount.value=String(remaining);
+            amount.focus();amount.select?.();amount.dispatchEvent(new Event('input',{bubbles:true}));
+          }
           return;
         }
       }
@@ -83,11 +89,43 @@
     setTimeout(choose,60);
   }
 
-  function dueList(model){
-    const due=model.items.filter(i=>i.balance>0).sort((a,b)=>b.balance-a.balance);
-    if(!due.length)return '<section class="v206-due-panel is-clear"><div><span>المطلوب تحصيله الآن</span><strong>تم تحصيل جميع الإيجارات المستحقة لهذا الشهر</strong></div><span class="v206-clear-mark">✓</span></section>';
-    const visible=due.slice(0,8);
-    return '<section class="v206-due-panel"><div class="v206-due-head"><div><span>المطلوب تحصيله الآن</span><strong>'+due.length+' مستأجر'+(due.length>1?'ين':'')+' عليهم متبقي</strong></div><small>اضغط على المستأجر لتسجيل الدفعة مباشرة</small></div><div class="v206-due-list">'+visible.map(i=>'<button type="button" class="v206-due-item" data-v206-due-contract="'+esc(i.contractId)+'"><span class="v206-due-person"><b>'+esc(i.tenant)+'</b><small>وحدة '+esc(i.unit)+(i.contractNo?' • عقد '+esc(i.contractNo):'')+'</small></span><span class="v206-due-money"><b>'+money(i.balance)+' د.ك</b><small>متبقي</small></span><span class="v206-due-arrow">←</span></button>').join('')+'</div>'+(due.length>visible.length?'<div class="v206-due-more">+ '+(due.length-visible.length)+' مستأجر آخر</div>':'')+'</section>';
+  function queueItems(model){
+    const q=norm(queueQuery);
+    return model.items.filter(i=>{
+      if(queueFilter==='due'&&!(i.balance>0))return false;
+      if(queueFilter==='paid'&&!(i.rent>0&&i.balance<=0))return false;
+      if(!q)return true;
+      return norm([i.tenant,i.unit,i.contractNo,i.contractId].join(' ')).includes(q);
+    }).sort((a,b)=>{
+      if(a.balance>0||b.balance>0)return b.balance-a.balance;
+      return String(a.unit).localeCompare(String(b.unit),'ar',{numeric:true});
+    });
+  }
+
+  function queueRows(model){
+    const list=queueItems(model);
+    if(!list.length){
+      const text=queueQuery?'لا توجد نتيجة مطابقة للبحث.':(queueFilter==='due'?'لا يوجد أي إيجار متبقي لهذا الشهر.':queueFilter==='paid'?'لا توجد وحدات مكتملة السداد بعد.':'لا توجد عقود فعالة لهذا الشهر.');
+      return '<div class="v206-queue-empty">'+esc(text)+'</div>';
+    }
+    return list.slice(0,12).map(i=>{
+      const due=i.balance>0;
+      const tag=due?'<span class="v206-queue-status is-due">متبقي '+money(i.balance)+' د.ك</span>':'<span class="v206-queue-status is-paid">تم السداد</span>';
+      const inner='<span class="v206-due-person"><b>'+esc(i.tenant)+'</b><small>وحدة '+esc(i.unit)+(i.contractNo?' • عقد '+esc(i.contractNo):'')+'</small></span>'+tag+(due?'<span class="v206-due-arrow">←</span>':'');
+      return due?'<button type="button" class="v206-due-item" data-v206-due-contract="'+esc(i.contractId)+'" data-v206-due-balance="'+esc(i.balance)+'">'+inner+'</button>':'<div class="v206-due-item is-paid">'+inner+'</div>';
+    }).join('')+(list.length>12?'<div class="v206-due-more">+ '+(list.length-12)+' نتيجة أخرى</div>':'');
+  }
+
+  function collectionQueue(model){
+    const due=model.items.filter(i=>i.balance>0).length,paid=model.items.filter(i=>i.rent>0&&i.balance<=0).length;
+    return '<section class="v206-due-panel"><div class="v206-due-head"><div><span>قائمة التحصيل السريعة</span><strong>'+due+' مطلوب • '+paid+' مكتمل</strong></div><small>ابحث ثم افتح تسجيل الدفعة على العقد الصحيح مباشرة</small></div><div class="v206-queue-tools"><label class="v206-search"><span>بحث</span><input type="search" data-v206-search value="'+esc(queueQuery)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v206-filters" role="group" aria-label="فلترة التحصيل"><button type="button" data-v206-filter="due" class="'+(queueFilter==='due'?'is-active':'')+'">المتبقي '+due+'</button><button type="button" data-v206-filter="paid" class="'+(queueFilter==='paid'?'is-active':'')+'">المحصل '+paid+'</button><button type="button" data-v206-filter="all" class="'+(queueFilter==='all'?'is-active':'')+'">الكل '+model.items.length+'</button></div></div><div class="v206-due-list" data-v206-queue-results>'+queueRows(model)+'</div></section>';
+  }
+
+  function refreshQueue(){
+    if(!lastView)return;
+    const box=document.querySelector('[data-v206-queue-results]');
+    if(box)box.innerHTML=queueRows(lastView.model);
+    document.querySelectorAll('[data-v206-filter]').forEach(button=>button.classList.toggle('is-active',button.getAttribute('data-v206-filter')===queueFilter));
   }
 
   function render(period){
@@ -97,23 +135,26 @@
     lastView={property:name,period:selected,model:m};
     const rowsHtml=m.items.length?m.items.map((i,n)=>'<tr class="'+(i.balance>0?'v206-due':'v206-paid')+'">'+td(i.unit||n+1)+td(i.tenant,'v206-name')+td(i.contractNo)+td(i.rent?money(i.rent):'')+td(i.insurance?money(i.insurance):'')+td(i.advance?money(i.advance):'')+td(i.cleaning?money(i.cleaning):'')+td(i.rent?money(i.rent):'')+td(i.date)+td(i.method)+td(i.knet)+td(i.receipt)+td('')+td(i.accountant)+'</tr>').join(''):'<tr><td colspan="14" class="v206-empty">لا توجد عقود فعالة مرتبطة بهذا العقار في الشهر المحدد.</td></tr>';
     const filler=Math.max(0,14-m.items.length),blanks=Array.from({length:filler},()=>'<tr class="v206-filler">'+Array.from({length:14},()=>'<td>&nbsp;</td>').join('')+'</tr>').join('');
-    const controls='<section class="v206-command" data-v206-command><div class="v206-command-head"><div><span>مركز تحصيل الإيجارات</span><h3>'+esc(name)+'</h3><small>'+esc(periodLabel(selected))+'</small></div><div class="v206-command-actions"><button type="button" class="is-primary" data-v206-action="payment">تسجيل إيجار</button><button type="button" data-v206-action="print">طباعة</button><button type="button" data-v206-action="csv">CSV</button></div></div><div class="v206-stats">'+stat('المتوقع',money(m.totalRent)+' د.ك',m.items.length+' عقد','')+stat('المحصل',money(m.totalPaid)+' د.ك',m.paidCount+' مكتمل','is-good')+stat('المتبقي',money(m.totalBalance)+' د.ك',m.dueCount+' مطلوب','is-due')+stat('نسبة التحصيل',m.collectionRate+'%',m.totalRent?'من إجمالي الشهر':'لا توجد استحقاقات','is-rate')+'</div>'+dueList(m)+'</section>';
+    const controls='<section class="v206-command" data-v206-command><div class="v206-command-head"><div><span>مركز تحصيل الإيجارات</span><h3>'+esc(name)+'</h3><small>'+esc(periodLabel(selected))+'</small></div><div class="v206-command-actions"><button type="button" class="is-primary" data-v206-action="payment">تسجيل إيجار</button><button type="button" data-v206-action="print">طباعة</button><button type="button" data-v206-action="csv">CSV</button></div></div><div class="v206-stats">'+stat('المتوقع',money(m.totalRent)+' د.ك',m.items.length+' عقد','')+stat('المحصل',money(m.totalPaid)+' د.ك',m.paidCount+' مكتمل','is-good')+stat('المتبقي',money(m.totalBalance)+' د.ك',m.dueCount+' مطلوب','is-due')+stat('نسبة التحصيل',m.collectionRate+'%',m.totalRent?'من إجمالي الشهر':'لا توجد استحقاقات','is-rate')+'</div>'+collectionQueue(m)+'</section>';
     const paper='<section class="v206-paper" data-v206-ledger><header class="v206-letterhead"><div><strong>'+esc(name.toUpperCase())+'</strong><span>'+esc(b.left[0])+'</span><span>'+esc(b.left[1])+'</span></div><div class="v206-mark"><span>▥</span><b>'+esc(name)+'</b><small>'+(isDhahawi(name)?'TOWER':'AQARI')+'</small></div><div class="v206-right"><strong>'+esc(name)+'</strong><span>'+esc(b.right[0])+'</span><span>'+esc(b.right[1])+'</span></div></header><div class="v206-period"><label>الشهر / MONTH <input type="month" data-v206-month value="'+esc(selected)+'"></label></div><div class="v206-wrap"><table class="v206-ledger"><thead><tr><th>'+bi('رقم الوحدة','FLAT NO.')+'</th><th>'+bi('اسم المستأجر','NAME OF THE TENANT')+'</th><th>'+bi('رقم العقد','CONTRACT NO')+'</th><th>'+bi('عقد إيجار','RENT CONTRACT')+'</th><th>'+bi('تأمين','INSURANCE')+'</th><th>'+bi('عربون','ADVANCE')+'</th><th>'+bi('رسوم النظافة','CLEANING FEES')+'</th><th>'+bi('الإيجار الحالي','CURRENT RENT')+'</th><th>'+bi('تاريخ الدفع','PAYMENT DATE')+'</th><th>'+bi('طريقة الدفع','PAYMENT METHOD')+'</th><th>'+bi('رقم عملية كي نت','KNET OPERATION NUMBER')+'</th><th>'+bi('رقم الوصل','VOUCHER NO')+'</th><th>'+bi('استلام العقد','RECEIPT CONTRACT')+'</th><th>'+bi('المحاسب','ACCOUNTANT')+'</th></tr></thead><tbody>'+rowsHtml+blanks+'<tr class="v206-total"><td colspan="3">الإجمالي / TOTAL</td><td>'+money(m.totalRent)+'</td><td>'+money(m.totalInsurance)+'</td><td>'+money(m.totalAdvance)+'</td><td>'+money(m.totalCleaning)+'</td><td>'+money(m.totalRent)+'</td><td colspan="6"></td></tr></tbody></table></div><footer><span>AQARI • '+esc(name)+'</span><span>'+esc(b.footer)+'</span></footer></section>';
     body.innerHTML=controls+paper;
     overlay.dataset.v206='ready';
   }
 
   function enhance(){setTimeout(()=>render(),50)}
-  document.addEventListener('change',e=>{if(e.target.matches('[data-v206-month]'))render(e.target.value)});
+  document.addEventListener('change',e=>{if(e.target.matches('[data-v206-month]')){queueQuery='';queueFilter='due';render(e.target.value)}});
+  document.addEventListener('input',e=>{if(e.target.matches('[data-v206-search]')){queueQuery=e.target.value;refreshQueue()}});
   document.addEventListener('click',e=>{
+    const filter=e.target.closest('[data-v206-filter]');
+    if(filter){queueFilter=filter.getAttribute('data-v206-filter')||'due';refreshQueue();return}
     const due=e.target.closest('[data-v206-due-contract]');
-    if(due){openPaymentFor(due.getAttribute('data-v206-due-contract'));return}
+    if(due){openPaymentFor(due.getAttribute('data-v206-due-contract'),due.getAttribute('data-v206-due-balance'));return}
     const action=e.target.closest('[data-v206-action]')?.getAttribute('data-v206-action');
     if(action==='payment')openPayment();
     if(action==='print')window.print();
     if(action==='csv')exportCsv();
   });
-  const observer=new MutationObserver(()=>{const o=document.getElementById('v201RentStatement');if(o?.classList.contains('on')&&o.dataset.v206!=='ready')enhance();if(o&&!o.classList.contains('on')){delete o.dataset.v206;lastView=null}});
+  const observer=new MutationObserver(()=>{const o=document.getElementById('v201RentStatement');if(o?.classList.contains('on')&&o.dataset.v206!=='ready')enhance();if(o&&!o.classList.contains('on')){delete o.dataset.v206;lastView=null;queueQuery='';queueFilter='due'}});
   function boot(){document.body.classList.add('aq-v206');let meta=document.querySelector('meta[name="aqari-rent-ledger"]');if(!meta){meta=document.createElement('meta');meta.name='aqari-rent-ledger';document.head.appendChild(meta)}meta.content=DESIGN;observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
