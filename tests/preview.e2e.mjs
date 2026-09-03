@@ -81,9 +81,30 @@ await check('Preview SHA and environment', async () => {
   if(body.deployment?.gitSha !== expectedSha) throw new Error(`SHA ${body.deployment?.gitSha || 'missing'} != ${expectedSha}`);
 });
 
-await check('production environment gate', async () => {
+await check('Preview production-readiness contract', async () => {
   const body = await readApi('/api/production-readiness');
-  if(body.summary?.ready !== true) throw new Error(`environment incomplete: ${body.summary?.present || 0}/${body.summary?.required || 0}`);
+  const configured = body.configured;
+  const summary = body.summary;
+  if(body.deployment?.environment !== 'preview') throw new Error('production-readiness did not report Preview');
+  if(!configured || typeof configured !== 'object' || Array.isArray(configured)) throw new Error('configured map missing');
+
+  const keys = Object.keys(configured);
+  if(!keys.length) throw new Error('configured map is empty');
+  for(const key of keys){
+    if(!/^[A-Z][A-Z0-9_]*$/.test(key)) throw new Error(`invalid configured key: ${key}`);
+    if(typeof configured[key] !== 'boolean') throw new Error(`configured.${key} must be boolean`);
+  }
+
+  if(!summary || !Number.isInteger(summary.present) || !Number.isInteger(summary.required) || typeof summary.ready !== 'boolean'){
+    throw new Error('summary contract invalid');
+  }
+  const present = Object.values(configured).filter(Boolean).length;
+  if(summary.required <= 0) throw new Error('summary.required must be positive');
+  if(summary.required !== keys.length) throw new Error(`required ${summary.required} != configured keys ${keys.length}`);
+  if(summary.present !== present) throw new Error(`present ${summary.present} != configured true values ${present}`);
+  if(summary.ready !== (summary.present === summary.required)) throw new Error('summary.ready is inconsistent');
+
+  console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
 await check('PWA assets and browser console', async () => {

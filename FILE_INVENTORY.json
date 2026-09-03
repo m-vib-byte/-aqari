@@ -168,8 +168,8 @@
     },
     {
       "path": "PREVIEW_E2E_GATE.md",
-      "size": 981,
-      "sha256": "65e9600f0eae0bd24674f866c41dd27b4277ac377c10c8bb37e2b1ff5ce7d6ff"
+      "size": 1319,
+      "sha256": "cf3ee10bbefa0d9c7997ecc800adad3d395483cfa25af6eeb6811c6c3002bc9b"
     },
     {
       "path": "PRODUCTION_CANDIDATE.md",
@@ -283,8 +283,8 @@
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
-      "size": 366,
-      "sha256": "ee74054d294449fca13c1d3f0c2cb9ad81cdab015e3582719d947b2f2800eba1"
+      "size": 1090,
+      "sha256": "4f1bdad6894851138cc866984932984e578b49be489aed31e7c4e391770ab10d"
     },
     {
       "path": "scripts/production-lockdown-selftest.mjs",
@@ -333,8 +333,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 4556,
-      "sha256": "7ec815f74054f2d000a7a8e3edca260843e8c746f196ca1741ec9dfe0ff1e117"
+      "size": 5867,
+      "sha256": "451b85d336f669404f1e4c104781ede58a9faf520452ee4125779514c510594f"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
