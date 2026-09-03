@@ -622,8 +622,7 @@
   function signedContract(contract){return contractStatus(contract?.status)==='signed'}
 
   function rawLedgerRecords(){
-    const value=appData().rentLedgerV202;
-    return Array.isArray(value)?value:[];
+    return rows('rentLedgerV202');
   }
 
   function importedLedger(entry){

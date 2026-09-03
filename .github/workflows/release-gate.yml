@@ -1,4 +1,4 @@
-name: AQARI V204 Tenant Rent Statement Gate
+name: AQARI V205 Simplified Platform Gate
 
 on:
   pull_request:
@@ -39,12 +39,14 @@ jobs:
           node --check v199-ui.js
           node --check v201-experience.js
           node --check v202-property-os.js
+          node --check v205-simplified-shell.js
           node --check lib/read-only.js
       - name: Verify release marker
         run: |
           grep -q "V198" index.html
           grep -q "V201-preview" v201-experience.js
           grep -q "V204-preview" v202-property-os.js
+          grep -q "V205-preview" v205-simplified-shell.js
           grep -q "AQARI V200 luxury presentation" v200-luxury.css
           grep -q "AQARI V201 quiet-luxury experience" v201-easy.css
           grep -q "aqari-v198-secure-cloud-js" index.html
@@ -54,4 +56,6 @@ jobs:
           grep -q "aqari-v201-experience-js" final-release-ui.js
           grep -q "aqari-v202-prestige-css" final-release-ui.js
           grep -q "aqari-v202-property-os-js" final-release-ui.js
+          grep -q "aqari-v205-simple-css" final-release-ui.js
+          grep -q "aqari-v205-simplified-shell-js" final-release-ui.js
           grep -q "AQARI V202" v202-prestige.css
