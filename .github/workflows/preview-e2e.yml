@@ -2,6 +2,11 @@ name: AQARI Preview E2E
 
 on:
   workflow_dispatch:
+    inputs:
+      base_url:
+        description: Optional Vercel Preview URL override
+        required: false
+        type: string
   pull_request:
     branches: [main]
 
@@ -10,8 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      AQARI_BASE_URL: https://aqari-git-release-v205-simplified-command-center-m-vib-5421.vercel.app
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      AQARI_BASE_URL_OVERRIDE: ${{ inputs.base_url || '' }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +25,21 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npx playwright install --with-deps chromium
+      - name: Resolve matching Vercel Preview
+        shell: bash
+        run: |
+          if [ -n "$AQARI_BASE_URL_OVERRIDE" ]; then
+            base="$AQARI_BASE_URL_OVERRIDE"
+          else
+            branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+            slug=$(printf '%s' "$branch" \
+              | tr '[:upper:]' '[:lower:]' \
+              | sed -E 's#[/_]+#-#g; s#[^a-z0-9-]+#-#g; s#-+#-#g; s#^-##; s#-$##')
+            test -n "$slug"
+            base="https://aqari-git-${slug}-m-vib-5421.vercel.app"
+          fi
+          printf 'AQARI_BASE_URL=%s\n' "$base" >> "$GITHUB_ENV"
+          echo "Preview target: $base"
       - name: Require protected Preview access
         run: |
           test -n "$AQARI_BASE_URL"
