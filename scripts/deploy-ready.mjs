@@ -18,4 +18,5 @@ for (const [name, cmd] of steps) {
 }
 
 if (failed) process.exit(1);
-console.log('AQARI V198 deploy readiness: PASS');
+console.log('AQARI V203 deploy readiness: PASS');
+

@@ -37,8 +37,8 @@ if(
 }
 
 const manifest = JSON.parse(fs.readFileSync('DEPLOYMENT_MANIFEST.json','utf8'));
-if(manifest.version !== 'V198'){
-  console.error('Deployment manifest version mismatch');
+if(manifest.version !== 'V203' || manifest.runtimeBase !== 'V198' || manifest.dataContract !== 'V202'){
+  console.error('V203 deployment identity or preserved runtime/data contract mismatch');
   failed = true;
 }
 
@@ -48,4 +48,4 @@ if(!manifest.required_routes.includes('/api/db/status')){
 }
 
 if(failed) process.exit(1);
-console.log('AQARI V198 route contract self-test: PASS');
+console.log('AQARI V203 route contract self-test: PASS');

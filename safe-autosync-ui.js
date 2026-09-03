@@ -10,7 +10,7 @@
     const title = document.createElement('strong');
     title.textContent = 'المزامنة السحابية اليدوية';
     const status = document.createElement('small');
-    status.textContent = 'الرفع التلقائي متوقف في V198. لا تُرسل البيانات إلا بعد ضغط المستخدم على أمر رفع صريح.';
+    status.textContent = 'الرفع التلقائي متوقف في V203. لا تُرسل البيانات إلا بعد ضغط المستخدم على أمر رفع صريح.';
 
     const actions = document.createElement('div');
     actions.className = 'aq-v193-actions';
@@ -37,3 +37,4 @@
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once:true });
   else mount();
 })();
+

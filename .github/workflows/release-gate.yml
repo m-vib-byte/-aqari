@@ -1,10 +1,17 @@
-name: AQARI V202 Property Operations Gate
+name: AQARI V203 Property Operations Gate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, release/v202]
   push:
-    branches: [main]
+    branches: [main, release/v202]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: aqari-v203-release-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -12,10 +19,27 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && format('refs/pull/{0}/merge', github.event.pull_request.number) || github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Verify checked-out revision
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            test "$(git rev-parse HEAD^1)" = "$EXPECTED_BASE_SHA"
+            test "$(git rev-parse HEAD^2)" = "$EXPECTED_HEAD_SHA"
+          else
+            test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      - run: npm install --ignore-scripts --no-audit --no-fund
       - name: Release self-tests
         run: |
           npm run check
@@ -29,19 +53,18 @@ jobs:
           npm run check:freeze
           node --test tests/*.test.cjs
       - name: JavaScript syntax
+        shell: bash
         run: |
-          find api scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
-          node --check public-config.js
-          node --check supabase-adapter.js
-          node --check cloud-sync.js
-          node --check safe-autosync.js
-          node --check secure-auth-bridge.js
-          node --check v199-ui.js
-          node --check v201-experience.js
-          node --check v202-property-os.js
-          node --check lib/read-only.js
-      - name: Verify release marker
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find api scripts lib -type f \( -name '*.js' -o -name '*.mjs' \) -print0)
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find . -maxdepth 1 -type f \( -name '*.js' -o -name '*.mjs' \) -print0)
+          node --check tests/preview.e2e.mjs
+      - name: Verify release marker and V203 assets
         run: |
+          grep -q '<meta name="aqari-release" content="V203">' index.html
           grep -q "V198" index.html
           grep -q "V201-preview" v201-experience.js
           grep -q "V202-preview" v202-property-os.js
@@ -54,4 +77,26 @@ jobs:
           grep -q "aqari-v201-experience-js" final-release-ui.js
           grep -q "aqari-v202-prestige-css" final-release-ui.js
           grep -q "aqari-v202-property-os-js" final-release-ui.js
+          grep -q "aqari-v202-rent-css" final-release-ui.js
+          grep -q "aqari-v202-rent-js" final-release-ui.js
+          grep -q "aqari-v203-simple-css" final-release-ui.js
+          grep -q "aqari-v203-simple-js" final-release-ui.js
           grep -q "AQARI V202" v202-prestige.css
+          grep -q "V203-dhahawi-ledger" v202-rent-operations.js
+          grep -q "V203-simple" v203-simple.js
+          test -s v202-rent-operations.css
+          test -s v202-rent-operations.js
+          test -s v203-simple.css
+          test -s v203-simple.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const version = JSON.parse(fs.readFileSync('VERSION.json', 'utf8'));
+          const deployment = JSON.parse(fs.readFileSync('DEPLOYMENT_MANIFEST.json', 'utf8'));
+          const environment = JSON.parse(fs.readFileSync('ENVIRONMENT_CONTRACT.json', 'utf8'));
+          for (const [name, document] of Object.entries({ version, deployment, environment })) {
+            if (document.version !== 'V203' || document.runtimeBase !== 'V198' || document.dataContract !== 'V202') {
+              throw new Error(`${name} does not expose the V203/V198/V202 identity contract`);
+            }
+          }
+          NODE

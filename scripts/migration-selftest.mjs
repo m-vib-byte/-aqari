@@ -24,4 +24,5 @@ for(const ref of ['/cloud-sync.js','/first-run-migration.js','/first-run-migrati
 }
 
 if(failed) process.exit(1);
-console.log('AQARI V198 first-run migration self-test: PASS');
+console.log('AQARI V203 first-run migration self-test: PASS');
+

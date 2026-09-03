@@ -25,10 +25,11 @@ for(const ref of ['/pre-migration-backup.js','/final-release-ui.js','/final-rele
   }
 }
 
-if(!html.includes('V198')){
-  console.error('V198 marker missing');
+if(!html.includes('<meta name="aqari-release" content="V203">')){
+  console.error('V203 public release marker missing');
   failed = true;
 }
 
 if(failed) process.exit(1);
-console.log('AQARI V198 final release self-test: PASS');
+console.log('AQARI V203 final release self-test: PASS');
+

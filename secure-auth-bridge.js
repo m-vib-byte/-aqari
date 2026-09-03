@@ -1,6 +1,10 @@
 (function(){
   'use strict';
 
+  const RELEASE = 'V203';
+  const RUNTIME_BASE = 'V198';
+  const DATA_CONTRACT = 'V202';
+
   const ROLE_MAP = {
     general_manager: { legacy:'admin', local:'مدير عام', label:'مدير عام', write:true },
     property_manager: { legacy:'property', local:'مدير عقار', label:'مدير عقار', write:true },
@@ -173,7 +177,7 @@
     box.className = 'aq-v168-cloud';
     box.innerHTML =
       '<div class="aq-v168-head"><div><h3>سحابة عقاري الآمنة</h3><small>Supabase Auth + Workspace RLS + Revision CAS</small></div>'+
-      '<div><span class="aq-v168-badge">V198 SUPABASE</span> <span id="cloudStateV198" class="aq-v168-state wait">● يتطلب دخول</span></div></div>'+
+      '<div><span class="aq-v168-badge">'+RELEASE+' SUPABASE</span> <span id="cloudStateV198" class="aq-v168-state wait">● يتطلب دخول</span></div></div>'+
       '<div class="aq-v168-grid">'+
       '<div class="aq-v168-card"><b>البيئة</b><small>Supabase Production</small></div>'+
       '<div class="aq-v168-card"><b>الحساب</b><small id="cloudAuthV198">غير مسجل</small></div>'+
@@ -360,7 +364,7 @@
 
   window.toggleCloudAutoSyncV198 = function(){
     window.AQARI_AUTOSYNC?.disable();
-    notice('المزامنة التلقائية متوقفة في V198. استخدم الرفع أو الاسترجاع اليدوي الصريح.', 'wait');
+    notice('المزامنة التلقائية متوقفة في V203. استخدم الرفع أو الاسترجاع اليدوي الصريح.', 'wait');
     updateUI();
   };
 
@@ -392,6 +396,12 @@
   window.toggleCloudAutoSyncV168 = window.toggleCloudAutoSyncV198;
   window.openCloudV168 = window.openCloudV198;
 
+  window.AQARI_SECURE_BRIDGE_META = Object.freeze({
+    version:RELEASE,
+    runtimeBase:RUNTIME_BASE,
+    dataContract:DATA_CONTRACT
+  });
+
   async function installAuthListener(){
     if(authListenerInstalled) return;
     authListenerInstalled = true;
@@ -415,3 +425,4 @@
     start();
   }
 })();
+

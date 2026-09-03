@@ -2,31 +2,229 @@ name: AQARI Preview E2E
 
 on:
   workflow_dispatch:
+    inputs:
+      preview_url:
+        description: Optional exact URL; it must match the newest Preview for expected_sha
+        required: false
+        type: string
+      expected_sha:
+        description: Commit SHA served by the Preview (defaults to the dispatched SHA)
+        required: false
+        type: string
   pull_request:
-    branches: [main]
+    branches: [main, release/v202]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  deployments: read
+
+concurrency:
+  group: aqari-v203-preview-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      AQARI_BASE_URL: https://aqari-git-release-v202-m-vib-5421.vercel.app
-      AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      EXPECTED_GITHUB_REPOSITORY: m-vib-byte/-aqari
+      EXPECTED_VERCEL_TEAM: m-vib-5421
+      EXPECTED_VERCEL_PROJECT: aqari
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || inputs.expected_sha || github.sha }}
+          persist-credentials: false
+      - name: Verify checked-out revision
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || inputs.expected_sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      - run: npm install --ignore-scripts --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - name: Require protected Preview access
-        run: |
-          test -n "$AQARI_BASE_URL"
-          test -n "$AQARI_EXPECTED_SHA"
-          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ] && ! printf '%s' "$AQARI_BASE_URL" | grep -Eq '(_vercel_share|x-vercel-protection-bypass)='; then
-            echo 'Configure VERCEL_AUTOMATION_BYPASS_SECRET or a protected share URL.' >&2
-            exit 1
-          fi
+      - name: Resolve newest Preview for this exact revision
+        uses: actions/github-script@v7
+        env:
+          DISPATCH_PREVIEW_URL: ${{ inputs.preview_url || '' }}
+          DISPATCH_EXPECTED_SHA: ${{ inputs.expected_sha || '' }}
+        with:
+          script: |
+            const explicitUrl = String(process.env.DISPATCH_PREVIEW_URL || '').trim();
+            const explicitSha = String(process.env.DISPATCH_EXPECTED_SHA || '').trim();
+            const expectedRepository = String(process.env.EXPECTED_GITHUB_REPOSITORY || '').toLowerCase();
+            const expectedTeam = String(process.env.EXPECTED_VERCEL_TEAM || '').toLowerCase();
+            const expectedProject = String(process.env.EXPECTED_VERCEL_PROJECT || '').toLowerCase();
+            const actualRepository = `${context.repo.owner}/${context.repo.repo}`;
+            const payloadRepository = context.payload.repository?.full_name || actualRepository;
+
+            if (actualRepository.toLowerCase() !== expectedRepository || payloadRepository.toLowerCase() !== expectedRepository) {
+              core.setFailed(`Refusing to resolve or authenticate an unexpected repository: ${payloadRepository}`);
+              return;
+            }
+
+            const pullRequestSha = String(context.payload.pull_request?.head?.sha || '').trim();
+            if (pullRequestSha && explicitSha && pullRequestSha.toLowerCase() !== explicitSha.toLowerCase()) {
+              core.setFailed('The dispatched SHA does not match the pull request head SHA');
+              return;
+            }
+            const sha = String(pullRequestSha || explicitSha || context.sha).trim().toLowerCase();
+            if (!/^[0-9a-f]{40}$/.test(sha)) {
+              core.setFailed(`Invalid expected commit SHA: ${sha || 'missing'}`);
+              return;
+            }
+
+            function newest(records) {
+              return [...records].sort((left, right) => {
+                const time = Date.parse(right.created_at || right.updated_at || 0) - Date.parse(left.created_at || left.updated_at || 0);
+                return time || Number(right.id || 0) - Number(left.id || 0);
+              })[0] || null;
+            }
+
+            function fromVercel(record) {
+              return record?.creator?.login === 'vercel[bot]' || record?.performed_via_github_app?.slug === 'vercel';
+            }
+
+            function isPreviewDeployment(deployment) {
+              return String(deployment?.environment || '').trim().toLowerCase() === 'preview' &&
+                deployment?.production_environment !== true &&
+                String(deployment?.sha || '').toLowerCase() === sha;
+            }
+
+            function previewOrigin(value) {
+              try {
+                const parsed = new URL(value);
+                const hostname = parsed.hostname.toLowerCase();
+                const teamSuffix = `-${expectedTeam}.vercel.app`;
+                if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port || parsed.pathname !== '/' || parsed.search || parsed.hash) return '';
+                if (!hostname.endsWith(teamSuffix)) return '';
+                return parsed.origin;
+              } catch {
+                return '';
+              }
+            }
+
+            function isExpectedInspector(value) {
+              try {
+                const parsed = new URL(value);
+                const segments = parsed.pathname.split('/').filter(Boolean).map(segment => decodeURIComponent(segment).toLowerCase());
+                return parsed.protocol === 'https:' && parsed.hostname === 'vercel.com' &&
+                  segments.length >= 3 && segments[0] === expectedTeam && segments[1] === expectedProject;
+              } catch {
+                return false;
+              }
+            }
+
+            let resolvedUrl = '';
+            let resolvedDeployment = null;
+            for (let attempt = 0; attempt < 25 && !resolvedUrl; attempt += 1) {
+              const { data: deployments } = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha,
+                per_page: 100,
+              });
+              const deployment = newest(deployments.filter(isPreviewDeployment));
+              if (!deployment) {
+                if (attempt < 24) await new Promise(resolve => setTimeout(resolve, 12000));
+                continue;
+              }
+              if (!fromVercel(deployment)) {
+                core.setFailed(`Newest Preview deployment ${deployment.id} was not created by the Vercel GitHub App`);
+                return;
+              }
+
+              const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: deployment.id,
+                per_page: 100,
+              });
+              const status = newest(statuses);
+              if (!status) {
+                if (attempt < 24) await new Promise(resolve => setTimeout(resolve, 12000));
+                continue;
+              }
+              if (!fromVercel(status)) {
+                core.setFailed(`Newest status for Preview deployment ${deployment.id} was not created by Vercel`);
+                return;
+              }
+              if (['error', 'failure', 'inactive'].includes(status.state)) {
+                core.setFailed(`Newest Preview deployment ${deployment.id} ended in state ${status.state}`);
+                return;
+              }
+              if (status.state !== 'success') {
+                if (attempt < 24) await new Promise(resolve => setTimeout(resolve, 12000));
+                continue;
+              }
+
+              const candidate = previewOrigin(status.environment_url || '');
+              if (!candidate || !isExpectedInspector(status.target_url || '')) {
+                core.setFailed(`Newest successful Preview deployment ${deployment.id} does not belong to the expected Vercel team/project`);
+                return;
+              }
+              resolvedUrl = candidate;
+              resolvedDeployment = deployment;
+            }
+
+            if (!resolvedUrl || !resolvedDeployment) {
+              core.setFailed(`No successful Vercel Preview deployment was found for exact commit ${sha}`);
+              return;
+            }
+            if (explicitUrl && previewOrigin(explicitUrl) !== resolvedUrl) {
+              core.setFailed('The supplied Preview URL is not the newest Preview deployment for the expected SHA');
+              return;
+            }
+
+            core.exportVariable('AQARI_BASE_URL', resolvedUrl);
+            core.exportVariable('AQARI_EXPECTED_SHA', sha);
+            core.info(`Testing Preview deployment ${resolvedDeployment.id} for ${sha}: ${resolvedUrl}`);
       - name: Preview E2E
         run: npm run test:e2e
+      - name: Verify V203 assets on the same Preview
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import vm from 'node:vm';
+
+          const base = process.env.AQARI_BASE_URL;
+          const parsedBase = new URL(base);
+          if (base !== parsedBase.origin) throw new Error('Preview URL must be a clean, verified origin');
+
+          const browser = await chromium.launch({ headless: true });
+          const context = await browser.newContext();
+          const publicProbe = await context.request.get(base, { failOnStatusCode: false, maxRedirects: 0 });
+          if (!publicProbe.ok()) {
+            throw new Error(`Preview must be publicly testable; probe failed with HTTP ${publicProbe.status()}`);
+          }
+
+          const page = await context.newPage();
+          const pageErrors = [];
+          page.on('pageerror', error => pageErrors.push(error.stack || error.message));
+          const response = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
+          if (!response?.ok()) throw new Error(`Preview HTTP ${response?.status()}`);
+          await page.waitForFunction(
+            () => Boolean(window.AQARI_DHAHAWI) && document.body.classList.contains('aq-v203-simple'),
+            null,
+            { timeout: 10000 },
+          );
+
+          const assets = [
+            '/final-release-ui.js',
+            '/v202-rent-operations.css',
+            '/v202-rent-operations.js',
+            '/v203-simple.css',
+            '/v203-simple.js',
+          ];
+          for (const asset of assets) {
+            const assetResponse = await context.request.get(new URL(asset, base).toString());
+            if (!assetResponse.ok()) throw new Error(`${asset} HTTP ${assetResponse.status()}`);
+            if (asset.endsWith('.js')) new vm.Script(await assetResponse.text(), { filename: asset });
+          }
+          if (pageErrors.length) throw new Error(pageErrors.slice(0, 3).join(' | '));
+          await browser.close();
+          console.log('AQARI V203 Preview assets: PASS');
+          NODE

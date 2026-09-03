@@ -38,4 +38,5 @@ for(const ref of ['/public-config.js','/supabase-adapter.js','/cloud-sync.js']){
 }
 
 if(fail) process.exit(1);
-console.log('AQARI V198 cloud sync package self-test: PASS');
+console.log('AQARI V203 cloud sync package self-test: PASS');
+

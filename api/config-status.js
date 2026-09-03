@@ -11,7 +11,7 @@ export default async function handler(req, res){
   const configured = Object.fromEntries(required.map(key => [key, Boolean(process.env[key])]));
   const present = Object.values(configured).filter(Boolean).length;
   return sendReadOnlyJson(req, res, {
-    ok:true, version:'V198', configured,
+    ok:true, version:'V203', runtimeBase:'V198', dataContract:'V202', stage:'release-candidate', configured,
     summary:{ present, required:required.length, ready:present === required.length },
     note:'Reports presence only; secret values are never returned.'
   });

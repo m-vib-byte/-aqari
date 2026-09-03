@@ -4,7 +4,7 @@ export default async function handler(req,res){
   if(!beginReadOnly(req,res)) return;
   return sendReadOnlyJson(req,res,{
     ok:true,
-    version:'V198',
+    version:'V203', runtimeBase:'V198', dataContract:'V202', stage:'release-candidate',
     provider:'supabase',
     mode:'supabase_cloud',
     projectUrl:'https://qtavnufzbkdfeauyukot.supabase.co',

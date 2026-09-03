@@ -35,4 +35,5 @@ if(!source.includes("mode:'manual_only'") || !source.includes('AQARI_AUTOSYNC_DI
 }
 
 if(failed) process.exit(1);
-console.log('AQARI V198 autosync self-test: PASS');
+console.log('AQARI V203 autosync self-test: PASS');
+

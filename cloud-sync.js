@@ -135,7 +135,8 @@
   }
 
   window.AQARI_CLOUD_SYNC = Object.freeze({
-    version:'V198', collectLocalSnapshot, decodeCloudPayload, readCloud,
+    version:'V203', runtimeBase:'V198', dataContract:'V202', collectLocalSnapshot, decodeCloudPayload, readCloud,
     uploadLocal, downloadCloudPreview, restoreCloudToLocal
   });
 })();
+

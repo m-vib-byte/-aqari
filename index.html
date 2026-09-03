@@ -1,4 +1,4 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V198 • Supabase Connected</title><style id="aqari-v198-legacy-gate-lock">#auth,#loginGateV120{display:none!important}</style><style>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V203 • Supabase Integration</title><style id="aqari-v198-legacy-gate-lock">#auth,#loginGateV120{display:none!important}</style><style>
 :root{--g:#b88927;--l:#eadfc8;--bg:#f7f6f2}*{box-sizing:border-box}body{margin:0;font-family:Arial;background:var(--bg);color:#26221b}header{background:#fff;border-bottom:1px solid var(--l);padding:14px;position:sticky;top:0;z-index:4}.w{max-width:1260px;margin:auto}.r{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.brand{color:var(--g);font-weight:900;font-size:23px}button,input,select{padding:9px;border:1px solid var(--l);border-radius:10px;background:#fff}.g{background:var(--g);color:#fff}.tabs{display:flex;gap:6px;overflow:auto;padding:12px 0}.tabs button{white-space:nowrap}.tabs .on{background:var(--g);color:#fff}.p{display:none}.p.on{display:block}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.c{background:#fff;border:1px solid var(--l);border-radius:16px;padding:14px;margin-bottom:10px}.m b{display:block;color:var(--g);font-size:22px;margin-top:5px}table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #f1eadc;text-align:right;font-size:13px}.modal{display:none;position:fixed;inset:0;background:#0008;place-items:center;padding:15px;z-index:7}.modal.on{display:grid}.box{background:#fff;border-radius:18px;padding:16px;width:min(650px,100%)}.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.f{grid-template-columns:1fr}}.mobilebar{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--l);z-index:30;padding:7px;gap:6px;justify-content:space-around}.mobilebar button{flex:1;font-size:11px;padding:8px 4px}.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:#26221b;color:#fff;padding:10px 14px;border-radius:12px;z-index:50;display:none}.statusdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2d8b57;margin-inline:4px}@media(max-width:700px){body{padding-bottom:72px}.mobilebar{display:flex}header .brand{font-size:20px}.tabs{display:none}.c{border-radius:13px}.grid{grid-template-columns:repeat(2,1fr)}}@media print{header,.tabs,.mobilebar,.modal,.toast{display:none!important}body{background:#fff;padding:0}.c{border:0;box-shadow:none}}
 @media(max-width:760px){
  body{font-size:14px}
@@ -2425,8 +2425,10 @@ html,body{max-width:100%;overflow-x:hidden}
 </style>
 
 
-<meta name="aqari-release" content="V198">
-<meta name="aqari-stage" content="launch-candidate">
+<meta name="aqari-release" content="V203">
+<meta name="aqari-runtime-base" content="V198">
+<meta name="aqari-data-contract" content="V202">
+<meta name="aqari-stage" content="release-candidate">
 
 
 <link rel="stylesheet" href="/first-run-migration.css">
@@ -2440,7 +2442,7 @@ html,body{max-width:100%;overflow-x:hidden}
 <link rel="stylesheet" href="/production-lockdown.css">
 </head><body>
 <div id="auth" style="position:fixed;inset:0;z-index:99;background:#f7f6f2;display:grid;place-items:center;padding:20px"><div class="c" style="width:min(430px,100%);padding:24px"><h1 style="color:var(--g);text-align:center">عقاري</h1><p style="text-align:center">AQARI Property Management</p><input id="loginName" value="المدير العام" placeholder="اسم المستخدم" style="width:100%;margin:5px 0"><select id="loginRole" style="width:100%;margin:5px 0"><option value="admin">المدير العام</option><option value="accountant">المحاسب</option><option value="collection">التحصيل</option><option value="maintenance">الصيانة</option><option value="property">العقارات</option></select><input id="loginPin" type="password" placeholder="رمز الدخول 1234" style="width:100%;margin:5px 0"><button class="g" style="width:100%;margin-top:8px" onclick="login()">دخول</button><div style="display:flex;gap:8px;margin-top:8px"><button style="flex:1" onclick="fillDemoLogin()">تعبئة دخول المدير</button><button style="flex:1" onclick="clearLoginSession()">مسح الجلسة</button></div><p id="loginHelp" style="font-size:12px;color:#7a7267;text-align:center;margin-top:8px">للتجربة: الرمز 1234</p></div></div>
-<header><div class="w r"><div><div class="brand">عقاري</div><small>AQARI • V198 SUPABASE CONNECTED</small></div><div><span id="sessionBadge" style="font-size:12px;color:#7a7267;margin-left:8px">غير مسجل</span> <button onclick="showNotifications()">🔔 <span id="notifCount">0</span></button> <input id="search" placeholder="بحث شامل..." oninput="aqariV168Search(this.value)"> <select id="lang" onchange="setLang(this.value)"><option value="ar">العربية</option><option value="en">English</option><option value="hi">हिन्दी</option></select> <button onclick="backup()">نسخة احتياطية</button><button onclick="logout()">خروج</button><button onclick="restoreFile.click()">استعادة</button><input id="restoreFile" type="file" accept=".json" style="display:none" onchange="restore(event)"><button class="g" onclick="add()">+ إضافة</button></div></div></header>
+<header><div class="w r"><div><div class="brand">عقاري</div><small>AQARI • V203 SUPABASE INTEGRATION</small></div><div><span id="sessionBadge" style="font-size:12px;color:#7a7267;margin-left:8px">غير مسجل</span> <button onclick="showNotifications()">🔔 <span id="notifCount">0</span></button> <input id="search" placeholder="بحث شامل..." oninput="aqariV168Search(this.value)"> <select id="lang" onchange="setLang(this.value)"><option value="ar">العربية</option><option value="en">English</option><option value="hi">हिन्दी</option></select> <button onclick="backup()">نسخة احتياطية</button><button onclick="logout()">خروج</button><button onclick="restoreFile.click()">استعادة</button><input id="restoreFile" type="file" accept=".json" style="display:none" onchange="restore(event)"><button class="g" onclick="add()">+ إضافة</button></div></div></header>
 <main class="w"><div class="tabs" id="tabs"></div><section id="home" class="p on"><div class="grid" id="kpis"></div><div class="c"><h3>مركز العمليات اليومي</h3><div id="ops"></div></div>
 <div class="c"><div class="r"><h3>اختصارات حسب الصلاحية</h3><span><span class="statusdot"></span><span id="onlineState">متصل</span></span></div><div id="roleShortcuts" class="grid"></div></div>
 <div class="c"><h3>تشغيل تلقائي</h3><div class="r">
@@ -7868,7 +7870,7 @@ function applySettingsV105(save=true){
  if(save)saveSettingsV105(s);
  document.documentElement.dir=s.direction;
  document.body.classList.toggle('compactV105',s.density==='compact');
- document.title=s.appName+' • AQARI V198';
+ document.title=s.appName+' • AQARI V203';
  if(document.getElementById('brandNameV105'))brandNameV105.textContent=s.appName;
  if(document.getElementById('brandCompanyV105'))brandCompanyV105.textContent=[s.company,s.license].filter(Boolean).join(' • ')||'—';
  if(document.getElementById('brandLogoV105'))brandLogoV105.textContent=(s.appName||'ع').trim().charAt(0);
@@ -13938,7 +13940,7 @@ body{overscroll-behavior-y:none}
 </style>
 <script id="aqari-v169-mobile-app-shell-js">
 (function(){
-  window.AQARI_RELEASE='V198';
+  window.AQARI_RELEASE='V203';
   const LABELS={home:'الرئيسية',tenants:'المستأجرون',collections:'التحصيل',maintenance:'الصيانة',documentsHub:'المستندات'};
   function q(s){return document.querySelector(s)}
   function qa(s){return Array.from(document.querySelectorAll(s))}
@@ -13949,13 +13951,13 @@ body{overscroll-behavior-y:none}
   function decorateLogin(){
     const card=q('.loginCardV120');if(!card||card.dataset.v169)return;card.dataset.v169='1';
     const h=card.querySelector('h2'),p=h&&h.nextElementSibling;if(h)h.style.display='none';if(p&&p.tagName==='P')p.style.display='none';
-    const brand=document.createElement('div');brand.className='v169-login-brand';brand.innerHTML='<div class="v169-login-logo">ع</div><div class="v169-login-copy"><b>عقاري</b><small>AQARI • V198 Mobile App</small></div>';
+    const brand=document.createElement('div');brand.className='v169-login-brand';brand.innerHTML='<div class="v169-login-logo">ع</div><div class="v169-login-copy"><b>عقاري</b><small>AQARI • V203 Mobile App</small></div>';
     card.insertBefore(brand,card.firstChild);
-    const foot=document.createElement('div');foot.className='v169-login-foot';foot.innerHTML='<span>واجهة جوال محسّنة</span><span>V198</span>';card.appendChild(foot);
+    const foot=document.createElement('div');foot.className='v169-login-foot';foot.innerHTML='<span>واجهة جوال محسّنة</span><span>V203</span>';card.appendChild(foot);
   }
   function decorateHeader(){
     const first=q('header .w.r>div:first-child');if(!first||q('#aqariV198ReleaseChip'))return;
-    const chip=document.createElement('span');chip.id='aqariV198ReleaseChip';chip.textContent='V198 • Mobile';first.appendChild(chip);
+    const chip=document.createElement('span');chip.id='aqariV198ReleaseChip';chip.textContent='V203 • Mobile';first.appendChild(chip);
   }
   function targetFrom(btn){const a=btn.getAttribute('onclick')||'';const m=a.match(/go\(['\"]([^'\"]+)/);return m?m[1]:''}
   function markActive(id){
@@ -13986,7 +13988,7 @@ body{overscroll-behavior-y:none}
 
 
 <style id="aqari-v170-mobile-dashboard">
-/* AQARI V198 — Release Freeze polish */
+/* AQARI V203 — preview polish on the preserved V198 runtime */
 @media (max-width: 768px){
   :root{
     --aq-v170-gap: 12px;
@@ -14069,7 +14071,7 @@ body{overscroll-behavior-y:none}
   }
 }
 
-/* V198 runtime-added class for compact home */
+/* Preserved runtime class for compact home */
 html.aq-v170-mobile .aq-v170-compact{
   content-visibility: auto;
   contain-intrinsic-size: 1px 260px;
@@ -14130,7 +14132,7 @@ html.aq-v170-mobile .aq-v170-compact{
 
 
 <style id="aqari-v171-quick-actions-search">
-/* AQARI V198 — quick actions, search, focus states */
+/* AQARI V203 — quick actions, search, focus states */
 :root{
   --aq-v171-focus: 0 0 0 3px rgba(180, 145, 55, .22);
 }
@@ -16580,7 +16582,7 @@ textarea:focus-visible{
     box.className = 'aq-v180-cleanup';
 
     var title = document.createElement('b');
-    title.textContent = 'V198 — تم إصلاح قراءة البيانات المتداخلة';
+    title.textContent = 'V203 — تم إصلاح قراءة البيانات المتداخلة';
 
     var note = document.createElement('small');
     note.textContent = 'تم منع لوحات التحليل الجديدة من احتساب نصوص اللوحات المضافة سابقًا كأنها بيانات عقارية أصلية، لتقليل التكرار والنتائج الوهمية وتحسين الأداء على الجوال.';
@@ -17212,7 +17214,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 <style id="aqari-v184-production-hardening">
-/* V198: production hardening — reduce stacked panel noise on mobile */
+/* V203 preview: production hardening inherited from the V198 runtime */
 .aq-v184-prod{
   margin:12px 0 16px;
   padding:12px 14px;
@@ -17336,7 +17338,7 @@ table{
     box.className = 'aq-v184-prod';
 
     var title = document.createElement('strong');
-    title.textContent = 'V198 — Release Freeze';
+    title.textContent = 'V203 — Preview Validation';
 
     var note = document.createElement('small');
     note.textContent = 'تم تقليل تكدس المراكز على الجوال، تحسين التعامل مع الروابط والجداول، وإضافة طبقة حماية بسيطة لأخطاء الواجهة قبل مرحلة الربط النهائي والاختبارات الإنتاجية.';

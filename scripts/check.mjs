@@ -18,10 +18,11 @@ for (const file of requiredFiles) {
 }
 
 const html = fs.readFileSync('index.html', 'utf8');
-if (!html.includes('V198')) {
-  console.error('index.html does not contain V198 release marker');
+if (!html.includes('<meta name="aqari-release" content="V203">')) {
+  console.error('index.html does not contain the V203 public release marker');
   failed = true;
 }
 
 if (failed) process.exit(1);
-console.log('AQARI V198 package check: PASS');
+console.log('AQARI V203 package check: PASS');
+

@@ -36,4 +36,5 @@ if (e2e.includes('body.summary?.ready !== true')) {
 }
 
 if (failed) process.exit(1);
-console.log('AQARI V198 preview E2E package self-test: PASS');
+console.log('AQARI V203 preview E2E package self-test: PASS');
+

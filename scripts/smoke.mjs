@@ -12,4 +12,5 @@ for (const path of ['/api/health', '/api/release', '/api/config-status', '/api/s
   if (!res.ok) process.exit(1);
 }
 
-console.log('AQARI V187 smoke: PASS');
+console.log('AQARI V203 smoke: PASS');
+

@@ -11,8 +11,11 @@ export default async function handler(req, res){
   const configured = Object.fromEntries(required.map(key => [key, Boolean(process.env[key])]));
   const present = Object.values(configured).filter(Boolean).length;
   return sendReadOnlyJson(req, res, {
-    ok:true, version:'V198', stage:'release-freeze', configured,
+    ok:true, version:'V203', runtimeBase:'V198', dataContract:'V202', stage:'release-candidate', releaseReadiness:'not_deployed', configured,
     summary:{ present, required:required.length, ready:present === required.length },
+    releaseFrozen:true,
+    supabaseConnectionVerified:false,
+    production:{ status:'not_deployed', deployed:false },
     deployment:{ environment:process.env.VERCEL_ENV || null, gitSha:process.env.VERCEL_GIT_COMMIT_SHA || null, url:process.env.VERCEL_URL || null }
   });
 }

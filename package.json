@@ -1,7 +1,7 @@
 {
-  "name": "aqari-v198",
+  "name": "aqari-v203",
   "private": true,
-  "version": "198.0.0",
+  "version": "203.0.0",
   "type": "module",
   "scripts": {
     "check": "node scripts/check.mjs",
@@ -22,6 +22,6 @@
     "check:freeze": "node scripts/release-freeze-selftest.mjs"
   },
   "devDependencies": {
-    "playwright": "^1.55.0"
+    "playwright": "1.55.0"
   }
 }

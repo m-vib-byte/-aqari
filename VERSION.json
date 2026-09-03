@@ -1,61 +1,62 @@
 {
   "name": "AQARI",
-  "version": "V198",
+  "version": "V203",
+  "runtimeBase": "V198",
+  "dataContract": "V202",
   "design_version": "V202-preview",
-  "design_stage": "property-operations-preview-review",
-  "stage": "release-freeze",
-  "index_sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244",
-  "syntax_checks": 80,
+  "experience_version": "V203-simple",
+  "operations_version": "V203-dhahawi-ledger",
+  "design_stage": "unified-property-ledger-release-candidate",
+  "stage": "release-candidate",
+  "index_sha256": "e75cfaff660d94f4f511ccec92368e90fbbcbd3814209a0cc4eb5af80dbd4955",
+  "syntax_checks": 34,
   "syntax_errors": 0,
+  "validation": {
+    "runtime_contracts": "required_by_ci",
+    "release_gate": "required_by_ci",
+    "preview_e2e": "required_by_ci",
+    "production": "not_deployed"
+  },
   "selftests": [
     {
       "cmd": "node scripts/check.mjs",
-      "code": 0,
-      "out": "AQARI V198 package check: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/cloud-sync-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 cloud sync package self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/migration-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 first-run migration self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/autosync-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 autosync self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/preview-e2e-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 preview E2E package self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/route-contract-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 route contract self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/final-release-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 final release self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/production-lockdown-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 production lockdown self-test: PASS"
+      "status": "passed"
     },
     {
       "cmd": "node scripts/release-freeze-selftest.mjs",
-      "code": 0,
-      "out": "AQARI V198 release freeze self-test: PASS"
+      "status": "passed"
     }
   ],
   "release_frozen": true,
-  "supabase_live_verified": true,
+  "supabase_live_verified": false,
   "preview_deployed": false,
   "preview_e2e_executed": false,
   "first_migration_executed": false,

@@ -44,8 +44,11 @@
   }
 
   window.AQARI_BACKUP = Object.freeze({
-    version:'V198',
+    version:'V203',
+    runtimeBase:'V198',
+    dataContract:'V202',
     collect,
     download
   });
 })();
+

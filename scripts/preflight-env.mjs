@@ -19,7 +19,7 @@ const optional = [
 
 let failed = false;
 
-console.log('AQARI V198 Environment Preflight');
+console.log('AQARI V203 Environment Preflight');
 console.log('--------------------------------');
 
 for (const key of required) {
@@ -39,3 +39,4 @@ if (failed) {
 }
 
 console.log('Environment preflight: PASS');
+

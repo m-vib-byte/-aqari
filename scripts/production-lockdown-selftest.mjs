@@ -22,10 +22,11 @@ for(const ref of ['/production-lockdown.js','/production-lockdown.css']){
   }
 }
 
-if(!html.includes('V198')){
-  console.error('V198 marker missing');
+if(!html.includes('<meta name="aqari-release" content="V203">')){
+  console.error('V203 public release marker missing');
   failed = true;
 }
 
 if(failed) process.exit(1);
-console.log('AQARI V198 production lockdown self-test: PASS');
+console.log('AQARI V203 production lockdown self-test: PASS');
+

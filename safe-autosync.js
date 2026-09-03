@@ -7,7 +7,7 @@
   const LAST_SYNC_KEY = 'aqari_cloud_last_sync_at';
 
   function disabledError(){
-    const error = new Error('Automatic cloud upload is disabled in V198; use an explicit manual transfer');
+    const error = new Error('Automatic cloud upload is disabled in V203; use an explicit manual transfer');
     error.code = 'AQARI_AUTOSYNC_DISABLED';
     return error;
   }
@@ -27,7 +27,7 @@
 
   disable();
   window.AQARI_AUTOSYNC = Object.freeze({
-    version:'V198', mode:'manual_only', enable, disable, markBaseline, syncNow, schedule,
+    version:'V203', runtimeBase:'V198', dataContract:'V202', mode:'manual_only', enable, disable, markBaseline, syncNow, schedule,
     get status(){
       return {
         enabled:false,
@@ -41,3 +41,4 @@
     }
   });
 })();
+

@@ -1,7 +1,14 @@
 {
   "app": "AQARI",
-  "version": "V198",
-  "stage": "release-freeze",
+  "version": "V203",
+  "runtimeBase": "V198",
+  "dataContract": "V202",
+  "components": {
+    "design": "V202-preview",
+    "experience": "V203-simple",
+    "rentOperations": "V203-dhahawi-ledger"
+  },
+  "stage": "release-candidate",
   "required_routes": [
     "/",
     "/api/health",
@@ -15,11 +22,12 @@
     "/api/production-readiness"
   ],
   "gates": {
-    "syntax": true,
-    "package_selftests": true,
-    "preview_e2e_prepared": true,
-    "preview_e2e_executed": false,
+    "local_syntax": true,
+    "runtime_contracts": "required_by_ci",
+    "release_gate": "required_by_ci",
+    "preview_e2e": "required_by_ci",
     "production_env_verified": false,
-    "production_deployed": false
+    "production_deployed": false,
+    "production_status": "not_deployed"
   }
 }

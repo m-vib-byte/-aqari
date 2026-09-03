@@ -7,23 +7,23 @@ if (!base) {
 const checks = [
   ['/', async (res) => {
     const html = await res.text();
-    return res.ok && html.includes('V198');
+    return res.ok && html.includes('<meta name="aqari-release" content="V203">');
   }],
   ['/api/health', async (res) => {
     const json = await res.json();
-    return res.ok && json.ok === true && json.version === 'V198';
+    return res.ok && json.ok === true && json.version === 'V203' && json.runtimeBase === 'V198' && json.dataContract === 'V202';
   }],
   ['/api/release', async (res) => {
     const json = await res.json();
-    return res.ok && json.version === 'V198';
+    return res.ok && json.version === 'V203' && json.runtimeBase === 'V198' && json.dataContract === 'V202';
   }],
   ['/api/config-status', async (res) => {
     const json = await res.json();
-    return res.ok && json.ok === true && json.version === 'V198';
+    return res.ok && json.ok === true && json.version === 'V203' && json.runtimeBase === 'V198' && json.dataContract === 'V202';
   }],
   ['/api/supabase-status', async (res) => {
     const json = await res.json();
-    return res.ok && json.ok === true && json.version === 'V198' && json.provider === 'supabase';
+    return res.ok && json.ok === true && json.version === 'V203' && json.runtimeBase === 'V198' && json.dataContract === 'V202' && json.provider === 'supabase';
   }]
 ];
 
@@ -42,4 +42,5 @@ for (const [path, validator] of checks) {
 }
 
 if (failed) process.exit(1);
-console.log('AQARI V198 deployment verification: PASS');
+console.log('AQARI V203 deployment verification: PASS');
+
