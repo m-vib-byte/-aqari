@@ -294,7 +294,8 @@
     overlay.classList.remove('on');
     overlay.setAttribute('aria-hidden','true');
     document.body.classList.remove('v201-layer-open');
-    if(restore!==false&&createTrigger instanceof HTMLElement)setTimeout(function(){createTrigger.focus()},0);
+    const trigger=createTrigger;
+    if(restore!==false&&trigger instanceof HTMLElement)setTimeout(function(){trigger.focus()},0);
     createTrigger=null;
   }
 
@@ -433,7 +434,8 @@
     }else if(modal.hasAttribute('data-v201-open')){
       modal.removeAttribute('data-v201-open');
       document.body.classList.remove('v201-modal-open');
-      if(modalTrigger instanceof HTMLElement)setTimeout(function(){modalTrigger.focus()},0);
+      const trigger=modalTrigger;
+      if(trigger instanceof HTMLElement)setTimeout(function(){trigger.focus()},0);
       modalTrigger=null;
       setTimeout(function(){if(!modal.classList.contains('on'))pendingReceipt=false},0);
     }
