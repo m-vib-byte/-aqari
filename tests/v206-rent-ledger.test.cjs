@@ -1,0 +1,39 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+
+const root = path.resolve(__dirname, '..');
+
+test('V206 rent ledger extends V205 without replacing the simplified shell', () => {
+  const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+  const shell = fs.readFileSync(path.join(root, 'v205-simplified-shell.js'), 'utf8');
+  const rent = fs.readFileSync(path.join(root, 'v206-rent-ledger.js'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'v206-rent-ledger.css'), 'utf8');
+
+  assert.match(loader, /installV205SimplifiedShell/);
+  assert.match(loader, /v205-simplified-shell\.js/);
+  assert.match(loader, /v206-rent-ledger\.css/);
+  assert.match(loader, /v206-rent-ledger\.js/);
+  assert.ok(loader.indexOf('v206-rent-ledger.js') > loader.indexOf('v205-simplified-shell.js'));
+
+  assert.match(shell, /V205-preview/);
+  assert.match(rent, /contractsV202/);
+  assert.match(rent, /rentLedgerV202/);
+  assert.match(rent, /KNET OPERATION NUMBER/);
+  assert.match(rent, /VOUCHER NO/);
+  assert.match(rent, /NAME OF THE TENANT/);
+  assert.match(rent, /FLAT NO\./);
+  assert.match(rent, /brandProfile/);
+  assert.match(rent, /dhahawi/i);
+  assert.doesNotMatch(rent, /AQARI_SUPABASE\s*=/);
+
+  const headerCount = (rent.match(/<th>/g) || []).length;
+  assert.equal(headerCount, 14, 'V206 rent ledger must keep the 14-column statement contract');
+
+  assert.match(css, /@page\s*\{\s*size\s*:\s*A4 landscape/i);
+  assert.match(css, /v206-ledger/);
+  assert.match(css, /v206-paper/);
+});
