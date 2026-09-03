@@ -123,13 +123,15 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(sync, /SENSITIVE_KEY/);
 });
 
-test('V201 quiet-luxury experience preserves the V198 secure runtime', () => {
+test('V202 property operations preserves the V198 secure runtime', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'v199-ui.css'), 'utf8');
   const luxury = fs.readFileSync(path.join(root, 'v200-luxury.css'), 'utf8');
   const easy = fs.readFileSync(path.join(root, 'v201-easy.css'), 'utf8');
   const ui = fs.readFileSync(path.join(root, 'v199-ui.js'), 'utf8');
   const experience = fs.readFileSync(path.join(root, 'v201-experience.js'), 'utf8');
+  const prestige = fs.readFileSync(path.join(root, 'v202-prestige.css'), 'utf8');
+  const propertyOS = fs.readFileSync(path.join(root, 'v202-property-os.js'), 'utf8');
   const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
@@ -139,7 +141,10 @@ test('V201 quiet-luxury experience preserves the V198 secure runtime', () => {
   assert.match(loader, /luxury\.href = '\/v200-luxury\.css'/);
   assert.match(loader, /easy\.href = '\/v201-easy\.css'/);
   assert.match(loader, /experience\.src = '\/v201-experience\.js'/);
+  assert.match(loader, /prestige\.href = '\/v202-prestige\.css'/);
+  assert.match(loader, /propertyOS\.src = '\/v202-property-os\.js'/);
   assert.match(loader, /script\.addEventListener\('load', installV201Experience/);
+  assert.match(loader, /experience\.addEventListener\('load', installV202PropertyOS/);
   assert.match(loader, /DOMContentLoaded', installV199Preview/);
   assert.match(css, /body\.aq-v199 #home>\*:not\(#aqariV199Dashboard\)/);
   assert.match(css, /prefers-reduced-motion/);
@@ -170,7 +175,21 @@ test('V201 quiet-luxury experience preserves the V198 secure runtime', () => {
   assert.match(experience, /smartContractsPage/);
   assert.match(experience, /receiptDoc/);
   assert.match(experience, /role','progressbar'/);
+  assert.match(prestige, /AQARI V202/);
+  assert.match(prestige, /body\.aq-v202\.v202-layer-open/);
+  assert.match(prestige, /\.v202-document-shell/);
+  assert.match(propertyOS, /V202-preview/);
+  assert.match(propertyOS, /data-v202-action="contract"/);
+  assert.match(propertyOS, /data-v202-action="payment"/);
+  assert.match(propertyOS, /data-v202-action="statement"/);
+  assert.match(propertyOS, /data-v202-action="profile"/);
+  assert.match(propertyOS, /rentLedgerV202/);
+  assert.match(propertyOS, /rentStatementsV202/);
+  assert.match(propertyOS, /contractsV202/);
+  assert.match(propertyOS, /contractId/);
+  assert.match(propertyOS, /data-v202-ready/);
   assert.doesNotMatch(experience, /AQARI_SUPABASE\s*=/);
+  assert.doesNotMatch(propertyOS, /AQARI_SUPABASE\s*=/);
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
 });
 

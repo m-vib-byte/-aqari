@@ -1,4 +1,4 @@
-name: AQARI V201 Experience Gate
+name: AQARI V202 Property Operations Gate
 
 on:
   pull_request:
@@ -27,7 +27,7 @@ jobs:
           npm run check:final
           npm run check:production-ui
           npm run check:freeze
-          node --test tests/runtime-contracts.test.cjs
+          node --test tests/*.test.cjs
       - name: JavaScript syntax
         run: |
           find api scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
@@ -38,11 +38,13 @@ jobs:
           node --check secure-auth-bridge.js
           node --check v199-ui.js
           node --check v201-experience.js
+          node --check v202-property-os.js
           node --check lib/read-only.js
       - name: Verify release marker
         run: |
           grep -q "V198" index.html
           grep -q "V201-preview" v201-experience.js
+          grep -q "V202-preview" v202-property-os.js
           grep -q "AQARI V200 luxury presentation" v200-luxury.css
           grep -q "AQARI V201 quiet-luxury experience" v201-easy.css
           grep -q "aqari-v198-secure-cloud-js" index.html
@@ -50,3 +52,6 @@ jobs:
           grep -q "aqari-v200-luxury-css" final-release-ui.js
           grep -q "aqari-v201-easy-css" final-release-ui.js
           grep -q "aqari-v201-experience-js" final-release-ui.js
+          grep -q "aqari-v202-prestige-css" final-release-ui.js
+          grep -q "aqari-v202-property-os-js" final-release-ui.js
+          grep -q "AQARI V202" v202-prestige.css

@@ -87,16 +87,39 @@
 (function(){
   'use strict';
 
+  function installV202PropertyOS(){
+    document.body?.classList.add('aq-v202');
+
+    if(!document.getElementById('aqari-v202-prestige-css')){
+      const prestige = document.createElement('link');
+      prestige.id = 'aqari-v202-prestige-css';
+      prestige.rel = 'stylesheet';
+      prestige.href = '/v202-prestige.css';
+      document.head.appendChild(prestige);
+    }
+
+    if(!document.getElementById('aqari-v202-property-os-js')){
+      const propertyOS = document.createElement('script');
+      propertyOS.id = 'aqari-v202-property-os-js';
+      propertyOS.src = '/v202-property-os.js';
+      document.body.appendChild(propertyOS);
+    }
+  }
+
   function installV201Experience(){
-    if(document.getElementById('aqari-v201-experience-js')) return;
+    if(document.getElementById('aqari-v201-experience-js')){
+      installV202PropertyOS();
+      return;
+    }
     const experience = document.createElement('script');
     experience.id = 'aqari-v201-experience-js';
     experience.src = '/v201-experience.js';
+    experience.addEventListener('load', installV202PropertyOS, { once:true });
     document.body.appendChild(experience);
   }
 
   function installV199Preview(){
-    document.body?.classList.add('aq-v199','aq-v200','aq-v201');
+    document.body?.classList.add('aq-v199','aq-v200','aq-v201','aq-v202');
 
     if(!document.getElementById('aqari-v199-ui-css')){
       const stylesheet = document.createElement('link');
