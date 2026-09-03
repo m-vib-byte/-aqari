@@ -113,6 +113,13 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(adapter, /storage: window\.sessionStorage/);
   assert.match(adapter, /\.eq\('revision', expected\)/);
   assert.doesNotMatch(adapter, /\.upsert\(/);
+  const profileQueryStart = adapter.indexOf(".from('aqari_profiles')");
+  const profileQueryEnd = adapter.indexOf('if(profileError)', profileQueryStart);
+  assert.notEqual(profileQueryStart, -1);
+  assert.notEqual(profileQueryEnd, -1);
+  const profileQuery = adapter.slice(profileQueryStart, profileQueryEnd);
+  assert.match(profileQuery, /\.select\('user_id, display_name, created_at, updated_at'\)/);
+  assert.doesNotMatch(profileQuery, /\brole\b|\bis_active\b/);
   assert.match(sync, /SENSITIVE_KEY/);
 });
 

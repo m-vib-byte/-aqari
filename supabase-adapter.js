@@ -100,9 +100,8 @@
 
     const { data:profile, error:profileError } = await client
       .from('aqari_profiles')
-      .select('user_id, display_name, role, is_active')
+      .select('user_id, display_name, created_at, updated_at')
       .eq('user_id', state.user.id)
-      .eq('is_active', true)
       .maybeSingle();
     if(profileError) throw profileError;
     state.profile = profile || null;
