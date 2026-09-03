@@ -87,6 +87,22 @@
 (function(){
   'use strict';
 
+  function installDhahawiRentLedger(){
+    if(!document.getElementById('aqari-v202-rent-css')){
+      const rentCss = document.createElement('link');
+      rentCss.id = 'aqari-v202-rent-css';
+      rentCss.rel = 'stylesheet';
+      rentCss.href = '/v202-rent-operations.css';
+      document.head.appendChild(rentCss);
+    }
+
+    if(document.getElementById('aqari-v202-rent-js')) return;
+    const rent = document.createElement('script');
+    rent.id = 'aqari-v202-rent-js';
+    rent.src = '/v202-rent-operations.js';
+    document.body.appendChild(rent);
+  }
+
   function installV202PropertyOS(){
     document.body?.classList.add('aq-v202');
 
@@ -102,7 +118,10 @@
       const propertyOS = document.createElement('script');
       propertyOS.id = 'aqari-v202-property-os-js';
       propertyOS.src = '/v202-property-os.js';
+      propertyOS.addEventListener('load', installDhahawiRentLedger, { once:true });
       document.body.appendChild(propertyOS);
+    }else{
+      installDhahawiRentLedger();
     }
   }
 
