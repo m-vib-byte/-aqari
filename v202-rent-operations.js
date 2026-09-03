@@ -9,14 +9,15 @@
   function rows(key){const value=data()[key];return Array.isArray(value)?value:[]}
   function esc(value){return String(value==null?'':value).replace(/[&<>'"]/g,function(char){return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]})}
   function num(value){
-    const arabic='٠١٢٣٤٥٦٧٨٩';
-    const normalized=String(value==null?'':value).replace(/[٠-٩]/g,function(d){return arabic.indexOf(d)}).replace(/,/g,'').replace(/[^0-9.\-]/g,'');
+    const arabic='٠١٢٣٤٥٦٧٨٩',persian='۰۱۲۳۴۵۶۷۸۹';
+    const normalized=String(value==null?'':value).replace(/[٠-٩]/g,function(d){return arabic.indexOf(d)}).replace(/[۰-۹]/g,function(d){return persian.indexOf(d)}).replace(/[,٬]/g,'').replace(/٫/g,'.').replace(/[^0-9.\-]/g,'');
     const parsed=parseFloat(normalized);return Number.isFinite(parsed)?parsed:0;
   }
   function money(value){const n=Number(value||0);return Number.isFinite(n)?n.toLocaleString('en-US',{maximumFractionDigits:3}):'0'}
   function currentProperty(){try{return String(sessionStorage.getItem('aqari_v201_property')||'').trim()}catch(_){return ''}}
   function propertyRecord(name){return rows('properties').find(function(row){return Array.isArray(row)&&String(row[0]||'').trim()===name})||[]}
   function same(value,target){return String(value==null?'':value).trim()===String(target==null?'':target).trim()}
+  function norm(value){return String(value==null?'':value).trim().toLowerCase()}
   function tenantRows(property){return rows('tenants').filter(function(row){return Array.isArray(row)&&row.some(function(cell){return same(cell,property)})})}
   function isDhahawi(property){return /(ضحاوي|dhahawi)/i.test(String(property||''))}
   function brandProfile(property){
@@ -50,6 +51,73 @@
 
   function monthValue(){const now=new Date();return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')}
   function monthShort(value){const m=String(value||'').match(/^(\d{4})-(\d{2})$/);return m?m[2]+'/'+m[1]:''}
+  function contractId(contract){return String(contract?.id||contract?.contract_no||'').trim()}
+  function signedContract(contract){return /signed|approved|موق|معتمد/i.test(String(contract?.status||''))}
+  function contractCoversPeriod(contract,period){
+    if(!/^\d{4}-\d{2}$/.test(String(period||'')))return true;
+    const monthStart=period+'-01';
+    const monthEnd=period+'-31';
+    const start=String(contract?.start_date||'').slice(0,10);
+    const end=String(contract?.end_date||'').slice(0,10);
+    return (!start||start<=monthEnd)&&(!end||end>=monthStart);
+  }
+
+  function structuredContracts(property,period){
+    return rows('contractsV202').filter(function(contract){
+      return contract&&typeof contract==='object'&&norm(contract.property)===norm(property)&&signedContract(contract)&&contractCoversPeriod(contract,period);
+    });
+  }
+
+  function structuredLedger(property,period){
+    return rows('rentLedgerV202').filter(function(entry){
+      return entry&&typeof entry==='object'&&norm(entry.property)===norm(property)&&String(entry.period||'')===String(period||'');
+    });
+  }
+
+  function ledgerMatches(contract,entry){
+    const cid=norm(contractId(contract));
+    const eid=norm(entry?.contractId||entry?.contract_id||entry?.contractNo||entry?.contract_no);
+    if(cid&&eid)return cid===eid;
+    return norm(contract?.unit)===norm(entry?.unit)&&norm(contract?.tenant)===norm(entry?.tenant);
+  }
+
+  function latestEntry(entries){
+    return entries.slice().sort(function(a,b){
+      return String(a?.paidAt||a?.date||'').localeCompare(String(b?.paidAt||b?.date||''));
+    }).pop()||null;
+  }
+
+  function structuredModel(property,period){
+    const contracts=structuredContracts(property,period);
+    if(!contracts.length)return null;
+    const ledger=structuredLedger(property,period);
+    const items=contracts.map(function(contract,index){
+      const payments=ledger.filter(function(entry){return ledgerMatches(contract,entry)});
+      const latest=latestEntry(payments);
+      const rent=num(contract.rent||contract.contractRent);
+      const paid=payments.reduce(function(total,entry){return total+num(entry.paid)},0);
+      const itemStatus=rent>0&&paid>=rent?{key:'paid',label:'مدفوع'}:paid>0?{key:'partial',label:'جزئي'}:{key:'due',label:'مستحق'};
+      return {
+        unit:String(contract.unit||index+1),
+        name:String(contract.tenant||'مستأجر غير محدد'),
+        contractNo:String(contract.contract_no||contractId(contract)||''),
+        contractRent:rent,
+        insurance:num(contract.insurance||contract.deposit||0),
+        advance:num(contract.advance||contract.advancePayment||0),
+        cleaning:num(contract.cleaning||contract.cleaningFees||0),
+        currentRent:rent,
+        paymentDate:String(latest?.paidAt||latest?.date||''),
+        paymentMethod:String(latest?.method||''),
+        knetNo:String(latest?.knetNo||latest?.knetOperationNo||latest?.knet_operation_no||''),
+        voucherNo:String(latest?.receiptNo||latest?.voucherNo||''),
+        receiptContract:String(contract.receiptContract||''),
+        accountant:String(latest?.accountant||''),
+        status:itemStatus,
+        source:'v202-structured'
+      };
+    });
+    return summarize(items,propertyRecord(property));
+  }
 
   function collectionFor(property,item){
     const name=String(item.name||'').trim();
@@ -61,7 +129,7 @@
     return candidates.length?candidates[candidates.length-1]:[];
   }
 
-  function statementModel(property){
+  function legacyModel(property){
     const record=propertyRecord(property);
     const tenants=tenantRows(property);
     const items=tenants.map(function(row,index){
@@ -75,7 +143,7 @@
         cleaning:num(row?.[10]||0),
         currentRent:num(row?.[2]),
         paymentDate:'',paymentMethod:'',knetNo:'',voucherNo:'',receiptContract:'',accountant:'',
-        status:status(row),raw:row
+        status:status(row),raw:row,source:'legacy'
       };
       const c=collectionFor(property,item);
       if(c.length){
@@ -89,13 +157,20 @@
       if(item.status.key!=='paid'&&!item.paymentDate)item.currentRent=num(row?.[2]);
       return item;
     });
-    const totalRent=items.reduce(function(t,i){return t+i.currentRent},0);
-    const totalInsurance=items.reduce(function(t,i){return t+i.insurance},0);
-    const totalAdvance=items.reduce(function(t,i){return t+i.advance},0);
-    const totalCleaning=items.reduce(function(t,i){return t+i.cleaning},0);
-    return {record:record,items:items,totalRent:totalRent,totalInsurance:totalInsurance,totalAdvance:totalAdvance,totalCleaning:totalCleaning};
+    return summarize(items,record);
   }
 
+  function summarize(items,record){
+    return {
+      record:record||[],items,
+      totalRent:items.reduce(function(t,i){return t+i.currentRent},0),
+      totalInsurance:items.reduce(function(t,i){return t+i.insurance},0),
+      totalAdvance:items.reduce(function(t,i){return t+i.advance},0),
+      totalCleaning:items.reduce(function(t,i){return t+i.cleaning},0)
+    };
+  }
+
+  function statementModel(property,period){return structuredModel(property,period)||legacyModel(property)}
   function cell(value,cls){return '<td'+(cls?' class="'+cls+'"':'')+'>'+esc(value==null?'':value)+'</td>'}
   function bilingual(ar,en){return '<span class="v202-bi"><b>'+esc(ar)+'</b><small>'+esc(en)+'</small></span>'}
 
@@ -105,9 +180,9 @@
     const property=currentProperty();
     if(!body||!overlay?.classList.contains('on')||!property)return;
 
-    const model=statementModel(property);
-    const brand=brandProfile(property);
     const period=month||monthValue();
+    const model=statementModel(property,period);
+    const brand=brandProfile(property);
     const propertyUpper=property.toUpperCase();
     const bodyRows=model.items.length?model.items.map(function(item,index){
       return '<tr class="v202-ledger-row">'+
@@ -167,7 +242,8 @@
   function csvCell(value){return '"'+String(value==null?'':value).replace(/"/g,'""')+'"'}
   function exportCsv(){
     const property=currentProperty();if(!property)return;
-    const model=statementModel(property);const month=document.querySelector('[data-v202-month]')?.value||monthValue();
+    const month=document.querySelector('[data-v202-month]')?.value||monthValue();
+    const model=statementModel(property,month);
     const lines=[['رقم الوحدة','اسم المستأجر','رقم العقد','عقد إيجار','تأمين','عربون','رسوم النظافة','الإيجار الحالي','تاريخ الدفع','طريقة الدفع','رقم عملية كي نت','رقم الوصل','استلام العقد','المحاسب']];
     model.items.forEach(function(i){lines.push([i.unit,i.name,i.contractNo,i.contractRent,i.insurance,i.advance,i.cleaning,i.currentRent,i.paymentDate,i.paymentMethod,i.knetNo,i.voucherNo,i.receiptContract,i.accountant])});
     const csv='\uFEFF'+lines.map(function(row){return row.map(csvCell).join(',')}).join('\r\n');
