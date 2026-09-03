@@ -1,4 +1,4 @@
-name: AQARI V202 Property Operations Gate
+name: AQARI V203 Protected Unit Directory Gate
 
 on:
   pull_request:
@@ -44,7 +44,7 @@ jobs:
         run: |
           grep -q "V198" index.html
           grep -q "V201-preview" v201-experience.js
-          grep -q "V202-preview" v202-property-os.js
+          grep -q "V203-preview" v202-property-os.js
           grep -q "AQARI V200 luxury presentation" v200-luxury.css
           grep -q "AQARI V201 quiet-luxury experience" v201-easy.css
           grep -q "aqari-v198-secure-cloud-js" index.html

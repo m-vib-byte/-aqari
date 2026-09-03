@@ -35,7 +35,7 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('V202 property operations loads on the secure V198 runtime', async () => {
+await check('V203 protected unit directory loads on the secure V198 runtime', async () => {
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
@@ -50,6 +50,7 @@ await check('V202 property operations loads on the secure V198 runtime', async (
     luxury:document.body.classList.contains('aq-v200'),
     easy:document.body.classList.contains('aq-v201'),
     propertyOS:document.body.classList.contains('aq-v202'),
+    unitDirectory:document.body.classList.contains('aq-v203'),
     propertyOSReady:document.body.getAttribute('data-v202-ready'),
     propertyOSVersion:window.AQARI_V202?.version,
     shell:Boolean(document.getElementById('aqariV199Topbar')),
@@ -73,7 +74,7 @@ await check('V202 property operations loads on the secure V198 runtime', async (
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V202-preview' || !state.luxury || !state.easy || !state.propertyOS || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V202-preview' || !state.shell || !state.dashboard) throw new Error('V202 presentation layer unavailable');
+  if(state.design !== 'V203-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V203-preview' || !state.shell || !state.dashboard) throw new Error('V203 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
@@ -85,7 +86,7 @@ await check('V202 property operations loads on the secure V198 runtime', async (
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
 });
 
-await check('each property has a complete V202 operating workspace', async () => {
+await check('each property has a complete V203 operating workspace', async () => {
   const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
   if(!trigger) throw new Error('property management trigger missing');
   await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
@@ -100,10 +101,20 @@ await check('each property has a complete V202 operating workspace', async () =>
   }));
   if(!state.shown || !state.title) throw new Error('V202 property workspace did not open');
   for(const label of ['إبرام عقد','تسجيل إيجار','كشف الإيجار','الملف الكامل']) if(!state.actions.some(text => text.includes(label))) throw new Error(`${label} action missing`);
-  for(const label of ['نظرة عامة','العقود','التحصيل','المصروفات']) if(!state.tabs.some(tab => tab.label.includes(label))) throw new Error(`${label} tab missing`);
+  for(const label of ['نظرة عامة','الوحدات','العقود','التحصيل','المصروفات']) if(!state.tabs.some(tab => tab.label.includes(label))) throw new Error(`${label} tab missing`);
   if(state.tabs.some(tab => !tab.controls)) throw new Error('tab relationships missing');
   if(state.kpis !== 6) throw new Error(`property KPI count ${state.kpis}`);
   if(!state.context || state.context.name !== state.title) throw new Error('property context mismatch');
+  await page.evaluate(() => document.querySelector('[data-v202-tab="units"]')?.click());
+  const protectedState=await page.evaluate(() => ({
+    locked:Boolean(document.querySelector('#v202Panel .aq-unit-empty')),
+    cards:document.querySelectorAll('#v202Panel .aq-unit-card').length,
+    civilIds:Array.from(document.querySelectorAll('#v202Panel .aq-unit-sensitive-value')).map(node => node.textContent.trim()),
+    horizontalOverflow:document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+  }));
+  if(!protectedState.locked || protectedState.cards !== 0) throw new Error('protected unit data must stay hidden before authentication');
+  if(protectedState.civilIds.length) throw new Error('civil IDs rendered before authentication');
+  if(protectedState.horizontalOverflow) throw new Error('unit directory creates horizontal overflow at 390px');
   await page.evaluate(() => document.querySelector('[data-v202-close]')?.click());
 });
 
@@ -195,7 +206,7 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V202 presentation assets', async () => {
+await check('PWA and V203 presentation assets', async () => {
   for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
@@ -206,4 +217,4 @@ await check('PWA and V202 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V202 Property Operations Preview E2E on V198 runtime: PASS');
+console.log('AQARI V203 Protected Unit Directory Preview E2E on V198 runtime: PASS');
