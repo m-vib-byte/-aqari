@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const { pathToFileURL } = require('node:url');
+const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
 
@@ -106,6 +107,35 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(adapter, /\.eq\('revision', expected\)/);
   assert.doesNotMatch(adapter, /\.upsert\(/);
   assert.match(sync, /SENSITIVE_KEY/);
+});
+
+test('Supabase adapter memoizes concurrent client initialization', async () => {
+  const source = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
+  const client = { auth: {} };
+  let createClientCalls = 0;
+  const window = {
+    AQARI_PUBLIC_CONFIG: {
+      supabaseUrl: 'https://example.supabase.co',
+      supabasePublishableKey: 'sb_publishable_test',
+    },
+    sessionStorage: {},
+    supabase: {
+      createClient() {
+        createClientCalls += 1;
+        return client;
+      },
+    },
+  };
+
+  vm.runInNewContext(source, { window }, { filename: 'supabase-adapter.js' });
+  const clients = await Promise.all([
+    window.AQARI_SUPABASE.getClient(),
+    window.AQARI_SUPABASE.getClient(),
+    window.AQARI_SUPABASE.getClient(),
+  ]);
+
+  assert.equal(createClientCalls, 1);
+  assert.ok(clients.every((value) => value === client));
 });
 
 test('operational endpoints report the V198 cloud mode', async () => {

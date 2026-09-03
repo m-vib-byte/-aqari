@@ -3,6 +3,7 @@
 
   const cfg = window.AQARI_PUBLIC_CONFIG || {};
   const state = { client:null, user:null, membership:null, workspace:null, profile:null };
+  let clientPromise = null;
 
   function resetContext(){
     state.user = null;
@@ -41,20 +42,28 @@
 
   async function getClient(){
     if(state.client) return state.client;
+    if(clientPromise) return clientPromise;
     if(!cfg.supabaseUrl || !cfg.supabasePublishableKey){
       throw new Error('AQARI Supabase public configuration is missing');
     }
-    const lib = await ensureLibrary();
-    state.client = lib.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storage: window.sessionStorage,
-        storageKey: 'aqari-supabase-auth-v198'
-      }
-    });
-    return state.client;
+    clientPromise = ensureLibrary()
+      .then((lib) => {
+        state.client = lib.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storage: window.sessionStorage,
+            storageKey: 'aqari-supabase-auth-v198'
+          }
+        });
+        return state.client;
+      })
+      .catch((error) => {
+        clientPromise = null;
+        throw error;
+      });
+    return clientPromise;
   }
 
   async function refreshContext(){

@@ -323,8 +323,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 7381,
-      "sha256": "f167ddeb3e3fe43395ef28d10aaab5e80c8d32573d329211545a536d798aae9b"
+      "size": 7635,
+      "sha256": "8ed1b20d881796085e005ab64bb9c8ffde4c1db67b941a2ca737e4ae9ab20ac1"
     },
     {
       "path": "sw.js",
@@ -338,8 +338,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 5188,
-      "sha256": "392edbafa725f83e1957527e5e178287f2a0fc643c47119059b520440d253032"
+      "size": 6079,
+      "sha256": "d791fb119fb2c9e5b914ba07624317e770c68335d04c4a9464f127eda8f6632c"
     },
     {
       "path": "vercel.json",
