@@ -83,3 +83,32 @@
     mount();
   }
 })();
+
+(function(){
+  'use strict';
+
+  function installV199Preview(){
+    document.body?.classList.add('aq-v199');
+
+    if(!document.getElementById('aqari-v199-ui-css')){
+      const stylesheet = document.createElement('link');
+      stylesheet.id = 'aqari-v199-ui-css';
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = '/v199-ui.css';
+      document.head.appendChild(stylesheet);
+    }
+
+    if(!document.getElementById('aqari-v199-ui-js')){
+      const script = document.createElement('script');
+      script.id = 'aqari-v199-ui-js';
+      script.src = '/v199-ui.js';
+      document.body.appendChild(script);
+    }
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', installV199Preview, { once:true });
+  }else{
+    installV199Preview();
+  }
+})();
