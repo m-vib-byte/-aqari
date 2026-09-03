@@ -37,6 +37,11 @@
       "sha256": "a4f1b7d5412ecaac06d423b9e8796bc8c4715cee58bbf899926b4fa5ce55c7c4"
     },
     {
+      "path": "api/db/status.js",
+      "size": 703,
+      "sha256": "f2c648d27a228449ed2306a51ddf2090bd6919bd61824a7767a01e42f3923e66"
+    },
+    {
       "path": "api/final-release-status.js",
       "size": 1069,
       "sha256": "37cf82320547fd6559e8f560440bb4576af082199b2c9a0d8f58f216247d6796"
@@ -98,8 +103,8 @@
     },
     {
       "path": "DEPLOYMENT_MANIFEST.json",
-      "size": 528,
-      "sha256": "72e4d577f21a7adb4cbddb1d3ebc692a3ff6f91e3211579be6bc443a35a7db94"
+      "size": 551,
+      "sha256": "6c7d8289ec102d637f5d9b17cbc77ec4e7e939fffb4d3d411b12f69173311e9c"
     },
     {
       "path": "DEPLOYMENT_PREFLIGHT.md",
@@ -143,8 +148,8 @@
     },
     {
       "path": "index.html",
-      "size": 1061196,
-      "sha256": "060b8f91f1377a67826d0c225a7a880fdf6bc8a79294af56e060f9246e731c7e"
+      "size": 1061201,
+      "sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244"
     },
     {
       "path": "lib/read-only.js",
@@ -298,8 +303,8 @@
     },
     {
       "path": "scripts/route-contract-selftest.mjs",
-      "size": 681,
-      "sha256": "e6606c17b58c086e06775ed6464ce77715039a0a4cb151592af9eafc55305b84"
+      "size": 865,
+      "sha256": "ddf076a2eb69580e252444fdd44a9d1b8ff747d59e1bd3ecc2c57b169e25a0b5"
     },
     {
       "path": "scripts/smoke.mjs",
@@ -333,13 +338,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 5867,
-      "sha256": "451b85d336f669404f1e4c104781ede58a9faf520452ee4125779514c510594f"
+      "size": 6581,
+      "sha256": "7f239c85f4f30f836db8889ed4eb23e80fa348ebdd7208d8a119b0361b8eb5a7"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 6079,
-      "sha256": "d791fb119fb2c9e5b914ba07624317e770c68335d04c4a9464f127eda8f6632c"
+      "size": 6753,
+      "sha256": "ddfe93e2c0e1a563c22b07ce1b4b4b31c061feee5d6218bf7e5baec2c1bfc3b1"
     },
     {
       "path": "vercel.json",

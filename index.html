@@ -7868,7 +7868,7 @@ function applySettingsV105(save=true){
  if(save)saveSettingsV105(s);
  document.documentElement.dir=s.direction;
  document.body.classList.toggle('compactV105',s.density==='compact');
- document.title=s.appName+' • AQARI';
+ document.title=s.appName+' • AQARI V198';
  if(document.getElementById('brandNameV105'))brandNameV105.textContent=s.appName;
  if(document.getElementById('brandCompanyV105'))brandCompanyV105.textContent=[s.company,s.license].filter(Boolean).join(' • ')||'—';
  if(document.getElementById('brandLogoV105'))brandLogoV105.textContent=(s.appName||'ع').trim().charAt(0);

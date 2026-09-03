@@ -5,6 +5,7 @@
   "required_routes": [
     "/",
     "/api/health",
+    "/api/db/status",
     "/api/release",
     "/api/config-status",
     "/api/supabase-status",

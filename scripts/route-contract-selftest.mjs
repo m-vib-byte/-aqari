@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const expected = [
   'api/health.js',
+  'api/db/status.js',
   'api/release.js',
   'api/config-status.js',
   'api/supabase-status.js',
@@ -22,6 +23,11 @@ for(const f of expected){
 const manifest = JSON.parse(fs.readFileSync('DEPLOYMENT_MANIFEST.json','utf8'));
 if(manifest.version !== 'V198'){
   console.error('Deployment manifest version mismatch');
+  failed = true;
+}
+
+if(!manifest.required_routes.includes('/api/db/status')){
+  console.error('Deployment manifest missing compatibility database status route');
   failed = true;
 }
 

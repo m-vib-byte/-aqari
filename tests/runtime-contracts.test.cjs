@@ -42,6 +42,7 @@ async function invoke(handler, method = 'GET') {
 for (const relativePath of [
   'api/health.js',
   'api/health/deep.js',
+  'api/db/status.js',
   'api/ops/status.js',
   'api/release.js',
   'api/config-status.js',
@@ -95,6 +96,7 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   const sync = fs.readFileSync(path.join(root, 'cloud-sync.js'), 'utf8');
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
+  assert.match(html, /document\.title=s\.appName\+' • AQARI V198'/);
   assert.match(html, /#auth,#loginGateV120\{display:none!important\}/);
   assert.ok(html.lastIndexOf('aqari-v198-secure-cloud-js') > html.lastIndexOf('production-lockdown.js'));
   assert.match(bridge, /window\.login = window\.cloudLoginV198/);
@@ -155,4 +157,19 @@ test('operational endpoints report the V198 cloud mode', async () => {
   assert.equal(ops.capabilities.centralizedDataApi, true);
   assert.equal(release.version, 'V198');
   assert.equal(release.ok, true);
+});
+
+
+test('legacy database status is transparent compatibility metadata', async () => {
+  const status = (await invoke(await loadHandler('api/db/status.js'))).body;
+
+  assert.equal(status.version, 'V198');
+  assert.equal(status.provider, 'supabase');
+  assert.equal(status.mode, 'supabase_cloud');
+  assert.equal(status.configured, true);
+  assert.equal(status.connected, false);
+  assert.equal(status.connectionVerified, false);
+  assert.equal(status.authMode, 'Supabase Auth + RLS');
+  assert.deepEqual(status.tables, []);
+  assert.match(status.note, /no live database query/i);
 });

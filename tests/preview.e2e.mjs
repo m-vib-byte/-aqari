@@ -68,11 +68,21 @@ async function readApi(path){
 
 await check('all read-only APIs', async () => {
   for(const path of [
-    '/api/health','/api/health/deep','/api/ops/status','/api/release',
+    '/api/health','/api/health/deep','/api/db/status','/api/ops/status','/api/release',
     '/api/config-status','/api/supabase-status','/api/cloud-sync-status',
     '/api/migration-status','/api/autosync-status','/api/production-readiness',
     '/api/final-release-status','/api/production-meta'
   ]) await readApi(path);
+});
+
+await check('legacy database status compatibility', async () => {
+  const body = await readApi('/api/db/status');
+  if(body.provider !== 'supabase' || body.mode !== 'supabase_cloud') throw new Error('Supabase mode missing');
+  if(body.configured !== true) throw new Error('public Supabase configuration missing');
+  if(typeof body.connected !== 'boolean') throw new Error('connected must be boolean');
+  if(body.connectionVerified !== false) throw new Error('compatibility route must not claim a live database check');
+  if(typeof body.authMode !== 'string' || !body.authMode) throw new Error('authMode missing');
+  if(!Array.isArray(body.tables)) throw new Error('tables must be an array');
 });
 
 await check('Preview SHA and environment', async () => {
