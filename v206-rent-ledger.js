@@ -29,10 +29,11 @@
       const rawId=contractId(c),id=norm(rawId);
       const pays=ledger.filter(r=>{const rid=norm(r.contractId||r.contract_id||r.contractNo||r.contract_no);if(id&&rid)return id===rid;return norm(r.unit)===norm(c.unit)&&norm(r.tenant)===norm(c.tenant)});
       const last=latest(pays),rent=num(c.rent||c.contractRent),paid=pays.reduce((t,r)=>t+num(r.paid),0),balance=Math.max(0,rent-paid);
-      return {contractId:rawId,unit:String(c.unit||index+1),tenant:String(c.tenant||'—'),contractNo:String(c.contract_no||rawId||''),rent,insurance:num(c.insurance||c.deposit||0),advance:num(c.advance||c.advancePayment||0),cleaning:num(c.cleaning||c.cleaningFees||0),paid,balance,date:String(last?.paidAt||''),method:String(last?.method||''),knet:String(last?.knetNo||last?.knetOperationNo||last?.knet_operation_no||''),receipt:String(last?.receiptNo||last?.voucherNo||''),accountant:String(last?.accountant||'')};
+      const paymentStatus=rent>0&&balance<=0?'paid':paid>0&&balance>0?'partial':'due';
+      return {contractId:rawId,unit:String(c.unit||index+1),tenant:String(c.tenant||'—'),contractNo:String(c.contract_no||rawId||''),rent,insurance:num(c.insurance||c.deposit||0),advance:num(c.advance||c.advancePayment||0),cleaning:num(c.cleaning||c.cleaningFees||0),paid,balance,paymentStatus,date:String(last?.paidAt||''),method:String(last?.method||''),knet:String(last?.knetNo||last?.knetOperationNo||last?.knet_operation_no||''),receipt:String(last?.receiptNo||last?.voucherNo||''),accountant:String(last?.accountant||'')};
     });
     const totalRent=items.reduce((t,i)=>t+i.rent,0),totalPaid=items.reduce((t,i)=>t+i.paid,0),totalBalance=items.reduce((t,i)=>t+i.balance,0);
-    return {items,totalRent,totalPaid,totalBalance,totalInsurance:items.reduce((t,i)=>t+i.insurance,0),totalAdvance:items.reduce((t,i)=>t+i.advance,0),totalCleaning:items.reduce((t,i)=>t+i.cleaning,0),paidCount:items.filter(i=>i.rent>0&&i.balance<=0).length,dueCount:items.filter(i=>i.balance>0).length,collectionRate:totalRent>0?Math.min(100,Math.round((totalPaid/totalRent)*100)):0};
+    return {items,totalRent,totalPaid,totalBalance,totalInsurance:items.reduce((t,i)=>t+i.insurance,0),totalAdvance:items.reduce((t,i)=>t+i.advance,0),totalCleaning:items.reduce((t,i)=>t+i.cleaning,0),paidCount:items.filter(i=>i.paymentStatus==='paid').length,partialCount:items.filter(i=>i.paymentStatus==='partial').length,unpaidCount:items.filter(i=>i.paymentStatus==='due').length,dueCount:items.filter(i=>i.balance>0).length,collectionRate:totalRent>0?Math.min(100,Math.round((totalPaid/totalRent)*100)):0};
   }
 
   function bi(ar,en){return '<span class="v206-bi"><b>'+esc(ar)+'</b><small>'+esc(en)+'</small></span>'}
@@ -90,14 +91,17 @@
   }
 
   function queueItems(model){
-    const q=norm(queueQuery);
+    const q=norm(queueQuery),priority={due:0,partial:1,paid:2};
     return model.items.filter(i=>{
       if(queueFilter==='due'&&!(i.balance>0))return false;
-      if(queueFilter==='paid'&&!(i.rent>0&&i.balance<=0))return false;
+      if(queueFilter==='partial'&&i.paymentStatus!=='partial')return false;
+      if(queueFilter==='paid'&&i.paymentStatus!=='paid')return false;
       if(!q)return true;
       return norm([i.tenant,i.unit,i.contractNo,i.contractId].join(' ')).includes(q);
     }).sort((a,b)=>{
-      if(a.balance>0||b.balance>0)return b.balance-a.balance;
+      const pa=priority[a.paymentStatus]??9,pb=priority[b.paymentStatus]??9;
+      if(pa!==pb)return pa-pb;
+      if(a.balance!==b.balance)return b.balance-a.balance;
       return String(a.unit).localeCompare(String(b.unit),'ar',{numeric:true});
     });
   }
@@ -105,20 +109,23 @@
   function queueRows(model){
     const list=queueItems(model);
     if(!list.length){
-      const text=queueQuery?'لا توجد نتيجة مطابقة للبحث.':(queueFilter==='due'?'لا يوجد أي إيجار متبقي لهذا الشهر.':queueFilter==='paid'?'لا توجد وحدات مكتملة السداد بعد.':'لا توجد عقود فعالة لهذا الشهر.');
-      return '<div class="v206-queue-empty">'+esc(text)+'</div>';
+      const emptyByFilter={due:'لا يوجد أي إيجار متبقي لهذا الشهر.',partial:'لا توجد دفعات جزئية لهذا الشهر.',paid:'لا توجد وحدات مكتملة السداد بعد.',all:'لا توجد عقود فعالة لهذا الشهر.'};
+      return '<div class="v206-queue-empty">'+esc(queueQuery?'لا توجد نتيجة مطابقة للبحث.':emptyByFilter[queueFilter]||emptyByFilter.all)+'</div>';
     }
     return list.slice(0,12).map(i=>{
-      const due=i.balance>0;
-      const tag=due?'<span class="v206-queue-status is-due">متبقي '+money(i.balance)+' د.ك</span>':'<span class="v206-queue-status is-paid">تم السداد</span>';
-      const inner='<span class="v206-due-person"><b>'+esc(i.tenant)+'</b><small>وحدة '+esc(i.unit)+(i.contractNo?' • عقد '+esc(i.contractNo):'')+'</small></span>'+tag+(due?'<span class="v206-due-arrow">←</span>':'');
-      return due?'<button type="button" class="v206-due-item" data-v206-due-contract="'+esc(i.contractId)+'" data-v206-due-balance="'+esc(i.balance)+'">'+inner+'</button>':'<div class="v206-due-item is-paid">'+inner+'</div>';
+      const actionable=i.paymentStatus!=='paid';
+      let tag='';
+      if(i.paymentStatus==='paid')tag='<span class="v206-queue-status is-paid">تم السداد</span>';
+      else if(i.paymentStatus==='partial')tag='<span class="v206-queue-status is-partial">جزئي • مدفوع '+money(i.paid)+' • متبقي '+money(i.balance)+' د.ك</span>';
+      else tag='<span class="v206-queue-status is-due">غير مسدد • '+money(i.balance)+' د.ك</span>';
+      const inner='<span class="v206-due-person"><b>'+esc(i.tenant)+'</b><small>وحدة '+esc(i.unit)+(i.contractNo?' • عقد '+esc(i.contractNo):'')+'</small></span>'+tag+(actionable?'<span class="v206-due-arrow">←</span>':'');
+      return actionable?'<button type="button" class="v206-due-item is-'+esc(i.paymentStatus)+'" data-v206-due-contract="'+esc(i.contractId)+'" data-v206-due-balance="'+esc(i.balance)+'">'+inner+'</button>':'<div class="v206-due-item is-paid">'+inner+'</div>';
     }).join('')+(list.length>12?'<div class="v206-due-more">+ '+(list.length-12)+' نتيجة أخرى</div>':'');
   }
 
   function collectionQueue(model){
-    const due=model.items.filter(i=>i.balance>0).length,paid=model.items.filter(i=>i.rent>0&&i.balance<=0).length;
-    return '<section class="v206-due-panel"><div class="v206-due-head"><div><span>قائمة التحصيل السريعة</span><strong>'+due+' مطلوب • '+paid+' مكتمل</strong></div><small>ابحث ثم افتح تسجيل الدفعة على العقد الصحيح مباشرة</small></div><div class="v206-queue-tools"><label class="v206-search"><span>بحث</span><input type="search" data-v206-search value="'+esc(queueQuery)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v206-filters" role="group" aria-label="فلترة التحصيل"><button type="button" data-v206-filter="due" class="'+(queueFilter==='due'?'is-active':'')+'">المتبقي '+due+'</button><button type="button" data-v206-filter="paid" class="'+(queueFilter==='paid'?'is-active':'')+'">المحصل '+paid+'</button><button type="button" data-v206-filter="all" class="'+(queueFilter==='all'?'is-active':'')+'">الكل '+model.items.length+'</button></div></div><div class="v206-due-list" data-v206-queue-results>'+queueRows(model)+'</div></section>';
+    const due=model.dueCount,partial=model.partialCount,paid=model.paidCount;
+    return '<section class="v206-due-panel"><div class="v206-due-head"><div><span>قائمة التحصيل السريعة</span><strong>'+model.unpaidCount+' غير مسدد • '+partial+' جزئي • '+paid+' مكتمل</strong></div><small>الأولوية لغير المسدد ثم الجزئي، واضغط على الحالة لفتح العقد والمبلغ المتبقي مباشرة</small></div><div class="v206-queue-tools"><label class="v206-search"><span>بحث</span><input type="search" data-v206-search value="'+esc(queueQuery)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v206-filters" role="group" aria-label="فلترة التحصيل"><button type="button" data-v206-filter="due" class="'+(queueFilter==='due'?'is-active':'')+'">المتبقي '+due+'</button><button type="button" data-v206-filter="partial" class="'+(queueFilter==='partial'?'is-active':'')+'">الجزئي '+partial+'</button><button type="button" data-v206-filter="paid" class="'+(queueFilter==='paid'?'is-active':'')+'">المسدد '+paid+'</button><button type="button" data-v206-filter="all" class="'+(queueFilter==='all'?'is-active':'')+'">الكل '+model.items.length+'</button></div></div><div class="v206-due-list" data-v206-queue-results>'+queueRows(model)+'</div></section>';
   }
 
   function refreshQueue(){
@@ -133,9 +140,10 @@
     if(!overlay?.classList.contains('on')||!body||!name)return;
     const selected=period||currentPeriod(),m=model(name,selected),b=brand(name);
     lastView={property:name,period:selected,model:m};
-    const rowsHtml=m.items.length?m.items.map((i,n)=>'<tr class="'+(i.balance>0?'v206-due':'v206-paid')+'">'+td(i.unit||n+1)+td(i.tenant,'v206-name')+td(i.contractNo)+td(i.rent?money(i.rent):'')+td(i.insurance?money(i.insurance):'')+td(i.advance?money(i.advance):'')+td(i.cleaning?money(i.cleaning):'')+td(i.rent?money(i.rent):'')+td(i.date)+td(i.method)+td(i.knet)+td(i.receipt)+td('')+td(i.accountant)+'</tr>').join(''):'<tr><td colspan="14" class="v206-empty">لا توجد عقود فعالة مرتبطة بهذا العقار في الشهر المحدد.</td></tr>';
+    const rowsHtml=m.items.length?m.items.map((i,n)=>'<tr class="v206-'+esc(i.paymentStatus)+'">'+td(i.unit||n+1)+td(i.tenant,'v206-name')+td(i.contractNo)+td(i.rent?money(i.rent):'')+td(i.insurance?money(i.insurance):'')+td(i.advance?money(i.advance):'')+td(i.cleaning?money(i.cleaning):'')+td(i.rent?money(i.rent):'')+td(i.date)+td(i.method)+td(i.knet)+td(i.receipt)+td('')+td(i.accountant)+'</tr>').join(''):'<tr><td colspan="14" class="v206-empty">لا توجد عقود فعالة مرتبطة بهذا العقار في الشهر المحدد.</td></tr>';
     const filler=Math.max(0,14-m.items.length),blanks=Array.from({length:filler},()=>'<tr class="v206-filler">'+Array.from({length:14},()=>'<td>&nbsp;</td>').join('')+'</tr>').join('');
-    const controls='<section class="v206-command" data-v206-command><div class="v206-command-head"><div><span>مركز تحصيل الإيجارات</span><h3>'+esc(name)+'</h3><small>'+esc(periodLabel(selected))+'</small></div><div class="v206-command-actions"><button type="button" class="is-primary" data-v206-action="payment">تسجيل إيجار</button><button type="button" data-v206-action="print">طباعة</button><button type="button" data-v206-action="csv">CSV</button></div></div><div class="v206-stats">'+stat('المتوقع',money(m.totalRent)+' د.ك',m.items.length+' عقد','')+stat('المحصل',money(m.totalPaid)+' د.ك',m.paidCount+' مكتمل','is-good')+stat('المتبقي',money(m.totalBalance)+' د.ك',m.dueCount+' مطلوب','is-due')+stat('نسبة التحصيل',m.collectionRate+'%',m.totalRent?'من إجمالي الشهر':'لا توجد استحقاقات','is-rate')+'</div>'+collectionQueue(m)+'</section>';
+    const statusSub=m.partialCount?(m.partialCount+' جزئي • '+m.unpaidCount+' غير مسدد'):(m.unpaidCount+' غير مسدد');
+    const controls='<section class="v206-command" data-v206-command><div class="v206-command-head"><div><span>مركز تحصيل الإيجارات</span><h3>'+esc(name)+'</h3><small>'+esc(periodLabel(selected))+'</small></div><div class="v206-command-actions"><button type="button" class="is-primary" data-v206-action="payment">تسجيل إيجار</button><button type="button" data-v206-action="print">طباعة</button><button type="button" data-v206-action="csv">CSV</button></div></div><div class="v206-stats">'+stat('المتوقع',money(m.totalRent)+' د.ك',m.items.length+' عقد','')+stat('المحصل',money(m.totalPaid)+' د.ك',m.paidCount+' مكتمل','is-good')+stat('المتبقي',money(m.totalBalance)+' د.ك',statusSub,'is-due')+stat('نسبة التحصيل',m.collectionRate+'%',m.totalRent?'من إجمالي الشهر':'لا توجد استحقاقات','is-rate')+'</div>'+collectionQueue(m)+'</section>';
     const paper='<section class="v206-paper" data-v206-ledger><header class="v206-letterhead"><div><strong>'+esc(name.toUpperCase())+'</strong><span>'+esc(b.left[0])+'</span><span>'+esc(b.left[1])+'</span></div><div class="v206-mark"><span>▥</span><b>'+esc(name)+'</b><small>'+(isDhahawi(name)?'TOWER':'AQARI')+'</small></div><div class="v206-right"><strong>'+esc(name)+'</strong><span>'+esc(b.right[0])+'</span><span>'+esc(b.right[1])+'</span></div></header><div class="v206-period"><label>الشهر / MONTH <input type="month" data-v206-month value="'+esc(selected)+'"></label></div><div class="v206-wrap"><table class="v206-ledger"><thead><tr><th>'+bi('رقم الوحدة','FLAT NO.')+'</th><th>'+bi('اسم المستأجر','NAME OF THE TENANT')+'</th><th>'+bi('رقم العقد','CONTRACT NO')+'</th><th>'+bi('عقد إيجار','RENT CONTRACT')+'</th><th>'+bi('تأمين','INSURANCE')+'</th><th>'+bi('عربون','ADVANCE')+'</th><th>'+bi('رسوم النظافة','CLEANING FEES')+'</th><th>'+bi('الإيجار الحالي','CURRENT RENT')+'</th><th>'+bi('تاريخ الدفع','PAYMENT DATE')+'</th><th>'+bi('طريقة الدفع','PAYMENT METHOD')+'</th><th>'+bi('رقم عملية كي نت','KNET OPERATION NUMBER')+'</th><th>'+bi('رقم الوصل','VOUCHER NO')+'</th><th>'+bi('استلام العقد','RECEIPT CONTRACT')+'</th><th>'+bi('المحاسب','ACCOUNTANT')+'</th></tr></thead><tbody>'+rowsHtml+blanks+'<tr class="v206-total"><td colspan="3">الإجمالي / TOTAL</td><td>'+money(m.totalRent)+'</td><td>'+money(m.totalInsurance)+'</td><td>'+money(m.totalAdvance)+'</td><td>'+money(m.totalCleaning)+'</td><td>'+money(m.totalRent)+'</td><td colspan="6"></td></tr></tbody></table></div><footer><span>AQARI • '+esc(name)+'</span><span>'+esc(b.footer)+'</span></footer></section>';
     body.innerHTML=controls+paper;
     overlay.dataset.v206='ready';
