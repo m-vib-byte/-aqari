@@ -174,6 +174,36 @@ test('V201 quiet-luxury experience preserves the V198 secure runtime', () => {
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
 });
 
+test('V202 Dhahawi rent ledger loads after V201 and keeps data truthful', () => {
+  const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+  const ledger = fs.readFileSync(path.join(root, 'v202-rent-operations.js'), 'utf8');
+  const ledgerCss = fs.readFileSync(path.join(root, 'v202-rent-operations.css'), 'utf8');
+
+  assert.match(loader, /installV202RentOperations/);
+  assert.match(loader, /rentCss\.href = '\/v202-rent-operations\.css'/);
+  assert.match(loader, /rent\.src = '\/v202-rent-operations\.js'/);
+  assert.match(loader, /experience\.addEventListener\('load', installV202RentOperations/);
+  assert.match(ledger, /V202-rent-operations/);
+  assert.match(ledger, /رقم الوحدة/);
+  assert.match(ledger, /اسم المستأجر/);
+  assert.match(ledger, /رقم العقد/);
+  assert.match(ledger, /عقد إيجار/);
+  assert.match(ledger, /تأمين/);
+  assert.match(ledger, /عربون/);
+  assert.match(ledger, /رسوم النظافة/);
+  assert.match(ledger, /الإيجار الحالي/);
+  assert.match(ledger, /تاريخ الدفع/);
+  assert.match(ledger, /طريقة الدفع/);
+  assert.match(ledger, /رقم عملية KNET/);
+  assert.match(ledger, /رقم الوصل/);
+  assert.match(ledger, /استلام العقد/);
+  assert.match(ledger, /المحاسب/);
+  assert.match(ledger, /تنزيل Excel \/ CSV/);
+  assert.doesNotMatch(ledger, /AQARI_SUPABASE\s*=/);
+  assert.match(ledgerCss, /@page\{size:A4 landscape/);
+  assert.match(ledgerCss, /v202-ledger-table/);
+});
+
 test('Supabase adapter memoizes concurrent client initialization', async () => {
   const source = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
   const client = { auth: {} };
