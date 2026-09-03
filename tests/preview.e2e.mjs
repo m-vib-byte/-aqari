@@ -35,11 +35,11 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('V199 design loads on the secure V198 runtime', async () => {
+await check('V200 luxury design loads on the secure V198 runtime', async () => {
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
-  if(!(await page.title()).includes('V199')) throw new Error('V199 title missing');
+  if(!(await page.title()).includes('V200')) throw new Error('V200 title missing');
   const state = await page.evaluate(() => ({
     gate:Boolean(document.getElementById('aqariCloudGateV168')?.classList.contains('on')),
     loginSecure:window.login === window.cloudLoginV198,
@@ -48,6 +48,7 @@ await check('V199 design loads on the secure V198 runtime', async () => {
     cloud:Boolean(window.AQARI_CLOUD_SYNC),
     autosyncMode:window.AQARI_AUTOSYNC?.status?.mode,
     design:document.querySelector('meta[name="aqari-design"]')?.content,
+    luxury:document.body.classList.contains('aq-v200'),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
     dashboard:Boolean(document.getElementById('aqariV199Dashboard')),
     mobileItems:document.querySelectorAll('.mobilebar .v199-bottom-button').length,
@@ -57,7 +58,7 @@ await check('V199 design loads on the secure V198 runtime', async () => {
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V199-preview' || !state.shell || !state.dashboard) throw new Error('V199 presentation layer unavailable');
+  if(state.design !== 'V200-preview' || !state.luxury || !state.shell || !state.dashboard) throw new Error('V200 luxury presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
 });
@@ -125,8 +126,8 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V199 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js']){
+await check('PWA and V200 luxury presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -136,4 +137,4 @@ await check('PWA and V199 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V199 Design Preview E2E on V198 runtime: PASS');
+console.log('AQARI V200 Luxury Preview E2E on V198 runtime: PASS');
