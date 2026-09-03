@@ -1,0 +1,29 @@
+/* AQARI V206 — mainline structured rent ledger */
+body.aq-v206 .v206-paper{direction:rtl;background:#fff;color:#111;padding:18px 20px 10px;border:1px solid #b9b9b9;box-shadow:0 14px 36px rgba(0,0,0,.12);font-family:Arial,Tahoma,sans-serif}
+body.aq-v206 .v206-letterhead{direction:ltr;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:18px;padding:0 6px 10px;border-bottom:1px solid #bdbdbd}
+body.aq-v206 .v206-letterhead>div{display:flex;flex-direction:column;gap:2px;font-size:11px;line-height:1.2}
+body.aq-v206 .v206-letterhead strong{font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:500}
+body.aq-v206 .v206-right{text-align:right;direction:rtl}
+body.aq-v206 .v206-right strong{font-family:Tahoma,Arial,sans-serif;font-size:25px;font-weight:900}
+body.aq-v206 .v206-mark{display:grid!important;place-items:center;min-width:110px;color:#888}
+body.aq-v206 .v206-mark>span{font-size:48px;line-height:.9;opacity:.6}
+body.aq-v206 .v206-mark b{font-size:11px;margin-top:3px}
+body.aq-v206 .v206-mark small{font-size:7px;letter-spacing:2px}
+body.aq-v206 .v206-period{display:flex;justify-content:center;padding:6px}
+body.aq-v206 .v206-period label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700}
+body.aq-v206 .v206-period input{width:118px;min-height:28px!important;padding:2px 5px!important;border:1px solid #aaa!important;border-radius:0!important;background:#fff!important;font-size:10px!important}
+body.aq-v206 .v206-wrap{overflow:auto;border-top:1px solid #7c7c7c;border-inline-start:1px solid #7c7c7c}
+body.aq-v206 .v206-ledger{width:100%;min-width:1260px;border-collapse:collapse;table-layout:fixed;font-size:9px;direction:rtl}
+body.aq-v206 .v206-ledger th,body.aq-v206 .v206-ledger td{border-inline-end:1px solid #7c7c7c;border-bottom:1px solid #7c7c7c;padding:4px 3px!important;text-align:center;vertical-align:middle;background:#fff!important;color:#111!important;line-height:1.15;word-break:break-word}
+body.aq-v206 .v206-ledger th{font-weight:700;height:58px;padding:3px!important}
+body.aq-v206 .v206-bi{display:flex;flex-direction:column;justify-content:center;gap:2px;height:100%}
+body.aq-v206 .v206-bi b{font-size:8px;line-height:1.15}
+body.aq-v206 .v206-bi small{font-size:7px;line-height:1.05;font-weight:700;text-transform:uppercase}
+body.aq-v206 .v206-ledger tr{height:31px}
+body.aq-v206 .v206-filler{height:28px!important}
+body.aq-v206 .v206-name{text-align:right!important;padding-inline:5px!important;font-weight:700}
+body.aq-v206 .v206-total td{height:32px;font-weight:800;background:#f4f4f4!important}
+body.aq-v206 .v206-empty{height:80px;font-size:11px!important;color:#666!important}
+body.aq-v206 .v206-paper footer{direction:ltr;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 4px 1px;font-size:9px;font-weight:600;color:#333}
+@media(max-width:760px){body.aq-v206 .v206-paper{padding:10px}body.aq-v206 .v206-letterhead{grid-template-columns:1fr 72px 1fr;gap:8px}body.aq-v206 .v206-letterhead strong{font-size:15px}body.aq-v206 .v206-right strong{font-size:16px}body.aq-v206 .v206-letterhead>div{font-size:7px}body.aq-v206 .v206-mark>span{font-size:34px}body.aq-v206 .v206-wrap{max-width:100%;-webkit-overflow-scrolling:touch}body.aq-v206 .v206-paper footer{font-size:7px;white-space:nowrap}}
+@media print{body.aq-v206>*:not(#v201RentStatement){display:none!important}body.aq-v206 #v201RentStatement{position:static!important;display:block!important;padding:0!important;background:#fff!important;backdrop-filter:none!important}body.aq-v206 #v201RentStatement .v201-statement{width:100%!important;max-width:none!important;min-height:auto!important;padding:0!important;border:0!important;border-radius:0!important;background:#fff!important;box-shadow:none!important;overflow:visible!important}body.aq-v206 #v201RentStatement .v201-statement-toolbar{display:none!important}body.aq-v206 .v206-paper{padding:5mm 6mm 3mm!important;border:0!important;box-shadow:none!important}body.aq-v206 .v206-wrap{overflow:visible!important}body.aq-v206 .v206-ledger{min-width:0!important;width:100%!important;font-size:7px!important}body.aq-v206 .v206-ledger th{height:14mm!important}body.aq-v206 .v206-ledger tr{height:6.2mm!important}body.aq-v206 .v206-filler{height:5.7mm!important}body.aq-v206 .v206-period input{border:0!important;width:27mm!important}@page{size:A4 landscape;margin:5mm}}
