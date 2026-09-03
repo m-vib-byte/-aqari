@@ -42,7 +42,16 @@
   }
 
   function isAuthenticated(){
-    try{return Boolean(window.AQARI_SUPABASE?.context?.user)}catch(_){return false}
+    try{
+      const context=window.AQARI_SUPABASE?.context;
+      const userId=String(context?.user?.id||'').trim();
+      const workspaceId=String(context?.workspace?.id||'').trim();
+      const membership=context?.membership;
+      if(!userId||!workspaceId||!membership?.is_active)return false;
+      if(membership.user_id&&String(membership.user_id)!==userId)return false;
+      if(membership.workspace_id&&String(membership.workspace_id)!==workspaceId)return false;
+      return true;
+    }catch(_){return false}
   }
 
   function todayLabel(){
@@ -59,7 +68,8 @@
 
   function actionsMarkup(){
     return DAILY_ACTIONS.map(function(item){
-      return '<button type="button" data-v205-daily-action="'+item[0]+'" data-v199-go="'+item[1]+'">'+
+      const dialog=item[0]==='maintenance'?'':' aria-haspopup="dialog" aria-controls="v205PropertyChooser"';
+      return '<button type="button" data-v205-daily-action="'+item[0]+'" data-v199-go="'+item[1]+'"'+dialog+'>'+
         '<span class="v205-action-icon">'+icon(item[2])+'</span><span><strong>'+item[3]+'</strong><small>'+item[4]+'</small></span><b>'+icon('arrow')+'</b></button>';
     }).join('');
   }
@@ -89,7 +99,7 @@
     root.innerHTML=
       '<header class="v205-welcome">'+
         '<div><p class="v205-kicker">مساحة العمل اليومية <span lang="en">DAILY WORKSPACE</span></p><h1>إدارة أملاكك صارت أوضح</h1><p>كل عقار ثم الوحدة والمستأجر والعقد والتحصيل — بخطوات مرتبة وسريعة.</p><span class="v205-date">'+todayLabel()+'</span></div>'+ 
-        '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick">'+icon('plus')+' إجراء سريع</button></div>'+ 
+        '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick" aria-haspopup="dialog" aria-controls="v201CreateMenu">'+icon('plus')+' إجراء سريع</button></div>'+ 
       '</header>'+ 
       '<nav id="v205PrimarySections" class="v205-primary-sections" aria-label="أقسام المنصة الرئيسية" hidden>'+primaryMarkup()+'</nav>'+ 
       '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>ابدأ المهمة مباشرة</h2></div><p>أكثر العمليات استخداماً بدون قوائم طويلة.</p></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+ 

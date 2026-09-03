@@ -338,8 +338,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 16344,
-      "sha256": "e8570833f88b1dac397beac290a7ddc6d8b30de5a9e9418bff7207fa859e485c"
+      "size": 16491,
+      "sha256": "3b249d1484dd8db9f2998a063875e326657ff1ad3f261de8dd27d09523613209"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -388,8 +388,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 22089,
-      "sha256": "c2fa6445bbcf745389cd8ca17561678cfddd79dc15284f3d5076e01c17bf71eb"
+      "size": 22696,
+      "sha256": "8349cd9d83fcc6574cdb7afa0b30e6dc9a345a0d596a478fd233e7bb75c7f276"
     },
     {
       "path": "vercel.json",
