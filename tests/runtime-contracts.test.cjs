@@ -123,7 +123,7 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(sync, /SENSITIVE_KEY/);
 });
 
-test('V203 protected unit directory preserves the V198 secure runtime', () => {
+test('V204 tenant rent statement preserves the V198 secure runtime', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'v199-ui.css'), 'utf8');
   const luxury = fs.readFileSync(path.join(root, 'v200-luxury.css'), 'utf8');
@@ -178,7 +178,7 @@ test('V203 protected unit directory preserves the V198 secure runtime', () => {
   assert.match(prestige, /AQARI V202/);
   assert.match(prestige, /body\.aq-v202\.v202-layer-open/);
   assert.match(prestige, /\.v202-document-shell/);
-  assert.match(propertyOS, /V203-preview/);
+  assert.match(propertyOS, /V204-preview/);
   assert.match(propertyOS, /data-v202-action="contract"/);
   assert.match(propertyOS, /data-v202-action="payment"/);
   assert.match(propertyOS, /data-v202-action="statement"/);
@@ -189,12 +189,46 @@ test('V203 protected unit directory preserves the V198 secure runtime', () => {
   assert.match(propertyOS, /data-v202-tab="units"/);
   assert.match(propertyOS, /data-v202-civil-reveal/);
   assert.match(propertyOS, /protectedAccessReady/);
-  assert.doesNotMatch(propertyOS, /Dhahawi/i);
+  assert.doesNotMatch(propertyOS, /civilId\s*:\s*['"]\d+/, 'tenant civil IDs must never be embedded in the public runtime');
   assert.match(propertyOS, /contractId/);
   assert.match(propertyOS, /data-v202-ready/);
   assert.doesNotMatch(experience, /AQARI_SUPABASE\s*=/);
   assert.doesNotMatch(propertyOS, /AQARI_SUPABASE\s*=/);
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
+});
+
+test('P0 tenant statement contract is bilingual, unit-scoped, printable, and uses safe document actions', () => {
+  const propertyOS = fs.readFileSync(path.join(root, 'v202-property-os.js'), 'utf8');
+  const prestige = fs.readFileSync(path.join(root, 'v202-prestige.css'), 'utf8');
+
+  assert.match(propertyOS, /function\s+tenantStatementDocument\s*\(/);
+  assert.match(propertyOS, /function\s+validEmail\s*\(/);
+  assert.match(propertyOS, /function\s+tenantMailto\s*\(/);
+  assert.match(propertyOS, /function\s+tenantLedgerEntries\s*\(/);
+  assert.match(propertyOS, /function\s+tenantReceiptDocument\s*\(/);
+  assert.match(propertyOS, /function\s+tenantContractDocument\s*\(/);
+  assert.match(propertyOS, /data-v202-unit-statement/);
+  assert.match(propertyOS, /data-v202-unit-contract/);
+  assert.match(propertyOS, /data-v202-unit-receipt/);
+  assert.match(propertyOS, /data-v202-tenant-contract/);
+  assert.match(propertyOS, /data-v202-tenant-receipt/);
+  assert.match(propertyOS, /كشف إيجار المستأجر/);
+  assert.match(propertyOS, /Tenant Rent Statement/i);
+  assert.match(propertyOS, /بيانات المستأجر/);
+  assert.match(propertyOS, /Tenant Information/i);
+  assert.match(propertyOS, /بيانات العقد/);
+  assert.match(propertyOS, /Contract Details/i);
+  assert.match(propertyOS, /تحصيل الإيجار/);
+  assert.match(propertyOS, /Rent Collection/i);
+  assert.match(propertyOS, /عقد الإيجار/);
+  assert.match(propertyOS, /Tenancy Contract/i);
+  assert.match(propertyOS, /وصل الإيجار/);
+  assert.match(propertyOS, /Rent Receipt/i);
+  assert.match(propertyOS, /entryContract===contractKey/);
+  assert.match(propertyOS, /mailto:/);
+  assert.match(propertyOS, /encodeURIComponent|URLSearchParams/);
+  assert.doesNotMatch(propertyOS, /RESEND_API_KEY|api\/send-email|api\/email-send/i, 'the browser must not claim backend delivery or embed an email credential');
+  assert.match(prestige, /@media print[\s\S]*\.v202-no-print[\s\S]*display:none!important/);
 });
 
 test('Supabase adapter memoizes concurrent client initialization', async () => {
