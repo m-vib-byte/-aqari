@@ -38,4 +38,35 @@ jobs:
             printf '%s|%s|%s\n' "$file" "$bytes" "$hash"
           done
           echo 'AQARI_RELEASE_INVENTORY_END'
+      - name: Build release inventory candidate
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const inventory = JSON.parse(fs.readFileSync('FILE_INVENTORY.json','utf8'));
+          const targets = [
+            '.github/workflows/preview-e2e.yml',
+            '.github/workflows/runtime-contracts.yml',
+            'final-release-ui.js',
+            'tests/v206-rent-ledger.test.cjs',
+            'v206-rent-ledger.css',
+            'v206-rent-ledger.js'
+          ];
+          const byPath = new Map(inventory.files.map(entry => [entry.path, entry]));
+          for (const file of targets) {
+            const data = fs.readFileSync(file);
+            const next = {
+              path:file,
+              size:data.length,
+              sha256:crypto.createHash('sha256').update(data).digest('hex')
+            };
+            if (byPath.has(file)) Object.assign(byPath.get(file), next);
+            else { inventory.files.push(next); byPath.set(file,next); }
+          }
+          const text = JSON.stringify(inventory,null,2)+'\n';
+          console.log('AQARI_RELEASE_INVENTORY_B64_BEGIN');
+          console.log(Buffer.from(text,'utf8').toString('base64'));
+          console.log('AQARI_RELEASE_INVENTORY_B64_END');
+          NODE
       - run: node --test tests/runtime-contracts.test.cjs tests/v206-rent-ledger.test.cjs
