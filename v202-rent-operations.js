@@ -18,6 +18,19 @@
   function propertyRecord(name){return rows('properties').find(function(row){return Array.isArray(row)&&String(row[0]||'').trim()===name})||[]}
   function same(value,target){return String(value==null?'':value).trim()===String(target==null?'':target).trim()}
   function tenantRows(property){return rows('tenants').filter(function(row){return Array.isArray(row)&&row.some(function(cell){return same(cell,property)})})}
+  function isDhahawi(property){return /(ضحاوي|dhahawi)/i.test(String(property||''))}
+  function brandProfile(property){
+    if(isDhahawi(property))return {
+      left:['Tel: 50721277 / Tel: 51119040','Tel: 55521007 / Tel: 25640025'],
+      right:['dhahawi.kw.com','dhahawitower@gmail.com'],
+      footer:"Salmiy'a - Block (10) - Street Essa Al Qutami - Bldg. (28)"
+    };
+    return {
+      left:['AQARI PROPERTY MANAGEMENT','إدارة الأملاك'],
+      right:['كشف إيجار رسمي','OFFICIAL RENT LEDGER'],
+      footer:'صادر من منصة عقاري وفق البيانات المسجلة للعقار وقت الإصدار'
+    };
+  }
 
   function tenantName(row,property,index){
     const preferred=[row?.[0],row?.[1]].find(function(value){
@@ -93,6 +106,7 @@
     if(!body||!overlay?.classList.contains('on')||!property)return;
 
     const model=statementModel(property);
+    const brand=brandProfile(property);
     const period=month||monthValue();
     const propertyUpper=property.toUpperCase();
     const bodyRows=model.items.length?model.items.map(function(item,index){
@@ -120,9 +134,9 @@
     body.innerHTML=
       '<section class="v202-paper" data-v202-statement data-property="'+esc(property)+'">'+
         '<header class="v202-letterhead">'+
-          '<div class="v202-contact v202-contact-left"><strong>'+esc(propertyUpper)+'</strong><span>Tel: 50721277 / Tel: 51119040</span><span>Tel: 55521007 / Tel: 25640025</span></div>'+ 
-          '<div class="v202-tower-mark"><span class="v202-building">▥</span><b>'+esc(property)+'</b><small>TOWER</small></div>'+ 
-          '<div class="v202-contact v202-contact-right"><strong>'+esc(property)+'</strong><span>dhahawi.kw.com</span><span>dhahawitower@gmail.com</span></div>'+ 
+          '<div class="v202-contact v202-contact-left"><strong>'+esc(propertyUpper)+'</strong><span>'+esc(brand.left[0])+'</span><span>'+esc(brand.left[1])+'</span></div>'+ 
+          '<div class="v202-tower-mark"><span class="v202-building">▥</span><b>'+esc(property)+'</b><small>'+(isDhahawi(property)?'TOWER':'AQARI')+'</small></div>'+ 
+          '<div class="v202-contact v202-contact-right"><strong>'+esc(property)+'</strong><span>'+esc(brand.right[0])+'</span><span>'+esc(brand.right[1])+'</span></div>'+ 
         '</header>'+ 
         '<div class="v202-period-row"><div></div><label>الشهر / MONTH <input type="month" data-v202-month value="'+esc(period)+'"></label><strong>'+esc(monthShort(period))+'</strong></div>'+ 
         '<div class="v202-ledger-wrap"><table class="v202-ledger"><thead><tr>'+ 
@@ -143,7 +157,7 @@
         '</tr></thead><tbody>'+bodyRows+fillerRows+
         '<tr class="v202-total"><td colspan="3">الإجمالي / TOTAL</td><td>'+money(model.items.reduce(function(t,i){return t+i.contractRent},0))+'</td><td>'+money(model.totalInsurance)+'</td><td>'+money(model.totalAdvance)+'</td><td>'+money(model.totalCleaning)+'</td><td>'+money(model.totalRent)+'</td><td colspan="6"></td></tr>'+ 
         '</tbody></table></div>'+ 
-        '<footer class="v202-paper-footer"><div class="v202-social">◉ &nbsp; f &nbsp; ● &nbsp; @'+esc(property.replace(/\s+/g,'').toUpperCase())+'</div><div>Salmiy'a - Block (10) - Street Essa Al Qutami - Bldg. (28)</div></footer>'+ 
+        '<footer class="v202-paper-footer"><div class="v202-social">AQARI • '+esc(property)+'</div><div>'+esc(brand.footer)+'</div></footer>'+ 
       '</section>';
 
     overlay.dataset.v202='ready';
