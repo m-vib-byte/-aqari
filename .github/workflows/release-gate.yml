@@ -1,4 +1,4 @@
-name: AQARI V199 Design Gate
+name: AQARI V200 Luxury Gate
 
 on:
   pull_request:
@@ -41,6 +41,8 @@ jobs:
       - name: Verify release marker
         run: |
           grep -q "V198" index.html
-          grep -q "V199-preview" v199-ui.js
+          grep -q "V200-preview" v199-ui.js
+          grep -q "AQARI V200 luxury presentation" v200-luxury.css
           grep -q "aqari-v198-secure-cloud-js" index.html
           grep -q "aqari-v199-ui-js" final-release-ui.js
+          grep -q "aqari-v200-luxury-css" final-release-ui.js

@@ -98,6 +98,14 @@
       document.head.appendChild(stylesheet);
     }
 
+    if(!document.getElementById('aqari-v200-luxury-css')){
+      const luxury = document.createElement('link');
+      luxury.id = 'aqari-v200-luxury-css';
+      luxury.rel = 'stylesheet';
+      luxury.href = '/v200-luxury.css';
+      document.head.appendChild(luxury);
+    }
+
     if(!document.getElementById('aqari-v199-ui-js')){
       const script = document.createElement('script');
       script.id = 'aqari-v199-ui-js';
