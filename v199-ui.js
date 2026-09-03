@@ -1,7 +1,9 @@
 (function(){
   'use strict';
 
-  document.body?.classList.add('aq-v199');
+  document.body?.classList.add('aq-v199','aq-v200');
+
+  let activeLayerTrigger=null;
 
   const icons = {
     brand:'<path d="M4 20V9.5L12 3l8 6.5V20"/><path d="M2.5 21h19M8 20v-6h8v6M7 10h.01M17 10h.01"/>',
@@ -94,7 +96,7 @@
     shell.className='v199-topbar';
     shell.innerHTML=
       '<button type="button" class="v199-brand" data-v199-go="home" aria-label="الذهاب إلى الرئيسية">'+
-        '<span class="v199-brand-mark">'+icon('brand')+'</span><span class="v199-brand-copy"><strong>عقاري</strong><small>V199 PREVIEW</small></span>'+
+        '<span class="v199-brand-mark">'+icon('brand')+'</span><span class="v199-brand-copy"><strong>عقاري</strong><small>V200 LUXURY</small></span>'+
       '</button>'+
       '<nav class="v199-primary-nav" aria-label="التنقل الرئيسي">'+
         '<button type="button" class="v199-nav-button is-active" data-v199-go="home" aria-current="page">الرئيسية</button>'+
@@ -105,7 +107,7 @@
         '<button type="button" class="v199-nav-button" data-v199-go="reports">التقارير</button>'+
       '</nav>'+
       '<div class="v199-toolbar">'+
-        '<button type="button" class="v199-icon-button v199-search-trigger" data-v199-action="search" aria-label="فتح البحث">'+icon('search')+'</button>'+
+        '<button type="button" class="v199-icon-button v199-search-trigger" data-v199-action="search" aria-label="فتح البحث" aria-controls="v199SearchPanel" aria-expanded="false">'+icon('search')+'</button>'+
         '<button type="button" class="v199-icon-button" data-v199-action="notifications" aria-label="عرض التنبيهات">'+icon('bell')+'<span class="v199-notification-count" id="v199NotificationCount">0</span></button>'+
         '<button type="button" class="v199-add-button" data-v199-add="properties">'+icon('plus')+'<span>إضافة جديدة</span></button>'+
         '<button type="button" class="v199-account" data-v199-action="more" aria-haspopup="menu" aria-expanded="false"><span class="v199-account-avatar">ع</span><span class="v199-account-name" id="v199AccountName">حسابي</span></button>'+
@@ -137,6 +139,7 @@
     panel.id='v199SearchPanel';
     panel.className='v199-search-panel';
     panel.setAttribute('role','search');
+    panel.setAttribute('aria-hidden','true');
     panel.innerHTML='<label for="v199SearchInput">بحث في عقاري</label><div class="v199-search-field">'+icon('search')+'<input id="v199SearchInput" type="search" autocomplete="off" placeholder="ابحث عن عقار، مستأجر، إيصال أو طلب صيانة…"><kbd>Esc</kbd></div>';
     document.body.appendChild(panel);
     const input=document.getElementById('v199SearchInput');
@@ -169,14 +172,14 @@
     intro.id='v199LoginIntro';
     intro.className='v199-login-intro';
     intro.setAttribute('aria-hidden','true');
-    intro.innerHTML='<span class="v199-brand-mark">'+icon('brand')+'</span><p class="v199-eyebrow">منصة إدارة الأملاك</p><h2>كل عقاراتك.<br>بصورة أوضح.</h2><p>تابع الدخل والتحصيل والصيانة من مكان واحد، بواجهة مصممة للعمل اليومي السريع.</p><div class="v199-login-points"><span class="v199-login-point">بيانات مشفّرة</span><span class="v199-login-point">صلاحيات آمنة</span><span class="v199-login-point">نسخ سحابية</span></div>';
+    intro.innerHTML='<span class="v199-brand-mark">'+icon('brand')+'</span><p class="v199-eyebrow">منصة إدارة الأملاك الراقية</p><h2>محفظتك العقارية.<br>بالمستوى الذي يليق بها.</h2><p>تجربة هادئة تجمع الدخل والتحصيل والصيانة في مساحة واحدة مصممة بعناية.</p><div class="v199-login-points"><span class="v199-login-point">خصوصية موثوقة</span><span class="v199-login-point">صلاحيات آمنة</span><span class="v199-login-point">نسخ سحابية</span></div>';
     gate.insertBefore(intro,card);
 
     const logo=card.querySelector('.aq-v168-logo');
     if(logo){
       const version=document.createElement('span');
       version.className='v199-gate-version';
-      version.textContent='AQARI V199';
+      version.textContent='AQARI V200';
       logo.insertBefore(version,logo.firstChild);
       const subtitle=logo.querySelector('p');
       if(subtitle)subtitle.textContent='سجّل الدخول إلى مساحة عملك';
@@ -238,7 +241,10 @@
 
     let focused=false;
     const focusGate=function(){
-      if(gate.classList.contains('on')&&!focused){focused=true;setTimeout(function(){email?.focus({preventScroll:true})},120)}
+      if(gate.classList.contains('on')&&!focused){
+        focused=true;
+        if(!window.matchMedia?.('(pointer:coarse)').matches)setTimeout(function(){email?.focus({preventScroll:true})},120);
+      }
       if(!gate.classList.contains('on'))focused=false;
     };
     new MutationObserver(focusGate).observe(gate,{attributes:true,attributeFilter:['class']});
@@ -334,36 +340,44 @@
     if(count){count.textContent=String(value);count.classList.toggle('has-items',value>0)}
   }
 
-  function closeLayers(){
+  function closeLayers(restoreFocus){
+    const previousTrigger=activeLayerTrigger;
+    activeLayerTrigger=null;
     document.getElementById('v199MoreMenu')?.classList.remove('on');
     document.querySelectorAll('[data-v199-action="more"]').forEach(function(button){button.setAttribute('aria-expanded','false')});
     const panel=document.getElementById('v199SearchPanel');
     panel?.classList.remove('on');
+    panel?.setAttribute('aria-hidden','true');
+    document.querySelectorAll('[data-v199-action="search"]').forEach(function(button){button.setAttribute('aria-expanded','false')});
     const results=document.getElementById('searchBox');
     if(results)results.style.display='none';
     setTimeout(function(){
       if(!panel?.classList.contains('on')&&results)results.style.display='none';
     },240);
+    if(restoreFocus&&previousTrigger)setTimeout(function(){previousTrigger.focus()},0);
   }
 
   function toggleMore(trigger){
     const menu=document.getElementById('v199MoreMenu');
     if(!menu)return;
     const next=!menu.classList.contains('on');
-    closeLayers();
+    closeLayers(false);
     menu.classList.toggle('on',next);
     document.querySelectorAll('[data-v199-action="more"]').forEach(function(button){button.setAttribute('aria-expanded',String(next))});
-    if(next)setTimeout(function(){menu.querySelector('button')?.focus()},0);
+    if(next){activeLayerTrigger=trigger;setTimeout(function(){menu.querySelector('button')?.focus()},0)}
     else trigger?.focus();
   }
 
-  function openSearch(){
+  function openSearch(trigger){
     const panel=document.getElementById('v199SearchPanel');
     if(!panel)return;
     const next=!panel.classList.contains('on');
-    closeLayers();
+    closeLayers(false);
     panel.classList.toggle('on',next);
-    if(next)setTimeout(function(){document.getElementById('v199SearchInput')?.focus()},0);
+    panel.setAttribute('aria-hidden',String(!next));
+    document.querySelectorAll('[data-v199-action="search"]').forEach(function(button){button.setAttribute('aria-expanded',String(next))});
+    if(next){activeLayerTrigger=trigger;setTimeout(function(){document.getElementById('v199SearchInput')?.focus()},0)}
+    else trigger?.focus();
   }
 
   function markActive(target){
@@ -394,10 +408,11 @@
   }
 
   function navigate(target){
-    closeLayers();
+    closeLayers(false);
     if(typeof window.go==='function')window.go(target);
     markActive(target);
-    window.scrollTo({top:0,behavior:'smooth'});
+    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
   }
 
   function quickAdd(target){
@@ -406,7 +421,7 @@
   }
 
   function handleAction(action,trigger){
-    if(action==='search')return openSearch();
+    if(action==='search')return openSearch(trigger);
     if(action==='more')return toggleMore(trigger);
     closeLayers();
     if(action==='notifications'&&typeof window.showNotifications==='function')return window.showNotifications();
@@ -433,9 +448,9 @@
       }
     });
     document.addEventListener('keydown',function(event){
-      if(event.key==='Escape')closeLayers();
+      if(event.key==='Escape')closeLayers(true);
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'){
-        event.preventDefault();openSearch();
+        event.preventDefault();openSearch(document.querySelector('.v199-search-trigger'));
       }
     });
   }
@@ -455,18 +470,18 @@
   }
 
   function setReleasePresentation(){
-    document.title='عقاري V199 • منصة إدارة الأملاك';
+    document.title='عقاري V200 • إدارة أملاك بفخامة';
     const viewport=document.querySelector('meta[name="viewport"]');
     if(viewport)viewport.content='width=device-width,initial-scale=1,viewport-fit=cover';
     const theme=document.querySelector('meta[name="theme-color"]');
-    if(theme)theme.content='#151a21';
+    if(theme)theme.content='#fffdf8';
     let meta=document.querySelector('meta[name="aqari-design"]');
     if(!meta){meta=document.createElement('meta');meta.name='aqari-design';document.head.appendChild(meta)}
-    meta.content='V199-preview';
+    meta.content='V200-preview';
   }
 
   function boot(){
-    document.body.classList.add('aq-v199');
+    document.body.classList.add('aq-v199','aq-v200');
     setReleasePresentation();
     buildHeader();
     buildMoreMenu();
