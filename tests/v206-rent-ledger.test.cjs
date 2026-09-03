@@ -28,7 +28,8 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(rent, /VOUCHER NO/);
   assert.match(rent, /NAME OF THE TENANT/);
   assert.match(rent, /FLAT NO\./);
-  assert.match(rent, /brandProfile/);
+  assert.match(rent, /function brand\s*\(/);
+  assert.match(rent, /function isDhahawi\s*\(/);
   assert.match(rent, /dhahawi/i);
   assert.doesNotMatch(rent, /AQARI_SUPABASE\s*=/);
 
