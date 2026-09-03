@@ -1,0 +1,73 @@
+/* AQARI V202 — Dhahawi Tower ledger-inspired rent statement */
+body.aq-v202 .v201-statement{width:min(1380px,100%);background:#eceae4!important}
+body.aq-v202 .v202-paper{direction:rtl;background:#fff;color:#111;padding:18px 20px 10px;border:1px solid #b9b9b9;box-shadow:0 14px 36px rgba(0,0,0,.12);font-family:Arial,Tahoma,sans-serif}
+body.aq-v202 .v202-letterhead{direction:ltr;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:18px;padding:0 6px 10px;border-bottom:1px solid #bdbdbd}
+body.aq-v202 .v202-contact{display:flex;flex-direction:column;gap:2px;font-size:11px;line-height:1.2;color:#1b1b1b}
+body.aq-v202 .v202-contact strong{font-family:Georgia,'Times New Roman',serif;font-size:24px;letter-spacing:.5px;font-weight:500}
+body.aq-v202 .v202-contact-right{text-align:right;direction:rtl}
+body.aq-v202 .v202-contact-right strong{font-family:Tahoma,Arial,sans-serif;font-size:25px;font-weight:900}
+body.aq-v202 .v202-tower-mark{display:grid;place-items:center;align-content:start;min-width:110px;color:#9a9a9a;line-height:1}
+body.aq-v202 .v202-building{font-size:48px;line-height:.9;opacity:.6}
+body.aq-v202 .v202-tower-mark b{font-size:11px;margin-top:3px;color:#888}
+body.aq-v202 .v202-tower-mark small{font-size:7px;letter-spacing:2px;margin-top:2px}
+body.aq-v202 .v202-period-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:5px 4px 6px;font-size:10px}
+body.aq-v202 .v202-period-row label{display:flex;align-items:center;gap:6px;font-weight:700}
+body.aq-v202 .v202-period-row input{width:118px;min-height:28px!important;padding:2px 5px!important;border:1px solid #aaa!important;border-radius:0!important;background:#fff!important;font-size:10px!important}
+body.aq-v202 .v202-period-row strong{font-size:11px}
+body.aq-v202 .v202-ledger-wrap{overflow:auto;border-top:1px solid #7c7c7c;border-inline-start:1px solid #7c7c7c}
+body.aq-v202 .v202-ledger{width:100%;min-width:1260px;border-collapse:collapse;table-layout:fixed;font-size:9px;direction:rtl}
+body.aq-v202 .v202-ledger th,body.aq-v202 .v202-ledger td{border-inline-end:1px solid #7c7c7c;border-bottom:1px solid #7c7c7c;padding:4px 3px!important;text-align:center;vertical-align:middle;background:#fff!important;color:#111!important;line-height:1.15;word-break:break-word}
+body.aq-v202 .v202-ledger th{font-weight:700;height:58px;padding:3px!important}
+body.aq-v202 .v202-bi{display:flex;flex-direction:column;justify-content:center;gap:2px;height:100%}
+body.aq-v202 .v202-bi b{font-size:8px;line-height:1.15}
+body.aq-v202 .v202-bi small{font-size:7px;line-height:1.05;font-weight:700;text-transform:uppercase}
+body.aq-v202 .v202-ledger th:nth-child(1),body.aq-v202 .v202-ledger td:nth-child(1){width:48px}
+body.aq-v202 .v202-ledger th:nth-child(2),body.aq-v202 .v202-ledger td:nth-child(2){width:150px}
+body.aq-v202 .v202-ledger th:nth-child(3),body.aq-v202 .v202-ledger td:nth-child(3){width:62px}
+body.aq-v202 .v202-ledger th:nth-child(4),body.aq-v202 .v202-ledger td:nth-child(4){width:70px}
+body.aq-v202 .v202-ledger th:nth-child(5),body.aq-v202 .v202-ledger td:nth-child(5){width:70px}
+body.aq-v202 .v202-ledger th:nth-child(6),body.aq-v202 .v202-ledger td:nth-child(6){width:66px}
+body.aq-v202 .v202-ledger th:nth-child(7),body.aq-v202 .v202-ledger td:nth-child(7){width:70px}
+body.aq-v202 .v202-ledger th:nth-child(8),body.aq-v202 .v202-ledger td:nth-child(8){width:72px}
+body.aq-v202 .v202-ledger th:nth-child(9),body.aq-v202 .v202-ledger td:nth-child(9){width:80px}
+body.aq-v202 .v202-ledger th:nth-child(10),body.aq-v202 .v202-ledger td:nth-child(10){width:74px}
+body.aq-v202 .v202-ledger th:nth-child(11),body.aq-v202 .v202-ledger td:nth-child(11){width:90px}
+body.aq-v202 .v202-ledger th:nth-child(12),body.aq-v202 .v202-ledger td:nth-child(12){width:66px}
+body.aq-v202 .v202-ledger th:nth-child(13),body.aq-v202 .v202-ledger td:nth-child(13){width:72px}
+body.aq-v202 .v202-ledger th:nth-child(14),body.aq-v202 .v202-ledger td:nth-child(14){width:82px}
+body.aq-v202 .v202-ledger-row{height:31px}
+body.aq-v202 .v202-ledger-row.v202-filler{height:28px}
+body.aq-v202 .v202-name{text-align:right!important;padding-inline:5px!important;font-weight:700}
+body.aq-v202 .v202-num{font-variant-numeric:tabular-nums}
+body.aq-v202 .v202-total td{height:32px;font-weight:800;background:#f4f4f4!important}
+body.aq-v202 .v202-empty{height:80px;font-size:11px!important;color:#666!important}
+body.aq-v202 .v202-paper-footer{direction:ltr;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 4px 1px;font-size:9px;font-weight:600;color:#333}
+body.aq-v202 .v202-social{font-size:10px;letter-spacing:.4px}
+body.aq-v202 [data-v202-csv]{border:1px solid #b8ab96!important;background:#fff!important;color:#5e4726!important}
+
+@media(max-width:760px){
+  body.aq-v202 .v201-statement{width:100%;padding:12px!important}
+  body.aq-v202 .v202-paper{padding:10px}
+  body.aq-v202 .v202-letterhead{grid-template-columns:1fr 72px 1fr;gap:8px}
+  body.aq-v202 .v202-contact strong{font-size:15px}
+  body.aq-v202 .v202-contact-right strong{font-size:16px}
+  body.aq-v202 .v202-contact{font-size:7px}
+  body.aq-v202 .v202-building{font-size:34px}
+  body.aq-v202 .v202-ledger-wrap{max-width:100%;-webkit-overflow-scrolling:touch}
+  body.aq-v202 .v202-paper-footer{font-size:7px;white-space:nowrap}
+}
+
+@media print{
+  body.aq-v202>*:not(#v201RentStatement){display:none!important}
+  body.aq-v202 #v201RentStatement{position:static!important;display:block!important;padding:0!important;background:#fff!important;backdrop-filter:none!important}
+  body.aq-v202 #v201RentStatement .v201-statement{width:100%!important;max-width:none!important;min-height:auto!important;padding:0!important;border:0!important;border-radius:0!important;background:#fff!important;box-shadow:none!important;overflow:visible!important}
+  body.aq-v202 #v201RentStatement .v201-statement-toolbar{display:none!important}
+  body.aq-v202 .v202-paper{padding:5mm 6mm 3mm!important;border:0!important;box-shadow:none!important}
+  body.aq-v202 .v202-ledger-wrap{overflow:visible!important}
+  body.aq-v202 .v202-ledger{min-width:0!important;width:100%!important;font-size:7px!important}
+  body.aq-v202 .v202-ledger th{height:14mm!important}
+  body.aq-v202 .v202-ledger-row{height:6.2mm!important}
+  body.aq-v202 .v202-ledger-row.v202-filler{height:5.7mm!important}
+  body.aq-v202 .v202-period-row input{border:0!important;width:27mm!important}
+  @page{size:A4 landscape;margin:5mm}
+}
