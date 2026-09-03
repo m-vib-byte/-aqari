@@ -343,8 +343,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 7345,
-      "sha256": "a2ab4ef3dd39c97affdf15267ae76c7a17f89ff494d0e5bba86f771a500012d2"
+      "size": 8576,
+      "sha256": "0ad3318812ba5a3689fedefe0a3efd0fe8c9e5cdb4b5be60a2ef7bf160dcf5be"
     },
     {
       "path": "v199-ui.css",
@@ -378,8 +378,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 76460,
-      "sha256": "9a53084bd7c3746ab24a512a934ff6182691853b4d1cb26405b1f4cf2f45b333"
+      "size": 77039,
+      "sha256": "cee486e01e5b94b9c9e928d3ad97f41183318175c30d17502b86169475c91e9f"
     },
     {
       "path": "vercel.json",

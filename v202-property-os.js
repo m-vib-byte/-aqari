@@ -486,6 +486,19 @@
     })||null;
   }
 
+  function statementIncludesContract(contract,period){
+    if(!signedContract(contract))return false;
+    if(contractCoversPeriod(contract,period))return true;
+    return normalized(contract?.source)===V202_IMPORT_SOURCE&&Boolean(officialStatementFor(contract?.property,period));
+  }
+
+  function latestOfficialPeriod(property){
+    const periods=rentStatements().filter(function(entry){
+      return normalized(entry?.property)===normalized(property)&&validPeriod(entry?.period);
+    }).map(function(entry){return String(entry.period)}).sort().reverse();
+    return periods[0]||currentPeriod();
+  }
+
   function hasField(record,key){return Boolean(record&&Object.prototype.hasOwnProperty.call(record,key)&&record[key]!=null&&String(record[key]).trim()!=='')}
 
   function maintenanceFor(name){
@@ -1009,7 +1022,7 @@
 
   function rentStatementItems(context,period){
     const items=new Map();
-    context.propertyContracts.filter(function(contract){return signedContract(contract)&&contractCoversPeriod(contract,period)}).forEach(function(contract){
+    context.propertyContracts.filter(function(contract){return statementIncludesContract(contract,period)}).forEach(function(contract){
       const id=contractId(contract);
       const fallback=normalized(contract?.tenant)+'|'+normalized(contract?.unit);
       const key=id?'id:'+normalized(id):'party:'+fallback;
@@ -1104,7 +1117,7 @@
 
   function openStatementDocument(period,trigger){
     const context=contextFor(activeProperty);
-    if(context)openDocument('كشف إيجار العقار',statementDocument(context,period||currentPeriod()),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    if(context)openDocument('كشف إيجار العقار',statementDocument(context,period||latestOfficialPeriod(activeProperty)),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
   }
 
   function closeDocument(){
@@ -1315,7 +1328,7 @@
           const items=rentStatementItems(context,selected);
           const official=officialStatementFor(name,selected);
           return Object.freeze({
-            activeSignedContracts:context.activeContracts.length,billableContracts:context.propertyContracts.filter(function(contract){return signedContract(contract)&&contractCoversPeriod(contract,selected)}).length,
+            activeSignedContracts:context.activeContracts.length,billableContracts:context.propertyContracts.filter(function(contract){return statementIncludesContract(contract,selected)}).length,
             settledPaid:items.reduce(function(total,item){return total+item.paid},0),pending:items.reduce(function(total,item){return total+item.pending},0),
             official:Boolean(official),totalRent:statementValue(official,'totalRent',items.reduce(function(total,item){return total+item.due},0)),
             totalCollected:statementValue(official,'totalCollected',items.reduce(function(total,item){return total+item.paid},0))

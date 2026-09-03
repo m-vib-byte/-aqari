@@ -24,6 +24,8 @@ function loadRuntime(db, localContracts = []) {
       contextFor,
       ledgerRecords,
       rentStatementItems,
+      statementIncludesContract,
+      latestOfficialPeriod,
       settledPayment,
       paymentKey
     });
@@ -233,4 +235,31 @@ test('V202 property accounting keeps contract, payment, and money identities exa
     runtime.paymentKey('SYNTHETIC TEST PROPERTY', 'contract-a', 'A', '2026-08'),
     runtime.paymentKey('SYNTHETIC TEST PROPERTY', 'contract-b', 'B', '2026-08'),
   );
+});
+
+test('official protected statements preserve legal dates while displaying every imported unit', () => {
+  const data = fixture();
+  for (const record of data.contractsV202) record.source = 'protected-rent-import-v202';
+  for (const record of data.rentLedgerV202) {
+    if (record.source !== 'v202-entry') record.source = 'protected-rent-import-v202';
+  }
+  data.rentStatementsV202 = [{
+    id: 'protected-statement-2026-08',
+    property: 'SYNTHETIC TEST PROPERTY',
+    period: '2026-08',
+    totalRent: 700,
+    totalCollected: 90,
+    source: 'protected-rent-import-v202',
+  }];
+
+  const runtime = loadRuntime(data);
+  const statement = runtime.rentStatementItems(runtime.contextFor('SYNTHETIC TEST PROPERTY'), '2026-08');
+
+  assert.deepEqual(
+    Array.from(statement, (item) => item.contractId),
+    ['contract-a', 'contract-b', 'contract-expired'],
+    'an official protected statement includes its imported signed rows without changing their legal dates',
+  );
+  assert.equal(data.contractsV202.find((contract) => contract.id === 'contract-expired').end_date, '2026-07-31');
+  assert.equal(runtime.latestOfficialPeriod('SYNTHETIC TEST PROPERTY'), '2026-08');
 });
