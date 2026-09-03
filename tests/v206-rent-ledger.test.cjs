@@ -33,6 +33,9 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(rent, /totalBalance/);
   assert.match(rent, /collectionRate/);
   assert.match(rent, /dueCount/);
+  assert.match(rent, /paymentStatus/);
+  assert.match(rent, /partialCount/);
+  assert.match(rent, /unpaidCount/);
   assert.match(rent, /data-v206-action="payment"/);
   assert.match(rent, /data-v206-action="print"/);
   assert.match(rent, /data-v206-action="csv"/);
@@ -40,6 +43,7 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(rent, /data-v206-due-balance/);
   assert.match(rent, /data-v206-search/);
   assert.match(rent, /data-v206-filter="due"/);
+  assert.match(rent, /data-v206-filter="partial"/);
   assert.match(rent, /data-v206-filter="paid"/);
   assert.match(rent, /data-v206-filter="all"/);
   assert.match(rent, /function collectionQueue\s*\(/);
@@ -49,10 +53,15 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   assert.match(rent, /v202PaymentContract/);
   assert.match(rent, /v202PaymentAmount/);
   assert.match(rent, /amount\.value=String\(remaining\)/);
+  assert.match(rent, /غير مسدد/);
+  assert.match(rent, /جزئي/);
+  assert.match(rent, /تم السداد/);
+  assert.match(rent, /مدفوع/);
   assert.match(rent, /مركز تحصيل الإيجارات/);
   assert.match(rent, /قائمة التحصيل السريعة/);
   assert.match(rent, /المتبقي/);
   assert.match(rent, /نسبة التحصيل/);
+  assert.match(rent, /priority=\{due:0,partial:1,paid:2\}/);
   assert.match(rent, /dhahawi/i);
   assert.doesNotMatch(rent, /AQARI_SUPABASE\s*=/);
 
