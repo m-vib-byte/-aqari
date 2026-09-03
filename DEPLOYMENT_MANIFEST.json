@@ -1,0 +1,25 @@
+{
+  "app": "AQARI",
+  "version": "V198",
+  "stage": "release-freeze",
+  "required_routes": [
+    "/",
+    "/api/health",
+    "/api/db/status",
+    "/api/release",
+    "/api/config-status",
+    "/api/supabase-status",
+    "/api/cloud-sync-status",
+    "/api/migration-status",
+    "/api/autosync-status",
+    "/api/production-readiness"
+  ],
+  "gates": {
+    "syntax": true,
+    "package_selftests": true,
+    "preview_e2e_prepared": true,
+    "preview_e2e_executed": false,
+    "production_env_verified": false,
+    "production_deployed": false
+  }
+}

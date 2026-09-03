@@ -5,3 +5,4 @@
 // versioned assets, so users cannot be trapped on a stale release.
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+

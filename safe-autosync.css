@@ -1,0 +1,29 @@
+.aq-v193-autosync{
+  margin:12px 0 16px;
+  padding:14px;
+  border:1px solid rgba(180,145,55,.22);
+  border-radius:18px;
+  background:rgba(255,255,255,.98);
+}
+.aq-v193-autosync strong{display:block;margin-bottom:4px}
+.aq-v193-autosync small{display:block;opacity:.72;line-height:1.45}
+.aq-v193-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.aq-v193-actions button{min-height:44px;border-radius:14px}
+.aq-v193-result{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin:10px 0 0;
+  padding:10px 12px;
+  min-height:42px;
+  border-radius:14px;
+  background:rgba(0,0,0,.035);
+  font-size:.78rem;
+  direction:ltr;
+  text-align:left;
+}
+@media(max-width:768px){.aq-v193-actions{grid-template-columns:1fr}}

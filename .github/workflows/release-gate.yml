@@ -1,0 +1,43 @@
+name: AQARI V198 Release Gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Release self-tests
+        run: |
+          npm run check
+          npm run check:sync
+          npm run check:migration
+          npm run check:autosync
+          npm run check:preview-e2e
+          npm run check:routes
+          npm run check:final
+          npm run check:production-ui
+          npm run check:freeze
+          node --test tests/runtime-contracts.test.cjs
+      - name: JavaScript syntax
+        run: |
+          find api scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+          node --check public-config.js
+          node --check supabase-adapter.js
+          node --check cloud-sync.js
+          node --check safe-autosync.js
+          node --check secure-auth-bridge.js
+          node --check lib/read-only.js
+      - name: Verify release marker
+        run: |
+          grep -q "V198" index.html
+          grep -q "aqari-v198-secure-cloud-js" index.html

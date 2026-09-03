@@ -1,32 +1,23 @@
-'use strict';
+import { beginReadOnly, sendReadOnlyJson } from '../../lib/read-only.js';
 
-module.exports = function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+export default async function handler(req, res) {
+  if(!beginReadOnly(req, res)) return;
 
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.setHeader('Allow', 'GET, HEAD');
-    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-  }
-
-  const payload = {
+  return sendReadOnlyJson(req, res, {
     ok: true,
     status: 'healthy',
     mode: 'supabase_cloud',
     checks: {
-      runtime: { ok: true, required: true },
-      staticApp: { ok: true, required: true },
+      runtime: { ok:true, required:true },
+      staticApp: { ok:true, required:true },
       cloudIntegration: {
         ok: true,
         required: true,
-        detail: 'V168 Supabase Auth, workspace RLS, and revisioned cloud-state client are deployed.',
-      },
+        detail: 'V198 Supabase Auth, workspace RLS, revision CAS, and explicit manual transfer controls are deployed.'
+      }
     },
-    version: 'V168',
+    version: 'V198',
     environment: process.env.VERCEL_ENV || 'unknown',
-    timestamp: new Date().toISOString(),
-  };
-
-  if (req.method === 'HEAD') return res.status(200).end();
-  return res.status(200).json(payload);
-};
+    timestamp: new Date().toISOString()
+  });
+}
