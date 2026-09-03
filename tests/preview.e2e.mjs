@@ -35,11 +35,10 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('V200 luxury design loads on the secure V198 runtime', async () => {
+await check('V201 easy luxury design loads on the secure V198 runtime', async () => {
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
-  if(!(await page.title()).includes('V200')) throw new Error('V200 title missing');
   const state = await page.evaluate(() => ({
     gate:Boolean(document.getElementById('aqariCloudGateV168')?.classList.contains('on')),
     loginSecure:window.login === window.cloudLoginV198,
@@ -49,18 +48,78 @@ await check('V200 luxury design loads on the secure V198 runtime', async () => {
     autosyncMode:window.AQARI_AUTOSYNC?.status?.mode,
     design:document.querySelector('meta[name="aqari-design"]')?.content,
     luxury:document.body.classList.contains('aq-v200'),
+    easy:document.body.classList.contains('aq-v201'),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
     dashboard:Boolean(document.getElementById('aqariV199Dashboard')),
     mobileItems:document.querySelectorAll('.mobilebar .v199-bottom-button').length,
+    createOptions:document.querySelectorAll('#v201CreateMenu [data-v201-create]').length,
+    propertyActions:document.querySelectorAll('#v201PropertyCenter [data-v201-property-action]').length,
+    mobileCreateSize:document.getElementById('v201MobileCreate')?.getBoundingClientRect().width,
+    businessLinks:Array.from(document.querySelectorAll('#v199MoreMenu [data-v199-go]')).map(node => node.getAttribute('data-v199-go')),
+    fakeBars:document.querySelectorAll('#aqariV199Dashboard .v199-mini-bars').length,
+    labels:Array.from(document.querySelectorAll('#aqariV199Dashboard .v199-kpi-label')).map(node => node.textContent.trim()),
+    priorityFirst:(() => {
+      const dashboard=document.getElementById('aqariV199Dashboard');
+      const priority=dashboard?.querySelector('.v201-priority-panel');
+      const kpis=dashboard?.querySelector('.v199-kpi-grid');
+      return Boolean(priority&&kpis&&(priority.compareDocumentPosition(kpis)&Node.DOCUMENT_POSITION_FOLLOWING));
+    })(),
     horizontalOverflow:document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
   }));
   if(!state.gate || !state.loginSecure || !state.localLoginSecure || !state.supabase || !state.cloud){
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V200-preview' || !state.luxury || !state.shell || !state.dashboard) throw new Error('V200 luxury presentation layer unavailable');
+  if(state.design !== 'V201-preview' || !state.luxury || !state.easy || !state.shell || !state.dashboard) throw new Error('V201 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
+  if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
+  if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
+  if(state.mobileCreateSize < 44) throw new Error(`mobile create target ${state.mobileCreateSize}px`);
+  for(const route of ['tenants','reports','documentsHub']) if(!state.businessLinks.includes(route)) throw new Error(`${route} missing from More menu`);
+  if(state.fakeBars !== 0) throw new Error('hard-coded chart bars must not be shown');
+  if(!state.priorityFirst) throw new Error('today priorities must precede KPIs');
+  for(const label of ['الدخل المسجل','المقبوضات المسجلة','إيجار مستحق','طلبات صيانة مفتوحة']) if(!state.labels.includes(label)) throw new Error(`${label} missing`);
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
+});
+
+await check('each property has its own action center', async () => {
+  const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
+  if(!trigger) throw new Error('property management trigger missing');
+  await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
+  await page.waitForTimeout(80);
+  const state=await page.evaluate(() => ({
+    shown:document.getElementById('v201PropertyCenter')?.getAttribute('aria-hidden') === 'false',
+    title:document.getElementById('v201PropertyTitle')?.textContent.trim(),
+    actions:Array.from(document.querySelectorAll('#v201PropertyCenter [data-v201-property-action]')).map(node => node.textContent.trim())
+  }));
+  if(!state.shown || !state.title) throw new Error('property action center did not open');
+  for(const label of ['إبرام عقد','وصل إيجار','كشف الإيجار','ملف العقار']) if(!state.actions.some(text => text.includes(label))) throw new Error(`${label} action missing`);
+  await page.evaluate(() => document.querySelector('[data-v201-property-close]')?.click());
+});
+
+await check('V201 quick-create and accessible modal', async () => {
+  await page.evaluate(() => document.querySelector('[data-v201-quick]')?.click());
+  await page.waitForTimeout(80);
+  const open = await page.evaluate(() => ({
+    shown:document.getElementById('v201CreateMenu')?.getAttribute('aria-hidden') === 'false',
+    focused:Boolean(document.activeElement?.matches('[data-v201-create]'))
+  }));
+  if(!open.shown || !open.focused) throw new Error('quick-create sheet did not open accessibly');
+  await page.evaluate(() => document.querySelector('[data-v201-create="properties"]')?.click());
+  await page.waitForTimeout(180);
+  const modal = await page.evaluate(() => ({
+    open:document.getElementById('modal')?.classList.contains('on'),
+    role:document.getElementById('modal')?.getAttribute('role'),
+    ariaModal:document.getElementById('modal')?.getAttribute('aria-modal'),
+    labels:document.querySelectorAll('#fields .v201-field').length,
+    controls:document.querySelectorAll('#fields input,#fields select,#fields textarea').length
+  }));
+  if(!modal.open || modal.role !== 'dialog' || modal.ariaModal !== 'true') throw new Error('create modal accessibility contract failed');
+  if(!modal.controls || modal.labels !== modal.controls) throw new Error(`visible labels ${modal.labels}/${modal.controls}`);
+  await page.evaluate(() => {
+    document.getElementById('modal')?.classList.remove('on');
+    window.go?.('home');
+  });
 });
 
 async function readApi(path){
@@ -126,8 +185,8 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V200 luxury presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css']){
+await check('PWA and V201 presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -137,4 +196,4 @@ await check('PWA and V200 luxury presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V200 Luxury Preview E2E on V198 runtime: PASS');
+console.log('AQARI V201 Easy Luxury Preview E2E on V198 runtime: PASS');

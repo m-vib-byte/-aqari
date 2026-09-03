@@ -1,4 +1,4 @@
-name: AQARI V200 Luxury Gate
+name: AQARI V201 Experience Gate
 
 on:
   pull_request:
@@ -37,12 +37,16 @@ jobs:
           node --check safe-autosync.js
           node --check secure-auth-bridge.js
           node --check v199-ui.js
+          node --check v201-experience.js
           node --check lib/read-only.js
       - name: Verify release marker
         run: |
           grep -q "V198" index.html
-          grep -q "V200-preview" v199-ui.js
+          grep -q "V201-preview" v201-experience.js
           grep -q "AQARI V200 luxury presentation" v200-luxury.css
+          grep -q "AQARI V201 quiet-luxury experience" v201-easy.css
           grep -q "aqari-v198-secure-cloud-js" index.html
           grep -q "aqari-v199-ui-js" final-release-ui.js
           grep -q "aqari-v200-luxury-css" final-release-ui.js
+          grep -q "aqari-v201-easy-css" final-release-ui.js
+          grep -q "aqari-v201-experience-js" final-release-ui.js

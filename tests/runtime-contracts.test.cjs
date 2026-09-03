@@ -123,11 +123,13 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(sync, /SENSITIVE_KEY/);
 });
 
-test('V200 luxury presentation preserves the V198 secure runtime', () => {
+test('V201 quiet-luxury experience preserves the V198 secure runtime', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'v199-ui.css'), 'utf8');
   const luxury = fs.readFileSync(path.join(root, 'v200-luxury.css'), 'utf8');
+  const easy = fs.readFileSync(path.join(root, 'v201-easy.css'), 'utf8');
   const ui = fs.readFileSync(path.join(root, 'v199-ui.js'), 'utf8');
+  const experience = fs.readFileSync(path.join(root, 'v201-experience.js'), 'utf8');
   const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
@@ -135,6 +137,9 @@ test('V200 luxury presentation preserves the V198 secure runtime', () => {
   assert.match(loader, /stylesheet\.href = '\/v199-ui\.css'/);
   assert.match(loader, /script\.src = '\/v199-ui\.js'/);
   assert.match(loader, /luxury\.href = '\/v200-luxury\.css'/);
+  assert.match(loader, /easy\.href = '\/v201-easy\.css'/);
+  assert.match(loader, /experience\.src = '\/v201-experience\.js'/);
+  assert.match(loader, /script\.addEventListener\('load', installV201Experience/);
   assert.match(loader, /DOMContentLoaded', installV199Preview/);
   assert.match(css, /body\.aq-v199 #home>\*:not\(#aqariV199Dashboard\)/);
   assert.match(css, /prefers-reduced-motion/);
@@ -148,6 +153,24 @@ test('V200 luxury presentation preserves the V198 secure runtime', () => {
   assert.match(ui, /meta\.content='V200-preview'/);
   assert.match(luxury, /AQARI V200 luxury presentation/);
   assert.match(luxury, /z-index:1400!important/);
+  assert.match(easy, /AQARI V201 quiet-luxury experience/);
+  assert.match(easy, /--v201-gold-dark:#684819/);
+  assert.match(easy, /\.v201-create-sheet/);
+  assert.match(easy, /\.v201-card-table/);
+  assert.match(experience, /V201-preview/);
+  assert.match(experience, /id='v201CreateMenu'|id="v201CreateMenu"/);
+  assert.match(experience, /data-v201-create/);
+  assert.match(experience, /الدخل المسجل/);
+  assert.match(experience, /المقبوضات المسجلة/);
+  assert.match(experience, /المطلوب اليوم/);
+  assert.match(experience, /إبرام عقد/);
+  assert.match(experience, /وصل إيجار/);
+  assert.match(experience, /كشف الإيجار/);
+  assert.match(experience, /property360Page/);
+  assert.match(experience, /smartContractsPage/);
+  assert.match(experience, /receiptDoc/);
+  assert.match(experience, /role','progressbar'/);
+  assert.doesNotMatch(experience, /AQARI_SUPABASE\s*=/);
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
 });
 
