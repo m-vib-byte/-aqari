@@ -78,7 +78,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V204-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V204-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V205 presentation layer unavailable');
+  if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V206 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
@@ -210,6 +210,39 @@ await check('each property has a complete V204 operating workspace', async () =>
   await page.evaluate(() => document.querySelector('[data-v202-close]')?.click());
 });
 
+await check('V206 ledger opens through the current property workflow with 14 columns', async () => {
+  const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
+  if(!trigger) throw new Error('property management trigger missing');
+  await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
+  await page.waitForTimeout(160);
+  await page.evaluate(() => document.querySelector('#v202PropertyWorkspace [data-v202-action="statement"]')?.click());
+  await page.waitForTimeout(160);
+  const state=await page.evaluate(() => {
+    const overlay=document.getElementById('v202DocumentDialog');
+    const ledger=overlay?.querySelector('[data-v206-ledger]');
+    const table=ledger?.querySelector('.v206-ledger-table');
+    return {
+      shown:overlay?.getAttribute('aria-hidden')==='false'&&overlay?.classList.contains('on'),
+      version:ledger?.getAttribute('data-v206-ledger-version'),
+      columns:table?.querySelectorAll('thead th').length||0,
+      month:Boolean(ledger?.querySelector('#v202StatementPeriod')),
+      exportButton:Boolean(ledger?.querySelector('[data-v206-export-csv]')),
+      tableScrollable:Boolean(table&&table.closest('.v206-ledger-table-wrap')),
+      legacyV206:Boolean(document.querySelector('#v201RentStatement [data-v206-ledger]')),
+      cssLoaded:Boolean(document.getElementById('aqari-v206-integrated-ledger-css')),
+    };
+  });
+  if(!state.shown) throw new Error('V206 did not open in the V202 document dialog');
+  if(state.version!=='V206-preview') throw new Error(`ledger version ${state.version||'missing'}`);
+  if(state.columns!==14) throw new Error(`ledger column count ${state.columns}`);
+  if(!state.month||!state.exportButton||!state.tableScrollable||!state.cssLoaded) throw new Error('V206 ledger controls or styling are missing');
+  if(state.legacyV206) throw new Error('V206 must not mount inside the legacy V201 ledger');
+  await page.evaluate(() => {
+    document.querySelector('[data-v202-document-close]')?.click();
+    document.querySelector('[data-v202-close]')?.click();
+  });
+});
+
 await check('V201 quick-create respects the auth gate and keeps an accessible modal', async () => {
   const authState = await page.evaluate(() => ({
     gateOpen:document.getElementById('aqariCloudGateV168')?.classList.contains('on'),
@@ -314,8 +347,8 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V205 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js']){
+await check('PWA and V206 presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -325,4 +358,4 @@ await check('PWA and V205 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V205 Simplified Platform Preview E2E on V198 runtime: PASS');
+console.log('AQARI V206 Integrated Ledger Preview E2E on V198 runtime: PASS');
