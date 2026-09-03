@@ -1,8 +1,10 @@
 {
   "name": "AQARI",
   "version": "V198",
+  "design_version": "V199-preview",
+  "design_stage": "preview-review",
   "stage": "release-freeze",
-  "index_sha256": "4de7681cc8f8978f87c1569c5271f40a9b1ada34d874d9a075faf1742654bc91",
+  "index_sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244",
   "syntax_checks": 80,
   "syntax_errors": 0,
   "selftests": [
