@@ -9,12 +9,12 @@
     {
       "path": ".github/workflows/preview-e2e.yml",
       "size": 1078,
-      "sha256": "2b3703222aca847bee4eeb6ab4a7ab7f36f0c74c4a34bbb083125301a621ad17"
+      "sha256": "57daab782babacea04a1f0e1dff248260e7bf136ddbb4f328a1f135bcb80fc37"
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "size": 1385,
-      "sha256": "997e719e1ae9a50a90ce0e1f69ae86e7179fab230fa854b60b82e4213caec468"
+      "size": 1514,
+      "sha256": "31e4c5401eb1d0810f516610e94d0a9bd07997cd1c19f7120b1c3b6cdab0b838"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 3928,
-      "sha256": "8f367c153eeafb447533928d7171bfdc43fbe393f35f10ca4fe7886139bfe112"
+      "size": 4204,
+      "sha256": "71896a26eb1a23d9c2030d438050472b43f4d0da1c05fe4a965251afd75405c8"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -333,13 +333,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 7365,
-      "sha256": "36b80afb63eb2d19b00467d6bdefeebc352041313291b6357eb4acd282234029"
+      "size": 7478,
+      "sha256": "f1dc3ce65393adfd6eb6f1812230a56bb2d883bd6a5d911b1a31c8cde127aa8b"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 8622,
-      "sha256": "ced4af9dfd3ae67628203409a7f88b3e6128bf537aff3ef605d8ef3b73a3ba41"
+      "size": 8959,
+      "sha256": "ed11b8b98ecfc3306e7daea4df0ead5b35b53d2d8efbb4dfa96860c32e7a6aba"
     },
     {
       "path": "v199-ui.css",
@@ -348,8 +348,13 @@
     },
     {
       "path": "v199-ui.js",
-      "size": 30619,
-      "sha256": "893e42256ae19ee36c38c345e8300b677fcd817432d86a27aa53ffe82a98b895"
+      "size": 31690,
+      "sha256": "84f9d9eab6df3a981045df1bb0a163fc734b1217a6252ef5edc49993f4e06e1c"
+    },
+    {
+      "path": "v200-luxury.css",
+      "size": 15703,
+      "sha256": "02eb3e172980ff51d7b025d75efa13c42aeba3e9579561ee9859f103cc124291"
     },
     {
       "path": "vercel.json",
@@ -358,8 +363,8 @@
     },
     {
       "path": "VERSION.json",
-      "size": 1752,
-      "sha256": "4c7e1bf3321564f0148fbe31a2e3bee345b35ffbdd920e7d04454c64b7dd28ab"
+      "size": 1759,
+      "sha256": "4483866e958c7f2d37f76e54884928080db5fbbcd42c5dfe6bf329fe2b39ef84"
     }
   ]
 }
