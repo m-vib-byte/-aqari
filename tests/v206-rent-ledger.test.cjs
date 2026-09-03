@@ -13,11 +13,13 @@ test('V206 rent ledger extends V205 without replacing the simplified shell', () 
   const rent = fs.readFileSync(path.join(root, 'v206-rent-ledger.js'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'v206-rent-ledger.css'), 'utf8');
 
-  assert.match(loader, /installV205SimplifiedShell/);
-  assert.match(loader, /v205-simplified-shell\.js/);
-  assert.match(loader, /v206-rent-ledger\.css/);
-  assert.match(loader, /v206-rent-ledger\.js/);
-  assert.ok(loader.indexOf('v206-rent-ledger.js') > loader.indexOf('v205-simplified-shell.js'));
+  assert.match(loader, /function installV205SimplifiedShell\s*\(/);
+  assert.match(loader, /function installV206RentLedger\s*\(/);
+  assert.match(loader, /shell\.src = '\/v205-simplified-shell\.js'/);
+  assert.match(loader, /shell\.addEventListener\('load', installV206RentLedger, \{ once:true \}\)/);
+  assert.match(loader, /installV206RentLedger\(\)/);
+  assert.match(loader, /css\.href='\/v206-rent-ledger\.css'/);
+  assert.match(loader, /script\.src='\/v206-rent-ledger\.js'/);
 
   assert.match(shell, /V205-preview/);
   assert.match(rent, /contractsV202/);
