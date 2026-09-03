@@ -2,7 +2,6 @@ import fs from 'node:fs';
 
 const expected = [
   'api/health.js',
-  'api/db/status.js',
   'api/release.js',
   'api/config-status.js',
   'api/supabase-status.js',
@@ -18,6 +17,23 @@ for(const f of expected){
     console.error('Missing route file:', f);
     failed = true;
   }
+}
+
+if(fs.existsSync('api/db/status.js')){
+  console.error('Legacy compatibility must not consume an extra Vercel Function');
+  failed = true;
+}
+
+const vercel = JSON.parse(fs.readFileSync('vercel.json','utf8'));
+const compatibilityRewrite = vercel.rewrites?.filter((rewrite) =>
+  rewrite.source === '/api/db/status'
+);
+if(
+  compatibilityRewrite?.length !== 1 ||
+  compatibilityRewrite[0].destination !== '/api/supabase-status'
+){
+  console.error('Missing exact legacy database status rewrite');
+  failed = true;
 }
 
 const manifest = JSON.parse(fs.readFileSync('DEPLOYMENT_MANIFEST.json','utf8'));

@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/db/status",
+      "destination": "/api/supabase-status"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

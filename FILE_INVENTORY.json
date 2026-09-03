@@ -37,11 +37,6 @@
       "sha256": "a4f1b7d5412ecaac06d423b9e8796bc8c4715cee58bbf899926b4fa5ce55c7c4"
     },
     {
-      "path": "api/db/status.js",
-      "size": 703,
-      "sha256": "f2c648d27a228449ed2306a51ddf2090bd6919bd61824a7767a01e42f3923e66"
-    },
-    {
       "path": "api/final-release-status.js",
       "size": 1069,
       "sha256": "37cf82320547fd6559e8f560440bb4576af082199b2c9a0d8f58f216247d6796"
@@ -83,8 +78,8 @@
     },
     {
       "path": "api/supabase-status.js",
-      "size": 518,
-      "sha256": "03cc0ff3c665263c76cde81595ad6aa6b25cdc0b47bfcc78ba524e41afb1e39d"
+      "size": 790,
+      "sha256": "5b01f5b92bc0e8d9636a2c0fe24cbc44b96476c4e4f7717b294f776adc307d94"
     },
     {
       "path": "aqari-icon.svg",
@@ -303,8 +298,8 @@
     },
     {
       "path": "scripts/route-contract-selftest.mjs",
-      "size": 865,
-      "sha256": "ddf076a2eb69580e252444fdd44a9d1b8ff747d59e1bd3ecc2c57b169e25a0b5"
+      "size": 1355,
+      "sha256": "3c09095a54fc6856eb5e0db1f2a2a095340c7ba57caf1618f0a1716e1686e36a"
     },
     {
       "path": "scripts/smoke.mjs",
@@ -343,13 +338,13 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 6753,
-      "sha256": "ddfe93e2c0e1a563c22b07ce1b4b4b31c061feee5d6218bf7e5baec2c1bfc3b1"
+      "size": 7047,
+      "sha256": "55a512fcb12b5a0474c1c27e0daef14b5f737afa2fc09f185b28eba5b02faef0"
     },
     {
       "path": "vercel.json",
-      "size": 712,
-      "sha256": "b8cc354269cbbfb46b489c06400301cb9a74dcbb3e992600d3a1469de4a2c58e"
+      "size": 823,
+      "sha256": "0ac3992e81e33ebca703226b2764d5a08857da21bb848facbc60642131e5cdbb"
     },
     {
       "path": "VERSION.json",

@@ -42,7 +42,6 @@ async function invoke(handler, method = 'GET') {
 for (const relativePath of [
   'api/health.js',
   'api/health/deep.js',
-  'api/db/status.js',
   'api/ops/status.js',
   'api/release.js',
   'api/config-status.js',
@@ -81,9 +80,15 @@ test('PWA files referenced by index.html exist and parse', () => {
 
 test('Vercel security headers preserve the hardened contract', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
+  const dbStatusRewrites = config.rewrites.filter((rewrite) => rewrite.source === '/api/db/status');
   const allRule = config.headers.find((rule) => rule.source === '/(.*)');
   const apiRule = config.headers.find((rule) => rule.source === '/api/(.*)');
   const values = Object.fromEntries(allRule.headers.map((header) => [header.key, header.value]));
+  assert.deepEqual(dbStatusRewrites, [{
+    source: '/api/db/status',
+    destination: '/api/supabase-status',
+  }]);
+  assert.equal(fs.existsSync(path.join(root, 'api/db/status.js')), false);
   assert.equal(values['X-Frame-Options'], 'DENY');
   assert.equal(values['X-Content-Type-Options'], 'nosniff');
   assert.equal(apiRule.headers.find((header) => header.key === 'Cache-Control').value, 'no-store, max-age=0');
@@ -159,9 +164,8 @@ test('operational endpoints report the V198 cloud mode', async () => {
   assert.equal(release.ok, true);
 });
 
-
-test('legacy database status is transparent compatibility metadata', async () => {
-  const status = (await invoke(await loadHandler('api/db/status.js'))).body;
+test('canonical Supabase status provides transparent legacy compatibility metadata', async () => {
+  const status = (await invoke(await loadHandler('api/supabase-status.js'))).body;
 
   assert.equal(status.version, 'V198');
   assert.equal(status.provider, 'supabase');
