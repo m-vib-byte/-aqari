@@ -1,4 +1,4 @@
-name: AQARI V198 Release Gate
+name: AQARI V199 Design Gate
 
 on:
   pull_request:
@@ -36,8 +36,11 @@ jobs:
           node --check cloud-sync.js
           node --check safe-autosync.js
           node --check secure-auth-bridge.js
+          node --check v199-ui.js
           node --check lib/read-only.js
       - name: Verify release marker
         run: |
           grep -q "V198" index.html
+          grep -q "V199-preview" v199-ui.js
           grep -q "aqari-v198-secure-cloud-js" index.html
+          grep -q "aqari-v199-ui-js" final-release-ui.js
