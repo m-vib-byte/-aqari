@@ -211,8 +211,8 @@ await check('each property has a complete V204 operating workspace', async () =>
 });
 
 await check('V201 quick-create and accessible modal', async () => {
-  await page.evaluate(() => document.querySelector('[data-v201-quick]')?.click());
-  await page.waitForTimeout(80);
+  await page.locator('#v205SimpleHome [data-v205-command="quick"]').click();
+  await page.waitForTimeout(160);
   const open = await page.evaluate(() => ({
     shown:document.getElementById('v201CreateMenu')?.getAttribute('aria-hidden') === 'false',
     focused:Boolean(document.activeElement?.matches('[data-v201-create]'))
