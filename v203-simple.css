@@ -1,0 +1,28 @@
+/* AQARI V203 — simple property workflow */
+body.aq-v203-simple .v203-simple-strip{margin:0 0 14px;padding:16px;border:1px solid var(--v202-line,#e7e0d5);border-radius:18px;background:#fff;box-shadow:var(--v202-shadow,0 12px 34px rgba(49,39,26,.055))}
+body.aq-v203-simple .v203-simple-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:12px}
+body.aq-v203-simple .v203-simple-title>div{display:grid;gap:2px}
+body.aq-v203-simple .v203-simple-title span{font-size:11px;font-weight:850;color:var(--v202-gold-dark,#654516)}
+body.aq-v203-simple .v203-simple-title strong{font-size:19px;color:var(--v202-ink,#201c17)}
+body.aq-v203-simple .v203-simple-title small{max-width:48ch;color:var(--v202-muted,#6d6458);font-size:11px}
+body.aq-v203-simple .v203-simple-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+body.aq-v203-simple .v203-simple-action{display:flex;align-items:center;gap:10px;min-height:66px;padding:11px 12px;border:1px solid var(--v202-line-strong,#d8cebf);border-radius:14px;background:var(--v202-surface-soft,#fbf9f5);color:var(--v202-ink-soft,#40392f);text-align:right}
+body.aq-v203-simple .v203-simple-action svg{width:22px;height:22px;flex:0 0 auto;color:var(--v202-gold-dark,#654516)}
+body.aq-v203-simple .v203-simple-action span{display:grid;gap:2px;min-width:0}
+body.aq-v203-simple .v203-simple-action strong{font-size:13px}
+body.aq-v203-simple .v203-simple-action small{font-size:10px;color:var(--v202-muted,#6d6458);white-space:normal}
+body.aq-v203-simple .v203-simple-action.is-primary{border-color:var(--v202-gold-dark,#654516);background:var(--v202-gold-dark,#654516);color:#fff;box-shadow:0 9px 24px rgba(101,69,22,.16)}
+body.aq-v203-simple .v203-simple-action.is-primary svg,body.aq-v203-simple .v203-simple-action.is-primary small{color:#fff}
+body.aq-v203-simple .v203-original-actions{display:none!important}
+
+@media(max-width:760px){
+  body.aq-v203-simple .v203-simple-strip{padding:12px;border-radius:16px}
+  body.aq-v203-simple .v203-simple-title{align-items:flex-start;flex-direction:column;gap:4px}
+  body.aq-v203-simple .v203-simple-actions{grid-template-columns:1fr 1fr}
+  body.aq-v203-simple .v203-simple-action{min-height:72px;padding:12px 10px}
+}
+
+@media(max-width:390px){
+  body.aq-v203-simple .v203-simple-actions{grid-template-columns:1fr}
+  body.aq-v203-simple .v203-simple-action{min-height:60px}
+}
