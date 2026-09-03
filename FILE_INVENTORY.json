@@ -10,8 +10,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 10472,
-      "sha256": "f8b855c761efeacf48bda73e9bafe9196d5641debb53bda6522d2101091bbe13"
+      "size": 9935,
+      "sha256": "20661fb4ada9466737629c23a854b773773be19bca935f13a10ce2a662e25234"
     },
     {
       "path": ".github/workflows/release-gate.yml",

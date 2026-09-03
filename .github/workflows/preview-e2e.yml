@@ -99,21 +99,10 @@ jobs:
                 const hostname = parsed.hostname.toLowerCase();
                 const teamSuffix = `-${expectedTeam}.vercel.app`;
                 if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port || parsed.pathname !== '/' || parsed.search || parsed.hash) return '';
-                if (!hostname.endsWith(teamSuffix)) return '';
+                if (!hostname.startsWith(`${expectedProject}-`) || !hostname.endsWith(teamSuffix)) return '';
                 return parsed.origin;
               } catch {
                 return '';
-              }
-            }
-
-            function isExpectedInspector(value) {
-              try {
-                const parsed = new URL(value);
-                const segments = parsed.pathname.split('/').filter(Boolean).map(segment => decodeURIComponent(segment).toLowerCase());
-                return parsed.protocol === 'https:' && parsed.hostname === 'vercel.com' &&
-                  segments.length >= 3 && segments[0] === expectedTeam && segments[1] === expectedProject;
-              } catch {
-                return false;
               }
             }
 
@@ -161,7 +150,7 @@ jobs:
               }
 
               const candidate = previewOrigin(status.environment_url || '');
-              if (!candidate || !isExpectedInspector(status.target_url || '')) {
+              if (!candidate) {
                 core.setFailed(`Newest successful Preview deployment ${deployment.id} does not belong to the expected Vercel team/project`);
                 return;
               }
