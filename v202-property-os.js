@@ -1,8 +1,14 @@
 (function(){
   'use strict';
 
-  const V202_DESIGN='V202-preview';
+  const V202_DESIGN='V203-preview';
   const V202_IMPORT_SOURCE='protected-rent-import-v202';
+  const PROTECTED_FIELDS=Object.freeze({
+    contractsV202:['id','contract_no','tenant','property','unit','rent','contractRent','status','start_date','end_date','source'],
+    tenantDirectoryV202:['property','unit','tenant','contractNo','phone','nationality','civilId','email','source','verified','sourcePage','contractStartRaw','contractEndRaw','paymentDateRaw','contractReceipt','accountant','insurance','advance','cleaningFee','freeMonth','evictionNotice','notes'],
+    rentLedgerV202:['id','receiptNo','property','unit','tenant','contractId','contractNo','period','due','paid','balance','paidAt','method','status','note','source','paymentKey'],
+    rentStatementsV202:['id','property','period','totalRent','totalCollected','totalAdvance','totalInsurance','totalCleaning','sourcePages','unitCount','importedAt','source']
+  });
   const STATUS_LABELS={
     draft:'مسودة',ready:'جاهز للاعتماد',approved:'معتمد',signing:'بانتظار التوقيع',
     signed:'موقّع',expired:'منتهي',cancelled:'ملغي'
@@ -19,7 +25,8 @@
     arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
     check:'<path d="m5 12 4 4L19 6"/>',
     alert:'<path d="M12 9v4M12 17h.01M10.3 3.7 2.8 17a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0z"/>',
-    printer:'<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/>'
+    printer:'<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/>',
+    search:'<path d="m21 21-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0z"/>'
   };
 
   let activeProperty='';
@@ -29,9 +36,15 @@
   let documentFallbackSelector='';
   let backgroundInertState=null;
   let activeTab='overview';
+  let unitSearch='';
   let enhanceTimer=0;
   let hydratePromise=null;
   let hydrateListenerInstalled=false;
+  let protectedImportCache=Object.create(null);
+  let protectedPropertyNames=new Set();
+  let protectedImportGeneration=0;
+  let protectedImportScope=null;
+  let protectedImportValidated=false;
 
   function icon(name){
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICONS[name]||ICONS.building)+'</svg>';
@@ -85,7 +98,37 @@
     catch(_){return {}}
   }
 
-  function rows(key){const value=appData()[key];return Array.isArray(value)?value:[]}
+  function accessScope(context){
+    const userId=String(context?.user?.id||'').trim();
+    const workspaceId=String(context?.workspace?.id||'').trim();
+    const membership=context?.membership;
+    if(!userId||!workspaceId||!membership?.is_active)return null;
+    if(membership.user_id&&String(membership.user_id)!==userId)return null;
+    if(membership.workspace_id&&String(membership.workspace_id)!==workspaceId)return null;
+    return {userId:userId,workspaceId:workspaceId};
+  }
+
+  function sameAccessScope(left,right){
+    return Boolean(left&&right&&left.userId===right.userId&&left.workspaceId===right.workspaceId);
+  }
+
+  function activeAccessScope(){
+    return accessScope(window.AQARI_SUPABASE?.context);
+  }
+
+  function protectedCacheUsable(){
+    return Boolean(protectedImportValidated&&sameAccessScope(activeAccessScope(),protectedImportScope));
+  }
+
+  function rows(key){
+    const value=appData()[key];
+    const local=Array.isArray(value)?value:[];
+    const remote=protectedCacheUsable()&&Array.isArray(protectedImportCache[key])?protectedImportCache[key]:[];
+    if(!remote.length)return local;
+    if(key==='properties')return mergeImportedProperty(local,remote,protectedPropertyNames).rows;
+    const fields=PROTECTED_FIELDS[key];
+    return fields?mergeImportedRows(local,remote,key,fields).rows:local;
+  }
 
   function cloudPrimary(payload){
     if(!payload||typeof payload!=='object'||Array.isArray(payload))return null;
@@ -192,23 +235,110 @@
     return {rows:result,changed};
   }
 
-  async function hydrateDhahawiImport(){
-    if(hydratePromise)return hydratePromise;
+  function clearProtectedImport(){
+    protectedImportGeneration+=1;
+    protectedImportCache=Object.create(null);
+    protectedPropertyNames=new Set();
+    protectedImportScope=null;
+    protectedImportValidated=false;
+    unitSearch='';
+  }
+
+  function suspendProtectedImport(dropCache){
+    protectedImportGeneration+=1;
+    protectedImportValidated=false;
+    if(dropCache){
+      protectedImportCache=Object.create(null);
+      protectedPropertyNames=new Set();
+      protectedImportScope=null;
+    }
+    unitSearch='';
+    clearProtectedDom();
+  }
+
+  function denyProtectedHydration(generation){
+    if(generation===protectedImportGeneration)suspendProtectedImport(true);
+    return false;
+  }
+
+  function clearProtectedDom(){
+    document.querySelectorAll('.aq-protected-property').forEach(function(node){node.remove()});
+    ['v202PropertyWorkspace','v202PaymentDialog','v202DocumentDialog'].forEach(function(id){
+      const layer=document.getElementById(id);
+      if(layer)layer.remove();
+    });
+    propertyTrigger=null;
+    paymentTrigger=null;
+    documentTrigger=null;
+    documentFallbackSelector='';
+    activeProperty='';
+    activeTab='overview';
+    syncLayerState();
+    document.body.classList.remove('v202-print-document');
+  }
+
+  function purgePersistedProtectedRows(){
+    const data=appData();
+    if(!data||typeof data!=='object'||Array.isArray(data))return false;
+    let changed=false;
+    Object.keys(PROTECTED_FIELDS).forEach(function(key){
+      if(!Array.isArray(data[key]))return;
+      const clean=data[key].filter(function(record){
+        return normalized(record?.source)!==V202_IMPORT_SOURCE;
+      });
+      if(clean.length!==data[key].length){data[key]=clean;changed=true}
+    });
+    if(!changed)return false;
+    try{
+      if(typeof persist==='function')persist();
+      else localStorage.setItem('aqari_v30',JSON.stringify(data));
+    }catch(_){ }
+    return true;
+  }
+
+  async function hydrateProtectedImport(expectedUserId){
+    const expected=String(expectedUserId||'').trim();
+    const initialScope=activeAccessScope();
+    if(protectedImportScope&&(!initialScope||(expected&&initialScope.userId!==expected)||!sameAccessScope(initialScope,protectedImportScope))){
+      suspendProtectedImport(true);
+    }
+    if(protectedCacheUsable()&&(!expected||activeAccessScope()?.userId===expected))return true;
+    if(hydratePromise){
+      await hydratePromise;
+      if(protectedCacheUsable()&&(!expected||activeAccessScope()?.userId===expected))return true;
+      return hydrateProtectedImport(expected);
+    }
+    const generation=protectedImportGeneration;
     hydratePromise=(async function(){
       try{
         const bridge=window.AQARI_SUPABASE;
-        if(!bridge?.loadAppState)return false;
+        if(!bridge?.loadAppState)return denyProtectedHydration(generation);
         let context=bridge.context;
-        if(!context?.user||!context?.membership?.is_active||!context?.workspace?.id){
-          if(typeof bridge.refreshContext!=='function')return false;
+        let requestScope=accessScope(context);
+        if((!protectedImportValidated||!requestScope||(expected&&requestScope.userId!==expected))&&typeof bridge.refreshContext==='function'){
           context=await bridge.refreshContext();
+          requestScope=accessScope(context);
         }
-        if(!context?.user||!context?.membership?.is_active||!context?.workspace?.id)return false;
+        if(!requestScope||(expected&&requestScope.userId!==expected)){
+          return denyProtectedHydration(generation);
+        }
+        if(protectedImportScope&&!sameAccessScope(requestScope,protectedImportScope)){
+          protectedImportCache=Object.create(null);
+          protectedPropertyNames=new Set();
+          protectedImportScope=null;
+          protectedImportValidated=false;
+          clearProtectedDom();
+        }
         const remoteState=await bridge.loadAppState();
+        const currentScope=accessScope(bridge.context);
+        if(generation!==protectedImportGeneration)return false;
+        if(!sameAccessScope(currentScope,requestScope)||(expected&&currentScope.userId!==expected)){
+          return denyProtectedHydration(generation);
+        }
         const primary=cloudPrimary(remoteState?.payload);
-        if(!primary||typeof primary!=='object'||Array.isArray(primary))return false;
+        if(!primary||typeof primary!=='object'||Array.isArray(primary))return denyProtectedHydration(generation);
         const data=appData();
-        if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.properties))return false;
+        if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.properties))return denyProtectedHydration(generation);
         const importedPropertyNames=new Set();
         ['contractsV202','rentStatementsV202'].forEach(function(key){
           const remoteRows=Array.isArray(primary[key])?primary[key]:[];
@@ -218,61 +348,60 @@
             }
           });
         });
-        if(importedPropertyNames.size!==1)return false;
-        const definitions={
-          contractsV202:['id','contract_no','tenant','property','unit','rent','contractRent','status','start_date','end_date','source'],
-          tenantDirectoryV202:['property','unit','tenant','contractNo','phone','nationality','civilId','email','source','verified'],
-          rentLedgerV202:['id','receiptNo','property','unit','tenant','contractId','contractNo','period','due','paid','balance','paidAt','method','status','note','source','paymentKey'],
-          rentStatementsV202:['id','property','period','totalRent','totalCollected','totalAdvance','totalInsurance','totalCleaning','sourcePages','unitCount','importedAt','source']
-        };
-        const replacements={};
-        let changed=false;
-        Object.keys(definitions).forEach(function(key){
+        if(importedPropertyNames.size!==1)return denyProtectedHydration(generation);
+        const importedPropertyKey=normalized(Array.from(importedPropertyNames)[0]);
+        const nextCache=Object.create(null);
+        Object.keys(PROTECTED_FIELDS).forEach(function(key){
           const remoteRows=Array.isArray(primary[key])?primary[key]:[];
           if(!remoteRows.some(function(record){return normalized(record?.source)===V202_IMPORT_SOURCE}))return;
-          const merged=mergeImportedRows(data[key],remoteRows,key,definitions[key]);
-          if(merged.changed){replacements[key]=merged.rows;changed=true}
+          nextCache[key]=remoteRows.filter(function(record){
+            return record&&typeof record==='object'&&!Array.isArray(record)&&normalized(record.source)===V202_IMPORT_SOURCE&&normalized(record.property)===importedPropertyKey;
+          }).map(function(record){return pickedRecord(record,PROTECTED_FIELDS[key])});
         });
-        const propertyMerge=mergeImportedProperty(data.properties,primary.properties,importedPropertyNames);
-        if(propertyMerge.changed){replacements.properties=propertyMerge.rows;changed=true}
-        if(!changed)return false;
-        const previous={};
-        try{
-          Object.keys(replacements).forEach(function(key){
-            previous[key]={owned:Object.prototype.hasOwnProperty.call(data,key),value:data[key]};
-            data[key]=replacements[key];
-          });
-          if(typeof persist==='function')persist();
-          else localStorage.setItem('aqari_v30',JSON.stringify(data));
-        }catch(error){
-          Object.keys(previous).forEach(function(key){
-            try{if(previous[key].owned)data[key]=previous[key].value;else delete data[key]}catch(_){ }
-          });
-          try{localStorage.setItem('aqari_v30',JSON.stringify(data))}catch(_){ }
-          return false;
-        }
+        nextCache.properties=Array.isArray(primary.properties)?primary.properties.filter(function(row){
+          return Array.isArray(row)&&importedPropertyNames.has(String(row[0]||'').trim());
+        }).map(function(row){return row.slice(0,4)}):[];
+        protectedImportCache=nextCache;
+        protectedPropertyNames=new Set(Array.from(importedPropertyNames).map(normalized));
+        protectedImportScope=currentScope;
+        protectedImportValidated=true;
+        purgePersistedProtectedRows();
         try{if(typeof render==='function')render()}catch(_){ }
         if(document.querySelector('#v202PropertyWorkspace.on'))renderWorkspace();
         setPresentation();
         return true;
-      }catch(_){return false}
+      }catch(_){
+        return denyProtectedHydration(generation);
+      }
       finally{hydratePromise=null}
     })();
     return hydratePromise;
+  }
+
+  function handleProtectedAuthStateChange(event,session){
+    if(event==='SIGNED_OUT'){
+      clearProtectedImport();
+      clearProtectedDom();
+      if(document.querySelector('#v202PropertyWorkspace.on'))renderWorkspace();
+      return;
+    }
+    if(!['SIGNED_IN','TOKEN_REFRESHED','INITIAL_SESSION'].includes(event))return;
+    const eventUserId=String(session?.user?.id||'').trim();
+    const dropCache=!eventUserId||Boolean(protectedImportScope&&protectedImportScope.userId!==eventUserId);
+    suspendProtectedImport(dropCache);
+    setTimeout(function(){hydrateProtectedImport(eventUserId)},0);
   }
 
   function installHydrateListener(){
     const bridge=window.AQARI_SUPABASE;
     if(hydrateListenerInstalled||typeof bridge?.onAuthStateChange!=='function')return;
     hydrateListenerInstalled=true;
-    Promise.resolve(bridge.onAuthStateChange(function(event){
-      if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION')setTimeout(hydrateDhahawiImport,0);
-    })).catch(function(){hydrateListenerInstalled=false});
+    Promise.resolve(bridge.onAuthStateChange(handleProtectedAuthStateChange)).catch(function(){hydrateListenerInstalled=false});
   }
 
   function scheduleImportedHydration(){
     [0,800,2500,8000].forEach(function(delay){
-      setTimeout(function(){installHydrateListener();hydrateDhahawiImport()},delay);
+      setTimeout(function(){installHydrateListener();hydrateProtectedImport()},delay);
     });
   }
 
@@ -280,9 +409,98 @@
     return rows('tenantDirectoryV202').filter(function(entry){return entry&&typeof entry==='object'&&!Array.isArray(entry)}).map(function(entry){
       return {
         property:String(entry.property||''),unit:String(entry.unit||''),tenant:String(entry.tenant||''),
-        contractNo:String(entry.contractNo||entry.contract_no||''),source:String(entry.source||'')
+        contractNo:String(entry.contractNo||entry.contract_no||''),phone:String(entry.phone||''),
+        nationality:String(entry.nationality||''),civilId:String(entry.civilId||''),email:String(entry.email||''),
+        source:String(entry.source||''),verified:Boolean(entry.verified),sourcePage:String(entry.sourcePage||''),
+        contractStartRaw:String(entry.contractStartRaw||''),contractEndRaw:String(entry.contractEndRaw||''),
+        paymentDateRaw:String(entry.paymentDateRaw||''),contractReceipt:String(entry.contractReceipt||''),
+        accountant:String(entry.accountant||''),insurance:entry.insurance,advance:entry.advance,
+        cleaningFee:entry.cleaningFee,freeMonth:String(entry.freeMonth||''),
+        evictionNotice:String(entry.evictionNotice||''),notes:String(entry.notes||'')
       };
     });
+  }
+
+  function protectedAccessReady(){
+    return Boolean(activeAccessScope());
+  }
+
+  function protectedPropertyActive(name){
+    const key=normalized(name);
+    return protectedCacheUsable()&&protectedPropertyNames.has(key);
+  }
+
+  function maskCivilId(value){
+    const raw=String(value||'').trim();
+    if(!raw)return 'غير مسجل';
+    const compact=raw.replace(/\s+/g,'');
+    const tail=compact.slice(-4);
+    return tail?'•••• •••• '+tail:'•••• ••••';
+  }
+
+  function unitRecordKey(record){
+    return [normalized(record?.property),normalized(record?.unit),normalized(record?.contractNo),normalized(record?.tenant)].join('|');
+  }
+
+  function unitMatchesSearch(record,query){
+    const key=normalized(latinDigits(query));
+    if(!key)return true;
+    return [record?.unit,record?.tenant,record?.contractNo]
+      .some(function(value){return normalized(latinDigits(value)).includes(key)});
+  }
+
+  function filterUnitRecords(records,query){
+    return (Array.isArray(records)?records:[]).filter(function(record){return unitMatchesSearch(record,query)});
+  }
+
+  function maskUnitCard(card,record){
+    const reveal=card?.querySelector('[data-v202-civil-reveal]');
+    const sensitive=card?.querySelector('.aq-unit-sensitive-value');
+    if(!reveal||!record)return;
+    reveal.setAttribute('aria-pressed','false');
+    reveal.setAttribute('aria-label','إظهار الرقم المدني للوحدة '+record.unit);
+    reveal.textContent='إظهار';
+    if(sensitive){sensitive.textContent=maskCivilId(record.civilId);sensitive.classList.add('is-masked')}
+  }
+
+  function filterUnitCards(value){
+    const context=contextFor(activeProperty);
+    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    unitSearch=String(value||'');
+    let shown=0;
+    document.querySelectorAll('#v202Panel [data-v202-unit-index]').forEach(function(card){
+      const index=Number(card.getAttribute('data-v202-unit-index'));
+      const match=Boolean(records[index]&&unitMatchesSearch(records[index],unitSearch));
+      card.hidden=!match;
+      if(match)shown+=1;
+      const details=card.querySelector('details');
+      if(details)details.open=false;
+      maskUnitCard(card,records[index]);
+    });
+    const result=document.getElementById('v202UnitResultCount');
+    if(result)result.textContent='عرض '+shown+' من '+records.length+' وحدة';
+    const clear=document.querySelector('#v202Panel [data-v202-unit-clear]');
+    if(clear)clear.hidden=!unitSearch;
+    const empty=document.querySelector('#v202Panel .aq-unit-no-results');
+    if(empty)empty.hidden=shown!==0||records.length===0;
+    return shown;
+  }
+
+  function toggleCivilId(button){
+    if(!protectedAccessReady())return false;
+    const context=contextFor(activeProperty);
+    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    const index=Number(button?.getAttribute('data-v202-civil-reveal'));
+    const record=records[index];
+    const value=button?.closest('.aq-unit-sensitive')?.querySelector('.aq-unit-sensitive-value');
+    if(!record?.civilId||!value)return false;
+    const revealing=button.getAttribute('aria-pressed')!=='true';
+    value.textContent=revealing?record.civilId:maskCivilId(record.civilId);
+    value.classList.toggle('is-masked',!revealing);
+    button.setAttribute('aria-pressed',String(revealing));
+    button.setAttribute('aria-label',(revealing?'إخفاء':'إظهار')+' الرقم المدني للوحدة '+record.unit);
+    button.textContent=revealing?'إخفاء':'إظهار';
+    return true;
   }
 
   function directoryTenant(property,unit,contractNo){
@@ -544,6 +762,176 @@
     };
   }
 
+  function directoryEntriesFor(property){
+    const key=normalized(property);
+    return tenantDirectory().filter(function(entry){return normalized(entry.property)===key});
+  }
+
+  function directoryRecordFor(entries,contract){
+    const unit=normalized(contract?.unit);
+    const contractNo=normalized(contract?.contract_no||contract?.contractNo);
+    const tenant=normalized(contract?.tenant);
+    const candidates=(Array.isArray(entries)?entries:[]).filter(function(entry){return normalized(entry.unit)===unit});
+    if(contractNo){
+      const exact=candidates.filter(function(entry){return normalized(entry.contractNo)===contractNo});
+      if(exact.length===1)return exact[0];
+    }
+    if(tenant){
+      const byTenant=candidates.filter(function(entry){return normalized(entry.tenant)===tenant});
+      if(byTenant.length===1)return byTenant[0];
+    }
+    return candidates.length===1?candidates[0]:null;
+  }
+
+  function contractPriority(contract,period){
+    let score=0;
+    if(statementIncludesContract(contract,period))score+=1000000000000;
+    if(signedContract(contract))score+=100000000000;
+    const start=Number(String(contract?.start_date||'').replace(/-/g,''));
+    if(Number.isFinite(start))score+=start;
+    return score;
+  }
+
+  function unitDirectoryRecords(context,periodValue){
+    if(!context)return [];
+    const property=String(context.property?.[0]||'');
+    const period=validPeriod(periodValue)?periodValue:latestOfficialPeriod(property);
+    const directory=directoryEntriesFor(property);
+    const statement=rentStatementItems(context,period);
+    const statementById=new Map(statement.map(function(item){return [normalized(item.contractId),item]}).filter(function(pair){return pair[0]}));
+    const map=new Map();
+
+    directory.forEach(function(entry,index){
+      const key=normalized(entry.unit)||'directory:'+index;
+      if(!map.has(key))map.set(key,{property,unit:entry.unit||'—',tenant:entry.tenant,contractNo:entry.contractNo,directory:entry,contract:null});
+    });
+
+    context.propertyContracts.slice().sort(function(left,right){return contractPriority(right,period)-contractPriority(left,period)}).forEach(function(contract,index){
+      const idKey=normalized(contractId(contract));
+      const key=normalized(contract.unit)||(idKey?'contract:'+idKey:'contract:'+index);
+      const current=map.get(key)||{property,unit:contract.unit||'—',tenant:'',contractNo:'',directory:null,contract:null};
+      if(!current.contract){
+        const matched=directoryRecordFor(directory,contract);
+        current.contract=contract;
+        current.directory=matched||current.directory;
+        current.unit=contract.unit||current.directory?.unit||'—';
+        current.tenant=contract.tenant||current.directory?.tenant||'';
+        current.contractNo=contract.contract_no||current.directory?.contractNo||'';
+      }
+      map.set(key,current);
+    });
+
+    context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry,index){
+      const key=normalized(entry?.unit)||'ledger:'+index;
+      if(!map.has(key))map.set(key,{property,unit:String(entry?.unit||'—'),tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null});
+    });
+
+    return Array.from(map.values()).map(function(base){
+      const contract=base.contract;
+      const directoryRecord=base.directory||directoryRecordFor(directory,contract)||{};
+      const id=normalized(contractId(contract));
+      const statementItem=(id&&statementById.get(id))||statement.find(function(item){
+        return normalized(item.unit)===normalized(base.unit)&&normalized(item.tenant)===normalized(base.tenant||directoryRecord.tenant);
+      })||null;
+      const ledger=context.propertyLedger.filter(function(entry){
+        if(String(entry?.period||'')!==period||normalized(entry?.unit)!==normalized(base.unit))return false;
+        if(id&&normalized(entry?.contractId||entry?.contract_id))return normalized(entry?.contractId||entry?.contract_id)===id;
+        return !base.tenant||normalized(entry?.tenant)===normalized(base.tenant);
+      });
+      const paid=statementItem?numberFrom(statementItem.paid):ledger.filter(function(entry){return settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const pending=statementItem?numberFrom(statementItem.pending):ledger.filter(function(entry){return !settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const due=statementItem?numberFrom(statementItem.due):contractRent(contract);
+      const balance=Math.max(0,due-paid);
+      const receipts=ledger.map(function(entry){return String(entry?.receiptNo||'').trim()}).filter(Boolean);
+      const paymentDates=ledger.map(function(entry){return String(entry?.paidAt||'').trim()}).filter(Boolean).sort().reverse();
+      const methods=Array.from(new Set(ledger.map(function(entry){return String(entry?.method||'').trim()}).filter(Boolean)));
+      const paymentStatus=!contract?'يحتاج مراجعة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
+      return {
+        key:unitRecordKey({property,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
+        property,period,unit:String(base.unit||'—'),tenant:String(base.tenant||directoryRecord.tenant||''),
+        contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(contractId(contract)||''),
+        contractStatus:contract?statusLabel(contract.status):'غير مربوط',startDate:String(contract?.start_date||directoryRecord.contractStartRaw||''),
+        endDate:String(contract?.end_date||directoryRecord.contractEndRaw||''),rent:due,paid,pending,balance,paymentStatus,
+        receipts,paidAt:paymentDates[0]||String(directoryRecord.paymentDateRaw||''),methods,
+        phone:String(directoryRecord.phone||''),nationality:String(directoryRecord.nationality||''),
+        civilId:String(directoryRecord.civilId||''),email:String(directoryRecord.email||''),verified:Boolean(directoryRecord.verified),
+        sourcePage:String(directoryRecord.sourcePage||''),contractReceipt:String(directoryRecord.contractReceipt||''),
+        accountant:String(directoryRecord.accountant||''),insurance:directoryRecord.insurance,advance:directoryRecord.advance,
+        cleaningFee:directoryRecord.cleaningFee,freeMonth:String(directoryRecord.freeMonth||''),
+        evictionNotice:String(directoryRecord.evictionNotice||''),notes:String(directoryRecord.notes||''),
+        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory||directoryRecordFor(directory,contract))
+      };
+    }).sort(function(left,right){
+      return String(left.unit).localeCompare(String(right.unit),'ar',{numeric:true,sensitivity:'base'});
+    });
+  }
+
+  function unitDirectoryStats(context,records){
+    const list=Array.isArray(records)?records:[];
+    const linkedUnits=new Set(list.map(function(record){return normalized(record.unit)}).filter(Boolean)).size;
+    return {
+      linked:linkedUnits,
+      missing:Math.max(0,numberFrom(context?.units)-linkedUnits),
+      paid:list.filter(function(record){return record.paymentStatus==='مسدد'}).length,
+      due:list.filter(function(record){return record.paymentStatus==='مستحق'||record.paymentStatus==='جزئي'}).length,
+      review:list.filter(function(record){return record.paymentStatus==='قيد المراجعة'||record.paymentStatus==='يحتاج مراجعة'||!record.hasContract||!record.hasDirectory}).length
+    };
+  }
+
+  function unitStatusTone(status){
+    if(status==='مسدد')return 'is-paid';
+    if(status==='جزئي')return 'is-partial';
+    if(status==='مستحق')return 'is-due';
+    if(status==='قيد المراجعة'||status==='يحتاج مراجعة')return 'is-attention';
+    return 'is-vacant';
+  }
+
+  function unitField(label,value,extraClass){
+    const shown=value==null||String(value).trim()===''?'غير مسجل':String(value);
+    return '<div class="aq-unit-field '+(extraClass||'')+'"><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(shown)+'</dd></div>';
+  }
+
+  function unitMoneyField(label,value){
+    return unitField(label,value==null||String(value).trim()===''?'غير مسجل':money(numberFrom(value)));
+  }
+
+  function unitsPanel(context,periodValue,accessGranted){
+    if(accessGranted!==true&&!protectedAccessReady()){
+      return '<div class="aq-unit-empty" role="status"><span>'+icon('user')+'</span><div><strong>بيانات الوحدات محمية</strong><p>سجّل الدخول بعضوية فعّالة لعرض المستأجرين والعقود وبيانات السداد.</p></div></div>';
+    }
+    const period=validPeriod(periodValue)?periodValue:latestOfficialPeriod(context.property?.[0]);
+    const records=unitDirectoryRecords(context,period);
+    const stats=unitDirectoryStats(context,records);
+    const protectedOnly=protectedPropertyActive(context.property?.[0]);
+    const cards=records.map(function(record,index){
+      const civil=maskCivilId(record.civilId);
+      const notes=[record.freeMonth&&'شهر مجاني: '+record.freeMonth,record.evictionNotice&&'إنذار إخلاء: '+record.evictionNotice,record.notes].filter(Boolean).join(' • ');
+      return '<article class="aq-unit-card '+unitStatusTone(record.paymentStatus)+'" data-v202-unit-index="'+index+'" aria-labelledby="v202UnitTitle'+index+'">'+
+        '<header class="aq-unit-card-head"><span class="aq-unit-number">'+escapeHtml(record.unit)+'</span><div class="aq-unit-title"><strong id="v202UnitTitle'+index+'">'+escapeHtml(record.tenant||'مستأجر غير مسجل')+'</strong><small>'+escapeHtml(record.contractNo?'عقد '+record.contractNo:'عقد غير مربوط')+'</small></div><span class="aq-unit-status '+unitStatusTone(record.paymentStatus)+'">'+escapeHtml(record.paymentStatus)+'</span></header>'+ 
+        '<dl class="aq-unit-summary">'+unitMoneyField('الإيجار',record.rent)+unitMoneyField('المدفوع',record.paid)+unitMoneyField('المتبقي',record.balance)+'</dl>'+ 
+        '<details class="aq-unit-details"><summary>عرض كل بيانات الوحدة '+escapeHtml(record.unit)+'</summary><dl class="aq-unit-details-body">'+ 
+          unitField('المستأجر',record.tenant)+unitField('رقم العقد',record.contractNo)+unitField('حالة العقد',record.contractStatus)+unitField('بداية العقد',record.startDate?localDate(record.startDate):'غير مسجل')+unitField('نهاية العقد',record.endDate?localDate(record.endDate):'غير مسجل')+unitMoneyField('قيد المراجعة',record.pending)+
+          unitField('الوصولات',record.receipts.join('، ')||record.contractReceipt)+unitField('تاريخ آخر دفعة',record.paidAt?localDate(record.paidAt):'غير مسجل')+unitField('طريقة السداد',record.methods.join('، '))+
+          unitField('الهاتف',record.phone)+unitField('الجنسية',record.nationality)+unitField('البريد الإلكتروني',record.email)+unitField('المحاسب',record.accountant)+
+          unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+unitField('ملاحظات',notes)+
+          '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked">'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
+        '</dl></details>'+ 
+        '<footer class="aq-unit-actions"><button type="button" data-v202-action="contract">عقود العقار</button>'+(record.receipts.length?'<button type="button" data-v202-unit-receipt="'+index+'">فتح آخر وصل</button>':'')+(protectedOnly?'':'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>')+'</footer>'+ 
+      '</article>';
+    }).join('');
+    return '<section class="aq-unit-directory" aria-labelledby="aqUnitDirectoryTitle">'+
+      '<header class="aq-unit-toolbar"><div><p>دليل الوحدات المحمي</p><h3 id="aqUnitDirectoryTitle">كل وحدة بملف مستقل</h3><small>'+escapeHtml(periodLabel(period))+'</small></div><div class="aq-unit-search"><span id="v202UnitSearchLabel">بحث بالوحدة أو المستأجر أو رقم العقد</span>'+icon('search')+'<input id="v202UnitSearch" type="search" aria-labelledby="v202UnitSearchLabel" autocomplete="off" value="'+escapeHtml(unitSearch)+'" placeholder="مثال: 12 أو رقم العقد"><button type="button" class="aq-unit-search-clear" data-v202-unit-clear aria-label="مسح البحث" '+(unitSearch?'':'hidden')+'>'+icon('close')+'</button></div></header>'+ 
+      '<div class="aq-unit-kpis">'+
+        '<div class="aq-unit-kpi"><span>ملفات مرتبطة</span><strong>'+stats.linked+'</strong><small>'+stats.missing+' بلا بيانات تفصيلية</small></div>'+ 
+        '<div class="aq-unit-kpi is-paid"><span>مسددة</span><strong>'+stats.paid+'</strong><small>للفترة المختارة</small></div>'+ 
+        '<div class="aq-unit-kpi is-due"><span>مستحقة/جزئية</span><strong>'+stats.due+'</strong><small>تحتاج تحصيل</small></div>'+ 
+        '<div class="aq-unit-kpi is-attention"><span>تحتاج مراجعة</span><strong>'+stats.review+'</strong><small>ربط أو اعتماد</small></div>'+ 
+      '</div>'+ 
+      '<div class="aq-unit-result-count" id="v202UnitResultCount" aria-live="polite">عرض '+records.length+' من '+records.length+' وحدة</div>'+ 
+      '<div class="aq-unit-list">'+(cards||'<div class="aq-unit-empty"><strong>لا توجد ملفات وحدات مرتبطة</strong><p>اربط عقدًا أو بيانات مستأجر لتظهر هنا.</p></div>')+'</div><div class="aq-unit-empty aq-unit-no-results" role="status" hidden><strong>لا توجد وحدات مطابقة</strong><p>جرّب رقم وحدة أو اسم مستأجر أو رقم عقد مختلف.</p></div>'+ 
+    '</section>';
+  }
+
   function statusLabel(value){return STATUS_LABELS[value]||value||'غير محدد'}
 
   function healthFor(context){
@@ -578,27 +966,32 @@
   function overviewPanel(context){
     const health=healthFor(context);
     const occupied=context.activeContracts.length?context.occupiedUnits+' من '+context.units:'غير مربوط';
+    const protectedOnly=protectedPropertyActive(context.property?.[0]);
+    const nextAction=context.activeContracts.length?'payment':'contract';
+    const nextLabel=context.activeContracts.length?(protectedOnly?'عرض التحصيل':'تسجيل إيجار'):(protectedOnly?'عرض العقود':'إبرام عقد');
     return '<div class="v202-overview-grid">'+
       '<section class="v202-overview-main">'+
         '<div class="v202-section-head"><div><p>رحلة العقار</p><h3>من العقد إلى الكشف</h3></div><span class="v202-health is-'+health.tone+'">'+health.label+'</span></div>'+journey(context)+
-        '<div class="v202-next-action"><div><span>الإجراء التالي</span><strong>'+escapeHtml(health.detail)+'</strong></div><button type="button" data-v202-action="'+(context.activeContracts.length?'payment':'contract')+'">'+(context.activeContracts.length?'تسجيل إيجار':'إبرام عقد')+' '+icon('arrow')+'</button></div>'+
+        '<div class="v202-next-action"><div><span>الإجراء التالي</span><strong>'+escapeHtml(health.detail)+'</strong></div><button type="button" data-v202-action="'+nextAction+'">'+nextLabel+' '+icon('arrow')+'</button></div>'+
       '</section>'+
       '<aside class="v202-property-facts"><h3>ملخص العقار</h3><dl><div><dt>المالك</dt><dd>'+escapeHtml(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:'غير محدد')+'</dd></div><div><dt>الوحدات المشغولة</dt><dd>'+escapeHtml(occupied)+'</dd></div><div><dt>عقود مرتبطة</dt><dd>'+context.propertyContracts.length+'</dd></div><div><dt>طلبات مفتوحة</dt><dd>'+context.openMaintenance.length+'</dd></div></dl></aside>'+
     '</div>';
   }
 
   function contractsPanel(context){
-    if(!context.propertyContracts.length)return emptyState('لا توجد عقود مرتبطة','إبرام عقد من هنا يربطه بالعقار تلقائياً.','contract','إبرام عقد');
+    const protectedOnly=protectedPropertyActive(context.property?.[0]);
+    if(!context.propertyContracts.length)return protectedOnly?emptyState('لا توجد عقود مرتبطة','لا توجد عقود محمية مرتبطة بهذا العقار حالياً.','',''):emptyState('لا توجد عقود مرتبطة','إبرام عقد من هنا يربطه بالعقار تلقائياً.','contract','إبرام عقد');
     return '<div class="v202-card-list">'+context.propertyContracts.map(function(contract){
       return '<article class="v202-contract-card"><div class="v202-contract-icon">'+icon('contract')+'</div><div><span>'+escapeHtml(contract.contract_no||'عقد بدون رقم')+'</span><strong>'+escapeHtml(contract.tenant||'مستأجر غير محدد')+'</strong><small>'+escapeHtml(contract.unit||'وحدة غير محددة')+' • '+escapeHtml(contract.rent||'إيجار غير محدد')+'</small></div><em class="is-'+escapeHtml(contract.status||'draft')+'">'+escapeHtml(statusLabel(contract.status))+'</em></article>';
-    }).join('')+'</div><div class="v202-panel-footer"><button type="button" data-v202-action="contract">عقد جديد '+icon('arrow')+'</button></div>';
+    }).join('')+'</div>'+(protectedOnly?'<div class="v202-document-note"><strong>العقود المحمية</strong><p>تُعرض العقود المرتبطة هنا من الذاكرة الآمنة ولا تُنسخ إلى التخزين المحلي.</p></div>':'<div class="v202-panel-footer"><button type="button" data-v202-action="contract">عقد جديد '+icon('arrow')+'</button></div>');
   }
 
   function collectionsPanel(context){
-    if(!context.propertyCollections.length)return emptyState('لا توجد عمليات تحصيل مرتبطة','سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.','payment','تسجيل إيجار');
+    const protectedOnly=protectedPropertyActive(context.property?.[0]);
+    if(!context.propertyCollections.length)return protectedOnly?emptyState('لا توجد عمليات تحصيل مرتبطة','لا توجد دفعات محمية مرتبطة بهذا العقار حالياً.','',''):emptyState('لا توجد عمليات تحصيل مرتبطة','سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.','payment','تسجيل إيجار');
     return '<div class="v202-ledger" role="region" aria-label="تحصيلات العقار"><table><thead><tr><th>الإيصال</th><th>المستأجر</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+context.propertyCollections.map(function(row,index){
       return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(row?.[3]||'—')+'</span></td><td data-label="التاريخ">'+localDate(row?.[5])+'</td><td data-label="إجراء"><button type="button" data-v202-receipt-index="'+index+'">فتح الوصل</button></td></tr>';
-    }).join('')+'</tbody></table></div><div class="v202-panel-footer"><button type="button" data-v202-action="payment">تسجيل إيجار '+icon('arrow')+'</button></div>';
+    }).join('')+'</tbody></table></div>'+(protectedOnly?'':'<div class="v202-panel-footer"><button type="button" data-v202-action="payment">تسجيل إيجار '+icon('arrow')+'</button></div>');
   }
 
   function expensesPanel(context){
@@ -610,6 +1003,7 @@
 
   function workspaceMarkup(context){
     const health=healthFor(context);
+    const protectedOnly=protectedPropertyActive(context.property?.[0]);
     return '<section class="v202-workspace" role="dialog" aria-modal="true" aria-labelledby="v202PropertyTitle" aria-describedby="v202PropertyDescription">'+
       '<header class="v202-workspace-head"><div class="v202-property-identity"><span class="v202-property-mark">'+icon('building')+'</span><div><p>ملف العقار التشغيلي</p><h2 id="v202PropertyTitle">'+escapeHtml(activeProperty)+'</h2><span id="v202PropertyDescription">العقد والتحصيل والوصولات والكشف في مكان واحد.</span></div></div><div class="v202-head-side"><span class="v202-health is-'+health.tone+'">'+health.label+'</span><button type="button" class="v202-icon-button" data-v202-close aria-label="إغلاق ملف العقار">'+icon('close')+'</button></div></header>'+
       '<div class="v202-property-kpis">'+
@@ -621,13 +1015,14 @@
         kpi('الصافي التشغيلي',money(context.net),'الإيراد ناقص المصروفات','gold')+
       '</div>'+
       '<nav class="v202-actions" aria-label="إجراءات العقار">'+
-        '<button type="button" data-v202-action="contract">'+icon('contract')+'<span><strong>إبرام عقد</strong><small>إنشاء وربط العقد</small></span></button>'+
-        '<button type="button" data-v202-action="payment">'+icon('wallet')+'<span><strong>تسجيل إيجار</strong><small>تحصيل وإصدار وصل</small></span></button>'+
+        '<button type="button" data-v202-action="contract">'+icon('contract')+'<span><strong>'+(protectedOnly?'عقود العقار':'إبرام عقد')+'</strong><small>'+(protectedOnly?'عرض العقود المرتبطة':'إنشاء وربط العقد')+'</small></span></button>'+
+        '<button type="button" data-v202-action="payment">'+icon('wallet')+'<span><strong>'+(protectedOnly?'التحصيل':'تسجيل إيجار')+'</strong><small>'+(protectedOnly?'عرض الدفعات والوصولات':'تحصيل وإصدار وصل')+'</small></span></button>'+
         '<button type="button" data-v202-action="statement">'+icon('chart')+'<span><strong>كشف الإيجار</strong><small>كشف تفصيلي PDF</small></span></button>'+ 
-        '<button type="button" data-v202-action="profile">'+icon('building')+'<span><strong>الملف الكامل</strong><small>العقار 360°</small></span></button>'+ 
+        '<button type="button" data-v202-action="profile">'+icon('building')+'<span><strong>'+(protectedOnly?'ملخص العقار':'الملف الكامل')+'</strong><small>'+(protectedOnly?'داخل الملف المحمي':'العقار 360°')+'</small></span></button>'+ 
       '</nav>'+ 
       '<div class="v202-tabs" role="tablist" aria-label="تفاصيل العقار">'+
         '<button type="button" id="v202TabOverview" role="tab" aria-controls="v202Panel" data-v202-tab="overview">نظرة عامة</button>'+ 
+        '<button type="button" id="v202TabUnits" role="tab" aria-controls="v202Panel" data-v202-tab="units">الوحدات <span>'+unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)).length+'</span></button>'+ 
         '<button type="button" id="v202TabContracts" role="tab" aria-controls="v202Panel" data-v202-tab="contracts">العقود <span>'+context.propertyContracts.length+'</span></button>'+ 
         '<button type="button" id="v202TabCollections" role="tab" aria-controls="v202Panel" data-v202-tab="collections">التحصيل <span>'+context.propertyCollections.length+'</span></button>'+ 
         '<button type="button" id="v202TabExpenses" role="tab" aria-controls="v202Panel" data-v202-tab="expenses">المصروفات <span>'+context.expenses.length+'</span></button>'+ 
@@ -645,7 +1040,8 @@
       button.tabIndex=selected?0:-1;
       if(selected)panel.setAttribute('aria-labelledby',button.id);
     });
-    if(activeTab==='contracts')panel.innerHTML=contractsPanel(context);
+    if(activeTab==='units')panel.innerHTML=unitsPanel(context,latestOfficialPeriod(activeProperty));
+    else if(activeTab==='contracts')panel.innerHTML=contractsPanel(context);
     else if(activeTab==='collections')panel.innerHTML=collectionsPanel(context);
     else if(activeTab==='expenses')panel.innerHTML=expensesPanel(context);
     else panel.innerHTML=overviewPanel(context);
@@ -710,7 +1106,7 @@
     activeProperty=String(record?.[0]||name);
     propertyTrigger=trigger||document.activeElement;
     activeTab='overview';
-    try{sessionStorage.setItem('aqari_v202_property',activeProperty)}catch(_){ }
+    unitSearch='';
     renderWorkspace();
     const overlay=document.getElementById('v202PropertyWorkspace');
     overlay.classList.add('on');
@@ -736,6 +1132,9 @@
       if(focusTarget instanceof HTMLElement)setTimeout(function(){focusTarget.focus()},0);
     }
     propertyTrigger=null;
+    unitSearch='';
+    const panel=document.getElementById('v202Panel');
+    if(panel)panel.textContent='';
   }
 
   function selectPropertyOnPage(selectId,renderName){
@@ -750,6 +1149,13 @@
   }
 
   function routeAction(action,trigger){
+    if(protectedPropertyActive(activeProperty)&&['payment','contract','profile'].includes(action)){
+      activeTab=action==='payment'?'collections':(action==='contract'?'contracts':'overview');
+      const context=contextFor(activeProperty);
+      if(context)renderPanel(context);
+      document.getElementById(action==='payment'?'v202TabCollections':(action==='contract'?'v202TabContracts':'v202TabOverview'))?.focus();
+      return true;
+    }
     if(action==='payment')return openPayment(trigger);
     if(action==='statement')return openStatementDocument(undefined,trigger);
     closeWorkspace(false);
@@ -761,6 +1167,28 @@
       window.go?.('property360Page');
       return selectPropertyOnPage('property360SelectV58','renderProperty360V58');
     }
+  }
+
+  function openUnitReceipt(button){
+    if(!protectedAccessReady())return false;
+    const context=contextFor(activeProperty);
+    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    const record=records[Number(button?.getAttribute('data-v202-unit-receipt'))];
+    const receipt=record?.receipts?.[record.receipts.length-1];
+    if(!receipt)return false;
+    const matches=context.propertyCollections.filter(function(row){return normalized(row?.[0])===normalized(receipt)});
+    if(matches.length!==1)return false;
+    openReceiptDocument(matches[0],button);
+    return true;
+  }
+
+  function openUnitPayment(button){
+    if(!protectedAccessReady())return false;
+    const context=contextFor(activeProperty);
+    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    const record=records[Number(button?.getAttribute('data-v202-unit-payment'))];
+    openPayment(button,record?.contractId||'');
+    return Boolean(record);
   }
 
   function nextReceiptNumber(){
@@ -844,14 +1272,14 @@
     return due>0?Math.max(0,due-paidForPeriod(property,contract,period)):0;
   }
 
-  function paymentDialogMarkup(context){
+  function paymentDialogMarkup(context,preferredContractId){
     const available=paymentContracts(context);
     return '<section class="v202-dialog v202-payment-dialog" role="dialog" aria-modal="true" aria-labelledby="v202PaymentTitle" aria-describedby="v202PaymentDescription">'+
       '<header><div><p>تحصيل العقار</p><h2 id="v202PaymentTitle">تسجيل إيجار</h2><span id="v202PaymentDescription">'+escapeHtml(activeProperty)+' — وبعد الحفظ يجهز الوصل مباشرة.</span></div><button type="button" class="v202-icon-button" data-v202-payment-close aria-label="إغلاق">'+icon('close')+'</button></header>'+ 
       (!available.length?'<div class="v202-inline-note is-warning">'+icon('alert')+' لا يوجد عقد موقّع سارٍ مع مستأجر ووحدة محددين. أكمل العقد أولاً.</div>':'')+
       '<form class="v202-form" id="v202PaymentForm">'+
         '<label><span>العقار</span><input value="'+escapeHtml(activeProperty)+'" disabled></label>'+ 
-        '<label><span>العقد / الوحدة</span><select id="v202PaymentContract" required '+(available.length?'':'disabled')+'><option value="">اختر العقد والوحدة</option>'+available.map(function(contract){return '<option value="'+escapeHtml(contractId(contract))+'">'+escapeHtml(contract.tenant)+' — '+escapeHtml(contract.unit)+' — '+escapeHtml(contract.contract_no||contractId(contract))+'</option>'}).join('')+'</select></label>'+ 
+        '<label><span>العقد / الوحدة</span><select id="v202PaymentContract" required '+(available.length?'':'disabled')+'><option value="">اختر العقد والوحدة</option>'+available.map(function(contract){const id=contractId(contract);return '<option value="'+escapeHtml(id)+'" '+(String(id)===String(preferredContractId||'')?'selected':'')+'>'+escapeHtml(contract.tenant)+' — '+escapeHtml(contract.unit)+' — '+escapeHtml(contract.contract_no||id)+'</option>'}).join('')+'</select></label>'+ 
         '<label><span>رقم الوصل</span><input id="v202PaymentNumber" value="'+nextReceiptNumber()+'" required></label>'+ 
         '<label><span>المبلغ (د.ك)</span><input id="v202PaymentAmount" inputmode="decimal" autocomplete="off" placeholder="0.000" required></label>'+ 
         '<label><span>شهر الإيجار</span><input id="v202PaymentPeriod" type="month" value="'+currentPeriod()+'" required></label>'+ 
@@ -876,18 +1304,19 @@
     document.body.appendChild(overlay);
   }
 
-  function openPayment(trigger){
+  function openPayment(trigger,preferredContractId){
     const context=contextFor(activeProperty);
     if(!context)return;
     ensurePaymentDialog();
     paymentTrigger=trigger||document.activeElement;
     const overlay=document.getElementById('v202PaymentDialog');
-    overlay.innerHTML=paymentDialogMarkup(context);
+    overlay.innerHTML=paymentDialogMarkup(context,preferredContractId);
     overlay.classList.add('on');
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden','false');
     suspendLayer('v202PropertyWorkspace',true);
     syncLayerState();
+    updatePaymentBalance();
     requestAnimationFrame(function(){(document.getElementById('v202PaymentContract')||overlay.querySelector('[data-v202-payment-close]'))?.focus()});
   }
 
@@ -901,6 +1330,7 @@
     syncLayerState();
     if(restore!==false&&paymentTrigger instanceof HTMLElement&&paymentTrigger.isConnected)paymentTrigger.focus();
     paymentTrigger=null;
+    overlay.textContent='';
   }
 
   function updatePaymentBalance(){
@@ -925,6 +1355,11 @@
 
   function savePayment(event){
     event.preventDefault();
+    const error=document.getElementById('v202PaymentError');
+    if(protectedPropertyActive(activeProperty)){
+      if(error)error.textContent='الحفظ لهذا الملف المحمي متاح فقط عبر مساحة العمل الآمنة.';
+      return false;
+    }
     const contract=selectedPaymentContract();
     const tenant=String(contract?.tenant||'').trim();
     const receipt=document.getElementById('v202PaymentNumber')?.value.trim();
@@ -934,7 +1369,6 @@
     const date=document.getElementById('v202PaymentDate')?.value||todayValue();
     const method=document.getElementById('v202PaymentMethod')?.value||'غير محدد';
     const note=document.getElementById('v202PaymentNote')?.value.trim()||'';
-    const error=document.getElementById('v202PaymentError');
     if(!contract||!tenant||!contract.unit){
       if(error)error.textContent='اختر عقداً موقّعاً سارياً مربوطاً بمستأجر ووحدة.';
       return;
@@ -1134,6 +1568,8 @@
     const fallback=documentFallbackSelector?document.querySelector(documentFallbackSelector):null;
     documentTrigger=null;
     documentFallbackSelector='';
+    const body=document.getElementById('v202DocumentBody');
+    if(body)body.textContent='';
     const focusTarget=trigger instanceof HTMLElement&&trigger.isConnected?trigger:fallback;
     if(focusTarget instanceof HTMLElement)setTimeout(function(){focusTarget.focus()},0);
   }
@@ -1150,7 +1586,7 @@
 
   function focusable(container){
     return Array.from(container.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')).filter(function(node){
-      return !node.hidden&&node.getAttribute('aria-hidden')!=='true';
+      return !node.hidden&&!node.closest('[hidden],[inert],[aria-hidden="true"]');
     });
   }
 
@@ -1200,12 +1636,52 @@
     });
   }
 
+  function ensureProtectedPropertyLaunchers(){
+    if(!protectedAccessReady())return;
+    const container=document.querySelector('#aqariV199Dashboard .v199-properties');
+    if(!container)return;
+    const existing=new Set(Array.from(document.querySelectorAll('[data-v201-property]')).map(function(button){return normalized(button.getAttribute('data-v201-property'))}));
+    (protectedImportCache.properties||[]).forEach(function(record){
+      const name=String(record?.[0]||'').trim();
+      const key=normalized(name);
+      if(!name||existing.has(key))return;
+      const row=document.createElement('div');
+      row.className='v199-property-row aq-protected-property';
+      const mark=document.createElement('span');
+      mark.className='v199-property-mark';
+      mark.innerHTML=icon('building');
+      const copy=document.createElement('span');
+      copy.className='v199-property-copy';
+      const strong=document.createElement('strong');
+      strong.textContent=name;
+      const small=document.createElement('small');
+      small.textContent=String(record?.[1]||'غير محدد');
+      copy.append(strong,small);
+      const units=document.createElement('span');
+      units.className='v199-property-units';
+      units.textContent=numberFrom(record?.[2])+' وحدة';
+      const income=document.createElement('span');
+      income.className='v199-property-income';
+      income.textContent=money(numberFrom(record?.[3]));
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='v201-property-manage';
+      button.setAttribute('data-v201-property',name);
+      button.setAttribute('aria-label','فتح ملف العقار '+name);
+      button.innerHTML='فتح ملف العقار '+icon('arrow');
+      row.append(mark,copy,units,income,button);
+      container.appendChild(row);
+      existing.add(key);
+    });
+  }
+
   function setPresentation(){
-    document.body.classList.add('aq-v202');
+    document.body.classList.add('aq-v202','aq-v203');
     let meta=document.querySelector('meta[name="aqari-design"]');
     if(!meta){meta=document.createElement('meta');meta.name='aqari-design';document.head.appendChild(meta)}
     if(meta.content!==V202_DESIGN)meta.content=V202_DESIGN;
     enhancePropertyTriggers();
+    ensureProtectedPropertyLaunchers();
   }
 
   function installPresentationGuard(){
@@ -1236,6 +1712,19 @@
         if(context)renderPanel(context);
         return;
       }
+      const civil=target.closest('[data-v202-civil-reveal]');
+      if(civil){event.preventDefault();event.stopImmediatePropagation();return toggleCivilId(civil)}
+      const clearSearch=target.closest('[data-v202-unit-clear]');
+      if(clearSearch){
+        event.preventDefault();event.stopImmediatePropagation();
+        const input=document.getElementById('v202UnitSearch');
+        if(input){input.value='';filterUnitCards('');input.focus()}
+        return;
+      }
+      const unitReceipt=target.closest('[data-v202-unit-receipt]');
+      if(unitReceipt){event.preventDefault();event.stopImmediatePropagation();return openUnitReceipt(unitReceipt)}
+      const unitPayment=target.closest('[data-v202-unit-payment]');
+      if(unitPayment){event.preventDefault();event.stopImmediatePropagation();return openUnitPayment(unitPayment)}
       const action=target.closest('[data-v202-action]');
       if(action){event.preventDefault();event.stopImmediatePropagation();return routeAction(action.getAttribute('data-v202-action'),action)}
       const receipt=target.closest('[data-v202-receipt-index]');
@@ -1250,6 +1739,20 @@
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
       if(target===document.getElementById('v202PropertyWorkspace')){event.preventDefault();event.stopImmediatePropagation();return closeWorkspace(true)}
       if(target===document.getElementById('v202PaymentDialog')){event.preventDefault();event.stopImmediatePropagation();return closePayment()}
+    },true);
+
+    document.addEventListener('input',function(event){
+      const target=event.target instanceof HTMLInputElement?event.target:null;
+      if(target?.id==='v202UnitSearch')filterUnitCards(target.value);
+    },true);
+
+    document.addEventListener('toggle',function(event){
+      const details=event.target instanceof Element&&event.target.matches('details.aq-unit-details')?event.target:null;
+      if(!details||details.open)return;
+      const card=details.closest('[data-v202-unit-index]');
+      const context=contextFor(activeProperty);
+      const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+      maskUnitCard(card,records[Number(card?.getAttribute('data-v202-unit-index'))]);
     },true);
 
     document.addEventListener('submit',function(event){
@@ -1289,6 +1792,7 @@
 
   function boot(){
     if(document.body.getAttribute('data-v202-ready')==='true'&&window.AQARI_V202?.version===V202_DESIGN)return;
+    purgePersistedProtectedRows();
     setPresentation();
     ensureWorkspace();
     ensurePaymentDialog();

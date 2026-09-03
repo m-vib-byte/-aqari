@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      AQARI_BASE_URL: https://aqari-git-release-v202-m-vib-5421.vercel.app
+      AQARI_BASE_URL: https://aqari-git-release-v203-m-vib-5421.vercel.app
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
@@ -28,5 +28,18 @@ jobs:
             echo 'Configure VERCEL_AUTOMATION_BYPASS_SECRET or a protected share URL.' >&2
             exit 1
           fi
+      - name: Wait for matching Vercel Preview
+        run: |
+          for attempt in $(seq 1 45); do
+            body=$(curl -fsS -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" "$AQARI_BASE_URL/api/production-meta" 2>/dev/null || true)
+            if printf '%s' "$body" | grep -Fq "$AQARI_EXPECTED_SHA" && printf '%s' "$body" | grep -Fq '"environment":"preview"'; then
+              echo "Matching Preview is ready."
+              exit 0
+            fi
+            echo "Waiting for Preview commit (attempt $attempt/45)..."
+            sleep 10
+          done
+          echo "Matching Vercel Preview was not ready in time." >&2
+          exit 1
       - name: Preview E2E
         run: npm run test:e2e

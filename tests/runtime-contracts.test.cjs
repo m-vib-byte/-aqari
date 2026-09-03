@@ -123,7 +123,7 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(sync, /SENSITIVE_KEY/);
 });
 
-test('V202 property operations preserves the V198 secure runtime', () => {
+test('V203 protected unit directory preserves the V198 secure runtime', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'v199-ui.css'), 'utf8');
   const luxury = fs.readFileSync(path.join(root, 'v200-luxury.css'), 'utf8');
@@ -178,7 +178,7 @@ test('V202 property operations preserves the V198 secure runtime', () => {
   assert.match(prestige, /AQARI V202/);
   assert.match(prestige, /body\.aq-v202\.v202-layer-open/);
   assert.match(prestige, /\.v202-document-shell/);
-  assert.match(propertyOS, /V202-preview/);
+  assert.match(propertyOS, /V203-preview/);
   assert.match(propertyOS, /data-v202-action="contract"/);
   assert.match(propertyOS, /data-v202-action="payment"/);
   assert.match(propertyOS, /data-v202-action="statement"/);
@@ -186,6 +186,10 @@ test('V202 property operations preserves the V198 secure runtime', () => {
   assert.match(propertyOS, /rentLedgerV202/);
   assert.match(propertyOS, /rentStatementsV202/);
   assert.match(propertyOS, /contractsV202/);
+  assert.match(propertyOS, /data-v202-tab="units"/);
+  assert.match(propertyOS, /data-v202-civil-reveal/);
+  assert.match(propertyOS, /protectedAccessReady/);
+  assert.doesNotMatch(propertyOS, /Dhahawi/i);
   assert.match(propertyOS, /contractId/);
   assert.match(propertyOS, /data-v202-ready/);
   assert.doesNotMatch(experience, /AQARI_SUPABASE\s*=/);
