@@ -193,6 +193,34 @@ test('V202 property operations preserves the V198 secure runtime', () => {
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
 });
 
+test('V203 simple workflow exposes one-tap rent operations without replacing secure data services', () => {
+  const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+  const simple = fs.readFileSync(path.join(root, 'v203-simple.js'), 'utf8');
+  const simpleCss = fs.readFileSync(path.join(root, 'v203-simple.css'), 'utf8');
+  const rent = fs.readFileSync(path.join(root, 'v202-rent-operations.js'), 'utf8');
+
+  assert.match(loader, /simpleCss\.href='\/v203-simple\.css'/);
+  assert.match(loader, /simple\.src='\/v203-simple\.js'/);
+  assert.match(loader, /installV203Simple/);
+  assert.match(simple, /v203-month-glance/);
+  assert.match(simple, /dueContracts/);
+  assert.match(simple, /data-v203-due-contract/);
+  assert.match(simple, /openPaymentFor/);
+  assert.match(simple, /v202PaymentContract/);
+  assert.match(simple, /data-v203-action/);
+  assert.match(simple, /عقد جديد/);
+  assert.match(simple, /تسجيل إيجار/);
+  assert.match(simple, /آخر وصل/);
+  assert.match(simple, /كشف الشهر/);
+  assert.match(simpleCss, /\.v203-due-list/);
+  assert.match(simpleCss, /\.v203-month-glance/);
+  assert.match(rent, /KNET OPERATION NUMBER/);
+  assert.match(rent, /VOUCHER NO/);
+  assert.match(rent, /@page\{size:A4 landscape/);
+  assert.doesNotMatch(simple, /AQARI_SUPABASE\s*=/);
+  assert.doesNotMatch(simple, /localStorage\.setItem/);
+});
+
 test('Supabase adapter memoizes concurrent client initialization', async () => {
   const source = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
   const client = { auth: {} };
