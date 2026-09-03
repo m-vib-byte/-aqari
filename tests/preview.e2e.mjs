@@ -210,7 +210,23 @@ await check('each property has a complete V204 operating workspace', async () =>
   await page.evaluate(() => document.querySelector('[data-v202-close]')?.click());
 });
 
-await check('V201 quick-create and accessible modal', async () => {
+await check('V201 quick-create respects the auth gate and keeps an accessible modal', async () => {
+  const authState = await page.evaluate(() => ({
+    gateOpen:document.getElementById('aqariCloudGateV168')?.classList.contains('on'),
+    gateRole:document.getElementById('aqariCloudGateV168')?.getAttribute('role'),
+    gateModal:document.getElementById('aqariCloudGateV168')?.getAttribute('aria-modal'),
+    authenticated:Boolean(
+      window.AQARI_SUPABASE?.context?.user?.id &&
+      window.AQARI_SUPABASE?.context?.workspace?.id &&
+      window.AQARI_SUPABASE?.context?.membership?.is_active
+    )
+  }));
+  if(authState.gateOpen && !authState.authenticated){
+    if(authState.gateRole !== 'dialog' || authState.gateModal !== 'true'){
+      throw new Error('signed-out cloud gate must remain an accessible modal');
+    }
+    return;
+  }
   await page.locator('#v205SimpleHome [data-v205-command="quick"]').click();
   await page.waitForTimeout(160);
   const open = await page.evaluate(() => ({
