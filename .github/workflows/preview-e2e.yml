@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      AQARI_BASE_URL: ${{ secrets.AQARI_PREVIEW_URL }}
+      AQARI_BASE_URL: https://aqari-git-release-v199-m-vib-5421.vercel.app
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
