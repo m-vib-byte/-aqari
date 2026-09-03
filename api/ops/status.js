@@ -1,15 +1,9 @@
-'use strict';
+import { beginReadOnly, sendReadOnlyJson } from '../../lib/read-only.js';
 
-module.exports = function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store, max-age=0');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+export default async function handler(req, res) {
+  if(!beginReadOnly(req, res)) return;
 
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.setHeader('Allow', 'GET, HEAD');
-    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-  }
-
-  const payload = {
+  return sendReadOnlyJson(req, res, {
     ok: true,
     status: 'operational',
     mode: 'supabase_cloud',
@@ -20,17 +14,15 @@ module.exports = function handler(req, res) {
       pwaMetadata: true,
       cloudAuth: 'supabase_rls',
       centralizedDataApi: true,
-      cloudState: 'workspace_jsonb_revisioned',
+      cloudState: 'workspace_jsonb_revisioned_cas',
+      autosync: 'disabled_manual_transfer_only'
     },
     notices: [
-      'First sign-in requires an authorized account and may require email confirmation.',
-      'Initial core-data upload or restore is an explicit user choice; a local recovery cache remains on the device.',
+      'Sign-in requires an authorized active workspace membership.',
+      'Initial upload or restore is an explicit user choice; automatic overwrite is disabled.'
     ],
-    version: 'V168',
+    version: 'V198',
     gitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
-    timestamp: new Date().toISOString(),
-  };
-
-  if (req.method === 'HEAD') return res.status(200).end();
-  return res.status(200).json(payload);
-};
+    timestamp: new Date().toISOString()
+  });
+}

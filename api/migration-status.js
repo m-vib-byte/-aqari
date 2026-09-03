@@ -1,13 +1,5 @@
-export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(200).json({
-    ok: true,
-    version: 'V198',
-    mode: 'first-run-safe-migration',
-    verifiedCloudRevisionBeforeMigration: 1,
-    verifiedCloudPayloadTopLevelKeysBeforeMigration: 0,
-    autoOverwrite: false,
-    requiresAuthenticatedUser: true,
-    requiresExplicitUploadAction: true
-  });
+import { beginReadOnly, sendReadOnlyJson } from '../lib/read-only.js';
+export default async function handler(req,res){
+  if(!beginReadOnly(req,res)) return;
+  return sendReadOnlyJson(req,res,{ok:true,version:'V198',mode:'first-run-safe-migration',releasePreparationSnapshot:{cloudRevision:1,cloudPayloadTopLevelKeys:0},autoOverwrite:false,requiresAuthenticatedUser:true,requiresExplicitUploadAction:true});
 }

@@ -1,83 +1,100 @@
 import { chromium } from 'playwright';
 
 const base = process.env.AQARI_BASE_URL;
-if (!base) {
-  console.error('AQARI_BASE_URL is required');
+const expectedSha = String(process.env.AQARI_EXPECTED_SHA || '').trim();
+if(!base || !expectedSha){
+  console.error('AQARI_BASE_URL and AQARI_EXPECTED_SHA are required');
   process.exit(2);
 }
 
-const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({
-  viewport: { width: 390, height: 844 }
+const previewUrl = new URL(base);
+const bypass = String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET || previewUrl.searchParams.get('x-vercel-protection-bypass') || '').trim();
+const browser = await chromium.launch({ headless:true });
+const context = await browser.newContext({
+  viewport:{ width:390, height:844 },
+  extraHTTPHeaders:bypass ? {
+    'x-vercel-protection-bypass':bypass,
+    'x-vercel-set-bypass-cookie':'true'
+  } : {}
+});
+const page = await context.newPage();
+const pageErrors = [];
+const responseErrors = [];
+page.on('pageerror', error => pageErrors.push(error.message));
+page.on('response', response => {
+  try{
+    if(new URL(response.url()).origin === previewUrl.origin && response.status() >= 400){
+      responseErrors.push(`${response.status()} ${new URL(response.url()).pathname}`);
+    }
+  }catch{}
 });
 
 let failed = false;
-
-async function check(name, fn) {
-  try {
-    await fn();
-    console.log('PASS', name);
-  } catch (err) {
-    console.error('FAIL', name, '-', err.message);
-    failed = true;
-  }
+async function check(name, fn){
+  try{ await fn(); console.log('PASS', name); }
+  catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('home loads V198', async () => {
-  const res = await page.goto(base, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  if (!res || !res.ok()) throw new Error(`HTTP ${res?.status()}`);
-  const html = await page.content();
-  if (!html.includes('V198')) throw new Error('V198 marker missing');
-});
-
-await check('no obvious JS page errors on load', async () => {
-  const errors = [];
-  page.on('pageerror', e => errors.push(e.message));
-  await page.reload({ waitUntil: 'networkidle', timeout: 30000 }).catch(()=>{});
-  if (errors.length) throw new Error(errors.slice(0,3).join(' | '));
-});
-
-await check('Supabase bridge files loaded', async () => {
+await check('home loads secure V198', async () => {
+  const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
+  if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
+  await page.waitForTimeout(2000);
+  if(!(await page.title()).includes('V198')) throw new Error('V198 title missing');
   const state = await page.evaluate(() => ({
-    publicConfig: Boolean(window.AQARI_PUBLIC_CONFIG),
-    supabaseBridge: Boolean(window.AQARI_SUPABASE),
-    cloudSync: Boolean(window.AQARI_CLOUD_SYNC),
-    autosync: Boolean(window.AQARI_AUTOSYNC)
+    gate:Boolean(document.getElementById('aqariCloudGateV168')?.classList.contains('on')),
+    loginSecure:window.login === window.cloudLoginV198,
+    localLoginSecure:window.loginLocalV120 === window.cloudLoginV198,
+    supabase:Boolean(window.AQARI_SUPABASE),
+    cloud:Boolean(window.AQARI_CLOUD_SYNC),
+    autosyncMode:window.AQARI_AUTOSYNC?.status?.mode
   }));
-  for (const [k,v] of Object.entries(state)) {
-    if (!v) throw new Error(`${k} unavailable`);
+  if(!state.gate || !state.loginSecure || !state.localLoginSecure || !state.supabase || !state.cloud){
+    throw new Error('secure cloud bridge unavailable');
   }
+  if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
 });
 
-await check('API health', async () => {
-  const r = await page.request.get(new URL('/api/health', base).toString());
-  if (!r.ok()) throw new Error(`HTTP ${r.status()}`);
-  const j = await r.json();
-  if (j.version !== 'V198' || j.ok !== true) throw new Error('Unexpected health payload');
+async function readApi(path){
+  const response = await page.request.get(new URL(path, base).toString());
+  if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
+  if(!String(response.headers()['cache-control'] || '').includes('no-store')) throw new Error(`${path} cache contract`);
+  if(response.headers()['x-content-type-options'] !== 'nosniff') throw new Error(`${path} nosniff contract`);
+  const body = await response.json();
+  if(body.ok !== true || body.version !== 'V198') throw new Error(`${path} payload mismatch`);
+  const post = await page.request.post(new URL(path, base).toString());
+  if(post.status() !== 405) throw new Error(`${path} POST must be 405`);
+  return body;
+}
+
+await check('all read-only APIs', async () => {
+  for(const path of [
+    '/api/health','/api/health/deep','/api/ops/status','/api/release',
+    '/api/config-status','/api/supabase-status','/api/cloud-sync-status',
+    '/api/migration-status','/api/autosync-status','/api/production-readiness',
+    '/api/final-release-status','/api/production-meta'
+  ]) await readApi(path);
 });
 
-await check('Supabase status API', async () => {
-  const r = await page.request.get(new URL('/api/supabase-status', base).toString());
-  if (!r.ok()) throw new Error(`HTTP ${r.status()}`);
-  const j = await r.json();
-  if (j.version !== 'V198' || j.provider !== 'supabase') throw new Error('Unexpected Supabase status');
+await check('Preview SHA and environment', async () => {
+  const body = await readApi('/api/production-meta');
+  if(body.deployment?.environment !== 'preview') throw new Error('not a Preview deployment');
+  if(body.deployment?.gitSha !== expectedSha) throw new Error(`SHA ${body.deployment?.gitSha || 'missing'} != ${expectedSha}`);
 });
 
-await check('Migration status API', async () => {
-  const r = await page.request.get(new URL('/api/migration-status', base).toString());
-  if (!r.ok()) throw new Error(`HTTP ${r.status()}`);
-  const j = await r.json();
-  if (j.version !== 'V198') throw new Error('Unexpected migration status');
+await check('production environment gate', async () => {
+  const body = await readApi('/api/production-readiness');
+  if(body.summary?.ready !== true) throw new Error(`environment incomplete: ${body.summary?.present || 0}/${body.summary?.required || 0}`);
 });
 
-await check('Autosync status API', async () => {
-  const r = await page.request.get(new URL('/api/autosync-status', base).toString());
-  if (!r.ok()) throw new Error(`HTTP ${r.status()}`);
-  const j = await r.json();
-  if (j.version !== 'V198') throw new Error('Unexpected autosync status');
+await check('PWA assets and browser console', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg']){
+    const response = await page.request.get(new URL(path, base).toString());
+    if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
+  }
+  if(pageErrors.length) throw new Error(pageErrors.slice(0,3).join(' | '));
+  if(responseErrors.length) throw new Error(responseErrors.slice(0,5).join(' | '));
 });
 
 await browser.close();
-
-if (failed) process.exit(1);
+if(failed) process.exit(1);
 console.log('AQARI V198 Preview E2E: PASS');

@@ -1,12 +1,5 @@
-export default async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-  return res.status(200).json({
-    ok:true,
-    version:'V198',
-    mode:'release-freeze',
-    defaultEnabled:false,
-    requiresInitializedCloudState:true,
-    revisionConflictProtection:true,
-    autoOverwrite:false
-  });
+import { beginReadOnly, sendReadOnlyJson } from '../lib/read-only.js';
+export default async function handler(req,res){
+  if(!beginReadOnly(req,res)) return;
+  return sendReadOnlyJson(req,res,{ok:true,version:'V198',mode:'manual_only',defaultEnabled:false,automaticUpload:false,explicitUserActionRequired:true,revisionConflictProtection:true,autoOverwrite:false});
 }

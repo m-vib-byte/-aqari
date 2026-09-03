@@ -8,18 +8,93 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 531,
-      "sha256": "4f237a8552fa4c9e18cbffd3124e5933155107fb968089aeb07247415bed1cd5"
+      "size": 1058,
+      "sha256": "1539c7c264b8afa2008f5436aba81400ec1cf10549e49ac828d8099bfbc35b6e"
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "size": 950,
-      "sha256": "93208925bd3103264f1e04591fd9543a1bc83f65240065ac4d45ef7b807d8cdc"
+      "size": 1251,
+      "sha256": "27ef44cb78272d36ea2b615e6eb5fc16480d3aea847e39dbe2e18290267a1039"
+    },
+    {
+      "path": ".github/workflows/runtime-contracts.yml",
+      "size": 356,
+      "sha256": "833ad4de39140a394be69b7c1c3623c8eb3555215f9b909bc9c3412dfb285d92"
+    },
+    {
+      "path": "api/autosync-status.js",
+      "size": 366,
+      "sha256": "8e52fb66bd154fc5df610f723df8c4c6d3f8a4aa027241259bbc267e474cd30c"
+    },
+    {
+      "path": "api/cloud-sync-status.js",
+      "size": 558,
+      "sha256": "4e81a78597e93c34e1d18846ea7bf30fb0012d80d08f5dbe4a872634519eecb1"
+    },
+    {
+      "path": "api/config-status.js",
+      "size": 807,
+      "sha256": "a4f1b7d5412ecaac06d423b9e8796bc8c4715cee58bbf899926b4fa5ce55c7c4"
+    },
+    {
+      "path": "api/final-release-status.js",
+      "size": 1069,
+      "sha256": "37cf82320547fd6559e8f560440bb4576af082199b2c9a0d8f58f216247d6796"
+    },
+    {
+      "path": "api/health.js",
+      "size": 582,
+      "sha256": "3e8c6e1db5961084976e54e63258a9cbc4dac09b004a9f51ad115fd5a709081e"
+    },
+    {
+      "path": "api/health/deep.js",
+      "size": 695,
+      "sha256": "8fb79af93f2ee7ba7126b01899ae294f678a22bc89237f3b20babb131c25af58"
+    },
+    {
+      "path": "api/migration-status.js",
+      "size": 409,
+      "sha256": "2eb5a34e173b67dbb19a11f40a02dc823d0b7fb77fa822e70d2ceea3aa271742"
+    },
+    {
+      "path": "api/ops/status.js",
+      "size": 868,
+      "sha256": "1d4fd602d1d736a554f4cbbeb69d1faf34b6f63ba83a8f08cfd42da7f572e29c"
+    },
+    {
+      "path": "api/production-meta.js",
+      "size": 410,
+      "sha256": "f9f9f19f8805328e2400aacb536f13f03159bced4cd3d65fd135dc89cbb377c9"
+    },
+    {
+      "path": "api/production-readiness.js",
+      "size": 911,
+      "sha256": "1bccaee474bf53df0fc9801dd45eb01658f69e412a14b2ff6d36e3c0d2f32a21"
+    },
+    {
+      "path": "api/release.js",
+      "size": 648,
+      "sha256": "92c9f350bc187f9bc26b459d724d44fa00685a7f3f0d2923a949c20496714d90"
+    },
+    {
+      "path": "api/supabase-status.js",
+      "size": 518,
+      "sha256": "03cc0ff3c665263c76cde81595ad6aa6b25cdc0b47bfcc78ba524e41afb1e39d"
+    },
+    {
+      "path": "aqari-icon.svg",
+      "size": 514,
+      "sha256": "5094084e58b50d4b3c4d503b861ac66c7614355ab6767fd41718b4c7629cf77c"
     },
     {
       "path": "CLOUD_SYNC_BOOTSTRAP.md",
       "size": 1220,
       "sha256": "c3a0b0177050e0155961da8a19f68c9e33a4c7ec922eabb9660e4e113fc7d834"
+    },
+    {
+      "path": "cloud-sync.js",
+      "size": 5107,
+      "sha256": "1ed207a2dcaf1a3983b31306bf1d94789dc72761bc1dbbca62840246a8780399"
     },
     {
       "path": "DEPLOYMENT_MANIFEST.json",
@@ -42,9 +117,54 @@
       "sha256": "844f21a39a5c561be1b0c7c65b7741d50df16e73b110c66d5b1a0cdfc55649ac"
     },
     {
+      "path": "final-release-ui.css",
+      "size": 756,
+      "sha256": "fffb866afb4baaa75a930e68f1dbf4ff80d1cedaaff9b44457ce6a301af4b353"
+    },
+    {
+      "path": "final-release-ui.js",
+      "size": 3129,
+      "sha256": "51a3919b562fba30e1fc94d0fd90e3aa1da604e112668649af4b6696039879a2"
+    },
+    {
       "path": "FIRST_RUN_MIGRATION.md",
       "size": 868,
       "sha256": "4037e498983fa026729eb1773221929cce6dde9dfe37d95cd4681d65e9ad6f6a"
+    },
+    {
+      "path": "first-run-migration.css",
+      "size": 955,
+      "sha256": "ff9745428cfc978831ad96cf02e668a66ade59120baa498371f6b8d8a8ac4ca5"
+    },
+    {
+      "path": "first-run-migration.js",
+      "size": 5418,
+      "sha256": "58b07c68694f0d1dead040138111e46eef551ebe7f41a9764bf7e95bf764823d"
+    },
+    {
+      "path": "index.html",
+      "size": 1061195,
+      "sha256": "4de7681cc8f8978f87c1569c5271f40a9b1ada34d874d9a075faf1742654bc91"
+    },
+    {
+      "path": "lib/read-only.js",
+      "size": 509,
+      "sha256": "4934d6cc6a39a61fbf83e5fdf06a72efc5d3781a6e603ea0642a959726acdcae"
+    },
+    {
+      "path": "manifest.webmanifest",
+      "size": 435,
+      "sha256": "e3a407d4d17a3193ce20874ceca13deecca578f9b4c1533722414a427b31570b"
+    },
+    {
+      "path": "package.json",
+      "size": 1054,
+      "sha256": "f5514a706dae82fda136c1c756861ca1004f57c78d7460d53aa4dcc0578db30c"
+    },
+    {
+      "path": "pre-migration-backup.js",
+      "size": 1341,
+      "sha256": "b7440e2336818caf1ed9f300203fe41ed62d8be809888f32115a0eba48105470"
     },
     {
       "path": "PREVIEW_E2E_GATE.md",
@@ -60,131 +180,6 @@
       "path": "PRODUCTION_UI_LOCKDOWN.md",
       "size": 966,
       "sha256": "53382b9e613e1cdbe1b2228b7b765b0994ce4ab51610a8a75bb40d938d264c7e"
-    },
-    {
-      "path": "README_DEPLOY.md",
-      "size": 958,
-      "sha256": "32bca4d5ec4ce5c6e101e5b1f7742269845c16bf74de394fdc92d996af00a241"
-    },
-    {
-      "path": "RELEASE_FREEZE.md",
-      "size": 973,
-      "sha256": "8edfcdfd502e8f58dba71b32a12acd5a65191cf55643d66bdb8f4a071b9fd8e7"
-    },
-    {
-      "path": "RELEASE_GATE.md",
-      "size": 812,
-      "sha256": "e6bcda0f01f578a64659ccaaa66cfd6f0684a02ac488a28a273f5b043c8cd433"
-    },
-    {
-      "path": "RELEASE_NOTES_V196.md",
-      "size": 306,
-      "sha256": "5eabe187c230a35a6562c7a73cd439bdc9125134eaecff3f596b0987ef6ad487"
-    },
-    {
-      "path": "SAFE_AUTOSYNC.md",
-      "size": 726,
-      "sha256": "f8e2ea79216a8f3024ec4b006308daaa82cd4dd86a06908274a89a58e1243fce"
-    },
-    {
-      "path": "SUPABASE_BRIDGE.md",
-      "size": 1448,
-      "sha256": "e8629b599827b819cd3c9c6e53bad5de69f8dc9f7792ce9ac1bb598e90813a34"
-    },
-    {
-      "path": "VERSION.json",
-      "size": 1679,
-      "sha256": "87d83535d2f001895020bad7feb04b440573bc4f24d6eacd634e57fdaeb32ceb"
-    },
-    {
-      "path": "api/autosync-status.js",
-      "size": 323,
-      "sha256": "0a0949633cc9c5a526daeb077fb38534310bd040e24fffb8d2b7e445898558b0"
-    },
-    {
-      "path": "api/cloud-sync-status.js",
-      "size": 531,
-      "sha256": "a0fe4896753a044974ea8c0253e844286de34980088761c572e2d7639bc64ed6"
-    },
-    {
-      "path": "api/config-status.js",
-      "size": 837,
-      "sha256": "bab5d9a5ddd1657a79054908b68d4e8072083b2ddf996c69bcef3275831b682f"
-    },
-    {
-      "path": "api/final-release-status.js",
-      "size": 1107,
-      "sha256": "b362d308acbfe5e108ed0a1e95e838ddfb7406fcb26784f6aebb90b17f52db25"
-    },
-    {
-      "path": "api/health.js",
-      "size": 378,
-      "sha256": "92538b4923f20993d7b591c986be23a2e4bdba89e89fb1fd4f5b5f683a12a866"
-    },
-    {
-      "path": "api/migration-status.js",
-      "size": 412,
-      "sha256": "ec799d1fafa0128c705343037b12d8317b195424d85c05b9e14256ba9033ad34"
-    },
-    {
-      "path": "api/production-meta.js",
-      "size": 409,
-      "sha256": "25381d46a1a24df3d1065009cd96de8a8e62dd307dbd2830eb21328aa95e3fd9"
-    },
-    {
-      "path": "api/production-readiness.js",
-      "size": 970,
-      "sha256": "875ee78d438ca39c77171c43efeda4ea574863007237e154c7203f4087f15224"
-    },
-    {
-      "path": "api/release.js",
-      "size": 358,
-      "sha256": "8b603169e5c44d9a71c8b0a765656ba0b52d256c226bff7ac62c3fa344e30411"
-    },
-    {
-      "path": "api/supabase-status.js",
-      "size": 628,
-      "sha256": "cc40b2b6dac186289cfccd490f82eeadb30e99b01a3be4376bde5cf6c6985a6e"
-    },
-    {
-      "path": "cloud-sync.js",
-      "size": 3410,
-      "sha256": "420884b9ed70dff3c8bc78f958042bc737d63c1af0955442395bf7b6f22da981"
-    },
-    {
-      "path": "final-release-ui.css",
-      "size": 756,
-      "sha256": "fffb866afb4baaa75a930e68f1dbf4ff80d1cedaaff9b44457ce6a301af4b353"
-    },
-    {
-      "path": "final-release-ui.js",
-      "size": 3129,
-      "sha256": "51a3919b562fba30e1fc94d0fd90e3aa1da604e112668649af4b6696039879a2"
-    },
-    {
-      "path": "first-run-migration.css",
-      "size": 955,
-      "sha256": "ff9745428cfc978831ad96cf02e668a66ade59120baa498371f6b8d8a8ac4ca5"
-    },
-    {
-      "path": "first-run-migration.js",
-      "size": 5418,
-      "sha256": "58b07c68694f0d1dead040138111e46eef551ebe7f41a9764bf7e95bf764823d"
-    },
-    {
-      "path": "index.html",
-      "size": 1056697,
-      "sha256": "33d814b02ea196d4d77a5bd016daa5e7134a4a3432183fff62b08fdadf248a45"
-    },
-    {
-      "path": "package.json",
-      "size": 1054,
-      "sha256": "f5514a706dae82fda136c1c756861ca1004f57c78d7460d53aa4dcc0578db30c"
-    },
-    {
-      "path": "pre-migration-backup.js",
-      "size": 1341,
-      "sha256": "b7440e2336818caf1ed9f300203fe41ed62d8be809888f32115a0eba48105470"
     },
     {
       "path": "production-lockdown.css",
@@ -212,9 +207,34 @@
       "sha256": "2106c6bb99566c0c3249d5502d0ab3700031cc9b8c233cc177a9114973a69835"
     },
     {
+      "path": "README_DEPLOY.md",
+      "size": 958,
+      "sha256": "32bca4d5ec4ce5c6e101e5b1f7742269845c16bf74de394fdc92d996af00a241"
+    },
+    {
+      "path": "RELEASE_FREEZE.md",
+      "size": 973,
+      "sha256": "8edfcdfd502e8f58dba71b32a12acd5a65191cf55643d66bdb8f4a071b9fd8e7"
+    },
+    {
+      "path": "RELEASE_GATE.md",
+      "size": 812,
+      "sha256": "e6bcda0f01f578a64659ccaaa66cfd6f0684a02ac488a28a273f5b043c8cd433"
+    },
+    {
+      "path": "RELEASE_NOTES_V196.md",
+      "size": 306,
+      "sha256": "5eabe187c230a35a6562c7a73cd439bdc9125134eaecff3f596b0987ef6ad487"
+    },
+    {
+      "path": "SAFE_AUTOSYNC.md",
+      "size": 713,
+      "sha256": "e69271b41fe826accdad340a160eb2c80a6c0ba2044f78e64d9794842412d381"
+    },
+    {
       "path": "safe-autosync-ui.js",
-      "size": 3531,
-      "sha256": "9cd572fb0be036cc99843a160966423be768aa5b8ea2c2d99b1b6e748f4047ba"
+      "size": 1807,
+      "sha256": "9c7e6426da96f6f8afa443190aedfa470ae77ee6eaef6fe0f954cd4fc9582c31"
     },
     {
       "path": "safe-autosync.css",
@@ -223,13 +243,13 @@
     },
     {
       "path": "safe-autosync.js",
-      "size": 5610,
-      "sha256": "43b7a1429d8002f9f2fe9f77de7eb3a6a078f5cc385bf458e8387febdd721b8f"
+      "size": 1436,
+      "sha256": "588f128483fa4615cef86da378841e4ed98bb0e16596adefa661a097a216959c"
     },
     {
       "path": "scripts/autosync-selftest.mjs",
-      "size": 589,
-      "sha256": "5fe288da0fe6d73b0925c32a1755f46f75db0c1ea6844a15ac26459057cc0ffe"
+      "size": 1176,
+      "sha256": "2710216b0dc4538688695ddbdb17c68c43c1f2f4332550d3623461ab382864c5"
     },
     {
       "path": "scripts/check.mjs",
@@ -238,8 +258,8 @@
     },
     {
       "path": "scripts/cloud-sync-selftest.mjs",
-      "size": 589,
-      "sha256": "95511c046f98d717b3546fe9e7b6784877cb329ed6f8a456a82701dc8e5065ca"
+      "size": 1336,
+      "sha256": "2cc995490687773c0db2757f27812bf16fa640bb342f68e5f63f9f6ea1de7fe9"
     },
     {
       "path": "scripts/deploy-ready.mjs",
@@ -292,19 +312,44 @@
       "sha256": "6f165a4ff52a5057329c5076b5f345d1089ca2a86e8c73af3fffb3a14ba230bd"
     },
     {
+      "path": "secure-auth-bridge.js",
+      "size": 17487,
+      "sha256": "a35bd223049277c5242e8b00b1555c74aecf36a2903ae13d650d0c86c0bfd154"
+    },
+    {
+      "path": "SUPABASE_BRIDGE.md",
+      "size": 1448,
+      "sha256": "e8629b599827b819cd3c9c6e53bad5de69f8dc9f7792ce9ac1bb598e90813a34"
+    },
+    {
       "path": "supabase-adapter.js",
-      "size": 5089,
-      "sha256": "9d4143c74a4601f5faaec8979cbf356701d55f4e0e3750fc2d3e84b3f40f4337"
+      "size": 7381,
+      "sha256": "f167ddeb3e3fe43395ef28d10aaab5e80c8d32573d329211545a536d798aae9b"
+    },
+    {
+      "path": "sw.js",
+      "size": 382,
+      "sha256": "a055a7cdbf2d1c054e398b475a5f05bc153eb5d597f036f202bfe5c3454e97d9"
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 2844,
-      "sha256": "f32499584ffb5add3fac8815f5ae5386416f7bf4d6f5b5d731f179a8dea6f7f8"
+      "size": 4541,
+      "sha256": "2f85d8d65a257a02a8c5cc9dda8bf18583e1a684198586db472b5ecbb213b0c4"
+    },
+    {
+      "path": "tests/runtime-contracts.test.cjs",
+      "size": 5188,
+      "sha256": "392edbafa725f83e1957527e5e178287f2a0fc643c47119059b520440d253032"
     },
     {
       "path": "vercel.json",
-      "size": 553,
-      "sha256": "e94ef3aceca147e9e048fab2ea851fddc7dd08eaec9a948612776afba88637cb"
+      "size": 712,
+      "sha256": "b8cc354269cbbfb46b489c06400301cb9a74dcbb3e992600d3a1469de4a2c58e"
+    },
+    {
+      "path": "VERSION.json",
+      "size": 1680,
+      "sha256": "c096fbdb471c9ca29cbab54b904c7a1ac6a960e18b860069a2759ceccd970ef1"
     }
   ]
 }

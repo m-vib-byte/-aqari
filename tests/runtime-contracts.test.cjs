@@ -4,10 +4,18 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
+const { pathToFileURL } = require('node:url');
 
 const root = path.resolve(__dirname, '..');
 
-function invoke(handler, method = 'GET') {
+async function loadHandler(relativePath) {
+  const url = pathToFileURL(path.join(root, relativePath)).href;
+  const module = await import(url);
+  assert.equal(typeof module.default, 'function', relativePath + ' must default-export a handler');
+  return module.default;
+}
+
+async function invoke(handler, method = 'GET') {
   const output = { statusCode: 0, headers: {}, body: undefined };
   const response = {
     setHeader(key, value) {
@@ -26,7 +34,7 @@ function invoke(handler, method = 'GET') {
     },
   };
 
-  handler({ method }, response);
+  await handler({ method }, response);
   return output;
 }
 
@@ -35,15 +43,26 @@ for (const relativePath of [
   'api/health/deep.js',
   'api/ops/status.js',
   'api/release.js',
+  'api/config-status.js',
+  'api/supabase-status.js',
+  'api/migration-status.js',
+  'api/autosync-status.js',
+  'api/cloud-sync-status.js',
+  'api/production-readiness.js',
+  'api/final-release-status.js',
+  'api/production-meta.js',
 ]) {
-  test(`${relativePath} follows the HTTP contract`, () => {
-    const handler = require(path.join(root, relativePath));
-    const get = invoke(handler, 'GET');
+  test(relativePath + ' follows the read-only HTTP contract', async () => {
+    const handler = await loadHandler(relativePath);
+    const get = await invoke(handler, 'GET');
     assert.equal(get.statusCode, 200);
     assert.equal(get.body.ok, true);
     assert.equal(get.headers['cache-control'], 'no-store, max-age=0');
-    assert.equal(invoke(handler, 'HEAD').statusCode, 200);
-    assert.equal(invoke(handler, 'POST').statusCode, 405);
+    assert.equal(get.headers['x-content-type-options'], 'nosniff');
+    assert.equal((await invoke(handler, 'HEAD')).statusCode, 200);
+    const post = await invoke(handler, 'POST');
+    assert.equal(post.statusCode, 405);
+    assert.equal(post.headers.allow, 'GET, HEAD');
   });
 }
 
@@ -58,42 +77,52 @@ test('PWA files referenced by index.html exist and parse', () => {
   assert.ok(fs.existsSync(path.join(root, 'aqari-icon.svg')));
 });
 
-test('Vercel security headers are configured', () => {
+test('Vercel security headers preserve the hardened contract', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
-  const names = new Set(config.headers.flatMap((rule) => rule.headers.map((header) => header.key)));
-  for (const name of ['X-Content-Type-Options', 'Referrer-Policy', 'X-Frame-Options', 'Permissions-Policy']) {
-    assert.ok(names.has(name), `missing ${name}`);
-  }
+  const allRule = config.headers.find((rule) => rule.source === '/(.*)');
+  const apiRule = config.headers.find((rule) => rule.source === '/api/(.*)');
+  const values = Object.fromEntries(allRule.headers.map((header) => [header.key, header.value]));
+  assert.equal(values['X-Frame-Options'], 'DENY');
+  assert.equal(values['X-Content-Type-Options'], 'nosniff');
+  assert.equal(apiRule.headers.find((header) => header.key === 'Cache-Control').value, 'no-store, max-age=0');
 });
 
-
-test('V168 cloud controller replaces local-only authentication', () => {
+test('V198 secure cloud bridge replaces local-only authentication', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.match(html, /id="aqari-v168-cloud-js"/);
-  assert.match(html, /window\.login=window\.cloudLoginV168/);
-  assert.match(html, /window\.loginLocalV120=window\.cloudLoginV168/);
-  assert.match(html, /window\.persist=wrapped/);
-  assert.match(html, /\/rest\/v1\/aqari_memberships/);
-  assert.match(html, /\/rest\/v1\/aqari_app_state/);
-  assert.match(html, /revision=eq\./);
-  assert.doesNotMatch(html, /id="aqari-v167-cloud-js"/);
-  assert.doesNotMatch(html, /key\.startsWith\('eyJ'\)/);
+  const bridge = fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8');
+  const adapter = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
+  const sync = fs.readFileSync(path.join(root, 'cloud-sync.js'), 'utf8');
+
+  assert.match(html, /id="aqari-v198-secure-cloud-js"/);
+  assert.match(html, /#auth,#loginGateV120\{display:none!important\}/);
+  assert.ok(html.lastIndexOf('aqari-v198-secure-cloud-js') > html.lastIndexOf('production-lockdown.js'));
+  assert.match(bridge, /window\.login = window\.cloudLoginV198/);
+  assert.match(bridge, /window\.loginLocalV120 = window\.cloudLoginV198/);
+  assert.match(bridge, /AQARI_SUPABASE\.signIn/);
+  assert.match(bridge, /membership\?\.is_active/);
+  assert.match(bridge, /source: 'supabase'/);
+  assert.doesNotMatch(bridge, /1234/);
+  assert.match(adapter, /storage: window\.sessionStorage/);
+  assert.match(adapter, /\.eq\('revision', expected\)/);
+  assert.doesNotMatch(adapter, /\.upsert\(/);
+  assert.match(sync, /SENSITIVE_KEY/);
 });
 
+test('operational endpoints report the V198 cloud mode', async () => {
+  const health = (await invoke(await loadHandler('api/health.js'))).body;
+  const deep = (await invoke(await loadHandler('api/health/deep.js'))).body;
+  const ops = (await invoke(await loadHandler('api/ops/status.js'))).body;
+  const release = (await invoke(await loadHandler('api/release.js'))).body;
 
-test('operational endpoints report the V168 cloud mode', () => {
-  const health = invoke(require(path.join(root, 'api/health.js')), 'GET').body;
-  const deep = invoke(require(path.join(root, 'api/health/deep.js')), 'GET').body;
-  const ops = invoke(require(path.join(root, 'api/ops/status.js')), 'GET').body;
-  const release = invoke(require(path.join(root, 'api/release.js')), 'GET').body;
-
-  assert.equal(health.version, 'V168');
-  assert.equal(deep.version, 'V168');
+  assert.equal(health.version, 'V198');
+  assert.equal(health.mode, 'supabase_cloud');
+  assert.equal(deep.version, 'V198');
   assert.equal(deep.mode, 'supabase_cloud');
   assert.equal(deep.checks.cloudIntegration.required, true);
-  assert.equal(ops.version, 'V168');
+  assert.equal(ops.version, 'V198');
   assert.equal(ops.mode, 'supabase_cloud');
   assert.equal(ops.capabilities.cloudAuth, 'supabase_rls');
   assert.equal(ops.capabilities.centralizedDataApi, true);
-  assert.equal(release.version, 'V168');
+  assert.equal(release.version, 'V198');
+  assert.equal(release.ok, true);
 });

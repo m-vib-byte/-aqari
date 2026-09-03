@@ -1,4 +1,4 @@
-name: AQARI V189 Release Gate
+name: AQARI V198 Release Gate
 
 on:
   pull_request:
@@ -14,21 +14,30 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Package check
-        run: npm run check
+          node-version: 22
+      - run: npm install
+      - name: Release self-tests
+        run: |
+          npm run check
+          npm run check:sync
+          npm run check:migration
+          npm run check:autosync
+          npm run check:preview-e2e
+          npm run check:routes
+          npm run check:final
+          npm run check:production-ui
+          npm run check:freeze
+          node --test tests/runtime-contracts.test.cjs
       - name: JavaScript syntax
         run: |
-          node --check api/health.js
-          node --check api/release.js
-          node --check api/config-status.js
-          node --check api/supabase-status.js
+          find api scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
           node --check public-config.js
           node --check supabase-adapter.js
-          node --check scripts/check.mjs
-          node --check scripts/smoke.mjs
-          node --check scripts/verify-deployment.mjs
-          node --check scripts/preflight-env.mjs
-          node --check scripts/deploy-ready.mjs
+          node --check cloud-sync.js
+          node --check safe-autosync.js
+          node --check secure-auth-bridge.js
+          node --check lib/read-only.js
       - name: Verify release marker
-        run: grep -q "V189" index.html
+        run: |
+          grep -q "V198" index.html
+          grep -q "aqari-v198-secure-cloud-js" index.html
