@@ -123,9 +123,10 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(sync, /SENSITIVE_KEY/);
 });
 
-test('V199 presentation layer preserves the V198 secure runtime', () => {
+test('V200 luxury presentation preserves the V198 secure runtime', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const css = fs.readFileSync(path.join(root, 'v199-ui.css'), 'utf8');
+  const luxury = fs.readFileSync(path.join(root, 'v200-luxury.css'), 'utf8');
   const ui = fs.readFileSync(path.join(root, 'v199-ui.js'), 'utf8');
   const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
 
@@ -133,6 +134,7 @@ test('V199 presentation layer preserves the V198 secure runtime', () => {
   assert.match(loader, /installV199Preview/);
   assert.match(loader, /stylesheet\.href = '\/v199-ui\.css'/);
   assert.match(loader, /script\.src = '\/v199-ui\.js'/);
+  assert.match(loader, /luxury\.href = '\/v200-luxury\.css'/);
   assert.match(loader, /DOMContentLoaded', installV199Preview/);
   assert.match(css, /body\.aq-v199 #home>\*:not\(#aqariV199Dashboard\)/);
   assert.match(css, /prefers-reduced-motion/);
@@ -142,6 +144,10 @@ test('V199 presentation layer preserves the V198 secure runtime', () => {
   assert.match(ui, /window\.cloudLoginV198/);
   assert.match(ui, /data-v199-go="properties"/);
   assert.match(ui, /aria-live','polite'/);
+  assert.match(ui, /V200 LUXURY/);
+  assert.match(ui, /meta\.content='V200-preview'/);
+  assert.match(luxury, /AQARI V200 luxury presentation/);
+  assert.match(luxury, /z-index:1400!important/);
   assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
 });
 
