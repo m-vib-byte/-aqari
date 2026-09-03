@@ -123,6 +123,28 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(sync, /SENSITIVE_KEY/);
 });
 
+test('V199 presentation layer preserves the V198 secure runtime', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'v199-ui.css'), 'utf8');
+  const ui = fs.readFileSync(path.join(root, 'v199-ui.js'), 'utf8');
+  const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+
+  assert.match(html, /id="aqari-v198-secure-cloud-js"/);
+  assert.match(loader, /installV199Preview/);
+  assert.match(loader, /stylesheet\.href = '\/v199-ui\.css'/);
+  assert.match(loader, /script\.src = '\/v199-ui\.js'/);
+  assert.match(loader, /DOMContentLoaded', installV199Preview/);
+  assert.match(css, /body\.aq-v199 #home>\*:not\(#aqariV199Dashboard\)/);
+  assert.match(css, /prefers-reduced-motion/);
+  assert.match(ui, /id='aqariV199Dashboard'/);
+  assert.match(ui, /meta\[name="aqari-design"\]/);
+  assert.match(ui, /viewport-fit=cover/);
+  assert.match(ui, /window\.cloudLoginV198/);
+  assert.match(ui, /data-v199-go="properties"/);
+  assert.match(ui, /aria-live','polite'/);
+  assert.doesNotMatch(ui, /AQARI_SUPABASE\s*=/);
+});
+
 test('Supabase adapter memoizes concurrent client initialization', async () => {
   const source = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
   const client = { auth: {} };
