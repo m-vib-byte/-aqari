@@ -20,12 +20,7 @@
   function activeContracts(property){return propertyContracts(property).filter(c=>/signed|approved|موق|معتمد/i.test(String(c.status||'')))}
   function ledger(property){return rows('rentLedgerV202').filter(r=>r&&typeof r==='object'&&norm(r.property)===norm(property))}
   function currentLedger(property){const p=period();return ledger(property).filter(r=>String(r.period||'')===p)}
-
-  function latestReceiptIndex(property){
-    const collections=rows('collections');let found=-1;
-    collections.forEach(function(row,index){if(!Array.isArray(row))return;const text=row.map(v=>String(v==null?'':v)).join(' | ');if(text.includes(property))found=index});
-    return found;
-  }
+  function latestReceipt(property){const entries=ledger(property).filter(r=>String(r.receiptNo||'').trim());return entries.length?entries[entries.length-1]:null}
 
   function contractPaid(contract,entries){
     const id=norm(contractId(contract));
@@ -84,7 +79,7 @@
     if(!strip){strip=document.createElement('section');strip.className='v203-simple-strip';strip.setAttribute('aria-label','الإجراءات السريعة');const hero=hub.querySelector('.v202-property-hero');if(hero?.nextSibling)hub.insertBefore(strip,hero.nextSibling);else hub.prepend(strip)}
 
     const hasActive=activeContracts(property).length>0;
-    const latest=latestReceiptIndex(property);
+    const latest=latestReceipt(property);
     const summary=monthlySummary(property);
     const collectionTone=summary.balance<=0&&summary.expected>0?'is-good':summary.paid>0?'is-progress':'is-due';
     const collectionText=summary.expected?money(summary.paid)+' من '+money(summary.expected):'لا توجد عقود فعالة';
@@ -100,10 +95,9 @@
       '<div class="v203-simple-actions">'+
         actionButton('contract','عقد جديد','إنشاء وربط العقد','contract',!hasActive)+
         actionButton('payment','تسجيل إيجار','تحصيل + وصل مباشرة','wallet',hasActive)+
-        actionButton('receipt','آخر وصل',latest>=0?'فتح آخر إيصال مسجل':'لا يوجد وصل حتى الآن','receipt',false)+
+        actionButton('receipt','آخر وصل',latest?'فتح '+esc(latest.receiptNo):'لا يوجد وصل حتى الآن','receipt',false)+
         actionButton('statement','كشف الشهر','كشف ضحاوي للطباعة','chart',false)+
       '</div>';
-    strip.dataset.latestReceipt=String(latest);
     const original=hub.querySelector('.v202-actions');if(original)original.classList.add('v203-original-actions');
   }
 
@@ -124,20 +118,30 @@
     setTimeout(selectContract,20);
   }
 
-  function forward(action,source){
+  function openLatestReceipt(hub){
+    const collectionsTab=hub.querySelector('[data-v202-tab="collections"],[data-v202-tab="collection"]');
+    if(!collectionsTab)return;
+    collectionsTab.click();
+    let tries=0;
+    const open=function(){
+      const buttons=hub.querySelectorAll('[data-v202-receipt-index]');
+      if(!buttons.length&&tries++<12){setTimeout(open,35);return}
+      const last=buttons[buttons.length-1];
+      if(last)last.click();
+    };
+    setTimeout(open,20);
+  }
+
+  function forward(action){
     const hub=document.querySelector('.v202-property-hub');if(!hub)return;
-    if(action==='receipt'){
-      const index=Number(source.closest('.v203-simple-strip')?.dataset.latestReceipt||-1);
-      if(index>=0){const receipt=hub.querySelector('[data-v202-receipt-index="'+index+'"]');if(receipt){receipt.click();return}}
-      const collectionsTab=hub.querySelector('[data-v202-tab="collections"],[data-v202-tab="collection"]');collectionsTab?.click();return;
-    }
+    if(action==='receipt'){openLatestReceipt(hub);return}
     const target=hub.querySelector('[data-v202-action="'+action+'"]');target?.click();
   }
 
   document.addEventListener('click',function(event){
     const due=event.target.closest('[data-v203-due-contract]');
     if(due){openPaymentFor(due.getAttribute('data-v203-due-contract'));return}
-    const button=event.target.closest('[data-v203-action]');if(button)forward(button.getAttribute('data-v203-action'),button);
+    const button=event.target.closest('[data-v203-action]');if(button)forward(button.getAttribute('data-v203-action'));
   });
   const observer=new MutationObserver(function(){clearTimeout(window.__aqariV203SimpleTimer);window.__aqariV203SimpleTimer=setTimeout(install,40)});
   function boot(){document.body.classList.add('aq-v203-simple');observer.observe(document.body,{subtree:true,childList:true});install()}
