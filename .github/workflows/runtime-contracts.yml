@@ -18,4 +18,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Release inventory diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            '.github/workflows/preview-e2e.yml'
+            '.github/workflows/runtime-contracts.yml'
+            'final-release-ui.js'
+            'tests/v206-rent-ledger.test.cjs'
+            'v206-rent-ledger.css'
+            'v206-rent-ledger.js'
+          )
+          echo 'AQARI_RELEASE_INVENTORY_BEGIN'
+          for file in "${files[@]}"; do
+            test -f "$file"
+            bytes=$(wc -c < "$file" | tr -d ' ')
+            hash=$(sha256sum "$file" | awk '{print $1}')
+            printf '%s|%s|%s\n' "$file" "$bytes" "$hash"
+          done
+          echo 'AQARI_RELEASE_INVENTORY_END'
       - run: node --test tests/runtime-contracts.test.cjs tests/v206-rent-ledger.test.cjs
