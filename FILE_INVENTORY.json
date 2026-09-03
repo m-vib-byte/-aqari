@@ -333,13 +333,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 18920,
-      "sha256": "850bf74e4d131d6fa0a4321b43ba07dc7ce06ec32d14023913afdc119e1a394b"
+      "size": 19657,
+      "sha256": "7205cdb189103bd96317e5f40311a516033833254f7cc476b2887a80ba7b2474"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 15888,
-      "sha256": "fbc6f2f972d9076b0e4934a7f49f9d37ff4b9b7844fd8adba13711fd003dbdbc"
+      "size": 16344,
+      "sha256": "e8570833f88b1dac397beac290a7ddc6d8b30de5a9e9418bff7207fa859e485c"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -383,13 +383,13 @@
     },
     {
       "path": "v205-simple.css",
-      "size": 19088,
-      "sha256": "3249b2a9882566b2cf6a4fa6509fcad7915e4d4c5c0824d683b907425a27ebed"
+      "size": 20306,
+      "sha256": "d8135b28beab6c01d4f8894e36804a98979565a25da71b0bfccf61bee18b1f9c"
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 20441,
-      "sha256": "32c7c15bb6857f2c1fca15c879f51905d7d40eb8ac2b28936c1b28109ae04888"
+      "size": 22089,
+      "sha256": "c2fa6445bbcf745389cd8ca17561678cfddd79dc15284f3d5076e01c17bf71eb"
     },
     {
       "path": "vercel.json",
