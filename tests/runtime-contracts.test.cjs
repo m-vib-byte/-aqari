@@ -213,7 +213,16 @@ test('V205 simplified shell preserves every secure V204 property workflow', () =
   assert.match(shell, /id="v205PrimarySections"/);
   assert.match(shell, /id="v205DailyActions"/);
   assert.match(shell, /data-v205-ready/);
+  assert.match(shell, /membership\?\.is_active/);
+  assert.match(shell, /membership\.user_id/);
+  assert.match(shell, /membership\.workspace_id/);
   assert.match(shell, /window\.AQARI_V202\?\.openProperty/);
+  assert.match(shell, /window\.AQARI_V202\.propertyContext\(name\)/);
+  assert.match(shell, /workspace\?\.classList\.contains\('on'\)/);
+  assert.match(shell, /String\(title\?\.textContent\|\|''\)\.trim\(\)===String\(name\|\|''\)\.trim\(\)/);
+  assert.match(shell, /originalTrigger\.focus/);
+  assert.match(shell, /setChooserBackgroundInert\(true,overlay\)/);
+  assert.doesNotMatch(shell, /v205LegacyDashboardSlot" class="v205-dashboard-slot" aria-live/);
   assert.match(shell, /window\.go\?\./);
   for (const action of ['contract', 'payment', 'statement', 'maintenance']) {
     assert.match(shell, new RegExp("\\['" + action + "'"));
