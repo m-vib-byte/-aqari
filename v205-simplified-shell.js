@@ -33,6 +33,7 @@
   let chooserAction='';
   let chooserProperties=[];
   let chooserTrigger=null;
+  let chooserInertState=null;
   let dashboardObserver=null;
   let enhanceTimer=0;
 
@@ -41,7 +42,16 @@
   }
 
   function isAuthenticated(){
-    try{return Boolean(window.AQARI_SUPABASE?.context?.user)}catch(_){return false}
+    try{
+      const context=window.AQARI_SUPABASE?.context;
+      const userId=String(context?.user?.id||'').trim();
+      const workspaceId=String(context?.workspace?.id||'').trim();
+      const membership=context?.membership;
+      if(!userId||!workspaceId||!membership?.is_active)return false;
+      if(membership.user_id&&String(membership.user_id)!==userId)return false;
+      if(membership.workspace_id&&String(membership.workspace_id)!==workspaceId)return false;
+      return true;
+    }catch(_){return false}
   }
 
   function todayLabel(){
@@ -58,7 +68,8 @@
 
   function actionsMarkup(){
     return DAILY_ACTIONS.map(function(item){
-      return '<button type="button" data-v205-daily-action="'+item[0]+'" data-v199-go="'+item[1]+'">'+
+      const dialog=item[0]==='maintenance'?'':' aria-haspopup="dialog" aria-controls="v205PropertyChooser"';
+      return '<button type="button" data-v205-daily-action="'+item[0]+'" data-v199-go="'+item[1]+'"'+dialog+'>'+
         '<span class="v205-action-icon">'+icon(item[2])+'</span><span><strong>'+item[3]+'</strong><small>'+item[4]+'</small></span><b>'+icon('arrow')+'</b></button>';
     }).join('');
   }
@@ -88,12 +99,12 @@
     root.innerHTML=
       '<header class="v205-welcome">'+
         '<div><p class="v205-kicker">مساحة العمل اليومية <span lang="en">DAILY WORKSPACE</span></p><h1>إدارة أملاكك صارت أوضح</h1><p>كل عقار ثم الوحدة والمستأجر والعقد والتحصيل — بخطوات مرتبة وسريعة.</p><span class="v205-date">'+todayLabel()+'</span></div>'+ 
-        '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick">'+icon('plus')+' إجراء سريع</button></div>'+ 
+        '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick" aria-haspopup="dialog" aria-controls="v201CreateMenu">'+icon('plus')+' إجراء سريع</button></div>'+ 
       '</header>'+ 
-      '<nav id="v205PrimarySections" class="v205-primary-sections" aria-label="أقسام المنصة الرئيسية">'+primaryMarkup()+'</nav>'+ 
+      '<nav id="v205PrimarySections" class="v205-primary-sections" aria-label="أقسام المنصة الرئيسية" hidden>'+primaryMarkup()+'</nav>'+ 
       '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>ابدأ المهمة مباشرة</h2></div><p>أكثر العمليات استخداماً بدون قوائم طويلة.</p></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+ 
       '<section class="v205-section v205-workflow"><div class="v205-section-head"><div><span>ترتيب واضح</span><h2>رحلة العقار من البداية للتحصيل</h2></div><p>كل معلومة تبقى مرتبطة بمكانها الصحيح.</p></div><ol>'+workflowMarkup()+'</ol></section>'+ 
-      '<div id="v205LegacyDashboardSlot" class="v205-dashboard-slot" aria-live="polite"></div>'+ 
+      '<div id="v205LegacyDashboardSlot" class="v205-dashboard-slot"></div>'+ 
       '<footer class="v205-home-footer"><span>عقاري</span><small>واجهة V205 المبسطة • البيانات محفوظة ضمن نظام الدخول الآمن</small></footer>';
     home.insertBefore(root,home.firstChild);
     return root;
@@ -133,6 +144,27 @@
     return row?row[3]:'فتح ملف العقار';
   }
 
+  function setChooserBackgroundInert(open,overlay){
+    if(open&&!chooserInertState){
+      chooserInertState=new Map(Array.from(document.body.children).map(function(node){
+        return [node,node.hasAttribute('inert')];
+      }));
+      Array.from(document.body.children).forEach(function(node){
+        if(node===overlay)node.removeAttribute('inert');
+        else node.setAttribute('inert','');
+      });
+      return;
+    }
+    if(!open&&chooserInertState){
+      chooserInertState.forEach(function(wasInert,node){
+        if(!node.isConnected)return;
+        if(wasInert)node.setAttribute('inert','');
+        else node.removeAttribute('inert');
+      });
+      chooserInertState=null;
+    }
+  }
+
   function openChooser(action,trigger){
     if(!isAuthenticated())return;
     const overlay=createChooser();
@@ -169,6 +201,7 @@
     overlay.classList.add('on');
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden','false');
+    setChooserBackgroundInert(true,overlay);
     document.body.classList.add('v205-chooser-open');
     requestAnimationFrame(function(){overlay.querySelector('button')?.focus()});
   }
@@ -178,19 +211,31 @@
     if(!overlay?.classList.contains('on'))return;
     overlay.classList.remove('on');
     overlay.setAttribute('aria-hidden','true');
-    overlay.setAttribute('inert','');
     document.body.classList.remove('v205-chooser-open');
+    setChooserBackgroundInert(false,overlay);
+    overlay.setAttribute('inert','');
     if(restoreFocus&&chooserTrigger instanceof HTMLElement)setTimeout(function(){chooserTrigger.focus()},0);
     chooserTrigger=null;
   }
 
   function openPropertyAction(name,action){
+    const originalTrigger=chooserTrigger;
+    const context=typeof window.AQARI_V202?.propertyContext==='function'?window.AQARI_V202.propertyContext(name):null;
     closeChooser(false);
     if(!name)return;
+    if(!context){window.go?.('properties');return}
+    if(originalTrigger instanceof HTMLElement&&originalTrigger.isConnected){
+      try{originalTrigger.focus({preventScroll:true})}catch(_error){originalTrigger.focus()}
+    }
     if(typeof window.AQARI_V202?.openProperty==='function'){
       window.AQARI_V202.openProperty(name);
       setTimeout(function(){
-        const actionButton=document.querySelector('#v202PropertyWorkspace [data-v202-action="'+action+'"]');
+        const workspace=document.getElementById('v202PropertyWorkspace');
+        const title=document.getElementById('v202PropertyTitle');
+        const opened=workspace?.classList.contains('on')&&workspace.getAttribute('aria-hidden')==='false';
+        const matches=String(title?.textContent||'').trim()===String(name||'').trim();
+        if(!opened||!matches)return;
+        const actionButton=workspace.querySelector('[data-v202-action="'+action+'"]');
         if(actionButton instanceof HTMLElement)actionButton.click();
       },80);
       return;
@@ -286,6 +331,7 @@
 
   function syncPrimaryNavigation(route){
     activeRoute=normalizedRoute(route);
+    document.body.setAttribute('data-v205-route',activeRoute);
     document.querySelectorAll('#v205PrimarySections [data-v205-section]').forEach(function(button){
       const selected=normalizedRoute(button.getAttribute('data-v199-go'))===activeRoute;
       if(selected)button.setAttribute('aria-current','page');
@@ -377,6 +423,7 @@
     document.body.classList.add('aq-v205');
     document.title='عقاري • إدارة الأملاك بسهولة';
     createHome();
+    syncPrimaryNavigation('home');
     createChooser();
     simplifyCreateMenu();
     syncDashboard();

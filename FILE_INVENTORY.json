@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1771,
-      "sha256": "8c7db8ede0a1412bd9f8b983f028a2a7f83b5e8de8783d759c73b63197232484"
+      "size": 1763,
+      "sha256": "744c3dde15284d98b2e71f51f9e554f09c2860c6667db51a1cb8152dbcb2aceb"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -333,13 +333,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 18920,
-      "sha256": "850bf74e4d131d6fa0a4321b43ba07dc7ce06ec32d14023913afdc119e1a394b"
+      "size": 20426,
+      "sha256": "89292fdf825b2815a7d732e8eed94ccdf1965f824c2a758c6ae69d5bc7f473cf"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 15888,
-      "sha256": "fbc6f2f972d9076b0e4934a7f49f9d37ff4b9b7844fd8adba13711fd003dbdbc"
+      "size": 16491,
+      "sha256": "3b249d1484dd8db9f2998a063875e326657ff1ad3f261de8dd27d09523613209"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -383,13 +383,13 @@
     },
     {
       "path": "v205-simple.css",
-      "size": 19088,
-      "sha256": "3249b2a9882566b2cf6a4fa6509fcad7915e4d4c5c0824d683b907425a27ebed"
+      "size": 20306,
+      "sha256": "d8135b28beab6c01d4f8894e36804a98979565a25da71b0bfccf61bee18b1f9c"
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 20441,
-      "sha256": "32c7c15bb6857f2c1fca15c879f51905d7d40eb8ac2b28936c1b28109ae04888"
+      "size": 22696,
+      "sha256": "8349cd9d83fcc6574cdb7afa0b30e6dc9a345a0d596a478fd233e7bb75c7f276"
     },
     {
       "path": "vercel.json",

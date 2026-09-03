@@ -62,7 +62,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     mobileItems:document.querySelectorAll('.mobilebar .v199-bottom-button').length,
     createOptions:document.querySelectorAll('#v201CreateMenu [data-v201-create]').length,
     propertyActions:document.querySelectorAll('#v201PropertyCenter [data-v201-property-action]').length,
-    mobileCreateSize:document.getElementById('v201MobileCreate')?.getBoundingClientRect().width,
+    mobileCreateHidden:!document.getElementById('v201MobileCreate')?.getClientRects().length,
     businessLinks:Array.from(document.querySelectorAll('#v199MoreMenu [data-v199-go]')).map(node => node.getAttribute('data-v199-go')),
     fakeBars:document.querySelectorAll('#aqariV199Dashboard .v199-mini-bars').length,
     labels:Array.from(document.querySelectorAll('#aqariV199Dashboard .v199-kpi-label')).map(node => node.textContent.trim()),
@@ -82,7 +82,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
-  if(state.mobileCreateSize < 44) throw new Error(`mobile create target ${state.mobileCreateSize}px`);
+  if(!state.mobileCreateHidden) throw new Error('duplicate mobile create trigger must stay hidden on home');
   for(const route of ['tenants','reports','documentsHub']) if(!state.businessLinks.includes(route)) throw new Error(`${route} missing from More menu`);
   if(state.fakeBars !== 0) throw new Error('hard-coded chart bars must not be shown');
   if(!state.priorityFirst) throw new Error('today priorities must precede KPIs');
@@ -90,7 +90,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
 });
 
-await check('V205 RTL home keeps exactly five clear primary sections', async () => {
+await check('V205 keeps one visible mobile navigation with five clear sections', async () => {
   await page.waitForSelector('body[data-v205-ready="true"]');
   const state=await page.evaluate(() => {
     const root=document.getElementById('v205SimpleHome');
@@ -110,6 +110,12 @@ await check('V205 RTL home keeps exactly five clear primary sections', async () 
       dir:document.documentElement.dir,
       rootDirection:root?getComputedStyle(root).direction:'',
       navLabel:document.getElementById('v205PrimarySections')?.getAttribute('aria-label')||'',
+      inPageNavHidden:Boolean(document.getElementById('v205PrimarySections')?.hidden),
+      visibleTopNav:Boolean(document.querySelector('.v199-primary-nav')?.getClientRects().length),
+      mobileSections:Array.from(document.querySelectorAll('.mobilebar .v199-bottom-button')).map(node => {
+        const rect=node.getBoundingClientRect();
+        return {width:rect.width,height:rect.height,visible:Boolean(node.getClientRects().length)};
+      }),
       sections,
       overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
     };
@@ -128,9 +134,11 @@ await check('V205 RTL home keeps exactly five clear primary sections', async () 
   expected.forEach(([key,route,label],index) => {
     const actual=state.sections[index];
     if(actual?.key!==key||actual?.route!==route||!actual?.label.includes(label))throw new Error(`primary section ${index+1} mismatch`);
-    if(actual.width<44||actual.height<44)throw new Error(`${key} touch target is ${actual.width}x${actual.height}`);
   });
   if(state.sections.filter(item => item.current==='page').length!==1)throw new Error('exactly one primary section must be current');
+  if(!state.inPageNavHidden)throw new Error('duplicate in-page navigation must stay hidden');
+  if(state.visibleTopNav)throw new Error('desktop navigation must stay hidden at mobile width');
+  if(state.mobileSections.length!==5||state.mobileSections.some(item => !item.visible||item.width<44||item.height<44))throw new Error('mobile navigation must expose five accessible touch targets');
   if(state.overflow)throw new Error('V205 home overflows horizontally at 390px');
 });
 
@@ -202,9 +210,25 @@ await check('each property has a complete V204 operating workspace', async () =>
   await page.evaluate(() => document.querySelector('[data-v202-close]')?.click());
 });
 
-await check('V201 quick-create and accessible modal', async () => {
-  await page.evaluate(() => document.querySelector('[data-v201-quick]')?.click());
-  await page.waitForTimeout(80);
+await check('V201 quick-create respects the auth gate and keeps an accessible modal', async () => {
+  const authState = await page.evaluate(() => ({
+    gateOpen:document.getElementById('aqariCloudGateV168')?.classList.contains('on'),
+    gateRole:document.getElementById('aqariCloudGateV168')?.getAttribute('role'),
+    gateModal:document.getElementById('aqariCloudGateV168')?.getAttribute('aria-modal'),
+    authenticated:Boolean(
+      window.AQARI_SUPABASE?.context?.user?.id &&
+      window.AQARI_SUPABASE?.context?.workspace?.id &&
+      window.AQARI_SUPABASE?.context?.membership?.is_active
+    )
+  }));
+  if(authState.gateOpen && !authState.authenticated){
+    if(authState.gateRole !== 'dialog' || authState.gateModal !== 'true'){
+      throw new Error('signed-out cloud gate must remain an accessible modal');
+    }
+    return;
+  }
+  await page.locator('#v205SimpleHome [data-v205-command="quick"]').click();
+  await page.waitForTimeout(160);
   const open = await page.evaluate(() => ({
     shown:document.getElementById('v201CreateMenu')?.getAttribute('aria-hidden') === 'false',
     focused:Boolean(document.activeElement?.matches('[data-v201-create]'))
