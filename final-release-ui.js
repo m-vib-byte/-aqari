@@ -87,11 +87,30 @@
 (function(){
   'use strict';
 
+  function installV202RentOperations(){
+    if(!document.getElementById('aqari-v202-rent-css')){
+      const rentCss = document.createElement('link');
+      rentCss.id = 'aqari-v202-rent-css';
+      rentCss.rel = 'stylesheet';
+      rentCss.href = '/v202-rent-operations.css';
+      document.head.appendChild(rentCss);
+    }
+    if(document.getElementById('aqari-v202-rent-js')) return;
+    const rent = document.createElement('script');
+    rent.id = 'aqari-v202-rent-js';
+    rent.src = '/v202-rent-operations.js';
+    document.body.appendChild(rent);
+  }
+
   function installV201Experience(){
-    if(document.getElementById('aqari-v201-experience-js')) return;
+    if(document.getElementById('aqari-v201-experience-js')){
+      installV202RentOperations();
+      return;
+    }
     const experience = document.createElement('script');
     experience.id = 'aqari-v201-experience-js';
     experience.src = '/v201-experience.js';
+    experience.addEventListener('load', installV202RentOperations, { once:true });
     document.body.appendChild(experience);
   }
 
