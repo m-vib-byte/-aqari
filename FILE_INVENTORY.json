@@ -13,8 +13,8 @@
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "size": 2269,
-      "sha256": "32b46727dafbb7c774c44f71f26d3c551cf86a38909163e25099ea014e054903"
+      "size": 2398,
+      "sha256": "c58883ab3e8a90f31fff8f340bd970c8fb3d0a9d5c5063165fbd2be1847094ac"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
