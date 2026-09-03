@@ -143,8 +143,8 @@
     },
     {
       "path": "index.html",
-      "size": 1061195,
-      "sha256": "4de7681cc8f8978f87c1569c5271f40a9b1ada34d874d9a075faf1742654bc91"
+      "size": 1061196,
+      "sha256": "060b8f91f1377a67826d0c225a7a880fdf6bc8a79294af56e060f9246e731c7e"
     },
     {
       "path": "lib/read-only.js",
