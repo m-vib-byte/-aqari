@@ -90,6 +90,14 @@
   function installV205SimplifiedShell(){
     document.body?.classList.add('aq-v205');
 
+    if(!document.getElementById('aqari-v206-integrated-ledger-css')){
+      const ledger = document.createElement('link');
+      ledger.id = 'aqari-v206-integrated-ledger-css';
+      ledger.rel = 'stylesheet';
+      ledger.href = '/v206-integrated-ledger.css';
+      document.head.appendChild(ledger);
+    }
+
     if(!document.getElementById('aqari-v205-simple-css')){
       const simple = document.createElement('link');
       simple.id = 'aqari-v205-simple-css';

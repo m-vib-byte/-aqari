@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const V202_DESIGN='V204-preview';
+  const V202_DESIGN='V206-preview';
   const V202_IMPORT_SOURCE='protected-rent-import-v202';
   const PROTECTED_FIELDS=Object.freeze({
     contractsV202:['id','contract_no','tenant','property','unit','rent','contractRent','status','start_date','end_date','source'],
@@ -887,6 +887,7 @@
         key:unitRecordKey({property,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
         property,period,unit:String(base.unit||'—'),tenant:String(base.tenant||directoryRecord.tenant||''),
         contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(contractId(contract)||''),
+        directorySource:String(directoryRecord.source||''),contractSource:String(contract?.source||''),
         contractStatus:contract?statusLabel(contract.status):'غير مربوط',startDate:String(directoryRecord.contractStartRaw||contract?.start_date||''),
         endDate:String(directoryRecord.contractEndRaw||contract?.end_date||''),contractRent:contractFaceRent,currentRent,rent:due,paid,pending,balance,paymentStatus,
         receipts,paidAt:paymentDates[0]||String(directoryRecord.paymentDateRaw||''),methods,
@@ -1779,6 +1780,11 @@
       const entryId=normalized(entry?.contractId||entry?.contract_id);
       let key=entryId?'id:'+entryId:'';
       if(entryId&&!items.has(key))return;
+      if(entryId){
+        const linked=items.get(key);
+        if(normalized(entry?.unit)&&normalized(entry.unit)!==normalized(linked?.unit))return;
+        if(normalized(entry?.tenant)&&normalized(entry.tenant)!==normalized(linked?.tenant))return;
+      }
       if(!key){
         const matches=Array.from(items.entries()).filter(function(pair){
           return normalized(pair[1].tenant)===normalized(entry?.tenant)&&normalized(pair[1].unit)===normalized(entry?.unit);
@@ -1797,6 +1803,229 @@
       item.paymentStatus=item.due>0&&item.balance===0?'مسدد':item.paid>0?'جزئي':item.pending>0?'قيد المراجعة':'مستحق';
       return item;
     });
+  }
+
+  const PROPERTY_RENT_LEDGER_COLUMNS=Object.freeze([
+    Object.freeze({key:'unit',ar:'رقم الوحدة',en:'FLAT NO.'}),
+    Object.freeze({key:'tenant',ar:'اسم المستأجر',en:'NAME OF THE TENANT'}),
+    Object.freeze({key:'contractNo',ar:'رقم العقد',en:'CONTRACT NO.'}),
+    Object.freeze({key:'contractRent',ar:'عقد إيجار',en:'RENT CONTRACT',money:true}),
+    Object.freeze({key:'insurance',ar:'تأمين',en:'INSURANCE',money:true}),
+    Object.freeze({key:'advance',ar:'عربون',en:'ADVANCE',money:true}),
+    Object.freeze({key:'cleaningFee',ar:'رسوم النظافة',en:'CLEANING FEES',money:true}),
+    Object.freeze({key:'currentRent',ar:'الإيجار الحالي',en:'CURRENT RENT',money:true}),
+    Object.freeze({key:'paymentDate',ar:'تاريخ الدفع',en:'PAYMENT DATE'}),
+    Object.freeze({key:'paymentMethod',ar:'طريقة الدفع',en:'PAYMENT METHOD'}),
+    Object.freeze({key:'knetTransactionNo',ar:'رقم عملية كي نت',en:'KNET OPERATION NUMBER'}),
+    Object.freeze({key:'voucherNo',ar:'رقم الوصل',en:'VOUCHER NO.'}),
+    Object.freeze({key:'contractReceived',ar:'استلام العقد',en:'RECEIPT CONTRACT'}),
+    Object.freeze({key:'accountant',ar:'المحاسب',en:'ACCOUNTANT'})
+  ]);
+
+  function ledgerRecordedAmount(value){
+    return value==null||String(value).trim()===''?null:numberFrom(value);
+  }
+
+  function ledgerPaymentDateKey(value){
+    const raw=String(value||'').trim();
+    const iso=raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if(iso)return Number(iso[1].padStart(4,'0')+iso[2].padStart(2,'0')+iso[3].padStart(2,'0'));
+    const local=raw.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+    if(local)return Number(local[3]+local[2].padStart(2,'0')+local[1].padStart(2,'0'));
+    const timestamp=Date.parse(raw);
+    return Number.isFinite(timestamp)?timestamp:0;
+  }
+
+  function matchedLedgerDirectoryRecord(records,item){
+    const list=Array.isArray(records)?records:[];
+    const id=normalized(item?.contractId);
+    if(id){
+      const exact=list.filter(function(record){return normalized(record?.contractId)===id});
+      if(exact.length===1)return exact[0];
+    }
+    const party=list.filter(function(record){
+      return normalized(record?.unit)===normalized(item?.unit)&&normalized(record?.tenant)===normalized(item?.tenant);
+    });
+    return party.length===1?party[0]:null;
+  }
+
+  function scopedLedgerEntries(context,item,record,period,items){
+    const scopedRecord=record||{unit:item?.unit,tenant:item?.tenant,contractId:item?.contractId,period};
+    const itemId=normalized(item?.contractId);
+    const protectedOnly=protectedPropertyActive(context?.property?.[0]);
+    const sameParty=(Array.isArray(items)?items:[]).filter(function(candidate){
+      return normalized(candidate?.unit)===normalized(item?.unit)&&normalized(candidate?.tenant)===normalized(item?.tenant);
+    });
+    return tenantLedgerEntries(context,scopedRecord,period).filter(function(entry){
+      if(protectedOnly&&normalized(entry?.source)!==V202_IMPORT_SOURCE)return false;
+      const entryId=normalized(entry?.contractId||entry?.contract_id);
+      if(itemId&&entryId)return itemId===entryId;
+      return sameParty.length===1;
+    });
+  }
+
+  function settledLedgerEntries(context,item,record,period,items){
+    return scopedLedgerEntries(context,item,record,period,items).filter(function(entry){
+      return settledPayment(entry?.status);
+    }).sort(function(left,right){
+      return ledgerPaymentDateKey(right?.paidAt)-ledgerPaymentDateKey(left?.paidAt);
+    });
+  }
+
+  function propertyRentLedgerRows(context,period){
+    if(!context)return [];
+    const property=String(context.property?.[0]||'');
+    const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
+    const protectedOnly=protectedPropertyActive(property);
+    const items=rentStatementItems(context,selectedPeriod).filter(function(item){
+      if(!protectedOnly)return true;
+      const itemId=normalized(item.contractId);
+      const matches=context.propertyContracts.filter(function(contract){
+        if(itemId)return normalized(contractId(contract))===itemId;
+        return normalized(contract?.unit)===normalized(item.unit)&&normalized(contract?.tenant)===normalized(item.tenant);
+      });
+      return matches.length===1&&normalized(matches[0]?.source)===V202_IMPORT_SOURCE;
+    });
+    const records=unitDirectoryRecords(context,selectedPeriod);
+    return items.map(function(item){
+      const matchedRecord=matchedLedgerDirectoryRecord(records,item);
+      const record=protectedOnly&&normalized(matchedRecord?.directorySource)!==V202_IMPORT_SOURCE?null:matchedRecord;
+      const itemId=normalized(item.contractId);
+      const contract=context.propertyContracts.find(function(candidate){return itemId&&normalized(contractId(candidate))===itemId})||null;
+      const entries=settledLedgerEntries(context,item,record,selectedPeriod,items);
+      const scopedEntries=scopedLedgerEntries(context,item,record,selectedPeriod,items);
+      const latest=entries[0]||null;
+      const contractRentValue=record?ledgerRecordedAmount(record.contractRent):ledgerRecordedAmount(contract?.contractRent);
+      const currentRentValue=record?ledgerRecordedAmount(record.currentRent):ledgerRecordedAmount(contractRent(contract));
+      const paid=entries.reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const pending=scopedEntries.filter(function(entry){return !settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const due=numberFrom(item.due);
+      const balance=Math.max(0,due-paid);
+      const paymentStatus=due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق';
+      return {
+        property:String(context.property?.[0]||''),period:selectedPeriod,
+        unit:String(item.unit||record?.unit||'—'),tenant:String(item.tenant||record?.tenant||'—'),
+        contractNo:String(record?.contractNo||contract?.contract_no||''),contractId:String(item.contractId||''),
+        contractRent:contractRentValue,currentRent:currentRentValue,
+        insurance:ledgerRecordedAmount(record?.insurance),advance:ledgerRecordedAmount(record?.advance),cleaningFee:ledgerRecordedAmount(record?.cleaningFee),
+        paymentDate:String(latest?.paidAt||''),paymentMethod:String(latest?.method||''),
+        knetTransactionNo:String(latest?ledgerTransactionNo(latest):''),voucherNo:String(latest?.voucherNo||latest?.receiptNo||''),
+        contractReceived:String(record?.contractReceived||record?.contractReceipt||''),accountant:String(record?.accountant||''),
+        due,paid,pending,balance,paymentStatus,settledPayments:entries.length
+      };
+    }).sort(function(left,right){
+      return String(left.unit).localeCompare(String(right.unit),'ar',{numeric:true,sensitivity:'base'});
+    });
+  }
+
+  function propertyRentLedgerTotal(rows,key){
+    let recorded=0;
+    const value=(Array.isArray(rows)?rows:[]).reduce(function(total,row){
+      const amount=ledgerRecordedAmount(row?.[key]);
+      if(amount==null)return total;
+      recorded+=1;
+      return total+amount;
+    },0);
+    return recorded?value:null;
+  }
+
+  function propertyRentLedgerModel(context,period){
+    if(!context)return null;
+    const property=String(context.property?.[0]||'');
+    const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
+    const ledgerRows=propertyRentLedgerRows(context,selectedPeriod);
+    const due=ledgerRows.reduce(function(total,row){return total+row.due},0);
+    const paid=ledgerRows.reduce(function(total,row){return total+row.paid},0);
+    const pending=ledgerRows.reduce(function(total,row){return total+row.pending},0);
+    const balance=ledgerRows.reduce(function(total,row){return total+row.balance},0);
+    return {
+      property,owner:String(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:''),period:selectedPeriod,
+      brand:statementBrand(property),rows:ledgerRows,
+      totals:{
+        due,paid,pending,balance,
+        contractRent:propertyRentLedgerTotal(ledgerRows,'contractRent'),insurance:propertyRentLedgerTotal(ledgerRows,'insurance'),
+        advance:propertyRentLedgerTotal(ledgerRows,'advance'),cleaningFee:propertyRentLedgerTotal(ledgerRows,'cleaningFee'),
+        currentRent:propertyRentLedgerTotal(ledgerRows,'currentRent')
+      },
+      collectionRate:due?Math.min(100,paid/due*100):0
+    };
+  }
+
+  function propertyRentLedgerDisplay(value,isMoney){
+    if(value==null||String(value).trim()==='')return '—';
+    return isMoney?money(numberFrom(value)):String(value);
+  }
+
+  function propertyRentLedgerDocument(context,period){
+    const model=propertyRentLedgerModel(context,period);
+    if(!model)return '';
+    const headers=PROPERTY_RENT_LEDGER_COLUMNS.map(function(column){
+      return '<th scope="col"><strong>'+escapeHtml(column.ar)+'</strong><small>'+escapeHtml(column.en)+'</small></th>';
+    }).join('');
+    const rows=model.rows.map(function(row){
+      const cells=PROPERTY_RENT_LEDGER_COLUMNS.map(function(column){
+        let value=row[column.key];
+        if(column.key==='paymentDate'&&value)value=statementDate(value);
+        const empty=value==null||String(value).trim()==='';
+        const className=column.money?' class="is-money"':'';
+        return '<td'+className+(empty?' data-empty="true"':'')+'>'+escapeHtml(propertyRentLedgerDisplay(value,column.money))+'</td>';
+      }).join('');
+      return '<tr data-v206-payment-status="'+escapeHtml(row.paymentStatus)+'">'+cells+'</tr>';
+    }).join('');
+    const totalMoney=function(key){return propertyRentLedgerDisplay(model.totals[key],true)};
+    const totalRow='<tr class="v206-ledger-total"><th scope="row" colspan="3">الإجمالي / TOTAL</th><td>'+escapeHtml(totalMoney('contractRent'))+'</td><td>'+escapeHtml(totalMoney('insurance'))+'</td><td>'+escapeHtml(totalMoney('advance'))+'</td><td>'+escapeHtml(totalMoney('cleaningFee'))+'</td><td>'+escapeHtml(totalMoney('currentRent'))+'</td><td colspan="6">—</td></tr>';
+    const contact=[model.brand.phones,model.brand.email,model.brand.website,model.brand.social].filter(Boolean).join(' • ');
+    return '<article class="v202-document v206-ledger" data-v206-ledger data-v206-ledger-version="V206-preview">'+
+        '<div class="v206-ledger-tools v202-no-print"><div><label for="v202StatementPeriod">شهر الكشف / Statement month</label><input id="v202StatementPeriod" type="month" value="'+escapeHtml(model.period)+'"></div><button type="button" data-v206-export-csv>تصدير CSV / Export CSV</button></div>'+ 
+        '<header class="v206-ledger-brand"><div class="v206-ledger-brand-name"><strong>'+escapeHtml(model.brand.ar)+'</strong><b>'+escapeHtml(model.brand.en)+'</b><span>'+escapeHtml(model.brand.addressAr)+'</span><small>'+escapeHtml(model.brand.addressEn)+'</small></div><p class="v206-ledger-meta">'+escapeHtml(contact)+'</p></header>'+ 
+        '<section class="v206-ledger-header"><div class="v206-ledger-title"><span>كشف إيجار العقار</span><small>PROPERTY RENT LEDGER</small><h2>'+escapeHtml(model.property||'عقار غير مسجل')+'</h2><p>المالك / Owner: '+escapeHtml(model.owner||'غير مسجل / Not recorded')+'</p></div><div class="v206-ledger-identity"><strong>'+escapeHtml(periodLabel(model.period))+'</strong><small>'+escapeHtml(periodLabelEnglish(model.period))+'</small></div></section>'+ 
+        '<section class="v206-ledger-summary" aria-label="ملخص التحصيل">'+
+          '<div><span>الوحدات / UNITS</span><strong>'+model.rows.length+'</strong></div>'+ 
+          '<div><span>المستحق / DUE</span><strong>'+escapeHtml(money(model.totals.due))+'</strong></div>'+ 
+          '<div><span>المحصّل / COLLECTED</span><strong>'+escapeHtml(money(model.totals.paid))+'</strong></div>'+ 
+          '<div><span>المتبقي / BALANCE</span><strong>'+escapeHtml(money(model.totals.balance))+'</strong></div>'+ 
+        '</section>'+ 
+        '<div class="v206-ledger-table-wrap"><table class="v206-ledger-table"><caption>كشف الإيجارات التفصيلي / Detailed rent ledger</caption><thead><tr>'+headers+'</tr></thead><tbody>'+rowOrEmpty(rows,14)+'</tbody><tfoot>'+totalRow+'</tfoot></table></div>'+ 
+        (model.totals.pending?'<p class="v206-ledger-footnote">دفعات قيد المراجعة بقيمة '+escapeHtml(money(model.totals.pending))+' مستبعدة من المحصّل / Pending payments are excluded from collected totals.</p>':'')+
+        '<footer>'+escapeHtml(model.brand.ar)+' / '+escapeHtml(model.brand.en)+' • كشف صادر من منصة عقاري حسب البيانات المعتمدة وقت الإصدار</footer>'+ 
+      '</article>';
+  }
+
+  function propertyRentLedgerCsvCell(value){
+    let raw=String(value==null?'':value).replace(/[\r\n]+/g,' ');
+    if(/^[\s]*[=+\-@]/.test(raw)||/^0\d+$/.test(raw))raw="'"+raw;
+    return '"'+raw.replace(/"/g,'""')+'"';
+  }
+
+  function propertyRentLedgerCsv(model){
+    if(!model||!Array.isArray(model.rows))return '\uFEFF';
+    const lines=[PROPERTY_RENT_LEDGER_COLUMNS.map(function(column){return column.ar+' / '+column.en})];
+    model.rows.forEach(function(row){
+      lines.push(PROPERTY_RENT_LEDGER_COLUMNS.map(function(column){
+        const value=row[column.key];
+        return column.money&&value!=null?numberFrom(value):value;
+      }));
+    });
+    return '\uFEFF'+lines.map(function(line){return line.map(propertyRentLedgerCsvCell).join(',')}).join('\r\n');
+  }
+
+  function exportPropertyRentLedgerCsv(){
+    const context=contextFor(activeProperty);
+    const period=document.getElementById('v202StatementPeriod')?.value||latestOfficialPeriod(activeProperty);
+    const model=context?propertyRentLedgerModel(context,period):null;
+    if(!model||typeof Blob==='undefined'||typeof URL==='undefined'||typeof URL.createObjectURL!=='function')return false;
+    const blob=new Blob([propertyRentLedgerCsv(model)],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    const propertyName=String(model.property||'property').replace(/[\\/:*?"<>|\s]+/g,'-').replace(/^-+|-+$/g,'')||'property';
+    link.href=url;
+    link.download='aqari-rent-ledger-'+propertyName+'-'+model.period+'.csv';
+    link.hidden=true;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function(){URL.revokeObjectURL(url)},0);
+    return true;
   }
 
   function statementValue(record,key,fallback){return hasField(record,key)?numberFrom(record[key]):fallback}
@@ -1867,7 +2096,7 @@
   function openStatementDocument(period,trigger){
     const context=contextFor(activeProperty);
     activeTenantStatementKey='';
-    if(context)openDocument('كشف إيجار العقار',statementDocument(context,period||latestOfficialPeriod(activeProperty)),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    if(context)openDocument('كشف إيجار العقار / Property Rent Ledger',propertyRentLedgerDocument(context,period||latestOfficialPeriod(activeProperty)),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
   }
 
   function closeDocument(){
@@ -1877,6 +2106,7 @@
     overlay.setAttribute('inert','');
     overlay.setAttribute('aria-hidden','true');
     document.body.classList.remove('v202-print-document');
+    document.body.classList.remove('v206-print-ledger');
     suspendLayer('v202PaymentDialog',false);
     suspendLayer('v202PropertyWorkspace',false);
     syncLayerState();
@@ -1893,8 +2123,9 @@
 
   function printDocument(){
     document.body.classList.add('v202-print-document');
+    document.body.classList.toggle('v206-print-ledger',Boolean(document.querySelector('#v202DocumentBody [data-v206-ledger]')));
     window.print();
-    setTimeout(function(){document.body.classList.remove('v202-print-document')},400);
+    setTimeout(function(){document.body.classList.remove('v202-print-document','v206-print-ledger')},400);
   }
 
   function topLayer(){
@@ -2057,6 +2288,7 @@
       }
       if(target.closest('[data-v202-payment-close]')){event.preventDefault();event.stopImmediatePropagation();return closePayment()}
       if(target.closest('[data-v202-document-close]')){event.preventDefault();event.stopImmediatePropagation();return closeDocument()}
+      if(target.closest('[data-v206-export-csv]')){event.preventDefault();event.stopImmediatePropagation();return exportPropertyRentLedgerCsv()}
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
       const tenantReceipt=target.closest('[data-v202-tenant-receipt]');
       if(tenantReceipt){event.preventDefault();event.stopImmediatePropagation();return openTenantReceipt(tenantReceipt)}
@@ -2096,7 +2328,7 @@
         const context=contextFor(activeProperty);
         const body=document.getElementById('v202DocumentBody');
         if(context&&body){
-          body.innerHTML=statementDocument(context,target.value||currentPeriod());
+          body.innerHTML=propertyRentLedgerDocument(context,target.value||currentPeriod());
           requestAnimationFrame(function(){document.getElementById('v202StatementPeriod')?.focus()});
         }
         return;

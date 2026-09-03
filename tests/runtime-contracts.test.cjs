@@ -178,7 +178,7 @@ test('V204 tenant rent statement preserves the V198 secure runtime', () => {
   assert.match(prestige, /AQARI V202/);
   assert.match(prestige, /body\.aq-v202\.v202-layer-open/);
   assert.match(prestige, /\.v202-document-shell/);
-  assert.match(propertyOS, /V204-preview/);
+  assert.match(propertyOS, /V206-preview/);
   assert.match(propertyOS, /data-v202-action="contract"/);
   assert.match(propertyOS, /data-v202-action="payment"/);
   assert.match(propertyOS, /data-v202-action="statement"/);
@@ -249,6 +249,37 @@ test('V205 simplified shell preserves every secure V204 property workflow', () =
     'data-v202-tenant-receipt',
     'data-v202-tenant-civil-reveal',
   ]) assert.match(propertyOS, new RegExp(hook));
+});
+
+test('V206 property rent ledger is integrated with the secure V202 document flow', () => {
+  const loader = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+  const propertyOS = fs.readFileSync(path.join(root, 'v202-property-os.js'), 'utf8');
+  const css = fs.readFileSync(path.join(root, 'v206-integrated-ledger.css'), 'utf8');
+
+  assert.match(loader, /ledger\.href = '\/v206-integrated-ledger\.css'/);
+  assert.match(propertyOS, /function\s+propertyRentLedgerRows\s*\(/);
+  assert.match(propertyOS, /function\s+propertyRentLedgerDocument\s*\(/);
+  assert.match(propertyOS, /function\s+propertyRentLedgerCsv\s*\(/);
+  assert.match(propertyOS, /data-v206-ledger/);
+  assert.match(propertyOS, /data-v206-export-csv/);
+  assert.match(
+    propertyOS,
+    /openDocument\('كشف إيجار العقار \/ Property Rent Ledger',propertyRentLedgerDocument/,
+  );
+  assert.match(
+    propertyOS,
+    /target\.id==='v202StatementPeriod'[\s\S]*?body\.innerHTML=propertyRentLedgerDocument/,
+  );
+  assert.match(propertyOS, /tenantLedgerEntries\(context,scopedRecord,period\)/);
+  assert.match(propertyOS, /settledPayment\(entry\?\.status\)/);
+  assert.match(propertyOS, /entry\?\.knetTransactionNo\|\|entry\?\.transactionNo/);
+  assert.doesNotMatch(propertyOS, /sessionStorage[\s\S]*propertyRentLedgerRows/);
+
+  assert.match(css, /AQARI V206/);
+  assert.match(css, /#v202DocumentDialog:has\(\[data-v206-ledger\]\)/);
+  assert.match(css, /@page v206-ledger\{size:A4 landscape;margin:5mm\}/);
+  assert.match(css, /grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.doesNotMatch(css, /body\s*>\s*\*\s*:\s*not/);
 });
 
 test('P0 tenant statement contract is bilingual, unit-scoped, printable, and uses safe document actions', () => {

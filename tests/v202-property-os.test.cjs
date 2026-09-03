@@ -24,6 +24,10 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}) {
       contextFor,
       ledgerRecords,
       rentStatementItems,
+      propertyRentLedgerRows: typeof propertyRentLedgerRows === 'function' ? propertyRentLedgerRows : null,
+      propertyRentLedgerModel: typeof propertyRentLedgerModel === 'function' ? propertyRentLedgerModel : null,
+      propertyRentLedgerDocument: typeof propertyRentLedgerDocument === 'function' ? propertyRentLedgerDocument : null,
+      propertyRentLedgerCsv: typeof propertyRentLedgerCsv === 'function' ? propertyRentLedgerCsv : null,
       statementIncludesContract,
       latestOfficialPeriod,
       settledPayment,
@@ -304,6 +308,101 @@ test('V202 property accounting keeps contract, payment, and money identities exa
     runtime.paymentKey('SYNTHETIC TEST PROPERTY', 'contract-a', 'A', '2026-08'),
     runtime.paymentKey('SYNTHETIC TEST PROPERTY', 'contract-b', 'B', '2026-08'),
   );
+});
+
+test('V206 integrated ledger isolates contracts and uses settled canonical data only', () => {
+  const data = fixture();
+  Object.assign(data.tenantDirectoryV202[0], { currentRent: 95, contractReceived: 'RECEIVED-A' });
+  Object.assign(data.rentLedgerV202.find((entry) => entry.id === 'ledger-pending-a'), {
+    paidAt: '2026-08-31', method: 'KNET', knetTransactionNo: 'PENDING-999',
+    voucherNo: 'V-PENDING', contractReceived: 'PENDING-RECEIVED',
+  });
+  data.rentLedgerV202.push({
+    id: 'wrong-contract-same-unit', receiptNo: 'R-WRONG-CONTRACT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'A', tenant: 'TEST TENANT',
+    contractId: 'contract-b', period: '2026-08', due: 200, paid: 200,
+    paidAt: '2026-08-30', method: 'KNET', knetTransactionNo: 'WRONG-999',
+    status: 'paid', source: 'synthetic-test-import',
+  });
+
+  const runtime = loadRuntime(data);
+  assert.equal(typeof runtime.propertyRentLedgerRows, 'function');
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const rows = Array.from(runtime.propertyRentLedgerRows(context, '2026-08'));
+  assert.deepEqual(rows.map((row) => [row.contractId, row.unit, row.contractNo]), [
+    ['contract-a', 'A', 'DUPLICATE-TEST'],
+    ['contract-b', 'B', 'DUPLICATE-TEST'],
+  ]);
+
+  const a = rows.find((row) => row.contractId === 'contract-a');
+  const b = rows.find((row) => row.contractId === 'contract-b');
+  assert.deepEqual(
+    [a.contractRent, a.currentRent, a.insurance, a.advance, a.cleaningFee, a.paid, a.pending, a.balance],
+    [150, 95, 40, 10, 5, 40, 20, 60],
+  );
+  assert.deepEqual(
+    [a.paymentDate, a.paymentMethod, a.knetTransactionNo, a.voucherNo, a.contractReceived, a.accountant],
+    ['2026-08-12', 'KNET', '012345', 'R-A-PAID', 'RECEIVED-A', 'TEST ACCOUNTANT'],
+  );
+  assert.equal(b.paid, 50);
+  assert.equal(
+    rows.some((row) => /PENDING|WRONG|ORPHAN/.test([
+      row.knetTransactionNo, row.voucherNo, row.contractReceived,
+    ].join(' '))),
+    false,
+  );
+
+  const model = runtime.propertyRentLedgerModel(context, '2026-08');
+  assert.deepEqual(
+    [model.totals.due, model.totals.paid, model.totals.pending, model.totals.balance],
+    [300, 90, 20, 210],
+  );
+});
+
+test('V206 ledger document renders exactly 14 bilingual columns', () => {
+  const runtime = loadRuntime(fixture());
+  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const html = runtime.propertyRentLedgerDocument(
+    runtime.contextFor('SYNTHETIC TEST PROPERTY'),
+    '2026-08',
+  );
+  assert.match(html, /data-v206-ledger/);
+  assert.match(html, /data-v206-export-csv/);
+  const head = html.match(/<thead[\s\S]*?<\/thead>/)?.[0] || '';
+  assert.equal((head.match(/<th\b/g) || []).length, 14);
+  for (const label of [
+    'رقم الوحدة', 'FLAT NO.', 'اسم المستأجر', 'NAME OF THE TENANT',
+    'رقم العقد', 'CONTRACT NO.', 'عقد إيجار', 'RENT CONTRACT',
+    'تأمين', 'INSURANCE', 'عربون', 'ADVANCE',
+    'رسوم النظافة', 'CLEANING FEES', 'الإيجار الحالي', 'CURRENT RENT',
+    'تاريخ الدفع', 'PAYMENT DATE', 'طريقة الدفع', 'PAYMENT METHOD',
+    'رقم عملية كي نت', 'KNET OPERATION NUMBER', 'رقم الوصل', 'VOUCHER NO.',
+    'استلام العقد', 'RECEIPT CONTRACT', 'المحاسب', 'ACCOUNTANT',
+  ]) {
+    assert.match(head, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+  }
+  assert.match(html, /R-A-PAID/);
+  assert.doesNotMatch(html, /R-A-PENDING|R-IMPORTED-ORPHAN|OTHER TENANT|OTHER-1/);
+});
+
+test('V206 CSV is UTF-8 and neutralizes spreadsheet formulas', () => {
+  const runtime = loadRuntime(fixture());
+  const csv = runtime.propertyRentLedgerCsv({
+    rows: [{
+      unit: '=2+2', tenant: '+CMD("x,y")', contractNo: '-10', contractRent: 150,
+      insurance: 40, advance: 10, cleaningFee: 5, currentRent: 95,
+      paymentDate: '2026-08-12', paymentMethod: ' @SUM(A1:A2)',
+      knetTransactionNo: '012345', voucherNo: 'R-A-PAID',
+      contractReceived: 'yes', accountant: 'TEST',
+    }],
+  });
+  assert.ok(csv.startsWith('\uFEFF'));
+  assert.match(csv, /"'=2\+2"/);
+  assert.match(csv, /"'\+CMD\(""x,y""\)"/);
+  assert.match(csv, /"'-10"/);
+  assert.match(csv, /"' @SUM\(A1:A2\)"/);
+  assert.match(csv, /"'012345"/);
+  assert.equal((csv.split(/\r?\n/)[0].match(/,/g) || []).length, 13);
 });
 
 test('official protected statements preserve legal dates while displaying every imported unit', () => {
@@ -630,6 +729,18 @@ test('V204 active protected import stays in memory and clears without mutating l
   assert.equal(JSON.stringify(local), before, 'protected tenant data must not be persisted into the local database object');
   const protectedContext = runtime.contextFor('SYNTHETIC TEST PROPERTY');
   assert.equal(protectedContext.propertyContracts.length, 4);
+  const protectedLedgerRows = Array.from(runtime.propertyRentLedgerRows(protectedContext, '2026-08'));
+  assert.deepEqual(
+    protectedLedgerRows.map((row) => row.contractId),
+    ['contract-a', 'contract-b', 'contract-expired'],
+    'the integrated ledger must use the protected in-memory cache rather than raw local db data',
+  );
+  const protectedA = protectedLedgerRows.find((row) => row.contractId === 'contract-a');
+  assert.deepEqual(
+    [protectedA.unit, protectedA.paid, protectedA.paymentDate, protectedA.knetTransactionNo, protectedA.voucherNo],
+    ['A', 40, '2026-08-12', '012345', 'R-A-PAID'],
+  );
+  assert.equal(JSON.stringify(local), before);
   assert.equal(
     protectedContext.propertyLedger.length,
     remote.rentLedgerV202.filter((record) => (
@@ -692,9 +803,22 @@ test('V204 sign-out generation prevents an in-flight protected response from res
 test('V204 blocks protected payment even when a local property has the same name', async () => {
   const local = fixture();
   local.properties = [['SYNTHETIC TEST PROPERTY', 'LOCAL OWNER', '4', '300']];
-  local.contractsV202 = [];
-  local.tenantDirectoryV202 = [];
-  local.rentLedgerV202 = [];
+  local.contractsV202 = [{
+    id: 'local-collision', contract_no: 'LOCAL-ONLY', tenant: 'LOCAL COLLISION TENANT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'LOCAL', rent: 777,
+    status: 'signed', start_date: '2026-01-01', end_date: '2026-12-31', source: 'v202-entry',
+  }];
+  local.tenantDirectoryV202 = [{
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'LOCAL', tenant: 'LOCAL COLLISION TENANT',
+    contractNo: 'LOCAL-ONLY', civilId: '999988887777', source: 'v202-entry',
+  }];
+  local.rentLedgerV202 = [{
+    id: 'local-collision-payment', receiptNo: 'LOCAL-COLLISION-RECEIPT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'LOCAL', tenant: 'LOCAL COLLISION TENANT',
+    contractId: 'local-collision', period: '2026-08', due: 777, paid: 777,
+    paidAt: '2026-08-15', method: 'cash', status: 'paid', source: 'v202-entry',
+    paymentKey: 'synthetic-local-collision-key',
+  }];
   local.rentStatementsV202 = [];
   const before = JSON.stringify(local);
   const bridge = {
@@ -704,6 +828,12 @@ test('V204 blocks protected payment even when a local property has the same name
   const runtime = loadRuntime(local, [], { AQARI_SUPABASE: bridge });
   assert.equal(await runtime.hydrateProtectedImport('user-test'), true);
   assert.equal(runtime.protectedPropertyActive('SYNTHETIC TEST PROPERTY'), true);
+  const protectedRows = runtime.propertyRentLedgerRows(
+    runtime.contextFor('SYNTHETIC TEST PROPERTY'),
+    '2026-08',
+  );
+  assert.equal(protectedRows.some((row) => row.contractId === 'local-collision'), false);
+  assert.equal(protectedRows.some((row) => row.voucherNo === 'LOCAL-COLLISION-RECEIPT'), false);
   runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
   assert.equal(runtime.savePayment({ preventDefault() {} }), false);
   assert.equal(JSON.stringify(local), before, 'same-name local property must not weaken the protected payment boundary');
