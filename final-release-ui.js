@@ -35,12 +35,7 @@
     backup.addEventListener('click', ()=>{
       try{
         const snap = window.AQARI_BACKUP.download();
-        result.textContent = JSON.stringify({
-          ok:true,
-          action:'backup',
-          keys:Object.keys(snap.values || {}).length,
-          capturedAt:snap.capturedAt
-        },null,2);
+        result.textContent = JSON.stringify({ok:true,action:'backup',keys:Object.keys(snap.values || {}).length,capturedAt:snap.capturedAt},null,2);
       }catch(err){
         result.textContent = 'تعذر إنشاء النسخة الاحتياطية: ' + (err?.message || String(err));
       }
@@ -49,12 +44,7 @@
     cloud.addEventListener('click', async ()=>{
       try{
         const c = await window.AQARI_CLOUD_SYNC.downloadCloudPreview();
-        result.textContent = JSON.stringify({
-          revision:c?.revision ?? null,
-          updatedAt:c?.updatedAt ?? null,
-          payloadTopLevelKeys:
-            c?.payload && typeof c.payload === 'object' ? Object.keys(c.payload).length : 0
-        },null,2);
+        result.textContent = JSON.stringify({revision:c?.revision ?? null,updatedAt:c?.updatedAt ?? null,payloadTopLevelKeys:c?.payload && typeof c.payload === 'object' ? Object.keys(c.payload).length : 0},null,2);
       }catch(err){
         result.textContent = 'تعذر جلب حالة السحابة: ' + (err?.message || String(err));
       }
@@ -77,15 +67,28 @@
     else root.insertBefore(box,root.firstChild);
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded',mount,{once:true});
-  }else{
-    mount();
-  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',mount,{once:true});
+  else mount();
 })();
 
 (function(){
   'use strict';
+
+  function installV206RentLedger(){
+    document.body?.classList.add('aq-v206');
+    if(!document.getElementById('aqari-v206-rent-ledger-css')){
+      const css=document.createElement('link');
+      css.id='aqari-v206-rent-ledger-css';
+      css.rel='stylesheet';
+      css.href='/v206-rent-ledger.css';
+      document.head.appendChild(css);
+    }
+    if(document.getElementById('aqari-v206-rent-ledger-js')) return;
+    const script=document.createElement('script');
+    script.id='aqari-v206-rent-ledger-js';
+    script.src='/v206-rent-ledger.js';
+    document.body.appendChild(script);
+  }
 
   function installV205SimplifiedShell(){
     document.body?.classList.add('aq-v205');
@@ -102,7 +105,10 @@
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
       shell.src = '/v205-simplified-shell.js';
+      shell.addEventListener('load', installV206RentLedger, { once:true });
       document.body.appendChild(shell);
+    }else{
+      installV206RentLedger();
     }
   }
 
@@ -180,9 +186,6 @@
     }
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', installV199Preview, { once:true });
-  }else{
-    installV199Preview();
-  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installV199Preview, { once:true });
+  else installV199Preview();
 })();
