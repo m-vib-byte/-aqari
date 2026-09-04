@@ -358,8 +358,8 @@
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
-      "size": 7536,
-      "sha256": "051e91fc6b0ee5275f1935650d36650f8ae5674d79927c2f37d30bf875d485d8"
+      "size": 7899,
+      "sha256": "b89fcea94a0627b206347f5905f9a86d3c367540a795ac0d37c516acbc6d4648"
     },
     {
       "path": "v199-ui.css",
@@ -428,8 +428,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "size": 16954,
-      "sha256": "60579b242468b63296d0f0e4b450252ec4e0587fd2450331f3da4d4c9185e866"
+      "size": 17779,
+      "sha256": "1c7a6708d19e9dcc247fd00cf32d8580ab28090c1e1161a18dc27791f0999326"
     },
     {
       "path": "vercel.json",

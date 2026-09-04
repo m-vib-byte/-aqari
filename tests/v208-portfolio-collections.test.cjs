@@ -8,7 +8,7 @@ const vm=require('node:vm');
 
 const root=path.resolve(__dirname,'..');
 
-test('V208 aggregates portfolio collections only from the secure V206.2 rent office API',()=>{
+test('V208 aggregates portfolio collections only from the secure V206.3 rent office API',()=>{
   const loader=fs.readFileSync(path.join(root,'final-release-ui.js'),'utf8');
   const portfolio=fs.readFileSync(path.join(root,'v208-portfolio-collections.js'),'utf8');
   const css=fs.readFileSync(path.join(root,'v208-portfolio-collections.css'),'utf8');
@@ -36,6 +36,7 @@ test('V208 aggregates portfolio collections only from the secure V206.2 rent off
 
   assert.match(portfolio,/AQARI_V202\?\.rentOfficeData/);
   assert.match(portfolio,/rentOfficeData\(name,period\)/);
+  assert.match(portfolio,/norm\(data\.property\)===norm\(name\)/);
   assert.match(portfolio,/String\(data\.period\|\|''\)===period/);
   assert.match(portfolio,/data\.totalRent/);
   assert.match(portfolio,/data\.totalCollected/);
@@ -51,6 +52,10 @@ test('V208 aggregates portfolio collections only from the secure V206.2 rent off
   assert.match(portfolio,/id="v208PortfolioPeriod"/);
   assert.match(portfolio,/type="month"/);
   assert.match(portfolio,/data-v208-search/);
+  assert.match(portfolio,/function restoreSearchFocus\s*\(/);
+  assert.match(portfolio,/input\.focus\(\{preventScroll:true\}\)/);
+  assert.match(portfolio,/input\.setSelectionRange\(left,right\)/);
+  assert.match(portfolio,/restoreSearchFocus\(start,end\)/);
   assert.match(portfolio,/data-v208-open/);
   assert.match(portfolio,/data-v208-statement/);
   assert.match(portfolio,/v202TabCollections/);
@@ -71,6 +76,7 @@ test('V208 aggregates portfolio collections only from the secure V206.2 rent off
   assert.match(portfolio,/norm\(title\.textContent\)!==norm\(name\)/);
   assert.match(portfolio,/عرض فقط/);
   assert.match(portfolio,/لوحة التحصيل الشاملة/);
+  assert.match(portfolio,/V206\.3/);
 
   assert.doesNotMatch(portfolio,/rentLedgerV202/);
   assert.doesNotMatch(portfolio,/contractsV202/);

@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const DESIGN='V208-mainline-portfolio-collections';
+  const DESIGN='V208-v2063-portfolio-collections';
   const PERIOD=/^\d{4}-(0[1-9]|1[0-2])$/;
   let period=currentPeriod();
   let query='';
@@ -69,7 +69,7 @@
     if(!accessReady()||typeof window.AQARI_V202?.rentOfficeData!=='function')return {name,state:'review',period,due:0,collected:0,balance:0,units:0,canRecordPayment:false,official:false,valid:false};
     let data=null;
     try{data=window.AQARI_V202.rentOfficeData(name,period)}catch(_){data=null}
-    const valid=Boolean(data&&String(data.property||'').trim()===String(name||'').trim()&&String(data.period||'')===period);
+    const valid=Boolean(data&&norm(data.property)===norm(name)&&String(data.period||'')===period);
     if(!valid)return {name,state:'review',period,due:0,collected:0,balance:0,units:0,canRecordPayment:false,official:false,valid:false};
     const due=Math.max(0,number(data.totalRent));
     const collected=Math.max(0,number(data.totalCollected));
@@ -137,7 +137,7 @@
     const rate=collectionRate(summary);
     const top=priority(items);
     const priorityButton=top?'<button type="button" class="v208-priority" data-v208-open="'+esc(top.name)+'"><span>أعلى أولوية</span><strong>'+esc(top.name)+'</strong><small>'+esc(money(top.balance))+' متبقي'+(top.canRecordPayment?'':' • عرض فقط')+'</small></button>':'<span class="v208-priority is-clear">لا يوجد رصيد مستحق في هذه الفترة</span>';
-    return '<section class="v208-board" id="v208PortfolioCollections" aria-labelledby="v208PortfolioTitle"><header class="v208-board-head"><div><span>لوحة التحصيل الشاملة</span><h2 id="v208PortfolioTitle">كل العقارات في شاشة واحدة</h2><p>فترة موحّدة لكل العقارات، والأرقام مأخوذة من `rentOfficeData` الرسمي بدون قراءة Ledger مباشرة.</p></div>'+priorityButton+'</header><div class="v208-period"><label for="v208PortfolioPeriod"><span>شهر التحصيل</span><input id="v208PortfolioPeriod" type="month" value="'+esc(period)+'"></label><strong>'+esc(periodLabel(period))+'</strong></div><div class="v208-kpis" aria-live="polite"><div class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.dueTotal))+'</strong><small>'+summary.total+' عقار</small></div><div class="is-collected"><span>المحصّل</span><strong>'+esc(money(summary.collectedTotal))+'</strong><small>'+rate.toFixed(0)+'٪ نسبة التحصيل</small></div><div class="is-due"><span>المتبقي</span><strong>'+esc(money(summary.balanceTotal))+'</strong><small>'+summary.due+' عقار يحتاج متابعة</small></div><div class="is-settled"><span>منتظمة</span><strong>'+summary.settled+'</strong><small>'+(summary.readOnlyDue?summary.readOnlyDue+' مستحق للعرض فقط':'لا يوجد تنبيه صلاحيات')+'</small></div></div><div class="v208-tools"><label><span>بحث بالعقار</span><input type="search" data-v208-search value="'+esc(query)+'" placeholder="اكتب اسم العقار"></label><div class="v208-filters" role="group" aria-label="فلترة العقارات"><button type="button" data-v208-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(summary.due+summary.review)+'</button><button type="button" data-v208-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+summary.due+'</button><button type="button" data-v208-filter="settled" class="'+(filter==='settled'?'is-active':'')+'">منتظم '+summary.settled+'</button><button type="button" data-v208-filter="setup" class="'+(filter==='setup'?'is-active':'')+'">يحتاج ربط '+summary.setup+'</button><button type="button" data-v208-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+summary.total+'</button></div></div><div class="v208-grid" data-v208-results>'+propertyCards(items)+'</div></section>';
+    return '<section class="v208-board" id="v208PortfolioCollections" aria-labelledby="v208PortfolioTitle"><header class="v208-board-head"><div><span>لوحة التحصيل الشاملة</span><h2 id="v208PortfolioTitle">كل العقارات في شاشة واحدة</h2><p>فترة موحّدة لكل العقارات، والأرقام مأخوذة من `rentOfficeData` الرسمي في V206.3 بدون قراءة Ledger مباشرة.</p></div>'+priorityButton+'</header><div class="v208-period"><label for="v208PortfolioPeriod"><span>شهر التحصيل</span><input id="v208PortfolioPeriod" type="month" value="'+esc(period)+'"></label><strong>'+esc(periodLabel(period))+'</strong></div><div class="v208-kpis" aria-live="polite"><div class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.dueTotal))+'</strong><small>'+summary.total+' عقار</small></div><div class="is-collected"><span>المحصّل</span><strong>'+esc(money(summary.collectedTotal))+'</strong><small>'+rate.toFixed(0)+'٪ نسبة التحصيل</small></div><div class="is-due"><span>المتبقي</span><strong>'+esc(money(summary.balanceTotal))+'</strong><small>'+summary.due+' عقار يحتاج متابعة</small></div><div class="is-settled"><span>منتظمة</span><strong>'+summary.settled+'</strong><small>'+(summary.readOnlyDue?summary.readOnlyDue+' مستحق للعرض فقط':'لا يوجد تنبيه صلاحيات')+'</small></div></div><div class="v208-tools"><label><span>بحث بالعقار</span><input type="search" data-v208-search value="'+esc(query)+'" placeholder="اكتب اسم العقار"></label><div class="v208-filters" role="group" aria-label="فلترة العقارات"><button type="button" data-v208-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(summary.due+summary.review)+'</button><button type="button" data-v208-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+summary.due+'</button><button type="button" data-v208-filter="settled" class="'+(filter==='settled'?'is-active':'')+'">منتظم '+summary.settled+'</button><button type="button" data-v208-filter="setup" class="'+(filter==='setup'?'is-active':'')+'">يحتاج ربط '+summary.setup+'</button><button type="button" data-v208-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+summary.total+'</button></div></div><div class="v208-grid" data-v208-results>'+propertyCards(items)+'</div></section>';
   }
 
   function homeMarkup(items){
@@ -186,6 +186,18 @@
   }
 
   function schedule(){clearTimeout(timer);timer=setTimeout(render,120)}
+
+  function restoreSearchFocus(start,end){
+    requestAnimationFrame(()=>{
+      const input=document.querySelector('#v208PortfolioCollections [data-v208-search]');
+      if(!(input instanceof HTMLInputElement))return;
+      input.focus({preventScroll:true});
+      const length=input.value.length;
+      const left=Math.min(Math.max(0,Number.isFinite(start)?start:length),length);
+      const right=Math.min(Math.max(left,Number.isFinite(end)?end:left),length);
+      try{input.setSelectionRange(left,right)}catch(_){ }
+    });
+  }
 
   function setStatementPeriod(actionToken,scope,name){
     let attempts=0;
@@ -241,7 +253,14 @@
   });
 
   document.addEventListener('input',event=>{
-    if(event.target?.matches?.('[data-v208-search]')){query=event.target.value;lastSignature='';render()}
+    const target=event.target instanceof HTMLInputElement&&event.target.matches('[data-v208-search]')?event.target:null;
+    if(!target)return;
+    const start=Number.isFinite(target.selectionStart)?target.selectionStart:target.value.length;
+    const end=Number.isFinite(target.selectionEnd)?target.selectionEnd:start;
+    query=target.value;
+    lastSignature='';
+    render();
+    restoreSearchFocus(start,end);
   });
 
   document.addEventListener('click',event=>{
