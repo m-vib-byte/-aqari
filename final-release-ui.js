@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV208PortfolioCollections(){
+    document.body?.classList.add('aq-v208');
+
+    if(!document.getElementById('aqari-v208-portfolio-collections-css')){
+      const portfolioCss=document.createElement('link');
+      portfolioCss.id='aqari-v208-portfolio-collections-css';
+      portfolioCss.rel='stylesheet';
+      portfolioCss.href='/v208-portfolio-collections.css';
+      document.head.appendChild(portfolioCss);
+    }
+
+    if(!document.getElementById('aqari-v208-portfolio-collections-js')){
+      const portfolioJs=document.createElement('script');
+      portfolioJs.id='aqari-v208-portfolio-collections-js';
+      portfolioJs.src='/v208-portfolio-collections.js';
+      document.body.appendChild(portfolioJs);
+    }
+  }
+
   function installV206RentLedger(){
     document.body?.classList.add('aq-v206');
 
@@ -102,7 +121,10 @@
       const script=document.createElement('script');
       script.id='aqari-v206-rent-ledger-js';
       script.src='/v206-rent-ledger.js';
+      script.addEventListener('load', installV208PortfolioCollections, { once:true });
       document.body.appendChild(script);
+    }else{
+      installV208PortfolioCollections();
     }
   }
 
