@@ -9,7 +9,7 @@
     box.className = 'aq-v196-final';
 
     const title = document.createElement('strong');
-    title.textContent = 'عقاري V211 — مركز المتابعة';
+    title.textContent = 'عقاري V211.1 — سجل المتابعة السحابي';
 
     const desc = document.createElement('small');
     desc.textContent = 'الإصدار التشغيلي يضيف مركز متابعة للمستحقات والمراجعات فوق لوحة V210 وطبقة البيانات المحمية، مع بقاء أدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
@@ -94,14 +94,14 @@
       const followUpCss=document.createElement('link');
       followUpCss.id='aqari-v211-follow-up-center-css';
       followUpCss.rel='stylesheet';
-      followUpCss.href='/v211-follow-up-center.css?v=211.0';
+      followUpCss.href='/v211-follow-up-center.css?v=211.1';
       document.head.appendChild(followUpCss);
     }
 
     if(!document.getElementById('aqari-v211-follow-up-center-js')){
       const followUpJs=document.createElement('script');
       followUpJs.id='aqari-v211-follow-up-center-js';
-      followUpJs.src='/v211-follow-up-center.js?v=211.0';
+      followUpJs.src='/v211-follow-up-center.js?v=211.1';
       document.body.appendChild(followUpJs);
     }
   }
