@@ -25,8 +25,8 @@ test('V209 upgrades the existing search surface without bypassing V206.3 securit
   assert.match(v199,/data-v199-action="search"/);
 
   assert.match(loader,/function installV209GlobalSearch\s*\(/);
-  assert.match(loader,/globalSearchCss\.href='\/v209-global-search\.css'/);
-  assert.match(loader,/globalSearchJs\.src='\/v209-global-search\.js'/);
+  assert.match(loader,/globalSearchCss\.href='\/v209-global-search\.css\?v=209\.1'/);
+  assert.match(loader,/globalSearchJs\.src='\/v209-global-search\.js\?v=209\.1'/);
   assert.match(loader,/portfolioJs\.addEventListener\('load', installV209GlobalSearch, \{ once:true \}\)/);
   assert.match(loader,/portfolioJs\.addEventListener\('load', installV209GlobalSearch, \{ once:true \}\)/);
   assert.match(loader,/meta\[name="aqari-portfolio-collections"\]/);
@@ -66,6 +66,7 @@ test('V209 upgrades the existing search surface without bypassing V206.3 securit
   assert.match(search,/event\.key==='\/'/);
   assert.match(search,/meta\[name="aqari-global-search"\]/);
   assert.match(search,/window\.AQARI_V209=Object\.freeze/);
+  assert.match(search,/revision:REVISION/);
   assert.match(search,/observer\.observe\(document\.documentElement,\{subtree:true,childList:true\}\)/);
   assert.match(search,/seal:seal/);
   assert.match(search,/resume:resume/);

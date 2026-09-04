@@ -94,14 +94,14 @@
       const globalSearchCss=document.createElement('link');
       globalSearchCss.id='aqari-v209-global-search-css';
       globalSearchCss.rel='stylesheet';
-      globalSearchCss.href='/v209-global-search.css';
+      globalSearchCss.href='/v209-global-search.css?v=209.1';
       document.head.appendChild(globalSearchCss);
     }
 
     if(!document.getElementById('aqari-v209-global-search-js')){
       const globalSearchJs=document.createElement('script');
       globalSearchJs.id='aqari-v209-global-search-js';
-      globalSearchJs.src='/v209-global-search.js';
+      globalSearchJs.src='/v209-global-search.js?v=209.1';
       document.body.appendChild(globalSearchJs);
     }
   }

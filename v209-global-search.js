@@ -2,6 +2,7 @@
   'use strict';
 
   const DESIGN='V209-global-search';
+  const REVISION='V209.1-self-heal';
   if(window.AQARI_V209?.version===DESIGN)return;
   const PERIOD=/^\d{4}-(0[1-9]|1[0-2])$/;
   const RESULT_LIMIT=30;
@@ -527,6 +528,7 @@
     meta.content=DESIGN;
     window.AQARI_V209=Object.freeze({
       version:DESIGN,
+      revision:REVISION,
       seal:seal,
       resume:resume,
       open:function(){

@@ -59,6 +59,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     portfolioCollections:document.body.classList.contains('aq-v208'),
     globalSearch:document.body.classList.contains('aq-v209'),
     globalSearchVersion:window.AQARI_V209?.version,
+    globalSearchRevision:window.AQARI_V209?.revision,
     globalSearchMeta:document.querySelector('meta[name="aqari-global-search"]')?.content,
     simpleHome:Boolean(document.getElementById('v205SimpleHome')),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
@@ -82,7 +83,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.portfolioCollections || !state.globalSearch || state.globalSearchVersion !== 'V209-global-search' || state.globalSearchMeta !== 'V209-global-search' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V209 presentation layer unavailable');
+  if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.portfolioCollections || !state.globalSearch || state.globalSearchVersion !== 'V209-global-search' || state.globalSearchRevision !== 'V209.1-self-heal' || state.globalSearchMeta !== 'V209-global-search' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V209 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
