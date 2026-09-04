@@ -19,7 +19,7 @@
     {
       "path": ".github/workflows/runtime-contracts.yml",
       "size": 1914,
-      "sha256": "0c5a4d003ba15c1c78c1fb995d9bd81480deefdfdcdb06cea86a65d1e7379e66"
+      "sha256": "3c55b14e3b15bf57479d971ee5a084704e409a3e1af16ebfccfe57dba452fe08"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 11141,
-      "sha256": "b634f3644115d5a95f52c1f0b691324ef4e0dcd22cb726dc489f33f55f8a155f"
+      "size": 11096,
+      "sha256": "e107c45865c8e639a6786065d5aa925c003818330992261ed982a96a77661c93"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",

@@ -133,7 +133,7 @@
     }
   }
 
-  function installV208PortfolioCollections(){  function installV208PortfolioCollections(){
+  function installV208PortfolioCollections(){
     document.body?.classList.add('aq-v208');
 
     if(!document.getElementById('aqari-v208-portfolio-collections-css')){

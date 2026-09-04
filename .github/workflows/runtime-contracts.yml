@@ -37,7 +37,7 @@ jobs:
             'v208-portfolio-collections.js'
             'tests/v209-behavior.test.cjs'
             'tests/v209-global-search.test.cjs'
-            'tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs'
+            'tests/v209-loader.test.cjs'
             'v209-global-search.css'
             'v209-global-search.js'
             'tests/v210-daily-command-center.test.cjs'
@@ -52,4 +52,4 @@ jobs:
             printf '%s|%s|%s\n' "$file" "$bytes" "$hash"
           done
           echo 'AQARI_V210_INVENTORY_END'
-      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs
+      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs
