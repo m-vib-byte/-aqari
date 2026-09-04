@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 9761,
-      "sha256": "cdc42109e51207990849d376756200cb1b55a86204c4c095ea000f2117ae434d"
+      "size": 9769,
+      "sha256": "cc7e99210b230f5c02e5c4ee076bf5061d79e5b381dccdc51aa5fbe666f4b9cf"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -343,8 +343,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 18313,
-      "sha256": "8b8b7d41a37d215b896682da96bdb68a93d7c19c787a22b6dba520889077bb6f"
+      "size": 18368,
+      "sha256": "b85409d1e976475d11c8c5f68088c3e630d790e3fcf9781a0151baea4bde2145"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -418,8 +418,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 22832,
-      "sha256": "f06a627859ce805f71efcba0ea3d8bf204e23af18e579238eee80e78f4df4bd2"
+      "size": 22916,
+      "sha256": "b504f733032a72c6216dd3e3eb51be2a2cd266970e4847c751e74416bde870da"
     },
     {
       "path": "v206-integrated-ledger.css",

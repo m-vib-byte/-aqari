@@ -177,7 +177,7 @@
     if(!document.getElementById('aqari-v205-simplified-shell-js')){
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
-      shell.src = '/v205-simplified-shell.js';
+      shell.src = '/v205-simplified-shell.js?v=209.1';
       shell.addEventListener('load', installV206RentLedger, { once:true });
       document.body.appendChild(shell);
     }else{
