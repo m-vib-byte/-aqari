@@ -2,6 +2,7 @@
   'use strict';
 
   const DESIGN='V208-v2063-portfolio-collections';
+  if(window.AQARI_V208?.version===DESIGN)return;
   const PERIOD=/^\d{4}-(0[1-9]|1[0-2])$/;
   let period=currentPeriod();
   let query='';
@@ -40,18 +41,59 @@
 
   function scopeKey(){
     try{
-      const context=window.AQARI_SUPABASE?.context;
-      if(authSuspended||!accessContextReady(context))return '';
-      return String(context.user.id).trim()+'\u0000'+String(context.workspace.id).trim();
+      const access=authAccess(window.AQARI_SUPABASE?.context);
+      if(authSuspended||!dataScopesReady(access))return '';
+      return access.userId+'\u0000'+access.workspaceId+'\u0000'+access.role;
     }catch(_){return ''}
   }
 
   function accessReady(){return Boolean(scopeKey())}
 
+  function authAccess(context){
+    if(!accessContextReady(context))return null;
+    const role=String(context.membership?.role||'').trim();
+    return role?{userId:String(context.user.id).trim(),workspaceId:String(context.workspace.id).trim(),role}:null;
+  }
+
+  function sameAuthAccess(left,right){
+    return Boolean(left&&right&&left.userId===right.userId&&left.workspaceId===right.workspaceId&&left.role===right.role);
+  }
+
+  function dataScopesReady(access){
+    const dataScope=window.AQARI_DATA_GATE?.scope;
+    const storageScope=window.AQARI_EARLY_STORAGE_GATE?.scope;
+    return Boolean(
+      access&&dataScope&&storageScope&&
+      String(dataScope.userId||'').trim()===access.userId&&String(dataScope.workspaceId||'').trim()===access.workspaceId&&
+      String(storageScope.userId||'').trim()===access.userId&&String(storageScope.workspaceId||'').trim()===access.workspaceId
+    );
+  }
+
   function clearViews(){
     document.getElementById('v208PortfolioCollections')?.remove();
     document.getElementById('v208HomeCollections')?.remove();
     lastSignature='';
+  }
+
+  function seal(){
+    authEpoch+=1;
+    interactionEpoch+=1;
+    authSuspended=true;
+    clearTimeout(timer);
+    timer=0;
+    clearViews();
+  }
+
+  function resume(context){
+    const expected=authAccess(context);
+    const live=authAccess(window.AQARI_SUPABASE?.context);
+    if(!sameAuthAccess(expected,live)||!dataScopesReady(live))return false;
+    authEpoch+=1;
+    interactionEpoch+=1;
+    authSuspended=false;
+    lastSignature='';
+    render();
+    return true;
   }
 
   function propertyNames(){
@@ -281,13 +323,14 @@
     if(authListenerInstalled||typeof window.AQARI_SUPABASE?.onAuthStateChange!=='function')return;
     authListenerInstalled=true;
     Promise.resolve(window.AQARI_SUPABASE.onAuthStateChange(function(event){
+      const expected=authAccess(window.AQARI_SUPABASE?.context);
       const epoch=++authEpoch;
       interactionEpoch+=1;
       authSuspended=true;
       clearViews();
-      if(event==='SIGNED_OUT'||typeof window.AQARI_SUPABASE?.refreshContext!=='function')return;
-      Promise.resolve(window.AQARI_SUPABASE.refreshContext()).then(function(context){
-        if(epoch!==authEpoch||!accessContextReady(context))return;
+      if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function')return;
+      Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
+        if(epoch!==authEpoch||!sameAuthAccess(expected,authAccess(context))||!sameAuthAccess(expected,authAccess(window.AQARI_SUPABASE?.context)))return;
         authSuspended=false;
         render();
       }).catch(function(){clearViews()});
@@ -296,6 +339,7 @@
 
   function boot(){
     document.body.classList.add('aq-v208');
+    window.AQARI_V208=Object.freeze({version:DESIGN,seal:seal,resume:resume});
     observer.observe(document.body,{subtree:true,childList:true});
     installAuthListener();
     render();

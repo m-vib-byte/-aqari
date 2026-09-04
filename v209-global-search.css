@@ -1,0 +1,37 @@
+/* AQARI V209 — secure global search */
+body.aq-v209 #v199SearchPanel.v209-search-panel{direction:rtl;width:min(760px,calc(100vw - 24px));max-height:min(78vh,720px);overflow:hidden;padding:16px;border:1px solid #e2d3b7;border-radius:22px;background:linear-gradient(180deg,#fffdf8,#fff);box-shadow:0 22px 60px rgba(55,39,18,.16)}
+body.aq-v209 #v199SearchPanel.v209-search-panel.on{display:grid;grid-template-rows:auto auto auto minmax(0,1fr)}
+body.aq-v209 #v199SearchPanel.v209-search-panel>label{display:block;margin:0 0 8px;font-size:12px;font-weight:900;color:#8a652d}
+body.aq-v209 #v199SearchPanel .v199-search-field{border:1px solid #decfb3!important;border-radius:14px!important;background:#fff!important;box-shadow:none!important}
+body.aq-v209 #v199SearchPanel .v199-search-field:focus-within{border-color:#b78e48!important;box-shadow:0 0 0 3px rgba(183,142,72,.11)!important}
+body.aq-v209 #v199SearchInput{font-size:14px!important;font-weight:700!important;color:#2e2418!important}
+body.aq-v209 .v209-search-controls{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-top:10px;padding:10px 11px;border:1px solid #eee3d2;border-radius:13px;background:#fff}
+body.aq-v209 .v209-search-controls label{display:grid;gap:4px}
+body.aq-v209 .v209-search-controls label span{font-size:11px;font-weight:900;color:#79664b}
+body.aq-v209 .v209-search-controls input{min-height:40px!important;padding:0 9px!important;border:1px solid #ddceb3!important;border-radius:9px!important;background:#fff!important;color:#34291c!important;font:800 13px Arial,Tahoma,sans-serif!important;outline:0}
+body.aq-v209 .v209-search-controls input:focus{border-color:#b78e48!important;box-shadow:0 0 0 3px rgba(183,142,72,.1)!important}
+body.aq-v209 .v209-search-controls small{font-size:11px;line-height:1.6;color:#6f604d;text-align:start}
+body.aq-v209 .v209-search-results{display:grid;gap:8px;min-height:0;margin-top:10px;max-height:min(51vh,450px);overflow:auto;overscroll-behavior:contain;padding:1px}
+body.aq-v209 .v209-search-summary{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;border:1px solid #eadfcf;border-radius:10px;background:rgba(255,253,248,.96);backdrop-filter:blur(8px);font-size:11px;font-weight:900;color:#7d6849}
+body.aq-v209 .v209-search-summary small{color:#6f604d}
+body.aq-v209 .v209-result{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border:1px solid #e9dfcf;border-radius:15px;background:#fff}
+body.aq-v209 .v209-result:hover{border-color:#d7c19b;box-shadow:0 7px 18px rgba(70,48,18,.05)}
+body.aq-v209 .v209-result-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;min-width:0;padding:0;border:0;background:transparent;text-align:right;cursor:pointer;color:inherit}
+body.aq-v209 .v209-result-property{grid-column:1/2;font-size:11px;font-weight:900;color:#936d31;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.aq-v209 .v209-result-main strong{grid-column:1/2;font-size:16px;color:#2d2318;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.aq-v209 .v209-result-main small{grid-column:1/2;font-size:11px;color:#6f604d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.aq-v209 .v209-result-main b{grid-column:2/3;grid-row:1/4;align-self:center;display:inline-flex;align-items:center;min-height:30px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
+body.aq-v209 .v209-result-main b.is-due{background:#fff1ea;color:#93452f;border:1px solid #efd4c8}
+body.aq-v209 .v209-result-main b.is-clear{background:#edf6ef;color:#427453;border:1px solid #d8e8dc}
+body.aq-v209 .v209-result-actions{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap;max-width:250px}
+body.aq-v209 .v209-result-actions button{min-height:40px;padding:0 10px;border:1px solid #d9c6a6;border-radius:9px;background:#fff;color:#6d522a;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap}
+body.aq-v209 .v209-result-actions button.is-primary{background:#6f4d19;border-color:#6f4d19;color:#fff}
+body.aq-v209 .v209-result-actions button:hover{box-shadow:0 0 0 3px rgba(183,142,72,.12)}
+body.aq-v209 .v209-result-actions button:focus-visible,body.aq-v209 .v209-result-main:focus-visible{outline:2px solid #6f4d19;outline-offset:2px;box-shadow:0 0 0 4px rgba(183,142,72,.16)}
+body.aq-v209 .v209-search-empty{display:grid;place-items:center;gap:4px;min-height:120px;padding:18px;border:1px dashed #dfd1b9;border-radius:14px;background:#fffdfa;text-align:center;color:#7e6c54}
+body.aq-v209 .v209-search-empty strong{font-size:14px;color:#4c3b25}
+body.aq-v209 .v209-search-empty span{font-size:12px}
+body.aq-v209 .v209-search-empty small{font-size:11px;color:#6f604d}
+@media(max-width:700px){body.aq-v209 #v199SearchPanel.v209-search-panel{top:calc(env(safe-area-inset-top,0px) + 10px)!important;left:calc(env(safe-area-inset-left,0px) + 12px)!important;right:calc(env(safe-area-inset-right,0px) + 12px)!important;width:auto!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px);max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px);padding:12px;border-radius:17px;transform:none!important}body.aq-v209 #v199SearchInput,body.aq-v209 .v209-search-controls input{font-size:16px!important}body.aq-v209 .v209-search-controls{align-items:stretch;flex-direction:column}body.aq-v209 .v209-search-controls small{text-align:start}body.aq-v209 .v209-search-controls input{min-height:44px!important}body.aq-v209 .v209-search-results{max-height:none}body.aq-v209 .v209-result{grid-template-columns:1fr}body.aq-v209 .v209-result-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:none}body.aq-v209 .v209-result-actions button{width:100%;min-height:44px}}
+@media(max-width:420px){body.aq-v209 .v209-result-main{grid-template-columns:minmax(0,1fr)}body.aq-v209 .v209-result-main b{grid-column:1;grid-row:auto;justify-self:start;margin-top:4px}body.aq-v209 .v209-result-actions{grid-template-columns:1fr 1fr}}
+@media print{body.aq-v209 #v199SearchPanel.v209-search-panel{display:none!important}}

@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV209GlobalSearch(){
+    document.body?.classList.add('aq-v209');
+
+    if(!document.getElementById('aqari-v209-global-search-css')){
+      const globalSearchCss=document.createElement('link');
+      globalSearchCss.id='aqari-v209-global-search-css';
+      globalSearchCss.rel='stylesheet';
+      globalSearchCss.href='/v209-global-search.css?v=209.1';
+      document.head.appendChild(globalSearchCss);
+    }
+
+    if(!document.getElementById('aqari-v209-global-search-js')){
+      const globalSearchJs=document.createElement('script');
+      globalSearchJs.id='aqari-v209-global-search-js';
+      globalSearchJs.src='/v209-global-search.js?v=209.1';
+      document.body.appendChild(globalSearchJs);
+    }
+  }
+
   function installV208PortfolioCollections(){
     document.body?.classList.add('aq-v208');
 
@@ -98,11 +117,19 @@
       document.head.appendChild(portfolioCss);
     }
 
-    if(!document.getElementById('aqari-v208-portfolio-collections-js')){
-      const portfolioJs=document.createElement('script');
+    let portfolioJs=document.getElementById('aqari-v208-portfolio-collections-js');
+    if(!portfolioJs){
+      portfolioJs=document.createElement('script');
       portfolioJs.id='aqari-v208-portfolio-collections-js';
       portfolioJs.src='/v208-portfolio-collections.js';
+      portfolioJs.dataset.v209LoaderBound='true';
+      portfolioJs.addEventListener('load', installV209GlobalSearch, { once:true });
       document.body.appendChild(portfolioJs);
+    }else if(document.querySelector('meta[name="aqari-portfolio-collections"]')){
+      installV209GlobalSearch();
+    }else if(portfolioJs.dataset.v209LoaderBound!=='true'){
+      portfolioJs.dataset.v209LoaderBound='true';
+      portfolioJs.addEventListener('load', installV209GlobalSearch, { once:true });
     }
   }
 
@@ -150,7 +177,7 @@
     if(!document.getElementById('aqari-v205-simplified-shell-js')){
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
-      shell.src = '/v205-simplified-shell.js';
+      shell.src = '/v205-simplified-shell.js?v=209.1';
       shell.addEventListener('load', installV206RentLedger, { once:true });
       document.body.appendChild(shell);
     }else{

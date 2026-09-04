@@ -144,6 +144,7 @@
     document.body.appendChild(panel);
     const input=document.getElementById('v199SearchInput');
     input?.addEventListener('input',function(){
+      if(window.AQARI_V209?.version)return;
       const original=document.getElementById('search');
       if(original)original.value=this.value;
       if(typeof window.aqariV168Search==='function')window.aqariV168Search(this.value);

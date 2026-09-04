@@ -19,6 +19,8 @@
   function sealData(){
     window.AQARI_V201?.seal?.();
     window.AQARI_V202?.seal?.();
+    window.AQARI_V208?.seal?.();
+    window.AQARI_V209?.seal?.();
     if(typeof window.sealWorkspaceDbV198 === 'function') window.sealWorkspaceDbV198();
     else{
       window.closeWorkspaceIndexedDbV206?.();
@@ -157,6 +159,8 @@
     document.documentElement?.classList.add('aqari-auth-unlocked');
     byId('aqariCloudGateV168')?.classList.remove('on');
     updateUI();
+    try{window.AQARI_V208?.resume?.(nextContext)}catch(_){window.AQARI_V208?.seal?.()}
+    try{window.AQARI_V209?.resume?.(nextContext)}catch(_){window.AQARI_V209?.seal?.()}
   }
 
   async function loadProfile(expectedContext){
@@ -173,9 +177,9 @@
     return data || null;
   }
 
-  async function loadContextCandidate(){
+  async function loadContextCandidate(expectedAccess){
     if(!window.AQARI_SUPABASE) throw new Error('Supabase adapter unavailable');
-    const next = await window.AQARI_SUPABASE.refreshContext();
+    const next = await window.AQARI_SUPABASE.refreshContext(expectedAccess);
     if(!next.user) return null;
     if(!accessIdentity(next)){
       await window.AQARI_SUPABASE.signOut().catch(() => {});
@@ -543,7 +547,7 @@
     const generation = authGeneration;
     const currentIdentity = accessIdentity(context);
     try{
-      const candidate = await loadContextCandidate();
+      const candidate = await loadContextCandidate(currentIdentity);
       if(generation !== authGeneration) return;
       if(!candidate || !sameIdentity(currentIdentity, accessIdentity(candidate))){
         showGate('تم تغيير صلاحية الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');

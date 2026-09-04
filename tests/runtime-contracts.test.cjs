@@ -204,10 +204,11 @@ test('V205 simplified shell preserves every secure V204 property workflow', () =
 
   assert.match(loader, /function installV205SimplifiedShell\s*\(/);
   assert.match(loader, /simple\.href = '\/v205-simple\.css'/);
-  assert.match(loader, /shell\.src = '\/v205-simplified-shell\.js'/);
+  assert.match(loader, /shell\.src = '\/v205-simplified-shell\.js\?v=209\.1'/);
   assert.match(loader, /propertyOS\.addEventListener\('load', installV205SimplifiedShell/);
 
   assert.match(shell, /V205-preview/);
+  assert.match(shell, /AQARI_V209\?\.open/);
   assert.match(shell, /root\.id='v205SimpleHome'/);
   assert.match(shell, /id="v205PrimarySections"/);
   assert.match(shell, /id="v205DailyActions"/);

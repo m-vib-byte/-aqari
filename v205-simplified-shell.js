@@ -251,6 +251,7 @@
   }
 
   function openSearch(){
+    if(typeof window.AQARI_V209?.open==='function')return window.AQARI_V209.open();
     const trigger=document.querySelector('#aqariV199Topbar [data-v199-action="search"]');
     if(trigger instanceof HTMLElement)trigger.click();
   }
