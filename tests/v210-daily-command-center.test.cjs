@@ -1,6 +1,7 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const vm=require('node:vm');
 
 const js=fs.readFileSync('v210-daily-command-center.js','utf8');
 const css=fs.readFileSync('v210-daily-command-center.css','utf8');
@@ -37,6 +38,35 @@ test('V210 exposes the six daily execution indicators',()=>{
   for(const label of ['المستحق','المحصّل','متأخرون','بانتظار المراجعة','مستندات جاهزة','مهام حرجة'])assert.ok(js.includes(label),label);
 });
 
+test('V210 aggregate calculates daily KPIs and priorities deterministically',()=>{
+  const body={classList:{add(){}},prepend(){}};
+  const document={readyState:'complete',body,head:{appendChild(){}},addEventListener(){},getElementById(){return null},querySelector(){return null},createElement(){return {}}};
+  const context={window:{},document,MutationObserver:class{observe(){}},setTimeout(){return 1},clearTimeout(){},Intl,Date,Number,String,Array,Object,Math,JSON,Set,console};
+  context.window=context.window;
+  vm.runInNewContext(js,context);
+  const aggregate=context.window.AQARI_V210.testing.aggregate;
+  const result=aggregate([
+    {name:'برج أ',valid:true,due:1000,collected:600,balance:400,units:2,pending:50,canRecordPayment:true,records:[
+      {billable:true,balance:400,pending:0,paymentStatus:'مستحق',hasContract:true,receiptNo:''},
+      {billable:true,balance:0,pending:50,paymentStatus:'قيد المراجعة',hasContract:false,receiptNo:'R-1'}
+    ]},
+    {name:'برج ب',valid:true,due:500,collected:500,balance:0,units:1,pending:0,canRecordPayment:true,records:[
+      {billable:true,balance:0,pending:0,paymentStatus:'مسدد',hasContract:true,receiptNo:''}
+    ]},
+    {name:'غير صالح',valid:false,due:9999,collected:9999,balance:9999,units:0,records:[]}
+  ]);
+  assert.equal(result.properties,2);
+  assert.equal(result.due,1500);
+  assert.equal(result.collected,1100);
+  assert.equal(result.balance,400);
+  assert.equal(result.dueProperties,1);
+  assert.equal(result.lateTenants,1);
+  assert.equal(result.pendingApprovals,1);
+  assert.equal(result.readyDocuments,3);
+  assert.equal(result.priorities.length,1);
+  assert.equal(result.priorities[0].name,'برج أ');
+});
+
 test('V210 avoids indexing or rendering tenant identity',()=>{
   assert.doesNotMatch(js,/civilId|phone|email/);
   assert.doesNotMatch(js,/record\?\.tenant/);
@@ -56,7 +86,7 @@ test('V210 period is strict and propagated to the collection board',()=>{
 test('V210 CSS is fully scoped and print-isolated',()=>{
   const rules=css.split('\n').map(line=>line.trim()).filter(line=>line&&!line.startsWith('/*')&&!line.startsWith('@'));
   assert.ok(rules.length>15);
-  assert.ok(rules.every(line=>line.startsWith('#v210DailyCommandCenter')||line.startsWith('.v210-')));
+  assert.ok(rules.every(line=>line.startsWith('#v210DailyCommandCenter')));
   assert.match(css,/@media print\{#v210DailyCommandCenter\{display:none!important\}\}/);
 });
 

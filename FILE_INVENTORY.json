@@ -383,8 +383,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "size": 3405,
-      "sha256": "5e54e591e553530ba9fe43bb267cae6e393935059bc726568cc327f0b0e5cdc1"
+      "size": 5125,
+      "sha256": "a4c61a7ec30daf67d3a6dd5db7dd389e3153157b4accc1ce5aba1a7f91f622b1"
     },
     {
       "path": "v199-ui.css",
@@ -468,8 +468,8 @@
     },
     {
       "path": "v210-daily-command-center.css",
-      "size": 6044,
-      "sha256": "88835d2cb400916b43d5565941af8b60c6863f8cc23ed881bbf4c0b3af02e4b1"
+      "size": 6164,
+      "sha256": "3b5f892f49b2b63d8c77c94fce03c11843d51d8626c4dda515303ceec481a09c"
     },
     {
       "path": "v210-daily-command-center.js",

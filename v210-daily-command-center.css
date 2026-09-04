@@ -16,7 +16,7 @@
 #v210DailyCommandCenter .v210-kpis span{font-size:12px;color:var(--v210-muted);font-weight:700}
 #v210DailyCommandCenter .v210-kpis strong{font-size:22px;line-height:1.25;margin:5px 0;color:inherit}
 #v210DailyCommandCenter .v210-kpis small{font-size:11px;color:var(--v210-muted);line-height:1.45}
-#v210DailyCommandCenter .v210-kpis .is-gold{background:#fff8e9;border-color:#ead5aa}.v210-kpis .is-green strong{color:#267457}#v210DailyCommandCenter .v210-kpis .is-red strong{color:#a43c36}#v210DailyCommandCenter .v210-kpis .is-amber strong{color:#a26717}
+#v210DailyCommandCenter .v210-kpis .is-gold{background:#fff8e9;border-color:#ead5aa}#v210DailyCommandCenter .v210-kpis .is-green strong{color:#267457}#v210DailyCommandCenter .v210-kpis .is-red strong{color:#a43c36}#v210DailyCommandCenter .v210-kpis .is-amber strong{color:#a26717}
 #v210DailyCommandCenter .v210-kpis .is-dark{background:#241e16;border-color:#241e16;color:#fff}#v210DailyCommandCenter .v210-kpis .is-dark span,#v210DailyCommandCenter .v210-kpis .is-dark small{color:#ded1bd}
 #v210DailyCommandCenter .v210-body{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,1fr);gap:14px;margin-top:14px}
 #v210DailyCommandCenter .v210-priorities,#v210DailyCommandCenter .v210-actions{border:1px solid var(--v210-line);border-radius:18px;padding:16px;background:#fff}
@@ -26,13 +26,13 @@
 #v210DailyCommandCenter .v210-priority{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) 24px;align-items:center;gap:10px;text-align:right;border:0;border-top:1px solid #f0e8dd;background:#fff;color:var(--v210-ink);padding:12px 4px;min-height:64px}
 #v210DailyCommandCenter .v210-priority:hover,#v210DailyCommandCenter .v210-priority:focus-visible{background:#fffaf1}
 #v210DailyCommandCenter .v210-priority>b{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#f8ecd4;color:#8c641f}
-#v210DailyCommandCenter .v210-priority span{min-width:0}.v210-priority strong,.v210-priority small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#v210DailyCommandCenter .v210-priority small{color:var(--v210-muted);margin-top:4px}
+#v210DailyCommandCenter .v210-priority span{min-width:0}#v210DailyCommandCenter .v210-priority strong,#v210DailyCommandCenter .v210-priority small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#v210DailyCommandCenter .v210-priority small{color:var(--v210-muted);margin-top:4px}
 #v210DailyCommandCenter .v210-priority i{font-style:normal;color:var(--v210-gold);font-size:20px}
-#v210DailyCommandCenter .v210-clear{display:grid;gap:5px;place-items:center;min-height:150px;text-align:center;color:#267457}.v210-clear span{color:var(--v210-muted);font-size:13px}
+#v210DailyCommandCenter .v210-clear{display:grid;gap:5px;place-items:center;min-height:150px;text-align:center;color:#267457}#v210DailyCommandCenter .v210-clear span{color:var(--v210-muted);font-size:13px}
 #v210DailyCommandCenter .v210-actions{display:grid;gap:8px;align-content:start;background:#fffaf1}
 #v210DailyCommandCenter .v210-actions button{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:right;border:1px solid #eadfcf;border-radius:13px;background:#fff;color:var(--v210-ink);padding:11px 12px;min-height:55px}
 #v210DailyCommandCenter .v210-actions button:hover,#v210DailyCommandCenter .v210-actions button:focus-visible{border-color:var(--v210-gold);box-shadow:0 8px 20px rgba(123,86,25,.08)}
-#v210DailyCommandCenter .v210-actions strong,#v210DailyCommandCenter .v210-actions small{display:block}.v210-actions small{color:var(--v210-muted);font-size:11px}
+#v210DailyCommandCenter .v210-actions strong,#v210DailyCommandCenter .v210-actions small{display:block}#v210DailyCommandCenter .v210-actions small{color:var(--v210-muted);font-size:11px}
 @media(max-width:1100px){#v210DailyCommandCenter .v210-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){#v210DailyCommandCenter{margin:12px 0;padding:14px;border-radius:18px}#v210DailyCommandCenter .v210-head{display:grid}#v210DailyCommandCenter .v210-head label{width:100%}#v210DailyCommandCenter .v210-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#v210DailyCommandCenter .v210-kpis>*{min-height:102px;padding:12px}#v210DailyCommandCenter .v210-kpis strong{font-size:18px}#v210DailyCommandCenter .v210-body{grid-template-columns:1fr}}
 @media(max-width:390px){#v210DailyCommandCenter .v210-kpis{grid-template-columns:1fr 1fr;gap:8px}#v210DailyCommandCenter .v210-kpis>*{min-width:0}#v210DailyCommandCenter .v210-head p{font-size:13px}}
