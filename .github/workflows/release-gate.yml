@@ -42,7 +42,9 @@ jobs:
           node --check v205-simplified-shell.js
           node --check v209-global-search.js
           node --check v210-daily-command-center.js
+          node --check v211-follow-up-cloud.js
           node --check v211-follow-up-center.js
+          node --check v211-follow-up-center-core.js
           node --check lib/read-only.js
       - name: Verify release marker
         run: |
@@ -66,5 +68,9 @@ jobs:
           grep -q "AQARI V206" v206-integrated-ledger.css
           grep -q "V210-daily-command-center" v210-daily-command-center.js
           grep -q "aqari-v210-daily-command-center-js" final-release-ui.js
-          grep -q "V211-follow-up-center" v211-follow-up-center.js
+          grep -q "V211.1-follow-up-cloud" v211-follow-up-center.js
+          grep -q "V211.1-follow-up-cloud-contract" v211-follow-up-cloud.js
           grep -q "aqari-v211-follow-up-center-js" final-release-ui.js
+          grep -q "aqari_access_audit_id_seq" supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql
+          grep -q "security invoker" supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql
+          ! grep -Eq "p_property|p_tenant|p_email|p_phone|p_civil" supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql

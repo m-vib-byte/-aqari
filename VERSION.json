@@ -1,8 +1,8 @@
 {
   "name": "AQARI",
   "version": "V198",
-  "design_version": "V210-daily-command-center",
-  "design_stage": "secure-daily-execution-command-center",
+  "design_version": "V211.1-follow-up-cloud",
+  "design_stage": "secure-opaque-follow-up-audit-contract",
   "stage": "release-freeze",
   "index_sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244",
   "syntax_checks": 80,
@@ -58,8 +58,8 @@
   "supabase_live_verified": true,
   "preview_deployed": false,
   "preview_e2e_executed": false,
-  "first_migration_executed": false,
+  "first_migration_executed": true,
   "production_deployed": false,
-  "product_version": "V210",
-  "release_identity_note": "V198 remains the compatibility runtime/API contract; V210 is the active product surface."
+  "product_version": "V211.1",
+  "release_identity_note": "V198 remains the compatibility runtime/API contract; V211.1 is the active product surface candidate with its production RPC migration installed."
 }

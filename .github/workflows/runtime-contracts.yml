@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: V211 release inventory diagnostics
+      - name: V211.1 release inventory diagnostics
         shell: bash
         run: |
           set -euo pipefail
@@ -44,8 +44,13 @@ jobs:
             'v210-daily-command-center.css'
             'v210-daily-command-center.js'
             'tests/v211-follow-up-center.test.cjs'
+            'tests/v211-follow-up-cloud.test.cjs'
+            'tests/v211-follow-up-cloud-integration.test.cjs'
+            'supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql'
+            'v211-follow-up-cloud.js'
             'v211-follow-up-center.css'
             'v211-follow-up-center.js'
+            'v211-follow-up-center-core.js'
           )
           echo 'AQARI_V211_INVENTORY_BEGIN'
           for file in "${files[@]}"; do
@@ -55,4 +60,4 @@ jobs:
             printf '%s|%s|%s\n' "$file" "$bytes" "$hash"
           done
           echo 'AQARI_V211_INVENTORY_END'
-      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs
+      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs

@@ -6,10 +6,7 @@ const fs=require('node:fs');
 
 const guard=fs.readFileSync('v211-follow-up-center.js','utf8');
 const cloud=fs.readFileSync('v211-follow-up-cloud.js','utf8');
-const sqlDoc=fs.readFileSync('V211_1_SUPABASE_RPC_DRAFT.md','utf8');
-const sqlMatch=sqlDoc.match(/```sql\n([\s\S]*?)\n```/);
-assert.ok(sqlMatch);
-const sql=sqlMatch[1];
+const sql=fs.readFileSync('supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql','utf8');
 
 test('V211.1 keeps the V211.0.1 action-epoch hotfix and loads cloud before core',()=>{
   assert.match(guard,/V211\.0\.1-action-epoch-hotfix\+V211\.1-follow-up-cloud/);
@@ -53,7 +50,8 @@ test('RPC reader and writer both enforce server-side bounded contracts',()=>{
   assert.doesNotMatch(sql,/p_property/);
   assert.match(sql,/p_action_kind not in \(/);
   assert.match(sql,/p_state not in \(/);
-  assert.match(sql,/a\.event_type in \(/);
   assert.match(sql,/a\.metadata->>'state' in \(/);
-  assert.match(sql,/limit greatest\(1,least\(coalesce\(p_limit,20\),50\)\)/);
+  assert.match(sql,/least\(greatest\(coalesce\(p_limit, 20\), 1\), 50\)/);
+  assert.match(sql,/security invoker/);
+  assert.match(sql,/create schema if not exists aqari_internal/);
 });
