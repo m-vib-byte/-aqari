@@ -96,7 +96,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
 });
 
 await check('V209 signed-out search stays sealed and fits the iPhone viewport', async () => {
-  await page.evaluate(() => document.querySelector('[data-v199-action="search"]')?.click());
+  await page.evaluate(() => document.querySelector('#v205SimpleHome [data-v205-command="search"]')?.click());
   await page.waitForTimeout(180);
   const state=await page.evaluate(() => {
     const panel=document.getElementById('v199SearchPanel');

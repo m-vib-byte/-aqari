@@ -64,6 +64,7 @@ test('V209 upgrades the existing search surface without bypassing V206.3 securit
   assert.match(search,/data-v209-action="payment"/);
   assert.match(search,/event\.key\.toLowerCase\(\)==='k'/);
   assert.match(search,/event\.key==='\/'/);
+  assert.match(search,/\[data-v205-command="search"\]/);
   assert.match(search,/meta\[name="aqari-global-search"\]/);
   assert.match(search,/window\.AQARI_V209=Object\.freeze/);
   assert.match(search,/revision:REVISION/);

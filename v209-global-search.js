@@ -448,7 +448,9 @@
   });
 
   document.addEventListener('click',function(event){
-    const searchTrigger=event.target?.closest?.('[data-v199-action="search"]');
+    const legacySearchTrigger=event.target?.closest?.('[data-v199-action="search"]');
+    const commandSearchTrigger=event.target?.closest?.('[data-v205-command="search"]');
+    const searchTrigger=legacySearchTrigger||commandSearchTrigger;
     if(searchTrigger){
       const shouldOpen=!document.getElementById('v199SearchPanel')?.classList.contains('on');
       setTimeout(function(){setSearchExpanded(shouldOpen,searchTrigger)},0);
