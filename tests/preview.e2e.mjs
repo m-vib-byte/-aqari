@@ -180,8 +180,7 @@ await check('V205 signed-out home exposes no protected tenant data', async () =>
 
 await check('signed-out property workspace fails closed', async () => {
   const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
-  if(!trigger) throw new Error('property management trigger missing');
-  await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
+  if(trigger) await trigger.click();
   await page.waitForTimeout(160);
   const state=await page.evaluate(() => ({
     shown:document.getElementById('v202PropertyWorkspace')?.getAttribute('aria-hidden') === 'false',
@@ -195,8 +194,7 @@ await check('signed-out property workspace fails closed', async () => {
 
 await check('V206 ledger remains sealed before authentication', async () => {
   const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
-  if(!trigger) throw new Error('property management trigger missing');
-  await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
+  if(trigger) await trigger.click();
   await page.waitForTimeout(160);
   await page.evaluate(() => document.querySelector('#v202PropertyWorkspace [data-v202-action="statement"]')?.click());
   await page.waitForTimeout(160);

@@ -138,8 +138,8 @@
     },
     {
       "path": "first-run-migration.js",
-      "size": 5418,
-      "sha256": "58b07c68694f0d1dead040138111e46eef551ebe7f41a9764bf7e95bf764823d"
+      "size": 5988,
+      "sha256": "b51f76b7b0290862b4fc5b0cc6a4d7010a7d86611c5dd999d52ad7e0d5a6d7d1"
     },
     {
       "path": "index.html",
@@ -338,8 +338,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 19762,
-      "sha256": "9162b3bb6f46c85ef3a47b3ec25725384cb85a284c6786c6c7e71e8ca60d9ed3"
+      "size": 19482,
+      "sha256": "06a4ae9cedc5e36398fc99349a7d6b9e2b34f52d15d40e792e6aaf4dd0983bb3"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",

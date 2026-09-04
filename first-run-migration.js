@@ -10,8 +10,12 @@
 
   function countLocalKeys(){
     if(!window.AQARI_CLOUD_SYNC) return 0;
-    const snap = window.AQARI_CLOUD_SYNC.collectLocalSnapshot();
-    return Object.keys(snap.values || {}).length;
+    try{
+      const snap = window.AQARI_CLOUD_SYNC.collectLocalSnapshot();
+      return Object.keys(snap.values || {}).length;
+    }catch{
+      return 0;
+    }
   }
 
   async function getCloudInfo(){
@@ -28,8 +32,18 @@
     if(!window.AQARI_SUPABASE) return { signedIn:false };
     try{
       const ctx = await window.AQARI_SUPABASE.refreshContext();
+      const userId = String(ctx.user?.id || '').trim();
+      const workspaceId = String(ctx.workspace?.id || '').trim();
+      const scope = window.AQARI_DATA_GATE?.scope;
       return {
         signedIn:Boolean(ctx.user),
+        dataReady:Boolean(
+          userId && workspaceId &&
+          ctx.membership?.is_active === true &&
+          String(ctx.membership.user_id || '') === userId &&
+          String(ctx.membership.workspace_id || '') === workspaceId &&
+          scope?.userId === userId && scope?.workspaceId === workspaceId
+        ),
         role:ctx.membership?.role || null,
         workspace:ctx.workspace?.name || null
       };
@@ -72,9 +86,9 @@
       status.textContent = 'جاري فحص الحالة...';
       result.textContent = '';
 
-      const localKeys = countLocalKeys();
       const auth = await getAuthInfo();
-      const cloud = auth.signedIn ? await getCloudInfo() : null;
+      const localKeys = auth.dataReady ? countLocalKeys() : 0;
+      const cloud = auth.dataReady ? await getCloudInfo() : null;
 
       const cloudEmpty =
         !cloud ||
@@ -88,8 +102,8 @@
         `Cloud revision: ${cloud?.revision ?? '—'} | ` +
         `السحابة: ${cloudEmpty ? 'فارغة/جاهزة للنقل' : 'تحتوي بيانات'}`;
 
-      uploadBtn.disabled = !(auth.signedIn && localKeys > 0);
-      previewBtn.disabled = !auth.signedIn;
+      uploadBtn.disabled = !(auth.dataReady && localKeys > 0);
+      previewBtn.disabled = !auth.dataReady;
     }
 
     refreshBtn.addEventListener('click', refresh);
