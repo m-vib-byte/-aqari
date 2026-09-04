@@ -348,8 +348,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 133866,
-      "sha256": "eba8183ad6e838a1a712a1fb1d722e6ae53ed1c723102f28a798f8decc0f3424"
+      "size": 139340,
+      "sha256": "e3ad1581639b81ee63b043b0d425b91f7be4160cc5912e89f605051b91acee26"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -393,8 +393,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 214196,
-      "sha256": "7417ad7e9a68425cc24cad49ffd5d716756b9fbecf6ac79ffdc069a1538f1f12"
+      "size": 215515,
+      "sha256": "48a1ea722e0ff84c136871995ad38a391e53701407e33754ac674bae00740ea7"
     },
     {
       "path": "v205-simple.css",

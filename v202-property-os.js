@@ -1232,11 +1232,13 @@
     const settledCollections=propertyCollections.filter(collectionFinanciallySettled);
     const expenseTotal=expenses.reduce(function(total,row){return total+numberFrom(row?.[2])},0);
     const official=officialStatementFor(name,period);
+    const periodSettledCollections=settledCollections.filter(function(row){return String(row?.[8]||'')===period});
+    const detailCollected=exactMoneySum((official?periodSettledCollections:settledCollections).map(function(row){return row?.[2]}),strictCollectionMoney);
     const collected=official&&hasField(official,'totalCollected')?
       strictMoney(official.totalCollected):
-      exactMoneySum(settledCollections.map(function(row){return row?.[2]}),strictCollectionMoney);
-    const due=official&&hasField(official,'totalRent')?
-      exactMoneyDifference(official.totalRent,hasField(official,'totalCollected')?official.totalCollected:0):
+      detailCollected;
+    const due=official?
+      exactMoneyDifference(hasField(official,'totalRent')?official.totalRent:exactMoneySum(activeContracts.map(contractRent)),collected):
       exactMoneySum(activeContracts.map(function(contract){return remainingForPeriod(name,contract,period)}));
     const openMaintenance=maintenance.filter(function(row){
       const status=normalized(row?.[3]);
@@ -1402,7 +1404,7 @@
       const billable=Boolean(statementItem)||Boolean(contract&&statementIncludesContract(contract,period));
       const balance=exactMoneyDifference(due,paid);
       const receipts=settledLedger.filter(function(entry){return validRecordedDate(entry?.paidAt)}).map(ledgerReference).filter(Boolean);
-      const paymentDates=settledLedger.filter(function(entry){return validRecordedDate(entry?.paidAt)}).map(function(entry){return String(entry.paidAt).trim()}).sort().reverse();
+      const paymentDates=settledLedger.filter(function(entry){return validRecordedDate(entry?.paidAt)}).map(function(entry){return String(entry.paidAt).trim()}).sort(function(left,right){return ledgerPaymentDateKey(right)-ledgerPaymentDateKey(left)});
       const methods=Array.from(new Set(settledLedger.map(function(entry){return String(entry?.method||'').trim()}).filter(Boolean)));
       const knetTransactions=Array.from(new Set(settledLedger.map(ledgerTransactionNo).filter(Boolean)));
       const paymentNotes=Array.from(new Set(ledger.map(function(entry){return String(entry?.note||'').trim()}).filter(Boolean)));
@@ -1424,7 +1426,7 @@
         advance:directoryRecord.advance,advanceDateRaw:String(directoryRecord.advanceDateRaw||''),
         cleaningFee:directoryRecord.cleaningFee,freeMonth:String(directoryRecord.freeMonth||''),
         evictionNotice:String(directoryRecord.evictionNotice||''),notes:String(directoryRecord.notes||''),paymentNotes,knetTransactions,
-        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory),
+        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory),billable,
         contractRentRecorded:Boolean(contract?._contractRentRecorded),
         currentRentRecorded:Boolean((directoryRecord.currentRent!=null&&String(directoryRecord.currentRent).trim()!=='')||contract?._rentRecorded),
         insuranceRecorded:Boolean(directoryRecord.insurance!=null&&String(directoryRecord.insurance).trim()!==''),
@@ -1496,7 +1498,7 @@
           unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+unitField('ملاحظات',notes)+
           '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked">'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
         '</dl></details>'+ 
-        '<footer class="aq-unit-actions"><button type="button" class="is-primary" data-v202-unit-statement="'+index+'">كشف المستأجر / Tenant Statement</button>'+(record.hasContract?'<button type="button" data-v202-unit-contract="'+index+'">'+(record.verified?'عقد الإيجار / Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(hasRentReceipt?'<button type="button" data-v202-unit-receipt="'+index+'">وصل الإيجار / Receipt</button>':'')+(canWrite?'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>':'')+'</footer>'+ 
+        '<footer class="aq-unit-actions"><button type="button" class="is-primary" data-v202-unit-statement="'+index+'">كشف المستأجر / Tenant Statement</button>'+(record.hasContract?'<button type="button" data-v202-unit-contract="'+index+'">'+(record.verified?'عقد الإيجار / Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(hasRentReceipt?'<button type="button" data-v202-unit-receipt="'+index+'">وصل الإيجار / Receipt</button>':'')+(canWrite&&record.billable?'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>':'')+'</footer>'+ 
       '</article>';
     }).join('');
     return '<section class="aq-unit-directory" aria-labelledby="aqUnitDirectoryTitle">'+
@@ -1512,7 +1514,16 @@
     '</section>';
   }
 
-  function statusLabel(value){return STATUS_LABELS[value]||value||'غير محدد'}
+  function statusLabel(value){
+    const status=normalizedScalar(value);
+    if(['partial','partially paid','part paid','جزئي','جزئيا','جزئيًا','مدفوع جزئي','مدفوع جزئيا','مدفوع جزئيًا'].includes(status))return 'جزئي';
+    if(['paid','مدفوع'].includes(status))return 'مدفوع';
+    if(['settled','مسدد'].includes(status))return 'مسدد';
+    if(['received','مستلم'].includes(status))return 'مستلم';
+    if(pendingPayment(status))return 'قيد المراجعة';
+    const contractState=contractStatus(status);
+    return STATUS_LABELS[contractState]||scalarText(value)||'غير محدد';
+  }
 
   function healthFor(context){
     if(!context.activeContracts.length)return {tone:'link',label:'يحتاج ربط عقد',detail:'ابدأ بعقد لربط المستأجر والتحصيل بالعقار'};
@@ -1583,8 +1594,12 @@
     const canWrite=rentWriteAllowed()&&!protectedOnly;
     if(!context.propertyCollections.length)return !canWrite?emptyState('لا توجد عمليات تحصيل مرتبطة','لا توجد دفعات مرتبطة بهذا العقار حالياً.','',''):emptyState('لا توجد عمليات تحصيل مرتبطة','سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.','payment','تسجيل إيجار');
     return '<div class="v202-ledger" role="region" aria-label="تحصيلات العقار"><table><thead><tr><th>الإيصال</th><th>المستأجر</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+context.propertyCollections.map(function(row,index){
-      const action=collectionReceiptEligible(row)&&validRecordedDate(row?.[5])?'<button type="button" data-v202-receipt-index="'+index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+(collectionFinanciallySettled(row)?'يحتاج تصحيح التاريخ / Date review required':'بانتظار الاعتماد / Pending approval')+'</span>';
-      return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(row?.[3]||'—')+'</span></td><td data-label="التاريخ">'+localDate(row?.[5])+'</td><td data-label="إجراء">'+action+'</td></tr>';
+      const validPaymentDate=validRecordedDate(row?.[5]);
+      const resolvedReceipt=validPaymentDate?resolvedTenantReceipt(row):null;
+      const reviewCopy=collectionFinanciallySettled(row)?(validPaymentDate?'يحتاج مراجعة الوصل / Receipt review required':'يحتاج تصحيح التاريخ / Date review required'):'بانتظار الاعتماد / Pending approval';
+      const action=resolvedReceipt?'<button type="button" data-v202-receipt-index="'+index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+reviewCopy+'</span>';
+      const shownDate=validPaymentDate?localDate(row?.[5]):escapeHtml(row?.[5]||'غير مؤرخ');
+      return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(statusLabel(row?.[3]))+'</span></td><td data-label="التاريخ">'+shownDate+'</td><td data-label="إجراء">'+action+'</td></tr>';
     }).join('')+'</tbody></table></div>'+(canWrite?'<div class="v202-panel-footer"><button type="button" data-v202-action="payment">تسجيل إيجار '+icon('arrow')+'</button></div>':'');
   }
 
@@ -1801,7 +1816,7 @@
     const context=contextFor(activeProperty);
     const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
     const record=records[Number(button?.getAttribute('data-v202-unit-payment'))];
-    return Boolean(record&&openPayment(button,record?.contractId||''));
+    return Boolean(record?.billable&&openPayment(button,record.contractId||''));
   }
 
   function tenantStatementRecord(context,period){
@@ -1870,7 +1885,7 @@
       if(entryContract)return entryContract===contractKey;
       if(typeof entry?.paymentKey==='string'&&entry.paymentKey.trim())return true;
       return legacyContracts.length===1&&normalizedIdentity(contractId(legacyContracts[0]))===contractKey;
-    }).sort(function(left,right){return String(left?.paidAt||'').localeCompare(String(right?.paidAt||''))});
+    }).sort(function(left,right){return ledgerPaymentDateKey(left?.paidAt)-ledgerPaymentDateKey(right?.paidAt)});
   }
 
   function resolvedReceiptForRecord(context,record,entry,period){
@@ -2280,6 +2295,7 @@
     const raw=String(value||'').trim();
     if(!raw)return 'غير مسجل / Not recorded';
     const iso=/^\d{4}-\d{2}-\d{2}$/.test(raw);
+    if(iso&&!validRecordedDate(raw))return raw;
     const date=iso?new Date(raw+'T12:00:00'):null;
     if(!date||Number.isNaN(date.getTime()))return raw;
     try{return date.toLocaleDateString('ar-KW',{year:'numeric',month:'2-digit',day:'2-digit'})+' / '+date.toLocaleDateString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit'})}
@@ -2594,7 +2610,7 @@
         property:String(context.property?.[0]||''),period:selectedPeriod,
         unit:String(item.unit||record?.unit||'—'),tenant:String(item.tenant||record?.tenant||'—'),
         contractNo:String(record?.contractNo||contract?.contract_no||''),contractId:String(item.contractId||''),
-        recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),verified:Boolean(record?.verified),
+        recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),verified:Boolean(record?.verified),billable:Boolean(record?.billable),
         contractRent:contractRentValue,currentRent:currentRentValue,
         insurance:ledgerRecordedAmount(record?.insurance),advance:ledgerRecordedAmount(record?.advance),cleaningFee:ledgerRecordedAmount(record?.cleaningFee),
         paymentDate:String(latest&&validRecordedDate(latest?.paidAt)?latest.paidAt:''),paymentMethod:String(latest?.method||''),
@@ -2922,7 +2938,7 @@
       const email=emailAddresses(row.email)[0]||'';
       return Object.freeze({
         key:String(row.recordKey||''),unit:String(row.unit||'—'),tenant:String(row.tenant||'—'),
-        contractNo:String(row.contractNo||''),contractId:String(row.contractId||''),hasContract:Boolean(row.hasContract),
+        contractNo:String(row.contractNo||''),contractId:String(row.contractId||''),hasContract:Boolean(row.hasContract),billable:Boolean(row.billable),
         contractRent:row.contractRent,currentRent:row.currentRent,rent:numberFrom(row.due),
         insurance:row.insurance,advance:row.advance,cleaningFee:row.cleaningFee,
         paid:numberFrom(row.paid),pending:numberFrom(row.pending),balance:numberFrom(row.balance),paymentStatus:String(row.paymentStatus||''),
@@ -2968,7 +2984,7 @@
       return openTenantReceipt(trigger,safeRow.receiptReference,selectedPeriod);
     }
     if(requested==='payment'){
-      if(rentWriteAllowed()&&!protectedPropertyActive(property)){
+      if(record.billable&&rentWriteAllowed()&&!protectedPropertyActive(property)){
         closeDocument();
         return Boolean(openPayment(null,record.contractId||''));
       }

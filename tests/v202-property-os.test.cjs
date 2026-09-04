@@ -52,6 +52,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       tenantLedgerEntries: typeof tenantLedgerEntries === 'function' ? tenantLedgerEntries : null,
       openStatementDocument: typeof openStatementDocument === 'function' ? openStatementDocument : null,
       openUnitReceipt: typeof openUnitReceipt === 'function' ? openUnitReceipt : null,
+      openUnitPayment: typeof openUnitPayment === 'function' ? openUnitPayment : null,
       openTenantReceipt: typeof openTenantReceipt === 'function' ? openTenantReceipt : null,
       openReceiptDocument: typeof openReceiptDocument === 'function' ? openReceiptDocument : null,
       resolvedTenantReceipt: typeof resolvedTenantReceipt === 'function' ? resolvedTenantReceipt : null,
@@ -626,6 +627,11 @@ test('V206.1 counts an identical synchronized payment row only once', () => {
   const records = runtime.unitDirectoryRecords(context, '2026-08');
   const recordIndex = records.findIndex((entry) => entry.contractId === 'contract-a');
   assert.doesNotMatch(runtime.unitsPanel(context, '2026-08', true), new RegExp(`data-v202-unit-receipt="${recordIndex}"`));
+  const collectionRows = runtime.collectionsPanel(context).match(/<tr>[\s\S]*?<\/tr>/g) || [];
+  const duplicateReceiptRow = collectionRows.find((row) => row.includes('R-A-PAID')) || '';
+  assert.ok(duplicateReceiptRow);
+  assert.doesNotMatch(duplicateReceiptRow, /data-v202-receipt-index=/);
+  assert.match(duplicateReceiptRow, /Receipt review required/);
   assert.equal(runtime.resolvedTenantReceipt([
     'R-A-PAID', 'TEST TENANT', 40, 'paid', 'SYNTHETIC TEST PROPERTY',
     '2026-08-12', 'A', '', '2026-08', 'KNET',
@@ -2115,6 +2121,10 @@ test('V206.1 keeps undated settlements financial but marks them for review and f
   assert.equal(context.collected, 60, 'financial reconciliation retains the imported amount while legal receipt issuance is blocked');
   assert.equal(runtime.collectionFinanciallySettled(collectionRow), true);
   assert.equal(runtime.collectionReceiptEligible(collectionRow), false);
+  const collectionsHtml = runtime.collectionsPanel(context);
+  assert.match(collectionsHtml, /2026-02-31/);
+  assert.match(collectionsHtml, /Date review required/);
+  assert.doesNotMatch(collectionsHtml, /(?:3|٣)\s+مارس|March\s+3/i);
   assert.equal(runtime.tenantReceiptDocument(context, record, ledgerEntry, '2026-08'), '');
   assert.equal(runtime.validRecordedDate('2026-02-31'), false);
   assert.equal(runtime.validRecordedDate('٣١/٠٢/٢٠٢٦'), false);
@@ -2573,4 +2583,102 @@ test('V206.3 latest official period skips malformed and duplicate newer statemen
   const runtime = loadRuntime(data);
   assert.equal(runtime.officialStatementFor('SYNTHETIC TEST PROPERTY', '2026-09'), null);
   assert.equal(runtime.latestOfficialPeriod('SYNTHETIC TEST PROPERTY'), '2026-08');
+});
+
+test('V208.1 keeps partial official statements arithmetically consistent', () => {
+  const now = new Date();
+  const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const sourcePayment = fixture().rentLedgerV202.find((entry) => entry.id === 'ledger-paid-a');
+
+  for (const [statement, expected] of [
+    [{ totalRent: 1000 }, [40, 960]],
+    [{ totalCollected: 250 }, [250, 50]],
+  ]) {
+    const data = fixture();
+    data.rentLedgerV202 = [{
+      ...sourcePayment,
+      period,
+      paidAt: `${period}-01`,
+      paymentKey: `synthetic test property|contract:contract-a|unit:a|${period}`,
+    }];
+    data.rentStatementsV202 = [{
+      id: `partial-${Object.keys(statement)[0]}`,
+      property: 'SYNTHETIC TEST PROPERTY',
+      period,
+      ...statement,
+    }];
+    const runtime = loadRuntime(data);
+    const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+    const model = runtime.propertyRentLedgerModel(context, period);
+    assert.deepEqual([context.collected, context.due], expected);
+    assert.equal(context.due, model.totals.balance);
+  }
+});
+
+test('V208.1 never offers or executes payment for a non-billable unit card', () => {
+  const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
+  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const records = runtime.unitDirectoryRecords(context, '2026-08');
+  const draftIndex = records.findIndex((record) => record.contractId === 'contract-draft');
+  const expiredIndex = records.findIndex((record) => record.contractId === 'contract-expired');
+  const activeIndex = records.findIndex((record) => record.contractId === 'contract-a');
+  assert.equal(records[draftIndex].billable, false);
+  assert.equal(records[expiredIndex].billable, false);
+  assert.equal(records[activeIndex].billable, true);
+  const panel = runtime.unitsPanel(context, '2026-08', true);
+  assert.match(panel, new RegExp(`data-v202-unit-payment="${activeIndex}"`));
+  assert.doesNotMatch(panel, new RegExp(`data-v202-unit-payment="${draftIndex}"`));
+  assert.doesNotMatch(panel, new RegExp(`data-v202-unit-payment="${expiredIndex}"`));
+  assert.equal(runtime.openUnitPayment({ getAttribute: () => String(draftIndex) }), false);
+  assert.doesNotMatch(runtime.paymentDialogMarkup(context, 'contract-draft'), /value="contract-draft"\s+selected/);
+  assert.equal(runtime.secureRentOfficeAction(
+    'SYNTHETIC TEST PROPERTY', records[draftIndex].key, '2026-08', 'payment', null,
+  ), false);
+});
+
+test('V208.1 canonicalizes settled status labels in bilingual receipts', () => {
+  const runtime = loadRuntime(fixture());
+  for (const [status, expected] of [
+    ['Paid', 'مدفوع / Paid'],
+    ['partially paid', 'جزئي / Partially paid'],
+    ['مدفوع جزئي', 'جزئي / Partially paid'],
+    ['جزئيًا', 'جزئي / Partially paid'],
+    ['received', 'مستلم / Received'],
+  ]) {
+    assert.equal(runtime.settledPayment(status), true);
+    const html = runtime.receiptDocument([
+      `R-${status}`, 'TEST TENANT', 10, status, 'SYNTHETIC TEST PROPERTY',
+      '2026-08-20', 'A', 'Rent', '2026-08', 'Cash',
+    ]);
+    assert.ok(html.includes(expected), `${status} must render as ${expected}`);
+  }
+});
+
+test('V208.1 selects the latest valid payment across ISO and local date formats', () => {
+  const data = fixture();
+  data.rentLedgerV202.push(
+    {
+      id: 'ledger-local-older', receiptNo: 'R-LOCAL-OLDER', property: 'SYNTHETIC TEST PROPERTY',
+      unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08',
+      due: 100, paid: 5, paidAt: '29/08/2026', status: 'paid', source: 'synthetic-test-import',
+    },
+    {
+      id: 'ledger-iso-latest', receiptNo: 'R-ISO-LATEST', property: 'SYNTHETIC TEST PROPERTY',
+      unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08',
+      due: 100, paid: 6, paidAt: '2026-08-30', status: 'paid', source: 'synthetic-test-import',
+    },
+  );
+  const runtime = loadRuntime(data, [], activeRuntimeWindow());
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const record = runtime.unitDirectoryRecords(context, '2026-08')
+    .find((entry) => entry.contractId === 'contract-a');
+  const entries = runtime.tenantLedgerEntries(context, record, '2026-08');
+  const row = runtime.propertyRentLedgerRows(context, '2026-08')
+    .find((entry) => entry.contractId === 'contract-a');
+  assert.equal(record.paidAt, '2026-08-30');
+  assert.equal(entries.at(-1).receiptNo, 'R-ISO-LATEST');
+  assert.equal(row.paymentDate, '2026-08-30');
+  assert.equal(row.receiptReference, 'R-ISO-LATEST');
+  assert.match(runtime.tenantStatementDocument(context, record, '2026-08'), /data-v202-tenant-receipt="R-ISO-LATEST"/);
 });
