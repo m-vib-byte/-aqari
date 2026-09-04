@@ -348,8 +348,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 139340,
-      "sha256": "e3ad1581639b81ee63b043b0d425b91f7be4160cc5912e89f605051b91acee26"
+      "size": 140962,
+      "sha256": "68d0988df407a6f96ef5c473aacb4f0ce8a7592029845e9685eb86185448ef07"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -358,8 +358,8 @@
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
-      "size": 7899,
-      "sha256": "b89fcea94a0627b206347f5905f9a86d3c367540a795ac0d37c516acbc6d4648"
+      "size": 8310,
+      "sha256": "23f7bb44b22ef67abfb20b55b15b8105ba5b04d662517c4414d83ae4ce2c347f"
     },
     {
       "path": "v199-ui.css",
@@ -393,8 +393,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 215515,
-      "sha256": "48a1ea722e0ff84c136871995ad38a391e53701407e33754ac674bae00740ea7"
+      "size": 218178,
+      "sha256": "f02a286afc4f8485b092a6e9f7e2e65998109cf9acb242a97e3d310cff252e96"
     },
     {
       "path": "v205-simple.css",
@@ -428,8 +428,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "size": 17779,
-      "sha256": "1c7a6708d19e9dcc247fd00cf32d8580ab28090c1e1161a18dc27791f0999326"
+      "size": 17921,
+      "sha256": "edde9f8ddebed2f359594f6fa8eff9456a573f8542010c4adf168443b2e64f1f"
     },
     {
       "path": "vercel.json",

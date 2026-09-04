@@ -62,6 +62,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       validEmail: typeof validEmail === 'function' ? validEmail : null,
       tenantMailto: typeof tenantMailto === 'function' ? tenantMailto : null,
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
+      secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
@@ -2681,4 +2682,37 @@ test('V208.1 selects the latest valid payment across ISO and local date formats'
   assert.equal(row.paymentDate, '2026-08-30');
   assert.equal(row.receiptReference, 'R-ISO-LATEST');
   assert.match(runtime.tenantStatementDocument(context, record, '2026-08'), /data-v202-tenant-receipt="R-ISO-LATEST"/);
+});
+
+
+test('V208.1 rejects financially conflicting rows for the same explicit contract id', () => {
+  const data = fixture();
+  data.contractsV202.push({
+    ...data.contractsV202[0],
+    rent: 999,
+    contractRent: 999,
+  });
+  const runtime = loadRuntime(data);
+  assert.equal(runtime.contracts().some((contract) => contract.id === 'contract-a'), false);
+});
+
+test('V208.1 exposes authorized properties without DOM discovery', () => {
+  const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
+  assert.deepEqual(Array.from(runtime.secureRentOfficeProperties()), ['SYNTHETIC TEST PROPERTY']);
+});
+
+test('V208.1 filters collections and prefills payment by the selected portfolio month', () => {
+  const data = fixture();
+  data.rentLedgerV202.push({
+    id: 'ledger-september', receiptNo: 'R-SEPTEMBER', property: 'SYNTHETIC TEST PROPERTY',
+    unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-09',
+    due: 100, paid: 100, paidAt: '2026-09-02', status: 'paid', source: 'synthetic-test-import',
+  });
+  const runtime = loadRuntime(data, [], activeRuntimeWindow());
+  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const august = runtime.collectionsPanel(context, '2026-08');
+  assert.match(august, /R-A-PAID/);
+  assert.doesNotMatch(august, /R-SEPTEMBER/);
+  assert.match(runtime.paymentDialogMarkup(context, 'contract-a', '2026-08'), /id="v202PaymentPeriod" type="month" value="2026-08"/);
 });
