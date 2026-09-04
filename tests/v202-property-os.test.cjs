@@ -81,6 +81,18 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
     });
   `;
   const source = original.slice(0, wrapperEnd) + expose + original.slice(wrapperEnd);
+  const accessContext = runtimeWindow.AQARI_SUPABASE?.context;
+  const accessUserId = String(accessContext?.user?.id || '').trim();
+  const accessWorkspaceId = String(accessContext?.workspace?.id || '').trim();
+  const accessMembership = accessContext?.membership;
+  const initialGateScope = accessUserId && accessWorkspaceId &&
+    accessMembership?.is_active === true &&
+    String(accessMembership.user_id || '') === accessUserId &&
+    String(accessMembership.workspace_id || '') === accessWorkspaceId
+    ? { userId:accessUserId, workspaceId:accessWorkspaceId }
+    : null;
+  if(!Object.hasOwn(runtimeWindow, 'AQARI_DATA_GATE')) runtimeWindow.AQARI_DATA_GATE = { scope:initialGateScope };
+  if(!Object.hasOwn(runtimeWindow, 'AQARI_EARLY_STORAGE_GATE')) runtimeWindow.AQARI_EARLY_STORAGE_GATE = { scope:initialGateScope };
   const elements = runtimeOptions.elements || {};
   const sandbox = {
     console,
@@ -1087,8 +1099,19 @@ test('V206.1 safely reloads the prior four-column local payment format', () => {
 });
 
 test('V206.1 access requires membership identities to match the active user and workspace', () => {
+  const source = fs.readFileSync(runtimePath, 'utf8');
+  assert.match(source, /AQARI_DATA_GATE\?\.scope/);
+  assert.match(source, /AQARI_EARLY_STORAGE_GATE\?\.scope/);
+  assert.match(source, /refreshContext\(refreshAccess\)/);
+  assert.match(source, /loadAppState\(requestScope\)/);
   const exact = activeRuntimeWindow();
   assert.equal(loadRuntime(fixture(), [], exact).protectedAccessReady(), true);
+  const wrongDataGate = activeRuntimeWindow();
+  wrongDataGate.AQARI_DATA_GATE = { scope:{ userId:'user-test', workspaceId:'workspace-other' } };
+  assert.equal(loadRuntime(fixture(), [], wrongDataGate).protectedAccessReady(), false);
+  const wrongStorageGate = activeRuntimeWindow();
+  wrongStorageGate.AQARI_EARLY_STORAGE_GATE = { scope:{ userId:'user-other', workspaceId:'workspace-test' } };
+  assert.equal(loadRuntime(fixture(), [], wrongStorageGate).protectedAccessReady(), false);
   const partial = {
     AQARI_SUPABASE: {
       context: {

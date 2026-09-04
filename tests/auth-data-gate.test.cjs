@@ -102,6 +102,8 @@ function bridgeRaceRuntime(){
   let clearShouldFail = false;
   let clearCount = 0;
   let presentationSealCount = 0;
+  let portfolioResumeCount = 0;
+  let searchResumeCount = 0;
   const hardResets = [];
   const localStorage = storage();
   const sessionStorage = storage();
@@ -158,6 +160,14 @@ function bridgeRaceRuntime(){
     AQARI_SUPABASE:supabase,
     AQARI_V201:{ seal(){ presentationSealCount += 1; } },
     AQARI_V202:{ seal(){ presentationSealCount += 1; } },
+    AQARI_V208:{
+      seal(){ presentationSealCount += 1; },
+      resume(){ portfolioResumeCount += 1; return true; }
+    },
+    AQARI_V209:{
+      seal(){ presentationSealCount += 1; },
+      resume(){ searchResumeCount += 1; return true; }
+    },
     localStorage,
     sessionStorage,
     sealWorkspaceDbV198(){ sealCount += 1; },
@@ -184,6 +194,8 @@ function bridgeRaceRuntime(){
     setSignOutShouldFail(value){ signOutShouldFail = Boolean(value); },
     setClearShouldFail(value){ clearShouldFail = Boolean(value); },
     get presentationSealCount(){ return presentationSealCount; },
+    get portfolioResumeCount(){ return portfolioResumeCount; },
+    get searchResumeCount(){ return searchResumeCount; },
     get hardResets(){ return hardResets; }
   };
 }
@@ -429,6 +441,8 @@ test('overlapping A to B bootstraps activate only B and legacy logout performs S
   assert.deepEqual(race.activations[0], {
     workspace:'workspace-b', payload:{ tenants:[['TENANT B']] }
   });
+  assert.equal(race.portfolioResumeCount, 1, 'validated workspace unlock must resume V208 portfolio exactly once');
+  assert.equal(race.searchResumeCount, 1, 'validated workspace unlock must resume V209 search exactly once');
 
   race.remotes.get('workspace-a').resolve({
     workspace_id:'workspace-a', payload:{ tenants:[['TENANT A']] }, revision:1
@@ -456,7 +470,7 @@ test('overlapping A to B bootstraps activate only B and legacy logout performs S
   assert.equal(race.signOutCount, 3);
   assert.ok(race.sealCount > sealsBeforeIdleLock);
   assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure','https://aqari.test/app?mode=secure']);
-  assert.ok(race.presentationSealCount >= 4, 'logout and idle lock must synchronously seal V201/V202 presentation state');
+  assert.ok(race.presentationSealCount >= 8, 'logout and idle lock must synchronously seal V201/V202/V208/V209 presentation state');
 });
 
 test('IndexedDB access is workspace-scoped, epoch guarded after awaits, and closed on seal', () => {
@@ -475,6 +489,8 @@ test('IndexedDB access is workspace-scoped, epoch guarded after awaits, and clos
 
 test('auth bridge seals before showing the gate and hydrates only while unlocking', () => {
   const bridge = fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8');
+  assert.match(bridge, /refreshContext\(expectedAccess\)/);
+  assert.match(bridge, /loadContextCandidate\(currentIdentity\)/);
   assert.match(bridge, /function showGate[\s\S]*?sealData\(\);[\s\S]*?context = null/);
   assert.match(bridge, /function unlock\(nextContext, nextRemoteState\)[\s\S]*?requireRemoteWorkspace\(nextContext, nextRemoteState\)[\s\S]*?activateWorkspaceDbV198\(nextContext, nextRemoteState\?\.payload\)[\s\S]*?classList\.remove\('on'\)/);
   assert.match(bridge, /const activeRemoteState = await loadRemoteCandidate\(active\)[\s\S]*?unlock\(active, activeRemoteState\)/);

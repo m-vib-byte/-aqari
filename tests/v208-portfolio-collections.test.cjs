@@ -77,7 +77,13 @@ test('V208 aggregates portfolio collections only from the secure V206.3 rent off
   assert.match(portfolio,/propertyNames\(\)\.map\(officeSummary\)\.filter\(item=>item\.valid\)/);
   assert.match(portfolio,/authSuspended=true;\s*clearViews\(\)/);
   assert.match(portfolio,/event==='SIGNED_OUT'/);
-  assert.match(portfolio,/AQARI_SUPABASE\.refreshContext\(\)/);
+  assert.match(portfolio,/AQARI_SUPABASE\.refreshContext\(expected\)/);
+  assert.match(portfolio,/sameAuthAccess\(expected,authAccess\(context\)\)/);
+  assert.match(portfolio,/AQARI_DATA_GATE\?\.scope/);
+  assert.match(portfolio,/AQARI_EARLY_STORAGE_GATE\?\.scope/);
+  assert.match(portfolio,/window\.AQARI_V208=Object\.freeze/);
+  assert.match(portfolio,/seal:seal/);
+  assert.match(portfolio,/resume:resume/);
   assert.match(portfolio,/actionToken!==interactionEpoch\|\|scopeKey\(\)!==scope/);
   assert.match(portfolio,/norm\(title\.textContent\)!==norm\(name\)/);
   assert.match(portfolio,/عرض فقط/);
@@ -147,7 +153,9 @@ test('V208 removes stale portfolio totals before an unauthorized workspace can r
         membership:{is_active:true,user_id:'user-2',workspace_id:'workspace-1'}
       },
       onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}
-    }
+    },
+    AQARI_DATA_GATE:{scope:null},
+    AQARI_EARLY_STORAGE_GATE:{scope:null}
   };
   class MutationObserver{observe(){}}
 
@@ -155,4 +163,12 @@ test('V208 removes stale portfolio totals before an unauthorized workspace can r
   assert.equal(typeof listeners.DOMContentLoaded,'function');
   listeners.DOMContentLoaded();
   assert.deepEqual([...new Set(removed)].sort(),['board','home']);
+  const active={
+    user:{id:'user-1'},workspace:{id:'workspace-1'},
+    membership:{is_active:true,user_id:'user-1',workspace_id:'workspace-1',role:'property_manager'}
+  };
+  window.AQARI_SUPABASE.context=active;
+  window.AQARI_DATA_GATE.scope={userId:'user-1',workspaceId:'workspace-1'};
+  window.AQARI_EARLY_STORAGE_GATE.scope={userId:'user-1',workspaceId:'workspace-1'};
+  assert.equal(window.AQARI_V208.resume(active),true,'validated bridge unlock must recover a cold-suspended V208');
 });

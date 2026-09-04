@@ -56,6 +56,10 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     simplified:document.body.classList.contains('aq-v205'),
     simplifiedReady:document.body.getAttribute('data-v205-ready'),
     simplifiedVersion:window.AQARI_V205?.version,
+    portfolioCollections:document.body.classList.contains('aq-v208'),
+    globalSearch:document.body.classList.contains('aq-v209'),
+    globalSearchVersion:window.AQARI_V209?.version,
+    globalSearchMeta:document.querySelector('meta[name="aqari-global-search"]')?.content,
     simpleHome:Boolean(document.getElementById('v205SimpleHome')),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
     dashboard:Boolean(document.getElementById('aqariV199Dashboard')),
@@ -78,7 +82,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V206 presentation layer unavailable');
+  if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.portfolioCollections || !state.globalSearch || state.globalSearchVersion !== 'V209-global-search' || state.globalSearchMeta !== 'V209-global-search' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V209 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
   if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
@@ -88,6 +92,37 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
   if(!state.priorityFirst) throw new Error('today priorities must precede KPIs');
   for(const label of ['الدخل المسجل','المقبوضات المسجلة','إيجار مستحق','طلبات صيانة مفتوحة']) if(!state.labels.includes(label)) throw new Error(`${label} missing`);
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
+});
+
+await check('V209 signed-out search stays sealed and fits the iPhone viewport', async () => {
+  await page.evaluate(() => document.querySelector('[data-v199-action="search"]')?.click());
+  await page.waitForTimeout(180);
+  const state=await page.evaluate(() => {
+    const panel=document.getElementById('v199SearchPanel');
+    const input=document.getElementById('v199SearchInput');
+    const results=document.getElementById('v209SearchResults');
+    const rect=panel?.getBoundingClientRect();
+    let properties=[];
+    try{properties=window.AQARI_V202?.rentOfficeProperties?.()||[]}catch{}
+    return {
+      open:Boolean(panel?.classList.contains('on')),
+      role:panel?.getAttribute('role'),
+      dir:panel?.getAttribute('dir'),
+      inputValue:input?.value||'',
+      inputFont:input?parseFloat(getComputedStyle(input).fontSize):0,
+      signedOutMessage:String(results?.textContent||'').includes('سجّل الدخول'),
+      protectedProperties:Array.isArray(properties)?properties.length:-1,
+      left:rect?.left??-1,
+      right:rect?.right??-1,
+      viewport:document.documentElement.clientWidth,
+      horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
+    };
+  });
+  if(!state.open||state.role!=='search'||state.dir!=='rtl')throw new Error('V209 search surface did not open accessibly');
+  if(state.inputValue||!state.signedOutMessage||state.protectedProperties!==0)throw new Error('signed-out V209 search exposed or retained protected data');
+  if(state.inputFont<16)throw new Error(`V209 input font ${state.inputFont}px can trigger iPhone zoom`);
+  if(state.left<0||state.right>state.viewport+1||state.horizontalOverflow)throw new Error(`V209 panel escaped viewport: ${state.left}..${state.right}/${state.viewport}`);
+  await page.keyboard.press('Escape');
 });
 
 await check('V205 keeps one visible mobile navigation with five clear sections', async () => {
@@ -312,8 +347,8 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
 });
 
-await check('PWA and V206 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css']){
+await check('PWA and V209 presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -323,4 +358,4 @@ await check('PWA and V206 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V206 Integrated Ledger Preview E2E on V198 runtime: PASS');
+console.log('AQARI V209 Global Search Preview E2E on V198 runtime: PASS');

@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 1185,
-      "sha256": "43e7c27e831b3e3e2844fd56e7f304f37db87c916a316a1f9658d43929eca89d"
+      "size": 1731,
+      "sha256": "c668d51eec60d55c91e96c3f089c43bc3bfc45e1f4cbaa3ddc422814043bc75f"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 8565,
-      "sha256": "4916d687d2a54bb5a9773f1bc85539871abe076f7e301b4ea4c58d2c5ac8bd29"
+      "size": 9745,
+      "sha256": "69c0d20e1ff5b9ae9a59e5b8213b39636d0609da4c7fcc9918c56d0190686945"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -313,8 +313,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 24542,
-      "sha256": "0dd53412ba647d2d14fbf93a46bd52c445b6e73252f252f2800697182025fd7c"
+      "size": 24825,
+      "sha256": "266507961544bb7b87a1b5aabbb3efb2ab5c8103b4b9431caa89758b8464ad58"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -333,13 +333,13 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 25444,
-      "sha256": "c12bf3098aff6b598a7186467f1a45b95db59e6cf02b2deebe142beb22964edb"
+      "size": 26241,
+      "sha256": "7a02894af15e9aab8580efb6104382de41762ee283ee055b5cc7038d6c989854"
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 19482,
-      "sha256": "06a4ae9cedc5e36398fc99349a7d6b9e2b34f52d15d40e792e6aaf4dd0983bb3"
+      "size": 21857,
+      "sha256": "8bd64fecd9dd75698a8329478e7f61c1fbf7ddf20e8a9523b07cde9c9fc9be86"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -348,8 +348,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 164919,
-      "sha256": "58717bc4d60192293d857dc0034a4c3c8f83bdc4f4eee077f18bff519b983638"
+      "size": 166517,
+      "sha256": "5ded4263b978f04bdd55d5137c2b29b5e1667c1542e2d8bdb008b8749b859b65"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -358,8 +358,23 @@
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
-      "size": 8310,
-      "sha256": "23f7bb44b22ef67abfb20b55b15b8105ba5b04d662517c4414d83ae4ce2c347f"
+      "size": 9227,
+      "sha256": "2a2a47d68f3b1a4d1908776cf6e3a4d2aa54e5851841de0ac3a5b957e0e6e5b5"
+    },
+    {
+      "path": "tests/v209-behavior.test.cjs",
+      "size": 23516,
+      "sha256": "08a75f40def1390e9e5840901121bc3a0f7385540291833afa904964a9f99444"
+    },
+    {
+      "path": "tests/v209-global-search.test.cjs",
+      "size": 8237,
+      "sha256": "f8d47772b35054fcde07d71da019f617b46e669fb6cde89a36059472f61cfa62"
+    },
+    {
+      "path": "tests/v209-loader.test.cjs",
+      "size": 6815,
+      "sha256": "bfb1376b2517663f288e219fefe8db0ac46cbf843b939fd6eb6eb3d09f7c95bf"
     },
     {
       "path": "v199-ui.css",
@@ -368,8 +383,8 @@
     },
     {
       "path": "v199-ui.js",
-      "size": 31690,
-      "sha256": "84f9d9eab6df3a981045df1bb0a163fc734b1217a6252ef5edc49993f4e06e1c"
+      "size": 31734,
+      "sha256": "ccadf03a6b576fc8a3018733eb32df30ac81d904099137af0fb8206bf2b3bc4a"
     },
     {
       "path": "v200-luxury.css",
@@ -393,8 +408,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 225634,
-      "sha256": "3c393a66f9ec57ee1ed2c8e4ed48f283b62fbd4d3ce51ac9082d8be0d784e1a1"
+      "size": 226227,
+      "sha256": "e0018262b9813e199f326605ee4976610b44e8ef741f5dbcb15f107a51836738"
     },
     {
       "path": "v205-simple.css",
@@ -428,8 +443,18 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "size": 17921,
-      "sha256": "edde9f8ddebed2f359594f6fa8eff9456a573f8542010c4adf168443b2e64f1f"
+      "size": 19590,
+      "sha256": "3936a15788f254d516b435ec52fb7b9f35150d23354ee0430a6c3f09ce568e95"
+    },
+    {
+      "path": "v209-global-search.css",
+      "size": 6244,
+      "sha256": "da22e74c0ad9830656d2f38dc8886abd806f371787d1e1f591bfd43accd4b88f"
+    },
+    {
+      "path": "v209-global-search.js",
+      "size": 19409,
+      "sha256": "515821f3a0795539ce6b60f604e7ce4cf1c87cef897e068c125051c9490c8ef6"
     },
     {
       "path": "vercel.json",

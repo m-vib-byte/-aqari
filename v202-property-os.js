@@ -522,7 +522,10 @@
         let context=bridge.context;
         let requestScope=accessScope(context);
         if((!protectedImportValidated||!requestScope||(expected&&requestScope.userId!==expected))&&typeof bridge.refreshContext==='function'){
-          context=await bridge.refreshContext();
+          const dataScope=window.AQARI_DATA_GATE?.scope;
+          const gatedScope=accessIdentity(dataScope?.userId)&&accessIdentity(dataScope?.workspaceId)?{userId:accessIdentity(dataScope.userId),workspaceId:accessIdentity(dataScope.workspaceId)}:null;
+          const refreshAccess=requestScope||(gatedScope&&(!expected||gatedScope.userId===expected)?gatedScope:null)||(expected?{userId:expected}:undefined);
+          context=await bridge.refreshContext(refreshAccess);
           requestScope=accessScope(context);
         }
         if(!requestScope||(expected&&requestScope.userId!==expected)){
@@ -535,7 +538,7 @@
           protectedImportValidated=false;
           clearProtectedDom();
         }
-        const remoteState=await bridge.loadAppState();
+        const remoteState=await bridge.loadAppState(requestScope);
         const currentScope=accessScope(bridge.context);
         if(generation!==protectedImportGeneration)return false;
         if(!sameAccessScope(currentScope,requestScope)||(expected&&currentScope.userId!==expected)){
@@ -647,7 +650,11 @@
   }
 
   function protectedAccessReady(){
-    return Boolean(activeAccessScope());
+    const active=activeAccessScope();
+    return Boolean(
+      sameAccessScope(active,window.AQARI_DATA_GATE?.scope)&&
+      sameAccessScope(active,window.AQARI_EARLY_STORAGE_GATE?.scope)
+    );
   }
 
   function protectedPropertyActive(name){
