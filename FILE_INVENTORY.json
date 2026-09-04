@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 12343,
-      "sha256": "6a03337996e3530668df4069d581fb9d3e7cea76f8878f2dd407d7e92ad550b0"
+      "size": 15201,
+      "sha256": "1ad9029fcb4d305aae524ee7b585455e44c8851ac3036e662c55f64de57d7a95"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -393,8 +393,8 @@
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
-      "size": 5835,
-      "sha256": "722bf1afb30c57bc8c193329fdb9a0727da07f75b0c5005def886b033516a132"
+      "size": 6629,
+      "sha256": "2a5066b95b64a385d77a7221f0ad40671c4d51eea4d2f5772e1fa4f687ed44a8"
     },
     {
       "path": "tests/v211-follow-up-cloud-integration.test.cjs",
