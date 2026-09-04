@@ -66,6 +66,7 @@ test('V209 upgrades the existing search surface without bypassing V206.3 securit
   assert.match(search,/event\.key==='\/'/);
   assert.match(search,/meta\[name="aqari-global-search"\]/);
   assert.match(search,/window\.AQARI_V209=Object\.freeze/);
+  assert.match(search,/observer\.observe\(document\.documentElement,\{subtree:true,childList:true\}\)/);
   assert.match(search,/seal:seal/);
   assert.match(search,/resume:resume/);
   assert.match(search,/if\(!PERIOD\.test\(next\)\)\{event\.target\.value=period;return\}/);

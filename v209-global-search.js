@@ -511,7 +511,7 @@
 
   function boot(){
     document.body.classList.add('aq-v209');
-    observer.observe(document.body,{subtree:true,childList:true});
+    observer.observe(document.documentElement,{subtree:true,childList:true});
     ensureUi();
     installAuthListener();
     render();

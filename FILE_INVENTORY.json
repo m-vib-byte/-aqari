@@ -368,8 +368,8 @@
     },
     {
       "path": "tests/v209-global-search.test.cjs",
-      "size": 8237,
-      "sha256": "f8d47772b35054fcde07d71da019f617b46e669fb6cde89a36059472f61cfa62"
+      "size": 8342,
+      "sha256": "a79411839cf8e6dc0683d88b1556953ce7669df1da7c80ee3d1a27990c608d21"
     },
     {
       "path": "tests/v209-loader.test.cjs",
@@ -453,8 +453,8 @@
     },
     {
       "path": "v209-global-search.js",
-      "size": 21419,
-      "sha256": "dc16ea3f43079ae3a9448219c18b3e6c9d315bd9d917be8e2c134c95fff77d56"
+      "size": 21430,
+      "sha256": "bbf6821c79ea5b990f13558a105444f773e190070585b27c75035d4188bdd3d6"
     },
     {
       "path": "vercel.json",
