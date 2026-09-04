@@ -27,6 +27,9 @@ test('V207 adds a smart collection layer over the official V206 ledger',()=>{
   assert.match(smart,/contractsV202/);
   assert.match(smart,/resolveContract/);
   assert.match(smart,/matches\.length===1/);
+  assert.match(smart,/function priorityTarget\s*\(/);
+  assert.match(smart,/data-v207-priority/);
+  assert.match(smart,/تحصيل الأولوية/);
   assert.match(smart,/data-v207-filter="action"/);
   assert.match(smart,/data-v207-filter="due"/);
   assert.match(smart,/data-v207-filter="partial"/);
@@ -35,12 +38,17 @@ test('V207 adds a smart collection layer over the official V206 ledger',()=>{
   assert.match(smart,/data-v207-filter="all"/);
   assert.match(smart,/data-v207-search/);
   assert.match(smart,/data-v207-contract/);
+  assert.match(smart,/#v202DocumentDialog\.on \[data-v202-document-close\]/);
+  assert.match(smart,/close\.click\(\)/);
+  assert.match(smart,/data-v202-action="payment"/);
   assert.match(smart,/v202PaymentContract/);
+  assert.match(smart,/v202PaymentAmount/);
   assert.match(smart,/مركز متابعة التحصيل/);
   assert.match(smart,/مطلوب الآن/);
   assert.doesNotMatch(smart,/rentLedgerV202/);
   assert.doesNotMatch(smart,/AQARI_SUPABASE\s*=/);
 
+  assert.match(css,/v207-priority/);
   assert.match(css,/v207-status\.is-due/);
   assert.match(css,/v207-status\.is-partial/);
   assert.match(css,/v207-status\.is-pending/);
