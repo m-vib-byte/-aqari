@@ -343,8 +343,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 47863,
-      "sha256": "7156f8372b3ed72a7ff1618dad03e0365f6e5a95fdf7652b70b3ee66bc3f3d67"
+      "size": 55852,
+      "sha256": "fc1198bc36cf67ae847a422d81851d46a8e63861396fe7421bba07b078fc0fdc"
     },
     {
       "path": "v199-ui.css",
@@ -378,8 +378,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 164140,
-      "sha256": "70af53680d65f066b1f417e6e4e6585a67e14673920e022aa6d50018bf4cf781"
+      "size": 169064,
+      "sha256": "27cdf43598577137f1038bad109bbb658d5ec7a9063dd75fd2bd309bc0396a0e"
     },
     {
       "path": "v205-simple.css",
