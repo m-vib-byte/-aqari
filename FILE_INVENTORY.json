@@ -78,7 +78,7 @@
     {"path":"tests/v209-global-search.test.cjs","size":8463,"sha256":"3a2b02581bc1199ce82b2329dbfba726619aa9a3c1f2be2165e397f02b1528ee"},
     {"path":"tests/v209-loader.test.cjs","size":6815,"sha256":"bfb1376b2517663f288e219fefe8db0ac46cbf843b939fd6eb6eb3d09f7c95bf"},
     {"path":"tests/v210-daily-command-center.test.cjs","size":5125,"sha256":"a4c61a7ec30daf67d3a6dd5db7dd389e3153157b4accc1ce5aba1a7f91f622b1"},
-    {"path":"tests/v211-follow-up-center.test.cjs","size":4298,"sha256":"513191a83ffc47b9779391d1e88c767fdb1ab1abe904859eebc9dddb7ffb7277"},
+    {"path":"tests/v211-follow-up-center.test.cjs","size":5835,"sha256":"c79683d696373e4c3fa7a5fbb43e682207bc4a00714745e0e4cf87a1f1e14765"},
     {"path":"v199-ui.css","size":28895,"sha256":"f58f2ec1acea2309d0d1f1895610511b117947fe4844c8cf72a53dd5486e8c36"},
     {"path":"v199-ui.js","size":31734,"sha256":"ccadf03a6b576fc8a3018733eb32df30ac81d904099137af0fb8206bf2b3bc4a"},
     {"path":"v200-luxury.css","size":15703,"sha256":"02eb3e172980ff51d7b025d75efa13c42aeba3e9579561ee9859f103cc124291"},
@@ -98,7 +98,8 @@
     {"path":"v210-daily-command-center.css","size":6164,"sha256":"3b5f892f49b2b63d8c77c94fce03c11843d51d8626c4dda515303ceec481a09c"},
     {"path":"v210-daily-command-center.js","size":14542,"sha256":"c3bf4ce3d231da672903587bc57529a079d2dd4783954c0687b23a8e38651a87"},
     {"path":"v211-follow-up-center.css","size":5526,"sha256":"9256b9235a7b941c0d5de664ea8ed05d710f72d66f7ae2face749bd3c0cf8a79"},
-    {"path":"v211-follow-up-center.js","size":18082,"sha256":"e1686db43314a2bd027d039d9b7194f8b99b10a72f8d4ce6d3e10c6780377264"},
+    {"path":"v211-follow-up-center-core.js","size":18082,"sha256":"e1686db43314a2bd027d039d9b7194f8b99b10a72f8d4ce6d3e10c6780377264"},
+    {"path":"v211-follow-up-center.js","size":5799,"sha256":"3b09c950102063816c81e3b1ce880854e411c45a7523dfa50d7f03f476cf958a"},
     {"path":"vercel.json","size":823,"sha256":"0ac3992e81e33ebca703226b2764d5a08857da21bb848facbc60642131e5cdbb"},
     {"path":"VERSION.json","size":1936,"sha256":"bb343cd119825a1df184066f8e21e7fe0fb63f1b0ac68be3e613585fe736a798"}
   ]

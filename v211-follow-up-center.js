@@ -1,354 +1,125 @@
 (function(){
   'use strict';
 
-  const DESIGN='V211-follow-up-center';
+  const DESIGN='V211.0.1-action-epoch-hotfix';
+  const CORE_DESIGN='V211-follow-up-center';
   const PERIOD=/^\d{4}-(0[1-9]|1[0-2])$/;
-  const FILTERS=new Set(['all','due','pending','readonly','unlinked']);
-  let period=currentPeriod();
-  let filter='due';
-  let propertyFilter='';
-  let authSuspended=false;
-  let authListenerInstalled=false;
-  let interactionEpoch=0;
-  let lastRows=[];
-  let lastScope='';
+  const ACTIONS=new Set(['statement','contract','receipt','payment']);
+  let actionEpoch=0;
 
-  function currentPeriod(){
-    const date=new Date();
-    return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0');
-  }
   function text(value){return String(value==null?'':value).trim()}
-  function number(value){const result=Number(value);return Number.isFinite(result)?result:0}
-  function esc(value){
-    return String(value==null?'':value).replace(/[&<>'"]/g,function(char){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char];
-    });
+  function norm(value){
+    return text(value).normalize('NFKD').replace(/[\u064B-\u065F\u0670]/g,'').replace(/\s+/g,' ').toLocaleLowerCase('ar');
   }
   function identity(value){
     if(typeof value!=='string'||value!==value.trim()||/(?:\p{Cc}|\p{Cf}|\p{Zl}|\p{Zp}|\p{Default_Ignorable_Code_Point})/u.test(value))return '';
     return value;
   }
-  function norm(value){
-    return text(value).normalize('NFKD').replace(/[\u064B-\u065F\u0670]/g,'').replace(/\s+/g,' ').toLocaleLowerCase('ar');
-  }
-  function money(value){
-    try{return number(value).toLocaleString('ar-KW',{maximumFractionDigits:3})+' د.ك'}
-    catch(_){return String(number(value))+' د.ك'}
-  }
-  function periodLabel(value,locale){
-    try{return new Intl.DateTimeFormat(locale||'ar-KW',{month:'long',year:'numeric'}).format(new Date(value+'-01T12:00:00'))}
-    catch(_){return value}
-  }
-
-  function authAccess(context){
-    const userId=identity(context?.user?.id);
-    const workspaceId=identity(context?.workspace?.id);
-    const membership=context?.membership;
-    const membershipUserId=identity(membership?.user_id);
-    const membershipWorkspaceId=identity(membership?.workspace_id);
-    const role=identity(membership?.role);
-    if(!userId||!workspaceId||!role||membership?.is_active!==true||membershipUserId!==userId||membershipWorkspaceId!==workspaceId)return null;
-    return Object.freeze({userId:userId,workspaceId:workspaceId,role:role});
-  }
-  function dataScopesReady(access){
-    const dataScope=window.AQARI_DATA_GATE?.scope;
-    const storageScope=window.AQARI_EARLY_STORAGE_GATE?.scope;
-    return Boolean(access&&dataScope&&storageScope&&
-      identity(dataScope.userId)===access.userId&&identity(dataScope.workspaceId)===access.workspaceId&&
-      identity(storageScope.userId)===access.userId&&identity(storageScope.workspaceId)===access.workspaceId);
-  }
-  function scopeKey(){
+  function accessScope(){
     try{
-      const access=authAccess(window.AQARI_SUPABASE?.context);
-      return authSuspended||!dataScopesReady(access)?'':access.userId+'\u0000'+access.workspaceId+'\u0000'+access.role;
-    }catch(_){return ''}
+      const context=window.AQARI_SUPABASE?.context;
+      const userId=identity(context?.user?.id);
+      const workspaceId=identity(context?.workspace?.id);
+      const membership=context?.membership;
+      const role=identity(membership?.role);
+      if(!userId||!workspaceId||!role||membership?.is_active!==true||
+         identity(membership?.user_id)!==userId||identity(membership?.workspace_id)!==workspaceId)return null;
+      const dataScope=window.AQARI_DATA_GATE?.scope;
+      const storageScope=window.AQARI_EARLY_STORAGE_GATE?.scope;
+      if(identity(dataScope?.userId)!==userId||identity(dataScope?.workspaceId)!==workspaceId||
+         identity(storageScope?.userId)!==userId||identity(storageScope?.workspaceId)!==workspaceId)return null;
+      return Object.freeze({userId:userId,workspaceId:workspaceId,role:role,key:userId+'\u0000'+workspaceId+'\u0000'+role});
+    }catch(_){return null}
   }
 
-  function propertyNames(expectedScope){
-    const scope=scopeKey();
-    if(!scope||(expectedScope&&scope!==expectedScope)||typeof window.AQARI_V202?.rentOfficeProperties!=='function')return [];
-    let names=[];
-    try{names=window.AQARI_V202.rentOfficeProperties()}catch(_){names=[]}
-    if(scopeKey()!==scope||!Array.isArray(names))return [];
-    const seen=new Set();
-    return names.map(text).filter(function(name){
-      const key=norm(name);
-      if(!name||!key||seen.has(key))return false;
-      seen.add(key);return true;
-    });
+  function parseVisibleSelection(button){
+    const access=accessScope();
+    const row=button?.closest?.('.v211-row');
+    const panel=button?.closest?.('#v211FollowUpCenter');
+    const period=text(panel?.querySelector?.('#v211Period')?.value);
+    const property=text(row?.querySelector?.('.v211-person > span')?.textContent);
+    const tenant=text(row?.querySelector?.('.v211-person > strong')?.textContent);
+    const detail=text(row?.querySelector?.('.v211-person > small')?.textContent);
+    if(!access||!row||!panel||!PERIOD.test(period)||!property||!tenant||!detail.startsWith('وحدة '))return null;
+    const parts=detail.slice('وحدة '.length).split(' • ');
+    if(parts.length!==2)return null;
+    const unit=text(parts[0]);
+    const contractLabel=text(parts[1]);
+    const contractNo=contractLabel==='بدون رقم عقد'?'':contractLabel;
+    if(!unit)return null;
+    return {access:access,scope:access.key,period:period,property:property,tenant:tenant,unit:unit,contractNo:contractNo};
   }
-  function officeData(name,expectedScope){
-    const scope=scopeKey();
-    if(!scope||scope!==expectedScope||!PERIOD.test(period)||typeof window.AQARI_V202?.rentOfficeData!=='function')return null;
+
+  function liveRecord(selection){
+    const access=accessScope();
+    if(!selection||!access||access.key!==selection.scope||typeof window.AQARI_V202?.rentOfficeData!=='function')return null;
     let data=null;
-    try{data=window.AQARI_V202.rentOfficeData(name,period)}catch(_){data=null}
-    if(scopeKey()!==scope||!data||norm(data.property)!==norm(name)||text(data.period)!==period)return null;
-    return data;
-  }
-  function statusOf(row){
-    if(row.pending>0||['قيد المراجعة','يحتاج مراجعة'].includes(row.paymentStatus))return 'pending';
-    if(!row.hasContract)return 'unlinked';
-    if(row.balance>0&&row.billable&&row.collectible&&row.canRecordPayment)return 'due';
-    if(row.balance>0)return 'readonly';
-    return 'clear';
-  }
-  function snapshot(){
-    const scope=scopeKey();
-    if(!scope)return null;
-    const rows=[];
-    propertyNames(scope).forEach(function(property){
-      const data=officeData(property,scope);
-      if(!data||!Array.isArray(data.records))return;
-      data.records.forEach(function(record){
-        const key=text(record?.key);
-        if(!key)return;
-        const row={
-          scope:scope,period:period,property:property,key:key,
-          tenant:text(record?.tenant)||'—',unit:text(record?.unit)||'—',
-          contractNo:text(record?.contractNo),hasContract:record?.hasContract===true,
-          receiptNo:text(record?.receiptNo),paymentStatus:text(record?.paymentStatus),
-          balance:Math.max(0,number(record?.balance)),pending:Math.max(0,number(record?.pending)),
-          billable:record?.billable===true,collectible:record?.collectible===true,
-          canRecordPayment:data.canRecordPayment===true
-        };
-        row.status=statusOf(row);
-        if(row.status!=='clear')rows.push(Object.freeze(row));
-      });
+    try{data=window.AQARI_V202.rentOfficeData(selection.property,selection.period)}catch(_){data=null}
+    if(!data||norm(data.property)!==norm(selection.property)||text(data.period)!==selection.period||!Array.isArray(data.records))return null;
+    const matches=data.records.filter(function(record){
+      return text(record?.tenant)===selection.tenant&&
+        text(record?.unit)===selection.unit&&
+        text(record?.contractNo)===selection.contractNo&&
+        text(record?.key);
     });
-    if(scopeKey()!==scope)return null;
-    rows.sort(function(left,right){
-      const order={pending:0,due:1,readonly:2,unlinked:3};
-      if((order[left.status]??9)!==(order[right.status]??9))return (order[left.status]??9)-(order[right.status]??9);
-      if(left.balance!==right.balance)return right.balance-left.balance;
-      return left.tenant.localeCompare(right.tenant,'ar',{numeric:true,sensitivity:'base'});
-    });
-    return {scope:scope,period:period,rows:rows};
-  }
-
-  function visibleRows(state){
-    return state.rows.filter(function(row){
-      if(propertyFilter&&norm(row.property)!==norm(propertyFilter))return false;
-      return filter==='all'||row.status===filter;
-    });
-  }
-  function counts(rows){
-    return rows.reduce(function(out,row){out.all+=1;out[row.status]=(out[row.status]||0)+1;return out},
-      {all:0,due:0,pending:0,readonly:0,unlinked:0});
-  }
-  function badge(row){
-    if(row.status==='pending')return '<span class="is-pending">قيد المراجعة</span>';
-    if(row.status==='due')return '<span class="is-due">يحتاج تذكير</span>';
-    if(row.status==='readonly')return '<span class="is-readonly">عرض فقط</span>';
-    return '<span class="is-unlinked">يحتاج ربط</span>';
-  }
-  function actionMarkup(row,index){
-    const paymentLabel=row.status==='due'?'تحصيل':'عرض التحصيل';
-    return '<div class="v211-actions">'+
-      '<button type="button" data-v211-index="'+index+'" data-v211-action="statement">كشف المستأجر</button>'+
-      (row.hasContract?'<button type="button" data-v211-index="'+index+'" data-v211-action="contract">العقد</button>':'')+
-      (row.receiptNo?'<button type="button" data-v211-index="'+index+'" data-v211-action="receipt">آخر وصل</button>':'')+
-      '<button type="button" data-v211-index="'+index+'" data-v211-action="payment" class="is-primary">'+paymentLabel+'</button>'+
-      (row.balance>0?'<button type="button" data-v211-index="'+index+'" data-v211-action="reminder">نسخ تذكير</button>':'')+
-      '</div>';
-  }
-  function rowsMarkup(rows){
-    if(!rows.length)return '<div class="v211-empty"><strong>لا توجد حالات مطابقة</strong><span>غيّر العقار أو الحالة أو الفترة.</span></div>';
-    return rows.map(function(row,index){
-      const detail=row.pending>0?money(row.pending)+' قيد المراجعة':row.balance>0?money(row.balance)+' متبقي':'';
-      return '<article class="v211-row">'+
-        '<div class="v211-person"><span>'+esc(row.property)+'</span><strong dir="auto">'+esc(row.tenant)+'</strong><small>وحدة '+esc(row.unit)+' • '+esc(row.contractNo||'بدون رقم عقد')+'</small></div>'+
-        '<div class="v211-state">'+badge(row)+'<b>'+esc(detail)+'</b></div>'+
-        actionMarkup(row,index)+
-      '</article>';
-    }).join('');
-  }
-  function shellMarkup(state){
-    const allCounts=counts(state.rows);
-    const properties=propertyNames(state.scope);
-    const options=['<option value="">كل العقارات</option>'].concat(properties.map(function(name){
-      return '<option value="'+esc(name)+'"'+(norm(name)===norm(propertyFilter)?' selected':'')+'>'+esc(name)+'</option>';
-    })).join('');
-    const rows=visibleRows(state);
-    return '<section id="v211FollowUpCenter" class="v211-shell" role="dialog" aria-modal="true" aria-labelledby="v211Title">'+
-      '<div class="v211-backdrop" data-v211-close></div>'+
-      '<div class="v211-card">'+
-        '<header><div><span>مركز المتابعة • V211</span><h2 id="v211Title">المستحقات والمراجعات في مسار واحد</h2><p>البيانات من دفتر الإيجارات المحمي فقط، بدون افتراضات قانونية عن تاريخ التأخر.</p></div><button type="button" class="v211-close" data-v211-close aria-label="إغلاق">×</button></header>'+
-        '<div class="v211-controls"><label><span>الفترة</span><input id="v211Period" type="month" value="'+esc(period)+'"></label><label><span>العقار</span><select id="v211Property">'+options+'</select></label></div>'+
-        '<nav class="v211-filters" aria-label="فلترة المتابعة">'+
-          '<button type="button" data-v211-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+allCounts.all+'</button>'+
-          '<button type="button" data-v211-filter="due" class="'+(filter==='due'?'is-active':'')+'">يحتاج تذكير '+allCounts.due+'</button>'+
-          '<button type="button" data-v211-filter="pending" class="'+(filter==='pending'?'is-active':'')+'">مراجعة '+allCounts.pending+'</button>'+
-          '<button type="button" data-v211-filter="readonly" class="'+(filter==='readonly'?'is-active':'')+'">عرض فقط '+allCounts.readonly+'</button>'+
-          '<button type="button" data-v211-filter="unlinked" class="'+(filter==='unlinked'?'is-active':'')+'">يحتاج ربط '+allCounts.unlinked+'</button>'+
-        '</nav>'+
-        '<div id="v211Rows" class="v211-rows" aria-live="polite">'+rowsMarkup(rows)+'</div>'+
-      '</div>'+
-    '</section>';
-  }
-
-  function close(){
-    interactionEpoch+=1;
-    lastRows=[];
-    lastScope='';
-    document.getElementById('v211FollowUpCenter')?.remove();
-    document.body.classList.remove('v211-open');
-  }
-  function render(){
-    const state=snapshot();
-    if(!state){close();return false}
-    lastRows=visibleRows(state);
-    lastScope=state.scope;
-    const holder=document.createElement('div');
-    holder.innerHTML=shellMarkup(state);
-    const next=holder.firstElementChild;
-    if(!next)return false;
-    const current=document.getElementById('v211FollowUpCenter');
-    if(current)current.replaceWith(next);else document.body.appendChild(next);
-    document.body.classList.add('v211-open');
-    next.querySelector('[data-v211-close]')?.focus?.({preventScroll:true});
-    return true;
-  }
-  function open(options){
-    const scope=scopeKey();
-    if(!scope)return false;
-    const inputPeriod=text(options?.period);
-    if(PERIOD.test(inputPeriod))period=inputPeriod;
-    const inputFilter=text(options?.filter);
-    filter=FILTERS.has(inputFilter)?inputFilter:'due';
-    propertyFilter=text(options?.property);
-    if(propertyFilter&&!propertyNames(scope).some(function(name){return norm(name)===norm(propertyFilter)}))propertyFilter='';
-    return render();
-  }
-
-  function liveRow(item){
-    if(!item||scopeKey()!==item.scope||lastScope!==item.scope||period!==item.period)return null;
-    const data=officeData(item.property,item.scope);
-    if(!data||!Array.isArray(data.records))return null;
-    const matches=data.records.filter(function(record){return text(record?.key)===item.key});
     if(matches.length!==1)return null;
-    const record=matches[0];
-    return {
-      data:data,record:record,
-      writeAllowed:data.canRecordPayment===true&&record?.billable===true&&record?.collectible===true
-    };
+    return {data:data,record:matches[0]};
   }
-  function runAction(item,action,trigger){
-    const scope=scopeKey();
-    if(!scope||scope!==item?.scope||typeof window.AQARI_V202?.openProperty!=='function'||typeof window.AQARI_V202?.rentOfficeAction!=='function')return false;
-    const live=liveRow(item);
-    if(!live)return false;
-    const token=++interactionEpoch;
-    const opened=window.AQARI_V202.openProperty(item.property,item.period);
-    if(opened===false)return false;
+
+  function executeAction(selection,action,trigger){
+    const access=accessScope();
+    if(!selection||!access||access.key!==selection.scope||!ACTIONS.has(action)||
+       typeof window.AQARI_V202?.openProperty!=='function'||typeof window.AQARI_V202?.rentOfficeAction!=='function')return false;
+    if(!liveRecord(selection))return false;
+    const token=++actionEpoch;
+    let opened=false;
+    try{opened=window.AQARI_V202.openProperty(selection.property,selection.period)!==false}catch(_){opened=false}
+    if(!opened)return false;
     let attempts=0;
     const follow=function(){
-      if(token!==interactionEpoch||scopeKey()!==scope)return;
+      const currentAccess=accessScope();
+      if(token!==actionEpoch||!currentAccess||currentAccess.key!==selection.scope)return;
       attempts+=1;
-      const current=liveRow(item);
+      const current=liveRecord(selection);
       if(!current)return;
       const workspace=document.getElementById('v202PropertyWorkspace');
       const title=document.getElementById('v202PropertyTitle');
-      if(workspace?.classList.contains('on')&&(!title||norm(title.textContent)===norm(item.property))){
-        window.AQARI_V202.rentOfficeAction(item.property,item.key,item.period,action,trigger);
+      if(workspace?.classList.contains('on')&&(!title||norm(title.textContent)===norm(selection.property))){
+        let ok=false;
+        try{ok=window.AQARI_V202.rentOfficeAction(selection.property,current.record.key,selection.period,action,trigger)===true}catch(_){ok=false}
+        if(ok===true)window.AQARI_V211?.close?.();
         return;
       }
       if(attempts<14)setTimeout(follow,70);
     };
     setTimeout(follow,70);
-    close();
     return true;
   }
-  function reminderText(item){
-    const arPeriod=periodLabel(item.period,'ar-KW');
-    const enPeriod=periodLabel(item.period,'en-GB');
-    return [
-      'السلام عليكم،',
-      'نذكّركم بمراجعة إيجار '+arPeriod+' للعقار '+item.property+' – الوحدة '+item.unit+'.',
-      'المبلغ المتبقي حسب السجل الحالي: '+money(item.balance)+'.',
-      'يرجى مراجعة إدارة العقار لإتمام المتابعة. شكرًا لتعاونكم.',
-      '',
-      'Hello,',
-      'This is a reminder to review the rent for '+enPeriod+' at '+item.property+' – unit '+item.unit+'.',
-      'Current outstanding balance shown in the property record: KD '+number(item.balance).toLocaleString('en-KW',{maximumFractionDigits:3})+'.',
-      'Please contact property management to complete the follow-up. Thank you.'
-    ].join('\n');
-  }
-  async function copyReminder(item,button){
-    const live=liveRow(item);
-    if(!live||item.balance<=0||typeof navigator?.clipboard?.writeText!=='function')return false;
-    try{
-      await navigator.clipboard.writeText(reminderText(item));
-      const old=button.textContent;
-      button.textContent='تم النسخ';
-      setTimeout(function(){if(button?.isConnected)button.textContent=old},1400);
-      return true;
-    }catch(_){return false}
-  }
 
-  document.addEventListener('click',function(event){
-    const v210=event.target?.closest?.('#v210DailyCommandCenter');
-    if(v210){
-      const due=event.target?.closest?.('.v210-kpis .is-red');
-      const pending=event.target?.closest?.('.v210-kpis .is-amber');
-      const priority=event.target?.closest?.('[data-v210-property]');
-      if(due||pending||priority){
-        event.preventDefault();event.stopImmediatePropagation();
-        const selected=document.getElementById('v210Period')?.value||period;
-        open({period:selected,filter:pending?'pending':'due',property:priority?.getAttribute('data-v210-property')||''});
-        return;
-      }
-    }
-    if(event.target?.closest?.('[data-v211-close]')){event.preventDefault();close();return}
-    const filterButton=event.target?.closest?.('[data-v211-filter]');
-    if(filterButton){event.preventDefault();const next=text(filterButton.getAttribute('data-v211-filter'));if(FILTERS.has(next)){filter=next;render()}return}
-    const actionButton=event.target?.closest?.('[data-v211-action]');
-    if(actionButton){
+  function installGuard(){
+    document.addEventListener('click',function(event){
+      const button=event.target?.closest?.('#v211FollowUpCenter [data-v211-action]');
+      if(!button)return;
+      const action=text(button.getAttribute('data-v211-action'));
+      if(action==='reminder')return;
+      if(!ACTIONS.has(action))return;
       event.preventDefault();
-      const index=Number(actionButton.getAttribute('data-v211-index'));
-      const action=text(actionButton.getAttribute('data-v211-action'));
-      const item=lastRows[index];
-      if(!item)return;
-      if(action==='reminder'){copyReminder(item,actionButton);return}
-      if(['statement','contract','receipt','payment'].includes(action))runAction(item,action,actionButton);
-    }
-  },true);
-  document.addEventListener('input',function(event){
-    if(event.target?.id==='v211Period'){
-      const next=text(event.target.value);
-      if(PERIOD.test(next)){period=next;render()}
-    }
-  });
-  document.addEventListener('change',function(event){
-    if(event.target?.id==='v211Property'){propertyFilter=text(event.target.value);render()}
-  });
-  document.addEventListener('keydown',function(event){
-    if(event.key==='Escape'&&document.getElementById('v211FollowUpCenter')){event.preventDefault();close()}
-  });
+      event.stopImmediatePropagation();
+      const selection=parseVisibleSelection(button);
+      if(selection)executeAction(selection,action,button);
+    },true);
+  }
 
-  function seal(){authSuspended=true;close()}
-  function resume(context){
-    const expected=authAccess(context),live=authAccess(window.AQARI_SUPABASE?.context);
-    if(!expected||!live||expected.userId!==live.userId||expected.workspaceId!==live.workspaceId||expected.role!==live.role||!dataScopesReady(live))return false;
-    authSuspended=false;return true;
+  function loadCore(){
+    if(document.getElementById('aqari-v211-follow-up-center-core-js'))return;
+    const script=document.createElement('script');
+    script.id='aqari-v211-follow-up-center-core-js';
+    script.src='/v211-follow-up-center-core.js?v=211.0.1';
+    script.async=false;
+    document.body.appendChild(script);
   }
-  function installAuthListener(){
-    if(authListenerInstalled||typeof window.AQARI_SUPABASE?.onAuthStateChange!=='function')return;
-    authListenerInstalled=true;
-    Promise.resolve(window.AQARI_SUPABASE.onAuthStateChange(function(event){
-      if(['SIGNED_OUT','TOKEN_REFRESH_FAILED','USER_DELETED','PASSWORD_RECOVERY'].includes(event))seal();
-      else setTimeout(function(){resume(window.AQARI_SUPABASE?.context)},0);
-    })).catch(function(){authListenerInstalled=false;seal()});
-  }
-  function boot(){
-    document.body.classList.add('aq-v211');
-    installAuthListener();
-    window.AQARI_V211=Object.freeze({
-      version:DESIGN,open:open,close:close,seal:seal,resume:resume,
-      testing:Object.freeze({statusOf:statusOf,reminderText:reminderText})
-    });
-    let meta=document.querySelector('meta[name="aqari-follow-up-center"]');
-    if(!meta){meta=document.createElement('meta');meta.name='aqari-follow-up-center';document.head.appendChild(meta)}
-    meta.content=DESIGN;
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
+  installGuard();
+  loadCore();
+  window.AQARI_V211_HOTFIX=Object.freeze({version:DESIGN,core:CORE_DESIGN});
 })();
