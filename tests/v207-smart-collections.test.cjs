@@ -25,8 +25,13 @@ test('V207 adds a smart collection layer over the official V206 ledger',()=>{
   assert.match(smart,/rowsFromOfficialLedger/);
   assert.match(smart,/\.v206-ledger-table tbody tr\[data-v206-payment-status\]/);
   assert.match(smart,/data-v206-payment-status/);
+  assert.match(smart,/function activeProperty\s*\(/);
+  assert.match(smart,/\.v206-ledger-title h2/);
+  assert.match(smart,/if\(documentProperty&&documentProperty!=='عقار غير مسجل'\)return documentProperty/);
+  assert.match(smart,/aqari_v202_property/);
   assert.match(smart,/contractsV202/);
   assert.match(smart,/resolveContract/);
+  assert.match(smart,/norm\(contract\?\.property\)!==norm\(property\)/);
   assert.match(smart,/matches\.length===1/);
   assert.match(smart,/function prioritySort\s*\(/);
   assert.match(smart,/const priority=\{due:0,partial:1,pending:2,paid:3\}/);
