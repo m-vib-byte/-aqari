@@ -2,6 +2,7 @@
   'use strict';
 
   const DESIGN='V207-smart-collections';
+  const PROTECTED_SOURCE='protected-rent-import-v202';
   let query='';
   let filter='action';
 
@@ -16,6 +17,7 @@
     try{return String(sessionStorage.getItem('aqari_v202_property')||sessionStorage.getItem('aqari_v201_property')||'').trim()}catch(_){return ''}
   }
   function contractId(contract){return String(contract?.id||contract?.contract_no||'').trim()}
+  function contractWritable(contract){return Boolean(contract)&&norm(contract?.source)!==norm(PROTECTED_SOURCE)}
 
   function statusKey(status){
     const value=String(status||'').trim();
@@ -60,7 +62,7 @@
   }
 
   function priorityTarget(items){
-    return items.filter(item=>['due','partial'].includes(item.key)).sort(prioritySort).map(item=>({item,contract:resolveContract(item)})).find(entry=>entry.contract)||null;
+    return items.filter(item=>['due','partial'].includes(item.key)).sort(prioritySort).map(item=>({item,contract:resolveContract(item)})).find(entry=>entry.contract&&contractWritable(entry.contract))||null;
   }
 
   function visibleRows(items){
@@ -73,11 +75,12 @@
     }).sort(prioritySort);
   }
 
-  function badge(item){
-    if(item.key==='paid')return '<span class="v207-status is-paid">مسدد</span>';
-    if(item.key==='partial')return '<span class="v207-status is-partial">سداد جزئي</span>';
-    if(item.key==='pending')return '<span class="v207-status is-pending">قيد المراجعة</span>';
-    return '<span class="v207-status is-due">مستحق</span>';
+  function badge(item,readOnly){
+    const suffix=readOnly?' • عرض فقط':'';
+    if(item.key==='paid')return '<span class="v207-status is-paid">مسدد'+suffix+'</span>';
+    if(item.key==='partial')return '<span class="v207-status is-partial">سداد جزئي'+suffix+'</span>';
+    if(item.key==='pending')return '<span class="v207-status is-pending">قيد المراجعة'+suffix+'</span>';
+    return '<span class="v207-status is-due">مستحق'+suffix+'</span>';
   }
 
   function listHtml(items){
@@ -85,10 +88,11 @@
     if(!list.length)return '<div class="v207-empty">لا توجد نتائج مطابقة.</div>';
     return list.slice(0,16).map(item=>{
       const contract=resolveContract(item);
-      const actionable=['due','partial'].includes(item.key)&&contract;
+      const readOnly=Boolean(contract)&&!contractWritable(contract);
+      const actionable=['due','partial'].includes(item.key)&&contractWritable(contract);
       const detail='وحدة '+esc(item.unit)+(item.contractNo&&item.contractNo!=='—'?' • عقد '+esc(item.contractNo):'');
-      const inner='<span class="v207-person"><b>'+esc(item.tenant||'—')+'</b><small>'+detail+'</small></span>'+badge(item)+(actionable?'<span class="v207-arrow">←</span>':'');
-      return actionable?'<button type="button" class="v207-item is-'+item.key+'" data-v207-contract="'+esc(contractId(contract))+'">'+inner+'</button>':'<div class="v207-item is-'+item.key+'">'+inner+'</div>';
+      const inner='<span class="v207-person"><b>'+esc(item.tenant||'—')+'</b><small>'+detail+'</small></span>'+badge(item,readOnly)+(actionable?'<span class="v207-arrow">←</span>':'');
+      return actionable?'<button type="button" class="v207-item is-'+item.key+'" data-v207-contract="'+esc(contractId(contract))+'">'+inner+'</button>':'<div class="v207-item is-'+item.key+(readOnly?' is-readonly':'')+'">'+inner+'</div>';
     }).join('')+(list.length>16?'<div class="v207-more">+ '+(list.length-16)+' نتيجة أخرى</div>':'');
   }
 
@@ -97,9 +101,9 @@
   }
 
   function panelHtml(items){
-    const c=counts(items),priority=priorityTarget(items);
-    const priorityButton=priority?'<button type="button" class="v207-priority" data-v207-priority>تحصيل الأولوية <small>'+esc(priority.item.tenant||'')+' • وحدة '+esc(priority.item.unit)+'</small></button>':'<span class="v207-priority is-clear">التحصيل المطلوب مكتمل</span>';
-    return '<section class="v207-panel" data-v207-panel><div class="v207-head"><div><span>مركز متابعة التحصيل</span><strong>'+c.due+' مستحق • '+c.partial+' جزئي • '+c.pending+' مراجعة • '+c.paid+' مسدد</strong></div><div class="v207-head-actions"><small>الأولوية للمستحق ثم الجزئي، والضغط يفتح تسجيل الدفع على العقد الصحيح.</small>'+priorityButton+'</div></div><div class="v207-tools"><label><span>بحث سريع</span><input type="search" data-v207-search value="'+esc(query)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v207-filters" role="group" aria-label="حالة التحصيل"><button type="button" data-v207-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(c.due+c.partial)+'</button><button type="button" data-v207-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+c.due+'</button><button type="button" data-v207-filter="partial" class="'+(filter==='partial'?'is-active':'')+'">جزئي '+c.partial+'</button><button type="button" data-v207-filter="pending" class="'+(filter==='pending'?'is-active':'')+'">مراجعة '+c.pending+'</button><button type="button" data-v207-filter="paid" class="'+(filter==='paid'?'is-active':'')+'">مسدد '+c.paid+'</button><button type="button" data-v207-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+items.length+'</button></div></div><div class="v207-list" data-v207-results>'+listHtml(items)+'</div></section>';
+    const c=counts(items),priority=priorityTarget(items),required=c.due+c.partial;
+    const priorityButton=priority?'<button type="button" class="v207-priority" data-v207-priority>تحصيل الأولوية <small>'+esc(priority.item.tenant||'')+' • وحدة '+esc(priority.item.unit)+'</small></button>':required?'<span class="v207-priority is-readonly">الحالات المطلوبة للعرض فقط</span>':'<span class="v207-priority is-clear">التحصيل المطلوب مكتمل</span>';
+    return '<section class="v207-panel" data-v207-panel><div class="v207-head"><div><span>مركز متابعة التحصيل</span><strong>'+c.due+' مستحق • '+c.partial+' جزئي • '+c.pending+' مراجعة • '+c.paid+' مسدد</strong></div><div class="v207-head-actions"><small>الأولوية للمستحق ثم الجزئي. بيانات الاستيراد المحمي تظهر للمتابعة فقط ولا تفتح إجراء دفع.</small>'+priorityButton+'</div></div><div class="v207-tools"><label><span>بحث سريع</span><input type="search" data-v207-search value="'+esc(query)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v207-filters" role="group" aria-label="حالة التحصيل"><button type="button" data-v207-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+required+'</button><button type="button" data-v207-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+c.due+'</button><button type="button" data-v207-filter="partial" class="'+(filter==='partial'?'is-active':'')+'">جزئي '+c.partial+'</button><button type="button" data-v207-filter="pending" class="'+(filter==='pending'?'is-active':'')+'">مراجعة '+c.pending+'</button><button type="button" data-v207-filter="paid" class="'+(filter==='paid'?'is-active':'')+'">مسدد '+c.paid+'</button><button type="button" data-v207-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+items.length+'</button></div></div><div class="v207-list" data-v207-results>'+listHtml(items)+'</div></section>';
   }
 
   function refresh(){
@@ -127,6 +131,8 @@
   function openPayment(contract){
     const wanted=String(contract||'').trim();
     if(!wanted)return false;
+    const resolved=contracts().find(item=>contractId(item)===wanted)||null;
+    if(!contractWritable(resolved))return false;
     const close=document.querySelector('#v202DocumentDialog.on [data-v202-document-close]');
     if(close instanceof HTMLElement)close.click();
     let attempts=0;
