@@ -99,3 +99,16 @@ test('V211 reminder wording remains operational and avoids unsupported legal cla
   assert.match(text,/نذكّركم بمراجعة إيجار/);
   assert.doesNotMatch(text,/إنذار|إخلاء|دعوى|غرامة|قانون/);
 });
+
+test('V211.1 startup backup waits for an exact authenticated workspace and never blocks with alert',()=>{
+  const loader=fs.readFileSync(path.join(root,'final-release-ui.js'),'utf8');
+  const guard=loader.match(/function installStartupBackupGuard\(\)\{[\s\S]*?\n  \}\n\n  installStartupBackupGuard\(\);/);
+  assert.ok(guard);
+  assert.match(guard[0],/membership\?\.is_active !== true/);
+  assert.match(guard[0],/AQARI_DATA_GATE\?\.scope/);
+  assert.match(guard[0],/AQARI_EARLY_STORAGE_GATE\?\.scope/);
+  assert.match(guard[0],/if\(!exactWorkspaceScope\(\) \|\| backupInFlight\) return false/);
+  assert.match(guard[0],/window\.makeAutoBackup = guardedBackup/);
+  assert.match(guard[0],/console\.warn\('\[AQARI\] automatic backup skipped'/);
+  assert.doesNotMatch(guard[0],/\balert\s*\(/);
+});
