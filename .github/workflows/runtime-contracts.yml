@@ -23,6 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           files=(
+            '.github/workflows/preview-e2e.yml'
             '.github/workflows/runtime-contracts.yml'
             'final-release-ui.js'
             'tests/v208-portfolio-collections.test.cjs'
