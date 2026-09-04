@@ -29,6 +29,9 @@ jobs:
             'tests/v207-smart-collections.test.cjs'
             'v207-smart-collections.css'
             'v207-smart-collections.js'
+            'tests/v208-portfolio-collections.test.cjs'
+            'v208-portfolio-collections.css'
+            'v208-portfolio-collections.js'
           )
           echo 'AQARI_RELEASE_INVENTORY_BEGIN'
           for file in "${files[@]}"; do
@@ -51,7 +54,10 @@ jobs:
             'final-release-ui.js',
             'tests/v207-smart-collections.test.cjs',
             'v207-smart-collections.css',
-            'v207-smart-collections.js'
+            'v207-smart-collections.js',
+            'tests/v208-portfolio-collections.test.cjs',
+            'v208-portfolio-collections.css',
+            'v208-portfolio-collections.js'
           ];
           const byPath = new Map(inventory.files.map(entry => [entry.path, entry]));
           for (const file of targets) {
@@ -69,4 +75,4 @@ jobs:
           console.log(Buffer.from(text,'utf8').toString('base64'));
           console.log('AQARI_RELEASE_INVENTORY_B64_END');
           NODE
-      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v207-smart-collections.test.cjs
+      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v207-smart-collections.test.cjs tests/v208-portfolio-collections.test.cjs
