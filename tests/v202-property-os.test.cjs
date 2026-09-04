@@ -2214,7 +2214,7 @@ test('V206.1 leaves no-scope legacy rows unassigned across historical properties
 test('V206.1 keeps the public V206 command-center integration contract', () => {
   const source = fs.readFileSync(runtimePath, 'utf8');
   assert.match(source, /seal:function\(\)\{clearProtectedImport\(\);hydratePromise=null;clearProtectedDom\(\);\}/);
-  assert.match(source, /openProperty:function\(name\)\{return protectedAccessReady\(\)\?openWorkspace/);
+  assert.match(source, /openProperty:function\(name,period\)\{return protectedAccessReady\(\)\?openWorkspace/);
   assert.match(source, /rentOfficeData:function\(name,period\)/);
   assert.match(source, /rentOfficeAction:function\(name,key,period,action,trigger\)/);
   assert.match(source, /dataset\.v202Document='rent-office'/);
