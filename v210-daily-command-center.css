@@ -1,0 +1,39 @@
+/* AQARI V210 daily command center — isolated white/gold surface */
+#v210DailyCommandCenter{--v210-gold:#b78a38;--v210-ink:#201a12;--v210-muted:#766b5d;--v210-line:#e9dfcf;direction:rtl;color:var(--v210-ink);font-family:inherit;margin:18px 0;background:linear-gradient(145deg,#fff 0%,#fffdf8 100%);border:1px solid var(--v210-line);border-radius:24px;box-shadow:0 18px 54px rgba(88,61,20,.08);padding:22px;overflow:hidden}
+#v210DailyCommandCenter *{box-sizing:border-box}
+#v210DailyCommandCenter button,#v210DailyCommandCenter input{font:inherit}
+#v210DailyCommandCenter button{cursor:pointer}
+#v210DailyCommandCenter .v210-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:18px}
+#v210DailyCommandCenter .v210-head>div>span,#v210DailyCommandCenter .v210-title span,#v210DailyCommandCenter .v210-actions>span{display:block;color:var(--v210-gold);font-size:12px;font-weight:800;letter-spacing:.04em}
+#v210DailyCommandCenter h2,#v210DailyCommandCenter h3,#v210DailyCommandCenter p{margin:0}
+#v210DailyCommandCenter h2{font-size:clamp(22px,3vw,32px);line-height:1.25;margin-top:5px}
+#v210DailyCommandCenter .v210-head p{color:var(--v210-muted);margin-top:7px;font-size:14px}
+#v210DailyCommandCenter .v210-head label{display:grid;gap:6px;min-width:168px;color:var(--v210-muted);font-size:12px;font-weight:700}
+#v210DailyCommandCenter .v210-head input{min-height:44px;border:1px solid var(--v210-line);border-radius:12px;padding:8px 12px;background:#fff;color:var(--v210-ink);font-size:16px}
+#v210DailyCommandCenter .v210-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+#v210DailyCommandCenter .v210-kpis>*{appearance:none;text-align:right;border:1px solid var(--v210-line);border-radius:16px;background:#fff;padding:14px;min-height:112px;color:var(--v210-ink);display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+#v210DailyCommandCenter .v210-kpis button:hover,#v210DailyCommandCenter .v210-kpis button:focus-visible{border-color:var(--v210-gold);transform:translateY(-1px)}
+#v210DailyCommandCenter .v210-kpis span{font-size:12px;color:var(--v210-muted);font-weight:700}
+#v210DailyCommandCenter .v210-kpis strong{font-size:22px;line-height:1.25;margin:5px 0;color:inherit}
+#v210DailyCommandCenter .v210-kpis small{font-size:11px;color:var(--v210-muted);line-height:1.45}
+#v210DailyCommandCenter .v210-kpis .is-gold{background:#fff8e9;border-color:#ead5aa}#v210DailyCommandCenter .v210-kpis .is-green strong{color:#267457}#v210DailyCommandCenter .v210-kpis .is-red strong{color:#a43c36}#v210DailyCommandCenter .v210-kpis .is-amber strong{color:#a26717}
+#v210DailyCommandCenter .v210-kpis .is-dark{background:#241e16;border-color:#241e16;color:#fff}#v210DailyCommandCenter .v210-kpis .is-dark span,#v210DailyCommandCenter .v210-kpis .is-dark small{color:#ded1bd}
+#v210DailyCommandCenter .v210-body{display:grid;grid-template-columns:minmax(0,2fr) minmax(220px,1fr);gap:14px;margin-top:14px}
+#v210DailyCommandCenter .v210-priorities,#v210DailyCommandCenter .v210-actions{border:1px solid var(--v210-line);border-radius:18px;padding:16px;background:#fff}
+#v210DailyCommandCenter .v210-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+#v210DailyCommandCenter .v210-title h3{font-size:18px;margin-top:3px}
+#v210DailyCommandCenter .v210-title button{border:0;background:transparent;color:var(--v210-gold);font-weight:800;min-height:40px}
+#v210DailyCommandCenter .v210-priority{width:100%;display:grid;grid-template-columns:34px minmax(0,1fr) 24px;align-items:center;gap:10px;text-align:right;border:0;border-top:1px solid #f0e8dd;background:#fff;color:var(--v210-ink);padding:12px 4px;min-height:64px}
+#v210DailyCommandCenter .v210-priority:hover,#v210DailyCommandCenter .v210-priority:focus-visible{background:#fffaf1}
+#v210DailyCommandCenter .v210-priority>b{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:#f8ecd4;color:#8c641f}
+#v210DailyCommandCenter .v210-priority span{min-width:0}#v210DailyCommandCenter .v210-priority strong,#v210DailyCommandCenter .v210-priority small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#v210DailyCommandCenter .v210-priority small{color:var(--v210-muted);margin-top:4px}
+#v210DailyCommandCenter .v210-priority i{font-style:normal;color:var(--v210-gold);font-size:20px}
+#v210DailyCommandCenter .v210-clear{display:grid;gap:5px;place-items:center;min-height:150px;text-align:center;color:#267457}#v210DailyCommandCenter .v210-clear span{color:var(--v210-muted);font-size:13px}
+#v210DailyCommandCenter .v210-actions{display:grid;gap:8px;align-content:start;background:#fffaf1}
+#v210DailyCommandCenter .v210-actions button{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:right;border:1px solid #eadfcf;border-radius:13px;background:#fff;color:var(--v210-ink);padding:11px 12px;min-height:55px}
+#v210DailyCommandCenter .v210-actions button:hover,#v210DailyCommandCenter .v210-actions button:focus-visible{border-color:var(--v210-gold);box-shadow:0 8px 20px rgba(123,86,25,.08)}
+#v210DailyCommandCenter .v210-actions strong,#v210DailyCommandCenter .v210-actions small{display:block}#v210DailyCommandCenter .v210-actions small{color:var(--v210-muted);font-size:11px}
+@media(max-width:1100px){#v210DailyCommandCenter .v210-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){#v210DailyCommandCenter{margin:12px 0;padding:14px;border-radius:18px}#v210DailyCommandCenter .v210-head{display:grid}#v210DailyCommandCenter .v210-head label{width:100%}#v210DailyCommandCenter .v210-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#v210DailyCommandCenter .v210-kpis>*{min-height:102px;padding:12px}#v210DailyCommandCenter .v210-kpis strong{font-size:18px}#v210DailyCommandCenter .v210-body{grid-template-columns:1fr}}
+@media(max-width:390px){#v210DailyCommandCenter .v210-kpis{grid-template-columns:1fr 1fr;gap:8px}#v210DailyCommandCenter .v210-kpis>*{min-width:0}#v210DailyCommandCenter .v210-head p{font-size:13px}}
+@media print{#v210DailyCommandCenter{display:none!important}}

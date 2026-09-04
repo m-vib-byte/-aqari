@@ -9,10 +9,10 @@
     box.className = 'aq-v196-final';
 
     const title = document.createElement('strong');
-    title.textContent = 'AQARI V198 — المرشح النهائي للإطلاق';
+    title.textContent = 'عقاري V210 — لوحة التنفيذ اليومية';
 
     const desc = document.createElement('small');
-    desc.textContent = 'قبل أول نقل بيانات: خذ نسخة احتياطية من بيانات الجهاز، ثم نفّذ Migration على Preview، وبعد نجاح E2E فقط يتم اعتماد Production.';
+    desc.textContent = 'الإصدار التشغيلي يجمع التحصيل والبحث والمتابعة اليومية فوق طبقة البيانات المحمية، مع بقاء أدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
 
     const actions = document.createElement('div');
     actions.className = 'aq-v196-actions';
@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV210DailyCommandCenter(){
+    document.body?.classList.add('aq-v210');
+
+    if(!document.getElementById('aqari-v210-daily-command-center-css')){
+      const commandCss=document.createElement('link');
+      commandCss.id='aqari-v210-daily-command-center-css';
+      commandCss.rel='stylesheet';
+      commandCss.href='/v210-daily-command-center.css?v=210.0';
+      document.head.appendChild(commandCss);
+    }
+
+    if(!document.getElementById('aqari-v210-daily-command-center-js')){
+      const commandJs=document.createElement('script');
+      commandJs.id='aqari-v210-daily-command-center-js';
+      commandJs.src='/v210-daily-command-center.js?v=210.0';
+      document.body.appendChild(commandJs);
+    }
+  }
+
   function installV209GlobalSearch(){
     document.body?.classList.add('aq-v209');
 
@@ -98,11 +117,19 @@
       document.head.appendChild(globalSearchCss);
     }
 
-    if(!document.getElementById('aqari-v209-global-search-js')){
-      const globalSearchJs=document.createElement('script');
+    let globalSearchJs=document.getElementById('aqari-v209-global-search-js');
+    if(!globalSearchJs){
+      globalSearchJs=document.createElement('script');
       globalSearchJs.id='aqari-v209-global-search-js';
       globalSearchJs.src='/v209-global-search.js?v=209.1';
+      globalSearchJs.dataset.v210LoaderBound='true';
+      globalSearchJs.addEventListener('load', installV210DailyCommandCenter, { once:true });
       document.body.appendChild(globalSearchJs);
+    }else if(window.AQARI_V209?.version==='V209-global-search'||document.querySelector('meta[name="aqari-global-search"]')){
+      installV210DailyCommandCenter();
+    }else if(globalSearchJs.dataset.v210LoaderBound!=='true'){
+      globalSearchJs.dataset.v210LoaderBound='true';
+      globalSearchJs.addEventListener('load', installV210DailyCommandCenter, { once:true });
     }
   }
 
