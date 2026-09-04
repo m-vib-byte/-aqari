@@ -47,19 +47,25 @@
     return matches.length===1?matches[0]:null;
   }
 
+  function prioritySort(a,b){
+    const priority={due:0,partial:1,pending:2,paid:3};
+    const pa=priority[a.key]??9,pb=priority[b.key]??9;
+    if(pa!==pb)return pa-pb;
+    return String(a.unit).localeCompare(String(b.unit),'ar',{numeric:true,sensitivity:'base'});
+  }
+
+  function priorityTarget(items){
+    return items.filter(item=>['due','partial'].includes(item.key)).sort(prioritySort).map(item=>({item,contract:resolveContract(item)})).find(entry=>entry.contract)||null;
+  }
+
   function visibleRows(items){
     const q=norm(query);
-    const priority={due:0,partial:1,pending:2,paid:3};
     return items.filter(item=>{
       if(filter==='action'&&!['due','partial'].includes(item.key))return false;
       if(filter!=='all'&&filter!=='action'&&item.key!==filter)return false;
       if(!q)return true;
       return norm([item.tenant,item.unit,item.contractNo,item.status].join(' ')).includes(q);
-    }).sort((a,b)=>{
-      const pa=priority[a.key]??9,pb=priority[b.key]??9;
-      if(pa!==pb)return pa-pb;
-      return String(a.unit).localeCompare(String(b.unit),'ar',{numeric:true,sensitivity:'base'});
-    });
+    }).sort(prioritySort);
   }
 
   function badge(item){
@@ -86,8 +92,9 @@
   }
 
   function panelHtml(items){
-    const c=counts(items);
-    return '<section class="v207-panel" data-v207-panel><div class="v207-head"><div><span>مركز متابعة التحصيل</span><strong>'+c.due+' مستحق • '+c.partial+' جزئي • '+c.pending+' مراجعة • '+c.paid+' مسدد</strong></div><small>الأولوية للمستحق ثم الجزئي، والضغط يفتح تسجيل الدفع على العقد الصحيح.</small></div><div class="v207-tools"><label><span>بحث سريع</span><input type="search" data-v207-search value="'+esc(query)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v207-filters" role="group" aria-label="حالة التحصيل"><button type="button" data-v207-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(c.due+c.partial)+'</button><button type="button" data-v207-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+c.due+'</button><button type="button" data-v207-filter="partial" class="'+(filter==='partial'?'is-active':'')+'">جزئي '+c.partial+'</button><button type="button" data-v207-filter="pending" class="'+(filter==='pending'?'is-active':'')+'">مراجعة '+c.pending+'</button><button type="button" data-v207-filter="paid" class="'+(filter==='paid'?'is-active':'')+'">مسدد '+c.paid+'</button><button type="button" data-v207-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+items.length+'</button></div></div><div class="v207-list" data-v207-results>'+listHtml(items)+'</div></section>';
+    const c=counts(items),priority=priorityTarget(items);
+    const priorityButton=priority?'<button type="button" class="v207-priority" data-v207-priority>تحصيل الأولوية <small>'+esc(priority.item.tenant||'')+' • وحدة '+esc(priority.item.unit)+'</small></button>':'<span class="v207-priority is-clear">التحصيل المطلوب مكتمل</span>';
+    return '<section class="v207-panel" data-v207-panel><div class="v207-head"><div><span>مركز متابعة التحصيل</span><strong>'+c.due+' مستحق • '+c.partial+' جزئي • '+c.pending+' مراجعة • '+c.paid+' مسدد</strong></div><div class="v207-head-actions"><small>الأولوية للمستحق ثم الجزئي، والضغط يفتح تسجيل الدفع على العقد الصحيح.</small>'+priorityButton+'</div></div><div class="v207-tools"><label><span>بحث سريع</span><input type="search" data-v207-search value="'+esc(query)+'" placeholder="المستأجر، الوحدة أو رقم العقد"></label><div class="v207-filters" role="group" aria-label="حالة التحصيل"><button type="button" data-v207-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(c.due+c.partial)+'</button><button type="button" data-v207-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+c.due+'</button><button type="button" data-v207-filter="partial" class="'+(filter==='partial'?'is-active':'')+'">جزئي '+c.partial+'</button><button type="button" data-v207-filter="pending" class="'+(filter==='pending'?'is-active':'')+'">مراجعة '+c.pending+'</button><button type="button" data-v207-filter="paid" class="'+(filter==='paid'?'is-active':'')+'">مسدد '+c.paid+'</button><button type="button" data-v207-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+items.length+'</button></div></div><div class="v207-list" data-v207-results>'+listHtml(items)+'</div></section>';
   }
 
   function refresh(){
@@ -113,26 +120,48 @@
   }
 
   function openPayment(contract){
-    const workspace=document.getElementById('v202PropertyWorkspace');
-    const action=workspace?.querySelector('[data-v202-action="payment"]');
-    if(action instanceof HTMLElement)action.click();
+    const wanted=String(contract||'').trim();
+    if(!wanted)return false;
+    const close=document.querySelector('#v202DocumentDialog.on [data-v202-document-close]');
+    if(close instanceof HTMLElement)close.click();
     let attempts=0;
-    const choose=()=>{
+    const launch=()=>{
       attempts+=1;
-      const select=document.getElementById('v202PaymentContract');
-      if(select instanceof HTMLSelectElement){
-        const option=Array.from(select.options).find(item=>item.value===contract);
-        if(option){select.value=contract;select.dispatchEvent(new Event('change',{bubbles:true}));select.focus();return}
+      const workspace=document.getElementById('v202PropertyWorkspace');
+      const action=workspace?.querySelector('[data-v202-action="payment"]');
+      if(action instanceof HTMLElement){
+        action.click();
+        let chooseAttempts=0;
+        const choose=()=>{
+          chooseAttempts+=1;
+          const select=document.getElementById('v202PaymentContract');
+          if(select instanceof HTMLSelectElement){
+            const option=Array.from(select.options).find(item=>item.value===wanted);
+            if(option){select.value=wanted;select.dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('v202PaymentAmount')?.focus();return}
+          }
+          if(chooseAttempts<14)setTimeout(choose,80);
+        };
+        setTimeout(choose,60);
+        return;
       }
-      if(attempts<14)setTimeout(choose,80);
+      if(attempts<8)setTimeout(launch,60);
     };
-    setTimeout(choose,60);
+    setTimeout(launch,40);
+    return true;
+  }
+
+  function openPriority(){
+    const target=priorityTarget(rowsFromOfficialLedger());
+    if(!target?.contract)return false;
+    return openPayment(contractId(target.contract));
   }
 
   document.addEventListener('input',event=>{
     if(event.target.matches('[data-v207-search]')){query=event.target.value;refresh()}
   });
   document.addEventListener('click',event=>{
+    const priorityButton=event.target.closest('[data-v207-priority]');
+    if(priorityButton){openPriority();return}
     const filterButton=event.target.closest('[data-v207-filter]');
     if(filterButton){filter=filterButton.getAttribute('data-v207-filter')||'action';refresh();return}
     const contractButton=event.target.closest('[data-v207-contract]');
