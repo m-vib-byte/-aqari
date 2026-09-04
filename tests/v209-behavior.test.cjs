@@ -443,6 +443,24 @@ function resultArticles(html){
   return html.match(/<article class="v209-result">[\s\S]*?<\/article>/g)||[];
 }
 
+test('search trigger reliably opens the sealed accessible surface after competing click handlers',()=>{
+  const env=createHarness();
+  const trigger=env.document.querySelector('[data-v199-action="search"]');
+  env.document.addEventListener('click',function(){
+    env.panel.classList.remove('on');
+    env.panel.setAttribute('aria-hidden','true');
+  });
+
+  env.document.dispatchEvent({type:'click',target:trigger});
+  env.clock.tick(0);
+
+  assert.equal(env.panel.classList.contains('on'),true);
+  assert.equal(env.panel.getAttribute('aria-hidden'),'false');
+  assert.equal(env.panel.getAttribute('role'),'search');
+  assert.equal(env.panel.getAttribute('dir'),'rtl');
+  assert.match(env.document.getElementById('v209SearchResults').innerHTML,/سجّل الدخول|ابحث بسرعة/);
+});
+
 test('discovers a matching fifth property only through secure rentOfficeProperties',()=>{
   const properties=['برج أول','برج ثان','برج ثالث','برج رابع','برج خامس'];
   const env=createHarness({
