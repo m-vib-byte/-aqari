@@ -9,10 +9,10 @@
     box.className = 'aq-v196-final';
 
     const title = document.createElement('strong');
-    title.textContent = 'عقاري V210 — لوحة التنفيذ اليومية';
+    title.textContent = 'عقاري V211 — مركز المتابعة';
 
     const desc = document.createElement('small');
-    desc.textContent = 'الإصدار التشغيلي يجمع التحصيل والبحث والمتابعة اليومية فوق طبقة البيانات المحمية، مع بقاء أدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
+    desc.textContent = 'الإصدار التشغيلي يضيف مركز متابعة للمستحقات والمراجعات فوق لوحة V210 وطبقة البيانات المحمية، مع بقاء أدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
 
     const actions = document.createElement('div');
     actions.className = 'aq-v196-actions';
@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV211FollowUpCenter(){
+    document.body?.classList.add('aq-v211');
+
+    if(!document.getElementById('aqari-v211-follow-up-center-css')){
+      const followUpCss=document.createElement('link');
+      followUpCss.id='aqari-v211-follow-up-center-css';
+      followUpCss.rel='stylesheet';
+      followUpCss.href='/v211-follow-up-center.css?v=211.0';
+      document.head.appendChild(followUpCss);
+    }
+
+    if(!document.getElementById('aqari-v211-follow-up-center-js')){
+      const followUpJs=document.createElement('script');
+      followUpJs.id='aqari-v211-follow-up-center-js';
+      followUpJs.src='/v211-follow-up-center.js?v=211.0';
+      document.body.appendChild(followUpJs);
+    }
+  }
+
   function installV210DailyCommandCenter(){
     document.body?.classList.add('aq-v210');
 
@@ -98,11 +117,19 @@
       document.head.appendChild(commandCss);
     }
 
-    if(!document.getElementById('aqari-v210-daily-command-center-js')){
-      const commandJs=document.createElement('script');
+    let commandJs=document.getElementById('aqari-v210-daily-command-center-js');
+    if(!commandJs){
+      commandJs=document.createElement('script');
       commandJs.id='aqari-v210-daily-command-center-js';
       commandJs.src='/v210-daily-command-center.js?v=210.0';
+      commandJs.dataset.v211LoaderBound='true';
+      commandJs.addEventListener('load', installV211FollowUpCenter, { once:true });
       document.body.appendChild(commandJs);
+    }else if(window.AQARI_V210?.version==='V210-daily-command-center'||document.querySelector('meta[name="aqari-daily-command-center"]')){
+      installV211FollowUpCenter();
+    }else if(commandJs.dataset.v211LoaderBound!=='true'){
+      commandJs.dataset.v211LoaderBound='true';
+      commandJs.addEventListener('load', installV211FollowUpCenter, { once:true });
     }
   }
 
