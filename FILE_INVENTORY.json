@@ -1,5 +1,5 @@
 {
-  "version": "V211.1",
+  "version": "V198",
   "files": [
     {
       "path": ".env.example",
@@ -13,13 +13,13 @@
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "size": 3091,
-      "sha256": "b6c948055d85b1c96039cd9c66f836abd269cbb6719eca1356dfe074d23e625b"
+      "size": 3090,
+      "sha256": "2a1e5182ea03d6ce81b3bc242207e7cffae2e828630d033618989908c6e18c5e"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 2292,
-      "sha256": "7b91f1f62f0ed7a8d5933c5d4bb21979581ff19fddc87f7a236c65bfb0405ed5"
+      "size": 2291,
+      "sha256": "a34234eb13924c1ce53b7869b27db991098ea626de892efb5edb7d3e4eaff859"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 12328,
-      "sha256": "ee0be1cba484afe25c1ca186974199aed9836ea099ddbe81af004b6aa02388fe"
+      "size": 12327,
+      "sha256": "99ed85793614bfbc689482a021e1c1d5812dff6347b51c13f66f6cdbb8e63b73"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -233,8 +233,8 @@
     },
     {
       "path": "RELEASE_NOTES_V211_1.md",
-      "size": 636,
-      "sha256": "0ff0235985a87b58f35dfbf93eb22cbbaf0d2cf4ac3b85f22eee46cadb452546"
+      "size": 635,
+      "sha256": "2f1958e700ce5aba3cf7f0c9fc4c4f824dab58539a61427736d9148f7061893c"
     },
     {
       "path": "SAFE_AUTOSYNC.md",
@@ -333,13 +333,13 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 20934,
-      "sha256": "ab7726d22b7f7ec4816a1d89df93c8749faf3ee280266c04081326d1bb0da934"
+      "size": 20933,
+      "sha256": "c6b56891e6eb6010ebaef8b697a30f976928d346f06202d3b4e09fce07cad762"
     },
     {
       "path": "supabase/migrations/20260904190000_v211_1_secure_follow_up_events.sql",
-      "size": 4087,
-      "sha256": "8942e7b4590344200578f61401c7414fad451c1ac5c1b939a8b8684d177061d6"
+      "size": 4086,
+      "sha256": "aa0b136c97b76aee8e24a64c22e4e17223dcbf47eff9c8d3714c899856017941"
     },
     {
       "path": "sw.js",
@@ -403,8 +403,8 @@
     },
     {
       "path": "tests/v211-follow-up-cloud.test.cjs",
-      "size": 5148,
-      "sha256": "3c72afd3aa1f2d529c4c21bb64fdf95696e3f3dd4e5e45643d3a72282c7192bc"
+      "size": 5147,
+      "sha256": "64868822e1cb205cd79e40d0a0eaf985beeb953ecfea3169a7dfdaf5dc9cb036"
     },
     {
       "path": "v199-ui.css",
@@ -498,13 +498,13 @@
     },
     {
       "path": "v211-follow-up-center.css",
-      "size": 5696,
-      "sha256": "04160e5ee2c2ee8934bb1d5c54586830c94d0de2c715353b4b7b017c53b145a1"
+      "size": 5695,
+      "sha256": "cebe8daae05c5140d2c398361e57f7195cefb53349e705d9dd17eca71a701754"
     },
     {
       "path": "v211-follow-up-center.js",
-      "size": 21411,
-      "sha256": "c678a4ed72450d44ec83a6cf07380e3f278a7c644b4e7bf64837873c5674bf1d"
+      "size": 21410,
+      "sha256": "d569e454f14658b3d3aa8b482275237b06127b1c003326af3a7b0b53188c5197"
     },
     {
       "path": "vercel.json",
@@ -513,8 +513,8 @@
     },
     {
       "path": "VERSION.json",
-      "size": 1955,
-      "sha256": "fc9d1b86d6704e90bc9ffa1ac72438290e1749b4565328732dcfced651ec9d9f"
+      "size": 1954,
+      "sha256": "41348fdd9489e18821f0e52819bce9fe6f4a8630e41200c7a517650e3166671a"
     }
   ]
 }
