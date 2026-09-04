@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: V210 release inventory diagnostics
+      - name: V211 release inventory diagnostics
         shell: bash
         run: |
           set -euo pipefail
@@ -43,13 +43,16 @@ jobs:
             'tests/v210-daily-command-center.test.cjs'
             'v210-daily-command-center.css'
             'v210-daily-command-center.js'
+            'tests/v211-rent-followup-center.test.cjs'
+            'v211-rent-followup-center.css'
+            'v211-rent-followup-center.js'
           )
-          echo 'AQARI_V210_INVENTORY_BEGIN'
+          echo 'AQARI_V211_INVENTORY_BEGIN'
           for file in "${files[@]}"; do
             test -f "$file"
             bytes=$(wc -c < "$file" | tr -d ' ')
             hash=$(sha256sum "$file" | awk '{print $1}')
             printf '%s|%s|%s\n' "$file" "$bytes" "$hash"
           done
-          echo 'AQARI_V210_INVENTORY_END'
-      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs
+          echo 'AQARI_V211_INVENTORY_END'
+      - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-rent-followup-center.test.cjs

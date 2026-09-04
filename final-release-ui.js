@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV211RentFollowupCenter(){
+    document.body?.classList.add('aq-v211');
+
+    if(!document.getElementById('aqari-v211-rent-followup-center-css')){
+      const followupCss=document.createElement('link');
+      followupCss.id='aqari-v211-rent-followup-center-css';
+      followupCss.rel='stylesheet';
+      followupCss.href='/v211-rent-followup-center.css?v=211.0';
+      document.head.appendChild(followupCss);
+    }
+
+    if(!document.getElementById('aqari-v211-rent-followup-center-js')){
+      const followupJs=document.createElement('script');
+      followupJs.id='aqari-v211-rent-followup-center-js';
+      followupJs.src='/v211-rent-followup-center.js?v=211.0';
+      document.body.appendChild(followupJs);
+    }
+  }
+
   function installV210DailyCommandCenter(){
     document.body?.classList.add('aq-v210');
 
@@ -98,11 +117,19 @@
       document.head.appendChild(commandCss);
     }
 
-    if(!document.getElementById('aqari-v210-daily-command-center-js')){
-      const commandJs=document.createElement('script');
+    let commandJs=document.getElementById('aqari-v210-daily-command-center-js');
+    if(!commandJs){
+      commandJs=document.createElement('script');
       commandJs.id='aqari-v210-daily-command-center-js';
       commandJs.src='/v210-daily-command-center.js?v=210.0';
+      commandJs.dataset.v211LoaderBound='true';
+      commandJs.addEventListener('load', installV211RentFollowupCenter, { once:true });
       document.body.appendChild(commandJs);
+    }else if(window.AQARI_V210?.version==='V210-daily-command-center'||document.querySelector('meta[name="aqari-daily-command-center"]')){
+      installV211RentFollowupCenter();
+    }else if(commandJs.dataset.v211LoaderBound!=='true'){
+      commandJs.dataset.v211LoaderBound='true';
+      commandJs.addEventListener('load', installV211RentFollowupCenter, { once:true });
     }
   }
 

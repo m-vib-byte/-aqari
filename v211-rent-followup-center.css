@@ -1,0 +1,36 @@
+/* AQARI V211 secure rent follow-up center */
+#v211FollowupDialog{position:fixed;inset:0;z-index:2147483001;display:none;place-items:center;padding:18px;background:rgba(28,22,14,.58);backdrop-filter:blur(8px);direction:rtl;font-family:inherit;color:#211b13}
+#v211FollowupDialog.on{display:grid}
+#v211FollowupDialog *{box-sizing:border-box}
+#v211FollowupDialog button,#v211FollowupDialog input,#v211FollowupDialog select{font:inherit}
+#v211FollowupDialog .v211-sheet{position:relative;width:min(1120px,100%);max-height:min(90vh,900px);overflow:auto;background:#fffdf9;border:1px solid #e7d8bf;border-radius:26px;box-shadow:0 30px 90px rgba(20,14,7,.32);padding:24px}
+#v211FollowupDialog .v211-close{position:absolute;top:14px;left:14px;width:44px;height:44px;border:1px solid #e7d8bf;border-radius:14px;background:#fff;color:#2a2116;font-size:25px;cursor:pointer}
+#v211FollowupDialog .v211-head{display:flex;justify-content:space-between;gap:20px;padding-left:55px;margin-bottom:18px}
+#v211FollowupDialog .v211-head h2,#v211FollowupDialog .v211-head p{margin:0}
+#v211FollowupDialog .v211-head>div>span{color:#a97927;font-size:12px;font-weight:900}
+#v211FollowupDialog .v211-head h2{font-size:clamp(23px,3vw,34px);margin:5px 0}
+#v211FollowupDialog .v211-head p{max-width:720px;color:#776b5e;font-size:13px;line-height:1.7}
+#v211FollowupDialog label{display:grid;gap:6px;color:#6f6457;font-size:12px;font-weight:800}
+#v211FollowupDialog input,#v211FollowupDialog select{min-height:44px;border:1px solid #e5dac9;border-radius:12px;background:#fff;color:#211b13;padding:8px 12px;font-size:16px}
+#v211FollowupDialog .v211-toolbar{display:flex;align-items:end;justify-content:space-between;gap:12px;padding:12px;background:#f8f2e8;border-radius:17px}
+#v211FollowupDialog .v211-toolbar>label{min-width:190px}
+#v211FollowupDialog .v211-filters{display:flex;gap:7px;flex-wrap:wrap}
+#v211FollowupDialog .v211-filters button{min-height:42px;border:1px solid #e2d5c0;border-radius:12px;background:#fff;color:#55493c;padding:8px 12px;cursor:pointer}
+#v211FollowupDialog .v211-filters button.is-active{background:#241d14;border-color:#241d14;color:#fff}
+#v211FollowupDialog .v211-filters b{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:8px;background:rgba(183,138,56,.16);margin-right:5px}
+#v211FollowupDialog .v211-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+#v211FollowupDialog .v211-card{border:1px solid #e7ddce;border-right:5px solid #b78a38;border-radius:17px;background:#fff;padding:15px;min-width:0}
+#v211FollowupDialog .v211-card.is-pending{border-right-color:#d48b22}#v211FollowupDialog .v211-card.is-readonly{border-right-color:#7d746b}#v211FollowupDialog .v211-card.is-setup{border-right-color:#5f7287}
+#v211FollowupDialog .v211-card header{display:flex;justify-content:space-between;gap:12px;align-items:start}
+#v211FollowupDialog .v211-card header span,#v211FollowupDialog .v211-card header small{display:block;color:#766a5d;font-size:12px}
+#v211FollowupDialog .v211-card h3{margin:4px 0;font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#v211FollowupDialog .v211-card header>b{white-space:nowrap;border-radius:10px;background:#fff4df;color:#8a5c13;padding:7px 9px;font-size:11px}
+#v211FollowupDialog .v211-card-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid #f0e8dc}
+#v211FollowupDialog .v211-card-actions button,#v211FollowupDialog .v211-card footer button{min-height:40px;border:1px solid #dfd3c1;border-radius:11px;background:#fff;color:#3c3125;padding:7px 10px;cursor:pointer;font-weight:750}
+#v211FollowupDialog .v211-card-actions button[data-v211-action="payment"],#v211FollowupDialog .v211-card-actions button[data-v211-action="copy"]{background:#b78a38;border-color:#b78a38;color:#fff}
+#v211FollowupDialog .v211-send-note{display:block;color:#8a7f72;margin-top:9px;font-size:10px}
+#v211FollowupDialog .v211-empty{grid-column:1/-1;display:grid;place-items:center;gap:6px;min-height:230px;text-align:center;color:#75695b}
+body.v211-open{overflow:hidden}
+@media(max-width:760px){#v211FollowupDialog{padding:0;align-items:end}#v211FollowupDialog .v211-sheet{width:100%;max-height:94vh;border-radius:22px 22px 0 0;padding:18px 14px}#v211FollowupDialog .v211-head{display:grid;padding-left:48px}#v211FollowupDialog .v211-toolbar{display:grid}#v211FollowupDialog .v211-toolbar>label{min-width:0}#v211FollowupDialog .v211-list{grid-template-columns:1fr}}
+@media(max-width:390px){#v211FollowupDialog .v211-sheet{padding-inline:12px}#v211FollowupDialog .v211-filters button{padding-inline:9px}#v211FollowupDialog .v211-card{padding:13px}}
+@media print{#v211FollowupDialog{display:none!important}}

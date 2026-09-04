@@ -144,6 +144,25 @@ await check('V210 signed-out command center stays sealed and mobile-safe', async
   if(state.horizontalOverflow)throw new Error('V210 creates horizontal overflow at 390px');
 });
 
+
+await check('V211 signed-out follow-up center stays sealed and mobile-safe', async () => {
+  await page.waitForFunction(() => window.AQARI_V211?.version === 'V211-rent-followup-center');
+  const state=await page.evaluate(() => ({
+    authenticated:Boolean(window.AQARI_SUPABASE?.context?.user),
+    apiVersion:window.AQARI_V211?.version,
+    dialog:Boolean(document.getElementById('v211FollowupDialog')),
+    cssLoaded:Boolean(document.getElementById('aqari-v211-rent-followup-center-css')),
+    scriptLoaded:Boolean(document.getElementById('aqari-v211-rent-followup-center-js')),
+    meta:document.querySelector('meta[name="aqari-rent-followup-center"]')?.content||'',
+    opened:window.AQARI_V211?.open?.('all','',new Date().toISOString().slice(0,7)),
+    horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
+  }));
+  if(state.authenticated)throw new Error('test requires a signed-out Preview');
+  if(state.apiVersion!=='V211-rent-followup-center'||!state.cssLoaded||!state.scriptLoaded||state.meta!=='V211-rent-followup-center')throw new Error('V211 assets or identity missing: '+JSON.stringify(state));
+  if(state.dialog||state.opened!==false)throw new Error('signed-out V211 follow-up center exposed protected workspace data');
+  if(state.horizontalOverflow)throw new Error('V211 creates horizontal overflow at 390px');
+});
+
 await check('V205 keeps one visible mobile navigation with five clear sections', async () => {
   await page.waitForSelector('body[data-v205-ready="true"]');
   const state=await page.evaluate(() => {

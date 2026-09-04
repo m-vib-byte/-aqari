@@ -2755,7 +2755,7 @@
         property:String(context.property?.[0]||''),period:selectedPeriod,
         unit:String(item.unit||record?.unit||'—'),tenant:String(item.tenant||record?.tenant||'—'),
         contractNo:String(record?.contractNo||contract?.contract_no||''),contractId:String(item.contractId||''),
-        recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),verified:Boolean(record?.verified),billable:Boolean(record?.billable),collectible:Boolean(record?.collectible),
+        contractEnd:String(record?.legalEndDate||''),recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),verified:Boolean(record?.verified),billable:Boolean(record?.billable),collectible:Boolean(record?.collectible),
         contractRent:contractRentValue,currentRent:currentRentValue,
         insurance:ledgerRecordedAmount(record?.insurance),advance:ledgerRecordedAmount(record?.advance),cleaningFee:ledgerRecordedAmount(record?.cleaningFee),
         paymentDate:String(latest&&validRecordedDate(latest?.paidAt)?latest.paidAt:''),paymentMethod:String(latest?.method||''),
@@ -3102,7 +3102,7 @@
       const email=emailAddresses(row.email)[0]||'';
       return Object.freeze({
         key:String(row.recordKey||''),unit:String(row.unit||'—'),tenant:String(row.tenant||'—'),
-        contractNo:String(row.contractNo||''),contractId:String(row.contractId||''),hasContract:Boolean(row.hasContract),billable:Boolean(row.billable),collectible:Boolean(row.collectible),
+        contractNo:String(row.contractNo||''),contractId:String(row.contractId||''),contractEnd:String(row.contractEnd||''),hasContract:Boolean(row.hasContract),billable:Boolean(row.billable),collectible:Boolean(row.collectible),
         contractRent:row.contractRent,currentRent:row.currentRent,rent:numberFrom(row.due),
         insurance:row.insurance,advance:row.advance,cleaningFee:row.cleaningFee,
         paid:numberFrom(row.paid),pending:numberFrom(row.pending),balance:numberFrom(row.balance),paymentStatus:String(row.paymentStatus||''),
@@ -3117,6 +3117,81 @@
       totalInsurance:numberFrom(model.totals.insurance),totalAdvance:numberFrom(model.totals.advance),totalCleaning:numberFrom(model.totals.cleaningFee),
       canRecordPayment:rentWriteAllowed()&&!protectedPropertyActive(property),records:Object.freeze(records)
     });
+  }
+
+
+  function followupAccess(){
+    const scope=activeAccessScope();
+    const role=accessIdentity(window.AQARI_SUPABASE?.context?.membership?.role);
+    if(!scope||!role||!protectedAccessReady())return null;
+    return Object.freeze({userId:scope.userId,workspaceId:scope.workspaceId,role:role});
+  }
+
+  function followupScopeKey(access){
+    return access?access.userId+'\u0000'+access.workspaceId+'\u0000'+access.role:'';
+  }
+
+  function followupRevision(records,access){
+    if(!access)return 0;
+    return (Array.isArray(records)?records:[]).reduce(function(max,entry){
+      if(entry?.userId!==access.userId||entry?.workspaceId!==access.workspaceId||entry?.role!==access.role)return max;
+      const revision=Number(entry?.revision);
+      return Number.isSafeInteger(revision)&&revision>max?revision:max;
+    },0);
+  }
+
+  function secureRentFollowups(name,key,period){
+    const access=followupAccess();
+    const property=accessIdentity(name),recordKey=accessIdentity(key),selectedPeriod=accessIdentity(period);
+    if(!access||!propertyKey(property)||!recordKey||!validPeriod(selectedPeriod))return Object.freeze([]);
+    const model=secureRentOfficeData(property,selectedPeriod);
+    if(!model||propertyKey(model.property)!==propertyKey(property))return Object.freeze([]);
+    const scope=followupScopeKey(access);
+    const records=Array.isArray(appData().rentFollowupsV211)?appData().rentFollowupsV211:[];
+    return Object.freeze(records.filter(function(entry){
+      return entry&&entry.userId===access.userId&&entry.workspaceId===access.workspaceId&&entry.role===access.role&&
+        entry.property===property&&entry.key===recordKey&&entry.period===selectedPeriod;
+    }).sort(function(left,right){return Number(left.revision)-Number(right.revision)}).slice(-50).map(function(entry){
+      return Object.freeze({scope:scope,property:entry.property,key:entry.key,period:entry.period,action:entry.action,state:entry.state,at:entry.at,revision:entry.revision});
+    }));
+  }
+
+  function secureRecordRentFollowup(name,key,period,action,state){
+    const access=followupAccess();
+    const property=accessIdentity(name),recordKey=accessIdentity(key),selectedPeriod=accessIdentity(period);
+    const requested=accessIdentity(action),nextState=accessIdentity(state);
+    if(!access||!RENT_WRITE_ROLES.has(access.role)||!propertyKey(property)||!recordKey||!validPeriod(selectedPeriod)||
+      !['view','statement','contract','receipt','payment','search','copy','email'].includes(requested)||!['completed','prepared'].includes(nextState))return false;
+    const model=secureRentOfficeData(property,selectedPeriod);
+    if(!model||propertyKey(model.property)!==propertyKey(property))return false;
+    const exact=Array.isArray(model.records)?model.records.filter(function(record){return record.key===recordKey}):[];
+    const setupRecord=recordKey.indexOf('setup:')===0&&model.unitCount===0&&exact.length===0;
+    if(exact.length!==1&&!setupRecord)return false;
+    const data=appData();
+    if(!data||typeof data!=='object'||Array.isArray(data)||typeof persist!=='function')return false;
+    const owned=Object.prototype.hasOwnProperty.call(data,'rentFollowupsV211');
+    const previous=data.rentFollowupsV211;
+    const records=Array.isArray(previous)?previous:[];
+    const revision=followupRevision(records,access)+1;
+    const entry=Object.freeze({
+      id:'v211-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),
+      property:property,key:recordKey,period:selectedPeriod,action:requested,state:nextState,at:new Date().toISOString(),
+      userId:access.userId,workspaceId:access.workspaceId,role:access.role,revision:revision,source:'v211-entry'
+    });
+    try{
+      data.rentFollowupsV211=records.concat([entry]).slice(-500);
+      persist();
+      const after=followupAccess();
+      const saved=Array.isArray(data.rentFollowupsV211)&&data.rentFollowupsV211.some(function(candidate){
+        return candidate?.id===entry.id&&candidate?.revision===revision&&candidate?.userId===access.userId&&candidate?.workspaceId===access.workspaceId&&candidate?.role===access.role;
+      });
+      if(!after||after.userId!==access.userId||after.workspaceId!==access.workspaceId||after.role!==access.role||!saved)throw new Error('follow-up scope changed');
+      return true;
+    }catch(_){
+      try{if(owned)data.rentFollowupsV211=previous;else delete data.rentFollowupsV211}catch(_){ }
+      try{persist()}catch(_){ }
+      return false;
+    }
   }
 
   function secureRentOfficeAction(name,key,period,action,trigger){
@@ -3507,6 +3582,8 @@
       openProperty:function(name,period){return protectedAccessReady()?openWorkspace(name,document.activeElement,period):false},
       rentOfficeProperties:function(){return secureRentOfficeProperties()},
       rentOfficeData:function(name,period){return secureRentOfficeData(name,period)},
+      rentFollowups:function(name,key,period){return secureRentFollowups(name,key,period)},
+      recordRentFollowup:function(name,key,period,action,state){return secureRecordRentFollowup(name,key,period,action,state)},
       rentOfficeAction:function(name,key,period,action,trigger){return secureRentOfficeAction(name,key,period,action,trigger)},
       propertyContext:function(name){
         if(!protectedAccessReady())return null;

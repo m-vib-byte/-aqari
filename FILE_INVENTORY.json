@@ -13,13 +13,13 @@
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "size": 2648,
-      "sha256": "0017f4cde201ebfb0701af79fe07bd936312a02c62b612f8dbdc6e447d27e78e"
+      "size": 2919,
+      "sha256": "46abaa2efc37688ca4720be5158c9924a3ddb4d7f5c5b7ff3357adc2a93baaeb"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 1914,
-      "sha256": "3c55b14e3b15bf57479d971ee5a084704e409a3e1af16ebfccfe57dba452fe08"
+      "size": 2097,
+      "sha256": "3aca97b008a4c79c68b3401069e9ae1b01fe2f8bc5d1265ab33cea44c3651d86"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 11096,
-      "sha256": "e107c45865c8e639a6786065d5aa925c003818330992261ed982a96a77661c93"
+      "size": 12365,
+      "sha256": "84dd27a3a563cdff0ab30d3affa5d4832e53afa37088255ee67640a78568c4a6"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -230,6 +230,11 @@
       "path": "RELEASE_NOTES_V210.md",
       "size": 1018,
       "sha256": "a4ef182544ccc19b35a61cb2fca03537a4e807be9db670276b534b572318c39b"
+    },
+    {
+      "path": "RELEASE_NOTES_V211.md",
+      "size": 993,
+      "sha256": "a3c2eb01c8bf7904277c8692acb070c883af09f9d2ef98dadb249de80b58168c"
     },
     {
       "path": "SAFE_AUTOSYNC.md",
@@ -343,8 +348,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 23447,
-      "sha256": "dcebadd874abd1aadd96354e574eb9521f3b4be7e66367f921e06fd7b60e7553"
+      "size": 24820,
+      "sha256": "0e5ea1429b80c69e6612f5dce44d3d9f5f2e73857ee203cd69ff4bafcf293658"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -387,6 +392,11 @@
       "sha256": "a4c61a7ec30daf67d3a6dd5db7dd389e3153157b4accc1ce5aba1a7f91f622b1"
     },
     {
+      "path": "tests/v211-rent-followup-center.test.cjs",
+      "size": 5036,
+      "sha256": "632e7245de1005ac000db3f7159663355eeaee916767e97fa4411758b6b2aac0"
+    },
+    {
       "path": "v199-ui.css",
       "size": 28895,
       "sha256": "f58f2ec1acea2309d0d1f1895610511b117947fe4844c8cf72a53dd5486e8c36"
@@ -418,8 +428,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 226227,
-      "sha256": "e0018262b9813e199f326605ee4976610b44e8ef741f5dbcb15f107a51836738"
+      "size": 231005,
+      "sha256": "9514d2447299498add6d65af2efb7d2cb6c18a16a4d5c45bbe8c4c54b72f43e6"
     },
     {
       "path": "v205-simple.css",
@@ -473,8 +483,18 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "size": 14542,
-      "sha256": "c3bf4ce3d231da672903587bc57529a079d2dd4783954c0687b23a8e38651a87"
+      "size": 14864,
+      "sha256": "10aa38409c41a6de637db6e407f9d6c1f5b62210a9d271ccf602cfbd92ce1efc"
+    },
+    {
+      "path": "v211-rent-followup-center.css",
+      "size": 4750,
+      "sha256": "eeb9547e5543567288a6355e650103e21aee2d290226bfa9cc7860001b2b46a5"
+    },
+    {
+      "path": "v211-rent-followup-center.js",
+      "size": 18204,
+      "sha256": "a8a2165fb4d4f81646dfdb50d754c85729c16d44824fabcee02a0c0f6a3860db"
     },
     {
       "path": "vercel.json",
@@ -483,8 +503,8 @@
     },
     {
       "path": "VERSION.json",
-      "size": 1936,
-      "sha256": "bb343cd119825a1df184066f8e21e7fe0fb63f1b0ac68be3e613585fe736a798"
+      "size": 1926,
+      "sha256": "e69427a56936ead77576a0f139ab31199c23be4165a59b3706d7e8ef02ee3117"
     }
   ]
 }

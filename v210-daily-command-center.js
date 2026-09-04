@@ -157,8 +157,8 @@
       '<div class="v210-kpis" aria-live="polite">'+
         '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>المحصّل</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+summary.lateTenants+'</strong><small>'+esc(money(summary.balance))+' متبقي</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-amber"><span>بانتظار المراجعة</span><strong>'+summary.pendingApprovals+'</strong><small>دفعات أو سجلات معلّقة</small></button>'+
+        '<button type="button" data-v210-followup="overdue" class="is-red"><span>متأخرون</span><strong>'+summary.lateTenants+'</strong><small>'+esc(money(summary.balance))+' متبقي</small></button>'+
+        '<button type="button" data-v210-followup="pending" class="is-amber"><span>بانتظار المراجعة</span><strong>'+summary.pendingApprovals+'</strong><small>دفعات أو سجلات معلّقة</small></button>'+
         '<button type="button" data-v210-route="documentsHub"><span>مستندات جاهزة</span><strong>'+summary.readyDocuments+'</strong><small>عقود أو وصولات متاحة</small></button>'+
         '<div class="is-dark"><span>مهام حرجة</span><strong>'+critical+'</strong><small>'+summary.properties+' عقار في '+esc(periodLabel(period))+'</small></div>'+
       '</div>'+
@@ -212,7 +212,9 @@
 
   document.addEventListener('click',function(event){
     const property=event.target?.closest?.('[data-v210-property]');
-    if(property){event.preventDefault();openProperty(property.getAttribute('data-v210-property')||'',property);return}
+    if(property){event.preventDefault();const name=property.getAttribute('data-v210-property')||'';if(window.AQARI_V211?.open?.('all',name,period,property)!==true)openProperty(name,property);return}
+    const followup=event.target?.closest?.('[data-v210-followup]');
+    if(followup){event.preventDefault();if(window.AQARI_V211?.open?.(followup.getAttribute('data-v210-followup')||'all','',period,followup)!==true)window.go?.('collectionProPage');return}
     const route=event.target?.closest?.('[data-v210-route]');
     if(route){event.preventDefault();window.go?.(route.getAttribute('data-v210-route'));return}
     if(event.target?.closest?.('[data-v210-action="search"]')){event.preventDefault();window.AQARI_V209?.open?.()}
