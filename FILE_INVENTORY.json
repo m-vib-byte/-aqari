@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1761,
-      "sha256": "1028df88150c3a79030661bbfccfb08aa08f1eb2487bd198a031216219ce9c9f"
+      "size": 2113,
+      "sha256": "76d2b40d4558219234fef94496a7067d906a46725fadfe513d94f4aa7a37b2e8"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 1137,
-      "sha256": "1de6837146ec01a99ac89061d557efef5ad2f389e0475e529c34a220d0dfa106"
+      "size": 1185,
+      "sha256": "43e7c27e831b3e3e2844fd56e7f304f37db87c916a316a1f9658d43929eca89d"
     },
     {
       "path": "api/autosync-status.js",
