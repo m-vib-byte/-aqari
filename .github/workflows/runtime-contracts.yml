@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: V209 release inventory diagnostics
+      - name: V210 release inventory diagnostics
         shell: bash
         run: |
           set -euo pipefail
@@ -37,16 +37,19 @@ jobs:
             'v208-portfolio-collections.js'
             'tests/v209-behavior.test.cjs'
             'tests/v209-global-search.test.cjs'
-            'tests/v209-loader.test.cjs'
+            'tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs'
             'v209-global-search.css'
             'v209-global-search.js'
+            'tests/v210-daily-command-center.test.cjs'
+            'v210-daily-command-center.css'
+            'v210-daily-command-center.js'
           )
-          echo 'AQARI_V209_INVENTORY_BEGIN'
+          echo 'AQARI_V210_INVENTORY_BEGIN'
           for file in "${files[@]}"; do
             test -f "$file"
             bytes=$(wc -c < "$file" | tr -d ' ')
             hash=$(sha256sum "$file" | awk '{print $1}')
             printf '%s|%s|%s\n' "$file" "$bytes" "$hash"
           done
-          echo 'AQARI_V209_INVENTORY_END'
+          echo 'AQARI_V210_INVENTORY_END'
       - run: node --test tests/runtime-contracts.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs

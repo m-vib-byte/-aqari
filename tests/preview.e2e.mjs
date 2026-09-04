@@ -126,6 +126,24 @@ await check('V209 signed-out search stays sealed and fits the iPhone viewport', 
   await page.keyboard.press('Escape');
 });
 
+await check('V210 signed-out command center stays sealed and mobile-safe', async () => {
+  await page.waitForFunction(() => window.AQARI_V210?.version === 'V210-daily-command-center');
+  const state=await page.evaluate(() => ({
+    authenticated:Boolean(window.AQARI_SUPABASE?.context?.user),
+    apiVersion:window.AQARI_V210?.version,
+    commandCenter:Boolean(document.getElementById('v210DailyCommandCenter')),
+    cssLoaded:Boolean(document.getElementById('aqari-v210-daily-command-center-css')),
+    scriptLoaded:Boolean(document.getElementById('aqari-v210-daily-command-center-js')),
+    meta:document.querySelector('meta[name="aqari-daily-command-center"]')?.content||'',
+    protectedSnapshot:window.AQARI_V210?.resume?.(null),
+    horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
+  }));
+  if(state.authenticated)throw new Error('test requires a signed-out Preview');
+  if(state.apiVersion!=='V210-daily-command-center'||!state.cssLoaded||!state.scriptLoaded||state.meta!=='V210-daily-command-center')throw new Error('V210 assets or identity missing: '+JSON.stringify(state));
+  if(state.commandCenter||state.protectedSnapshot!==false)throw new Error('signed-out V210 command center exposed protected workspace data');
+  if(state.horizontalOverflow)throw new Error('V210 creates horizontal overflow at 390px');
+});
+
 await check('V205 keeps one visible mobile navigation with five clear sections', async () => {
   await page.waitForSelector('body[data-v205-ready="true"]');
   const state=await page.evaluate(() => {
@@ -349,7 +367,7 @@ await check('Preview production-readiness contract', async () => {
 });
 
 await check('PWA and V209 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js']){
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js','/v210-daily-command-center.css','/v210-daily-command-center.js']){
     const response = await page.request.get(new URL(path, base).toString());
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
@@ -359,4 +377,4 @@ await check('PWA and V209 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V209 Global Search Preview E2E on V198 runtime: PASS');
+console.log('AQARI V210 Daily Command Center Preview E2E on V198 runtime: PASS');

@@ -1,4 +1,4 @@
-name: AQARI V206 Integrated Ledger Gate
+name: AQARI V210 Daily Command Center Gate
 
 on:
   pull_request:
@@ -40,6 +40,8 @@ jobs:
           node --check v201-experience.js
           node --check v202-property-os.js
           node --check v205-simplified-shell.js
+          node --check v209-global-search.js
+          node --check v210-daily-command-center.js
           node --check lib/read-only.js
       - name: Verify release marker
         run: |
@@ -61,3 +63,5 @@ jobs:
           grep -q "aqari-v206-integrated-ledger-css" final-release-ui.js
           grep -q "AQARI V202" v202-prestige.css
           grep -q "AQARI V206" v206-integrated-ledger.css
+          grep -q "V210-daily-command-center" v210-daily-command-center.js
+          grep -q "aqari-v210-daily-command-center-js" final-release-ui.js
