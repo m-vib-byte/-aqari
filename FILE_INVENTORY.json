@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 388,
-      "sha256": "12083d6584807bb15dc0eacdb162c8786cb9a39eded33b205b74e14f520a4096"
+      "size": 1137,
+      "sha256": "1de6837146ec01a99ac89061d557efef5ad2f389e0475e529c34a220d0dfa106"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 7687,
-      "sha256": "8539b98479d6eefa2553d3e4e54980bf9f06465268e9e5ca5bcd7e45fcc68962"
+      "size": 8565,
+      "sha256": "4916d687d2a54bb5a9773f1bc85539871abe076f7e301b4ea4c58d2c5ac8bd29"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -357,6 +357,11 @@
       "sha256": "10c7a4b16680e0b44bacd2b0b0e757d5d785893e1ca06c2eec56f03bd3a6d544"
     },
     {
+      "path": "tests/v208-portfolio-collections.test.cjs",
+      "size": 4264,
+      "sha256": "fe7925bbdcaf92552914bf75f2db1a2dba3ff25adc28c0bcde3c0834c7e1de20"
+    },
+    {
       "path": "v199-ui.css",
       "size": 28895,
       "sha256": "f58f2ec1acea2309d0d1f1895610511b117947fe4844c8cf72a53dd5486e8c36"
@@ -415,6 +420,16 @@
       "path": "v206-rent-ledger.js",
       "size": 24513,
       "sha256": "e6ca4e509f3071d761ef1757c9da575b5ca55ed989cc9ca617e443e193b0d857"
+    },
+    {
+      "path": "v208-portfolio-collections.css",
+      "size": 8902,
+      "sha256": "58ddf67a78cb95ab52287fbe883c5914fde1338944d26acfda075fdb58703f60"
+    },
+    {
+      "path": "v208-portfolio-collections.js",
+      "size": 15594,
+      "sha256": "67cdf4efa80a15e133f36dce87ed4dfd074c322969b95d471d04654dc1d38479"
     },
     {
       "path": "vercel.json",
