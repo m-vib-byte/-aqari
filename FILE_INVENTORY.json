@@ -348,8 +348,8 @@
     },
     {
       "path": "tests/v207-smart-collections.test.cjs",
-      "size": 3014,
-      "sha256": "ca01258cd036dd7b1821017fdc921a85bcc38770da64efa451827b3aeac68796"
+      "size": 3352,
+      "sha256": "e8c2ba20ba566528c0cdab5e96ca3b183817204b08e98ba2695f0ce2e8493c08"
     },
     {
       "path": "v199-ui.css",
@@ -408,8 +408,8 @@
     },
     {
       "path": "v207-smart-collections.js",
-      "size": 9967,
-      "sha256": "3c23ec2b0eda8941dafabf7e13ad5a2418c50e5c2700bacd85e25a90575f5c5d"
+      "size": 10259,
+      "sha256": "1f73d469afea52afc0eddc13fd4fb73aef2133807c60178b5fa6996d106cf151"
     },
     {
       "path": "vercel.json",
