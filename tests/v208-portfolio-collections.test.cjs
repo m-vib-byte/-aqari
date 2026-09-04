@@ -50,6 +50,10 @@ test('V208 aggregates portfolio collections only from the secure V206.2 rent off
   assert.match(portfolio,/id="v208PortfolioPeriod"/);
   assert.match(portfolio,/type="month"/);
   assert.match(portfolio,/data-v208-search/);
+  assert.match(portfolio,/function restoreSearchFocus\s*\(/);
+  assert.match(portfolio,/input\.focus\(\{preventScroll:true\}\)/);
+  assert.match(portfolio,/input\.setSelectionRange\(left,right\)/);
+  assert.match(portfolio,/restoreSearchFocus\(start,end\)/);
   assert.match(portfolio,/data-v208-open/);
   assert.match(portfolio,/data-v208-statement/);
   assert.match(portfolio,/v202TabCollections/);
