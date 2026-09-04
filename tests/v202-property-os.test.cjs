@@ -64,6 +64,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       validEmail: typeof validEmail === 'function' ? validEmail : null,
       tenantMailto: typeof tenantMailto === 'function' ? tenantMailto : null,
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
+      secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
@@ -2441,15 +2442,19 @@ test('V206.1 leaves no-scope legacy rows unassigned across historical properties
 test('V206.1 keeps the public V206 command-center integration contract', () => {
   const source = fs.readFileSync(runtimePath, 'utf8');
   assert.match(source, /seal:function\(\)\{clearProtectedImport\(\);hydratePromise=null;clearProtectedDom\(\);\}/);
-  assert.match(source, /openProperty:function\(name\)\{return protectedAccessReady\(\)\?openWorkspace/);
+  assert.match(source, /openProperty:function\(name,period\)\{return protectedAccessReady\(\)\?openWorkspace\(name,document\.activeElement,period\)/);
+  assert.match(source, /rentOfficeProperties:function\(\)\{return secureRentOfficeProperties\(\)\}/);
   assert.match(source, /rentOfficeData:function\(name,period\)/);
   assert.match(source, /rentOfficeAction:function\(name,key,period,action,trigger\)/);
+  assert.match(source, /if\(activeTab==='units'\)panel\.innerHTML=unitsPanel\(context,activePropertyPeriod\|\|latestOfficialPeriod\(activeProperty\)\)/);
+  assert.match(source, /collectionsPanel\(context,activePropertyPeriod\)/);
   assert.match(source, /dataset\.v202Document='rent-office'/);
-  assert.match(source, /if\(requested==='payment'\)\{[\s\S]*?closeDocument\(\);[\s\S]*?openPayment\(null,record\.contractId\|\|''\)/);
+  assert.match(source, /if\(requested==='payment'\)\{[\s\S]*?closeDocument\(\);[\s\S]*?openPayment\(null,record\.contractId\|\|'',selectedPeriod\)/);
   assert.match(source, /protectedUnitCount=strictCount\(record\?\.\[2\]\)/);
   const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
   const office = runtime.secureRentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08');
   assert.ok(office);
+  assert.deepEqual(Array.from(runtime.secureRentOfficeProperties()), ['SYNTHETIC TEST PROPERTY']);
   assert.equal(office.property, 'SYNTHETIC TEST PROPERTY');
   assert.equal(office.records.some((record) => record.contractId === 'contract-a' && record.receiptNo === 'R-A-PAID'), true);
   assert.equal(office.canRecordPayment, true);
