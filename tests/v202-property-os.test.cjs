@@ -17,6 +17,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
   const expose = `
     globalThis.__AQARI_V202_TESTING__ = Object.freeze({
       strictMoney,
+      strictCount,
       contractCoversPeriod,
       signedContract,
       contractRent,
@@ -50,6 +51,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       tenantReceiptDocument: typeof tenantReceiptDocument === 'function' ? tenantReceiptDocument : null,
       tenantContractDocument: typeof tenantContractDocument === 'function' ? tenantContractDocument : null,
       tenantLedgerEntries: typeof tenantLedgerEntries === 'function' ? tenantLedgerEntries : null,
+      tenantStatementRecord: typeof tenantStatementRecord === 'function' ? tenantStatementRecord : null,
       openStatementDocument: typeof openStatementDocument === 'function' ? openStatementDocument : null,
       openUnitReceipt: typeof openUnitReceipt === 'function' ? openUnitReceipt : null,
       openUnitPayment: typeof openUnitPayment === 'function' ? openUnitPayment : null,
@@ -62,7 +64,6 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       validEmail: typeof validEmail === 'function' ? validEmail : null,
       tenantMailto: typeof tenantMailto === 'function' ? tenantMailto : null,
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
-      secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
@@ -269,6 +270,22 @@ function fixture() {
       },
     ],
   };
+}
+
+function settledCollectionTotal(context) {
+  const digits = '٠١٢٣٤٥٦٧٨٩';
+  const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+  const minor = context.settledCollections.reduce(
+    (sum, row) => {
+      const ascii = String(row?.[2] || 0)
+        .replace(/[٠-٩]/g, (digit) => digits.indexOf(digit))
+        .replace(/[۰-۹]/g, (digit) => persianDigits.indexOf(digit))
+        .replace(/٫/g, '.').replace(/[٬,]/g, '');
+      const amount = Number(ascii.match(/-?\d+(?:\.\d+)?/)?.[0] || 0);
+      return sum + BigInt(Math.round(amount * 1000));
+    }, 0n,
+  );
+  return Number(minor) / 1000;
 }
 
 function protectedRemote(property) {
@@ -546,6 +563,32 @@ test('V206.1 leaves a directory row unlinked when two contracts can own it', () 
   }
   assert.equal(unlinked.civilId, '123456789012');
   assert.equal(unlinked.hasDirectory, true);
+});
+
+test('V206.1 quarantines conflicting duplicate directory identities without reusable PII keys', () => {
+  for (const reverse of [false, true]) {
+    const data = fixture();
+    const first = {
+      ...data.tenantDirectoryV202[0], email: 'first@example.com', civilId: '111122223333',
+    };
+    const second = {
+      ...data.tenantDirectoryV202[0], email: 'second@example.com', civilId: '999988887777',
+    };
+    data.tenantDirectoryV202 = reverse ? [second, first, ...data.tenantDirectoryV202.slice(1)]
+      : [first, second, ...data.tenantDirectoryV202.slice(1)];
+
+    const runtime = loadRuntime(data, [], activeRuntimeWindow());
+    const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+    const records = runtime.unitDirectoryRecords(context, '2026-08');
+    const contractRecord = records.find((entry) => entry.contractId === 'contract-a');
+
+    assert.equal(new Set(records.map((entry) => entry.key)).size, records.length);
+    assert.equal(contractRecord.hasDirectory, false);
+    assert.equal(contractRecord.email, '');
+    assert.equal(contractRecord.civilId, '');
+    assert.equal(records.some((entry) => ['first@example.com', 'second@example.com'].includes(entry.email)), false);
+    assert.equal(records.some((entry) => entry.unit === 'A' && ['111122223333', '999988887777'].includes(entry.civilId)), false);
+  }
 });
 
 test('V206.1 quarantines a same-receipt collision from another scope', () => {
@@ -919,7 +962,7 @@ test('V206.1 keeps unidentifiable no-reference payments out of financial totals'
     period: '2026-08', due: 100, paid: 17, paidAt: '2026-08-26', status: 'paid',
     source: 'synthetic-test-import',
   };
-  data.rentLedgerV202.push({ ...bare }, { ...bare });
+  data.rentLedgerV202.push({ ...bare }, { ...bare }, { ...bare, id: 'ID-ONLY-NO-RECEIPT', paid: 19 });
 
   const runtime = loadRuntime(data, [], activeRuntimeWindow());
   const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
@@ -929,6 +972,7 @@ test('V206.1 keeps unidentifiable no-reference payments out of financial totals'
 
   assert.equal(record.paid, 40);
   assert.equal(runtime.paidForPeriod('SYNTHETIC TEST PROPERTY', contract, '2026-08'), 40);
+  assert.equal(context.propertyLedger.some((entry) => entry.id === 'ID-ONLY-NO-RECEIPT'), true, 'id-only rows remain visible for review');
   assert.equal(noReferenceRows.length >= 1, true, 'unidentifiable rows remain visible for reconciliation');
   assert.equal(noReferenceRows.every((row) => runtime.collectionReceiptEligible(row) === false), true);
 });
@@ -1052,6 +1096,19 @@ test('V206.1 access requires membership identities to match the active user and 
     },
   };
   assert.equal(loadRuntime(fixture(), [], partial).protectedAccessReady(), false);
+
+  for (const mutate of [
+    (context) => { context.user.id = 'user-test\uFEFF'; },
+    (context) => { context.user.id = ['user-test']; },
+    (context) => { context.workspace.id = 'workspace-test\u2028'; },
+    (context) => { context.workspace.id = ['workspace-test']; },
+    (context) => { context.membership.user_id = ['user-test']; },
+    (context) => { context.membership.workspace_id = ['workspace-test']; },
+  ]) {
+    const invalid = activeRuntimeWindow();
+    mutate(invalid.AQARI_SUPABASE.context);
+    assert.equal(loadRuntime(fixture(), [], invalid).protectedAccessReady(), false);
+  }
 });
 
 test('V206.1 collection receipts are settled-only', () => {
@@ -1096,7 +1153,7 @@ test('V206.1 collection receipts are settled-only', () => {
   assert.equal(orphanRaw[3], 'يحتاج مراجعة');
   assert.equal(runtime.collectionReceiptEligible(ambiguousLegacy), false);
   assert.equal(runtime.collectionReceiptEligible(orphanRaw), false);
-  assert.equal(context.collected, 90, 'ambiguous, orphaned, and malformed raw collections do not count');
+  assert.equal(settledCollectionTotal(context), 90, 'ambiguous, orphaned, and malformed raw collections do not count');
   assert.equal(runtime.openReceiptDocument(['R-PENDING', 'TENANT', 40, 'قيد المراجعة']), false);
   const resolved = runtime.resolvedTenantReceipt([
     'R-A-PAID', 'TEST TENANT', 40, 'paid', 'SYNTHETIC TEST PROPERTY',
@@ -1913,6 +1970,25 @@ test('V206.1 rejects malformed or ambiguous official totals and falls back to ca
   assert.equal(runtime.validOfficialStatement({
     property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalCollected: 'not-money',
   }), false);
+  const countFields = ['unitCount', 'occupiedUnitCount', 'payerCount'];
+  const invalidCounts = [true, [1], '1e2', '0x10', '01', '1\uFEFF', -1, 1.5, Number.MAX_SAFE_INTEGER + 1];
+  for (const key of countFields) {
+    for (const value of invalidCounts) {
+      assert.equal(runtime.validOfficialStatement({
+        property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalRent: 300, [key]: value,
+      }), false, `${key} must reject ${JSON.stringify(value)}`);
+    }
+  }
+  assert.equal(runtime.strictCount('٣١'), 31);
+  assert.equal(runtime.strictCount('۱۲'), 12);
+  assert.equal(runtime.validOfficialStatement({
+    property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalRent: 300,
+    unitCount: '٣١', occupiedUnitCount: '۲۹', payerCount: '28',
+  }), true);
+  assert.equal(runtime.validOfficialStatement({
+    property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalRent: 300,
+    unitCount: 1, occupiedUnitCount: 2,
+  }), false, 'occupied units cannot exceed total units');
 
   const data = fixture();
   data.rentStatementsV202 = [
@@ -1925,6 +2001,55 @@ test('V206.1 rejects malformed or ambiguous official totals and falls back to ca
   assert.equal(duplicateRuntime.officialStatementFor('SYNTHETIC TEST PROPERTY', '2026-08'), null);
   assert.equal(model.official, false);
   assert.deepEqual([model.totals.due, model.totals.paid], [300, 90]);
+
+  const impossibleData = fixture();
+  impossibleData.rentStatementsV202 = [{
+    property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalRent: 999,
+    unitCount: 1, occupiedUnitCount: 2,
+  }];
+  const impossibleRuntime = loadRuntime(impossibleData);
+  const impossibleContext = impossibleRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+  const impossibleModel = impossibleRuntime.propertyRentLedgerModel(impossibleContext, '2026-08');
+  assert.equal(impossibleRuntime.officialStatementFor('SYNTHETIC TEST PROPERTY', '2026-08'), null);
+  assert.equal(impossibleModel.official, false);
+  assert.equal(impossibleModel.occupiedUnitCount <= impossibleModel.unitCount, true);
+
+  const partialUnitData = fixture();
+  partialUnitData.rentStatementsV202 = [{
+    property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalRent: 300, unitCount: 1,
+  }];
+  const partialUnitRuntime = loadRuntime(partialUnitData);
+  const partialUnitModel = partialUnitRuntime.propertyRentLedgerModel(
+    partialUnitRuntime.contextFor('SYNTHETIC TEST PROPERTY'), '2026-08',
+  );
+  assert.deepEqual(
+    [partialUnitModel.unitCount, partialUnitModel.occupiedUnitCount],
+    [1, 1],
+    'a lone official unit count must constrain the derived occupied count',
+  );
+
+  const partialOccupiedData = fixture();
+  partialOccupiedData.rentStatementsV202 = [{
+    property: 'SYNTHETIC TEST PROPERTY', period: '2026-08', totalRent: 300, occupiedUnitCount: 3,
+  }];
+  const partialOccupiedRuntime = loadRuntime(partialOccupiedData);
+  const partialOccupiedModel = partialOccupiedRuntime.propertyRentLedgerModel(
+    partialOccupiedRuntime.contextFor('SYNTHETIC TEST PROPERTY'), '2026-08',
+  );
+  assert.deepEqual(
+    [partialOccupiedModel.unitCount, partialOccupiedModel.occupiedUnitCount],
+    [3, 3],
+    'a lone official occupied count must expand the derived total count',
+  );
+
+  for (const invalidUnitCount of [true, [1], '1e2', '0x10', '01', -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    const invalidProperty = fixture();
+    invalidProperty.properties[0][2] = invalidUnitCount;
+    assert.equal(loadRuntime(invalidProperty).contextFor('SYNTHETIC TEST PROPERTY').units, 0);
+  }
+  const localizedProperty = fixture();
+  localizedProperty.properties[0][2] = '٣١';
+  assert.equal(loadRuntime(localizedProperty).contextFor('SYNTHETIC TEST PROPERTY').units, 31);
 });
 
 test('V206.1 public diagnostic APIs fail closed before protected access is ready', () => {
@@ -2046,7 +2171,7 @@ test('V206.1 rejects non-scalar identities, periods, statuses, keys, and contrac
   const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
   const record = runtime.unitDirectoryRecords(context, '2026-08').find((entry) => entry.contractId === 'contract-a');
   assert.equal(record.paid, 40);
-  assert.equal(context.collected, 90);
+  assert.equal(settledCollectionTotal(context), 90);
   assert.equal(runtime.contracts().some((contract) => contract.id === 'array-contract'), false);
   assert.equal(context.propertyCollections.some((row) => row[0] === 'R-BAD-COLLECTION' && runtime.collectionReceiptEligible(row)), false);
   assert.equal(Number.isNaN(runtime.strictMoney([25])), true);
@@ -2085,6 +2210,35 @@ test('V206.1 dedupe is order-independent for invalid money and noncanonical paym
   );
   assert.equal(loadRuntime(keyConflict, [], activeRuntimeWindow()).ledgerRecords()
     .some((entry) => entry.receiptNo === 'R-KEY-ORDER'), false);
+
+  for (const reverse of [false, true]) {
+    const invalidIdData = fixture();
+    const invalidIdBase = {
+      receiptNo: 'R-RAW-ID-ORDER', property: 'SYNTHETIC TEST PROPERTY', unit: 'A',
+      tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08', due: 100, paid: 10,
+      paidAt: '2026-08-27', status: 'paid', source: 'synthetic-test-import',
+    };
+    const invalidIdPair = [
+      { ...invalidIdBase, id: 'ID-BAD\uFEFF' },
+      { ...invalidIdBase, id: 'ID-CLEAN' },
+    ];
+    invalidIdData.rentLedgerV202.push(...(reverse ? invalidIdPair.reverse() : invalidIdPair));
+    const invalidIdRuntime = loadRuntime(invalidIdData, [], activeRuntimeWindow());
+    assert.equal(invalidIdRuntime.ledgerRecords().some((entry) => entry.receiptNo === 'R-RAW-ID-ORDER'), false);
+    assert.equal(settledCollectionTotal(invalidIdRuntime.contextFor('SYNTHETIC TEST PROPERTY')), 90);
+
+    const invalidReceiptData = fixture();
+    const invalidReceiptBase = { ...invalidIdBase, id: 'VOUCHER-ORDER', voucherNo: 'V-RAW-RECEIPT-ORDER' };
+    delete invalidReceiptBase.receiptNo;
+    const invalidReceiptPair = [
+      { ...invalidReceiptBase, receiptNo: 'BAD\uFEFF' },
+      { ...invalidReceiptBase, receiptNo: '' },
+    ];
+    invalidReceiptData.rentLedgerV202.push(...(reverse ? invalidReceiptPair.reverse() : invalidReceiptPair));
+    const invalidReceiptRuntime = loadRuntime(invalidReceiptData, [], activeRuntimeWindow());
+    assert.equal(invalidReceiptRuntime.ledgerRecords().some((entry) => entry.voucherNo === 'V-RAW-RECEIPT-ORDER'), false);
+    assert.equal(settledCollectionTotal(invalidReceiptRuntime.contextFor('SYNTHETIC TEST PROPERTY')), 90);
+  }
 });
 
 test('V206.1 normalizes digit scripts consistently across unit receipt resolution', () => {
@@ -2119,7 +2273,7 @@ test('V206.1 keeps undated settlements financial but marks them for review and f
   assert.equal(record.paid, 10);
   assert.equal(record.paymentStatus, 'يحتاج مراجعة');
   assert.equal(record.receipts.includes('R-INVALID-DATE'), false);
-  assert.equal(context.collected, 60, 'financial reconciliation retains the imported amount while legal receipt issuance is blocked');
+  assert.equal(settledCollectionTotal(context), 60, 'financial history retains the imported amount while legal receipt issuance is blocked');
   assert.equal(runtime.collectionFinanciallySettled(collectionRow), true);
   assert.equal(runtime.collectionReceiptEligible(collectionRow), false);
   const collectionsHtml = runtime.collectionsPanel(context);
@@ -2169,13 +2323,25 @@ test('V206.1 limits rent writes by role in both the UI and direct save path', ()
   assert.equal(data.collections.some((row) => row[0] === 'R-VIEWER-DENIED'), false);
   assert.match(elements.v202PaymentError.textContent, /صلاحية/);
   assert.equal(runtime.secureRentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08').canRecordPayment, false);
+
+  for (const invalidRole of ['accountant\uFEFF', '\uFEFFproperty_manager', 'general_manager\u2029', ['accountant']]) {
+    const invalidWindow = activeRuntimeWindow();
+    invalidWindow.AQARI_SUPABASE.context.membership.role = invalidRole;
+    const invalidRuntime = loadRuntime(fixture(), [], invalidWindow);
+    assert.equal(invalidRuntime.rentWriteAllowed(), false);
+    assert.equal(invalidRuntime.secureRentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08').canRecordPayment, false);
+  }
 });
 
 test('V206.1 contract dates and legal documents fail closed', () => {
   const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
   assert.equal(runtime.contractCoversPeriod({ status: 'signed', start_date: 'not-a-date', end_date: '2026-12-31' }, '2026-08'), false);
+  assert.equal(runtime.contractCoversPeriod({ status: 'signed', start_date: '2026-02-31', end_date: '2026-12-31' }, '2026-08'), false);
+  assert.equal(runtime.contractCoversPeriod({ status: 'signed', start_date: '2026-09-01', end_date: '2026-08-31' }, '2026-08'), false);
   assert.equal(runtime.contractCoversPeriod({ status: 'expired', start_date: '2026-01-01', end_date: '' }, '2026-08'), false);
   assert.equal(runtime.contractCoversPeriod({ status: 'signed', start_date: ['2026-01-01'], end_date: '2026-12-31' }, '2026-08'), false);
+  assert.equal(runtime.contractCoversPeriod({ status: 'signed', start_date: '2026-01-01\uFEFF', end_date: '2026-12-31' }, '2026-08'), false);
+  assert.equal(Number.isNaN(runtime.strictMoney('100\uFEFF')), true);
 
   const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
   const draft = runtime.unitDirectoryRecords(context, '2026-08').find((entry) => entry.contractId === 'contract-draft');
@@ -2191,6 +2357,67 @@ test('V206.1 contract dates and legal documents fail closed', () => {
   });
   assert.match(missingMoney, /غير مسجل \/ Not recorded/);
   assert.doesNotMatch(missingMoney, /KD 0/);
+
+  for (const mutate of [
+    (contract) => { contract.start_date = '2026-02-31'; },
+    (contract) => { contract.start_date = '2026-01-01TRAILING-GARBAGE'; },
+    (contract) => { contract.rent = 'abc'; contract.contractRent = 'abc'; },
+  ]) {
+    const invalidData = fixture();
+    mutate(invalidData.contractsV202[0]);
+    const invalidRuntime = loadRuntime(invalidData, [], activeRuntimeWindow());
+    const invalidContext = invalidRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+    const invalidRecord = invalidRuntime.unitDirectoryRecords(invalidContext, '2026-08')
+      .find((entry) => entry.contractId === 'contract-a');
+    const invalidHtml = invalidRuntime.tenantContractDocument(invalidContext, invalidRecord);
+    assert.equal(invalidRecord.billable, false);
+    assert.equal(invalidRecord.verified, false);
+    assert.equal(invalidRecord.contractStatus, 'يحتاج تحقق');
+    assert.match(invalidHtml, /UNVERIFIED DRAFT/);
+    assert.match(invalidHtml, /NOT FOR SIGNATURE/);
+    assert.doesNotMatch(invalidHtml, /v204-contract-signatures/);
+    if (invalidData.contractsV202[0].rent === 'abc') {
+      assert.match(invalidHtml, /غير مسجل \/ Not recorded/);
+      assert.doesNotMatch(invalidHtml, /KD 0/);
+    }
+  }
+
+  for (const mutate of [
+    (contract) => { contract.start_date = '2026-01-01\uFEFF'; },
+    (contract) => { contract.end_date = '2026-12-31\u200B'; },
+    (contract) => { contract.rent = '100\uFEFF'; },
+    (contract) => { contract.start_date = '2026-01-01\u2028'; },
+    (contract) => { contract.rent = '100\u2029'; },
+    (contract) => { contract.status = 'signed\u2028'; },
+  ]) {
+    const invalidData = fixture();
+    mutate(invalidData.contractsV202[0]);
+    const invalidRuntime = loadRuntime(invalidData, [], activeRuntimeWindow());
+    assert.equal(invalidRuntime.contracts().some((contract) => contract.id === 'contract-a'), false);
+    const invalidContext = invalidRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+    const invalidRecord = invalidRuntime.unitDirectoryRecords(invalidContext, '2026-08')
+      .find((entry) => entry.unit === 'A');
+    const invalidHtml = invalidRuntime.tenantContractDocument(invalidContext, invalidRecord);
+    assert.equal(invalidRecord.hasContract, false);
+    assert.equal(invalidRecord.billable, false);
+    assert.equal(invalidRecord.verified, false);
+    assert.match(invalidHtml, /UNVERIFIED DRAFT/);
+    assert.doesNotMatch(invalidHtml, /v204-contract-signatures/);
+  }
+
+  for (const invalidOverride of ['abc', '100\uFEFF']) {
+    const fallbackData = fixture();
+    fallbackData.tenantDirectoryV202[0].currentRent = invalidOverride;
+    const fallbackRuntime = loadRuntime(fallbackData, [], activeRuntimeWindow());
+    const fallbackContext = fallbackRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+    const fallbackRecord = fallbackRuntime.unitDirectoryRecords(fallbackContext, '2026-08')
+      .find((entry) => entry.contractId === 'contract-a');
+    const fallbackHtml = fallbackRuntime.tenantContractDocument(fallbackContext, fallbackRecord);
+    assert.equal(fallbackRecord.currentRent, 100, 'invalid directory override must fall back to the valid contract rent');
+    assert.equal(fallbackRecord.currentRentRecorded, true);
+    assert.doesNotMatch(fallbackHtml, /KD 0(?:\D|$)/);
+    assert.match(fallbackHtml, /v204-contract-signatures/);
+  }
 });
 
 test('V206.1 leaves no-scope legacy rows unassigned across historical properties', () => {
@@ -2214,17 +2441,47 @@ test('V206.1 leaves no-scope legacy rows unassigned across historical properties
 test('V206.1 keeps the public V206 command-center integration contract', () => {
   const source = fs.readFileSync(runtimePath, 'utf8');
   assert.match(source, /seal:function\(\)\{clearProtectedImport\(\);hydratePromise=null;clearProtectedDom\(\);\}/);
-  assert.match(source, /openProperty:function\(name,period\)\{return protectedAccessReady\(\)\?openWorkspace/);
+  assert.match(source, /openProperty:function\(name\)\{return protectedAccessReady\(\)\?openWorkspace/);
   assert.match(source, /rentOfficeData:function\(name,period\)/);
   assert.match(source, /rentOfficeAction:function\(name,key,period,action,trigger\)/);
   assert.match(source, /dataset\.v202Document='rent-office'/);
-  assert.match(source, /if\(requested==='payment'\)\{[\s\S]*?closeDocument\(\);[\s\S]*?openPayment\(null,record\.contractId\|\|'',selectedPeriod\)/);
+  assert.match(source, /if\(requested==='payment'\)\{[\s\S]*?closeDocument\(\);[\s\S]*?openPayment\(null,record\.contractId\|\|''\)/);
+  assert.match(source, /protectedUnitCount=strictCount\(record\?\.\[2\]\)/);
   const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
   const office = runtime.secureRentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08');
   assert.ok(office);
   assert.equal(office.property, 'SYNTHETIC TEST PROPERTY');
   assert.equal(office.records.some((record) => record.contractId === 'contract-a' && record.receiptNo === 'R-A-PAID'), true);
   assert.equal(office.canRecordPayment, true);
+
+  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const record = runtime.unitDirectoryRecords(context, '2026-08').find((entry) => entry.contractId === 'contract-a');
+  const otherRecord = runtime.unitDirectoryRecords(context, '2026-08').find((entry) => entry.contractId === 'contract-b');
+  assert.ok(runtime.secureRentOfficeData('SYNTHETIC TEST PROPERTY'));
+  for (const invalidPeriod of ['', ['2026-08'], { toString: () => '2026-08' }, ' 2026-08 ', '2026-08\uFEFF']) {
+    assert.equal(runtime.secureRentOfficeData('SYNTHETIC TEST PROPERTY', invalidPeriod), null);
+  }
+  assert.equal(runtime.secureRentOfficeData(['SYNTHETIC TEST PROPERTY'], '2026-08'), null);
+  for (const args of [
+    [['SYNTHETIC TEST PROPERTY'], record.key, '2026-08', 'statement'],
+    ['SYNTHETIC TEST PROPERTY', [record.key], '2026-08', 'statement'],
+    ['SYNTHETIC TEST PROPERTY', record.key, ['2026-08'], 'statement'],
+    ['SYNTHETIC TEST PROPERTY', record.key, '2026-08', ['statement']],
+    ['SYNTHETIC TEST PROPERTY', `${record.key}\uFEFF`, '2026-08', 'statement'],
+    ['SYNTHETIC TEST PROPERTY', record.key, '2026-08', 'statement\u2028'],
+  ]) {
+    assert.equal(runtime.secureRentOfficeAction(...args, null), false);
+  }
+  runtime.setActiveTenantStatementKey(record.key);
+  assert.equal(runtime.secureRentOfficeAction(
+    'SYNTHETIC TEST PROPERTY', otherRecord.key, '2026-08', 'bogus', null,
+  ), false);
+  assert.equal(
+    runtime.tenantStatementRecord(context, '2026-08').key,
+    record.key,
+    'a rejected public action must not change the active tenant selection',
+  );
 });
 
 test('V206.1 canonicalizes Unicode references and rejects invisible controls', () => {
@@ -2245,6 +2502,10 @@ test('V206.1 canonicalizes Unicode references and rejects invisible controls', (
     { ...base, id: 'unicode-mvs', receiptNo: 'R-MVS\u180B' },
     { ...base, id: 'unicode-interlinear', receiptNo: 'R-CF-\uFFF9123' },
     { ...base, id: 'unicode-syriac', receiptNo: 'R-CF-\u070F123' },
+    { ...base, id: 'unicode-bom-leading', receiptNo: '\uFEFFR-BOM-LEADING' },
+    { ...base, id: 'unicode-bom-trailing', receiptNo: 'R-BOM-TRAILING\uFEFF' },
+    { ...base, id: 'unicode-line-separator', receiptNo: 'R-LINE\u2028' },
+    { ...base, id: 'unicode-paragraph-separator', receiptNo: '\u2029R-PARAGRAPH' },
   );
   data.collections.push([
     '\u200b', 'TEST TENANT', 25, 'paid', 'SYNTHETIC TEST PROPERTY',
@@ -2252,10 +2513,13 @@ test('V206.1 canonicalizes Unicode references and rejects invisible controls', (
   ]);
   const runtime = loadRuntime(data, [], activeRuntimeWindow());
   const ledger = runtime.ledgerRecords();
+  for (const entry of data.rentLedgerV202.filter((item) => /unicode-(?:bom|line-separator|paragraph-separator)/.test(item.id))) {
+    assert.equal(runtime.ledgerReference(entry), '');
+  }
   assert.equal(ledger.filter((entry) => /unicode-composed/.test(entry.id)).length, 1);
   assert.equal(ledger.filter((entry) => /unicode-width/.test(entry.id)).length, 1);
   assert.equal(
-    ledger.filter((entry) => /unicode-(?:control|vs16|cgj|mvs|interlinear|syriac)/.test(entry.id))
+    ledger.filter((entry) => /unicode-(?:control|vs16|cgj|mvs|interlinear|syriac|bom|line-separator|paragraph-separator)/.test(entry.id))
       .every((entry) => runtime.ledgerReference(entry) === ''),
     true,
   );
@@ -2265,6 +2529,8 @@ test('V206.1 canonicalizes Unicode references and rejects invisible controls', (
   assert.equal(runtime.receiptExists('R-１２３'), true);
   assert.equal(runtime.receiptExists('R-CF-\uFFF9123'), false);
   assert.equal(runtime.receiptExists('R-CF-\u070F123'), false);
+  assert.equal(runtime.receiptExists('\uFEFFR-BOM-LEADING'), false);
+  assert.equal(runtime.receiptExists('R-BOM-TRAILING\uFEFF'), false);
   assert.equal(context.propertyCollections.some((row) => row[0] === '\u200b' && runtime.collectionReceiptEligible(row)), false);
 });
 
@@ -2314,7 +2580,7 @@ test('V206.1 rejects placeholder tenant and unit identities', () => {
     });
     const runtime = loadRuntime(data, [], activeRuntimeWindow());
     assert.equal(runtime.contracts().some((contract) => contract.id === `placeholder-${placeholder}`), false);
-    assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').collected, 90);
+    assert.equal(settledCollectionTotal(runtime.contextFor('SYNTHETIC TEST PROPERTY')), 90);
   }
 });
 
@@ -2337,7 +2603,7 @@ test('V206.1 keeps mill precision exact within a conservative accounting bound',
   const context = checked.contextFor('SYNTHETIC TEST PROPERTY');
   const row = context.propertyCollections.find((entry) => entry[0] === 'R-SUB-MILL');
   assert.equal(checked.collectionReceiptEligible(row), false);
-  assert.equal(context.collected, 90);
+  assert.equal(settledCollectionTotal(context), 90);
 });
 
 test('V206.1 uses structural unit record keys without delimiter collisions', () => {
@@ -2383,7 +2649,7 @@ test('V206.1 aggregates rent in exact fils without false partial balances', () =
     assert.equal(item.balance, 0);
     assert.equal(item.paymentStatus, 'مسدد');
   }
-  assert.equal(context.collected, 50.8);
+  assert.equal(settledCollectionTotal(context), 50.8);
 });
 
 test('V206.1 never infers a property when an explicit property field is malformed', () => {
@@ -2393,6 +2659,9 @@ test('V206.1 never infers a property when an explicit property field is malforme
   const malformed = [
     { ref: 'R-CROSS-CF', property: `${otherProperty}\u200B`, marker: 'CROSS-CF' },
     { ref: 'R-CROSS-ARRAY', property: [otherProperty], marker: 'CROSS-ARRAY' },
+    { ref: 'R-CROSS-BOM-ONLY', property: '\uFEFF', marker: 'CROSS-BOM-ONLY' },
+    { ref: 'R-CROSS-NEWLINE-ONLY', property: '\n', marker: 'CROSS-NEWLINE-ONLY' },
+    { ref: 'R-CROSS-LINE-SEPARATOR', property: '\u2028', marker: 'CROSS-LINE-SEPARATOR' },
   ];
   for (const item of malformed) {
     data.collections.push([
@@ -2418,7 +2687,7 @@ test('V206.1 never infers a property when an explicit property field is malforme
     (row) => row[0] === 'R-ABSENT-PROPERTY' && row[3] === 'يحتاج مراجعة',
   ));
   assert.ok(primary.maintenance.some((row) => row[1] === 'ABSENT-PROPERTY-MAINTENANCE'));
-  assert.equal(primary.collected, 90);
+  assert.equal(settledCollectionTotal(primary), 90);
   assert.equal(other.collected, 0);
 });
 
@@ -2459,7 +2728,7 @@ test('V206.1 deduplicates canonical-equivalent property identities', () => {
     const contract = ledgerContext.propertyContracts[0];
     assert.equal(ledgerContext.propertyLedger.length, 1);
     assert.equal(ledgerContext.propertyCollections.length, 1);
-    assert.equal(ledgerContext.collected, 25);
+    assert.equal(settledCollectionTotal(ledgerContext), 25);
     assert.equal(ledgerRuntime.paidForPeriod(CANONICAL_PROPERTY, contract, '2026-08'), 25);
 
     const collectionData = canonicalPropertyFixture();
@@ -2476,7 +2745,7 @@ test('V206.1 deduplicates canonical-equivalent property identities', () => {
     const collectionContext = collectionRuntime.contextFor(CANONICAL_PROPERTY);
     assert.equal(collectionContext.propertyCollections.length, 1);
     assert.equal(collectionContext.settledCollections.length, 1);
-    assert.equal(collectionContext.collected, 25);
+    assert.equal(settledCollectionTotal(collectionContext), 25);
   }
 });
 
@@ -2524,7 +2793,7 @@ test('V206.1 keeps an exact-key out-of-term payment visible only for review', ()
   assert.equal(runtime.collectionFinanciallySettled(reviewRow), false);
   assert.equal(runtime.collectionReceiptEligible(reviewRow), false);
   assert.equal(context.settledCollections.some((row) => row[0] === payment.receiptNo), false);
-  assert.equal(context.collected, 90);
+  assert.equal(settledCollectionTotal(context), 90);
   assert.equal(runtime.paidForPeriod(payment.property, contract, payment.period), 0);
   assert.equal(record.rent, 0);
   assert.equal(record.paid, 0);
@@ -2614,6 +2883,124 @@ test('V208.1 keeps partial official statements arithmetically consistent', () =>
     assert.deepEqual([context.collected, context.due], expected);
     assert.equal(context.due, model.totals.balance);
   }
+
+  const idOnlyData = fixture();
+  idOnlyData.rentLedgerV202 = [{
+    ...sourcePayment,
+    receiptNo: '',
+    id: 'CURRENT-ID-ONLY',
+    period,
+    paidAt: `${period}-01`,
+    paymentKey: `synthetic test property|contract:contract-a|unit:a|${period}`,
+  }];
+  idOnlyData.rentStatementsV202 = [{
+    id: 'partial-id-only', property: 'SYNTHETIC TEST PROPERTY', period, totalRent: 1000,
+  }];
+  const idOnlyRuntime = loadRuntime(idOnlyData);
+  const idOnlyContext = idOnlyRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+  const idOnlyModel = idOnlyRuntime.propertyRentLedgerModel(idOnlyContext, period);
+  assert.deepEqual(
+    [idOnlyContext.collected, idOnlyContext.due, idOnlyModel.totals.paid, idOnlyModel.totals.balance],
+    [0, 1000, 0, 1000],
+    'an internal id without a receipt or voucher remains review-only in every official total',
+  );
+
+  const legacyOnlyData = fixture();
+  legacyOnlyData.rentLedgerV202 = [];
+  legacyOnlyData.collections = [[
+    'R-LEGACY-OFFICIAL', 'TEST TENANT', 40, 'paid', 'SYNTHETIC TEST PROPERTY',
+    `${period}-01`, 'A', 'Legacy collection without ledger provenance', period, 'Cash',
+  ]];
+  legacyOnlyData.rentStatementsV202 = [{
+    id: 'partial-legacy-only', property: 'SYNTHETIC TEST PROPERTY', period, totalRent: 1000,
+  }];
+  const legacyOnlyRuntime = loadRuntime(legacyOnlyData);
+  const legacyOnlyContext = legacyOnlyRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+  const legacyOnlyModel = legacyOnlyRuntime.propertyRentLedgerModel(legacyOnlyContext, period);
+  assert.deepEqual(
+    [legacyOnlyContext.collected, legacyOnlyContext.due, legacyOnlyModel.totals.paid, legacyOnlyModel.totals.balance],
+    [0, 1000, 0, 1000],
+    'official fallbacks use ledger-row provenance instead of an unmatched legacy collection',
+  );
+  assert.equal(legacyOnlyContext.settledCollections.length, 1, 'the legacy row remains visible for review');
+  assert.equal(legacyOnlyContext.paymentCount, 1, 'the payment KPI counts canonical settled transactions independently of official money reconciliation');
+
+  const countBase = fixture();
+  const paidA = countBase.rentLedgerV202.find((entry) => entry.id === 'ledger-paid-a');
+  const paidB = countBase.rentLedgerV202.find((entry) => entry.id === 'ledger-paid-b');
+  const [periodYear, periodMonth] = period.split('-').map(Number);
+  const previousDate = new Date(Date.UTC(periodYear, periodMonth - 2, 1));
+  const previousPeriod = `${previousDate.getUTCFullYear()}-${String(previousDate.getUTCMonth() + 1).padStart(2, '0')}`;
+  countBase.rentLedgerV202 = [
+    { ...paidA, id: 'count-a-1', receiptNo: 'R-COUNT-A-1', period, paidAt: `${period}-01`,
+      paymentKey: `synthetic test property|contract:contract-a|unit:a|${period}` },
+    { ...paidA, id: 'count-a-2', receiptNo: 'R-COUNT-A-2', period, paidAt: `${period}-02`,
+      paymentKey: `synthetic test property|contract:contract-a|unit:a|${period}` },
+    { ...paidB, id: 'count-b-1', receiptNo: 'R-COUNT-B-1', period, paidAt: `${period}-03`,
+      paymentKey: `synthetic test property|contract:contract-b|unit:b|${period}` },
+    { ...paidA, id: 'count-history', receiptNo: 'R-COUNT-HISTORY', period: previousPeriod, paidAt: `${previousPeriod}-03`,
+      paymentKey: `synthetic test property|contract:contract-a|unit:a|${previousPeriod}` },
+  ];
+  for (const [statement, expectedCollected] of [
+    [null, 130],
+    [{ totalRent: 300 }, 130],
+    [{ totalCollected: 0 }, 0],
+    [{ totalRent: 300, payerCount: 0 }, 130],
+  ]) {
+    const countData = structuredClone(countBase);
+    countData.rentStatementsV202 = statement ? [{
+      id: 'count-statement', property: 'SYNTHETIC TEST PROPERTY', period, ...statement,
+    }] : [];
+    const countRuntime = loadRuntime(countData);
+    const countContext = countRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+    assert.equal(countContext.settledCollections.length, 4, 'all-period history remains available');
+    assert.equal(countContext.periodSettledCollections.length, 3, 'the KPI source contains only the selected month');
+    assert.equal(countContext.paymentCount, 3, 'official amount or payer fields must not change the monthly transaction count');
+    assert.equal(countContext.collected, expectedCollected, 'collection money and payment count must use one monthly scope');
+  }
+});
+
+test('V208.1 uses the ledger-row rent basis for partial official balances', () => {
+  const now = new Date();
+  const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  const expiredData = fixture();
+  expiredData.contractsV202 = [{
+    id: 'historical-current', contract_no: 'HIST-1', tenant: 'HISTORICAL TENANT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'H', rent: 400, status: 'expired',
+    start_date: `${now.getFullYear()}-01-01`, end_date: `${now.getFullYear()}-12-31`,
+    source: 'synthetic-test-import',
+  }];
+  expiredData.tenantDirectoryV202 = [];
+  expiredData.rentLedgerV202 = [];
+  expiredData.rentStatementsV202 = [{
+    id: 'expired-partial', property: 'SYNTHETIC TEST PROPERTY', period, totalCollected: 50,
+  }];
+  let runtime = loadRuntime(expiredData);
+  let context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  let model = runtime.propertyRentLedgerModel(context, period);
+  assert.deepEqual([context.collected, context.due, model.totals.balance], [50, 350, 350]);
+
+  const recordedDueData = fixture();
+  recordedDueData.contractsV202 = [{
+    id: 'recorded-due-contract', contract_no: 'DUE-1', tenant: 'DUE TENANT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'R', rent: 400, status: 'signed',
+    start_date: `${now.getFullYear()}-01-01`, end_date: `${now.getFullYear()}-12-31`,
+    source: 'synthetic-test-import',
+  }];
+  recordedDueData.tenantDirectoryV202 = [];
+  recordedDueData.rentLedgerV202 = [{
+    id: 'recorded-due-payment', receiptNo: 'R-RECORDED-DUE', property: 'SYNTHETIC TEST PROPERTY',
+    unit: 'R', tenant: 'DUE TENANT', contractId: 'recorded-due-contract', period,
+    due: 350, paid: 50, paidAt: `${period}-01`, status: 'paid', source: 'synthetic-test-import',
+  }];
+  recordedDueData.rentStatementsV202 = [{
+    id: 'recorded-due-partial', property: 'SYNTHETIC TEST PROPERTY', period, totalCollected: 50,
+  }];
+  runtime = loadRuntime(recordedDueData);
+  context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  model = runtime.propertyRentLedgerModel(context, period);
+  assert.deepEqual([context.collected, context.due, model.totals.balance], [50, 300, 300]);
 });
 
 test('V208.1 never offers or executes payment for a non-billable unit card', () => {
@@ -2627,6 +3014,7 @@ test('V208.1 never offers or executes payment for a non-billable unit card', () 
   assert.equal(records[draftIndex].billable, false);
   assert.equal(records[expiredIndex].billable, false);
   assert.equal(records[activeIndex].billable, true);
+  assert.equal(records[activeIndex].collectible, true);
   const panel = runtime.unitsPanel(context, '2026-08', true);
   assert.match(panel, new RegExp(`data-v202-unit-payment="${activeIndex}"`));
   assert.doesNotMatch(panel, new RegExp(`data-v202-unit-payment="${draftIndex}"`));
@@ -2636,12 +3024,28 @@ test('V208.1 never offers or executes payment for a non-billable unit card', () 
   assert.equal(runtime.secureRentOfficeAction(
     'SYNTHETIC TEST PROPERTY', records[draftIndex].key, '2026-08', 'payment', null,
   ), false);
+
+  const historicalData = fixture();
+  historicalData.contractsV202[0].status = 'expired';
+  const historicalRuntime = loadRuntime(historicalData, [], activeRuntimeWindow());
+  historicalRuntime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const historicalContext = historicalRuntime.contextFor('SYNTHETIC TEST PROPERTY');
+  const historicalRecords = historicalRuntime.unitDirectoryRecords(historicalContext, '2026-08');
+  const historicalIndex = historicalRecords.findIndex((record) => record.contractId === 'contract-a');
+  assert.equal(historicalRecords[historicalIndex].billable, true, 'historical statements retain in-term expired rent');
+  assert.equal(historicalRecords[historicalIndex].collectible, false, 'expired rent cannot open a new collection');
+  assert.doesNotMatch(
+    historicalRuntime.unitsPanel(historicalContext, '2026-08', true),
+    new RegExp(`data-v202-unit-payment="${historicalIndex}"`),
+  );
+  assert.equal(historicalRuntime.openUnitPayment({ getAttribute: () => String(historicalIndex) }), false);
 });
 
 test('V208.1 canonicalizes settled status labels in bilingual receipts', () => {
   const runtime = loadRuntime(fixture());
   for (const [status, expected] of [
     ['Paid', 'مدفوع / Paid'],
+    ['part paid', 'جزئي / Partially paid'],
     ['partially paid', 'جزئي / Partially paid'],
     ['مدفوع جزئي', 'جزئي / Partially paid'],
     ['جزئيًا', 'جزئي / Partially paid'],
@@ -2669,6 +3073,11 @@ test('V208.1 selects the latest valid payment across ISO and local date formats'
       unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08',
       due: 100, paid: 6, paidAt: '2026-08-30', status: 'paid', source: 'synthetic-test-import',
     },
+    {
+      id: 'ledger-arabic-latest', receiptNo: 'R-ARABIC-LATEST', property: 'SYNTHETIC TEST PROPERTY',
+      unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08',
+      due: 100, paid: 7, paidAt: '٣١/٠٨/٢٠٢٦', status: 'paid', source: 'synthetic-test-import',
+    },
   );
   const runtime = loadRuntime(data, [], activeRuntimeWindow());
   const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
@@ -2677,42 +3086,45 @@ test('V208.1 selects the latest valid payment across ISO and local date formats'
   const entries = runtime.tenantLedgerEntries(context, record, '2026-08');
   const row = runtime.propertyRentLedgerRows(context, '2026-08')
     .find((entry) => entry.contractId === 'contract-a');
-  assert.equal(record.paidAt, '2026-08-30');
-  assert.equal(entries.at(-1).receiptNo, 'R-ISO-LATEST');
-  assert.equal(row.paymentDate, '2026-08-30');
-  assert.equal(row.receiptReference, 'R-ISO-LATEST');
-  assert.match(runtime.tenantStatementDocument(context, record, '2026-08'), /data-v202-tenant-receipt="R-ISO-LATEST"/);
+  assert.equal(record.paidAt, '٣١/٠٨/٢٠٢٦');
+  assert.equal(entries.at(-1).receiptNo, 'R-ARABIC-LATEST');
+  assert.equal(row.paymentDate, '٣١/٠٨/٢٠٢٦');
+  assert.equal(row.receiptReference, 'R-ARABIC-LATEST');
+  assert.match(runtime.tenantStatementDocument(context, record, '2026-08'), /data-v202-tenant-receipt="R-ARABIC-LATEST"/);
 });
 
-
-test('V208.1 rejects financially conflicting rows for the same explicit contract id', () => {
-  const data = fixture();
-  data.contractsV202.push({
-    ...data.contractsV202[0],
-    rent: 999,
-    contractRent: 999,
-  });
-  const runtime = loadRuntime(data);
-  assert.equal(runtime.contracts().some((contract) => contract.id === 'contract-a'), false);
-});
-
-test('V208.1 exposes authorized properties without DOM discovery', () => {
-  const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
-  assert.deepEqual(Array.from(runtime.secureRentOfficeProperties()), ['SYNTHETIC TEST PROPERTY']);
-});
-
-test('V208.1 filters collections and prefills payment by the selected portfolio month', () => {
+test('V208.1 never mixes invalid-date payment metadata with another legal receipt', () => {
   const data = fixture();
   data.rentLedgerV202.push({
-    id: 'ledger-september', receiptNo: 'R-SEPTEMBER', property: 'SYNTHETIC TEST PROPERTY',
-    unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-09',
-    due: 100, paid: 100, paidAt: '2026-09-02', status: 'paid', source: 'synthetic-test-import',
+    id: 'invalid-latest-metadata', receiptNo: 'R-INVALID-LATEST', property: 'SYNTHETIC TEST PROPERTY',
+    unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08',
+    due: 100, paid: 7, paidAt: '2026-12-99', method: 'WIRE', knetTransactionNo: 'BAD-999',
+    note: 'INVALID-DATE-NOTE',
+    status: 'paid', source: 'synthetic-test-import',
+  });
+  data.rentLedgerV202.push({
+    id: 'pending-metadata', receiptNo: 'R-PENDING-METADATA', property: 'SYNTHETIC TEST PROPERTY',
+    unit: 'A', tenant: 'TEST TENANT', contractId: 'contract-a', period: '2026-08',
+    due: 100, paid: 3, paidAt: '2026-08-31', method: 'CASH', knetTransactionNo: 'PENDING-999',
+    note: 'PENDING-NOTE', status: 'pending', source: 'synthetic-test-import',
   });
   const runtime = loadRuntime(data, [], activeRuntimeWindow());
-  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
   const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
-  const august = runtime.collectionsPanel(context, '2026-08');
-  assert.match(august, /R-A-PAID/);
-  assert.doesNotMatch(august, /R-SEPTEMBER/);
-  assert.match(runtime.paymentDialogMarkup(context, 'contract-a', '2026-08'), /id="v202PaymentPeriod" type="month" value="2026-08"/);
+  const record = runtime.unitDirectoryRecords(context, '2026-08')
+    .find((entry) => entry.contractId === 'contract-a');
+  const row = runtime.propertyRentLedgerRows(context, '2026-08')
+    .find((entry) => entry.contractId === 'contract-a');
+  assert.equal(row.paymentStatus, 'يحتاج مراجعة');
+  assert.equal(row.paymentDate, '2026-08-12');
+  assert.equal(row.paymentMethod, 'KNET');
+  assert.equal(row.knetTransactionNo, '012345');
+  assert.equal(row.receiptReference, 'R-A-PAID');
+  assert.notEqual(row.paymentMethod, 'WIRE');
+  assert.notEqual(row.knetTransactionNo, 'BAD-999');
+  assert.deepEqual(Array.from(record.methods), ['KNET']);
+  assert.deepEqual(Array.from(record.knetTransactions), ['012345']);
+  assert.deepEqual(Array.from(record.paymentNotes), ['August 2026 rent — KNET operation: 012345']);
+  const tenantHtml = runtime.tenantStatementDocument(context, record, '2026-08');
+  assert.doesNotMatch(tenantHtml, /WIRE|BAD-999|R-INVALID-LATEST|INVALID-DATE-NOTE|PENDING-NOTE|PENDING-999/);
+  assert.match(tenantHtml, /KNET|012345|R-A-PAID/);
 });
