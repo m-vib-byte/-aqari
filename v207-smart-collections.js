@@ -9,7 +9,12 @@
   function norm(v){return String(v==null?'':v).trim().toLowerCase()}
   function app(){try{return typeof db!=='undefined'&&db?db:{}}catch(_){return {}}}
   function contracts(){const value=app().contractsV202;return Array.isArray(value)?value:[]}
-  function activeProperty(){try{return String(sessionStorage.getItem('aqari_v202_property')||sessionStorage.getItem('aqari_v201_property')||'').trim()}catch(_){return ''}}
+  function activeProperty(){
+    const ledger=document.querySelector('#v202DocumentBody [data-v206-ledger]');
+    const documentProperty=String(ledger?.querySelector('.v206-ledger-title h2')?.textContent||'').trim();
+    if(documentProperty&&documentProperty!=='عقار غير مسجل')return documentProperty;
+    try{return String(sessionStorage.getItem('aqari_v202_property')||sessionStorage.getItem('aqari_v201_property')||'').trim()}catch(_){return ''}
+  }
   function contractId(contract){return String(contract?.id||contract?.contract_no||'').trim()}
 
   function statusKey(status){
