@@ -14,6 +14,55 @@
   let context = null;
   let remoteState = null;
   let authListenerInstalled = false;
+  let authGeneration = 0;
+
+  function sealData(){
+    window.AQARI_V201?.seal?.();
+    window.AQARI_V202?.seal?.();
+    if(typeof window.sealWorkspaceDbV198 === 'function') window.sealWorkspaceDbV198();
+    else{
+      window.closeWorkspaceIndexedDbV206?.();
+      window.AQARI_DATA_GATE?.seal();
+      window.AQARI_EARLY_STORAGE_GATE?.seal();
+    }
+  }
+
+  function hardResetPage(){
+    const target = String(location.origin || '') + String(location.pathname || '/') + String(location.search || '');
+    if(typeof location.replace === 'function') location.replace(target);
+    else if(typeof location.reload === 'function') location.reload();
+  }
+
+  function accessIdentity(value){
+    const userId = String(value?.user?.id || '').trim();
+    const workspaceId = String(value?.workspace?.id || '').trim();
+    const membership = value?.membership;
+    const role = String(membership?.role || '').trim();
+    if(!userId || !workspaceId || !role || membership?.is_active !== true) return null;
+    if(String(membership.user_id || '') !== userId) return null;
+    if(String(membership.workspace_id || '') !== workspaceId) return null;
+    return { userId, workspaceId, role };
+  }
+
+  function sameIdentity(left, right){
+    return Boolean(left && right && left.userId === right.userId &&
+      left.workspaceId === right.workspaceId && left.role === right.role);
+  }
+
+  function requireLiveIdentity(expectedContext){
+    const expected = accessIdentity(expectedContext);
+    const live = accessIdentity(window.AQARI_SUPABASE?.context);
+    if(!sameIdentity(expected, live)) throw new Error('Active workspace changed while loading AQARI data');
+    return live;
+  }
+
+  function requireRemoteWorkspace(expectedContext, state){
+    const expected = requireLiveIdentity(expectedContext);
+    if(state?.workspace_id && String(state.workspace_id) !== expected.workspaceId){
+      throw new Error('Cloud state does not belong to the active AQARI workspace');
+    }
+    return expected;
+  }
 
   function roleInfo(){
     return ROLE_MAP[context?.membership?.role] || ROLE_MAP.viewer;
@@ -84,25 +133,35 @@
   }
 
   function showGate(message, kind = 'wait'){
+    authGeneration += 1;
+    document.documentElement?.classList.remove('aqari-auth-unlocked');
+    sealData();
     context = null;
     remoteState = null;
     clearCompatibility();
     hideLegacyGates();
+    byId('aqariCloudModalV168')?.classList.remove('on');
     byId('aqariCloudGateV168')?.classList.add('on');
     updateUI();
     notice(message || 'سجل الدخول بحساب عقاري المصرح.', kind);
   }
 
-  function unlock(){
+  function unlock(nextContext, nextRemoteState){
+    if(typeof window.activateWorkspaceDbV198 !== 'function') throw new Error('AQARI workspace data boundary unavailable');
+    requireRemoteWorkspace(nextContext, nextRemoteState);
+    window.activateWorkspaceDbV198(nextContext, nextRemoteState?.payload);
+    context = nextContext;
+    remoteState = nextRemoteState;
     hideLegacyGates();
     setCompatibility();
+    document.documentElement?.classList.add('aqari-auth-unlocked');
     byId('aqariCloudGateV168')?.classList.remove('on');
     updateUI();
   }
 
-  async function loadProfile(){
+  async function loadProfile(expectedContext){
     const client = await window.AQARI_SUPABASE.getClient();
-    const userId = context?.user?.id;
+    const userId = expectedContext?.user?.id;
     if(!userId) return null;
     const { data, error } = await client
       .from('aqari_profiles')
@@ -114,21 +173,36 @@
     return data || null;
   }
 
-  async function refreshContext(){
+  async function loadContextCandidate(){
     if(!window.AQARI_SUPABASE) throw new Error('Supabase adapter unavailable');
     const next = await window.AQARI_SUPABASE.refreshContext();
     if(!next.user) return null;
-    if(!next.membership?.is_active || !next.workspace?.id){
+    if(!accessIdentity(next)){
       await window.AQARI_SUPABASE.signOut().catch(() => {});
       throw new Error('Active workspace membership is required');
     }
-    context = { ...next, profile:null };
-    context.profile = await loadProfile();
-    return context;
+    const candidate = { ...next, profile:null };
+    candidate.profile = await loadProfile(candidate);
+    requireLiveIdentity(candidate);
+    return candidate;
+  }
+
+  async function loadRemoteCandidate(expectedContext){
+    const expectedAccess = requireLiveIdentity(expectedContext);
+    const candidate = await window.AQARI_SUPABASE.loadAppState(expectedAccess);
+    requireRemoteWorkspace(expectedContext, candidate);
+    return candidate;
   }
 
   async function refreshRemote(){
-    remoteState = await window.AQARI_SUPABASE.loadAppState();
+    const expectedContext = context;
+    const generation = authGeneration;
+    if(!accessIdentity(expectedContext)) throw new Error('Active workspace membership is required');
+    const candidate = await loadRemoteCandidate(expectedContext);
+    if(generation !== authGeneration || !sameIdentity(accessIdentity(context), accessIdentity(expectedContext))){
+      throw new Error('AQARI session changed while loading cloud state');
+    }
+    remoteState = candidate;
     updateUI();
     return remoteState;
   }
@@ -165,9 +239,25 @@
     }
   }
 
+  function bindPanelActions(){
+    const actions = [
+      ['aqariCloudUploadV198', () => window.uploadLocalToCloudV198?.()],
+      ['aqariCloudRestoreV198', () => window.restoreCloudToDeviceV198?.()],
+      ['aqariCloudAutoV198', () => window.toggleCloudAutoSyncV198?.()],
+      ['aqariCloudAccountV198', () => window.openCloudV198?.()]
+    ];
+    actions.forEach(([id, action]) => {
+      const button = byId(id);
+      if(!button || button.dataset.aqariBound === '1') return;
+      button.dataset.aqariBound = '1';
+      button.addEventListener('click', action);
+    });
+  }
+
   function buildPanel(){
     const home = byId('home');
-    if(!home || byId('aqariV198Cloud')) return;
+    if(!home) return;
+    if(byId('aqariV198Cloud')){ bindPanelActions(); return; }
     const box = document.createElement('section');
     box.id = 'aqariV198Cloud';
     box.className = 'aq-v168-cloud';
@@ -182,14 +272,15 @@
       '</div>'+
       '<div class="aq-v168-grid"><div class="aq-v168-card"><b>المزامنة</b><small id="cloudSyncV198">تتطلب اختيار نسخة</small></div></div>'+
       '<div class="aq-v168-actions">'+
-      '<button class="g" type="button" onclick="uploadLocalToCloudV198()">رفع بيانات هذا الجهاز</button>'+
-      '<button type="button" onclick="restoreCloudToDeviceV198()">استرجاع السحابة</button>'+
-      '<button type="button" onclick="toggleCloudAutoSyncV198()">المزامنة اليدوية فقط</button>'+
-      '<button type="button" onclick="openCloudV198()">الحساب والأمان</button>'+
+      '<button id="aqariCloudUploadV198" class="g" type="button">رفع بيانات هذا الجهاز</button>'+
+      '<button id="aqariCloudRestoreV198" type="button">استرجاع السحابة</button>'+
+      '<button id="aqariCloudAutoV198" type="button">المزامنة اليدوية فقط</button>'+
+      '<button id="aqariCloudAccountV198" type="button">الحساب والأمان</button>'+
       '</div><div class="aq-v168-msg wait" id="cloudMsgV198">الربط جاهز.</div>';
     const anchor = byId('aqariV168Executive') || home.firstChild;
     if(anchor?.parentNode === home) anchor.insertAdjacentElement('afterend', box);
     else home.insertBefore(box, home.firstChild);
+    bindPanelActions();
     updateUI();
   }
 
@@ -197,7 +288,9 @@
     window.login = window.cloudLoginV198;
     window.loginLocalV120 = window.cloudLoginV198;
     window.logout = window.cloudLogoutV198;
-    window.lockNowV120 = () => showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
+    window.lockNowV120 = () => window.cloudLogoutV198();
+    window.lockSessionV75 = () => window.cloudLogoutV198();
+    window.logoutProductionV75 = () => window.cloudLogoutV198();
     window.cloudLoginV168 = window.cloudLoginV198;
     window.cloudLogoutV168 = window.cloudLogoutV198;
     window.openCloudV168 = window.openCloudV198;
@@ -229,6 +322,7 @@
     const original = window.render;
     if(typeof original !== 'function' || original.__v198SecureCloud) return;
     const wrapped = function(){
+      if(typeof window.prepareWorkspaceDbV198 === 'function') window.prepareWorkspaceDbV198();
       const result = original.apply(this, arguments);
       setTimeout(() => { buildPanel(); updateUI(); }, 0);
       return result;
@@ -238,30 +332,38 @@
   }
 
   async function bootstrap(){
+    const generation = ++authGeneration;
+    sealData();
+    context = null;
+    remoteState = null;
     hideLegacyGates();
     buildPanel();
     installOverrides();
     try{
-      const active = await refreshContext();
+      const active = await loadContextCandidate();
+      if(generation !== authGeneration) return;
       if(!active){
         showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
         return;
       }
-      await refreshRemote();
-      unlock();
-      if(payloadHasData(remoteState?.payload)){
+      const activeRemoteState = await loadRemoteCandidate(active);
+      if(generation !== authGeneration) return;
+      requireRemoteWorkspace(active, activeRemoteState);
+      unlock(active, activeRemoteState);
+      if(payloadHasData(activeRemoteState?.payload)){
         notice('تم الاتصال. اختر استرجاع السحابة قبل تشغيل المزامنة على هذا الجهاز.', 'wait');
       }else{
         notice('السحابة فارغة. ارفع بيانات هذا الجهاز مرة واحدة لتهيئة المزامنة.', 'wait');
       }
     }catch(error){
-      showGate(errorText(error), 'bad');
+      if(generation === authGeneration) showGate(errorText(error), 'bad');
     }
   }
 
   window.cloudLoginV198 = async function(){
     setBusy(true);
     try{
+      showGate('جاري التحقق من الحساب…', 'wait');
       const email = String(byId('cloudEmailV168')?.value || '').trim().toLowerCase();
       const password = byId('cloudPasswordV168')?.value || '';
       if(!email || !password) throw new Error('أدخل البريد وكلمة المرور.');
@@ -319,8 +421,23 @@
   window.cloudLogoutV198 = async function(){
     window.AQARI_AUTOSYNC?.disable();
     localStorage.removeItem(SYNC_READY_KEY);
-    await window.AQARI_SUPABASE.signOut().catch(() => {});
+    showGate('جاري تسجيل الخروج…', 'wait');
+    try{
+      await window.AQARI_SUPABASE.signOut();
+    }catch(signOutError){
+      try{
+        if(typeof window.AQARI_SUPABASE.clearPersistedSession !== 'function' ||
+           typeof window.AQARI_SUPABASE.verifySessionNull !== 'function') throw signOutError;
+        window.AQARI_SUPABASE.clearPersistedSession();
+        await window.AQARI_SUPABASE.verifySessionNull();
+      }catch(clearError){
+        showGate('تعذر إكمال تسجيل الخروج. بقيت المنصة مقفلة؛ تحقق من الاتصال ثم أعد المحاولة.', 'bad');
+        return false;
+      }
+    }
     showGate('تم تسجيل الخروج بأمان.', 'ready');
+    hardResetPage();
+    return true;
   };
 
   window.uploadLocalToCloudV198 = async function(){
@@ -396,15 +513,62 @@
     if(authListenerInstalled) return;
     authListenerInstalled = true;
     const client = await window.AQARI_SUPABASE.getClient();
-    client.auth.onAuthStateChange((event) => {
-      if(event === 'SIGNED_OUT') showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
+    client.auth.onAuthStateChange((event, session) => {
+      const previousIdentity = accessIdentity(context);
+      if(event === 'SIGNED_OUT'){
+        showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
+        if(previousIdentity) hardResetPage();
+        return;
+      }
+      if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
+        if(previousIdentity){
+          if(String(session.user.id || '') !== previousIdentity.userId){
+            showGate('تم تغيير الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');
+            hardResetPage();
+            return;
+          }
+          setTimeout(() => revalidateActiveSession(), 0);
+          return;
+        }
+        showGate('جاري التحقق من مساحة العمل…', 'wait');
+        setTimeout(() => bootstrap(), 0);
+      }
     });
+  }
+
+  let revalidationRunning = false;
+  async function revalidateActiveSession(){
+    if(revalidationRunning || !context?.user || document.hidden) return;
+    revalidationRunning = true;
+    const generation = authGeneration;
+    const currentIdentity = accessIdentity(context);
+    try{
+      const candidate = await loadContextCandidate();
+      if(generation !== authGeneration) return;
+      if(!candidate || !sameIdentity(currentIdentity, accessIdentity(candidate))){
+        showGate('تم تغيير صلاحية الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');
+        hardResetPage();
+      }
+    }catch(error){
+      if(generation === authGeneration) showGate(errorText(error), 'bad');
+    }finally{
+      revalidationRunning = false;
+    }
+  }
+
+  function installRevalidation(){
+    window.addEventListener('focus', () => setTimeout(revalidateActiveSession, 0));
+    document.addEventListener('visibilitychange', () => {
+      if(!document.hidden) setTimeout(revalidateActiveSession, 0);
+    });
+    setInterval(revalidateActiveSession, 5 * 60 * 1000);
   }
 
   async function start(){
     hideLegacyGates();
     installOverrides();
     installRenderHook();
+    installRevalidation();
     await installAuthListener().catch(() => {});
     await bootstrap();
   }

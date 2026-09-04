@@ -93,8 +93,8 @@
     },
     {
       "path": "cloud-sync.js",
-      "size": 5107,
-      "sha256": "1ed207a2dcaf1a3983b31306bf1d94789dc72761bc1dbbca62840246a8780399"
+      "size": 9964,
+      "sha256": "cd761366eca908a8a9950645820e2246e85d4d691e7423060df16edaf9a014fd"
     },
     {
       "path": "DEPLOYMENT_MANIFEST.json",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 6965,
-      "sha256": "1ca8d985ac000b993c5d3e93ca31d897797c1435f3955c5a5561ebd0de73a846"
+      "size": 7687,
+      "sha256": "8539b98479d6eefa2553d3e4e54980bf9f06465268e9e5ca5bcd7e45fcc68962"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -143,8 +143,8 @@
     },
     {
       "path": "index.html",
-      "size": 1061201,
-      "sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244"
+      "size": 1089763,
+      "sha256": "d7e1e19c20a358f3af64df10572d8122917473bbdf1fa929a0eab3e315d84112"
     },
     {
       "path": "lib/read-only.js",
@@ -313,8 +313,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 17487,
-      "sha256": "a35bd223049277c5242e8b00b1555c74aecf36a2903ae13d650d0c86c0bfd154"
+      "size": 24542,
+      "sha256": "0dd53412ba647d2d14fbf93a46bd52c445b6e73252f252f2800697182025fd7c"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -323,13 +323,18 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 7613,
-      "sha256": "2eec4807da8ea07925f50d67beea4410c4d850a1b9be4f000d5e72f4ab1b6d3d"
+      "size": 14484,
+      "sha256": "cb0dbd2a9020caaeae09cb2cc47d15e0f459ac251f96827d5faa26ce559a2395"
     },
     {
       "path": "sw.js",
       "size": 382,
       "sha256": "a055a7cdbf2d1c054e398b475a5f05bc153eb5d597f036f202bfe5c3454e97d9"
+    },
+    {
+      "path": "tests/auth-data-gate.test.cjs",
+      "size": 25444,
+      "sha256": "c12bf3098aff6b598a7186467f1a45b95db59e6cf02b2deebe142beb22964edb"
     },
     {
       "path": "tests/preview.e2e.mjs",
@@ -343,8 +348,13 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 55852,
-      "sha256": "fc1198bc36cf67ae847a422d81851d46a8e63861396fe7421bba07b078fc0fdc"
+      "size": 60471,
+      "sha256": "fe296ef1c6691ffab95f212ebb19c4a4dfcfbdcd5ed194d4432674e1bfe59668"
+    },
+    {
+      "path": "tests/v206-rent-ledger.test.cjs",
+      "size": 8967,
+      "sha256": "10c7a4b16680e0b44bacd2b0b0e757d5d785893e1ca06c2eec56f03bd3a6d544"
     },
     {
       "path": "v199-ui.css",
@@ -368,8 +378,8 @@
     },
     {
       "path": "v201-experience.js",
-      "size": 34371,
-      "sha256": "e31bc45e6b002827c5793756450c79ca89fd298161060e151008ae420303e29e"
+      "size": 35057,
+      "sha256": "92803e571053228f894165af7dfeed6f72a2d7c3884c61c3a65103d2924fefca"
     },
     {
       "path": "v202-prestige.css",
@@ -378,8 +388,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 169064,
-      "sha256": "27cdf43598577137f1038bad109bbb658d5ec7a9063dd75fd2bd309bc0396a0e"
+      "size": 182115,
+      "sha256": "6a832af65e5cbcb329096d9b06e7e8459a04727ec9e98550d1a47c7bc6d55662"
     },
     {
       "path": "v205-simple.css",
@@ -395,6 +405,16 @@
       "path": "v206-integrated-ledger.css",
       "size": 22719,
       "sha256": "916decd29a051ed8f4d53ae9fcc4bfecb9a75a09faad015323703e553072315f"
+    },
+    {
+      "path": "v206-rent-ledger.css",
+      "size": 17325,
+      "sha256": "ee366cd84b96da52a3a180f478c9111dfe2c2be6f5651d0a491cb2cc952eedb4"
+    },
+    {
+      "path": "v206-rent-ledger.js",
+      "size": 24513,
+      "sha256": "e6ca4e509f3071d761ef1757c9da575b5ca55ed989cc9ca617e443e193b0d857"
     },
     {
       "path": "vercel.json",

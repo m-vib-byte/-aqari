@@ -2,8 +2,13 @@
   'use strict';
 
   const cfg = window.AQARI_PUBLIC_CONFIG || {};
+  const AUTH_STORAGE_KEY = String(
+    cfg.supabaseAuthStorageKey || cfg.supabaseStorageKey || 'aqari-supabase-auth-v198'
+  ).trim() || 'aqari-supabase-auth-v198';
+  const WRITE_ROLES = new Set(['general_manager', 'property_manager', 'accountant']);
   const state = { client:null, user:null, membership:null, workspace:null, profile:null };
   let clientPromise = null;
+  let clientEpoch = 0;
 
   function resetContext(){
     state.user = null;
@@ -17,6 +22,52 @@
     error.code = 'AQARI_REVISION_CONFLICT';
     error.currentRevision = currentRevision;
     return error;
+  }
+
+  function accessError(message = 'AQARI account or workspace access changed'){
+    const error = new Error(message);
+    error.code = 'AQARI_ACCESS_CHANGED';
+    return error;
+  }
+
+  function cleanAccess(value){
+    if(!value || typeof value !== 'object') return null;
+    const userId = String(value.userId || value.user?.id || '').trim();
+    const workspaceId = String(value.workspaceId || value.workspace?.id || value.membership?.workspace_id || '').trim();
+    const role = String(value.role || value.membership?.role || '').trim();
+    if(!userId && !workspaceId && !role) return null;
+    return Object.freeze({ userId, workspaceId, role });
+  }
+
+  function contextAccess(context = state){
+    return cleanAccess({
+      userId:context?.user?.id,
+      workspaceId:context?.membership?.workspace_id || context?.workspace?.id,
+      role:context?.membership?.role
+    });
+  }
+
+  function requireExactAccess(context, expectedAccess, { write = false } = {}){
+    const live = contextAccess(context);
+    if(!live?.userId || !live?.workspaceId || !live?.role ||
+       context?.membership?.user_id !== live.userId ||
+       context?.membership?.workspace_id !== live.workspaceId ||
+       context?.workspace?.id !== live.workspaceId ||
+       context?.membership?.is_active !== true){
+      throw accessError('Authentication and active workspace membership are required');
+    }
+    const expected = cleanAccess(expectedAccess);
+    if(expected && ((expected.userId && expected.userId !== live.userId) ||
+       (expected.workspaceId && expected.workspaceId !== live.workspaceId) ||
+       (expected.role && expected.role !== live.role))){
+      throw accessError();
+    }
+    if(write && !WRITE_ROLES.has(live.role)){
+      const error = new Error('Current role does not allow app-state writes');
+      error.code = 'AQARI_WRITE_FORBIDDEN';
+      throw error;
+    }
+    return Object.freeze({ userId:live.userId, workspaceId:live.workspaceId, role:live.role });
   }
 
   async function ensureLibrary(){
@@ -46,65 +97,109 @@
     if(!cfg.supabaseUrl || !cfg.supabasePublishableKey){
       throw new Error('AQARI Supabase public configuration is missing');
     }
-    clientPromise = ensureLibrary()
+    const epoch = clientEpoch;
+    const pending = ensureLibrary()
       .then((lib) => {
-        state.client = lib.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
+        const client = lib.createClient(cfg.supabaseUrl, cfg.supabasePublishableKey, {
           auth: {
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
             storage: window.sessionStorage,
-            storageKey: 'aqari-supabase-auth-v198'
+            storageKey: AUTH_STORAGE_KEY
           }
         });
-        return state.client;
+        if(epoch !== clientEpoch){
+          try{ client.auth.stopAutoRefresh(); }catch(_){ }
+          throw accessError('AQARI authentication session was cleared');
+        }
+        state.client = client;
+        return client;
       })
       .catch((error) => {
-        clientPromise = null;
+        if(clientPromise === pending) clientPromise = null;
         throw error;
       });
+    clientPromise = pending;
     return clientPromise;
   }
 
-  async function refreshContext(){
+  async function refreshContext(expectedAccess){
+    const expected = cleanAccess(expectedAccess);
     const client = await getClient();
     const { data:sessionData, error:sessionError } = await client.auth.getSession();
     if(sessionError) throw sessionError;
-    resetContext();
-    if(!sessionData.session) return { ...state };
+    const sessionUserId = String(sessionData.session?.user?.id || '').trim();
+    if(!sessionUserId){
+      resetContext();
+      if(expected) throw accessError();
+      return { ...state };
+    }
+    if(expected?.userId && expected.userId !== sessionUserId) throw accessError();
 
     const { data:userData, error:userError } = await client.auth.getUser();
     if(userError) throw userError;
-    state.user = userData.user || null;
-    if(!state.user) return { ...state };
+    const user = userData.user || null;
+    const userId = String(user?.id || '').trim();
+    if(!userId || userId !== sessionUserId || (expected?.userId && expected.userId !== userId)){
+      resetContext();
+      throw accessError();
+    }
 
-    const { data:membership, error:membershipError } = await client
+    let membershipQuery = client
       .from('aqari_memberships')
       .select('workspace_id, user_id, role, is_active, created_at')
-      .eq('user_id', state.user.id)
-      .eq('is_active', true)
+      .eq('user_id', userId)
+      .eq('is_active', true);
+    if(expected?.workspaceId) membershipQuery = membershipQuery.eq('workspace_id', expected.workspaceId);
+    const { data:membership, error:membershipError } = await membershipQuery
       .limit(1)
       .maybeSingle();
     if(membershipError) throw membershipError;
-    state.membership = membership || null;
+    const workspaceId = String(membership?.workspace_id || '').trim();
+    const role = String(membership?.role || '').trim();
+    if(!membership || membership.user_id !== userId || membership.is_active !== true || !workspaceId || !role ||
+       (expected?.workspaceId && expected.workspaceId !== workspaceId) ||
+       (expected?.role && expected.role !== role)){
+      resetContext();
+      if(expected) throw accessError();
+    }
 
-    if(state.membership?.workspace_id){
-      const { data:workspace, error:workspaceError } = await client
+    let workspace = null;
+    if(workspaceId){
+      const { data:workspaceData, error:workspaceError } = await client
         .from('aqari_workspaces')
         .select('id, name, slug, created_at')
-        .eq('id', state.membership.workspace_id)
+        .eq('id', workspaceId)
         .maybeSingle();
       if(workspaceError) throw workspaceError;
-      state.workspace = workspace || null;
+      if(!workspaceData || workspaceData.id !== workspaceId){
+        resetContext();
+        if(expected) throw accessError();
+      }
+      // Keep the value local until the complete snapshot has been authenticated.
+      workspace = workspaceData || null;
     }
 
     const { data:profile, error:profileError } = await client
       .from('aqari_profiles')
       .select('user_id, display_name, created_at, updated_at')
-      .eq('user_id', state.user.id)
+      .eq('user_id', userId)
       .maybeSingle();
     if(profileError) throw profileError;
+
+    const { data:finalSessionData, error:finalSessionError } = await client.auth.getSession();
+    if(finalSessionError) throw finalSessionError;
+    if(String(finalSessionData.session?.user?.id || '').trim() !== userId) {
+      resetContext();
+      throw accessError();
+    }
+
+    state.user = user;
+    state.membership = membership || null;
+    state.workspace = workspace;
     state.profile = profile || null;
+    if(expected) requireExactAccess(state, expected);
     return { ...state };
   }
 
@@ -115,7 +210,7 @@
     const context = await refreshContext();
     if(!context.membership || !context.workspace || !context.profile){
       await client.auth.signOut().catch(() => {});
-      resetContext();
+      clearPersistedSession();
       const accessError = new Error('Account is not authorized for an active AQARI workspace');
       accessError.code = 'AQARI_ACCESS_DENIED';
       throw accessError;
@@ -150,38 +245,98 @@
     return client.auth.onAuthStateChange(callback);
   }
 
+  function isConfiguredAuthStorageKey(key){
+    const value = String(key || '');
+    return value === AUTH_STORAGE_KEY ||
+      value.startsWith(AUTH_STORAGE_KEY + '-') ||
+      value.startsWith(AUTH_STORAGE_KEY + '.') ||
+      value.startsWith(AUTH_STORAGE_KEY + ':');
+  }
+
+  function clearPersistedSession(){
+    const previousClient = state.client;
+    clientEpoch += 1;
+    clientPromise = null;
+    state.client = null;
+    resetContext();
+    try{ previousClient?.auth?.stopAutoRefresh?.(); }catch(_){ }
+
+    let cleared = 0;
+    try{
+      const storage = window.sessionStorage;
+      const keys = [];
+      for(let index = 0; index < Number(storage?.length || 0); index += 1){
+        const key = storage.key(index);
+        if(key !== null) keys.push(String(key));
+      }
+      if(!keys.includes(AUTH_STORAGE_KEY)) keys.push(AUTH_STORAGE_KEY);
+      for(const key of keys){
+        if(!isConfiguredAuthStorageKey(key)) continue;
+        try{
+          if(storage.getItem(key) !== null) cleared += 1;
+          storage.removeItem(key);
+        }catch(_){ }
+      }
+    }catch(_){ }
+    return Object.freeze({ cleared, storageKey:AUTH_STORAGE_KEY });
+  }
+
+  async function getSession(){
+    const client = await getClient();
+    const { data, error } = await client.auth.getSession();
+    if(error) throw error;
+    return data?.session || null;
+  }
+
+  async function hasSession(){
+    const session = await getSession();
+    return Boolean(session?.user?.id);
+  }
+
+  async function verifySessionNull(){
+    const session = await getSession();
+    if(session){
+      const error = new Error('AQARI authentication session is still active');
+      error.code = 'AQARI_SESSION_REMAINS';
+      throw error;
+    }
+    return true;
+  }
+
   async function signOut(){
     const client = await getClient();
     const { error } = await client.auth.signOut();
     if(error) throw error;
-    resetContext();
+    clearPersistedSession();
   }
 
-  async function loadAppState(){
-    await refreshContext();
-    if(!state.membership?.workspace_id) return null;
+  async function bindAccess(expectedAccess, options){
+    const context = await refreshContext(expectedAccess);
+    return requireExactAccess(context, expectedAccess, options);
+  }
+
+  async function recheckBoundAccess(boundAccess, options){
+    const context = await refreshContext(boundAccess);
+    return requireExactAccess(context, boundAccess, options);
+  }
+
+  async function loadAppState(expectedAccess){
+    const boundAccess = await bindAccess(expectedAccess);
     const client = await getClient();
     const { data, error } = await client
       .from('aqari_app_state')
       .select('workspace_id, payload, revision, updated_by, updated_at')
-      .eq('workspace_id', state.membership.workspace_id)
+      .eq('workspace_id', boundAccess.workspaceId)
       .maybeSingle();
     if(error) throw error;
+    if(data && data.workspace_id !== boundAccess.workspaceId) throw accessError('Cloud state workspace does not match authenticated access');
+    await recheckBoundAccess(boundAccess);
     return data || null;
   }
 
-  async function saveAppState(payload, expectedRevision){
-    await refreshContext();
-    if(!state.user || !state.membership?.workspace_id){
-      throw new Error('Authentication and active workspace membership are required');
-    }
-    const allowed = new Set(['general_manager', 'property_manager', 'accountant']);
-    if(!allowed.has(state.membership.role)){
-      throw new Error('Current role does not allow app-state writes');
-    }
-
-    const client = await getClient();
-    const current = await loadAppState();
+  async function saveAppState(payload, expectedRevision, expectedAccess){
+    const boundAccess = await bindAccess(expectedAccess, { write:true });
+    const current = await loadAppState(boundAccess);
     const expected = Number(expectedRevision);
 
     if(current){
@@ -189,32 +344,44 @@
       if(!Number.isInteger(expected) || expected !== currentRevision){
         throw revisionConflict(currentRevision);
       }
+      await recheckBoundAccess(boundAccess, { write:true });
+      const client = state.client;
+      if(!client) throw accessError();
       const { data, error } = await client
         .from('aqari_app_state')
         .update({ payload })
-        .eq('workspace_id', state.membership.workspace_id)
+        .eq('workspace_id', boundAccess.workspaceId)
         .eq('revision', expected)
         .select('workspace_id, payload, revision, updated_by, updated_at')
         .maybeSingle();
       if(error) throw error;
       if(!data) throw revisionConflict(currentRevision);
+      if(data.workspace_id !== boundAccess.workspaceId) throw accessError('Saved cloud state workspace does not match authenticated access');
+      await recheckBoundAccess(boundAccess, { write:true });
       return data;
     }
 
     if(expected !== 0) throw revisionConflict(null);
+    await recheckBoundAccess(boundAccess, { write:true });
+    const client = state.client;
+    if(!client) throw accessError();
     const { data, error } = await client
       .from('aqari_app_state')
-      .insert({ workspace_id:state.membership.workspace_id, payload })
+      .insert({ workspace_id:boundAccess.workspaceId, payload })
       .select('workspace_id, payload, revision, updated_by, updated_at')
       .single();
     if(error?.code === '23505') throw revisionConflict(null);
     if(error) throw error;
+    if(!data || data.workspace_id !== boundAccess.workspaceId) throw accessError('Saved cloud state workspace does not match authenticated access');
+    await recheckBoundAccess(boundAccess, { write:true });
     return data;
   }
 
   window.AQARI_SUPABASE = Object.freeze({
-    version:'V198', getClient, refreshContext, signIn, signUp, signOut,
+    version:'V206.2', getClient, refreshContext, signIn, signUp, signOut,
     resetPasswordForEmail, updatePassword, onAuthStateChange, loadAppState, saveAppState,
+    clearPersistedSession, getSession, hasSession, verifySessionNull,
+    authStorageKey:AUTH_STORAGE_KEY,
     get context(){ return { ...state }; }
   });
 })();
