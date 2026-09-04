@@ -169,6 +169,18 @@
 
   function schedule(){clearTimeout(timer);timer=setTimeout(render,120)}
 
+  function restoreSearchFocus(start,end){
+    requestAnimationFrame(()=>{
+      const input=document.querySelector('#v208PortfolioCollections [data-v208-search]');
+      if(!(input instanceof HTMLInputElement))return;
+      input.focus({preventScroll:true});
+      const length=input.value.length;
+      const left=Math.min(Math.max(0,Number.isFinite(start)?start:length),length);
+      const right=Math.min(Math.max(left,Number.isFinite(end)?end:left),length);
+      try{input.setSelectionRange(left,right)}catch(_){ }
+    });
+  }
+
   function setStatementPeriod(){
     let attempts=0;
     const apply=()=>{
@@ -217,7 +229,14 @@
   });
 
   document.addEventListener('input',event=>{
-    if(event.target?.matches?.('[data-v208-search]')){query=event.target.value;lastSignature='';render()}
+    const target=event.target instanceof HTMLInputElement&&event.target.matches('[data-v208-search]')?event.target:null;
+    if(!target)return;
+    const start=Number.isFinite(target.selectionStart)?target.selectionStart:target.value.length;
+    const end=Number.isFinite(target.selectionEnd)?target.selectionEnd:start;
+    query=target.value;
+    lastSignature='';
+    render();
+    restoreSearchFocus(start,end);
   });
 
   document.addEventListener('click',event=>{
