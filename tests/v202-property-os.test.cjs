@@ -448,6 +448,27 @@ test('V206.1 keeps simultaneous contracts on one unit isolated by contract ident
   ]);
 });
 
+test('V206.1 never reuses protected directory fields across simultaneous unit contracts', () => {
+  const data = fixture();
+  data.contractsV202.push({
+    id: 'contract-a-without-directory', contract_no: 'SECOND-A-NO-DIRECTORY', tenant: 'SECOND TENANT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'A', rent: 75, status: 'signed',
+    start_date: '2026-01-01', end_date: '2026-12-31', source: 'synthetic-test-import',
+  });
+
+  const runtime = loadRuntime(data, [], activeRuntimeWindow());
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const record = runtime.unitDirectoryRecords(context, '2026-08')
+    .find((entry) => entry.contractId === 'contract-a-without-directory');
+
+  assert.ok(record);
+  assert.equal(record.tenant, 'SECOND TENANT');
+  assert.equal(record.phone, '');
+  assert.equal(record.civilId, '');
+  assert.equal(record.email, '');
+  assert.equal(record.hasDirectory, false);
+});
+
 test('V206.1 access requires membership identities to match the active user and workspace', () => {
   const exact = activeRuntimeWindow();
   assert.equal(loadRuntime(fixture(), [], exact).protectedAccessReady(), true);

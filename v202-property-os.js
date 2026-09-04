@@ -924,7 +924,10 @@
 
     return bases.map(function(base){
       const contract=base.contract;
-      const directoryRecord=base.directory||directoryRecordFor(directory,contract)||{};
+      // A directory row may belong to only one contract. Re-matching here would
+      // bypass claimedDirectory and could leak one tenant's protected fields to
+      // another simultaneous contract on the same unit.
+      const directoryRecord=base.directory||{};
       const id=normalized(contractId(contract));
       const statementItem=(id&&statementById.get(id))||statement.find(function(item){
         return normalized(item.unit)===normalized(base.unit)&&normalized(item.tenant)===normalized(base.tenant||directoryRecord.tenant);
@@ -965,7 +968,7 @@
         advance:directoryRecord.advance,advanceDateRaw:String(directoryRecord.advanceDateRaw||''),
         cleaningFee:directoryRecord.cleaningFee,freeMonth:String(directoryRecord.freeMonth||''),
         evictionNotice:String(directoryRecord.evictionNotice||''),notes:String(directoryRecord.notes||''),paymentNotes,knetTransactions,
-        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory||directoryRecordFor(directory,contract))
+        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory)
       };
     }).sort(function(left,right){
       return String(left.unit).localeCompare(String(right.unit),'ar',{numeric:true,sensitivity:'base'});
