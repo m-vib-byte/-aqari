@@ -55,14 +55,17 @@
   }
 
   function propertyNames(){
+    if(!accessReady()||typeof window.AQARI_V202?.rentOfficeProperties!=='function')return [];
+    let names=[];
+    try{names=window.AQARI_V202.rentOfficeProperties()}catch(_){names=[]}
+    if(!Array.isArray(names))return [];
     const seen=new Set();
-    const names=[];
-    document.querySelectorAll('[data-v201-property]').forEach(node=>{
-      const name=String(node.getAttribute('data-v201-property')||'').trim();
+    return names.map(name=>String(name||'').trim()).filter(name=>{
       const key=norm(name);
-      if(name&&!seen.has(key)){seen.add(key);names.push(name)}
+      if(!name||!key||seen.has(key))return false;
+      seen.add(key);
+      return true;
     });
-    return names;
   }
 
   function officeSummary(name){
@@ -221,7 +224,7 @@
     const check=officeSummary(name);
     if(!check.valid)return false;
     const actionToken=++interactionEpoch;
-    const opened=window.AQARI_V202.openProperty(name);
+    const opened=window.AQARI_V202.openProperty(name,period);
     if(opened===false)return false;
     let attempts=0;
     const follow=()=>{

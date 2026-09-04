@@ -3,11 +3,12 @@
 
   const V202_DESIGN='V206-preview';
   const V202_IMPORT_SOURCE='protected-rent-import-v202';
+  const LINKED_LEDGER_ROW=Symbol('aqari-linked-ledger-row');
   const RENT_WRITE_ROLES=new Set(['general_manager','property_manager','accountant']);
   const PROTECTED_FIELDS=Object.freeze({
     contractsV202:['id','contract_no','tenant','property','unit','rent','contractRent','status','start_date','end_date','source'],
     tenantDirectoryV202:['property','unit','tenant','contractNo','phone','nationality','civilId','email','source','verified','sourcePage','contractStartRaw','contractEndRaw','paymentDateRaw','contractReceipt','contractReceived','accountant','insurance','insuranceDateRaw','advance','advanceDateRaw','cleaningFee','currentRent','freeMonth','evictionNotice','notes'],
-    rentLedgerV202:['id','receiptNo','voucherNo','property','unit','tenant','contractId','contractNo','period','due','paid','balance','paidAt','method','transactionNo','knetTransactionNo','contractReceived','status','note','source','paymentKey'],
+    rentLedgerV202:['id','receiptNo','voucherNo','property','unit','tenant','contractId','contract_id','contractNo','contract_no','period','due','paid','balance','paidAt','method','transactionNo','knetTransactionNo','contractReceived','status','note','source','paymentKey'],
     rentStatementsV202:['id','property','period','totalRent','totalCollected','totalAdvance','totalInsurance','totalCleaning','sourcePages','unitCount','occupiedUnitCount','payerCount','importedAt','source']
   });
   const STATUS_LABELS={
@@ -32,6 +33,7 @@
   };
 
   let activeProperty='';
+  let activePropertyPeriod='';
   let propertyTrigger=null;
   let paymentTrigger=null;
   let documentTrigger=null;
@@ -78,12 +80,47 @@
     return email.slice(0,1)+'***'+email.slice(at);
   }
 
-  function normalized(value){return String(value==null?'':value).trim().toLocaleLowerCase('ar')}
+  function normalized(value){
+    const text=scalarText(value);
+    return text?text.toLocaleLowerCase('ar'):'';
+  }
 
-  function optionalIdentityMatch(actual,expected){
-    const actualKey=normalized(actual);
-    const expectedKey=normalized(expected);
-    return !actualKey||Boolean(expectedKey&&actualKey===expectedKey);
+  function invalidScalarControls(value){
+    return typeof value==='string'&&/(?:\p{Cc}|\p{Cf}|\p{Zl}|\p{Zp}|\p{Default_Ignorable_Code_Point})/u.test(value);
+  }
+
+  function scalarText(value){
+    if(typeof value==='string')return invalidScalarControls(value)?'':value.trim();
+    if(typeof value==='number'&&Number.isFinite(value))return String(value);
+    return '';
+  }
+
+  function normalizedScalar(value){
+    const text=scalarText(value);
+    return text?normalized(latinDigits(text)):'';
+  }
+
+  function signatureScalar(value){
+    const text=scalarText(value);
+    if(text||value===''||value==null)return normalized(latinDigits(text));
+    let encoded='';
+    try{encoded=JSON.stringify(value)}catch(_){encoded=Object.prototype.toString.call(value)}
+    return '!invalid-type:'+Object.prototype.toString.call(value)+':'+String(encoded);
+  }
+
+  function scalarAlias(record,keys,canonicalize){
+    const values=[];
+    for(const key of keys){
+      if(!Object.prototype.hasOwnProperty.call(record||{},key))continue;
+      const raw=record[key];
+      if(raw==null||raw==='')continue;
+      const text=scalarText(raw);
+      if(!text)return {value:'',conflict:true};
+      values.push(text);
+    }
+    const normalizeValue=typeof canonicalize==='function'?canonicalize:function(value){return normalized(latinDigits(value))};
+    const distinct=new Set(values.map(normalizeValue));
+    return {value:values[0]||'',conflict:distinct.size>1};
   }
 
   function latinDigits(value){
@@ -94,18 +131,141 @@
       .replace(/[۰-۹]/g,function(digit){return persian.indexOf(digit)});
   }
 
+  function referenceText(value){
+    let text='';
+    if(typeof value==='number')text=Number.isFinite(value)?String(value):'';
+    else if(typeof value==='string'&&!invalidScalarControls(value))text=value.trim();
+    try{text=text.normalize('NFKC')}catch(_){ }
+    if(invalidScalarControls(text))return '';
+    if(!text)return '';
+    const placeholder=normalized(latinDigits(text));
+    return ['—','-','–','n/a','na','none','null','undefined','غير مسجل','لا يوجد'].includes(placeholder)?'':text;
+  }
+
+  function invalidReferenceInput(value){
+    if(value==null||value==='')return false;
+    if(typeof value!=='string'&&typeof value!=='number')return true;
+    if(typeof value==='number'&&!Number.isFinite(value))return true;
+    if(invalidScalarControls(value))return true;
+    let text=String(value).trim();
+    try{text=text.normalize('NFKC')}catch(_){ }
+    if(invalidScalarControls(text))return true;
+    if(!text)return true;
+    const placeholder=normalized(latinDigits(text));
+    if(['—','-','–','n/a','na','none','null','undefined','غير مسجل','لا يوجد'].includes(placeholder))return false;
+    return false;
+  }
+
+  function normalizedReference(value){
+    const text=referenceText(value);
+    return text?normalized(latinDigits(text)):'';
+  }
+
+  function identityText(value){return referenceText(value)}
+  function normalizedIdentity(value){return normalizedReference(value)}
+  function propertyKey(value){return normalizedIdentity(value)}
+
+  function optionalIdentityField(value){
+    if(value==null||value==='')return {present:false,value:'',invalid:false};
+    const text=scalarText(value);
+    const key=normalizedIdentity(text);
+    return {present:true,value:key,invalid:Boolean(!text||!key)};
+  }
+
+  function identitySignature(value){
+    if(value==null||value==='')return '';
+    const key=normalizedIdentity(value);
+    return key?'identity:'+key:'!invalid-identity:'+signatureScalar(value);
+  }
+
+  function ledgerAlias(entry,primary,legacy){
+    const currentRaw=entry?.[primary];
+    const fallbackRaw=entry?.[legacy];
+    const current=normalizedIdentity(entry?.[primary]);
+    const fallback=normalizedIdentity(entry?.[legacy]);
+    const invalidCurrent=currentRaw!=null&&currentRaw!==''&&!identityText(currentRaw);
+    const invalidFallback=fallbackRaw!=null&&fallbackRaw!==''&&!identityText(fallbackRaw);
+    return {value:current||fallback,conflict:Boolean(invalidCurrent||invalidFallback||(current&&fallback&&current!==fallback))};
+  }
+
   function numberFrom(value){
     const parsed=parseFloat(latinDigits(value).replace(/٫/g,'.').replace(/[,٬]/g,'').replace(/[^0-9.\-]/g,''));
     return Number.isFinite(parsed)?parsed:0;
   }
 
+  function strictCount(value){
+    if(typeof value==='number')return Number.isSafeInteger(value)&&value>=0?value:Number.NaN;
+    if(typeof value!=='string'||invalidScalarControls(value))return Number.NaN;
+    let raw=value.trim();
+    try{raw=raw.normalize('NFKC')}catch(_){ }
+    if(invalidScalarControls(raw))return Number.NaN;
+    raw=latinDigits(raw);
+    if(!/^(?:0|[1-9]\d*)$/.test(raw))return Number.NaN;
+    const parsed=Number(raw);
+    return Number.isSafeInteger(parsed)?parsed:Number.NaN;
+  }
+
   function strictMoney(value){
+    if(typeof value!=='string'&&typeof value!=='number')return Number.NaN;
+    if(invalidScalarControls(value))return Number.NaN;
+    if(typeof value==='number'&&!Number.isFinite(value))return Number.NaN;
+    if(typeof value==='number'){
+      if(value>1000000000000)return Number.NaN;
+      const minor=value*1000;
+      const rounded=Math.round(minor);
+      if(value<0||!Number.isSafeInteger(rounded)||rounded/1000!==value)return Number.NaN;
+      return rounded/1000;
+    }
     const raw=latinDigits(value).trim().replace(/٫/g,'.');
     const plain=/^\d+(?:\.\d{1,3})?$/;
-    const grouped=/^\d{1,3}(?:[,٬]\d{3})+(?:\.\d{1,3})?$/;
-    if(!plain.test(raw)&&!grouped.test(raw))return Number.NaN;
-    const amount=Number(raw.replace(/[,٬]/g,''));
-    return Number.isFinite(amount)?amount:Number.NaN;
+    const westernGrouped=/^\d{1,3}(?:,\d{3})+(?:\.\d{1,3})?$/;
+    const arabicGrouped=/^\d{1,3}(?:٬\d{3})+(?:\.\d{1,3})?$/;
+    if(!plain.test(raw)&&!westernGrouped.test(raw)&&!arabicGrouped.test(raw))return Number.NaN;
+    const canonical=raw.replace(/[,٬]/g,'');
+    const parts=canonical.split('.');
+    try{
+      const minor=BigInt(parts[0])*1000n+BigInt((parts[1]||'').padEnd(3,'0'));
+      if(minor>1000000000000000n)return Number.NaN;
+      const amount=Number(minor)/1000;
+      return BigInt(Math.round(amount*1000))===minor?amount:Number.NaN;
+    }catch(_){return Number.NaN}
+  }
+
+  function strictCollectionMoney(value){
+    if(typeof value!=='string'&&typeof value!=='number')return Number.NaN;
+    if(invalidScalarControls(value))return Number.NaN;
+    const direct=strictMoney(value);
+    if(Number.isFinite(direct))return direct;
+    const raw=latinDigits(value).trim().replace(/٫/g,'.');
+    const match=raw.match(/^(\d+(?:(?:[,٬]\d{3})+)?(?:\.\d{1,3})?)\s*(?:د\.?\s*ك\.?|k\.?d\.?|kwd)$/i);
+    return match?strictMoney(match[1]):Number.NaN;
+  }
+
+  function exactMoneySum(values,parser){
+    const parse=typeof parser==='function'?parser:strictMoney;
+    let minor=0n;
+    (Array.isArray(values)?values:[]).forEach(function(value){
+      const amount=parse(value);
+      if(Number.isFinite(amount))minor+=BigInt(Math.round(amount*1000));
+    });
+    return Number(minor)/1000;
+  }
+
+  function exactMoneyDifference(left,right){
+    const leftAmount=strictMoney(left);
+    const rightAmount=strictMoney(right);
+    if(!Number.isFinite(leftAmount)||!Number.isFinite(rightAmount))return 0;
+    const difference=BigInt(Math.round(leftAmount*1000))-BigInt(Math.round(rightAmount*1000));
+    return difference>0n?Number(difference)/1000:0;
+  }
+
+  function validLedgerPaymentAmount(entry){
+    const amount=strictMoney(entry?.paid);
+    return Number.isFinite(amount)&&amount>0;
+  }
+
+  function ledgerReference(entry){
+    return referenceText(entry?.voucherNo)||referenceText(entry?.receiptNo);
   }
 
   function money(value){
@@ -126,14 +286,18 @@
     catch(_){return {}}
   }
 
+  function accessIdentity(value){
+    if(typeof value!=='string'||invalidScalarControls(value)||value!==value.trim())return '';
+    return value;
+  }
+
   function accessScope(context){
-    const userId=String(context?.user?.id||'').trim();
-    const workspaceId=String(context?.workspace?.id||'').trim();
+    const userId=accessIdentity(context?.user?.id);
+    const workspaceId=accessIdentity(context?.workspace?.id);
     const membership=context?.membership;
-    const membershipUserId=String((membership&&membership.user_id)||'').trim();
-    const membershipWorkspaceId=String((membership&&membership.workspace_id)||'').trim();
-    if(!userId||!workspaceId||membership?.is_active!==true||!membershipUserId||!membershipWorkspaceId)return null;
-    if(membershipUserId!==userId||membershipWorkspaceId!==workspaceId)return null;
+    if(!userId||!workspaceId||membership?.is_active!==true)return null;
+    if(accessIdentity(membership.user_id)!==userId)return null;
+    if(accessIdentity(membership.workspace_id)!==workspaceId)return null;
     return {userId:userId,workspaceId:workspaceId};
   }
 
@@ -146,8 +310,9 @@
   }
 
   function rentWriteAllowed(){
-    const context=window.AQARI_SUPABASE?.context;
-    return Boolean(accessScope(context)&&RENT_WRITE_ROLES.has(String(context?.membership?.role||'')));
+    if(!activeAccessScope())return false;
+    const role=window.AQARI_SUPABASE?.context?.membership?.role;
+    return Boolean(typeof role==='string'&&!invalidScalarControls(role)&&role===role.trim()&&RENT_WRITE_ROLES.has(role));
   }
 
   function protectedCacheUsable(){
@@ -158,15 +323,10 @@
     const value=appData()[key];
     const local=Array.isArray(value)?value:[];
     const remote=protectedCacheUsable()&&Array.isArray(protectedImportCache[key])?protectedImportCache[key]:[];
-    if(key==='properties')return remote.length?mergeImportedProperty(local,remote,protectedPropertyNames).rows:local;
+    if(!remote.length)return local;
+    if(key==='properties')return mergeImportedProperty(local,remote,protectedPropertyNames).rows;
     const fields=PROTECTED_FIELDS[key];
-    if(!fields)return local;
-    const protectedNames=new Set(Array.from(protectedPropertyNames||[]).map(normalized).filter(Boolean));
-    const scopedLocal=protectedNames.size?local.filter(function(record){
-      const property=normalized(record?.property);
-      return !protectedNames.has(property)||normalized(record?.source)===V202_IMPORT_SOURCE;
-    }):local;
-    return remote.length?mergeImportedRows(scopedLocal,remote,key,fields).rows:scopedLocal;
+    return fields?mergeImportedRows(local,remote,key,fields).rows:local;
   }
 
   function cloudPrimary(payload){
@@ -191,35 +351,37 @@
   function importIdentity(key,record){
     if(!record||typeof record!=='object'||Array.isArray(record))return '';
     if(key==='contractsV202'){
-      const id=normalized(record.id);
+      const id=normalizedIdentity(record.id);
       if(id)return 'id:'+id;
-      const contractNo=normalized(record.contract_no);
-      const property=normalized(record.property);
-      const unit=normalized(record.unit);
-      return contractNo&&property&&unit?['no',contractNo,property,unit].join(':'):'';
+      const contractNo=normalizedIdentity(record.contract_no);
+      const property=normalizedIdentity(record.property);
+      const unit=normalizedIdentity(record.unit);
+      return contractNo&&property&&unit?'no:'+JSON.stringify([contractNo,property,unit]):'';
     }
     if(key==='tenantDirectoryV202'){
-      const property=normalized(record.property);
-      const unit=normalized(record.unit);
-      const tenant=normalized(record.tenant);
-      const contractNo=normalized(record.contractNo);
-      return property&&unit&&(contractNo||tenant)?['tenant',property,unit,contractNo,tenant].join(':'):'';
+      const property=normalizedIdentity(record.property);
+      const unit=normalizedIdentity(record.unit);
+      const tenant=normalizedIdentity(record.tenant);
+      return property&&unit&&tenant?'tenant:'+JSON.stringify([property,unit,tenant]):'';
     }
     if(key==='rentLedgerV202'){
-      const id=normalized(record.id);
+      if([record.id,record.receiptNo,record.voucherNo].some(invalidReferenceInput))return '';
+      const id=normalizedReference(record.id);
       if(id)return 'id:'+id;
-      const receipt=normalized(record.voucherNo||record.receiptNo);
-      const property=normalized(record.property);
-      const unit=normalized(record.unit);
-      const period=String(record.period||'');
-      return receipt&&property&&unit&&validPeriod(period)?['receipt',receipt,normalized(record.contractId),unit,period].join(':'):'';
+      const receipt=Array.from(new Set([record.voucherNo,record.receiptNo].map(normalizedReference).filter(Boolean))).sort().join(':');
+      const property=normalizedIdentity(record.property);
+      const unit=normalizedIdentity(record.unit);
+      const period=record.period;
+      const contract=ledgerAlias(record,'contractId','contract_id');
+      if(contract.conflict)return '';
+      return receipt&&property&&unit&&validPeriod(period)?'receipt:'+JSON.stringify([receipt,contract.value,unit,period]):'';
     }
     if(key==='rentStatementsV202'){
-      const id=normalized(record.id);
+      const id=normalizedIdentity(record.id);
       if(id)return 'id:'+id;
-      const property=normalized(record.property);
-      const period=String(record.period||'');
-      return property&&validPeriod(period)?['statement',property,period].join(':'):'';
+      const property=normalizedIdentity(record.property);
+      const period=record.period;
+      return property&&validPeriod(period)?'statement:'+JSON.stringify([property,period]):'';
     }
     return '';
   }
@@ -254,22 +416,25 @@
   function mergeImportedProperty(localRows,remoteRows,allowedNames){
     const result=Array.isArray(localRows)?localRows.slice():[];
     let changed=false;
-    const allowed=new Set(Array.from(allowedNames||[]).map(normalized).filter(Boolean));
+    const allowed=new Set(Array.from(allowedNames||[]).map(propertyKey).filter(Boolean));
     if(allowed.size!==1)return {rows:result,changed};
     const remote=Array.isArray(remoteRows)?remoteRows.filter(function(row){
-      return Array.isArray(row)&&allowed.has(normalized(row[0]));
+      return Array.isArray(row)&&allowed.has(propertyKey(row[0]));
     }):[];
     if(remote.length!==1)return {rows:result,changed};
     const candidate=remote[0].slice(0,4).map(function(value){
       return value==null||['string','number','boolean'].includes(typeof value)?value:'';
     });
     const matches=[];
-    result.forEach(function(row,index){if(Array.isArray(row)&&normalized(row[0])===normalized(candidate[0]))matches.push(index)});
-    const insertAt=matches.length?matches[0]:result.length;
-    const scoped=result.filter(function(row){return !Array.isArray(row)||normalized(row[0])!==normalized(candidate[0])});
-    scoped.splice(Math.min(insertAt,scoped.length),0,candidate);
-    changed=JSON.stringify(scoped)!==JSON.stringify(result);
-    return {rows:scoped,changed};
+    result.forEach(function(row,index){if(Array.isArray(row)&&propertyKey(row[0])===propertyKey(candidate[0]))matches.push(index)});
+    if(matches.length===0){result.push(candidate);changed=true}
+    else if(matches.length===1){
+      const existing=result[matches[0]];
+      const replacement=existing.slice();
+      candidate.forEach(function(value,index){if(value!=null&&String(value).trim()!=='')replacement[index]=value});
+      if(JSON.stringify(replacement)!==JSON.stringify(existing)){result[matches[0]]=replacement;changed=true}
+    }
+    return {rows:result,changed};
   }
 
   function clearProtectedImport(){
@@ -310,6 +475,7 @@
     documentFallbackSelector='';
     activeTenantStatementKey='';
     activeProperty='';
+    activePropertyPeriod='';
     activeTab='overview';
     syncLayerState();
     document.body.classList.remove('v202-print-document');
@@ -335,7 +501,9 @@
   }
 
   async function hydrateProtectedImport(expectedUserId){
-    const expected=String(expectedUserId||'').trim();
+    const expectedProvided=expectedUserId!=null&&expectedUserId!=='';
+    const expected=accessIdentity(expectedUserId);
+    if(expectedProvided&&!expected){suspendProtectedImport(true);return false}
     const initialScope=activeAccessScope();
     if(protectedImportScope&&(!initialScope||(expected&&initialScope.userId!==expected)||!sameAccessScope(initialScope,protectedImportScope))){
       suspendProtectedImport(true);
@@ -377,30 +545,31 @@
         if(!primary||typeof primary!=='object'||Array.isArray(primary))return denyProtectedHydration(generation);
         const data=appData();
         if(!data||typeof data!=='object'||Array.isArray(data)||!Array.isArray(data.properties))return denyProtectedHydration(generation);
-        const importedPropertyNames=new Set();
+        const importedPropertyNames=new Map();
         ['contractsV202','rentStatementsV202'].forEach(function(key){
           const remoteRows=Array.isArray(primary[key])?primary[key]:[];
           remoteRows.forEach(function(record){
-            if(record&&typeof record==='object'&&!Array.isArray(record)&&normalized(record.source)===V202_IMPORT_SOURCE&&String(record.property||'').trim()){
-              importedPropertyNames.add(String(record.property).trim());
-            }
+            if(!record||typeof record!=='object'||Array.isArray(record)||normalized(record.source)!==V202_IMPORT_SOURCE)return;
+            const displayName=identityText(record.property);
+            const key=propertyKey(record.property);
+            if(displayName&&key&&!importedPropertyNames.has(key))importedPropertyNames.set(key,displayName);
           });
         });
         if(importedPropertyNames.size!==1)return denyProtectedHydration(generation);
-        const importedPropertyKey=normalized(Array.from(importedPropertyNames)[0]);
+        const importedPropertyKey=Array.from(importedPropertyNames.keys())[0];
         const nextCache=Object.create(null);
         Object.keys(PROTECTED_FIELDS).forEach(function(key){
           const remoteRows=Array.isArray(primary[key])?primary[key]:[];
           if(!remoteRows.some(function(record){return normalized(record?.source)===V202_IMPORT_SOURCE}))return;
           nextCache[key]=remoteRows.filter(function(record){
-            return record&&typeof record==='object'&&!Array.isArray(record)&&normalized(record.source)===V202_IMPORT_SOURCE&&normalized(record.property)===importedPropertyKey;
+            return record&&typeof record==='object'&&!Array.isArray(record)&&normalized(record.source)===V202_IMPORT_SOURCE&&propertyKey(record.property)===importedPropertyKey;
           }).map(function(record){return pickedRecord(record,PROTECTED_FIELDS[key])});
         });
         nextCache.properties=Array.isArray(primary.properties)?primary.properties.filter(function(row){
-          return Array.isArray(row)&&importedPropertyNames.has(String(row[0]||'').trim());
+          return Array.isArray(row)&&propertyKey(row[0])===importedPropertyKey;
         }).map(function(row){return row.slice(0,4)}):[];
         protectedImportCache=nextCache;
-        protectedPropertyNames=new Set(Array.from(importedPropertyNames).map(normalized));
+        protectedPropertyNames=new Set([importedPropertyKey]);
         protectedImportScope=currentScope;
         protectedImportValidated=true;
         purgePersistedProtectedRows();
@@ -421,10 +590,11 @@
       clearProtectedImport();
       clearProtectedDom();
       if(document.querySelector('#v202PropertyWorkspace.on'))renderWorkspace();
-      return;
+      return false;
     }
     if(!['SIGNED_IN','TOKEN_REFRESHED','INITIAL_SESSION'].includes(event))return;
-    const eventUserId=String(session?.user?.id||'').trim();
+    const eventUserId=accessIdentity(session?.user?.id);
+    if(!eventUserId){suspendProtectedImport(true);return false}
     const dropCache=!eventUserId||Boolean(protectedImportScope&&protectedImportScope.userId!==eventUserId);
     suspendProtectedImport(dropCache);
     setTimeout(function(){hydrateProtectedImport(eventUserId)},0);
@@ -443,22 +613,37 @@
     });
   }
 
-  function tenantDirectory(){
-    return rows('tenantDirectoryV202').filter(function(entry){return entry&&typeof entry==='object'&&!Array.isArray(entry)}).map(function(entry){
+  function tenantDirectory(sourceRows){
+    const records=Array.isArray(sourceRows)?sourceRows:rows('tenantDirectoryV202');
+    return records.filter(function(entry){return entry&&typeof entry==='object'&&!Array.isArray(entry)}).map(function(entry){
+      const property=scalarAlias(entry,['property']);
+      const unit=scalarAlias(entry,['unit']);
+      const tenant=scalarAlias(entry,['tenant']);
+      const contractNo=scalarAlias(entry,['contractNo','contract_no']);
+      const source=scalarAlias(entry,['source']);
+      if([property,unit,tenant,contractNo,source].some(function(alias){return alias.conflict}))return null;
+      if([property,unit,tenant,contractNo].some(function(alias){return alias.value&&!identityText(alias.value)}))return null;
+      function textField(){
+        const alias=scalarAlias(entry,Array.from(arguments));
+        return alias.conflict?'':alias.value;
+      }
+      function moneyField(key){
+        const value=entry[key];
+        return typeof value==='string'||(typeof value==='number'&&Number.isFinite(value))?value:undefined;
+      }
       return {
-        property:String(entry.property||''),unit:String(entry.unit||''),tenant:String(entry.tenant||''),
-        contractNo:String(entry.contractNo||entry.contract_no||''),phone:String(entry.phone||''),
-        nationality:String(entry.nationality||''),civilId:String(entry.civilId||''),email:String(entry.email||''),
-        source:String(entry.source||''),verified:Boolean(entry.verified),sourcePage:String(entry.sourcePage||''),
-        contractStartRaw:String(entry.contractStartRaw||''),contractEndRaw:String(entry.contractEndRaw||''),
-        paymentDateRaw:String(entry.paymentDateRaw||''),contractReceipt:String(entry.contractReceipt||''),
-        contractReceived:String(entry.contractReceived||entry.contractReceipt||''),accountant:String(entry.accountant||''),
-        insurance:entry.insurance,insuranceDateRaw:String(entry.insuranceDateRaw||''),
-        advance:entry.advance,advanceDateRaw:String(entry.advanceDateRaw||''),
-        cleaningFee:entry.cleaningFee,currentRent:entry.currentRent,freeMonth:String(entry.freeMonth||''),
-        evictionNotice:String(entry.evictionNotice||''),notes:String(entry.notes||'')
+        property:identityText(property.value),unit:identityText(unit.value),tenant:identityText(tenant.value),contractNo:identityText(contractNo.value),phone:textField('phone'),
+        nationality:textField('nationality'),civilId:textField('civilId'),email:textField('email'),
+        source:source.value,verified:entry.verified===true,sourcePage:textField('sourcePage'),
+        contractStartRaw:textField('contractStartRaw'),contractEndRaw:textField('contractEndRaw'),
+        paymentDateRaw:textField('paymentDateRaw'),contractReceipt:textField('contractReceipt'),
+        contractReceived:textField('contractReceived')||textField('contractReceipt'),accountant:textField('accountant'),
+        insurance:moneyField('insurance'),insuranceDateRaw:textField('insuranceDateRaw'),
+        advance:moneyField('advance'),advanceDateRaw:textField('advanceDateRaw'),
+        cleaningFee:moneyField('cleaningFee'),currentRent:moneyField('currentRent'),freeMonth:textField('freeMonth'),
+        evictionNotice:textField('evictionNotice'),notes:textField('notes')
       };
-    });
+    }).filter(Boolean);
   }
 
   function protectedAccessReady(){
@@ -466,8 +651,25 @@
   }
 
   function protectedPropertyActive(name){
-    const key=normalized(name);
-    return protectedCacheUsable()&&protectedPropertyNames.has(key);
+    const key=propertyKey(name);
+    return Boolean(key&&protectedCacheUsable()&&protectedPropertyNames.has(key));
+  }
+
+  function protectedRecordsFor(cacheKey,property){
+    if(!protectedPropertyActive(property))return null;
+    const identity=propertyKey(property);
+    const records=Array.isArray(protectedImportCache[cacheKey])?protectedImportCache[cacheKey]:[];
+    return records.filter(function(record){
+      return record&&typeof record==='object'&&!Array.isArray(record)&&
+        normalized(record.source)===V202_IMPORT_SOURCE&&propertyKey(record.property)===identity;
+    });
+  }
+
+  function protectedPropertyRows(name){
+    if(!protectedPropertyActive(name))return null;
+    const key=propertyKey(name);
+    const records=Array.isArray(protectedImportCache.properties)?protectedImportCache.properties:[];
+    return records.filter(function(row){return Array.isArray(row)&&propertyKey(row[0])===key});
   }
 
   function maskCivilId(value){
@@ -479,7 +681,10 @@
   }
 
   function unitRecordKey(record){
-    return [normalized(record?.property),normalized(record?.contractId),normalized(record?.unit),normalized(record?.contractNo),normalized(record?.tenant)].join('|');
+    return JSON.stringify([
+      normalizedIdentity(record?.property),normalizedIdentity(record?.contractId),normalizedIdentity(record?.unit),
+      normalizedIdentity(record?.contractNo),normalizedIdentity(record?.tenant)
+    ]);
   }
 
   function unitMatchesSearch(record,query){
@@ -506,7 +711,7 @@
   function filterUnitCards(value){
     if(!protectedAccessReady()){clearProtectedDom();return 0}
     const context=contextFor(activeProperty);
-    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    const records=context?unitDirectoryRecords(context,activePropertyPeriod||latestOfficialPeriod(activeProperty)):[];
     unitSearch=String(value||'');
     let shown=0;
     document.querySelectorAll('#v202Panel [data-v202-unit-index]').forEach(function(card){
@@ -530,7 +735,7 @@
   function toggleCivilId(button){
     if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
-    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    const records=context?unitDirectoryRecords(context,activePropertyPeriod||latestOfficialPeriod(activeProperty)):[];
     const index=Number(button?.getAttribute('data-v202-civil-reveal'));
     const record=records[index];
     const value=button?.closest('.aq-unit-sensitive')?.querySelector('.aq-unit-sensitive-value');
@@ -545,22 +750,21 @@
   }
 
   function directoryTenant(property,unit,contractNo){
-    const propertyKey=normalized(property);
-    const unitKey=normalized(unit);
-    const numberKey=normalized(contractNo);
+    const propertyKey=normalizedIdentity(property);
+    const unitKey=normalizedIdentity(unit);
+    const numberKey=normalizedIdentity(contractNo);
     const directory=tenantDirectory().filter(function(entry){
-      return normalized(entry.property)===propertyKey&&normalized(entry.unit)===unitKey;
+      return normalizedIdentity(entry.property)===propertyKey&&normalizedIdentity(entry.unit)===unitKey;
     });
     if(numberKey){
-      const byNumber=directory.filter(function(entry){return normalized(entry.contractNo)===numberKey});
+      const byNumber=directory.filter(function(entry){return normalizedIdentity(entry.contractNo)===numberKey});
       if(byNumber.length===1)return byNumber[0].tenant;
-      return '';
     }
     return directory.length===1?directory[0].tenant:'';
   }
 
   function contractStatus(value){
-    const status=normalized(value);
+    const status=normalizedScalar(value);
     if(status==='signed'||['موقع','موقّع','تم التوقيع','مكتمل التوقيع'].includes(status))return 'signed';
     if(status==='expired'||status.includes('منته'))return 'expired';
     if(status==='cancelled'||status==='canceled'||status.includes('ملغ'))return 'cancelled';
@@ -572,27 +776,45 @@
 
   function normalizeContract(entry,source,index){
     if(!entry||typeof entry!=='object'||Array.isArray(entry))return null;
-    const contractNo=String(entry.contract_no||entry.contractNo||'').trim();
-    const property=String(entry.property||entry.propertyName||'').trim();
-    const unit=String(entry.unit||entry.unitName||'').trim();
-    const tenant=String(entry.tenant||entry.tenantName||directoryTenant(property,unit,contractNo)||'').trim();
-    const explicitId=String(entry.id||entry.contractId||entry.contract_id||'').trim();
-    const id=explicitId||['legacy',contractNo||'بدون-رقم',property||'بدون-عقار',unit||'بدون-وحدة'].join('|')||(source+'-'+index);
-    const rentValue=entry.rent!=null&&String(entry.rent).trim()!==''?entry.rent:entry.monthlyRent;
-    const faceRent=entry.contractRent!=null&&String(entry.contractRent).trim()!==''?entry.contractRent:rentValue;
+    const contractNoAlias=scalarAlias(entry,['contract_no','contractNo'],normalizedIdentity);
+    const propertyAlias=scalarAlias(entry,['property','propertyName'],normalizedIdentity);
+    const unitAlias=scalarAlias(entry,['unit','unitName'],normalizedIdentity);
+    const tenantAlias=scalarAlias(entry,['tenant','tenantName'],normalizedIdentity);
+    const idAlias=scalarAlias(entry,['id','contractId','contract_id'],normalizedIdentity);
+    const rentAlias=scalarAlias(entry,['rent','monthlyRent']);
+    const faceRentAlias=scalarAlias(entry,['contractRent']);
+    const depositAlias=scalarAlias(entry,['deposit']);
+    const statusAlias=scalarAlias(entry,['status']);
+    const startAlias=scalarAlias(entry,['start_date','startDate']);
+    const endAlias=scalarAlias(entry,['end_date','endDate']);
+    const sourceAlias=scalarAlias(entry,['source']);
+    if([contractNoAlias,propertyAlias,unitAlias,tenantAlias,idAlias,rentAlias,faceRentAlias,depositAlias,statusAlias,startAlias,endAlias,sourceAlias].some(function(alias){return alias.conflict}))return null;
+    if([contractNoAlias,propertyAlias,unitAlias,tenantAlias,idAlias].some(function(alias){return alias.value&&!identityText(alias.value)}))return null;
+    const contractNo=identityText(contractNoAlias.value);
+    const property=identityText(propertyAlias.value);
+    const unit=identityText(unitAlias.value);
+    const protectedSource=normalized(source)===V202_IMPORT_SOURCE;
+    const tenant=identityText(tenantAlias.value)||(protectedSource?'':directoryTenant(property,unit,contractNo));
+    const explicitId=identityText(idAlias.value);
+    const id=explicitId||'legacy:'+JSON.stringify([contractNo||'بدون-رقم',property||'بدون-عقار',unit||'بدون-وحدة'])||(source+'-'+index);
+    const rentRecorded=Boolean(rentAlias.value);
+    const faceRentRecorded=Boolean(faceRentAlias.value);
+    const rentValue=rentAlias.value;
+    const faceRent=faceRentRecorded?faceRentAlias.value:rentValue;
     if(!property||!id)return null;
     return {
       id,contract_no:contractNo,tenant,property,unit,rent:rentValue==null?'':rentValue,
-      contractRent:faceRent==null?'':faceRent,deposit:entry.deposit==null?'':entry.deposit,
-      status:contractStatus(entry.status),start_date:String(entry.start_date||entry.startDate||'').slice(0,10),
-      end_date:String(entry.end_date||entry.endDate||'').slice(0,10),source:String(entry.source||source),_explicitId:Boolean(explicitId)
+      contractRent:faceRent==null?'':faceRent,deposit:depositAlias.value,
+      status:contractStatus(statusAlias.value),start_date:startAlias.value,
+      end_date:endAlias.value,source:sourceAlias.value||String(source||''),_explicitId:Boolean(explicitId),
+      _rentRecorded:Boolean(rentRecorded),_contractRentRecorded:Boolean(faceRentRecorded)
     };
   }
 
   function contractMergeKey(contract){
-    if(contract?._explicitId&&normalized(contract.id))return 'id:'+normalized(contract.id);
-    if(normalized(contract?.contract_no))return ['no',normalized(contract.contract_no),normalized(contract?.property),normalized(contract?.unit)].join(':');
-    return ['row',normalized(contract?.property),normalized(contract?.unit),normalized(contract?.tenant),normalized(contract?.start_date)].join(':');
+    if(contract?._explicitId&&normalizedIdentity(contract.id))return 'id:'+normalizedIdentity(contract.id);
+    if(normalizedIdentity(contract?.contract_no))return 'no:'+JSON.stringify([normalizedIdentity(contract.contract_no),normalizedIdentity(contract?.property),normalizedIdentity(contract?.unit)]);
+    return 'row:'+JSON.stringify([normalizedIdentity(contract?.property),normalizedIdentity(contract?.unit),normalizedIdentity(contract?.tenant),normalizedScalar(contract?.start_date)]);
   }
 
   function mergedContract(previous,next){
@@ -604,36 +826,99 @@
     return result;
   }
 
+  function contractIdentityConflict(left,right){
+    const identityConflict=['contract_no','tenant','property','unit','start_date','end_date'].some(function(key){
+      const a=normalized(left?.[key]);
+      const b=normalized(right?.[key]);
+      return Boolean(a&&b&&a!==b);
+    });
+    if(identityConflict)return true;
+    const sameExplicitId=Boolean(
+      left?._explicitId&&right?._explicitId&&normalizedIdentity(left.id)&&
+      normalizedIdentity(left.id)===normalizedIdentity(right.id)
+    );
+    if(!sameExplicitId)return false;
+    return [
+      ['rent','_rentRecorded',function(value){const amount=strictMoney(value);return Number.isFinite(amount)?String(amount):'!invalid'}],
+      ['contractRent','_contractRentRecorded',function(value){const amount=strictMoney(value);return Number.isFinite(amount)?String(amount):'!invalid'}],
+      ['deposit',null,normalizedScalar],
+      ['status',null,function(value){return contractStatus(value)}]
+    ].some(function(definition){
+      const key=definition[0];
+      const flag=definition[1];
+      const normalizeValue=definition[2];
+      const leftPresent=flag?Boolean(left?.[flag]):Boolean(scalarText(left?.[key]));
+      const rightPresent=flag?Boolean(right?.[flag]):Boolean(scalarText(right?.[key]));
+      return leftPresent&&rightPresent&&normalizeValue(left[key])!==normalizeValue(right[key]);
+    });
+  }
+
+  function mergeContractsSafely(records){
+    const grouped=new Map();
+    (Array.isArray(records)?records:[]).forEach(function(contract){
+      if(!contract)return;
+      const key=contractMergeKey(contract);
+      const group=grouped.get(key);
+      if(!group){grouped.set(key,{contract,conflict:false});return}
+      if(contractIdentityConflict(group.contract,contract))group.conflict=true;
+      else group.contract=mergedContract(group.contract,contract);
+    });
+    return Array.from(grouped.values()).filter(function(group){return !group.conflict}).map(function(group){return group.contract});
+  }
+
   function contracts(){
     let local=[];
     try{
       const loaded=typeof localContractsV55==='function'?localContractsV55():[];
       local=Array.isArray(loaded)?loaded:[];
     }catch(_){local=[]}
-    const merged=new Map();
+    const records=[];
     local.forEach(function(entry,index){
       const contract=normalizeContract(entry,'local-v55',index);
-      if(contract)merged.set(contractMergeKey(contract),contract);
+      if(contract)records.push(contract);
     });
     rows('contractsV202').forEach(function(entry,index){
       const contract=normalizeContract(entry,'db-v202',index);
-      if(!contract)return;
-      const key=contractMergeKey(contract);
-      merged.set(key,mergedContract(merged.get(key),contract));
+      if(contract)records.push(contract);
     });
-    return Array.from(merged.values());
+    return mergeContractsSafely(records);
   }
 
-  function contractId(contract){return String(contract?.id||contract?.contract_no||'').trim()}
+  function contractId(contract){return referenceText(contract?.id)||referenceText(contract?.contract_no)}
 
-  function validPeriod(value){return /^\d{4}-(0[1-9]|1[0-2])$/.test(String(value||''))}
+  function validPeriod(value){return typeof value==='string'&&value===value.trim()&&/^\d{4}-(0[1-9]|1[0-2])$/.test(value)}
+
+  function validContractDateRange(contract,requireBoth){
+    const startValue=contract?.start_date;
+    const endValue=contract?.end_date;
+    if((startValue!=null&&startValue!==''&&!scalarText(startValue))||(endValue!=null&&endValue!==''&&!scalarText(endValue)))return false;
+    const start=latinDigits(scalarText(startValue)).trim();
+    const end=latinDigits(scalarText(endValue)).trim();
+    if(requireBoth===true&&(!start||!end))return false;
+    if((start&&!validDate(start))||(end&&!validDate(end)))return false;
+    if(start&&end&&start>end)return false;
+    if(contractStatus(contract?.status)==='expired'&&!end)return false;
+    return true;
+  }
+
+  function validContractTerms(contract){
+    if(!contract||typeof contract!=='object'||Array.isArray(contract))return false;
+    if(!identityText(contractId(contract))||!identityText(contract?.property)||!identityText(contract?.unit)||!identityText(contract?.tenant))return false;
+    if(!validContractDateRange(contract,true))return false;
+    const current=contract?.rent;
+    const rent=strictMoney(current!=null&&String(current).trim()!==''?current:contract?.contractRent);
+    return Number.isFinite(rent)&&rent>0;
+  }
 
   function contractCoversPeriod(contract,period){
     if(!validPeriod(period))return false;
-    const start=String(contract?.start_date||'').slice(0,7);
-    const end=String(contract?.end_date||'').slice(0,7);
-    if(validPeriod(start)&&period<start)return false;
-    if(validPeriod(end)&&period>end)return false;
+    if(!validContractDateRange(contract,false))return false;
+    const rawStart=latinDigits(scalarText(contract?.start_date)).trim();
+    const rawEnd=latinDigits(scalarText(contract?.end_date)).trim();
+    const start=rawStart.slice(0,7);
+    const end=rawEnd.slice(0,7);
+    if(start&&period<start)return false;
+    if(end&&period>end)return false;
     return true;
   }
 
@@ -648,10 +933,38 @@
     return Boolean(source&&!['v202-entry','local-v202','v202'].includes(source));
   }
 
+  function collectionRowSignature(row){
+    const amount=strictCollectionMoney(row?.[2]);
+    return JSON.stringify([
+      row.length,normalizedReference(row?.[0]),identitySignature(row?.[1]),
+      Number.isFinite(amount)?String(amount):'!invalid-money:'+signatureScalar(row?.[2]),
+      signatureScalar(row?.[3]),identitySignature(row?.[4]),signatureScalar(row?.[5]),
+      identitySignature(row?.[6]),signatureScalar(row?.[7]),signatureScalar(row?.[8]),signatureScalar(row?.[9])
+    ]);
+  }
+
+  function dedupeCollectionRows(records){
+    const buckets=[];
+    const indexed=new Map();
+    (Array.isArray(records)?records:[]).forEach(function(row){
+      if(!Array.isArray(row))return;
+      const reference=normalizedReference(row?.[0]);
+      if(!reference){buckets.push({row,conflict:false});return}
+      const signature=collectionRowSignature(row);
+      const existing=indexed.get(reference);
+      if(!existing){
+        const bucket={row,signature,conflict:false};
+        indexed.set(reference,bucket);
+        buckets.push(bucket);
+      }else if(existing.signature!==signature)existing.conflict=true;
+    });
+    return buckets.filter(function(bucket){return !bucket.conflict}).map(function(bucket){return bucket.row});
+  }
+
   function collectionRowsByReceipt(){
     const buckets=new Map();
-    rows('collections').forEach(function(row){
-      const key=normalized(row?.[0]);
+    dedupeCollectionRows(rows('collections')).forEach(function(row){
+      const key=normalizedReference(row?.[0]);
       if(!key)return;
       if(!buckets.has(key))buckets.set(key,[]);
       buckets.get(key).push(row);
@@ -659,37 +972,167 @@
     return buckets;
   }
 
+  function conflictedCollectionReferences(records){
+    const signatures=new Map();
+    (Array.isArray(records)?records:[]).forEach(function(row){
+      if(!Array.isArray(row))return;
+      const reference=normalizedReference(row?.[0]);
+      if(!reference)return;
+      if(!signatures.has(reference))signatures.set(reference,new Set());
+      signatures.get(reference).add(collectionRowSignature(row));
+    });
+    return new Set(Array.from(signatures.entries()).filter(function(pair){return pair[1].size>1}).map(function(pair){return pair[0]}));
+  }
+
+  function legacyCollectionMatchesEntry(row,entry,receiptOwners){
+    if(!Array.isArray(row)||row.length!==4||receiptOwners!==1)return false;
+    const amount=strictMoney(entry?.paid);
+    if(!Number.isFinite(amount)||amount<=0||!String(entry?.paymentKey||'').trim())return false;
+    if(!exactIdentityMatch(row?.[1],entry?.tenant)||!normalizedScalar(row?.[3])||normalizedScalar(row?.[3])!==normalizedScalar(entry?.status))return false;
+    if(strictCollectionMoney(row?.[2])!==amount)return false;
+    if(!exactIdentityMatch(entry?.property,entry?.property)||!exactIdentityMatch(entry?.unit,entry?.unit)||!validPeriod(entry?.period))return false;
+    return paymentEntryKeyMatches(entry,entry.property,entry.contractId||entry.contract_id,entry.unit,entry.period);
+  }
+
+  function collectionLedgerConsistent(row,entry){
+    const rowAmount=strictCollectionMoney(row?.[2]);
+    const entryAmount=strictMoney(entry?.paid);
+    if(!Number.isFinite(rowAmount)||!Number.isFinite(entryAmount)||rowAmount!==entryAmount)return false;
+    const rowStatus=normalizedScalar(row?.[3]);
+    const entryStatus=normalizedScalar(entry?.status);
+    if(!rowStatus||!entryStatus||rowStatus!==entryStatus)return false;
+    return [[5,'paidAt'],[7,'note'],[9,'method']].every(function(pair){
+      const rowValue=normalizedScalar(row?.[pair[0]]);
+      const entryValue=normalizedScalar(entry?.[pair[1]]);
+      return !rowValue||!entryValue||rowValue===entryValue;
+    });
+  }
+
+  function ledgerEntrySignature(entry){
+    const references=Array.from(new Set([entry?.voucherNo,entry?.receiptNo].map(normalizedReference).filter(Boolean))).sort();
+    const invalidReferenceShape=['id','receiptNo','voucherNo'].map(function(key){
+      return invalidReferenceInput(entry?.[key])?'!invalid:'+signatureScalar(entry[key]):'';
+    });
+    const contractIdAlias=ledgerAlias(entry,'contractId','contract_id');
+    const contractNoAlias=ledgerAlias(entry,'contractNo','contract_no');
+    const fields=PROTECTED_FIELDS.rentLedgerV202.filter(function(key){
+      return !['id','receiptNo','voucherNo','contractId','contract_id','contractNo','contract_no'].includes(key);
+    }).map(function(key){
+      const value=entry?.[key];
+      if(['due','paid','balance'].includes(key)){
+        const amount=strictMoney(value);
+        return Number.isFinite(amount)?String(amount):'!invalid-money:'+signatureScalar(value);
+      }
+      if(['property','unit','tenant'].includes(key))return identitySignature(value);
+      if(key==='paymentKey'||key==='period')return typeof value==='string'?'exact:'+value:'!invalid-key:'+signatureScalar(value);
+      return signatureScalar(value);
+    });
+    return JSON.stringify([
+      references,invalidReferenceShape,
+      [contractIdAlias.conflict?'!conflict':'',contractIdAlias.value],
+      [contractNoAlias.conflict?'!conflict':'',contractNoAlias.value],
+      fields
+    ]);
+  }
+
+  function dedupeLedgerEntries(records){
+    const source=Array.isArray(records)?records:[];
+    const parent=source.map(function(_,index){return index});
+    function root(index){
+      while(parent[index]!==index){parent[index]=parent[parent[index]];index=parent[index]}
+      return index;
+    }
+    function join(left,right){
+      const leftRoot=root(left);
+      const rightRoot=root(right);
+      if(leftRoot!==rightRoot)parent[rightRoot]=leftRoot;
+    }
+    const owners=new Map();
+    source.forEach(function(entry,index){
+      const tokens=[];
+      const id=normalizedReference(entry?.id);
+      if(id)tokens.push('id:'+id);
+      Array.from(new Set([entry?.voucherNo,entry?.receiptNo].map(normalizedReference).filter(Boolean))).forEach(function(reference){
+        tokens.push('reference:'+reference);
+      });
+      tokens.forEach(function(token){
+        if(owners.has(token))join(index,owners.get(token));
+        else owners.set(token,index);
+      });
+    });
+    const components=new Map();
+    source.forEach(function(_,index){
+      const key=root(index);
+      if(!components.has(key))components.set(key,[]);
+      components.get(key).push(index);
+    });
+    const accepted=new Set();
+    components.forEach(function(indexes){
+      const signatures=new Set(indexes.map(function(index){return ledgerEntrySignature(source[index])}));
+      if(signatures.size===1)accepted.add(indexes[0]);
+    });
+    return source.filter(function(_,index){return accepted.has(index)});
+  }
+
   function ledgerRecords(){
     const buckets=collectionRowsByReceipt();
-    return rawLedgerRecords().map(function(entry){
+    const collectionConflicts=conflictedCollectionReferences(rows('collections'));
+    const raw=dedupeLedgerEntries(rawLedgerRecords()).filter(function(entry){
+      return ![entry?.voucherNo,entry?.receiptNo].map(normalizedReference).filter(Boolean).some(function(reference){return collectionConflicts.has(reference)});
+    });
+    const ownerCounts=new Map();
+    raw.forEach(function(entry){
+      Array.from(new Set([entry?.voucherNo,entry?.receiptNo].map(normalizedReference).filter(Boolean))).forEach(function(key){
+        ownerCounts.set(key,(ownerCounts.get(key)||0)+1);
+      });
+    });
+    const hydrated=raw.map(function(entry){
       if(!entry||typeof entry!=='object'||Array.isArray(entry))return null;
-      if(normalized(entry.source)===V202_IMPORT_SOURCE)return {...entry};
-      const receiptKey=normalized(entry.voucherNo||entry.receiptNo);
-      const matches=receiptKey?buckets.get(receiptKey):null;
-      if(matches?.length===1){
-        const row=matches[0];
-        if(normalized(row?.[1])!==normalized(entry.tenant))return null;
-        return {...entry,receiptNo:String(row?.[0]||entry.receiptNo||''),tenant:String(row?.[1]||entry.tenant||''),paid:numberFrom(row?.[2]),status:String(row?.[3]||entry.status||'')};
+      const referenceKeys=Array.from(new Set([entry?.voucherNo,entry?.receiptNo].map(normalizedReference).filter(Boolean)));
+      const candidates=referenceKeys.flatMap(function(key){
+        return (buckets.get(key)||[]).map(function(row){return {key,row}});
+      });
+      if(candidates.length){
+        const valid=candidates.every(function(candidate){
+          const row=candidate.row;
+          if(row.length===4)return legacyCollectionMatchesEntry(row,entry,ownerCounts.get(candidate.key)||0);
+          return exactIdentityMatch(row?.[1],entry.tenant)&&exactIdentityMatch(row?.[4],entry.property)&&
+            exactIdentityMatch(row?.[6],entry.unit)&&validPeriod(row?.[8])&&validPeriod(entry?.period)&&
+            scalarText(row?.[8])===scalarText(entry.period)&&collectionLedgerConsistent(row,entry);
+        });
+        if(!valid)return null;
+        return {...entry};
       }
       return importedLedger(entry)?{...entry}:null;
-    }).filter(Boolean);
+    }).filter(function(entry){return Boolean(entry)&&validLedgerPaymentAmount(entry)});
+    return dedupeLedgerEntries(hydrated);
   }
 
   function ledgerFor(name){
-    const key=normalized(name);
-    return ledgerRecords().filter(function(entry){return normalized(entry?.property)===key});
+    const key=normalizedIdentity(name);
+    const protectedLedger=protectedRecordsFor('rentLedgerV202',name);
+    const records=protectedLedger?dedupeLedgerEntries(protectedLedger.map(function(entry){return {...entry}})):ledgerRecords().filter(function(entry){return normalizedIdentity(entry?.property)===key});
+    return records.filter(function(entry){
+      return exactIdentityMatch(entry?.property,name)&&validLedgerPaymentAmount(entry)&&validLedgerPaymentKey(name,entry);
+    });
   }
 
-  function ledgerRow(entry){
-    return [
-      entry?.voucherNo||entry?.receiptNo||'—',entry?.tenant||'—',money(entry?.paid),entry?.status||'مدفوع',
+  function ledgerRow(entry,resolvedContract){
+    const recordedStatus=scalarText(entry?.status);
+    const row=[
+      ledgerReference(entry)||'—',entry?.tenant||'—',money(entry?.paid),resolvedContract&&recordedStatus?recordedStatus:'يحتاج مراجعة',
       entry?.property||'',entry?.paidAt||'',entry?.unit||'—',entry?.note||'',entry?.period||'',entry?.method||''
     ];
+    Object.defineProperty(row,LINKED_LEDGER_ROW,{value:Boolean(resolvedContract)});
+    return row;
   }
 
   function propertyMatches(name){
-    const key=normalized(name);
-    return rows('properties').filter(function(row){return normalized(row?.[0])===key});
+    const key=propertyKey(name);
+    if(!key)return [];
+    const protectedProperties=protectedPropertyRows(name);
+    if(protectedProperties)return protectedProperties;
+    return rows('properties').filter(function(row){return propertyKey(row?.[0])===key});
   }
 
   function propertyRecord(name){
@@ -698,63 +1141,100 @@
   }
 
   function contractsFor(name){
-    const key=normalized(name);
-    const protectedOnly=protectedPropertyActive(name);
-    return contracts().filter(function(contract){
-      return normalized(contract?.property)===key&&(!protectedOnly||normalized(contract?.source)===V202_IMPORT_SOURCE);
-    });
+    const key=normalizedIdentity(name);
+    const protectedContracts=protectedRecordsFor('contractsV202',name);
+    if(protectedContracts){
+      return mergeContractsSafely(protectedContracts.map(function(entry,index){return normalizeContract(entry,V202_IMPORT_SOURCE,index)}).filter(Boolean));
+    }
+    return contracts().filter(function(contract){return normalizedIdentity(contract?.property)===key});
   }
 
   function uniquePropertyForTenant(tenant){
-    const key=normalized(tenant);
+    const key=normalizedIdentity(tenant);
     const found=new Set(contracts().filter(function(contract){
-      return normalized(contract?.tenant)===key&&signedContract(contract);
-    }).map(function(contract){return normalized(contract?.property)}).filter(Boolean));
+      return normalizedIdentity(contract?.tenant)===key;
+    }).map(function(contract){return normalizedIdentity(contract?.property)}).filter(Boolean));
     return found.size===1?Array.from(found)[0]:'';
   }
 
   function uniquePropertyForUnit(unit){
-    const key=normalized(unit);
+    const key=normalizedIdentity(unit);
     const found=new Set(contracts().filter(function(contract){
-      return normalized(contract?.unit)===key&&signedContract(contract);
-    }).map(function(contract){return normalized(contract?.property)}).filter(Boolean));
+      return normalizedIdentity(contract?.unit)===key&&signedContract(contract);
+    }).map(function(contract){return normalizedIdentity(contract?.property)}).filter(Boolean));
     return found.size===1?Array.from(found)[0]:'';
   }
 
+  function collectionContractForRow(name,row){
+    if(!Array.isArray(row))return null;
+    const tenant=normalizedIdentity(row?.[1]);
+    if(!tenant)return null;
+    const explicitProperty=normalizedIdentity(row?.[4]);
+    const unit=normalizedIdentity(row?.[6]);
+    const period=row?.[8];
+    if((row?.[4]!=null&&row[4]!==''&&!scalarText(row[4]))||(row?.[6]!=null&&row[6]!==''&&!scalarText(row[6]))||(row?.[8]!=null&&row[8]!==''&&!scalarText(row[8])))return null;
+    if(explicitProperty||unit||period){
+      if(explicitProperty!==normalizedIdentity(name)||!unit||!validPeriod(period))return null;
+      const matches=contractsFor(name).filter(function(contract){
+        return statementIncludesContract(contract,period)&&exactIdentityMatch(contract?.unit,row?.[6])&&exactIdentityMatch(contract?.tenant,row?.[1]);
+      });
+      return matches.length===1?matches[0]:null;
+    }
+    return null;
+  }
+
   function collectionsFor(name){
-    const key=normalized(name);
     const linkedLedger=ledgerFor(name);
-    if(protectedPropertyActive(name))return linkedLedger.map(ledgerRow);
-    const ledgerReceipts=new Set(ledgerRecords().map(function(entry){return normalized(entry?.voucherNo||entry?.receiptNo)}).filter(Boolean));
-    const legacy=rows('collections').filter(function(row){
-      if(ledgerReceipts.has(normalized(row?.[0])))return false;
-      const explicit=normalized(row?.[4]);
-      if(explicit)return explicit===key;
-      return uniquePropertyForTenant(row?.[1])===key;
+    const linkedRows=linkedLedger.map(function(entry){return ledgerRow(entry,ledgerContractForEntry(name,entry))});
+    if(protectedPropertyActive(name))return linkedRows;
+    const ledgerReceipts=new Set(ledgerRecords().flatMap(function(entry){return [entry?.receiptNo,entry?.voucherNo]}).map(normalizedReference).filter(Boolean));
+    const rawLedgerReceipts=new Set(rawLedgerRecords().flatMap(function(entry){return [entry?.receiptNo,entry?.voucherNo]}).map(normalizedReference).filter(Boolean));
+    const legacy=[];
+    dedupeCollectionRows(rows('collections')).forEach(function(row){
+      if(ledgerReceipts.has(normalizedReference(row?.[0])))return false;
+      if(rawLedgerReceipts.has(normalizedReference(row?.[0])))return false;
+      if(collectionContractForRow(name,row)&&collectionReceiptEligible(row)){legacy.push(row);return}
+      const explicit=optionalIdentityField(row?.[4]);
+      if(explicit.invalid)return;
+      const reviewProperty=explicit.present?explicit.value:uniquePropertyForTenant(row?.[1]);
+      if(reviewProperty!==normalizedIdentity(name))return;
+      const review=row.slice(0,10);
+      review[3]='يحتاج مراجعة';
+      Object.defineProperty(review,LINKED_LEDGER_ROW,{value:false});
+      legacy.push(review);
     });
-    return linkedLedger.map(ledgerRow).concat(legacy);
+    return linkedRows.concat(legacy);
   }
 
   function settledPayment(status){
-    const value=normalized(status);
-    return ['paid','partial','settled','received','مدفوع','مسدد','جزئي','جزئيا','مستلم'].includes(value)||value.includes('مدفوع جزئ');
+    const value=normalizedScalar(status);
+    return ['paid','partial','part paid','partially paid','settled','received','مدفوع','مسدد','جزئي','جزئيا','جزئيًا','مدفوع جزئي','مدفوع جزئيا','مدفوع جزئيًا','مستلم'].includes(value);
   }
 
   function pendingPayment(status){
-    const value=normalized(status);
+    const value=normalizedScalar(status);
     return ['pending','under review','review','قيد المراجعة','معلق','معلّق','بانتظار الاعتماد'].includes(value);
   }
 
-  function collectionReceiptEligible(record){
-    return Boolean(Array.isArray(record)&&String(record?.[0]||'').trim()&&settledPayment(record?.[3]));
+  function collectionFinanciallySettled(record){
+    if(!Array.isArray(record))return false;
+    const reference=referenceText(record[0]);
+    if(!reference||record[LINKED_LEDGER_ROW]===false)return false;
+    const amount=strictCollectionMoney(record[2]);
+    return Number.isFinite(amount)&&amount>0&&settledPayment(record[3]);
   }
 
-  function rentStatements(){
-    return rows('rentStatementsV202').filter(function(entry){return entry&&typeof entry==='object'&&!Array.isArray(entry)});
+  function collectionReceiptEligible(record){
+    return collectionFinanciallySettled(record)&&(record.length<=4||validRecordedDate(record[5]));
+  }
+
+  function rentStatements(sourceRows){
+    const records=Array.isArray(sourceRows)?sourceRows:rows('rentStatementsV202');
+    return records.filter(function(entry){return entry&&typeof entry==='object'&&!Array.isArray(entry)});
   }
 
   function validOfficialStatement(entry){
-    if(!entry||!String(entry.property||'').trim()||!validPeriod(entry.period))return false;
+    if(!entry||!identityText(entry.property)||!validPeriod(entry.period))return false;
     const amountFields=['totalRent','totalCollected','totalAdvance','totalInsurance','totalCleaning'];
     const countFields=['unitCount','occupiedUnitCount','payerCount'];
     if(!amountFields.some(function(key){return hasField(entry,key)}))return false;
@@ -763,45 +1243,59 @@
       const value=strictMoney(entry[key]);
       return !Number.isFinite(value)||value<0;
     }))return false;
-    return !countFields.some(function(key){
+    if(countFields.some(function(key){
       if(!hasField(entry,key))return false;
-      const value=Number(entry[key]);
-      return !Number.isInteger(value)||value<0;
-    });
+      return !Number.isFinite(strictCount(entry[key]));
+    }))return false;
+    if(hasField(entry,'unitCount')&&hasField(entry,'occupiedUnitCount')&&strictCount(entry.occupiedUnitCount)>strictCount(entry.unitCount))return false;
+    return true;
   }
 
   function officialStatementFor(property,period){
-    const matches=rentStatements().filter(function(entry){
-      return normalized(entry.property)===normalized(property)&&String(entry.period||'')===String(period||'')&&
-        (!protectedPropertyActive(property)||normalized(entry?.source)===V202_IMPORT_SOURCE);
+    const protectedStatements=protectedRecordsFor('rentStatementsV202',property);
+    const matches=rentStatements(protectedStatements||undefined).filter(function(entry){
+      return propertyKey(entry.property)===propertyKey(property)&&String(entry.period||'')===String(period||'');
     });
     return matches.length===1&&validOfficialStatement(matches[0])?matches[0]:null;
   }
 
   function statementIncludesContract(contract,period){
-    if(!signedContract(contract))return false;
-    if(contractCoversPeriod(contract,period))return true;
-    return normalized(contract?.source)===V202_IMPORT_SOURCE&&Boolean(officialStatementFor(contract?.property,period));
+    const status=contractStatus(contract?.status);
+    if(status!=='signed'&&status!=='expired')return false;
+    return validContractTerms(contract)&&contractCoversPeriod(contract,period);
+  }
+
+  function rentStatementLedgerItems(context,period){
+    const property=String(context?.property?.[0]||'');
+    const protectedOnly=protectedPropertyActive(property);
+    return rentStatementItems(context,period).filter(function(item){
+      if(!protectedOnly)return true;
+      const itemId=normalizedIdentity(item.contractId);
+      const matches=context.propertyContracts.filter(function(contract){
+        if(itemId)return normalizedIdentity(contractId(contract))===itemId;
+        return normalizedIdentity(contract?.unit)===normalizedIdentity(item.unit)&&normalizedIdentity(contract?.tenant)===normalizedIdentity(item.tenant);
+      });
+      return matches.length===1&&normalized(matches[0]?.source)===V202_IMPORT_SOURCE;
+    });
   }
 
   function latestOfficialPeriod(property){
-    const periods=Array.from(new Set(rentStatements().filter(function(entry){
-      return normalized(entry?.property)===normalized(property)&&validPeriod(entry?.period)&&
-        (!protectedPropertyActive(property)||normalized(entry?.source)===V202_IMPORT_SOURCE);
-    }).map(function(entry){return String(entry.period)}))).filter(function(period){
-      return Boolean(officialStatementFor(property,period));
-    }).sort().reverse();
-    return periods[0]||currentPeriod();
+    const protectedStatements=protectedRecordsFor('rentStatementsV202',property);
+    const periods=Array.from(new Set(rentStatements(protectedStatements||undefined).filter(function(entry){
+      return propertyKey(entry?.property)===propertyKey(property)&&validPeriod(entry?.period);
+    }).map(function(entry){return String(entry.period)}))).sort().reverse();
+    return periods.find(function(period){return Boolean(officialStatementFor(property,period))})||currentPeriod();
   }
 
-  function hasField(record,key){return Boolean(record&&Object.prototype.hasOwnProperty.call(record,key)&&record[key]!=null&&String(record[key]).trim()!=='')}
+  function hasField(record,key){return Boolean(record&&Object.prototype.hasOwnProperty.call(record,key)&&record[key]!=null&&record[key]!=='')}
 
   function maintenanceFor(name){
-    const key=normalized(name);
-    const workOrders=rows('workOrders').filter(function(row){return normalized(row?.[1])===key});
+    const key=propertyKey(name);
+    const workOrders=rows('workOrders').filter(function(row){return propertyKey(row?.[1])===key});
     const maintenance=rows('maintenance').filter(function(row){
-      const explicit=normalized(row?.[4]);
-      if(explicit)return explicit===key;
+      const explicit=optionalIdentityField(row?.[4]);
+      if(explicit.invalid)return false;
+      if(explicit.present)return explicit.value===key;
       return uniquePropertyForUnit(row?.[0])===key;
     });
     return workOrders.concat(maintenance);
@@ -813,59 +1307,91 @@
     const protectedOnly=protectedPropertyActive(name);
     const propertyContracts=contractsFor(name);
     const period=protectedOnly?latestOfficialPeriod(name):currentPeriod();
-    const activeContracts=propertyContracts.filter(function(contract){return signedContract(contract)&&contractCoversPeriod(contract,period)});
+    const activeContracts=propertyContracts.filter(function(contract){return signedContract(contract)&&validContractTerms(contract)&&contractCoversPeriod(contract,period)});
     const tenantNames=new Set(activeContracts.map(function(contract){return normalized(contract?.tenant)}).filter(Boolean));
     const linkedTenants=protectedOnly?[]:rows('tenants').filter(function(row){return tenantNames.has(normalized(row?.[0]))});
     const propertyLedger=ledgerFor(name);
     const propertyCollections=collectionsFor(name);
-    const expenses=protectedOnly?[]:rows('expenses').filter(function(row){return normalized(row?.[0])===normalized(name)});
+    const expenses=protectedOnly?[]:rows('expenses').filter(function(row){return propertyKey(row?.[0])===propertyKey(name)});
     const maintenance=protectedOnly?[]:maintenanceFor(name);
-    const units=numberFrom(property?.[2]);
+    const recordedUnits=strictCount(property?.[2]);
+    const units=Number.isFinite(recordedUnits)?recordedUnits:0;
     const occupiedUnits=new Set(activeContracts.map(function(contract){return normalized(contract?.unit)}).filter(Boolean)).size;
-    const income=numberFrom(property?.[3]);
-    const settledCollections=propertyCollections.filter(function(row){return settledPayment(row?.[3])&&String(row?.[8]||'')===period});
-    const expenseTotal=expenses.reduce(function(total,row){return total+numberFrom(row?.[2])},0);
+    const recordedIncome=strictCollectionMoney(property?.[3]);
+    const income=Number.isFinite(recordedIncome)?recordedIncome:0;
+    const settledCollections=propertyCollections.filter(collectionFinanciallySettled);
+    const periodSettledCollections=settledCollections.filter(function(row){
+      const collectionPeriod=scalarText(row?.[8]);
+      return validPeriod(collectionPeriod)&&collectionPeriod===period;
+    });
+    const expenseTotal=exactMoneySum(expenses.map(function(row){return row?.[2]}),strictCollectionMoney);
     const official=officialStatementFor(name,period);
-    const collected=official&&hasField(official,'totalCollected')?numberFrom(official.totalCollected):settledCollections.reduce(function(total,row){return total+numberFrom(row?.[2])},0);
-    const due=official&&hasField(official,'totalRent')?
-      Math.max(0,numberFrom(official.totalRent)-(hasField(official,'totalCollected')?numberFrom(official.totalCollected):0)):
-      activeContracts.reduce(function(total,contract){return total+remainingForPeriod(name,contract,period)},0);
+    const statementItems=rentStatementLedgerItems({property,propertyContracts,propertyLedger},period);
+    const detailCollected=official?exactMoneySum(statementItems.map(function(item){return item?.paid})):exactMoneySum(periodSettledCollections.map(function(row){return row?.[2]}),strictCollectionMoney);
+    const detailRent=exactMoneySum(statementItems.map(function(item){return item?.due}));
+    const paymentCount=periodSettledCollections.length;
+    const collected=official&&hasField(official,'totalCollected')?
+      strictMoney(official.totalCollected):
+      detailCollected;
+    const due=official?
+      exactMoneyDifference(hasField(official,'totalRent')?official.totalRent:detailRent,collected):
+      exactMoneySum(activeContracts.map(function(contract){return remainingForPeriod(name,contract,period)}));
     const openMaintenance=maintenance.filter(function(row){
       const status=normalized(row?.[3]);
       return !status.includes('مكتمل')&&!status.includes('مغلق')&&!status.includes('منجز');
     });
     return {
-      property,period,propertyContracts,activeContracts,linkedTenants,propertyLedger,propertyCollections,settledCollections,expenses,maintenance,official,
+      property,period,propertyContracts,activeContracts,linkedTenants,propertyLedger,propertyCollections,settledCollections,periodSettledCollections,paymentCount,expenses,maintenance,official,
       openMaintenance,units,occupiedUnits,income,collected,expenseTotal,due,net:income-expenseTotal
     };
   }
 
   function directoryEntriesFor(property){
-    const key=normalized(property);
-    const protectedOnly=protectedPropertyActive(property);
-    return tenantDirectory().filter(function(entry){
-      return normalized(entry.property)===key&&(!protectedOnly||normalized(entry.source)===V202_IMPORT_SOURCE);
+    const key=normalizedIdentity(property);
+    const protectedDirectory=protectedRecordsFor('tenantDirectoryV202',property);
+    const entries=tenantDirectory(protectedDirectory||undefined).filter(function(entry){return normalizedIdentity(entry.property)===key});
+    const groups=new Map();
+    entries.forEach(function(entry){
+      const identity=unitRecordKey({property:entry.property,unit:entry.unit,contractNo:entry.contractNo,tenant:entry.tenant});
+      if(!groups.has(identity))groups.set(identity,[]);
+      groups.get(identity).push(entry);
     });
+    const safe=[];
+    groups.forEach(function(group){
+      const signatures=new Set(group.map(function(entry){
+        return JSON.stringify(Object.keys(entry).sort().map(function(field){return [field,signatureScalar(entry[field])]}));
+      }));
+      if(signatures.size===1)safe.push(group[0]);
+    });
+    return safe;
+  }
+
+  function directoryIdentityCompatible(entry,contract){
+    const entryUnit=normalizedIdentity(entry?.unit);
+    const contractUnit=normalizedIdentity(contract?.unit);
+    const entryContractNo=normalizedIdentity(entry?.contractNo);
+    const contractNo=normalizedIdentity(contract?.contract_no||contract?.contractNo);
+    const entryTenant=normalizedIdentity(entry?.tenant);
+    const tenant=normalizedIdentity(contract?.tenant);
+    return Boolean(entryUnit&&contractUnit&&entryUnit===contractUnit)&&
+      (!entryContractNo||!contractNo||entryContractNo===contractNo)&&(!entryTenant||!tenant||entryTenant===tenant);
   }
 
   function directoryRecordFor(entries,contract){
-    const unit=normalized(contract?.unit);
-    const contractNo=normalized(contract?.contract_no||contract?.contractNo);
-    const tenant=normalized(contract?.tenant);
-    const candidates=(Array.isArray(entries)?entries:[]).filter(function(entry){return normalized(entry.unit)===unit});
+    const unit=normalizedIdentity(contract?.unit);
+    const contractNo=normalizedIdentity(contract?.contract_no||contract?.contractNo);
+    const tenant=normalizedIdentity(contract?.tenant);
+    const candidates=(Array.isArray(entries)?entries:[]).filter(function(entry){return normalizedIdentity(entry.unit)===unit});
+    const compatible=candidates.filter(function(entry){return directoryIdentityCompatible(entry,contract)});
     if(contractNo){
-      const exact=candidates.filter(function(entry){
-        return normalized(entry.contractNo)===contractNo&&optionalIdentityMatch(entry.tenant,tenant);
-      });
+      const exact=compatible.filter(function(entry){return normalizedIdentity(entry.contractNo)===contractNo});
       if(exact.length===1)return exact[0];
-      return null;
     }
     if(tenant){
-      const byTenant=candidates.filter(function(entry){return normalized(entry.tenant)===tenant});
+      const byTenant=compatible.filter(function(entry){return normalizedIdentity(entry.tenant)===tenant});
       if(byTenant.length===1)return byTenant[0];
-      return null;
     }
-    return candidates.length===1?candidates[0]:null;
+    return compatible.length===1?compatible[0]:null;
   }
 
   function importedContractNeedsVerification(contract,directoryRecord){
@@ -874,6 +1400,8 @@
   }
 
   function contractDisplayStatus(contract,directoryRecord){
+    const status=contractStatus(contract?.status);
+    if((status==='signed'||status==='expired')&&!validContractTerms(contract))return 'يحتاج تحقق';
     return importedContractNeedsVerification(contract,directoryRecord)?'يحتاج تحقق':statusLabel(contract?.status);
   }
 
@@ -887,7 +1415,7 @@
   }
 
   function ledgerTransactionNo(entry){
-    const explicit=String(entry?.knetTransactionNo||entry?.transactionNo||'').trim();
+    const explicit=referenceText(entry?.knetTransactionNo||entry?.transactionNo)||referenceText(entry?.transactionNo);
     if(explicit)return explicit;
     const methodAndNote=String(entry?.method||'')+' '+String(entry?.note||'');
     if(!/(?:k\s*net|knet|كي\s*نت)/i.test(methodAndNote))return '';
@@ -901,84 +1429,128 @@
     const period=validPeriod(periodValue)?periodValue:latestOfficialPeriod(property);
     const directory=directoryEntriesFor(property);
     const statement=rentStatementItems(context,period);
-    const statementById=new Map(statement.map(function(item){return [normalized(item.contractId),item]}).filter(function(pair){return pair[0]}));
+    const statementById=new Map(statement.map(function(item){return [normalizedIdentity(item.contractId),item]}).filter(function(pair){return pair[0]}));
     const bases=[];
     const claimedDirectory=new Set();
+
     context.propertyContracts.slice().sort(function(left,right){return contractPriority(right,period)-contractPriority(left,period)}).forEach(function(contract,index){
       let matched=directoryRecordFor(directory,contract);
+      if(matched){
+        const possibleOwners=context.propertyContracts.filter(function(candidate){return directoryIdentityCompatible(matched,candidate)});
+        if(possibleOwners.length!==1||possibleOwners[0]!==contract)matched=null;
+      }
       const matchedIndex=matched?directory.indexOf(matched):-1;
       if(matchedIndex>=0&&claimedDirectory.has(matchedIndex))matched=null;
       else if(matchedIndex>=0)claimedDirectory.add(matchedIndex);
       bases.push({
-        property,contractId:String(contractId(contract)||''),unit:contract.unit||matched?.unit||'—',
-        tenant:contract.tenant||matched?.tenant||'',contractNo:contract.contract_no||matched?.contractNo||'',
-        directory:matched,contract,index
+        property,unit:contract.unit||matched?.unit||'—',tenant:contract.tenant||matched?.tenant||'',
+        contractNo:contract.contract_no||matched?.contractNo||'',directory:matched,contract,index
       });
     });
 
     directory.forEach(function(entry,index){
-      if(!claimedDirectory.has(index))bases.push({
-        property,contractId:'',unit:entry.unit||'—',tenant:entry.tenant||'',contractNo:entry.contractNo||'',
-        directory:entry,contract:null,index:'directory-'+index
-      });
+      if(!claimedDirectory.has(index))bases.push({property,unit:entry.unit||'—',tenant:entry.tenant,contractNo:entry.contractNo,directory:entry,contract:null,index});
     });
 
     context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry,index){
+      const resolved=ledgerContractForEntry(property,entry);
+      const entryId=normalizedIdentity(entry?.contractId||entry?.contract_id);
       const matches=bases.filter(function(base){
-        return scopedLedgerMatchesRecord(context,entry,{
-          contractId:base.contractId,contractNo:base.contractNo,unit:base.unit,tenant:base.tenant
-        },period);
+        const baseId=normalizedIdentity(contractId(base.contract));
+        if(entryId&&baseId){
+          return entryId===baseId&&(!resolved||baseId===normalizedIdentity(contractId(resolved)))&&
+            exactIdentityMatch(entry?.unit,base.unit)&&exactIdentityMatch(entry?.tenant,base.tenant);
+        }
+        return Boolean(resolved)&&normalizedIdentity(contractId(resolved))===baseId&&
+          exactIdentityMatch(entry?.unit,base.unit)&&exactIdentityMatch(entry?.tenant,base.tenant);
       });
-      if(matches.length===0&&!ambiguousLegacyLedger(context,entry,period))bases.push({
-        property,contractId:String(entry?.contractId||entry?.contract_id||''),unit:String(entry?.unit||'—'),
-        tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null,index:'ledger-'+index
-      });
+      if(matches.length===0)bases.push({property,unit:String(entry?.unit||'—'),tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null,index:'ledger-'+index});
     });
+
+    function legacyBaseFor(entry){
+      if(normalizedIdentity(entry?.contractId||entry?.contract_id))return null;
+      const unit=normalizedIdentity(entry?.unit);
+      const tenant=normalizedIdentity(entry?.tenant);
+      if(!unit||!tenant)return null;
+      const matches=bases.filter(function(candidate){
+        if(candidate.contract&&!statementIncludesContract(candidate.contract,period))return false;
+        return normalizedIdentity(candidate.unit)===unit&&normalizedIdentity(candidate.tenant||candidate.directory?.tenant)===tenant;
+      });
+      return matches.length===1?matches[0]:null;
+    }
 
     return bases.map(function(base){
       const contract=base.contract;
+      // A directory row may belong to only one contract. Re-matching here would
+      // bypass claimedDirectory and could leak one tenant's protected fields to
+      // another simultaneous contract on the same unit.
       const directoryRecord=base.directory||{};
-      const id=normalized(base.contractId||contractId(contract));
-      const partyStatements=statement.filter(function(item){
-        return normalized(item.unit)===normalized(base.unit)&&normalized(item.tenant)===normalized(base.tenant||directoryRecord.tenant);
-      });
-      const statementItem=(id&&statementById.get(id))||(partyStatements.length===1?partyStatements[0]:null);
+      const id=normalizedIdentity(contractId(contract));
+      let statementItem=id?(statementById.get(id)||null):null;
+      if(statementItem&&(normalizedIdentity(statementItem.unit)!==normalizedIdentity(base.unit)||normalizedIdentity(statementItem.tenant)!==normalizedIdentity(base.tenant||directoryRecord.tenant)))statementItem=null;
+      if(!id){
+        const statementMatches=statement.filter(function(item){
+          return normalizedIdentity(item.unit)===normalizedIdentity(base.unit)&&normalizedIdentity(item.tenant)===normalizedIdentity(base.tenant||directoryRecord.tenant);
+        });
+        statementItem=statementMatches.length===1?statementMatches[0]:null;
+      }
       const ledger=context.propertyLedger.filter(function(entry){
-        return String(entry?.period||'')===period&&optionalIdentityMatch(entry?.property,property)&&
-          scopedLedgerMatchesRecord(context,entry,{contractId:id,contractNo:base.contractNo,unit:base.unit,tenant:base.tenant||directoryRecord.tenant},period);
+        if(entry?.period!==period||normalizedIdentity(entry?.unit)!==normalizedIdentity(base.unit))return false;
+        const resolved=ledgerContractForEntry(property,entry);
+        if(!contract||!resolved||normalizedIdentity(contractId(resolved))!==id)return false;
+        if(!paymentEntryKeyMatches(entry,property,contract,base.unit,period))return false;
+        const expectedTenant=base.tenant||directoryRecord.tenant;
+        if(!exactIdentityMatch(entry?.tenant,expectedTenant))return false;
+        const entryContract=normalizedIdentity(entry?.contractId||entry?.contract_id);
+        if(entryContract)return Boolean(id)&&entryContract===id;
+        if(typeof entry?.paymentKey==='string'&&entry.paymentKey.trim())return true;
+        return Boolean(normalized(expectedTenant))&&legacyBaseFor(entry)===base;
       });
       const settledLedger=ledger.filter(function(entry){return settledPayment(entry?.status)});
-      const paid=statementItem?numberFrom(statementItem.paid):settledLedger.reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
-      const pending=statementItem?numberFrom(statementItem.pending):ledger.filter(function(entry){return pendingPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
-      const billable=Boolean(statementItem)||(Boolean(contract)&&signedContract(contract)&&contractCoversPeriod(contract,period));
-      const due=statementItem?numberFrom(statementItem.due):(billable?contractRent(contract):0);
+      const paid=statementItem?strictMoney(statementItem.paid):exactMoneySum(settledLedger.map(function(entry){return entry?.paid}));
+      const pending=statementItem?strictMoney(statementItem.pending):exactMoneySum(ledger.filter(function(entry){return pendingPayment(entry?.status)}).map(function(entry){return entry?.paid}));
+      const due=statementItem?numberFrom(statementItem.due):(contract&&statementIncludesContract(contract,period)?contractRent(contract):0);
       const contractFaceRent=contract&&contract.contractRent!=null&&String(contract.contractRent).trim()!==''?numberFrom(contract.contractRent):due;
-      const currentRent=directoryRecord.currentRent!=null&&String(directoryRecord.currentRent).trim()!==''?numberFrom(directoryRecord.currentRent):contractRent(contract);
-      const balance=Math.max(0,due-paid);
-      const receipts=settledLedger.map(function(entry){return String(entry?.voucherNo||entry?.receiptNo||'').trim()}).filter(Boolean);
-      const paymentDates=settledLedger.map(function(entry){return String(entry?.paidAt||'').trim()}).filter(validRecordedDate).sort().reverse();
-      const methods=Array.from(new Set(settledLedger.map(function(entry){return String(entry?.method||'').trim()}).filter(Boolean)));
-      const knetTransactions=Array.from(new Set(settledLedger.map(ledgerTransactionNo).filter(Boolean)));
-      const paymentNotes=Array.from(new Set(ledger.map(function(entry){return String(entry?.note||'').trim()}).filter(Boolean)));
-      const contractReceived=String(directoryRecord.contractReceived||directoryRecord.contractReceipt||settledLedger.map(function(entry){return entry?.contractReceived}).find(Boolean)||'');
-      const paymentStatus=!contract?'يحتاج مراجعة':!billable?'غير قابل للفوترة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
-      const needsVerification=importedContractNeedsVerification(contract,directoryRecord);
+      const faceRentAmount=strictMoney(contract?.contractRent);
+      const directoryCurrentRentAmount=strictMoney(directoryRecord.currentRent);
+      const contractCurrentRentAmount=strictMoney(contract?.rent);
+      const directoryCurrentRentValid=Number.isFinite(directoryCurrentRentAmount)&&directoryCurrentRentAmount>0;
+      const contractCurrentRentValid=Boolean(contract?._rentRecorded&&Number.isFinite(contractCurrentRentAmount)&&contractCurrentRentAmount>0);
+      const currentRent=directoryCurrentRentValid?directoryCurrentRentAmount:(contractCurrentRentValid?contractCurrentRentAmount:0);
+      const contractVerified=Boolean(contract&&signedContract(contract)&&validContractTerms(contract)&&!importedContractNeedsVerification(contract,base.directory));
+      const billable=Boolean(statementItem)||Boolean(contract&&statementIncludesContract(contract,period));
+      const collectible=Boolean(contract&&signedContract(contract)&&statementIncludesContract(contract,currentPeriod()));
+      const balance=exactMoneyDifference(due,paid);
+      const datedSettledLedger=settledLedger.filter(function(entry){return validRecordedDate(entry?.paidAt)});
+      const receipts=datedSettledLedger.map(ledgerReference).filter(Boolean);
+      const paymentDates=datedSettledLedger.map(function(entry){return String(entry.paidAt).trim()}).sort(function(left,right){return ledgerPaymentDateKey(right)-ledgerPaymentDateKey(left)});
+      const methods=Array.from(new Set(datedSettledLedger.map(function(entry){return String(entry?.method||'').trim()}).filter(Boolean)));
+      const knetTransactions=Array.from(new Set(datedSettledLedger.map(ledgerTransactionNo).filter(Boolean)));
+      const paymentNotes=Array.from(new Set(datedSettledLedger.map(function(entry){return scalarText(entry?.note)}).filter(Boolean)));
+      const contractReceived=String(directoryRecord.contractReceived||directoryRecord.contractReceipt||datedSettledLedger.map(function(entry){return entry?.contractReceived}).find(Boolean)||'');
+      const hasInvalidSettledDate=settledLedger.some(function(entry){return !validRecordedDate(entry?.paidAt)});
+      const paymentStatus=!contract||hasInvalidSettledDate?'يحتاج مراجعة':!billable?'غير قابل للفوترة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
       return {
-        key:unitRecordKey({property,contractId:id,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
+        key:unitRecordKey({property,contractId:contractId(contract),unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
         property,period,unit:String(base.unit||'—'),tenant:String(base.tenant||directoryRecord.tenant||''),
-        contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(base.contractId||contractId(contract)||''),
+        contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(contractId(contract)||''),
         directorySource:String(directoryRecord.source||''),contractSource:String(contract?.source||''),
-        contractStatus:contract?contractDisplayStatus(contract,directoryRecord):'غير مربوط',startDate:String(directoryRecord.contractStartRaw||contract?.start_date||''),
-        endDate:String(directoryRecord.contractEndRaw||contract?.end_date||''),contractRent:contractFaceRent,currentRent,rent:due,paid,pending,balance,paymentStatus,
-        receipts,paidAt:paymentDates[0]||(validRecordedDate(directoryRecord.paymentDateRaw)?String(directoryRecord.paymentDateRaw):''),methods,
+        contractStatus:contract?contractDisplayStatus(contract,base.directory):'غير مربوط',startDate:String(contract?.start_date||directoryRecord.contractStartRaw||''),
+        endDate:String(contract?.end_date||directoryRecord.contractEndRaw||''),legalStartDate:String(contract?.start_date||''),legalEndDate:String(contract?.end_date||''),contractRent:contractFaceRent,currentRent,rent:due,paid,pending,balance,paymentStatus,
+        receipts,paidAt:paymentDates[0]||(validRecordedDate(directoryRecord.paymentDateRaw)?String(directoryRecord.paymentDateRaw).trim():''),methods,
         phone:String(directoryRecord.phone||''),nationality:String(directoryRecord.nationality||''),
-        civilId:String(directoryRecord.civilId||''),email:String(directoryRecord.email||''),verified:Boolean(contract&&signedContract(contract)&&!needsVerification&&(normalized(contract.source)!==V202_IMPORT_SOURCE||directoryRecord.verified===true)),
+        civilId:String(directoryRecord.civilId||''),email:String(directoryRecord.email||''),verified:contractVerified,
         sourcePage:String(directoryRecord.sourcePage||''),contractReceipt:String(directoryRecord.contractReceipt||''),contractReceived,
         accountant:String(directoryRecord.accountant||''),insurance:directoryRecord.insurance,insuranceDateRaw:String(directoryRecord.insuranceDateRaw||''),
         advance:directoryRecord.advance,advanceDateRaw:String(directoryRecord.advanceDateRaw||''),
         cleaningFee:directoryRecord.cleaningFee,freeMonth:String(directoryRecord.freeMonth||''),
         evictionNotice:String(directoryRecord.evictionNotice||''),notes:String(directoryRecord.notes||''),paymentNotes,knetTransactions,
-        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory)
+        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory),billable,collectible,
+        contractRentRecorded:Boolean(contract?._contractRentRecorded&&Number.isFinite(faceRentAmount)&&faceRentAmount>0),
+        currentRentRecorded:Boolean(directoryCurrentRentValid||contractCurrentRentValid),
+        insuranceRecorded:Boolean(directoryRecord.insurance!=null&&String(directoryRecord.insurance).trim()!==''),
+        advanceRecorded:Boolean(directoryRecord.advance!=null&&String(directoryRecord.advance).trim()!==''),
+        cleaningFeeRecorded:Boolean(directoryRecord.cleaningFee!=null&&String(directoryRecord.cleaningFee).trim()!=='')
       };
     }).sort(function(left,right){
       return String(left.unit).localeCompare(String(right.unit),'ar',{numeric:true,sensitivity:'base'});
@@ -987,13 +1559,13 @@
 
   function unitDirectoryStats(context,records){
     const list=Array.isArray(records)?records:[];
-    const linkedUnits=new Set(list.map(function(record){return normalized(record.unit)}).filter(Boolean)).size;
+    const linkedUnits=new Set(list.map(function(record){return normalizedIdentity(record.unit)}).filter(Boolean)).size;
     return {
       linked:linkedUnits,
       missing:Math.max(0,numberFrom(context?.units)-linkedUnits),
       paid:list.filter(function(record){return record.paymentStatus==='مسدد'}).length,
       due:list.filter(function(record){return record.paymentStatus==='مستحق'||record.paymentStatus==='جزئي'}).length,
-      review:list.filter(function(record){return record.paymentStatus==='قيد المراجعة'||record.paymentStatus==='يحتاج مراجعة'||record.paymentStatus==='غير قابل للفوترة'||!record.hasContract||!record.hasDirectory}).length
+      review:list.filter(function(record){return record.paymentStatus==='قيد المراجعة'||record.paymentStatus==='يحتاج مراجعة'||!record.hasContract||!record.hasDirectory}).length
     };
   }
 
@@ -1001,7 +1573,7 @@
     if(status==='مسدد')return 'is-paid';
     if(status==='جزئي')return 'is-partial';
     if(status==='مستحق')return 'is-due';
-    if(status==='قيد المراجعة'||status==='يحتاج مراجعة'||status==='غير قابل للفوترة')return 'is-attention';
+    if(status==='قيد المراجعة'||status==='يحتاج مراجعة')return 'is-attention';
     return 'is-vacant';
   }
 
@@ -1045,7 +1617,7 @@
           unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+unitField('ملاحظات',notes)+
           '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked">'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
         '</dl></details>'+ 
-        '<footer class="aq-unit-actions"><button type="button" class="is-primary" data-v202-unit-statement="'+index+'">كشف المستأجر / Tenant Statement</button>'+(record.hasContract?'<button type="button" data-v202-unit-contract="'+index+'">'+(record.verified?'عقد الإيجار / Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(hasRentReceipt?'<button type="button" data-v202-unit-receipt="'+index+'">وصل الإيجار / Receipt</button>':'')+(canWrite?'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>':'')+'</footer>'+ 
+        '<footer class="aq-unit-actions"><button type="button" class="is-primary" data-v202-unit-statement="'+index+'">كشف المستأجر / Tenant Statement</button>'+(record.hasContract?'<button type="button" data-v202-unit-contract="'+index+'">'+(record.verified?'عقد الإيجار / Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(hasRentReceipt?'<button type="button" data-v202-unit-receipt="'+index+'">وصل الإيجار / Receipt</button>':'')+(canWrite&&record.billable&&record.collectible?'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>':'')+'</footer>'+ 
       '</article>';
     }).join('');
     return '<section class="aq-unit-directory" aria-labelledby="aqUnitDirectoryTitle">'+
@@ -1061,7 +1633,16 @@
     '</section>';
   }
 
-  function statusLabel(value){return STATUS_LABELS[value]||value||'غير محدد'}
+  function statusLabel(value){
+    const status=normalizedScalar(value);
+    if(['partial','partially paid','part paid','جزئي','جزئيا','جزئيًا','مدفوع جزئي','مدفوع جزئيا','مدفوع جزئيًا'].includes(status))return 'جزئي';
+    if(['paid','مدفوع'].includes(status))return 'مدفوع';
+    if(['settled','مسدد'].includes(status))return 'مسدد';
+    if(['received','مستلم'].includes(status))return 'مستلم';
+    if(pendingPayment(status))return 'قيد المراجعة';
+    const contractState=contractStatus(status);
+    return STATUS_LABELS[contractState]||scalarText(value)||'غير محدد';
+  }
 
   function healthFor(context){
     if(!context.activeContracts.length)return {tone:'link',label:'يحتاج ربط عقد',detail:'ابدأ بعقد لربط المستأجر والتحصيل بالعقار'};
@@ -1127,13 +1708,26 @@
     }).join('')+'</div>'+(protectedOnly?'<div class="v202-document-note"><strong>العقود المحمية</strong><p>تُعرض العقود المرتبطة هنا من الذاكرة الآمنة ولا تُنسخ إلى التخزين المحلي.</p></div>':'<div class="v202-panel-footer"><button type="button" data-v202-action="contract">عقد جديد '+icon('arrow')+'</button></div>');
   }
 
-  function collectionsPanel(context){
+  function collectionsPanel(context,selectedPeriod){
     const protectedOnly=protectedPropertyActive(context.property?.[0]);
     const canWrite=rentWriteAllowed()&&!protectedOnly;
-    if(!context.propertyCollections.length)return !canWrite?emptyState('لا توجد عمليات تحصيل مرتبطة','لا توجد دفعات مرتبطة بهذا العقار حالياً.','',''):emptyState('لا توجد عمليات تحصيل مرتبطة','سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.','payment','تسجيل إيجار');
-    return '<div class="v202-ledger" role="region" aria-label="تحصيلات العقار"><table><thead><tr><th>الإيصال</th><th>المستأجر</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+context.propertyCollections.map(function(row,index){
-      const receiptAction=collectionReceiptEligible(row)&&validRecordedDate(row?.[5])?'<button type="button" data-v202-receipt-index="'+index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+(collectionReceiptEligible(row)?'يحتاج تصحيح التاريخ / Date review required':'بانتظار الاعتماد / Pending approval')+'</span>';
-      return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(row?.[3]||'—')+'</span></td><td data-label="التاريخ">'+localDate(row?.[5])+'</td><td data-label="إجراء">'+receiptAction+'</td></tr>';
+    const periodFilter=validPeriod(selectedPeriod)?String(selectedPeriod):'';
+    const collections=context.propertyCollections.map(function(row,index){return {row,index}}).filter(function(entry){
+      const rowPeriod=scalarText(entry.row?.[8]);
+      return !periodFilter||(validPeriod(rowPeriod)&&rowPeriod===periodFilter);
+    });
+    if(!collections.length){
+      const periodCopy=periodFilter?' خلال '+periodLabel(periodFilter):'';
+      return !canWrite?emptyState('لا توجد عمليات تحصيل مرتبطة','لا توجد دفعات مرتبطة بهذا العقار'+periodCopy+'.','',''):emptyState('لا توجد عمليات تحصيل مرتبطة','سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.','payment','تسجيل إيجار');
+    }
+    return '<div class="v202-ledger" role="region" aria-label="تحصيلات العقار"><table><thead><tr><th>الإيصال</th><th>المستأجر</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+collections.map(function(entry){
+      const row=entry.row;
+      const validPaymentDate=validRecordedDate(row?.[5]);
+      const resolvedReceipt=validPaymentDate?resolvedTenantReceipt(row):null;
+      const reviewCopy=collectionFinanciallySettled(row)?(validPaymentDate?'يحتاج مراجعة الوصل / Receipt review required':'يحتاج تصحيح التاريخ / Date review required'):'بانتظار الاعتماد / Pending approval';
+      const action=resolvedReceipt?'<button type="button" data-v202-receipt-index="'+entry.index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+reviewCopy+'</span>';
+      const shownDate=validPaymentDate?localDate(row?.[5]):escapeHtml(row?.[5]||'غير مؤرخ');
+      return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(statusLabel(row?.[3]))+'</span></td><td data-label="التاريخ">'+shownDate+'</td><td data-label="إجراء">'+action+'</td></tr>';
     }).join('')+'</tbody></table></div>'+(canWrite?'<div class="v202-panel-footer"><button type="button" data-v202-action="payment">تسجيل إيجار '+icon('arrow')+'</button></div>':'');
   }
 
@@ -1153,7 +1747,7 @@
       '<div class="v202-property-kpis">'+
         kpi('الوحدات',String(context.units),'المسجلة في العقار')+
         kpi('الإيراد المسجل',money(context.income),'حسب بيانات العقار','gold')+
-        kpi('المقبوضات المرتبطة',money(context.collected),context.settledCollections.length+' دفعة معتمدة • '+periodLabel(context.period),'good')+
+        kpi('المقبوضات المرتبطة',money(context.collected),context.paymentCount+' دفعة معتمدة • '+periodLabel(context.period),'good')+
         kpi('الإيجار المستحق',money(context.due),(context.due?'يحتاج متابعة':'لا يوجد مستحق مرتبط')+' • '+periodLabel(context.period),context.due?'attention':'')+
         kpi('المصروفات',money(context.expenseTotal),context.expenses.length+' بند مسجل')+
         kpi('الصافي التشغيلي',money(context.net),'الإيراد ناقص المصروفات','gold')+
@@ -1166,7 +1760,7 @@
       '</nav>'+ 
       '<div class="v202-tabs" role="tablist" aria-label="تفاصيل العقار">'+
         '<button type="button" id="v202TabOverview" role="tab" aria-controls="v202Panel" data-v202-tab="overview">نظرة عامة</button>'+ 
-        '<button type="button" id="v202TabUnits" role="tab" aria-controls="v202Panel" data-v202-tab="units">الوحدات <span>'+unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)).length+'</span></button>'+ 
+        '<button type="button" id="v202TabUnits" role="tab" aria-controls="v202Panel" data-v202-tab="units">الوحدات <span>'+unitDirectoryRecords(context,activePropertyPeriod||latestOfficialPeriod(activeProperty)).length+'</span></button>'+ 
         '<button type="button" id="v202TabContracts" role="tab" aria-controls="v202Panel" data-v202-tab="contracts">العقود <span>'+context.propertyContracts.length+'</span></button>'+ 
         '<button type="button" id="v202TabCollections" role="tab" aria-controls="v202Panel" data-v202-tab="collections">التحصيل <span>'+context.propertyCollections.length+'</span></button>'+ 
         '<button type="button" id="v202TabExpenses" role="tab" aria-controls="v202Panel" data-v202-tab="expenses">المصروفات <span>'+context.expenses.length+'</span></button>'+ 
@@ -1176,27 +1770,31 @@
   }
 
   function renderPanel(context){
+    if(!protectedAccessReady()){clearProtectedDom();return false}
     const panel=document.getElementById('v202Panel');
-    if(!panel)return;
+    if(!panel)return false;
     document.querySelectorAll('#v202PropertyWorkspace [data-v202-tab]').forEach(function(button){
       const selected=button.getAttribute('data-v202-tab')===activeTab;
       button.setAttribute('aria-selected',String(selected));
       button.tabIndex=selected?0:-1;
       if(selected)panel.setAttribute('aria-labelledby',button.id);
     });
-    if(activeTab==='units')panel.innerHTML=unitsPanel(context,latestOfficialPeriod(activeProperty));
+    if(activeTab==='units')panel.innerHTML=unitsPanel(context,activePropertyPeriod||latestOfficialPeriod(activeProperty));
     else if(activeTab==='contracts')panel.innerHTML=contractsPanel(context);
-    else if(activeTab==='collections')panel.innerHTML=collectionsPanel(context);
+    else if(activeTab==='collections')panel.innerHTML=collectionsPanel(context,activePropertyPeriod);
     else if(activeTab==='expenses')panel.innerHTML=expensesPanel(context);
     else panel.innerHTML=overviewPanel(context);
+    return true;
   }
 
   function renderWorkspace(){
+    if(!protectedAccessReady()){clearProtectedDom();return false}
     const context=contextFor(activeProperty);
     const overlay=document.getElementById('v202PropertyWorkspace');
-    if(!overlay||!context)return;
+    if(!overlay||!context)return false;
     overlay.innerHTML=workspaceMarkup(context);
     renderPanel(context);
+    return true;
   }
 
   function ensureWorkspace(){
@@ -1243,12 +1841,13 @@
     if(count>1)window.alert('يوجد أكثر من عقار بالاسم نفسه. غيّر اسم أحدها لضمان ربط العقود والتحصيل بالعقار الصحيح.');
   }
 
-  function openWorkspace(name,trigger){
+  function openWorkspace(name,trigger,selectedPeriod){
     if(!protectedAccessReady())return false;
     const record=propertyRecord(name);
     if(!record){reportPropertyAmbiguity(name);return false}
     ensureWorkspace();
     activeProperty=String(record?.[0]||name);
+    activePropertyPeriod=validPeriod(selectedPeriod)?String(selectedPeriod):'';
     propertyTrigger=trigger||document.activeElement;
     activeTab='overview';
     unitSearch='';
@@ -1272,12 +1871,13 @@
     if(restore!==false){
       const original=propertyTrigger instanceof HTMLElement&&propertyTrigger.isConnected?propertyTrigger:null;
       const fallback=Array.from(document.querySelectorAll('[data-v201-property]')).find(function(button){
-        return normalized(button.getAttribute('data-v201-property'))===normalized(activeProperty);
+        return propertyKey(button.getAttribute('data-v201-property'))===propertyKey(activeProperty);
       });
       const focusTarget=original||fallback;
       if(focusTarget instanceof HTMLElement)setTimeout(function(){focusTarget.focus()},0);
     }
     propertyTrigger=null;
+    activePropertyPeriod='';
     unitSearch='';
     const panel=document.getElementById('v202Panel');
     if(panel)panel.textContent='';
@@ -1287,7 +1887,7 @@
     setTimeout(function(){
       const select=document.getElementById(selectId);
       if(!select)return;
-      const option=Array.from(select.options).find(function(item){return normalized(item.textContent)===normalized(activeProperty)});
+      const option=Array.from(select.options).find(function(item){return propertyKey(item.textContent)===propertyKey(activeProperty)});
       if(option)select.value=option.value;
       if(typeof window[renderName]==='function')window[renderName]();
       select.focus({preventScroll:true});
@@ -1304,8 +1904,8 @@
       document.getElementById(action==='payment'?'v202TabCollections':(action==='contract'?'v202TabContracts':'v202TabOverview'))?.focus();
       return true;
     }
-    if(action==='payment')return openPayment(trigger);
-    if(action==='statement')return openStatementDocument(undefined,trigger);
+    if(action==='payment')return openPayment(trigger,undefined,activePropertyPeriod);
+    if(action==='statement')return openStatementDocument(activePropertyPeriod||undefined,trigger);
     closeWorkspace(false);
     if(action==='contract'){
       window.go?.('smartContractsPage');
@@ -1320,11 +1920,11 @@
   function openUnitReceipt(button){
     if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
-    const period=latestOfficialPeriod(activeProperty);
+    const period=activePropertyPeriod||latestOfficialPeriod(activeProperty);
     const records=context?unitDirectoryRecords(context,period):[];
     const record=records[Number(button?.getAttribute('data-v202-unit-receipt'))];
-    const settled=tenantLedgerEntries(context,record,period).filter(function(entry){return settledPayment(entry?.status)&&validRecordedDate(entry?.paidAt)&&String(entry?.voucherNo||entry?.receiptNo||'').trim()});
-    const receipt=String(settled[settled.length-1]?.voucherNo||settled[settled.length-1]?.receiptNo||'');
+    const settled=tenantLedgerEntries(context,record,period).filter(function(entry){return Boolean(resolvedReceiptForRecord(context,record,entry,period))});
+    const receipt=ledgerReference(settled[settled.length-1]);
     if(!receipt)return false;
     activeTenantStatementKey=record.key;
     return openTenantReceipt(button,receipt,period);
@@ -1333,7 +1933,7 @@
   function openUnitContract(button){
     if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
-    const period=latestOfficialPeriod(activeProperty);
+    const period=activePropertyPeriod||latestOfficialPeriod(activeProperty);
     const records=context?unitDirectoryRecords(context,period):[];
     const record=records[Number(button?.getAttribute('data-v202-unit-contract'))];
     if(!record?.hasContract)return false;
@@ -1342,22 +1942,27 @@
   }
 
   function openUnitPayment(button){
-    if(!rentWriteAllowed())return false;
+    if(!protectedAccessReady()||!rentWriteAllowed())return false;
     const context=contextFor(activeProperty);
-    const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+    const records=context?unitDirectoryRecords(context,activePropertyPeriod||latestOfficialPeriod(activeProperty)):[];
     const record=records[Number(button?.getAttribute('data-v202-unit-payment'))];
-    return Boolean(record&&openPayment(button,record?.contractId||''));
+    return Boolean(record?.billable&&record.collectible&&openPayment(button,record.contractId||'',activePropertyPeriod));
   }
 
   function tenantStatementRecord(context,period){
     if(!context||!activeTenantStatementKey)return null;
-    return unitDirectoryRecords(context,period).find(function(record){return record.key===activeTenantStatementKey})||null;
+    return uniqueUnitRecordByKey(unitDirectoryRecords(context,period),activeTenantStatementKey);
+  }
+
+  function uniqueUnitRecordByKey(records,key){
+    const matches=(Array.isArray(records)?records:[]).filter(function(record){return record?.key===key});
+    return matches.length===1?matches[0]:null;
   }
 
   function openUnitStatement(button){
     if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
-    const period=latestOfficialPeriod(activeProperty);
+    const period=activePropertyPeriod||latestOfficialPeriod(activeProperty);
     const records=context?unitDirectoryRecords(context,period):[];
     const record=records[Number(button?.getAttribute('data-v202-unit-statement'))];
     if(!record)return false;
@@ -1396,86 +2001,35 @@
     }catch(_){return false}
   }
 
-  function ledgerMatchesRecord(entry,record){
-    if(!entry||!record)return false;
-    const entryUnit=normalized(entry?.unit);
-    const recordUnit=normalized(record?.unit);
-    if(!entryUnit||!recordUnit||entryUnit!==recordUnit)return false;
-    if(!optionalIdentityMatch(entry?.tenant,record?.tenant))return false;
-    const entryContract=normalized(entry?.contractId||entry?.contract_id);
-    const contractKey=normalized(record?.contractId||record?.contract_id);
-    if(entryContract&&contractKey)return entryContract===contractKey;
-    const entryTenant=normalized(entry?.tenant);
-    const recordTenant=normalized(record?.tenant);
-    return Boolean(entryTenant&&recordTenant&&entryTenant===recordTenant);
-  }
-
-  function ledgerHasStrongContractReference(entry){
-    return Boolean(normalized(entry?.contractId||entry?.contract_id)||String(entry?.paymentKey||'').trim()||normalized(entry?.contractNo||entry?.contract_no));
-  }
-
-  function legacyLedgerContractCandidates(context,entry,period){
-    if(!context||!entry||!validPeriod(period))return [];
-    const entryUnit=normalized(entry?.unit);
-    const entryTenant=normalized(entry?.tenant);
-    if(!entryUnit||!entryTenant)return [];
-    return (Array.isArray(context.propertyContracts)?context.propertyContracts:[]).filter(function(contract){
-      return statementIncludesContract(contract,period)&&normalized(contract?.unit)===entryUnit&&normalized(contract?.tenant)===entryTenant;
-    });
-  }
-
-  function strongLedgerReferenceMatches(entry,record,property,period){
-    const entryId=normalized(entry?.contractId||entry?.contract_id);
-    const targetId=normalized(record?.contractId||record?.contract_id);
-    if(entryId)return Boolean(targetId&&entryId===targetId);
-    const exactKey=String(entry?.paymentKey||'').trim();
-    if(exactKey)return Boolean(targetId&&exactKey===paymentKey(property,targetId,record?.unit,period));
-    const entryContractNo=normalized(entry?.contractNo||entry?.contract_no);
-    if(entryContractNo){
-      const targetContractNo=normalized(record?.contractNo||record?.contract_no);
-      return Boolean(targetContractNo&&entryContractNo===targetContractNo);
-    }
-    return null;
-  }
-
-  function scopedLedgerMatchesRecord(context,entry,record,period){
-    if(!context||!entry||!record)return false;
-    const entryUnit=normalized(entry?.unit);
-    const recordUnit=normalized(record?.unit);
-    if(!entryUnit||!recordUnit||entryUnit!==recordUnit||!optionalIdentityMatch(entry?.tenant,record?.tenant))return false;
-    const property=String(context.property?.[0]||record?.property||'');
-    if(!optionalIdentityMatch(entry?.property,property))return false;
-    const selectedPeriod=validPeriod(period)?period:String(entry?.period||record?.period||'');
-    const strongMatch=strongLedgerReferenceMatches(entry,record,property,selectedPeriod);
-    if(strongMatch!==null)return strongMatch;
-    if(!ledgerMatchesRecord(entry,record))return false;
-    const candidates=legacyLedgerContractCandidates(context,entry,selectedPeriod);
-    const targetId=normalized(record?.contractId||record?.contract_id);
-    const targetContractNo=normalized(record?.contractNo||record?.contract_no);
-    if(!targetId&&!targetContractNo)return candidates.length===0;
-    if(candidates.length!==1)return false;
-    const candidate=candidates[0];
-    if(targetId)return normalized(contractId(candidate))===targetId;
-    return normalized(candidate?.contract_no||candidate?.contractNo)===targetContractNo;
-  }
-
-  function ambiguousLegacyLedger(context,entry,period){
-    return !ledgerHasStrongContractReference(entry)&&legacyLedgerContractCandidates(context,entry,period).length>1;
-  }
-
   function tenantLedgerEntries(context,record,period){
     if(!context||!record)return [];
     const selectedPeriod=validPeriod(period)?period:record.period;
+    const unitKey=normalizedIdentity(record.unit);
+    const tenantKey=normalizedIdentity(record.tenant);
+    const contractKey=normalizedIdentity(record.contractId);
+    const legacyContracts=context.propertyContracts.filter(function(contract){
+      return statementIncludesContract(contract,selectedPeriod)&&normalizedIdentity(contract?.unit)===unitKey&&normalizedIdentity(contract?.tenant)===tenantKey;
+    });
     return context.propertyLedger.filter(function(entry){
-      return String(entry?.period||'')===selectedPeriod&&
-        scopedLedgerMatchesRecord(context,entry,record,selectedPeriod);
-    }).sort(function(left,right){return String(left?.paidAt||'').localeCompare(String(right?.paidAt||''))});
+      if(entry?.period!==selectedPeriod||normalizedIdentity(entry?.unit)!==unitKey)return false;
+      if(!exactIdentityMatch(entry?.tenant,tenantKey))return false;
+      const resolved=ledgerContractForEntry(context.property?.[0],entry);
+      if(!resolved||!contractKey||normalizedIdentity(contractId(resolved))!==contractKey)return false;
+      if(!paymentEntryKeyMatches(entry,context.property?.[0],resolved,resolved.unit,selectedPeriod))return false;
+      const entryContract=normalizedIdentity(entry?.contractId||entry?.contract_id);
+      if(entryContract)return entryContract===contractKey;
+      if(typeof entry?.paymentKey==='string'&&entry.paymentKey.trim())return true;
+      return legacyContracts.length===1&&normalizedIdentity(contractId(legacyContracts[0]))===contractKey;
+    }).sort(function(left,right){return ledgerPaymentDateKey(left?.paidAt)-ledgerPaymentDateKey(right?.paidAt)});
   }
 
   function resolvedReceiptForRecord(context,record,entry,period){
-    const reference=String(entry?.voucherNo||entry?.receiptNo||'').trim();
+    const reference=ledgerReference(entry);
     if(!context||!record||!reference||!settledPayment(entry?.status)||!validRecordedDate(entry?.paidAt))return null;
-    const lookup=[reference,record.tenant,String(entry?.paid||''),entry?.status,record.property||context.property?.[0],entry?.paidAt,record.unit,'',period,entry?.method||''];
+    const lookup=[
+      reference,record.tenant,entry?.paid,entry?.status,record.property||context.property?.[0],
+      entry?.paidAt,record.unit,entry?.note||'',period,entry?.method||''
+    ];
     const resolved=resolvedTenantReceipt(lookup);
     return resolved&&resolved.record?.key===record.key?resolved:null;
   }
@@ -1485,16 +2039,14 @@
     const context=contextFor(activeProperty);
     const period=validPeriod(periodValue)?periodValue:(document.getElementById('v202TenantStatementPeriod')?.value||latestOfficialPeriod(activeProperty));
     const record=tenantStatementRecord(context,period);
-    const requested=String(receiptNo||button?.getAttribute('data-v202-tenant-receipt')||'').trim();
-    const matches=tenantLedgerEntries(context,record,period).filter(function(item){
-      return settledPayment(item?.status)&&normalized(item?.voucherNo||item?.receiptNo)===normalized(requested);
+    const requested=referenceText(receiptNo)||referenceText(button?.getAttribute('data-v202-tenant-receipt'));
+    const entries=tenantLedgerEntries(context,record,period);
+    const matches=entries.filter(function(item){
+      return normalizedReference(ledgerReference(item))===normalizedReference(requested)&&Boolean(resolvedReceiptForRecord(context,record,item,period));
     });
-    if(!record||!requested||matches.length!==1)return false;
-    const resolved=resolvedReceiptForRecord(context,record,matches[0],period);
-    if(!resolved)return false;
-    const markup=tenantReceiptDocument(resolved.context,resolved.record,resolved.entry,resolved.period);
-    if(!markup)return false;
-    openDocument('وصل الإيجار / Rent Receipt',markup,button,'#v202PropertyWorkspace [data-v202-unit-statement]');
+    const resolved=matches.length===1?resolvedReceiptForRecord(context,record,matches[0],period):null;
+    if(!record||!requested||!resolved)return false;
+    openDocument('وصل الإيجار / Rent Receipt',tenantReceiptDocument(resolved.context,resolved.record,resolved.entry,resolved.period),button,'#v202PropertyWorkspace [data-v202-unit-statement]');
     return true;
   }
 
@@ -1503,8 +2055,8 @@
     const context=contextFor(activeProperty);
     const period=validPeriod(periodValue)?periodValue:(document.getElementById('v202TenantStatementPeriod')?.value||latestOfficialPeriod(activeProperty));
     const record=tenantStatementRecord(context,period);
-    const requested=normalized(contractValue||button?.getAttribute('data-v202-tenant-contract'));
-    const current=normalized(record?.contractId||record?.contractNo);
+    const requested=normalizedIdentity(contractValue||button?.getAttribute('data-v202-tenant-contract'));
+    const current=normalizedIdentity(record?.contractId||record?.contractNo);
     if(!record?.hasContract||!requested||requested!==current)return false;
     openDocument(record.verified?'عقد الإيجار / Tenancy Contract':'مسودة عقد غير معتمدة / Unverified Contract Draft',tenantContractDocument(context,record),button,'#v202PropertyWorkspace [data-v202-unit-statement]');
     return true;
@@ -1516,37 +2068,72 @@
     const pattern=new RegExp('^AQ-R-'+year+'-(\\d+)$','i');
     let sequence=0;
     used.forEach(function(receipt){
-      const match=String(receipt).match(pattern);
+      const match=latinDigits(receipt).trim().match(pattern);
       if(match)sequence=Math.max(sequence,Number(match[1])||0);
     });
     sequence+=1;
     let value='';
-    do{value='AQ-R-'+year+'-'+String(sequence++).padStart(4,'0')}while(Array.from(used).some(function(item){return normalized(item)===normalized(value)}));
+    do{value='AQ-R-'+year+'-'+String(sequence++).padStart(4,'0')}while(Array.from(used).some(function(item){return normalizedReference(item)===normalizedReference(value)}));
     return value;
   }
 
   function receiptNumbers(){
-    return new Set(rows('collections').map(function(row){return String(row?.[0]||'').trim()}).concat(rawLedgerRecords().map(function(entry){return String(entry?.voucherNo||entry?.receiptNo||'').trim()})).filter(Boolean));
+    const ledgerReferences=rawLedgerRecords().flatMap(function(entry){return [entry?.receiptNo,entry?.voucherNo]}).map(referenceText);
+    return new Set(rows('collections').map(function(row){return referenceText(row?.[0])}).concat(ledgerReferences).filter(Boolean));
   }
 
   function receiptExists(receipt){
-    const key=normalized(receipt);
-    return Array.from(receiptNumbers()).some(function(value){return normalized(value)===key});
+    const key=normalizedReference(receipt);
+    return Array.from(receiptNumbers()).some(function(value){return normalizedReference(value)===key});
   }
 
   function contractRent(contract){
     const current=contract?.rent;
-    return numberFrom(current!=null&&String(current).trim()!==''?current:contract?.contractRent);
+    const amount=strictMoney(current!=null&&String(current).trim()!==''?current:contract?.contractRent);
+    return Number.isFinite(amount)?amount:0;
   }
 
   function paymentKey(property,contractOrId,unit,period){
     const id=typeof contractOrId==='object'?contractId(contractOrId):String(contractOrId||'');
     const resolvedUnit=typeof contractOrId==='object'?contractOrId?.unit:unit;
-    return [normalized(property),'contract:'+normalized(id),'unit:'+normalized(resolvedUnit),String(period||'')].join('|');
+    return [normalizedIdentity(property),'contract:'+normalizedIdentity(id),'unit:'+normalizedIdentity(resolvedUnit),String(period||'')].join('|');
+  }
+
+  function paymentEntryKeyMatches(entry,property,contractOrId,unit,period){
+    const raw=entry?.paymentKey;
+    if(raw==null||raw==='')return true;
+    if(typeof raw!=='string'||invalidScalarControls(raw)||raw!==raw.trim())return false;
+    const actual=raw;
+    if(!actual)return false;
+    const id=typeof contractOrId==='object'?contractId(contractOrId):String(contractOrId||'');
+    const resolvedUnit=typeof contractOrId==='object'?contractOrId?.unit:unit;
+    if(!normalizedIdentity(property)||!normalizedIdentity(id)||!normalizedIdentity(resolvedUnit)||!validPeriod(period))return false;
+    return actual===paymentKey(property,contractOrId,unit,period);
+  }
+
+  function validLedgerPaymentKey(property,entry){
+    const raw=entry?.paymentKey;
+    if(raw==null||raw==='')return true;
+    if(typeof raw!=='string'||invalidScalarControls(raw)||!raw||raw!==raw.trim())return false;
+    if(!exactIdentityMatch(entry?.property,property)||!validPeriod(entry?.period))return false;
+    const entryId=ledgerAlias(entry,'contractId','contract_id');
+    const entryNo=ledgerAlias(entry,'contractNo','contract_no');
+    if(entryId.conflict||entryNo.conflict)return false;
+    const keyOnly=!entryId.value&&!entryNo.value;
+    const matches=contractsFor(property).filter(function(contract){
+      if(!exactIdentityMatch(entry?.unit,contract?.unit)||!exactIdentityMatch(entry?.tenant,contract?.tenant))return false;
+      if(entryId.value&&normalizedIdentity(contractId(contract))!==entryId.value)return false;
+      if(entryNo.value&&normalizedIdentity(contract?.contract_no||contract?.contractNo)!==entryNo.value)return false;
+      if(!paymentEntryKeyMatches(entry,property,contract,contract.unit,entry.period))return false;
+      if(!keyOnly)return true;
+      const recordedDue=strictMoney(entry?.due);
+      return Number.isFinite(recordedDue)&&recordedDue===contractRent(contract);
+    });
+    return matches.length===1;
   }
 
   function paymentContracts(context){
-    return context.propertyContracts.filter(function(contract){return signedContract(contract)&&Boolean(contractId(contract)&&contract.tenant&&contract.unit)});
+    return context.propertyContracts.filter(function(contract){return signedContract(contract)&&statementIncludesContract(contract,currentPeriod())});
   }
 
   function selectedPaymentContract(){
@@ -1571,6 +2158,7 @@
   }
 
   function validRecordedDate(value){
+    if(typeof value!=='string'||invalidScalarControls(value))return false;
     const raw=latinDigits(value).trim();
     if(validDate(raw))return true;
     const match=raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
@@ -1582,30 +2170,62 @@
     return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day;
   }
 
-  function paymentMatchesContract(entry,contract,context,period){
-    return scopedLedgerMatchesRecord(context,entry,{
-      contractId:contractId(contract),contractNo:contract?.contract_no||contract?.contractNo,
-      property:contract?.property,unit:contract?.unit,tenant:contract?.tenant,period
-    },period);
+  function exactIdentityMatch(actual,expected){
+    const actualKey=normalizedIdentity(actual);
+    const expectedKey=normalizedIdentity(expected);
+    return Boolean(actualKey&&expectedKey&&actualKey===expectedKey);
+  }
+
+  function ledgerContractForEntry(property,entry){
+    const period=entry?.period;
+    if([entry?.id,entry?.receiptNo,entry?.voucherNo].some(invalidReferenceInput))return null;
+    if(!ledgerReference(entry))return null;
+    if(!exactIdentityMatch(entry?.property,property)||!validPeriod(period))return null;
+    const entryIdAlias=ledgerAlias(entry,'contractId','contract_id');
+    const entryContractNoAlias=ledgerAlias(entry,'contractNo','contract_no');
+    if(entryIdAlias.conflict||entryContractNoAlias.conflict)return null;
+    const entryId=entryIdAlias.value;
+    const entryContractNo=entryContractNoAlias.value;
+    let matches=contractsFor(property).filter(function(contract){
+      return statementIncludesContract(contract,period)&&exactIdentityMatch(entry?.unit,contract?.unit)&&exactIdentityMatch(entry?.tenant,contract?.tenant);
+    });
+    if(entryId)matches=matches.filter(function(contract){return normalizedIdentity(contractId(contract))===entryId});
+    if(entryContractNo)matches=matches.filter(function(contract){return normalizedIdentity(contract?.contract_no||contract?.contractNo)===entryContractNo});
+    if(entry?.paymentKey!=null&&entry.paymentKey!==''){
+      if(typeof entry.paymentKey!=='string'||invalidScalarControls(entry.paymentKey)||!entry.paymentKey||entry.paymentKey!==entry.paymentKey.trim())return null;
+      const keyOnly=!entryId&&!entryContractNo;
+      matches=matches.filter(function(contract){
+        if(!paymentEntryKeyMatches(entry,property,contract,contract.unit,period))return false;
+        if(!keyOnly)return true;
+        const recordedDue=strictMoney(entry?.due);
+        return Number.isFinite(recordedDue)&&recordedDue===contractRent(contract);
+      });
+    }
+    if(matches.length!==1)return null;
+    return matches[0];
   }
 
   function paidForPeriod(property,contract,period){
-    const targetKey=paymentKey(property,contract,contract?.unit,period);
-    const context={property:[property],propertyContracts:contractsFor(property)};
-    return ledgerRecords().filter(function(entry){
-      const exactKey=String(entry?.paymentKey||'');
-      const identityMatch=normalized(entry?.property)===normalized(property)&&String(entry?.period||'')===String(period||'')&&paymentMatchesContract(entry,contract,context,period);
-      return identityMatch&&(!exactKey||exactKey===targetKey)&&settledPayment(entry?.status);
-    }).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+    const targetId=normalizedIdentity(contractId(contract));
+    if(!statementIncludesContract(contract,period))return 0;
+    const matches=ledgerFor(property).filter(function(entry){
+      if(String(entry?.period||'')!==String(period||'')||!settledPayment(entry?.status))return false;
+      const resolved=ledgerContractForEntry(property,entry);
+      if(!resolved||!exactIdentityMatch(resolved?.unit,contract?.unit)||!exactIdentityMatch(resolved?.tenant,contract?.tenant))return false;
+      const resolvedId=normalizedIdentity(contractId(resolved));
+      return targetId?resolvedId===targetId:!resolvedId;
+    });
+    return exactMoneySum(matches.map(function(entry){return entry?.paid}));
   }
 
   function remainingForPeriod(property,contract,period){
     const due=contractRent(contract);
-    return due>0?Math.max(0,due-paidForPeriod(property,contract,period)):0;
+    return due>0?exactMoneyDifference(due,paidForPeriod(property,contract,period)):0;
   }
 
-  function paymentDialogMarkup(context,preferredContractId){
+  function paymentDialogMarkup(context,preferredContractId,preferredPeriod){
     const available=paymentContracts(context);
+    const selectedPeriod=validPeriod(preferredPeriod)?String(preferredPeriod):(validPeriod(activePropertyPeriod)?activePropertyPeriod:currentPeriod());
     return '<section class="v202-dialog v202-payment-dialog" role="dialog" aria-modal="true" aria-labelledby="v202PaymentTitle" aria-describedby="v202PaymentDescription">'+
       '<header><div><p>تحصيل العقار</p><h2 id="v202PaymentTitle">تسجيل إيجار</h2><span id="v202PaymentDescription">'+escapeHtml(activeProperty)+' — وبعد الحفظ يجهز الوصل مباشرة.</span></div><button type="button" class="v202-icon-button" data-v202-payment-close aria-label="إغلاق">'+icon('close')+'</button></header>'+ 
       (!available.length?'<div class="v202-inline-note is-warning">'+icon('alert')+' لا يوجد عقد موقّع سارٍ مع مستأجر ووحدة محددين. أكمل العقد أولاً.</div>':'')+
@@ -1614,7 +2234,7 @@
         '<label><span>العقد / الوحدة</span><select id="v202PaymentContract" required '+(available.length?'':'disabled')+'><option value="">اختر العقد والوحدة</option>'+available.map(function(contract){const id=contractId(contract);return '<option value="'+escapeHtml(id)+'" '+(String(id)===String(preferredContractId||'')?'selected':'')+'>'+escapeHtml(contract.tenant)+' — '+escapeHtml(contract.unit)+' — '+escapeHtml(contract.contract_no||id)+'</option>'}).join('')+'</select></label>'+ 
         '<label><span>رقم الوصل</span><input id="v202PaymentNumber" value="'+nextReceiptNumber()+'" required></label>'+ 
         '<label><span>المبلغ (د.ك)</span><input id="v202PaymentAmount" inputmode="decimal" autocomplete="off" placeholder="0.000" required></label>'+ 
-        '<label><span>شهر الإيجار</span><input id="v202PaymentPeriod" type="month" value="'+currentPeriod()+'" required></label>'+ 
+        '<label><span>شهر الإيجار</span><input id="v202PaymentPeriod" type="month" value="'+selectedPeriod+'" required></label>'+ 
         '<label><span>تاريخ السداد</span><input id="v202PaymentDate" type="date" value="'+todayValue()+'" required></label>'+ 
         '<label><span>طريقة السداد</span><select id="v202PaymentMethod"><option>كي نت</option><option>تحويل بنكي</option><option>نقدي</option><option>أخرى</option></select></label>'+ 
         '<label><span>حالة السداد</span><select id="v202PaymentStatus"><option>مدفوع</option><option>جزئي</option><option>قيد المراجعة</option></select></label>'+ 
@@ -1636,14 +2256,14 @@
     document.body.appendChild(overlay);
   }
 
-  function openPayment(trigger,preferredContractId){
-    if(!rentWriteAllowed())return false;
+  function openPayment(trigger,preferredContractId,preferredPeriod){
+    if(!protectedAccessReady()||!rentWriteAllowed())return false;
     const context=contextFor(activeProperty);
     if(!context)return false;
     ensurePaymentDialog();
     paymentTrigger=trigger||document.activeElement;
     const overlay=document.getElementById('v202PaymentDialog');
-    overlay.innerHTML=paymentDialogMarkup(context,preferredContractId);
+    overlay.innerHTML=paymentDialogMarkup(context,preferredContractId,preferredPeriod);
     overlay.classList.add('on');
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden','false');
@@ -1672,7 +2292,7 @@
     const period=document.getElementById('v202PaymentPeriod')?.value||currentPeriod();
     const due=contractRent(contract);
     const paid=contract?paidForPeriod(activeProperty,contract,period):0;
-    const remaining=due>0?Math.max(0,due-paid):0;
+    const remaining=due>0?exactMoneyDifference(due,paid):0;
     const amount=document.getElementById('v202PaymentAmount');
     const balance=document.getElementById('v202PaymentBalance');
     const covered=Boolean(contract&&contractCoversPeriod(contract,period));
@@ -1688,14 +2308,10 @@
   }
 
   function savePayment(event){
-    event?.preventDefault?.();
-    if(!protectedAccessReady()){
-      clearProtectedDom();
-      return false;
-    }
+    event.preventDefault();
     const error=document.getElementById('v202PaymentError');
-    if(!rentWriteAllowed()){
-      if(error)error.textContent='صلاحية المشاهدة لا تسمح بتسجيل الإيجار.';
+    if(!protectedAccessReady()||!rentWriteAllowed()){
+      if(error)error.textContent='ليست لديك صلاحية تسجيل دفعة إيجار.';
       return false;
     }
     if(protectedPropertyActive(activeProperty)){
@@ -1704,7 +2320,7 @@
     }
     const contract=selectedPaymentContract();
     const tenant=String(contract?.tenant||'').trim();
-    const receipt=document.getElementById('v202PaymentNumber')?.value.trim();
+    const receipt=referenceText(document.getElementById('v202PaymentNumber')?.value);
     const amount=strictMoney(document.getElementById('v202PaymentAmount')?.value);
     const status=document.getElementById('v202PaymentStatus')?.value||'مدفوع';
     const period=document.getElementById('v202PaymentPeriod')?.value||currentPeriod();
@@ -1713,40 +2329,40 @@
     const note=document.getElementById('v202PaymentNote')?.value.trim()||'';
     if(!contract||!tenant||!contract.unit){
       if(error)error.textContent='اختر عقداً موقّعاً سارياً مربوطاً بمستأجر ووحدة.';
-      return;
+      return false;
     }
     if(!receipt||!Number.isFinite(amount)||amount<=0){
       if(error)error.textContent='أدخل رقم الوصل ومبلغاً صحيحاً أكبر من صفر وبحد أقصى 3 منازل عشرية.';
-      return;
+      return false;
     }
     if(!validPeriod(period)||!validDate(date)){
       if(error)error.textContent='راجع شهر الإيجار وتاريخ السداد.';
-      return;
+      return false;
     }
     if(!contractCoversPeriod(contract,period)){
       if(error)error.textContent='الشهر المحدد خارج مدة هذا العقد.';
-      return;
+      return false;
     }
     if(receiptExists(receipt)){
       if(error)error.textContent='رقم الوصل مستخدم. غيّره وحاول مرة ثانية.';
-      return;
+      return false;
     }
     const due=contractRent(contract);
     if(due<=0){
       if(error)error.textContent='قيمة الإيجار غير محددة في العقد. صحح العقد أولاً.';
-      return;
+      return false;
     }
     const balance=remainingForPeriod(activeProperty,contract,period);
     if(balance>0&&amount>balance){
       if(error)error.textContent='المبلغ أكبر من المتبقي '+money(balance)+'. راجع المبلغ.';
-      return;
+      return false;
     }
     if(balance===0){
       if(error)error.textContent='إيجار هذا الشهر مسدد بالكامل لهذا المستأجر.';
-      return;
+      return false;
     }
     const finalStatus=status==='قيد المراجعة'?status:(amount<balance?'جزئي':'مدفوع');
-    const record=[receipt,tenant,money(amount),finalStatus,activeProperty,date,contract.unit,note,period,method];
+    const record=[receipt,tenant,amount,finalStatus,activeProperty,date,contract.unit,note,period,method];
     const data=appData();
     const previous={};
     ['collections','rentLedgerV202','audit'].forEach(function(key){
@@ -1755,11 +2371,11 @@
     const ledgerEntry={
       id:'rent-'+receipt,receiptNo:receipt,property:activeProperty,unit:contract.unit,tenant,
       contractId:contractId(contract),contractNo:contract.contract_no||'',period,due,paid:amount,
-      balance:settledPayment(finalStatus)?Math.max(0,balance-amount):balance,paidAt:date,
+      balance:settledPayment(finalStatus)?exactMoneyDifference(balance,amount):balance,paidAt:date,
       method,status:finalStatus,note,source:'v202-entry',paymentKey:paymentKey(activeProperty,contract,contract.unit,period)
     };
     try{
-      data.collections=(Array.isArray(previous.collections.value)?previous.collections.value:[]).concat([record.slice(0,4)]);
+      data.collections=(Array.isArray(previous.collections.value)?previous.collections.value:[]).concat([record]);
       data.rentLedgerV202=(Array.isArray(previous.rentLedgerV202.value)?previous.rentLedgerV202.value:[]).concat([ledgerEntry]);
       data.audit=(Array.isArray(previous.audit.value)?previous.audit.value:[]).concat([['المدير','تسجيل إيجار',activeProperty,'تم']]);
       if(typeof persist!=='function')throw new Error('persist unavailable');
@@ -1770,13 +2386,13 @@
       });
       try{localStorage.setItem('aqari_v30',JSON.stringify(data))}catch(_){ }
       if(error)error.textContent='تعذر حفظ الدفعة. لم يصدر وصل، ولم تتغير الأرقام. حاول مرة أخرى.';
-      return;
+      return false;
     }
     try{if(typeof render==='function')render()}catch(_){ }
     const returnTrigger=paymentTrigger;
     closePayment(false);
     renderWorkspace();
-    if(settledPayment(finalStatus))openReceiptDocument(record,returnTrigger);
+    if(collectionReceiptEligible(record))openReceiptDocument(record,returnTrigger);
     return true;
   }
 
@@ -1788,7 +2404,7 @@
     return '<article class="v202-document v202-receipt v204-tenant-statement v204-rent-receipt" data-v202-generic-rent-receipt>'+ 
         '<div class="v204-brand"><div class="v204-brand-name"><strong>'+escapeHtml(brand.ar)+'</strong><b>'+escapeHtml(brand.en)+'</b></div><div class="v204-brand-contact"><span>'+escapeHtml(brand.addressAr)+'</span><small>'+escapeHtml(brand.addressEn)+'</small><span>'+escapeHtml([brand.phones,brand.email,brand.website,brand.social].filter(Boolean).join(' • '))+'</span></div></div>'+ 
         '<section class="v204-statement-hero"><div><span>وصل استلام إيجار</span><small>RENT RECEIPT</small><h2>'+escapeHtml(record?.[0]||'غير مسجل')+'</h2><p>'+escapeHtml(record?.[1]||'مستأجر غير مسجل')+' • '+escapeHtml(property||'عقار غير مسجل')+' • '+escapeHtml(record?.[6]||'وحدة غير مسجلة')+'</p></div><div class="v204-statement-period"><span>'+escapeHtml(periodLabel(period))+'</span><small>'+escapeHtml(periodLabelEnglish(period))+'</small><b>'+escapeHtml(paymentStatus)+' / '+escapeHtml(statusEnglish(paymentStatus))+'</b></div></section>'+ 
-        '<section class="v204-receipt-amount"><span>المبلغ المستلم / AMOUNT RECEIVED</span><strong>'+escapeHtml(bilingualMoney(numberFrom(record?.[2])))+'</strong></section>'+ 
+        '<section class="v204-receipt-amount"><span>المبلغ المستلم / AMOUNT RECEIVED</span><strong>'+escapeHtml(bilingualMoney(record?.[2]))+'</strong></section>'+ 
         '<section class="v204-section"><h3><span>بيانات الوصل</span><small>RECEIPT DETAILS</small></h3><dl class="v204-fields">'+ 
           statementField('اسم المستأجر','Tenant Name',record?.[1])+statementField('العقار','Property',property)+statementField('رقم الوحدة','Flat No.',record?.[6])+statementField('رقم الوصل / السند','Receipt / Voucher No.',record?.[0])+statementField('تاريخ الدفع','Payment Date',statementDate(record?.[5]))+statementField('فترة الإيجار','Rent Period',periodLabel(period)+' / '+periodLabelEnglish(period))+statementField('طريقة الدفع','Payment Method',record?.[9])+statementField('حالة الدفع','Payment Status',paymentStatus+' / '+statusEnglish(paymentStatus))+statementField('البيان','Description',record?.[7]||'دفعة إيجار / Rent payment')+ 
         '</dl></section>'+ 
@@ -1815,6 +2431,7 @@
     const raw=String(value||'').trim();
     if(!raw)return 'غير مسجل / Not recorded';
     const iso=/^\d{4}-\d{2}-\d{2}$/.test(raw);
+    if(iso&&!validRecordedDate(raw))return raw;
     const date=iso?new Date(raw+'T12:00:00'):null;
     if(!date||Number.isNaN(date.getTime()))return raw;
     try{return date.toLocaleDateString('ar-KW',{year:'numeric',month:'2-digit',day:'2-digit'})+' / '+date.toLocaleDateString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit'})}
@@ -1823,14 +2440,22 @@
 
   function bilingualMoney(value){
     if(value==null||String(value).trim()==='')return 'غير مسجل / Not recorded';
-    const amount=numberFrom(value);
+    const amount=strictCollectionMoney(value);
+    if(!Number.isFinite(amount))return 'غير مسجل / Not recorded';
     let english=String(amount);
     try{english=amount.toLocaleString('en-KW',{minimumFractionDigits:0,maximumFractionDigits:3})}catch(_){ }
     return money(amount)+' / KD '+english;
   }
 
+  function recordedBilingualMoney(value,recorded){
+    const present=value!=null&&String(value).trim()!=='';
+    const isRecorded=recorded===undefined?present:recorded===true;
+    const amount=isRecorded?strictMoney(value):Number.NaN;
+    return Number.isFinite(amount)?bilingualMoney(amount):'غير مسجل / Not recorded';
+  }
+
   function statusEnglish(value){
-    return ({'مسدد':'Paid','مدفوع':'Paid','مستلم':'Received','جزئي':'Partially paid','مستحق':'Due','قيد المراجعة':'Under review','يحتاج مراجعة':'Needs review','غير قابل للفوترة':'Not billable','يحتاج تحقق':'Needs verification','موقّع':'Signed','منتهي':'Expired','ملغي':'Cancelled','غير مربوط':'Not linked','مسودة':'Draft','جاهز للاعتماد':'Ready for approval','معتمد':'Approved','بانتظار التوقيع':'Awaiting signature'})[String(value||'')]||String(value||'Not recorded');
+    return ({'مسدد':'Paid','مدفوع':'Paid','مستلم':'Received','جزئي':'Partially paid','مستحق':'Due','قيد المراجعة':'Under review','يحتاج مراجعة':'Needs review','يحتاج تحقق':'Needs verification','غير قابل للفوترة':'Not billable','موقّع':'Signed','منتهي':'Expired','ملغي':'Cancelled','غير مربوط':'Not linked','مسودة':'Draft','جاهز للاعتماد':'Ready for approval','معتمد':'Approved','بانتظار التوقيع':'Awaiting signature'})[String(value||'')]||String(value||'Not recorded');
   }
 
   function tenantMailto(record,period){
@@ -1840,6 +2465,7 @@
     const periodAr=periodLabel(selectedPeriod);
     const periodEn=periodLabelEnglish(selectedPeriod);
     const brand=statementBrand(record.property||activeProperty);
+    const dueValue=hasField(record,'rent')?record.rent:record.due;
     const subject='كشف إيجار '+periodAr+' – '+String(record.property||activeProperty||'عقاري')+' – الوحدة '+String(record.unit||'');
     const body=[
       'السيد/السيدة '+String(record.tenant||'المستأجر')+'،',
@@ -1847,7 +2473,7 @@
       'العقار: '+String(record.property||activeProperty||'—'),
       'الوحدة: '+String(record.unit||'—'),
       'رقم العقد: '+String(record.contractNo||'—'),
-      'المستحق: '+bilingualMoney(record.rent),
+      'المستحق: '+bilingualMoney(dueValue),
       'المدفوع: '+bilingualMoney(record.paid),
       'المتبقي: '+bilingualMoney(record.balance),
       '',
@@ -1856,15 +2482,14 @@
       'Property: '+String(record.property||activeProperty||'—'),
       'Unit: '+String(record.unit||'—'),
       'Contract No.: '+String(record.contractNo||'—'),
-      'Due: '+bilingualMoney(record.rent),
+      'Due: '+bilingualMoney(dueValue),
       'Paid: '+bilingualMoney(record.paid),
       'Balance: '+bilingualMoney(record.balance),
       '',
       [brand.ar,brand.en].filter(Boolean).join(' / '),
       [brand.email,brand.website].filter(Boolean).join(' • ')
     ].join('\n');
-    const safePath=addresses.map(function(address){return encodeURIComponent(address).replace(/%40/gi,'@')}).join(',');
-    return 'mailto:'+safePath+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+    return 'mailto:'+addresses.join(',')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
   }
 
   function statementBrand(property){
@@ -1890,10 +2515,11 @@
   }
 
   function tenantReceiptDocument(context,record,entry,period){
-    if(!context||!record||!entry||!validRecordedDate(entry.paidAt))return '';
+    if(!context||!record||!entry)return '';
     const selectedPeriod=validPeriod(period)?period:record.period;
+    const receiptNo=ledgerReference(entry);
+    if(!validPeriod(selectedPeriod)||!receiptNo||!settledPayment(entry.status)||!validRecordedDate(entry.paidAt)||!validLedgerPaymentAmount(entry))return '';
     const brand=statementBrand(record.property||context.property?.[0]);
-    const receiptNo=String(entry.voucherNo||entry.receiptNo||'');
     const paymentStatus=statusLabel(entry.status||record.paymentStatus);
     const transaction=ledgerTransactionNo(entry);
     const note=String(entry.note||'').trim();
@@ -1902,7 +2528,7 @@
         '<section class="v204-statement-hero"><div><span>وصل استلام إيجار</span><small>RENT RECEIPT</small><h2>'+escapeHtml(receiptNo||'غير مسجل')+'</h2><p>'+escapeHtml(record.tenant||'مستأجر غير مسجل')+' • '+escapeHtml(record.property||activeProperty)+' • '+escapeHtml(record.unit)+'</p></div><div class="v204-statement-period"><span>'+escapeHtml(periodLabel(selectedPeriod))+'</span><small>'+escapeHtml(periodLabelEnglish(selectedPeriod))+'</small><b class="'+unitStatusTone(record.paymentStatus)+'">'+escapeHtml(paymentStatus)+' / '+escapeHtml(statusEnglish(paymentStatus))+'</b></div></section>'+ 
         '<section class="v204-receipt-amount"><span>المبلغ المستلم / AMOUNT RECEIVED</span><strong>'+escapeHtml(bilingualMoney(entry.paid))+'</strong></section>'+ 
         '<section class="v204-section"><h3><span>بيانات الوصل</span><small>RECEIPT DETAILS</small></h3><dl class="v204-fields">'+ 
-          statementField('اسم المستأجر','Tenant Name',record.tenant)+statementField('رقم الوحدة','Flat No.',record.unit)+statementField('رقم العقد','Contract No.',record.contractNo)+statementField('رقم الوصل / السند','Receipt / Voucher No.',receiptNo)+statementField('تاريخ الدفع','Payment Date',statementDate(entry.paidAt||record.paidAt))+statementField('فترة الإيجار','Rent Period',periodLabel(selectedPeriod)+' / '+periodLabelEnglish(selectedPeriod))+statementField('طريقة الدفع','Payment Method',entry.method||record.methods?.join('، '))+statementField('رقم عملية كي نت','KNET Operation No.',transaction)+statementField('رقم السند','Voucher No.',entry.voucherNo||receiptNo)+statementField('حالة الدفع','Payment Status',paymentStatus+' / '+statusEnglish(paymentStatus))+statementField('المحاسب','Accountant',record.accountant)+ 
+          statementField('اسم المستأجر','Tenant Name',record.tenant)+statementField('رقم الوحدة','Flat No.',record.unit)+statementField('رقم العقد','Contract No.',record.contractNo)+statementField('رقم الوصل / السند','Receipt / Voucher No.',receiptNo)+statementField('تاريخ الدفع','Payment Date',statementDate(entry.paidAt))+statementField('فترة الإيجار','Rent Period',periodLabel(selectedPeriod)+' / '+periodLabelEnglish(selectedPeriod))+statementField('طريقة الدفع','Payment Method',entry.method||record.methods?.join('، '))+statementField('رقم عملية كي نت','KNET Operation No.',transaction)+statementField('رقم السند','Voucher No.',referenceText(entry.voucherNo)||receiptNo)+statementField('حالة الدفع','Payment Status',paymentStatus+' / '+statusEnglish(paymentStatus))+statementField('المحاسب','Accountant',record.accountant)+ 
         '</dl></section>'+ 
         (note?'<section class="v204-section v204-notes"><h3><span>البيان</span><small>DESCRIPTION</small></h3><p>'+escapeHtml(note)+'</p></section>':'')+ 
         '<div class="v202-document-signatures"><div><span>المحاسب / Accountant</span><b>'+escapeHtml(record.accountant||'________________')+'</b></div><div><span>المستأجر / Tenant</span><b>________________</b></div></div>'+ 
@@ -1910,19 +2536,30 @@
       '</article>';
   }
 
+  function enforceableContractRecord(record){
+    if(!record||!identityText(record.property)||!identityText(record.unit)||!identityText(record.tenant)||!identityText(record.contractId||record.contractNo))return false;
+    if(!validRecordedDate(record.startDate)||!validRecordedDate(record.endDate))return false;
+    if(!validContractDateRange({status:'signed',start_date:record.legalStartDate||record.startDate,end_date:record.legalEndDate||record.endDate},true))return false;
+    const current=record.currentRentRecorded===true?strictMoney(record.currentRent):Number.NaN;
+    const face=record.contractRentRecorded===true?strictMoney(record.contractRent):Number.NaN;
+    return (Number.isFinite(current)&&current>0)||(Number.isFinite(face)&&face>0);
+  }
+
   function tenantContractDocument(context,record){
     if(!context||!record)return '';
     const brand=statementBrand(record.property||context.property?.[0]);
     const owner=String(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:'غير مسجل / Not recorded');
-    const verified=Boolean(record.verified&&record.hasContract);
     const emails=emailAddresses(record.email);
     const emailValue=emails.length?emails.map(function(email){return '<a href="mailto:'+escapeHtml(email)+'">'+escapeHtml(email)+'</a>'}).join('<br>'):escapeHtml(record.email||'غير مسجل / Not recorded');
     const civilMarkup='<span class="v204-sensitive-value is-masked">'+escapeHtml(maskCivilId(record.civilId))+'</span>'+(record.civilId?'<button type="button" class="v204-civil-toggle v202-no-print" data-v202-tenant-civil-reveal aria-pressed="false">إظهار / Show</button>':'');
-    const contractState=verified?(record.contractStatus||'غير مسجل')+' / '+statusEnglish(record.contractStatus):'يحتاج تحقق / Needs verification';
-    return '<article class="v202-document v202-statement v204-tenant-statement v204-tenancy-contract" data-v202-tenancy-contract data-v202-contract-verified="'+String(verified)+'">'+ 
+    const contractState=(record.contractStatus||'غير مسجل')+' / '+statusEnglish(record.contractStatus);
+    const enforceable=Boolean(record.hasContract&&record.verified===true&&record.contractStatus==='موقّع'&&enforceableContractRecord(record));
+    const documentTitleAr=enforceable?'عقد الإيجار':'مسودة غير متحققة';
+    const documentTitleEn=enforceable?'TENANCY CONTRACT':'UNVERIFIED DRAFT / UNVERIFIED TENANCY DRAFT';
+    const verificationNotice=enforceable?'':'<section class="v204-section v204-contract-note" data-v202-contract-unverified><h3><span>غير صالحة للتوقيع</span><small>NOT FOR SIGNATURE</small></h3><p>بيانات هذا العقد غير مكتملة أو غير متحققة. راجع حالة العقد ومصدره والقيم المسجلة قبل الاعتماد.<br><span>This draft is incomplete or unverified. It is not an executed contract or proof of signature. Verify its status, source, and recorded terms before approval.</span></p></section>';
+    return '<article class="v202-document v202-statement v204-tenant-statement v204-tenancy-contract" data-v202-tenancy-contract data-v202-contract-verified="'+String(enforceable)+'">'+ 
         '<div class="v204-brand"><div class="v204-brand-name"><strong>'+escapeHtml(brand.ar)+'</strong><b>'+escapeHtml(brand.en)+'</b></div><div class="v204-brand-contact"><span>'+escapeHtml(brand.addressAr)+'</span><small>'+escapeHtml(brand.addressEn)+'</small><span>'+escapeHtml([brand.phones,brand.email,brand.website,brand.social].filter(Boolean).join(' • '))+'</span></div></div>'+ 
-        '<section class="v204-statement-hero"><div><span>'+(verified?'عقد الإيجار':'مسودة بيانات عقد الإيجار')+'</span><small>'+(verified?'TENANCY CONTRACT':'UNVERIFIED TENANCY DRAFT')+'</small><h2>'+escapeHtml(record.contractNo||'عقد غير مرقم')+'</h2><p>'+escapeHtml(record.property||activeProperty)+' • '+escapeHtml(record.unit)+'</p></div><div class="v204-statement-period"><span>'+escapeHtml(statementDate(record.startDate))+'</span><small>'+escapeHtml(statementDate(record.endDate))+'</small><b>'+escapeHtml(contractState)+'</b></div></section>'+ 
-        (!verified?'<section class="v204-section v204-contract-note"><h3><span>مسودة غير معتمدة</span><small>UNVERIFIED DRAFT</small></h3><p>هذه البيانات من كشف الإيجار ولم تتم مطابقتها مع أصل عقد موقّع. لا تُعد عقدًا نافذًا ولا إثباتًا للتوقيع.<br><span>This data comes from the rent ledger and has not been verified against a signed original. It is not an executed contract or proof of signature.</span></p></section>':'')+
+        '<section class="v204-statement-hero"><div><span>'+escapeHtml(documentTitleAr)+'</span><small>'+escapeHtml(documentTitleEn)+'</small><h2>'+escapeHtml(record.contractNo||'عقد غير مرقم')+'</h2><p>'+escapeHtml(record.property||activeProperty)+' • '+escapeHtml(record.unit)+'</p></div><div class="v204-statement-period"><span>'+escapeHtml(statementDate(record.startDate))+'</span><small>'+escapeHtml(statementDate(record.endDate))+'</small><b>'+escapeHtml(contractState)+'</b></div></section>'+verificationNotice+ 
         '<section class="v204-section"><h3><span>أطراف العقد</span><small>CONTRACT PARTIES</small></h3><dl class="v204-fields">'+ 
           statementField('الطرف الأول / المالك','First Party / Lessor',owner)+statementField('الطرف الثاني / المستأجر','Second Party / Tenant',record.tenant)+statementField('رقم الهاتف','Phone',record.phone)+statementField('الجنسية','Nationality',record.nationality)+statementFieldMarkup('الرقم المدني','Civil ID',civilMarkup)+statementFieldMarkup('البريد الإلكتروني','Email',emailValue)+ 
         '</dl></section>'+ 
@@ -1930,11 +2567,11 @@
           statementField('العقار','Property',record.property||activeProperty)+statementField('رقم الوحدة','Flat No.',record.unit)+statementField('رقم العقد','Contract No.',record.contractNo)+statementField('حالة العقد','Contract Status',contractState)+statementField('بداية العقد','Contract Start',statementDate(record.startDate))+statementField('نهاية العقد','Contract End',statementDate(record.endDate))+statementField('استلام العقد','Contract Received',record.contractReceived)+statementField('تبليغ بالإخلاء','Notice of Eviction',record.evictionNotice)+ 
         '</dl></section>'+ 
         '<section class="v204-section"><h3><span>القيم المالية</span><small>FINANCIAL TERMS</small></h3><dl class="v204-fields v204-financial-fields">'+ 
-          statementField('إيجار العقد','Contract Rent',bilingualMoney(record.contractRent))+statementField('الإيجار الحالي','Current Rent',bilingualMoney(record.currentRent))+statementField('مبلغ التأمين','Insurance Amount',bilingualMoney(record.insurance))+statementField('تاريخ التأمين','Insurance Date',statementDate(record.insuranceDateRaw))+statementField('مبلغ العربون','Advance Amount',bilingualMoney(record.advance))+statementField('تاريخ العربون','Advance Date',statementDate(record.advanceDateRaw))+statementField('رسوم النظافة','Cleaning Fees',bilingualMoney(record.cleaningFee))+statementField('عرض شهر مجاني','Free Month Offer',record.freeMonth)+ 
+          statementField('إيجار العقد','Contract Rent',recordedBilingualMoney(record.contractRent,record.contractRentRecorded))+statementField('الإيجار الحالي','Current Rent',recordedBilingualMoney(record.currentRent,record.currentRentRecorded))+statementField('مبلغ التأمين','Insurance Amount',recordedBilingualMoney(record.insurance,record.insuranceRecorded))+statementField('تاريخ التأمين','Insurance Date',statementDate(record.insuranceDateRaw))+statementField('مبلغ العربون','Advance Amount',recordedBilingualMoney(record.advance,record.advanceRecorded))+statementField('تاريخ العربون','Advance Date',statementDate(record.advanceDateRaw))+statementField('رسوم النظافة','Cleaning Fees',recordedBilingualMoney(record.cleaningFee,record.cleaningFeeRecorded))+statementField('عرض شهر مجاني','Free Month Offer',record.freeMonth)+ 
         '</dl></section>'+ 
         '<section class="v204-section v204-contract-note"><h3><span>إقرار المستند</span><small>DOCUMENT NOTICE</small></h3><p>يعرض هذا المستند بيانات عقد الإيجار المسجلة في المنصة. الحقوق والالتزامات النهائية تخضع للعقد الأصلي الموقّع والقانون المعمول به.<br><span>This document presents the tenancy data recorded in the platform. Final rights and obligations remain governed by the signed original contract and applicable law.</span></p></section>'+ 
-        (verified?'<div class="v202-document-signatures v204-contract-signatures"><div><span>الطرف الأول / First Party</span><b>________________</b></div><div><span>الطرف الثاني / Second Party</span><b>________________</b></div><div><span>شاهد / Witness</span><b>________________</b></div><div><span>الختم / Stamp</span><b>________________</b></div></div>':'<div class="v202-document-note"><strong>غير صالح للتوقيع / NOT FOR SIGNATURE</strong><p>تحقق من أصل العقد والمالك والمدة أولاً، ثم اعتمد السجل من داخل المنصة.</p></div>')+
-        '<footer>'+escapeHtml(brand.ar)+' / '+escapeHtml(brand.en)+' • '+(verified?'عقد مرتبط بملف المستأجر والوحدة / Contract linked to this tenant and unit':'مسودة بيانات غير معتمدة / Unverified data draft')+'</footer>'+ 
+        (enforceable?'<div class="v202-document-signatures v204-contract-signatures"><div><span>الطرف الأول / First Party</span><b>________________</b></div><div><span>الطرف الثاني / Second Party</span><b>________________</b></div><div><span>شاهد / Witness</span><b>________________</b></div><div><span>الختم / Stamp</span><b>________________</b></div></div>':'')+ 
+        '<footer>'+escapeHtml(brand.ar)+' / '+escapeHtml(brand.en)+' • '+(enforceable?'عقد مرتبط بملف المستأجر والوحدة / Contract linked to this tenant and unit':'مسودة للعرض والمراجعة فقط / Draft for review only')+'</footer>'+ 
       '</article>';
   }
 
@@ -1948,8 +2585,8 @@
     const civilMarkup='<span class="v204-sensitive-value is-masked">'+escapeHtml(maskCivilId(record.civilId))+'</span>'+(record.civilId?'<button type="button" class="v204-civil-toggle v202-no-print" data-v202-tenant-civil-reveal aria-pressed="false">إظهار / Show</button>':'');
     const mailAction=mailto?'<a class="v204-email-action" href="'+escapeHtml(mailto)+'">فتح البريد / Open Email</a><button type="button" data-v202-copy-email>نسخ البريد / Copy Email</button>':'<span class="v204-email-missing">البريد غير مسجل أو غير صالح / Email unavailable</span>';
     const receipts=record.receipts?.join('، ')||'غير مسجل / Not recorded';
-    const settledReceipts=tenantLedgerEntries(context,record,selectedPeriod).map(function(entry){return resolvedReceiptForRecord(context,record,entry,selectedPeriod)}).filter(Boolean);
-    const latestReceipt=String(settledReceipts[settledReceipts.length-1]?.entry?.voucherNo||settledReceipts[settledReceipts.length-1]?.entry?.receiptNo||'');
+    const settledReceipts=tenantLedgerEntries(context,record,selectedPeriod).filter(function(entry){return Boolean(resolvedReceiptForRecord(context,record,entry,selectedPeriod))});
+    const latestReceipt=ledgerReference(settledReceipts[settledReceipts.length-1]);
     const contractValue=record.contractId||record.contractNo||'';
     const relatedActions=(record.hasContract&&contractValue?'<button type="button" class="v204-related-primary" data-v202-tenant-contract="'+escapeHtml(contractValue)+'">'+(record.verified?'عقد الإيجار / Tenancy Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(latestReceipt?'<button type="button" data-v202-tenant-receipt="'+escapeHtml(latestReceipt)+'">وصل الإيجار / Rent Receipt</button>':'');
     const methods=record.methods?.join('، ')||'غير مسجل / Not recorded';
@@ -1982,27 +2619,33 @@
     const items=new Map();
     context.propertyContracts.filter(function(contract){return statementIncludesContract(contract,period)}).forEach(function(contract){
       const id=contractId(contract);
-      const fallback=normalized(contract?.tenant)+'|'+normalized(contract?.unit);
-      const key=id?'id:'+normalized(id):'party:'+fallback;
+      const fallback=JSON.stringify([normalizedIdentity(contract?.tenant),normalizedIdentity(contract?.unit)]);
+      const key=id?'id:'+normalizedIdentity(id):'party:'+fallback;
       if(!id&&!fallback.replace('|',''))return;
-      items.set(key,{contractId:id,contractNo:contract?.contract_no||contract?.contractNo||'',tenant:contract?.tenant||'—',unit:contract?.unit||'—',due:contractRent(contract),paid:0,pending:0,receipts:[],status:statusLabel(contract?.status)});
+      items.set(key,{contractId:id,tenant:contract?.tenant||'—',unit:contract?.unit||'—',due:contractRent(contract),paid:0,pending:0,receipts:[],status:statusLabel(contract?.status),_recordedDues:[]});
     });
     context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry){
-      const matches=Array.from(items.entries()).filter(function(pair){
-        return scopedLedgerMatchesRecord(context,entry,pair[1],period);
-      });
-      const key=matches.length===1?matches[0][0]:'';
+      const contract=ledgerContractForEntry(context.property?.[0],entry);
+      if(!contract)return;
+      const id=contractId(contract);
+      const fallback=JSON.stringify([normalizedIdentity(contract?.tenant),normalizedIdentity(contract?.unit)]);
+      const key=id?'id:'+normalizedIdentity(id):'party:'+fallback;
       if(!key||!items.has(key))return;
       const item=items.get(key);
+      const recordedDue=strictMoney(entry?.due);
+      if(Number.isFinite(recordedDue)&&recordedDue>=0&&!item._recordedDues.includes(recordedDue))item._recordedDues.push(recordedDue);
+      const amount=strictMoney(entry?.paid);
       if(settledPayment(entry?.status)){
-        item.paid+=numberFrom(entry?.paid);
-        const reference=String(entry?.voucherNo||entry?.receiptNo||'').trim();
+        item.paid=exactMoneySum([item.paid,amount]);
+        const reference=ledgerReference(entry);
         if(reference)item.receipts.push(reference);
-      }else if(pendingPayment(entry?.status))item.pending+=numberFrom(entry?.paid);
+      }else if(pendingPayment(entry?.status))item.pending=exactMoneySum([item.pending,amount]);
       items.set(key,item);
     });
     return Array.from(items.values()).map(function(item){
-      item.balance=Math.max(0,item.due-item.paid);
+      if(item._recordedDues.length===1)item.due=item._recordedDues[0];
+      delete item._recordedDues;
+      item.balance=exactMoneyDifference(item.due,item.paid);
       item.paymentStatus=item.due>0&&item.balance===0?'مسدد':item.paid>0?'جزئي':item.pending>0?'قيد المراجعة':'مستحق';
       return item;
     });
@@ -2026,11 +2669,13 @@
   ]);
 
   function ledgerRecordedAmount(value){
-    return value==null||String(value).trim()===''?null:numberFrom(value);
+    if(value==null||String(value).trim()==='')return null;
+    const amount=strictMoney(value);
+    return Number.isFinite(amount)?amount:null;
   }
 
   function ledgerPaymentDateKey(value){
-    const raw=String(value||'').trim();
+    const raw=latinDigits(String(value||'')).trim();
     const iso=raw.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
     if(iso)return Number(iso[1].padStart(4,'0')+iso[2].padStart(2,'0')+iso[3].padStart(2,'0'));
     const local=raw.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
@@ -2041,23 +2686,29 @@
 
   function matchedLedgerDirectoryRecord(records,item){
     const list=Array.isArray(records)?records:[];
-    const id=normalized(item?.contractId);
+    const id=normalizedIdentity(item?.contractId);
     if(id){
-      const exact=list.filter(function(record){return normalized(record?.contractId)===id});
+      const exact=list.filter(function(record){return normalizedIdentity(record?.contractId)===id});
       if(exact.length===1)return exact[0];
     }
     const party=list.filter(function(record){
-      return normalized(record?.unit)===normalized(item?.unit)&&normalized(record?.tenant)===normalized(item?.tenant);
+      return normalizedIdentity(record?.unit)===normalizedIdentity(item?.unit)&&normalizedIdentity(record?.tenant)===normalizedIdentity(item?.tenant);
     });
     return party.length===1?party[0]:null;
   }
 
   function scopedLedgerEntries(context,item,record,period,items){
-    const scopedRecord=record||{unit:item?.unit,tenant:item?.tenant,contractId:item?.contractId,contractNo:item?.contractNo,period};
+    const scopedRecord=record||{unit:item?.unit,tenant:item?.tenant,contractId:item?.contractId,period};
+    const itemId=normalizedIdentity(item?.contractId);
     const protectedOnly=protectedPropertyActive(context?.property?.[0]);
+    const sameParty=(Array.isArray(items)?items:[]).filter(function(candidate){
+      return normalizedIdentity(candidate?.unit)===normalizedIdentity(item?.unit)&&normalizedIdentity(candidate?.tenant)===normalizedIdentity(item?.tenant);
+    });
     return tenantLedgerEntries(context,scopedRecord,period).filter(function(entry){
       if(protectedOnly&&normalized(entry?.source)!==V202_IMPORT_SOURCE)return false;
-      return true;
+      const entryId=normalizedIdentity(entry?.contractId||entry?.contract_id);
+      if(itemId&&entryId)return itemId===entryId;
+      return sameParty.length===1;
     });
   }
 
@@ -2074,41 +2725,35 @@
     const property=String(context.property?.[0]||'');
     const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
     const protectedOnly=protectedPropertyActive(property);
-    const items=rentStatementItems(context,selectedPeriod).filter(function(item){
-      if(!protectedOnly)return true;
-      const itemId=normalized(item.contractId);
-      const matches=context.propertyContracts.filter(function(contract){
-        if(itemId)return normalized(contractId(contract))===itemId;
-        return normalized(contract?.unit)===normalized(item.unit)&&normalized(contract?.tenant)===normalized(item.tenant);
-      });
-      return matches.length===1&&normalized(matches[0]?.source)===V202_IMPORT_SOURCE;
-    });
+    const items=rentStatementLedgerItems(context,selectedPeriod);
     const records=unitDirectoryRecords(context,selectedPeriod);
     return items.map(function(item){
       const matchedRecord=matchedLedgerDirectoryRecord(records,item);
       const record=protectedOnly&&normalized(matchedRecord?.directorySource)!==V202_IMPORT_SOURCE?null:matchedRecord;
-      const itemId=normalized(item.contractId);
-      const contract=context.propertyContracts.find(function(candidate){return itemId&&normalized(contractId(candidate))===itemId})||null;
+      const itemId=normalizedIdentity(item.contractId);
+      const contract=context.propertyContracts.find(function(candidate){return itemId&&normalizedIdentity(contractId(candidate))===itemId})||null;
       const entries=settledLedgerEntries(context,item,record,selectedPeriod,items);
       const scopedEntries=scopedLedgerEntries(context,item,record,selectedPeriod,items);
-      const latest=entries[0]||null;
+      const latestReceipt=entries.find(function(entry){return Boolean(record&&resolvedReceiptForRecord(context,record,entry,selectedPeriod))})||null;
+      const latestValid=entries.find(function(entry){return validRecordedDate(entry?.paidAt)})||null;
+      const latest=latestReceipt||latestValid;
       const contractRentValue=record?ledgerRecordedAmount(record.contractRent):ledgerRecordedAmount(contract?.contractRent);
       const currentRentValue=record?ledgerRecordedAmount(record.currentRent):ledgerRecordedAmount(contractRent(contract));
-      const paid=entries.reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
-      const pending=scopedEntries.filter(function(entry){return pendingPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
-      const due=numberFrom(item.due);
-      const balance=Math.max(0,due-paid);
-      const paymentStatus=due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق';
+      const paid=exactMoneySum(entries.map(function(entry){return entry?.paid}));
+      const pending=exactMoneySum(scopedEntries.filter(function(entry){return pendingPayment(entry?.status)}).map(function(entry){return entry?.paid}));
+      const due=strictMoney(item.due);
+      const balance=exactMoneyDifference(due,paid);
+      const paymentStatus=entries.some(function(entry){return !validRecordedDate(entry?.paidAt)})?'يحتاج مراجعة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق';
       return {
         property:String(context.property?.[0]||''),period:selectedPeriod,
         unit:String(item.unit||record?.unit||'—'),tenant:String(item.tenant||record?.tenant||'—'),
         contractNo:String(record?.contractNo||contract?.contract_no||''),contractId:String(item.contractId||''),
-        recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),verified:Boolean(record?.verified),
+        recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),verified:Boolean(record?.verified),billable:Boolean(record?.billable),collectible:Boolean(record?.collectible),
         contractRent:contractRentValue,currentRent:currentRentValue,
         insurance:ledgerRecordedAmount(record?.insurance),advance:ledgerRecordedAmount(record?.advance),cleaningFee:ledgerRecordedAmount(record?.cleaningFee),
         paymentDate:String(latest&&validRecordedDate(latest?.paidAt)?latest.paidAt:''),paymentMethod:String(latest?.method||''),
-        knetTransactionNo:String(latest?ledgerTransactionNo(latest):''),voucherNo:String(latest?.voucherNo||latest?.receiptNo||''),
-        receiptReference:String(latest&&validRecordedDate(latest?.paidAt)?latest?.voucherNo||latest?.receiptNo||'':''),
+        knetTransactionNo:String(latest?ledgerTransactionNo(latest):''),voucherNo:ledgerReference(latestReceipt),
+        receiptReference:ledgerReference(latestReceipt),
         contractReceived:String(record?.contractReceived||record?.contractReceipt||''),accountant:String(record?.accountant||''),
         due,paid,pending,balance,paymentStatus,settledPayments:entries.length
       };
@@ -2119,13 +2764,14 @@
 
   function propertyRentLedgerTotal(rows,key){
     let recorded=0;
-    const value=(Array.isArray(rows)?rows:[]).reduce(function(total,row){
+    const values=[];
+    (Array.isArray(rows)?rows:[]).forEach(function(row){
       const amount=ledgerRecordedAmount(row?.[key]);
-      if(amount==null)return total;
+      if(amount==null)return;
       recorded+=1;
-      return total+amount;
-    },0);
-    return recorded?value:null;
+      values.push(amount);
+    });
+    return recorded?exactMoneySum(values):null;
   }
 
   function propertyRentLedgerModel(context,period){
@@ -2134,18 +2780,20 @@
     const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
     const ledgerRows=propertyRentLedgerRows(context,selectedPeriod);
     const official=officialStatementFor(property,selectedPeriod);
-    const computedDue=ledgerRows.reduce(function(total,row){return total+row.due},0);
-    const computedPaid=ledgerRows.reduce(function(total,row){return total+row.paid},0);
-    const pending=ledgerRows.reduce(function(total,row){return total+row.pending},0);
+    const computedDue=exactMoneySum(ledgerRows.map(function(row){return row.due}));
+    const computedPaid=exactMoneySum(ledgerRows.map(function(row){return row.paid}));
+    const pending=exactMoneySum(ledgerRows.map(function(row){return row.pending}));
     const due=statementValue(official,'totalRent',computedDue);
     const paid=statementValue(official,'totalCollected',computedPaid);
-    const balance=Math.max(0,due-paid);
+    const balance=exactMoneyDifference(due,paid);
     const computedInsurance=propertyRentLedgerTotal(ledgerRows,'insurance');
     const computedAdvance=propertyRentLedgerTotal(ledgerRows,'advance');
     const computedCleaning=propertyRentLedgerTotal(ledgerRows,'cleaningFee');
     const computedCurrentRent=propertyRentLedgerTotal(ledgerRows,'currentRent');
-    const unitCount=official&&hasField(official,'unitCount')?numberFrom(official.unitCount):ledgerRows.length;
-    const occupiedUnitCount=official&&hasField(official,'occupiedUnitCount')?numberFrom(official.occupiedUnitCount):ledgerRows.length;
+    const officialUnitCount=official&&hasField(official,'unitCount')?strictCount(official.unitCount):null;
+    const officialOccupiedUnitCount=official&&hasField(official,'occupiedUnitCount')?strictCount(official.occupiedUnitCount):null;
+    const unitCount=officialUnitCount==null?Math.max(ledgerRows.length,officialOccupiedUnitCount??0):officialUnitCount;
+    const occupiedUnitCount=officialOccupiedUnitCount==null?Math.min(ledgerRows.length,unitCount):officialOccupiedUnitCount;
     return {
       property,owner:String(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:''),period:selectedPeriod,
       brand:statementBrand(property),rows:ledgerRows,official:Boolean(official),
@@ -2266,7 +2914,7 @@
     if(!protectedAccessReady())return false;
     const ledger=document.querySelector('#v202DocumentBody [data-v206-ledger]');
     const property=String(ledger?.getAttribute('data-v206-property')||'');
-    if(!property||normalized(property)!==normalized(activeProperty))return false;
+    if(!property||propertyKey(property)!==propertyKey(activeProperty))return false;
     const context=contextFor(property);
     const period=ledger?.querySelector('#v202StatementPeriod')?.value||latestOfficialPeriod(property);
     const model=context?propertyRentLedgerModel(context,period):null;
@@ -2285,7 +2933,11 @@
     return true;
   }
 
-  function statementValue(record,key,fallback){return hasField(record,key)?numberFrom(record[key]):fallback}
+  function statementValue(record,key,fallback){
+    if(!hasField(record,key))return fallback;
+    const amount=strictMoney(record[key]);
+    return Number.isFinite(amount)?amount:fallback;
+  }
 
   function statementExtra(record,key){return hasField(record,key)?money(numberFrom(record[key])):'غير مسجل'}
 
@@ -2293,13 +2945,13 @@
     const selectedPeriod=validPeriod(period)?period:currentPeriod();
     const items=rentStatementItems(context,selectedPeriod);
     const official=officialStatementFor(activeProperty,selectedPeriod);
-    const computedDue=items.reduce(function(total,item){return total+item.due},0);
-    const computedPaid=items.reduce(function(total,item){return total+item.paid},0);
+    const computedDue=exactMoneySum(items.map(function(item){return item.due}));
+    const computedPaid=exactMoneySum(items.map(function(item){return item.paid}));
     const dueTotal=statementValue(official,'totalRent',computedDue);
     const paidTotal=statementValue(official,'totalCollected',computedPaid);
-    const balanceTotal=Math.max(0,dueTotal-paidTotal);
+    const balanceTotal=exactMoneyDifference(dueTotal,paidTotal);
     const rate=dueTotal?Math.min(100,paidTotal/dueTotal*100):0;
-    const unitCount=official&&hasField(official,'unitCount')?numberFrom(official.unitCount):items.length;
+    const unitCount=official&&hasField(official,'unitCount')?strictCount(official.unitCount):items.length;
     const ledgerRows=items.map(function(item){
       return '<tr><td>'+escapeHtml(item.unit)+'</td><td>'+escapeHtml(item.tenant)+'</td><td>'+escapeHtml(money(item.due))+'</td><td>'+escapeHtml(money(item.paid))+'</td><td>'+escapeHtml(money(item.balance))+'</td><td>'+escapeHtml(item.paymentStatus)+'</td><td>'+escapeHtml(item.receipts.join('، ')||'—')+'</td></tr>';
     }).join('');
@@ -2332,11 +2984,11 @@
     documentTrigger=trigger||document.activeElement;
     documentFallbackSelector=fallbackSelector||'';
     const overlay=document.getElementById('v202DocumentDialog');
+    delete overlay.dataset.v202Document;
     const heading=document.getElementById('v202DocumentDialogTitle');
     const body=document.getElementById('v202DocumentBody');
     if(heading)heading.textContent=title;
     if(body)body.innerHTML=markup;
-    delete overlay.dataset.v202Document;
     overlay.classList.add('on');
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden','false');
@@ -2347,36 +2999,50 @@
   }
 
   function resolvedTenantReceipt(record){
-    const property=String(record?.[4]||activeProperty||'');
-    const reference=normalized(record?.[0]);
-    if(!property||!reference)return null;
+    if(!Array.isArray(record)||!collectionReceiptEligible(record))return null;
+    const property=identityText(record?.[4]||activeProperty||'');
+    const reference=normalizedReference(record?.[0]);
+    const amount=strictCollectionMoney(record?.[2]);
+    const period=validPeriod(record?.[8])?String(record[8]):'';
+    if(!property||!reference||!Number.isFinite(amount)||amount<=0)return null;
+    if(activeProperty&&propertyKey(activeProperty)!==propertyKey(property))return null;
     const context=contextFor(property);
     if(!context)return null;
+    const protectedLedger=protectedRecordsFor('rentLedgerV202',property);
+    const provenance=(protectedLedger||rawLedgerRecords()).filter(function(entry){
+      if(!entry||typeof entry!=='object'||Array.isArray(entry))return false;
+      return [entry?.voucherNo,entry?.receiptNo].map(normalizedReference).filter(Boolean).includes(reference);
+    });
+    if(provenance.length!==1)return null;
+    const tenantField=optionalIdentityField(record?.[1]);
+    const unitFieldValue=optionalIdentityField(record?.[6]);
+    if(tenantField.invalid||unitFieldValue.invalid)return null;
     const matches=context.propertyLedger.filter(function(entry){
-      if(!settledPayment(entry?.status)||!validRecordedDate(entry?.paidAt)||normalized(entry?.voucherNo||entry?.receiptNo)!==reference)return false;
-      if(record?.[1]&&normalized(entry?.tenant)!==normalized(record[1]))return false;
-      if(record?.[6]&&normalized(entry?.unit)!==normalized(record[6]))return false;
-      if(validPeriod(record?.[8])&&String(entry?.period||'')!==String(record[8]))return false;
+      if(!settledPayment(entry?.status)||!validRecordedDate(entry?.paidAt)||normalizedReference(ledgerReference(entry))!==reference)return false;
+      if(!exactIdentityMatch(entry?.property,property)||strictMoney(entry?.paid)!==amount)return false;
+      if(tenantField.present&&!exactIdentityMatch(entry?.tenant,record[1]))return false;
+      if(unitFieldValue.present&&!exactIdentityMatch(entry?.unit,record[6]))return false;
+      if(period&&String(entry?.period||'')!==period)return false;
+      if(record?.[5]&&normalizedScalar(entry?.paidAt)!==normalizedScalar(record[5]))return false;
+      if(record?.[3]&&normalizedScalar(entry?.status)!==normalizedScalar(record[3]))return false;
       return true;
     });
     if(matches.length!==1)return null;
     const entry=matches[0];
-    const period=validPeriod(entry?.period)?String(entry.period):(validPeriod(record?.[8])?String(record[8]):latestOfficialPeriod(property));
-    const entryId=normalized(entry?.contractId||entry?.contract_id);
-    const linkedContracts=context.propertyContracts.filter(function(contract){
-      if(!signedContract(contract)||!statementIncludesContract(contract,period))return false;
-      if(entryId)return normalized(contractId(contract))===entryId&&normalized(contract?.unit)===normalized(entry?.unit)&&normalized(contract?.tenant)===normalized(entry?.tenant);
-      return normalized(contract?.unit)===normalized(entry?.unit)&&normalized(contract?.tenant)===normalized(entry?.tenant);
+    const selectedPeriod=validPeriod(entry?.period)?String(entry.period):period;
+    if(!validPeriod(selectedPeriod))return null;
+    const contract=ledgerContractForEntry(property,entry);
+    if(!contract||!statementIncludesContract(contract,selectedPeriod))return null;
+    const directory=unitDirectoryRecords(context,selectedPeriod);
+    const tenant=matchedLedgerDirectoryRecord(directory,{
+      contractId:contractId(contract),unit:entry?.unit,tenant:entry?.tenant
     });
-    if(linkedContracts.length!==1)return null;
-    const directory=unitDirectoryRecords(context,period);
-    const tenant=matchedLedgerDirectoryRecord(directory,{contractId:entry?.contractId||entry?.contract_id,unit:entry?.unit,tenant:entry?.tenant});
-    if(!tenant?.hasContract||normalized(tenant.contractId)!==normalized(contractId(linkedContracts[0])))return null;
-    return {context:context,record:tenant,entry:entry,period:period};
+    if(!tenant?.hasContract||normalizedIdentity(tenant.contractId)!==normalizedIdentity(contractId(contract)))return null;
+    return {context,record:tenant,entry,period:selectedPeriod};
   }
 
   function openReceiptDocument(record,trigger){
-    if(!protectedAccessReady()||!settledPayment(Array.isArray(record)?record?.[3]:record?.status))return false;
+    if(!protectedAccessReady())return false;
     activeTenantStatementKey='';
     const resolved=resolvedTenantReceipt(record);
     if(!resolved)return false;
@@ -2394,33 +3060,51 @@
     const markup=propertyRentLedgerDocument(context,period||latestOfficialPeriod(activeProperty));
     if(!markup)return false;
     openDocument('كشف إيجار العقار / Property Rent Ledger',markup,trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
-    document.getElementById('v202DocumentDialog').dataset.v202Document='rent-office';
+    const dialog=document.getElementById('v202DocumentDialog');
+    if(dialog)dialog.dataset.v202Document='rent-office';
     return true;
+  }
+
+  function secureRentOfficeProperties(){
+    if(!protectedAccessReady())return Object.freeze([]);
+    const names=[];
+    const seen=new Set();
+    rows('properties').forEach(function(row){
+      const name=scalarText(row?.[0]);
+      const key=propertyKey(name);
+      if(!name||!key||seen.has(key)||!propertyRecord(name))return;
+      seen.add(key);
+      names.push(name);
+    });
+    return Object.freeze(names);
   }
 
   function secureRentOfficeData(name,period){
     if(!protectedAccessReady())return null;
-    const property=String(name||'').trim();
-    if(!property)return null;
+    const property=accessIdentity(name);
+    if(!propertyKey(property))return null;
     const context=contextFor(property);
-    if(!context||normalized(context.property?.[0])!==normalized(property))return null;
-    const selectedPeriod=validPeriod(period)?String(period):latestOfficialPeriod(property);
+    if(!context||propertyKey(context.property?.[0])!==propertyKey(property))return null;
+    const periodOmitted=period==null;
+    const suppliedPeriod=periodOmitted?'':accessIdentity(period);
+    if(!periodOmitted&&!validPeriod(suppliedPeriod))return null;
+    const selectedPeriod=periodOmitted?latestOfficialPeriod(property):suppliedPeriod;
     const model=propertyRentLedgerModel(context,selectedPeriod);
-    if(!model||normalized(model.property)!==normalized(property))return null;
+    if(!model||propertyKey(model.property)!==propertyKey(property))return null;
     const records=model.rows.map(function(row){
       const email=emailAddresses(row.email)[0]||'';
       return Object.freeze({
         key:String(row.recordKey||''),unit:String(row.unit||'—'),tenant:String(row.tenant||'—'),
-        contractNo:String(row.contractNo||''),contractId:String(row.contractId||''),hasContract:Boolean(row.hasContract),
+        contractNo:String(row.contractNo||''),contractId:String(row.contractId||''),hasContract:Boolean(row.hasContract),billable:Boolean(row.billable),collectible:Boolean(row.collectible),
         contractRent:row.contractRent,currentRent:row.currentRent,rent:numberFrom(row.due),
         insurance:row.insurance,advance:row.advance,cleaningFee:row.cleaningFee,
         paid:numberFrom(row.paid),pending:numberFrom(row.pending),balance:numberFrom(row.balance),paymentStatus:String(row.paymentStatus||''),
         paidAt:String(row.paymentDate||''),method:String(row.paymentMethod||''),transactionNo:String(row.knetTransactionNo||''),
-        receiptNo:String(row.voucherNo||''),contractReceived:String(row.contractReceived||''),accountant:String(row.accountant||''),email:email
+        receiptNo:String(row.receiptReference||''),contractReceived:String(row.contractReceived||''),accountant:String(row.accountant||''),email
       });
     });
     return Object.freeze({
-      property:model.property,period:model.period,latestPeriod:latestOfficialPeriod(property),official:Boolean(model.official),
+      property,period:model.period,latestPeriod:latestOfficialPeriod(property),official:Boolean(model.official),
       sourcePages:String(model.sourcePages||''),unitCount:model.unitCount,
       totalRent:numberFrom(model.totals.due),totalCollected:numberFrom(model.totals.paid),totalBalance:numberFrom(model.totals.balance),
       totalInsurance:numberFrom(model.totals.insurance),totalAdvance:numberFrom(model.totals.advance),totalCleaning:numberFrom(model.totals.cleaningFee),
@@ -2430,41 +3114,55 @@
 
   function secureRentOfficeAction(name,key,period,action,trigger){
     if(!protectedAccessReady())return false;
-    const property=String(name||'').trim();
-    const selectedPeriod=String(period||'');
-    const recordKey=String(key||'');
-    const requested=String(action||'');
-    if(!property||normalized(property)!==normalized(activeProperty)||!validPeriod(selectedPeriod)||!recordKey)return false;
+    const property=accessIdentity(name);
+    const selectedPeriod=accessIdentity(period);
+    const recordKey=accessIdentity(key);
+    const requested=accessIdentity(action);
+    if(!property||propertyKey(property)!==propertyKey(activeProperty)||!validPeriod(selectedPeriod)||!recordKey||!['statement','contract','receipt','payment'].includes(requested))return false;
     const context=contextFor(property);
     const model=context?propertyRentLedgerModel(context,selectedPeriod):null;
-    const safeRow=model?.rows.find(function(row){return String(row.recordKey||'')===recordKey});
-    const record=context?unitDirectoryRecords(context,selectedPeriod).find(function(candidate){return candidate.key===recordKey}):null;
+    const safeRows=Array.isArray(model?.rows)?model.rows.filter(function(row){return String(row.recordKey||'')===recordKey}):[];
+    const safeRow=safeRows.length===1?safeRows[0]:null;
+    const record=context?uniqueUnitRecordByKey(unitDirectoryRecords(context,selectedPeriod),recordKey):null;
     if(!safeRow||!record)return false;
     if(protectedPropertyActive(property)&&normalized(record.directorySource)!==V202_IMPORT_SOURCE)return false;
-    activeTenantStatementKey=record.key;
     if(requested==='statement'){
       const markup=tenantStatementDocument(context,record,selectedPeriod);
       if(!markup)return false;
+      activeTenantStatementKey=record.key;
       openDocument('كشف المستأجر / Tenant Statement',markup,trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
       return true;
     }
     if(requested==='contract'){
       if(!record.hasContract)return false;
-      return openTenantContract(trigger,record.contractId||record.contractNo,selectedPeriod);
+      const previousKey=activeTenantStatementKey;
+      activeTenantStatementKey=record.key;
+      const opened=openTenantContract(trigger,record.contractId||record.contractNo,selectedPeriod);
+      if(!opened)activeTenantStatementKey=previousKey;
+      return opened;
     }
     if(requested==='receipt'){
       if(!safeRow.receiptReference)return false;
-      return openTenantReceipt(trigger,safeRow.receiptReference,selectedPeriod);
+      const previousKey=activeTenantStatementKey;
+      activeTenantStatementKey=record.key;
+      const opened=openTenantReceipt(trigger,safeRow.receiptReference,selectedPeriod);
+      if(!opened)activeTenantStatementKey=previousKey;
+      return opened;
     }
     if(requested==='payment'){
-      if(rentWriteAllowed()&&!protectedPropertyActive(property))return Boolean(openPayment(trigger,record.contractId||''));
+      if(record.billable&&record.collectible&&rentWriteAllowed()&&!protectedPropertyActive(property)){
+        const previousKey=activeTenantStatementKey;
+        closeDocument();
+        const opened=Boolean(openPayment(null,record.contractId||'',selectedPeriod));
+        if(!opened)activeTenantStatementKey=previousKey;
+        return opened;
+      }
       closeDocument();
       activeTab='collections';
       renderPanel(context);
       document.getElementById('v202TabCollections')?.focus();
       return true;
     }
-    return false;
   }
 
   function ledgerTenantSelection(button,keyAttribute){
@@ -2472,13 +3170,14 @@
     const ledger=button?.closest?.('[data-v206-ledger]');
     const property=String(ledger?.getAttribute('data-v206-property')||'');
     const recordKey=String(button?.getAttribute(keyAttribute)||'');
-    if(!property||!recordKey||normalized(property)!==normalized(activeProperty))return null;
+    if(!property||!recordKey||propertyKey(property)!==propertyKey(activeProperty))return null;
     const context=contextFor(property);
     const period=ledger?.querySelector('#v202StatementPeriod')?.value||latestOfficialPeriod(property);
     const model=context?propertyRentLedgerModel(context,period):null;
-    const safeRow=model?.rows.find(function(row){return row.recordKey===recordKey});
+    const safeRows=Array.isArray(model?.rows)?model.rows.filter(function(row){return row.recordKey===recordKey}):[];
+    const safeRow=safeRows.length===1?safeRows[0]:null;
     if(!safeRow)return null;
-    const record=unitDirectoryRecords(context,period).find(function(candidate){return candidate.key===recordKey});
+    const record=uniqueUnitRecordByKey(unitDirectoryRecords(context,period),recordKey);
     if(!record)return null;
     if(protectedPropertyActive(property)&&normalized(record.directorySource)!==V202_IMPORT_SOURCE)return null;
     return {context,period,record};
@@ -2598,10 +3297,10 @@
     if(!protectedAccessReady())return;
     const container=document.querySelector('#aqariV199Dashboard .v199-properties');
     if(!container)return;
-    const existing=new Set(Array.from(document.querySelectorAll('[data-v201-property]')).map(function(button){return normalized(button.getAttribute('data-v201-property'))}));
+    const existing=new Set(Array.from(document.querySelectorAll('[data-v201-property]')).map(function(button){return propertyKey(button.getAttribute('data-v201-property'))}));
     (protectedImportCache.properties||[]).forEach(function(record){
       const name=String(record?.[0]||'').trim();
-      const key=normalized(name);
+      const key=propertyKey(name);
       if(!name||existing.has(key))return;
       const row=document.createElement('div');
       row.className='v199-property-row aq-protected-property';
@@ -2617,10 +3316,12 @@
       copy.append(strong,small);
       const units=document.createElement('span');
       units.className='v199-property-units';
-      units.textContent=numberFrom(record?.[2])+' وحدة';
+      const protectedUnitCount=strictCount(record?.[2]);
+      units.textContent=(Number.isFinite(protectedUnitCount)?protectedUnitCount:0)+' وحدة';
       const income=document.createElement('span');
       income.className='v199-property-income';
-      income.textContent=money(numberFrom(record?.[3]));
+      const protectedIncome=strictCollectionMoney(record?.[3]);
+      income.textContent=money(Number.isFinite(protectedIncome)?protectedIncome:0);
       const button=document.createElement('button');
       button.type='button';
       button.className='v201-property-manage';
@@ -2665,7 +3366,6 @@
       const tab=target.closest('[data-v202-tab]');
       if(tab){
         event.preventDefault();event.stopImmediatePropagation();
-        if(!protectedAccessReady()){clearProtectedDom();return false}
         activeTab=tab.getAttribute('data-v202-tab')||'overview';
         const context=contextFor(activeProperty);
         if(context)renderPanel(context);
@@ -2729,7 +3429,7 @@
       if(!details||details.open)return;
       const card=details.closest('[data-v202-unit-index]');
       const context=contextFor(activeProperty);
-      const records=context?unitDirectoryRecords(context,latestOfficialPeriod(activeProperty)):[];
+      const records=context?unitDirectoryRecords(context,activePropertyPeriod||latestOfficialPeriod(activeProperty)):[];
       maskUnitCard(card,records[Number(card?.getAttribute('data-v202-unit-index'))]);
     },true);
 
@@ -2745,7 +3445,7 @@
         if(!protectedAccessReady()){clearProtectedDom();return}
         const ledger=target.closest('[data-v206-ledger]');
         const property=String(ledger?.getAttribute('data-v206-property')||'');
-        if(!property||normalized(property)!==normalized(activeProperty)){clearProtectedDom();return}
+        if(!property||propertyKey(property)!==propertyKey(activeProperty)){clearProtectedDom();return}
         const context=contextFor(property);
         const body=document.getElementById('v202DocumentBody');
         if(context&&body){
@@ -2797,15 +3497,18 @@
     window.AQARI_V202=Object.freeze({
       version:V202_DESIGN,
       seal:function(){clearProtectedImport();hydratePromise=null;clearProtectedDom();},
-      openProperty:function(name){return protectedAccessReady()?openWorkspace(name,document.activeElement):false},
+      openProperty:function(name,period){return protectedAccessReady()?openWorkspace(name,document.activeElement,period):false},
+      rentOfficeProperties:function(){return secureRentOfficeProperties()},
       rentOfficeData:function(name,period){return secureRentOfficeData(name,period)},
       rentOfficeAction:function(name,key,period,action,trigger){return secureRentOfficeAction(name,key,period,action,trigger)},
       propertyContext:function(name){
         if(!protectedAccessReady())return null;
-        const context=contextFor(name);
+        const requestedName=scalarText(name);
+        if(!propertyKey(requestedName))return null;
+        const context=contextFor(requestedName);
         if(!context)return null;
         return Object.freeze({
-          name:String(context.property?.[0]||''),contracts:context.propertyContracts.length,
+          name:requestedName,contracts:context.propertyContracts.length,
           collections:context.propertyCollections.length,expenses:context.expenses.length,
           income:context.income,collected:context.collected,expenseTotal:context.expenseTotal,net:context.net
         });
@@ -2833,9 +3536,9 @@
           const official=officialStatementFor(name,selected);
           return Object.freeze({
             activeSignedContracts:context.activeContracts.length,billableContracts:context.propertyContracts.filter(function(contract){return statementIncludesContract(contract,selected)}).length,
-            settledPaid:items.reduce(function(total,item){return total+item.paid},0),pending:items.reduce(function(total,item){return total+item.pending},0),
-            official:Boolean(official),totalRent:statementValue(official,'totalRent',items.reduce(function(total,item){return total+item.due},0)),
-            totalCollected:statementValue(official,'totalCollected',items.reduce(function(total,item){return total+item.paid},0))
+            settledPaid:exactMoneySum(items.map(function(item){return item.paid})),pending:exactMoneySum(items.map(function(item){return item.pending})),
+            official:Boolean(official),totalRent:statementValue(official,'totalRent',exactMoneySum(items.map(function(item){return item.due}))),
+            totalCollected:statementValue(official,'totalCollected',exactMoneySum(items.map(function(item){return item.paid})))
           });
         }
       })

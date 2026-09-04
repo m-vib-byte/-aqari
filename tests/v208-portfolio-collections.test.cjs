@@ -17,6 +17,8 @@ test('V208 aggregates portfolio collections only from the secure V206.3 rent off
   const shell=fs.readFileSync(path.join(root,'v205-simplified-shell.js'),'utf8');
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
+  assert.match(propertyOS,/rentOfficeProperties:function\(\)/);
+  assert.match(propertyOS,/openProperty:function\(name,period\)/);
   assert.match(propertyOS,/rentOfficeData:function\(name,period\)/);
   assert.match(propertyOS,/totalRent:numberFrom\(model\.totals\.due\)/);
   assert.match(propertyOS,/totalCollected:numberFrom\(model\.totals\.paid\)/);
@@ -34,6 +36,8 @@ test('V208 aggregates portfolio collections only from the secure V206.3 rent off
   assert.match(loader,/script\.addEventListener\('load', installV208PortfolioCollections, \{ once:true \}\)/);
   assert.ok(loader.indexOf("script.src='/v206-rent-ledger.js'")<loader.indexOf("script.addEventListener('load', installV208PortfolioCollections"));
 
+  assert.match(portfolio,/AQARI_V202\?\.rentOfficeProperties/);
+  assert.match(portfolio,/AQARI_V202\.rentOfficeProperties\(\)/);
   assert.match(portfolio,/AQARI_V202\?\.rentOfficeData/);
   assert.match(portfolio,/rentOfficeData\(name,period\)/);
   assert.match(portfolio,/norm\(data\.property\)===norm\(name\)/);
@@ -61,6 +65,8 @@ test('V208 aggregates portfolio collections only from the secure V206.3 rent off
   assert.match(portfolio,/v202TabCollections/);
   assert.match(portfolio,/data-v202-action="statement"/);
   assert.match(portfolio,/v202StatementPeriod/);
+  assert.match(portfolio,/AQARI_V202\.openProperty\(name,period\)/);
+  assert.doesNotMatch(portfolio,/querySelectorAll\('\[data-v201-property\]'\)/);
   assert.match(portfolio,/id="v208PortfolioCollections"/);
   assert.match(portfolio,/id="v208HomeCollections"/);
   assert.match(portfolio,/window\.go\?\.\('collectionProPage'\)/);
