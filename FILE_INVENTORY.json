@@ -23,7 +23,7 @@
     {"path":"DEPLOYMENT_MANIFEST.json","size":551,"sha256":"6c7d8289ec102d637f5d9b17cbc77ec4e7e939fffb4d3d411b12f69173311e9c"},
     {"path":"DEPLOYMENT_PREFLIGHT.md","size":930,"sha256":"715b780cc67c2ed3875dab7f0d9a79ce3cf6e9f77695bb836b27473426b73712"},
     {"path":"ENVIRONMENT_CONTRACT.json","size":1292,"sha256":"636c0ea20cd17264c689f89ea5b2626085b84afc45fdb31e580a60dad350db91"},
-    {"path":"FINAL_RELEASE_CHECKLIST.md","size":1316,"sha256":"844f21a39a5c561be1b0c7c65b7742269845c16bf74de394fdc92d996af00a241"},
+    {"path":"FINAL_RELEASE_CHECKLIST.md","size":1316,"sha256":"844f21a39a5c561be1b0c7c65b7741d50df16e73b110c66d5b1a0cdfc55649ac"},
     {"path":"final-release-ui.css","size":756,"sha256":"fffb866afb4baaa75a930e68f1dbf4ff80d1cedaaff9b44457ce6a301af4b353"},
     {"path":"final-release-ui.js","size":12328,"sha256":"b5e82f9a9be8f2bac8839b9e7bb5f511bdfbb9140be76a4189fc1fbe9a1a4af0"},
     {"path":"FIRST_RUN_MIGRATION.md","size":868,"sha256":"4037e498983fa026729eb1773221929cce6dde9dfe37d95cd4681d65e9ad6f6a"},
