@@ -99,7 +99,7 @@
     {"path":"v210-daily-command-center.js","size":14542,"sha256":"c3bf4ce3d231da672903587bc57529a079d2dd4783954c0687b23a8e38651a87"},
     {"path":"v211-follow-up-center.css","size":5526,"sha256":"9256b9235a7b941c0d5de664ea8ed05d710f72d66f7ae2face749bd3c0cf8a79"},
     {"path":"v211-follow-up-center-core.js","size":18082,"sha256":"e1686db43314a2bd027d039d9b7194f8b99b10a72f8d4ce6d3e10c6780377264"},
-    {"path":"v211-follow-up-center.js","size":5737,"sha256":"67f037f62b62a2c40e0fd7e49076385b3e0c27b3fe9042b0fc68c13324f85476"},
+    {"path":"v211-follow-up-center.js","size":5799,"sha256":"3b09c950102063816c81e3b1ce880854e411c45a7523dfa50d7f03f476cf958a"},
     {"path":"vercel.json","size":823,"sha256":"0ac3992e81e33ebca703226b2764d5a08857da21bb848facbc60642131e5cdbb"},
     {"path":"VERSION.json","size":1936,"sha256":"bb343cd119825a1df184066f8e21e7fe0fb63f1b0ac68be3e613585fe736a798"}
   ]
