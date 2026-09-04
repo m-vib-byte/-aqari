@@ -3,11 +3,8 @@
 create table if not exists public.aqari_follow_up_events (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.aqari_workspaces(id) on delete cascade,
-  record_key text not null check (
-    record_key = btrim(record_key)
-    and char_length(record_key) between 1 and 500
-    and record_key !~ '[[:cntrl:]]'
-  ),
+  -- Opaque SHA-256 digest only; the protected V202 record key never reaches Postgres.
+  record_key text not null check (record_key ~ '^[0-9a-f]{64}$'),
   property text not null check (
     property = btrim(property)
     and char_length(property) between 1 and 160

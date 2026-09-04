@@ -2,6 +2,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const { webcrypto } = require('node:crypto');
+const { TextEncoder } = require('node:util');
 
 const migration = fs.readFileSync('supabase/migrations/20260904190000_v211_1_secure_follow_up_events.sql','utf8');
 const adapter = fs.readFileSync('supabase-adapter.js','utf8');
@@ -9,6 +11,7 @@ const center = fs.readFileSync('v211-follow-up-center.js','utf8');
 
 test('migration creates a minimal append-only journal with forced RLS', () => {
   assert.match(migration,/create table if not exists public\.aqari_follow_up_events/);
+  assert.match(migration,/record_key ~ '\^\[0-9a-f\]\{64\}\$'/);
   assert.match(migration,/enable row level security/);
   assert.match(migration,/force row level security/);
   assert.match(migration,/for select\s+to authenticated[\s\S]*m\.is_active = true/);
@@ -39,8 +42,8 @@ test('journal schema excludes tenant PII and free-form notes', () => {
 });
 
 test('adapter exposes strict validators and refuses spoof fields', () => {
-  const window = { AQARI_PUBLIC_CONFIG:{} };
-  vm.runInNewContext(adapter,{window,document:{},console,Error,Object,Set,String,Number,Array,Promise});
+  const window = { AQARI_PUBLIC_CONFIG:{}, crypto:webcrypto, TextEncoder };
+  vm.runInNewContext(adapter,{window,document:{},console,Error,Object,Set,String,Number,Array,Promise,Uint8Array,TextEncoder});
   const testing = window.AQARI_SUPABASE.testing;
   const clean = testing.validateFollowUpEvent({
     recordKey:'record-1',property:'برج ضحاوي',period:'2026-09',
@@ -57,12 +60,25 @@ test('adapter exposes strict validators and refuses spoof fields', () => {
   }),error => error.code === 'AQARI_FOLLOW_UP_INVALID');
 });
 
+test('adapter hashes protected record keys before persistence', async () => {
+  const window = { AQARI_PUBLIC_CONFIG:{}, crypto:webcrypto, TextEncoder };
+  vm.runInNewContext(adapter,{window,document:{},console,Error,Object,Set,String,Number,Array,Promise,Uint8Array,TextEncoder});
+  const raw='["tower","contract","unit","PRIVATE TENANT"]';
+  const hash=await window.AQARI_SUPABASE.followUpRecordHash(raw);
+  assert.match(hash,/^[0-9a-f]{64}$/);
+  assert.notEqual(hash,raw);
+  const body=adapter.slice(adapter.indexOf('async function appendFollowUpEvent'),adapter.indexOf('async function listFollowUpEvents'));
+  assert.match(body,/record_key:recordHash/);
+  assert.match(body,/followUpRecordHash\(clean\.record_key\)/);
+});
+
 test('adapter binds writes to refreshed access and revision, then rechecks', () => {
   const body = adapter.slice(adapter.indexOf('async function appendFollowUpEvent'),adapter.indexOf('async function listFollowUpEvents'));
   assert.match(body,/bindAccess\(expectedAccess, \{ write:true \}\)/);
   assert.match(body,/appStateRevision\(boundAccess\)/);
   assert.match(body,/expected !== currentRevision/);
   assert.match(body,/workspace_id:boundAccess\.workspaceId/);
+  assert.match(body,/record_key:recordHash/);
   assert.doesNotMatch(body,/workspace_id:event/);
   assert.match(body,/data\.created_by !== boundAccess\.userId/);
   assert.match(body,/recheckBoundAccess\(boundAccess, \{ write:true \}\)/);
@@ -80,6 +96,7 @@ test('V211 writes only through adapter after successful official actions', () =>
 
 test('timeline is scope-bound and authentication changes cancel stale work', () => {
   assert.match(center,/listFollowUpEvents\(\{/);
+  assert.match(center,/followUpRecordHash\(row\.key\)/);
   assert.match(center,/scopeKey\(\)!==expectedScope/);
   assert.match(center,/token!==interactionEpoch/);
   assert.match(center,/function seal\(\)\{authSuspended=true;close\(\)\}/);

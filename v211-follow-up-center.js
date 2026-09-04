@@ -265,8 +265,13 @@
     const access=exactAccess();
     const token=interactionEpoch;
     if(!access||!expectedScope||scopeKey()!==expectedScope||
-       typeof window.AQARI_SUPABASE?.listFollowUpEvents!=='function')return false;
+       typeof window.AQARI_SUPABASE?.listFollowUpEvents!=='function'||
+       typeof window.AQARI_SUPABASE?.followUpRecordHash!=='function')return false;
     try{
+      const rowHashes=await Promise.all(lastRows.map(function(row){
+        return window.AQARI_SUPABASE.followUpRecordHash(row.key);
+      }));
+      if(token!==interactionEpoch||scopeKey()!==expectedScope)return false;
       const events=await window.AQARI_SUPABASE.listFollowUpEvents({
         period:period,
         property:propertyFilter||undefined,
@@ -280,7 +285,7 @@
       });
       document.querySelectorAll('#v211Rows .v211-row').forEach(function(node,index){
         const row=lastRows[index];
-        const event=row?latest.get(row.key+'\u0000'+row.period):null;
+        const event=row?latest.get(rowHashes[index]+'\u0000'+row.period):null;
         const target=node.querySelector('[data-v211-timeline]');
         if(!target||!event)return;
         const labels={

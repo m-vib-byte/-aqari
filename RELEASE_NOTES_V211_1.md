@@ -3,6 +3,7 @@
 V211.1 adds a review-only candidate for durable follow-up history.
 
 - Append-only `aqari_follow_up_events` table with forced RLS.
+- V202 record keys are stored only as opaque SHA-256 digests; raw keys never reach Postgres.
 - Server-derived user identity and workspace-bound membership policies.
 - Atomic app-state revision check before every journal insert.
 - No tenant name, phone, email, civil ID, or free-form note columns.

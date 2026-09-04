@@ -233,8 +233,8 @@
     },
     {
       "path": "RELEASE_NOTES_V211_1.md",
-      "size": 635,
-      "sha256": "2f1958e700ce5aba3cf7f0c9fc4c4f824dab58539a61427736d9148f7061893c"
+      "size": 728,
+      "sha256": "02c96e808a433a5a91e00d061f70a8b55f3d6d88f86aab78dae392de179dc3b4"
     },
     {
       "path": "SAFE_AUTOSYNC.md",
@@ -333,13 +333,13 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 20933,
-      "sha256": "c6b56891e6eb6010ebaef8b697a30f976928d346f06202d3b4e09fce07cad762"
+      "size": 21775,
+      "sha256": "4f9a7903c6e434b841ed99642b5c3714b08bdea3c0b13d7214d7a5804b219542"
     },
     {
       "path": "supabase/migrations/20260904190000_v211_1_secure_follow_up_events.sql",
-      "size": 4086,
-      "sha256": "aa0b136c97b76aee8e24a64c22e4e17223dcbf47eff9c8d3714c899856017941"
+      "size": 4078,
+      "sha256": "037296ff284b577a2dec90517dfa8afe86f1773ce2745c5e831706eb5b903db0"
     },
     {
       "path": "sw.js",
@@ -403,8 +403,8 @@
     },
     {
       "path": "tests/v211-follow-up-cloud.test.cjs",
-      "size": 5147,
-      "sha256": "64868822e1cb205cd79e40d0a0eaf985beeb953ecfea3169a7dfdaf5dc9cb036"
+      "size": 6188,
+      "sha256": "5bc7977c18eb4ee22668a1d20d3e695be7bac35e2612e650a914dc99ae318c47"
     },
     {
       "path": "v199-ui.css",
@@ -503,8 +503,8 @@
     },
     {
       "path": "v211-follow-up-center.js",
-      "size": 21410,
-      "sha256": "d569e454f14658b3d3aa8b482275237b06127b1c003326af3a7b0b53188c5197"
+      "size": 21711,
+      "sha256": "4b00962a8b1f5b0508f384194159c5e55f5a285a0bdb1818663e513bbf982629"
     },
     {
       "path": "vercel.json",

@@ -338,6 +338,21 @@
     return value;
   }
 
+  async function followUpRecordHash(value){
+    const raw = safeJournalText(value, 'recordKey', 1200);
+    const subtle = window.crypto?.subtle;
+    const Encoder = window.TextEncoder || globalThis.TextEncoder;
+    if(!subtle || typeof Encoder !== 'function'){
+      const error = new Error('Web Crypto is required for private follow-up identifiers');
+      error.code = 'AQARI_FOLLOW_UP_CRYPTO_UNAVAILABLE';
+      throw error;
+    }
+    const digest = await subtle.digest('SHA-256', new Encoder().encode(raw));
+    return Array.from(new Uint8Array(digest))
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
   function validateFollowUpEvent(event){
     if(!event || typeof event !== 'object' || Array.isArray(event)){
       const error = new Error('Invalid follow-up event');
@@ -359,7 +374,7 @@
       throw error;
     }
     return Object.freeze({
-      record_key:safeJournalText(event.recordKey, 'recordKey', 500),
+      record_key:safeJournalText(event.recordKey, 'recordKey', 1200),
       property:safeJournalText(event.property, 'property', 160),
       period:periodValue,
       action_kind:actionKind,
@@ -376,7 +391,7 @@
       throw error;
     }
     const out = {};
-    if(value.recordKey != null) out.recordKey = safeJournalText(value.recordKey, 'recordKey', 500);
+    if(value.recordKey != null) out.recordKey = safeJournalText(value.recordKey, 'recordKey', 1200);
     if(value.property != null) out.property = safeJournalText(value.property, 'property', 160);
     if(value.period != null){
       out.period = safeJournalText(value.period, 'period', 7);
@@ -423,11 +438,14 @@
     await recheckBoundAccess(boundAccess, { write:true });
     const client = state.client;
     if(!client) throw accessError();
+    const recordHash = await followUpRecordHash(clean.record_key);
+    await recheckBoundAccess(boundAccess, { write:true });
     const { data, error } = await client
       .from('aqari_follow_up_events')
       .insert({
         workspace_id:boundAccess.workspaceId,
         ...clean,
+        record_key:recordHash,
         app_state_revision:expected
       })
       .select('id, workspace_id, record_key, property, period, action_kind, state, app_state_revision, created_by, created_at')
@@ -451,7 +469,7 @@
       .from('aqari_follow_up_events')
       .select('id, workspace_id, record_key, property, period, action_kind, state, app_state_revision, created_by, created_at')
       .eq('workspace_id', boundAccess.workspaceId);
-    if(clean.recordKey) query = query.eq('record_key', clean.recordKey);
+    if(clean.recordKey) query = query.eq('record_key', await followUpRecordHash(clean.recordKey));
     if(clean.property) query = query.eq('property', clean.property);
     if(clean.period) query = query.eq('period', clean.period);
     const { data, error } = await query
@@ -526,7 +544,7 @@
   window.AQARI_SUPABASE = Object.freeze({
     version:'V211.1', getClient, refreshContext, signIn, signUp, signOut,
     resetPasswordForEmail, updatePassword, onAuthStateChange, loadAppState, saveAppState,
-    appStateRevision, appendFollowUpEvent, listFollowUpEvents,
+    appStateRevision, followUpRecordHash, appendFollowUpEvent, listFollowUpEvents,
     clearPersistedSession, getSession, hasSession, verifySessionNull,
     authStorageKey:AUTH_STORAGE_KEY,
     testing:Object.freeze({ validateFollowUpEvent, validateFollowUpFilter }),
