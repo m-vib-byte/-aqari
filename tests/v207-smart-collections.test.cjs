@@ -43,6 +43,7 @@ test('V207 adds a smart collection layer over the official V206 ledger',()=>{
   assert.match(smart,/data-v202-action="payment"/);
   assert.match(smart,/v202PaymentContract/);
   assert.match(smart,/v202PaymentAmount/);
+  assert.match(smart,/document\.getElementById\('v202PaymentAmount'\)\?\.focus\(\)/);
   assert.match(smart,/مركز متابعة التحصيل/);
   assert.match(smart,/مطلوب الآن/);
   assert.doesNotMatch(smart,/rentLedgerV202/);
