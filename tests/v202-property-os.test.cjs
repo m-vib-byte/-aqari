@@ -58,6 +58,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}) {
       pickedRecord,
       protectedFields: PROTECTED_FIELDS,
       protectedPropertyActive,
+      protectedAccessReady,
       hydrateProtectedImport,
       clearProtectedImport,
       handleProtectedAuthStateChange,
@@ -415,6 +416,49 @@ test('V206.1 rejects conflicting tenant identity even when contract, unit, and p
   assert.equal(row.paid, 40);
   assert.equal(row.pending, 20);
   assert.equal(runtime.paidForPeriod('SYNTHETIC TEST PROPERTY', contract, '2026-08'), 40);
+});
+
+test('V206.1 keeps simultaneous contracts on one unit isolated by contract identity', () => {
+  const data = fixture();
+  data.contractsV202.push({
+    id: 'contract-a-second', contract_no: 'SECOND-A', tenant: 'SECOND TENANT',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'A', rent: 75, status: 'signed',
+    start_date: '2026-01-01', end_date: '2026-12-31', source: 'synthetic-test-import',
+  });
+  data.tenantDirectoryV202.push({
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'A', tenant: 'SECOND TENANT',
+    contractNo: 'SECOND-A', verified: true, source: 'synthetic-test-import',
+  });
+  data.rentLedgerV202.push({
+    id: 'second-contract-payment', receiptNo: 'R-SECOND-A',
+    property: 'SYNTHETIC TEST PROPERTY', unit: 'A', tenant: 'SECOND TENANT',
+    contractId: 'contract-a-second', period: '2026-08', due: 75, paid: 30,
+    paidAt: '2026-08-18', status: 'paid', source: 'synthetic-test-import',
+  });
+
+  const runtime = loadRuntime(data, [], activeRuntimeWindow());
+  const context = runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const records = runtime.unitDirectoryRecords(context, '2026-08').filter((entry) => entry.unit === 'A' && entry.hasContract);
+  const rows = runtime.propertyRentLedgerRows(context, '2026-08').filter((entry) => entry.unit === 'A');
+  assert.deepEqual(Array.from(records, (entry) => entry.contractId).sort(), ['contract-a', 'contract-a-second']);
+  assert.equal(new Set(records.map((entry) => entry.key)).size, 2);
+  assert.deepEqual(Array.from(rows, (entry) => [entry.contractId, entry.tenant, entry.paid]), [
+    ['contract-a', 'TEST TENANT', 40],
+    ['contract-a-second', 'SECOND TENANT', 30],
+  ]);
+});
+
+test('V206.1 access requires membership identities to match the active user and workspace', () => {
+  const exact = activeRuntimeWindow();
+  assert.equal(loadRuntime(fixture(), [], exact).protectedAccessReady(), true);
+  const partial = {
+    AQARI_SUPABASE: {
+      context: {
+        user: { id: 'user-test' }, membership: { is_active: true }, workspace: { id: 'workspace-test' },
+      },
+    },
+  };
+  assert.equal(loadRuntime(fixture(), [], partial).protectedAccessReady(), false);
 });
 
 test('V206.1 collection receipts are settled-only', () => {
@@ -959,7 +1003,7 @@ test('V204 active protected import stays in memory and clears without mutating l
   const before = JSON.stringify(local);
   const runtimeWindow = {
     AQARI_SUPABASE: {
-      context: { user: { id: 'user-test' }, membership: { is_active: true }, workspace: { id: 'workspace-test' } },
+      context: { user: { id: 'user-test' }, membership: { is_active: true, user_id: 'user-test', workspace_id: 'workspace-test' }, workspace: { id: 'workspace-test' } },
       async loadAppState() { return { payload: remote }; },
     },
   };
@@ -1021,7 +1065,7 @@ test('V204 sign-out generation prevents an in-flight protected response from res
   local.rentLedgerV202 = [];
   local.rentStatementsV202 = [];
   let resolveLoad;
-  const context = { user: { id: 'user-test' }, membership: { is_active: true }, workspace: { id: 'workspace-test' } };
+  const context = { user: { id: 'user-test' }, membership: { is_active: true, user_id: 'user-test', workspace_id: 'workspace-test' }, workspace: { id: 'workspace-test' } };
   const runtimeWindow = {
     AQARI_SUPABASE: {
       context,

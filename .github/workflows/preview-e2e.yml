@@ -10,14 +10,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      AQARI_BASE_URL: https://aqari-git-chatgpt-v206-1-luxury-ledger-m-vib-5421.vercel.app
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      AQARI_PROJECT_SLUG: aqari
+      AQARI_TEAM_SLUG: m-vib-5421
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Resolve branch Preview URL
+        shell: bash
+        run: |
+          branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
+          slug=$(printf '%s' "$branch" | tr '[:upper:]/_' '[:lower:]--' | sed -E 's/[^a-z0-9-]+/-/g; s/-+/-/g; s/^-//; s/-$//')
+          test -n "$slug"
+          echo "AQARI_BASE_URL=https://${AQARI_PROJECT_SLUG}-git-${slug}-${AQARI_TEAM_SLUG}.vercel.app" >> "$GITHUB_ENV"
       - run: npm install
       - run: npx playwright install --with-deps chromium
       - name: Require protected Preview access

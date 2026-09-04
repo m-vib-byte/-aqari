@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1761,
-      "sha256": "1028df88150c3a79030661bbfccfb08aa08f1eb2487bd198a031216219ce9c9f"
+      "size": 2145,
+      "sha256": "03835a7701f0f379a320477f8709bb560d436f6361a083384ba91937de2652e0"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -343,8 +343,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 55852,
-      "sha256": "fc1198bc36cf67ae847a422d81851d46a8e63861396fe7421bba07b078fc0fdc"
+      "size": 58134,
+      "sha256": "fb1c4155068d3e9486ad8bd72cffd8d80122cfa8c2695725f3bb1baa092df7af"
     },
     {
       "path": "v199-ui.css",
@@ -378,8 +378,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 169064,
-      "sha256": "27cdf43598577137f1038bad109bbb658d5ec7a9063dd75fd2bd309bc0396a0e"
+      "size": 169304,
+      "sha256": "9851bc633d0ef75be4562e288db6cb97d4bcd68ffb8150cf43c2a933adf0b464"
     },
     {
       "path": "v205-simple.css",

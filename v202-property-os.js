@@ -123,9 +123,9 @@
     const userId=String(context?.user?.id||'').trim();
     const workspaceId=String(context?.workspace?.id||'').trim();
     const membership=context?.membership;
-    if(!userId||!workspaceId||!membership?.is_active)return null;
-    if(membership.user_id&&String(membership.user_id)!==userId)return null;
-    if(membership.workspace_id&&String(membership.workspace_id)!==workspaceId)return null;
+    if(!userId||!workspaceId||membership?.is_active!==true)return null;
+    if(String(membership.user_id||'')!==userId)return null;
+    if(String(membership.workspace_id||'')!==workspaceId)return null;
     return {userId:userId,workspaceId:workspaceId};
   }
 
@@ -481,7 +481,7 @@
   }
 
   function unitRecordKey(record){
-    return [normalized(record?.property),normalized(record?.unit),normalized(record?.contractNo),normalized(record?.tenant)].join('|');
+    return [normalized(record?.property),normalized(record?.contractId),normalized(record?.unit),normalized(record?.contractNo),normalized(record?.tenant)].join('|');
   }
 
   function unitMatchesSearch(record,query){
@@ -892,34 +892,37 @@
     const directory=directoryEntriesFor(property);
     const statement=rentStatementItems(context,period);
     const statementById=new Map(statement.map(function(item){return [normalized(item.contractId),item]}).filter(function(pair){return pair[0]}));
-    const map=new Map();
-
-    directory.forEach(function(entry,index){
-      const key=normalized(entry.unit)||'directory:'+index;
-      if(!map.has(key))map.set(key,{property,unit:entry.unit||'—',tenant:entry.tenant,contractNo:entry.contractNo,directory:entry,contract:null});
-    });
+    const bases=[];
+    const claimedDirectory=new Set();
 
     context.propertyContracts.slice().sort(function(left,right){return contractPriority(right,period)-contractPriority(left,period)}).forEach(function(contract,index){
-      const idKey=normalized(contractId(contract));
-      const key=normalized(contract.unit)||(idKey?'contract:'+idKey:'contract:'+index);
-      const current=map.get(key)||{property,unit:contract.unit||'—',tenant:'',contractNo:'',directory:null,contract:null};
-      if(!current.contract){
-        const matched=directoryRecordFor(directory,contract);
-        current.contract=contract;
-        current.directory=matched||current.directory;
-        current.unit=contract.unit||current.directory?.unit||'—';
-        current.tenant=contract.tenant||current.directory?.tenant||'';
-        current.contractNo=contract.contract_no||current.directory?.contractNo||'';
-      }
-      map.set(key,current);
+      let matched=directoryRecordFor(directory,contract);
+      const matchedIndex=matched?directory.indexOf(matched):-1;
+      if(matchedIndex>=0&&claimedDirectory.has(matchedIndex))matched=null;
+      else if(matchedIndex>=0)claimedDirectory.add(matchedIndex);
+      bases.push({
+        property,unit:contract.unit||matched?.unit||'—',tenant:contract.tenant||matched?.tenant||'',
+        contractNo:contract.contract_no||matched?.contractNo||'',directory:matched,contract,index
+      });
+    });
+
+    directory.forEach(function(entry,index){
+      if(!claimedDirectory.has(index))bases.push({property,unit:entry.unit||'—',tenant:entry.tenant,contractNo:entry.contractNo,directory:entry,contract:null,index});
     });
 
     context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry,index){
-      const key=normalized(entry?.unit)||'ledger:'+index;
-      if(!map.has(key))map.set(key,{property,unit:String(entry?.unit||'—'),tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null});
+      const entryId=normalized(entry?.contractId||entry?.contract_id);
+      const matches=bases.filter(function(base){
+        const baseId=normalized(contractId(base.contract));
+        if(entryId&&baseId){
+          return entryId===baseId&&optionalIdentityMatch(entry?.unit,base.unit)&&optionalIdentityMatch(entry?.tenant,base.tenant);
+        }
+        return normalized(entry?.unit)===normalized(base.unit)&&normalized(entry?.tenant)===normalized(base.tenant);
+      });
+      if(matches.length===0)bases.push({property,unit:String(entry?.unit||'—'),tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null,index:'ledger-'+index});
     });
 
-    return Array.from(map.values()).map(function(base){
+    return bases.map(function(base){
       const contract=base.contract;
       const directoryRecord=base.directory||directoryRecordFor(directory,contract)||{};
       const id=normalized(contractId(contract));
@@ -948,7 +951,7 @@
       const contractReceived=String(directoryRecord.contractReceived||directoryRecord.contractReceipt||settledLedger.map(function(entry){return entry?.contractReceived}).find(Boolean)||'');
       const paymentStatus=!contract?'يحتاج مراجعة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
       return {
-        key:unitRecordKey({property,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
+        key:unitRecordKey({property,contractId:contractId(contract),unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
         property,period,unit:String(base.unit||'—'),tenant:String(base.tenant||directoryRecord.tenant||''),
         contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(contractId(contract)||''),
         directorySource:String(directoryRecord.source||''),contractSource:String(contract?.source||''),
