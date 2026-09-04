@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1761,
-      "sha256": "1028df88150c3a79030661bbfccfb08aa08f1eb2487bd198a031216219ce9c9f"
+      "size": 2154,
+      "sha256": "7ad7071621e7d1dc85ce9e789e4c0203b204665df1ace171a4a0c97e92d866c6"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -348,8 +348,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 60471,
-      "sha256": "fe296ef1c6691ffab95f212ebb19c4a4dfcfbdcd5ed194d4432674e1bfe59668"
+      "size": 70800,
+      "sha256": "a7141c925f27809bdf844bfbfd28e68731201b6fa4dc4e0f090c241d50cf8746"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -388,8 +388,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 182115,
-      "sha256": "6a832af65e5cbcb329096d9b06e7e8459a04727ec9e98550d1a47c7bc6d55662"
+      "size": 186793,
+      "sha256": "0ee66053c258cd288c32b283fe90cd065d39e36478976253f99fc8980babab5e"
     },
     {
       "path": "v205-simple.css",
@@ -398,8 +398,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 22696,
-      "sha256": "8349cd9d83fcc6574cdb7afa0b30e6dc9a345a0d596a478fd233e7bb75c7f276"
+      "size": 22832,
+      "sha256": "f06a627859ce805f71efcba0ea3d8bf204e23af18e579238eee80e78f4df4bd2"
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -413,8 +413,8 @@
     },
     {
       "path": "v206-rent-ledger.js",
-      "size": 24513,
-      "sha256": "e6ca4e509f3071d761ef1757c9da575b5ca55ed989cc9ca617e443e193b0d857"
+      "size": 24650,
+      "sha256": "2e1548a2a08290704029f34c3ed677c5c5aa8122ca50538617e3e752ba892648"
     },
     {
       "path": "vercel.json",

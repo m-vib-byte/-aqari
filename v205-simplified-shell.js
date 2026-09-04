@@ -47,9 +47,10 @@
       const userId=String(context?.user?.id||'').trim();
       const workspaceId=String(context?.workspace?.id||'').trim();
       const membership=context?.membership;
-      if(!userId||!workspaceId||!membership?.is_active)return false;
-      if(membership.user_id&&String(membership.user_id)!==userId)return false;
-      if(membership.workspace_id&&String(membership.workspace_id)!==workspaceId)return false;
+      const membershipUserId=String((membership&&membership.user_id)||'').trim();
+      const membershipWorkspaceId=String((membership&&membership.workspace_id)||'').trim();
+      if(!userId||!workspaceId||membership?.is_active!==true||!membershipUserId||!membershipWorkspaceId)return false;
+      if(membershipUserId!==userId||membershipWorkspaceId!==workspaceId)return false;
       return true;
     }catch(_){return false}
   }
