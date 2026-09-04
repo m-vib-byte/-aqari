@@ -641,6 +641,19 @@
     if(rows)new MutationObserver(function(){setTimeout(enhanceActivePage,0)}).observe(rows,{childList:true,subtree:true});
   }
 
+  function sealExperience(){
+    clearTimeout(enhancementTimer);
+    enhancementTimer=0;
+    createTrigger=null;modalTrigger=null;propertyTrigger=null;
+    activeProperty='';createOpen=false;pendingReceipt=false;
+    for(const id of ['v201CreateMenu','v201PropertyCenter','v201RentStatement']){
+      const layer=document.getElementById(id);
+      if(layer){layer.classList.remove('on');layer.setAttribute('aria-hidden','true')}
+    }
+    for(const id of ['v201PropertySummary','v201StatementBody'])document.getElementById(id)?.replaceChildren();
+    document.body.classList.remove('v201-layer-open');
+  }
+
   function boot(){
     releasePresentation();
     document.querySelector('.v199-brand-copy small')?.replaceChildren(document.createTextNode('إدارة الأملاك'));
@@ -662,6 +675,8 @@
     observers();
     setTimeout(scheduleEnhance,500);
   }
+
+  window.AQARI_V201=Object.freeze({version:V201_DESIGN,seal:sealExperience});
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();

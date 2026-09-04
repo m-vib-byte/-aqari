@@ -1,4 +1,476 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V198 • Supabase Connected</title><style id="aqari-v198-legacy-gate-lock">#auth,#loginGateV120{display:none!important}</style><style>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#b88927"><link rel="manifest" href="/manifest.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><title>عقاري V198 • Supabase Connected</title><style id="aqari-auth-paint-guard">html:not(.aqari-shell-ready) body{visibility:hidden!important}html.aqari-shell-ready:not(.aqari-auth-unlocked) body>*:not(#aqariCloudGateV168){visibility:hidden!important}html.aqari-shell-ready:not(.aqari-auth-unlocked) #aqariCloudGateV168{visibility:visible!important;display:flex!important}</style><script id="aqari-early-storage-gate">
+(function(){
+  'use strict';
+
+  const nativeStore = window.localStorage;
+  const nativeSessionStore = window.sessionStorage;
+  const native = {
+    getItem:nativeStore.getItem.bind(nativeStore),
+    setItem:nativeStore.setItem.bind(nativeStore),
+    removeItem:nativeStore.removeItem.bind(nativeStore),
+    key:nativeStore.key.bind(nativeStore),
+    clear:nativeStore.clear.bind(nativeStore)
+  };
+  const nativeSession = {
+    getItem:nativeSessionStore.getItem.bind(nativeSessionStore),
+    setItem:nativeSessionStore.setItem.bind(nativeSessionStore),
+    removeItem:nativeSessionStore.removeItem.bind(nativeSessionStore),
+    key:nativeSessionStore.key.bind(nativeSessionStore),
+    clear:nativeSessionStore.clear.bind(nativeSessionStore)
+  };
+  const PRIMARY_KEY = 'aqari_v30';
+  const PRIMARY_PREFIX = PRIMARY_KEY + '::workspace::';
+  const SCOPED_PREFIX = 'aqari_workspace_store::';
+  const SESSION_SCOPED_PREFIX = 'aqari_workspace_session::';
+  const QUARANTINE_PREFIX = 'aqari_legacy_quarantine::';
+  const MANAGED_KEY = /aqari|tenant|property|unit|lease|payment|maintenance|employee|owner|vendor|document/i;
+  const VOLATILE_KEYS = [
+    'aqari_session_v31','aqari_session_v44','aqari_server_token_v51',
+    'aqari_v75_last_activity','aqari_last_activity_v119','aqari_cloud_autosync_enabled'
+  ];
+  let activeScope = null;
+
+  function accessScope(context){
+    const userId = String(context?.user?.id || '').trim();
+    const workspaceId = String(context?.workspace?.id || '').trim();
+    const membership = context?.membership;
+    if(!userId || !workspaceId || membership?.is_active !== true) return null;
+    if(String(membership.user_id || '') !== userId) return null;
+    if(String(membership.workspace_id || '') !== workspaceId) return null;
+    return { userId, workspaceId };
+  }
+
+  function sameScope(left, right){
+    return Boolean(left && right && left.userId === right.userId && left.workspaceId === right.workspaceId);
+  }
+
+  function scopeError(){
+    const error = new Error('AQARI workspace storage requires an authenticated matching membership');
+    error.code = 'AQARI_EARLY_STORAGE_SCOPE_REQUIRED';
+    return error;
+  }
+
+  function rawKeys(){
+    const keys = [];
+    for(let index = 0; index < nativeStore.length; index += 1){
+      const key = native.key(index);
+      if(key !== null) keys.push(String(key));
+    }
+    return keys;
+  }
+
+  function rawSessionKeys(){
+    const keys = [];
+    for(let index = 0; index < nativeSessionStore.length; index += 1){
+      const key = nativeSession.key(index);
+      if(key !== null) keys.push(String(key));
+    }
+    return keys;
+  }
+
+  function isManaged(key){ return MANAGED_KEY.test(String(key || '')); }
+  function encodedUser(scope = activeScope){ return encodeURIComponent(scope?.userId || ''); }
+  function encodedWorkspace(scope = activeScope){ return encodeURIComponent(scope?.workspaceId || ''); }
+  function primaryPhysical(scope = activeScope){ return PRIMARY_PREFIX + encodedWorkspace(scope); }
+  function scopedBase(scope = activeScope){ return SCOPED_PREFIX + encodedWorkspace(scope) + '::'; }
+  function sessionBase(scope = activeScope){
+    return SESSION_SCOPED_PREFIX + encodedUser(scope) + '::' + encodedWorkspace(scope) + '::';
+  }
+  function scopedPhysical(key, scope = activeScope){
+    return String(key) === PRIMARY_KEY
+      ? primaryPhysical(scope)
+      : scopedBase(scope) + encodeURIComponent(String(key));
+  }
+  function physicalWorkspaceMatches(key, scope = activeScope){
+    if(!scope) return false;
+    const value = String(key);
+    if(value.startsWith(PRIMARY_PREFIX)) return value === primaryPhysical(scope);
+    if(value.startsWith(SCOPED_PREFIX)) return value.startsWith(scopedBase(scope));
+    return false;
+  }
+  function isPhysical(key){
+    const value = String(key || '');
+    return value.startsWith(PRIMARY_PREFIX) || value.startsWith(SCOPED_PREFIX) || value.startsWith(QUARANTINE_PREFIX);
+  }
+  function isSupabaseSessionKey(key){
+    const value = String(key || '');
+    return value === 'aqari-supabase-auth-v198' || value.startsWith('aqari-supabase-auth-v198-') ||
+      /^sb-[a-z0-9-]+-auth-token(?:-code-verifier)?$/i.test(value);
+  }
+  function isManagedSession(key){
+    const value = String(key || '');
+    return !isSupabaseSessionKey(value) && isManaged(value);
+  }
+
+  function neutralText(value){
+    return String(value)
+      .replace(/&(?=(?:#(?:x[0-9a-f]+|[0-9]+)|lt|gt|quot|apos|colon|tab|newline);?)/gi, '＆')
+      .replace(/</g, '‹')
+      .replace(/>/g, '›');
+  }
+
+  function neutralValue(value, depth = 0){
+    if(depth > 16) throw new Error('AQARI local data nesting is too deep');
+    if(value === null || typeof value === 'number' || typeof value === 'boolean') return value;
+    if(typeof value === 'string') return neutralText(value);
+    if(Array.isArray(value)) return value.map((item) => neutralValue(item, depth + 1));
+    if(!value || typeof value !== 'object') return null;
+    const clean = {};
+    for(const [key, item] of Object.entries(value)){
+      if(key === '__proto__' || key === 'prototype' || key === 'constructor') continue;
+      clean[key] = neutralValue(item, depth + 1);
+    }
+    return clean;
+  }
+
+  const nativeInnerHTMLDescriptor = window.Element?.prototype
+    ? Object.getOwnPropertyDescriptor(window.Element.prototype, 'innerHTML')
+    : null;
+  const nativeInsertAdjacentHTML = window.Element?.prototype?.insertAdjacentHTML;
+  // Dynamic inline event handlers are never trusted. Critical navigation and print
+  // actions are converted to inert data markers, then rebound without eval.
+  const htmlActionHandlers = new WeakMap();
+  const htmlActionNodes = new WeakSet();
+  function markCriticalHTMLActions(value){
+    return String(value)
+      .replace(/\s+onclick\s*=\s*(["'])\s*go\(\s*(["'])([A-Za-z][\w-]{0,80})\2\s*\)\s*;\s*searchBox\.style\.display\s*=\s*(["'])none\4\s*;\s*search\.value\s*=\s*(["'])\5\s*;?\s*\1/gi,
+        (_whole, _outer, _inner, page) => ' data-aqari-nav-action="' + page + '" data-aqari-search-close=""')
+      .replace(/\s+onclick\s*=\s*(["'])\s*go\(\s*(["'])([A-Za-z][\w-]{0,80})\2(?:\s*,\s*this)?\s*\)\s*;?\s*\1/gi,
+        (_whole, _outer, _inner, page) => ' data-aqari-nav-action="' + page + '"')
+      .replace(/\s+onclick\s*=\s*(["'])\s*window\.print\(\)\s*;?\s*\1/gi,
+        ' data-aqari-print-action=""');
+  }
+  function prefilterHTML(value){
+    const withoutReservedActions=String(value)
+      .replace(/\s+data-aqari-(?:nav-action|print-action|search-close)\s*=\s*(["'])([\s\S]*?)\1/gi,'')
+      .replace(/\s+data-aqari-(?:nav-action|print-action|search-close)\s*=(?!\s*["'])\s*[^\s>]+/gi,'');
+    return markCriticalHTMLActions(withoutReservedActions)
+      .replace(/\s+on[a-z][\w:.-]*\s*=\s*(["'])([\s\S]*?)\1/gi, ' data-aqari-blocked-event=""')
+      .replace(/\s+(on[a-z][\w:.-]*|srcdoc)\s*=(?!\s*["'])\s*[^\s>]+/gi, ' data-aqari-blocked-attribute=""');
+  }
+  function sanitizeHTML(value){
+    const filtered = prefilterHTML(value);
+    if(!window.document?.createElement || !window.Element?.prototype) return filtered;
+    const descriptor = nativeInnerHTMLDescriptor;
+    if(!descriptor?.set || !descriptor?.get) return filtered;
+    try{
+      const template = window.document.createElement('template');
+      descriptor.set.call(template, filtered);
+      const root = template.content || template;
+      root.querySelectorAll?.('script,object,embed,base,meta,link').forEach((node) => node.remove());
+      root.querySelectorAll?.('*').forEach((node) => {
+        for(const attribute of Array.from(node.attributes || [])){
+          const name = String(attribute.name || '').toLowerCase();
+          const raw = String(attribute.value || '');
+          if(name.startsWith('on')){ node.removeAttribute(attribute.name); continue; }
+          if(name === 'srcdoc'){ node.removeAttribute(attribute.name); continue; }
+          if(['href','src','action','formaction','xlink:href'].includes(name)){
+            const compact = raw.replace(/[\u0000-\u0020\u007f]+/g, '').toLowerCase();
+            if(/^(?:javascript|vbscript):/.test(compact) || /^data:(?:text\/html|image\/svg\+xml)/.test(compact)) node.removeAttribute(attribute.name);
+          }
+          if(name === 'style' && /(?:expression\s*\(|url\s*\(\s*['"]?\s*(?:javascript|vbscript|data:text\/html)|-moz-binding)/i.test(raw)) node.removeAttribute(attribute.name);
+        }
+        if(node.localName === 'iframe'){
+          const src = String(node.getAttribute('src') || '');
+          if(!/^blob:/i.test(src)) node.remove();
+          else node.setAttribute('sandbox','');
+        }
+      });
+      return descriptor.get.call(template);
+    }catch{ return filtered; }
+  }
+
+  function bindCriticalHTMLActions(root){
+    if(!root?.querySelectorAll) return;
+    const nodes = Array.from(root.querySelectorAll('[data-aqari-nav-action],[data-aqari-print-action]'));
+    if(root.matches?.('[data-aqari-nav-action],[data-aqari-print-action]')) nodes.unshift(root);
+    nodes.forEach((node) => {
+      if(htmlActionNodes.has(node)) return;
+      const page = String(node.getAttribute?.('data-aqari-nav-action') || '');
+      const print = node.hasAttribute?.('data-aqari-print-action');
+      const closeSearch = node.hasAttribute?.('data-aqari-search-close');
+      node.removeAttribute?.('data-aqari-print-action');
+      node.removeAttribute?.('data-aqari-search-close');
+      let action = null;
+      if(/^[A-Za-z][\w-]{0,80}$/.test(page)){
+        action = () => {
+          if(typeof window.go === 'function') window.go(page, node);
+          if(closeSearch){
+            const searchBox=window.document?.getElementById?.('searchBox');
+            const search=window.document?.getElementById?.('search');
+            if(searchBox)searchBox.style.display='none';
+            if(search)search.value='';
+          }
+        };
+      }else if(print){
+        action = () => { if(typeof window.print === 'function') window.print(); };
+      }
+      if(!action) return;
+      htmlActionHandlers.set(node, action);
+      htmlActionNodes.add(node);
+      node.addEventListener?.('click', action);
+    });
+  }
+
+  function installHTMLSinkBoundary(){
+    const prototype = window.Element?.prototype;
+    const descriptor = nativeInnerHTMLDescriptor;
+    if(!descriptor?.set || !descriptor?.get || descriptor.configurable === false) return false;
+    Object.defineProperty(prototype, 'innerHTML', {
+      configurable:false,
+      enumerable:descriptor.enumerable,
+      get:descriptor.get,
+      set(value){ descriptor.set.call(this, sanitizeHTML(value)); bindCriticalHTMLActions(this); }
+    });
+    if(typeof nativeInsertAdjacentHTML === 'function'){
+      Object.defineProperty(prototype, 'insertAdjacentHTML', {
+        configurable:false,
+        writable:false,
+        value(position, value){
+          const result = nativeInsertAdjacentHTML.call(this, position, sanitizeHTML(value));
+          bindCriticalHTMLActions(this);
+          return result;
+        }
+      });
+    }
+    return true;
+  }
+
+  function neutralSerialized(raw){
+    const value = String(raw);
+    try { return JSON.stringify(neutralValue(JSON.parse(value))); }
+    catch { return neutralText(value); }
+  }
+
+  function requireActive(){
+    const live = accessScope(window.AQARI_SUPABASE?.context);
+    if(!sameScope(activeScope, live)) throw scopeError();
+    return live;
+  }
+
+  function resolvePhysical(key){
+    const logical = String(key);
+    if(isPhysical(logical)){
+      if(!physicalWorkspaceMatches(logical)) return null;
+      requireActive();
+      return logical;
+    }
+    if(!isManaged(logical)) return logical;
+    const scope = requireActive();
+    return scopedPhysical(logical, scope);
+  }
+
+  function read(key){
+    const logical = String(key);
+    if(isManaged(logical) && !activeScope) return null;
+    let physical;
+    try { physical = resolvePhysical(logical); }
+    catch { return null; }
+    if(physical === null) return null;
+    return native.getItem(physical);
+  }
+
+  function write(key, value){
+    const logical = String(key);
+    if(isManaged(logical) && !activeScope) return;
+    let physical;
+    try { physical = resolvePhysical(logical); }
+    catch { return; }
+    if(physical === null) return;
+    native.setItem(physical, String(value));
+  }
+
+  function remove(key){
+    const logical = String(key);
+    if(isManaged(logical) && !activeScope) return;
+    let physical;
+    try { physical = resolvePhysical(logical); }
+    catch { return; }
+    if(physical !== null) native.removeItem(physical);
+  }
+
+  function visibleKeys(){
+    const result = [];
+    const seen = new Set();
+    const primary = activeScope ? primaryPhysical() : '';
+    const base = activeScope ? scopedBase() : '';
+    for(const raw of rawKeys()){
+      let logical = null;
+      if(!isManaged(raw)) logical = raw;
+      else if(activeScope && raw === primary) logical = PRIMARY_KEY;
+      else if(activeScope && raw.startsWith(base)){
+        try { logical = decodeURIComponent(raw.slice(base.length)); }
+        catch { logical = null; }
+      }
+      if(logical !== null && !seen.has(logical)){
+        seen.add(logical);
+        result.push(logical);
+      }
+    }
+    return result;
+  }
+
+  function clearVisible(){
+    if(!activeScope) return;
+    const primary = primaryPhysical();
+    const base = scopedBase();
+    for(const raw of rawKeys()){
+      if(raw === primary || raw.startsWith(base)) native.removeItem(raw);
+    }
+  }
+
+  function sessionPhysical(key, scope = activeScope){
+    return sessionBase(scope) + encodeURIComponent(String(key));
+  }
+
+  function resolveSessionPhysical(key){
+    const logical = String(key);
+    if(isSupabaseSessionKey(logical) || !isManagedSession(logical)) return logical;
+    if(logical.startsWith(SESSION_SCOPED_PREFIX)){
+      if(!activeScope || !logical.startsWith(sessionBase())) return null;
+      requireActive();
+      return logical;
+    }
+    const scope = requireActive();
+    return sessionPhysical(logical, scope);
+  }
+
+  function readSession(key){
+    const logical = String(key);
+    if(isManagedSession(logical) && !activeScope) return null;
+    let physical;
+    try { physical = resolveSessionPhysical(logical); }
+    catch { return null; }
+    if(physical === null) return null;
+    return nativeSession.getItem(physical);
+  }
+
+  function writeSession(key, value){
+    const logical = String(key);
+    if(isManagedSession(logical) && !activeScope) return;
+    let physical;
+    try { physical = resolveSessionPhysical(logical); }
+    catch { return; }
+    if(physical === null) return;
+    nativeSession.setItem(physical, String(value));
+  }
+
+  function removeSession(key){
+    const logical = String(key);
+    if(isManagedSession(logical) && !activeScope) return;
+    let physical;
+    try { physical = resolveSessionPhysical(logical); }
+    catch { return; }
+    if(physical !== null) nativeSession.removeItem(physical);
+  }
+
+  function visibleSessionKeys(){
+    const result = [];
+    const seen = new Set();
+    const base = activeScope ? sessionBase() : '';
+    for(const raw of rawSessionKeys()){
+      let logical = null;
+      if(isSupabaseSessionKey(raw) || !isManagedSession(raw)) logical = raw;
+      else if(activeScope && raw.startsWith(base)){
+        try { logical = decodeURIComponent(raw.slice(base.length)); }
+        catch { logical = null; }
+      }
+      if(logical !== null && !seen.has(logical)){
+        seen.add(logical);
+        result.push(logical);
+      }
+    }
+    return result;
+  }
+
+  function clearVisibleSession(){
+    if(!activeScope) return;
+    const base = sessionBase();
+    for(const raw of rawSessionKeys()){
+      if(raw.startsWith(base)) nativeSession.removeItem(raw);
+    }
+  }
+
+  function purgeUnscopedLegacy(){
+    for(const raw of rawKeys()){
+      if(!isManaged(raw) || isPhysical(raw)) continue;
+      const quarantineKey = QUARANTINE_PREFIX + encodeURIComponent(raw);
+      const value = native.getItem(raw);
+      if(value !== null && native.getItem(quarantineKey) === null) native.setItem(quarantineKey, value);
+      native.removeItem(raw);
+    }
+  }
+
+  function purgeUnscopedLegacySession(){
+    for(const raw of rawSessionKeys()){
+      if(isManagedSession(raw) && !raw.startsWith(SESSION_SCOPED_PREFIX)) nativeSession.removeItem(raw);
+    }
+  }
+
+  function activate(context){
+    const next = accessScope(context);
+    const live = accessScope(window.AQARI_SUPABASE?.context);
+    if(!sameScope(next, live)) throw scopeError();
+    activeScope = next;
+    return { ...activeScope };
+  }
+
+  function seal(){
+    try{ window.closeWorkspaceIndexedDbV206?.(); }catch{}
+    if(activeScope){
+      for(const key of VOLATILE_KEYS) native.removeItem(scopedPhysical(key, activeScope));
+      const base = sessionBase(activeScope);
+      for(const raw of rawSessionKeys()){
+        if(raw.startsWith(base)) nativeSession.removeItem(raw);
+      }
+    }
+    activeScope = null;
+  }
+
+  purgeUnscopedLegacy();
+  purgeUnscopedLegacySession();
+  installHTMLSinkBoundary();
+
+  const facade = Object.freeze({
+    get length(){ return visibleKeys().length; },
+    key(index){ return visibleKeys()[Number(index)] ?? null; },
+    getItem:read,
+    setItem:write,
+    removeItem:remove,
+    clear:clearVisible
+  });
+  const sessionFacade = Object.freeze({
+    get length(){ return visibleSessionKeys().length; },
+    key(index){ return visibleSessionKeys()[Number(index)] ?? null; },
+    getItem:readSession,
+    setItem:writeSession,
+    removeItem:removeSession,
+    clear:clearVisibleSession
+  });
+
+  let installed = false;
+  try{
+    Object.defineProperty(window, 'localStorage', {
+      value:facade, configurable:false, enumerable:true, writable:false
+    });
+    installed = window.localStorage === facade;
+  }catch{}
+  if(!installed) throw new Error('AQARI failed to install the early workspace storage boundary');
+  let sessionInstalled = false;
+  try{
+    Object.defineProperty(window, 'sessionStorage', {
+      value:sessionFacade, configurable:false, enumerable:true, writable:false
+    });
+    sessionInstalled = window.sessionStorage === sessionFacade;
+  }catch{}
+  if(!sessionInstalled) throw new Error('AQARI failed to install the early workspace session boundary');
+
+  window.AQARI_EARLY_STORAGE_GATE = Object.freeze({
+    version:'V206.2', activate, seal, neutralValue, sanitizeHTML,
+    get scope(){ return activeScope ? { ...activeScope } : null; }
+  });
+})();
+</script><style id="aqari-v198-legacy-gate-lock">#auth,#loginGateV120{display:none!important}</style><style>
 :root{--g:#b88927;--l:#eadfc8;--bg:#f7f6f2}*{box-sizing:border-box}body{margin:0;font-family:Arial;background:var(--bg);color:#26221b}header{background:#fff;border-bottom:1px solid var(--l);padding:14px;position:sticky;top:0;z-index:4}.w{max-width:1260px;margin:auto}.r{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.brand{color:var(--g);font-weight:900;font-size:23px}button,input,select{padding:9px;border:1px solid var(--l);border-radius:10px;background:#fff}.g{background:var(--g);color:#fff}.tabs{display:flex;gap:6px;overflow:auto;padding:12px 0}.tabs button{white-space:nowrap}.tabs .on{background:var(--g);color:#fff}.p{display:none}.p.on{display:block}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.c{background:#fff;border:1px solid var(--l);border-radius:16px;padding:14px;margin-bottom:10px}.m b{display:block;color:var(--g);font-size:22px;margin-top:5px}table{width:100%;border-collapse:collapse}td,th{padding:9px;border-bottom:1px solid #f1eadc;text-align:right;font-size:13px}.modal{display:none;position:fixed;inset:0;background:#0008;place-items:center;padding:15px;z-index:7}.modal.on{display:grid}.box{background:#fff;border-radius:18px;padding:16px;width:min(650px,100%)}.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.f{grid-template-columns:1fr}}.mobilebar{display:none;position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--l);z-index:30;padding:7px;gap:6px;justify-content:space-around}.mobilebar button{flex:1;font-size:11px;padding:8px 4px}.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:#26221b;color:#fff;padding:10px 14px;border-radius:12px;z-index:50;display:none}.statusdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2d8b57;margin-inline:4px}@media(max-width:700px){body{padding-bottom:72px}.mobilebar{display:flex}header .brand{font-size:20px}.tabs{display:none}.c{border-radius:13px}.grid{grid-template-columns:repeat(2,1fr)}}@media print{header,.tabs,.mobilebar,.modal,.toast{display:none!important}body{background:#fff;padding:0}.c{border:0;box-shadow:none}}
 @media(max-width:760px){
  body{font-size:14px}
@@ -4083,7 +4555,7 @@ recurringExpenses:['المصروفات المتكررة',['العقار','الف
 notifications:['مركز التنبيهات',['النوع','الرسالة','القناة','الحالة']],
 dataQuality:['جودة البيانات',['القسم','السجل','المشكلة','الحالة']],
 snapshots:['اللقطات الاحتياطية',['التاريخ','النوع','الحجم','الحالة']]};
-const names={home:'الرئيسية',slaEscalationPage:'SLA والتصعيد',notificationRulesPage:'قواعد التنبيه',disasterRecoveryPage:'التعافي من الكوارث',recoveryRunbookPage:'Recovery Runbook',observabilityPage:'المراقبة والصحة',uptimeHistoryPage:'سجل Health',goLiveCenterPage:'Go-Live Center',syncEnginePage:'محرك المزامنة',syncConflictPage:'تعارضات المزامنة',backendMigrationPage:'نقل Backend',apiContractPage:'API Contract',safeImportPage:'الاستيراد الآمن',restoreHistoryPage:'سجل الاستعادة',securityAuditPage:'الأمان والتدقيق',passwordPolicyPage:'سياسة الدخول',rbacCenterPage:'الصلاحيات والمستخدمون',userCreatePage:'إدارة المستخدمين',accessGatewayPage:'بوابة الدخول',rolePermissionsPage:'صلاحيات الأدوار',releaseCandidatePage:'Release Candidate',sessionPolicyPage:'سياسة الجلسة',releaseHardeningPage:'تقوية الإصدار',migrationHealthPage:'سلامة الترحيل',finalReleasePage:'الإصدار النهائي',kpiTargetsPage:'المؤشرات والأهداف',kpiCreatePage:'إضافة KPI',monthEndClosePage:'الإقفال الشهري',reconciliationPage:'المطابقة والتسويات',assetCapexPage:'الأصول وCapEx',assetRegisterPage:'سجل الأصول',capexPlanPage:'خطة CapEx',vendorScorecardsPage:'تقييم الموردين',vendorReviewPage:'تقييم مورد',receivablesAgingPage:'أعمار الذمم',collectionPromisesPage:'وعود السداد',ownerDistributionPage:'توزيعات الملاك',ownerShareRulesPage:'نسب الملاك',tenantRiskPage:'مخاطر المستأجرين',tenantRiskRulesPage:'قواعد المخاطر',propertyProfitabilityPage:'ربحية العقارات',propertyBudgetPage:'ميزانيات العقارات',cashflowForecastPage:'توقع التدفقات',forecastAssumptionsPage:'افتراضات التوقع',contractLifecyclePage:'دورة حياة العقود',contractActionPage:'إجراءات العقود',workflowOrchestratorPage:'سير العمل',workflowBuilderPage:'إنشاء Workflow',workflowCasePage:'حالات Workflow',automationRulesPage:'محرك الأتمتة',automationRuleCreatePage:'إنشاء أتمتة',settingsCenterPage:'الإعدادات العامة',moduleManagerPage:'إدارة الوحدات',dataPortabilityPage:'نقل البيانات',importValidatorPage:'Import Validator',accessibilityPage:'سهولة الاستخدام',uxPolishPage:'UX Polish',performanceCenterPage:'مركز الأداء',commandCenterV101Page:'مركز الأوامر V101',v100ExecutivePage:'V100 Executive',v100ModulesPage:'خريطة V100',leasingPipelinePage:'التأجير والشواغر',leadCreatePage:'العملاء المحتملون',pricingIntelligencePage:'ذكاء التسعير',rentReviewPage:'مراجعة الإيجارات',renewalsCalendarPage:'تقويم التجديدات',renewalRulesPage:'قواعد التجديد',documentCenterPage:'مركز المستندات',documentRegisterPage:'تسجيل مستند',reportBuilderPage:'منشئ التقارير',savedReportsPage:'التقارير المحفوظة',smartInboxPage:'صندوق الإدارة',notificationPreferencesPage:'تفضيلات التنبيهات',globalSearchPage:'البحث الشامل',favoritesPage:'المفضلة',mobileCenterPage:'تجربة الجوال',tenantPortalPage:'بوابة المستأجر',tenantRequestPage:'طلبات المستأجر',ownerPortalPage:'بوابة المالك',ownerStatementsPage:'كشوفات الملاك',approvalHubPage:'مركز الموافقات',approvalPolicyPage:'سياسات الموافقات',serviceManagementPage:'إدارة الخدمات',serviceCatalogPage:'كتالوج الخدمات',serviceRequestPage:'طلبات الخدمة',continuityPage:'استمرارية الأعمال',criticalServicesPage:'الخدمات الحرجة',dataGovernancePage:'حوكمة البيانات',retentionPolicyPage:'سياسات الاحتفاظ',auditCenterPage:'مركز التدقيق',changeControlPage:'Change Control',opsMonitorPage:'مراقبة التشغيل',incidentResponsePage:'Incident Response',smokeTestPage:'Smoke Test',rollbackPage:'Rollback',launchDecisionPage:'قرار الإطلاق',previewLaunchPage:'Preview Launch',deploymentValidatorPage:'Deployment Validator',opsRunbookPage:'Runbook التشغيل',deploymentPackPage:'Deploy Pack',deploymentReadyPage:'جاهزية النشر',bootstrapWizardPage:'Bootstrap قاعدة البيانات',liveBackendPage:'فحص الباك إند',environmentPage:'بيئة Production',authMigrationPage:'ترحيل المصادقة',migrationCenterPage:'ترحيل البيانات V77',finalQaPage:'Final QA',dataIntegrityPage:'سلامة البيانات',goLivePage:'Go-Live',productionCandidatePage:'Release Freeze',sessionSecurityPage:'الجلسة والأمان',testLabPage:'مختبر الاختبارات',recoveryCenterPage:'الاستعادة والطوارئ',releaseCandidatePage:'Release Candidate',qualityCenterPage:'الجودة والاستقرار',securityCenterPage:'الأمان',releaseChecklistPage:'جاهزية Production',controlTowerPage:'غرفة التحكم',decisionLogPage:'سجل القرارات',dailyCommandPage:'مركز الإدارة اليومي',taskCenterPage:'المهام والمتابعات',biExecutivePage:'ذكاء الأعمال',biSnapshotsPage:'Snapshots تنفيذية',legalCenterPage:'المركز القانوني',legalCaseCreatePage:'فتح ملف قانوني',legalNoticesPage:'الإنذارات',legalCalendarPage:'تقويم الجلسات',riskInsurancePage:'المخاطر والتأمين',riskCreatePage:'تسجيل خطر',insurancePoliciesPage:'وثائق التأمين',compliancePage:'الامتثال والسلامة',inspectionCreatePage:'إضافة فحص',complianceCalendarPage:'تقويم التجديدات',communicationsHubPage:'مركز المراسلات',messageComposerPage:'إنشاء رسالة',automationRulesPage:'قواعد التنبيه',bankingProPage:'البنوك والمدفوعات',transferCenterPage:'التحويلات المالية',paymentLinksProPage:'روابط الدفع',procurementPage:'المشتريات',purchaseRequestPage:'طلب شراء',inventoryControlPage:'إدارة المخزون',hrProPage:'الموارد البشرية',payrollRunPage:'مسير الرواتب',leaveCenterPage:'الإجازات والحضور',maintenanceProPage:'الصيانة الاحترافية',workOrderCreatePage:'أمر عمل جديد',collectionProPage:'التحصيل المتقدم',installmentPlansPage:'خطط الأقساط',financeSuitePage:'المالية الاحترافية',financialSnapshotsPage:'السجل المالي',portfolioCommandPage:'قيادة المحفظة',property360Page:'العقار 360°',owner360Page:'المالك 360°',tenant360Page:'المستأجر 360°',contractWorkflowPage:'اعتماد العقود',contractHistoryPage:'سجل العقود',smartContractsPage:'مصنع العقود',cloudFilesPage:'رفع الملفات',esignPage:'التوقيع الإلكتروني',linkedDocsPage:'الملفات المرتبطة',permissionAdminPage:'الصلاحيات الدقيقة',documentServerPage:'مستندات الخادم',signaturePage:'التوقيعات',userAdminPage:'المستخدمون',autoSyncPage:'المزامنة التلقائية',serverDataPage:'بيانات الخادم',databaseCenter:'قاعدة البيانات',apiHealthPage:'صحة API',backendCenter:'الباك إند والمزامنة',deviceCenter:'الأجهزة',conflictCenter:'التعارضات',storageCenter:'حفظ البيانات',importWizardPage:'استيراد البيانات',validationCenter:'جودة الإدخال',print:'مركز الطباعة',reports:'التقارير',releaseCenter:'مركز الإصدار',portalHub:'البوابات',messagingCenter:'الرسائل',stableCenter:'مركز الاستقرار',configPage:'إعدادات النظام',migrationPage:'نقل البيانات',commandCenter:'الأوامر',notesPage:'ملاحظاتي',profilePage:'تفضيلاتي',executive:'المدير التنفيذي',reportStudio:'استوديو التقارير',health:'صحة النظام',integrations:'التكاملات',staging:'جاهزية التشغيل',superAdminPage:'Super Admin',permissionsPage:'الصلاحيات',integrityPage:'سلامة البيانات',documentsHub:'العقود والأوراق',vaultPage:'خزنة المستندات',contractTemplatePage:'قوالب العقود',...Object.fromEntries(Object.entries(mods).map(([k,v])=>[k,v[0]]))};let db=JSON.parse(localStorage.getItem('aqari_v30')||'null')||{properties:[['برج شيخة','—','42','8745 د.ك'],['جنوب عبدالله المبارك','مشاري المطيري','9','1050 د.ك']],tenants:[['محمد عوض العدواني','شقة 3','350 د.ك','مدفوع'],['فراس','شقة 4','350 د.ك','مستحق']],expenses:[['برج شيخة','كهرباء','220 د.ك','—'],['برج شيخة','ماء','90 د.ك','—'],['برج شيخة','صيانة المصاعد','90 د.ك','—'],['برج شيخة','صيانة المطافي','75 د.ك','—'],['برج شيخة','الإنترنت','45 د.ك','—'],['برج شيخة','الكاميرات','60 د.ك','—']],services:[['المصاعد','برج شيخة','شركة صيانة','2027-01-01'],['المطافي','برج شيخة','شركة إطفاء','2027-08-01']],employees:[['سونيل','صيانة','170 د.ك','بانتظار التحويل']],maintenance:[['شقة 12','تكييف','سونيل','جاري التنفيذ']],collections:[['AQ-0001','محمد عوض العدواني','350 د.ك','مدفوع']],approvals:[['مصروف','صيانة طارئة','250 د.ك','معلق']],deposits:[['محمد عوض العدواني','شقة 3','200 د.ك','مستلم']],legal:[['فراس','تذكير سداد','2026-09-06','مسودة']],purchaseOrders:[['PO-0001','شركة صيانة','120 د.ك','معتمد']],workOrders:[['WO-0001','برج شيخة','تكييف','جاري التنفيذ']],licenses:[['برج شيخة','فحص إطفاء','2027-08-01','فعال']],insurance:[['برج شيخة','وثيقة عقار','500 د.ك','2027-01-01']],cashbox:[['CB-0001','قبض','350 د.ك','إيجار سبتمبر']],userActivity:[['المدير','تسجيل دخول','الآن','iPhone']],
+const names={home:'الرئيسية',slaEscalationPage:'SLA والتصعيد',notificationRulesPage:'قواعد التنبيه',disasterRecoveryPage:'التعافي من الكوارث',recoveryRunbookPage:'Recovery Runbook',observabilityPage:'المراقبة والصحة',uptimeHistoryPage:'سجل Health',goLiveCenterPage:'Go-Live Center',syncEnginePage:'محرك المزامنة',syncConflictPage:'تعارضات المزامنة',backendMigrationPage:'نقل Backend',apiContractPage:'API Contract',safeImportPage:'الاستيراد الآمن',restoreHistoryPage:'سجل الاستعادة',securityAuditPage:'الأمان والتدقيق',passwordPolicyPage:'سياسة الدخول',rbacCenterPage:'الصلاحيات والمستخدمون',userCreatePage:'إدارة المستخدمين',accessGatewayPage:'بوابة الدخول',rolePermissionsPage:'صلاحيات الأدوار',releaseCandidatePage:'Release Candidate',sessionPolicyPage:'سياسة الجلسة',releaseHardeningPage:'تقوية الإصدار',migrationHealthPage:'سلامة الترحيل',finalReleasePage:'الإصدار النهائي',kpiTargetsPage:'المؤشرات والأهداف',kpiCreatePage:'إضافة KPI',monthEndClosePage:'الإقفال الشهري',reconciliationPage:'المطابقة والتسويات',assetCapexPage:'الأصول وCapEx',assetRegisterPage:'سجل الأصول',capexPlanPage:'خطة CapEx',vendorScorecardsPage:'تقييم الموردين',vendorReviewPage:'تقييم مورد',receivablesAgingPage:'أعمار الذمم',collectionPromisesPage:'وعود السداد',ownerDistributionPage:'توزيعات الملاك',ownerShareRulesPage:'نسب الملاك',tenantRiskPage:'مخاطر المستأجرين',tenantRiskRulesPage:'قواعد المخاطر',propertyProfitabilityPage:'ربحية العقارات',propertyBudgetPage:'ميزانيات العقارات',cashflowForecastPage:'توقع التدفقات',forecastAssumptionsPage:'افتراضات التوقع',contractLifecyclePage:'دورة حياة العقود',contractActionPage:'إجراءات العقود',workflowOrchestratorPage:'سير العمل',workflowBuilderPage:'إنشاء Workflow',workflowCasePage:'حالات Workflow',automationRulesPage:'محرك الأتمتة',automationRuleCreatePage:'إنشاء أتمتة',settingsCenterPage:'الإعدادات العامة',moduleManagerPage:'إدارة الوحدات',dataPortabilityPage:'نقل البيانات',importValidatorPage:'Import Validator',accessibilityPage:'سهولة الاستخدام',uxPolishPage:'UX Polish',performanceCenterPage:'مركز الأداء',commandCenterV101Page:'مركز الأوامر V101',v100ExecutivePage:'V100 Executive',v100ModulesPage:'خريطة V100',leasingPipelinePage:'التأجير والشواغر',leadCreatePage:'العملاء المحتملون',pricingIntelligencePage:'ذكاء التسعير',rentReviewPage:'مراجعة الإيجارات',renewalsCalendarPage:'تقويم التجديدات',renewalRulesPage:'قواعد التجديد',documentCenterPage:'مركز المستندات',documentRegisterPage:'تسجيل مستند',reportBuilderPage:'منشئ التقارير',savedReportsPage:'التقارير المحفوظة',smartInboxPage:'صندوق الإدارة',notificationPreferencesPage:'تفضيلات التنبيهات',globalSearchPage:'البحث الشامل',favoritesPage:'المفضلة',mobileCenterPage:'تجربة الجوال',tenantPortalPage:'بوابة المستأجر',tenantRequestPage:'طلبات المستأجر',ownerPortalPage:'بوابة المالك',ownerStatementsPage:'كشوفات الملاك',approvalHubPage:'مركز الموافقات',approvalPolicyPage:'سياسات الموافقات',serviceManagementPage:'إدارة الخدمات',serviceCatalogPage:'كتالوج الخدمات',serviceRequestPage:'طلبات الخدمة',continuityPage:'استمرارية الأعمال',criticalServicesPage:'الخدمات الحرجة',dataGovernancePage:'حوكمة البيانات',retentionPolicyPage:'سياسات الاحتفاظ',auditCenterPage:'مركز التدقيق',changeControlPage:'Change Control',opsMonitorPage:'مراقبة التشغيل',incidentResponsePage:'Incident Response',smokeTestPage:'Smoke Test',rollbackPage:'Rollback',launchDecisionPage:'قرار الإطلاق',previewLaunchPage:'Preview Launch',deploymentValidatorPage:'Deployment Validator',opsRunbookPage:'Runbook التشغيل',deploymentPackPage:'Deploy Pack',deploymentReadyPage:'جاهزية النشر',bootstrapWizardPage:'Bootstrap قاعدة البيانات',liveBackendPage:'فحص الباك إند',environmentPage:'بيئة Production',authMigrationPage:'ترحيل المصادقة',migrationCenterPage:'ترحيل البيانات V77',finalQaPage:'Final QA',dataIntegrityPage:'سلامة البيانات',goLivePage:'Go-Live',productionCandidatePage:'Release Freeze',sessionSecurityPage:'الجلسة والأمان',testLabPage:'مختبر الاختبارات',recoveryCenterPage:'الاستعادة والطوارئ',releaseCandidatePage:'Release Candidate',qualityCenterPage:'الجودة والاستقرار',securityCenterPage:'الأمان',releaseChecklistPage:'جاهزية Production',controlTowerPage:'غرفة التحكم',decisionLogPage:'سجل القرارات',dailyCommandPage:'مركز الإدارة اليومي',taskCenterPage:'المهام والمتابعات',biExecutivePage:'ذكاء الأعمال',biSnapshotsPage:'Snapshots تنفيذية',legalCenterPage:'المركز القانوني',legalCaseCreatePage:'فتح ملف قانوني',legalNoticesPage:'الإنذارات',legalCalendarPage:'تقويم الجلسات',riskInsurancePage:'المخاطر والتأمين',riskCreatePage:'تسجيل خطر',insurancePoliciesPage:'وثائق التأمين',compliancePage:'الامتثال والسلامة',inspectionCreatePage:'إضافة فحص',complianceCalendarPage:'تقويم التجديدات',communicationsHubPage:'مركز المراسلات',messageComposerPage:'إنشاء رسالة',automationRulesPage:'قواعد التنبيه',bankingProPage:'البنوك والمدفوعات',transferCenterPage:'التحويلات المالية',paymentLinksProPage:'روابط الدفع',procurementPage:'المشتريات',purchaseRequestPage:'طلب شراء',inventoryControlPage:'إدارة المخزون',hrProPage:'الموارد البشرية',payrollRunPage:'مسير الرواتب',leaveCenterPage:'الإجازات والحضور',maintenanceProPage:'الصيانة الاحترافية',workOrderCreatePage:'أمر عمل جديد',collectionProPage:'التحصيل المتقدم',installmentPlansPage:'خطط الأقساط',financeSuitePage:'المالية الاحترافية',financialSnapshotsPage:'السجل المالي',portfolioCommandPage:'قيادة المحفظة',property360Page:'العقار 360°',owner360Page:'المالك 360°',tenant360Page:'المستأجر 360°',contractWorkflowPage:'اعتماد العقود',contractHistoryPage:'سجل العقود',smartContractsPage:'مصنع العقود',cloudFilesPage:'رفع الملفات',esignPage:'التوقيع الإلكتروني',linkedDocsPage:'الملفات المرتبطة',permissionAdminPage:'الصلاحيات الدقيقة',documentServerPage:'مستندات الخادم',signaturePage:'التوقيعات',userAdminPage:'المستخدمون',autoSyncPage:'المزامنة التلقائية',serverDataPage:'بيانات الخادم',databaseCenter:'قاعدة البيانات',apiHealthPage:'صحة API',backendCenter:'الباك إند والمزامنة',deviceCenter:'الأجهزة',conflictCenter:'التعارضات',storageCenter:'حفظ البيانات',importWizardPage:'استيراد البيانات',validationCenter:'جودة الإدخال',print:'مركز الطباعة',reports:'التقارير',releaseCenter:'مركز الإصدار',portalHub:'البوابات',messagingCenter:'الرسائل',stableCenter:'مركز الاستقرار',configPage:'إعدادات النظام',migrationPage:'نقل البيانات',commandCenter:'الأوامر',notesPage:'ملاحظاتي',profilePage:'تفضيلاتي',executive:'المدير التنفيذي',reportStudio:'استوديو التقارير',health:'صحة النظام',integrations:'التكاملات',staging:'جاهزية التشغيل',superAdminPage:'Super Admin',permissionsPage:'الصلاحيات',integrityPage:'سلامة البيانات',documentsHub:'العقود والأوراق',vaultPage:'خزنة المستندات',contractTemplatePage:'قوالب العقود',...Object.fromEntries(Object.entries(mods).map(([k,v])=>[k,v[0]]))};let db={};const aqariV198LegacyDemo={properties:[['برج شيخة','—','42','8745 د.ك'],['جنوب عبدالله المبارك','مشاري المطيري','9','1050 د.ك']],tenants:[['محمد عوض العدواني','شقة 3','350 د.ك','مدفوع'],['فراس','شقة 4','350 د.ك','مستحق']],expenses:[['برج شيخة','كهرباء','220 د.ك','—'],['برج شيخة','ماء','90 د.ك','—'],['برج شيخة','صيانة المصاعد','90 د.ك','—'],['برج شيخة','صيانة المطافي','75 د.ك','—'],['برج شيخة','الإنترنت','45 د.ك','—'],['برج شيخة','الكاميرات','60 د.ك','—']],services:[['المصاعد','برج شيخة','شركة صيانة','2027-01-01'],['المطافي','برج شيخة','شركة إطفاء','2027-08-01']],employees:[['سونيل','صيانة','170 د.ك','بانتظار التحويل']],maintenance:[['شقة 12','تكييف','سونيل','جاري التنفيذ']],collections:[['AQ-0001','محمد عوض العدواني','350 د.ك','مدفوع']],approvals:[['مصروف','صيانة طارئة','250 د.ك','معلق']],deposits:[['محمد عوض العدواني','شقة 3','200 د.ك','مستلم']],legal:[['فراس','تذكير سداد','2026-09-06','مسودة']],purchaseOrders:[['PO-0001','شركة صيانة','120 د.ك','معتمد']],workOrders:[['WO-0001','برج شيخة','تكييف','جاري التنفيذ']],licenses:[['برج شيخة','فحص إطفاء','2027-08-01','فعال']],insurance:[['برج شيخة','وثيقة عقار','500 د.ك','2027-01-01']],cashbox:[['CB-0001','قبض','350 د.ك','إيجار سبتمبر']],userActivity:[['المدير','تسجيل دخول','الآن','iPhone']],
 recurringExpenses:[['برج شيخة','الإنترنت','45 د.ك','شهري'],['برج شيخة','صيانة المصاعد','90 د.ك','شهري']],
 notifications:[['إيجار','إيجار شقة 4 مستحق','WhatsApp/Email','جديد']],
 dataQuality:[['الموظفون','سونيل','بيانات البنك ناقصة','تنبيه']],
@@ -4142,16 +4614,58 @@ auditExport:[['آخر 30 يوم','0','CSV','جاهز']],
 favorites:[['التحصيل','قسم','1','مفعل'],['الصيانة','قسم','2','مفعل']],
 recentViews:[],
 quickNotes:[['متابعة شقة 4','متابعة التحصيل يوم 5','2026-09-05','مفتوحة']]};for(const k in mods)db[k]??=[];let cur='home';tabs.innerHTML=['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter',...Object.keys(mods),'commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'].map((k,i)=>`<button class="${i?'':'on'}" onclick="go('${k}',this)">${names[k]}</button>`).join('');
-function num(s){return parseFloat(String(s).replace(/[^0-9.-]/g,''))||0}function persist(){localStorage.setItem('aqari_v30',JSON.stringify(db))}
+function num(s){return parseFloat(String(s).replace(/[^0-9.-]/g,''))||0}
+function emptyWorkspaceDbV198(){const next={};for(const k in mods)next[k]=[];return next}
+function prepareWorkspaceDbV198(){const gate=window.AQARI_DATA_GATE;if(!gate?.scope){db=emptyWorkspaceDbV198();return false}db=gate.prepareState(db);for(const k in mods)db[k]??=[];return true}
+function activateWorkspaceDbV198(context,cloudSeed){const gate=window.AQARI_DATA_GATE;if(!gate)throw new Error('AQARI data gate unavailable');db=gate.activate(context,cloudSeed);for(const k in mods)db[k]??=[];render();return true}
+function sealWorkspaceDbV198(){window.AQARI_V201?.seal?.();window.AQARI_V202?.seal?.();window.AQARI_DATA_GATE?.seal();db=emptyWorkspaceDbV198();for(const id of ['searchBox','preview','fields','rows','vaultRows','storageNotes','importWizardResult','validationList']){const node=document.getElementById(id);if(node)node.replaceChildren()}render();return true}
+function aqariExportStorageV198(){try{return window.AQARI_DATA_GATE?.scopedStorageSnapshot()||{}}catch{return {}}}
+function persist(){const gate=window.AQARI_DATA_GATE;if(!gate?.scope)return false;db=gate.write(db);for(const k in mods)db[k]??=[];return true}
+window.activateWorkspaceDbV198=activateWorkspaceDbV198;window.sealWorkspaceDbV198=sealWorkspaceDbV198;window.prepareWorkspaceDbV198=prepareWorkspaceDbV198;window.aqariExportStorageV198=aqariExportStorageV198;
 function go(k,b){cur=k;document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');document.querySelectorAll('.p').forEach(x=>x.classList.remove('on'));const standalone=['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter','commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'];const target=standalone.includes(k)?document.getElementById(k):document.getElementById('list');if(target)target.classList.add('on');render()}function render(){let props=db.properties.length,units=db.properties.reduce((s,x)=>s+num(x[2]),0),inc=db.properties.reduce((s,x)=>s+num(x[3]),0),exp=db.expenses.reduce((s,x)=>s+num(x[2]),0),pay=db.employees.reduce((s,x)=>s+num(x[2]),0),due=db.tenants.filter(x=>String(x[3]).includes('مستحق')).reduce((s,x)=>s+num(x[2]),0),col=db.collections.reduce((s,x)=>s+num(x[2]),0),expected=db.tenants.reduce((s,x)=>s+num(x[2]),0);kpis.innerHTML=[['العقارات',props],['الوحدات',units],['الإيرادات',inc+' د.ك'],['المصروفات',exp+' د.ك'],['صافي الربح',(inc-exp-pay)+' د.ك'],['المتأخرات',due+' د.ك'],['الصيانة المفتوحة',db.maintenance.length],['الرواتب',pay+' د.ك']].map(x=>`<div class="c m">${x[0]}<b>${x[1]}</b></div>`).join('');ops.innerHTML=[['إيجارات مستحقة',db.tenants.filter(x=>String(x[3]).includes('مستحق')).length],['طلبات صيانة',db.maintenance.length],['موافقات معلقة',db.approvals.filter(x=>x[3]==='معلق').length],['أوامر عمل',db.workOrders.length],['مهام',db.tasks.length],['تنبيهات',db.alerts.length]].map(x=>`<p>${x[0]} <b style="color:var(--g)">${x[1]}</b></p>`).join('');rc.textContent=(expected?Math.min(100,col/expected*100):0).toFixed(1)+'%';rf.textContent=((inc-exp-pay)*3)+' د.ك';dq.textContent=(db.vendors.some(x=>!x[2]||x[2]==='—')||db.employees.some(x=>!x[3]||x[3]==='—'))?'85%':'100%';if(!['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter','commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'].includes(cur)){title.textContent=mods[cur][0];head.innerHTML=mods[cur][1].map(x=>`<th>${x}</th>`).join('')+'<th>إجراء</th>';rows.innerHTML=db[cur].map((r,i)=>`<tr>${mods[cur][1].map((_,j)=>`<td>${r[j]??'—'}</td>`).join('')}<td><button onclick="edit(${i})">تعديل</button> <button onclick="del(${i})">حذف</button></td></tr>`).join('')}}
 function add(){if(['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter','commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'].includes(cur))cur='properties';mt.textContent='إضافة - '+mods[cur][0];fields.innerHTML=mods[cur][1].map((x,i)=>`<input id="f${i}" placeholder="${x}">`).join('');saveBtn.onclick=saveItem;modal.classList.add('on')}function saveItem(){db[cur].push(mods[cur][1].map((_,i)=>document.getElementById('f'+i).value));db.audit.push(['المدير','إضافة سجل',mods[cur][0],'تم']);persist();modal.classList.remove('on');render()}function edit(i){let r=db[cur][i];mt.textContent='تعديل - '+mods[cur][0];fields.innerHTML=mods[cur][1].map((x,j)=>`<input id="e${j}" value="${String(r[j]??'').replaceAll('"','&quot;')}" placeholder="${x}">`).join('');saveBtn.onclick=()=>{db[cur][i]=mods[cur][1].map((_,j)=>document.getElementById('e'+j).value);persist();modal.classList.remove('on');render()};modal.classList.add('on')}function del(i){if(confirm('تأكيد الحذف؟')){db[cur].splice(i,1);persist();render()}}
-function backup(){let b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-backup.json';a.click()}async function restore(e){try{db=JSON.parse(await e.target.files[0].text());for(const k in mods)db[k]??=[];persist();render();alert('تمت الاستعادة')}catch{alert('ملف غير صالح')}e.target.value=''}
+function renderCoreRowsV206(){
+  const body=document.getElementById('rows'),definition=mods[cur];
+  if(!body||!definition||!Array.isArray(db[cur]))return;
+  const fragment=document.createDocumentFragment();
+  db[cur].forEach((record,index)=>{
+    const tr=document.createElement('tr'),values=Array.isArray(record)?record:[];
+    definition[1].forEach((_,column)=>{
+      const td=document.createElement('td');td.textContent=String(values[column]??'—');tr.appendChild(td);
+    });
+    const actions=document.createElement('td');
+    const editButton=document.createElement('button');editButton.type='button';editButton.textContent='تعديل';editButton.addEventListener('click',()=>edit(index));
+    const deleteButton=document.createElement('button');deleteButton.type='button';deleteButton.textContent='حذف';deleteButton.addEventListener('click',()=>del(index));
+    actions.append(editButton,document.createTextNode(' '),deleteButton);tr.appendChild(actions);fragment.appendChild(tr);
+  });
+  body.replaceChildren(fragment);
+}
+const renderLegacyCoreV206=render;
+render=function(){renderLegacyCoreV206();renderCoreRowsV206()};
+function backup(){let b=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-backup.json';a.click()}
+async function restore(e){
+  const file=e?.target?.files?.[0];let ticket=null;
+  try{
+    if(!file)throw new Error('missing backup file');
+    ticket=captureWorkspaceStorageV206();
+    const raw=await file.text();
+    assertWorkspaceStorageV206(ticket);
+    const parsed=JSON.parse(raw);
+    const next=window.AQARI_DATA_GATE?.prepareState(parsed);
+    if(!next||typeof next!=='object'||Array.isArray(next))throw new Error('invalid backup payload');
+    for(const k in mods)next[k]??=[];
+    assertWorkspaceStorageV206(ticket);
+    db=next;persist();render();alert('تمت الاستعادة');
+  }catch(error){
+    if(!ticket||workspaceStorageCurrentV206(ticket))alert('ملف غير صالح');
+  }finally{if(e?.target)e.target.value=''}
+}
 function receiptDoc(){let r=db.collections.at(-1);preview.innerHTML=r?`<div class="c"><h2 style="color:var(--g)">عقاري — إيصال إيجار</h2><p>رقم: ${r[0]}</p><p>المستأجر: ${r[1]}</p><p>المبلغ: ${r[2]}</p><p>الحالة: ${r[3]}</p><button onclick="window.print()">PDF</button></div>`:'لا يوجد إيصال'}function tenantDoc(){let t=db.tenants[0];preview.innerHTML=t?`<div class="c"><h2>كشف حساب مستأجر</h2><p>${t.join(' • ')}</p><button onclick="window.print()">PDF</button></div>`:'لا يوجد مستأجر'}function salaryDoc(){let e=db.employees[0];preview.innerHTML=e?`<div class="c"><h2>سند راتب</h2><p>${e.join(' • ')}</p><p>التوقيع: __________</p><button onclick="window.print()">PDF</button></div>`:'لا يوجد موظف'}function propertyDoc(){let p=db.properties[0],ex=db.expenses.filter(x=>x[0]===p[0]).reduce((s,x)=>s+num(x[2]),0),inc=num(p[3]);preview.innerHTML=`<div class="c"><h2>تقرير عقار</h2><p>${p[0]}</p><p>الإيراد ${inc} د.ك • المصروف ${ex} د.ك • الصافي ${inc-ex} د.ك</p><button onclick="window.print()">PDF</button></div>`}render();
 
 const roleAccess={admin:['*'],accountant:['home','collections','expenses','employees','payroll','owners','vendors','bank','cashbox','approvals','reports','print'],collection:['home','tenants','leases','collections','rentSchedule','legal','paymentLinks','communications','reports'],maintenance:['home','properties','services','maintenance','workOrders','purchaseOrders','inventory','meters','assets','licenses','reports'],property:['home','properties','tenants','leases','deposits','documents','ads','handover','reports']};
 function login(){if(loginPin.value!=='1234'){alert('رمز الدخول التجريبي 1234');return}let s={name:loginName.value||'مستخدم',role:loginRole.value};localStorage.setItem('aqari_session_v31',JSON.stringify(s));auth.style.display='none';applyRole(s.role)}
 function logout(){localStorage.removeItem('aqari_session_v31');auth.style.display='grid'}
-function applyRole(role){let allowed=roleAccess[role]||[];document.querySelectorAll('#tabs button').forEach(b=>{let m=(b.getAttribute('onclick')||'').match(/go\('([^']+)'/),k=m?.[1];b.style.display=(allowed.includes('*')||allowed.includes(k))?'':'none'})}
+function applyRole(role){let allowed=roleAccess[role]||[];document.querySelectorAll('#tabs button').forEach(b=>{let m=(b.getAttribute('onclick')||'').match(/go\('([^']+)'/),k=b.getAttribute('data-aqari-nav-action')||m?.[1];b.style.display=(allowed.includes('*')||allowed.includes(k))?'':'none'})}
 function setLang(c){document.documentElement.lang=c;document.documentElement.dir=c==='ar'?'rtl':'ltr';alert(c==='ar'?'تم تغيير اللغة':c==='en'?'Language changed':'भाषा बदल दी गई')}
 function doSearch(q){q=(q||'').trim().toLowerCase();if(!q){searchBox.style.display='none';return}let hits=[];Object.entries(mods).forEach(([k])=>(db[k]||[]).forEach(r=>{if(r.join(' ').toLowerCase().includes(q))hits.push([k,r])}));searchBox.innerHTML=hits.slice(0,25).map(x=>`<button style="display:block;width:100%;text-align:right;border:0;border-bottom:1px solid var(--l)" onclick="go('${x[0]}');searchBox.style.display='none';search.value=''"><b>${mods[x[0]][0]}</b><br>${x[1].join(' • ')}</button>`).join('')||'لا توجد نتائج';searchBox.style.display='block'}
 (function(){let s=JSON.parse(localStorage.getItem('aqari_session_v31')||'null');if(s){auth.style.display='none';setTimeout(()=>applyRole(s.role),0)}if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{})})();
@@ -4506,44 +5020,96 @@ const v39Render=render;
 render=function(){v39Render();renderDocumentsHub()}
 render();
 
+let workspaceStorageEpochV206=0;
+function activeWorkspaceStorageScopeV206(){
+  const early=window.AQARI_EARLY_STORAGE_GATE?.scope;
+  const data=window.AQARI_DATA_GATE?.scope;
+  const live=window.AQARI_SUPABASE?.context;
+  const userId=String(live?.user?.id||'');
+  const workspaceId=String(live?.workspace?.id||'');
+  const membership=live?.membership;
+  if(!userId||!workspaceId||membership?.is_active!==true)return null;
+  if(String(membership.user_id||'')!==userId||String(membership.workspace_id||'')!==workspaceId)return null;
+  if(early?.userId!==userId||data?.userId!==userId||early?.workspaceId!==workspaceId||data?.workspaceId!==workspaceId)return null;
+  return {userId,workspaceId}
+}
+function activeWorkspaceStorageIdV206(){return activeWorkspaceStorageScopeV206()?.workspaceId||''}
+function captureWorkspaceStorageV206(){
+  const scope=activeWorkspaceStorageScopeV206();
+  if(!scope)throw new Error('Active AQARI workspace is required for local database access');
+  return {...scope,epoch:workspaceStorageEpochV206}
+}
+function workspaceStorageCurrentV206(ticket){
+  const scope=activeWorkspaceStorageScopeV206();
+  return Boolean(ticket&&scope&&ticket.epoch===workspaceStorageEpochV206&&ticket.userId===scope.userId&&ticket.workspaceId===scope.workspaceId)
+}
+function assertWorkspaceStorageV206(ticket){
+  if(!workspaceStorageCurrentV206(ticket))throw new Error('AQARI workspace changed during local database access');
+  return ticket
+}
 let vaultDb=null;
-function openVault(){
+let vaultDbWorkspaceV206='';
+function openVault(ticket=captureWorkspaceStorageV206()){
   return new Promise((resolve,reject)=>{
-    const req=indexedDB.open('aqari_vault_v40',1);
+    let workspaceId;
+    try{assertWorkspaceStorageV206(ticket);workspaceId=ticket.workspaceId}catch(error){reject(error);return}
+    if(vaultDb&&vaultDbWorkspaceV206===workspaceId){resolve(vaultDb);return}
+    if(vaultDb){try{vaultDb.close()}catch{};vaultDb=null;vaultDbWorkspaceV206=''}
+    const req=indexedDB.open('aqari_workspace_'+encodeURIComponent(workspaceId)+'_vault_v40',1);
     req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('files'))d.createObjectStore('files',{keyPath:'id',autoIncrement:true});};
-    req.onsuccess=e=>{vaultDb=e.target.result;resolve(vaultDb)};
+    req.onsuccess=e=>{
+      const opened=e.target.result;
+      if(!workspaceStorageCurrentV206(ticket)){try{opened.close()}catch{};reject(new Error('AQARI workspace changed while opening the document vault'));return}
+      opened.onversionchange=()=>{try{opened.close()}catch{};if(vaultDb===opened){vaultDb=null;vaultDbWorkspaceV206=''}};
+      vaultDb=opened;vaultDbWorkspaceV206=workspaceId;resolve(vaultDb)
+    };
     req.onerror=()=>reject(req.error);
   });
 }
 async function storeVaultFile(e){
   const file=e.target.files?.[0]; if(!file)return;
-  const dbi=await openVault();
+  const ticket=captureWorkspaceStorageV206();
+  const dbi=await openVault(ticket);assertWorkspaceStorageV206(ticket);
   const rec={name:file.name,type:document.getElementById('vaultType').value,ref:document.getElementById('vaultRef').value||'—',size:file.size,mime:file.type,blob:file,created:new Date().toISOString()};
   await new Promise((resolve,reject)=>{const tx=dbi.transaction('files','readwrite');tx.objectStore('files').add(rec);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+  assertWorkspaceStorageV206(ticket);
   db.documentVaultLog=db.documentVaultLog||[];db.documentVaultLog.push([file.name,rec.type,(file.size/1024).toFixed(1)+' KB','محفوظ محلياً']);persist();
   e.target.value='';renderVault();
 }
-async function getVaultFiles(){
-  const dbi=await openVault();
-  return await new Promise((resolve,reject)=>{const tx=dbi.transaction('files','readonly'),r=tx.objectStore('files').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+async function getVaultFiles(ticket=captureWorkspaceStorageV206()){
+  const dbi=await openVault(ticket);assertWorkspaceStorageV206(ticket);
+  const rows=await new Promise((resolve,reject)=>{const tx=dbi.transaction('files','readonly'),r=tx.objectStore('files').getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+  assertWorkspaceStorageV206(ticket);return rows;
 }
 async function renderVault(){
-  if(!document.getElementById('vaultRows'))return;
+  const body=document.getElementById('vaultRows');if(!body)return;
+  let ticket=null;
   try{
-    const rows=await getVaultFiles();
-    vaultRows.innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td>${r.type}</td><td>${r.ref}</td><td>${(r.size/1024).toFixed(1)} KB</td><td><button onclick="downloadVaultFile(${r.id})">فتح</button> <button onclick="deleteVaultFile(${r.id})">حذف</button></td></tr>`).join('');
-  }catch{vaultRows.innerHTML='<tr><td colspan="5">التخزين المحلي غير متاح على هذا المتصفح</td></tr>'}
+    ticket=captureWorkspaceStorageV206();const rows=await getVaultFiles(ticket);assertWorkspaceStorageV206(ticket);
+    body.replaceChildren();
+    for(const record of rows){
+      const row=document.createElement('tr');
+      for(const value of [record?.name,record?.type,record?.ref,(Number(record?.size||0)/1024).toFixed(1)+' KB']){
+        const cell=document.createElement('td');cell.textContent=String(value??'');row.appendChild(cell)
+      }
+      const actions=document.createElement('td');
+      const open=document.createElement('button');open.type='button';open.textContent='فتح';open.addEventListener('click',()=>downloadVaultFile(record.id));
+      const remove=document.createElement('button');remove.type='button';remove.textContent='حذف';remove.addEventListener('click',()=>deleteVaultFile(record.id));
+      actions.append(open,document.createTextNode(' '),remove);row.appendChild(actions);body.appendChild(row)
+    }
+  }catch{if(ticket&&!workspaceStorageCurrentV206(ticket))return;body.replaceChildren();const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='التخزين المحلي غير متاح على هذا المتصفح';row.appendChild(cell);body.appendChild(row)}
 }
 async function downloadVaultFile(id){
-  const dbi=await openVault();
+  const ticket=captureWorkspaceStorageV206();const dbi=await openVault(ticket);assertWorkspaceStorageV206(ticket);
   const rec=await new Promise((resolve,reject)=>{const r=dbi.transaction('files').objectStore('files').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+  assertWorkspaceStorageV206(ticket);
   if(!rec)return; const a=document.createElement('a');a.href=URL.createObjectURL(rec.blob);a.download=rec.name;a.click();
 }
 async function deleteVaultFile(id){
   if(!confirm('حذف المستند؟'))return;
-  const dbi=await openVault();
+  const ticket=captureWorkspaceStorageV206();const dbi=await openVault(ticket);assertWorkspaceStorageV206(ticket);
   await new Promise((resolve,reject)=>{const tx=dbi.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
-  renderVault();
+  assertWorkspaceStorageV206(ticket);renderVault();
 }
 function previewTemplate(name){
   const body=name==='عقد إيجار سكني'
@@ -4836,76 +5402,109 @@ function trackView(k){
   db.recentViews=db.recentViews.slice(0,20);
   try{persist()}catch{}
 }
+function canNavigateV206(k){
+  const context=window.AQARI_SUPABASE?.context,membership=context?.membership,userId=String(context?.user?.id||'');
+  if(!userId||membership?.is_active!==true||String(membership.user_id||'')!==userId||String(membership.workspace_id||'')!==String(context?.workspace?.id||''))return false;
+  const localRole={general_manager:'admin',property_manager:'property',accountant:'accountant',viewer:'viewer'}[membership.role]||'viewer';
+  const allowed=roleAccess[localRole]||[];
+  return allowed.includes('*')||allowed.includes(String(k||''));
+}
 const v45Go=go;
-go=function(k,b){v45Go(k,b);trackView(k)}
+go=function(k,b){if(!canNavigateV206(k))return false;v45Go(k,b);trackView(k);return true}
 const v45Render=render;
 render=function(){v45Render();renderFavorites();renderNotes();applyPrefs()}
 render();
 
 const AQARI_V47_STORE='aqari-v47-data';
 let aqariV47Db=null;
+let aqariV47WorkspaceV206='';
 
-function openAqariV47Db(){
+function closeWorkspaceIndexedDbV206(){
+  workspaceStorageEpochV206+=1;
+  if(vaultDb){try{vaultDb.close()}catch{};vaultDb=null}
+  if(aqariV47Db){try{aqariV47Db.close()}catch{};aqariV47Db=null}
+  vaultDbWorkspaceV206='';aqariV47WorkspaceV206='';
+}
+window.closeWorkspaceIndexedDbV206=closeWorkspaceIndexedDbV206;
+
+function openAqariV47Db(ticket=captureWorkspaceStorageV206()){
   return new Promise((resolve,reject)=>{
-    if(aqariV47Db) return resolve(aqariV47Db);
-    const req=indexedDB.open(AQARI_V47_STORE,1);
+    let workspaceId;
+    try{assertWorkspaceStorageV206(ticket);workspaceId=ticket.workspaceId}catch(error){reject(error);return}
+    if(aqariV47Db&&aqariV47WorkspaceV206===workspaceId) return resolve(aqariV47Db);
+    if(aqariV47Db){try{aqariV47Db.close()}catch{};aqariV47Db=null;aqariV47WorkspaceV206=''}
+    const req=indexedDB.open('aqari_workspace_'+encodeURIComponent(workspaceId)+'_'+AQARI_V47_STORE,1);
     req.onupgradeneeded=e=>{
       const d=e.target.result;
       if(!d.objectStoreNames.contains('state')) d.createObjectStore('state');
       if(!d.objectStoreNames.contains('backups')) d.createObjectStore('backups',{keyPath:'id',autoIncrement:true});
     };
-    req.onsuccess=e=>{aqariV47Db=e.target.result;resolve(aqariV47Db)};
+    req.onsuccess=e=>{
+      const opened=e.target.result;
+      if(!workspaceStorageCurrentV206(ticket)){try{opened.close()}catch{};reject(new Error('AQARI workspace changed while opening local database'));return}
+      opened.onversionchange=()=>{try{opened.close()}catch{};if(aqariV47Db===opened){aqariV47Db=null;aqariV47WorkspaceV206=''}};
+      aqariV47Db=opened;aqariV47WorkspaceV206=workspaceId;resolve(aqariV47Db)
+    };
     req.onerror=()=>reject(req.error);
   });
 }
 
 async function syncToIndexedDb(silent=false){
+  let ticket=null;
   try{
-    const d=await openAqariV47Db();
+    ticket=captureWorkspaceStorageV206();const d=await openAqariV47Db(ticket);assertWorkspaceStorageV206(ticket);
     await new Promise((resolve,reject)=>{
       const tx=d.transaction('state','readwrite');
       tx.objectStore('state').put({savedAt:new Date().toISOString(),data:db},'main');
       tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
     });
+    assertWorkspaceStorageV206(ticket);
     if(document.getElementById('idbState')) idbState.textContent='جاهز';
     if(document.getElementById('lastSaveState')) lastSaveState.textContent=new Date().toLocaleString('ar-KW');
     if(!silent && typeof showToast==='function') showToast('تمت المزامنة المحلية');
     return true;
   }catch(e){
+    if(ticket&&!workspaceStorageCurrentV206(ticket))return false;
     if(document.getElementById('idbState')) idbState.textContent='غير متاح';
-    if(document.getElementById('storageNotes')) storageNotes.innerHTML=`<div class="c">تعذر IndexedDB: ${e?.message||e}</div>`;
+    if(document.getElementById('storageNotes')){storageNotes.replaceChildren();const note=document.createElement('div');note.className='c';note.textContent='تعذر IndexedDB: '+String(e?.message||e);storageNotes.appendChild(note)}
     return false;
   }
 }
 
 async function restoreFromIndexedDb(){
+  let ticket=null;
   try{
-    const d=await openAqariV47Db();
+    ticket=captureWorkspaceStorageV206();const d=await openAqariV47Db(ticket);assertWorkspaceStorageV206(ticket);
     const rec=await new Promise((resolve,reject)=>{
       const r=d.transaction('state','readonly').objectStore('state').get('main');
       r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error);
     });
+    assertWorkspaceStorageV206(ticket);
     if(!rec?.data){alert('لا توجد نسخة محلية محفوظة');return}
-    db=rec.data;
+    db=window.AQARI_DATA_GATE?.prepareState(rec.data)||{};
+    assertWorkspaceStorageV206(ticket);
     for(const k in mods) db[k]??=[];
     persist(); render();
     if(typeof showToast==='function') showToast('تمت الاستعادة من IndexedDB');
-  }catch(e){ alert('تعذر الاستعادة: '+(e?.message||e)); }
+  }catch(e){if(ticket&&!workspaceStorageCurrentV206(ticket))return;alert('تعذر الاستعادة: '+(e?.message||e)); }
 }
 
 async function makeAutoBackup(){
+  let ticket=null;
   try{
-    const d=await openAqariV47Db();
-    const rec={createdAt:new Date().toISOString(),size:JSON.stringify(db).length,data:db};
+    ticket=captureWorkspaceStorageV206();const d=await openAqariV47Db(ticket);assertWorkspaceStorageV206(ticket);
+    const snapshot=JSON.parse(JSON.stringify(db));
+    const rec={createdAt:new Date().toISOString(),size:JSON.stringify(snapshot).length,data:snapshot};
     await new Promise((resolve,reject)=>{
       const tx=d.transaction('backups','readwrite');
       tx.objectStore('backups').add(rec);
       tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
     });
+    assertWorkspaceStorageV206(ticket);
     localStorage.setItem('aqari_v47_last_backup',rec.createdAt);
     if(document.getElementById('autoBackupState')) autoBackupState.textContent=new Date(rec.createdAt).toLocaleString('ar-KW');
     if(typeof showToast==='function') showToast('تم إنشاء نسخة تلقائية');
-  }catch(e){alert('تعذر إنشاء النسخة: '+(e?.message||e))}
+  }catch(e){if(ticket&&!workspaceStorageCurrentV206(ticket))return;alert('تعذر إنشاء النسخة: '+(e?.message||e))}
 }
 
 function parseCsvLineV47(line){
@@ -4924,21 +5523,37 @@ async function importCsvV47(){
   const file=document.getElementById('importCsvFile').files?.[0];
   if(!file){alert('اختر ملف CSV');return}
   const section=document.getElementById('importSection').value;
-  const txt=await file.text();
-  const lines=txt.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());
-  if(lines.length<2){importWizardResult.innerHTML='<div class="c">الملف لا يحتوي سجلات.</div>';return}
-  const rows=lines.slice(1).map(parseCsvLineV47);
-  db[section]=db[section]||[];
-  const expected=mods[section]?.[1]?.length||4;
-  let added=0;
-  rows.forEach(r=>{
-    const row=r.slice(0,expected);
-    while(row.length<expected) row.push('');
-    db[section].push(row);added++;
-  });
-  audit?.('استيراد CSV',mods[section]?.[0]||section);
-  persist();await syncToIndexedDb(true);render();
-  importWizardResult.innerHTML=`<div class="c">تم استيراد <b>${added}</b> سجل إلى ${mods[section]?.[0]||section}.</div>`;
+  let ticket=null;
+  try{
+    if(!mods[section])throw new Error('invalid import section');
+    ticket=captureWorkspaceStorageV206();
+    const txt=await file.text();
+    assertWorkspaceStorageV206(ticket);
+    const lines=txt.replace(/^\uFEFF/,'').split(/\r?\n/).filter(x=>x.trim());
+    if(lines.length<2){
+      importWizardResult.replaceChildren();
+      const empty=document.createElement('div');empty.className='c';empty.textContent='الملف لا يحتوي سجلات.';importWizardResult.appendChild(empty);
+      return;
+    }
+    const expected=mods[section][1]?.length||4;
+    const imported=lines.slice(1).map(parseCsvLineV47).map((source)=>{
+      const row=source.slice(0,expected);while(row.length<expected)row.push('');return row;
+    });
+    const nextRows=(Array.isArray(db[section])?db[section].slice():[]).concat(imported);
+    assertWorkspaceStorageV206(ticket);
+    db[section]=nextRows;
+    audit?.('استيراد CSV',mods[section][0]||section);
+    persist();
+    await syncToIndexedDb(true);
+    assertWorkspaceStorageV206(ticket);
+    render();
+    importWizardResult.replaceChildren();
+    const done=document.createElement('div');done.className='c';done.textContent=`تم استيراد ${imported.length} سجل إلى ${mods[section][0]||section}.`;importWizardResult.appendChild(done);
+  }catch(error){
+    if(ticket&&!workspaceStorageCurrentV206(ticket))return;
+    importWizardResult.replaceChildren();
+    const failed=document.createElement('div');failed.className='c';failed.textContent='تعذر استيراد الملف بأمان.';importWizardResult.appendChild(failed);
+  }finally{const input=document.getElementById('importCsvFile');if(input)input.value=''}
 }
 
 function downloadCsvTemplateV47(){
@@ -4981,7 +5596,10 @@ function refreshStorageV47(){
   if(document.getElementById('autoBackupState')){
     const x=localStorage.getItem('aqari_v47_last_backup');autoBackupState.textContent=x?new Date(x).toLocaleString('ar-KW'):'—';
   }
-  openAqariV47Db().then(()=>{if(document.getElementById('idbState'))idbState.textContent='جاهز'}).catch(()=>{if(document.getElementById('idbState'))idbState.textContent='غير متاح'});
+  let ticket=null;
+  try{ticket=captureWorkspaceStorageV206()}catch{}
+  if(ticket)openAqariV47Db(ticket).then(()=>{if(workspaceStorageCurrentV206(ticket)&&document.getElementById('idbState'))idbState.textContent='جاهز'}).catch(()=>{if(workspaceStorageCurrentV206(ticket)&&document.getElementById('idbState'))idbState.textContent='غير متاح'});
+  else if(document.getElementById('idbState'))idbState.textContent='مقفل';
 }
 
 const v47Persist=persist;
@@ -8577,7 +9195,7 @@ function exportFinalReleaseReport(){
  const b=new Blob([JSON.stringify(finalReleaseReport,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-final-release-report.json';a.click()
 }
 function exportFinalBackup(){
- const payload={product:'AQARI',release:'FINAL',exportedAt:new Date().toISOString(),db,localStorage:Object.fromEntries(Array.from({length:localStorage.length},(_,i)=>{const k=localStorage.key(i);return[k,localStorage.getItem(k)]}))};
+ const payload={product:'AQARI',release:'FINAL',exportedAt:new Date().toISOString(),db,localStorage:aqariExportStorageV198()};
  const b=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-final-backup.json';a.click()
 }
 const rFinal=render;render=function(){rFinal();runFinalReleaseCheck()};render();
@@ -8650,7 +9268,7 @@ function runHardeningAuditV118(){
  renderMigrationHealthV118()
 }
 function createIntegritySnapshotV118(){
- const snap={version:'V118',at:new Date().toISOString(),db,localStorage:Object.fromEntries(Array.from({length:localStorage.length},(_,i)=>{const k=localStorage.key(i);return[k,localStorage.getItem(k)]}))};
+ const snap={version:'V118',at:new Date().toISOString(),db,localStorage:aqariExportStorageV198()};
  localStorage.setItem('aqari_integrity_snapshot_v118',JSON.stringify(snap));
  if(typeof showToast==='function')showToast('تم حفظ Integrity Snapshot')
 }
@@ -9041,7 +9659,7 @@ function clearStagedImportV123(){
  stagedImportV123=null;localStorage.removeItem('aqari_staged_import_v123');siPayloadV123.value='';refreshImportCenterV123()
 }
 function createPreRestoreSnapshotV123(){
- const snap={version:'V123',at:new Date().toISOString(),db,localStorage:Object.fromEntries(Array.from({length:localStorage.length},(_,i)=>{const k=localStorage.key(i);return[k,localStorage.getItem(k)]}))};
+ const snap={version:'V123',at:new Date().toISOString(),db,localStorage:aqariExportStorageV198()};
  localStorage.setItem('aqari_pre_restore_snapshot_v123',JSON.stringify(snap));
  if(typeof auditV122==='function')auditV122('restore.snapshot.created','تم إنشاء Snapshot قبل الاستعادة');
  if(typeof showToast==='function')showToast('تم حفظ Snapshot قبل الاستعادة')
@@ -9458,7 +10076,7 @@ function checksumV128(text){
  return ('00000000'+(h>>>0).toString(16)).slice(-8)
 }
 function createRecoveryPointV128(){
- const payload={version:'V128',createdAt:new Date().toISOString(),db,localStorage:Object.fromEntries(Array.from({length:localStorage.length},(_,i)=>{const k=localStorage.key(i);return[k,localStorage.getItem(k)]}))};
+ const payload={version:'V128',createdAt:new Date().toISOString(),db,localStorage:aqariExportStorageV198()};
  const raw=JSON.stringify(payload),point={id:'RP-'+Date.now(),createdAt:payload.createdAt,bytes:new Blob([raw]).size,checksum:checksumV128(raw),payload};
  const a=recoveryPointsV128();a.unshift(point);if(a.length>10)a.length=10;saveRecoveryPointsV128(a);
  if(typeof auditV122==='function')auditV122('recovery.point.created',point.id);
@@ -17564,5 +18182,6 @@ table{
 </style>
 <div class="aq-v168-gate on" id="aqariCloudGateV168" role="dialog" aria-modal="true" aria-labelledby="aqariCloudGateTitleV168"><div class="aq-v168-login"><div class="aq-v168-logo"><h1 id="aqariCloudGateTitleV168">عقاري</h1><p>دخول آمن عبر Supabase</p></div><label>البريد الإلكتروني<input id="cloudEmailV168" type="email" autocomplete="username" inputmode="email" placeholder="name@example.com"></label><label>كلمة المرور<input id="cloudPasswordV168" type="password" autocomplete="current-password" placeholder="10 أحرف أو أكثر"></label><div class="aq-v168-actions"><button class="g" type="button" data-cloud-auth-action onclick="cloudLoginV198()">دخول</button><button type="button" data-cloud-auth-action onclick="cloudSignupV168()">إنشاء حساب المدير لأول مرة</button></div><div class="aq-v168-actions"><button type="button" data-cloud-auth-action onclick="cloudRecoveryV168()">نسيت كلمة المرور</button></div><div class="aq-v168-note">الحسابات غير المصرح بها مرفوضة من قاعدة البيانات.</div><div class="aq-v168-msg wait" id="cloudGateMsgV168">جاري التحقق من الجلسة الآمنة…</div></div></div>
 <div class="aq-v168-modal" id="aqariCloudModalV168" role="dialog" aria-modal="true" aria-labelledby="aqariCloudTitleV168"><div class="aq-v168-dialog"><div class="aq-v168-row"><h3 id="aqariCloudTitleV168">حساب عقاري السحابي</h3><button type="button" onclick="closeCloudV168()">إغلاق</button></div><div class="aq-v168-msg wait" id="cloudAccountV168">لا توجد جلسة.</div><label>كلمة مرور جديدة<input id="cloudNewPasswordV168" type="password" autocomplete="new-password" placeholder="10 أحرف أو أكثر"></label><div class="aq-v168-actions"><button class="g" type="button" onclick="changeCloudPasswordV168()">تغيير كلمة المرور</button><button type="button" onclick="cloudLogoutV198()">تسجيل الخروج</button></div></div></div>
+<script id="aqari-shell-ready">document.documentElement.classList.add('aqari-shell-ready')</script>
 <script id="aqari-v198-secure-cloud-js" src="/secure-auth-bridge.js"></script>
 </body></html>

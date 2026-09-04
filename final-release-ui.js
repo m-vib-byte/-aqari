@@ -87,6 +87,25 @@
 (function(){
   'use strict';
 
+  function installV206RentLedger(){
+    document.body?.classList.add('aq-v206');
+
+    if(!document.getElementById('aqari-v206-rent-ledger-css')){
+      const css=document.createElement('link');
+      css.id='aqari-v206-rent-ledger-css';
+      css.rel='stylesheet';
+      css.href='/v206-rent-ledger.css';
+      document.head.appendChild(css);
+    }
+
+    if(!document.getElementById('aqari-v206-rent-ledger-js')){
+      const script=document.createElement('script');
+      script.id='aqari-v206-rent-ledger-js';
+      script.src='/v206-rent-ledger.js';
+      document.body.appendChild(script);
+    }
+  }
+
   function installV205SimplifiedShell(){
     document.body?.classList.add('aq-v205');
 
@@ -110,7 +129,10 @@
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
       shell.src = '/v205-simplified-shell.js';
+      shell.addEventListener('load', installV206RentLedger, { once:true });
       document.body.appendChild(shell);
+    }else{
+      installV206RentLedger();
     }
   }
 
