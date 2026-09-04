@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1770,
-      "sha256": "c2c7e0c0d0e1ac71aa182f99bf330ec5ee1c7983dd09115a47ce6e8e6307df60"
+      "size": 2113,
+      "sha256": "76d2b40d4558219234fef94496a7067d906a46725fadfe513d94f4aa7a37b2e8"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 388,
-      "sha256": "12083d6584807bb15dc0eacdb162c8786cb9a39eded33b205b74e14f520a4096"
+      "size": 2536,
+      "sha256": "5469df30a2e499b9d7874670b3b00be2a031e4f102bdc7bf77f9ad73e0628e7a"
     },
     {
       "path": "api/autosync-status.js",
@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 6965,
-      "sha256": "1ca8d985ac000b993c5d3e93ca31d897797c1435f3955c5a5561ebd0de73a846"
+      "size": 7770,
+      "sha256": "b3f195e106be7ce905318ea451c96519d0bcd4aed8e09e35d0e27c75b578a6ae"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -347,6 +347,11 @@
       "sha256": "8360dc6e30e60d5979a1d436512a6c480f9268e1171da72a8623ec2349df8dd8"
     },
     {
+      "path": "tests/v207-smart-collections.test.cjs",
+      "size": 3014,
+      "sha256": "ca01258cd036dd7b1821017fdc921a85bcc38770da64efa451827b3aeac68796"
+    },
+    {
       "path": "v199-ui.css",
       "size": 28895,
       "sha256": "f58f2ec1acea2309d0d1f1895610511b117947fe4844c8cf72a53dd5486e8c36"
@@ -395,6 +400,16 @@
       "path": "v206-integrated-ledger.css",
       "size": 15935,
       "sha256": "00b2c81fc32c43762fe73dfface43ebbcbd175ed5c56eae9df6e646ba7b5e070"
+    },
+    {
+      "path": "v207-smart-collections.css",
+      "size": 5622,
+      "sha256": "852cd7f745f76df5af37be4fc0f3629418265f4c0a54b7108dab9e4952412904"
+    },
+    {
+      "path": "v207-smart-collections.js",
+      "size": 9967,
+      "sha256": "3c23ec2b0eda8941dafabf7e13ad5a2418c50e5c2700bacd85e25a90575f5c5d"
     },
     {
       "path": "vercel.json",
