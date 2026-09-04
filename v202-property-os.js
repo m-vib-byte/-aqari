@@ -870,18 +870,19 @@
         if(id&&normalized(entry?.contractId||entry?.contract_id))return normalized(entry?.contractId||entry?.contract_id)===id;
         return !base.tenant||normalized(entry?.tenant)===normalized(base.tenant);
       });
-      const paid=statementItem?numberFrom(statementItem.paid):ledger.filter(function(entry){return settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const settledLedger=ledger.filter(function(entry){return settledPayment(entry?.status)});
+      const paid=statementItem?numberFrom(statementItem.paid):settledLedger.reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
       const pending=statementItem?numberFrom(statementItem.pending):ledger.filter(function(entry){return !settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
       const due=statementItem?numberFrom(statementItem.due):contractRent(contract);
       const contractFaceRent=contract&&contract.contractRent!=null&&String(contract.contractRent).trim()!==''?numberFrom(contract.contractRent):due;
       const currentRent=directoryRecord.currentRent!=null&&String(directoryRecord.currentRent).trim()!==''?numberFrom(directoryRecord.currentRent):contractRent(contract);
       const balance=Math.max(0,due-paid);
-      const receipts=ledger.map(function(entry){return String(entry?.receiptNo||'').trim()}).filter(Boolean);
-      const paymentDates=ledger.map(function(entry){return String(entry?.paidAt||'').trim()}).filter(Boolean).sort().reverse();
-      const methods=Array.from(new Set(ledger.map(function(entry){return String(entry?.method||'').trim()}).filter(Boolean)));
-      const knetTransactions=Array.from(new Set(ledger.map(ledgerTransactionNo).filter(Boolean)));
+      const receipts=settledLedger.map(function(entry){return String(entry?.voucherNo||entry?.receiptNo||'').trim()}).filter(Boolean);
+      const paymentDates=settledLedger.map(function(entry){return String(entry?.paidAt||'').trim()}).filter(Boolean).sort().reverse();
+      const methods=Array.from(new Set(settledLedger.map(function(entry){return String(entry?.method||'').trim()}).filter(Boolean)));
+      const knetTransactions=Array.from(new Set(settledLedger.map(ledgerTransactionNo).filter(Boolean)));
       const paymentNotes=Array.from(new Set(ledger.map(function(entry){return String(entry?.note||'').trim()}).filter(Boolean)));
-      const contractReceived=String(directoryRecord.contractReceived||directoryRecord.contractReceipt||ledger.map(function(entry){return entry?.contractReceived}).find(Boolean)||'');
+      const contractReceived=String(directoryRecord.contractReceived||directoryRecord.contractReceipt||settledLedger.map(function(entry){return entry?.contractReceived}).find(Boolean)||'');
       const paymentStatus=!contract?'يحتاج مراجعة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
       return {
         key:unitRecordKey({property,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
@@ -959,7 +960,7 @@
         '<dl class="aq-unit-summary">'+unitMoneyField('الإيجار',record.rent)+unitMoneyField('المدفوع',record.paid)+unitMoneyField('المتبقي',record.balance)+'</dl>'+ 
         '<details class="aq-unit-details"><summary>عرض كل بيانات الوحدة '+escapeHtml(record.unit)+'</summary><dl class="aq-unit-details-body">'+ 
           unitField('المستأجر',record.tenant)+unitField('رقم العقد',record.contractNo)+unitField('حالة العقد',record.contractStatus)+unitField('بداية العقد',record.startDate?localDate(record.startDate):'غير مسجل')+unitField('نهاية العقد',record.endDate?localDate(record.endDate):'غير مسجل')+unitMoneyField('قيد المراجعة',record.pending)+
-          unitField('الوصولات',record.receipts.join('، ')||record.contractReceipt)+unitField('تاريخ آخر دفعة',record.paidAt?localDate(record.paidAt):'غير مسجل')+unitField('طريقة السداد',record.methods.join('، '))+
+          unitField('الوصولات',record.receipts.join('، '))+unitField('تاريخ آخر دفعة',record.paidAt?localDate(record.paidAt):'غير مسجل')+unitField('طريقة السداد',record.methods.join('، '))+
           unitField('الهاتف / Phone',record.phone)+unitField('الجنسية / Nationality',record.nationality)+unitEmailField(record.email)+unitField('المحاسب / Accountant',record.accountant)+
           unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+unitField('ملاحظات',notes)+
           '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked">'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
@@ -1148,8 +1149,9 @@
   }
 
   function openWorkspace(name,trigger){
+    if(!protectedAccessReady())return false;
     const record=propertyRecord(name);
-    if(!record){reportPropertyAmbiguity(name);return}
+    if(!record){reportPropertyAmbiguity(name);return false}
     ensureWorkspace();
     activeProperty=String(record?.[0]||name);
     propertyTrigger=trigger||document.activeElement;
@@ -1162,6 +1164,7 @@
     overlay.setAttribute('aria-hidden','false');
     syncLayerState();
     requestAnimationFrame(function(){overlay.querySelector('[data-v202-action]')?.focus()});
+    return true;
   }
 
   function closeWorkspace(restore){
@@ -1197,6 +1200,7 @@
   }
 
   function routeAction(action,trigger){
+    if(!protectedAccessReady())return false;
     if(protectedPropertyActive(activeProperty)&&['payment','contract','profile'].includes(action)){
       activeTab=action==='payment'?'collections':(action==='contract'?'contracts':'overview');
       const context=contextFor(activeProperty);
@@ -1223,8 +1227,8 @@
     const period=latestOfficialPeriod(activeProperty);
     const records=context?unitDirectoryRecords(context,period):[];
     const record=records[Number(button?.getAttribute('data-v202-unit-receipt'))];
-    const settled=tenantLedgerEntries(context,record,period).filter(function(entry){return settledPayment(entry?.status)&&String(entry?.receiptNo||'').trim()});
-    const receipt=String(settled[settled.length-1]?.receiptNo||'');
+    const settled=tenantLedgerEntries(context,record,period).filter(function(entry){return settledPayment(entry?.status)&&String(entry?.voucherNo||entry?.receiptNo||'').trim()});
+    const receipt=String(settled[settled.length-1]?.voucherNo||settled[settled.length-1]?.receiptNo||'');
     if(!receipt)return false;
     activeTenantStatementKey=record.key;
     return openTenantReceipt(button,receipt,period);
@@ -1318,7 +1322,9 @@
     const record=tenantStatementRecord(context,period);
     const requested=String(receiptNo||button?.getAttribute('data-v202-tenant-receipt')||'').trim();
     const entries=tenantLedgerEntries(context,record,period);
-    const entry=entries.find(function(item){return normalized(item?.receiptNo)===normalized(requested)});
+    const entry=entries.find(function(item){
+      return settledPayment(item?.status)&&normalized(item?.voucherNo||item?.receiptNo)===normalized(requested);
+    });
     if(!record||!requested||!entry)return false;
     openDocument('وصل الإيجار / Rent Receipt',tenantReceiptDocument(context,record,entry,period),button,'#v202PropertyWorkspace [data-v202-unit-statement]');
     return true;
@@ -1450,8 +1456,9 @@
   }
 
   function openPayment(trigger,preferredContractId){
+    if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
-    if(!context)return;
+    if(!context)return false;
     ensurePaymentDialog();
     paymentTrigger=trigger||document.activeElement;
     const overlay=document.getElementById('v202PaymentDialog');
@@ -1463,6 +1470,7 @@
     syncLayerState();
     updatePaymentBalance();
     requestAnimationFrame(function(){(document.getElementById('v202PaymentContract')||overlay.querySelector('[data-v202-payment-close]'))?.focus()});
+    return true;
   }
 
   function closePayment(restore){
@@ -1632,6 +1640,7 @@
     const selectedPeriod=validPeriod(period)?period:record.period;
     const periodAr=periodLabel(selectedPeriod);
     const periodEn=periodLabelEnglish(selectedPeriod);
+    const brand=statementBrand(record.property||activeProperty);
     const subject='كشف إيجار '+periodAr+' – '+String(record.property||activeProperty||'عقاري')+' – الوحدة '+String(record.unit||'');
     const body=[
       'السيد/السيدة '+String(record.tenant||'المستأجر')+'،',
@@ -1652,8 +1661,8 @@
       'Paid: '+bilingualMoney(record.paid),
       'Balance: '+bilingualMoney(record.balance),
       '',
-      'برج ضحاوي / DHAHAWI TOWER',
-      'dhahawitower@gmail.com • dhahawikw.com'
+      [brand.ar,brand.en].filter(Boolean).join(' / '),
+      [brand.email,brand.website].filter(Boolean).join(' • ')
     ].join('\n');
     return 'mailto:'+addresses.join(',')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
   }
@@ -1684,7 +1693,7 @@
     if(!context||!record||!entry)return '';
     const selectedPeriod=validPeriod(period)?period:record.period;
     const brand=statementBrand(record.property||context.property?.[0]);
-    const receiptNo=String(entry.receiptNo||'');
+    const receiptNo=String(entry.voucherNo||entry.receiptNo||'');
     const paymentStatus=statusLabel(entry.status||record.paymentStatus);
     const transaction=ledgerTransactionNo(entry);
     const note=String(entry.note||'').trim();
@@ -1693,10 +1702,10 @@
         '<section class="v204-statement-hero"><div><span>وصل استلام إيجار</span><small>RENT RECEIPT</small><h2>'+escapeHtml(receiptNo||'غير مسجل')+'</h2><p>'+escapeHtml(record.tenant||'مستأجر غير مسجل')+' • '+escapeHtml(record.property||activeProperty)+' • '+escapeHtml(record.unit)+'</p></div><div class="v204-statement-period"><span>'+escapeHtml(periodLabel(selectedPeriod))+'</span><small>'+escapeHtml(periodLabelEnglish(selectedPeriod))+'</small><b class="'+unitStatusTone(record.paymentStatus)+'">'+escapeHtml(paymentStatus)+' / '+escapeHtml(statusEnglish(paymentStatus))+'</b></div></section>'+ 
         '<section class="v204-receipt-amount"><span>المبلغ المستلم / AMOUNT RECEIVED</span><strong>'+escapeHtml(bilingualMoney(entry.paid))+'</strong></section>'+ 
         '<section class="v204-section"><h3><span>بيانات الوصل</span><small>RECEIPT DETAILS</small></h3><dl class="v204-fields">'+ 
-          statementField('اسم المستأجر','Tenant Name',record.tenant)+statementField('رقم الوحدة','Flat No.',record.unit)+statementField('رقم العقد','Contract No.',record.contractNo)+statementField('رقم الوصل','Receipt No.',receiptNo)+statementField('تاريخ الدفع','Payment Date',statementDate(entry.paidAt||record.paidAt))+statementField('فترة الإيجار','Rent Period',periodLabel(selectedPeriod)+' / '+periodLabelEnglish(selectedPeriod))+statementField('طريقة الدفع','Payment Method',entry.method||record.methods?.join('، '))+statementField('رقم عملية كي نت','KNET Operation No.',transaction)+statementField('رقم السند','Voucher No.',entry.voucherNo||receiptNo)+statementField('حالة الدفع','Payment Status',paymentStatus+' / '+statusEnglish(paymentStatus))+ 
+          statementField('اسم المستأجر','Tenant Name',record.tenant)+statementField('رقم الوحدة','Flat No.',record.unit)+statementField('رقم العقد','Contract No.',record.contractNo)+statementField('رقم الوصل / السند','Receipt / Voucher No.',receiptNo)+statementField('تاريخ الدفع','Payment Date',statementDate(entry.paidAt||record.paidAt))+statementField('فترة الإيجار','Rent Period',periodLabel(selectedPeriod)+' / '+periodLabelEnglish(selectedPeriod))+statementField('طريقة الدفع','Payment Method',entry.method||record.methods?.join('، '))+statementField('رقم عملية كي نت','KNET Operation No.',transaction)+statementField('رقم السند','Voucher No.',entry.voucherNo||receiptNo)+statementField('حالة الدفع','Payment Status',paymentStatus+' / '+statusEnglish(paymentStatus))+statementField('المحاسب','Accountant',record.accountant)+ 
         '</dl></section>'+ 
         (note?'<section class="v204-section v204-notes"><h3><span>البيان</span><small>DESCRIPTION</small></h3><p>'+escapeHtml(note)+'</p></section>':'')+ 
-        '<div class="v202-document-signatures"><div><span>المحاسب / Accountant</span><b>________________</b></div><div><span>المستأجر / Tenant</span><b>________________</b></div></div>'+ 
+        '<div class="v202-document-signatures"><div><span>المحاسب / Accountant</span><b>'+escapeHtml(record.accountant||'________________')+'</b></div><div><span>المستأجر / Tenant</span><b>________________</b></div></div>'+ 
         '<footer>'+escapeHtml(brand.ar)+' / '+escapeHtml(brand.en)+' • وصل صادر حسب عملية التحصيل المسجلة / Issued from the recorded rent collection</footer>'+ 
       '</article>';
   }
@@ -1736,9 +1745,9 @@
     const emailValue=emails.length?emails.map(function(email){return '<a href="mailto:'+escapeHtml(email)+'">'+escapeHtml(email)+'</a>'}).join('<br>'):escapeHtml(record.email||'غير مسجل / Not recorded');
     const civilMarkup='<span class="v204-sensitive-value is-masked">'+escapeHtml(maskCivilId(record.civilId))+'</span>'+(record.civilId?'<button type="button" class="v204-civil-toggle v202-no-print" data-v202-tenant-civil-reveal aria-pressed="false">إظهار / Show</button>':'');
     const mailAction=mailto?'<a class="v204-email-action" href="'+escapeHtml(mailto)+'">فتح البريد / Open Email</a><button type="button" data-v202-copy-email>نسخ البريد / Copy Email</button>':'<span class="v204-email-missing">البريد غير مسجل أو غير صالح / Email unavailable</span>';
-    const receipts=record.receipts?.join('، ')||record.contractReceipt||'غير مسجل / Not recorded';
-    const settledReceipts=tenantLedgerEntries(context,record,selectedPeriod).filter(function(entry){return settledPayment(entry?.status)&&String(entry?.receiptNo||'').trim()});
-    const latestReceipt=String(settledReceipts[settledReceipts.length-1]?.receiptNo||'');
+    const receipts=record.receipts?.join('، ')||'غير مسجل / Not recorded';
+    const settledReceipts=tenantLedgerEntries(context,record,selectedPeriod).filter(function(entry){return settledPayment(entry?.status)&&String(entry?.voucherNo||entry?.receiptNo||'').trim()});
+    const latestReceipt=String(settledReceipts[settledReceipts.length-1]?.voucherNo||settledReceipts[settledReceipts.length-1]?.receiptNo||'');
     const contractValue=record.contractId||record.contractNo||'';
     const relatedActions=(record.hasContract&&contractValue?'<button type="button" class="v204-related-primary" data-v202-tenant-contract="'+escapeHtml(contractValue)+'">عقد الإيجار / Tenancy Contract</button>':'')+(latestReceipt?'<button type="button" data-v202-tenant-receipt="'+escapeHtml(latestReceipt)+'">وصل الإيجار / Rent Receipt</button>':'');
     const methods=record.methods?.join('، ')||'غير مسجل / Not recorded';
@@ -1793,9 +1802,11 @@
       }
       if(!key||!items.has(key))return;
       const item=items.get(key);
-      if(settledPayment(entry?.status))item.paid+=numberFrom(entry?.paid);
-      else item.pending+=numberFrom(entry?.paid);
-      if(entry?.receiptNo)item.receipts.push(entry.receiptNo);
+      if(settledPayment(entry?.status)){
+        item.paid+=numberFrom(entry?.paid);
+        const reference=String(entry?.voucherNo||entry?.receiptNo||'').trim();
+        if(reference)item.receipts.push(reference);
+      }else item.pending+=numberFrom(entry?.paid);
       items.set(key,item);
     });
     return Array.from(items.values()).map(function(item){
@@ -1906,10 +1917,12 @@
         property:String(context.property?.[0]||''),period:selectedPeriod,
         unit:String(item.unit||record?.unit||'—'),tenant:String(item.tenant||record?.tenant||'—'),
         contractNo:String(record?.contractNo||contract?.contract_no||''),contractId:String(item.contractId||''),
+        recordKey:String(record?.key||''),email:String(record?.email||''),hasContract:Boolean(record?.hasContract||contract),
         contractRent:contractRentValue,currentRent:currentRentValue,
         insurance:ledgerRecordedAmount(record?.insurance),advance:ledgerRecordedAmount(record?.advance),cleaningFee:ledgerRecordedAmount(record?.cleaningFee),
         paymentDate:String(latest?.paidAt||''),paymentMethod:String(latest?.method||''),
         knetTransactionNo:String(latest?ledgerTransactionNo(latest):''),voucherNo:String(latest?.voucherNo||latest?.receiptNo||''),
+        receiptReference:String(latest?.voucherNo||latest?.receiptNo||''),
         contractReceived:String(record?.contractReceived||record?.contractReceipt||''),accountant:String(record?.accountant||''),
         due,paid,pending,balance,paymentStatus,settledPayments:entries.length
       };
@@ -1934,18 +1947,30 @@
     const property=String(context.property?.[0]||'');
     const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
     const ledgerRows=propertyRentLedgerRows(context,selectedPeriod);
-    const due=ledgerRows.reduce(function(total,row){return total+row.due},0);
-    const paid=ledgerRows.reduce(function(total,row){return total+row.paid},0);
+    const official=officialStatementFor(property,selectedPeriod);
+    const computedDue=ledgerRows.reduce(function(total,row){return total+row.due},0);
+    const computedPaid=ledgerRows.reduce(function(total,row){return total+row.paid},0);
     const pending=ledgerRows.reduce(function(total,row){return total+row.pending},0);
-    const balance=ledgerRows.reduce(function(total,row){return total+row.balance},0);
+    const due=statementValue(official,'totalRent',computedDue);
+    const paid=statementValue(official,'totalCollected',computedPaid);
+    const balance=Math.max(0,due-paid);
+    const computedInsurance=propertyRentLedgerTotal(ledgerRows,'insurance');
+    const computedAdvance=propertyRentLedgerTotal(ledgerRows,'advance');
+    const computedCleaning=propertyRentLedgerTotal(ledgerRows,'cleaningFee');
+    const computedCurrentRent=propertyRentLedgerTotal(ledgerRows,'currentRent');
     return {
       property,owner:String(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:''),period:selectedPeriod,
-      brand:statementBrand(property),rows:ledgerRows,
+      brand:statementBrand(property),rows:ledgerRows,official:Boolean(official),
+      unitCount:official&&hasField(official,'unitCount')?numberFrom(official.unitCount):ledgerRows.length,
+      sourcePages:official&&hasField(official,'sourcePages')?String(official.sourcePages):'',
+      detailTotals:{due:computedDue,paid:computedPaid},
       totals:{
         due,paid,pending,balance,
-        contractRent:propertyRentLedgerTotal(ledgerRows,'contractRent'),insurance:propertyRentLedgerTotal(ledgerRows,'insurance'),
-        advance:propertyRentLedgerTotal(ledgerRows,'advance'),cleaningFee:propertyRentLedgerTotal(ledgerRows,'cleaningFee'),
-        currentRent:propertyRentLedgerTotal(ledgerRows,'currentRent')
+        contractRent:propertyRentLedgerTotal(ledgerRows,'contractRent'),
+        insurance:statementValue(official,'totalInsurance',computedInsurance),
+        advance:statementValue(official,'totalAdvance',computedAdvance),
+        cleaningFee:statementValue(official,'totalCleaning',computedCleaning),
+        currentRent:statementValue(official,'totalRent',computedCurrentRent)
       },
       collectionRate:due?Math.min(100,paid/due*100):0
     };
@@ -1956,36 +1981,56 @@
     return isMoney?money(numberFrom(value)):String(value);
   }
 
+  function propertyRentLedgerCommandCenter(model){
+    const attention=model.rows.filter(function(row){return row.balance>0||row.pending>0}).length;
+    const items=model.rows.map(function(row){
+      const key=String(row.recordKey||'');
+      const mailto=tenantMailto(row,model.period);
+      const actions=key?
+        '<button type="button" data-v206-ledger-statement-key="'+escapeHtml(key)+'">كشف المستأجر / Statement</button>'+ 
+        (row.hasContract?'<button type="button" data-v206-ledger-contract-key="'+escapeHtml(key)+'">العقد / Contract</button>':'')+
+        (row.receiptReference?'<button type="button" data-v206-ledger-receipt-key="'+escapeHtml(key)+'" data-v206-ledger-receipt-reference="'+escapeHtml(row.receiptReference)+'">الوصل / Receipt</button>':'')+
+        (mailto?'<a href="'+escapeHtml(mailto)+'">البريد / Email</a>':''):
+        '<span class="v206-ledger-command-missing">الملف غير مربوط / File not linked</span>';
+      return '<li><div class="v206-ledger-command-person"><bdi dir="ltr">'+escapeHtml(row.unit)+'</bdi><span><strong><bdi dir="auto">'+escapeHtml(row.tenant)+'</bdi></strong><small><bdi dir="ltr">'+escapeHtml(row.contractNo||'—')+'</bdi></small></span><em class="'+unitStatusTone(row.paymentStatus)+'">'+escapeHtml(row.paymentStatus)+' / <span lang="en">'+escapeHtml(statusEnglish(row.paymentStatus))+'</span></em></div><div class="v206-ledger-command-money"><span>المدفوع / Paid <b>'+escapeHtml(money(row.paid))+'</b></span><span>المتبقي / Balance <b>'+escapeHtml(money(row.balance))+'</b></span></div><div class="v206-ledger-command-actions">'+actions+'</div></li>';
+    }).join('');
+    return '<details class="v206-ledger-command v202-no-print"><summary><span><strong>إدارة المستأجرين مباشرة</strong><small lang="en">TENANT QUICK ACTIONS</small></span><b>'+attention+' تحتاج متابعة / Need follow-up</b></summary><ul>'+items+'</ul></details>';
+  }
+
   function propertyRentLedgerDocument(context,period){
+    if(!protectedAccessReady())return '';
     const model=propertyRentLedgerModel(context,period);
     if(!model)return '';
     const headers=PROPERTY_RENT_LEDGER_COLUMNS.map(function(column){
-      return '<th scope="col"><strong>'+escapeHtml(column.ar)+'</strong><small>'+escapeHtml(column.en)+'</small></th>';
+      return '<th scope="col"><strong>'+escapeHtml(column.ar)+'</strong><small lang="en" dir="ltr">'+escapeHtml(column.en)+'</small></th>';
     }).join('');
     const rows=model.rows.map(function(row){
       const cells=PROPERTY_RENT_LEDGER_COLUMNS.map(function(column){
         let value=row[column.key];
         if(column.key==='paymentDate'&&value)value=statementDate(value);
         const empty=value==null||String(value).trim()==='';
+        const ltr=column.money||['unit','contractNo','paymentDate','knetTransactionNo','voucherNo'].includes(column.key);
         const className=column.money?' class="is-money"':'';
-        return '<td'+className+(empty?' data-empty="true"':'')+'>'+escapeHtml(propertyRentLedgerDisplay(value,column.money))+'</td>';
+        return '<td'+className+(empty?' data-empty="true"':'')+'><bdi dir="'+(ltr?'ltr':'auto')+'">'+escapeHtml(propertyRentLedgerDisplay(value,column.money))+'</bdi></td>';
       }).join('');
       return '<tr data-v206-payment-status="'+escapeHtml(row.paymentStatus)+'">'+cells+'</tr>';
     }).join('');
     const totalMoney=function(key){return propertyRentLedgerDisplay(model.totals[key],true)};
-    const totalRow='<tr class="v206-ledger-total"><th scope="row" colspan="3">الإجمالي / TOTAL</th><td>'+escapeHtml(totalMoney('contractRent'))+'</td><td>'+escapeHtml(totalMoney('insurance'))+'</td><td>'+escapeHtml(totalMoney('advance'))+'</td><td>'+escapeHtml(totalMoney('cleaningFee'))+'</td><td>'+escapeHtml(totalMoney('currentRent'))+'</td><td colspan="6">—</td></tr>';
+    const totalRow='<tr class="v206-ledger-total"><th scope="row" colspan="3">الإجمالي / <span lang="en">TOTAL</span></th><td class="is-money">'+escapeHtml(totalMoney('contractRent'))+'</td><td class="is-money">'+escapeHtml(totalMoney('insurance'))+'</td><td class="is-money">'+escapeHtml(totalMoney('advance'))+'</td><td class="is-money">'+escapeHtml(totalMoney('cleaningFee'))+'</td><td class="is-money">'+escapeHtml(totalMoney('currentRent'))+'</td><td colspan="6">—</td></tr>';
     const contact=[model.brand.phones,model.brand.email,model.brand.website,model.brand.social].filter(Boolean).join(' • ');
-    return '<article class="v202-document v206-ledger" data-v206-ledger data-v206-ledger-version="V206-preview">'+
+    const officialNote=model.official?'<p class="v206-ledger-source"><strong>مطابق للكشف الرسمي / <span lang="en">OFFICIAL TOTALS</span></strong><span>الإجماليات مأخوذة من الكشف المعتمد، وتفاصيل الوحدات معروضة للمطابقة'+(model.sourcePages?' • مرجع الصفحات / Source pages: '+escapeHtml(model.sourcePages):'')+'.</span></p>':'';
+    return '<article class="v202-document v206-ledger" data-v206-ledger data-v206-ledger-version="V206-preview" data-v206-property="'+escapeHtml(model.property)+'">'+
         '<div class="v206-ledger-tools v202-no-print"><div><label for="v202StatementPeriod">شهر الكشف / Statement month</label><input id="v202StatementPeriod" type="month" value="'+escapeHtml(model.period)+'"></div><button type="button" data-v206-export-csv>تصدير CSV / Export CSV</button></div>'+ 
         '<header class="v206-ledger-brand"><div class="v206-ledger-brand-name"><strong>'+escapeHtml(model.brand.ar)+'</strong><b>'+escapeHtml(model.brand.en)+'</b><span>'+escapeHtml(model.brand.addressAr)+'</span><small>'+escapeHtml(model.brand.addressEn)+'</small></div><p class="v206-ledger-meta">'+escapeHtml(contact)+'</p></header>'+ 
-        '<section class="v206-ledger-header"><div class="v206-ledger-title"><span>كشف إيجار العقار</span><small>PROPERTY RENT LEDGER</small><h2>'+escapeHtml(model.property||'عقار غير مسجل')+'</h2><p>المالك / Owner: '+escapeHtml(model.owner||'غير مسجل / Not recorded')+'</p></div><div class="v206-ledger-identity"><strong>'+escapeHtml(periodLabel(model.period))+'</strong><small>'+escapeHtml(periodLabelEnglish(model.period))+'</small></div></section>'+ 
+        '<section class="v206-ledger-header"><div class="v206-ledger-title"><span>كشف إيجار العقار</span><small lang="en">PROPERTY RENT LEDGER</small><h2>'+escapeHtml(model.property||'عقار غير مسجل')+'</h2><p>المالك / <span lang="en">Owner</span>: '+escapeHtml(model.owner||'غير مسجل / Not recorded')+'</p></div><div class="v206-ledger-identity"><strong>'+escapeHtml(periodLabel(model.period))+'</strong><small lang="en">'+escapeHtml(periodLabelEnglish(model.period))+'</small></div></section>'+ 
         '<section class="v206-ledger-summary" aria-label="ملخص التحصيل">'+
-          '<div><span>الوحدات / UNITS</span><strong>'+model.rows.length+'</strong></div>'+ 
+          '<div><span>الوحدات / UNITS</span><strong>'+model.unitCount+'</strong></div>'+ 
           '<div><span>المستحق / DUE</span><strong>'+escapeHtml(money(model.totals.due))+'</strong></div>'+ 
           '<div><span>المحصّل / COLLECTED</span><strong>'+escapeHtml(money(model.totals.paid))+'</strong></div>'+ 
           '<div><span>المتبقي / BALANCE</span><strong>'+escapeHtml(money(model.totals.balance))+'</strong></div>'+ 
         '</section>'+ 
-        '<div class="v206-ledger-table-wrap"><table class="v206-ledger-table"><caption>كشف الإيجارات التفصيلي / Detailed rent ledger</caption><thead><tr>'+headers+'</tr></thead><tbody>'+rowOrEmpty(rows,14)+'</tbody><tfoot>'+totalRow+'</tfoot></table></div>'+ 
+        officialNote+propertyRentLedgerCommandCenter(model)+
+        '<div class="v206-ledger-table-wrap" role="region" aria-label="جدول كشف الإيجار التفصيلي، مرر أفقياً لعرض جميع الأعمدة" tabindex="0"><table class="v206-ledger-table"><caption>كشف الإيجارات التفصيلي / Detailed rent ledger</caption><thead><tr>'+headers+'</tr></thead><tbody>'+rowOrEmpty(rows,14)+'</tbody><tfoot>'+totalRow+'</tfoot></table></div>'+ 
         (model.totals.pending?'<p class="v206-ledger-footnote">دفعات قيد المراجعة بقيمة '+escapeHtml(money(model.totals.pending))+' مستبعدة من المحصّل / Pending payments are excluded from collected totals.</p>':'')+
         '<footer>'+escapeHtml(model.brand.ar)+' / '+escapeHtml(model.brand.en)+' • كشف صادر من منصة عقاري حسب البيانات المعتمدة وقت الإصدار</footer>'+ 
       '</article>';
@@ -2010,8 +2055,12 @@
   }
 
   function exportPropertyRentLedgerCsv(){
-    const context=contextFor(activeProperty);
-    const period=document.getElementById('v202StatementPeriod')?.value||latestOfficialPeriod(activeProperty);
+    if(!protectedAccessReady())return false;
+    const ledger=document.querySelector('#v202DocumentBody [data-v206-ledger]');
+    const property=String(ledger?.getAttribute('data-v206-property')||'');
+    if(!property||normalized(property)!==normalized(activeProperty))return false;
+    const context=contextFor(property);
+    const period=ledger?.querySelector('#v202StatementPeriod')?.value||latestOfficialPeriod(property);
     const model=context?propertyRentLedgerModel(context,period):null;
     if(!model||typeof Blob==='undefined'||typeof URL==='undefined'||typeof URL.createObjectURL!=='function')return false;
     const blob=new Blob([propertyRentLedgerCsv(model)],{type:'text/csv;charset=utf-8'});
@@ -2089,14 +2138,61 @@
   }
 
   function openReceiptDocument(record,trigger){
+    if(!protectedAccessReady())return false;
     activeTenantStatementKey='';
     openDocument('وصل استلام إيجار',receiptDocument(record),trigger,'#v202PropertyWorkspace [data-v202-action="payment"]');
+    return true;
   }
 
   function openStatementDocument(period,trigger){
+    if(!protectedAccessReady())return false;
     const context=contextFor(activeProperty);
     activeTenantStatementKey='';
-    if(context)openDocument('كشف إيجار العقار / Property Rent Ledger',propertyRentLedgerDocument(context,period||latestOfficialPeriod(activeProperty)),trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    if(!context)return false;
+    const markup=propertyRentLedgerDocument(context,period||latestOfficialPeriod(activeProperty));
+    if(!markup)return false;
+    openDocument('كشف إيجار العقار / Property Rent Ledger',markup,trigger,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    return true;
+  }
+
+  function ledgerTenantSelection(button,keyAttribute){
+    if(!protectedAccessReady())return null;
+    const ledger=button?.closest?.('[data-v206-ledger]');
+    const property=String(ledger?.getAttribute('data-v206-property')||'');
+    const recordKey=String(button?.getAttribute(keyAttribute)||'');
+    if(!property||!recordKey||normalized(property)!==normalized(activeProperty))return null;
+    const context=contextFor(property);
+    const period=ledger?.querySelector('#v202StatementPeriod')?.value||latestOfficialPeriod(property);
+    const model=context?propertyRentLedgerModel(context,period):null;
+    const safeRow=model?.rows.find(function(row){return row.recordKey===recordKey});
+    if(!safeRow)return null;
+    const record=unitDirectoryRecords(context,period).find(function(candidate){return candidate.key===recordKey});
+    if(!record)return null;
+    if(protectedPropertyActive(property)&&normalized(record.directorySource)!==V202_IMPORT_SOURCE)return null;
+    return {context,period,record};
+  }
+
+  function openLedgerTenantStatement(button){
+    const selected=ledgerTenantSelection(button,'data-v206-ledger-statement-key');
+    if(!selected)return false;
+    activeTenantStatementKey=selected.record.key;
+    openDocument('كشف المستأجر / Tenant Statement',tenantStatementDocument(selected.context,selected.record,selected.period),button,'#v202PropertyWorkspace [data-v202-action="statement"]');
+    return true;
+  }
+
+  function openLedgerTenantContract(button){
+    const selected=ledgerTenantSelection(button,'data-v206-ledger-contract-key');
+    if(!selected||!selected.record.hasContract)return false;
+    activeTenantStatementKey=selected.record.key;
+    return openTenantContract(button,selected.record.contractId||selected.record.contractNo,selected.period);
+  }
+
+  function openLedgerTenantReceipt(button){
+    const selected=ledgerTenantSelection(button,'data-v206-ledger-receipt-key');
+    const reference=String(button?.getAttribute('data-v206-ledger-receipt-reference')||'');
+    if(!selected||!reference)return false;
+    activeTenantStatementKey=selected.record.key;
+    return openTenantReceipt(button,reference,selected.period);
   }
 
   function closeDocument(){
@@ -2122,10 +2218,12 @@
   }
 
   function printDocument(){
+    if(!protectedAccessReady())return false;
     document.body.classList.add('v202-print-document');
     document.body.classList.toggle('v206-print-ledger',Boolean(document.querySelector('#v202DocumentBody [data-v206-ledger]')));
     window.print();
     setTimeout(function(){document.body.classList.remove('v202-print-document','v206-print-ledger')},400);
+    return true;
   }
 
   function topLayer(){
@@ -2290,6 +2388,12 @@
       if(target.closest('[data-v202-document-close]')){event.preventDefault();event.stopImmediatePropagation();return closeDocument()}
       if(target.closest('[data-v206-export-csv]')){event.preventDefault();event.stopImmediatePropagation();return exportPropertyRentLedgerCsv()}
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
+      const ledgerStatement=target.closest('[data-v206-ledger-statement-key]');
+      if(ledgerStatement){event.preventDefault();event.stopImmediatePropagation();return openLedgerTenantStatement(ledgerStatement)}
+      const ledgerContract=target.closest('[data-v206-ledger-contract-key]');
+      if(ledgerContract){event.preventDefault();event.stopImmediatePropagation();return openLedgerTenantContract(ledgerContract)}
+      const ledgerReceipt=target.closest('[data-v206-ledger-receipt-key]');
+      if(ledgerReceipt){event.preventDefault();event.stopImmediatePropagation();return openLedgerTenantReceipt(ledgerReceipt)}
       const tenantReceipt=target.closest('[data-v202-tenant-receipt]');
       if(tenantReceipt){event.preventDefault();event.stopImmediatePropagation();return openTenantReceipt(tenantReceipt)}
       const tenantContract=target.closest('[data-v202-tenant-contract]');
@@ -2325,7 +2429,11 @@
       const target=event.target instanceof Element?event.target:null;
       if(!target)return;
       if(target.id==='v202StatementPeriod'){
-        const context=contextFor(activeProperty);
+        if(!protectedAccessReady()){clearProtectedDom();return}
+        const ledger=target.closest('[data-v206-ledger]');
+        const property=String(ledger?.getAttribute('data-v206-property')||'');
+        if(!property||normalized(property)!==normalized(activeProperty)){clearProtectedDom();return}
+        const context=contextFor(property);
         const body=document.getElementById('v202DocumentBody');
         if(context&&body){
           body.innerHTML=propertyRentLedgerDocument(context,target.value||currentPeriod());

@@ -77,7 +77,6 @@ test('PWA files referenced by index.html exist and parse', () => {
   assert.ok(fs.existsSync(path.join(root, 'sw.js')));
   assert.ok(fs.existsSync(path.join(root, 'aqari-icon.svg')));
 });
-
 test('Vercel security headers preserve the hardened contract', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'vercel.json'), 'utf8'));
   const dbStatusRewrites = config.rewrites.filter((rewrite) => rewrite.source === '/api/db/status');
@@ -264,7 +263,7 @@ test('V206 property rent ledger is integrated with the secure V202 document flow
   assert.match(propertyOS, /data-v206-export-csv/);
   assert.match(
     propertyOS,
-    /openDocument\('كشف إيجار العقار \/ Property Rent Ledger',propertyRentLedgerDocument/,
+    /function\s+openStatementDocument[\s\S]*?if\(!protectedAccessReady\(\)\)return false[\s\S]*?const markup=propertyRentLedgerDocument[\s\S]*?openDocument\('كشف إيجار العقار \/ Property Rent Ledger',markup/,
   );
   assert.match(
     propertyOS,
@@ -277,8 +276,9 @@ test('V206 property rent ledger is integrated with the secure V202 document flow
 
   assert.match(css, /AQARI V206/);
   assert.match(css, /#v202DocumentDialog:has\(\[data-v206-ledger\]\)/);
-  assert.match(css, /@page v206-ledger\{size:A4 landscape;margin:5mm\}/);
+  assert.match(css, /@page v206-ledger\{size:A4 landscape;margin:4mm\}/);
   assert.match(css, /grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(css, /v206-ledger-brand[\s\S]*?display:flex!important/);
   assert.doesNotMatch(css, /body\s*>\s*\*\s*:\s*not/);
 });
 

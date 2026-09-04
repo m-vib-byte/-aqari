@@ -178,69 +178,36 @@ await check('V205 signed-out home exposes no protected tenant data', async () =>
   if(state.civilIdVisible||state.protectedCards||state.contactLinks||state.rawSensitiveValues)throw new Error('protected tenant data leaked into the public V205 home');
 });
 
-await check('each property has a complete V204 operating workspace', async () => {
+await check('signed-out property workspace fails closed', async () => {
   const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
   if(!trigger) throw new Error('property management trigger missing');
   await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
   await page.waitForTimeout(160);
   const state=await page.evaluate(() => ({
     shown:document.getElementById('v202PropertyWorkspace')?.getAttribute('aria-hidden') === 'false',
-    title:document.getElementById('v202PropertyTitle')?.textContent.trim(),
-    actions:Array.from(document.querySelectorAll('#v202PropertyWorkspace [data-v202-action]')).map(node => node.textContent.trim()),
-    tabs:Array.from(document.querySelectorAll('#v202PropertyWorkspace [role="tab"]')).map(node => ({label:node.textContent.trim(),selected:node.getAttribute('aria-selected'),controls:node.getAttribute('aria-controls')})),
-    kpis:document.querySelectorAll('#v202PropertyWorkspace .v202-property-kpis .v202-kpi').length,
-    context:window.AQARI_V202?.propertyContext(document.getElementById('v202PropertyTitle')?.textContent.trim())
-  }));
-  if(!state.shown || !state.title) throw new Error('V202 property workspace did not open');
-  for(const label of ['إبرام عقد','تسجيل إيجار','كشف الإيجار','الملف الكامل']) if(!state.actions.some(text => text.includes(label))) throw new Error(`${label} action missing`);
-  for(const label of ['نظرة عامة','الوحدات','العقود','التحصيل','المصروفات']) if(!state.tabs.some(tab => tab.label.includes(label))) throw new Error(`${label} tab missing`);
-  if(state.tabs.some(tab => !tab.controls)) throw new Error('tab relationships missing');
-  if(state.kpis !== 6) throw new Error(`property KPI count ${state.kpis}`);
-  if(!state.context || state.context.name !== state.title) throw new Error('property context mismatch');
-  await page.evaluate(() => document.querySelector('[data-v202-tab="units"]')?.click());
-  const protectedState=await page.evaluate(() => ({
-    locked:Boolean(document.querySelector('#v202Panel .aq-unit-empty')),
-    cards:document.querySelectorAll('#v202Panel .aq-unit-card').length,
-    civilIds:Array.from(document.querySelectorAll('#v202Panel .aq-unit-sensitive-value')).map(node => node.textContent.trim()),
+    documentShown:document.getElementById('v202DocumentDialog')?.getAttribute('aria-hidden') === 'false',
+    tenantData:document.querySelectorAll('#v202PropertyWorkspace [data-v202-unit-index],#v202DocumentDialog [data-v202-tenant-statement]').length,
     horizontalOverflow:document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
   }));
-  if(!protectedState.locked || protectedState.cards !== 0) throw new Error('protected unit data must stay hidden before authentication');
-  if(protectedState.civilIds.length) throw new Error('civil IDs rendered before authentication');
-  if(protectedState.horizontalOverflow) throw new Error('unit directory creates horizontal overflow at 390px');
-  await page.evaluate(() => document.querySelector('[data-v202-close]')?.click());
+  if(state.shown||state.documentShown||state.tenantData) throw new Error('signed-out property data or document became visible');
+  if(state.horizontalOverflow) throw new Error('signed-out property flow creates horizontal overflow at 390px');
 });
 
-await check('V206 ledger opens through the current property workflow with 14 columns', async () => {
+await check('V206 ledger remains sealed before authentication', async () => {
   const trigger=await page.$('#aqariV199Dashboard [data-v201-property]');
   if(!trigger) throw new Error('property management trigger missing');
   await page.evaluate(() => document.querySelector('#aqariV199Dashboard [data-v201-property]')?.click());
   await page.waitForTimeout(160);
   await page.evaluate(() => document.querySelector('#v202PropertyWorkspace [data-v202-action="statement"]')?.click());
   await page.waitForTimeout(160);
-  const state=await page.evaluate(() => {
-    const overlay=document.getElementById('v202DocumentDialog');
-    const ledger=overlay?.querySelector('[data-v206-ledger]');
-    const table=ledger?.querySelector('.v206-ledger-table');
-    return {
-      shown:overlay?.getAttribute('aria-hidden')==='false'&&overlay?.classList.contains('on'),
-      version:ledger?.getAttribute('data-v206-ledger-version'),
-      columns:table?.querySelectorAll('thead th').length||0,
-      month:Boolean(ledger?.querySelector('#v202StatementPeriod')),
-      exportButton:Boolean(ledger?.querySelector('[data-v206-export-csv]')),
-      tableScrollable:Boolean(table&&table.closest('.v206-ledger-table-wrap')),
-      legacyV206:Boolean(document.querySelector('#v201RentStatement [data-v206-ledger]')),
-      cssLoaded:Boolean(document.getElementById('aqari-v206-integrated-ledger-css')),
-    };
-  });
-  if(!state.shown) throw new Error('V206 did not open in the V202 document dialog');
-  if(state.version!=='V206-preview') throw new Error(`ledger version ${state.version||'missing'}`);
-  if(state.columns!==14) throw new Error(`ledger column count ${state.columns}`);
-  if(!state.month||!state.exportButton||!state.tableScrollable||!state.cssLoaded) throw new Error('V206 ledger controls or styling are missing');
-  if(state.legacyV206) throw new Error('V206 must not mount inside the legacy V201 ledger');
-  await page.evaluate(() => {
-    document.querySelector('[data-v202-document-close]')?.click();
-    document.querySelector('[data-v202-close]')?.click();
-  });
+  const state=await page.evaluate(() => ({
+    shown:document.getElementById('v202DocumentDialog')?.getAttribute('aria-hidden')==='false',
+    ledger:Boolean(document.querySelector('#v202DocumentDialog [data-v206-ledger]')),
+    cssLoaded:Boolean(document.getElementById('aqari-v206-integrated-ledger-css')),
+    legacyV206:Boolean(document.querySelector('#v201RentStatement [data-v206-ledger]'))
+  }));
+  if(state.shown||state.ledger||state.legacyV206) throw new Error('signed-out V206 ledger must not render');
+  if(!state.cssLoaded) throw new Error('V206 ledger stylesheet missing');
 });
 
 await check('V201 quick-create respects the auth gate and keeps an accessible modal', async () => {

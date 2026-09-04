@@ -8,8 +8,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 1770,
-      "sha256": "c2c7e0c0d0e1ac71aa182f99bf330ec5ee1c7983dd09115a47ce6e8e6307df60"
+      "size": 1761,
+      "sha256": "1028df88150c3a79030661bbfccfb08aa08f1eb2487bd198a031216219ce9c9f"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -333,18 +333,18 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 22544,
-      "sha256": "f8403691aa2502c5bdc25da4a06939227e2c1e7c670baf03845dcfdf234d5836"
+      "size": 19762,
+      "sha256": "9162b3bb6f46c85ef3a47b3ec25725384cb85a284c6786c6c7e71e8ca60d9ed3"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 18124,
-      "sha256": "5e5ee71a588553eaecc7e5708a7bded4ccf8f4f54df1a88517a1f81d7ca06386"
+      "size": 18313,
+      "sha256": "8b8b7d41a37d215b896682da96bdb68a93d7c19c787a22b6dba520889077bb6f"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 39981,
-      "sha256": "8360dc6e30e60d5979a1d436512a6c480f9268e1171da72a8623ec2349df8dd8"
+      "size": 47863,
+      "sha256": "7156f8372b3ed72a7ff1618dad03e0365f6e5a95fdf7652b70b3ee66bc3f3d67"
     },
     {
       "path": "v199-ui.css",
@@ -378,8 +378,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 155734,
-      "sha256": "12081a64eb5e81f7a759949648fb31b340ae7e64b7d7e8a23b9337ea170d6a08"
+      "size": 164140,
+      "sha256": "70af53680d65f066b1f417e6e4e6585a67e14673920e022aa6d50018bf4cf781"
     },
     {
       "path": "v205-simple.css",
@@ -393,8 +393,8 @@
     },
     {
       "path": "v206-integrated-ledger.css",
-      "size": 15935,
-      "sha256": "00b2c81fc32c43762fe73dfface43ebbcbd175ed5c56eae9df6e646ba7b5e070"
+      "size": 22719,
+      "sha256": "916decd29a051ed8f4d53ae9fcc4bfecb9a75a09faad015323703e553072315f"
     },
     {
       "path": "vercel.json",
