@@ -40,3 +40,6 @@ body.aq-v211 .v211-empty span{font-size:9px}
 @media(max-width:700px){body.aq-v211 .v211-card{inset:8px;border-radius:18px}body.aq-v211 .v211-card>header{padding:14px 14px 11px}body.aq-v211 .v211-card>header h2{font-size:17px}body.aq-v211 .v211-controls{grid-template-columns:1fr;padding:10px 14px}body.aq-v211 .v211-filters{padding:0 14px 10px;overflow-x:auto;flex-wrap:nowrap}body.aq-v211 .v211-filters button{flex:0 0 auto}body.aq-v211 .v211-rows{padding:10px 14px 18px}body.aq-v211 .v211-row{grid-template-columns:1fr}body.aq-v211 .v211-state{grid-template-columns:auto 1fr;align-items:center}body.aq-v211 .v211-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}body.aq-v211 .v211-actions button{width:100%}}
 @media(max-width:420px){body.aq-v211 .v211-actions{grid-template-columns:1fr}body.aq-v211 .v211-card>header p{display:none}}
 @media print{body.aq-v211 .v211-shell{display:none!important}}
+
+.v211-timeline{display:block;margin-top:.35rem;color:var(--v211-muted,#64748b);font-size:.72rem;line-height:1.45}
+@media print{.v211-timeline{color:#334155!important}}

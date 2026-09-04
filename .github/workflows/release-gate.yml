@@ -1,4 +1,4 @@
-name: AQARI V211 Follow-up Center Gate
+name: AQARI V211.1 Cloud Follow-up Journal Gate
 
 on:
   pull_request:
@@ -67,4 +67,7 @@ jobs:
           grep -q "V210-daily-command-center" v210-daily-command-center.js
           grep -q "aqari-v210-daily-command-center-js" final-release-ui.js
           grep -q "V211-follow-up-center" v211-follow-up-center.js
+          grep -q "V211.1-cloud-follow-up-journal" v211-follow-up-center.js
+          grep -q "appendFollowUpEvent" supabase-adapter.js
+          grep -q "force row level security" supabase/migrations/20260904190000_v211_1_secure_follow_up_events.sql
           grep -q "aqari-v211-follow-up-center-js" final-release-ui.js

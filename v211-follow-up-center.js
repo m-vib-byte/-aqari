@@ -2,6 +2,8 @@
   'use strict';
 
   const DESIGN='V211-follow-up-center';
+  const REVISION='V211.1-cloud-follow-up-journal';
+  const EVENT_ACTION=Object.freeze({statement:'statement_opened',contract:'contract_opened',receipt:'receipt_opened',payment:'collection_opened',reminder:'reminder_copied'});
   const PERIOD=/^\d{4}-(0[1-9]|1[0-2])$/;
   const FILTERS=new Set(['all','due','pending','readonly','unlinked']);
   let period=currentPeriod();
@@ -155,9 +157,9 @@
     if(!rows.length)return '<div class="v211-empty"><strong>لا توجد حالات مطابقة</strong><span>غيّر العقار أو الحالة أو الفترة.</span></div>';
     return rows.map(function(row,index){
       const detail=row.pending>0?money(row.pending)+' قيد المراجعة':row.balance>0?money(row.balance)+' متبقي':'';
-      return '<article class="v211-row">'+
+      return '<article class="v211-row" data-v211-record="'+esc(row.key)+'" data-v211-period="'+esc(row.period)+'">'+
         '<div class="v211-person"><span>'+esc(row.property)+'</span><strong dir="auto">'+esc(row.tenant)+'</strong><small>وحدة '+esc(row.unit)+' • '+esc(row.contractNo||'بدون رقم عقد')+'</small></div>'+
-        '<div class="v211-state">'+badge(row)+'<b>'+esc(detail)+'</b></div>'+
+        '<div class="v211-state">'+badge(row)+'<b>'+esc(detail)+'</b><small class="v211-timeline" data-v211-timeline>لا توجد متابعة مسجلة</small></div>'+
         actionMarkup(row,index)+
       '</article>';
     }).join('');
@@ -172,7 +174,7 @@
     return '<section id="v211FollowUpCenter" class="v211-shell" role="dialog" aria-modal="true" aria-labelledby="v211Title">'+
       '<div class="v211-backdrop" data-v211-close></div>'+
       '<div class="v211-card">'+
-        '<header><div><span>مركز المتابعة • V211</span><h2 id="v211Title">المستحقات والمراجعات في مسار واحد</h2><p>البيانات من دفتر الإيجارات المحمي فقط، بدون افتراضات قانونية عن تاريخ التأخر.</p></div><button type="button" class="v211-close" data-v211-close aria-label="إغلاق">×</button></header>'+
+        '<header><div><span>مركز المتابعة • V211.1</span><h2 id="v211Title">المستحقات والمراجعات في مسار واحد</h2><p>البيانات من دفتر الإيجارات المحمي فقط، بدون افتراضات قانونية عن تاريخ التأخر.</p></div><button type="button" class="v211-close" data-v211-close aria-label="إغلاق">×</button></header>'+
         '<div class="v211-controls"><label><span>الفترة</span><input id="v211Period" type="month" value="'+esc(period)+'"></label><label><span>العقار</span><select id="v211Property">'+options+'</select></label></div>'+
         '<nav class="v211-filters" aria-label="فلترة المتابعة">'+
           '<button type="button" data-v211-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+allCounts.all+'</button>'+
@@ -206,6 +208,7 @@
     if(current)current.replaceWith(next);else document.body.appendChild(next);
     document.body.classList.add('v211-open');
     next.querySelector('[data-v211-close]')?.focus?.({preventScroll:true});
+    hydrateTimeline(state.scope);
     return true;
   }
   function open(options){
@@ -232,6 +235,70 @@
       writeAllowed:data.canRecordPayment===true&&record?.billable===true&&record?.collectible===true
     };
   }
+  function exactAccess(){
+    const access=authAccess(window.AQARI_SUPABASE?.context);
+    return access&&dataScopesReady(access)?access:null;
+  }
+  async function recordFollowUp(item,action){
+    const access=exactAccess();
+    const scope=scopeKey();
+    const actionKind=EVENT_ACTION[action];
+    if(!access||!scope||scope!==item?.scope||!actionKind||
+       typeof window.AQARI_SUPABASE?.appStateRevision!=='function'||
+       typeof window.AQARI_SUPABASE?.appendFollowUpEvent!=='function')return false;
+    try{
+      const revision=await window.AQARI_SUPABASE.appStateRevision(access);
+      if(scopeKey()!==scope)return false;
+      await window.AQARI_SUPABASE.appendFollowUpEvent({
+        recordKey:item.key,
+        property:item.property,
+        period:item.period,
+        actionKind:actionKind,
+        state:item.status
+      },access,revision);
+      if(scopeKey()!==scope)return false;
+      hydrateTimeline(scope);
+      return true;
+    }catch(_){return false}
+  }
+  async function hydrateTimeline(expectedScope){
+    const access=exactAccess();
+    const token=interactionEpoch;
+    if(!access||!expectedScope||scopeKey()!==expectedScope||
+       typeof window.AQARI_SUPABASE?.listFollowUpEvents!=='function')return false;
+    try{
+      const events=await window.AQARI_SUPABASE.listFollowUpEvents({
+        period:period,
+        property:propertyFilter||undefined,
+        limit:100
+      },access);
+      if(token!==interactionEpoch||scopeKey()!==expectedScope||lastScope!==expectedScope)return false;
+      const latest=new Map();
+      events.forEach(function(event){
+        const key=text(event?.record_key)+'\u0000'+text(event?.period);
+        if(!latest.has(key))latest.set(key,event);
+      });
+      document.querySelectorAll('#v211Rows .v211-row').forEach(function(node,index){
+        const row=lastRows[index];
+        const event=row?latest.get(row.key+'\u0000'+row.period):null;
+        const target=node.querySelector('[data-v211-timeline]');
+        if(!target||!event)return;
+        const labels={
+          reminder_copied:'نُسخ تذكير',
+          statement_opened:'فُتح الكشف',
+          contract_opened:'فُتح العقد',
+          receipt_opened:'فُتح الوصل',
+          collection_opened:'فُتح التحصيل',
+          reviewed:'تمت المراجعة'
+        };
+        const stamp=new Date(event.created_at);
+        target.textContent=(labels[event.action_kind]||'متابعة مسجلة')+
+          (Number.isNaN(stamp.getTime())?'':' • '+stamp.toLocaleString('ar-KW',{dateStyle:'short',timeStyle:'short'}));
+      });
+      return true;
+    }catch(_){return false}
+  }
+
   function runAction(item,action,trigger){
     const scope=scopeKey();
     if(!scope||scope!==item?.scope||typeof window.AQARI_V202?.openProperty!=='function'||typeof window.AQARI_V202?.rentOfficeAction!=='function')return false;
@@ -249,13 +316,15 @@
       const workspace=document.getElementById('v202PropertyWorkspace');
       const title=document.getElementById('v202PropertyTitle');
       if(workspace?.classList.contains('on')&&(!title||norm(title.textContent)===norm(item.property))){
-        window.AQARI_V202.rentOfficeAction(item.property,item.key,item.period,action,trigger);
+        Promise.resolve(window.AQARI_V202.rentOfficeAction(item.property,item.key,item.period,action,trigger))
+          .then(function(ok){if(ok===true)return recordFollowUp(item,action)})
+          .catch(function(){});
+        close();
         return;
       }
-      if(attempts<14)setTimeout(follow,70);
+      if(attempts<14)setTimeout(follow,70);else close();
     };
     setTimeout(follow,70);
-    close();
     return true;
   }
   function reminderText(item){
@@ -278,6 +347,7 @@
     if(!live||item.balance<=0||typeof navigator?.clipboard?.writeText!=='function')return false;
     try{
       await navigator.clipboard.writeText(reminderText(item));
+      await recordFollowUp(item,'reminder');
       const old=button.textContent;
       button.textContent='تم النسخ';
       setTimeout(function(){if(button?.isConnected)button.textContent=old},1400);
@@ -343,8 +413,8 @@
     document.body.classList.add('aq-v211');
     installAuthListener();
     window.AQARI_V211=Object.freeze({
-      version:DESIGN,open:open,close:close,seal:seal,resume:resume,
-      testing:Object.freeze({statusOf:statusOf,reminderText:reminderText})
+      version:DESIGN,revision:REVISION,open:open,close:close,seal:seal,resume:resume,
+      testing:Object.freeze({statusOf:statusOf,reminderText:reminderText,recordFollowUp:recordFollowUp})
     });
     let meta=document.querySelector('meta[name="aqari-follow-up-center"]');
     if(!meta){meta=document.createElement('meta');meta.name='aqari-follow-up-center';document.head.appendChild(meta)}

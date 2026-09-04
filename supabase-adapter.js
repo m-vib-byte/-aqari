@@ -320,6 +320,152 @@
     return requireExactAccess(context, boundAccess, options);
   }
 
+  const FOLLOW_UP_ACTIONS = new Set([
+    'reminder_copied', 'statement_opened', 'contract_opened',
+    'receipt_opened', 'collection_opened', 'reviewed'
+  ]);
+  const FOLLOW_UP_STATES = new Set(['due', 'pending', 'readonly', 'unlinked', 'resolved']);
+  const FOLLOW_UP_PERIOD = /^\d{4}-(0[1-9]|1[0-2])$/;
+  const FOLLOW_UP_KEYS = new Set(['recordKey', 'property', 'period', 'actionKind', 'state']);
+
+  function safeJournalText(value, field, maxLength){
+    if(typeof value !== 'string' || value !== value.trim() || !value ||
+       value.length > maxLength || /[\u0000-\u001f\u007f]/.test(value)){
+      const error = new Error('Invalid follow-up '+field);
+      error.code = 'AQARI_FOLLOW_UP_INVALID';
+      throw error;
+    }
+    return value;
+  }
+
+  function validateFollowUpEvent(event){
+    if(!event || typeof event !== 'object' || Array.isArray(event)){
+      const error = new Error('Invalid follow-up event');
+      error.code = 'AQARI_FOLLOW_UP_INVALID';
+      throw error;
+    }
+    const keys = Object.keys(event);
+    if(keys.some((key) => !FOLLOW_UP_KEYS.has(key))){
+      const error = new Error('Unexpected follow-up event field');
+      error.code = 'AQARI_FOLLOW_UP_INVALID';
+      throw error;
+    }
+    const actionKind = safeJournalText(event.actionKind, 'actionKind', 40);
+    const stateName = safeJournalText(event.state, 'state', 20);
+    const periodValue = safeJournalText(event.period, 'period', 7);
+    if(!FOLLOW_UP_ACTIONS.has(actionKind) || !FOLLOW_UP_STATES.has(stateName) || !FOLLOW_UP_PERIOD.test(periodValue)){
+      const error = new Error('Invalid follow-up event value');
+      error.code = 'AQARI_FOLLOW_UP_INVALID';
+      throw error;
+    }
+    return Object.freeze({
+      record_key:safeJournalText(event.recordKey, 'recordKey', 500),
+      property:safeJournalText(event.property, 'property', 160),
+      period:periodValue,
+      action_kind:actionKind,
+      state:stateName
+    });
+  }
+
+  function validateFollowUpFilter(filter){
+    const value = filter && typeof filter === 'object' && !Array.isArray(filter) ? filter : {};
+    const allowed = new Set(['recordKey', 'property', 'period', 'limit']);
+    if(Object.keys(value).some((key) => !allowed.has(key))){
+      const error = new Error('Unexpected follow-up filter field');
+      error.code = 'AQARI_FOLLOW_UP_INVALID';
+      throw error;
+    }
+    const out = {};
+    if(value.recordKey != null) out.recordKey = safeJournalText(value.recordKey, 'recordKey', 500);
+    if(value.property != null) out.property = safeJournalText(value.property, 'property', 160);
+    if(value.period != null){
+      out.period = safeJournalText(value.period, 'period', 7);
+      if(!FOLLOW_UP_PERIOD.test(out.period)){
+        const error = new Error('Invalid follow-up period');
+        error.code = 'AQARI_FOLLOW_UP_INVALID';
+        throw error;
+      }
+    }
+    const limit = value.limit == null ? 60 : Number(value.limit);
+    if(!Number.isInteger(limit) || limit < 1 || limit > 100){
+      const error = new Error('Invalid follow-up limit');
+      error.code = 'AQARI_FOLLOW_UP_INVALID';
+      throw error;
+    }
+    out.limit = limit;
+    return Object.freeze(out);
+  }
+
+  async function appStateRevision(expectedAccess){
+    const boundAccess = await bindAccess(expectedAccess);
+    const client = await getClient();
+    const { data, error } = await client
+      .from('aqari_app_state')
+      .select('workspace_id, revision')
+      .eq('workspace_id', boundAccess.workspaceId)
+      .maybeSingle();
+    if(error) throw error;
+    if(!data || data.workspace_id !== boundAccess.workspaceId || !Number.isInteger(Number(data.revision))){
+      throw revisionConflict(data?.revision ?? null);
+    }
+    await recheckBoundAccess(boundAccess);
+    return Number(data.revision);
+  }
+
+  async function appendFollowUpEvent(event, expectedAccess, expectedRevision){
+    const boundAccess = await bindAccess(expectedAccess, { write:true });
+    const clean = validateFollowUpEvent(event);
+    const expected = Number(expectedRevision);
+    const currentRevision = await appStateRevision(boundAccess);
+    if(!Number.isInteger(expected) || expected <= 0 || expected !== currentRevision){
+      throw revisionConflict(currentRevision);
+    }
+    await recheckBoundAccess(boundAccess, { write:true });
+    const client = state.client;
+    if(!client) throw accessError();
+    const { data, error } = await client
+      .from('aqari_follow_up_events')
+      .insert({
+        workspace_id:boundAccess.workspaceId,
+        ...clean,
+        app_state_revision:expected
+      })
+      .select('id, workspace_id, record_key, property, period, action_kind, state, app_state_revision, created_by, created_at')
+      .single();
+    if(error?.code === '40001' || error?.message === 'AQARI_REVISION_CONFLICT'){
+      throw revisionConflict(currentRevision);
+    }
+    if(error) throw error;
+    if(!data || data.workspace_id !== boundAccess.workspaceId || data.created_by !== boundAccess.userId){
+      throw accessError('Follow-up event ownership does not match authenticated access');
+    }
+    await recheckBoundAccess(boundAccess, { write:true });
+    return Object.freeze({ ...data });
+  }
+
+  async function listFollowUpEvents(filter, expectedAccess){
+    const boundAccess = await bindAccess(expectedAccess);
+    const clean = validateFollowUpFilter(filter);
+    const client = await getClient();
+    let query = client
+      .from('aqari_follow_up_events')
+      .select('id, workspace_id, record_key, property, period, action_kind, state, app_state_revision, created_by, created_at')
+      .eq('workspace_id', boundAccess.workspaceId);
+    if(clean.recordKey) query = query.eq('record_key', clean.recordKey);
+    if(clean.property) query = query.eq('property', clean.property);
+    if(clean.period) query = query.eq('period', clean.period);
+    const { data, error } = await query
+      .order('created_at', { ascending:false })
+      .limit(clean.limit);
+    if(error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    if(rows.some((row) => row?.workspace_id !== boundAccess.workspaceId)){
+      throw accessError('Follow-up timeline workspace does not match authenticated access');
+    }
+    await recheckBoundAccess(boundAccess);
+    return Object.freeze(rows.map((row) => Object.freeze({ ...row })));
+  }
+
   async function loadAppState(expectedAccess){
     const boundAccess = await bindAccess(expectedAccess);
     const client = await getClient();
@@ -378,10 +524,12 @@
   }
 
   window.AQARI_SUPABASE = Object.freeze({
-    version:'V206.2', getClient, refreshContext, signIn, signUp, signOut,
+    version:'V211.1', getClient, refreshContext, signIn, signUp, signOut,
     resetPasswordForEmail, updatePassword, onAuthStateChange, loadAppState, saveAppState,
+    appStateRevision, appendFollowUpEvent, listFollowUpEvents,
     clearPersistedSession, getSession, hasSession, verifySessionNull,
     authStorageKey:AUTH_STORAGE_KEY,
+    testing:Object.freeze({ validateFollowUpEvent, validateFollowUpFilter }),
     get context(){ return { ...state }; }
   });
 })();

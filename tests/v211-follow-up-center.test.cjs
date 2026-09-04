@@ -14,8 +14,8 @@ test('V211 uses only protected V202 rent-office APIs and keeps V210 integration 
   const css=fs.readFileSync(path.join(root,'v211-follow-up-center.css'),'utf8');
 
   assert.match(loader,/function installV211FollowUpCenter\s*\(/);
-  assert.match(loader,/followUpCss\.href='\/v211-follow-up-center\.css\?v=211\.0'/);
-  assert.match(loader,/followUpJs\.src='\/v211-follow-up-center\.js\?v=211\.0'/);
+  assert.match(loader,/followUpCss\.href='\/v211-follow-up-center\.css\?v=211\.1'/);
+  assert.match(loader,/followUpJs\.src='\/v211-follow-up-center\.js\?v=211\.1'/);
 
   assert.match(source,/AQARI_V202\?\.rentOfficeProperties/);
   assert.match(source,/AQARI_V202\.rentOfficeProperties\(\)/);
