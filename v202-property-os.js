@@ -80,6 +80,12 @@
 
   function normalized(value){return String(value==null?'':value).trim().toLocaleLowerCase('ar')}
 
+  function optionalIdentityMatch(actual,expected){
+    const actualKey=normalized(actual);
+    const expectedKey=normalized(expected);
+    return !actualKey||Boolean(expectedKey&&actualKey===expectedKey);
+  }
+
   function latinDigits(value){
     const arabic='٠١٢٣٤٥٦٧٨٩';
     const persian='۰۱۲۳۴۵۶۷۸۹';
@@ -124,9 +130,10 @@
     const userId=String(context?.user?.id||'').trim();
     const workspaceId=String(context?.workspace?.id||'').trim();
     const membership=context?.membership;
-    if(!userId||!workspaceId||!membership?.is_active)return null;
-    if(membership.user_id&&String(membership.user_id)!==userId)return null;
-    if(membership.workspace_id&&String(membership.workspace_id)!==workspaceId)return null;
+    const membershipUserId=String((membership&&membership.user_id)||'').trim();
+    const membershipWorkspaceId=String((membership&&membership.workspace_id)||'').trim();
+    if(!userId||!workspaceId||membership?.is_active!==true||!membershipUserId||!membershipWorkspaceId)return null;
+    if(membershipUserId!==userId||membershipWorkspaceId!==workspaceId)return null;
     return {userId:userId,workspaceId:workspaceId};
   }
 
@@ -195,7 +202,8 @@
       const property=normalized(record.property);
       const unit=normalized(record.unit);
       const tenant=normalized(record.tenant);
-      return property&&unit&&tenant?['tenant',property,unit,tenant].join(':'):'';
+      const contractNo=normalized(record.contractNo);
+      return property&&unit&&(contractNo||tenant)?['tenant',property,unit,contractNo,tenant].join(':'):'';
     }
     if(key==='rentLedgerV202'){
       const id=normalized(record.id);
@@ -471,7 +479,7 @@
   }
 
   function unitRecordKey(record){
-    return [normalized(record?.property),normalized(record?.unit),normalized(record?.contractNo),normalized(record?.tenant)].join('|');
+    return [normalized(record?.property),normalized(record?.contractId),normalized(record?.unit),normalized(record?.contractNo),normalized(record?.tenant)].join('|');
   }
 
   function unitMatchesSearch(record,query){
@@ -546,6 +554,7 @@
     if(numberKey){
       const byNumber=directory.filter(function(entry){return normalized(entry.contractNo)===numberKey});
       if(byNumber.length===1)return byNumber[0].tenant;
+      return '';
     }
     return directory.length===1?directory[0].tenant:'';
   }
@@ -731,18 +740,42 @@
     return ['paid','partial','settled','received','مدفوع','مسدد','جزئي','جزئيا','مستلم'].includes(value)||value.includes('مدفوع جزئ');
   }
 
+  function pendingPayment(status){
+    const value=normalized(status);
+    return ['pending','under review','review','قيد المراجعة','معلق','معلّق','بانتظار الاعتماد'].includes(value);
+  }
+
+  function collectionReceiptEligible(record){
+    return Boolean(Array.isArray(record)&&String(record?.[0]||'').trim()&&settledPayment(record?.[3]));
+  }
+
   function rentStatements(){
     return rows('rentStatementsV202').filter(function(entry){return entry&&typeof entry==='object'&&!Array.isArray(entry)});
   }
 
+  function validOfficialStatement(entry){
+    if(!entry||!String(entry.property||'').trim()||!validPeriod(entry.period))return false;
+    const amountFields=['totalRent','totalCollected','totalAdvance','totalInsurance','totalCleaning'];
+    const countFields=['unitCount','occupiedUnitCount','payerCount'];
+    if(!amountFields.some(function(key){return hasField(entry,key)}))return false;
+    if(amountFields.some(function(key){
+      if(!hasField(entry,key))return false;
+      const value=strictMoney(entry[key]);
+      return !Number.isFinite(value)||value<0;
+    }))return false;
+    return !countFields.some(function(key){
+      if(!hasField(entry,key))return false;
+      const value=Number(entry[key]);
+      return !Number.isInteger(value)||value<0;
+    });
+  }
+
   function officialStatementFor(property,period){
     const matches=rentStatements().filter(function(entry){
-      return normalized(entry.property)===normalized(property)&&String(entry.period||'')===String(period||'');
+      return normalized(entry.property)===normalized(property)&&String(entry.period||'')===String(period||'')&&
+        (!protectedPropertyActive(property)||normalized(entry?.source)===V202_IMPORT_SOURCE);
     });
-    if(protectedPropertyActive(property)){
-      return matches.find(function(entry){return normalized(entry?.source)===V202_IMPORT_SOURCE})||null;
-    }
-    return matches[0]||null;
+    return matches.length===1&&validOfficialStatement(matches[0])?matches[0]:null;
   }
 
   function statementIncludesContract(contract,period){
@@ -752,10 +785,12 @@
   }
 
   function latestOfficialPeriod(property){
-    const periods=rentStatements().filter(function(entry){
+    const periods=Array.from(new Set(rentStatements().filter(function(entry){
       return normalized(entry?.property)===normalized(property)&&validPeriod(entry?.period)&&
         (!protectedPropertyActive(property)||normalized(entry?.source)===V202_IMPORT_SOURCE);
-    }).map(function(entry){return String(entry.period)}).sort().reverse();
+    }).map(function(entry){return String(entry.period)}))).filter(function(period){
+      return Boolean(officialStatementFor(property,period));
+    }).sort().reverse();
     return periods[0]||currentPeriod();
   }
 
@@ -819,12 +854,16 @@
     const tenant=normalized(contract?.tenant);
     const candidates=(Array.isArray(entries)?entries:[]).filter(function(entry){return normalized(entry.unit)===unit});
     if(contractNo){
-      const exact=candidates.filter(function(entry){return normalized(entry.contractNo)===contractNo});
+      const exact=candidates.filter(function(entry){
+        return normalized(entry.contractNo)===contractNo&&optionalIdentityMatch(entry.tenant,tenant);
+      });
       if(exact.length===1)return exact[0];
+      return null;
     }
     if(tenant){
       const byTenant=candidates.filter(function(entry){return normalized(entry.tenant)===tenant});
       if(byTenant.length===1)return byTenant[0];
+      return null;
     }
     return candidates.length===1?candidates[0]:null;
   }
@@ -863,48 +902,54 @@
     const directory=directoryEntriesFor(property);
     const statement=rentStatementItems(context,period);
     const statementById=new Map(statement.map(function(item){return [normalized(item.contractId),item]}).filter(function(pair){return pair[0]}));
-    const map=new Map();
-
-    directory.forEach(function(entry,index){
-      const key=normalized(entry.unit)||'directory:'+index;
-      if(!map.has(key))map.set(key,{property,unit:entry.unit||'—',tenant:entry.tenant,contractNo:entry.contractNo,directory:entry,contract:null});
+    const bases=[];
+    const claimedDirectory=new Set();
+    context.propertyContracts.slice().sort(function(left,right){return contractPriority(right,period)-contractPriority(left,period)}).forEach(function(contract,index){
+      let matched=directoryRecordFor(directory,contract);
+      const matchedIndex=matched?directory.indexOf(matched):-1;
+      if(matchedIndex>=0&&claimedDirectory.has(matchedIndex))matched=null;
+      else if(matchedIndex>=0)claimedDirectory.add(matchedIndex);
+      bases.push({
+        property,contractId:String(contractId(contract)||''),unit:contract.unit||matched?.unit||'—',
+        tenant:contract.tenant||matched?.tenant||'',contractNo:contract.contract_no||matched?.contractNo||'',
+        directory:matched,contract,index
+      });
     });
 
-    context.propertyContracts.slice().sort(function(left,right){return contractPriority(right,period)-contractPriority(left,period)}).forEach(function(contract,index){
-      const idKey=normalized(contractId(contract));
-      const key=normalized(contract.unit)||(idKey?'contract:'+idKey:'contract:'+index);
-      const current=map.get(key)||{property,unit:contract.unit||'—',tenant:'',contractNo:'',directory:null,contract:null};
-      if(!current.contract){
-        const matched=directoryRecordFor(directory,contract);
-        current.contract=contract;
-        current.directory=matched||current.directory;
-        current.unit=contract.unit||current.directory?.unit||'—';
-        current.tenant=contract.tenant||current.directory?.tenant||'';
-        current.contractNo=contract.contract_no||current.directory?.contractNo||'';
-      }
-      map.set(key,current);
+    directory.forEach(function(entry,index){
+      if(!claimedDirectory.has(index))bases.push({
+        property,contractId:'',unit:entry.unit||'—',tenant:entry.tenant||'',contractNo:entry.contractNo||'',
+        directory:entry,contract:null,index:'directory-'+index
+      });
     });
 
     context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry,index){
-      const key=normalized(entry?.unit)||'ledger:'+index;
-      if(!map.has(key))map.set(key,{property,unit:String(entry?.unit||'—'),tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null});
+      const matches=bases.filter(function(base){
+        return scopedLedgerMatchesRecord(context,entry,{
+          contractId:base.contractId,contractNo:base.contractNo,unit:base.unit,tenant:base.tenant
+        },period);
+      });
+      if(matches.length===0&&!ambiguousLegacyLedger(context,entry,period))bases.push({
+        property,contractId:String(entry?.contractId||entry?.contract_id||''),unit:String(entry?.unit||'—'),
+        tenant:String(entry?.tenant||''),contractNo:String(entry?.contractNo||''),directory:null,contract:null,index:'ledger-'+index
+      });
     });
 
-    return Array.from(map.values()).map(function(base){
+    return bases.map(function(base){
       const contract=base.contract;
-      const directoryRecord=base.directory||directoryRecordFor(directory,contract)||{};
-      const id=normalized(contractId(contract));
-      const statementItem=(id&&statementById.get(id))||statement.find(function(item){
+      const directoryRecord=base.directory||{};
+      const id=normalized(base.contractId||contractId(contract));
+      const partyStatements=statement.filter(function(item){
         return normalized(item.unit)===normalized(base.unit)&&normalized(item.tenant)===normalized(base.tenant||directoryRecord.tenant);
-      })||null;
+      });
+      const statementItem=(id&&statementById.get(id))||(partyStatements.length===1?partyStatements[0]:null);
       const ledger=context.propertyLedger.filter(function(entry){
-        if(String(entry?.period||'')!==period||normalized(entry?.unit)!==normalized(base.unit))return false;
-        if(id&&normalized(entry?.contractId||entry?.contract_id))return normalized(entry?.contractId||entry?.contract_id)===id;
-        return !base.tenant||normalized(entry?.tenant)===normalized(base.tenant);
+        return String(entry?.period||'')===period&&optionalIdentityMatch(entry?.property,property)&&
+          scopedLedgerMatchesRecord(context,entry,{contractId:id,contractNo:base.contractNo,unit:base.unit,tenant:base.tenant||directoryRecord.tenant},period);
       });
       const settledLedger=ledger.filter(function(entry){return settledPayment(entry?.status)});
       const paid=statementItem?numberFrom(statementItem.paid):settledLedger.reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
-      const pending=statementItem?numberFrom(statementItem.pending):ledger.filter(function(entry){return !settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const pending=statementItem?numberFrom(statementItem.pending):ledger.filter(function(entry){return pendingPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
       const billable=Boolean(statementItem)||(Boolean(contract)&&signedContract(contract)&&contractCoversPeriod(contract,period));
       const due=statementItem?numberFrom(statementItem.due):(billable?contractRent(contract):0);
       const contractFaceRent=contract&&contract.contractRent!=null&&String(contract.contractRent).trim()!==''?numberFrom(contract.contractRent):due;
@@ -919,9 +964,9 @@
       const paymentStatus=!contract?'يحتاج مراجعة':!billable?'غير قابل للفوترة':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
       const needsVerification=importedContractNeedsVerification(contract,directoryRecord);
       return {
-        key:unitRecordKey({property,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
+        key:unitRecordKey({property,contractId:id,unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
         property,period,unit:String(base.unit||'—'),tenant:String(base.tenant||directoryRecord.tenant||''),
-        contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(contractId(contract)||''),
+        contractNo:String(base.contractNo||directoryRecord.contractNo||''),contractId:String(base.contractId||contractId(contract)||''),
         directorySource:String(directoryRecord.source||''),contractSource:String(contract?.source||''),
         contractStatus:contract?contractDisplayStatus(contract,directoryRecord):'غير مربوط',startDate:String(directoryRecord.contractStartRaw||contract?.start_date||''),
         endDate:String(directoryRecord.contractEndRaw||contract?.end_date||''),contractRent:contractFaceRent,currentRent,rent:due,paid,pending,balance,paymentStatus,
@@ -933,7 +978,7 @@
         advance:directoryRecord.advance,advanceDateRaw:String(directoryRecord.advanceDateRaw||''),
         cleaningFee:directoryRecord.cleaningFee,freeMonth:String(directoryRecord.freeMonth||''),
         evictionNotice:String(directoryRecord.evictionNotice||''),notes:String(directoryRecord.notes||''),paymentNotes,knetTransactions,
-        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory||directoryRecordFor(directory,contract))
+        hasContract:Boolean(contract),hasDirectory:Boolean(base.directory)
       };
     }).sort(function(left,right){
       return String(left.unit).localeCompare(String(right.unit),'ar',{numeric:true,sensitivity:'base'});
@@ -1087,7 +1132,7 @@
     const canWrite=rentWriteAllowed()&&!protectedOnly;
     if(!context.propertyCollections.length)return !canWrite?emptyState('لا توجد عمليات تحصيل مرتبطة','لا توجد دفعات مرتبطة بهذا العقار حالياً.','',''):emptyState('لا توجد عمليات تحصيل مرتبطة','سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.','payment','تسجيل إيجار');
     return '<div class="v202-ledger" role="region" aria-label="تحصيلات العقار"><table><thead><tr><th>الإيصال</th><th>المستأجر</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>'+context.propertyCollections.map(function(row,index){
-      const receiptAction=settledPayment(row?.[3])&&validRecordedDate(row?.[5])?'<button type="button" data-v202-receipt-index="'+index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+(settledPayment(row?.[3])?'يحتاج تصحيح التاريخ / Date review required':'بانتظار الاعتماد / Pending approval')+'</span>';
+      const receiptAction=collectionReceiptEligible(row)&&validRecordedDate(row?.[5])?'<button type="button" data-v202-receipt-index="'+index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+(collectionReceiptEligible(row)?'يحتاج تصحيح التاريخ / Date review required':'بانتظار الاعتماد / Pending approval')+'</span>';
       return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(row?.[3]||'—')+'</span></td><td data-label="التاريخ">'+localDate(row?.[5])+'</td><td data-label="إجراء">'+receiptAction+'</td></tr>';
     }).join('')+'</tbody></table></div>'+(canWrite?'<div class="v202-panel-footer"><button type="button" data-v202-action="payment">تسجيل إيجار '+icon('arrow')+'</button></div>':'');
   }
@@ -1351,17 +1396,79 @@
     }catch(_){return false}
   }
 
+  function ledgerMatchesRecord(entry,record){
+    if(!entry||!record)return false;
+    const entryUnit=normalized(entry?.unit);
+    const recordUnit=normalized(record?.unit);
+    if(!entryUnit||!recordUnit||entryUnit!==recordUnit)return false;
+    if(!optionalIdentityMatch(entry?.tenant,record?.tenant))return false;
+    const entryContract=normalized(entry?.contractId||entry?.contract_id);
+    const contractKey=normalized(record?.contractId||record?.contract_id);
+    if(entryContract&&contractKey)return entryContract===contractKey;
+    const entryTenant=normalized(entry?.tenant);
+    const recordTenant=normalized(record?.tenant);
+    return Boolean(entryTenant&&recordTenant&&entryTenant===recordTenant);
+  }
+
+  function ledgerHasStrongContractReference(entry){
+    return Boolean(normalized(entry?.contractId||entry?.contract_id)||String(entry?.paymentKey||'').trim()||normalized(entry?.contractNo||entry?.contract_no));
+  }
+
+  function legacyLedgerContractCandidates(context,entry,period){
+    if(!context||!entry||!validPeriod(period))return [];
+    const entryUnit=normalized(entry?.unit);
+    const entryTenant=normalized(entry?.tenant);
+    if(!entryUnit||!entryTenant)return [];
+    return (Array.isArray(context.propertyContracts)?context.propertyContracts:[]).filter(function(contract){
+      return statementIncludesContract(contract,period)&&normalized(contract?.unit)===entryUnit&&normalized(contract?.tenant)===entryTenant;
+    });
+  }
+
+  function strongLedgerReferenceMatches(entry,record,property,period){
+    const entryId=normalized(entry?.contractId||entry?.contract_id);
+    const targetId=normalized(record?.contractId||record?.contract_id);
+    if(entryId)return Boolean(targetId&&entryId===targetId);
+    const exactKey=String(entry?.paymentKey||'').trim();
+    if(exactKey)return Boolean(targetId&&exactKey===paymentKey(property,targetId,record?.unit,period));
+    const entryContractNo=normalized(entry?.contractNo||entry?.contract_no);
+    if(entryContractNo){
+      const targetContractNo=normalized(record?.contractNo||record?.contract_no);
+      return Boolean(targetContractNo&&entryContractNo===targetContractNo);
+    }
+    return null;
+  }
+
+  function scopedLedgerMatchesRecord(context,entry,record,period){
+    if(!context||!entry||!record)return false;
+    const entryUnit=normalized(entry?.unit);
+    const recordUnit=normalized(record?.unit);
+    if(!entryUnit||!recordUnit||entryUnit!==recordUnit||!optionalIdentityMatch(entry?.tenant,record?.tenant))return false;
+    const property=String(context.property?.[0]||record?.property||'');
+    if(!optionalIdentityMatch(entry?.property,property))return false;
+    const selectedPeriod=validPeriod(period)?period:String(entry?.period||record?.period||'');
+    const strongMatch=strongLedgerReferenceMatches(entry,record,property,selectedPeriod);
+    if(strongMatch!==null)return strongMatch;
+    if(!ledgerMatchesRecord(entry,record))return false;
+    const candidates=legacyLedgerContractCandidates(context,entry,selectedPeriod);
+    const targetId=normalized(record?.contractId||record?.contract_id);
+    const targetContractNo=normalized(record?.contractNo||record?.contract_no);
+    if(!targetId&&!targetContractNo)return candidates.length===0;
+    if(candidates.length!==1)return false;
+    const candidate=candidates[0];
+    if(targetId)return normalized(contractId(candidate))===targetId;
+    return normalized(candidate?.contract_no||candidate?.contractNo)===targetContractNo;
+  }
+
+  function ambiguousLegacyLedger(context,entry,period){
+    return !ledgerHasStrongContractReference(entry)&&legacyLedgerContractCandidates(context,entry,period).length>1;
+  }
+
   function tenantLedgerEntries(context,record,period){
     if(!context||!record)return [];
     const selectedPeriod=validPeriod(period)?period:record.period;
-    const unitKey=normalized(record.unit);
-    const tenantKey=normalized(record.tenant);
-    const contractKey=normalized(record.contractId);
     return context.propertyLedger.filter(function(entry){
-      if(String(entry?.period||'')!==selectedPeriod||normalized(entry?.unit)!==unitKey)return false;
-      const entryContract=normalized(entry?.contractId||entry?.contract_id);
-      if(contractKey&&entryContract)return entryContract===contractKey;
-      return tenantKey&&normalized(entry?.tenant)===tenantKey;
+      return String(entry?.period||'')===selectedPeriod&&
+        scopedLedgerMatchesRecord(context,entry,record,selectedPeriod);
     }).sort(function(left,right){return String(left?.paidAt||'').localeCompare(String(right?.paidAt||''))});
   }
 
@@ -1475,19 +1582,20 @@
     return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day;
   }
 
-  function paymentMatchesContract(entry,contract){
-    const entryId=normalized(entry?.contractId||entry?.contract_id);
-    const targetId=normalized(contractId(contract));
-    if(entryId&&targetId)return entryId===targetId;
-    return normalized(entry?.unit)===normalized(contract?.unit)&&normalized(entry?.tenant)===normalized(contract?.tenant);
+  function paymentMatchesContract(entry,contract,context,period){
+    return scopedLedgerMatchesRecord(context,entry,{
+      contractId:contractId(contract),contractNo:contract?.contract_no||contract?.contractNo,
+      property:contract?.property,unit:contract?.unit,tenant:contract?.tenant,period
+    },period);
   }
 
   function paidForPeriod(property,contract,period){
     const targetKey=paymentKey(property,contract,contract?.unit,period);
+    const context={property:[property],propertyContracts:contractsFor(property)};
     return ledgerRecords().filter(function(entry){
       const exactKey=String(entry?.paymentKey||'');
-      const legacyMatch=normalized(entry?.property)===normalized(property)&&paymentMatchesContract(entry,contract)&&String(entry?.period||'')===String(period||'');
-      return (exactKey?exactKey===targetKey:legacyMatch)&&settledPayment(entry?.status);
+      const identityMatch=normalized(entry?.property)===normalized(property)&&String(entry?.period||'')===String(period||'')&&paymentMatchesContract(entry,contract,context,period);
+      return identityMatch&&(!exactKey||exactKey===targetKey)&&settledPayment(entry?.status);
     }).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
   }
 
@@ -1877,30 +1985,20 @@
       const fallback=normalized(contract?.tenant)+'|'+normalized(contract?.unit);
       const key=id?'id:'+normalized(id):'party:'+fallback;
       if(!id&&!fallback.replace('|',''))return;
-      items.set(key,{contractId:id,tenant:contract?.tenant||'—',unit:contract?.unit||'—',due:contractRent(contract),paid:0,pending:0,receipts:[],status:statusLabel(contract?.status)});
+      items.set(key,{contractId:id,contractNo:contract?.contract_no||contract?.contractNo||'',tenant:contract?.tenant||'—',unit:contract?.unit||'—',due:contractRent(contract),paid:0,pending:0,receipts:[],status:statusLabel(contract?.status)});
     });
     context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry){
-      const entryId=normalized(entry?.contractId||entry?.contract_id);
-      let key=entryId?'id:'+entryId:'';
-      if(entryId&&!items.has(key))return;
-      if(entryId){
-        const linked=items.get(key);
-        if(normalized(entry?.unit)&&normalized(entry.unit)!==normalized(linked?.unit))return;
-        if(normalized(entry?.tenant)&&normalized(entry.tenant)!==normalized(linked?.tenant))return;
-      }
-      if(!key){
-        const matches=Array.from(items.entries()).filter(function(pair){
-          return normalized(pair[1].tenant)===normalized(entry?.tenant)&&normalized(pair[1].unit)===normalized(entry?.unit);
-        });
-        if(matches.length===1)key=matches[0][0];
-      }
+      const matches=Array.from(items.entries()).filter(function(pair){
+        return scopedLedgerMatchesRecord(context,entry,pair[1],period);
+      });
+      const key=matches.length===1?matches[0][0]:'';
       if(!key||!items.has(key))return;
       const item=items.get(key);
       if(settledPayment(entry?.status)){
         item.paid+=numberFrom(entry?.paid);
         const reference=String(entry?.voucherNo||entry?.receiptNo||'').trim();
         if(reference)item.receipts.push(reference);
-      }else item.pending+=numberFrom(entry?.paid);
+      }else if(pendingPayment(entry?.status))item.pending+=numberFrom(entry?.paid);
       items.set(key,item);
     });
     return Array.from(items.values()).map(function(item){
@@ -1955,17 +2053,11 @@
   }
 
   function scopedLedgerEntries(context,item,record,period,items){
-    const scopedRecord=record||{unit:item?.unit,tenant:item?.tenant,contractId:item?.contractId,period};
-    const itemId=normalized(item?.contractId);
+    const scopedRecord=record||{unit:item?.unit,tenant:item?.tenant,contractId:item?.contractId,contractNo:item?.contractNo,period};
     const protectedOnly=protectedPropertyActive(context?.property?.[0]);
-    const sameParty=(Array.isArray(items)?items:[]).filter(function(candidate){
-      return normalized(candidate?.unit)===normalized(item?.unit)&&normalized(candidate?.tenant)===normalized(item?.tenant);
-    });
     return tenantLedgerEntries(context,scopedRecord,period).filter(function(entry){
       if(protectedOnly&&normalized(entry?.source)!==V202_IMPORT_SOURCE)return false;
-      const entryId=normalized(entry?.contractId||entry?.contract_id);
-      if(itemId&&entryId)return itemId===entryId;
-      return sameParty.length===1;
+      return true;
     });
   }
 
@@ -2003,7 +2095,7 @@
       const contractRentValue=record?ledgerRecordedAmount(record.contractRent):ledgerRecordedAmount(contract?.contractRent);
       const currentRentValue=record?ledgerRecordedAmount(record.currentRent):ledgerRecordedAmount(contractRent(contract));
       const paid=entries.reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
-      const pending=scopedEntries.filter(function(entry){return !settledPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
+      const pending=scopedEntries.filter(function(entry){return pendingPayment(entry?.status)}).reduce(function(total,entry){return total+numberFrom(entry?.paid)},0);
       const due=numberFrom(item.due);
       const balance=Math.max(0,due-paid);
       const paymentStatus=due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق';
