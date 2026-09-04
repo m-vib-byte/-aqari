@@ -394,7 +394,7 @@
     {
       "path": "tests/v211-follow-up-center.test.cjs",
       "size": 5835,
-      "sha256": "c79683d696373e4c3fa7a5fbb43e682207bc4a00714745e0e4cf87a1f1e14765"
+      "sha256": "722bf1afb30c57bc8c193329fdb9a0727da07f75b0c5005def886b033516a132"
     },
     {
       "path": "tests/v211-follow-up-cloud-integration.test.cjs",

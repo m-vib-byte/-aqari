@@ -15,8 +15,8 @@ test('V211 core preserves protected rent-office contracts while the hotfix guard
   const css=fs.readFileSync(path.join(root,'v211-follow-up-center.css'),'utf8');
 
   assert.match(loader,/function installV211FollowUpCenter\s*\(/);
-  assert.match(loader,/followUpCss\.href='\/v211-follow-up-center\.css\?v=211\.0'/);
-  assert.match(loader,/followUpJs\.src='\/v211-follow-up-center\.js\?v=211\.0'/);
+  assert.match(loader,/followUpCss\.href='\/v211-follow-up-center\.css\?v=211\.1'/);
+  assert.match(loader,/followUpJs\.src='\/v211-follow-up-center\.js\?v=211\.1'/);
 
   assert.match(core,/AQARI_V202\?\.rentOfficeProperties/);
   assert.match(core,/AQARI_V202\.rentOfficeProperties\(\)/);
