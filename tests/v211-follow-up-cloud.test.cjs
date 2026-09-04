@@ -18,6 +18,7 @@ function runtime(role='general_manager'){
   vm.runInContext(fs.readFileSync('v211-follow-up-cloud.js','utf8'),sandbox);
   return {window,calls,setAccess(next){live=next},setRpc(fn){rpcImpl=fn}};
 }
+function sqlBlock(){const doc=fs.readFileSync('V211_1_SUPABASE_RPC_DRAFT.md','utf8');const match=doc.match(/```sql\n([\s\S]*?)\n```/);assert.ok(match);return match[1]}
 const baseEvent={recordKey:'["TOWER","contract-1","1","C-1","PRIVATE TENANT"]',period:'2026-09',actionKind:'reminder_copied',state:'due'};
 
 test('V211.1 hashes the V202 record key and sends no identifying text to RPC',async()=>{
@@ -39,5 +40,5 @@ test('timeline uses opaque hash and returns only whitelisted fields',async()=>{
 });
 
 test('SQL draft keeps audit private and has no identifying RPC parameter',()=>{
-  const sql=fs.readFileSync('V211_1_SUPABASE_RPC_DRAFT.md','utf8');assert.match(sql,/security definer/);assert.match(sql,/set search_path = ''/);assert.match(sql,/revoke all on function public\.aqari_record_follow_up_event/);assert.match(sql,/grant execute on function public\.aqari_record_follow_up_event/);assert.doesNotMatch(sql,/grant\s+insert\s+on\s+(?:table\s+)?public\.aqari_access_audit/i);assert.match(sql,/p_record_hash !~ '\^\[0-9a-f\]\{64\}\$'/);assert.match(sql,/p_expected_revision/);assert.match(sql,/auth\.uid\(\)/);assert.match(sql,/a\.event_type in \(/);assert.match(sql,/a\.metadata->>'state' in \(/);assert.doesNotMatch(sql,/p_property|p_tenant|p_email|p_phone|p_civil/i);
+  const sql=sqlBlock();assert.match(sql,/security definer/);assert.match(sql,/set search_path = ''/);assert.match(sql,/revoke all on function public\.aqari_record_follow_up_event/);assert.match(sql,/grant execute on function public\.aqari_record_follow_up_event/);assert.doesNotMatch(sql,/grant\s+insert\s+on\s+(?:table\s+)?public\.aqari_access_audit/i);assert.match(sql,/p_record_hash !~ '\^\[0-9a-f\]\{64\}\$'/);assert.match(sql,/p_expected_revision/);assert.match(sql,/auth\.uid\(\)/);assert.match(sql,/a\.event_type in \(/);assert.match(sql,/a\.metadata->>'state' in \(/);assert.doesNotMatch(sql,/p_property|p_tenant|p_email|p_phone|p_civil/i);
 });

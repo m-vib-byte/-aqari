@@ -6,7 +6,10 @@ const fs=require('node:fs');
 
 const guard=fs.readFileSync('v211-follow-up-center.js','utf8');
 const cloud=fs.readFileSync('v211-follow-up-cloud.js','utf8');
-const sql=fs.readFileSync('V211_1_SUPABASE_RPC_DRAFT.md','utf8');
+const sqlDoc=fs.readFileSync('V211_1_SUPABASE_RPC_DRAFT.md','utf8');
+const sqlMatch=sqlDoc.match(/```sql\n([\s\S]*?)\n```/);
+assert.ok(sqlMatch);
+const sql=sqlMatch[1];
 
 test('V211.1 keeps the V211.0.1 action-epoch hotfix and loads cloud before core',()=>{
   assert.match(guard,/V211\.0\.1-action-epoch-hotfix\+V211\.1-follow-up-cloud/);
