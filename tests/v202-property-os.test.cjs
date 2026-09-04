@@ -2218,7 +2218,7 @@ test('V206.1 keeps the public V206 command-center integration contract', () => {
   assert.match(source, /rentOfficeData:function\(name,period\)/);
   assert.match(source, /rentOfficeAction:function\(name,key,period,action,trigger\)/);
   assert.match(source, /dataset\.v202Document='rent-office'/);
-  assert.match(source, /if\(requested==='payment'\)\{[\s\S]*?closeDocument\(\);[\s\S]*?openPayment\(null,record\.contractId\|\|''\)/);
+  assert.match(source, /if\(requested==='payment'\)\{[\s\S]*?closeDocument\(\);[\s\S]*?openPayment\(null,record\.contractId\|\|'',selectedPeriod\)/);
   const runtime = loadRuntime(fixture(), [], activeRuntimeWindow());
   const office = runtime.secureRentOfficeData('SYNTHETIC TEST PROPERTY', '2026-08');
   assert.ok(office);

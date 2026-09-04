@@ -348,8 +348,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 140969,
-      "sha256": "d8544807b1f62ee7eb765a25ed684aeb3dab260bff1bf26f0101c9a4d99b10a3"
+      "size": 140984,
+      "sha256": "2c80f40d232b27f789247dc832a640b7757c33c35bb6b9b5675c434074008f4d"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
