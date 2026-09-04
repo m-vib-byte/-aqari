@@ -443,6 +443,26 @@ function resultArticles(html){
   return html.match(/<article class="v209-result">[\s\S]*?<\/article>/g)||[];
 }
 
+test('the public search API recreates a missing presentation surface safely',()=>{
+  const env=createHarness();
+  env.panel.remove();
+
+  assert.equal(env.document.getElementById('v199SearchPanel'),null);
+  assert.equal(env.window.AQARI_V209.open(),true);
+
+  const panel=env.document.getElementById('v199SearchPanel');
+  const input=env.document.getElementById('v199SearchInput');
+  const results=env.document.getElementById('v209SearchResults');
+  assert.ok(panel);
+  assert.ok(input);
+  assert.ok(results);
+  assert.equal(panel.classList.contains('on'),true);
+  assert.equal(panel.getAttribute('aria-hidden'),'false');
+  assert.equal(panel.getAttribute('role'),'search');
+  assert.equal(panel.getAttribute('dir'),'rtl');
+  assert.match(results.innerHTML,/ابحث بسرعة/);
+});
+
 test('search trigger reliably opens the sealed accessible surface after competing click handlers',()=>{
   const env=createHarness();
   const trigger=env.document.querySelector('[data-v199-action="search"]');

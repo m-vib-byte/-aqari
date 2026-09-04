@@ -198,9 +198,33 @@
   }
 
   function ensureUi(){
-    const panel=document.getElementById('v199SearchPanel');
-    const input=document.getElementById('v199SearchInput');
-    if(!panel||!(input instanceof HTMLInputElement))return null;
+    let panel=document.getElementById('v199SearchPanel');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='v199SearchPanel';
+      panel.className='v199-search-panel';
+      panel.setAttribute('aria-hidden','true');
+      document.body.appendChild(panel);
+    }
+
+    let input=document.getElementById('v199SearchInput');
+    if(!(input instanceof HTMLInputElement)){
+      const label=document.createElement('label');
+      label.setAttribute('for','v199SearchInput');
+      label.textContent='البحث الشامل';
+      const field=document.createElement('div');
+      field.className='v199-search-field';
+      input=document.createElement('input');
+      input.id='v199SearchInput';
+      input.type='search';
+      input.setAttribute('autocomplete','off');
+      const escapeKey=document.createElement('kbd');
+      escapeKey.textContent='Esc';
+      field.appendChild(input);
+      field.appendChild(escapeKey);
+      panel.appendChild(label);
+      panel.appendChild(field);
+    }
     panel.classList.add('v209-search-panel');
     panel.setAttribute('role','search');
     panel.setAttribute('aria-label','البحث الشامل في عقاري');
@@ -242,7 +266,23 @@
       },{capture:true});
     }
 
-    document.querySelectorAll('[data-v199-action="search"]').forEach(function(trigger){
+    let searchTriggers=Array.from(document.querySelectorAll('[data-v199-action="search"]'));
+    if(!searchTriggers.length){
+      const toolbar=document.querySelector('#aqariV199Topbar .v199-toolbar');
+      if(toolbar){
+        const fallback=document.createElement('button');
+        fallback.type='button';
+        fallback.className='v199-icon-button v199-search-trigger';
+        fallback.setAttribute('data-v199-action','search');
+        fallback.setAttribute('aria-label','فتح البحث الشامل');
+        fallback.setAttribute('aria-controls','v199SearchPanel');
+        fallback.setAttribute('aria-expanded','false');
+        fallback.textContent='بحث';
+        toolbar.appendChild(fallback);
+        searchTriggers=[fallback];
+      }
+    }
+    searchTriggers.forEach(function(trigger){
       if(trigger.dataset.v209ToggleBound==='true')return;
       trigger.dataset.v209ToggleBound='true';
       trigger.addEventListener('click',function(){
