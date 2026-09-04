@@ -118,7 +118,7 @@ await check('V209 signed-out search stays sealed and fits the iPhone viewport', 
       horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
     };
   });
-  if(!state.open||state.role!=='search'||state.dir!=='rtl')throw new Error('V209 search surface did not open accessibly');
+  if(!state.open||state.role!=='search'||state.dir!=='rtl')throw new Error('V209 search surface did not open accessibly: '+JSON.stringify(state));
   if(state.inputValue||!state.signedOutMessage||state.protectedProperties!==0)throw new Error('signed-out V209 search exposed or retained protected data');
   if(state.inputFont<16)throw new Error(`V209 input font ${state.inputFont}px can trigger iPhone zoom`);
   if(state.left<0||state.right>state.viewport+1||state.horizontalOverflow)throw new Error(`V209 panel escaped viewport: ${state.left}..${state.right}/${state.viewport}`);
