@@ -451,7 +451,9 @@ test('search trigger reliably opens the sealed accessible surface after competin
     env.panel.setAttribute('aria-hidden','true');
   });
 
-  env.document.dispatchEvent({type:'click',target:trigger});
+  trigger.dispatchEvent({type:'click',target:trigger});
+  env.panel.classList.remove('on');
+  env.panel.setAttribute('aria-hidden','true');
   env.clock.tick(0);
 
   assert.equal(env.panel.classList.contains('on'),true);

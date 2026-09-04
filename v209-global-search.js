@@ -241,6 +241,15 @@
         scheduleRender();
       },{capture:true});
     }
+
+    document.querySelectorAll('[data-v199-action="search"]').forEach(function(trigger){
+      if(trigger.dataset.v209ToggleBound==='true')return;
+      trigger.dataset.v209ToggleBound='true';
+      trigger.addEventListener('click',function(){
+        const shouldOpen=!panel.classList.contains('on');
+        setTimeout(function(){setSearchExpanded(shouldOpen,trigger)},0);
+      },{capture:true});
+    });
     return {panel:panel,input:input,results:results};
   }
 
@@ -333,7 +342,8 @@
     const ui=ensureUi();
     if(!ui)return false;
     const open=expanded===true;
-    ui.panel.classList.toggle('on',open);
+    if(open)ui.panel.classList.add('on');
+    else ui.panel.classList.remove('on');
     ui.panel.setAttribute('aria-hidden',String(!open));
     document.querySelectorAll('[data-v199-action="search"]').forEach(function(button){
       button.setAttribute('aria-expanded',String(open));
