@@ -24,6 +24,21 @@
   let authActionRunning = false;
   let authGeneration = 0;
 
+  function setGatePhase(phase){
+    document.documentElement?.classList.toggle('aqari-login-required', phase === 'login');
+    byId('aqariCloudGateV168')?.setAttribute('data-auth-phase', phase);
+    const retry = byId('aqariSessionRetry');
+    if(retry) retry.hidden = phase !== 'error';
+  }
+
+  function boundedBootstrap(promise, stage){
+    let timer;
+    const deadline = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error('تعذر إكمال ' + stage + '. أعد المحاولة.')), 20000);
+    });
+    return Promise.race([promise, deadline]).finally(() => clearTimeout(timer));
+  }
+
   function safelySeal(action){
     try{ action(); }catch(_){ }
   }
@@ -150,7 +165,8 @@
     }
   }
 
-  function showGate(message, kind = 'wait'){
+  function showGate(message, kind = 'wait', phase = 'login'){
+    setGatePhase(phase);
     authGeneration += 1;
     document.documentElement?.classList.remove('aqari-auth-unlocked');
     const gate = byId('aqariCloudGateV168');
@@ -176,6 +192,7 @@
     remoteState = nextRemoteState;
     hideLegacyGates();
     setCompatibility();
+    if(typeof window.go === 'function') window.go('home');
     document.documentElement?.classList.add('aqari-auth-unlocked');
     const gate = byId('aqariCloudGateV168');
     gate?.classList.remove('on');
@@ -212,8 +229,8 @@
       await window.AQARI_SUPABASE.signOut().catch(() => {});
       throw new Error('Active workspace membership is required');
     }
-    const candidate = { ...next, profile:null };
-    candidate.profile = await loadProfile(candidate);
+    const candidate = { ...next, profile:next.profile || null };
+    if(!candidate.profile) candidate.profile = await loadProfile(candidate);
     requireLiveIdentity(candidate);
     return candidate;
   }
@@ -374,6 +391,8 @@
   }
 
   async function bootstrapOnce(generation){
+    setGatePhase('restoring');
+    notice('جاري استعادة الجلسة وفتح الصفحة الرئيسية…', 'wait');
     sealData();
     context = null;
     remoteState = null;
@@ -381,14 +400,15 @@
     buildPanel();
     installOverrides();
     try{
-      const active = await loadContextCandidate();
+      const active = await boundedBootstrap(loadContextCandidate(), 'استعادة الجلسة');
       if(generation !== authGeneration) return;
       if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       if(!active){
-        showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
+        showGate('لا توجد جلسة نشطة. سجل الدخول بحساب عقاري المصرح.', 'wait');
         return;
       }
-      const activeRemoteState = await loadRemoteCandidate(active);
+      notice('تم التحقق من الحساب؛ جاري تحميل مساحة العمل…', 'wait');
+      const activeRemoteState = await boundedBootstrap(loadRemoteCandidate(active), 'تحميل مساحة العمل');
       if(generation !== authGeneration) return;
       if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       requireRemoteWorkspace(active, activeRemoteState);
@@ -404,7 +424,7 @@
         bootstrapPending = true;
         return;
       }
-      showGate(errorText(error), 'bad');
+      showGate(errorText(error), 'bad', 'error');
     }
   }
 
@@ -695,6 +715,10 @@
   }
 
   async function start(){
+    byId('aqariSessionRetry')?.addEventListener('click', async () => {
+      setBusy(true);
+      try{ await requestBootstrap(); }finally{ setBusy(false); }
+    });
     hideLegacyGates();
     installOverrides();
     installRenderHook();

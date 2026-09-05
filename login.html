@@ -67,6 +67,8 @@
     var preparing = false;
     var corePromise = null;
     var releaseResetPromise = null;
+    var restoreEpoch = 0;
+    var restoreFlight = null;
 
     var form = document.getElementById('loginForm');
     var email = document.getElementById('email');
@@ -243,9 +245,28 @@
     function warmCore(){
       ensureCore(false,false).then(function(){
         if(!busy && !preparing) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
+        return restoreExistingSession();
       }).catch(function(){
         if(!busy && !preparing) setStatus('أدخل بياناتك واضغط «دخول»؛ سنعيد الاتصال تلقائيًا.','ready');
       });
+    }
+
+    function restoreExistingSession(){
+      if(busy || preparing || restoreFlight) return restoreFlight;
+      var epoch = restoreEpoch;
+      var pending = (async function(){
+        var session = await withTimeout(window.AQARI_SUPABASE.getSession(),10000,'استعادة الجلسة');
+        if(!session || busy || epoch !== restoreEpoch) return;
+        setStatus('جاري استعادة الجلسة وفتح الصفحة الرئيسية…','');
+        var context = await withTimeout(window.AQARI_SUPABASE.refreshContext(),20000,'التحقق من مساحة العمل');
+        if(busy || epoch !== restoreEpoch) return;
+        if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
+        window.location.replace('/app?release=' + encodeURIComponent(RELEASE));
+      })().catch(function(error){
+        if(!busy && epoch === restoreEpoch) setStatus(friendlyError(error),'bad');
+      }).finally(function(){ if(restoreFlight === pending) restoreFlight = null; });
+      restoreFlight = pending;
+      return pending;
     }
 
     async function prepare(forceDirect){
@@ -265,6 +286,7 @@
     form.addEventListener('submit',async function(event){
       event.preventDefault();
       if(busy) return;
+      restoreEpoch += 1;
       var emailValue = String(email.value || '').trim().toLowerCase();
       var passwordValue = password.value || '';
       if(!emailValue || !passwordValue){ setStatus('أدخل البريد وكلمة المرور.','bad'); return; }

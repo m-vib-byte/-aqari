@@ -78,10 +78,11 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     authUnlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),
     bodyVisibility:getComputedStyle(document.body).visibility,
     gateVisible:Boolean(document.getElementById('aqariCloudGateV168')?.getClientRects().length),
+    credentialsVisible:Boolean(document.getElementById('cloudPasswordV168')?.getClientRects().length),
     message:document.getElementById('cloudGateMsgV168')?.textContent?.trim() || '',
     authButtonsDisabled:Array.from(document.querySelectorAll('[data-cloud-auth-action]')).every(button => button.disabled)
   }));
-  if(!firstPaint.shellReady || firstPaint.authUnlocked || firstPaint.bodyVisibility !== 'visible' || !firstPaint.gateVisible || !firstPaint.authButtonsDisabled || !firstPaint.message.includes('جاري تحميل')){
+  if(!firstPaint.shellReady || firstPaint.authUnlocked || firstPaint.bodyVisibility !== 'visible' || !firstPaint.gateVisible || firstPaint.credentialsVisible || !firstPaint.authButtonsDisabled || !firstPaint.message.includes('جاري استعادة الجلسة')){
     throw new Error('secure login shell was not usable during delayed asset loading: ' + JSON.stringify(firstPaint));
   }
   const response = await navigation;

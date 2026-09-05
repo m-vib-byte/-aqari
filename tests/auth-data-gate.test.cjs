@@ -216,7 +216,8 @@ function bridgeRaceRuntime(options = {}){
   const sandbox = vm.createContext({
     window, document, localStorage, sessionStorage,
     location:{ origin:'https://aqari.test', pathname:'/app', search:'?mode=secure', replace(value){ hardResets.push(value); } },
-    setTimeout(callback){ scheduled.push(callback); return scheduled.length; },
+    setTimeout(callback, milliseconds){ if(milliseconds !== 20000) scheduled.push(callback); return scheduled.length; },
+    clearTimeout(){},
     setInterval(){ return 1; },
     console
   });
@@ -398,7 +399,7 @@ function listenerRetryRuntime(){
   const document = {
     readyState:'loading',
     hidden:false,
-    documentElement:{ classList:{ add(){}, remove(){} } },
+    documentElement:{ classList:{ add(){}, remove(){}, toggle(){} } },
     getElementById(){ return null; },
     querySelectorAll(){ return []; },
     addEventListener(name, callback){ listeners[name] = callback; }
@@ -409,8 +410,8 @@ function listenerRetryRuntime(){
     localStorage,
     sessionStorage,
     location:{ origin:'https://aqari.test', pathname:'/', search:'', replace(){} },
-    setTimeout(callback, delay){ timers.push({ callback, delay }); return timers.length; },
-    clearTimeout(){},
+    setTimeout(callback, delay){ const timer={ callback, delay }; timers.push(timer); return timer; },
+    clearTimeout(timer){ const index=timers.indexOf(timer); if(index>=0)timers.splice(index,1); },
     setInterval(){ return 1; },
     console
   });
@@ -881,7 +882,7 @@ test('auth bridge seals before showing the gate and hydrates only while unlockin
   assert.match(bridge, /loadContextCandidate\(currentIdentity\)/);
   assert.match(bridge, /function showGate[\s\S]*?sealData\(\);[\s\S]*?context = null/);
   assert.match(bridge, /function unlock\(nextContext, nextRemoteState\)[\s\S]*?requireRemoteWorkspace\(nextContext, nextRemoteState\)[\s\S]*?activateWorkspaceDbV198\(nextContext, nextRemoteState\?\.payload\)[\s\S]*?classList\.remove\('on'\)/);
-  assert.match(bridge, /const activeRemoteState = await loadRemoteCandidate\(active\)[\s\S]*?unlock\(active, activeRemoteState\)/);
+  assert.match(bridge, /const activeRemoteState = await boundedBootstrap\(loadRemoteCandidate\(active\)[\s\S]*?unlock\(active, activeRemoteState\)/);
   assert.match(bridge, /function legacyLockV198\(\)[\s\S]*?sameIdentity\(expected, live\)[\s\S]*?return false[\s\S]*?cloudLogoutV198\(\)/);
   assert.match(bridge, /window\.lockNowV120 = legacyLockV198/);
   assert.match(bridge, /window\.lockSessionV75 = legacyLockV198/);

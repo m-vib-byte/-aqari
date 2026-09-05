@@ -34,7 +34,7 @@ assert.match(html, /sha384-0UK\+HVlz5Y7F\/\/atDpPysyocv/);
 assert.match(html, /AQARI • V266/);
 assert.match(html, /window\.location\.replace\('\/app\?release='/);
 assert.match(html, /var context = window\.AQARI_SUPABASE\.context/);
-assert.doesNotMatch(html, /AQARI_SUPABASE\.refreshContext/);
+assert.match(html, /function restoreExistingSession/);
 assert.doesNotMatch(html, /AQARI_SUPABASE\.signOut/);
 assert.doesNotMatch(html, /id="loginButton"[^>]*disabled/);
 assert.doesNotMatch(html, /id="recoveryButton"[^>]*disabled/);
@@ -100,7 +100,7 @@ assert.match(adapter, /script\.src = '\/vendor\/supabase-js-2\.114\.0\.js'/);
 assert.match(adapter, /script\.integrity = 'sha384-/);
 assert.match(adapter, /new Set\(\['general_manager', 'property_manager', 'accountant'\]\)/);
 assert.doesNotMatch(adapter, /service_role/i);
-assert.ok(Buffer.byteLength(html) < 15_000, 'mobile login shell should stay under 15 KB');
+assert.ok(Buffer.byteLength(html) < 17_000, 'login plus automatic session restoration should stay under 17 KB');
 
 assert.match(serviceWorker, /AQARI_RELEASE = 'V266'/);
 assert.match(serviceWorker, /caches\.keys\(\)/);
