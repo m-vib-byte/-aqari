@@ -73,9 +73,13 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       protectedFields: PROTECTED_FIELDS,
       protectedPropertyActive,
       protectedAccessReady,
+      protectedHydrationReady,
       hydrateProtectedImport,
       clearProtectedImport,
       handleProtectedAuthStateChange,
+      handleProtectedBoundaryState,
+      installHydrateBoundaryListener,
+      sealProtectedImport,
       setActiveProperty(value) { activeProperty = String(value || ''); },
       setActiveTenantStatementKey(value) { activeTenantStatementKey = String(value || ''); }
     });
@@ -93,6 +97,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
     : null;
   if(!Object.hasOwn(runtimeWindow, 'AQARI_DATA_GATE')) runtimeWindow.AQARI_DATA_GATE = { scope:initialGateScope };
   if(!Object.hasOwn(runtimeWindow, 'AQARI_EARLY_STORAGE_GATE')) runtimeWindow.AQARI_EARLY_STORAGE_GATE = { scope:initialGateScope };
+  const authClasses = runtimeOptions.authClasses || new Set(initialGateScope ? ['aqari-auth-unlocked'] : []);
   const elements = runtimeOptions.elements || {};
   const sandbox = {
     console,
@@ -100,6 +105,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
     window: runtimeWindow,
     document: {
       readyState: 'loading',
+      documentElement: { classList: { contains(value) { return authClasses.has(value); } } },
       addEventListener() {},
       querySelector() { return null; },
       querySelectorAll() { return []; },
@@ -113,7 +119,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
     },
     persist: runtimeOptions.persist,
     render: runtimeOptions.render,
-    setTimeout() {},
+    setTimeout: runtimeOptions.setTimeout || function() {},
     clearTimeout() {},
   };
   sandbox.globalThis = sandbox;
@@ -1901,6 +1907,67 @@ test('V204 sign-out generation prevents an in-flight protected response from res
   assert.equal(runtime.tenantDirectory().length, 0);
 });
 
+test('V266 protected hydration waits for the central ready boundary and exact user scope', async () => {
+  const authClasses = new Set();
+  const listeners = new Map();
+  const timers = [];
+  let loads = 0;
+  const runtimeWindow = activeRuntimeWindow();
+  runtimeWindow.addEventListener = (type, listener) => { listeners.set(type, listener); };
+  runtimeWindow.AQARI_SUPABASE.loadAppState = async () => {
+    loads += 1;
+    return { payload: protectedRemote('SYNTHETIC READY PROPERTY') };
+  };
+  const local = fixture();
+  local.properties = [];
+  const runtime = loadRuntime(local, [], runtimeWindow, {
+    authClasses,
+    setTimeout(callback) { timers.push(callback); },
+  });
+
+  runtime.installHydrateBoundaryListener();
+  assert.equal(typeof listeners.get('aqari:auth-boundary'), 'function');
+  assert.equal(runtime.protectedHydrationReady('user-test'), false);
+  assert.equal(await runtime.hydrateProtectedImport('user-test'), false);
+  assert.equal(loads, 0, 'no protected request may start while the central boundary is locked');
+
+  listeners.get('aqari:auth-boundary')({ detail: { state: 'ready' } });
+  assert.equal(timers.length, 0, 'a ready signal without the unlocked boundary must fail closed');
+
+  authClasses.add('aqari-auth-unlocked');
+  listeners.get('aqari:auth-boundary')({ detail: { state: 'ready' } });
+  assert.equal(timers.length, 1);
+  timers.shift()();
+  assert.equal(await runtime.hydrateProtectedImport('user-test'), true);
+  assert.equal(loads, 1);
+  assert.equal(await runtime.hydrateProtectedImport('user-other'), false);
+  assert.equal(loads, 1, 'a different user cannot reuse the ready workspace boundary');
+});
+
+test('V266 seal preserves the in-flight hydration promise and serializes the retry', async () => {
+  const remote = protectedRemote('SYNTHETIC SERIAL PROPERTY');
+  let resolveFirst;
+  let loads = 0;
+  const runtimeWindow = activeRuntimeWindow();
+  runtimeWindow.AQARI_SUPABASE.loadAppState = () => {
+    loads += 1;
+    if(loads === 1) return new Promise((resolve) => { resolveFirst = resolve; });
+    return Promise.resolve({ payload: remote });
+  };
+  const runtime = loadRuntime({ ...fixture(), properties: [] }, [], runtimeWindow);
+  const first = runtime.hydrateProtectedImport('user-test');
+  await Promise.resolve();
+
+  runtime.sealProtectedImport();
+  const retry = runtime.hydrateProtectedImport('user-test');
+  assert.equal(loads, 1, 'seal must not permit a parallel protected hydration');
+
+  resolveFirst({ payload: remote });
+  assert.equal(await first, false, 'the sealed response remains stale');
+  assert.equal(await retry, true, 'the queued retry runs after the stale flight settles');
+  assert.equal(loads, 2);
+});
+
 test('V204 blocks protected payment even when a local property has the same name', async () => {
   const local = fixture();
   local.properties = [['SYNTHETIC TEST PROPERTY', 'LOCAL OWNER', '4', '300']];
@@ -2102,17 +2169,24 @@ test('V204 account switch blocks the old workspace immediately and retries after
       return Promise.resolve({ payload: remoteB });
     },
   };
-  const runtime = loadRuntime(local, [], { AQARI_SUPABASE: bridge });
+  const authClasses = new Set(['aqari-auth-unlocked']);
+  const runtimeWindow = { AQARI_SUPABASE: bridge };
+  const runtime = loadRuntime(local, [], runtimeWindow, { authClasses });
   const pendingA = runtime.hydrateProtectedImport('user-a');
   await Promise.resolve();
 
   bridge.context = { user: { id: 'user-b' }, membership: { is_active: true, user_id: 'user-b', workspace_id: 'workspace-b' }, workspace: { id: 'workspace-b' } };
+  authClasses.delete('aqari-auth-unlocked');
   runtime.handleProtectedAuthStateChange('SIGNED_IN', { user: { id: 'user-b' } });
   assert.equal(runtime.contextFor('SYNTHETIC SWITCH A'), null, 'old workspace rows must be inaccessible synchronously');
+  assert.equal(await runtime.hydrateProtectedImport('user-b'), false, 'new workspace cannot hydrate before the central boundary is ready');
 
-  const pendingB = runtime.hydrateProtectedImport('user-b');
   resolveFirst({ payload: remoteA });
   assert.equal(await pendingA, false);
+  runtimeWindow.AQARI_DATA_GATE.scope = { userId: 'user-b', workspaceId: 'workspace-b' };
+  runtimeWindow.AQARI_EARLY_STORAGE_GATE.scope = { userId: 'user-b', workspaceId: 'workspace-b' };
+  authClasses.add('aqari-auth-unlocked');
+  const pendingB = runtime.hydrateProtectedImport('user-b');
   assert.equal(await pendingB, true);
   assert.equal(runtime.contextFor('SYNTHETIC SWITCH A'), null);
   assert.equal(runtime.contextFor('SYNTHETIC SWITCH B').propertyContracts.length, 4);
@@ -2464,7 +2538,9 @@ test('V206.1 leaves no-scope legacy rows unassigned across historical properties
 
 test('V206.1 keeps the public V206 command-center integration contract', () => {
   const source = fs.readFileSync(runtimePath, 'utf8');
-  assert.match(source, /seal:function\(\)\{clearProtectedImport\(\);hydratePromise=null;clearProtectedDom\(\);\}/);
+  assert.match(source, /seal:sealProtectedImport/);
+  assert.match(source, /function sealProtectedImport\(\)\{\s*clearProtectedImport\(\);\s*clearProtectedDom\(\);\s*\}/);
+  assert.doesNotMatch(source, /function sealProtectedImport\(\)\{[^}]*hydratePromise=null/);
   assert.match(source, /openProperty:function\(name,period\)\{return protectedAccessReady\(\)\?openWorkspace\(name,document\.activeElement,period\)/);
   assert.match(source, /rentOfficeProperties:function\(\)\{return secureRentOfficeProperties\(\)\}/);
   assert.match(source, /rentOfficeData:function\(name,period\)/);
