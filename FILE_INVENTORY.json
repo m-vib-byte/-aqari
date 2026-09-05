@@ -32,7 +32,7 @@
 {"path":"first-run-migration.css","size":955,"sha256":"ff9745428cfc978831ad96cf02e668a66ade59120baa498371f6b8d8a8ac4ca5"},
 {"path":"first-run-migration.js","size":6274,"sha256":"d000a6c20f527a8ba05042e3cbe9731e2c1f722105ae8fca609498cb38ea7245"},
 {"path":"index.html","size":1094599,"sha256":"8c2f8218e58fe79bef11f7f145675cf606454beeb244f1c2c972959ad3ed0af2"},
-{"path":"login.html","size":16318,"sha256":"5c33fc76e19e79214e2b8e24be2bc3c2914df0584dc687be4aafc4acaff1cfaf"},
+{"path":"login.html","size":16622,"sha256":"9ca9f08e81a5e1a20e54e787944454b723e2317043f53a4c8786eb2be9c5371d"},
 {"path":"lib/read-only.js","size":509,"sha256":"4934d6cc6a39a61fbf83e5fdf06a72efc5d3781a6e603ea0642a959726acdcae"},
 {"path":"lib/release-config.js","size":2892,"sha256":"fb27eb49ae6d160d904eaeea3a9b5ecdd9ba08bd13223d23ea528123cb9f25c2"},
 {"path":"lib/supabase-probe.js","size":3984,"sha256":"ada5aefbf2158ed89fe15a019f6467be28155f8009e25bcad9cb5d73305c135e"},
@@ -124,5 +124,7 @@
 {"path":".github/workflows/authenticated-home.yml","size":727,"sha256":"efd7f132c43ad010618c7830858da388ee13a67e5c35a8040a26b0e204b4e1e6"},
 {"path":"tests/v266-authenticated-home.e2e.mjs","size":9075,"sha256":"477f8c97f19991c97891fa5bb6719f3c7ead9f0bdb89a3294ece851db33efaad"},
 {"path":"tests/v266-startup-snapshot.test.cjs","size":4457,"sha256":"23b9384c534a3d45344bbeaf1b817d8da734361eb9585e3617a210ab844806ac"},
-{"path":"supabase/migrations/20260905195027_v266_read_only_startup_snapshot.sql","size":2221,"sha256":"af0044555a293e7d1fa1f1865aa48f98e498332014868256ab40c4edebb3c1ff"}
+{"path":"supabase/migrations/20260905195027_v266_read_only_startup_snapshot.sql","size":2221,"sha256":"af0044555a293e7d1fa1f1865aa48f98e498332014868256ab40c4edebb3c1ff"},
+{"path":"tests/login-speed.e2e.mjs","size":4576,"sha256":"9d2c2712548314e68111633682f4770ea87fa8fc572ac34a1351c5c8c072df4d"},
+{"path":".github/workflows/login-speed.yml","size":755,"sha256":"66a1bc8e3b857ab43d7d410883c0484d67e15e3154f673b9f444d7866df59faa"}
 ]}
