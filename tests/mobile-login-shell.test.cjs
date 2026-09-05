@@ -9,8 +9,13 @@ const adapter = fs.readFileSync(root + '/supabase-adapter.js', 'utf8');
 const config = JSON.parse(fs.readFileSync(root + '/vercel.json', 'utf8'));
 
 const rewrite = (source) => config.rewrites.find((item) => item.source === source);
-assert.equal(rewrite('/')?.destination, '/login.html');
-assert.match(rewrite('/')?.has?.[0]?.value || '', /iPhone/);
+const redirect = (source) => config.redirects.find((item) => item.source === source);
+assert.equal(redirect('/')?.destination, '/login');
+assert.equal(redirect('/')?.permanent, false);
+assert.equal(
+  redirect('/')?.has?.[0]?.value,
+  '(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)'
+);
 assert.equal(rewrite('/login')?.destination, '/login.html');
 assert.equal(rewrite('/app')?.destination, '/index.html');
 assert.equal(
