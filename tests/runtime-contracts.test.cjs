@@ -113,9 +113,26 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   const bridge = fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8');
   const adapter = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
   const sync = fs.readFileSync(path.join(root, 'cloud-sync.js'), 'utf8');
+  const titleWriters = ['v199-ui.js', 'v201-experience.js', 'v205-simplified-shell.js']
+    .map((file) => fs.readFileSync(path.join(root, file), 'utf8'));
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
-  assert.match(html, /document\.title=s\.appName\+' • AQARI V198'/);
+  assert.match(html, /<title>عقاري V211\.1\.2 • Supabase Connected<\/title>/);
+  assert.match(html, /<meta name="aqari-release" content="V211\.1\.2">/);
+  assert.match(html, /<meta name="aqari-api-contract" content="V198">/);
+  assert.match(html, /<meta name="aqari-stage" content="production">/);
+  assert.match(html, /document\.title=s\.appName\+' • AQARI V211\.1\.2'/);
+  assert.match(html, /window\.AQARI_API_CONTRACT='V198'/);
+  assert.match(html, /window\.AQARI_RELEASE='V211\.1\.2'/);
+  assert.match(html, /title\.textContent = 'V211\.1\.2 — جاهز للإنتاج'/);
+  assert.doesNotMatch(html, /title\.textContent = 'V198 — Release Freeze'/);
+  assert.doesNotMatch(html, /قبل مرحلة الربط النهائي والاختبارات الإنتاجية/);
+  assert.doesNotMatch(html, /<meta name="aqari-stage" content="launch-candidate">/);
+  for (const source of titleWriters) {
+    assert.match(source, /meta\[name="aqari-release"\]/);
+    assert.match(source, /document\.title='عقاري '\+productRelease/);
+    assert.doesNotMatch(source, /document\.title='عقاري(?: V200)? •/);
+  }
   assert.match(html, /#auth,#loginGateV120\{display:none!important\}/);
   assert.ok(html.lastIndexOf('aqari-v198-secure-cloud-js') > html.lastIndexOf('production-lockdown.js'));
   assert.match(bridge, /window\.login = window\.cloudLoginV198/);

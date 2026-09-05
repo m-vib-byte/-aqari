@@ -67,6 +67,10 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     cloud:Boolean(window.AQARI_CLOUD_SYNC),
     autosyncMode:window.AQARI_AUTOSYNC?.status?.mode,
     design:document.querySelector('meta[name="aqari-design"]')?.content,
+    productRelease:document.querySelector('meta[name="aqari-release"]')?.content,
+    apiContract:document.querySelector('meta[name="aqari-api-contract"]')?.content,
+    releaseStage:document.querySelector('meta[name="aqari-stage"]')?.content,
+    title:document.title,
     luxury:document.body.classList.contains('aq-v200'),
     easy:document.body.classList.contains('aq-v201'),
     propertyOS:document.body.classList.contains('aq-v202'),
@@ -103,6 +107,10 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud bridge unavailable');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
+  if(state.productRelease !== 'V211.1.2' || state.apiContract !== 'V198' || state.releaseStage !== 'production'){
+    throw new Error('visible release identity mismatch');
+  }
+  if(!state.title.includes('V211.1.2')) throw new Error('document title has stale release identity');
   if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.portfolioCollections || !state.globalSearch || state.globalSearchVersion !== 'V209-global-search' || state.globalSearchRevision !== 'V209.1-self-heal' || state.globalSearchMeta !== 'V209-global-search' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V209 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
