@@ -45,6 +45,7 @@
   let enhanceTimer=0;
   let hydratePromise=null;
   let hydrateListenerInstalled=false;
+  let hydrateBoundaryListenerInstalled=false;
   let protectedImportCache=Object.create(null);
   let protectedPropertyNames=new Set();
   let protectedImportGeneration=0;
@@ -309,6 +310,19 @@
     return accessScope(window.AQARI_SUPABASE?.context);
   }
 
+  function protectedHydrationReady(expectedUserId){
+    const expectedProvided=expectedUserId!=null&&expectedUserId!=='';
+    const expected=accessIdentity(expectedUserId);
+    if(expectedProvided&&!expected)return false;
+    const active=activeAccessScope();
+    return Boolean(
+      document.documentElement?.classList?.contains?.('aqari-auth-unlocked')&&
+      active&&(!expected||active.userId===expected)&&
+      sameAccessScope(active,window.AQARI_DATA_GATE?.scope)&&
+      sameAccessScope(active,window.AQARI_EARLY_STORAGE_GATE?.scope)
+    );
+  }
+
   function rentWriteAllowed(){
     if(!activeAccessScope())return false;
     const role=window.AQARI_SUPABASE?.context?.membership?.role;
@@ -504,6 +518,7 @@
     const expectedProvided=expectedUserId!=null&&expectedUserId!=='';
     const expected=accessIdentity(expectedUserId);
     if(expectedProvided&&!expected){suspendProtectedImport(true);return false}
+    if(!protectedHydrationReady(expected))return false;
     const initialScope=activeAccessScope();
     if(protectedImportScope&&(!initialScope||(expected&&initialScope.userId!==expected)||!sameAccessScope(initialScope,protectedImportScope))){
       suspendProtectedImport(true);
@@ -600,7 +615,28 @@
     if(!eventUserId){suspendProtectedImport(true);return false}
     const dropCache=!eventUserId||Boolean(protectedImportScope&&protectedImportScope.userId!==eventUserId);
     suspendProtectedImport(dropCache);
-    setTimeout(function(){hydrateProtectedImport(eventUserId)},0);
+    queueProtectedHydration(eventUserId);
+  }
+
+  function queueProtectedHydration(expectedUserId){
+    const expected=accessIdentity(expectedUserId);
+    if(!expected||!protectedHydrationReady(expected))return false;
+    setTimeout(function(){
+      if(protectedHydrationReady(expected))hydrateProtectedImport(expected);
+    },0);
+    return true;
+  }
+
+  function handleProtectedBoundaryState(event){
+    const state=event?.detail?.state;
+    if(state==='locked'){
+      clearProtectedImport();
+      clearProtectedDom();
+      return false;
+    }
+    if(state!=='ready')return false;
+    const scope=activeAccessScope();
+    return Boolean(scope&&queueProtectedHydration(scope.userId));
   }
 
   function installHydrateListener(){
@@ -610,10 +646,26 @@
     Promise.resolve(bridge.onAuthStateChange(handleProtectedAuthStateChange)).catch(function(){hydrateListenerInstalled=false});
   }
 
+  function installHydrateBoundaryListener(){
+    if(hydrateBoundaryListenerInstalled||typeof window.addEventListener!=='function')return;
+    hydrateBoundaryListenerInstalled=true;
+    window.addEventListener('aqari:auth-boundary',handleProtectedBoundaryState);
+  }
+
   function scheduleImportedHydration(){
     [0,800,2500,8000].forEach(function(delay){
-      setTimeout(function(){installHydrateListener();hydrateProtectedImport()},delay);
+      setTimeout(function(){
+        installHydrateListener();
+        installHydrateBoundaryListener();
+        const scope=activeAccessScope();
+        if(scope)queueProtectedHydration(scope.userId);
+      },delay);
     });
+  }
+
+  function sealProtectedImport(){
+    clearProtectedImport();
+    clearProtectedDom();
   }
 
   function tenantDirectory(sourceRows){
@@ -3503,7 +3555,7 @@
     document.body.setAttribute('data-v202-ready','true');
     window.AQARI_V202=Object.freeze({
       version:V202_DESIGN,
-      seal:function(){clearProtectedImport();hydratePromise=null;clearProtectedDom();},
+      seal:sealProtectedImport,
       openProperty:function(name,period){return protectedAccessReady()?openWorkspace(name,document.activeElement,period):false},
       rentOfficeProperties:function(){return secureRentOfficeProperties()},
       rentOfficeData:function(name,period){return secureRentOfficeData(name,period)},
