@@ -404,8 +404,7 @@
       if(generation !== authGeneration) return;
       if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       if(!active){
-        showGate('لا توجد جلسة نشطة؛ جاري فتح صفحة الدخول…', 'wait', 'restoring');
-        location.replace('/login?release=V266');
+        showGate('لا توجد جلسة نشطة. سجل الدخول بحساب عقاري المصرح.', 'wait');
         return;
       }
       notice('تم التحقق من الحساب؛ جاري تحميل مساحة العمل…', 'wait');

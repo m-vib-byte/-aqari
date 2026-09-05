@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 31653,
-      "sha256": "774517962080075868b806f8ddae3716efc7fd281354552921417b4ed1db82a7"
+      "size": 31605,
+      "sha256": "9fb19d809e6f15048be21e2c6b93e17e5f1812f97d540c2739672f8a03949cea"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
