@@ -551,6 +551,8 @@ test('SIGNED_OUT and the public seal clear private query and results immediately
   assert.match(html,/مستأجر الهدف/);
 
   env.auth('SIGNED_OUT');
+  assert.match(env.document.getElementById('v209SearchResults').innerHTML,/مستأجر الهدف/,'the Supabase callback itself must remain synchronous and side-effect free');
+  env.clock.tick(0);
   assert.equal(env.input.value,'');
   html=env.document.getElementById('v209SearchResults').innerHTML;
   assert.equal(resultArticles(html).length,0);
@@ -578,6 +580,8 @@ test('auth refresh stays pinned to the exact user, workspace, and role',async()=
   assert.match(env.search('الهدف'),/مستأجر الهدف/);
 
   env.auth('TOKEN_REFRESHED');
+  assert.deepEqual(env.calls.refreshExpected,[],'refreshContext must not run while Supabase owns its auth callback lock');
+  env.clock.tick(0);
   await Promise.resolve();
   await Promise.resolve();
 
