@@ -325,7 +325,9 @@
     interactionEpoch+=1;
     authSuspended=true;
     clearViews();
-    if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function')return;
+    // The auth bridge owns startup until BOTH workspace data boundaries open.
+    // An independent UI refresh here would supersede its pending snapshot.
+    if(event==='SIGNED_OUT'||!expected||!dataScopesReady(expected)||typeof window.AQARI_SUPABASE?.refreshContext!=='function')return;
     Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
       if(epoch!==authEpoch||!sameAuthAccess(expected,authAccess(context))||!sameAuthAccess(expected,authAccess(window.AQARI_SUPABASE?.context)))return;
       authSuspended=false;

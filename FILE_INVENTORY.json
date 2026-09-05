@@ -418,8 +418,8 @@
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
-      "size": 9368,
-      "sha256": "6af2921a7725c0ca3d0e4c42396b9f77d82855bb362620a3e9650fc6e26cab27"
+      "size": 9493,
+      "sha256": "31b4b3dc1fa54ca5139e52016ea7a216016f8ce1f7e8d953c5cdba3f2ac4c8a8"
     },
     {
       "path": "tests/v209-behavior.test.cjs",
@@ -523,8 +523,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "size": 19675,
-      "sha256": "578744e6661e81d514d32496eea68fc07e5c7cbc7be170df3d887031ac2e83e6"
+      "size": 19858,
+      "sha256": "c973174f20349d302bb34d4adea1bd4644764283d5108c59257b80b67b9e82b2"
     },
     {
       "path": "v209-global-search.css",
@@ -533,8 +533,8 @@
     },
     {
       "path": "v209-global-search.js",
-      "size": 21723,
-      "sha256": "294d5cb810878b2eaf889557f181b302ce1ad4cf5113d26a9eb557369b29b1a6"
+      "size": 21906,
+      "sha256": "667f56e59e79171817465cbc7e4bcff3e5396056d398744bae28190a9fd19038"
     },
     {
       "path": "v210-daily-command-center.css",
@@ -670,6 +670,11 @@
       "path": ".github/workflows/app-first-paint.yml",
       "size": 614,
       "sha256": "30f8749558ad2391d7d4178da9d2dda1458015241664893da9ebac86cff9aa05"
+    },
+    {
+      "path": "tests/startup-module-boundary.test.cjs",
+      "size": 3917,
+      "sha256": "d4d16ffbc8760e3bc92a6e8bb496b29c85fa04cf19202b115de5579d249f5db0"
     }
   ]
 }
