@@ -429,7 +429,8 @@ await check('V211 identity survives a blocked V201 presentation layer', async ()
     fallbackUrl.searchParams.set('release','V211.1.2');
     const response = await fallbackPage.goto(fallbackUrl.toString(), { waitUntil:'domcontentloaded', timeout:30000 });
     if(!response?.ok()) throw new Error(`fallback HTTP ${response?.status()}`);
-    await fallbackPage.waitForSelector('#aqariV199Topbar', { timeout:12000 });
+    await fallbackPage.waitForSelector('#aqariV199Topbar', { state:'attached', timeout:12000 });
+    await fallbackPage.waitForSelector('.v199-gate-version', { state:'visible', timeout:12000 });
     const identity = await fallbackPage.evaluate(() => ({
       header:document.querySelector('#aqariV199Topbar .v199-brand-copy small')?.textContent?.trim() || '',
       gate:document.querySelector('.v199-gate-version')?.textContent?.trim() || '',
