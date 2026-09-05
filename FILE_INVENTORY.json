@@ -3,8 +3,8 @@
   "files": [
     {
       "path": "demo-v211.html",
-      "size": 1119606,
-      "sha256": "fa74562a1e6a22c1ebc15a0e85cfb141040c720508a9a5e2c2ee2eb84889234f"
+      "size": 1119508,
+      "sha256": "23c0f2c907c18223b8bd125141f724f5e3aa7549a39dc5b57361b41e2029cbd6"
     },
     {
       "path": "tests/demo-v211.test.cjs",
