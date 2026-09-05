@@ -1,0 +1,65 @@
+name: Diagnose direct root Preview
+on:
+  push:
+    branches: [fix/v266-root]
+    paths: [.github/workflows/root-probe.yml]
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify root independently of optional cookie-setting redirects
+        env:
+          AQARI_BASE_URL: https://aqari-pz6lg2qry-m-vib-5421.vercel.app
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          for (const setCookie of [false,true]) {
+            const headers = {'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET};
+            if(setCookie) headers['x-vercel-set-bypass-cookie']='true';
+            const response=await fetch(process.env.AQARI_BASE_URL+'/',{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});
+            console.log('PROTECTION_REDIRECT_PROBE',JSON.stringify({setCookie,status:response.status,hasLocation:response.headers.has('location')}));
+            if(!setCookie) assert.equal(response.status,200);
+          }
+          JS
+          node tests/direct-entry.e2e.mjs
+      - name: Correct only the test transport and update its inventory
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/v266-root
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          p=Path('tests/preview.e2e.mjs');b=p.read_bytes()
+          assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()=='292e9b07740927ceeeb3b5c2ea28f4cab50b2a39'
+          s=b.decode()
+          old="    'x-vercel-protection-bypass':bypass,\n    'x-vercel-set-bypass-cookie':'true'"
+          assert s.count(old)==1
+          s=s.replace(old,"    // Per-request authorization needs no cookie-setting redirect.\n    'x-vercel-protection-bypass':bypass")
+          p.write_text(s)
+          p=Path('FILE_INVENTORY.json');inventory=json.loads(p.read_text());b=Path('tests/preview.e2e.mjs').read_bytes()
+          entry=next(x for x in inventory['files'] if x['path']=='tests/preview.e2e.mjs')
+          entry.update(size=len(b),sha256=hashlib.sha256(b).hexdigest())
+          p.write_text('{"version":"V198","files":[\n'+',\n'.join(json.dumps(x,ensure_ascii=False,separators=(',',':')) for x in inventory['files'])+'\n]}\n')
+          PY
+          node --check tests/preview.e2e.mjs
+          npm run check:freeze
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/preview.e2e.mjs FILE_INVENTORY.json
+          git commit -m "test: authorize Preview requests without introducing a cookie redirect"
+          git push origin HEAD:fix/v266-root
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: direct-root-probe
+          path: test-results/direct-entry
+          retention-days: 2
