@@ -597,6 +597,7 @@ test('cold boot purges unscoped legacy contracts, requests, backups, and stored 
     aqari_contracts_v55:JSON.stringify([{ tenant:attack }]),
     aqari_tenant_requests_v91:JSON.stringify([{ details:attack }]),
     aqari_v74_recovery_point:JSON.stringify({ db:{ tenants:[[attack]] } }),
+    'aqari-supabase-auth-v198':'SUPABASE_LOCAL_SESSION_EXACT',
     harmless_preference:'kept'
   }, {
     aqari_session_v120:JSON.stringify({ username:attack }),
@@ -607,10 +608,16 @@ test('cold boot purges unscoped legacy contracts, requests, backups, and stored 
   assert.equal(nativeStorage.getItem('aqari_contracts_v55'), null);
   assert.equal(nativeStorage.getItem('aqari_tenant_requests_v91'), null);
   assert.equal(nativeStorage.getItem('aqari_v74_recovery_point'), null);
+  assert.equal(nativeStorage.getItem('aqari-supabase-auth-v198'), 'SUPABASE_LOCAL_SESSION_EXACT');
+  assert.equal(nativeStorage.getItem('aqari_legacy_quarantine::aqari-supabase-auth-v198'), null);
+  assert.equal(window.localStorage.getItem('aqari-supabase-auth-v198'), 'SUPABASE_LOCAL_SESSION_EXACT');
   assert.match(nativeStorage.getItem('aqari_legacy_quarantine::aqari_contracts_v55'), /<img/);
   assert.equal(window.localStorage.getItem('aqari_contracts_v55'), null);
-  assert.equal(window.localStorage.length, 1);
-  assert.equal(window.localStorage.key(0), 'harmless_preference');
+  assert.equal(window.localStorage.length, 2);
+  assert.deepEqual(
+    [window.localStorage.key(0), window.localStorage.key(1)].sort(),
+    ['aqari-supabase-auth-v198', 'harmless_preference']
+  );
   assert.equal(nativeSessionStorage.getItem('aqari_session_v120'), null);
   assert.equal(nativeSessionStorage.getItem('aqari_v201_property'), null);
   assert.equal(window.sessionStorage.getItem('aqari-supabase-auth-v198'), 'SUPABASE_SESSION_EXACT');
@@ -727,6 +734,8 @@ test('HTML sink blocks quote-only event injection without mutating canonical wor
 test('A to B bootstrap requests stay single-flight, activate only B, and legacy logout resets safely', async () => {
   const race = bridgeRaceRuntime();
   const starting = race.listeners.DOMContentLoaded();
+  assert.equal(await race.window.lockNowV120(), false, 'legacy startup lock must not terminate an in-flight secure bootstrap');
+  assert.equal(race.signOutCount, 0);
   await spinUntil(() => race.remotes.has('workspace-a'), 'workspace A cloud load did not start');
   assert.equal(typeof race.authCallback, 'function');
 
@@ -774,11 +783,31 @@ test('A to B bootstrap requests stay single-flight, activate only B, and legacy 
   assert.ok(race.sealCount > sealsBeforeLogout);
   assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure']);
   const sealsBeforeIdleLock = race.sealCount;
-  await race.window.lockSessionV75();
-  assert.equal(race.signOutCount, 3);
+  assert.equal(await race.window.lockSessionV75(), false, 'an already locked bridge must not issue another global sign-out');
+  assert.equal(race.signOutCount, 2);
   assert.ok(race.sealCount > sealsBeforeIdleLock);
-  assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure','https://aqari.test/app?mode=secure']);
+  assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure']);
   assert.ok(race.presentationSealCount >= 12, 'logout and idle lock must synchronously seal every protected presentation module');
+});
+
+test('legacy idle lock signs out only after the secure workspace is active', async () => {
+  const race = bridgeRaceRuntime();
+  const starting = race.listeners.DOMContentLoaded();
+  await spinUntil(() => race.remotes.has('workspace-a'), 'workspace A cloud load did not start');
+  race.remotes.get('workspace-a').resolve({
+    workspace_id:'workspace-a', payload:{ tenants:[['TENANT A']] }, revision:1
+  });
+  await spinUntil(() => race.activations.length === 1, 'workspace A did not unlock');
+  await starting;
+  assert.equal(await race.window.lockSessionV75(), true);
+  assert.equal(race.signOutCount, 1);
+  assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure']);
+});
+
+test('legacy V120 startup timer yields to the secure Supabase bridge', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /setTimeout\(\(\)=>lockNowV120\(\),100\)/);
+  assert.match(html, /document\.getElementById\('aqari-v198-secure-cloud-js'\)/);
 });
 
 test('IndexedDB access is workspace-scoped, epoch guarded after awaits, and closed on seal', () => {
@@ -802,7 +831,9 @@ test('auth bridge seals before showing the gate and hydrates only while unlockin
   assert.match(bridge, /function showGate[\s\S]*?sealData\(\);[\s\S]*?context = null/);
   assert.match(bridge, /function unlock\(nextContext, nextRemoteState\)[\s\S]*?requireRemoteWorkspace\(nextContext, nextRemoteState\)[\s\S]*?activateWorkspaceDbV198\(nextContext, nextRemoteState\?\.payload\)[\s\S]*?classList\.remove\('on'\)/);
   assert.match(bridge, /const activeRemoteState = await loadRemoteCandidate\(active\)[\s\S]*?unlock\(active, activeRemoteState\)/);
-  assert.match(bridge, /window\.lockSessionV75 = \(\) => window\.cloudLogoutV198\(\)/);
+  assert.match(bridge, /function legacyLockV198\(\)[\s\S]*?sameIdentity\(expected, live\)[\s\S]*?return false[\s\S]*?cloudLogoutV198\(\)/);
+  assert.match(bridge, /window\.lockNowV120 = legacyLockV198/);
+  assert.match(bridge, /window\.lockSessionV75 = legacyLockV198/);
   assert.match(bridge, /window\.logoutProductionV75 = \(\) => window\.cloudLogoutV198\(\)/);
   assert.match(bridge, /clearPersistedSession[\s\S]*?verifySessionNull[\s\S]*?return false[\s\S]*?hardResetPage\(\)/);
   assert.match(bridge, /aqariCloudUploadV198[\s\S]*?addEventListener\('click', action\)/);

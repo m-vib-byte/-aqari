@@ -143,13 +143,13 @@
     },
     {
       "path": "index.html",
-      "size": 1094062,
-      "sha256": "a2227a1e677837563f392030c68ab7cfde1fee05ca06fedd44bf0e8b6ecf9b20"
+      "size": 1094245,
+      "sha256": "641c4f6b5f5ecff88c3713bd180d246e56255a792180912875ff408bb3bfcafa"
     },
     {
       "path": "login.html",
-      "size": 14467,
-      "sha256": "311215b196b4dfc690316a5754476a7b85a10f343509b1a103799aebd9f99ada"
+      "size": 14997,
+      "sha256": "3f561b513557143810f797325f62d27ade38bc6137ff68ec977a2a939dc589e7"
     },
     {
       "path": "lib/read-only.js",
@@ -278,8 +278,8 @@
     },
     {
       "path": "scripts/cloud-sync-selftest.mjs",
-      "size": 1336,
-      "sha256": "2cc995490687773c0db2757f27812bf16fa640bb342f68e5f63f9f6ea1de7fe9"
+      "size": 1525,
+      "sha256": "1d4f3e48e4cd8ed330766d154296168ebd6cee13f53ce63982ab7e028b8b044d"
     },
     {
       "path": "scripts/deploy-ready.mjs",
@@ -333,8 +333,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 28934,
-      "sha256": "0d30e0cb73bdd707372a0672e058a0636fe28d9b4f906c01b525bf4db8ffbde0"
+      "size": 29193,
+      "sha256": "a98f6f50bd2a2362491bd725a9c6fa19205d775fbf741127fd2bbc5dd5d770a4"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -343,8 +343,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 16967,
-      "sha256": "6ef3b7cfb3a8644c9734438c0fcb0e0e25e4d62ae225c68f98b1cf6014a4aecc"
+      "size": 17164,
+      "sha256": "0f1706b429b294646f6c9b5788195977728487e57c71a6eb04c95f1818930d45"
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -363,13 +363,13 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 39560,
-      "sha256": "ed037146468835d8bc426512f96f1037750c31d10505f7e770374a48d97b3671"
+      "size": 41407,
+      "sha256": "1556a232c273e67b0f74641ec4f7adce69fd1f6e5777fd7f064e5ddb3ff36a64"
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "size": 4083,
-      "sha256": "2e53b211fcb7ee459b2c047d43cd524edbcbf85d0aeea5a389b1f62cd2bdef91"
+      "size": 6263,
+      "sha256": "403fb27ada82f13ba7b2f0986dd48a3fc8645623687c26f5ef496a15dbeda41a"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -383,8 +383,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 22998,
-      "sha256": "3eb3fa5d09e28181a6499e6fdaf1f7b6df090418f7c8e517527a3a9bcc4bf1da"
+      "size": 24864,
+      "sha256": "8e9fabdb3f971c7da85f0fb8ea632da1b0148b20c3dd8b0bdd83b86a56242e2e"
     },
     {
       "path": "tests/v202-property-os.test.cjs",

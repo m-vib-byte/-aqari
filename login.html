@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#17130d">
+  <meta name="aqari-hotfix" content="s1">
   <meta name="robots" content="noindex,nofollow">
   <title>تسجيل الدخول | عقاري</title>
   <style>
@@ -26,7 +27,6 @@
     .status.ready{background:#e7f7ed;color:#17673a}
     .status.bad{background:#fde8e8;color:#922828}
     .note{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.7;text-align:center}
-    [hidden]{display:none!important}
     @media(max-width:460px){main{padding:20px;border-radius:20px}.secondary{grid-template-columns:1fr}}
   </style>
 </head>
@@ -63,8 +63,8 @@
     var DIRECT_LIBRARY = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@' + SUPABASE_VERSION + '/dist/umd/supabase.min.js';
     var SUPABASE_INTEGRITY = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
     var RELEASE = 'V266';
-    var runId = 0;
     var busy = false;
+    var preparing = false;
     var corePromise = null;
     var releaseResetPromise = null;
 
@@ -84,7 +84,7 @@
     function setControls(){
       loginButton.disabled = busy;
       recoveryButton.disabled = busy;
-      retryButton.disabled = busy;
+      retryButton.disabled = busy || preparing;
     }
 
     function setBusy(value){
@@ -92,13 +92,20 @@
       setControls();
     }
 
-    function withTimeout(promise, milliseconds){
+    function setPreparing(value){
+      preparing = Boolean(value);
+      setControls();
+    }
+
+    function withTimeout(promise, milliseconds, stage){
       return new Promise(function(resolve,reject){
         var settled = false;
         var timer = setTimeout(function(){
           if(settled) return;
           settled = true;
-          reject(new Error('انتهت مهلة الاتصال'));
+          var error = new Error('انتهت مهلة ' + (stage || 'الاتصال'));
+          error.code = 'AQARI_TIMEOUT';
+          reject(error);
         },milliseconds);
         Promise.resolve(promise).then(function(value){
           if(settled) return;
@@ -112,6 +119,12 @@
           reject(error);
         });
       });
+    }
+
+    function resetTimedOutCore(error){
+      if(!error || error.code !== 'AQARI_TIMEOUT') return;
+      try{ window.AQARI_SUPABASE && window.AQARI_SUPABASE.clearPersistedSession(); }catch(_error){}
+      corePromise = null;
     }
 
     function loadScript(src, id, milliseconds, integrity){
@@ -213,7 +226,7 @@
         throw new Error('Supabase adapter unavailable');
       }
       if(reportStages) setStatus('تجهيز تسجيل الدخول (4/4)…','');
-      await withTimeout(window.AQARI_SUPABASE.getClient(),6000);
+      await withTimeout(window.AQARI_SUPABASE.getClient(),6000,'تجهيز محرك الدخول');
       return window.AQARI_SUPABASE;
     }
 
@@ -229,25 +242,23 @@
 
     function warmCore(){
       ensureCore(false,false).then(function(){
-        if(!busy) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
+        if(!busy && !preparing) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
       }).catch(function(){
-        if(!busy) setStatus('أدخل بياناتك واضغط «دخول»؛ سنعيد الاتصال تلقائيًا.','ready');
+        if(!busy && !preparing) setStatus('أدخل بياناتك واضغط «دخول»؛ سنعيد الاتصال تلقائيًا.','ready');
       });
     }
 
     async function prepare(forceDirect){
-      var currentRun = ++runId;
-      setBusy(true);
-      setStatus(forceDirect ? 'جاري تجربة الاتصال الاحتياطي…' : 'جاري إعادة تجهيز الاتصال…','');
+      setPreparing(true);
+      setStatus(forceDirect ? 'جاري تجربة الاتصال الاحتياطي؛ الدخول متاح…' : 'جاري تجهيز الاتصال؛ الدخول متاح…','');
       try{
-        await withTimeout(ensureCore(Boolean(forceDirect),true),18000);
-        if(currentRun !== runId) return;
-        setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
+        await withTimeout(ensureCore(Boolean(forceDirect),true),18000,'إعادة تجهيز الاتصال');
+        if(!busy) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
       }catch(error){
-        if(currentRun !== runId) return;
-        setStatus(friendlyError(error),'bad');
+        resetTimedOutCore(error);
+        if(!busy) setStatus(friendlyError(error),'bad');
       }finally{
-        if(currentRun === runId) setBusy(false);
+        setPreparing(false);
       }
     }
 
@@ -260,9 +271,9 @@
       setBusy(true);
       setStatus('جاري فتح الاتصال…','');
       try{
-        await withTimeout(ensureCore(false,true),18000);
+        await withTimeout(ensureCore(false,true),18000,'فتح الاتصال');
         setStatus('جاري التحقق من الحساب والصلاحيات…','');
-        await withTimeout(window.AQARI_SUPABASE.signIn(emailValue,passwordValue),20000);
+        await withTimeout(window.AQARI_SUPABASE.signIn(emailValue,passwordValue),20000,'التحقق من الحساب');
         var context = window.AQARI_SUPABASE.context;
         if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
         await withTimeout(retireLegacyReleaseState(),3000).catch(function(){});
@@ -270,10 +281,7 @@
         setStatus('تم الدخول؛ جاري فتح الإصدار ' + RELEASE + '…','ready');
         window.location.replace('/app?release=' + encodeURIComponent(RELEASE));
       }catch(error){
-        if(/مهلة|timeout/i.test(String(error && error.message || error))){
-          try{ window.AQARI_SUPABASE && window.AQARI_SUPABASE.clearPersistedSession(); }catch(_error){}
-          corePromise = null;
-        }
+        resetTimedOutCore(error);
         password.value = '';
         setStatus(friendlyError(error),'bad');
       }finally{
@@ -288,19 +296,20 @@
       setBusy(true);
       setStatus('جاري تجهيز استعادة كلمة المرور…','');
       try{
-        await withTimeout(ensureCore(false,true),18000);
+        await withTimeout(ensureCore(false,true),18000,'تجهيز استعادة كلمة المرور');
         setStatus('جاري إرسال رابط الاستعادة…','');
-        await withTimeout(window.AQARI_SUPABASE.resetPasswordForEmail(emailValue,window.location.origin),15000);
+        await withTimeout(window.AQARI_SUPABASE.resetPasswordForEmail(emailValue,window.location.origin),15000,'إرسال رابط الاستعادة');
         setStatus('إذا كان الحساب موجودًا فستصل رسالة استعادة كلمة المرور.','ready');
       }catch(error){
+        resetTimedOutCore(error);
         setStatus(friendlyError(error),'bad');
       }finally{
         setBusy(false);
       }
     });
 
-    retryButton.addEventListener('click',function(){ if(!busy) prepare(true); });
-    window.addEventListener('online',function(){ if(!busy) warmCore(); });
+    retryButton.addEventListener('click',function(){ if(!busy && !preparing) prepare(true); });
+    window.addEventListener('online',function(){ if(!busy && !preparing) warmCore(); });
     window.addEventListener('pageshow',function(event){
       if(event.persisted) window.location.reload();
     });

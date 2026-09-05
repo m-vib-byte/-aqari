@@ -20,7 +20,10 @@ const html = fs.readFileSync('index.html','utf8');
 const adapter = fs.readFileSync('supabase-adapter.js','utf8');
 const sync = fs.readFileSync('cloud-sync.js','utf8');
 const bridge = fs.readFileSync('secure-auth-bridge.js','utf8');
-if(!adapter.includes('storage: window.sessionStorage') ||
+const unsafeCustomStorage = /storage:\s*window\.(?:sessionStorage|localStorage)/.test(adapter);
+const customAuthLock = /\block\s*:/.test(adapter);
+if(unsafeCustomStorage || customAuthLock ||
+   !adapter.includes('storageKey: AUTH_STORAGE_KEY') ||
    !adapter.includes(".eq('revision', expected)") || adapter.includes('.upsert(') ||
    !adapter.includes('.update({ payload })') || !sync.includes('SENSITIVE_KEY') ||
    !sync.includes('AQARI_CLOUD_NOT_EMPTY') || !sync.includes('saveAppState(payload') ||
