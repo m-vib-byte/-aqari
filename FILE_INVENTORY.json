@@ -368,8 +368,8 @@
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "size": 2348,
-      "sha256": "e984a70975fcd6914e55f035eb6c2114bb96da9d8cda3494cba61423bd4c26d6"
+      "size": 2392,
+      "sha256": "d05b0c9b71f47323de9e1e0461d3cca2d65407432eb577f8488a31b89a42997a"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -553,8 +553,8 @@
     },
     {
       "path": "vercel.json",
-      "size": 2462,
-      "sha256": "88c456a39a4ae86050ad4077d83b44a2018053972a35b11779057b7acbc59574"
+      "size": 2466,
+      "sha256": "a086db2a52e9e9fc82fd17ccabe8476ebd4ceef5aff69d4b1550c59c877c72df"
     },
     {
       "path": "VERSION.json",
