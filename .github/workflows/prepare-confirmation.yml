@@ -6,7 +6,6 @@ permissions:
   contents: write
 jobs:
   prepare:
-    if: github.event.head_commit.message == 'chore: prepare same-origin confirmation integration'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -14,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Patch the exact confirmation stage and its existing regression fixtures
+      - name: Patch the exact confirmation stage and regression fixtures
         shell: bash
         run: |
           set -euo pipefail
@@ -26,30 +25,12 @@ jobs:
           s=p.read_text()
           old="    const request = startupFetch(String(cfg.supabaseUrl).replace(/\\/$/,'') + path, {"
           new="    const confirmationRequest = path === '/api/workspace-confirmation';\n    const endpoint = confirmationRequest ? path : String(cfg.supabaseUrl).replace(/\\/$/,'') + path;\n    const request = startupFetch(endpoint, {"
-          assert s.count(old)==1
-          s=s.replace(old,new)
-          old="        error.status = response.status;\n        throw error;"
-          new="""        error.status = response.status;
-                  if(confirmationRequest){
-                    error.message = response.status === 401 ? 'انتهت جلسة الدخول. سجل الدخول من جديد.' :
-                      response.status === 403 ? 'تعذر تأكيد صلاحية الوصول لهذا الحساب.' :
-                      'تعذر إكمال تأكيد صلاحية الوصول. أعد المحاولة.';
-                  }
-                  throw error;"""
           assert s.count(old)==1;s=s.replace(old,new)
-          old="""    const [user, confirmation] = await Promise.all([
-                startupJson('/auth/v1/user', snapshot.session, deadlineAt),
-                startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', snapshot.session, deadlineAt,
-                  {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false})
-              ]);"""
-          # Match canonical indentation rather than workflow indentation.
+          old="        error.status = response.status;\n        throw error;"
+          new="        error.status = response.status;\n        if(confirmationRequest){\n          error.message = response.status === 401 ? 'انتهت جلسة الدخول. سجل الدخول من جديد.' :\n            response.status === 403 ? 'تعذر تأكيد صلاحية الوصول لهذا الحساب.' :\n            'تعذر إكمال تأكيد صلاحية الوصول. أعد المحاولة.';\n        }\n        throw error;"
+          assert s.count(old)==1;s=s.replace(old,new)
           old="    const [user, confirmation] = await Promise.all([\n      startupJson('/auth/v1/user', snapshot.session, deadlineAt),\n      startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', snapshot.session, deadlineAt,\n        {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false})\n    ]);"
-          new=r"""    // Use one same-origin request for the stage observed stalled on the device.
-              // The server repeats BOTH checks with this JWT; it cannot read the payload.
-              const traceCode = document.getElementById?.('aqariStartupDiagnostic')?.textContent?.match(/\bAQ-[A-F0-9]{8}\b/)?.[0];
-              const {user, confirmation} = await startupJson('/api/workspace-confirmation', snapshot.session, deadlineAt,
-                {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false,
-                  ...(traceCode ? {traceCode} : {})});"""
+          new="    // One same-origin request replaces the two browser confirmation calls.\n    // The server repeats BOTH checks with this JWT; it cannot read the payload.\n    const traceCode = document.getElementById?.('aqariStartupDiagnostic')?.textContent?.match(/\\bAQ-[A-F0-9]{8}\\b/)?.[0];\n    const {user, confirmation} = await startupJson('/api/workspace-confirmation', snapshot.session, deadlineAt,\n      {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false,\n        ...(traceCode ? {traceCode} : {})});"
           assert s.count(old)==1;s=s.replace(old,new);p.write_text(s)
           p=Path('tests/v266-startup-snapshot.test.cjs');s=p.read_text()
           s=s.replace('new URL(url).pathname',"new URL(url,'https://app.invalid').pathname")
@@ -58,22 +39,11 @@ jobs:
           assert s.count(old)==1;s=s.replace(old,new)
           s=s.replace('assert.equal(r.calls.length,4);',"assert.equal(r.calls.length,3);assert.equal(r.calls[2].path,'/api/workspace-confirmation');")
           p.write_text(s)
-          p=Path('tests/v266-login-bootstrap.test.cjs');s=p.read_text();s+="\n// Run the confirmation gateway security and timeout tests in the existing CI suite.\nrequire('./workspace-confirmation.test.cjs');\n";p.write_text(s)
+          p=Path('tests/v266-login-bootstrap.test.cjs');s=p.read_text();s+="\n// Include gateway security and timeout coverage in the existing CI suite.\nrequire('./workspace-confirmation.test.cjs');\n";p.write_text(s)
           p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
           s=s.replace('let fixture={},hangCloud=false,requests=[];', 'let fixture={},hangCloud=false,hangConfirmation=false,requests=[];')
           needle='  if(/^\\/(auth|rest)\\/v1\\//.test(url.pathname)){'
-          block="""  // Synthetic transport fixture only; endpoint validation is separately unit tested.
-            if(url.pathname==='/api/workspace-confirmation'){
-              requests.push(req.method+' '+url.pathname);
-              if(req.method!=='POST'||req.headers.authorization!=='Bearer '+token)return send(res,{},401);
-              let raw='';req.on('data',chunk=>{raw+=chunk});req.on('end',()=>{
-                let input;try{input=JSON.parse(raw)}catch{return send(res,{},400)}
-                if(input.p_workspace_id!==workspace.id||input.p_expected_role!==membership.role||input.p_include_payload!==false)return send(res,{},403);
-                if(hangConfirmation)return;
-                send(res,{user,confirmation:{user_id:user.id,membership,workspace,profile,app_state:null}});
-              });return;
-            }
-          """
+          block="  // Synthetic transport fixture; endpoint validation is unit tested.\n  if(url.pathname==='/api/workspace-confirmation'){\n    requests.push(req.method+' '+url.pathname);\n    if(req.method!=='POST'||req.headers.authorization!=='Bearer '+token)return send(res,{},401);\n    let raw='';req.on('data',chunk=>{raw+=chunk});req.on('end',()=>{\n      let input;try{input=JSON.parse(raw)}catch{return send(res,{},400)}\n      if(input.p_workspace_id!==workspace.id||input.p_expected_role!==membership.role||input.p_include_payload!==false)return send(res,{},403);\n      if(hangConfirmation)return;\n      send(res,{user,confirmation:{user_id:user.id,membership,workspace,profile,app_state:null}});\n    });return;\n  }\n"
           assert s.count(needle)==1;s=s.replace(needle,block+needle)
           s=s.replace("['empty','populated','manual','timeout']","['empty','populated','manual','timeout','confirmation-timeout']")
           s=s.replace("hangCloud=scenario==='timeout';requests=[];","hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';requests=[];")
