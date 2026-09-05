@@ -19,6 +19,7 @@
   let startupSnapshot = null;
 
   function startupProgress(stage){
+    window.AQARI_STARTUP_TRACE?.stage(stage);
     const gate = document.getElementById?.('aqariCloudGateV168');
     gate?.setAttribute('data-auth-stage', stage);
   }
@@ -72,6 +73,7 @@
       {p_workspace_id:null,p_expected_role:null,p_include_payload:true});
     assertContextEpoch(refreshEpoch);
     const next = snapshotContext(client, user, snapshot, {userId:user.id});
+    startupProgress('verify-session-final');
     const {data:finalData,error:finalError} = await client.auth.getSession();
     assertContextEpoch(refreshEpoch);
     if(finalError) throw finalError;
@@ -98,6 +100,7 @@
     ]);
     assertContextEpoch(snapshot.epoch);
     snapshotContext(client, user, confirmation, bound);
+    startupProgress('confirm-session-final');
     const {data:finalData,error:finalError} = await client.auth.getSession();
     assertContextEpoch(snapshot.epoch);
     if(finalError) throw finalError;

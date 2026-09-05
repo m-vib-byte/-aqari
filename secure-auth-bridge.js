@@ -11,6 +11,52 @@
   const LAST_REV_KEY = 'aqari_cloud_last_revision';
   const byId = (id) => document.getElementById(id);
 
+  // Independent anonymous diagnostics; never alters access decisions.
+  function installStartupTrace(){
+    if(typeof Worker !== 'function' || window.AQARI_STARTUP_TRACE) return;
+    let worker;
+    try{worker = new Worker('/startup-trace-worker.js');}catch(_){return;}
+    let code = '';
+    let heartbeat = 0;
+    const labels = {
+      starting:'بدء الفتح',session:'استعادة الجلسة','verify-user':'التحقق من الحساب',
+      'workspace-snapshot':'استلام بيانات مساحة العمل','verify-session-final':'تأكيد الجلسة الأولى',
+      data:'تحميل البيانات','confirm-access':'تأكيد صلاحية الوصول','confirm-session-final':'تأكيد الجلسة النهائي',
+      render:'تجهيز الرئيسية','activate-data':'تهيئة البيانات المحلية','legacy-session':'تهيئة جلسة الواجهة',
+      'render-home':'رسم الصفحة الرئيسية','show-home':'إظهار الرئيسية',ready:'اكتمل الفتح'
+    };
+    function post(message){try{worker.postMessage({...message,code});}catch(_){ }}
+    function stage(value){
+      if(!code || !Object.prototype.hasOwnProperty.call(labels,value)) return;
+      post({type:'stage',stage:value});
+      const message = byId('cloudGateMsgV168');
+      let indicator = byId('aqariStartupDiagnostic');
+      if(message && !indicator){
+        indicator = document.createElement('small');indicator.id = 'aqariStartupDiagnostic';
+        indicator.style.cssText = 'display:block;margin-top:12px;line-height:1.8;text-align:center;color:#746b5d';
+        message.insertAdjacentElement('afterend',indicator);
+      }
+      if(indicator) indicator.textContent = 'فحص الفتح: ' + labels[value] + ' • ' + code + ' • D1';
+    }
+    function finish(outcome){
+      if(!code) return;
+      post({type:'finish',outcome});clearInterval(heartbeat);heartbeat=0;
+    }
+    function start(){
+      clearInterval(heartbeat);
+      try{code = 'AQ-' + crypto.getRandomValues(new Uint32Array(1))[0].toString(16).toUpperCase().padStart(8,'0');}
+      catch(_){code = 'AQ-' + Math.floor(Math.random()*4294967296).toString(16).toUpperCase().padStart(8,'0');}
+      post({type:'start'});stage('starting');
+      heartbeat = setInterval(()=>post({type:'heartbeat',visible:!document.hidden}),1000);
+    }
+    window.AQARI_STARTUP_TRACE = Object.freeze({start,stage,finish});
+    window.addEventListener('error',event=>{if(event.error) finish('script-error');});
+    window.addEventListener('unhandledrejection',()=>finish('promise-error'));
+    window.addEventListener('pagehide',()=>{clearInterval(heartbeat);post({type:'heartbeat',visible:false});});
+  }
+  installStartupTrace();
+
+
   let context = null;
   let remoteState = null;
   let authListenerInstalled = false;
@@ -26,6 +72,7 @@
   let automaticRestorePaused = false;
 
   function setGatePhase(phase){
+    if(phase === 'error') window.AQARI_STARTUP_TRACE?.finish('error');
     document.documentElement?.classList.toggle('aqari-login-required', phase === 'login' || phase === 'error');
     byId('aqariCloudGateV168')?.setAttribute('data-auth-phase', phase);
     const retry = byId('aqariSessionRetry');
@@ -189,11 +236,14 @@
   function unlock(nextContext, nextRemoteState){
     if(typeof window.activateWorkspaceDbV198 !== 'function') throw new Error('AQARI workspace data boundary unavailable');
     requireRemoteWorkspace(nextContext, nextRemoteState);
+    window.AQARI_STARTUP_TRACE?.stage('activate-data');
     window.activateWorkspaceDbV198(nextContext, nextRemoteState?.payload);
     context = nextContext;
     remoteState = nextRemoteState;
     hideLegacyGates();
+    window.AQARI_STARTUP_TRACE?.stage('legacy-session');
     setCompatibility();
+    window.AQARI_STARTUP_TRACE?.stage('render-home');
     if(typeof window.go === 'function') window.go('home');
     document.documentElement?.classList.add('aqari-auth-unlocked');
     const gate = byId('aqariCloudGateV168');
@@ -394,6 +444,8 @@
 
   async function bootstrapOnce(generation, deadlineAt){
     try{
+      window.AQARI_STARTUP_TRACE?.start();
+      window.AQARI_STARTUP_TRACE?.stage('session');
       setGatePhase('restoring');
       byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'session');
       notice('جاري استعادة الجلسة وفتح الصفحة الرئيسية…', 'wait');
@@ -418,7 +470,10 @@
       requireRemoteWorkspace(active, activeRemoteState);
       byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'render');
       notice('جاري تجهيز الصفحة الرئيسية…', 'wait');
+      window.AQARI_STARTUP_TRACE?.stage('render');
       unlock(active, activeRemoteState);
+      window.AQARI_STARTUP_TRACE?.stage('ready');
+      window.AQARI_STARTUP_TRACE?.finish('ready');
       byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'ready');
       if(payloadHasData(activeRemoteState?.payload)){
         notice('تم الاتصال. اختر استرجاع السحابة قبل تشغيل المزامنة على هذا الجهاز.', 'wait');
