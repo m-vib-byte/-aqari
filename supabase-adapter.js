@@ -95,8 +95,10 @@
       const created = !script;
       if(!script){
         script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0';
+        script.src = '/vendor/supabase-js-2.114.0.js';
         script.async = true;
+        script.integrity = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
+        script.crossOrigin = 'anonymous';
         script.dataset.aqariSupabase = 'true';
         script.dataset.aqariState = 'loading';
       }
