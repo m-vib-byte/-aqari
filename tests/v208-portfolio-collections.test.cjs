@@ -77,6 +77,7 @@ test('V208 aggregates portfolio collections only from the secure V206.3 rent off
   assert.match(portfolio,/propertyNames\(\)\.map\(officeSummary\)\.filter\(item=>item\.valid\)/);
   assert.match(portfolio,/authSuspended=true;\s*clearViews\(\)/);
   assert.match(portfolio,/event==='SIGNED_OUT'/);
+  assert.match(portfolio,/onAuthStateChange\(function\(event\)\{\s*setTimeout\(function\(\)\{handleAuthStateChange\(event\)\},0\);\s*\}\)/);
   assert.match(portfolio,/AQARI_SUPABASE\.refreshContext\(expected\)/);
   assert.match(portfolio,/sameAuthAccess\(expected,authAccess\(context\)\)/);
   assert.match(portfolio,/AQARI_DATA_GATE\?\.scope/);
