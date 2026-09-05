@@ -143,8 +143,8 @@
     },
     {
       "path": "index.html",
-      "size": 1094027,
-      "sha256": "fe0c85ab7b3aeb26e38ec720a644bfa31aebc9d75ef9e965c342c5ef685fc3cc"
+      "size": 1094106,
+      "sha256": "23b520039afa4186bdf36935a8cd7192e037c0aec6186dbfcbc7b920b40facf8"
     },
     {
       "path": "lib/read-only.js",
@@ -328,8 +328,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 27885,
-      "sha256": "e549f738c05136abb2744eccf6b69a894ece25086521e583db01be5a99c45475"
+      "size": 28934,
+      "sha256": "0d30e0cb73bdd707372a0672e058a0636fe28d9b4f906c01b525bf4db8ffbde0"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -358,8 +358,8 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 38159,
-      "sha256": "63a8ebf25258f7e326d9499b1b2822cc7d652fda4c7b24b78b19248cfee5ac68"
+      "size": 39564,
+      "sha256": "3810734ef5ad66dc7faba446874f599e0aa6d35d037085adbeecddff15d477d4"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -368,13 +368,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 25569,
-      "sha256": "19c6242200dd135f178833158d796a8302e821bb19ec2106932332d97249bd2c"
+      "size": 27095,
+      "sha256": "a3db887a0b93fbb51a29530142dd534eb032b29deaed47d9974a8f4ed88d3601"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 22713,
-      "sha256": "459550420eeab4677858521168359fbd7d8ecbed9d8b7775dbb00d4fb7a4dfaa"
+      "size": 22819,
+      "sha256": "3d043e0cdd86ffc410d118e3b61ce3795009836e9b138c1cbb03716c816aa701"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -468,8 +468,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 23043,
-      "sha256": "9b01274bcf3e427beb93bf0a7596726a928fafe927f9a0f47bef57415008cd98"
+      "size": 23087,
+      "sha256": "7bcd6478e1fa92cf5ed29253d054e7afa991062650f1513da1c622e3ba31308b"
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -549,7 +549,7 @@
     {
       "path": "VERSION.json",
       "size": 2030,
-      "sha256": "f4b08a2adbb3858ad114505b01f8df61ce213b3f2dcdd533247be4f0d7c06ef8"
+      "sha256": "2f012505518f7ca031ea2b0debd6458caa62bcf110ec62b3e83fca844a5f6e1c"
     }
   ]
 }

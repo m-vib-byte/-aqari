@@ -438,6 +438,7 @@
     document.body.setAttribute('data-v205-ready','true');
     window.AQARI_V205=Object.freeze({
       version:DESIGN,
+      seal:function(){closeChooser(false)},
       refresh:scheduleEnhance,
       navigate:function(route){syncPrimaryNavigation(route);return window.go?.(route)},
       openProperty:function(name){return window.AQARI_V202?.openProperty(name)},

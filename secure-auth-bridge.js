@@ -23,20 +23,23 @@
   let authActionRunning = false;
   let authGeneration = 0;
 
+  function safelySeal(action){
+    try{ action(); }catch(_){ }
+  }
+
   function sealData(){
-    try{ window.AQARI_STARTUP_BACKUP?.cancel?.(); }catch(_){ }
-    window.AQARI_V201?.seal?.();
-    window.AQARI_V202?.seal?.();
-    window.AQARI_V208?.seal?.();
-    window.AQARI_V209?.seal?.();
-    window.AQARI_V210?.seal?.();
-    window.AQARI_V211?.seal?.();
-    if(typeof window.sealWorkspaceDbV198 === 'function') window.sealWorkspaceDbV198();
-    else{
-      window.closeWorkspaceIndexedDbV206?.();
-      window.AQARI_DATA_GATE?.seal();
-      window.AQARI_EARLY_STORAGE_GATE?.seal();
-    }
+    safelySeal(() => window.AQARI_STARTUP_BACKUP?.cancel?.());
+    safelySeal(() => window.AQARI_V201?.seal?.());
+    safelySeal(() => window.AQARI_V202?.seal?.());
+    safelySeal(() => window.AQARI_V205?.seal?.());
+    safelySeal(() => window.AQARI_V208?.seal?.());
+    safelySeal(() => window.AQARI_V209?.seal?.());
+    safelySeal(() => window.AQARI_V210?.seal?.());
+    safelySeal(() => window.AQARI_V211?.seal?.());
+    safelySeal(() => window.sealWorkspaceDbV198?.());
+    safelySeal(() => window.closeWorkspaceIndexedDbV206?.());
+    safelySeal(() => window.AQARI_DATA_GATE?.seal());
+    safelySeal(() => window.AQARI_EARLY_STORAGE_GATE?.seal());
   }
 
   function hardResetPage(){
@@ -82,11 +85,13 @@
 
   function errorText(error){
     const raw = String(error?.message || error || 'خطأ غير معروف');
+    const marker = raw + ' ' + String(error?.code || '');
     if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';
     if(/email not confirmed/i.test(raw)) return 'أكد بريدك الإلكتروني أولاً ثم حاول الدخول.';
     if(/user already registered/i.test(raw)) return 'الحساب موجود؛ استخدم زر الدخول.';
     if(/not authorized|membership|workspace/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';
-    if(/failed to fetch|network/i.test(raw)) return 'تعذر الاتصال بالخدمة السحابية. تحقق من الإنترنت.';
+    if(Number(error?.status || error?.statusCode || 0) >= 500 || /unexpected_failure|internal server error|unhandled server error|context canceled|couldn't start a new transaction|database error/i.test(marker)) return 'تعثر الاتصال الآمن مؤقتاً. أعد المحاولة بعد لحظات.';
+    if(/failed to fetch|failed to load supabase|supabase js unavailable|network/i.test(raw)) return 'تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.';
     return raw;
   }
 
@@ -147,13 +152,16 @@
   function showGate(message, kind = 'wait'){
     authGeneration += 1;
     document.documentElement?.classList.remove('aqari-auth-unlocked');
+    const gate = byId('aqariCloudGateV168');
+    gate?.removeAttribute('inert');
+    gate?.setAttribute('aria-hidden','false');
+    gate?.classList.add('on');
     sealData();
     context = null;
     remoteState = null;
-    clearCompatibility();
+    try{ clearCompatibility(); }catch(_){ }
     hideLegacyGates();
     byId('aqariCloudModalV168')?.classList.remove('on');
-    byId('aqariCloudGateV168')?.classList.add('on');
     updateUI();
     notice(message || 'سجل الدخول بحساب عقاري المصرح.', kind);
     try{window.dispatchEvent?.(new CustomEvent('aqari:auth-boundary',{ detail:{ state:'locked' } }))}catch(_){ }
@@ -168,7 +176,10 @@
     hideLegacyGates();
     setCompatibility();
     document.documentElement?.classList.add('aqari-auth-unlocked');
-    byId('aqariCloudGateV168')?.classList.remove('on');
+    const gate = byId('aqariCloudGateV168');
+    gate?.classList.remove('on');
+    gate?.setAttribute('aria-hidden','true');
+    gate?.setAttribute('inert','');
     updateUI();
     try{window.AQARI_V208?.resume?.(nextContext)}catch(_){window.AQARI_V208?.seal?.()}
     try{window.AQARI_V209?.resume?.(nextContext)}catch(_){window.AQARI_V209?.seal?.()}
@@ -652,8 +663,17 @@
     installOverrides();
     installRenderHook();
     installRevalidation();
-    await installAuthListener().catch(scheduleAuthListenerRetry);
-    await requestBootstrap();
+    setBusy(true);
+    const listenerReady = installAuthListener().catch(() => {
+      scheduleAuthListenerRetry();
+      return false;
+    });
+    try{
+      await requestBootstrap();
+    }finally{
+      setBusy(false);
+    }
+    await listenerReady;
   }
 
   if(document.readyState === 'loading'){
