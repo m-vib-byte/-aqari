@@ -11,8 +11,10 @@
   let clientEpoch = 0;
   let contextEpoch = 0;
   let contextRefresh = null;
+  let contextVerifiedAt = 0;
 
   function resetContext(){
+    contextVerifiedAt = 0;
     state.user = null;
     state.membership = null;
     state.workspace = null;
@@ -212,30 +214,25 @@
       if(expected) throw accessError();
     }
 
-    let workspace = null;
-    if(workspaceId){
-      const { data:workspaceData, error:workspaceError } = await client
-        .from('aqari_workspaces')
+    // These independent RLS-protected reads do not need two network round trips.
+    // Keep both results local until the final session/epoch check has succeeded.
+    const [workspaceResult, profileResult] = await Promise.all([
+      workspaceId ? client.from('aqari_workspaces')
         .select('id, name, slug, created_at')
-        .eq('id', workspaceId)
-        .maybeSingle();
-      assertContextEpoch(refreshEpoch);
-      if(workspaceError) throw workspaceError;
-      if(!workspaceData || workspaceData.id !== workspaceId){
-        resetContextAt(refreshEpoch);
-        if(expected) throw accessError();
-      }
-      // Keep the value local until the complete snapshot has been authenticated.
-      workspace = workspaceData || null;
-    }
-
-    const { data:profile, error:profileError } = await client
-      .from('aqari_profiles')
-      .select('user_id, display_name, created_at, updated_at')
-      .eq('user_id', userId)
-      .maybeSingle();
+        .eq('id', workspaceId).maybeSingle() : Promise.resolve({ data:null, error:null }),
+      client.from('aqari_profiles')
+        .select('user_id, display_name, created_at, updated_at')
+        .eq('user_id', userId).maybeSingle()
+    ]);
     assertContextEpoch(refreshEpoch);
-    if(profileError) throw profileError;
+    if(workspaceResult.error) throw workspaceResult.error;
+    if(profileResult.error) throw profileResult.error;
+    const workspace = workspaceResult.data || null;
+    const profile = profileResult.data || null;
+    if(workspaceId && (!workspace || workspace.id !== workspaceId)){
+      resetContextAt(refreshEpoch);
+      if(expected) throw accessError();
+    }
 
     const { data:finalSessionData, error:finalSessionError } = await client.auth.getSession();
     assertContextEpoch(refreshEpoch);
@@ -258,6 +255,7 @@
     state.membership = nextContext.membership;
     state.workspace = nextContext.workspace;
     state.profile = nextContext.profile;
+    contextVerifiedAt = Date.now();
     return { ...state };
   }
 
@@ -397,8 +395,19 @@
     return requireExactAccess(context, boundAccess, options);
   }
 
-  async function loadAppState(expectedAccess){
-    const boundAccess = await bindAccess(expectedAccess);
+  async function loadAppState(expectedAccess, { reuseVerifiedContext = false } = {}){
+    // Startup has just authenticated this exact context in this document. Reuse
+    // only that fresh in-memory result, never a localStorage authorization flag.
+    // The mandatory post-read server revalidation below is NOT skipped. A role,
+    // user, workspace or membership change therefore discards the entire payload.
+    // Manual reads/writes retain their original full preflight by default.
+    const expected = cleanAccess(expectedAccess);
+    const age = Date.now() - contextVerifiedAt;
+    const canReuse = reuseVerifiedContext && expected?.userId && expected?.workspaceId &&
+      expected?.role && contextVerifiedAt > 0 && age >= 0 && age < 5000;
+    const boundAccess = canReuse
+      ? requireExactAccess(state, expected)
+      : await bindAccess(expectedAccess);
     const client = await getClient();
     const { data, error } = await client
       .from('aqari_app_state')
