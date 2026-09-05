@@ -3,7 +3,7 @@
 // This worker intentionally keeps no application-shell cache. Its only upgrade
 // job is to retire caches left by older AQARI releases so iOS cannot stay pinned
 // to an obsolete page after production has moved forward.
-const AQARI_RELEASE = 'V211.1.2';
+const AQARI_RELEASE = 'V266';
 
 self.addEventListener('install', () => self.skipWaiting());
 

@@ -9,10 +9,10 @@
     box.className = 'aq-v196-final';
 
     const title = document.createElement('strong');
-    title.textContent = 'عقاري V211.1.2 — سجل المتابعة السحابي';
+    title.textContent = 'عقاري V266 — التشغيل الآلي السحابي';
 
     const desc = document.createElement('small');
-    desc.textContent = 'الإصدار التشغيلي يضيف مركز متابعة للمستحقات والمراجعات فوق لوحة V210 وطبقة البيانات المحمية، مع بقاء أدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
+    desc.textContent = 'الإصدار التشغيلي يضيف لوحة آمنة لمتابعة الجدولة اليومية والاستحقاقات من السحابة، مع بقاء مركز المتابعة وأدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
 
     const actions = document.createElement('div');
     actions.className = 'aq-v196-actions';
@@ -87,9 +87,40 @@
 (function(){
   'use strict';
 
-  const PRODUCT_RELEASE='V211.1.2';
+  const PRODUCT_RELEASE='V266';
   function releaseAsset(path){
     return path+(path.includes('?')?'&':'?')+'release='+encodeURIComponent(PRODUCT_RELEASE);
+  }
+
+  function syncReleaseIdentity(){
+    if(typeof globalThis!=='undefined')globalThis.AQARI_RELEASE=PRODUCT_RELEASE;
+    let meta=document.querySelector('meta[name="aqari-release"]');
+    if(!meta&&document.head){
+      meta=document.createElement('meta');
+      meta.name='aqari-release';
+      document.head.appendChild(meta);
+    }
+    if(meta)meta.content=PRODUCT_RELEASE;
+    document.title='عقاري '+PRODUCT_RELEASE+' • Supabase Connected';
+  }
+
+  function installV266SchedulerControl(){
+    document.body?.classList.add('aq-v266');
+
+    if(!document.getElementById('aqari-v266-scheduler-control-css')){
+      const schedulerCss=document.createElement('link');
+      schedulerCss.id='aqari-v266-scheduler-control-css';
+      schedulerCss.rel='stylesheet';
+      schedulerCss.href=releaseAsset('/v266-scheduler-control.css');
+      document.head.appendChild(schedulerCss);
+    }
+
+    if(!document.getElementById('aqari-v266-scheduler-control-js')){
+      const schedulerJs=document.createElement('script');
+      schedulerJs.id='aqari-v266-scheduler-control-js';
+      schedulerJs.src=releaseAsset('/v266-scheduler-control.js');
+      document.body.appendChild(schedulerJs);
+    }
   }
 
   function installV211FollowUpCenter(){
@@ -109,6 +140,7 @@
       followUpJs.src='/v211-follow-up-center.js?v=211.1';
       document.body.appendChild(followUpJs);
     }
+    installV266SchedulerControl();
   }
 
   function installV210DailyCommandCenter(){
@@ -318,6 +350,7 @@
     }
   }
 
+  syncReleaseIdentity();
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', installV199Preview, { once:true });
   }else{

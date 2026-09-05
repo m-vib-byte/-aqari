@@ -11,7 +11,7 @@ const config = JSON.parse(fs.readFileSync(root + '/vercel.json', 'utf8'));
 
 const rewrite = (source) => config.rewrites.find((item) => item.source === source);
 const redirect = (source) => config.redirects.find((item) => item.source === source);
-assert.equal(redirect('/')?.destination, '/login?release=V211.1.2');
+assert.equal(redirect('/')?.destination, '/login?release=V266');
 assert.equal(redirect('/')?.permanent, false);
 assert.equal(
   redirect('/')?.has?.[0]?.value,
@@ -34,7 +34,7 @@ assert.ok(html.indexOf('<main') < html.indexOf('<script>'), 'login UI must prece
 assert.match(html, /membership\.is_active === true/);
 assert.match(html, /AQARI_SUPABASE\.signIn/);
 assert.match(html, /sha384-0UK\+HVlz5Y7F\/\/atDpPysyocv/);
-assert.match(html, /AQARI • V211\.1\.2/);
+assert.match(html, /AQARI • V266/);
 assert.match(html, /window\.location\.replace\('\/app\?release='/);
 assert.match(html, /var context = window\.AQARI_SUPABASE\.context/);
 assert.doesNotMatch(html, /AQARI_SUPABASE\.refreshContext/);
@@ -59,7 +59,7 @@ assert.match(adapter, /new Set\(\['general_manager', 'property_manager', 'accoun
 assert.doesNotMatch(adapter, /service_role/i);
 assert.ok(Buffer.byteLength(html) < 15_000, 'mobile login shell should stay under 15 KB');
 
-assert.match(serviceWorker, /AQARI_RELEASE = 'V211\.1\.2'/);
+assert.match(serviceWorker, /AQARI_RELEASE = 'V266'/);
 assert.match(serviceWorker, /caches\.keys\(\)/);
 assert.match(serviceWorker, /caches\.delete\(key\)/);
 assert.match(serviceWorker, /self\.clients\.claim\(\)/);

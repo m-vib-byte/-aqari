@@ -10,7 +10,7 @@
           "value": "(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)"
         }
       ],
-      "destination": "/login?release=V211.1.2",
+      "destination": "/login?release=V266",
       "permanent": false
     }
   ],
@@ -145,6 +145,24 @@
     },
     {
       "source": "/v201-experience.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/v266-scheduler-control.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/v266-scheduler-control.css",
       "headers": [
         {
           "key": "Cache-Control",
