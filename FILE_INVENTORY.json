@@ -143,8 +143,8 @@
     },
     {
       "path": "index.html",
-      "size": 1094027,
-      "sha256": "a1e4d9c7dd72e58a0f6f401b358277b7d79c9dc88e9f1248a2e244619a582419"
+      "size": 1094129,
+      "sha256": "a3b0a2c9eb53accd17dcc752cc632ee3b06bb4cc9caf84c60802c523487ebb9e"
     },
     {
       "path": "lib/read-only.js",
@@ -368,13 +368,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 25021,
-      "sha256": "ac2145e31be1c68113861a134cb3ecb2364f70a8e37cca4af34b17cc937cb91c"
+      "size": 25569,
+      "sha256": "19c6242200dd135f178833158d796a8302e821bb19ec2106932332d97249bd2c"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 21504,
-      "sha256": "69b4c72840e5a029a272ed659392ee94feb0f36e5a62c13b23977045e5927bd6"
+      "size": 22019,
+      "sha256": "1ec650351b1350bcc5c8e8c8abaa356267de12838e956839670812d97c405535"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -549,7 +549,7 @@
     {
       "path": "VERSION.json",
       "size": 2030,
-      "sha256": "bb0fefda4700e9b199946bd79725508e6a82c652fb7f28948d9d213cbc2d3ac9"
+      "sha256": "f6116101b7172045d96f54618fa0743a0c42c411938d67d5366db6d62bed5329"
     }
   ]
 }

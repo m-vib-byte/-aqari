@@ -115,7 +115,14 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   const sync = fs.readFileSync(path.join(root, 'cloud-sync.js'), 'utf8');
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
-  assert.match(html, /document\.title=s\.appName\+' • AQARI V198'/);
+  assert.match(html, /<title>عقاري V211\.1\.2 • Supabase Connected<\/title>/);
+  assert.match(html, /<meta name="aqari-release" content="V211\.1\.2">/);
+  assert.match(html, /<meta name="aqari-api-contract" content="V198">/);
+  assert.match(html, /<meta name="aqari-stage" content="production">/);
+  assert.match(html, /document\.title=s\.appName\+' • AQARI V211\.1\.2'/);
+  assert.match(html, /window\.AQARI_API_CONTRACT='V198'/);
+  assert.match(html, /window\.AQARI_RELEASE='V211\.1\.2'/);
+  assert.doesNotMatch(html, /<meta name="aqari-stage" content="launch-candidate">/);
   assert.match(html, /#auth,#loginGateV120\{display:none!important\}/);
   assert.ok(html.lastIndexOf('aqari-v198-secure-cloud-js') > html.lastIndexOf('production-lockdown.js'));
   assert.match(bridge, /window\.login = window\.cloudLoginV198/);
