@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17130d">
+  <meta name="robots" content="noindex,nofollow">
+  <title>تسجيل الدخول | عقاري</title>
+  <style>
+    :root{color-scheme:light;--gold:#a77920;--line:#e7d6b2;--ink:#241f17;--muted:#746b5d}
+    *{box-sizing:border-box}
+    html,body{min-height:100%;margin:0}
+    body{display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at top,#4a391a 0,#17130d 58%,#090806 100%)}
+    main{width:min(440px,100%);padding:24px;background:#fff;border:1px solid #d9bd7d;border-radius:24px;box-shadow:0 24px 70px #0008}
+    h1{margin:0;color:var(--gold);font-size:34px;text-align:center}
+    .subtitle{margin:7px 0 20px;color:var(--muted);text-align:center}
+    label{display:block;margin-top:12px;font-weight:700}
+    input,button{width:100%;min-height:48px;margin-top:7px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fff}
+    input{font-size:16px;text-align:start}
+    button{font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    button.primary{margin-top:16px;color:#fff;background:var(--gold);border-color:var(--gold)}
+    button:disabled{cursor:wait;opacity:.58}
+    .secondary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .status{min-height:48px;margin:14px 0 0;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.7;background:#fff5d9;color:#725400}
+    .status.ready{background:#e7f7ed;color:#17673a}
+    .status.bad{background:#fde8e8;color:#922828}
+    .note{margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.7;text-align:center}
+    [hidden]{display:none!important}
+    @media(max-width:460px){main{padding:20px;border-radius:20px}.secondary{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main aria-labelledby="title">
+    <h1 id="title">عقاري</h1>
+    <p class="subtitle">دخول آمن إلى إدارة الأملاك</p>
+
+    <form id="loginForm" novalidate>
+      <label for="email">البريد الإلكتروني</label>
+      <input id="email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="name@example.com" required>
+
+      <label for="password">كلمة المرور</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" placeholder="كلمة المرور" required>
+
+      <button id="loginButton" class="primary" type="submit" disabled>دخول</button>
+    </form>
+
+    <div class="secondary">
+      <button id="recoveryButton" type="button" disabled>نسيت كلمة المرور</button>
+      <button id="retryButton" type="button">إعادة محاولة الاتصال</button>
+    </div>
+
+    <div id="status" class="status" role="status" aria-live="polite">جاري تجهيز الاتصال الآمن…</div>
+    <p class="note">لن تُفتح المنصة إلا لحساب مرتبط بعضوية فعالة. صلاحيات الكتابة تبقى محكومة بدور الحساب وسياسات RLS.</p>
+  </main>
+
+  <script>
+  (function(){
+    'use strict';
+
+    var SUPABASE_VERSION = '2.114.0';
+    var SAME_ORIGIN_LIBRARY = '/vendor/supabase-js-' + SUPABASE_VERSION + '.js';
+    var DIRECT_LIBRARY = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@' + SUPABASE_VERSION + '/dist/umd/supabase.min.js';
+    var SUPABASE_INTEGRITY = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
+    var runId = 0;
+    var ready = false;
+    var busy = false;
+
+    var form = document.getElementById('loginForm');
+    var email = document.getElementById('email');
+    var password = document.getElementById('password');
+    var loginButton = document.getElementById('loginButton');
+    var recoveryButton = document.getElementById('recoveryButton');
+    var retryButton = document.getElementById('retryButton');
+    var status = document.getElementById('status');
+
+    function setStatus(message, kind){
+      status.textContent = message;
+      status.className = 'status' + (kind ? ' ' + kind : '');
+    }
+
+    function setControls(){
+      loginButton.disabled = !ready || busy;
+      recoveryButton.disabled = !ready || busy;
+      retryButton.disabled = busy;
+    }
+
+    function setBusy(value){
+      busy = Boolean(value);
+      setControls();
+    }
+
+    function withTimeout(promise, milliseconds){
+      return new Promise(function(resolve,reject){
+        var settled = false;
+        var timer = setTimeout(function(){
+          if(settled) return;
+          settled = true;
+          reject(new Error('انتهت مهلة الاتصال'));
+        },milliseconds);
+        Promise.resolve(promise).then(function(value){
+          if(settled) return;
+          settled = true;
+          clearTimeout(timer);
+          resolve(value);
+        },function(error){
+          if(settled) return;
+          settled = true;
+          clearTimeout(timer);
+          reject(error);
+        });
+      });
+    }
+
+    function loadScript(src, id, milliseconds, integrity){
+      return new Promise(function(resolve,reject){
+        var previous = document.getElementById(id);
+        if(previous && previous.getAttribute('data-loaded') === 'true') return resolve(previous);
+        if(previous) previous.remove();
+
+        var script = document.createElement('script');
+        var settled = false;
+        var timer = setTimeout(function(){ finish(new Error('تعذر تحميل ' + src)); }, milliseconds);
+
+        function finish(error){
+          if(settled) return;
+          settled = true;
+          clearTimeout(timer);
+          script.onload = null;
+          script.onerror = null;
+          if(error){ script.remove(); reject(error); return; }
+          script.setAttribute('data-loaded','true');
+          resolve(script);
+        }
+
+        script.id = id;
+        script.src = src;
+        script.async = true;
+        if(integrity){
+          script.integrity = integrity;
+          script.crossOrigin = 'anonymous';
+        }
+        script.onload = function(){ finish(); };
+        script.onerror = function(){ finish(new Error('تعذر تحميل ' + src)); };
+        document.head.appendChild(script);
+      });
+    }
+
+    function validContext(context){
+      var userId = String(context && context.user && context.user.id || '');
+      var workspaceId = String(context && context.workspace && context.workspace.id || '');
+      var membership = context && context.membership;
+      return Boolean(userId && workspaceId && membership && membership.is_active === true &&
+        String(membership.user_id || '') === userId &&
+        String(membership.workspace_id || '') === workspaceId);
+    }
+
+    function friendlyError(error){
+      var raw = String(error && error.message || error || 'خطأ غير معروف');
+      if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';
+      if(/email not confirmed/i.test(raw)) return 'أكد البريد الإلكتروني أولاً ثم حاول الدخول.';
+      if(/not authorized|membership|workspace|AQARI_ACCESS_DENIED/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';
+      if(/failed to fetch|network|load|مهلة|timeout/i.test(raw)) return 'تعذر الاتصال الآن. اضغط «إعادة محاولة الاتصال».';
+      return raw;
+    }
+
+    async function loadCore(forceDirect){
+      if(!window.AQARI_PUBLIC_CONFIG){
+        await loadScript('/public-config.js','aqari-login-config',6000);
+      }
+      if(!window.supabase || !window.supabase.createClient){
+        if(forceDirect){
+          await loadScript(DIRECT_LIBRARY,'aqari-login-supabase-direct',12000,SUPABASE_INTEGRITY);
+        }else{
+          try{
+            await loadScript(SAME_ORIGIN_LIBRARY,'aqari-login-supabase-local',8000,SUPABASE_INTEGRITY);
+          }catch(_error){
+            setStatus('تعذر المسار المحلي؛ جاري تجربة الاتصال الاحتياطي…','');
+            await loadScript(DIRECT_LIBRARY,'aqari-login-supabase-direct',12000,SUPABASE_INTEGRITY);
+          }
+        }
+      }
+      if(!window.AQARI_SUPABASE){
+        await loadScript('/supabase-adapter.js','aqari-login-adapter',6000);
+      }
+      if(!window.AQARI_SUPABASE || typeof window.AQARI_SUPABASE.getClient !== 'function'){
+        throw new Error('Supabase adapter unavailable');
+      }
+      await withTimeout(window.AQARI_SUPABASE.getClient(),12000);
+    }
+
+    async function prepare(forceDirect){
+      var currentRun = ++runId;
+      ready = false;
+      setBusy(true);
+      setStatus(forceDirect ? 'جاري تجربة الاتصال الاحتياطي…' : 'جاري تجهيز الاتصال الآمن…','');
+      try{
+        await loadCore(Boolean(forceDirect));
+        if(currentRun !== runId) return;
+        var context = await withTimeout(window.AQARI_SUPABASE.refreshContext(),15000);
+        if(currentRun !== runId) return;
+        if(validContext(context)){
+          setStatus('تم التحقق من الحساب؛ جاري فتح المنصة…','ready');
+          window.location.replace('/app');
+          return;
+        }
+        if(context && context.user){
+          await window.AQARI_SUPABASE.signOut().catch(function(){});
+        }
+        ready = true;
+        setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
+      }catch(error){
+        if(currentRun !== runId) return;
+        ready = false;
+        setStatus(friendlyError(error),'bad');
+      }finally{
+        if(currentRun === runId) setBusy(false);
+      }
+    }
+
+    form.addEventListener('submit',async function(event){
+      event.preventDefault();
+      if(!ready || busy) return;
+      var emailValue = String(email.value || '').trim().toLowerCase();
+      var passwordValue = password.value || '';
+      if(!emailValue || !passwordValue){ setStatus('أدخل البريد وكلمة المرور.','bad'); return; }
+      setBusy(true);
+      setStatus('جاري التحقق من الحساب والصلاحيات…','');
+      try{
+        await withTimeout(window.AQARI_SUPABASE.signIn(emailValue,passwordValue),20000);
+        var context = await withTimeout(window.AQARI_SUPABASE.refreshContext(),15000);
+        if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
+        password.value = '';
+        setStatus('تم الدخول؛ جاري فتح المنصة…','ready');
+        window.location.replace('/app');
+      }catch(error){
+        password.value = '';
+        setStatus(friendlyError(error),'bad');
+      }finally{
+        setBusy(false);
+      }
+    });
+
+    recoveryButton.addEventListener('click',async function(){
+      if(!ready || busy) return;
+      var emailValue = String(email.value || '').trim().toLowerCase();
+      if(!emailValue){ setStatus('أدخل البريد الإلكتروني أولاً.','bad'); email.focus(); return; }
+      setBusy(true);
+      setStatus('جاري إرسال رابط الاستعادة…','');
+      try{
+        await withTimeout(window.AQARI_SUPABASE.resetPasswordForEmail(emailValue,window.location.origin),15000);
+        setStatus('إذا كان الحساب موجودًا فستصل رسالة استعادة كلمة المرور.','ready');
+      }catch(error){
+        setStatus(friendlyError(error),'bad');
+      }finally{
+        setBusy(false);
+      }
+    });
+
+    retryButton.addEventListener('click',function(){ prepare(false); });
+    window.addEventListener('online',function(){ if(!ready && !busy) prepare(false); });
+    setControls();
+    prepare(false);
+  })();
+  </script>
+</body>
+</html>
