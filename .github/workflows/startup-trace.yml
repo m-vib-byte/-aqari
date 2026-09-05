@@ -1,0 +1,52 @@
+name: Startup execution trace
+on:
+  push:
+    branches: [fix/v266-startup-trace]
+permissions:
+  contents: read
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Save exact source and public pinned SDK
+        run: |
+          mkdir -p diagnostic-source/vendor
+          git archive HEAD -o diagnostic-source/source.zip
+          curl --fail --max-time 30 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js' -o diagnostic-source/vendor/supabase-js-2.114.0.js
+      - name: Trace delayed authenticated renderer
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('supabase-adapter.js');s=p.read_text()
+          s=s.replace("function startupProgress(stage){", "function startupProgress(stage){ console.log('TRACE_STAGE',stage);")
+          s=s.replace("const {data:finalData,error:finalError} = await client.auth.getSession();", "console.log('TRACE_FINAL_SESSION_BEGIN'); const {data:finalData,error:finalError} = await client.auth.getSession(); console.log('TRACE_FINAL_SESSION_END');")
+          p.write_text(s)
+          p=Path('secure-auth-bridge.js');s=p.read_text()
+          s=s.replace("function notice(text, kind = 'wait'){", "function notice(text, kind = 'wait'){ console.log('TRACE_NOTICE',text,kind);")
+          s=s.replace("window.activateWorkspaceDbV198(nextContext, nextRemoteState?.payload);", "console.log('TRACE_ACTIVATE_BEGIN');window.activateWorkspaceDbV198(nextContext, nextRemoteState?.payload);console.log('TRACE_ACTIVATE_END');")
+          s=s.replace("if(typeof window.go === 'function') window.go('home');", "console.log('TRACE_GO_BEGIN');if(typeof window.go === 'function') window.go('home');console.log('TRACE_GO_END');")
+          p.write_text(s)
+          p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
+          s=s.replace("const send=(res,data,status=200)=>{", "const send=(res,data,status=200)=>setTimeout(()=>{")
+          s=s.replace("res.end(JSON.stringify(data));};", "res.end(JSON.stringify(data));},650);")
+          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));", "page.on('console',msg=>{if(msg.text().startsWith('TRACE'))console.log(name,msg.text())});page.on('pageerror',error=>{errors.push(error.stack);console.log('TRACE_PAGEERROR',name,error.stack)});")
+          s=s.replace("setInterval(()=>{window.__homeHeartbeats=(window.__homeHeartbeats||0)+1;},100);", "setInterval(()=>{window.__homeHeartbeats=(window.__homeHeartbeats||0)+1;if(window.__homeHeartbeats%20===0)console.log('TRACE_HEART',window.__homeHeartbeats,document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'));},100);")
+          s=s.replace("const browser=await engine.launch({headless:true});", "const browser=await engine.launch({headless:true});console.log('TRACE_SCENARIO',name);")
+          p.write_text(s)
+          PY
+          node tests/v266-authenticated-home.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: startup-trace-source-and-results
+          path: |
+            diagnostic-source
+            test-results/authenticated-home
+          retention-days: 2
