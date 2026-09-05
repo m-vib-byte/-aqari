@@ -12,11 +12,8 @@ const config = JSON.parse(fs.readFileSync(root + '/vercel.json', 'utf8'));
 const rewrite = (source) => config.rewrites.find((item) => item.source === source);
 const redirect = (source) => config.redirects.find((item) => item.source === source);
 assert.equal(redirect('/')?.destination, '/login?release=V266');
+assert.equal(redirect('/')?.has, undefined, 'root login redirect must also cover iPad desktop mode');
 assert.equal(redirect('/')?.permanent, false);
-assert.equal(
-  redirect('/')?.has?.[0]?.value,
-  '(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)'
-);
 assert.equal(rewrite('/login')?.destination, '/login.html');
 assert.equal(rewrite('/app')?.destination, '/index.html');
 assert.equal(
@@ -25,7 +22,7 @@ assert.equal(
 );
 
 const rootHeaders = config.headers.find((item) => item.source === '/')?.headers || [];
-assert.equal(rootHeaders.find((item) => item.key === 'Vary')?.value, 'User-Agent');
+assert.equal(rootHeaders.find((item) => item.key === 'Vary'), undefined);
 
 for (const id of ['loginForm','email','password','loginButton','recoveryButton','retryButton','status']) {
   assert.match(html, new RegExp('id="' + id + '"'));

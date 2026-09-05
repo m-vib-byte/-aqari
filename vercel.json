@@ -3,13 +3,6 @@
   "redirects": [
     {
       "source": "/",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": "(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)"
-        }
-      ],
       "destination": "/login?release=V266",
       "permanent": false
     }
@@ -69,10 +62,6 @@
         {
           "key": "Cache-Control",
           "value": "no-store, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Vary",
-          "value": "User-Agent"
         }
       ]
     },

@@ -368,8 +368,8 @@
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "size": 6263,
-      "sha256": "403fb27ada82f13ba7b2f0986dd48a3fc8645623687c26f5ef496a15dbeda41a"
+      "size": 6249,
+      "sha256": "662e7a0f16069a35a3ab2be81100b0e3028f400bc7d12bf42b87a85de86a85e9"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -378,8 +378,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 28490,
-      "sha256": "5f363902cf5007e079ffe3307a40a2138a50ba779e9f5f265ceaf578bcd2a236"
+      "size": 29378,
+      "sha256": "dc897422d14c90ee7058be6bff32658bdf0362f03572f75bd69746299d8e7a1d"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -553,8 +553,8 @@
     },
     {
       "path": "vercel.json",
-      "size": 3934,
-      "sha256": "43901440847a12f89ef1221433d2ac0dd0086f018b52808d6baa7d71195aaa09"
+      "size": 3681,
+      "sha256": "9b13598965d32462a2b0a70737a7f108609bc4007531eede78fec5a9eda646bb"
     },
     {
       "path": "VERSION.json",
