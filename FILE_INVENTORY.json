@@ -363,8 +363,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 23144,
-      "sha256": "edcc89a167ac23b2cb6ff4caeef6fcada7f44cb9b47b5dfd6da3f78dc949f089"
+      "size": 23867,
+      "sha256": "c9b8244f6a0a778033a26e795dbbf2488a4f1154de36184929134f7760aa00e4"
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -608,8 +608,8 @@
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
-      "size": 12964,
-      "sha256": "cbfed300135035674047b5f82391017f6654fc80d6906d7b7eda3435e26ead66"
+      "size": 13086,
+      "sha256": "f132ca2889a0a1c50c9fd86492c5842ae3cc9e2684d0b925cddceb6d0bc0e734"
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
@@ -618,13 +618,13 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "size": 9075,
-      "sha256": "477f8c97f19991c97891fa5bb6719f3c7ead9f0bdb89a3294ece851db33efaad"
+      "size": 9912,
+      "sha256": "35dc4878221d62f6f354a9c6cda4bdc9770c9e6fcdfa9c22bfa93e237dc6887a"
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
-      "size": 4457,
-      "sha256": "23b9384c534a3d45344bbeaf1b817d8da734361eb9585e3617a210ab844806ac"
+      "size": 4614,
+      "sha256": "7240807c2a2daefdb6c14a07ed023f7449180f0ed07af7f50523e1864d226ae8"
     },
     {
       "path": "supabase/migrations/20260905195027_v266_read_only_startup_snapshot.sql",
@@ -685,6 +685,16 @@
       "path": "api/startup-diagnostic.js",
       "size": 1972,
       "sha256": "3046055a6f3db48ac7acbb1ed95825b8b63294882b1f88d4d338a12b7b0209e9"
+    },
+    {
+      "path": "api/workspace-confirmation.js",
+      "size": 4857,
+      "sha256": "f8e6987f608c63c7c74761723b4c086934a80db4755b9dafb54ae7e34a0bfa96"
+    },
+    {
+      "path": "tests/workspace-confirmation.test.cjs",
+      "size": 5267,
+      "sha256": "0cc8a92c5d78927a16fded08b5e687e7c79b34e0b57777674e2beafa2e202284"
     }
   ]
 }

@@ -163,3 +163,6 @@ test('manual entry is an explicit login presentation choice, never an access byp
   assert.match(login,/AQARI_SUPABASE.signIn\(emailValue,passwordValue\)/);
   assert.match(bridgeSource,/link.href = '\/login\?release=V266&manual=1'/);
 });
+
+// Include gateway security and timeout coverage in the existing CI suite.
+require('./workspace-confirmation.test.cjs');

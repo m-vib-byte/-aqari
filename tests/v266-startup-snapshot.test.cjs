@@ -11,10 +11,10 @@ function runtime(hook){
   const client={auth:{async getSession(){return {data:{session},error:null}},stopAutoRefresh(){}},from(){throw Error('startup must not reacquire SDK locks for table queries')}};
   const window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://fixture.invalid',supabasePublishableKey:'public-test'},supabase:{createClient(){return client}},localStorage:{length:0,getItem(){return null},removeItem(){}},async fetch(url,options){
     const body=options.body?JSON.parse(options.body):null;
-    calls.push({path:new URL(url).pathname,options,body});
+    calls.push({path:new URL(url,'https://app.invalid').pathname,options,body});
     const data=body?snapshot():{id:'user-a'};
     if(body && ++rpcCount>1)data.app_state=null;
-    const response={ok:true,status:200,async json(){return data}};
+    const response={ok:true,status:200,async json(){return url==='/api/workspace-confirmation'?{user:{id:'user-a'},confirmation:data}:data}};
     return hook?.({url,options,body,data,response,rpcCount,api:window.AQARI_SUPABASE,setSession(value){session=value}})??response;
   }};
   vm.runInNewContext(source,{window,document:{getElementById(){return null}},console,AbortController,setTimeout,clearTimeout});
@@ -22,7 +22,7 @@ function runtime(hook){
 }
 test('native startup reads one payload and performs post-read server confirmation with the same JWT',async()=>{
   const r=runtime();await r.api.refreshContext();const row=await r.api.loadAppState(bound,{reuseVerifiedContext:true});
-  assert.equal(row.payload.synthetic,true);assert.equal(r.calls.length,4);
+  assert.equal(row.payload.synthetic,true);assert.equal(r.calls.length,3);assert.equal(r.calls[2].path,'/api/workspace-confirmation');
   assert.equal(r.calls.filter(c=>c.body?.p_include_payload===true).length,1);
   assert.equal(r.calls.filter(c=>c.body?.p_include_payload===false).length,1);
   for(const c of r.calls){assert.equal(c.options.headers.Authorization,'Bearer synthetic-token');assert.equal(c.options.cache,'no-store');assert.equal(c.options.credentials,'omit');assert.equal(c.options.redirect,'error')}
