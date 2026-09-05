@@ -2,6 +2,11 @@
   "version": "V198",
   "files": [
     {
+      "path": "demo.html",
+      "size": 16865,
+      "sha256": "e13c739eb5e2d3be608681236978ed6859418d40033bdb674b6f8d07d3651642"
+    },
+    {
       "path": ".env.example",
       "size": 339,
       "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830"
