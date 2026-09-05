@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 34729,
-      "sha256": "9e90d367220b2802c21561b03092333cf23f4394c07e3d2c37d72145fc821eaf"
+      "size": 37966,
+      "sha256": "c40213f8dbdcda2da959dfb53327daa6c8bbdf917652785051ca170e00cf3c5e"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -363,8 +363,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 23007,
-      "sha256": "c6df81a2c89df279efaf60c3a778ccb3b78edba534d676682ecc1c88e42e2f40"
+      "size": 23144,
+      "sha256": "edcc89a167ac23b2cb6ff4caeef6fcada7f44cb9b47b5dfd6da3f78dc949f089"
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -675,6 +675,16 @@
       "path": "tests/startup-module-boundary.test.cjs",
       "size": 3917,
       "sha256": "d4d16ffbc8760e3bc92a6e8bb496b29c85fa04cf19202b115de5579d249f5db0"
+    },
+    {
+      "path": "startup-trace-worker.js",
+      "size": 1951,
+      "sha256": "01ffcc8ac7df803f43dfc14dad5b8a84d350e9ca052e621d7dec2da3629e0121"
+    },
+    {
+      "path": "api/startup-diagnostic.js",
+      "size": 1972,
+      "sha256": "3046055a6f3db48ac7acbb1ed95825b8b63294882b1f88d4d338a12b7b0209e9"
     }
   ]
 }
