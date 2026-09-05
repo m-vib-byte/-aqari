@@ -167,11 +167,12 @@ test('V204 tenant rent statement preserves the V198 secure runtime', () => {
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
   assert.match(loader, /installV199Preview/);
-  assert.match(loader, /stylesheet\.href = '\/v199-ui\.css'/);
-  assert.match(loader, /script\.src = '\/v199-ui\.js'/);
-  assert.match(loader, /luxury\.href = '\/v200-luxury\.css'/);
-  assert.match(loader, /easy\.href = '\/v201-easy\.css'/);
-  assert.match(loader, /experience\.src = '\/v201-experience\.js'/);
+  assert.match(loader, /PRODUCT_RELEASE='V211\.1\.2'/);
+  assert.match(loader, /stylesheet\.href = releaseAsset\('\/v199-ui\.css'\)/);
+  assert.match(loader, /script\.src = releaseAsset\('\/v199-ui\.js'\)/);
+  assert.match(loader, /luxury\.href = releaseAsset\('\/v200-luxury\.css'\)/);
+  assert.match(loader, /easy\.href = releaseAsset\('\/v201-easy\.css'\)/);
+  assert.match(loader, /experience\.src = releaseAsset\('\/v201-experience\.js'\)/);
   assert.match(loader, /prestige\.href = '\/v202-prestige\.css'/);
   assert.match(loader, /propertyOS\.src = '\/v202-property-os\.js'/);
   assert.match(loader, /script\.addEventListener\('load', installV201Experience/);
@@ -185,8 +186,9 @@ test('V204 tenant rent statement preserves the V198 secure runtime', () => {
   assert.match(ui, /window\.cloudLoginV198/);
   assert.match(ui, /data-v199-go="properties"/);
   assert.match(ui, /aria-live','polite'/);
-  assert.match(ui, /V200 LUXURY/);
-  assert.match(ui, /meta\.content='V200-preview'/);
+  assert.match(ui, /function currentRelease\(\)/);
+  assert.match(ui, /meta\.content=productRelease\+'-live'/);
+  assert.doesNotMatch(ui, /V200 LUXURY|AQARI V200|V200-preview/);
   assert.match(luxury, /AQARI V200 luxury presentation/);
   assert.match(luxury, /z-index:1400!important/);
   assert.match(easy, /AQARI V201 quiet-luxury experience/);

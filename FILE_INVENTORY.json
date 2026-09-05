@@ -123,8 +123,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 12345,
-      "sha256": "72ef44eb252ceeb508eeb2ef32ff656ecd5db4c52167f98c059b7b4c3d3f245f"
+      "size": 12580,
+      "sha256": "54489edee4f4e01ffd67157462f48282432bb5d58f9158d762d8fb4c2f33daf6"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -148,8 +148,8 @@
     },
     {
       "path": "login.html",
-      "size": 12067,
-      "sha256": "3c797d9a8ae927699d3aabe63ee7785b6dd3e7e36b350ddabdedae4d2e171898"
+      "size": 14475,
+      "sha256": "53d1d9da8953c0438b4c7110c45b48b5ac8bf63ece5c318c330c07e2cdc24807"
     },
     {
       "path": "lib/read-only.js",
@@ -358,8 +358,8 @@
     },
     {
       "path": "sw.js",
-      "size": 382,
-      "sha256": "a055a7cdbf2d1c054e398b475a5f05bc153eb5d597f036f202bfe5c3454e97d9"
+      "size": 891,
+      "sha256": "eeb39e98b0fd08022ccae2cdabd322528c0c05f6b9fae5ad42afdf154aed4357"
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
@@ -368,8 +368,8 @@
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "size": 2522,
-      "sha256": "2c02fe88b534304987436f0048258344a4b8c4e1f4603752b63ef3540bd09029"
+      "size": 4099,
+      "sha256": "6e73db0e569f1c29c85376edd3a29427b306529bf7ca25a59ff14d561b5752c1"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -378,13 +378,13 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 27095,
-      "sha256": "a3db887a0b93fbb51a29530142dd534eb032b29deaed47d9974a8f4ed88d3601"
+      "size": 28514,
+      "sha256": "3222a054a2f3fb1afe6a2204de259b912570d07345239751a524ec34ecc53080"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 22819,
-      "sha256": "3d043e0cdd86ffc410d118e3b61ce3795009836e9b138c1cbb03716c816aa701"
+      "size": 23046,
+      "sha256": "4d4a2fea187eba6a875106a124598954bf5e6dc4499d05570ff19a8eeeab6f3b"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -443,8 +443,8 @@
     },
     {
       "path": "v199-ui.js",
-      "size": 31856,
-      "sha256": "ca8e88f6cb5f93ce2475f6e2cc357b5cf41a9b2e82dc8d5e324751197f69a561"
+      "size": 32059,
+      "sha256": "a5e8568c95846c7a45f628144d3607177708433c41cb7482919b34334a2c6f32"
     },
     {
       "path": "v200-luxury.css",
@@ -553,8 +553,8 @@
     },
     {
       "path": "vercel.json",
-      "size": 2508,
-      "sha256": "06d3694e27224c2fa457b31839d4643dde7ab87fbb6796b5dbbfd1b6e94b422d"
+      "size": 3541,
+      "sha256": "54b0682036bd64ec523ee17e591a7847e6975f2b3dfa8444c4c3313529d6f86b"
     },
     {
       "path": "VERSION.json",

@@ -87,6 +87,11 @@
 (function(){
   'use strict';
 
+  const PRODUCT_RELEASE='V211.1.2';
+  function releaseAsset(path){
+    return path+(path.includes('?')?'&':'?')+'release='+encodeURIComponent(PRODUCT_RELEASE);
+  }
+
   function installV211FollowUpCenter(){
     document.body?.classList.add('aq-v211');
 
@@ -270,7 +275,7 @@
     }
     const experience = document.createElement('script');
     experience.id = 'aqari-v201-experience-js';
-    experience.src = '/v201-experience.js';
+    experience.src = releaseAsset('/v201-experience.js');
     experience.addEventListener('load', installV202PropertyOS, { once:true });
     document.body.appendChild(experience);
   }
@@ -282,7 +287,7 @@
       const stylesheet = document.createElement('link');
       stylesheet.id = 'aqari-v199-ui-css';
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = '/v199-ui.css';
+      stylesheet.href = releaseAsset('/v199-ui.css');
       document.head.appendChild(stylesheet);
     }
 
@@ -290,7 +295,7 @@
       const luxury = document.createElement('link');
       luxury.id = 'aqari-v200-luxury-css';
       luxury.rel = 'stylesheet';
-      luxury.href = '/v200-luxury.css';
+      luxury.href = releaseAsset('/v200-luxury.css');
       document.head.appendChild(luxury);
     }
 
@@ -298,14 +303,14 @@
       const easy = document.createElement('link');
       easy.id = 'aqari-v201-easy-css';
       easy.rel = 'stylesheet';
-      easy.href = '/v201-easy.css';
+      easy.href = releaseAsset('/v201-easy.css');
       document.head.appendChild(easy);
     }
 
     if(!document.getElementById('aqari-v199-ui-js')){
       const script = document.createElement('script');
       script.id = 'aqari-v199-ui-js';
-      script.src = '/v199-ui.js';
+      script.src = releaseAsset('/v199-ui.js');
       script.addEventListener('load', installV201Experience, { once:true });
       document.body.appendChild(script);
     }else{

@@ -420,6 +420,31 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `operational readiness checks: ${summary.passed}/${summary.required}`);
 });
 
+await check('V211 identity survives a blocked V201 presentation layer', async () => {
+  const fallbackPage = await context.newPage();
+  try{
+    await fallbackPage.route('**/v201-experience.js*', route => route.abort('failed'));
+    const fallbackUrl = new URL(base);
+    fallbackUrl.pathname = '/app';
+    fallbackUrl.searchParams.set('release','V211.1.2');
+    const response = await fallbackPage.goto(fallbackUrl.toString(), { waitUntil:'domcontentloaded', timeout:30000 });
+    if(!response?.ok()) throw new Error(`fallback HTTP ${response?.status()}`);
+    await fallbackPage.waitForSelector('#aqariV199Topbar', { state:'attached', timeout:12000 });
+    await fallbackPage.waitForSelector('.v199-gate-version', { state:'visible', timeout:12000 });
+    const identity = await fallbackPage.evaluate(() => ({
+      header:document.querySelector('#aqariV199Topbar .v199-brand-copy small')?.textContent?.trim() || '',
+      gate:document.querySelector('.v199-gate-version')?.textContent?.trim() || '',
+      stale:Array.from(document.querySelectorAll('#aqariV199Topbar,.v199-gate-version'))
+        .some(node => /V200(?:\s+LUXURY)?/i.test(node.textContent || ''))
+    }));
+    if(identity.header !== 'V211.1.2' || identity.gate !== 'AQARI V211.1.2' || identity.stale){
+      throw new Error('fallback release identity mismatch: ' + JSON.stringify(identity));
+    }
+  }finally{
+    await fallbackPage.close();
+  }
+});
+
 await check('PWA and V209 presentation assets', async () => {
   for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js','/v210-daily-command-center.css','/v210-daily-command-center.js']){
     const response = await page.request.get(new URL(path, base).toString());

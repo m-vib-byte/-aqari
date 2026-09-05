@@ -40,6 +40,11 @@
     });
   }
 
+  function currentRelease(){
+    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V211.1.2').trim();
+    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V211.1.2';
+  }
+
   function numberFrom(value){
     const arabic='٠١٢٣٤٥٦٧٨٩';
     const normalized=String(value == null ? '' : value)
@@ -96,7 +101,7 @@
     shell.className='v199-topbar';
     shell.innerHTML=
       '<button type="button" class="v199-brand" data-v199-go="home" aria-label="الذهاب إلى الرئيسية">'+
-        '<span class="v199-brand-mark">'+icon('brand')+'</span><span class="v199-brand-copy"><strong>عقاري</strong><small>V200 LUXURY</small></span>'+
+        '<span class="v199-brand-mark">'+icon('brand')+'</span><span class="v199-brand-copy"><strong>عقاري</strong><small>'+escapeHtml(currentRelease())+'</small></span>'+
       '</button>'+
       '<nav class="v199-primary-nav" aria-label="التنقل الرئيسي">'+
         '<button type="button" class="v199-nav-button is-active" data-v199-go="home" aria-current="page">الرئيسية</button>'+
@@ -180,7 +185,7 @@
     if(logo){
       const version=document.createElement('span');
       version.className='v199-gate-version';
-      version.textContent='AQARI V200';
+      version.textContent='AQARI '+currentRelease();
       logo.insertBefore(version,logo.firstChild);
       const subtitle=logo.querySelector('p');
       if(subtitle)subtitle.textContent='سجّل الدخول إلى مساحة عملك';
@@ -471,7 +476,7 @@
   }
 
   function setReleasePresentation(){
-    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V211.1.2');
+    const productRelease=currentRelease();
     document.title='عقاري '+productRelease+' • إدارة أملاك بفخامة';
     const viewport=document.querySelector('meta[name="viewport"]');
     if(viewport)viewport.content='width=device-width,initial-scale=1,viewport-fit=cover';
@@ -479,7 +484,7 @@
     if(theme)theme.content='#fffdf8';
     let meta=document.querySelector('meta[name="aqari-design"]');
     if(!meta){meta=document.createElement('meta');meta.name='aqari-design';document.head.appendChild(meta)}
-    meta.content='V200-preview';
+    meta.content=productRelease+'-live';
   }
 
   function boot(){
