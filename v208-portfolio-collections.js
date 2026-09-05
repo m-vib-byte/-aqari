@@ -319,21 +319,24 @@
   });
 
   const observer=new MutationObserver(schedule);
+  function handleAuthStateChange(event){
+    const expected=authAccess(window.AQARI_SUPABASE?.context);
+    const epoch=++authEpoch;
+    interactionEpoch+=1;
+    authSuspended=true;
+    clearViews();
+    if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function')return;
+    Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
+      if(epoch!==authEpoch||!sameAuthAccess(expected,authAccess(context))||!sameAuthAccess(expected,authAccess(window.AQARI_SUPABASE?.context)))return;
+      authSuspended=false;
+      render();
+    }).catch(function(){clearViews()});
+  }
   function installAuthListener(){
     if(authListenerInstalled||typeof window.AQARI_SUPABASE?.onAuthStateChange!=='function')return;
     authListenerInstalled=true;
     Promise.resolve(window.AQARI_SUPABASE.onAuthStateChange(function(event){
-      const expected=authAccess(window.AQARI_SUPABASE?.context);
-      const epoch=++authEpoch;
-      interactionEpoch+=1;
-      authSuspended=true;
-      clearViews();
-      if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function')return;
-      Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
-        if(epoch!==authEpoch||!sameAuthAccess(expected,authAccess(context))||!sameAuthAccess(expected,authAccess(window.AQARI_SUPABASE?.context)))return;
-        authSuspended=false;
-        render();
-      }).catch(function(){clearViews()});
+      setTimeout(function(){handleAuthStateChange(event)},0);
     })).catch(function(){authListenerInstalled=false;authSuspended=true;clearViews()});
   }
 
