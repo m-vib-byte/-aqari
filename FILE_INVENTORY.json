@@ -373,8 +373,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 22303,
-      "sha256": "a0610a60a12649d8fc113ea392d3df2f0f9046c0eb3d0359b14c0b2ecae8e142"
+      "size": 22713,
+      "sha256": "459550420eeab4677858521168359fbd7d8ecbed9d8b7775dbb00d4fb7a4dfaa"
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -433,8 +433,8 @@
     },
     {
       "path": "v199-ui.js",
-      "size": 31734,
-      "sha256": "ccadf03a6b576fc8a3018733eb32df30ac81d904099137af0fb8206bf2b3bc4a"
+      "size": 31856,
+      "sha256": "ca8e88f6cb5f93ce2475f6e2cc357b5cf41a9b2e82dc8d5e324751197f69a561"
     },
     {
       "path": "v200-luxury.css",
@@ -448,8 +448,8 @@
     },
     {
       "path": "v201-experience.js",
-      "size": 35057,
-      "sha256": "92803e571053228f894165af7dfeed6f72a2d7c3884c61c3a65103d2924fefca"
+      "size": 35184,
+      "sha256": "d0f1dd914c67435aca51c21c48e55178c7a40367dee3b3ce3f7a58c16d8b38ba"
     },
     {
       "path": "v202-prestige.css",
@@ -468,8 +468,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 22916,
-      "sha256": "b504f733032a72c6216dd3e3eb51be2a2cd266970e4847c751e74416bde870da"
+      "size": 23043,
+      "sha256": "9b01274bcf3e427beb93bf0a7596726a928fafe927f9a0f47bef57415008cd98"
     },
     {
       "path": "v206-integrated-ledger.css",

@@ -423,7 +423,8 @@
     document.documentElement.lang='ar';
     document.documentElement.dir='rtl';
     document.body.classList.add('aq-v205');
-    document.title='عقاري • إدارة الأملاك بسهولة';
+    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V211.1.2');
+    document.title='عقاري '+productRelease+' • إدارة الأملاك بسهولة';
     createHome();
     syncPrimaryNavigation('home');
     createChooser();

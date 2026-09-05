@@ -471,7 +471,8 @@
   }
 
   function setReleasePresentation(){
-    document.title='عقاري V200 • إدارة أملاك بفخامة';
+    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V211.1.2');
+    document.title='عقاري '+productRelease+' • إدارة أملاك بفخامة';
     const viewport=document.querySelector('meta[name="viewport"]');
     if(viewport)viewport.content='width=device-width,initial-scale=1,viewport-fit=cover';
     const theme=document.querySelector('meta[name="theme-color"]');
