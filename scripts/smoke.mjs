@@ -16,4 +16,4 @@ for (const path of ['/api/health', '/api/release', '/api/config-status', '/api/s
   if(path === '/api/production-readiness' && body.ready !== true) process.exit(1);
 }
 
-console.log('AQARI V211.1.2 smoke: PASS');
+console.log('AQARI V266 smoke: PASS');

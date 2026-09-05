@@ -100,7 +100,7 @@ test('V211 reminder wording remains operational and avoids unsupported legal cla
   assert.doesNotMatch(text,/إنذار|إخلاء|دعوى|غرامة|قانون/);
 });
 
-test('V211.1.2 startup backup is scheduled only by the authenticated workspace boundary',()=>{
+test('V266 startup backup is scheduled only by the authenticated workspace boundary',()=>{
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
   const bridge=fs.readFileSync(path.join(root,'secure-auth-bridge.js'),'utf8');
   const loader=fs.readFileSync(path.join(root,'final-release-ui.js'),'utf8');
@@ -110,11 +110,11 @@ test('V211.1.2 startup backup is scheduled only by the authenticated workspace b
   assert.match(backup[0],/aqariAutoBackupInFlightV211/);
   assert.match(backup[0],/schedule:scheduleStartupBackupV211/);
   assert.match(backup[0],/cancel:cancelStartupBackupV211/);
-  assert.match(backup[0],/version:'V211\.1\.2'/);
+  assert.match(backup[0],/version:'V266'/);
   assert.doesNotMatch(backup[0],/\balert\s*\(/);
 
   assert.match(bridge,/function sealData\(\)\{[\s\S]*?AQARI_STARTUP_BACKUP\?\.cancel\?\.\(\)/);
   assert.match(bridge,/function unlock\(nextContext, nextRemoteState\)\{[\s\S]*?activateWorkspaceDbV198[\s\S]*?AQARI_STARTUP_BACKUP\?\.schedule\?\.\(\)/);
   assert.doesNotMatch(loader,/installStartupBackupGuard|__v211StartupGuard|window\.makeAutoBackup\s*=/);
-  assert.match(loader,/عقاري V211\.1\.2 — سجل المتابعة السحابي/);
+  assert.match(loader,/عقاري V266 — التشغيل الآلي السحابي/);
 });

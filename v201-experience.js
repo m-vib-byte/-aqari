@@ -59,7 +59,7 @@
 
   function releasePresentation(){
     document.body.classList.add('aq-v199','aq-v200','aq-v201');
-    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V211.1.2');
+    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V266');
     document.title='عقاري '+productRelease+' • إدارة الأملاك بسهولة';
     const theme=document.querySelector('meta[name="theme-color"]');
     if(theme)theme.content='#fbfaf7';

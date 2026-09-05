@@ -126,10 +126,10 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud gate did not become interactive after startup');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.productRelease !== 'V211.1.2' || state.apiContract !== 'V198' || state.releaseStage !== 'production'){
+  if(state.productRelease !== 'V266' || state.apiContract !== 'V198' || state.releaseStage !== 'production'){
     throw new Error('visible release identity mismatch');
   }
-  if(!state.title.includes('V211.1.2')) throw new Error('document title has stale release identity');
+  if(!state.title.includes('V266')) throw new Error('document title has stale release identity');
   if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.portfolioCollections || !state.globalSearch || state.globalSearchVersion !== 'V209-global-search' || state.globalSearchRevision !== 'V209.1-self-heal' || state.globalSearchMeta !== 'V209-global-search' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V209 presentation layer unavailable');
   if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
   if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
@@ -398,7 +398,7 @@ await check('Preview SHA and environment', async () => {
   const body = await readApi('/api/production-meta');
   if(body.deployment?.environment !== 'preview') throw new Error('not a Preview deployment');
   if(body.deployment?.gitSha !== expectedSha) throw new Error(`SHA ${body.deployment?.gitSha || 'missing'} != ${expectedSha}`);
-  if(body.productVersion !== 'V211.1.2' || body.apiContractVersion !== 'V198') throw new Error('release identity mismatch');
+  if(body.productVersion !== 'V266' || body.apiContractVersion !== 'V198') throw new Error('release identity mismatch');
 });
 
 await check('Preview production-readiness contract', async () => {
@@ -426,7 +426,7 @@ await check('V211 identity survives a blocked V201 presentation layer', async ()
     await fallbackPage.route('**/v201-experience.js*', route => route.abort('failed'));
     const fallbackUrl = new URL(base);
     fallbackUrl.pathname = '/app';
-    fallbackUrl.searchParams.set('release','V211.1.2');
+    fallbackUrl.searchParams.set('release','V266');
     const response = await fallbackPage.goto(fallbackUrl.toString(), { waitUntil:'domcontentloaded', timeout:30000 });
     if(!response?.ok()) throw new Error(`fallback HTTP ${response?.status()}`);
     await fallbackPage.waitForSelector('#aqariV199Topbar', { state:'attached', timeout:12000 });
@@ -437,7 +437,7 @@ await check('V211 identity survives a blocked V201 presentation layer', async ()
       stale:Array.from(document.querySelectorAll('#aqariV199Topbar,.v199-gate-version'))
         .some(node => /V200(?:\s+LUXURY)?/i.test(node.textContent || ''))
     }));
-    if(identity.header !== 'V211.1.2' || identity.gate !== 'AQARI V211.1.2' || identity.stale){
+    if(identity.header !== 'V266' || identity.gate !== 'AQARI V266' || identity.stale){
       throw new Error('fallback release identity mismatch: ' + JSON.stringify(identity));
     }
   }finally{

@@ -41,8 +41,8 @@
   }
 
   function currentRelease(){
-    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V211.1.2').trim();
-    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V211.1.2';
+    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V266').trim();
+    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V266';
   }
 
   function numberFrom(value){
