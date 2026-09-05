@@ -226,7 +226,8 @@
     ]);
     assertContextEpoch(refreshEpoch);
     if(workspaceResult.error) throw workspaceResult.error;
-    if(profileResult.error) throw profileResult.error;
+    const { error:profileError } = profileResult;
+    if(profileError) throw profileError;
     const workspace = workspaceResult.data || null;
     const profile = profileResult.data || null;
     if(workspaceId && (!workspace || workspace.id !== workspaceId)){
