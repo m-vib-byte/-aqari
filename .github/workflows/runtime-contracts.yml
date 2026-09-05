@@ -10,6 +10,32 @@ permissions:
   contents: read
 
 jobs:
+  login-syntax:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Authentication syntax and source digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check secure-auth-bridge.js
+          node --check supabase-adapter.js
+          node --check tests/v266-login-bootstrap.test.cjs
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const paths = ['.github/workflows/runtime-contracts.yml', 'secure-auth-bridge.js', 'supabase-adapter.js', 'tests/auth-data-gate.test.cjs', 'tests/login-navigation.test.cjs', 'tests/v266-login-bootstrap.test.cjs'];
+          console.log('LOGIN_DIGESTS_BEGIN');
+          for (const path of paths) {
+            const data = fs.readFileSync(path);
+            console.log(JSON.stringify({path, size:data.length, sha256:crypto.createHash('sha256').update(data).digest('hex')}));
+          }
+          console.log('LOGIN_DIGESTS_END');
+          NODE
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 5
