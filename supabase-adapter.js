@@ -13,7 +13,101 @@
   let contextRefresh = null;
   let contextVerifiedAt = 0;
 
+  // The startup snapshot avoids repeated SDK auth-lock acquisition between
+  // table reads. All requests still carry this user's JWT and obey server RLS.
+  const startupFetch = typeof window.fetch === 'function' ? window.fetch.bind(window) : null;
+  let startupSnapshot = null;
+
+  function startupProgress(stage){
+    const gate = document.getElementById?.('aqariCloudGateV168');
+    gate?.setAttribute('data-auth-stage', stage);
+  }
+
+  function startupJson(path, session, deadlineAt, body){
+    let timer;
+    const controller = new AbortController();
+    const request = startupFetch(String(cfg.supabaseUrl).replace(/\/$/,'') + path, {
+      method:body === undefined ? 'GET' : 'POST',
+      headers:{ apikey:cfg.supabasePublishableKey, Authorization:'Bearer ' + session.access_token,
+        Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'}) },
+      body:body === undefined ? undefined : JSON.stringify(body),
+      signal:controller.signal, cache:'no-store', credentials:'omit', redirect:'error'
+    }).then(async response => {
+      if(!response.ok){
+        const error = accessError(response.status === 401 || response.status === 403
+          ? 'AQARI workspace access could not be verified' : 'AQARI startup connection failed');
+        error.status = response.status;
+        throw error;
+      }
+      return response.json();
+    });
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        const error = new Error('تعذر إكمال تحميل الحساب. أعد المحاولة.');
+        error.code = 'AQARI_STARTUP_TIMEOUT';
+        reject(error);
+        controller.abort();
+      }, Math.max(0, deadlineAt - Date.now()));
+    });
+    return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
+  }
+
+  function snapshotContext(client, user, snapshot, expected){
+    if(!snapshot || snapshot.user_id !== user?.id) throw accessError();
+    const next = {client,user,membership:snapshot.membership,workspace:snapshot.workspace,profile:snapshot.profile};
+    requireExactAccess(next, expected);
+    if(next.profile?.user_id !== user.id) throw accessError();
+    if(snapshot.app_state && snapshot.app_state.workspace_id !== next.workspace.id) throw accessError();
+    return next;
+  }
+
+  async function fastStartupContext(client, session, refreshEpoch){
+    const deadlineAt = Date.now() + 10000;
+    startupProgress('verify-user');
+    const user = await startupJson('/auth/v1/user', session, deadlineAt);
+    assertContextEpoch(refreshEpoch);
+    if(user?.id !== session.user.id) throw accessError();
+    startupProgress('workspace-snapshot');
+    const snapshot = await startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', session, deadlineAt,
+      {p_workspace_id:null,p_expected_role:null,p_include_payload:true});
+    assertContextEpoch(refreshEpoch);
+    const next = snapshotContext(client, user, snapshot, {userId:user.id});
+    const {data:finalData,error:finalError} = await client.auth.getSession();
+    assertContextEpoch(refreshEpoch);
+    if(finalError) throw finalError;
+    if(finalData.session?.user?.id !== user.id) throw accessError();
+    Object.assign(state, next);
+    contextVerifiedAt = Date.now();
+    startupSnapshot = {epoch:refreshEpoch, session, data:snapshot.app_state || null};
+    return {...state};
+  }
+
+  async function consumeStartupSnapshot(expected){
+    const snapshot = startupSnapshot;
+    startupSnapshot = null; // one-shot, in-memory only; never persisted
+    const bound = requireExactAccess(state, expected);
+    const client = state.client;
+    const deadlineAt = Date.now() + 10000;
+    startupProgress('confirm-access');
+    // Server-side revalidation AFTER fetching the payload remains mandatory.
+    // A revoked membership, disabled account, or role/workspace change discards it.
+    const [user, confirmation] = await Promise.all([
+      startupJson('/auth/v1/user', snapshot.session, deadlineAt),
+      startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', snapshot.session, deadlineAt,
+        {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false})
+    ]);
+    assertContextEpoch(snapshot.epoch);
+    snapshotContext(client, user, confirmation, bound);
+    const {data:finalData,error:finalError} = await client.auth.getSession();
+    assertContextEpoch(snapshot.epoch);
+    if(finalError) throw finalError;
+    if(finalData.session?.user?.id !== bound.userId) throw accessError();
+    requireExactAccess(state, bound);
+    return snapshot.data;
+  }
+
   function resetContext(){
+    startupSnapshot = null;
     contextVerifiedAt = 0;
     state.user = null;
     state.membership = null;
@@ -184,6 +278,10 @@
     }
     if(expected?.userId && expected.userId !== sessionUserId) throw accessError();
 
+    if(!expected && startupFetch && sessionData.session?.access_token){
+      return fastStartupContext(client, sessionData.session, refreshEpoch);
+    }
+    startupSnapshot = null;
     const { data:userData, error:userError } = await client.auth.getUser();
     assertContextEpoch(refreshEpoch);
     if(userError) throw userError;
@@ -406,6 +504,9 @@
     const age = Date.now() - contextVerifiedAt;
     const canReuse = reuseVerifiedContext && expected?.userId && expected?.workspaceId &&
       expected?.role && contextVerifiedAt > 0 && age >= 0 && age < 5000;
+    if(canReuse && startupSnapshot?.epoch === contextEpoch){
+      return consumeStartupSnapshot(expected);
+    }
     const boundAccess = canReuse
       ? requireExactAccess(state, expected)
       : await bindAccess(expectedAccess);

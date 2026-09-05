@@ -22,13 +22,13 @@ const profile={user_id:user.id,display_name:'Synthetic user'};
 const b64=value=>Buffer.from(JSON.stringify(value)).toString('base64url'),expires=Math.floor(Date.now()/1000)+3600;
 const token=b64({alg:'HS256',typ:'JWT'})+'.'+b64({sub:user.id,exp:expires,iat:expires-3600,role:'authenticated',aud:'authenticated',iss:base+'/auth/v1'})+'.synthetic-signature';
 const session={user,access_token:token,refresh_token:'synthetic-refresh-token',token_type:'bearer',expires_at:expires,expires_in:3600};
-const populated={properties:[['Synthetic Tower','Test','Residential','110','27500','0','Active']],tenants:[],contractsV202:[],tenantDirectoryV202:[],rentLedgerV202:[]};
+const populated={properties:[['Synthetic Tower','Test','110','27500']],tenants:[],contractsV202:[],tenantDirectoryV202:[],rentLedgerV202:[]};
 for(let i=1;i<=110;i++){
   const tenant='Synthetic Tenant '+i,unit=String(i),id='SYN-'+i,property='Synthetic Tower';
-  populated.tenants.push([tenant,property,unit,'250','2026-01-01','2026-12-31','نشط']);
-  populated.contractsV202.push({id,contract_no:id,property,unit,tenant,rent:250,contractRent:250,status:'نشط',start_date:null,end_date:null,source:'synthetic'});
-  populated.tenantDirectoryV202.push({property,unit,tenant,contractNo:id,email:'',phone:'',civilId:'',source:'synthetic',verified:true});
-  populated.rentLedgerV202.push({id:'PAY-'+i,contractId:id,contractNo:id,property,unit,tenant,period:'2026-08',due:250,paid:250,balance:0,receiptNo:'R-'+i,paidAt:'2026-08-05',method:'bank',status:'paid',source:'synthetic',note:''});
+  populated.tenants.push([tenant,property,'250','مستحق']);
+  populated.contractsV202.push({id,contract_no:id,property,unit,tenant,rent:250,contractRent:250,status:'نشط',start_date:null,end_date:null,source:'protected-rent-import-v202'});
+  populated.tenantDirectoryV202.push({property,unit,tenant,contractNo:id,email:'',phone:'',civilId:'',source:'protected-rent-import-v202',verified:true});
+  populated.rentLedgerV202.push({id:'PAY-'+i,contractId:id,contractNo:id,property,unit,tenant,period:'2026-08',due:250,paid:250,balance:0,receiptNo:'R-'+i,paidAt:'2026-08-05',method:'bank',status:'paid',source:'protected-rent-import-v202',note:''});
 }
 let fixture={},hangCloud=false,requests=[];
 const send=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
@@ -39,6 +39,15 @@ const server=http.createServer((req,res)=>{
     if(url.pathname==='/auth/v1/token')return send(res,session);
     if(req.headers.authorization!=='Bearer '+token)return send(res,{message:'Synthetic fixture: unauthorized'},401);
     if(url.pathname==='/auth/v1/user')return send(res,user);
+    if(url.pathname==='/rest/v1/rpc/aqari_startup_snapshot_v266'){
+      if(req.method!=='POST')return send(res,{message:'Method not allowed'},405);
+      let raw='';req.on('data',chunk=>{raw+=chunk});req.on('end',()=>{
+        let input;try{input=JSON.parse(raw)}catch{return send(res,{},400)}
+        if((input.p_workspace_id&&input.p_workspace_id!==workspace.id)||(input.p_expected_role&&input.p_expected_role!==membership.role))return send(res,{},403);
+        if(hangCloud&&input.p_include_payload)return;
+        send(res,{user_id:user.id,membership,workspace,profile,app_state:input.p_include_payload?{workspace_id:workspace.id,payload:fixture,revision:1}:null});
+      });return;
+    }
     if(req.method!=='GET')return send(res,{message:'Synthetic fixture: database writes forbidden'},403);
     const table=url.pathname.split('/').pop();
     if(table==='aqari_app_state'&&hangCloud)return;
@@ -90,7 +99,7 @@ try{
           await page.evaluate(()=>window.AQARI_SUPABASE.getClient().then(client=>client.auth.refreshSession()));
           await delay(800);
           assert.equal(await page.locator('#aqariCloudGateV168').getAttribute('data-auth-phase'),'error');
-          assert.equal(requests.filter(r=>r==='GET /rest/v1/aqari_app_state').length,1,'late auth must not restart loading');
+          assert.equal(requests.filter(r=>r==='POST /rest/v1/rpc/aqari_startup_snapshot_v266').length,1,'late auth must not restart loading');
         }else{
           await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:18000});
           await delay(700);
