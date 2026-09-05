@@ -1,0 +1,27 @@
+name: Login loading speed
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  speed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: node --test tests/mobile-login-shell.test.cjs tests/login-navigation.test.cjs tests/v266-startup-snapshot.test.cjs
+      - run: npx playwright install --with-deps chromium webkit
+      - run: node tests/login-speed.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: login-speed-results
+          path: test-results/login-speed
+          retention-days: 2
