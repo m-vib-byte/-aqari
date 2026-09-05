@@ -68,7 +68,10 @@
     return keys;
   }
 
-  function isManaged(key){ return MANAGED_KEY.test(String(key || '')); }
+  function isManaged(key){
+    const value = String(key || '');
+    return !isSupabaseSessionKey(value) && MANAGED_KEY.test(value);
+  }
   function encodedUser(scope = activeScope){ return encodeURIComponent(scope?.userId || ''); }
   function encodedWorkspace(scope = activeScope){ return encodeURIComponent(scope?.workspaceId || ''); }
   function primaryPhysical(scope = activeScope){ return PRIMARY_PREFIX + encodedWorkspace(scope); }
@@ -9534,7 +9537,10 @@ go=function(k){
 }
 const renderV120Base=render;
 render=function(){renderV120Base();renderRolePermissionsV120();refreshAccessGatewayV120()}
-if(!sessionStorage.getItem('aqari_session_v120'))setTimeout(()=>lockNowV120(),100);
+if(!sessionStorage.getItem('aqari_session_v120'))setTimeout(()=>{
+ if(document.getElementById('aqari-v198-secure-cloud-js'))return;
+ if(!sessionStorage.getItem('aqari_session_v120'))lockNowV120()
+},100);
 render();
 
 let rbacReportV121=null;

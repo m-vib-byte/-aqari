@@ -314,12 +314,23 @@
     updateUI();
   }
 
+  function legacyLockV198(){
+    const expected = accessIdentity(context);
+    const live = accessIdentity(window.AQARI_SUPABASE?.context);
+    if(!sameIdentity(expected, live)){
+      sealData();
+      hideLegacyGates();
+      return false;
+    }
+    return window.cloudLogoutV198();
+  }
+
   function installOverrides(){
     window.login = window.cloudLoginV198;
     window.loginLocalV120 = window.cloudLoginV198;
     window.logout = window.cloudLogoutV198;
-    window.lockNowV120 = () => window.cloudLogoutV198();
-    window.lockSessionV75 = () => window.cloudLogoutV198();
+    window.lockNowV120 = legacyLockV198;
+    window.lockSessionV75 = legacyLockV198;
     window.logoutProductionV75 = () => window.cloudLogoutV198();
     window.cloudLoginV168 = window.cloudLoginV198;
     window.cloudLogoutV168 = window.cloudLogoutV198;
@@ -682,3 +693,4 @@
     start();
   }
 })();
+

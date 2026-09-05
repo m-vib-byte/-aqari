@@ -143,8 +143,8 @@
     },
     {
       "path": "index.html",
-      "size": 1094062,
-      "sha256": "a2227a1e677837563f392030c68ab7cfde1fee05ca06fedd44bf0e8b6ecf9b20"
+      "size": 1094245,
+      "sha256": "641c4f6b5f5ecff88c3713bd180d246e56255a792180912875ff408bb3bfcafa"
     },
     {
       "path": "login.html",
@@ -333,8 +333,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 28934,
-      "sha256": "0d30e0cb73bdd707372a0672e058a0636fe28d9b4f906c01b525bf4db8ffbde0"
+      "size": 29193,
+      "sha256": "a98f6f50bd2a2362491bd725a9c6fa19205d775fbf741127fd2bbc5dd5d770a4"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -363,8 +363,8 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 39560,
-      "sha256": "ed037146468835d8bc426512f96f1037750c31d10505f7e770374a48d97b3671"
+      "size": 41407,
+      "sha256": "1556a232c273e67b0f74641ec4f7adce69fd1f6e5777fd7f064e5ddb3ff36a64"
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
