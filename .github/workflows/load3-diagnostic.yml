@@ -14,8 +14,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install
-      - run: npx playwright install --with-deps chromium
-      - name: Instrument full legacy fixture without customer data
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Instrument full protected-import fixture without customer data
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -23,9 +23,12 @@ jobs:
           s=p.read_text()
           s=s.replace("import assert from 'node:assert/strict';", "import assert from 'node:assert/strict';\nimport vm from 'node:vm';")
           s=s.replace("const populated={", "const legacyText=fs.readFileSync('index.html','utf8').split('const aqariV198LegacyDemo=')[1].split(';for(const k in mods)')[0];\nconst legacy=JSON.parse(JSON.stringify(vm.runInNewContext('('+legacyText+')')));\nconst populated={...legacy,")
-          s=s.replace("[['chromium',chromium],['webkit',webkit]]", "[['chromium',chromium]]")
-          s=s.replace("['empty','populated','manual','timeout']", "['populated','manual']")
-          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));", "page.on('pageerror',error=>{errors.push(error.stack);console.log('PAGEERROR',error.stack);});\n        page.on('console',msg=>console.log('BROWSER',msg.text()));\n        await page.addInitScript(()=>{\n          const Native=window.MutationObserver;\n          window.MutationObserver=class extends Native{constructor(cb){let calls=0;super((...args)=>{if(++calls===2000)console.log('OBSERVER_LOOP',cb.toString());if(calls<2100)return cb(...args);});}};\n          window.addEventListener('DOMContentLoaded',()=>{\n            for(const key of ['activateWorkspaceDbV198','render','go']){const original=window[key];let calls=0;if(typeof original==='function')window[key]=function(...args){if(++calls<8)console.log('ENTER',key,performance.now());const r=original.apply(this,args);if(calls<8)console.log('EXIT',key,performance.now());return r;};}\n            new Native(()=>console.log('STAGE',document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),document.getElementById('cloudGateMsgV168')?.textContent)).observe(document.getElementById('aqariCloudGateV168'),{attributes:true});\n          });\n        });")
+          s=s.replace("'Synthetic Tower','Test','Residential','110','27500','0','Active'", "'Synthetic Tower','Test','110','27500'")
+          s=s.replace("source:'synthetic'", "source:'protected-rent-import-v202'")
+          s=s.replace("let fixture={},hangCloud=false,requests=[];", "populated.rentStatementsV202=[{id:'synthetic-statement',property:'Synthetic Tower',period:'2026-08',totalRent:27500,totalCollected:27500,unitCount:110,occupiedUnitCount:110,payerCount:110,sourcePages:'1-31',source:'protected-rent-import-v202'}];\nlet fixture={},hangCloud=false,requests=[];")
+          s=s.replace("['empty','populated','manual','timeout']", "['populated']")
+          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));", "page.on('pageerror',error=>{errors.push(error.stack);console.log('PAGEERROR',error.stack);});\n        page.on('console',msg=>console.log('BROWSER',msg.text()));\n        await page.addInitScript(()=>{\n          const Native=window.MutationObserver;\n          window.MutationObserver=class extends Native{constructor(cb){let calls=0;super((...args)=>{if(++calls===2000)console.log('OBSERVER_LOOP',cb.toString());if(calls<2100)return cb(...args);});}};\n          window.addEventListener('DOMContentLoaded',()=>{\n            for(const key of ['activateWorkspaceDbV198','render','go']){const original=window[key];let calls=0;if(typeof original==='function')window[key]=function(...args){if(++calls<8)console.log('ENTER',key,performance.now());const r=original.apply(this,args);if(calls<8)console.log('EXIT',key,performance.now());return r;};}\n            const gate=document.getElementById('aqariCloudGateV168');if(gate)new Native(()=>console.log('STAGE',gate.getAttribute('data-auth-stage'),document.getElementById('cloudGateMsgV168')?.textContent)).observe(gate,{attributes:true});\n          });\n        });")
+          s=s.replace("await delay(700);", "await delay(3000);console.log('DATA',await page.evaluate(()=>({properties:window.AQARI_V202?.rentOfficeProperties?.(),beats:window.__homeHeartbeats}))); ")
           p.write_text(s)
           PY
       - run: timeout 100s node tests/v266-authenticated-home.e2e.mjs
