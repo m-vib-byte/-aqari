@@ -27,7 +27,9 @@
   function startupJson(path, session, deadlineAt, body){
     let timer;
     const controller = new AbortController();
-    const request = startupFetch(String(cfg.supabaseUrl).replace(/\/$/,'') + path, {
+    const confirmationRequest = path === '/api/workspace-confirmation';
+    const endpoint = confirmationRequest ? path : String(cfg.supabaseUrl).replace(/\/$/,'') + path;
+    const request = startupFetch(endpoint, {
       method:body === undefined ? 'GET' : 'POST',
       headers:{ apikey:cfg.supabasePublishableKey, Authorization:'Bearer ' + session.access_token,
         Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'}) },
@@ -38,6 +40,11 @@
         const error = accessError(response.status === 401 || response.status === 403
           ? 'AQARI workspace access could not be verified' : 'AQARI startup connection failed');
         error.status = response.status;
+        if(confirmationRequest){
+          error.message = response.status === 401 ? 'انتهت جلسة الدخول. سجل الدخول من جديد.' :
+            response.status === 403 ? 'تعذر تأكيد صلاحية الوصول لهذا الحساب.' :
+            'تعذر إكمال تأكيد صلاحية الوصول. أعد المحاولة.';
+        }
         throw error;
       }
       return response.json();
@@ -93,11 +100,12 @@
     startupProgress('confirm-access');
     // Server-side revalidation AFTER fetching the payload remains mandatory.
     // A revoked membership, disabled account, or role/workspace change discards it.
-    const [user, confirmation] = await Promise.all([
-      startupJson('/auth/v1/user', snapshot.session, deadlineAt),
-      startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', snapshot.session, deadlineAt,
-        {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false})
-    ]);
+    // One same-origin request replaces the two browser confirmation calls.
+    // The server repeats BOTH checks with this JWT; it cannot read the payload.
+    const traceCode = document.getElementById?.('aqariStartupDiagnostic')?.textContent?.match(/\bAQ-[A-F0-9]{8}\b/)?.[0];
+    const {user, confirmation} = await startupJson('/api/workspace-confirmation', snapshot.session, deadlineAt,
+      {p_workspace_id:bound.workspaceId,p_expected_role:bound.role,p_include_payload:false,
+        ...(traceCode ? {traceCode} : {})});
     assertContextEpoch(snapshot.epoch);
     snapshotContext(client, user, confirmation, bound);
     startupProgress('confirm-session-final');

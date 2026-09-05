@@ -30,10 +30,21 @@ for(let i=1;i<=110;i++){
   populated.tenantDirectoryV202.push({property,unit,tenant,contractNo:id,email:'',phone:'',civilId:'',source:'protected-rent-import-v202',verified:true});
   populated.rentLedgerV202.push({id:'PAY-'+i,contractId:id,contractNo:id,property,unit,tenant,period:'2026-08',due:250,paid:250,balance:0,receiptNo:'R-'+i,paidAt:'2026-08-05',method:'bank',status:'paid',source:'protected-rent-import-v202',note:''});
 }
-let fixture={},hangCloud=false,requests=[];
+let fixture={},hangCloud=false,hangConfirmation=false,requests=[];
 const send=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,base);
+  // Synthetic transport fixture; endpoint validation is unit tested.
+  if(url.pathname==='/api/workspace-confirmation'){
+    requests.push(req.method+' '+url.pathname);
+    if(req.method!=='POST'||req.headers.authorization!=='Bearer '+token)return send(res,{},401);
+    let raw='';req.on('data',chunk=>{raw+=chunk});req.on('end',()=>{
+      let input;try{input=JSON.parse(raw)}catch{return send(res,{},400)}
+      if(input.p_workspace_id!==workspace.id||input.p_expected_role!==membership.role||input.p_include_payload!==false)return send(res,{},403);
+      if(hangConfirmation)return;
+      send(res,{user,confirmation:{user_id:user.id,membership,workspace,profile,app_state:null}});
+    });return;
+  }
   if(/^\/(auth|rest)\/v1\//.test(url.pathname)){
     requests.push(req.method+' '+url.pathname);
     if(url.pathname==='/auth/v1/token')return send(res,session);
@@ -69,9 +80,9 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let failed=false;
 try{
   for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
-    for(const scenario of ['empty','populated','manual','timeout']){
+    for(const scenario of ['empty','populated','manual','timeout','confirmation-timeout']){
       const name=engineName+'-'+scenario;
-      fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';requests=[];
+      fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';requests=[];
       const browser=await engine.launch({headless:true});
       const errors=[];
       try{
@@ -93,7 +104,7 @@ try{
           await page.click('#loginButton');
           await page.waitForURL('**/app?release=V266');
         }else await page.goto(base+'/app?release=V266',{waitUntil:'domcontentloaded',timeout:30000});
-        if(scenario==='timeout'){
+        if(scenario==='timeout'||scenario==='confirmation-timeout'){
           await page.waitForSelector('[data-auth-phase="error"]',{timeout:16000});
           assert.ok(await page.locator('#aqariManualLoginRecovery').isVisible());
           await page.evaluate(()=>window.AQARI_SUPABASE.getClient().then(client=>client.auth.refreshSession()));
