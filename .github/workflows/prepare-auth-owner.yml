@@ -1,0 +1,61 @@
+name: Prepare startup auth ownership
+on:
+  push:
+    branches: [fix/v266-auth-owner]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reproduce and patch only secondary startup refreshes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess, json, hashlib
+          names=['v208-portfolio-collections.js','v209-global-search.js']
+          blobs=['87ee692226181257aed9566879738d3686bb35be','1892a5a8d30544fa854b51abc8a22bb29e4767b7']
+          for name,sha in zip(names,blobs):
+              assert subprocess.check_output(['git','hash-object',name],text=True).strip()==sha
+          before=subprocess.run(['node','--test','tests/startup-module-boundary.test.cjs'],capture_output=True,text=True)
+          print(before.stdout)
+          assert before.returncode==1 and '# fail 12' in before.stdout and '# pass 6' in before.stdout
+          old="if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function')"
+          new="if(event==='SIGNED_OUT'||!expected||!dataScopesReady(expected)||typeof window.AQARI_SUPABASE?.refreshContext!=='function')"
+          for name in names:
+              p=Path(name);s=p.read_text();assert s.count(old)==1
+              s=s.replace(old,"// The auth bridge owns startup until BOTH workspace data boundaries open.\n    // An independent UI refresh here would supersede its pending snapshot.\n    "+new)
+              p.write_text(s)
+          workflow=Path('.github/workflows/runtime-contracts.yml')
+          s=workflow.read_text();needle='node --test tests/runtime-contracts.test.cjs'
+          assert s.count(needle)==1
+          workflow.write_text(s.replace(needle,'node --test tests/startup-module-boundary.test.cjs tests/runtime-contracts.test.cjs'))
+          inventory=Path('FILE_INVENTORY.json');doc=json.loads(inventory.read_text())
+          for name in names+['tests/startup-module-boundary.test.cjs',str(workflow)]:
+              data=Path(name).read_bytes();entry={'path':name,'size':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+              existing=next((x for x in doc['files'] if x['path']==name),None)
+              if existing is None: doc['files'].append(entry)
+              else: existing.update(entry)
+          inventory.write_text(json.dumps(doc,ensure_ascii=False,indent=2)+'\n')
+          PY
+          node --check v208-portfolio-collections.js
+          node --check v209-global-search.js
+          node --test tests/startup-module-boundary.test.cjs tests/v208-portfolio-collections.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v266-startup-snapshot.test.cjs tests/auth-data-gate.test.cjs
+          node scripts/release-freeze-selftest.mjs
+      - name: Commit only verified runtime and test files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v208-portfolio-collections.js v209-global-search.js FILE_INVENTORY.json .github/workflows/runtime-contracts.yml
+          git commit -m 'fix: let secure startup finish before secondary UI auth refreshes'
+          git push origin HEAD:fix/v266-auth-owner
