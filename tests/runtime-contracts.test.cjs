@@ -141,7 +141,9 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(bridge, /membership\?\.is_active/);
   assert.match(bridge, /source: 'supabase'/);
   assert.doesNotMatch(bridge, /1234/);
-  assert.match(adapter, /storage: window\.sessionStorage/);
+  assert.doesNotMatch(adapter, /storage:\s*window\.(?:sessionStorage|localStorage)/);
+  assert.doesNotMatch(adapter, /\block\s*:/);
+  assert.match(adapter, /const storage = window\.localStorage/);
   assert.match(adapter, /\.eq\('revision', expected\)/);
   assert.doesNotMatch(adapter, /\.upsert\(/);
   const profileQueryStart = adapter.indexOf(".from('aqari_profiles')");
@@ -356,15 +358,16 @@ test('Supabase adapter memoizes concurrent client initialization', async () => {
   const source = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
   const client = { auth: {} };
   let createClientCalls = 0;
+  let createClientOptions = null;
   const window = {
     AQARI_PUBLIC_CONFIG: {
       supabaseUrl: 'https://example.supabase.co',
       supabasePublishableKey: 'sb_publishable_test',
     },
-    sessionStorage: {},
     supabase: {
-      createClient() {
+      createClient(_url, _key, options) {
         createClientCalls += 1;
+        createClientOptions = options;
         return client;
       },
     },
@@ -379,6 +382,52 @@ test('Supabase adapter memoizes concurrent client initialization', async () => {
 
   assert.equal(createClientCalls, 1);
   assert.ok(clients.every((value) => value === client));
+  assert.equal(Object.hasOwn(createClientOptions.auth, 'storage'), false);
+  assert.equal(Object.hasOwn(createClientOptions.auth, 'lock'), false);
+});
+
+test('Supabase adapter starts and clears state without touching sessionStorage', async () => {
+  const source = fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8');
+  const values = new Map([
+    ['aqari-supabase-auth-v198', 'session'],
+    ['aqari-supabase-auth-v198-code-verifier', 'verifier'],
+    ['unrelated', 'keep'],
+  ]);
+  const localStorage = {
+    get length() { return values.size; },
+    key(index) { return [...values.keys()][index] ?? null; },
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    removeItem(key) { values.delete(key); },
+  };
+  let sessionStorageReads = 0;
+  const window = {
+    AQARI_PUBLIC_CONFIG: {
+      supabaseUrl: 'https://example.supabase.co',
+      supabasePublishableKey: 'sb_publishable_test',
+    },
+    localStorage,
+    supabase: {
+      createClient() {
+        return { auth: {} };
+      },
+    },
+  };
+  Object.defineProperty(window, 'sessionStorage', {
+    get() {
+      sessionStorageReads += 1;
+      throw new Error('sessionStorage must not be accessed');
+    },
+  });
+
+  vm.runInNewContext(source, { window }, { filename: 'supabase-adapter.js' });
+  await window.AQARI_SUPABASE.getClient();
+  const result = window.AQARI_SUPABASE.clearPersistedSession();
+
+  assert.equal(sessionStorageReads, 0);
+  assert.equal(result.cleared, 2);
+  assert.equal(values.has('aqari-supabase-auth-v198'), false);
+  assert.equal(values.has('aqari-supabase-auth-v198-code-verifier'), false);
+  assert.equal(values.get('unrelated'), 'keep');
 });
 
 test('operational endpoints report the V198 cloud mode', async () => {

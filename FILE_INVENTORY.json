@@ -148,8 +148,8 @@
     },
     {
       "path": "login.html",
-      "size": 14467,
-      "sha256": "311215b196b4dfc690316a5754476a7b85a10f343509b1a103799aebd9f99ada"
+      "size": 14997,
+      "sha256": "3f561b513557143810f797325f62d27ade38bc6137ff68ec977a2a939dc589e7"
     },
     {
       "path": "lib/read-only.js",
@@ -278,8 +278,8 @@
     },
     {
       "path": "scripts/cloud-sync-selftest.mjs",
-      "size": 1336,
-      "sha256": "2cc995490687773c0db2757f27812bf16fa640bb342f68e5f63f9f6ea1de7fe9"
+      "size": 1525,
+      "sha256": "1d4f3e48e4cd8ed330766d154296168ebd6cee13f53ce63982ab7e028b8b044d"
     },
     {
       "path": "scripts/deploy-ready.mjs",
@@ -343,8 +343,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 16967,
-      "sha256": "6ef3b7cfb3a8644c9734438c0fcb0e0e25e4d62ae225c68f98b1cf6014a4aecc"
+      "size": 17164,
+      "sha256": "0f1706b429b294646f6c9b5788195977728487e57c71a6eb04c95f1818930d45"
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -368,8 +368,8 @@
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "size": 4083,
-      "sha256": "2e53b211fcb7ee459b2c047d43cd524edbcbf85d0aeea5a389b1f62cd2bdef91"
+      "size": 6263,
+      "sha256": "403fb27ada82f13ba7b2f0986dd48a3fc8645623687c26f5ef496a15dbeda41a"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -383,8 +383,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "size": 22998,
-      "sha256": "3eb3fa5d09e28181a6499e6fdaf1f7b6df090418f7c8e517527a3a9bcc4bf1da"
+      "size": 24864,
+      "sha256": "8e9fabdb3f971c7da85f0fb8ea632da1b0148b20c3dd8b0bdd83b86a56242e2e"
     },
     {
       "path": "tests/v202-property-os.test.cjs",

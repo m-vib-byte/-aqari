@@ -150,7 +150,6 @@
             persistSession: true,
             autoRefreshToken: true,
             detectSessionInUrl: true,
-            storage: window.sessionStorage,
             storageKey: AUTH_STORAGE_KEY
           }
         });
@@ -338,7 +337,10 @@
 
     let cleared = 0;
     try{
-      const storage = window.sessionStorage;
+      // Let Supabase use its guarded localStorage detection and memory fallback.
+      // Do not touch sessionStorage here: some embedded WebKit contexts can stall
+      // while accessing it, including while recovering from a login timeout.
+      const storage = window.localStorage;
       const keys = [];
       for(let index = 0; index < Number(storage?.length || 0); index += 1){
         const key = storage.key(index);
