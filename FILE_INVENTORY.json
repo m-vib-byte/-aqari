@@ -333,8 +333,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 29193,
-      "sha256": "a98f6f50bd2a2362491bd725a9c6fa19205d775fbf741127fd2bbc5dd5d770a4"
+      "size": 30296,
+      "sha256": "7896ef762061185bbeaf8bee6c2152d15003de95ad7c69a9b435958e9b6b91e1"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -363,8 +363,8 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 41407,
-      "sha256": "1556a232c273e67b0f74641ec4f7adce69fd1f6e5777fd7f064e5ddb3ff36a64"
+      "size": 43728,
+      "sha256": "f9b488e1fb40d567dde15ce1f0d57bb80e9880ed6b218fc377d99604f3f9f974"
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
@@ -388,8 +388,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 166517,
-      "sha256": "5ded4263b978f04bdd55d5137c2b29b5e1667c1542e2d8bdb008b8749b859b65"
+      "size": 170249,
+      "sha256": "699670bef9599c98558b29a16cbb908a6d69d707009f4834a197d695f69f3bb4"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -398,18 +398,18 @@
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
-      "size": 9227,
-      "sha256": "2a2a47d68f3b1a4d1908776cf6e3a4d2aa54e5851841de0ac3a5b957e0e6e5b5"
+      "size": 9368,
+      "sha256": "6af2921a7725c0ca3d0e4c42396b9f77d82855bb362620a3e9650fc6e26cab27"
     },
     {
       "path": "tests/v209-behavior.test.cjs",
-      "size": 25172,
-      "sha256": "727762dc8b5b4c9494676d00e81bccf612194eda08d266689d9c06dff4fe3f6a"
+      "size": 25515,
+      "sha256": "0662236460336990cb76cb4c6d48fcebd7490fe802761f1bbe13b03805e76d52"
     },
     {
       "path": "tests/v209-global-search.test.cjs",
-      "size": 8463,
-      "sha256": "3a2b02581bc1199ce82b2329dbfba726619aa9a3c1f2be2165e397f02b1528ee"
+      "size": 8601,
+      "sha256": "e2267b14d715f1c979b295deca275f8a484d9f41c361855a9e8c9ce232165378"
     },
     {
       "path": "tests/v209-loader.test.cjs",
@@ -468,8 +468,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 226227,
-      "sha256": "e0018262b9813e199f326605ee4976610b44e8ef741f5dbcb15f107a51836738"
+      "size": 227940,
+      "sha256": "d1f88f4a296caece9e9f70390be8efaf0e78e49405d2052dafe41aa0b0b9e208"
     },
     {
       "path": "v205-simple.css",
@@ -503,8 +503,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "size": 19590,
-      "sha256": "3936a15788f254d516b435ec52fb7b9f35150d23354ee0430a6c3f09ce568e95"
+      "size": 19675,
+      "sha256": "578744e6661e81d514d32496eea68fc07e5c7cbc7be170df3d887031ac2e83e6"
     },
     {
       "path": "v209-global-search.css",
@@ -513,8 +513,8 @@
     },
     {
       "path": "v209-global-search.js",
-      "size": 21653,
-      "sha256": "ad75c325b39b201fb1d65b17a9c2b1a44d6c73f06ab8cc4893d8c42991b4395a"
+      "size": 21723,
+      "sha256": "294d5cb810878b2eaf889557f181b302ce1ad4cf5113d26a9eb557369b29b1a6"
     },
     {
       "path": "v210-daily-command-center.css",

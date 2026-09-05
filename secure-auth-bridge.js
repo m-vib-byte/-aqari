@@ -20,6 +20,7 @@
   let bootstrapFlight = null;
   let bootstrapFlightGeneration = 0;
   let bootstrapPending = false;
+  let bootstrapPendingUserId = '';
   let authActionRunning = false;
   let authGeneration = 0;
 
@@ -382,12 +383,14 @@
     try{
       const active = await loadContextCandidate();
       if(generation !== authGeneration) return;
+      if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       if(!active){
         showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
         return;
       }
       const activeRemoteState = await loadRemoteCandidate(active);
       if(generation !== authGeneration) return;
+      if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       requireRemoteWorkspace(active, activeRemoteState);
       unlock(active, activeRemoteState);
       if(payloadHasData(activeRemoteState?.payload)){
@@ -417,7 +420,11 @@
     bootstrapFlight = attempt.finally(() => {
       bootstrapFlight = null;
       if(!bootstrapPending) return;
+      const pendingUserId = bootstrapPendingUserId;
       bootstrapPending = false;
+      bootstrapPendingUserId = '';
+      const live = accessIdentity(context);
+      if(live && (!pendingUserId || live.userId === pendingUserId)) return;
       return requestBootstrap();
     });
     return bootstrapFlight;
@@ -577,6 +584,40 @@
   window.toggleCloudAutoSyncV168 = window.toggleCloudAutoSyncV198;
   window.openCloudV168 = window.openCloudV198;
 
+  function handleAuthStateChange(event, session){
+    const previousIdentity = accessIdentity(context);
+    if(event === 'SIGNED_OUT'){
+      bootstrapPending = false;
+      bootstrapPendingUserId = '';
+      showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
+      if(previousIdentity) hardResetPage();
+      return;
+    }
+    if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
+      if(previousIdentity){
+        if(String(session.user.id || '') !== previousIdentity.userId){
+          bootstrapPending = false;
+          bootstrapPendingUserId = '';
+          showGate('تم تغيير الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');
+          hardResetPage();
+          return;
+        }
+        setTimeout(() => revalidateActiveSession(), 0);
+        return;
+      }
+      if(authActionRunning) return;
+      const eventUserId = String(session.user.id || '').trim();
+      if(bootstrapFlight){
+        bootstrapPending = true;
+        bootstrapPendingUserId = eventUserId;
+        notice('جاري التحقق من مساحة العمل…', 'wait');
+        return;
+      }
+      showGate('جاري التحقق من مساحة العمل…', 'wait');
+      requestBootstrap();
+    }
+  }
+
   async function installAuthListener(){
     if(authListenerInstalled) return true;
     if(authListenerPromise) return authListenerPromise;
@@ -584,26 +625,10 @@
     const pending = (async () => {
       const client = await window.AQARI_SUPABASE.getClient();
       client.auth.onAuthStateChange((event, session) => {
-        const previousIdentity = accessIdentity(context);
-        if(event === 'SIGNED_OUT'){
-          showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
-          if(previousIdentity) hardResetPage();
-          return;
-        }
-        if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
-          if(previousIdentity){
-            if(String(session.user.id || '') !== previousIdentity.userId){
-              showGate('تم تغيير الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');
-              hardResetPage();
-              return;
-            }
-            setTimeout(() => revalidateActiveSession(), 0);
-            return;
-          }
-          if(authActionRunning) return;
-          showGate('جاري التحقق من مساحة العمل…', 'wait');
-          setTimeout(() => requestBootstrap(), 0);
-        }
+        // Supabase holds its auth lock while this callback runs. Defer every
+        // state transition so rendering or session checks cannot deadlock the
+        // client and leave the workspace gate waiting forever.
+        setTimeout(() => handleAuthStateChange(event, session), 0);
       });
       authListenerInstalled = true;
       authListenerRetryDelay = 1000;
@@ -693,4 +718,3 @@
     start();
   }
 })();
-

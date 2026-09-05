@@ -482,29 +482,33 @@
     if(!panel||!(input instanceof HTMLInputElement)||input.dataset.v209Bound!=='true'||!document.getElementById('v209SearchResults'))ensureUi();
   });
 
+  function handleAuthStateChange(event){
+    const expected=contextAccess(window.AQARI_SUPABASE?.context);
+    const epoch=++authEpoch;
+    interactionEpoch+=1;
+    authSuspended=true;
+    clearSearch(true);
+    if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function'){render();return}
+    Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
+      if(epoch!==authEpoch)return;
+      const returned=contextAccess(context);
+      const live=contextAccess(window.AQARI_SUPABASE?.context);
+      if(!sameAccess(expected,returned)||!sameAccess(expected,live)){render();return}
+      authSuspended=false;
+      render();
+    }).catch(function(){
+      if(epoch!==authEpoch)return;
+      authSuspended=true;
+      clearSearch(true);
+      render();
+    });
+  }
+
   function installAuthListener(){
     if(authListenerInstalled||typeof window.AQARI_SUPABASE?.onAuthStateChange!=='function')return;
     authListenerInstalled=true;
     Promise.resolve(window.AQARI_SUPABASE.onAuthStateChange(function(event){
-      const expected=contextAccess(window.AQARI_SUPABASE?.context);
-      const epoch=++authEpoch;
-      interactionEpoch+=1;
-      authSuspended=true;
-      clearSearch(true);
-      if(event==='SIGNED_OUT'||!expected||typeof window.AQARI_SUPABASE?.refreshContext!=='function'){render();return}
-      Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
-        if(epoch!==authEpoch)return;
-        const returned=contextAccess(context);
-        const live=contextAccess(window.AQARI_SUPABASE?.context);
-        if(!sameAccess(expected,returned)||!sameAccess(expected,live)){render();return}
-        authSuspended=false;
-        render();
-      }).catch(function(){
-        if(epoch!==authEpoch)return;
-        authSuspended=true;
-        clearSearch(true);
-        render();
-      });
+      setTimeout(function(){handleAuthStateChange(event)},0);
     })).catch(function(){
       authListenerInstalled=false;
       authSuspended=true;

@@ -47,6 +47,7 @@ test('V209 upgrades the existing search surface without bypassing V206.3 securit
   assert.match(search,/dataScopesReady\(access\)/);
   assert.match(search,/authSuspended=true/);
   assert.match(search,/event==='SIGNED_OUT'/);
+  assert.match(search,/onAuthStateChange\(function\(event\)\{\s*setTimeout\(function\(\)\{handleAuthStateChange\(event\)\},0\);\s*\}\)/);
   assert.match(search,/AQARI_SUPABASE\.refreshContext\(expected\)/);
   assert.match(search,/sameAccess\(expected,returned\).*sameAccess\(expected,live\)/);
   assert.match(search,/actionToken!==interactionEpoch\|\|scopeKey\(\)!==scope/);
