@@ -216,8 +216,16 @@ function bridgeRaceRuntime(options = {}){
   const sandbox = vm.createContext({
     window, document, localStorage, sessionStorage,
     location:{ origin:'https://aqari.test', pathname:'/app', search:'?mode=secure', replace(value){ hardResets.push(value); } },
-    setTimeout(callback, milliseconds){ if(milliseconds !== 20000) scheduled.push(callback); return scheduled.length; },
-    clearTimeout(){},
+    setTimeout(callback, milliseconds){
+      // This harness drains deferred auth callbacks, not future deadlines.
+      // Controlled-clock timeout coverage lives in v266-login-bootstrap.test.cjs.
+      if(milliseconds === 0) scheduled.push(callback);
+      return callback;
+    },
+    clearTimeout(callback){
+      const index = scheduled.indexOf(callback);
+      if(index >= 0) scheduled.splice(index, 1);
+    },
     setInterval(){ return 1; },
     console
   });
@@ -708,7 +716,7 @@ test('workspace facade preserves canonical punctuation, newlines, and technical 
 test('session storage is isolated by both user and workspace', () => {
   const contextA = access('user-a', 'workspace-shared');
   const contextB = access('user-b', 'workspace-shared');
-  const { window, nativeSessionStorage } = earlyStorageRuntime();
+  const { window, nativeStorage, nativeSessionStorage } = earlyStorageRuntime();
   window.AQARI_SUPABASE.context = contextA;
   window.AQARI_EARLY_STORAGE_GATE.activate(contextA);
   window.sessionStorage.setItem('aqari_v201_property', 'Property A');
@@ -882,7 +890,7 @@ test('auth bridge seals before showing the gate and hydrates only while unlockin
   assert.match(bridge, /loadContextCandidate\(currentIdentity\)/);
   assert.match(bridge, /function showGate[\s\S]*?sealData\(\);[\s\S]*?context = null/);
   assert.match(bridge, /function unlock\(nextContext, nextRemoteState\)[\s\S]*?requireRemoteWorkspace\(nextContext, nextRemoteState\)[\s\S]*?activateWorkspaceDbV198\(nextContext, nextRemoteState\?\.payload\)[\s\S]*?classList\.remove\('on'\)/);
-  assert.match(bridge, /const activeRemoteState = await boundedBootstrap\(loadRemoteCandidate\(active\)[\s\S]*?unlock\(active, activeRemoteState\)/);
+  assert.match(bridge, /const activeRemoteState = await boundedBootstrap\(loadRemoteCandidate\(active, true\), 'فتح الصفحة الرئيسية', deadlineAt\)[\s\S]*?unlock\(active, activeRemoteState\)/);
   assert.match(bridge, /function legacyLockV198\(\)[\s\S]*?sameIdentity\(expected, live\)[\s\S]*?return false[\s\S]*?cloudLogoutV198\(\)/);
   assert.match(bridge, /window\.lockNowV120 = legacyLockV198/);
   assert.match(bridge, /window\.lockSessionV75 = legacyLockV198/);
@@ -890,7 +898,7 @@ test('auth bridge seals before showing the gate and hydrates only while unlockin
   assert.match(bridge, /clearPersistedSession[\s\S]*?verifySessionNull[\s\S]*?return false[\s\S]*?hardResetPage\(\)/);
   assert.match(bridge, /aqariCloudUploadV198[\s\S]*?addEventListener\('click', action\)/);
   assert.doesNotMatch(bridge.match(/function buildPanel\(\)[\s\S]*?function installOverrides/)[0], /onclick=/);
-  assert.match(bridge, /loadAppState\(expectedAccess\)/);
+  assert.match(bridge, /loadAppState\(expectedAccess, \{ reuseVerifiedContext:bootstrap \}\)/);
   assert.match(fs.readFileSync(path.join(root, 'cloud-sync.js'), 'utf8'), /loadAppState\(scope\)[\s\S]*?saveAppState\(payload, Number\(cloud\?\.revision \|\| 0\), scope\)/);
   assert.match(bridge, /generation !== authGeneration/);
 });
