@@ -30,13 +30,20 @@
         fetch('/api/production-readiness', {cache:'no-store'}).then(r=>r.json())
       ]);
 
-      const pass = health?.ok === true && release?.version === 'V198' && ready?.ok === true;
+      const pass = health?.ok === true &&
+        release?.apiContractVersion === 'V198' &&
+        Boolean(release?.productVersion) &&
+        release.productVersion === ready?.productVersion &&
+        ready?.ready === true;
       line.textContent = pass
-        ? `الواجهة وواجهات الفحص تعمل — إعدادات الإنتاج ${ready.summary?.present || 0}/${ready.summary?.required || 0}`
-        : 'تحتاج مراجعة قبل الإنتاج';
+        ? `المنصة جاهزة — إعدادات التشغيل ${ready.summary?.present || 0}/${ready.summary?.required || 0}`
+        : `تحتاج مراجعة قبل الإنتاج — ${ready?.checks?.supabaseConnection?.connection?.state || 'unknown'}`;
 
       details.textContent = JSON.stringify({
-        version: release?.version || null,
+        apiContractVersion: release?.apiContractVersion || release?.version || null,
+        productVersion: release?.productVersion || null,
+        ready: ready?.ready === true,
+        connection: ready?.checks?.supabaseConnection?.connection?.state || null,
         environment: ready?.deployment?.environment || null,
         configured: ready?.summary || null
       }, null, 2);

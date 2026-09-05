@@ -20,6 +20,24 @@ const context = await browser.newContext({
 const page = await context.newPage();
 const pageErrors = [];
 const responseErrors = [];
+const dbStatusRequests = [];
+const startupDialogs = [];
+page.on('request', request => {
+  try{
+    const url = new URL(request.url());
+    if(url.origin === previewUrl.origin && ['/api/db/status','/api/supabase-status'].includes(url.pathname)){
+      dbStatusRequests.push(url.pathname);
+    }
+  }catch{}
+});
+page.on('dialog', async dialog => {
+  startupDialogs.push({ type:dialog.type(), message:dialog.message() });
+  await dialog.dismiss();
+});
+await page.route('**/final-release-ui.js*', async route => {
+  await new Promise(resolve => setTimeout(resolve, 2200));
+  await route.continue();
+});
 page.on('pageerror', error => pageErrors.push(error.stack || error.message));
 page.on('response', response => {
   try{
@@ -39,6 +57,8 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
   const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
+  if(startupDialogs.length) throw new Error('blocking startup dialog: ' + JSON.stringify(startupDialogs));
+  if(dbStatusRequests.length) throw new Error('startup triggered database status requests: ' + dbStatusRequests.join(','));
   const state = await page.evaluate(() => ({
     gate:Boolean(document.getElementById('aqariCloudGateV168')?.classList.contains('on')),
     loginSecure:window.login === window.cloudLoginV198,
@@ -303,10 +323,22 @@ await check('V201 quick-create respects the auth gate and keeps an accessible mo
   });
 });
 
+await check('V79 database status is manual, coalesced, and render-safe', async () => {
+  const before = dbStatusRequests.length;
+  if(before !== 0) throw new Error(`database status requested during startup: ${dbStatusRequests.join(', ')}`);
+  await page.evaluate(() => Promise.all(Array.from({length:20}, () => window.checkBootstrapV79())));
+  if(dbStatusRequests.length - before !== 1) throw new Error(`status requests were not coalesced: ${dbStatusRequests.length - before}`);
+  const after = dbStatusRequests.length;
+  await page.evaluate(() => { for(let i=0;i<10;i+=1) window.render(); });
+  await page.waitForTimeout(100);
+  if(dbStatusRequests.length !== after) throw new Error('render triggered a database status request');
+});
+
 async function readApi(path){
   const response = await page.request.get(new URL(path, base).toString());
   if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
-  if(!String(response.headers()['cache-control'] || '').includes('no-store')) throw new Error(`${path} cache contract`);
+  const cacheControl = String(response.headers()['cache-control'] || '');
+  if(!cacheControl.includes('no-store')) throw new Error(`${path} browser cache contract`);
   if(response.headers()['x-content-type-options'] !== 'nosniff') throw new Error(`${path} nosniff contract`);
   const body = await response.json();
   if(body.ok !== true || body.version !== 'V198') throw new Error(`${path} payload mismatch`);
@@ -328,42 +360,37 @@ await check('legacy database status compatibility', async () => {
   const body = await readApi('/api/db/status');
   if(body.provider !== 'supabase' || body.mode !== 'supabase_cloud') throw new Error('Supabase mode missing');
   if(body.configured !== true) throw new Error('public Supabase configuration missing');
-  if(typeof body.connected !== 'boolean') throw new Error('connected must be boolean');
-  if(body.connectionVerified !== false) throw new Error('compatibility route must not claim a live database check');
+  if(body.connected !== true || body.connectionVerified !== true) throw new Error('live Supabase connection was not verified');
+  if(body.connection?.state !== 'up') throw new Error(`Supabase connection state ${body.connection?.state || 'missing'}`);
   if(typeof body.authMode !== 'string' || !body.authMode) throw new Error('authMode missing');
   if(!Array.isArray(body.tables)) throw new Error('tables must be an array');
+  if('releasePreparationSnapshot' in body) throw new Error('stale release snapshot leaked');
 });
 
 await check('Preview SHA and environment', async () => {
   const body = await readApi('/api/production-meta');
   if(body.deployment?.environment !== 'preview') throw new Error('not a Preview deployment');
   if(body.deployment?.gitSha !== expectedSha) throw new Error(`SHA ${body.deployment?.gitSha || 'missing'} != ${expectedSha}`);
+  if(body.productVersion !== 'V211.1.2' || body.apiContractVersion !== 'V198') throw new Error('release identity mismatch');
 });
 
 await check('Preview production-readiness contract', async () => {
   const body = await readApi('/api/production-readiness');
-  const configured = body.configured;
   const summary = body.summary;
   if(body.deployment?.environment !== 'preview') throw new Error('production-readiness did not report Preview');
-  if(!configured || typeof configured !== 'object' || Array.isArray(configured)) throw new Error('configured map missing');
-
-  const keys = Object.keys(configured);
-  if(!keys.length) throw new Error('configured map is empty');
-  for(const key of keys){
-    if(!/^[A-Z][A-Z0-9_]*$/.test(key)) throw new Error(`invalid configured key: ${key}`);
-    if(typeof configured[key] !== 'boolean') throw new Error(`configured.${key} must be boolean`);
-  }
-
-  if(!summary || !Number.isInteger(summary.present) || !Number.isInteger(summary.required) || typeof summary.ready !== 'boolean'){
+  if(!summary || !Number.isInteger(summary.passed) || !Number.isInteger(summary.required) || typeof summary.ready !== 'boolean'){
     throw new Error('summary contract invalid');
   }
-  const present = Object.values(configured).filter(Boolean).length;
   if(summary.required <= 0) throw new Error('summary.required must be positive');
-  if(summary.required !== keys.length) throw new Error(`required ${summary.required} != configured keys ${keys.length}`);
-  if(summary.present !== present) throw new Error(`present ${summary.present} != configured true values ${present}`);
-  if(summary.ready !== (summary.present === summary.required)) throw new Error('summary.ready is inconsistent');
+  if(summary.ready !== (summary.passed === summary.required) || body.ready !== summary.ready) throw new Error('readiness is inconsistent');
+  if(body.ready !== true) throw new Error('Preview is not operationally ready: ' + JSON.stringify(body.checks));
+  if(body.checks?.supabaseConnection?.state !== 'up') throw new Error('Supabase live check did not pass');
+  const serialized = JSON.stringify(body);
+  if(/DATABASE_URL|AUTH_SECRET|MFA_ENCRYPTION_KEY|S3_SECRET_ACCESS_KEY|RESEND_API_KEY|WHATSAPP_ACCESS_TOKEN|PAYMENT_WEBHOOK_SECRET/.test(serialized)){
+    throw new Error('legacy secret footprint leaked from readiness payload');
+  }
 
-  console.log('INFO', `production environment configuration visible to Preview: ${summary.present}/${summary.required}`);
+  console.log('INFO', `operational readiness checks: ${summary.passed}/${summary.required}`);
 });
 
 await check('PWA and V209 presentation assets', async () => {

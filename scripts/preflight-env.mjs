@@ -1,40 +1,21 @@
-const required = [
-  'DATABASE_URL',
-  'AUTH_SECRET',
-  'MFA_ENCRYPTION_KEY',
-  'S3_ENDPOINT',
-  'S3_BUCKET',
-  'S3_ACCESS_KEY_ID',
-  'S3_SECRET_ACCESS_KEY',
-  'RESEND_API_KEY',
-  'WHATSAPP_ACCESS_TOKEN',
-  'WHATSAPP_PHONE_NUMBER_ID',
-  'PAYMENT_WEBHOOK_SECRET'
-];
+import {
+  deploymentIdentityStatus,
+  PRODUCT_VERSION,
+  publicConfigurationStatus
+} from '../lib/release-config.js';
 
-const optional = [
-  'APP_BASE_URL',
-  'OPS_STATUS_TOKEN'
-];
+const config = publicConfigurationStatus();
+const identity = deploymentIdentityStatus();
 
-let failed = false;
-
-console.log('AQARI V198 Environment Preflight');
-console.log('--------------------------------');
-
-for (const key of required) {
-  const ok = Boolean(process.env[key]);
-  console.log(`${ok ? 'PASS' : 'FAIL'} ${key}`);
-  if (!ok) failed = true;
+console.log(`AQARI ${PRODUCT_VERSION} active-runtime preflight`);
+console.log(`${config.summary.ready ? 'PASS' : 'FAIL'} browser-safe Supabase configuration`);
+if(identity.required){
+  console.log(`${identity.ready ? 'PASS' : 'FAIL'} Vercel deployment identity`);
 }
+console.log('PASS private application secrets are not required by the active runtime');
 
-for (const key of optional) {
-  const ok = Boolean(process.env[key]);
-  console.log(`${ok ? 'PASS' : 'WARN'} ${key} (optional)`);
-}
-
-if (failed) {
-  console.error('Preflight failed: one or more required environment variables are missing.');
+if(!config.summary.ready || !identity.ready){
+  console.error('Preflight failed: active runtime configuration is incomplete.');
   process.exit(1);
 }
 

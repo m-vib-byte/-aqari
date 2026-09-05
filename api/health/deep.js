@@ -1,23 +1,40 @@
 import { beginReadOnly, sendReadOnlyJson } from '../../lib/read-only.js';
+import {
+  deploymentMetadata,
+  publicConfigurationStatus,
+  releaseIdentity,
+  setOperationalCache,
+  shouldProbeSupabase,
+  unverifiedSupabaseConnection
+} from '../../lib/release-config.js';
+import { probeSupabase } from '../../lib/supabase-probe.js';
 
 export default async function handler(req, res) {
   if(!beginReadOnly(req, res)) return;
+  setOperationalCache(res);
+
+  const config = publicConfigurationStatus();
+  const connection = shouldProbeSupabase()
+    ? await probeSupabase()
+    : unverifiedSupabaseConnection();
+  const cloudOk = config.summary.ready && (connection.state === 'up' || connection.state === 'not_checked');
 
   return sendReadOnlyJson(req, res, {
-    ok: true,
-    status: 'healthy',
+    ok: cloudOk,
+    status: cloudOk ? 'healthy' : 'degraded',
     mode: 'supabase_cloud',
     checks: {
       runtime: { ok:true, required:true },
       staticApp: { ok:true, required:true },
       cloudIntegration: {
-        ok: true,
+        ok: cloudOk,
         required: true,
-        detail: 'V198 Supabase Auth, workspace RLS, revision CAS, and explicit manual transfer controls are deployed.'
+        configured: config.summary.ready,
+        connection
       }
     },
-    version: 'V198',
-    environment: process.env.VERCEL_ENV || 'unknown',
+    ...releaseIdentity(),
+    environment: deploymentMetadata().environment,
     timestamp: new Date().toISOString()
   });
 }

@@ -8,6 +8,18 @@ const { pathToFileURL } = require('node:url');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '..');
+const cachedStatusRoutes = new Set([
+  'api/health/deep.js',
+  'api/supabase-status.js',
+  'api/production-readiness.js',
+  'api/final-release-status.js',
+]);
+
+// Runtime contract tests must be deterministic and must never probe production.
+global.fetch = async () => ({ ok:true, status:200, async json(){ return true; } });
+process.env.VERCEL_ENV = 'preview';
+process.env.VERCEL_GIT_COMMIT_SHA = process.env.VERCEL_GIT_COMMIT_SHA || 'c'.repeat(40);
+process.env.VERCEL_URL = process.env.VERCEL_URL || 'aqari-contract-preview.vercel.app';
 
 async function loadHandler(relativePath) {
   const url = pathToFileURL(path.join(root, relativePath)).href;
@@ -59,6 +71,9 @@ for (const relativePath of [
     assert.equal(get.statusCode, 200);
     assert.equal(get.body.ok, true);
     assert.equal(get.headers['cache-control'], 'no-store, max-age=0');
+    if(cachedStatusRoutes.has(relativePath)){
+      assert.match(get.headers['vercel-cdn-cache-control'], /s-maxage=60/);
+    }
     assert.equal(get.headers['x-content-type-options'], 'nosniff');
     assert.equal((await invoke(handler, 'HEAD')).statusCode, 200);
     const post = await invoke(handler, 'POST');
@@ -353,8 +368,11 @@ test('operational endpoints report the V198 cloud mode', async () => {
   const release = (await invoke(await loadHandler('api/release.js'))).body;
 
   assert.equal(health.version, 'V198');
+  assert.equal(health.apiContractVersion, 'V198');
+  assert.equal(health.productVersion, 'V211.1.2');
   assert.equal(health.mode, 'supabase_cloud');
   assert.equal(deep.version, 'V198');
+  assert.equal(deep.productVersion, 'V211.1.2');
   assert.equal(deep.mode, 'supabase_cloud');
   assert.equal(deep.checks.cloudIntegration.required, true);
   assert.equal(ops.version, 'V198');
@@ -362,19 +380,60 @@ test('operational endpoints report the V198 cloud mode', async () => {
   assert.equal(ops.capabilities.cloudAuth, 'supabase_rls');
   assert.equal(ops.capabilities.centralizedDataApi, true);
   assert.equal(release.version, 'V198');
+  assert.equal(release.productVersion, 'V211.1.2');
+  assert.equal(release.releaseStage, 'production');
   assert.equal(release.ok, true);
 });
 
-test('canonical Supabase status provides transparent legacy compatibility metadata', async () => {
+test('canonical Supabase status reports a verified live connection without stale snapshots', async () => {
   const status = (await invoke(await loadHandler('api/supabase-status.js'))).body;
 
   assert.equal(status.version, 'V198');
   assert.equal(status.provider, 'supabase');
   assert.equal(status.mode, 'supabase_cloud');
   assert.equal(status.configured, true);
-  assert.equal(status.connected, false);
-  assert.equal(status.connectionVerified, false);
-  assert.equal(status.authMode, 'Supabase Auth + RLS');
+  assert.equal(status.connected, true);
+  assert.equal(status.connectionVerified, true);
+  assert.equal(status.connection.state, 'up');
+  assert.equal(status.authMode, 'supabase_auth_rls');
   assert.deepEqual(status.tables, []);
-  assert.match(status.note, /no live database query/i);
+  assert.equal('releasePreparationSnapshot' in status, false);
+  assert.doesNotMatch(JSON.stringify(status), /authUsers|memberships|appStates/);
+});
+
+test('V79 database probes are explicit, coalesced, and never part of render', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const hook = html.match(/const rv79=render;render=function\(\)\{([\s\S]*?)\};render\(\);/);
+  assert.ok(hook, 'V79 render hook missing');
+  assert.doesNotMatch(hook[1], /checkBootstrapV79|fetch\s*\(/);
+  assert.match(html, /onclick="checkBootstrapV79\(true\)"/);
+  assert.match(html, /bootstrapStatusInFlightV79/);
+  assert.match(html, /BOOTSTRAP_STATUS_TTL_V79=5\*60\*1000/);
+});
+
+test('startup backup waits for the exact authenticated workspace and never blocks', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const bridge = fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8');
+  const backup = html.match(/async function makeAutoBackup\(options=\{\}\)\{([\s\S]*?)\n\}/);
+  assert.ok(backup, 'guarded source backup missing');
+  assert.doesNotMatch(backup[1], /alert\s*\(/);
+  assert.doesNotMatch(html, /setTimeout\(\(\)=>makeAutoBackup\(\),1500\)/);
+  assert.match(html, /AQARI_AUTO_BACKUP_KEEP_V211=14/);
+  assert.match(html, /openCursor\(null,'prev'\)/);
+  assert.match(bridge, /AQARI_STARTUP_BACKUP\?\.cancel\?\.\(\)/);
+  assert.match(bridge, /AQARI_STARTUP_BACKUP\?\.schedule\?\.\(\)/);
+});
+
+test('production status uses actual readiness instead of endpoint liveness', () => {
+  const source = fs.readFileSync(path.join(root, 'production-status.js'), 'utf8');
+  assert.match(source, /ready\?\.ready\s*===\s*true/);
+  assert.doesNotMatch(source, /ready\?\.ok\s*===\s*true/);
+});
+
+test('migration status reads committed auth context and refreshes only on explicit request', () => {
+  const source = fs.readFileSync(path.join(root, 'first-run-migration.js'), 'utf8');
+  assert.match(source, /window\.AQARI_SUPABASE\.context/);
+  assert.match(source, /refreshBtn\.addEventListener\('click', \(\) => refresh\(true\)\)/);
+  assert.match(source, /aqari:auth-boundary/);
+  assert.doesNotMatch(source, /async function getAuthInfo\(\)\{[\s\S]*?refreshContext\(\)/);
 });

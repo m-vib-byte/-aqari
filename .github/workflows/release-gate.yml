@@ -46,6 +46,8 @@ jobs:
           node --check v211-follow-up-center.js
           node --check v211-follow-up-center-core.js
           node --check lib/read-only.js
+          node --check lib/release-config.js
+          node --check lib/supabase-probe.js
       - name: Verify release marker
         run: |
           grep -q "V198" index.html

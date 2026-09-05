@@ -18,20 +18,21 @@ const e2e = fs.readFileSync('tests/preview.e2e.mjs', 'utf8');
 for (const contract of [
   "error.stack || error.message",
   "body.deployment?.environment !== 'preview'",
-  "typeof configured[key] !== 'boolean'",
   'summary.required <= 0',
-  'summary.required !== keys.length',
-  'summary.present !== present',
-  'summary.ready !== (summary.present === summary.required)',
-  'production environment configuration visible to Preview'
+  'summary.ready !== (summary.passed === summary.required)',
+  "body.ready !== true",
+  "body.checks?.supabaseConnection?.state !== 'up'",
+  'operational readiness checks',
+  'status requests were not coalesced',
+  'blocking startup dialog'
 ]) {
   if (!e2e.includes(contract)) {
     console.error('Missing Preview E2E contract:', contract);
     failed = true;
   }
 }
-if (e2e.includes('body.summary?.ready !== true')) {
-  console.error('Preview E2E must not require Production secrets to be injected into Preview');
+if (!e2e.includes('legacy secret footprint leaked from readiness payload')) {
+  console.error('Preview E2E must reject leaked legacy secret metadata');
   failed = true;
 }
 

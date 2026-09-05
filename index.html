@@ -3760,7 +3760,7 @@ html,body{max-width:100%;overflow-x:hidden}
 
 <section id="bootstrapWizardPage" class="p"><div class="c"><h3>معالج تشغيل قاعدة البيانات</h3>
 <div class="grid"><div class="c m">Status<b id="bsStatusV79">—</b></div><div class="c m">Tables<b id="bsTablesV79">0</b></div><div class="c m">API<b id="bsApiV79">—</b></div><div class="c m">Last Run<b id="bsLastV79">—</b></div></div>
-<div class="r"><button class="g" onclick="runBootstrapV79()">تشغيل Bootstrap</button><button onclick="checkBootstrapV79()">فحص الجداول</button></div>
+<div class="r"><button class="g" onclick="runBootstrapV79()">تشغيل Bootstrap</button><button onclick="checkBootstrapV79(true)">فحص الجداول</button></div>
 <div id="bootstrapResultsV79"></div></div></section><section id="deploymentPackPage" class="p"><div class="c"><h3>Production Deploy Pack V80</h3>
 <div class="grid">
 <div class="c m">نسخة Production<b>جاهزة للحزمة</b></div>
@@ -5446,6 +5446,7 @@ function openAqariV47Db(ticket=captureWorkspaceStorageV206()){
       aqariV47Db=opened;aqariV47WorkspaceV206=workspaceId;resolve(aqariV47Db)
     };
     req.onerror=()=>reject(req.error);
+    req.onblocked=()=>reject(new Error('AQARI local database upgrade is blocked'));
   });
 }
 
@@ -5475,37 +5476,98 @@ async function restoreFromIndexedDb(){
   let ticket=null;
   try{
     ticket=captureWorkspaceStorageV206();const d=await openAqariV47Db(ticket);assertWorkspaceStorageV206(ticket);
-    const rec=await new Promise((resolve,reject)=>{
+    let source='الحالة المحلية';
+    let rec=await new Promise((resolve,reject)=>{
       const r=d.transaction('state','readonly').objectStore('state').get('main');
-      r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error);
+      r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
     });
+    if(!rec?.data){
+      source='آخر نسخة تلقائية';
+      rec=await new Promise((resolve,reject)=>{
+        const r=d.transaction('backups','readonly').objectStore('backups').openCursor(null,'prev');
+        r.onsuccess=()=>resolve(r.result?.value||null);r.onerror=()=>reject(r.error);
+      });
+    }
     assertWorkspaceStorageV206(ticket);
-    if(!rec?.data){alert('لا توجد نسخة محلية محفوظة');return}
+    if(!rec?.data){if(typeof showToast==='function')showToast('لا توجد نسخة محلية محفوظة');return false}
     db=window.AQARI_DATA_GATE?.prepareState(rec.data)||{};
     assertWorkspaceStorageV206(ticket);
     for(const k in mods) db[k]??=[];
-    persist(); render();
-    if(typeof showToast==='function') showToast('تمت الاستعادة من IndexedDB');
-  }catch(e){if(ticket&&!workspaceStorageCurrentV206(ticket))return;alert('تعذر الاستعادة: '+(e?.message||e)); }
+    persist();render();
+    if(typeof showToast==='function')showToast('تمت الاستعادة من '+source);
+    return true;
+  }catch(error){
+    if(ticket&&!workspaceStorageCurrentV206(ticket))return false;
+    if(typeof showToast==='function')showToast('تعذر الاستعادة حالياً');
+    console.warn('[AQARI] local restore skipped',error?.message||String(error));
+    return false;
+  }
 }
 
-async function makeAutoBackup(){
+const AQARI_AUTO_BACKUP_MAX_AGE_V211=24*60*60*1000;
+const AQARI_AUTO_BACKUP_KEEP_V211=14;
+let aqariAutoBackupInFlightV211=false;
+let aqariStartupBackupTimerV211=null;
+let aqariStartupBackupScopeV211='';
+function autoBackupScopeKeyV211(){
+  const scope=activeWorkspaceStorageScopeV206();
+  return scope?scope.userId+'\\u0000'+scope.workspaceId:'';
+}
+function autoBackupDueV211(){
+  const at=Date.parse(localStorage.getItem('aqari_v47_last_backup')||'');
+  return !Number.isFinite(at)||Date.now()-at>AQARI_AUTO_BACKUP_MAX_AGE_V211;
+}
+async function makeAutoBackup(options={}){
+  const automatic=options?.automatic===true;
+  if(!autoBackupScopeKeyV211()||aqariAutoBackupInFlightV211)return false;
+  aqariAutoBackupInFlightV211=true;
   let ticket=null;
   try{
     ticket=captureWorkspaceStorageV206();const d=await openAqariV47Db(ticket);assertWorkspaceStorageV206(ticket);
-    const snapshot=JSON.parse(JSON.stringify(db));
-    const rec={createdAt:new Date().toISOString(),size:JSON.stringify(snapshot).length,data:snapshot};
+    const raw=JSON.stringify(db);
+    const rec={createdAt:new Date().toISOString(),size:raw.length,data:JSON.parse(raw)};
     await new Promise((resolve,reject)=>{
-      const tx=d.transaction('backups','readwrite');
-      tx.objectStore('backups').add(rec);
-      tx.oncomplete=resolve; tx.onerror=()=>reject(tx.error);
+      const tx=d.transaction('backups','readwrite'),store=tx.objectStore('backups');
+      store.add(rec);
+      const keys=store.getAllKeys();
+      keys.onsuccess=()=>{for(const key of keys.result.slice(0,-AQARI_AUTO_BACKUP_KEEP_V211))store.delete(key)};
+      tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);
+      tx.onabort=()=>reject(tx.error||new Error('AQARI backup transaction aborted'));
     });
     assertWorkspaceStorageV206(ticket);
     localStorage.setItem('aqari_v47_last_backup',rec.createdAt);
-    if(document.getElementById('autoBackupState')) autoBackupState.textContent=new Date(rec.createdAt).toLocaleString('ar-KW');
-    if(typeof showToast==='function') showToast('تم إنشاء نسخة تلقائية');
-  }catch(e){if(ticket&&!workspaceStorageCurrentV206(ticket))return;alert('تعذر إنشاء النسخة: '+(e?.message||e))}
+    const state=document.getElementById('autoBackupState');
+    if(state)state.textContent=new Date(rec.createdAt).toLocaleString('ar-KW');
+    if(typeof showToast==='function')showToast('تم إنشاء نسخة تلقائية');
+    return true;
+  }catch(error){
+    if(ticket&&!workspaceStorageCurrentV206(ticket))return false;
+    if(!automatic&&typeof showToast==='function')showToast('تعذر إنشاء النسخة حالياً');
+    console.warn('[AQARI] backup skipped',error?.message||String(error));
+    return false;
+  }finally{aqariAutoBackupInFlightV211=false}
 }
+function cancelStartupBackupV211(){
+  if(aqariStartupBackupTimerV211!==null)clearTimeout(aqariStartupBackupTimerV211);
+  aqariStartupBackupTimerV211=null;aqariStartupBackupScopeV211='';
+}
+function scheduleStartupBackupV211(){
+  const scope=autoBackupScopeKeyV211();
+  if(!scope||!autoBackupDueV211())return false;
+  if(aqariStartupBackupTimerV211!==null&&aqariStartupBackupScopeV211===scope)return true;
+  cancelStartupBackupV211();aqariStartupBackupScopeV211=scope;
+  aqariStartupBackupTimerV211=setTimeout(async()=>{
+    aqariStartupBackupTimerV211=null;
+    if(document.hidden||autoBackupScopeKeyV211()!==scope)return;
+    await makeAutoBackup({automatic:true});
+  },350);
+  return true;
+}
+window.AQARI_STARTUP_BACKUP=Object.freeze({
+  version:'V211.1.2',
+  schedule:scheduleStartupBackupV211,
+  cancel:cancelStartupBackupV211
+});
 
 function parseCsvLineV47(line){
   const out=[]; let cur='',q=false;
@@ -5615,8 +5677,6 @@ render=function(){
 };
 
 (function v47Init(){
-  const last=localStorage.getItem('aqari_v47_last_backup');
-  if(!last || Date.now()-new Date(last).getTime()>24*3600*1000) setTimeout(()=>makeAutoBackup(),1500);
   render();
 })();
 
@@ -5774,11 +5834,12 @@ async function checkDatabaseV50(){
   try{
     const r=await fetch('/api/db/status',{headers:{'Accept':'application/json'}});
     const j=await r.json();
-    dbStatus.textContent=j.connected?'متصلة':'غير مربوطة';
-    authStatus.textContent=j.authMode||'Demo';
+    const connectionState=j.connection?.state||'not_checked';
+    dbStatus.textContent=connectionState==='up'?'متصلة':connectionState==='down'?'متعذرة':'غير محسومة';
+    authStatus.textContent=j.authMode||'supabase_auth_rls';
     tableCount.textContent=Array.isArray(j.tables)?j.tables.length:'—';
     dbCheckTime.textContent=new Date().toLocaleString('ar-KW');
-    databaseNotes.innerHTML=`<div class="c">${j.connected?'قاعدة البيانات المركزية متصلة وجاهزة.':'لا يوجد DATABASE_URL بعد. المنصة ستستمر محليًا إلى أن يتم ربط قاعدة البيانات.'}</div>`;
+    databaseNotes.innerHTML=`<div class="c">${connectionState==='up'?'تم التحقق من اتصال Supabase.':j.configured?'إعداد Supabase موجود، لكن تعذر حسم الاتصال الآن.':'إعداد Supabase العام غير مكتمل.'}</div>`;
   }catch(e){
     dbStatus.textContent='غير متاح';
     databaseNotes.innerHTML=`<div class="c">تعذر فحص قاعدة البيانات: ${e?.message||e}</div>`;
@@ -7324,8 +7385,8 @@ function runFinalQaV76(){
   checkV76('QA Center',typeof runQualityAuditV73==='function'),
   checkV76('Recovery',!!localStorage.getItem('aqari_v74_recovery_point'),true,'أنشئ نقطة استعادة من V74'),
   checkV76('HTTPS',location.protocol==='https:'||location.hostname==='localhost',true),
-  checkV76('Production PIN',false,true,'يجب إزالة 1234 قبل Go-Live'),
-  checkV76('Central database',false,true,'يتطلب ربط DATABASE_URL فعلي')
+  checkV76('Production authentication',window.login===window.cloudLoginV198&&window.loginLocalV120===window.cloudLoginV198,true,'Supabase Auth + RLS'),
+  checkV76('Central database',Boolean(window.AQARI_PUBLIC_CONFIG?.supabaseUrl&&window.AQARI_PUBLIC_CONFIG?.supabasePublishableKey),true,'Supabase public configuration')
  ];
  const pass=checks.filter(x=>x.ok).length,fail=checks.length-pass,block=checks.filter(x=>!x.ok&&x.blocker).length,score=Math.round(pass/checks.length*100);
  fqScoreV76.textContent=score+'%';fqPassV76.textContent=pass;fqFailV76.textContent=fail;fqBlockV76.textContent=block;
@@ -7501,23 +7562,51 @@ async function runBootstrapV79(){
    bsStatusV79.textContent='فشل';bsApiV79.textContent='غير متاح';bootstrapResultsV79.innerHTML=`<div class="c">${e.message}</div>`;
  }
 }
-async function checkBootstrapV79(){
- try{
-   const r=await fetch('/api/db/status'),j=await r.json();if(!r.ok)throw Error(j.error||('HTTP '+r.status));
-   bsStatusV79.textContent=j.connected?'متصل':'غير متصل';bsTablesV79.textContent=j.tables?.length||0;bsApiV79.textContent='سليم';
-   const at=localStorage.getItem('aqari_v79_bootstrap_at');bsLastV79.textContent=at?new Date(at).toLocaleString('ar-KW'):'—';
-   bootstrapResultsV79.innerHTML=`<div class="c">الجداول الحالية: ${(j.tables||[]).join('، ')||'لا توجد جداول'}</div>`;
- }catch(e){bootstrapResultsV79.innerHTML=`<div class="c">${e.message}</div>`}
+let bootstrapStatusInFlightV79=null;
+let bootstrapStatusCacheV79=null;
+const BOOTSTRAP_STATUS_TTL_V79=5*60*1000;
+function applyBootstrapStatusV79(status){
+ const state=status?.connection?.state;
+ bsStatusV79.textContent=state==='up'?'متصل':state==='down'?'غير متصل':status?.configured?'مهيأ — تعذر التحقق':'غير مهيأ';
+ bsTablesV79.textContent=Array.isArray(status?.tables)?status.tables.length:0;
+ bsApiV79.textContent=status?.ok?'سليم':'غير متاح';
+ const at=localStorage.getItem('aqari_v79_bootstrap_at');
+ bsLastV79.textContent=at?new Date(at).toLocaleString('ar-KW'):'—';
+ const latency=Number.isFinite(status?.connection?.latencyMs)?' ('+status.connection.latencyMs+'ms)':'';
+ bootstrapResultsV79.innerHTML=`<div class="c">${state==='up'?'تم التحقق من اتصال Supabase'+latency:state==='down'?'استجاب Supabase بحالة غير سليمة':status?.configured?'إعداد Supabase موجود، لكن الاتصال لم يُحسم':'إعداد Supabase غير مكتمل'}</div>`;
+}
+async function checkBootstrapV79(force=false){
+ const now=Date.now();
+ if(!force&&bootstrapStatusCacheV79&&now-bootstrapStatusCacheV79.at<BOOTSTRAP_STATUS_TTL_V79){
+  applyBootstrapStatusV79(bootstrapStatusCacheV79.data);
+  return bootstrapStatusCacheV79.data;
+ }
+ if(bootstrapStatusInFlightV79)return bootstrapStatusInFlightV79;
+ bootstrapStatusInFlightV79=(async()=>{
+  try{
+   const r=await fetch('/api/supabase-status',{headers:{Accept:'application/json'},cache:force?'reload':'default'});
+   const status=await r.json();
+   if(!r.ok)throw Error(status.error||('HTTP '+r.status));
+   bootstrapStatusCacheV79={at:Date.now(),data:status};
+   applyBootstrapStatusV79(status);
+   return status;
+  }catch(error){
+   bsApiV79.textContent='غير متاح';
+   bootstrapResultsV79.innerHTML=`<div class="c">${error.message}</div>`;
+   return null;
+  }finally{bootstrapStatusInFlightV79=null}
+ })();
+ return bootstrapStatusInFlightV79;
 }
 function downloadEnvTemplateV79(){
- const txt=`DATABASE_URL=\nAUTH_SECRET=\nADMIN_PIN=\nWHATSAPP_TOKEN=\nEMAIL_API_KEY=\nPAYMENT_API_KEY=\n`;
+ const txt=`# AQARI V211.1.2 active runtime\n# No application server secrets are required.\n# Supabase uses the browser-safe values in public-config.js.\n# VERCEL_ENV, VERCEL_GIT_COMMIT_SHA, and VERCEL_URL are supplied by Vercel.\n# Never add a Supabase service-role key to a public deployment.\n`;
  const b=new Blob([txt],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='.env.production.example';a.click()
 }
 function exportDeployReportV79(){
  if(!deployReportV79){runDeploymentAuditV79();return}
  const b=new Blob([JSON.stringify(deployReportV79,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v79-deployment-report.json';a.click()
 }
-const rv79=render;render=function(){rv79();checkBootstrapV79()};render();
+const rv79=render;render=function(){rv79()};render();
 
 let validationReportV81=null;
 async function runDeploymentValidatorV81(){

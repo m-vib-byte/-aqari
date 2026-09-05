@@ -1,64 +1,6 @@
 (function(){
   'use strict';
 
-  function installStartupBackupGuard(){
-    if(typeof window.makeAutoBackup !== 'function' || window.makeAutoBackup.__v211StartupGuard) return;
-
-    let backupInFlight = false;
-
-    function exactWorkspaceScope(){
-      const context = window.AQARI_SUPABASE?.context;
-      const membership = context?.membership;
-      const userId = String(context?.user?.id || '').trim();
-      const workspaceId = String(context?.workspace?.id || '').trim();
-      const dataScope = window.AQARI_DATA_GATE?.scope;
-      const storageScope = window.AQARI_EARLY_STORAGE_GATE?.scope;
-
-      if(!userId || !workspaceId || membership?.is_active !== true) return null;
-      if(String(membership?.user_id || '') !== userId || String(membership?.workspace_id || '') !== workspaceId) return null;
-      if(String(dataScope?.userId || '') !== userId || String(dataScope?.workspaceId || '') !== workspaceId) return null;
-      if(String(storageScope?.userId || '') !== userId || String(storageScope?.workspaceId || '') !== workspaceId) return null;
-      return { userId, workspaceId };
-    }
-
-    const guardedBackup = async function(){
-      if(!exactWorkspaceScope() || backupInFlight) return false;
-      backupInFlight = true;
-      let ticket = null;
-      try{
-        ticket = captureWorkspaceStorageV206();
-        const database = await openAqariV47Db(ticket);
-        assertWorkspaceStorageV206(ticket);
-        const snapshot = JSON.parse(JSON.stringify(db));
-        const record = { createdAt:new Date().toISOString(), size:JSON.stringify(snapshot).length, data:snapshot };
-        await new Promise((resolve,reject) => {
-          const transaction = database.transaction('backups','readwrite');
-          transaction.objectStore('backups').add(record);
-          transaction.oncomplete = resolve;
-          transaction.onerror = () => reject(transaction.error);
-        });
-        assertWorkspaceStorageV206(ticket);
-        localStorage.setItem('aqari_v47_last_backup',record.createdAt);
-        const state = document.getElementById('autoBackupState');
-        if(state) state.textContent = new Date(record.createdAt).toLocaleString('ar-KW');
-        if(typeof window.showToast === 'function') window.showToast('تم إنشاء نسخة تلقائية');
-        return true;
-      }catch(error){
-        if(ticket && typeof workspaceStorageCurrentV206 === 'function' && !workspaceStorageCurrentV206(ticket)) return false;
-        if(typeof window.showToast === 'function') window.showToast('تعذر إنشاء النسخة التلقائية حالياً');
-        console.warn('[AQARI] automatic backup skipped', error?.message || String(error));
-        return false;
-      }finally{
-        backupInFlight = false;
-      }
-    };
-
-    guardedBackup.__v211StartupGuard = true;
-    window.makeAutoBackup = guardedBackup;
-  }
-
-  installStartupBackupGuard();
-
   function mount(){
     if(document.querySelector('.aq-v196-final')) return;
 
@@ -67,7 +9,7 @@
     box.className = 'aq-v196-final';
 
     const title = document.createElement('strong');
-    title.textContent = 'عقاري V211.1 — سجل المتابعة السحابي';
+    title.textContent = 'عقاري V211.1.2 — سجل المتابعة السحابي';
 
     const desc = document.createElement('small');
     desc.textContent = 'الإصدار التشغيلي يضيف مركز متابعة للمستحقات والمراجعات فوق لوحة V210 وطبقة البيانات المحمية، مع بقاء أدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
