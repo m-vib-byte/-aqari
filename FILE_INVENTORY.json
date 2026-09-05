@@ -1,9 +1,21 @@
 {
   "version": "V198",
   "files": [
-    {"path":"demo-v211.html","size":1118371,"sha256":"ca41d2cab3e3c848923c2cf72c2da736c56410827664faf98272f26d5280bda4"},
-    {"path":"tests/demo-v211.test.cjs","size":1940,"sha256":"61aff62a0119a756f1adfd2c624658d17cdd104700839b77781a30bf99d701f4"},
-    {"path":"DEMO_V211.md","size":1184,"sha256":"d03eacd89a258df740a16bcaa4fa907e43529c87ce844b00f4a3282360e47a12"},
+    {
+      "path": "demo-v211.html",
+      "size": 1118613,
+      "sha256": "06e180956602f630f735d82ba840e9b709c717b35813d53d8118ca1381bcfa59"
+    },
+    {
+      "path": "tests/demo-v211.test.cjs",
+      "size": 2055,
+      "sha256": "1cc36ba30c6694520f95cd50cb2b73468d611b725880a494a13e8473f0f0d472"
+    },
+    {
+      "path": "DEMO_V211.md",
+      "size": 1261,
+      "sha256": "e044bb2b122eb43187c4147e28c2aba718d0c1608607356a5c3aad2f1f5d1e39"
+    },
     {
       "path": "demo.html",
       "size": 16865,

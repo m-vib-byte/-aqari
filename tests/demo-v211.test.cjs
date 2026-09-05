@@ -8,7 +8,7 @@ const match=html.match(/\.srcdoc=(.*);<\/script>/s);
 assert.ok(match,'embedded original V211 UI exists');
 const inside=JSON.parse(match[1]);
 test('V211 demo cannot inherit production identity or make backend requests',()=>{
- assert.match(html,/sandbox="allow-scripts allow-modals allow-downloads"/);
+ assert.match(html,/sandbox="allow-scripts allow-modals allow-downloads allow-forms"/);
  assert.doesNotMatch(html,/allow-same-origin|allow-top-navigation|allow-popups/);
  assert.match(inside,/connect-src 'none'/);
  assert.match(inside,/form-action 'none'/);
@@ -26,6 +26,7 @@ test('fictional records are initialized only in memory',()=>{
  vm.runInNewContext(script,context);
  assert.equal(context.window.demoSeed.contractsV202.length,9);
  assert.equal(context.window.demoSeed.properties.length,2);
+ assert.ok(context.window.demoSeed.collections.every(r=>r.length===10&&r[4]&&r[6]&&r[8]==='2026-09'));
  assert.ok(context.window.demoSeed.tenantDirectoryV202.every(r=>r.email.endsWith('@example.invalid')));
  assert.equal(context.window.localStorage.getItem('production-secret'),null);
 });
