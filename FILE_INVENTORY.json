@@ -4,7 +4,7 @@
 {"path":"DEMO_V211.md","size":1261,"sha256":"e044bb2b122eb43187c4147e28c2aba718d0c1608607356a5c3aad2f1f5d1e39"},
 {"path":"demo.html","size":16865,"sha256":"e13c739eb5e2d3be608681236978ed6859418d40033bdb674b6f8d07d3651642"},
 {"path":".env.example","size":339,"sha256":"1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830"},
-{"path":".github/workflows/preview-e2e.yml","size":2154,"sha256":"7ad7071621e7d1dc85ce9e789e4c0203b204665df1ace171a4a0c97e92d866c6"},
+{"path":".github/workflows/preview-e2e.yml","size":2263,"sha256":"2a1296a53b20257973b6d3e7125040a5b487834e326a102b03779ee67f31396d"},
 {"path":".github/workflows/release-gate.yml","size":3466,"sha256":"879b070e09bfcbfe7c41cdb494b4c972975591f65aa59cdb73f83c9ebb51b14f"},
 {"path":".github/workflows/runtime-contracts.yml","size":2956,"sha256":"84f523bfdf8fde658b204ffe97653971552d5b3e39284de8eaab92fd0abafe69"},
 {"path":"api/autosync-status.js","size":432,"sha256":"ee12e6a322a3455b38e3e666318657e4d42e2044773d418d1e81fb6cae8c0da7"},
@@ -76,9 +76,9 @@
 {"path":"supabase/migrations/20260905010500_v211_1_2_runtime_health_rpc.sql","size":477,"sha256":"b3de51f6f411632aed404c2d31b66e3590985e7673b7352e15abc25a4309255f"},
 {"path":"sw.js","size":887,"sha256":"cde8c38507e05402a3bdaf1bf436fc129ca4bfada0d46c3cc94313b267b6a71c"},
 {"path":"tests/auth-data-gate.test.cjs","size":44295,"sha256":"4bb6bf6ec7cab91296133e75f1d9f9f711b310f72f3c1ede04bbe8fb6ca21011"},
-{"path":"tests/mobile-login-shell.test.cjs","size":6265,"sha256":"1a62812e981b100f6615c39950248db3f819e34290ce409a1e393039c12d2ad7"},
+{"path":"tests/mobile-login-shell.test.cjs","size":6381,"sha256":"2470191f6378b5620540db7dabc9740bb712083ee4e42aa6729af15b69276419"},
 {"path":"tests/operational-readiness.test.cjs","size":9628,"sha256":"8acd265ef16a8590454834b38384b815192266aaef301c0b3191c27304106c02"},
-{"path":"tests/preview.e2e.mjs","size":29531,"sha256":"b7713a660e87e7dffd71d5a7ab6b6698acd1fd67bf399d5b43a97ecb07ed6c2b"},
+{"path":"tests/preview.e2e.mjs","size":29536,"sha256":"060339ee2749c4cebee21f59645da2c39820b159f605382198498cbfbb1abfa0"},
 {"path":"tests/runtime-contracts.test.cjs","size":24864,"sha256":"8e9fabdb3f971c7da85f0fb8ea632da1b0148b20c3dd8b0bdd83b86a56242e2e"},
 {"path":"tests/v202-property-os.test.cjs","size":170249,"sha256":"699670bef9599c98558b29a16cbb908a6d69d707009f4834a197d695f69f3bb4"},
 {"path":"tests/v206-rent-ledger.test.cjs","size":8967,"sha256":"10c7a4b16680e0b44bacd2b0b0e757d5d785893e1ca06c2eec56f03bd3a6d544"},
@@ -113,7 +113,7 @@
 {"path":"v211-follow-up-center.css","size":5526,"sha256":"9256b9235a7b941c0d5de664ea8ed05d710f72d66f7ae2face749bd3c0cf8a79"},
 {"path":"v211-follow-up-center.js","size":11361,"sha256":"145efad885d4f63d74ea17486518c6a7fffc0b799d9f369283a8889364e86e48"},
 {"path":"v211-follow-up-cloud.js","size":8795,"sha256":"7a4d940130b5e29fb590223ce59fb3d2d609a5714e25eefe4bb6425beaa0f33c"},
-{"path":"vercel.json","size":3831,"sha256":"5c917f3af5d34798e9626f907e0e0f6abc11c225a7becb7a4be243f339ccc754"},
+{"path":"vercel.json","size":3820,"sha256":"465984f789fd64810f8090d7d7cce5536faf1f0d8a69085bd6f7b31763ee55f7"},
 {"path":"VERSION.json","size":2018,"sha256":"aea467a153673a2cd3101a20d6eafd6174da108b07fcd0ab12a017686ff08409"},
 {"path":"supabase/migrations/20260905043259_v266_scheduler_ui_least_privilege.sql","size":1491,"sha256":"9f2a2ebc308aedd146619f1904e23aff46b4f0d645d4682e44710f6ad7a4cdc1"},
 {"path":"tests/v266-scheduler-control.test.cjs","size":3441,"sha256":"e891ea5f97340c71abdd67eae18f8018a4d64539daa8173be5f9f3338ae62c44"},
@@ -126,5 +126,7 @@
 {"path":"tests/v266-startup-snapshot.test.cjs","size":4457,"sha256":"23b9384c534a3d45344bbeaf1b817d8da734361eb9585e3617a210ab844806ac"},
 {"path":"supabase/migrations/20260905195027_v266_read_only_startup_snapshot.sql","size":2221,"sha256":"af0044555a293e7d1fa1f1865aa48f98e498332014868256ab40c4edebb3c1ff"},
 {"path":"tests/login-speed.e2e.mjs","size":4576,"sha256":"9d2c2712548314e68111633682f4770ea87fa8fc572ac34a1351c5c8c072df4d"},
-{"path":".github/workflows/login-speed.yml","size":755,"sha256":"66a1bc8e3b857ab43d7d410883c0484d67e15e3154f673b9f444d7866df59faa"}
+{"path":".github/workflows/login-speed.yml","size":755,"sha256":"66a1bc8e3b857ab43d7d410883c0484d67e15e3154f673b9f444d7866df59faa"},
+{"path":"tests/direct-entry.e2e.mjs","size":3170,"sha256":"ee7d42510f6662889115454d0d4800240ba31158dc056f3ce81871fbdedccf43"},
+{"path":".github/workflows/direct-entry.yml","size":1152,"sha256":"f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60"}
 ]}
