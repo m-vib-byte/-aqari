@@ -1,5 +1,5 @@
 {
-  "version": "V211.1.2",
+  "version": "V198",
   "files": [
     {
       "path": ".env.example",
@@ -124,7 +124,7 @@
     {
       "path": "final-release-ui.js",
       "size": 12580,
-      "sha256": "0c8437e54014987654965ec55b83cd22423e7fc3cece0b9754bf74d065799a5b"
+      "sha256": "54489edee4f4e01ffd67157462f48282432bb5d58f9158d762d8fb4c2f33daf6"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
