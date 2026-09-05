@@ -1,7 +1,7 @@
 name: Authenticated home regression
 on:
   push:
-    branches: [fix/v266-home2]
+    branches: [main]
   pull_request:
     branches: [main]
 permissions:
@@ -12,13 +12,6 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Capture exact source for incident analysis
-        run: git archive -o /tmp/aqari-source.zip HEAD
-      - uses: actions/upload-artifact@v4
-        with:
-          name: aqari-incident-source
-          path: /tmp/aqari-source.zip
-          retention-days: 1
       - uses: actions/setup-node@v4
         with:
           node-version: 22
