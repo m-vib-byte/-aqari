@@ -122,6 +122,9 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
   assert.match(html, /document\.title=s\.appName\+' • AQARI V211\.1\.2'/);
   assert.match(html, /window\.AQARI_API_CONTRACT='V198'/);
   assert.match(html, /window\.AQARI_RELEASE='V211\.1\.2'/);
+  assert.match(html, /title\.textContent = 'V211\.1\.2 — جاهز للإنتاج'/);
+  assert.doesNotMatch(html, /title\.textContent = 'V198 — Release Freeze'/);
+  assert.doesNotMatch(html, /قبل مرحلة الربط النهائي والاختبارات الإنتاجية/);
   assert.doesNotMatch(html, /<meta name="aqari-stage" content="launch-candidate">/);
   assert.match(html, /#auth,#loginGateV120\{display:none!important\}/);
   assert.ok(html.lastIndexOf('aqari-v198-secure-cloud-js') > html.lastIndexOf('production-lockdown.js'));
