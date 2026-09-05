@@ -25,16 +25,16 @@
   let authGeneration = 0;
 
   function setGatePhase(phase){
-    document.documentElement?.classList.toggle('aqari-login-required', phase === 'login');
+    document.documentElement?.classList.toggle('aqari-login-required', phase === 'login' || phase === 'error');
     byId('aqariCloudGateV168')?.setAttribute('data-auth-phase', phase);
     const retry = byId('aqariSessionRetry');
     if(retry) retry.hidden = phase !== 'error';
   }
 
-  function boundedBootstrap(promise, stage){
+  function boundedBootstrap(promise, stage, deadlineAt = Date.now() + 12000){
     let timer;
     const deadline = new Promise((_, reject) => {
-      timer = setTimeout(() => reject(new Error('تعذر إكمال ' + stage + '. أعد المحاولة.')), 20000);
+      timer = setTimeout(() => reject(new Error('تعذر إكمال ' + stage + '. أعد المحاولة.')), Math.max(0, deadlineAt - Date.now()));
     });
     return Promise.race([promise, deadline]).finally(() => clearTimeout(timer));
   }
@@ -179,7 +179,7 @@
     try{ clearCompatibility(); }catch(_){ }
     hideLegacyGates();
     byId('aqariCloudModalV168')?.classList.remove('on');
-    updateUI();
+    try{ updateUI(); }catch(_){ }
     notice(message || 'سجل الدخول بحساب عقاري المصرح.', kind);
     try{window.dispatchEvent?.(new CustomEvent('aqari:auth-boundary',{ detail:{ state:'locked' } }))}catch(_){ }
   }
@@ -235,9 +235,9 @@
     return candidate;
   }
 
-  async function loadRemoteCandidate(expectedContext){
+  async function loadRemoteCandidate(expectedContext, bootstrap = false){
     const expectedAccess = requireLiveIdentity(expectedContext);
-    const candidate = await window.AQARI_SUPABASE.loadAppState(expectedAccess);
+    const candidate = await window.AQARI_SUPABASE.loadAppState(expectedAccess, { reuseVerifiedContext:bootstrap });
     requireRemoteWorkspace(expectedContext, candidate);
     return candidate;
   }
@@ -390,17 +390,17 @@
     window.render = wrapped;
   }
 
-  async function bootstrapOnce(generation){
-    setGatePhase('restoring');
-    notice('جاري استعادة الجلسة وفتح الصفحة الرئيسية…', 'wait');
-    sealData();
-    context = null;
-    remoteState = null;
-    hideLegacyGates();
-    buildPanel();
-    installOverrides();
+  async function bootstrapOnce(generation, deadlineAt){
     try{
-      const active = await boundedBootstrap(loadContextCandidate(), 'استعادة الجلسة');
+      setGatePhase('restoring');
+      notice('جاري استعادة الجلسة وفتح الصفحة الرئيسية…', 'wait');
+      sealData();
+      context = null;
+      remoteState = null;
+      hideLegacyGates();
+      buildPanel();
+      installOverrides();
+      const active = await boundedBootstrap(loadContextCandidate(), 'استعادة الجلسة', deadlineAt);
       if(generation !== authGeneration) return;
       if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       if(!active){
@@ -408,7 +408,7 @@
         return;
       }
       notice('تم التحقق من الحساب؛ جاري تحميل مساحة العمل…', 'wait');
-      const activeRemoteState = await boundedBootstrap(loadRemoteCandidate(active), 'تحميل مساحة العمل');
+      const activeRemoteState = await boundedBootstrap(loadRemoteCandidate(active, true), 'فتح الصفحة الرئيسية', deadlineAt);
       if(generation !== authGeneration) return;
       if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       requireRemoteWorkspace(active, activeRemoteState);
@@ -424,11 +424,13 @@
         bootstrapPending = true;
         return;
       }
+      bootstrapPending = false;
+      bootstrapPendingUserId = '';
       showGate(errorText(error), 'bad', 'error');
     }
   }
 
-  function requestBootstrap(){
+  function requestBootstrap(deadlineAt = Date.now() + 12000, restarts = 0){
     if(bootstrapFlight){
       if(authGeneration !== bootstrapFlightGeneration) bootstrapPending = true;
       return bootstrapFlight;
@@ -436,7 +438,7 @@
 
     const generation = ++authGeneration;
     bootstrapFlightGeneration = generation;
-    const attempt = bootstrapOnce(generation);
+    const attempt = bootstrapOnce(generation, deadlineAt);
     bootstrapFlight = attempt.finally(() => {
       bootstrapFlight = null;
       if(!bootstrapPending) return;
@@ -445,7 +447,13 @@
       bootstrapPendingUserId = '';
       const live = accessIdentity(context);
       if(live && (!pendingUserId || live.userId === pendingUserId)) return;
-      return requestBootstrap();
+      // A superseded read may restart once, but never extend the original
+      // deadline or trap the user in an automatic workspace-check loop.
+      if(restarts >= 1 || Date.now() >= deadlineAt){
+        showGate('تعذر فتح الصفحة الرئيسية. أعد المحاولة أو سجل الدخول من جديد.', 'bad', 'error');
+        return;
+      }
+      return requestBootstrap(deadlineAt, restarts + 1);
     });
     return bootstrapFlight;
   }
@@ -613,7 +621,7 @@
       if(previousIdentity) hardResetPage();
       return;
     }
-    if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
+    if(['INITIAL_SESSION','SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
       if(previousIdentity){
         if(String(session.user.id || '') !== previousIdentity.userId){
           bootstrapPending = false;
@@ -630,10 +638,10 @@
       if(bootstrapFlight){
         bootstrapPending = true;
         bootstrapPendingUserId = eventUserId;
-        notice('جاري التحقق من مساحة العمل…', 'wait');
+        // Do not replace the current stage or restart a same-user restore.
         return;
       }
-      showGate('جاري التحقق من مساحة العمل…', 'wait');
+      showGate('جاري فتح الصفحة الرئيسية…', 'wait', 'restoring');
       requestBootstrap();
     }
   }
@@ -728,6 +736,20 @@
       scheduleAuthListenerRetry();
       return false;
     });
+    // This is only a presentation hint, never permission to open the app.
+    // With no persisted session, show email/password immediately rather than
+    // making a signed-out visitor wait for workspace or network checks.
+    let hasStoredSession = true;
+    try{
+      const key = window.AQARI_SUPABASE?.authStorageKey;
+      if(key) hasStoredSession = Boolean(localStorage.getItem(key));
+    }catch(_){ /* Storage unavailable: let the bounded verified restore decide. */ }
+    if(!hasStoredSession){
+      showGate('أدخل البريد الإلكتروني وكلمة المرور للدخول.', 'wait');
+      setBusy(false);
+      await listenerReady;
+      return;
+    }
     try{
       await requestBootstrap();
     }finally{

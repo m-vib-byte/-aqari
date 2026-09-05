@@ -38,8 +38,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 2792,
-      "sha256": "bae33a8cfc77ef33dc532cb4d9136c06d46d7097433d16d45a4acaa8509bae5b"
+      "size": 2956,
+      "sha256": "84f523bfdf8fde658b204ffe97653971552d5b3e39284de8eaab92fd0abafe69"
     },
     {
       "path": "api/autosync-status.js",
@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 31605,
-      "sha256": "9fb19d809e6f15048be21e2c6b93e17e5f1812f97d540c2739672f8a03949cea"
+      "size": 33054,
+      "sha256": "9c1bf09408a515d592fdf53486b38aacd30507b6cbe2511111a5f6d069dac4fe"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -363,8 +363,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 17164,
-      "sha256": "0f1706b429b294646f6c9b5788195977728487e57c71a6eb04c95f1818930d45"
+      "size": 18125,
+      "sha256": "ac539a5fdd844a3811ff31a7dea56962e5873f82bf9f90228cb182834923dc3d"
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -383,8 +383,8 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 43909,
-      "sha256": "aa28234f96c54684a18472b91d89d1402f820a93cca868087ec76e2b96e2705d"
+      "size": 44295,
+      "sha256": "4bb6bf6ec7cab91296133e75f1d9f9f711b310f72f3c1ede04bbe8fb6ca21011"
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
@@ -605,6 +605,11 @@
       "path": "tests/login-navigation.test.cjs",
       "size": 4818,
       "sha256": "c2542e30ca67b02c52d9e8dce5a5762a1f4dd04c8243d2670374af336f565926"
+    },
+    {
+      "path": "tests/v266-login-bootstrap.test.cjs",
+      "size": 11272,
+      "sha256": "e3be5081616da74524b90382977cff07ff9863c65b775e54949087a76ac87e7a"
     }
   ]
 }
