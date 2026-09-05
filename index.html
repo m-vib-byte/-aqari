@@ -2905,15 +2905,158 @@ html,body{max-width:100%;overflow-x:hidden}
 <meta name="aqari-stage" content="production">
 
 
-<link rel="stylesheet" href="/first-run-migration.css">
+<style data-aqari-source="/first-run-migration.css">
+.aq-v192-wizard{
+  margin:12px 0 16px;
+  padding:14px;
+  border:1px solid rgba(180,145,55,.22);
+  border-radius:18px;
+  background:rgba(255,255,255,.98);
+}
+.aq-v192-wizard strong{display:block;font-size:1rem;margin-bottom:4px}
+.aq-v192-wizard small{display:block;opacity:.72;line-height:1.45;margin-bottom:10px}
+.aq-v192-status{
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(249,247,242,.96);
+  border:1px solid rgba(180,145,55,.10);
+  line-height:1.5;
+}
+.aq-v192-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.aq-v192-actions button{min-height:44px;border-radius:14px}
+.aq-v192-result{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin:10px 0 0;
+  padding:10px 12px;
+  min-height:42px;
+  border-radius:14px;
+  background:rgba(0,0,0,.035);
+  font-size:.78rem;
+  direction:ltr;
+  text-align:left;
+}
+@media(max-width:768px){
+  .aq-v192-actions{grid-template-columns:1fr}
+}
 
-<link rel="stylesheet" href="/safe-autosync.css">
+</style>
 
-<link rel="stylesheet" href="/production-status.css">
+<style data-aqari-source="/safe-autosync.css">
+.aq-v193-autosync{
+  margin:12px 0 16px;
+  padding:14px;
+  border:1px solid rgba(180,145,55,.22);
+  border-radius:18px;
+  background:rgba(255,255,255,.98);
+}
+.aq-v193-autosync strong{display:block;margin-bottom:4px}
+.aq-v193-autosync small{display:block;opacity:.72;line-height:1.45}
+.aq-v193-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.aq-v193-actions button{min-height:44px;border-radius:14px}
+.aq-v193-result{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin:10px 0 0;
+  padding:10px 12px;
+  min-height:42px;
+  border-radius:14px;
+  background:rgba(0,0,0,.035);
+  font-size:.78rem;
+  direction:ltr;
+  text-align:left;
+}
+@media(max-width:768px){.aq-v193-actions{grid-template-columns:1fr}}
 
-<link rel="stylesheet" href="/final-release-ui.css">
+</style>
 
-<link rel="stylesheet" href="/production-lockdown.css">
+<style data-aqari-source="/production-status.css">
+.aq-v195-prod-status{
+  margin:12px 0 16px;
+  padding:14px;
+  border:1px solid rgba(180,145,55,.22);
+  border-radius:18px;
+  background:rgba(255,255,255,.98);
+}
+.aq-v195-prod-status strong{display:block;margin-bottom:4px}
+.aq-v195-prod-status small{display:block;opacity:.72;line-height:1.45}
+.aq-v195-prod-result{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin:10px 0 0;
+  padding:10px 12px;
+  border-radius:14px;
+  background:rgba(0,0,0,.035);
+  font-size:.78rem;
+  direction:ltr;
+  text-align:left;
+}
+
+</style>
+
+<style data-aqari-source="/final-release-ui.css">
+.aq-v196-final{
+  margin:12px 0 16px;
+  padding:14px;
+  border:1px solid rgba(180,145,55,.24);
+  border-radius:18px;
+  background:rgba(255,255,255,.985);
+}
+.aq-v196-final strong{display:block;margin-bottom:4px}
+.aq-v196-final small{display:block;opacity:.72;line-height:1.5}
+.aq-v196-actions{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.aq-v196-actions button{min-height:44px;border-radius:14px}
+.aq-v196-result{
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  margin:10px 0 0;
+  padding:10px 12px;
+  min-height:42px;
+  border-radius:14px;
+  background:rgba(0,0,0,.035);
+  font-size:.78rem;
+  direction:ltr;
+  text-align:left;
+}
+@media(max-width:768px){.aq-v196-actions{grid-template-columns:1fr}}
+
+</style>
+
+<style data-aqari-source="/production-lockdown.css">
+html.aqari-production-mode .aq-v180-cleanup,
+html.aqari-production-mode .aq-v184-prod,
+html.aqari-production-mode .aq-v185-ready,
+html.aqari-production-mode .aq-v192-wizard,
+html.aqari-production-mode .aq-v193-autosync,
+html.aqari-production-mode .aq-v195-prod-status,
+html.aqari-production-mode .aq-v196-final{
+  display:none !important;
+}
+
+html.aqari-production-mode body{
+  overscroll-behavior-y:none;
+}
+
+html.aqari-production-mode .aq-v171-commandbar{
+  top:max(0px, env(safe-area-inset-top, 0px));
+}
+
+</style>
 </head><body>
 <style id="aqari-v198-cloud-css">
 .aq-v168-gate{position:fixed;inset:0;z-index:90000;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at top,#4a391a 0,#17130d 58%,#090806 100%)}.aq-v168-gate.on{display:flex}.aq-v168-login{width:min(440px,96vw);background:#fff;border:1px solid #d9bd7d;border-radius:24px;padding:24px;box-shadow:0 28px 90px #000a}.aq-v168-logo{text-align:center}.aq-v168-logo h1{margin:0;color:#a77920;font-size:34px}.aq-v168-logo p{margin:7px 0 18px;color:#746b5d}.aq-v168-login label,.aq-v168-dialog label{display:block;margin-top:10px;font-weight:700}.aq-v168-login input,.aq-v168-dialog input{width:100%;margin-top:6px}.aq-v168-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.aq-v168-actions button{flex:1;min-width:125px}.aq-v168-note{font-size:12px;line-height:1.7;color:#6d6456;background:#fbf5e9;border:1px solid #ead9b6;border-radius:12px;padding:10px;margin-top:12px}.aq-v168-msg{padding:10px;border-radius:11px;background:#f7f6f2;margin-top:10px;white-space:pre-wrap;font-size:12px;line-height:1.6}.aq-v168-msg.ready{background:#e7f7ed;color:#17673a}.aq-v168-msg.bad{background:#fde8e8;color:#922828}.aq-v168-msg.wait{background:#fff5d9;color:#725400}.aq-v168-cloud{border:1px solid #d8bd80;background:linear-gradient(145deg,#fff,#fbf5e9);border-radius:18px;padding:15px;margin:12px 0}.aq-v168-head,.aq-v168-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.aq-v168-badge,.aq-v168-state{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}.aq-v168-badge{background:#1f2937;color:#f4cf77}.aq-v168-state.ready{background:#e4f6eb;color:#17673a}.aq-v168-state.wait{background:#fff2cc;color:#805d00}.aq-v168-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}.aq-v168-card{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:12px}.aq-v168-modal{display:none;position:fixed;inset:0;background:#0009;z-index:91000;align-items:center;justify-content:center;padding:15px}.aq-v168-modal.on{display:flex}.aq-v168-dialog{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:17px}@media(max-width:760px){.aq-v168-grid{grid-template-columns:1fr 1fr}.aq-v168-actions button{min-width:100%}}
