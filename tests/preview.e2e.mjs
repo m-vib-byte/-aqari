@@ -14,8 +14,8 @@ const browser = await chromium.launch({ headless:true });
 const context = await browser.newContext({
   viewport:{ width:390, height:844 },
   extraHTTPHeaders:bypass ? {
-    'x-vercel-protection-bypass':bypass,
-    'x-vercel-set-bypass-cookie':'true'
+    // Per-request authorization needs no cookie-setting redirect.
+    'x-vercel-protection-bypass':bypass
   } : {}
 });
 const page = await context.newPage();

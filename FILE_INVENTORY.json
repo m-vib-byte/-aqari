@@ -78,7 +78,7 @@
 {"path":"tests/auth-data-gate.test.cjs","size":44295,"sha256":"4bb6bf6ec7cab91296133e75f1d9f9f711b310f72f3c1ede04bbe8fb6ca21011"},
 {"path":"tests/mobile-login-shell.test.cjs","size":6381,"sha256":"2470191f6378b5620540db7dabc9740bb712083ee4e42aa6729af15b69276419"},
 {"path":"tests/operational-readiness.test.cjs","size":9628,"sha256":"8acd265ef16a8590454834b38384b815192266aaef301c0b3191c27304106c02"},
-{"path":"tests/preview.e2e.mjs","size":29536,"sha256":"060339ee2749c4cebee21f59645da2c39820b159f605382198498cbfbb1abfa0"},
+{"path":"tests/preview.e2e.mjs","size":29562,"sha256":"fb7d4d9ba2e69d4be49d65a8b7f639f438886ff60d018124478a9a3e9912b11e"},
 {"path":"tests/runtime-contracts.test.cjs","size":24864,"sha256":"8e9fabdb3f971c7da85f0fb8ea632da1b0148b20c3dd8b0bdd83b86a56242e2e"},
 {"path":"tests/v202-property-os.test.cjs","size":170249,"sha256":"699670bef9599c98558b29a16cbb908a6d69d707009f4834a197d695f69f3bb4"},
 {"path":"tests/v206-rent-ledger.test.cjs","size":8967,"sha256":"10c7a4b16680e0b44bacd2b0b0e757d5d785893e1ca06c2eec56f03bd3a6d544"},
@@ -128,5 +128,7 @@
 {"path":"tests/login-speed.e2e.mjs","size":4576,"sha256":"9d2c2712548314e68111633682f4770ea87fa8fc572ac34a1351c5c8c072df4d"},
 {"path":".github/workflows/login-speed.yml","size":755,"sha256":"66a1bc8e3b857ab43d7d410883c0484d67e15e3154f673b9f444d7866df59faa"},
 {"path":"tests/direct-entry.e2e.mjs","size":3170,"sha256":"ee7d42510f6662889115454d0d4800240ba31158dc056f3ce81871fbdedccf43"},
-{"path":".github/workflows/direct-entry.yml","size":1152,"sha256":"f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60"}
+{"path":".github/workflows/direct-entry.yml","size":1152,"sha256":"f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60"},
+{"path":"middleware.js","size":620,"sha256":"219dac00453f899635bd1e88f5262e72859ee02eab6b49100c3f7b17d85f28f1"},
+{"path":"tests/root-entry-middleware.test.cjs","size":1887,"sha256":"4bbadd17d0af892ffcbb0510382b1bd898333fa586e4733b4b7d37b9b11e0f8a"}
 ]}
