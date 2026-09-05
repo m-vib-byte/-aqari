@@ -1,4 +1,4 @@
-name: Diagnose direct root Preview
+name: Prepare root routing priority
 on:
   push:
     branches: [fix/v266-root]
@@ -6,60 +6,55 @@ on:
 permissions:
   contents: write
 jobs:
-  probe:
+  prepare:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - run: npx playwright install --with-deps chromium webkit
-      - name: Verify root independently of optional cookie-setting redirects
+      - name: Identify the page served before routing priority is corrected
         env:
-          AQARI_BASE_URL: https://aqari-pz6lg2qry-m-vib-5421.vercel.app
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
-          for (const setCookie of [false,true]) {
-            const headers = {'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET};
-            if(setCookie) headers['x-vercel-set-bypass-cookie']='true';
-            const response=await fetch(process.env.AQARI_BASE_URL+'/',{headers,redirect:'manual',signal:AbortSignal.timeout(20000)});
-            console.log('PROTECTION_REDIRECT_PROBE',JSON.stringify({setCookie,status:response.status,hasLocation:response.headers.has('location')}));
-            if(!setCookie) assert.equal(response.status,200);
-          }
+          const response=await fetch('https://aqari-pz6lg2qry-m-vib-5421.vercel.app/',{headers:{'x-vercel-protection-bypass':process.env.VERCEL_AUTOMATION_BYPASS_SECRET},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          const html=await response.text();
+          const kind={status:response.status,hasLocation:response.headers.has('location'),loginForm:html.includes('id="loginForm"'),privateAppShell:html.includes('id="aqariCloudGateV168"'),bytes:Buffer.byteLength(html)};
+          console.log('ROOT_BEFORE_PRIORITY',JSON.stringify(kind));
+          assert.equal(response.status,200);
+          assert.equal(kind.privateAppShell,true,'expected the physical index.html to take priority over the fallback rewrite');
           JS
-          node tests/direct-entry.e2e.mjs
-      - name: Correct only the test transport and update its inventory
+      - name: Apply root-only routing middleware and preserve all other routes
         run: |
           test "$GITHUB_REF" = refs/heads/fix/v266-root
           python3 - <<'PY'
           from pathlib import Path
           import hashlib,json
-          p=Path('tests/preview.e2e.mjs');b=p.read_bytes()
-          assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()=='292e9b07740927ceeeb3b5c2ea28f4cab50b2a39'
-          s=b.decode()
+          assert not Path('middleware.js').exists()
+          Path('middleware.js').write_text("// The physical index.html is the protected app shell. Route only the public\n// root before filesystem matching, without a browser redirect or backend call.\nexport const config = { matcher: '/' };\n\nexport default function middleware(request) {\n  const target = new URL(request.url);\n  if (target.pathname !== '/' || !['GET','HEAD'].includes(request.method)) {\n    return new Response(null, { headers:{ 'x-middleware-next':'1' } });\n  }\n  target.pathname = '/login.html';\n  return new Response(null, { headers:{\n    'x-middleware-rewrite':target.href,\n    'Cache-Control':'no-store, max-age=0, must-revalidate'\n  } });\n}\n")
+          Path('tests/root-entry-middleware.test.cjs').write_text("const test=require('node:test');\nconst assert=require('node:assert/strict');\nconst {pathToFileURL}=require('node:url');\nconst path=require('node:path');\nconst modulePromise=import(pathToFileURL(path.resolve(__dirname,'../middleware.js')).href);\ntest('root-only middleware selects the public static form and keeps query parameters',async()=>{\n  const {default:middleware,config}=await modulePromise;\n  assert.equal(config.matcher,'/');\n  for(const method of ['GET','HEAD']){\n    const response=middleware(new Request('https://myaqari.com/?manual=1&release=V266',{method}));\n    assert.equal(response.status,200);\n    assert.equal(response.headers.get('location'),null);\n    assert.equal(response.headers.get('x-middleware-rewrite'),'https://myaqari.com/login.html?manual=1&release=V266');\n    assert.match(response.headers.get('cache-control'),/no-store/);\n  }\n});\ntest('app, login, API and static assets never change their existing handlers',async()=>{\n  const {default:middleware}=await modulePromise;\n  for(const url of ['/app?release=V266','/login?manual=1','/index.html','/api/db/status','/supabase-adapter.js','/vendor/supabase-js-2.114.0.js']){\n    const response=middleware(new Request('https://myaqari.com'+url));\n    assert.equal(response.headers.get('x-middleware-next'),'1');\n    assert.equal(response.headers.get('x-middleware-rewrite'),null);\n  }\n});\ntest('rewrite remains same-origin and does not take a destination from input',async()=>{\n  const {default:middleware}=await modulePromise;\n  const response=middleware(new Request('https://myaqari.com/?next=https://example.invalid'));\n  const target=new URL(response.headers.get('x-middleware-rewrite'));\n  assert.equal(target.origin,'https://myaqari.com');assert.equal(target.pathname,'/login.html');\n  assert.equal(middleware(new Request('https://myaqari.com/',{method:'POST'})).headers.get('x-middleware-next'),'1');\n});\n")
+          p=Path('tests/preview.e2e.mjs');s=p.read_text()
           old="    'x-vercel-protection-bypass':bypass,\n    'x-vercel-set-bypass-cookie':'true'"
           assert s.count(old)==1
-          s=s.replace(old,"    // Per-request authorization needs no cookie-setting redirect.\n    'x-vercel-protection-bypass':bypass")
-          p.write_text(s)
-          p=Path('FILE_INVENTORY.json');inventory=json.loads(p.read_text());b=Path('tests/preview.e2e.mjs').read_bytes()
-          entry=next(x for x in inventory['files'] if x['path']=='tests/preview.e2e.mjs')
-          entry.update(size=len(b),sha256=hashlib.sha256(b).hexdigest())
+          p.write_text(s.replace(old,"    // Per-request authorization needs no cookie-setting redirect.\n    'x-vercel-protection-bypass':bypass"))
+          p=Path('FILE_INVENTORY.json');inventory=json.loads(p.read_text())
+          by_path={entry['path']:entry for entry in inventory['files']}
+          for name in ['middleware.js','tests/root-entry-middleware.test.cjs','tests/preview.e2e.mjs']:
+              b=Path(name).read_bytes();entry={'path':name,'size':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+              if name in by_path: by_path[name].update(entry)
+              else: inventory['files'].append(entry)
           p.write_text('{"version":"V198","files":[\n'+',\n'.join(json.dumps(x,ensure_ascii=False,separators=(',',':')) for x in inventory['files'])+'\n]}\n')
           PY
-          node --check tests/preview.e2e.mjs
+          node --check middleware.js
+          node --test tests/root-entry-middleware.test.cjs tests/mobile-login-shell.test.cjs tests/login-navigation.test.cjs tests/v266-startup-snapshot.test.cjs
           npm run check:freeze
+      - name: Commit only application and regression content
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tests/preview.e2e.mjs FILE_INVENTORY.json
-          git commit -m "test: authorize Preview requests without introducing a cookie redirect"
+          git add middleware.js tests/root-entry-middleware.test.cjs tests/preview.e2e.mjs FILE_INVENTORY.json
+          git commit -m "fix: serve public root before the private static index without redirects"
           git push origin HEAD:fix/v266-root
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: direct-root-probe
-          path: test-results/direct-entry
-          retention-days: 2
