@@ -7,7 +7,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(?<ios>iPhone|iPad|iPod|Macintosh.*Mobile).*"
+          "value": "(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)"
         }
       ],
       "destination": "/login.html"
