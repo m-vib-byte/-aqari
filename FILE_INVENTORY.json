@@ -147,6 +147,11 @@
       "sha256": "23b520039afa4186bdf36935a8cd7192e037c0aec6186dbfcbc7b920b40facf8"
     },
     {
+      "path": "login.html",
+      "size": 12067,
+      "sha256": "3c797d9a8ae927699d3aabe63ee7785b6dd3e7e36b350ddabdedae4d2e171898"
+    },
+    {
       "path": "lib/read-only.js",
       "size": 509,
       "sha256": "4934d6cc6a39a61fbf83e5fdf06a72efc5d3781a6e603ea0642a959726acdcae"
@@ -338,8 +343,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "size": 16851,
-      "sha256": "5bed2d4309e905800fdc96294d00dd0b5a291c6211a7af9bd8f7d2467a70ceb6"
+      "size": 16967,
+      "sha256": "6ef3b7cfb3a8644c9734438c0fcb0e0e25e4d62ae225c68f98b1cf6014a4aecc"
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -360,6 +365,11 @@
       "path": "tests/auth-data-gate.test.cjs",
       "size": 39564,
       "sha256": "3810734ef5ad66dc7faba446874f599e0aa6d35d037085adbeecddff15d477d4"
+    },
+    {
+      "path": "tests/mobile-login-shell.test.cjs",
+      "size": 2348,
+      "sha256": "e984a70975fcd6914e55f035eb6c2114bb96da9d8cda3494cba61423bd4c26d6"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -543,8 +553,8 @@
     },
     {
       "path": "vercel.json",
-      "size": 823,
-      "sha256": "0ac3992e81e33ebca703226b2764d5a08857da21bb848facbc60642131e5cdbb"
+      "size": 2462,
+      "sha256": "88c456a39a4ae86050ad4077d83b44a2018053972a35b11779057b7acbc59574"
     },
     {
       "path": "VERSION.json",
