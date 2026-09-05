@@ -173,3 +173,6 @@ test('V208 removes stale portfolio totals before an unauthorized workspace can r
   window.AQARI_EARLY_STORAGE_GATE.scope={userId:'user-1',workspaceId:'workspace-1'};
   assert.equal(window.AQARI_V208.resume(active),true,'validated bridge unlock must recover a cold-suspended V208');
 });
+
+// Include the shared startup ownership regression in the existing CI suite.
+require('./startup-module-boundary.test.cjs');
