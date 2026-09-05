@@ -27,7 +27,7 @@ jobs:
           test -n "$slug"
           echo "AQARI_BASE_URL=https://${AQARI_PROJECT_SLUG}-git-${slug}-${AQARI_TEAM_SLUG}.vercel.app" >> "$GITHUB_ENV"
       - run: npm install
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - name: Require protected Preview access
         run: |
           test -n "$AQARI_BASE_URL"
@@ -51,3 +51,5 @@ jobs:
           exit 1
       - name: Preview E2E
         run: npm run test:e2e
+      - name: Direct root entry with scripts unavailable
+        run: node tests/direct-entry.e2e.mjs

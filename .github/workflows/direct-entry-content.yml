@@ -1,0 +1,42 @@
+name: Prepare direct entry content
+on:
+  push:
+    branches: [fix/v266-root]
+    paths: [.github/workflows/direct-entry-content.yml]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply reviewed non-workflow content only
+        run: |
+          test "$GITHUB_REF" = refs/heads/fix/v266-root
+          python3 - <<'PY'
+          from pathlib import Path
+          import textwrap
+          source=Path('.github/workflows/direct-entry-prepare.yml').read_text()
+          code=textwrap.dedent(source.split("python3 - <<'PY'\n",1)[1].split('          PY\n',1)[0])
+          start=code.index("p=Path('.github/workflows/preview-e2e.yml');s=p.read_text()")
+          end=code.index("Path('tests/direct-entry.e2e.mjs').write_text",start)
+          code=code[:start]+code[end:]
+          code='\n'.join(line for line in code.splitlines() if not line.startswith("Path('.github/workflows/"))
+          code=code.replace('35fd346748705128e1e5c3b0274c8ae3f9e2c5f2','7929617c62223b856bfa4f5e799e4b25391c6ff5')
+          exec(compile(code,'reviewed-direct-entry-patch','exec'))
+          PY
+          node --check tests/direct-entry.e2e.mjs
+          node --test tests/mobile-login-shell.test.cjs tests/login-navigation.test.cjs tests/v266-startup-snapshot.test.cjs
+          npm run check:freeze
+      - name: Commit content, not workflow changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vercel.json tests/mobile-login-shell.test.cjs tests/preview.e2e.mjs tests/direct-entry.e2e.mjs FILE_INVENTORY.json
+          git diff --cached --name-only | grep -qv '^.github/'
+          git commit -m "fix: serve login directly at the root; preserve authenticated navigation"
+          git push origin HEAD:fix/v266-root

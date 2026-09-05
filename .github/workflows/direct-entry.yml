@@ -1,0 +1,38 @@
+name: Production direct entry
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  entry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      AQARI_BASE_URL: https://myaqari.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Wait for this production deployment
+        run: |
+          for attempt in $(seq 1 30); do
+            body=$(curl --max-time 10 -fsS "$AQARI_BASE_URL/api/production-meta" || true)
+            if printf '%s' "$body" | grep -Fq "$GITHUB_SHA" && printf '%s' "$body" | grep -Fq '"environment":"production"'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo 'Matching production deployment not available.' >&2
+          exit 1
+      - run: node tests/direct-entry.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-direct-entry
+          path: test-results/direct-entry
+          retention-days: 2
