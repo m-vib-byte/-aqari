@@ -10,7 +10,10 @@ const config = JSON.parse(fs.readFileSync(root + '/vercel.json', 'utf8'));
 
 const rewrite = (source) => config.rewrites.find((item) => item.source === source);
 assert.equal(rewrite('/')?.destination, '/login.html');
-assert.match(rewrite('/')?.has?.[0]?.value || '', /iPhone/);
+assert.equal(
+  rewrite('/')?.has?.[0]?.value,
+  '(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)'
+);
 assert.equal(rewrite('/login')?.destination, '/login.html');
 assert.equal(rewrite('/app')?.destination, '/index.html');
 assert.equal(
