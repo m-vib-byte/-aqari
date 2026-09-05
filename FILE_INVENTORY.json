@@ -18,8 +18,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "size": 2536,
-      "sha256": "5243b36a541ec0a7d6aaaf2172aafd2228da0d923102e403a863598928f4971b"
+      "size": 2792,
+      "sha256": "bae33a8cfc77ef33dc532cb4d9136c06d46d7097433d16d45a4acaa8509bae5b"
     },
     {
       "path": "api/autosync-status.js",
@@ -363,8 +363,8 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 39564,
-      "sha256": "3810734ef5ad66dc7faba446874f599e0aa6d35d037085adbeecddff15d477d4"
+      "size": 39560,
+      "sha256": "ed037146468835d8bc426512f96f1037750c31d10505f7e770374a48d97b3671"
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
@@ -423,8 +423,8 @@
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
-      "size": 7109,
-      "sha256": "80911dfb0c11f9600ed5b3d1c11661a64f52d642d79af0bcb00498e543bf54b3"
+      "size": 7095,
+      "sha256": "44bbb3f5068122b771b4150071bb3c4558dfa410edfd1d612485d962ae2cbdce"
     },
     {
       "path": "tests/v211-follow-up-cloud-integration.test.cjs",
