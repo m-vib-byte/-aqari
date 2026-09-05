@@ -85,17 +85,21 @@ async function spinUntil(predicate, message){
   assert.fail(message);
 }
 
-function bridgeRaceRuntime(){
+function bridgeRaceRuntime(options = {}){
+  const tokenRefreshesPerContext = Number(options.tokenRefreshesPerContext || 0);
   const contextA = access('user-a', 'workspace-a');
   const contextB = access('user-b', 'workspace-b');
   const contexts = [contextA, contextB];
   const remotes = new Map();
+  const remoteLoads = [];
   const activations = [];
   const listeners = {};
   const scheduled = [];
   let refreshIndex = 0;
   let live = { user:null, membership:null, workspace:null };
   let authCallback = null;
+  let insideAuthCallback = false;
+  let sealsInsideAuthCallback = 0;
   let sealCount = 0;
   let signOutCount = 0;
   let signOutShouldFail = false;
@@ -133,12 +137,21 @@ function bridgeRaceRuntime(){
       const next = contexts[Math.min(refreshIndex, contexts.length - 1)];
       refreshIndex += 1;
       live = next;
+      if(tokenRefreshesPerContext > 0){
+        await Promise.resolve();
+        for(let index = 0; index < tokenRefreshesPerContext && authCallback; index += 1){
+          insideAuthCallback = true;
+          try{ authCallback('TOKEN_REFRESHED', { user:next.user }); }
+          finally{ insideAuthCallback = false; }
+        }
+      }
       return next;
     },
     loadAppState(){
       const workspaceId = live.workspace.id;
       const pending = deferred();
       remotes.set(workspaceId, pending);
+      remoteLoads.push({ workspaceId, pending });
       activeRemoteLoads += 1;
       maxRemoteLoads = Math.max(maxRemoteLoads, activeRemoteLoads);
       return pending.promise.finally(() => { activeRemoteLoads -= 1; });
@@ -190,7 +203,10 @@ function bridgeRaceRuntime(){
     },
     localStorage,
     sessionStorage,
-    sealWorkspaceDbV198(){ sealCount += 1; },
+    sealWorkspaceDbV198(){
+      sealCount += 1;
+      if(insideAuthCallback) sealsInsideAuthCallback += 1;
+    },
     activateWorkspaceDbV198(candidate, payload){
       activations.push({ workspace:candidate.workspace.id, payload });
     },
@@ -206,9 +222,10 @@ function bridgeRaceRuntime(){
   });
   vm.runInContext(fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8'), sandbox);
   return {
-    window, contextA, contextB, remotes, activations, listeners, scheduled,
+    window, contextA, contextB, remotes, remoteLoads, activations, listeners, scheduled,
     get authCallback(){ return authCallback; },
     get sealCount(){ return sealCount; },
+    get sealsInsideAuthCallback(){ return sealsInsideAuthCallback; },
     get signOutCount(){ return signOutCount; },
     get clearCount(){ return clearCount; },
     setSignOutShouldFail(value){ signOutShouldFail = Boolean(value); },
@@ -739,9 +756,20 @@ test('A to B bootstrap requests stay single-flight, activate only B, and legacy 
   await spinUntil(() => race.remotes.has('workspace-a'), 'workspace A cloud load did not start');
   assert.equal(typeof race.authCallback, 'function');
 
+  const sealsBeforeAuthEvent = race.sealCount;
   race.authCallback('SIGNED_IN', { user:{ id:'user-b' } });
   assert.ok(race.scheduled.length > 0, 'account switch must schedule a new bootstrap');
+  assert.equal(
+    race.sealCount,
+    sealsBeforeAuthEvent,
+    'the Supabase auth callback must not synchronously seal or render the workspace'
+  );
   race.scheduled.shift()();
+  assert.equal(
+    race.sealCount,
+    sealsBeforeAuthEvent,
+    'an auth event must coalesce with the already sealed bootstrap instead of invalidating it'
+  );
   assert.equal(race.remotes.has('workspace-b'), false, 'a second bootstrap must not overlap the active flight');
   assert.equal(race.maxRemoteLoads, 1);
 
@@ -788,6 +816,29 @@ test('A to B bootstrap requests stay single-flight, activate only B, and legacy 
   assert.ok(race.sealCount > sealsBeforeIdleLock);
   assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure']);
   assert.ok(race.presentationSealCount >= 12, 'logout and idle lock must synchronously seal every protected presentation module');
+});
+
+test('repeated same-user token refreshes cannot starve an active workspace bootstrap', async () => {
+  const race = bridgeRaceRuntime({ tokenRefreshesPerContext:3 });
+  const starting = race.listeners.DOMContentLoaded();
+  await spinUntil(() => race.remoteLoads.length === 1, 'initial workspace cloud load did not start');
+
+  const sealsBeforeDeferredEvents = race.sealCount;
+  assert.equal(race.sealsInsideAuthCallback, 0, 'Supabase auth callbacks must never seal synchronously');
+  while(race.scheduled.length) race.scheduled.shift()();
+  assert.equal(race.sealsInsideAuthCallback, 0);
+  assert.equal(race.sealCount, sealsBeforeDeferredEvents, 'same-user positive events must not relock an active bootstrap');
+
+  race.remoteLoads[0].pending.resolve({
+    workspace_id:'workspace-a', payload:{ tenants:[['TENANT A']] }, revision:1
+  });
+  await spinUntil(
+    () => race.activations.length === 1 || race.remoteLoads.length > 1,
+    'workspace bootstrap neither activated nor retried'
+  );
+  assert.equal(race.remoteLoads.length, 1, 'same-user token refreshes must be coalesced into the active flight');
+  assert.deepEqual(race.activations, [{ workspace:'workspace-a', payload:{ tenants:[['TENANT A']] } }]);
+  await starting;
 });
 
 test('legacy idle lock signs out only after the secure workspace is active', async () => {
