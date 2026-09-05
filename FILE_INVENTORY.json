@@ -163,13 +163,13 @@
     },
     {
       "path": "index.html",
-      "size": 1094245,
-      "sha256": "641c4f6b5f5ecff88c3713bd180d246e56255a792180912875ff408bb3bfcafa"
+      "size": 1094599,
+      "sha256": "8c2f8218e58fe79bef11f7f145675cf606454beeb244f1c2c972959ad3ed0af2"
     },
     {
       "path": "login.html",
-      "size": 14997,
-      "sha256": "3f561b513557143810f797325f62d27ade38bc6137ff68ec977a2a939dc589e7"
+      "size": 16209,
+      "sha256": "c142f3c4ecff9a9b4047ae422069385777c8effd24c661581fe9192fc74ee0ff"
     },
     {
       "path": "lib/read-only.js",
@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 30296,
-      "sha256": "7896ef762061185bbeaf8bee6c2152d15003de95ad7c69a9b435958e9b6b91e1"
+      "size": 31653,
+      "sha256": "774517962080075868b806f8ddae3716efc7fd281354552921417b4ed1db82a7"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -383,13 +383,13 @@
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 43728,
-      "sha256": "f9b488e1fb40d567dde15ce1f0d57bb80e9880ed6b218fc377d99604f3f9f974"
+      "size": 43909,
+      "sha256": "aa28234f96c54684a18472b91d89d1402f820a93cca868087ec76e2b96e2705d"
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "size": 6249,
-      "sha256": "662e7a0f16069a35a3ab2be81100b0e3028f400bc7d12bf42b87a85de86a85e9"
+      "size": 6265,
+      "sha256": "1a62812e981b100f6615c39950248db3f819e34290ce409a1e393039c12d2ad7"
     },
     {
       "path": "tests/operational-readiness.test.cjs",
@@ -573,8 +573,8 @@
     },
     {
       "path": "vercel.json",
-      "size": 3681,
-      "sha256": "9b13598965d32462a2b0a70737a7f108609bc4007531eede78fec5a9eda646bb"
+      "size": 3831,
+      "sha256": "5c917f3af5d34798e9626f907e0e0f6abc11c225a7becb7a4be243f339ccc754"
     },
     {
       "path": "VERSION.json",
@@ -600,6 +600,11 @@
       "path": "v266-scheduler-control.js",
       "size": 18700,
       "sha256": "21d75b7a53bca5c2cf456d2f4c21b99d328bbd9f20db51d8cb59dd684384f5b7"
+    },
+    {
+      "path": "tests/login-navigation.test.cjs",
+      "size": 4818,
+      "sha256": "c2542e30ca67b02c52d9e8dce5a5762a1f4dd04c8243d2670374af336f565926"
     }
   ]
 }
