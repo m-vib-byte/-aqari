@@ -1,0 +1,37 @@
+name: Full workspace load diagnostic
+on:
+  push:
+    branches: [fix/v266-load3]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - name: Instrument full legacy fixture without customer data
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/v266-authenticated-home.e2e.mjs')
+          s=p.read_text()
+          s=s.replace("import assert from 'node:assert/strict';", "import assert from 'node:assert/strict';\nimport vm from 'node:vm';")
+          s=s.replace("const populated={", "const legacyText=fs.readFileSync('index.html','utf8').split('const aqariV198LegacyDemo=')[1].split(';for(const k in mods)')[0];\nconst legacy=JSON.parse(JSON.stringify(vm.runInNewContext('('+legacyText+')')));\nconst populated={...legacy,")
+          s=s.replace("[['chromium',chromium],['webkit',webkit]]", "[['chromium',chromium]]")
+          s=s.replace("['empty','populated','manual','timeout']", "['populated','manual']")
+          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));", "page.on('pageerror',error=>{errors.push(error.stack);console.log('PAGEERROR',error.stack);});\n        page.on('console',msg=>console.log('BROWSER',msg.text()));\n        await page.addInitScript(()=>{\n          const Native=window.MutationObserver;\n          window.MutationObserver=class extends Native{constructor(cb){let calls=0;super((...args)=>{if(++calls===2000)console.log('OBSERVER_LOOP',cb.toString());if(calls<2100)return cb(...args);});}};\n          window.addEventListener('DOMContentLoaded',()=>{\n            for(const key of ['activateWorkspaceDbV198','render','go']){const original=window[key];let calls=0;if(typeof original==='function')window[key]=function(...args){if(++calls<8)console.log('ENTER',key,performance.now());const r=original.apply(this,args);if(calls<8)console.log('EXIT',key,performance.now());return r;};}\n            new Native(()=>console.log('STAGE',document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),document.getElementById('cloudGateMsgV168')?.textContent)).observe(document.getElementById('aqariCloudGateV168'),{attributes:true});\n          });\n        });")
+          p.write_text(s)
+          PY
+      - run: timeout 100s node tests/v266-authenticated-home.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: full-workspace-load-results
+          path: test-results/authenticated-home
+          retention-days: 1
