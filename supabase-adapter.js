@@ -9,6 +9,8 @@
   const state = { client:null, user:null, membership:null, workspace:null, profile:null };
   let clientPromise = null;
   let clientEpoch = 0;
+  let contextEpoch = 0;
+  let contextRefresh = null;
 
   function resetContext(){
     state.user = null;
@@ -28,6 +30,18 @@
     const error = new Error(message);
     error.code = 'AQARI_ACCESS_CHANGED';
     return error;
+  }
+
+  function assertContextEpoch(epoch){
+    if(epoch === contextEpoch) return;
+    const error = accessError('AQARI authentication context refresh was superseded');
+    error.reason = 'AQARI_CONTEXT_SUPERSEDED';
+    throw error;
+  }
+
+  function resetContextAt(epoch){
+    assertContextEpoch(epoch);
+    resetContext();
   }
 
   function cleanAccess(value){
@@ -73,21 +87,50 @@
   async function ensureLibrary(){
     if(window.supabase?.createClient) return window.supabase;
     await new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-aqari-supabase]');
-      if(existing){
-        existing.addEventListener('load', resolve, { once:true });
-        existing.addEventListener('error', reject, { once:true });
-        return;
+      let script = document.querySelector('script[data-aqari-supabase]');
+      if(script?.dataset?.aqariState === 'failed' || script?.dataset?.aqariState === 'loaded'){
+        script.remove();
+        script = null;
       }
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0';
-      script.async = true;
-      script.dataset.aqariSupabase = 'true';
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Failed to load Supabase JS'));
-      document.head.appendChild(script);
+      const created = !script;
+      if(!script){
+        script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0';
+        script.async = true;
+        script.dataset.aqariSupabase = 'true';
+        script.dataset.aqariState = 'loading';
+      }
+
+      let settled = false;
+      const cleanup = () => {
+        clearTimeout(timer);
+        script.removeEventListener('load', loaded);
+        script.removeEventListener('error', failed);
+      };
+      const loaded = () => {
+        if(settled) return;
+        settled = true;
+        script.dataset.aqariState = 'loaded';
+        cleanup();
+        resolve();
+      };
+      const failed = () => {
+        if(settled) return;
+        settled = true;
+        script.dataset.aqariState = 'failed';
+        cleanup();
+        script.remove();
+        reject(new Error('Failed to load Supabase JS'));
+      };
+      const timer = setTimeout(failed, 12000);
+      script.addEventListener('load', loaded, { once:true });
+      script.addEventListener('error', failed, { once:true });
+      if(created) document.head.appendChild(script);
     });
-    if(!window.supabase?.createClient) throw new Error('Supabase JS unavailable');
+    if(!window.supabase?.createClient){
+      document.querySelector('script[data-aqari-supabase]')?.remove();
+      throw new Error('Supabase JS unavailable');
+    }
     return window.supabase;
   }
 
@@ -124,25 +167,27 @@
     return clientPromise;
   }
 
-  async function refreshContext(expectedAccess){
-    const expected = cleanAccess(expectedAccess);
+  async function loadContextAt(expected, refreshEpoch){
     const client = await getClient();
+    assertContextEpoch(refreshEpoch);
     const { data:sessionData, error:sessionError } = await client.auth.getSession();
+    assertContextEpoch(refreshEpoch);
     if(sessionError) throw sessionError;
     const sessionUserId = String(sessionData.session?.user?.id || '').trim();
     if(!sessionUserId){
-      resetContext();
+      resetContextAt(refreshEpoch);
       if(expected) throw accessError();
       return { ...state };
     }
     if(expected?.userId && expected.userId !== sessionUserId) throw accessError();
 
     const { data:userData, error:userError } = await client.auth.getUser();
+    assertContextEpoch(refreshEpoch);
     if(userError) throw userError;
     const user = userData.user || null;
     const userId = String(user?.id || '').trim();
     if(!userId || userId !== sessionUserId || (expected?.userId && expected.userId !== userId)){
-      resetContext();
+      resetContextAt(refreshEpoch);
       throw accessError();
     }
 
@@ -155,13 +200,14 @@
     const { data:membership, error:membershipError } = await membershipQuery
       .limit(1)
       .maybeSingle();
+    assertContextEpoch(refreshEpoch);
     if(membershipError) throw membershipError;
     const workspaceId = String(membership?.workspace_id || '').trim();
     const role = String(membership?.role || '').trim();
     if(!membership || membership.user_id !== userId || membership.is_active !== true || !workspaceId || !role ||
        (expected?.workspaceId && expected.workspaceId !== workspaceId) ||
        (expected?.role && expected.role !== role)){
-      resetContext();
+      resetContextAt(refreshEpoch);
       if(expected) throw accessError();
     }
 
@@ -172,9 +218,10 @@
         .select('id, name, slug, created_at')
         .eq('id', workspaceId)
         .maybeSingle();
+      assertContextEpoch(refreshEpoch);
       if(workspaceError) throw workspaceError;
       if(!workspaceData || workspaceData.id !== workspaceId){
-        resetContext();
+        resetContextAt(refreshEpoch);
         if(expected) throw accessError();
       }
       // Keep the value local until the complete snapshot has been authenticated.
@@ -186,21 +233,45 @@
       .select('user_id, display_name, created_at, updated_at')
       .eq('user_id', userId)
       .maybeSingle();
+    assertContextEpoch(refreshEpoch);
     if(profileError) throw profileError;
 
     const { data:finalSessionData, error:finalSessionError } = await client.auth.getSession();
+    assertContextEpoch(refreshEpoch);
     if(finalSessionError) throw finalSessionError;
     if(String(finalSessionData.session?.user?.id || '').trim() !== userId) {
-      resetContext();
+      resetContextAt(refreshEpoch);
       throw accessError();
     }
 
-    state.user = user;
-    state.membership = membership || null;
-    state.workspace = workspace;
-    state.profile = profile || null;
-    if(expected) requireExactAccess(state, expected);
+    const nextContext = {
+      client,
+      user,
+      membership:membership || null,
+      workspace,
+      profile:profile || null
+    };
+    if(expected) requireExactAccess(nextContext, expected);
+    assertContextEpoch(refreshEpoch);
+    state.user = nextContext.user;
+    state.membership = nextContext.membership;
+    state.workspace = nextContext.workspace;
+    state.profile = nextContext.profile;
     return { ...state };
+  }
+
+  function refreshContext(expectedAccess){
+    const expected = cleanAccess(expectedAccess);
+    const refreshKey = expected ? JSON.stringify(expected) : '';
+    if(refreshKey && contextRefresh?.key === refreshKey) return contextRefresh.promise;
+
+    const refreshEpoch = ++contextEpoch;
+    if(!refreshKey) contextRefresh = null;
+    const pending = loadContextAt(expected, refreshEpoch).finally(() => {
+      if(contextRefresh?.promise === pending) contextRefresh = null;
+    });
+    if(refreshKey) contextRefresh = { key:refreshKey, promise:pending };
+    return pending;
   }
 
   async function signIn(email, password){
@@ -256,6 +327,8 @@
   function clearPersistedSession(){
     const previousClient = state.client;
     clientEpoch += 1;
+    contextEpoch += 1;
+    contextRefresh = null;
     clientPromise = null;
     state.client = null;
     resetContext();

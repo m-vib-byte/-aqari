@@ -100,15 +100,21 @@ test('V211 reminder wording remains operational and avoids unsupported legal cla
   assert.doesNotMatch(text,/إنذار|إخلاء|دعوى|غرامة|قانون/);
 });
 
-test('V211.1 startup backup waits for an exact authenticated workspace and never blocks with alert',()=>{
+test('V211.1.2 startup backup is scheduled only by the authenticated workspace boundary',()=>{
+  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  const bridge=fs.readFileSync(path.join(root,'secure-auth-bridge.js'),'utf8');
   const loader=fs.readFileSync(path.join(root,'final-release-ui.js'),'utf8');
-  const guard=loader.match(/function installStartupBackupGuard\(\)\{[\s\S]*?\n  \}\n\n  installStartupBackupGuard\(\);/);
-  assert.ok(guard);
-  assert.match(guard[0],/membership\?\.is_active !== true/);
-  assert.match(guard[0],/AQARI_DATA_GATE\?\.scope/);
-  assert.match(guard[0],/AQARI_EARLY_STORAGE_GATE\?\.scope/);
-  assert.match(guard[0],/if\(!exactWorkspaceScope\(\) \|\| backupInFlight\) return false/);
-  assert.match(guard[0],/window\.makeAutoBackup = guardedBackup/);
-  assert.match(guard[0],/console\.warn\('\[AQARI\] automatic backup skipped'/);
-  assert.doesNotMatch(guard[0],/\balert\s*\(/);
+  const backup=html.match(/const AQARI_AUTO_BACKUP_MAX_AGE_V211[\s\S]*?window\.AQARI_STARTUP_BACKUP=Object\.freeze\(\{[\s\S]*?\}\);/);
+  assert.ok(backup);
+  assert.match(backup[0],/activeWorkspaceStorageScopeV206\(\)/);
+  assert.match(backup[0],/aqariAutoBackupInFlightV211/);
+  assert.match(backup[0],/schedule:scheduleStartupBackupV211/);
+  assert.match(backup[0],/cancel:cancelStartupBackupV211/);
+  assert.match(backup[0],/version:'V211\.1\.2'/);
+  assert.doesNotMatch(backup[0],/\balert\s*\(/);
+
+  assert.match(bridge,/function sealData\(\)\{[\s\S]*?AQARI_STARTUP_BACKUP\?\.cancel\?\.\(\)/);
+  assert.match(bridge,/function unlock\(nextContext, nextRemoteState\)\{[\s\S]*?activateWorkspaceDbV198[\s\S]*?AQARI_STARTUP_BACKUP\?\.schedule\?\.\(\)/);
+  assert.doesNotMatch(loader,/installStartupBackupGuard|__v211StartupGuard|window\.makeAutoBackup\s*=/);
+  assert.match(loader,/عقاري V211\.1\.2 — سجل المتابعة السحابي/);
 });

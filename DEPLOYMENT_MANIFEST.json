@@ -1,7 +1,8 @@
 {
   "app": "AQARI",
   "version": "V198",
-  "stage": "release-freeze",
+  "product_version": "V211.1.2",
+  "stage": "production",
   "required_routes": [
     "/",
     "/api/health",
@@ -17,9 +18,11 @@
   "gates": {
     "syntax": true,
     "package_selftests": true,
-    "preview_e2e_prepared": true,
-    "preview_e2e_executed": false,
-    "production_env_verified": false,
-    "production_deployed": false
+    "preview_e2e_prepared": true
+  },
+  "runtime_verification": {
+    "preview_e2e": "required_per_commit",
+    "supabase": "live_cached_probe",
+    "deployment_identity": "dynamic"
   }
 }

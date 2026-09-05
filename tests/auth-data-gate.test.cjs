@@ -104,6 +104,12 @@ function bridgeRaceRuntime(){
   let presentationSealCount = 0;
   let portfolioResumeCount = 0;
   let searchResumeCount = 0;
+  let commandResumeCount = 0;
+  let followUpResumeCount = 0;
+  let startupBackupScheduleCount = 0;
+  let startupBackupCancelCount = 0;
+  let activeRemoteLoads = 0;
+  let maxRemoteLoads = 0;
   const hardResets = [];
   const localStorage = storage();
   const sessionStorage = storage();
@@ -133,7 +139,9 @@ function bridgeRaceRuntime(){
       const workspaceId = live.workspace.id;
       const pending = deferred();
       remotes.set(workspaceId, pending);
-      return pending.promise;
+      activeRemoteLoads += 1;
+      maxRemoteLoads = Math.max(maxRemoteLoads, activeRemoteLoads);
+      return pending.promise.finally(() => { activeRemoteLoads -= 1; });
     },
     async signOut(){
       signOutCount += 1;
@@ -168,6 +176,18 @@ function bridgeRaceRuntime(){
       seal(){ presentationSealCount += 1; },
       resume(){ searchResumeCount += 1; return true; }
     },
+    AQARI_V210:{
+      seal(){ presentationSealCount += 1; },
+      resume(){ commandResumeCount += 1; return true; }
+    },
+    AQARI_V211:{
+      seal(){ presentationSealCount += 1; },
+      resume(){ followUpResumeCount += 1; return true; }
+    },
+    AQARI_STARTUP_BACKUP:{
+      schedule(){ startupBackupScheduleCount += 1; return true; },
+      cancel(){ startupBackupCancelCount += 1; }
+    },
     localStorage,
     sessionStorage,
     sealWorkspaceDbV198(){ sealCount += 1; },
@@ -196,9 +216,290 @@ function bridgeRaceRuntime(){
     get presentationSealCount(){ return presentationSealCount; },
     get portfolioResumeCount(){ return portfolioResumeCount; },
     get searchResumeCount(){ return searchResumeCount; },
+    get commandResumeCount(){ return commandResumeCount; },
+    get followUpResumeCount(){ return followUpResumeCount; },
+    get startupBackupScheduleCount(){ return startupBackupScheduleCount; },
+    get startupBackupCancelCount(){ return startupBackupCancelCount; },
+    get maxRemoteLoads(){ return maxRemoteLoads; },
     get hardResets(){ return hardResets; }
   };
 }
+
+function adapterRaceRuntime(){
+  const finalSessionA = deferred();
+  let mode = 'a';
+  let sessionCallsA = 0;
+  let finalSessionARequested = false;
+
+  const rows = {
+    a:{
+      aqari_memberships:{ workspace_id:'workspace-a', user_id:'user-a', role:'general_manager', is_active:true },
+      aqari_workspaces:{ id:'workspace-a', name:'Workspace A' },
+      aqari_profiles:{ user_id:'user-a', display_name:'User A' }
+    },
+    b:{
+      aqari_memberships:{ workspace_id:'workspace-b', user_id:'user-b', role:'general_manager', is_active:true },
+      aqari_workspaces:{ id:'workspace-b', name:'Workspace B' },
+      aqari_profiles:{ user_id:'user-b', display_name:'User B' }
+    }
+  };
+
+  const client = {
+    auth:{
+      async getSession(){
+        if(mode === 'a'){
+          sessionCallsA += 1;
+          if(sessionCallsA === 1) return { data:{ session:{ user:{ id:'user-a', email:'a@example.test' } } }, error:null };
+          finalSessionARequested = true;
+          return finalSessionA.promise;
+        }
+        return { data:{ session:{ user:{ id:'user-b', email:'b@example.test' } } }, error:null };
+      },
+      async getUser(){
+        const id = mode === 'a' ? 'user-a' : 'user-b';
+        return { data:{ user:{ id, email:(mode === 'a' ? 'a' : 'b') + '@example.test' } }, error:null };
+      }
+    },
+    from(table){
+      const snapshot = mode;
+      const query = {
+        select(){ return query; },
+        eq(){ return query; },
+        limit(){ return query; },
+        async maybeSingle(){ return { data:rows[snapshot][table] || null, error:null }; }
+      };
+      return query;
+    }
+  };
+
+  const sessionStorage = storage();
+  const window = {
+    AQARI_PUBLIC_CONFIG:{
+      supabaseUrl:'https://project.supabase.co',
+      supabasePublishableKey:'sb_publishable_test'
+    },
+    sessionStorage,
+    supabase:{ createClient(){ return client; } }
+  };
+  const sandbox = vm.createContext({
+    window,
+    document:{},
+    location:{ origin:'https://aqari.test' },
+    console
+  });
+  vm.runInContext(fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8'), sandbox);
+  return {
+    window,
+    finalSessionA,
+    useB(){ mode = 'b'; },
+    get finalSessionARequested(){ return finalSessionARequested; }
+  };
+}
+
+function adapterLibraryRetryRuntime(){
+  const scripts = [];
+  const timers = new Map();
+  let activeScript = null;
+  let nextTimer = 0;
+
+  function makeScript(){
+    const listeners = new Map();
+    return {
+      dataset:{},
+      async:false,
+      src:'',
+      addEventListener(name, callback){
+        if(!listeners.has(name)) listeners.set(name, new Set());
+        listeners.get(name).add(callback);
+      },
+      removeEventListener(name, callback){ listeners.get(name)?.delete(callback); },
+      remove(){ if(activeScript === this) activeScript = null; },
+      emit(name){ for(const callback of Array.from(listeners.get(name) || [])) callback(); }
+    };
+  }
+
+  const document = {
+    querySelector(){ return activeScript; },
+    createElement(){ return makeScript(); },
+    head:{
+      appendChild(script){
+        activeScript = script;
+        scripts.push(script);
+      }
+    }
+  };
+  const window = {
+    AQARI_PUBLIC_CONFIG:{
+      supabaseUrl:'https://project.supabase.co',
+      supabasePublishableKey:'sb_publishable_test'
+    },
+    sessionStorage:storage()
+  };
+  const sandbox = vm.createContext({
+    window,
+    document,
+    location:{ origin:'https://aqari.test' },
+    console,
+    setTimeout(callback){ const id = ++nextTimer; timers.set(id, callback); return id; },
+    clearTimeout(id){ timers.delete(id); }
+  });
+  vm.runInContext(fs.readFileSync(path.join(root, 'supabase-adapter.js'), 'utf8'), sandbox);
+  return { window, scripts, get activeScript(){ return activeScript; } };
+}
+
+function listenerRetryRuntime(){
+  const listeners = {};
+  const windowListeners = {};
+  const timers = [];
+  const clientReady = deferred();
+  const localStorage = storage();
+  const sessionStorage = storage();
+  let getClientCalls = 0;
+  let listenerCount = 0;
+  const client = {
+    auth:{
+      onAuthStateChange(){
+        listenerCount += 1;
+        return { data:{ subscription:{ unsubscribe(){} } } };
+      }
+    }
+  };
+  const window = {
+    localStorage,
+    sessionStorage,
+    AQARI_SUPABASE:{
+      context:{ user:null, membership:null, workspace:null },
+      async getClient(){
+        getClientCalls += 1;
+        if(getClientCalls === 1) throw new Error('temporary client failure');
+        return clientReady.promise;
+      },
+      async refreshContext(){ return { user:null, membership:null, workspace:null }; }
+    },
+    addEventListener(name, callback){ windowListeners[name] = callback; }
+  };
+  const document = {
+    readyState:'loading',
+    hidden:false,
+    documentElement:{ classList:{ add(){}, remove(){} } },
+    getElementById(){ return null; },
+    querySelectorAll(){ return []; },
+    addEventListener(name, callback){ listeners[name] = callback; }
+  };
+  const sandbox = vm.createContext({
+    window,
+    document,
+    localStorage,
+    sessionStorage,
+    location:{ origin:'https://aqari.test', pathname:'/', search:'', replace(){} },
+    setTimeout(callback, delay){ timers.push({ callback, delay }); return timers.length; },
+    clearTimeout(){},
+    setInterval(){ return 1; },
+    console
+  });
+  vm.runInContext(fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8'), sandbox);
+  return {
+    listeners,
+    windowListeners,
+    timers,
+    client,
+    clientReady,
+    get getClientCalls(){ return getClientCalls; },
+    get listenerCount(){ return listenerCount; }
+  };
+}
+
+test('a stale Supabase context refresh cannot overwrite a newer authenticated workspace', async () => {
+  const race = adapterRaceRuntime();
+  const refreshA = race.window.AQARI_SUPABASE.refreshContext();
+  await spinUntil(() => race.finalSessionARequested, 'user A did not reach the final session check');
+
+  race.useB();
+  const contextB = await race.window.AQARI_SUPABASE.refreshContext();
+  assert.equal(contextB.user.id, 'user-b');
+  assert.equal(contextB.workspace.id, 'workspace-b');
+
+  race.finalSessionA.resolve({
+    data:{ session:{ user:{ id:'user-a', email:'a@example.test' } } },
+    error:null
+  });
+  await assert.rejects(refreshA, (error) => {
+    assert.equal(error.code, 'AQARI_ACCESS_CHANGED');
+    assert.equal(error.reason, 'AQARI_CONTEXT_SUPERSEDED');
+    return true;
+  });
+  assert.equal(race.window.AQARI_SUPABASE.context.user.id, 'user-b');
+  assert.equal(race.window.AQARI_SUPABASE.context.workspace.id, 'workspace-b');
+});
+
+test('same-workspace context refreshes share one authenticated snapshot', async () => {
+  const race = adapterRaceRuntime();
+  const expected = { userId:'user-a', workspaceId:'workspace-a', role:'general_manager' };
+  const refreshes = Array.from({ length:3 }, () => race.window.AQARI_SUPABASE.refreshContext(expected));
+  await spinUntil(() => race.finalSessionARequested, 'the shared refresh did not reach its final session check');
+  race.finalSessionA.resolve({
+    data:{ session:{ user:{ id:'user-a', email:'a@example.test' } } },
+    error:null
+  });
+  const contexts = await Promise.all(refreshes);
+  assert.deepEqual(contexts.map((context) => context.user.id), ['user-a', 'user-a', 'user-a']);
+  assert.deepEqual(contexts.map((context) => context.workspace.id), ['workspace-a', 'workspace-a', 'workspace-a']);
+});
+
+test('Supabase library load failure can retry without a page reload', async () => {
+  const race = adapterLibraryRetryRuntime();
+  const first = race.window.AQARI_SUPABASE.getClient();
+  assert.equal(race.scripts.length, 1);
+  const failedScript = race.scripts[0];
+  failedScript.emit('error');
+  await assert.rejects(first, /Failed to load Supabase JS/);
+  assert.equal(race.activeScript, null);
+
+  const client = { auth:{} };
+  const second = race.window.AQARI_SUPABASE.getClient();
+  assert.equal(race.scripts.length, 2);
+  assert.notEqual(race.scripts[1], failedScript);
+  race.window.supabase = { createClient(){ return client; } };
+  race.scripts[1].emit('load');
+  assert.equal(await second, client);
+});
+
+test('unauthorized login forces a clean listener rebind on reload', () => {
+  const bridge = fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8');
+  const login = bridge.match(/window\.cloudLoginV198 = async function\(\)\{[\s\S]*?\n  \};/);
+  assert.ok(login);
+  assert.match(login[0], /error\?\.code === 'AQARI_ACCESS_DENIED'\) hardResetPage\(\)/);
+});
+
+test('a transient listener install failure retries once and shares the in-flight retry', async () => {
+  const race = listenerRetryRuntime();
+  await race.listeners.DOMContentLoaded();
+  assert.equal(race.getClientCalls, 1);
+  assert.equal(race.listenerCount, 0);
+  assert.equal(race.timers.length, 1);
+  assert.equal(race.timers[0].delay, 1000);
+
+  race.timers.shift().callback();
+  race.windowListeners.focus();
+  assert.equal(race.getClientCalls, 2, 'timer and focus must share one listener installation');
+  race.clientReady.resolve(race.client);
+  await spinUntil(() => race.listenerCount === 1, 'listener retry did not finish');
+  assert.equal(race.getClientCalls, 2);
+  assert.equal(race.listenerCount, 1);
+});
+
+test('startup backup is owned by the auth boundary and the late release wrapper is gone', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const bridge = fs.readFileSync(path.join(root, 'secure-auth-bridge.js'), 'utf8');
+  const releaseUI = fs.readFileSync(path.join(root, 'final-release-ui.js'), 'utf8');
+
+  assert.match(html, /AQARI_STARTUP_BACKUP=Object\.freeze\(\{[\s\S]*?schedule:scheduleStartupBackupV211,[\s\S]*?cancel:cancelStartupBackupV211/);
+  assert.doesNotMatch(html, /setTimeout\(\(\)=>makeAutoBackup\(\),1500\)/);
+  assert.match(bridge, /function sealData\(\)\{[\s\S]*?AQARI_STARTUP_BACKUP\?\.cancel\?\.\(\)/);
+  assert.match(bridge, /function unlock\(nextContext, nextRemoteState\)\{[\s\S]*?activateWorkspaceDbV198[\s\S]*?AQARI_STARTUP_BACKUP\?\.schedule\?\.\(\)/);
+  assert.doesNotMatch(releaseUI, /installStartupBackupGuard|__v211StartupGuard/);
+  assert.match(releaseUI, /عقاري V211\.1\.2 — سجل المتابعة السحابي/);
+});
 
 test('index starts with an empty database and never reads the legacy global key', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -423,7 +724,7 @@ test('HTML sink blocks quote-only event injection without mutating canonical wor
   assert.doesNotMatch(target.innerHTML, /\sonerror\s*=/i);
 });
 
-test('overlapping A to B bootstraps activate only B and legacy logout performs Supabase sign-out plus reset', async () => {
+test('A to B bootstrap requests stay single-flight, activate only B, and legacy logout resets safely', async () => {
   const race = bridgeRaceRuntime();
   const starting = race.listeners.DOMContentLoaded();
   await spinUntil(() => race.remotes.has('workspace-a'), 'workspace A cloud load did not start');
@@ -432,7 +733,13 @@ test('overlapping A to B bootstraps activate only B and legacy logout performs S
   race.authCallback('SIGNED_IN', { user:{ id:'user-b' } });
   assert.ok(race.scheduled.length > 0, 'account switch must schedule a new bootstrap');
   race.scheduled.shift()();
-  await spinUntil(() => race.remotes.has('workspace-b'), 'workspace B cloud load did not start');
+  assert.equal(race.remotes.has('workspace-b'), false, 'a second bootstrap must not overlap the active flight');
+  assert.equal(race.maxRemoteLoads, 1);
+
+  race.remotes.get('workspace-a').resolve({
+    workspace_id:'workspace-a', payload:{ tenants:[['TENANT A']] }, revision:1
+  });
+  await spinUntil(() => race.remotes.has('workspace-b'), 'workspace B trailing bootstrap did not start');
 
   race.remotes.get('workspace-b').resolve({
     workspace_id:'workspace-b', payload:{ tenants:[['TENANT B']] }, revision:2
@@ -443,13 +750,14 @@ test('overlapping A to B bootstraps activate only B and legacy logout performs S
   });
   assert.equal(race.portfolioResumeCount, 1, 'validated workspace unlock must resume V208 portfolio exactly once');
   assert.equal(race.searchResumeCount, 1, 'validated workspace unlock must resume V209 search exactly once');
-
-  race.remotes.get('workspace-a').resolve({
-    workspace_id:'workspace-a', payload:{ tenants:[['TENANT A']] }, revision:1
-  });
+  assert.equal(race.commandResumeCount, 1, 'validated workspace unlock must resume V210 command center exactly once');
+  assert.equal(race.followUpResumeCount, 1, 'validated workspace unlock must resume V211 follow-up center exactly once');
   await starting;
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(race.activations.length, 1);
+  assert.equal(race.maxRemoteLoads, 1, 'bootstrap work must stay single-flight');
+  assert.equal(race.startupBackupScheduleCount, 1, 'only the validated workspace unlock schedules backup');
+  assert.ok(race.startupBackupCancelCount >= 2, 'each lock/bootstrap transition cancels pending backup');
 
   const sealsBeforeLogout = race.sealCount;
   race.setSignOutShouldFail(true);
@@ -470,7 +778,7 @@ test('overlapping A to B bootstraps activate only B and legacy logout performs S
   assert.equal(race.signOutCount, 3);
   assert.ok(race.sealCount > sealsBeforeIdleLock);
   assert.deepEqual(race.hardResets, ['https://aqari.test/app?mode=secure','https://aqari.test/app?mode=secure']);
-  assert.ok(race.presentationSealCount >= 8, 'logout and idle lock must synchronously seal V201/V202/V208/V209 presentation state');
+  assert.ok(race.presentationSealCount >= 12, 'logout and idle lock must synchronously seal every protected presentation module');
 });
 
 test('IndexedDB access is workspace-scoped, epoch guarded after awaits, and closed on seal', () => {

@@ -1,10 +1,10 @@
 {
   "name": "AQARI",
   "version": "V198",
-  "design_version": "V211.1-follow-up-cloud",
-  "design_stage": "secure-opaque-follow-up-audit-contract",
+  "design_version": "V211.1.2-operational-hotfix",
+  "design_stage": "authenticated-startup-and-live-readiness",
   "stage": "release-freeze",
-  "index_sha256": "4fd39a4e4b0f0aa131ab09c980945a16084b758d6a6caef91f154ab0ab4d1244",
+  "index_sha256": "a1e4d9c7dd72e58a0f6f401b358277b7d79c9dc88e9f1248a2e244619a582419",
   "syntax_checks": 80,
   "syntax_errors": 0,
   "selftests": [
@@ -55,11 +55,12 @@
     }
   ],
   "release_frozen": true,
-  "supabase_live_verified": true,
-  "preview_deployed": false,
-  "preview_e2e_executed": false,
   "first_migration_executed": true,
-  "production_deployed": false,
-  "product_version": "V211.1",
-  "release_identity_note": "V198 remains the compatibility runtime/API contract; V211.1 is the active product surface candidate with its production RPC migration installed."
+  "runtime_verification": {
+    "supabase": "live_cached_probe",
+    "deployment_identity": "dynamic",
+    "preview_e2e": "required_per_commit"
+  },
+  "product_version": "V211.1.2",
+  "release_identity_note": "V198 remains the compatibility runtime/API contract; V211.1.2 fixes authenticated startup, render-bound polling, and truthful live operational readiness."
 }

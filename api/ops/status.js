@@ -1,4 +1,5 @@
 import { beginReadOnly, sendReadOnlyJson } from '../../lib/read-only.js';
+import { deploymentMetadata, releaseIdentity } from '../../lib/release-config.js';
 
 export default async function handler(req, res) {
   if(!beginReadOnly(req, res)) return;
@@ -21,8 +22,8 @@ export default async function handler(req, res) {
       'Sign-in requires an authorized active workspace membership.',
       'Initial upload or restore is an explicit user choice; automatic overwrite is disabled.'
     ],
-    version: 'V198',
-    gitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
+    ...releaseIdentity(),
+    gitSha: deploymentMetadata().gitSha,
     timestamp: new Date().toISOString()
   });
 }

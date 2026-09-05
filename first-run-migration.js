@@ -28,10 +28,12 @@
     }
   }
 
-  async function getAuthInfo(){
+  async function getAuthInfo(forceRefresh = false){
     if(!window.AQARI_SUPABASE) return { signedIn:false };
     try{
-      const ctx = await window.AQARI_SUPABASE.refreshContext();
+      const ctx = forceRefresh
+        ? await window.AQARI_SUPABASE.refreshContext()
+        : window.AQARI_SUPABASE.context;
       const userId = String(ctx.user?.id || '').trim();
       const workspaceId = String(ctx.workspace?.id || '').trim();
       const scope = window.AQARI_DATA_GATE?.scope;
@@ -82,11 +84,11 @@
     if(anchor && anchor.nextSibling) main.insertBefore(wrap, anchor.nextSibling);
     else main.insertBefore(wrap, main.firstChild);
 
-    async function refresh(){
+    async function refresh(forceAuthRefresh = false){
       status.textContent = 'جاري فحص الحالة...';
       result.textContent = '';
 
-      const auth = await getAuthInfo();
+      const auth = await getAuthInfo(forceAuthRefresh);
       const localKeys = auth.dataReady ? countLocalKeys() : 0;
       const cloud = auth.dataReady ? await getCloudInfo() : null;
 
@@ -106,7 +108,10 @@
       previewBtn.disabled = !auth.dataReady;
     }
 
-    refreshBtn.addEventListener('click', refresh);
+    refreshBtn.addEventListener('click', () => refresh(true));
+    window.addEventListener('aqari:auth-boundary', event => {
+      if(['ready','locked'].includes(event?.detail?.state)) refresh(false);
+    });
 
     previewBtn.addEventListener('click', async function(){
       result.textContent = 'جاري جلب النسخة السحابية...';
@@ -153,7 +158,7 @@
       }
     });
 
-    refresh();
+    refresh(false);
   }
 
   if(document.readyState === 'loading'){

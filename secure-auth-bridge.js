@@ -14,13 +14,23 @@
   let context = null;
   let remoteState = null;
   let authListenerInstalled = false;
+  let authListenerPromise = null;
+  let authListenerRetryTimer = 0;
+  let authListenerRetryDelay = 1000;
+  let bootstrapFlight = null;
+  let bootstrapFlightGeneration = 0;
+  let bootstrapPending = false;
+  let authActionRunning = false;
   let authGeneration = 0;
 
   function sealData(){
+    try{ window.AQARI_STARTUP_BACKUP?.cancel?.(); }catch(_){ }
     window.AQARI_V201?.seal?.();
     window.AQARI_V202?.seal?.();
     window.AQARI_V208?.seal?.();
     window.AQARI_V209?.seal?.();
+    window.AQARI_V210?.seal?.();
+    window.AQARI_V211?.seal?.();
     if(typeof window.sealWorkspaceDbV198 === 'function') window.sealWorkspaceDbV198();
     else{
       window.closeWorkspaceIndexedDbV206?.();
@@ -146,6 +156,7 @@
     byId('aqariCloudGateV168')?.classList.add('on');
     updateUI();
     notice(message || 'سجل الدخول بحساب عقاري المصرح.', kind);
+    try{window.dispatchEvent?.(new CustomEvent('aqari:auth-boundary',{ detail:{ state:'locked' } }))}catch(_){ }
   }
 
   function unlock(nextContext, nextRemoteState){
@@ -161,6 +172,10 @@
     updateUI();
     try{window.AQARI_V208?.resume?.(nextContext)}catch(_){window.AQARI_V208?.seal?.()}
     try{window.AQARI_V209?.resume?.(nextContext)}catch(_){window.AQARI_V209?.seal?.()}
+    try{window.AQARI_V210?.resume?.(nextContext)}catch(_){window.AQARI_V210?.seal?.()}
+    try{window.AQARI_V211?.resume?.(nextContext)}catch(_){window.AQARI_V211?.seal?.()}
+    try{ window.AQARI_STARTUP_BACKUP?.schedule?.(); }catch(_){ }
+    try{window.dispatchEvent?.(new CustomEvent('aqari:auth-boundary',{ detail:{ state:'ready' } }))}catch(_){ }
   }
 
   async function loadProfile(expectedContext){
@@ -335,8 +350,7 @@
     window.render = wrapped;
   }
 
-  async function bootstrap(){
-    const generation = ++authGeneration;
+  async function bootstrapOnce(generation){
     sealData();
     context = null;
     remoteState = null;
@@ -360,8 +374,31 @@
         notice('السحابة فارغة. ارفع بيانات هذا الجهاز مرة واحدة لتهيئة المزامنة.', 'wait');
       }
     }catch(error){
-      if(generation === authGeneration) showGate(errorText(error), 'bad');
+      if(generation !== authGeneration) return;
+      if(error?.reason === 'AQARI_CONTEXT_SUPERSEDED'){
+        bootstrapPending = true;
+        return;
+      }
+      showGate(errorText(error), 'bad');
     }
+  }
+
+  function requestBootstrap(){
+    if(bootstrapFlight){
+      if(authGeneration !== bootstrapFlightGeneration) bootstrapPending = true;
+      return bootstrapFlight;
+    }
+
+    const generation = ++authGeneration;
+    bootstrapFlightGeneration = generation;
+    const attempt = bootstrapOnce(generation);
+    bootstrapFlight = attempt.finally(() => {
+      bootstrapFlight = null;
+      if(!bootstrapPending) return;
+      bootstrapPending = false;
+      return requestBootstrap();
+    });
+    return bootstrapFlight;
   }
 
   window.cloudLoginV198 = async function(){
@@ -371,13 +408,16 @@
       const email = String(byId('cloudEmailV168')?.value || '').trim().toLowerCase();
       const password = byId('cloudPasswordV168')?.value || '';
       if(!email || !password) throw new Error('أدخل البريد وكلمة المرور.');
+      authActionRunning = true;
       await window.AQARI_SUPABASE.signIn(email, password);
       if(byId('cloudPasswordV168')) byId('cloudPasswordV168').value = '';
       notice('تم الدخول؛ جاري تحميل الصلاحيات…', 'wait');
-      await bootstrap();
+      await requestBootstrap();
     }catch(error){
       notice(errorText(error), 'bad');
+      if(error?.code === 'AQARI_ACCESS_DENIED') hardResetPage();
     }finally{
+      authActionRunning = false;
       setBusy(false);
     }
   };
@@ -389,6 +429,7 @@
       const password = byId('cloudPasswordV168')?.value || '';
       if(!email || !password) throw new Error('أدخل البريد وكلمة المرور.');
       if(password.length < 10) throw new Error('كلمة المرور يجب أن تكون 10 أحرف على الأقل.');
+      authActionRunning = true;
       const client = await window.AQARI_SUPABASE.getClient();
       const { data, error } = await client.auth.signUp({
         email,
@@ -397,11 +438,12 @@
       });
       if(error) throw error;
       if(byId('cloudPasswordV168')) byId('cloudPasswordV168').value = '';
-      if(data?.session) await bootstrap();
+      if(data?.session) await requestBootstrap();
       else notice('تم إنشاء الحساب. أكد البريد ثم ارجع وسجل الدخول.', 'ready');
     }catch(error){
       notice(errorText(error), 'bad');
     }finally{
+      authActionRunning = false;
       setBusy(false);
     }
   };
@@ -514,30 +556,58 @@
   window.openCloudV168 = window.openCloudV198;
 
   async function installAuthListener(){
-    if(authListenerInstalled) return;
-    authListenerInstalled = true;
-    const client = await window.AQARI_SUPABASE.getClient();
-    client.auth.onAuthStateChange((event, session) => {
-      const previousIdentity = accessIdentity(context);
-      if(event === 'SIGNED_OUT'){
-        showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
-        if(previousIdentity) hardResetPage();
-        return;
-      }
-      if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
-        if(previousIdentity){
-          if(String(session.user.id || '') !== previousIdentity.userId){
-            showGate('تم تغيير الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');
-            hardResetPage();
-            return;
-          }
-          setTimeout(() => revalidateActiveSession(), 0);
+    if(authListenerInstalled) return true;
+    if(authListenerPromise) return authListenerPromise;
+
+    const pending = (async () => {
+      const client = await window.AQARI_SUPABASE.getClient();
+      client.auth.onAuthStateChange((event, session) => {
+        const previousIdentity = accessIdentity(context);
+        if(event === 'SIGNED_OUT'){
+          showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
+          if(previousIdentity) hardResetPage();
           return;
         }
-        showGate('جاري التحقق من مساحة العمل…', 'wait');
-        setTimeout(() => bootstrap(), 0);
+        if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','MFA_CHALLENGE_VERIFIED'].includes(event) && session?.user){
+          if(previousIdentity){
+            if(String(session.user.id || '') !== previousIdentity.userId){
+              showGate('تم تغيير الحساب؛ جاري إعادة تحميل المنصة بأمان…', 'wait');
+              hardResetPage();
+              return;
+            }
+            setTimeout(() => revalidateActiveSession(), 0);
+            return;
+          }
+          if(authActionRunning) return;
+          showGate('جاري التحقق من مساحة العمل…', 'wait');
+          setTimeout(() => requestBootstrap(), 0);
+        }
+      });
+      authListenerInstalled = true;
+      authListenerRetryDelay = 1000;
+      if(authListenerRetryTimer){
+        clearTimeout(authListenerRetryTimer);
+        authListenerRetryTimer = 0;
       }
-    });
+      return true;
+    })();
+
+    authListenerPromise = pending;
+    try{
+      return await pending;
+    }finally{
+      if(authListenerPromise === pending) authListenerPromise = null;
+    }
+  }
+
+  function scheduleAuthListenerRetry(){
+    if(authListenerInstalled || authListenerRetryTimer) return;
+    const delay = authListenerRetryDelay;
+    authListenerRetryDelay = Math.min(authListenerRetryDelay * 2, 30000);
+    authListenerRetryTimer = setTimeout(() => {
+      authListenerRetryTimer = 0;
+      installAuthListener().catch(scheduleAuthListenerRetry);
+    }, delay);
   }
 
   let revalidationRunning = false;
@@ -554,6 +624,7 @@
         hardResetPage();
       }
     }catch(error){
+      if(error?.reason === 'AQARI_CONTEXT_SUPERSEDED') return;
       if(generation === authGeneration) showGate(errorText(error), 'bad');
     }finally{
       revalidationRunning = false;
@@ -561,9 +632,17 @@
   }
 
   function installRevalidation(){
-    window.addEventListener('focus', () => setTimeout(revalidateActiveSession, 0));
+    window.addEventListener('focus', () => {
+      if(!authListenerInstalled) installAuthListener().catch(scheduleAuthListenerRetry);
+      if(context?.user) try{ window.AQARI_STARTUP_BACKUP?.schedule?.(); }catch(_){ }
+      setTimeout(revalidateActiveSession, 0);
+    });
     document.addEventListener('visibilitychange', () => {
-      if(!document.hidden) setTimeout(revalidateActiveSession, 0);
+      if(!document.hidden){
+        if(!authListenerInstalled) installAuthListener().catch(scheduleAuthListenerRetry);
+        if(context?.user) try{ window.AQARI_STARTUP_BACKUP?.schedule?.(); }catch(_){ }
+        setTimeout(revalidateActiveSession, 0);
+      }
     });
     setInterval(revalidateActiveSession, 5 * 60 * 1000);
   }
@@ -573,8 +652,8 @@
     installOverrides();
     installRenderHook();
     installRevalidation();
-    await installAuthListener().catch(() => {});
-    await bootstrap();
+    await installAuthListener().catch(scheduleAuthListenerRetry);
+    await requestBootstrap();
   }
 
   if(document.readyState === 'loading'){
