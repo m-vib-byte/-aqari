@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [
@@ -10,8 +10,11 @@
           "value": "(?<ios>.*(?:iPhone|iPad|iPod|Macintosh.*Mobile).*)"
         }
       ],
-      "destination": "/login.html"
-    },
+      "destination": "/login",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
     {
       "source": "/login",
       "destination": "/login.html"
