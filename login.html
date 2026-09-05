@@ -69,6 +69,7 @@
     var releaseResetPromise = null;
     var restoreEpoch = 0;
     var restoreFlight = null;
+    var manualEntry = /(?:^|[?&])manual=1(?:&|$)/.test(String(window.location.search || ''));
 
     var form = document.getElementById('loginForm');
     var email = document.getElementById('email');
@@ -252,7 +253,7 @@
     }
 
     function restoreExistingSession(){
-      if(busy || preparing || restoreFlight) return restoreFlight;
+      if(manualEntry || busy || preparing || restoreFlight) return restoreFlight;
       var epoch = restoreEpoch;
       var pending = (async function(){
         var session = await withTimeout(window.AQARI_SUPABASE.getSession(),10000,'استعادة الجلسة');
