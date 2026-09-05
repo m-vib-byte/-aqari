@@ -1,0 +1,57 @@
+name: Mobile startup investigation
+on:
+  push:
+    branches: [debug/v266-mobile-full]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Instrument only the isolated test checkout
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
+          s="import vm from 'node:vm';\n"+s
+          marker="let fixture={},hangCloud=false,hangConfirmation=false,requests=[];"
+          assert marker in s
+          fixture="""const htmlSource=fs.readFileSync(path.join(root,'index.html'),'utf8');
+          const demoStart=htmlSource.indexOf('const aqariV198LegacyDemo=')+'const aqariV198LegacyDemo='.length;
+          const demoEnd=htmlSource.indexOf(';for(const k in mods)',demoStart);
+          assert.ok(demoStart>0&&demoEnd>demoStart);
+          const legacy=vm.runInNewContext('('+htmlSource.slice(demoStart,demoEnd)+')');
+          for(const [key,value] of Object.entries(legacy))if(!(key in populated))populated[key]=value;
+          console.log('FIXTURE_KEYS',Object.keys(populated).length);
+          """
+          s=s.replace(marker,fixture+marker)
+          s=s.replace("['empty','populated','manual','timeout','confirmation-timeout']","['populated','manual']")
+          old="{viewport:{width:1473,height:850}}"
+          assert old in s
+          s=s.replace(old,"{viewport:{width:390,height:844},isMobile:true,hasTouch:true,locale:'ar-KW',timezoneId:'Asia/Kuwait'}")
+          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));", "page.on('pageerror',error=>errors.push(error.stack));\n        page.on('console',message=>{if(message.text().startsWith('TRACE'))console.log(name,message.text())});")
+          p.write_text(s)
+          p=Path('supabase-adapter.js');s=p.read_text()
+          s=s.replace('  function startupProgress(stage){',"  function startupProgress(stage){\n    console.log('TRACE stage',stage,performance.now());")
+          s=s.replace('    const {data:finalData,error:finalError} = await client.auth.getSession();',"    console.log('TRACE before final getSession',performance.now());\n    const {data:finalData,error:finalError} = await client.auth.getSession();\n    console.log('TRACE after final getSession',performance.now());")
+          s=s.replace('    }).then(async response => {',"    }).then(async response => {\n      console.log('TRACE received',path,response.status,performance.now());")
+          p.write_text(s)
+          p=Path('secure-auth-bridge.js');s=p.read_text()
+          s=s.replace('    function stage(value){',"    function stage(value){\n      console.log('TRACE bridge',value,performance.now());")
+          p.write_text(s)
+          PY
+      - name: Run mobile post-confirmation renderer
+        run: node tests/v266-authenticated-home.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-startup-investigation
+          path: test-results/authenticated-home
+          retention-days: 2
