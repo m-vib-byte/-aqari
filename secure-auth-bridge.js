@@ -23,6 +23,7 @@
   let bootstrapPendingUserId = '';
   let authActionRunning = false;
   let authGeneration = 0;
+  let automaticRestorePaused = false;
 
   function setGatePhase(phase){
     document.documentElement?.classList.toggle('aqari-login-required', phase === 'login' || phase === 'error');
@@ -107,7 +108,7 @@
     if(/user already registered/i.test(raw)) return 'الحساب موجود؛ استخدم زر الدخول.';
     if(/not authorized|membership|workspace/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';
     if(Number(error?.status || error?.statusCode || 0) >= 500 || /unexpected_failure|internal server error|unhandled server error|context canceled|couldn't start a new transaction|database error/i.test(marker)) return 'تعثر الاتصال الآمن مؤقتاً. أعد المحاولة بعد لحظات.';
-    if(/failed to fetch|failed to load supabase|supabase js unavailable|network/i.test(raw)) return 'تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.';
+    if(/failed to fetch|load failed|failed to load supabase|supabase js unavailable|network/i.test(raw)) return 'تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.';
     return raw;
   }
 
@@ -166,6 +167,7 @@
   }
 
   function showGate(message, kind = 'wait', phase = 'login'){
+    if(phase === 'error') automaticRestorePaused = true;
     setGatePhase(phase);
     authGeneration += 1;
     document.documentElement?.classList.remove('aqari-auth-unlocked');
@@ -393,6 +395,7 @@
   async function bootstrapOnce(generation, deadlineAt){
     try{
       setGatePhase('restoring');
+      byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'session');
       notice('جاري استعادة الجلسة وفتح الصفحة الرئيسية…', 'wait');
       sealData();
       context = null;
@@ -407,12 +410,16 @@
         showGate('لا توجد جلسة نشطة. سجل الدخول بحساب عقاري المصرح.', 'wait');
         return;
       }
+      byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'data');
       notice('تم التحقق من الحساب؛ جاري تحميل مساحة العمل…', 'wait');
       const activeRemoteState = await boundedBootstrap(loadRemoteCandidate(active, true), 'فتح الصفحة الرئيسية', deadlineAt);
       if(generation !== authGeneration) return;
       if(bootstrapPendingUserId && String(active?.user?.id || '') !== bootstrapPendingUserId) return;
       requireRemoteWorkspace(active, activeRemoteState);
+      byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'render');
+      notice('جاري تجهيز الصفحة الرئيسية…', 'wait');
       unlock(active, activeRemoteState);
+      byId('aqariCloudGateV168')?.setAttribute('data-auth-stage', 'ready');
       if(payloadHasData(activeRemoteState?.payload)){
         notice('تم الاتصال. اختر استرجاع السحابة قبل تشغيل المزامنة على هذا الجهاز.', 'wait');
       }else{
@@ -459,6 +466,8 @@
   }
 
   window.cloudLoginV198 = async function(){
+    if(authActionRunning) return;
+    const deadlineAt = Date.now() + 12000;
     setBusy(true);
     try{
       showGate('جاري التحقق من الحساب…', 'wait');
@@ -466,12 +475,15 @@
       const password = byId('cloudPasswordV168')?.value || '';
       if(!email || !password) throw new Error('أدخل البريد وكلمة المرور.');
       authActionRunning = true;
-      await window.AQARI_SUPABASE.signIn(email, password);
+      automaticRestorePaused = false;
+      const generation = authGeneration;
+      await boundedBootstrap(window.AQARI_SUPABASE.signIn(email, password), 'تسجيل الدخول', deadlineAt);
+      if(generation !== authGeneration) return;
       if(byId('cloudPasswordV168')) byId('cloudPasswordV168').value = '';
       notice('تم الدخول؛ جاري تحميل الصلاحيات…', 'wait');
-      await requestBootstrap();
+      await requestBootstrap(deadlineAt);
     }catch(error){
-      notice(errorText(error), 'bad');
+      showGate(errorText(error), 'bad', 'error');
       if(error?.code === 'AQARI_ACCESS_DENIED') hardResetPage();
     }finally{
       authActionRunning = false;
@@ -615,6 +627,7 @@
   function handleAuthStateChange(event, session){
     const previousIdentity = accessIdentity(context);
     if(event === 'SIGNED_OUT'){
+      automaticRestorePaused = true;
       bootstrapPending = false;
       bootstrapPendingUserId = '';
       showGate('سجل الدخول بحساب عقاري المصرح.', 'wait');
@@ -633,7 +646,7 @@
         setTimeout(() => revalidateActiveSession(), 0);
         return;
       }
-      if(authActionRunning) return;
+      if(authActionRunning || automaticRestorePaused) return;
       const eventUserId = String(session.user.id || '').trim();
       if(bootstrapFlight){
         bootstrapPending = true;
@@ -722,8 +735,24 @@
     setInterval(revalidateActiveSession, 5 * 60 * 1000);
   }
 
+  function installLoginRecovery(){
+    const gate = byId('aqariCloudGateV168');
+    const message = byId('cloudGateMsgV168');
+    if(!gate || !message?.parentNode || byId('aqariManualLoginRecovery')) return;
+    // An ordinary same-origin link remains usable while asynchronous restoration
+    // is pending. It neither grants access nor removes any stored workspace data.
+    const link = document.createElement('a');
+    link.id = 'aqariManualLoginRecovery';
+    link.href = '/login?release=V266&manual=1';
+    link.textContent = 'العودة إلى تسجيل الدخول';
+    link.style.cssText = 'display:block;text-align:center;margin:12px 0;color:#725400;text-decoration:underline;min-height:32px;line-height:32px';
+    message.parentNode.appendChild(link);
+  }
+
   async function start(){
+    installLoginRecovery();
     byId('aqariSessionRetry')?.addEventListener('click', async () => {
+      automaticRestorePaused = false;
       setBusy(true);
       try{ await requestBootstrap(); }finally{ setBusy(false); }
     });

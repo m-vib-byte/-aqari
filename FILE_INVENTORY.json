@@ -168,8 +168,8 @@
     },
     {
       "path": "login.html",
-      "size": 16209,
-      "sha256": "c142f3c4ecff9a9b4047ae422069385777c8effd24c661581fe9192fc74ee0ff"
+      "size": 16318,
+      "sha256": "5c33fc76e19e79214e2b8e24be2bc3c2914df0584dc687be4aafc4acaff1cfaf"
     },
     {
       "path": "lib/read-only.js",
@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 33054,
-      "sha256": "9c1bf09408a515d592fdf53486b38aacd30507b6cbe2511111a5f6d069dac4fe"
+      "size": 34729,
+      "sha256": "9e90d367220b2802c21561b03092333cf23f4394c07e3d2c37d72145fc821eaf"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -608,8 +608,18 @@
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
-      "size": 11272,
-      "sha256": "e3be5081616da74524b90382977cff07ff9863c65b775e54949087a76ac87e7a"
+      "size": 12964,
+      "sha256": "cbfed300135035674047b5f82391017f6654fc80d6906d7b7eda3435e26ead66"
+    },
+    {
+      "path": ".github/workflows/authenticated-home.yml",
+      "size": 727,
+      "sha256": "efd7f132c43ad010618c7830858da388ee13a67e5c35a8040a26b0e204b4e1e6"
+    },
+    {
+      "path": "tests/v266-authenticated-home.e2e.mjs",
+      "size": 8367,
+      "sha256": "e3c96aec4bedc147ac29a7f3ee46ec69754779affa1644b56271b7c3a78d4522"
     }
   ]
 }

@@ -1,0 +1,27 @@
+name: Authenticated home regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  home:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Real authenticated renderer with synthetic backend
+        run: node tests/v266-authenticated-home.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: authenticated-home-results
+          path: test-results/authenticated-home
+          retention-days: 2
