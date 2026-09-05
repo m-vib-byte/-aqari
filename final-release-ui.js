@@ -1,11 +1,6 @@
 (function(){
   'use strict';
 
-  const PRODUCT_RELEASE='V211.1.2';
-  function releaseAsset(path){
-    return path+(path.includes('?')?'&':'?')+'release='+encodeURIComponent(PRODUCT_RELEASE);
-  }
-
   function mount(){
     if(document.querySelector('.aq-v196-final')) return;
 
@@ -91,6 +86,11 @@
 
 (function(){
   'use strict';
+
+  const PRODUCT_RELEASE='V211.1.2';
+  function releaseAsset(path){
+    return path+(path.includes('?')?'&':'?')+'release='+encodeURIComponent(PRODUCT_RELEASE);
+  }
 
   function installV211FollowUpCenter(){
     document.body?.classList.add('aq-v211');
