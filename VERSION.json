@@ -4,7 +4,7 @@
   "design_version": "V211.1.2-operational-hotfix",
   "design_stage": "authenticated-startup-and-live-readiness",
   "stage": "release-freeze",
-  "index_sha256": "fe0c85ab7b3aeb26e38ec720a644bfa31aebc9d75ef9e965c342c5ef685fc3cc",
+  "index_sha256": "23b520039afa4186bdf36935a8cd7192e037c0aec6186dbfcbc7b920b40facf8",
   "syntax_checks": 80,
   "syntax_errors": 0,
   "selftests": [

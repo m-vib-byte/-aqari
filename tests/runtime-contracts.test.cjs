@@ -254,6 +254,7 @@ test('V205 simplified shell preserves every secure V204 property workflow', () =
   assert.match(shell, /String\(title\?\.textContent\|\|''\)\.trim\(\)===String\(name\|\|''\)\.trim\(\)/);
   assert.match(shell, /originalTrigger\.focus/);
   assert.match(shell, /setChooserBackgroundInert\(true,overlay\)/);
+  assert.match(shell, /AQARI_V205=Object\.freeze\(\{[\s\S]*?seal:function\(\)\{closeChooser\(false\)\}/);
   assert.doesNotMatch(shell, /v205LegacyDashboardSlot" class="v205-dashboard-slot" aria-live/);
   assert.match(shell, /window\.go\?\./);
   for (const action of ['contract', 'payment', 'statement', 'maintenance']) {

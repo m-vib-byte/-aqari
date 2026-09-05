@@ -35,7 +35,7 @@ page.on('dialog', async dialog => {
   await dialog.dismiss();
 });
 await page.route('**/final-release-ui.js*', async route => {
-  await new Promise(resolve => setTimeout(resolve, 2200));
+  await new Promise(resolve => setTimeout(resolve, 5000));
   await route.continue();
 });
 page.on('pageerror', error => pageErrors.push(error.stack || error.message));
@@ -54,13 +54,29 @@ async function check(name, fn){
 }
 
 await check('V205 simplified platform loads on the secure V198 runtime', async () => {
-  const response = await page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
+  const navigation = page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
+  await page.waitForSelector('#aqariCloudGateV168', { state:'visible', timeout:3500 });
+  const firstPaint = await page.evaluate(() => ({
+    shellReady:document.documentElement.classList.contains('aqari-shell-ready'),
+    authUnlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),
+    bodyVisibility:getComputedStyle(document.body).visibility,
+    gateVisible:Boolean(document.getElementById('aqariCloudGateV168')?.getClientRects().length),
+    message:document.getElementById('cloudGateMsgV168')?.textContent?.trim() || '',
+    authButtonsDisabled:Array.from(document.querySelectorAll('[data-cloud-auth-action]')).every(button => button.disabled)
+  }));
+  if(!firstPaint.shellReady || firstPaint.authUnlocked || firstPaint.bodyVisibility !== 'visible' || !firstPaint.gateVisible || !firstPaint.authButtonsDisabled || !firstPaint.message.includes('جاري تحميل')){
+    throw new Error('secure login shell was not usable during delayed asset loading: ' + JSON.stringify(firstPaint));
+  }
+  const response = await navigation;
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
   await page.waitForTimeout(2000);
   if(startupDialogs.length) throw new Error('blocking startup dialog: ' + JSON.stringify(startupDialogs));
   if(dbStatusRequests.length) throw new Error('startup triggered database status requests: ' + dbStatusRequests.join(','));
   const state = await page.evaluate(() => ({
     gate:Boolean(document.getElementById('aqariCloudGateV168')?.classList.contains('on')),
+    gateInert:document.getElementById('aqariCloudGateV168')?.hasAttribute('inert'),
+    gateAriaHidden:document.getElementById('aqariCloudGateV168')?.getAttribute('aria-hidden'),
+    authButtonsDisabled:Array.from(document.querySelectorAll('[data-cloud-auth-action]')).some(button => button.disabled),
     loginSecure:window.login === window.cloudLoginV198,
     localLoginSecure:window.loginLocalV120 === window.cloudLoginV198,
     supabase:Boolean(window.AQARI_SUPABASE),
@@ -105,6 +121,9 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
   }));
   if(!state.gate || !state.loginSecure || !state.localLoginSecure || !state.supabase || !state.cloud){
     throw new Error('secure cloud bridge unavailable');
+  }
+  if(state.gateInert || state.gateAriaHidden === 'true' || state.authButtonsDisabled){
+    throw new Error('secure cloud gate did not become interactive after startup');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
   if(state.productRelease !== 'V211.1.2' || state.apiContract !== 'V198' || state.releaseStage !== 'production'){
