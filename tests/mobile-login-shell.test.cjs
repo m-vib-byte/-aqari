@@ -10,10 +10,11 @@ const serviceWorker = fs.readFileSync(root + '/sw.js', 'utf8');
 const config = JSON.parse(fs.readFileSync(root + '/vercel.json', 'utf8'));
 
 const rewrite = (source) => config.rewrites.find((item) => item.source === source);
-const redirect = (source) => config.redirects.find((item) => item.source === source);
-assert.equal(redirect('/')?.destination, '/login?release=V266');
-assert.equal(redirect('/')?.has, undefined, 'root login redirect must also cover iPad desktop mode');
-assert.equal(redirect('/')?.permanent, false);
+const redirect = (source) => (config.redirects || []).find((item) => item.source === source);
+assert.equal(redirect('/'), undefined, 'root must not require an extra browser navigation');
+assert.equal(rewrite('/')?.destination, '/login.html');
+assert.equal(rewrite('/')?.has, undefined, 'direct root entry must include iPad desktop mode');
+assert.equal(config.rewrites.filter(item => item.source === '/').length, 1);
 assert.equal(rewrite('/login')?.destination, '/login.html');
 assert.equal(rewrite('/app')?.destination, '/index.html');
 assert.equal(

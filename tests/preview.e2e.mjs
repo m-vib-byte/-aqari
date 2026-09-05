@@ -14,8 +14,8 @@ const browser = await chromium.launch({ headless:true });
 const context = await browser.newContext({
   viewport:{ width:390, height:844 },
   extraHTTPHeaders:bypass ? {
-    'x-vercel-protection-bypass':bypass,
-    'x-vercel-set-bypass-cookie':'true'
+    // Per-request authorization needs no cookie-setting redirect.
+    'x-vercel-protection-bypass':bypass
   } : {}
 });
 const page = await context.newPage();
@@ -60,8 +60,8 @@ await check('Root opens the dedicated V266 login on every device', async () => {
     const response = await loginPage.goto(new URL('/', previewUrl).toString(), { waitUntil:'domcontentloaded', timeout:30000 });
     if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
     const finalUrl = new URL(loginPage.url());
-    if(finalUrl.pathname !== '/login' || finalUrl.searchParams.get('release') !== 'V266'){
-      throw new Error('root did not redirect to the V266 login: ' + finalUrl.toString());
+    if(finalUrl.pathname !== '/' || response.request().redirectedFrom() || response.headers().location){
+      throw new Error('root must serve the login directly without redirecting');
     }
     await loginPage.waitForSelector('#email:not([disabled])', { state:'visible', timeout:12000 });
     await loginPage.waitForSelector('#password:not([disabled])', { state:'visible', timeout:12000 });

@@ -1,13 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "redirects": [
+  "rewrites": [
     {
       "source": "/",
-      "destination": "/login?release=V266",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
+      "destination": "/login.html"
+    },
     {
       "source": "/login",
       "destination": "/login.html"
@@ -28,7 +25,12 @@
   "headers": [
     {
       "source": "/secure-auth-bridge.js",
-      "headers": [{ "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0, must-revalidate"
+        }
+      ]
     },
     {
       "source": "/(.*)",
