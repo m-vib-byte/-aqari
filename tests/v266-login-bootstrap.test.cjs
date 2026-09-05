@@ -88,7 +88,7 @@ function bridgeRuntime(options={}){
     async refreshContext(){checks++;return options.refresh?options.refresh():access;},
     async loadAppState(expected,settings){assert.equal(settings.reuseVerifiedContext,true);return options.remote?options.remote():{workspace_id:'space-a',payload:{}};},
     async getClient(){return {auth:{onAuthStateChange(fn){authCallback=fn;}}};},
-    async signIn(){},async signOut(){}
+    async signIn(){if(options.signIn)return options.signIn();},async signOut(){}
   };
   const window={AQARI_SUPABASE:api,activateWorkspaceDbV198(){events.push('data-activated');},go(route){events.push(route);},addEventListener(){}};
   const document={readyState:'loading',documentElement:{classList:{toggle(k,v){v?classes.add(k):classes.delete(k);},add(k){classes.add(k);},remove(k){classes.delete(k);}}},getElementById(id){return nodes[id]||null;},querySelectorAll(){return [button];},addEventListener(type,fn){listeners[type]=fn;}};
@@ -137,4 +137,29 @@ test('same-user auth notifications preserve the stage and do not duplicate a suc
   const remote=deferred();const r=bridgeRuntime({remote:()=>remote.promise});await tick();const before=r.message.textContent;
   r.auth('TOKEN_REFRESHED',{user:context().user});await r.advance(0);assert.equal(r.message.textContent,before);
   remote.resolve({workspace_id:'space-a',payload:{}});await r.ready;assert.equal(r.checks,1);assert.equal(r.events.filter(e=>e==='home').length,1);
+});
+
+
+test('a failed restore stays stopped when late auth events arrive',async()=>{
+  const r=bridgeRuntime({refresh:()=>new Promise(()=>{})});await tick();await r.advance(12000);await r.ready;
+  assert.equal(r.attrs.get('data-auth-phase'),'error');
+  for(const event of ['INITIAL_SESSION','SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED']){
+    r.auth(event,{user:context().user});await r.advance(0);
+  }
+  assert.equal(r.checks,1,'late events must not start a new automatic 12-second wait');
+  assert.equal(r.attrs.get('data-auth-phase'),'error');assert.equal(r.button.disabled,false);
+});
+test('a hanging password submission ends and late success cannot open the app',async()=>{
+  const login=deferred();const r=bridgeRuntime({hint:false,signIn:()=>login.promise});await r.ready;
+  const pending=r.window.cloudLoginV198();await tick();await r.advance(12000);await pending;
+  assert.equal(r.attrs.get('data-auth-phase'),'error');assert.equal(r.button.disabled,false);
+  login.resolve({});r.auth('SIGNED_IN',{user:context().user});await r.advance(0);
+  assert.deepEqual(r.events,[]);assert.equal(r.checks,0);
+});
+test('manual entry is an explicit login presentation choice, never an access bypass',()=>{
+  const login=fs.readFileSync(path.join(root,'login.html'),'utf8');
+  assert.ok(login.includes("var manualEntry = /(?:^|[?&])manual=1(?:&|$)/.test(String(window.location.search || ''))"));
+  assert.match(login,/if\(manualEntry \|\| busy \|\| preparing \|\| restoreFlight\) return restoreFlight/);
+  assert.match(login,/AQARI_SUPABASE.signIn\(emailValue,passwordValue\)/);
+  assert.match(bridgeSource,/link.href = '\/login\?release=V266&manual=1'/);
 });
