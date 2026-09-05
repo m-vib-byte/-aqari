@@ -5,7 +5,8 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 
 // Real shipped SDK and renderer; synthetic account/rows; no production login,
-// tokens or database traffic. All backend responses are intercepted below.
+// tokens or database traffic. Backend is same-origin to keep WebKit preflights
+// inside the fixture as well as the intercepted application requests.
 const root=process.cwd();
 const out=path.join(root,'test-results','authenticated-home');
 fs.mkdirSync(out,{recursive:true});
@@ -13,7 +14,7 @@ const sdkResponse=await fetch('https://cdn.jsdelivr.net/npm/@supabase/supabase-j
 if(!sdkResponse.ok)throw Error('Cannot obtain the pinned SDK fixture');
 const sdk=Buffer.from(await sdkResponse.arrayBuffer());
 if(crypto.createHash('sha384').update(sdk).digest('base64')!=='0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi')throw Error('SDK integrity mismatch');
-const backend='https://fixture.supabase.co';
+const backend='http://127.0.0.1:4173';
 const user={id:'11111111-1111-4111-8111-111111111111',email:'synthetic@example.invalid',aud:'authenticated',role:'authenticated',app_metadata:{provider:'email'},user_metadata:{}};
 const workspace={id:'22222222-2222-4222-8222-222222222222',name:'Synthetic workspace'};
 const membership={user_id:user.id,workspace_id:workspace.id,role:'general_manager',is_active:true};
@@ -31,7 +32,7 @@ for(let i=1;i<=110;i++){
   populated.rentLedgerV202.push({id:'PAY-'+i,contractId:id,contractNo:id,property,unit,tenant,period:'2026-08',due:250,paid:250,balance:0,receiptNo:'R-'+i,paidAt:'2026-08-05',method:'bank',status:'paid',source:'synthetic',note:''});
 }
 const server=http.createServer((req,res)=>{
-  const url=new URL(req.url,'http://localhost');
+  const url=new URL(req.url,backend);
   const name=url.pathname==='/app'?'index.html':url.pathname.slice(1)||'login.html';
   if(name==='public-config.js'){
     res.writeHead(200,{'content-type':'text/javascript'});res.end('window.AQARI_PUBLIC_CONFIG='+JSON.stringify({supabaseUrl:backend,supabasePublishableKey:'sb_publishable_synthetic',supabaseAuthStorageKey:'aqari-supabase-auth-v198'})+';');return;
@@ -47,8 +48,8 @@ const server=http.createServer((req,res)=>{
   const type={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'}[path.extname(name)]||'application/octet-stream';
   res.writeHead(200,{'content-type':type+'; charset=utf-8','cache-control':'no-store'});res.end(data);
 });
-await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-const base='http://127.0.0.1:'+server.address().port;
+await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
+const base=backend;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let failed=false;
 try{
@@ -62,12 +63,11 @@ try{
         const context=await browser.newContext({viewport:{width:1473,height:850}});
         await context.route('**/*',async route=>{
           const request=route.request(),url=new URL(request.url());
-          if(url.origin===base)return route.continue();
           if(url.origin!==backend)return route.abort();
+          if(!/^\/(?:auth|rest)\/v1\//.test(url.pathname))return route.continue();
           requests.push(request.method()+' '+url.pathname);
           console.log(name,'REQUEST',request.method(),url.pathname);
-          const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','content-type':'application/json'};
-          if(request.method()==='OPTIONS')return route.fulfill({status:200,headers,body:''});
+          const headers={'content-type':'application/json'};
           if(url.pathname==='/auth/v1/user')return route.fulfill({status:200,headers,body:JSON.stringify(user)});
           if(url.pathname==='/auth/v1/token')return route.fulfill({status:200,headers,body:JSON.stringify(session)});
           if(request.method()!=='GET')return route.fulfill({status:403,headers,body:JSON.stringify({message:'Synthetic fixture: writes disabled'})});
