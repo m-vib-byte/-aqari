@@ -378,8 +378,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 28490,
-      "sha256": "5f363902cf5007e079ffe3307a40a2138a50ba779e9f5f265ceaf578bcd2a236"
+      "size": 29378,
+      "sha256": "dc897422d14c90ee7058be6bff32658bdf0362f03572f75bd69746299d8e7a1d"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",

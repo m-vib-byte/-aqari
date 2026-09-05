@@ -8,6 +8,7 @@ if(!base || !expectedSha){
 }
 
 const previewUrl = new URL(base);
+const appUrl = new URL('/app?release=V266', previewUrl).toString();
 const bypass = String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET || previewUrl.searchParams.get('x-vercel-protection-bypass') || '').trim();
 const browser = await chromium.launch({ headless:true });
 const context = await browser.newContext({
@@ -53,8 +54,24 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
+await check('Root opens the dedicated V266 login on every device', async () => {
+  const loginPage = await context.newPage();
+  try{
+    const response = await loginPage.goto(new URL('/', previewUrl).toString(), { waitUntil:'domcontentloaded', timeout:30000 });
+    if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
+    const finalUrl = new URL(loginPage.url());
+    if(finalUrl.pathname !== '/login' || finalUrl.searchParams.get('release') !== 'V266'){
+      throw new Error('root did not redirect to the V266 login: ' + finalUrl.toString());
+    }
+    await loginPage.waitForSelector('#email:not([disabled])', { state:'visible', timeout:12000 });
+    await loginPage.waitForSelector('#password:not([disabled])', { state:'visible', timeout:12000 });
+  }finally{
+    await loginPage.close();
+  }
+});
+
 await check('V205 simplified platform loads on the secure V198 runtime', async () => {
-  const navigation = page.goto(base, { waitUntil:'domcontentloaded', timeout:30000 });
+  const navigation = page.goto(appUrl, { waitUntil:'domcontentloaded', timeout:30000 });
   await page.waitForSelector('#aqariCloudGateV168', { state:'visible', timeout:3500 });
   const firstPaint = await page.evaluate(() => ({
     shellReady:document.documentElement.classList.contains('aqari-shell-ready'),
