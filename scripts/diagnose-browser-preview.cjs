@@ -14,9 +14,7 @@ function run(args,timeout){
 }
 function change(source,from,to){assert.equal(source.split(from).length,2,'Expected one diagnostic insertion: '+from.slice(0,80));return source.replace(from,to);}
 try{
- // All existing static, auth, scope and navigation gates remain required.
  run(['scripts/build-approved-integration.cjs'],120000);
- // Amazon Linux build container lacks libnspr4.so / libnss3.so. Ephemeral packages only.
  const deps=spawnSync('dnf',['install','-y','nspr','nss'],{env,stdio:'inherit',timeout:120000});
  if(deps.error)throw deps.error;
  assert.equal(deps.status,0,'Chromium system dependencies must install successfully');
@@ -24,7 +22,10 @@ try{
  console.log('BROWSER_DIAGNOSTIC: Chromium only. WebKit is NOT covered by this run. Synthetic local backend only.');
  let source=fs.readFileSync(path.join(root,'tests/v266-authenticated-home.e2e.mjs'),'utf8');
  source=change(source,"[['chromium',chromium],['webkit',webkit]]","[['chromium',chromium]]");
- source=change(source,"localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));","if(!sessionStorage.getItem('aqariSyntheticSeeded')){sessionStorage.setItem('aqariSyntheticSeeded','1');localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));}");
+ // Seed ONLY the initial browser context. Application logout may clear sessionStorage;
+ // an init-script guard in that storage must not reinsert credentials on reload.
+ source=change(source,"const context=await browser.newContext({viewport:{width:1473,height:850}});","const context=await browser.newContext({viewport:{width:1473,height:850},storageState:{cookies:[],origins:scenario==='manual'?[]:[{origin:base,localStorage:[{name:'aqari-supabase-auth-v198',value:JSON.stringify(session)}]}]}});");
+ source=change(source,"localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));","/* Initial session is set by browser.newContext, never by navigation scripts. */");
  source=change(source,"if(url.pathname==='/auth/v1/user')return send(res,user);","if(url.pathname==='/auth/v1/logout'){res.writeHead(204);res.end();return;}\n    if(url.pathname==='/auth/v1/user')return send(res,user);");
  source=change(source,"        const state=await page.evaluate(()=>({phase:",`        if(!hangCloud&&!hangConfirmation){
           for(const [route,target] of [['properties','list'],['tenants','list'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
@@ -42,7 +43,12 @@ try{
           if(scenario==='manual'){
             await page.locator('#aqariV199Topbar [data-v199-action="more"]').click({timeout:8000});
             await page.locator('#v199MoreMenu [data-v199-action="logout"]').click({timeout:8000});
-            await page.waitForFunction(()=>!localStorage.getItem('aqari-supabase-auth-v198')&&!document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:15000});
+            try{
+              await page.waitForFunction(()=>!localStorage.getItem('aqari-supabase-auth-v198')&&!document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:15000});
+            }catch(error){
+              console.error('LOGOUT_DIAGNOSTIC',JSON.stringify(await page.evaluate(()=>({unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),hasSession:Boolean(localStorage.getItem('aqari-supabase-auth-v198')),phase:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-phase'),stage:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),message:document.getElementById('cloudGateMsgV168')?.textContent}))));
+              console.error('LOGOUT_TRANSPORT',JSON.stringify(requests.filter(r=>r.includes('/auth/'))));throw error;
+            }
             await page.reload({waitUntil:'domcontentloaded'});
             await page.waitForSelector('#aqariManualLoginRecovery',{state:'visible',timeout:15000});
             assert.ok(await page.locator('#home').isHidden(),'signed-out home must remain hidden after reload');
@@ -67,6 +73,5 @@ try{
  console.log('BROWSER_DIAGNOSTIC_COMPLETE: full-app Chromium synthetic scenarios passed; WebKit and owner session remain unverified.');
 }finally{
  fs.rmSync(temp,{recursive:true,force:true});fs.rmSync(cache,{recursive:true,force:true});
- // Do not publish test traces or fixture screenshots as static app assets.
  fs.rmSync(path.join(root,'test-results'),{recursive:true,force:true});
 }
