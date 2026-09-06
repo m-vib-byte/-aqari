@@ -39,6 +39,23 @@ try{
           await page.keyboard.press('Escape');
           await page.waitForSelector('#v201CreateMenu.on',{state:'hidden',timeout:5000});
           console.log('ACTUAL_CLICK',name,'quick-create-and-escape');
+          if(scenario==='manual'){
+            await page.locator('#aqariV199Topbar [data-v199-action="more"]').click({timeout:8000});
+            await page.locator('#v199MoreMenu [data-v199-action="logout"]').click({timeout:8000});
+            await page.waitForFunction(()=>!localStorage.getItem('aqari-supabase-auth-v198')&&!document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:15000});
+            await page.reload({waitUntil:'domcontentloaded'});
+            await page.waitForSelector('#aqariManualLoginRecovery',{state:'visible',timeout:15000});
+            assert.ok(await page.locator('#home').isHidden(),'signed-out home must remain hidden after reload');
+            const sealed=await page.evaluate(()=>({data:window.AQARI_DATA_GATE?.scope,storage:window.AQARI_EARLY_STORAGE_GATE?.scope}));
+            assert.ok(!sealed.data&&!sealed.storage,'both workspace scopes stay sealed after logout');
+            await page.locator('#aqariManualLoginRecovery').click();
+            await page.waitForURL('**/login?release=V266&manual=1');
+            await page.fill('#email',user.email);await page.fill('#password','Synthetic-password-only');
+            await page.click('#loginButton');await page.waitForURL('**/app?release=V266');
+            await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked')&&Boolean(window.AQARI_V266),{},{timeout:18000});
+            assert.ok(await page.locator('#home').isVisible(),'repeat login displays the full app home');
+            console.log('ACTUAL_CLICK',name,'logout-sealed-reload-return-link-and-repeat-login');
+          }
         }
         const state=await page.evaluate(()=>({phase:`);
  const script=path.join(temp,'authenticated-home.mjs');fs.writeFileSync(script,source);
