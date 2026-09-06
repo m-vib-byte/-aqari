@@ -1,182 +1,29 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-login-luxury.cjs && node --test tests/luxury-login.test.cjs tests/login-navigation.test.cjs && node tests/mobile-login-shell.test.cjs && node scripts/release-freeze-selftest.mjs",
   "rewrites": [
-    {
-      "source": "/",
-      "destination": "/login.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/login.html"
-    },
-    {
-      "source": "/app",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/vendor/supabase-js-2.114.0.js",
-      "destination": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js"
-    },
-    {
-      "source": "/api/db/status",
-      "destination": "/api/supabase-status"
-    }
+    {"source":"/","destination":"/login.html"},
+    {"source":"/login","destination":"/login.html"},
+    {"source":"/app","destination":"/index.html"},
+    {"source":"/vendor/supabase-js-2.114.0.js","destination":"https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js"},
+    {"source":"/api/db/status","destination":"/api/supabase-status"}
   ],
   "headers": [
-    {
-      "source": "/secure-auth-bridge.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        }
-      ]
-    },
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/login",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/login.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/app",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        },
-        {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
-        }
-      ]
-    },
-    {
-      "source": "/final-release-ui.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/v199-ui.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/v201-experience.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/v266-scheduler-control.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/v266-scheduler-control.css",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0, must-revalidate"
-        }
-      ]
-    },
-    {
-      "source": "/vendor/supabase-js-2.114.0.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "x-vercel-enable-rewrite-caching",
-          "value": "1"
-        }
-      ]
-    }
+    {"source":"/login-luxury.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/secure-auth-bridge.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/(.*)","headers":[{"key":"X-Content-Type-Options","value":"nosniff"},{"key":"Referrer-Policy","value":"strict-origin-when-cross-origin"},{"key":"Permissions-Policy","value":"camera=(), microphone=(), geolocation=()"},{"key":"X-Frame-Options","value":"DENY"}]},
+    {"source":"/api/(.*)","headers":[{"key":"Cache-Control","value":"no-store, max-age=0"}]},
+    {"source":"/","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/login","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/login.html","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/app","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/index.html","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/sw.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"},{"key":"Service-Worker-Allowed","value":"/"}]},
+    {"source":"/final-release-ui.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/v199-ui.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/v201-experience.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/v266-scheduler-control.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/v266-scheduler-control.css","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/vendor/supabase-js-2.114.0.js","headers":[{"key":"Cache-Control","value":"public, max-age=31536000, immutable"},{"key":"x-vercel-enable-rewrite-caching","value":"1"}]}
   ]
 }
