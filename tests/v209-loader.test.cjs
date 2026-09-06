@@ -11,7 +11,7 @@ const loaderPath=path.join(root,'final-release-ui.js');
 
 function secondLoaderIife(){
   const source=fs.readFileSync(loaderPath,'utf8');
-  const marker=source.indexOf('function installV209GlobalSearch');
+  const marker=source.indexOf("const PRODUCT_RELEASE=");
   assert.notEqual(marker,-1,'V209 loader function must exist');
   const start=source.lastIndexOf('(function(){',marker);
   assert.notEqual(start,-1,'second loader IIFE must be independently executable');
@@ -73,6 +73,7 @@ function createHarness({existingIds=[],portfolioReady=false,v202Ready=false}={})
   for(const id of existingIds){
     const node=makeElement(id.endsWith('-css')?'link':'script');
     node.id=id;
+    if(['aqari-v199-ui-js','aqari-v201-experience-js','aqari-v202-property-os-js','aqari-v205-simplified-shell-js','aqari-v206-rent-ledger-js'].includes(id))node.dataset.aqariUiLoaded='true';
     all.push(node);
     (node.tagName==='LINK'?head.children:body.children).push(node);
   }
@@ -86,6 +87,7 @@ function createHarness({existingIds=[],portfolioReady=false,v202Ready=false}={})
 
   const document={
     readyState:'complete',
+    documentElement:{classList:{contains:name=>name==='aqari-auth-unlocked'}},
     head,
     body,
     createElement:makeElement,
@@ -101,11 +103,14 @@ function createHarness({existingIds=[],portfolioReady=false,v202Ready=false}={})
     }
   };
 
+  const scope={userId:'user-a',workspaceId:'workspace-a'};
+  const window={AQARI_SUPABASE:{context:{user:{id:'user-a'},workspace:{id:'workspace-a'},membership:{user_id:'user-a',workspace_id:'workspace-a',role:'general_manager',is_active:true}}},AQARI_DATA_GATE:{scope},AQARI_EARLY_STORAGE_GATE:{scope},addEventListener(){}};
+
   return {
     document,
     appendOrder,
     bodyClasses,
-    run(){vm.runInNewContext(secondLoaderIife(),{document},{filename:loaderPath})},
+    run(){vm.runInNewContext(secondLoaderIife(),{document,window,setTimeout:fn=>fn()},{filename:loaderPath})},
     get(id){return document.getElementById(id)},
     count(id){return all.filter(node=>node.id===id).length},
     load(id){

@@ -16,35 +16,11 @@ jobs:
       - run: node --check recovery.js
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
-      - name: Exercise recovery with existing authenticated backend fixture
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
-          def change(old,new):
-            global s
-            assert old in s, old
-            s=s.replace(old,new)
-          change("localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));","if(value)localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));")
-          change('},session);',"},scenario==='manual'?null:session);")
-          change("base+'/login?release=V266&manual=1'","base+'/recovery.html'")
-          change("assert.equal(new URL(page.url()).pathname,'/login','manual entry must not restore/redirect');","assert.equal(new URL(page.url()).pathname,'/recovery.html');")
-          change("await page.waitForURL('**/app?release=V266');","await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:18000});")
-          change("base+'/app?release=V266'","base+'/recovery.html'")
-          change("assert.ok(await page.locator('#home').isVisible());","""assert.ok(await page.locator('#home').isVisible());
-                    assert.equal(await page.locator('script[src*=\"v202-property-os\"],script[src*=\"final-release-ui\"],script[src*=\"secure-auth-bridge\"]').count(),0);
-                    assert.equal(await page.locator('#workspaceName').textContent(),workspace.name);
-                    assert.equal(await page.evaluate(()=>window.AQARI_RECOVERY.readOnly),true);
-                    if(scenario!=='empty')assert.equal(await page.locator('#tenantsTable tbody tr').count(),110);
-                    assert.equal(requests.some(r=>/^(PATCH|PUT|DELETE) /.test(r)),false);
-                  """)
-          change("const tenant='Synthetic Tenant '+i,unit=String(i)","const tenant=i===1?'<img src=x onerror=alert(1)>':'Synthetic Tenant '+i,unit=String(i)")
-          p.write_text(s)
-          PY
-          node tests/v266-authenticated-home.e2e.mjs
+      - name: Exercise isolated recovery with synthetic backend
+        run: node tests/recovery.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: isolated-recovery-entry
-          path: test-results/authenticated-home
+          path: test-results/recovery-entry
           retention-days: 2
