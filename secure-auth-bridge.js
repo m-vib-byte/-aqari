@@ -395,7 +395,24 @@
     return window.cloudLogoutV198();
   }
 
+  // The obsolete V121 label-based list omits core routes, even for managers.
+  // Use the existing secure route policy only for the exact activated
+  // bridge identity. Local session labels never grant navigation access.
+  function canUseAuthenticatedRoute(route){
+    try{
+      const expected=accessIdentity(context);
+      const live=accessIdentity(window.AQARI_SUPABASE?.context);
+      if(!sameIdentity(expected,live))return false;
+      const data=window.AQARI_DATA_GATE?.scope;
+      const storage=window.AQARI_EARLY_STORAGE_GATE?.scope;
+      if(data?.userId!==expected.userId||data?.workspaceId!==expected.workspaceId||
+         storage?.userId!==expected.userId||storage?.workspaceId!==expected.workspaceId)return false;
+      return typeof window.canNavigateV206==='function'&&window.canNavigateV206(route)===true;
+    }catch(_){return false;}
+  }
+
   function installOverrides(){
+    window.canAccessV121 = canUseAuthenticatedRoute;
     window.login = window.cloudLoginV198;
     window.loginLocalV120 = window.cloudLoginV198;
     window.logout = window.cloudLogoutV198;

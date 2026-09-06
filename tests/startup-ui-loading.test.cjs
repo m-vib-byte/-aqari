@@ -48,3 +48,5 @@ test('sign-out during an asset download prevents the next module, then resumes o
 test('UI assets arriving after the verified home can initialize without another login',()=>{
  const r=runtime();r.ready();r.event('ready');r.drain();r.load('aqari-v199-ui-js');assert.ok(r.scripts.includes(ids[0]));
 });
+
+require('./secure-navigation.test.cjs');

@@ -15,7 +15,7 @@ function sourceFunction(source,name){
 function runtime(role='general_manager'){
  const context={user:{id:'user-a'},workspace:{id:'workspace-a'},membership:{user_id:'user-a',workspace_id:'workspace-a',is_active:true,role}};
  const window={AQARI_SUPABASE:{context:structuredClone(context)},AQARI_DATA_GATE:{scope:{userId:'user-a',workspaceId:'workspace-a'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'user-a',workspaceId:'workspace-a'}}};
- const sandbox=vm.createContext({window,context,roleAccess:{admin:['*'],property:['home','properties','tenants'],accountant:['home','collections'],viewer:['home']},currentUserV120:()=>({role:'مدير عام'})});
+ const sandbox=vm.createContext({window,context,roleAccess:{admin:['*'],property:['home','properties','tenants'],accountant:['home','collections']},currentUserV120:()=>({role:'مدير عام'})});
  vm.runInContext(sourceFunction(html,'canNavigateV206')+';window.canNavigateV206=canNavigateV206;'+sourceFunction(bridge,'accessIdentity')+';'+sourceFunction(bridge,'sameIdentity')+';'+sourceFunction(bridge,'canUseAuthenticatedRoute'),sandbox);
  return {window,sandbox,allow:route=>vm.runInContext('canUseAuthenticatedRoute('+JSON.stringify(route)+')',sandbox)};
 }

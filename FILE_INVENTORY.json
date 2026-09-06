@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 37966,
-      "sha256": "c40213f8dbdcda2da959dfb53327daa6c8bbdf917652785051ca170e00cf3c5e"
+      "size": 38881,
+      "sha256": "1c500621ece2bec303cfa600f0cbdd995f5e0e1c5e04f64f3425e0f05237f629"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -698,8 +698,13 @@
     },
     {
       "path": "tests/startup-ui-loading.test.cjs",
-      "size": 4826,
-      "sha256": "048103732d41c6f5f17467a4eb002a0d9621a90d027d76d92dd274881eab6680"
+      "size": 4868,
+      "sha256": "d269161ac4cb610034f61e87fd5a22c815380d108587384b77e1a646809e7121"
+    },
+    {
+      "path": "tests/secure-navigation.test.cjs",
+      "size": 4505,
+      "sha256": "3c5834b781f954b616efe29483861cfb9ce1376bb1fba394044d516bca435631"
     }
   ]
 }
