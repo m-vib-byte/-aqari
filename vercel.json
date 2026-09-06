@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": ".",
   "buildCommand": "node scripts/build-login-luxury.cjs && node --test tests/luxury-login.test.cjs tests/login-navigation.test.cjs && node tests/mobile-login-shell.test.cjs && node scripts/release-freeze-selftest.mjs",
   "rewrites": [
     {"source":"/","destination":"/login.html"},
