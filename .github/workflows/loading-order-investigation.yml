@@ -1,0 +1,81 @@
+name: Investigate startup loading order
+on:
+  push:
+    branches: [debug/v266-loading-order]
+permissions:
+  contents: read
+jobs:
+  investigate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Instrument isolated synthetic browser test
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
+          s="import vm from 'node:vm';\n"+s
+          marker='let fixture={},hangCloud=false,hangConfirmation=false,requests=[];'
+          assert marker in s
+          s=s.replace(marker,"""const htmlSource=fs.readFileSync(path.join(root,'index.html'),'utf8');
+          const demoStart=htmlSource.indexOf('const aqariV198LegacyDemo=')+'const aqariV198LegacyDemo='.length;
+          const demoEnd=htmlSource.indexOf(';for(const k in mods)',demoStart);
+          const legacy=vm.runInNewContext('('+htmlSource.slice(demoStart,demoEnd)+')');
+          for(const [key,value] of Object.entries(legacy))if(!(key in populated))populated[key]=value;
+          """+marker)
+          s=s.replace("['empty','populated','manual','timeout','confirmation-timeout']","['populated']")
+          s=s.replace("{viewport:{width:1473,height:850}}","{viewport:{width:390,height:844},isMobile:true,hasTouch:true,locale:'ar-KW',timezoneId:'Asia/Kuwait'}")
+          old="res.writeHead(200,{'content-type':type+'; charset=utf-8','cache-control':'no-store'});res.end(fs.readFileSync(file));"
+          assert old in s
+          s=s.replace(old,"setTimeout(()=>{res.writeHead(200,{'content-type':type+'; charset=utf-8','cache-control':'no-store'});res.end(fs.readFileSync(file));},/\\.(js|css)$/.test(name)?Number(process.env.ASSET_DELAY||0):0);")
+          old="send(res,{user,confirmation:{user_id:user.id,membership,workspace,profile,app_state:null}});"
+          assert old in s
+          s=s.replace(old,"setTimeout(()=>send(res,{user:{id:user.id},confirmation:{user_id:user.id,membership,workspace,profile,app_state:null}}),Number(process.env.CONFIRM_DELAY||0));")
+          s=s.replace("const page=await context.newPage();","""await context.addInitScript(()=>{
+            const NativeObserver=window.MutationObserver;
+            window.MutationObserver=class extends NativeObserver{
+              constructor(callback){
+                const origin=new Error('Observer created').stack;let count=0,reset=false;
+                super((records,observer)=>{
+                  if(!reset){reset=true;setTimeout(()=>{count=0;reset=false;},0);}
+                  if(++count>200){console.error('TRACE OBSERVER_STARVATION',origin);observer.disconnect();throw new Error('Observer starvation: '+origin);}
+                  callback(records,observer);
+                });
+              }
+            };
+            setInterval(()=>console.log('TRACE HEARTBEAT',document.getElementById('aqariCloudGateV168')?.dataset.authStage),1000);
+          });
+          const page=await context.newPage();""")
+          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));","page.on('pageerror',error=>{errors.push(error.stack);console.error('TRACE ERROR',name,error.stack)});\n        page.on('console',m=>{if(m.text().startsWith('TRACE'))console.log(name,m.text())});")
+          p.write_text(s)
+          p=Path('supabase-adapter.js');s=p.read_text()
+          s=s.replace('  function startupProgress(stage){',"  function startupProgress(stage){\n    console.log('TRACE STAGE',stage,performance.now());")
+          s=s.replace('    }).then(async response => {',"    }).then(async response => {\n      console.log('TRACE RESPONSE',path,response.status,performance.now());")
+          s=s.replace('      return response.json();',"      const parsed=await response.json();console.log('TRACE BODY',path,performance.now());return parsed;")
+          s=s.replace('    const {data:finalData,error:finalError} = await client.auth.getSession();',"    console.log('TRACE GET_SESSION_BEGIN',performance.now());\n    const {data:finalData,error:finalError} = await client.auth.getSession();\n    console.log('TRACE GET_SESSION_END',performance.now());")
+          p.write_text(s)
+          p=Path('secure-auth-bridge.js');s=p.read_text();s=s.replace('    function stage(value){',"    function stage(value){\n      console.log('TRACE BRIDGE',value,performance.now());");p.write_text(s)
+          PY
+      - name: Run controlled loading-order matrix
+        shell: bash
+        run: |
+          failed=0
+          for pair in '500 0' '0 2500' '500 750'; do
+            set -- $pair
+            echo "CASE asset=$1 confirmation=$2"
+            ASSET_DELAY=$1 CONFIRM_DELAY=$2 node tests/v266-authenticated-home.e2e.mjs || failed=1
+            cp -r test-results/authenticated-home "test-results/order-$1-$2"
+          done
+          exit $failed
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loading-order-investigation
+          path: test-results
+          retention-days: 2
