@@ -20,19 +20,32 @@ jobs:
             echo 'Original unexpectedly passes; stop for review.'
             exit 1
           fi
-      - name: Apply reviewed source transformation
-        run: python3 scripts/prepare-ui-order.py
+      - name: Apply reviewed source transformation without workflow changes
+        run: |
+          python3 scripts/prepare-ui-order.py
+          git restore .github/workflows/runtime-contracts.yml
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          p=Path('FILE_INVENTORY.json'); inventory=json.loads(p.read_text())
+          name='.github/workflows/runtime-contracts.yml'; data=Path(name).read_bytes()
+          for entry in inventory['files']:
+              if entry['path']==name:
+                  entry.update(size=len(data),sha256=hashlib.sha256(data).hexdigest())
+          p.write_text(json.dumps(inventory,ensure_ascii=False,indent=2)+'\n')
+          PY
       - name: Validate changes without production credentials
         run: |
           node --check final-release-ui.js
           node --check tests/v266-authenticated-home.e2e.mjs
           node --test tests/startup-ui-loading.test.cjs tests/v209-loader.test.cjs tests/runtime-contracts.test.cjs tests/auth-data-gate.test.cjs tests/v266-login-bootstrap.test.cjs tests/v266-startup-snapshot.test.cjs tests/workspace-confirmation.test.cjs
           node scripts/release-freeze-selftest.mjs
-      - name: Commit only reviewed files to the repair branch
+      - name: Commit only application and test files to the repair branch
         run: |
           git config user.name 'm-vib-byte'
           git config user.email 'm-vib@hotmail.com'
-          git rm scripts/prepare-ui-order.py .github/workflows/prepare-ui-entry.yml
-          git add final-release-ui.js tests/startup-ui-loading.test.cjs tests/v209-loader.test.cjs tests/v266-authenticated-home.e2e.mjs .github/workflows/runtime-contracts.yml FILE_INVENTORY.json
+          git rm scripts/prepare-ui-order.py
+          git add final-release-ui.js tests/startup-ui-loading.test.cjs tests/v209-loader.test.cjs tests/v266-authenticated-home.e2e.mjs FILE_INVENTORY.json
+          test -z "$(git diff --cached --name-only -- .github/workflows)"
           git commit -m 'fix: defer authenticated UI until verified home activation'
           git push origin HEAD:fix/v266-ui-after-login
