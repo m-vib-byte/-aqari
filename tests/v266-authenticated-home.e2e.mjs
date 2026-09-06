@@ -96,14 +96,14 @@ try{
         page.on('pageerror',error=>errors.push(error.stack));
         page.on('dialog',dialog=>dialog.dismiss());
         if(scenario==='manual'){
-          await page.goto(base+'/login?release=V266&manual=1',{waitUntil:'domcontentloaded'});
+          await page.goto(base+'/login?release=V267&manual=1',{waitUntil:'domcontentloaded'});
           await page.waitForFunction(()=>Boolean(window.AQARI_SUPABASE));
           await delay(800);
           assert.equal(new URL(page.url()).pathname,'/login','manual entry must not restore/redirect');
           await page.fill('#email',user.email);await page.fill('#password','Synthetic-password-only');
           await page.click('#loginButton');
-          await page.waitForURL('**/app?release=V266');
-        }else await page.goto(base+'/app?release=V266',{waitUntil:'domcontentloaded',timeout:30000});
+          await page.waitForURL('**/app?release=V267');
+        }else await page.goto(base+'/app?release=V267',{waitUntil:'domcontentloaded',timeout:30000});
         if(scenario==='timeout'||scenario==='confirmation-timeout'){
           await page.waitForSelector('[data-auth-phase="error"]',{timeout:16000});
           assert.ok(await page.locator('#aqariManualLoginRecovery').isVisible());

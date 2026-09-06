@@ -110,11 +110,11 @@ test('V266 startup backup is scheduled only by the authenticated workspace bound
   assert.match(backup[0],/aqariAutoBackupInFlightV211/);
   assert.match(backup[0],/schedule:scheduleStartupBackupV211/);
   assert.match(backup[0],/cancel:cancelStartupBackupV211/);
-  assert.match(backup[0],/version:'V266'/);
+  assert.match(backup[0],/version:'V267'/);
   assert.doesNotMatch(backup[0],/\balert\s*\(/);
 
   assert.match(bridge,/function sealData\(\)\{[\s\S]*?AQARI_STARTUP_BACKUP\?\.cancel\?\.\(\)/);
   assert.match(bridge,/function unlock\(nextContext, nextRemoteState\)\{[\s\S]*?activateWorkspaceDbV198[\s\S]*?AQARI_STARTUP_BACKUP\?\.schedule\?\.\(\)/);
   assert.doesNotMatch(loader,/installStartupBackupGuard|__v211StartupGuard|window\.makeAutoBackup\s*=/);
-  assert.match(loader,/عقاري V266 — التشغيل الآلي السحابي/);
+  assert.match(loader,/عقاري V267 — التشغيل الآلي السحابي/);
 });

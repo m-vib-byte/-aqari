@@ -524,7 +524,7 @@ test('startup backup is owned by the auth boundary and the late release wrapper 
   assert.match(bridge, /function sealData\(\)\{[\s\S]*?AQARI_STARTUP_BACKUP\?\.cancel\?\.\(\)/);
   assert.match(bridge, /function unlock\(nextContext, nextRemoteState\)\{[\s\S]*?activateWorkspaceDbV198[\s\S]*?AQARI_STARTUP_BACKUP\?\.schedule\?\.\(\)/);
   assert.doesNotMatch(releaseUI, /installStartupBackupGuard|__v211StartupGuard/);
-  assert.match(releaseUI, /عقاري V266 — التشغيل الآلي السحابي/);
+  assert.match(releaseUI, /عقاري V267 — التشغيل الآلي السحابي/);
 });
 
 test('index starts with an empty database and never reads the legacy global key', () => {

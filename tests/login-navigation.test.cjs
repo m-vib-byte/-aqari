@@ -26,7 +26,7 @@ function loginRuntime(options={}){
 }
 test('an authorized saved session goes directly to the main app without another password', async()=>{
   const r=loginRuntime();await tick();
-  assert.deepEqual(r.destinations,['/app?release=V266']);assert.equal(r.signIns,0);assert.equal(r.checks,1);
+  assert.deepEqual(r.destinations,['/app?release=V267']);assert.equal(r.signIns,0);assert.equal(r.checks,1);
 });
 test('signed-out or inactive users are never forwarded to the main app',async()=>{
   const signedOut=loginRuntime({session:false});const inactive=loginRuntime({context:{...access,membership:{...access.membership,is_active:false}}});await tick();
@@ -36,7 +36,7 @@ test('manual sign-in wins over an older delayed restoration',async()=>{
   const refresh=deferred(),r=loginRuntime({refresh});await tick();
   r.nodes.email.value='test@example.invalid';r.nodes.password.value='fictional-test-password';
   await r.handlers.get('loginForm:submit')({preventDefault(){}});
-  assert.deepEqual(r.destinations,['/app?release=V266']);assert.equal(r.signIns,1);
+  assert.deepEqual(r.destinations,['/app?release=V267']);assert.equal(r.signIns,1);
   refresh.resolve(access);await tick();assert.equal(r.destinations.length,1);
 });
 test('main app waits for verified workspace data before selecting home and unlocking',async()=>{

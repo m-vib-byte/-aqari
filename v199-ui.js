@@ -41,8 +41,8 @@
   }
 
   function currentRelease(){
-    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V266').trim();
-    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V266';
+    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V267').trim();
+    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V267';
   }
 
   function numberFrom(value){
@@ -104,12 +104,13 @@
         '<span class="v199-brand-mark">'+icon('brand')+'</span><span class="v199-brand-copy"><strong>عقاري</strong><small>'+escapeHtml(currentRelease())+'</small></span>'+
       '</button>'+
       '<nav class="v199-primary-nav" aria-label="التنقل الرئيسي">'+
-        '<button type="button" class="v199-nav-button is-active" data-v199-go="home" aria-current="page">الرئيسية</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="properties">العقارات</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="tenants">المستأجرون</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="collectionProPage">التحصيل</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="maintenanceProPage">الصيانة</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="reports">التقارير</button>'+
+        '<button type="button" class="v199-nav-button is-active" data-v199-go="home" aria-current="page">'+icon('home')+'<span>الرئيسية</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="properties">'+icon('building')+'<span>العقارات</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="tenants">'+icon('users')+'<span>المستأجرون</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="collectionProPage">'+icon('wallet')+'<span>التحصيل</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="maintenanceProPage">'+icon('tool')+'<span>الصيانة</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="reports">'+icon('chart')+'<span>التقارير</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="documentsHub">'+icon('file')+'<span>العقود والمستندات</span></button>'+
       '</nav>'+
       '<div class="v199-toolbar">'+
         '<button type="button" class="v199-icon-button v199-search-trigger" data-v199-action="search" aria-label="فتح البحث" aria-controls="v199SearchPanel" aria-expanded="false">'+icon('search')+'</button>'+

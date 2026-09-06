@@ -153,7 +153,7 @@
     const rate=summary.due>0?Math.min(100,Math.max(0,summary.collected/summary.due*100)):0;
     const critical=summary.dueProperties+summary.pendingApprovals+summary.setup;
     return '<section id="v210DailyCommandCenter" class="v210-command" aria-labelledby="v210Title">'+
-      '<header class="v210-head"><div><span>لوحة التنفيذ اليومية • V210</span><h2 id="v210Title">الأهم اليوم، في نظرة واحدة</h2><p>أرقام مباشرة من دفتر الإيجارات المحمي ضمن مساحة عملك.</p></div><label for="v210Period"><span>الفترة</span><input id="v210Period" type="month" value="'+esc(period)+'"></label></header>'+
+      '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'"></label></header>'+
       '<div class="v210-kpis" aria-live="polite">'+
         '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>المحصّل</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+

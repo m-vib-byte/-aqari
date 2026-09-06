@@ -56,7 +56,7 @@
   }
 
   function todayLabel(){
-    try{return new Intl.DateTimeFormat('ar-KW',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}
+    try{return new Intl.DateTimeFormat('ar-KW',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Kuwait'}).format(new Date())}
     catch(_){return new Date().toLocaleDateString('ar-KW')}
   }
 
@@ -99,14 +99,14 @@
     root.setAttribute('aria-label','مساحة العمل اليومية في عقاري');
     root.innerHTML=
       '<header class="v205-welcome">'+
-        '<div><p class="v205-kicker">مساحة العمل اليومية <span lang="en">DAILY WORKSPACE</span></p><h1>إدارة أملاكك صارت أوضح</h1><p>كل عقار ثم الوحدة والمستأجر والعقد والتحصيل — بخطوات مرتبة وسريعة.</p><span class="v205-date">'+todayLabel()+'</span></div>'+ 
+        '<div><p class="v205-kicker">مساحة العمل <span lang="en">V267</span></p><h1>نظرة عامة</h1><span class="v205-date">'+todayLabel()+'</span></div>'+
         '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick" aria-haspopup="dialog" aria-controls="v201CreateMenu">'+icon('plus')+' إجراء سريع</button></div>'+ 
       '</header>'+ 
       '<nav id="v205PrimarySections" class="v205-primary-sections" aria-label="أقسام المنصة الرئيسية" hidden>'+primaryMarkup()+'</nav>'+ 
-      '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>ابدأ المهمة مباشرة</h2></div><p>أكثر العمليات استخداماً بدون قوائم طويلة.</p></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+ 
-      '<section class="v205-section v205-workflow"><div class="v205-section-head"><div><span>ترتيب واضح</span><h2>رحلة العقار من البداية للتحصيل</h2></div><p>كل معلومة تبقى مرتبطة بمكانها الصحيح.</p></div><ol>'+workflowMarkup()+'</ol></section>'+ 
+      '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>إجراءات سريعة</h2></div></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+
       '<div id="v205LegacyDashboardSlot" class="v205-dashboard-slot"></div>'+ 
-      '<footer class="v205-home-footer"><span>عقاري</span><small>واجهة V205 المبسطة • البيانات محفوظة ضمن نظام الدخول الآمن</small></footer>';
+      '<details class="v205-section v205-workflow"><summary>دليل ترتيب ملف العقار</summary><ol>'+workflowMarkup()+'</ol></details>'+
+      '<footer class="v205-home-footer"><span>عقاري</span><small>إدارة الأملاك • V267</small></footer>';
     home.insertBefore(root,home.firstChild);
     return root;
   }
@@ -423,7 +423,7 @@
     document.documentElement.lang='ar';
     document.documentElement.dir='rtl';
     document.body.classList.add('aq-v205');
-    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V266');
+    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V267');
     document.title='عقاري '+productRelease+' • إدارة الأملاك بسهولة';
     createHome();
     syncPrimaryNavigation('home');

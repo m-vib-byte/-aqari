@@ -1,10 +1,10 @@
 {
   "name": "AQARI",
   "version": "V198",
-  "design_version": "V266-operational-hotfix",
-  "design_stage": "authenticated-startup-and-live-readiness",
+  "design_version": "V267-premium-workspace",
+  "design_stage": "premium-operations",
   "stage": "release-freeze",
-  "index_sha256": "23b520039afa4186bdf36935a8cd7192e037c0aec6186dbfcbc7b920b40facf8",
+  "index_sha256": "f99f2d0dc26de4751d65922220ee45f54be72c59aa27af25176c0001df8f20a7",
   "syntax_checks": 80,
   "syntax_errors": 0,
   "selftests": [
@@ -61,6 +61,6 @@
     "deployment_identity": "dynamic",
     "preview_e2e": "required_per_commit"
   },
-  "product_version": "V266",
-  "release_identity_note": "V198 remains the compatibility runtime/API contract; V266 fixes authenticated startup, render-bound polling, and truthful live operational readiness."
+  "product_version": "V267",
+  "release_identity_note": "V198 remains the compatibility API contract. V267 updates presentation and public release identity while preserving V266 authentication, data isolation and operational modules."
 }

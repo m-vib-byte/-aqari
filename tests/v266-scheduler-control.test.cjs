@@ -18,7 +18,7 @@ const vercel=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));
 
 test('V266 assets parse and are loaded with the production release identity',()=>{
   new vm.Script(source,{filename:'v266-scheduler-control.js'});
-  assert.match(loader,/const PRODUCT_RELEASE='V266'/);
+  assert.match(loader,/const PRODUCT_RELEASE='V267'/);
   assert.match(loader,/installV266SchedulerControl/);
   assert.match(loader,/releaseAsset\('\/v266-scheduler-control\.css'\)/);
   assert.match(loader,/releaseAsset\('\/v266-scheduler-control\.js'\)/);

@@ -798,7 +798,7 @@
     // is pending. It neither grants access nor removes any stored workspace data.
     const link = document.createElement('a');
     link.id = 'aqariManualLoginRecovery';
-    link.href = '/login?release=V266&manual=1';
+    link.href = '/login?release=V267&manual=1';
     link.textContent = 'العودة إلى تسجيل الدخول';
     link.style.cssText = 'display:block;text-align:center;margin:12px 0;color:#725400;text-decoration:underline;min-height:32px;line-height:32px';
     message.parentNode.appendChild(link);

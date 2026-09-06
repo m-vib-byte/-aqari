@@ -117,14 +117,14 @@ test('V198 secure cloud bridge replaces local-only authentication', () => {
     .map((file) => fs.readFileSync(path.join(root, file), 'utf8'));
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
-  assert.match(html, /<title>عقاري V266 • Supabase Connected<\/title>/);
-  assert.match(html, /<meta name="aqari-release" content="V266">/);
+  assert.match(html, /<title>عقاري V267 • Supabase Connected<\/title>/);
+  assert.match(html, /<meta name="aqari-release" content="V267">/);
   assert.match(html, /<meta name="aqari-api-contract" content="V198">/);
   assert.match(html, /<meta name="aqari-stage" content="production">/);
-  assert.match(html, /document\.title=s\.appName\+' • AQARI V266'/);
+  assert.match(html, /document\.title=s\.appName\+' • AQARI V267'/);
   assert.match(html, /window\.AQARI_API_CONTRACT='V198'/);
-  assert.match(html, /window\.AQARI_RELEASE='V266'/);
-  assert.match(html, /title\.textContent = 'V266 — جاهز للإنتاج'/);
+  assert.match(html, /window\.AQARI_RELEASE='V267'/);
+  assert.match(html, /title\.textContent = 'V267 — جاهز للإنتاج'/);
   assert.doesNotMatch(html, /title\.textContent = 'V198 — Release Freeze'/);
   assert.doesNotMatch(html, /قبل مرحلة الربط النهائي والاختبارات الإنتاجية/);
   assert.doesNotMatch(html, /<meta name="aqari-stage" content="launch-candidate">/);
@@ -169,7 +169,7 @@ test('V204 tenant rent statement preserves the V198 secure runtime', () => {
 
   assert.match(html, /id="aqari-v198-secure-cloud-js"/);
   assert.match(loader, /installV199Preview/);
-  assert.match(loader, /PRODUCT_RELEASE='V266'/);
+  assert.match(loader, /PRODUCT_RELEASE='V267'/);
   assert.match(loader, /stylesheet\.href = releaseAsset\('\/v199-ui\.css'\)/);
   assert.match(loader, /script\.src = releaseAsset\('\/v199-ui\.js'\)/);
   assert.match(loader, /luxury\.href = releaseAsset\('\/v200-luxury\.css'\)/);
@@ -240,7 +240,7 @@ test('V205 simplified shell preserves every secure V204 property workflow', () =
 
   assert.match(loader, /function installV205SimplifiedShell\s*\(/);
   assert.match(loader, /simple\.href = '\/v205-simple\.css'/);
-  assert.match(loader, /shell\.src = '\/v205-simplified-shell\.js\?v=209\.1'/);
+  assert.match(loader, /shell\.src = releaseAsset\('\/v205-simplified-shell\.js'\)/);
   assert.match(loader, /propertyOS\.addEventListener\('load', installV205SimplifiedShell/);
 
   assert.match(shell, /V205-preview/);
@@ -438,10 +438,10 @@ test('operational endpoints report the V198 cloud mode', async () => {
 
   assert.equal(health.version, 'V198');
   assert.equal(health.apiContractVersion, 'V198');
-  assert.equal(health.productVersion, 'V266');
+  assert.equal(health.productVersion, 'V267');
   assert.equal(health.mode, 'supabase_cloud');
   assert.equal(deep.version, 'V198');
-  assert.equal(deep.productVersion, 'V266');
+  assert.equal(deep.productVersion, 'V267');
   assert.equal(deep.mode, 'supabase_cloud');
   assert.equal(deep.checks.cloudIntegration.required, true);
   assert.equal(ops.version, 'V198');
@@ -449,7 +449,7 @@ test('operational endpoints report the V198 cloud mode', async () => {
   assert.equal(ops.capabilities.cloudAuth, 'supabase_rls');
   assert.equal(ops.capabilities.centralizedDataApi, true);
   assert.equal(release.version, 'V198');
-  assert.equal(release.productVersion, 'V266');
+  assert.equal(release.productVersion, 'V267');
   assert.equal(release.releaseStage, 'production');
   assert.equal(release.ok, true);
 });

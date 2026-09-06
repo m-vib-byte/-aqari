@@ -28,7 +28,7 @@ async function invoke(handler, method = 'GET'){
 test('release identity is explicit and public config matches it', async () => {
   const release = await load('lib/release-config.js');
   assert.equal(release.API_CONTRACT_VERSION, 'V198');
-  assert.equal(release.PRODUCT_VERSION, 'V266');
+  assert.equal(release.PRODUCT_VERSION, 'V267');
 
   const source = fs.readFileSync(path.join(root, 'public-config.js'), 'utf8');
   const window = {};
@@ -166,7 +166,7 @@ test('operational APIs expose accurate identity without legacy secret names', as
       assert.equal(response.statusCode, 200, relativePath);
       assert.equal(response.body.version, 'V198', relativePath);
       assert.equal(response.body.apiContractVersion, 'V198', relativePath);
-      assert.equal(response.body.productVersion, 'V266', relativePath);
+      assert.equal(response.body.productVersion, 'V267', relativePath);
       const serialized = JSON.stringify(response.body);
       for(const name of forbidden) assert.equal(serialized.includes(name), false, `${relativePath} leaked ${name}`);
       assert.equal(serialized.includes('releasePreparationSnapshot'), false, `${relativePath} leaked a stale snapshot`);

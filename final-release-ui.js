@@ -9,7 +9,7 @@
     box.className = 'aq-v196-final';
 
     const title = document.createElement('strong');
-    title.textContent = 'عقاري V266 — التشغيل الآلي السحابي';
+    title.textContent = 'عقاري V267 — التشغيل الآلي السحابي';
 
     const desc = document.createElement('small');
     desc.textContent = 'الإصدار التشغيلي يضيف لوحة آمنة لمتابعة الجدولة اليومية والاستحقاقات من السحابة، مع بقاء مركز المتابعة وأدوات النسخ الاحتياطي وفحص الجاهزية متاحة.';
@@ -87,7 +87,7 @@
 (function(){
   'use strict';
 
-  const PRODUCT_RELEASE='V266';
+  const PRODUCT_RELEASE='V267';
   function releaseAsset(path){
     return path+(path.includes('?')?'&':'?')+'release='+encodeURIComponent(PRODUCT_RELEASE);
   }
@@ -158,7 +158,7 @@
     if(!commandJs){
       commandJs=document.createElement('script');
       commandJs.id='aqari-v210-daily-command-center-js';
-      commandJs.src='/v210-daily-command-center.js?v=210.0';
+      commandJs.src=releaseAsset('/v210-daily-command-center.js');
       commandJs.dataset.v211LoaderBound='true';
       commandJs.addEventListener('load', installV211FollowUpCenter, { once:true });
       document.body.appendChild(commandJs);
@@ -268,7 +268,7 @@
     if(!document.getElementById('aqari-v205-simplified-shell-js')){
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
-      shell.src = '/v205-simplified-shell.js?v=209.1';
+      shell.src = releaseAsset('/v205-simplified-shell.js');
       shell.addEventListener('load', installV206RentLedger, { once:true });
       document.body.appendChild(shell);
     }else{
@@ -313,7 +313,16 @@
   }
 
   function installV199Preview(){
-    document.body?.classList.add('aq-v199','aq-v200','aq-v201','aq-v202');
+    document.body?.classList.add('aq-v199','aq-v200','aq-v201','aq-v202','aq-v267');
+
+    // Presentation is optional for startup: no auth or module load waits on CSS.
+    if(!document.getElementById('aqari-v267-premium-workspace-css')){
+      const premium=document.createElement('link');
+      premium.id='aqari-v267-premium-workspace-css';
+      premium.rel='stylesheet';
+      premium.href=releaseAsset('/v267-premium-workspace.css');
+      document.head.appendChild(premium);
+    }
 
     if(!document.getElementById('aqari-v199-ui-css')){
       const stylesheet = document.createElement('link');

@@ -7,16 +7,16 @@ test('root-only middleware selects the public static form and keeps query parame
   const {default:middleware,config}=await modulePromise;
   assert.equal(config.matcher,'/');
   for(const method of ['GET','HEAD']){
-    const response=middleware(new Request('https://myaqari.com/?manual=1&release=V266',{method}));
+    const response=middleware(new Request('https://myaqari.com/?manual=1&release=V267',{method}));
     assert.equal(response.status,200);
     assert.equal(response.headers.get('location'),null);
-    assert.equal(response.headers.get('x-middleware-rewrite'),'https://myaqari.com/login.html?manual=1&release=V266');
+    assert.equal(response.headers.get('x-middleware-rewrite'),'https://myaqari.com/login.html?manual=1&release=V267');
     assert.match(response.headers.get('cache-control'),/no-store/);
   }
 });
 test('app, login, API and static assets never change their existing handlers',async()=>{
   const {default:middleware}=await modulePromise;
-  for(const url of ['/app?release=V266','/login?manual=1','/index.html','/api/db/status','/supabase-adapter.js','/vendor/supabase-js-2.114.0.js']){
+  for(const url of ['/app?release=V267','/login?manual=1','/index.html','/api/db/status','/supabase-adapter.js','/vendor/supabase-js-2.114.0.js']){
     const response=middleware(new Request('https://myaqari.com'+url));
     assert.equal(response.headers.get('x-middleware-next'),'1');
     assert.equal(response.headers.get('x-middleware-rewrite'),null);
