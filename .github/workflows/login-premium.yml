@@ -14,13 +14,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Generate presentation without changing authentication
+        run: |
+          node scripts/build-premium-login.mjs
+          node --test tests/login-navigation.test.cjs
+          node scripts/release-freeze-selftest.mjs
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
       - name: Validate premium UI and unchanged auth
-        run: node tests/login-premium.e2e.mjs
+        run: |
+          node tests/login-premium.e2e.mjs
+          node tests/login-speed.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: login-premium-screenshots
-          path: test-results/login-premium
+          path: |
+            test-results/login-premium
+            test-results/login-speed
+            login.html
           retention-days: 7
