@@ -1,6 +1,6 @@
 'use strict';
-// Integrate the approved gateway without reverting deployed runtime repairs.
-// Local build only: no network, credentials, database or account operations.
+// Preserve production authorization/startup files and pin the reviewed V205 focus repair.
+// V205 baseline 2eb9261 failed real-browser dialog focus acceptance; see regression tests.
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
@@ -12,13 +12,13 @@ const protectedFiles = {
   'supabase-adapter.js': 'e21623796eea6678a36ea6a31b075ac31783132a',
   'secure-auth-bridge.js': '768f10e46fddadce5a376b27f8226bb1d41b3248',
   'final-release-ui.js': 'fcd501f3a05e8c4fc96d704180868be6819e260b',
-  'v205-simplified-shell.js': '2eb92612991ce2905aa7f95da0378d2f791f8204'
+  'v205-simplified-shell.js': '9760d8c730bcd8bc8bf0d73573fa2b8692e65158'
 };
 function verifyRuntime() {
   for (const [name, expected] of Object.entries(protectedFiles)) {
     const data = fs.readFileSync(path.join(root, name));
     const actual = crypto.createHash('sha1').update(Buffer.from('blob ' + data.length + '\0')).update(data).digest('hex');
-    assert.equal(actual, expected, 'Approved presentation must preserve production 3617a7f runtime: ' + name);
+    assert.equal(actual, expected, 'Reviewed integration runtime changed unexpectedly: ' + name);
   }
 }
 verifyRuntime();
@@ -26,15 +26,15 @@ require('./build-login-luxury.cjs');
 verifyRuntime();
 const inventoryPath = path.join(root, 'FILE_INVENTORY.json');
 const inventory = JSON.parse(fs.readFileSync(inventoryPath, 'utf8'));
-for (const name of ['scripts/build-approved-integration.cjs', 'tests/approved-login-integration.test.cjs']) {
+for (const name of ['scripts/build-approved-integration.cjs', 'tests/approved-login-integration.test.cjs',
+                    'v205-simplified-shell.js', 'tests/quick-menu-stability.test.cjs', 'tests/v205-chooser-focus.test.cjs']) {
   const data = fs.readFileSync(path.join(root, name));
   const entry = {path:name, size:data.length, sha256:crypto.createHash('sha256').update(data).digest('hex')};
   const existing = inventory.files.find(item => item.path === name);
   if (existing) Object.assign(existing, entry); else inventory.files.push(entry);
 }
 fs.writeFileSync(inventoryPath, JSON.stringify(inventory, null, 2) + '\n');
-console.log('Production repair integration verified: all five protected runtime files are byte-identical to 3617a7f.');
-// Keep vercel.json buildCommand short; run the full declared gate here.
+console.log('Integration verified: four production auth/startup files unchanged; reviewed V205 focus repair pinned.');
 const commands = [
   ['--test', 'tests/luxury-login.test.cjs', 'tests/login-navigation.test.cjs',
    'tests/approved-login-integration.test.cjs', 'tests/startup-ui-loading.test.cjs',

@@ -6,15 +6,17 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '..');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8');
+// Four original auth/startup files stay identical. Only the separately reproduced
+// V205 menu/chooser focus repair has an explicitly reviewed replacement hash.
 const protectedFiles = {
   'index.html': '9081e8a29e50a3533f719361caede32ab2a6bb08',
   'supabase-adapter.js': 'e21623796eea6678a36ea6a31b075ac31783132a',
   'secure-auth-bridge.js': '768f10e46fddadce5a376b27f8226bb1d41b3248',
   'final-release-ui.js': 'fcd501f3a05e8c4fc96d704180868be6819e260b',
-  'v205-simplified-shell.js': '2eb92612991ce2905aa7f95da0378d2f791f8204'
+  'v205-simplified-shell.js': '9760d8c730bcd8bc8bf0d73573fa2b8692e65158'
 };
 for (const [name, expected] of Object.entries(protectedFiles)) {
-  test('approved gateway preserves deployed repair file: ' + name, () => {
+  test('approved gateway preserves reviewed runtime file: ' + name, () => {
     const data = fs.readFileSync(path.join(root, name));
     const actual = crypto.createHash('sha1').update(Buffer.from('blob ' + data.length + '\0')).update(data).digest('hex');
     assert.equal(actual, expected);
@@ -45,3 +47,5 @@ test('both independently verified workspace boundaries remain required before op
   assert.match(source, /authenticatedUIReady/);
   assert.ok(read('v205-simplified-shell.js').includes("target.closest('button[data-v205-route],a[data-v205-route]')"));
 });
+require('./quick-menu-stability.test.cjs');
+require('./v205-chooser-focus.test.cjs');
