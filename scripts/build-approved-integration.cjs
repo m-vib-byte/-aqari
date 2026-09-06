@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
+const {spawnSync} = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const protectedFiles = {
   'index.html': '9081e8a29e50a3533f719361caede32ab2a6bb08',
@@ -33,3 +34,17 @@ for (const name of ['scripts/build-approved-integration.cjs', 'tests/approved-lo
 }
 fs.writeFileSync(inventoryPath, JSON.stringify(inventory, null, 2) + '\n');
 console.log('Production repair integration verified: all five protected runtime files are byte-identical to 3617a7f.');
+// Keep vercel.json buildCommand short; run the full declared gate here.
+const commands = [
+  ['--test', 'tests/luxury-login.test.cjs', 'tests/login-navigation.test.cjs',
+   'tests/approved-login-integration.test.cjs', 'tests/startup-ui-loading.test.cjs',
+   'tests/auth-data-gate.test.cjs', 'tests/v209-loader.test.cjs'],
+  ['tests/mobile-login-shell.test.cjs'],
+  ['scripts/release-freeze-selftest.mjs']
+];
+for (const args of commands) {
+  const run = spawnSync(process.execPath, args, {cwd:root, stdio:'inherit', timeout:90000});
+  if (run.error) throw run.error;
+  if (run.status !== 0) process.exit(run.status || 1);
+}
+verifyRuntime();
