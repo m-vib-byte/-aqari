@@ -1,0 +1,90 @@
+name: Prepare UI lifecycle acceptance
+on:
+  push:
+    branches: [fix/v266-ui-after-login]
+permissions:
+  contents: write
+jobs:
+  acceptance:
+    if: "github.event.head_commit.message == 'chore: validate migrated UI lifecycle acceptance'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require the original menu mutation regression
+        run: |
+          if node --test tests/quick-menu-stability.test.cjs; then
+            echo 'Original unexpectedly passes; review required.'
+            exit 1
+          fi
+      - run: python3 scripts/prepare-ui-acceptance.py
+      - name: Preserve focus by avoiding redundant menu mutations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          p=Path('v205-simplified-shell.js');data=p.read_bytes()
+          assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()=='e1dcdf3bac6de36293fb68ba4f65b362d3cf8184'
+          s=p.read_text()
+          start=s.index('  function simplifyCreateMenu(){');end=s.index('  function syncDashboard()',start)
+          old=s[start:end]
+          new=old.replace("      ['collections','tenants','maintenance','properties'].forEach(function(key){", "      const ordered=['collections','tenants','maintenance','properties'].map(function(key){")
+          new=new.replace('        if(option)grid.appendChild(option);\n      });','        return option;\n      }).filter(Boolean);\n      const offset=grid.children.length-ordered.length;\n      if(ordered.some(function(option,index){return grid.children[offset+index]!==option;})){\n        ordered.forEach(function(option){grid.appendChild(option);});\n      }')
+          for name,value in [('kicker','إجراء سريع'),('title','شنو تبي تنجز؟'),('description','اختر المهمة وبنفتح النموذج المناسب مباشرة.'),('brand','إدارة الأملاك'),('addLabel','إجراء سريع')]:
+              new=new.replace(f"if({name}){name}.textContent='{value}';",f"if({name}&&{name}.textContent!=='{value}'){name}.textContent='{value}';")
+          assert new!=old
+          p.write_text(s[:start]+new+s[end:])
+          p=Path('tests/full-ui-acceptance.mjs');s=p.read_text()
+          s=s.replace("throw new Error('quick-create sheet did not open accessibly');", "throw new Error('quick-create sheet did not open accessibly: '+JSON.stringify(open));")
+          p.write_text(s)
+          p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
+          old="localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));"
+          assert old in s
+          s=s.replace(old,"if(!sessionStorage.getItem('syntheticSeededOnce')){sessionStorage.setItem('syntheticSeededOnce','1');"+old+"}")
+          p.write_text(s)
+          p=Path('tests/startup-ui-loading.test.cjs');p.write_text(p.read_text()+"\nrequire('./quick-menu-stability.test.cjs');\n")
+          p=Path('FILE_INVENTORY.json');inv=json.loads(p.read_text());entries={x['path']:x for x in inv['files']}
+          for name in ['v205-simplified-shell.js','tests/quick-menu-stability.test.cjs','tests/startup-ui-loading.test.cjs','tests/full-ui-acceptance.mjs','tests/v266-authenticated-home.e2e.mjs']:
+              data=Path(name).read_bytes();entry={'path':name,'size':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+              if name in entries:entries[name].update(entry)
+              else:inv['files'].append(entry)
+          p.write_text(json.dumps(inv,ensure_ascii=False,indent=2)+'\n')
+          PY
+      - name: Verify test syntax and security regressions
+        run: |
+          node --check v205-simplified-shell.js
+          node --check tests/preview.e2e.mjs
+          node --check tests/full-ui-acceptance.mjs
+          node --check tests/v266-authenticated-home.e2e.mjs
+          node --check tests/recovery.e2e.mjs
+          node --test tests/startup-ui-loading.test.cjs tests/auth-data-gate.test.cjs tests/v209-loader.test.cjs
+          node scripts/release-freeze-selftest.mjs
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Require authenticated presentation and logout safety
+        run: node tests/v266-authenticated-home.e2e.mjs
+      - name: Require independent recovery behavior
+        run: node tests/recovery.e2e.mjs
+      - name: Commit reviewed files only after both browser suites pass
+        run: |
+          git config user.name 'm-vib-byte'
+          git config user.email 'm-vib@hotmail.com'
+          git rm scripts/prepare-ui-acceptance.py
+          git add v205-simplified-shell.js tests/startup-ui-loading.test.cjs tests/quick-menu-stability.test.cjs tests/preview.e2e.mjs tests/full-ui-acceptance.mjs tests/v266-authenticated-home.e2e.mjs tests/recovery.e2e.mjs FILE_INVENTORY.json
+          test -z "$(git diff --cached --name-only -- .github/workflows)"
+          git commit -m 'fix: preserve quick-menu focus and validate authenticated UI lifecycle'
+          git push origin HEAD:fix/v266-ui-after-login
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-lifecycle-acceptance
+          path: |
+            test-results
+            tests/full-ui-acceptance.mjs
+            tests/recovery.e2e.mjs
+            tests/preview.e2e.mjs
+            tests/v266-authenticated-home.e2e.mjs
+          retention-days: 2
