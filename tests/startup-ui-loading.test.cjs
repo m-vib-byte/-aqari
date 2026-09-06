@@ -50,3 +50,4 @@ test('UI assets arriving after the verified home can initialize without another 
 });
 
 require('./secure-navigation.test.cjs');
+require('./v205-click-routing.test.cjs');
