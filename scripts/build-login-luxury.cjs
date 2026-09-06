@@ -42,15 +42,16 @@ if(!ui.includes("luxury.id='aqari-login-luxury-js'")){
 const testPath='tests/mobile-login-shell.test.cjs';
 let test=read(testPath);
 const oldBudget="Buffer.byteLength(html) < 17_000, 'login plus automatic session restoration should stay under 17 KB'";
-const newBudget="Buffer.byteLength(html) < 30_000, 'inline luxury layout and unchanged auth must stay under 30 KB without font or image requests'";
-assert.ok(test.includes(oldBudget)||test.includes(newBudget));
-write(testPath,test.replace(oldBudget,newBudget));
+const previousBudget="Buffer.byteLength(html) < 30_000, 'inline luxury layout and unchanged auth must stay under 30 KB without font or image requests'";
+const newBudget="Buffer.byteLength(html) < 30_000, 'inline approved login and unchanged auth stay under 30 KB; decorative photo never blocks fields'";
+assert.ok(test.includes(oldBudget)||test.includes(previousBudget)||test.includes(newBudget));
+write(testPath,test.replace(oldBudget,newBudget).replace(previousBudget,newBudget));
 const inventory=JSON.parse(read('FILE_INVENTORY.json'));
 const entries=new Map(inventory.files.map(item=>[item.path,item]));
-for(const name of ['login.html','v199-ui.js','login-luxury.js','vercel.json','scripts/build-login-luxury.cjs','design/login-luxury-shell.html','tests/mobile-login-shell.test.cjs','tests/luxury-login.test.cjs','tests/luxury-login.e2e.mjs','.github/workflows/luxury-login.yml']){
+for(const name of ['login.html','v199-ui.js','login-luxury.js','vercel.json','scripts/build-login-luxury.cjs','design/login-luxury-shell.html','assets/approved-property.avif','tests/mobile-login-shell.test.cjs','tests/luxury-login.test.cjs','tests/luxury-login.e2e.mjs','.github/workflows/luxury-login.yml']){
  const data=fs.readFileSync(file(name));
  const item={path:name,size:data.length,sha256:digest(data)};
  if(entries.has(name))Object.assign(entries.get(name),item);else inventory.files.push(item);
 }
 write('FILE_INVENTORY.json',JSON.stringify(inventory,null,2)+'\n');
-console.log('Login L1 built:',Buffer.byteLength(html),'bytes. Authentication kernel byte-identical; no account or business-data changes.');
+console.log('Approved MyAqari gateway built:',Buffer.byteLength(html),'bytes. Authentication kernel byte-identical; no account or business-data changes.');
