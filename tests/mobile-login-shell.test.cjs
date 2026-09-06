@@ -101,7 +101,7 @@ assert.match(adapter, /script\.src = '\/vendor\/supabase-js-2\.114\.0\.js'/);
 assert.match(adapter, /script\.integrity = 'sha384-/);
 assert.match(adapter, /new Set\(\['general_manager', 'property_manager', 'accountant'\]\)/);
 assert.doesNotMatch(adapter, /service_role/i);
-assert.ok(Buffer.byteLength(html) < 17_000, 'login plus automatic session restoration should stay under 17 KB');
+assert.ok(Buffer.byteLength(html) < 35_000, 'premium login with inline critical CSS and no external imagery stays under 35 KB');
 
 assert.match(serviceWorker, /AQARI_RELEASE = 'V266'/);
 assert.match(serviceWorker, /caches\.keys\(\)/);
