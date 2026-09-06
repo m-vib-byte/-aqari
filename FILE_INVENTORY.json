@@ -143,8 +143,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 14263,
-      "sha256": "c7f08e268201029e89bdd0a364adbaea7d710dcd4b6adc0e3f968afb8be853ee"
+      "size": 17489,
+      "sha256": "29453f7e953acd77cc2bd84da743ee5af0a63ce5a5ac2bc0502fd52e6d926746"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -353,8 +353,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 37966,
-      "sha256": "f5dbccc4eecc91a6bb7119f01f27ad2fb2102f7515ffe08d07772257e18f6125"
+      "size": 38881,
+      "sha256": "0826884703ae652311b64bf3bcd2282d620b114122a514b5c896a3bf5d4cc14b"
     },
     {
       "path": "SUPABASE_BRIDGE.md",
@@ -433,8 +433,8 @@
     },
     {
       "path": "tests/v209-loader.test.cjs",
-      "size": 6815,
-      "sha256": "bfb1376b2517663f288e219fefe8db0ac46cbf843b939fd6eb6eb3d09f7c95bf"
+      "size": 7429,
+      "sha256": "fe240f81df58fd5b7130b8580cb9e30ad6346fbce7eff2e882eab6fc9d87a507"
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
@@ -498,8 +498,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 22600,
-      "sha256": "81b14ab8b2d987b0448b91d98dc5e55842510d3e46c0606459a163b1fa5cc50d"
+      "size": 23146,
+      "sha256": "fcff814294db9ef639337d67c0d4d06019f1c461447ff86711ff9e19a87f78bb"
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -618,8 +618,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "size": 9912,
-      "sha256": "001517f6c70d4d88ee5b1ec137bdd2d4e1cc0952644c04b0602e859198a460d7"
+      "size": 11305,
+      "sha256": "aaa30229f18061b939723b824b7389fbd56ecd69ad45dfc8095c1b375253ba0f"
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
@@ -700,6 +700,36 @@
       "path": "v267-premium-workspace.css",
       "size": 17161,
       "sha256": "4a5374b449bd4fa794aff8bc1625c8a7019f307a66d31f669e855e0edbe62e9f"
+    },
+    {
+      "path": ".github/workflows/startup-ui-order.yml",
+      "size": 443,
+      "sha256": "4d2438f96674573d18484ae7554adb7ae2e01eff5da0201a6ffdea86be78635d"
+    },
+    {
+      "path": "RELEASE_NOTES_V267.md",
+      "size": 1872,
+      "sha256": "e9ff05e267ab20676f87680b2a4d55637db0f41e32477681e7bdbccb970c7e84"
+    },
+    {
+      "path": "tests/quick-menu-stability.test.cjs",
+      "size": 2116,
+      "sha256": "ea1f1f7a2749eb38d2b2a772b025ddac59c3c591960ce1a64f0329d9504f207c"
+    },
+    {
+      "path": "tests/secure-navigation.test.cjs",
+      "size": 4505,
+      "sha256": "3c5834b781f954b616efe29483861cfb9ce1376bb1fba394044d516bca435631"
+    },
+    {
+      "path": "tests/startup-ui-loading.test.cjs",
+      "size": 4910,
+      "sha256": "05fee5da9cda9411f94849560ab8ecba7dc85ba26079241be25f6f6b48ea1829"
+    },
+    {
+      "path": "tests/v205-click-routing.test.cjs",
+      "size": 3745,
+      "sha256": "dcb3044717a28d7cd9629d7f394a465a5328e51989935e8a4722e615ed76389f"
     }
   ]
 }

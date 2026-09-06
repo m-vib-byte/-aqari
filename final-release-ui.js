@@ -88,6 +88,49 @@
   'use strict';
 
   const PRODUCT_RELEASE='V267';
+
+  // Presentation loading is not authorization. The auth bridge must finish
+  // verifying and activating BOTH data boundaries before optional UI boots.
+  let uiStartQueued=false;
+  function authenticatedUIReady(){
+    try{
+      const context=window.AQARI_SUPABASE?.context;
+      const userId=context?.user?.id,workspaceId=context?.workspace?.id,member=context?.membership;
+      if(typeof userId!=='string'||!userId||typeof workspaceId!=='string'||!workspaceId||
+         member?.is_active!==true||member.user_id!==userId||member.workspace_id!==workspaceId||
+         !['general_manager','property_manager','accountant','viewer'].includes(member.role)||
+         !document.documentElement?.classList.contains('aqari-auth-unlocked'))return false;
+      const data=window.AQARI_DATA_GATE?.scope,storage=window.AQARI_EARLY_STORAGE_GATE?.scope;
+      return data?.userId===userId&&data.workspaceId===workspaceId&&
+        storage?.userId===userId&&storage.workspaceId===workspaceId;
+    }catch(_){return false;}
+  }
+  function noteScriptLoaded(event){
+    if(event?.type==='load'&&event.target?.dataset){
+      event.target.dataset.aqariUiLoaded='true';
+    }
+  }
+  function continueExistingScript(id,next,ready=false){
+    const node=document.getElementById(id);
+    if(!node)return false;
+    if(ready||node.dataset.aqariUiLoaded==='true')next();
+    else if(node.dataset.aqariUiNextBound!=='true'){
+      node.dataset.aqariUiNextBound='true';
+      node.addEventListener('load',next,{once:true});
+    }
+    return true;
+  }
+  function scheduleAuthenticatedUI(){
+    if(uiStartQueued)return;
+    uiStartQueued=true;
+    setTimeout(function(){
+      uiStartQueued=false;
+      if(authenticatedUIReady()&&document.getElementById('aqari-v199-ui-js')?.dataset.aqariUiLoaded==='true')installV201Experience();
+    },0);
+  }
+  window.addEventListener('aqari:auth-boundary',function(event){
+    if(event?.detail?.state==='ready')scheduleAuthenticatedUI();
+  });
   function releaseAsset(path){
     return path+(path.includes('?')?'&':'?')+'release='+encodeURIComponent(PRODUCT_RELEASE);
   }
@@ -104,7 +147,9 @@
     document.title='عقاري '+PRODUCT_RELEASE+' • Supabase Connected';
   }
 
-  function installV266SchedulerControl(){
+  function installV266SchedulerControl(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v266');
 
     if(!document.getElementById('aqari-v266-scheduler-control-css')){
@@ -123,7 +168,9 @@
     }
   }
 
-  function installV211FollowUpCenter(){
+  function installV211FollowUpCenter(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v211');
 
     if(!document.getElementById('aqari-v211-follow-up-center-css')){
@@ -143,7 +190,9 @@
     installV266SchedulerControl();
   }
 
-  function installV210DailyCommandCenter(){
+  function installV210DailyCommandCenter(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v210');
 
     if(!document.getElementById('aqari-v210-daily-command-center-css')){
@@ -162,7 +211,7 @@
       commandJs.dataset.v211LoaderBound='true';
       commandJs.addEventListener('load', installV211FollowUpCenter, { once:true });
       document.body.appendChild(commandJs);
-    }else if(window.AQARI_V210?.version==='V210-daily-command-center'||document.querySelector('meta[name="aqari-daily-command-center"]')){
+    }else if(commandJs.dataset.aqariUiLoaded==='true'||window.AQARI_V210?.version==='V210-daily-command-center'||document.querySelector('meta[name="aqari-daily-command-center"]')){
       installV211FollowUpCenter();
     }else if(commandJs.dataset.v211LoaderBound!=='true'){
       commandJs.dataset.v211LoaderBound='true';
@@ -170,7 +219,9 @@
     }
   }
 
-  function installV209GlobalSearch(){
+  function installV209GlobalSearch(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v209');
 
     if(!document.getElementById('aqari-v209-global-search-css')){
@@ -189,7 +240,7 @@
       globalSearchJs.dataset.v210LoaderBound='true';
       globalSearchJs.addEventListener('load', installV210DailyCommandCenter, { once:true });
       document.body.appendChild(globalSearchJs);
-    }else if(window.AQARI_V209?.version==='V209-global-search'||document.querySelector('meta[name="aqari-global-search"]')){
+    }else if(globalSearchJs.dataset.aqariUiLoaded==='true'||window.AQARI_V209?.version==='V209-global-search'||document.querySelector('meta[name="aqari-global-search"]')){
       installV210DailyCommandCenter();
     }else if(globalSearchJs.dataset.v210LoaderBound!=='true'){
       globalSearchJs.dataset.v210LoaderBound='true';
@@ -197,7 +248,9 @@
     }
   }
 
-  function installV208PortfolioCollections(){
+  function installV208PortfolioCollections(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v208');
 
     if(!document.getElementById('aqari-v208-portfolio-collections-css')){
@@ -216,7 +269,7 @@
       portfolioJs.dataset.v209LoaderBound='true';
       portfolioJs.addEventListener('load', installV209GlobalSearch, { once:true });
       document.body.appendChild(portfolioJs);
-    }else if(document.querySelector('meta[name="aqari-portfolio-collections"]')){
+    }else if(portfolioJs.dataset.aqariUiLoaded==='true'||document.querySelector('meta[name="aqari-portfolio-collections"]')){
       installV209GlobalSearch();
     }else if(portfolioJs.dataset.v209LoaderBound!=='true'){
       portfolioJs.dataset.v209LoaderBound='true';
@@ -224,7 +277,9 @@
     }
   }
 
-  function installV206RentLedger(){
+  function installV206RentLedger(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v206');
 
     if(!document.getElementById('aqari-v206-rent-ledger-css')){
@@ -239,14 +294,17 @@
       const script=document.createElement('script');
       script.id='aqari-v206-rent-ledger-js';
       script.src='/v206-rent-ledger.js';
+      script.dataset.aqariUiNextBound='true';
       script.addEventListener('load', installV208PortfolioCollections, { once:true });
       document.body.appendChild(script);
     }else{
-      installV208PortfolioCollections();
+      continueExistingScript('aqari-v206-rent-ledger-js',installV208PortfolioCollections,Boolean(window.AQARI_V206));
     }
   }
 
-  function installV205SimplifiedShell(){
+  function installV205SimplifiedShell(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v205');
 
     if(!document.getElementById('aqari-v206-integrated-ledger-css')){
@@ -269,14 +327,17 @@
       const shell = document.createElement('script');
       shell.id = 'aqari-v205-simplified-shell-js';
       shell.src = releaseAsset('/v205-simplified-shell.js');
+      shell.dataset.aqariUiNextBound='true';
       shell.addEventListener('load', installV206RentLedger, { once:true });
       document.body.appendChild(shell);
     }else{
-      installV206RentLedger();
+      continueExistingScript('aqari-v205-simplified-shell-js',installV206RentLedger,Boolean(window.AQARI_V205));
     }
   }
 
-  function installV202PropertyOS(){
+  function installV202PropertyOS(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
     document.body?.classList.add('aq-v202');
 
     if(!document.getElementById('aqari-v202-prestige-css')){
@@ -291,23 +352,24 @@
       const propertyOS = document.createElement('script');
       propertyOS.id = 'aqari-v202-property-os-js';
       propertyOS.src = '/v202-property-os.js';
+      propertyOS.dataset.aqariUiNextBound='true';
       propertyOS.addEventListener('load', installV205SimplifiedShell, { once:true });
       document.body.appendChild(propertyOS);
-    }else if(document.body?.getAttribute('data-v202-ready') === 'true'){
+    }else if(document.getElementById('aqari-v202-property-os-js').dataset.aqariUiLoaded==='true'||document.body?.getAttribute('data-v202-ready') === 'true'){
       installV205SimplifiedShell();
     }else{
-      document.getElementById('aqari-v202-property-os-js')?.addEventListener('load', installV205SimplifiedShell, { once:true });
+      continueExistingScript('aqari-v202-property-os-js',installV205SimplifiedShell);
     }
   }
 
-  function installV201Experience(){
-    if(document.getElementById('aqari-v201-experience-js')){
-      installV202PropertyOS();
-      return;
-    }
+  function installV201Experience(event){
+    noteScriptLoaded(event);
+    if(!authenticatedUIReady())return;
+    if(continueExistingScript('aqari-v201-experience-js',installV202PropertyOS,Boolean(window.AQARI_V201)))return;
     const experience = document.createElement('script');
     experience.id = 'aqari-v201-experience-js';
     experience.src = releaseAsset('/v201-experience.js');
+    experience.dataset.aqariUiNextBound='true';
     experience.addEventListener('load', installV202PropertyOS, { once:true });
     document.body.appendChild(experience);
   }
@@ -352,10 +414,11 @@
       const script = document.createElement('script');
       script.id = 'aqari-v199-ui-js';
       script.src = releaseAsset('/v199-ui.js');
+      script.dataset.aqariUiNextBound='true';
       script.addEventListener('load', installV201Experience, { once:true });
       document.body.appendChild(script);
     }else{
-      installV201Experience();
+      continueExistingScript('aqari-v199-ui-js',installV201Experience);
     }
   }
 

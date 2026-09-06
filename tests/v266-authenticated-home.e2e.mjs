@@ -91,6 +91,14 @@ try{
         await context.addInitScript(value=>{
           localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));
           setInterval(()=>{window.__homeHeartbeats=(window.__homeHeartbeats||0)+1;},100);
+          window.__earlyAuthenticatedScripts=[];
+          const append=Node.prototype.appendChild;
+          Node.prototype.appendChild=function(node){
+            if(node?.tagName==='SCRIPT'&&/^aqari-v(?:201|202|205|206|208|209|210|211|266)-/.test(node.id||'')&&!document.documentElement.classList.contains('aqari-auth-unlocked')){
+              window.__earlyAuthenticatedScripts.push(node.id);
+            }
+            return append.call(this,node);
+          };
         },session);
         const page=await context.newPage();
         page.on('pageerror',error=>errors.push(error.stack));
@@ -113,7 +121,15 @@ try{
           assert.equal(requests.filter(r=>r==='POST /rest/v1/rpc/aqari_startup_snapshot_v266').length,1,'late auth must not restart loading');
         }else{
           await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:18000});
-          await delay(700);
+          await page.waitForFunction(()=>['201','202','205','206','208','209','210','211','266'].every(version=>Boolean(window['AQARI_V'+version])),{},{timeout:18000});
+          assert.deepEqual(await page.evaluate(()=>window.__earlyAuthenticatedScripts),[], 'authenticated UI must not initialize during confirmation');
+          const beats=await page.evaluate(()=>window.__homeHeartbeats);
+          await delay(1000);
+          assert.ok(await page.evaluate(()=>window.__homeHeartbeats)>beats,'the completed UI must remain responsive');
+          for(const [route,target] of [['properties','list'],['tenants','list'],['smartContractsPage','smartContractsPage'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
+            await page.evaluate(route=>window.go(route),route);
+            assert.ok(await page.locator('#'+target).isVisible(),'visible full-platform section: '+route);
+          }
           assert.ok(await page.locator('#home').isVisible());
         }
         const state=await page.evaluate(()=>({phase:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-phase'),stage:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),heartbeat:window.__homeHeartbeats}));

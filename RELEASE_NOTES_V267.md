@@ -12,4 +12,8 @@ The previous home page placed a large introduction and workflow guide ahead of o
 
 Authentication, workspace isolation, payment processing, database policies, document printing and recovery behavior are preserved. This presentation update does not establish that the previously reported owner-device startup problem has been resolved.
 
-Validation before review: all 343 existing Node regression tests pass, as do the nine release self-checks. Connected deployment and browser CI results are recorded on the pull request.
+Validation before review: all 406 Node regression tests pass, as do the nine release self-checks. Connected deployment and browser CI results are recorded on the pull request.
+
+Production fixes from 3617a7f are included: authenticated UI loading order, verified route permissions, and bounded delegated clicks. Quick-create menu updates are idempotent. Temporary V266 preparation workflows and the missing recovery-test dependency are not carried forward.
+
+Remote Actions stopped before assigning a runner or executing any step on the initial PR revision. Preview deployment built successfully; full browser acceptance remains unverified.

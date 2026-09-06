@@ -288,21 +288,24 @@
   function simplifyCreateMenu(){
     const grid=document.querySelector('#v201CreateMenu .v201-create-grid');
     if(grid){
-      ['collections','tenants','maintenance','properties'].forEach(function(key){
-        const option=grid.querySelector('[data-v201-create="'+key+'"]');
-        if(option)grid.appendChild(option);
-      });
+      const ordered=['collections','tenants','maintenance','properties'].map(function(key){
+        return grid.querySelector('[data-v201-create="'+key+'"]');
+      }).filter(Boolean);
+      const current=Array.from(grid.children).filter(function(node){return ordered.includes(node)});
+      if(ordered.some(function(node,index){return current[index]!==node})){
+        ordered.forEach(function(node){grid.appendChild(node)});
+      }
     }
     const kicker=document.querySelector('#v201CreateMenu header p');
     const title=document.getElementById('v201CreateTitle');
     const description=document.getElementById('v201CreateDescription');
-    if(kicker)kicker.textContent='إجراء سريع';
-    if(title)title.textContent='شنو تبي تنجز؟';
-    if(description)description.textContent='اختر المهمة وبنفتح النموذج المناسب مباشرة.';
+    if(kicker&&kicker.textContent!=='إجراء سريع')kicker.textContent='إجراء سريع';
+    if(title&&title.textContent!=='شنو تبي تنجز؟')title.textContent='شنو تبي تنجز؟';
+    if(description&&description.textContent!=='اختر المهمة وبنفتح النموذج المناسب مباشرة.')description.textContent='اختر المهمة وبنفتح النموذج المناسب مباشرة.';
     const brand=document.querySelector('.v199-brand-copy small');
-    if(brand)brand.textContent='إدارة الأملاك';
+    if(brand&&brand.textContent!=='إدارة الأملاك')brand.textContent='إدارة الأملاك';
     const addLabel=document.querySelector('.v199-add-button span');
-    if(addLabel)addLabel.textContent='إجراء سريع';
+    if(addLabel&&addLabel.textContent!=='إجراء سريع')addLabel.textContent='إجراء سريع';
   }
 
   function syncDashboard(){
@@ -373,7 +376,7 @@
     if(target.closest('[data-v205-chooser-close]')){
       event.preventDefault();event.stopImmediatePropagation();return closeChooser(true);
     }
-    const route=target.closest('[data-v205-route]');
+    const route=target.closest('button[data-v205-route],a[data-v205-route]');
     if(route){
       event.preventDefault();event.stopImmediatePropagation();closeChooser(false);return window.go?.(route.getAttribute('data-v205-route'));
     }
