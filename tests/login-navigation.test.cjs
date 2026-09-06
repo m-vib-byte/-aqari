@@ -10,7 +10,7 @@ const tick = () => new Promise(resolve=>setImmediate(resolve));
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};}
 function loginRuntime(options={}){
   const handlers = new Map(), destinations=[];
-  const nodes = Object.fromEntries(['loginForm','email','password','loginButton','recoveryButton','retryButton','status'].map(id=>[id,{value:'',disabled:false,textContent:'',addEventListener(type,fn){handlers.set(id+':'+type,fn);}}]));
+  const nodes = Object.fromEntries(['loginForm','email','password','loginButton','recoveryButton','retryButton','status','continueButton'].map(id=>[id,{value:'',disabled:false,hidden:true,textContent:'',addEventListener(type,fn){handlers.set(id+':'+type,fn);}}]));
   let checks=0,signIns=0;
   const adapter={
     context:access,
@@ -24,16 +24,21 @@ function loginRuntime(options={}){
   vm.runInNewContext(source,{window,navigator:{},document:{getElementById(id){return nodes[id];}},setTimeout(){return 1;},clearTimeout(){},console});
   return {nodes,handlers,destinations,get checks(){return checks;},get signIns(){return signIns;}};
 }
-test('an authorized saved session goes directly to the main app without another password', async()=>{
+test('saved sessions offer explicit continuation, then server verification without another password', async()=>{
   const r=loginRuntime();await tick();
+  assert.deepEqual(r.destinations,[]);assert.equal(r.checks,0);assert.equal(r.nodes.continueButton.hidden,false);
+  r.handlers.get('continueButton:click')();await tick();
   assert.deepEqual(r.destinations,['/app?release=V266']);assert.equal(r.signIns,0);assert.equal(r.checks,1);
 });
 test('signed-out or inactive users are never forwarded to the main app',async()=>{
   const signedOut=loginRuntime({session:false});const inactive=loginRuntime({context:{...access,membership:{...access.membership,is_active:false}}});await tick();
+  inactive.handlers.get('continueButton:click')();await tick();
+  assert.equal(signedOut.nodes.continueButton.hidden,true);
   assert.deepEqual(signedOut.destinations,[]);assert.deepEqual(inactive.destinations,[]);assert.equal(signedOut.checks,0);
 });
 test('manual sign-in wins over an older delayed restoration',async()=>{
   const refresh=deferred(),r=loginRuntime({refresh});await tick();
+  r.handlers.get('continueButton:click')();await tick();
   r.nodes.email.value='test@example.invalid';r.nodes.password.value='fictional-test-password';
   await r.handlers.get('loginForm:submit')({preventDefault(){}});
   assert.deepEqual(r.destinations,['/app?release=V266']);assert.equal(r.signIns,1);
