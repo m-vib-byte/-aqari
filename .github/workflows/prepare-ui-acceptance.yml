@@ -1,0 +1,51 @@
+name: Prepare UI lifecycle acceptance
+on:
+  push:
+    branches: [fix/v266-ui-after-login]
+permissions:
+  contents: write
+jobs:
+  acceptance:
+    if: "github.event.head_commit.message == 'chore: validate migrated UI lifecycle acceptance'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: python3 scripts/prepare-ui-acceptance.py
+      - name: Verify test syntax and security regressions
+        run: |
+          node --check tests/preview.e2e.mjs
+          node --check tests/full-ui-acceptance.mjs
+          node --check tests/v266-authenticated-home.e2e.mjs
+          node --check tests/recovery.e2e.mjs
+          node --test tests/startup-ui-loading.test.cjs tests/auth-data-gate.test.cjs tests/v209-loader.test.cjs
+          node scripts/release-freeze-selftest.mjs
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Require authenticated presentation and logout safety
+        run: node tests/v266-authenticated-home.e2e.mjs
+      - name: Require independent recovery behavior
+        run: node tests/recovery.e2e.mjs
+      - name: Commit test files only after both browser suites pass
+        run: |
+          git config user.name 'm-vib-byte'
+          git config user.email 'm-vib@hotmail.com'
+          git rm scripts/prepare-ui-acceptance.py
+          git add tests/preview.e2e.mjs tests/full-ui-acceptance.mjs tests/v266-authenticated-home.e2e.mjs tests/recovery.e2e.mjs FILE_INVENTORY.json
+          test -z "$(git diff --cached --name-only -- .github/workflows)"
+          git commit -m 'test: validate protected UI after login and preserve signed-out isolation'
+          git push origin HEAD:fix/v266-ui-after-login
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-lifecycle-acceptance
+          path: |
+            test-results
+            tests/full-ui-acceptance.mjs
+            tests/recovery.e2e.mjs
+            tests/preview.e2e.mjs
+            tests/v266-authenticated-home.e2e.mjs
+          retention-days: 2
