@@ -143,8 +143,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "size": 13839,
-      "sha256": "4afd3ffb7b4b53873b60492d7337e1d27bb641bf40fa4f57f72d2bfd763b4404"
+      "size": 17065,
+      "sha256": "29a64ffb2b7bb5e15be3695245d69f0e44d8a5ffa88b153bb9ffc37c42beab6f"
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -433,8 +433,8 @@
     },
     {
       "path": "tests/v209-loader.test.cjs",
-      "size": 6815,
-      "sha256": "bfb1376b2517663f288e219fefe8db0ac46cbf843b939fd6eb6eb3d09f7c95bf"
+      "size": 7429,
+      "sha256": "fe240f81df58fd5b7130b8580cb9e30ad6346fbce7eff2e882eab6fc9d87a507"
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
@@ -618,8 +618,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "size": 9912,
-      "sha256": "35dc4878221d62f6f354a9c6cda4bdc9770c9e6fcdfa9c22bfa93e237dc6887a"
+      "size": 11305,
+      "sha256": "a78c811372710b7ed2d7a6abc6e549b3791dafb75bfa4bf52c2d7a7d0bcd3f8a"
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
@@ -695,6 +695,11 @@
       "path": "tests/workspace-confirmation.test.cjs",
       "size": 5267,
       "sha256": "0cc8a92c5d78927a16fded08b5e687e7c79b34e0b57777674e2beafa2e202284"
+    },
+    {
+      "path": "tests/startup-ui-loading.test.cjs",
+      "size": 4826,
+      "sha256": "048103732d41c6f5f17467a4eb002a0d9621a90d027d76d92dd274881eab6680"
     }
   ]
 }

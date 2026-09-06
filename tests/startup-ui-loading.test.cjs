@@ -16,7 +16,7 @@ function runtime(){
   const window={AQARI_SUPABASE:{context},AQARI_DATA_GATE:{scope:null},AQARI_EARLY_STORAGE_GATE:{scope:null},addEventListener(type,fn){listeners.set(type,fn);}};
   const document={readyState:'complete',title:'',head:{appendChild:append},body:{appendChild:append,classList:{add(){}},getAttribute(){return null;}},documentElement:{classList:{contains:name=>rootClasses.has(name)}},createElement:element,getElementById:id=>nodes.get(id)||null,querySelector(selector){return null;},addEventListener(){}};
   vm.runInNewContext(uiSource,{window,document,console,setTimeout(fn){timers.push(fn);return timers.length;}});
-  function load(id){const node=nodes.get(id);assert.ok(node,'script should exist: '+id);const callback=node.listeners.get('load');if(callback)callback();}
+  function load(id){const node=nodes.get(id);assert.ok(node,'script should exist: '+id);const callback=node.listeners.get('load');if(callback)callback({type:'load',target:node});}
   function ready(){window.AQARI_DATA_GATE.scope={...scope};window.AQARI_EARLY_STORAGE_GATE.scope={...scope};rootClasses.add('aqari-auth-unlocked');}
   function event(state){listeners.get('aqari:auth-boundary')?.({detail:{state}});}
   function drain(){for(let i=0;timers.length&&i<30;i++)timers.shift()();assert.equal(timers.length,0,'bounded task queue');}
