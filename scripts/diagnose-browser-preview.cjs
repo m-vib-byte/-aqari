@@ -16,6 +16,10 @@ function change(source,from,to){assert.equal(source.split(from).length,2,'Expect
 try{
  // All existing static, auth, scope and navigation gates remain required.
  run(['scripts/build-approved-integration.cjs'],120000);
+ // Amazon Linux build container lacks libnspr4.so / libnss3.so. Ephemeral packages only.
+ const deps=spawnSync('dnf',['install','-y','nspr','nss'],{env,stdio:'inherit',timeout:120000});
+ if(deps.error)throw deps.error;
+ assert.equal(deps.status,0,'Chromium system dependencies must install successfully');
  run(['node_modules/playwright/cli.js','install','chromium','--only-shell'],180000);
  console.log('BROWSER_DIAGNOSTIC: Chromium only. WebKit is NOT covered by this run. Synthetic local backend only.');
  let source=fs.readFileSync(path.join(root,'tests/v266-authenticated-home.e2e.mjs'),'utf8');
