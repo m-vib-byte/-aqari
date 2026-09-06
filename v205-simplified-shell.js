@@ -373,7 +373,7 @@
     if(target.closest('[data-v205-chooser-close]')){
       event.preventDefault();event.stopImmediatePropagation();return closeChooser(true);
     }
-    const route=target.closest('[data-v205-route]');
+    const route=target.closest('button[data-v205-route],a[data-v205-route]');
     if(route){
       event.preventDefault();event.stopImmediatePropagation();closeChooser(false);return window.go?.(route.getAttribute('data-v205-route'));
     }

@@ -1,0 +1,18 @@
+name: Authenticated UI startup order
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  startup-order:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check final-release-ui.js
+      - run: node --test tests/startup-ui-loading.test.cjs tests/v209-loader.test.cjs

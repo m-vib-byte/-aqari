@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": ".",
-  "buildCommand": "node scripts/build-login-luxury.cjs && node --test tests/luxury-login.test.cjs tests/login-navigation.test.cjs && node tests/mobile-login-shell.test.cjs && node scripts/release-freeze-selftest.mjs",
+  "buildCommand": "node scripts/build-approved-integration.cjs && node --test tests/luxury-login.test.cjs tests/login-navigation.test.cjs tests/approved-login-integration.test.cjs tests/startup-ui-loading.test.cjs tests/auth-data-gate.test.cjs tests/v209-loader.test.cjs && node tests/mobile-login-shell.test.cjs && node scripts/release-freeze-selftest.mjs",
   "rewrites": [
     {"source":"/","destination":"/login.html"},
     {"source":"/login","destination":"/login.html"},
