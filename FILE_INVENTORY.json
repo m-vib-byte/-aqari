@@ -28,8 +28,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "size": 2263,
-      "sha256": "2a1296a53b20257973b6d3e7125040a5b487834e326a102b03779ee67f31396d"
+      "size": 2193,
+      "sha256": "333b3f8a4350dd1dff3d6c584c7fc76e69e782f628907585b7b392d50fe73035"
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -203,8 +203,8 @@
     },
     {
       "path": "PREVIEW_E2E_GATE.md",
-      "size": 1319,
-      "sha256": "cf3ee10bbefa0d9c7997ecc800adad3d395483cfa25af6eeb6811c6c3002bc9b"
+      "size": 3560,
+      "sha256": "69dfc4ba9d06ae8fc9346a8374cbec3ad6d5479b3265f3f59e4d3696e6dc2d03"
     },
     {
       "path": "PRODUCTION_CANDIDATE.md",
@@ -398,8 +398,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "size": 29562,
-      "sha256": "0dc2df05205f3d39641d97e2ff98a746b242ee31c8f4fa52fbfe1123715cae6b"
+      "size": 19362,
+      "sha256": "1d32315d7d24a17d91b1223a9e4607615b9389a8fed1b3b06e84ae169989d611"
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -618,8 +618,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "size": 11305,
-      "sha256": "aaa30229f18061b939723b824b7389fbd56ecd69ad45dfc8095c1b375253ba0f"
+      "size": 13059,
+      "sha256": "822a4101ebf73a6e1f8450b02df0482b64c3a0973cb942de5af74b5cfe4b284b"
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
@@ -643,8 +643,8 @@
     },
     {
       "path": "tests/direct-entry.e2e.mjs",
-      "size": 3170,
-      "sha256": "ee7d42510f6662889115454d0d4800240ba31158dc056f3ce81871fbdedccf43"
+      "size": 3230,
+      "sha256": "eeb5c8664ed9d40513591c3f20ad66106ac069484238c60431a8d681701f4d79"
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -730,6 +730,31 @@
       "path": "tests/v205-click-routing.test.cjs",
       "size": 3745,
       "sha256": "dcb3044717a28d7cd9629d7f394a465a5328e51989935e8a4722e615ed76389f"
+    },
+    {
+      "path": "tests/preview-access.mjs",
+      "size": 1594,
+      "sha256": "81e855c2b6f020d64a04b1bcd3476cde854e677c93e65287a9e26288e771bb75"
+    },
+    {
+      "path": "tests/preview-access.test.cjs",
+      "size": 2629,
+      "sha256": "6a32248ea8190f823f339db20b8d3f17dba236365e345ea74d85b3b22ee90ee8"
+    },
+    {
+      "path": "tests/v267-presentation-checks.mjs",
+      "size": 12322,
+      "sha256": "fe5167e8f764c63efacfa7625a198e3a1ce96be11fd8d4d0e9a161bfb8b6beda"
+    },
+    {
+      "path": "tests/recovery.e2e.mjs",
+      "size": 17226,
+      "sha256": "543f4f2c4e72050ce35cec586246b1456a3f02ce099c4bd83d41b65c44b5b5c1"
+    },
+    {
+      "path": ".github/workflows/recovery-entry.yml",
+      "size": 746,
+      "sha256": "f5e3aa63740eaaa1b3dc16dc86c6a1fc9dc24341295c03e886e6ac02c8f086d8"
     }
   ]
 }
