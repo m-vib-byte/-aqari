@@ -15,6 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: node scripts/build-login-luxury.cjs
       - run: node --check login-luxury.js
       - run: node --test tests/luxury-login.test.cjs tests/login-navigation.test.cjs
       - run: node tests/mobile-login-shell.test.cjs
