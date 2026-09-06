@@ -1,0 +1,38 @@
+name: Prepare verified UI entry
+on:
+  push:
+    branches: [fix/v266-ui-after-login]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.event.head_commit.message == 'chore: apply verified UI entry preparation'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Require the original startup-order regression
+        run: |
+          if node --test tests/startup-ui-loading.test.cjs; then
+            echo 'Original unexpectedly passes; stop for review.'
+            exit 1
+          fi
+      - name: Apply reviewed source transformation
+        run: python3 scripts/prepare-ui-order.py
+      - name: Validate changes without production credentials
+        run: |
+          node --check final-release-ui.js
+          node --check tests/v266-authenticated-home.e2e.mjs
+          node --test tests/startup-ui-loading.test.cjs tests/v209-loader.test.cjs tests/runtime-contracts.test.cjs tests/auth-data-gate.test.cjs tests/v266-login-bootstrap.test.cjs tests/v266-startup-snapshot.test.cjs tests/workspace-confirmation.test.cjs
+          node scripts/release-freeze-selftest.mjs
+      - name: Commit only reviewed files to the repair branch
+        run: |
+          git config user.name 'm-vib-byte'
+          git config user.email 'm-vib@hotmail.com'
+          git rm scripts/prepare-ui-order.py .github/workflows/prepare-ui-entry.yml
+          git add final-release-ui.js tests/startup-ui-loading.test.cjs tests/v209-loader.test.cjs tests/v266-authenticated-home.e2e.mjs .github/workflows/runtime-contracts.yml FILE_INVENTORY.json
+          git commit -m 'fix: defer authenticated UI until verified home activation'
+          git push origin HEAD:fix/v266-ui-after-login
