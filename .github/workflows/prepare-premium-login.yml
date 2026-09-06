@@ -1,0 +1,30 @@
+name: Prepare premium login once
+on:
+  push:
+    branches: [feat/login-luxury]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.event.head_commit.message == 'build: prepare premium login'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/login-luxury
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build without changing authentication
+        run: |
+          node scripts/build-premium-login.mjs
+          node --test tests/login-navigation.test.cjs
+          node scripts/release-freeze-selftest.mjs
+      - name: Commit generated presentation and inventory
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add login.html index.html FILE_INVENTORY.json
+          git commit -m 'feat: publish generated premium login with original auth intact'
+          git push origin HEAD:feat/login-luxury
