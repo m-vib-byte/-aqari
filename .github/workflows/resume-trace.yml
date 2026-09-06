@@ -1,0 +1,69 @@
+name: Trace verified startup
+on:
+  push:
+    branches: [debug/v266-resume-trace]
+permissions:
+  contents: read
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Instrument isolated test checkout only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('tests/v266-authenticated-home.e2e.mjs');s=p.read_text()
+          s="import vm from 'node:vm';\n"+s
+          marker="let fixture={},hangCloud=false,hangConfirmation=false,requests=[];"
+          assert marker in s
+          extra="""const htmlSource=fs.readFileSync(path.join(root,'index.html'),'utf8');
+          const demoStart=htmlSource.indexOf('const aqariV198LegacyDemo=')+'const aqariV198LegacyDemo='.length;
+          const demoEnd=htmlSource.indexOf(';for(const k in mods)',demoStart);
+          const legacy=vm.runInNewContext('('+htmlSource.slice(demoStart,demoEnd)+')');
+          for(const [key,value] of Object.entries(legacy))if(!(key in populated))populated[key]=value;
+          """
+          s=s.replace(marker,extra+marker)
+          s=s.replace("['empty','populated','manual','timeout','confirmation-timeout']","['populated','manual']")
+          s=s.replace("{viewport:{width:1473,height:850}}","{viewport:{width:390,height:844},isMobile:true,hasTouch:true,locale:'ar-KW',timezoneId:'Asia/Kuwait'}")
+          old="send(res,{user,confirmation:{user_id:user.id,membership,workspace,profile,app_state:null}});"
+          assert old in s
+          s=s.replace(old,"setTimeout(()=>"+old[:-1]+",900);")
+          s=s.replace("await delay(700);","await delay(7000);")
+          needle="const page=await context.newPage();"
+          assert needle in s
+          s=s.replace(needle,"""await context.addInitScript(({data,id})=>{
+            localStorage.setItem('aqari_v30::workspace::'+id,JSON.stringify(data));
+            const Original=MutationObserver;let count=0;
+            window.__observerStats=[];
+            window.MutationObserver=class extends Original{constructor(callback){
+              const stat={id:++count,calls:0,source:(new Error).stack};window.__observerStats.push(stat);
+              super(function(records,observer){stat.calls++;if(stat.calls===1000)console.log('TRACE FLOOD',stat.source);return callback(records,observer);});
+            }};
+          },{data:populated,id:workspace.id});
+          """+needle)
+          s=s.replace("page.on('pageerror',error=>errors.push(error.stack));","page.on('pageerror',error=>errors.push(error.stack));page.on('console',message=>{if(message.text().startsWith('TRACE'))console.log(name,message.text())});")
+          s=s.replace("await page.screenshot({path:path.join(out,name+'.png')});","console.log('COUNTERS',name,JSON.stringify(await page.evaluate(()=>window.__observerStats)));await page.screenshot({path:path.join(out,name+'.png')});")
+          p.write_text(s)
+          p=Path('supabase-adapter.js');s=p.read_text()
+          s=s.replace('  function startupProgress(stage){',"  function startupProgress(stage){console.log('TRACE stage',stage,performance.now());")
+          s=s.replace('    }).then(async response => {',"    }).then(async response => {console.log('TRACE response',path,response.status,performance.now());")
+          p.write_text(s)
+          p=Path('secure-auth-bridge.js');s=p.read_text()
+          s=s.replace('    function stage(value){',"    function stage(value){console.log('TRACE bridge',value,performance.now());")
+          p.write_text(s)
+          PY
+      - name: Trace existing local workspace and delayed confirmation
+        run: node tests/v266-authenticated-home.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verified-startup-trace
+          path: test-results/authenticated-home
+          retention-days: 2
