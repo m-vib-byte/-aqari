@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": ".",
-  "buildCommand": "node scripts/build-approved-integration.cjs",
+  "buildCommand": "node scripts/browser-preview-gate.mjs",
   "rewrites": [
     {"source":"/","destination":"/login.html"},
     {"source":"/login","destination":"/login.html"},
