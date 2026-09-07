@@ -4775,6 +4775,10 @@ function sealWorkspaceDbV198(){window.AQARI_V201?.seal?.();window.AQARI_V202?.se
 function aqariExportStorageV198(){try{return window.AQARI_DATA_GATE?.scopedStorageSnapshot()||{}}catch{return {}}}
 function persist(){const gate=window.AQARI_DATA_GATE;if(!gate?.scope)return false;db=gate.write(db);for(const k in mods)db[k]??=[];return true}
 window.activateWorkspaceDbV198=activateWorkspaceDbV198;window.sealWorkspaceDbV198=sealWorkspaceDbV198;window.prepareWorkspaceDbV198=prepareWorkspaceDbV198;window.aqariExportStorageV198=aqariExportStorageV198;
+// Render section views only when their page is selected. Direct action handlers remain unchanged.
+function aqariRenderPageActiveV267(ids){
+ return ids.some(function(id){return document.getElementById(id)?.classList.contains('on')});
+}
 function go(k,b){cur=k;document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));if(b)b.classList.add('on');document.querySelectorAll('.p').forEach(x=>x.classList.remove('on'));const standalone=['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter','commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'];const target=standalone.includes(k)?document.getElementById(k):document.getElementById('list');if(target)target.classList.add('on');render()}function render(){let props=db.properties.length,units=db.properties.reduce((s,x)=>s+num(x[2]),0),inc=db.properties.reduce((s,x)=>s+num(x[3]),0),exp=db.expenses.reduce((s,x)=>s+num(x[2]),0),pay=db.employees.reduce((s,x)=>s+num(x[2]),0),due=db.tenants.filter(x=>String(x[3]).includes('مستحق')).reduce((s,x)=>s+num(x[2]),0),col=db.collections.reduce((s,x)=>s+num(x[2]),0),expected=db.tenants.reduce((s,x)=>s+num(x[2]),0);kpis.innerHTML=[['العقارات',props],['الوحدات',units],['الإيرادات',inc+' د.ك'],['المصروفات',exp+' د.ك'],['صافي الربح',(inc-exp-pay)+' د.ك'],['المتأخرات',due+' د.ك'],['الصيانة المفتوحة',db.maintenance.length],['الرواتب',pay+' د.ك']].map(x=>`<div class="c m">${x[0]}<b>${x[1]}</b></div>`).join('');ops.innerHTML=[['إيجارات مستحقة',db.tenants.filter(x=>String(x[3]).includes('مستحق')).length],['طلبات صيانة',db.maintenance.length],['موافقات معلقة',db.approvals.filter(x=>x[3]==='معلق').length],['أوامر عمل',db.workOrders.length],['مهام',db.tasks.length],['تنبيهات',db.alerts.length]].map(x=>`<p>${x[0]} <b style="color:var(--g)">${x[1]}</b></p>`).join('');rc.textContent=(expected?Math.min(100,col/expected*100):0).toFixed(1)+'%';rf.textContent=((inc-exp-pay)*3)+' د.ك';dq.textContent=(db.vendors.some(x=>!x[2]||x[2]==='—')||db.employees.some(x=>!x[3]||x[3]==='—'))?'85%':'100%';if(!['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter','commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'].includes(cur)){title.textContent=mods[cur][0];head.innerHTML=mods[cur][1].map(x=>`<th>${x}</th>`).join('')+'<th>إجراء</th>';rows.innerHTML=db[cur].map((r,i)=>`<tr>${mods[cur][1].map((_,j)=>`<td>${r[j]??'—'}</td>`).join('')}<td><button onclick="edit(${i})">تعديل</button> <button onclick="del(${i})">حذف</button></td></tr>`).join('')}}
 function add(){if(['home','slaEscalationPage','notificationRulesPage','disasterRecoveryPage','recoveryRunbookPage','observabilityPage','uptimeHistoryPage','goLiveCenterPage','syncEnginePage','syncConflictPage','backendMigrationPage','apiContractPage','safeImportPage','restoreHistoryPage','securityAuditPage','passwordPolicyPage','rbacCenterPage','userCreatePage','accessGatewayPage','rolePermissionsPage','releaseCandidatePage','sessionPolicyPage','releaseHardeningPage','migrationHealthPage','finalReleasePage','kpiTargetsPage','kpiCreatePage','monthEndClosePage','reconciliationPage','assetCapexPage','assetRegisterPage','capexPlanPage','vendorScorecardsPage','vendorReviewPage','receivablesAgingPage','collectionPromisesPage','ownerDistributionPage','ownerShareRulesPage','tenantRiskPage','tenantRiskRulesPage','propertyProfitabilityPage','propertyBudgetPage','cashflowForecastPage','forecastAssumptionsPage','contractLifecyclePage','contractActionPage','workflowOrchestratorPage','workflowBuilderPage','workflowCasePage','automationRulesPage','automationRuleCreatePage','settingsCenterPage','moduleManagerPage','dataPortabilityPage','importValidatorPage','accessibilityPage','uxPolishPage','performanceCenterPage','commandCenterV101Page','v100ExecutivePage','v100ModulesPage','leasingPipelinePage','leadCreatePage','pricingIntelligencePage','rentReviewPage','renewalsCalendarPage','renewalRulesPage','documentCenterPage','documentRegisterPage','reportBuilderPage','savedReportsPage','smartInboxPage','notificationPreferencesPage','globalSearchPage','favoritesPage','mobileCenterPage','tenantPortalPage','tenantRequestPage','ownerPortalPage','ownerStatementsPage','approvalHubPage','approvalPolicyPage','serviceManagementPage','serviceCatalogPage','serviceRequestPage','continuityPage','criticalServicesPage','dataGovernancePage','retentionPolicyPage','auditCenterPage','changeControlPage','opsMonitorPage','incidentResponsePage','smokeTestPage','rollbackPage','launchDecisionPage','previewLaunchPage','deploymentValidatorPage','opsRunbookPage','deploymentPackPage','deploymentReadyPage','bootstrapWizardPage','liveBackendPage','environmentPage','authMigrationPage','migrationCenterPage','finalQaPage','dataIntegrityPage','goLivePage','productionCandidatePage','sessionSecurityPage','testLabPage','recoveryCenterPage','releaseCandidatePage','qualityCenterPage','securityCenterPage','releaseChecklistPage','controlTowerPage','decisionLogPage','dailyCommandPage','taskCenterPage','biExecutivePage','biSnapshotsPage','legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage','riskInsurancePage','riskCreatePage','insurancePoliciesPage','compliancePage','inspectionCreatePage','complianceCalendarPage','communicationsHubPage','messageComposerPage','automationRulesPage','bankingProPage','transferCenterPage','paymentLinksProPage','procurementPage','purchaseRequestPage','inventoryControlPage','hrProPage','payrollRunPage','leaveCenterPage','maintenanceProPage','workOrderCreatePage','collectionProPage','installmentPlansPage','financeSuitePage','financialSnapshotsPage','portfolioCommandPage','property360Page','owner360Page','tenant360Page','contractWorkflowPage','contractHistoryPage','smartContractsPage','cloudFilesPage','esignPage','linkedDocsPage','permissionAdminPage','documentServerPage','signaturePage','userAdminPage','autoSyncPage','serverDataPage','databaseCenter','apiHealthPage','backendCenter','deviceCenter','conflictCenter','storageCenter','importWizardPage','validationCenter','commandCenter','notesPage','profilePage','documentsHub','vaultPage','contractTemplatePage','portalHub','messagingCenter','releaseCenter','stableCenter','configPage','migrationPage','executive','reportStudio','superAdminPage','permissionsPage','integrityPage','health','integrations','staging','print','reports'].includes(cur))cur='properties';mt.textContent='إضافة - '+mods[cur][0];fields.innerHTML=mods[cur][1].map((x,i)=>`<input id="f${i}" placeholder="${x}">`).join('');saveBtn.onclick=saveItem;modal.classList.add('on')}function saveItem(){db[cur].push(mods[cur][1].map((_,i)=>document.getElementById('f'+i).value));db.audit.push(['المدير','إضافة سجل',mods[cur][0],'تم']);persist();modal.classList.remove('on');render()}function edit(i){let r=db[cur][i];mt.textContent='تعديل - '+mods[cur][0];fields.innerHTML=mods[cur][1].map((x,j)=>`<input id="e${j}" value="${String(r[j]??'').replaceAll('"','&quot;')}" placeholder="${x}">`).join('');saveBtn.onclick=()=>{db[cur][i]=mods[cur][1].map((_,j)=>document.getElementById('e'+j).value);persist();modal.classList.remove('on');render()};modal.classList.add('on')}function del(i){if(confirm('تأكيد الحذف؟')){db[cur].splice(i,1);persist();render()}}
 function renderCoreRowsV206(){
@@ -6555,7 +6559,7 @@ const renderV59=render;render=function(){renderV59();refreshPortfolioV59()};rend
 function fmV60(){return document.getElementById('financePeriodV60')?.value==='year'?12:document.getElementById('financePeriodV60')?.value==='quarter'?3:1}
 function cfV60(){let m=fmV60(),revenue=(db.properties||[]).reduce((s,x)=>s+num(x[3]),0)*m,opex=(db.expenses||[]).reduce((s,x)=>s+num(x[2]),0)*m,payroll=(db.employees||[]).reduce((s,x)=>s+num(x[2]),0)*m,profit=revenue-opex-payroll,cashIn=(db.collections||[]).reduce((s,x)=>s+num(x[2]),0)*m,cashOut=opex+payroll;return{m,revenue,opex,payroll,profit,margin:revenue?profit/revenue*100:0,cashIn,cashOut,cashNet:cashIn-cashOut}}
 function renderFinanceV60(){if(!document.getElementById('finRevenueV60'))return;let f=cfV60();finRevenueV60.textContent=f.revenue.toFixed(3)+' د.ك';finOpexV60.textContent=f.opex.toFixed(3)+' د.ك';finPayrollV60.textContent=f.payroll.toFixed(3)+' د.ك';finProfitV60.textContent=f.profit.toFixed(3)+' د.ك';finMarginV60.textContent=f.margin.toFixed(1)+'%';finCashInV60.textContent=f.cashIn.toFixed(3)+' د.ك';finCashOutV60.textContent=f.cashOut.toFixed(3)+' د.ك';finCashNetV60.textContent=f.cashNet.toFixed(3)+' د.ك';pnlV60.innerHTML=`<p>الإيرادات: <b>${f.revenue.toFixed(3)}</b></p><p>المصروفات: ${f.opex.toFixed(3)}</p><p>الرواتب: ${f.payroll.toFixed(3)}</p><p>الصافي: <b>${f.profit.toFixed(3)}</b></p>`;let budget=(db.budget||[]).reduce((s,x)=>s+num(x[2]),0)*f.m,actual=(db.budget||[]).reduce((s,x)=>s+num(x[3]),0)*f.m;budgetActualV60.innerHTML=`<p>المعتمد: ${budget.toFixed(3)}</p><p>الفعلي: ${actual.toFixed(3)}</p><p>المتبقي: <b>${(budget-actual).toFixed(3)}</b></p>`;cashFlowV60.innerHTML=`<p>داخل: ${f.cashIn.toFixed(3)}</p><p>خارج: ${f.cashOut.toFixed(3)}</p><p>الصافي: <b>${f.cashNet.toFixed(3)}</b></p>`;forecastV60.innerHTML=`<p>30 يوم: ${(f.profit/f.m).toFixed(3)}</p><p>90 يوم: ${(f.profit/f.m*3).toFixed(3)}</p><p>12 شهر: ${(f.profit/f.m*12).toFixed(3)}</p>`;let cats={};(db.expenses||[]).forEach(x=>cats[x[1]]=(cats[x[1]]||0)+num(x[2])*f.m);expenseBreakdownV60.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(x=>`<p>${x[0]} <b style="float:left">${x[1].toFixed(3)} د.ك</b></p>`).join('')||'<p>لا توجد مصروفات</p>';let alerts=[];if(f.margin<50)alerts.push('هامش الربح أقل من 50%.');if(f.cashNet<0)alerts.push('التدفق النقدي سلبي.');if(f.opex>f.revenue*.3)alerts.push('المصروفات تجاوزت 30% من الإيراد.');financeNotesV60.innerHTML=alerts.map(x=>`<div class="c">${x}</div>`).join('')}
-function fsV60(){return JSON.parse(localStorage.getItem('aqari_finance_snapshots_v60')||'[]')}function snapshotFinanceV60(){let f=cfV60(),a=fsV60();a.unshift([new Date().toLocaleString('ar-KW'),f.revenue,f.opex,f.payroll,f.profit,f.margin]);localStorage.setItem('aqari_finance_snapshots_v60',JSON.stringify(a));renderFinancialSnapshotsV60()}function renderFinancialSnapshotsV60(){if(!document.getElementById('financialSnapshotRowsV60'))return;financialSnapshotRowsV60.innerHTML=fsV60().map(r=>`<tr><td>${r[0]}</td><td>${r[1].toFixed(3)}</td><td>${r[2].toFixed(3)}</td><td>${r[3].toFixed(3)}</td><td>${r[4].toFixed(3)}</td><td>${r[5].toFixed(1)}%</td></tr>`).join('')}function exportFinanceCsvV60(){let f=cfV60(),csv='\ufeffالمؤشر,القيمة\nالإيرادات,'+f.revenue+'\nالمصروفات,'+f.opex+'\nالرواتب,'+f.payroll+'\nصافي الربح,'+f.profit+'\nالهامش,'+f.margin+'%';let b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-finance.csv';a.click()}const rv60=render;render=function(){rv60();renderFinanceV60();renderFinancialSnapshotsV60()};render();
+function fsV60(){return JSON.parse(localStorage.getItem('aqari_finance_snapshots_v60')||'[]')}function snapshotFinanceV60(){let f=cfV60(),a=fsV60();a.unshift([new Date().toLocaleString('ar-KW'),f.revenue,f.opex,f.payroll,f.profit,f.margin]);localStorage.setItem('aqari_finance_snapshots_v60',JSON.stringify(a));renderFinancialSnapshotsV60()}function renderFinancialSnapshotsV60(){if(!document.getElementById('financialSnapshotRowsV60'))return;financialSnapshotRowsV60.innerHTML=fsV60().map(r=>`<tr><td>${r[0]}</td><td>${r[1].toFixed(3)}</td><td>${r[2].toFixed(3)}</td><td>${r[3].toFixed(3)}</td><td>${r[4].toFixed(3)}</td><td>${r[5].toFixed(1)}%</td></tr>`).join('')}function exportFinanceCsvV60(){let f=cfV60(),csv='\ufeffالمؤشر,القيمة\nالإيرادات,'+f.revenue+'\nالمصروفات,'+f.opex+'\nالرواتب,'+f.payroll+'\nصافي الربح,'+f.profit+'\nالهامش,'+f.margin+'%';let b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-finance.csv';a.click()}const rv60=render;render=function(){rv60();if(aqariRenderPageActiveV267(['financeSuitePage','financialSnapshotsPage'])){renderFinanceV60();renderFinancialSnapshotsV60()}};render();
 
 function agingBucketV61(amount,idx){if(idx===0)return['0-30 يوم',amount];if(idx===1)return['31-60 يوم',amount];return['61+ يوم',amount]}
 function collectionActionsV61(status){
@@ -6606,7 +6610,7 @@ function renderInstallmentPlansV61(){
  const arr=JSON.parse(localStorage.getItem('aqari_installments_v61')||'[]');
  instPlansV61.innerHTML=arr.map(p=>`<div class="c"><b>${p.tenant} — ${p.unit}</b><p>الإجمالي ${p.total} د.ك • ${p.count} أقساط</p>${p.installments.map(x=>`<p>قسط ${x.no}: ${x.amount} د.ك — ${x.due} — ${x.status}</p>`).join('')}</div>`).join('')||'<p>لا توجد خطط</p>';
 }
-const rv61=render;render=function(){rv61();fillInstTenantsV61();renderInstallmentPlansV61();refreshCollectionProV61()};render();
+const rv61=render;render=function(){rv61();if(aqariRenderPageActiveV267(['collectionProPage','installmentPlansPage'])){fillInstTenantsV61();renderInstallmentPlansV61();refreshCollectionProV61()}};render();
 
 function workOrdersV62(){return JSON.parse(localStorage.getItem('aqari_workorders_v62')||'[]')}
 function saveWorkOrdersV62(a){localStorage.setItem('aqari_workorders_v62',JSON.stringify(a))}
@@ -6656,7 +6660,7 @@ function refreshMaintenanceProV62(){
  if((db.inventory||[]).some(x=>num(x[2])<2))alerts.push('يوجد صنف مخزون منخفض يحتاج إعادة طلب.');
  mpNotesV62.innerHTML=alerts.map(x=>`<div class="c">${x}</div>`).join('');
 }
-const rv62=render;render=function(){rv62();refreshMaintenanceProV62()};render();
+const rv62=render;render=function(){rv62();if(aqariRenderPageActiveV267(['maintenanceProPage'])){refreshMaintenanceProV62()}};render();
 
 function leavesV63(){return JSON.parse(localStorage.getItem('aqari_leaves_v63')||'[]')}
 function saveLeavesV63(a){localStorage.setItem('aqari_leaves_v63',JSON.stringify(a))}
@@ -6724,7 +6728,7 @@ function exportPayrollCsvV63(){
  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n'),b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`aqari-payroll-${run.month}.csv`;a.click();
 }
 
-const rv63=render;render=function(){rv63();fillLeaveEmployeesV63();renderLeavesV63();refreshHrV63()};render();
+const rv63=render;render=function(){rv63();if(aqariRenderPageActiveV267(['hrProPage','leaveCenterPage'])){fillLeaveEmployeesV63();renderLeavesV63();refreshHrV63()}};render();
 
 function purchaseRequestsV64(){return JSON.parse(localStorage.getItem('aqari_purchase_requests_v64')||'[]')}
 function savePurchaseRequestsV64(a){localStorage.setItem('aqari_purchase_requests_v64',JSON.stringify(a))}
@@ -6775,7 +6779,7 @@ function renderInventoryV64(){
  if(!document.getElementById('inventoryRowsV64'))return;
  inventoryRowsV64.innerHTML=(db.inventory||[]).map((r,i)=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td><button onclick="adjustInventoryV64(${i},1)">+1</button> <button onclick="adjustInventoryV64(${i},-1)">-1</button></td></tr>`).join('');
 }
-const rv64=render;render=function(){rv64();fillVendorsV64();refreshProcurementV64();renderInventoryV64()};render();
+const rv64=render;render=function(){rv64();if(aqariRenderPageActiveV267(['procurementPage','purchaseRequestPage','inventoryControlPage'])){fillVendorsV64();refreshProcurementV64();renderInventoryV64()}};render();
 
 function transfersV65(){return JSON.parse(localStorage.getItem('aqari_transfers_v65')||'[]')}
 function saveTransfersV65(a){localStorage.setItem('aqari_transfers_v65',JSON.stringify(a))}
@@ -6834,7 +6838,7 @@ function refreshBankingV65(){
  bkAlertsV65.innerHTML=alerts.map(x=>`<div class="c">${x}</div>`).join('')||'<p>لا توجد تنبيهات</p>';
  bkRowsV65.innerHTML=trs.map(x=>`<tr><td>${x.id}</td><td>${x.type}</td><td>${x.amount.toFixed(3)} د.ك</td><td>${x.beneficiary}</td><td>${x.status}</td><td>${x.status==='بانتظار الاعتماد'?`<button onclick="approveTransferV65('${x.id}')">اعتماد</button>`:''}${x.status==='معتمد'?` <button class="g" onclick="markTransferPaidV65('${x.id}')">تم التحويل</button>`:''}</td></tr>`).join('');
 }
-const rv65=render;render=function(){rv65();fillPaymentTenantsV65();renderPaymentLinksV65();refreshBankingV65()};render();
+const rv65=render;render=function(){rv65();if(aqariRenderPageActiveV267(['bankingProPage','paymentLinksProPage'])){fillPaymentTenantsV65();renderPaymentLinksV65();refreshBankingV65()}};render();
 
 function commQueueV66(){return JSON.parse(localStorage.getItem('aqari_comm_queue_v66')||'[]')}
 function saveCommQueueV66(a){localStorage.setItem('aqari_comm_queue_v66',JSON.stringify(a))}
@@ -6892,7 +6896,7 @@ function refreshCommsV66(){
  cmAlertsV66.innerHTML=alerts.map(x=>`<div class="c">${x}</div>`).join('')||'<p>لا توجد تنبيهات</p>';
  cmRowsV66.innerHTML=a.map(x=>`<tr><td>${x.recipient}</td><td>${x.channel}</td><td>${x.type}</td><td>${x.schedule||'فوري'}</td><td>${x.status}</td><td>${x.status!=='مرسلة'?`<button class="g" onclick="markMessageSentV66('${x.id}')">تم الإرسال</button> <button onclick="markMessageFailedV66('${x.id}')">فشل</button>`:''}</td></tr>`).join('');
 }
-const rv66=render;render=function(){rv66();renderRulesV66();refreshCommsV66()};render();
+const rv66=render;render=function(){rv66();if(aqariRenderPageActiveV267(['communicationsHubPage','automationRulesPage'])){renderRulesV66();refreshCommsV66()}};render();
 
 function inspectionsV67(){return JSON.parse(localStorage.getItem('aqari_inspections_v67')||'[]')}
 function saveInspectionsV67(a){localStorage.setItem('aqari_inspections_v67',JSON.stringify(a))}
@@ -6931,7 +6935,7 @@ function renderComplianceCalendarV67(){
  const groups={};inspectionsV67().filter(x=>x.expiry).forEach(x=>{const m=x.expiry.slice(0,7);(groups[m]??=[]).push(x)});
  coCalendarV67.innerHTML=Object.entries(groups).sort().map(([m,rows])=>`<div class="c"><h4>${m}</h4>${rows.map(x=>`<p>${x.expiry} • ${x.property} • ${x.type} • ${x.status}</p>`).join('')}</div>`).join('')||'<p>لا توجد مواعيد</p>';
 }
-const rv67=render;render=function(){rv67();fillInspectionPropsV67();refreshComplianceV67()};render();
+const rv67=render;render=function(){rv67();if(aqariRenderPageActiveV267(['compliancePage','inspectionCreatePage','complianceCalendarPage'])){fillInspectionPropsV67();refreshComplianceV67()}};render();
 
 function risksV68(){return JSON.parse(localStorage.getItem('aqari_risks_v68')||'[]')}
 function saveRisksV68(a){localStorage.setItem('aqari_risks_v68',JSON.stringify(a))}
@@ -6985,7 +6989,7 @@ function refreshRiskV68(){
  riAlertsV68.innerHTML=alerts.map(x=>`<div class="c">${x}</div>`).join('')||'<p>لا توجد تنبيهات عاجلة</p>';
  riRowsV68.innerHTML=r.map(x=>`<tr><td>${x.id}</td><td>${x.type}</td><td>${x.property}</td><td>${x.severity}</td><td>${x.status}</td><td>${x.status==='مفتوح'?`<button onclick='createClaimV68(${JSON.stringify(x)})'>مطالبة</button> <button class="g" onclick="closeRiskV68('${x.id}')">إغلاق</button>`:''}</td></tr>`).join('');
 }
-const rv68=render;render=function(){rv68();fillRiskPropsV68();renderPoliciesV68();refreshRiskV68()};render();
+const rv68=render;render=function(){rv68();if(aqariRenderPageActiveV267(['riskInsurancePage','riskCreatePage','insurancePoliciesPage'])){fillRiskPropsV68();renderPoliciesV68();refreshRiskV68()}};render();
 
 function legalCasesV69(){return JSON.parse(localStorage.getItem('aqari_legal_cases_v69')||'[]')}
 function saveLegalCasesV69(a){localStorage.setItem('aqari_legal_cases_v69',JSON.stringify(a))}
@@ -7050,7 +7054,7 @@ function renderLegalCalendarV69(){
  const g={};events.forEach(x=>(g[x.date.slice(0,7)]??=[]).push(x));
  legalCalendarV69.innerHTML=Object.entries(g).map(([m,rows])=>`<div class="c"><h4>${m}</h4>${rows.map(x=>`<p>${x.date} • ${x.label}</p>`).join('')}</div>`).join('')||'<p>لا توجد مواعيد</p>';
 }
-const rv69=render;render=function(){rv69();fillLegalTenantsV69();renderNoticesV69();refreshLegalV69()};render();
+const rv69=render;render=function(){rv69();if(aqariRenderPageActiveV267(['legalCenterPage','legalCaseCreatePage','legalNoticesPage','legalCalendarPage'])){fillLegalTenantsV69();renderNoticesV69();refreshLegalV69()}};render();
 
 function biSnapshotsV70(){return JSON.parse(localStorage.getItem('aqari_bi_snapshots_v70')||'[]')}
 function calcBiV70(){
@@ -7114,7 +7118,7 @@ function exportBiCsvV70(){
  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download='aqari-bi-executive.csv';a.click();
 }
-const rv70=render;render=function(){rv70();refreshBiV70();renderBiSnapshotsV70()};render();
+const rv70=render;render=function(){rv70();if(aqariRenderPageActiveV267(['biExecutivePage','biSnapshotsPage'])){refreshBiV70();renderBiSnapshotsV70()}};render();
 
 function tasksV71(){return JSON.parse(localStorage.getItem('aqari_tasks_v71')||'[]')}
 function saveTasksV71(a){localStorage.setItem('aqari_tasks_v71',JSON.stringify(a))}
@@ -7174,7 +7178,7 @@ function exportDailyCsvV71(){
  const d=dailyDataV71(),rows=[['الفئة','العدد'],['قرارات اليوم',d.decisions.length],['الموافقات',d.approvals.length],['التنبيهات الحرجة',d.critical.length],['المتابعات',d.followups.length]];
  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aqari-daily-command.csv';a.click()
 }
-const rv71=render;render=function(){rv71();renderTasksV71();refreshDailyV71()};render();
+const rv71=render;render=function(){rv71();if(aqariRenderPageActiveV267(['dailyCommandPage','taskCenterPage'])){renderTasksV71();refreshDailyV71()}};render();
 
 function decisionsV72(){return JSON.parse(localStorage.getItem('aqari_decisions_v72')||'[]')}
 function saveDecisionsV72(a){localStorage.setItem('aqari_decisions_v72',JSON.stringify(a))}
@@ -7236,7 +7240,7 @@ function exportTowerCsvV72(){
  const d=towerDataV72(),rows=[['المؤشر','القيمة'],['Score',d.bi.score],['NOI',d.bi.noi],['التحصيل',d.bi.collection+'%'],['الحرجة',d.critical],['الموافقات',d.approvals],['المهام',d.tasks.length],['القرارات',d.decisions.length]];
  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n'),blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aqari-control-tower.csv';a.click()
 }
-const rv72=render;render=function(){rv72();renderDecisionsV72();refreshTowerV72()};render();
+const rv72=render;render=function(){rv72();if(aqariRenderPageActiveV267(['controlTowerPage','decisionLogPage'])){renderDecisionsV72();refreshTowerV72()}};render();
 
 let lastReleaseReportV73=null;
 
@@ -8052,7 +8056,7 @@ function exportContinuityV87(){
  if(!continuityReportV87)refreshContinuityV87();
  const b=new Blob([JSON.stringify(continuityReportV87,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v87-business-continuity.json';a.click()
 }
-const rv87=render;render=function(){rv87();renderCriticalServicesV87();refreshContinuityV87()};render();
+const rv87=render;render=function(){rv87();if(aqariRenderPageActiveV267(['continuityPage','criticalServicesPage'])){renderCriticalServicesV87();refreshContinuityV87()}};render();
 
 let serviceMgmtReportV88=null;
 function servicesV88(){return JSON.parse(localStorage.getItem('aqari_services_v88')||'[]')}
@@ -8105,7 +8109,7 @@ function exportServiceMgmtV88(){
  if(!serviceMgmtReportV88)refreshServiceMgmtV88();
  const b=new Blob([JSON.stringify(serviceMgmtReportV88,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v88-service-management.json';a.click()
 }
-const rv88=render;render=function(){rv88();renderServiceCatalogV88();fillServiceRequestOptionsV88();renderServiceRequestsV88();refreshServiceMgmtV88()};render();
+const rv88=render;render=function(){rv88();if(aqariRenderPageActiveV267(['serviceManagementPage','serviceCatalogPage','serviceRequestPage'])){renderServiceCatalogV88();fillServiceRequestOptionsV88();renderServiceRequestsV88();refreshServiceMgmtV88()}};render();
 
 function approvalPoliciesV89(){return JSON.parse(localStorage.getItem('aqari_approval_policies_v89')||'[]')}
 function saveApprovalPoliciesV89(a){localStorage.setItem('aqari_approval_policies_v89',JSON.stringify(a))}
@@ -8144,7 +8148,7 @@ function refreshApprovalHubV89(){
  apAlertsV89.innerHTML=alerts.map(x=>`<div class="c">${x}</div>`).join('')||'<p>لا توجد تنبيهات</p>';
  approvalQueueV89.innerHTML=q.map(x=>`<div class="c"><div class="r"><b>${x.id} — ${x.type}</b><span>${x.risk}</span></div><p>${x.title}${x.value?` • ${x.value.toFixed(3)} د.ك`:''}</p><button class="g" onclick="approveItemV89('${x.source}','${x.id}')">اعتماد</button></div>`).join('')||'<p>لا توجد موافقات معلقة</p>'
 }
-const rv89=render;render=function(){rv89();renderApprovalPoliciesV89();refreshApprovalHubV89()};render();
+const rv89=render;render=function(){rv89();if(aqariRenderPageActiveV267(['approvalHubPage','approvalPolicyPage'])){renderApprovalPoliciesV89();refreshApprovalHubV89()}};render();
 
 let ownerStatementCacheV90=null;
 function refreshOwnerPortalV90(){
@@ -8175,7 +8179,7 @@ function exportOwnerStatementV90(){
  const b=new Blob([JSON.stringify(ownerStatementCacheV90,null,2)],{type:'application/json'}),a=document.createElement('a');
  a.href=URL.createObjectURL(b);a.download='aqari-v90-owner-statement.json';a.click()
 }
-const rv90=render;render=function(){rv90();refreshOwnerPortalV90()};render();
+const rv90=render;render=function(){rv90();if(aqariRenderPageActiveV267(['ownerPortalPage','ownerStatementsPage'])){refreshOwnerPortalV90()}};render();
 
 function tenantRequestsV91(){return JSON.parse(localStorage.getItem('aqari_tenant_requests_v91')||'[]')}
 function saveTenantRequestsV91(a){localStorage.setItem('aqari_tenant_requests_v91',JSON.stringify(a))}
@@ -8215,7 +8219,7 @@ function createTenantStatementV91(){
  const payments=(db.collections||[]).filter(x=>x[1]===t[0]),data={tenant:t[0],unit:t[1],rent:t[2],payments,generatedAt:new Date().toISOString()};
  const b=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='tenant-statement.json';a.click()
 }
-const rv91=render;render=function(){rv91();fillTenantPortalV91();renderTenantRequestsV91();refreshTenantPortalV91()};render();
+const rv91=render;render=function(){rv91();if(aqariRenderPageActiveV267(['tenantPortalPage','tenantRequestPage'])){fillTenantPortalV91();renderTenantRequestsV91();refreshTenantPortalV91()}};render();
 
 function refreshMobileV92(){
  if(!document.getElementById('mobModeV92'))return;
@@ -8329,7 +8333,7 @@ function exportReportCsvV95(){
  Object.entries(currentReportV95.data).forEach(([s,v])=>Object.entries(v).forEach(([k,val])=>rows.push([s,k,val])));
  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n'),b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v95-report.csv';a.click()
 }
-const rv95=render;render=function(){rv95();renderSavedReportsV95();refreshReportsMetaV95()};render();
+const rv95=render;render=function(){rv95();if(aqariRenderPageActiveV267(['reportBuilderPage','savedReportsPage'])){renderSavedReportsV95();refreshReportsMetaV95()}};render();
 
 function docRegisterV96(){return JSON.parse(localStorage.getItem('aqari_documents_v96')||'[]')}
 function saveDocRegisterV96(a){localStorage.setItem('aqari_documents_v96',JSON.stringify(a))}
@@ -8353,7 +8357,7 @@ function refreshDocumentCenterV96(){
  let rows=a.filter(x=>(f==='الكل'||x.type===f)&&(!q||(x.title+' '+x.owner+' '+x.reference+' '+x.type).toLowerCase().includes(q)));
  documentCenterRowsV96.innerHTML=rows.map(x=>`<div class="c"><div class="r"><b>${x.id} — ${x.title}</b><span>${x.type} • ${x.classification}</span></div><p>${x.owner} • ${x.reference}</p><p>الانتهاء: ${x.expiry||'غير محدد'} • ${x.status}</p><button onclick="markDocReviewedV96('${x.id}')">تمت المراجعة</button></div>`).join('')||'<p>لا توجد مستندات مطابقة</p>'
 }
-const rv96=render;render=function(){rv96();refreshDocumentCenterV96()};render();
+const rv96=render;render=function(){rv96();if(aqariRenderPageActiveV267(['documentCenterPage','documentRegisterPage'])){refreshDocumentCenterV96()}};render();
 
 let renewalsReportV97=null;
 function renewalRulesV97(){return JSON.parse(localStorage.getItem('aqari_renewal_rules_v97')||'[]')}
@@ -8405,7 +8409,7 @@ function exportRenewalsV97(){
  const items=renewalItemsV97(),rows=[['النوع','العنوان','التاريخ','الأيام','المرجع'],...items.map(x=>[x.type,x.title,x.date,x.days,x.ref])];
  const csv='\ufeff'+rows.map(r=>r.join(',')).join('\n'),b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v97-renewals.csv';a.click()
 }
-const rv97=render;render=function(){rv97();renderRenewalRulesV97();refreshRenewalsV97()};render();
+const rv97=render;render=function(){rv97();if(aqariRenderPageActiveV267(['renewalsCalendarPage','renewalRulesPage'])){renderRenewalRulesV97();refreshRenewalsV97()}};render();
 
 let pricingReportV98=null;
 function rentReviewsV98(){return JSON.parse(localStorage.getItem('aqari_rent_reviews_v98')||'[]')}
@@ -8442,7 +8446,7 @@ function exportPricingV98(){
  if(!pricingReportV98)refreshPricingV98();
  const b=new Blob([JSON.stringify(pricingReportV98,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v98-pricing-analysis.json';a.click()
 }
-const rv98=render;render=function(){rv98();fillRentReviewTenantsV98();renderRentReviewsV98();refreshPricingV98()};render();
+const rv98=render;render=function(){rv98();if(aqariRenderPageActiveV267(['pricingIntelligencePage','rentReviewPage'])){fillRentReviewTenantsV98();renderRentReviewsV98();refreshPricingV98()}};render();
 
 let leasingReportV99=null;
 function leadsV99(){return JSON.parse(localStorage.getItem('aqari_leads_v99')||'[]')}
@@ -8478,7 +8482,7 @@ function exportLeasingV99(){
  if(!leasingReportV99)refreshLeasingV99();
  const b=new Blob([JSON.stringify({report:leasingReportV99,leads:leadsV99()},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v99-leasing-pipeline.json';a.click()
 }
-const rv99=render;render=function(){rv99();renderLeadsV99();refreshLeasingV99()};render();
+const rv99=render;render=function(){rv99();if(aqariRenderPageActiveV267(['leasingPipelinePage','leadCreatePage'])){renderLeadsV99();refreshLeasingV99()}};render();
 
 let v100ReportCache=null;
 function v100Data(){
@@ -8824,7 +8828,7 @@ function refreshAutomationV106(){
  const checks=[['المهام',typeof tasksV71==='function'],['التجديدات',typeof renewalItemsV97==='function'],['المخاطر',typeof risksV68==='function'],['الموافقات',typeof approvalQueueDataV89==='function'],['Audit',typeof logAuditV85==='function']];
  arReadinessV106.innerHTML=checks.map(x=>`<p>${x[0]} <b style="float:left">${x[1]?'✅':'⚠️'}</b></p>`).join('')
 }
-const rv106=render;render=function(){rv106();renderAutomationRulesV106();refreshAutomationV106()};render();
+const rv106=render;render=function(){rv106();if(aqariRenderPageActiveV267(['automationRulesPage','automationRuleCreatePage'])){renderAutomationRulesV106();refreshAutomationV106()}};render();
 
 let workflowReportV107=null;
 function workflowsV107(){return JSON.parse(localStorage.getItem('aqari_workflows_v107')||'[]')}
@@ -8889,7 +8893,7 @@ function exportWorkflowV107(){
  if(!workflowReportV107)refreshWorkflowV107();
  const b=new Blob([JSON.stringify({report:workflowReportV107,workflows:workflowsV107(),cases:workflowCasesV107()},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v107-workflows.json';a.click()
 }
-const rv107=render;render=function(){rv107();renderWorkflowsV107();fillWorkflowOptionsV107();renderWorkflowCasesV107();refreshWorkflowV107()};render();
+const rv107=render;render=function(){rv107();if(aqariRenderPageActiveV267(['workflowOrchestratorPage','workflowBuilderPage','workflowCasePage'])){renderWorkflowsV107();fillWorkflowOptionsV107();renderWorkflowCasesV107();refreshWorkflowV107()}};render();
 
 let contractLifecycleReportV108=null;
 function contractActionsV108(){return JSON.parse(localStorage.getItem('aqari_contract_actions_v108')||'[]')}
@@ -8934,7 +8938,7 @@ function exportContractLifecycleV108(){
  if(!contractLifecycleReportV108)refreshContractLifecycleV108();
  const b=new Blob([JSON.stringify({report:contractLifecycleReportV108,actions:contractActionsV108()},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v108-contract-lifecycle.json';a.click()
 }
-const rv108=render;render=function(){rv108();fillContractActionsV108();renderContractActionsV108();refreshContractLifecycleV108()};render();
+const rv108=render;render=function(){rv108();if(aqariRenderPageActiveV267(['contractLifecyclePage','contractActionPage'])){fillContractActionsV108();renderContractActionsV108();refreshContractLifecycleV108()}};render();
 
 let cashflowReportV109=null;
 function forecastAssumptionsV109(){return JSON.parse(localStorage.getItem('aqari_forecast_assumptions_v109')||'{"collection":95,"expenseGrowth":0,"vacancy":5}')}
@@ -8971,7 +8975,7 @@ function exportCashflowV109(){
  if(!cashflowReportV109)refreshCashflowForecastV109();
  const b=new Blob([JSON.stringify(cashflowReportV109,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v109-cashflow-forecast.json';a.click()
 }
-const rv109=render;render=function(){rv109();loadForecastAssumptionsV109();refreshCashflowForecastV109()};render();
+const rv109=render;render=function(){rv109();if(aqariRenderPageActiveV267(['cashflowForecastPage','forecastAssumptionsPage'])){loadForecastAssumptionsV109();refreshCashflowForecastV109()}};render();
 
 let profitabilityReportV110=null;
 function budgetsV110(){return JSON.parse(localStorage.getItem('aqari_property_budgets_v110')||'[]')}
@@ -9013,7 +9017,7 @@ function exportProfitabilityV110(){
  if(!profitabilityReportV110)refreshProfitabilityV110();
  const b=new Blob([JSON.stringify(profitabilityReportV110,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v110-property-profitability.json';a.click()
 }
-const rv110=render;render=function(){rv110();fillPropertyBudgetV110();renderBudgetsV110();refreshProfitabilityV110()};render();
+const rv110=render;render=function(){rv110();if(aqariRenderPageActiveV267(['propertyProfitabilityPage','propertyBudgetPage'])){fillPropertyBudgetV110();renderBudgetsV110();refreshProfitabilityV110()}};render();
 
 let tenantRiskReportV111=null;
 function tenantRiskRulesV111(){return JSON.parse(localStorage.getItem('aqari_tenant_risk_rules_v111')||'{"late":40,"requests":20,"legal":40}')}
@@ -9064,7 +9068,7 @@ function exportTenantRiskV111(){
  if(!tenantRiskReportV111)refreshTenantRiskV111();
  const b=new Blob([JSON.stringify(tenantRiskReportV111,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v111-tenant-risk.json';a.click()
 }
-const rv111=render;render=function(){rv111();loadTenantRiskRulesV111();refreshTenantRiskV111()};render();
+const rv111=render;render=function(){rv111();if(aqariRenderPageActiveV267(['tenantRiskPage','tenantRiskRulesPage'])){loadTenantRiskRulesV111();refreshTenantRiskV111()}};render();
 
 let ownerDistributionReportV112=null;
 function ownerSharesV112(){return JSON.parse(localStorage.getItem('aqari_owner_shares_v112')||'[]')}
@@ -9118,7 +9122,7 @@ function exportOwnerDistributionsV112(){
  if(!ownerDistributionReportV112)refreshOwnerDistributionV112();
  const b=new Blob([JSON.stringify({report:ownerDistributionReportV112,distributions:ownerDistributionsV112()},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v112-owner-distributions.json';a.click()
 }
-const rv112=render;render=function(){rv112();renderOwnerSharesV112();refreshOwnerDistributionV112()};render();
+const rv112=render;render=function(){rv112();if(aqariRenderPageActiveV267(['ownerDistributionPage','ownerShareRulesPage'])){renderOwnerSharesV112();refreshOwnerDistributionV112()}};render();
 
 let agingReportV113=null;
 function promisesV113(){return JSON.parse(localStorage.getItem('aqari_collection_promises_v113')||'[]')}
@@ -9177,7 +9181,7 @@ function exportAgingV113(){
  if(!agingReportV113)refreshAgingV113();
  const b=new Blob([JSON.stringify(agingReportV113,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v113-receivables-aging.json';a.click()
 }
-const rv113=render;render=function(){rv113();fillPromiseTenantsV113();renderPromisesV113();refreshAgingV113()};render();
+const rv113=render;render=function(){rv113();if(aqariRenderPageActiveV267(['receivablesAgingPage','collectionPromisesPage'])){fillPromiseTenantsV113();renderPromisesV113();refreshAgingV113()}};render();
 
 let vendorReportV114=null;
 function vendorReviewsV114(){return JSON.parse(localStorage.getItem('aqari_vendor_reviews_v114')||'[]')}
@@ -9214,7 +9218,7 @@ function exportVendorScorecardsV114(){
  if(!vendorReportV114)refreshVendorScorecardsV114();
  const b=new Blob([JSON.stringify(vendorReportV114,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v114-vendor-scorecards.json';a.click()
 }
-const rv114=render;render=function(){rv114();renderVendorReviewsV114();refreshVendorScorecardsV114()};render();
+const rv114=render;render=function(){rv114();if(aqariRenderPageActiveV267(['vendorScorecardsPage','vendorReviewPage'])){renderVendorReviewsV114();refreshVendorScorecardsV114()}};render();
 
 let assetCapexReportV115=null;
 function assetsV115(){return JSON.parse(localStorage.getItem('aqari_assets_v115')||'[]')}
@@ -9275,7 +9279,7 @@ function exportAssetCapexV115(){
  if(!assetCapexReportV115)refreshAssetCapexV115();
  const b=new Blob([JSON.stringify(assetCapexReportV115,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v115-asset-capex.json';a.click()
 }
-const rv115=render;render=function(){rv115();renderAssetsV115();fillCapexAssetsV115();renderCapexV115();refreshAssetCapexV115()};render();
+const rv115=render;render=function(){rv115();if(aqariRenderPageActiveV267(['assetCapexPage','assetRegisterPage','capexPlanPage'])){renderAssetsV115();fillCapexAssetsV115();renderCapexV115();refreshAssetCapexV115()}};render();
 
 let monthEndReportV116=null;
 function reconciliationsV116(){return JSON.parse(localStorage.getItem('aqari_reconciliations_v116')||'[]')}
@@ -9338,7 +9342,7 @@ function exportMonthEndV116(){
  if(!monthEndReportV116)refreshMonthEndV116();
  const b=new Blob([JSON.stringify({report:monthEndReportV116,closures:monthClosuresV116()},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v116-month-end-close.json';a.click()
 }
-const rv116=render;render=function(){rv116();renderReconciliationsV116();refreshMonthEndV116()};render();
+const rv116=render;render=function(){rv116();if(aqariRenderPageActiveV267(['monthEndClosePage','reconciliationPage'])){renderReconciliationsV116();refreshMonthEndV116()}};render();
 
 let kpiReportV117=null;
 function kpisV117(){return JSON.parse(localStorage.getItem('aqari_kpis_v117')||'[]')}
@@ -9391,7 +9395,7 @@ function exportKpiTargetsV117(){
  if(!kpiReportV117)refreshKpiTargetsV117();
  const b=new Blob([JSON.stringify(kpiReportV117,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v117-kpi-targets.json';a.click()
 }
-const rv117=render;render=function(){rv117();renderKpisV117();refreshKpiTargetsV117()};render();
+const rv117=render;render=function(){rv117();if(aqariRenderPageActiveV267(['kpiTargetsPage','kpiCreatePage'])){renderKpisV117();refreshKpiTargetsV117()}};render();
 
 let finalReleaseReport=null;
 function runFinalReleaseCheck(){
@@ -9518,7 +9522,7 @@ function exportHardeningV118(){
  if(!hardeningReportV118)runHardeningAuditV118();
  const b=new Blob([JSON.stringify(hardeningReportV118,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='aqari-v118-hardening-report.json';a.click()
 }
-const rv118=render;render=function(){rv118();runHardeningAuditV118();renderMigrationHealthV118()};render();
+const rv118=render;render=function(){rv118();if(aqariRenderPageActiveV267(['releaseHardeningPage','migrationHealthPage'])){runHardeningAuditV118();renderMigrationHealthV118()}};render();
 
 let rcReportV119=null;
 function errorLogV119(){return JSON.parse(localStorage.getItem('aqari_error_log_v119')||'[]')}

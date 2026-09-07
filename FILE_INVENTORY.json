@@ -162,8 +162,8 @@
     },
     {
       "path": "index.html",
-      "size": 1098231,
-      "sha256": "1eba458765cfc528b8208a817508f0e0f88d033bbb73b216e48fbfb7d5ea8e79"
+      "size": 1101329,
+      "sha256": "b9367813981bd388c307d73a1ca374ccb42c810f42b183574e75913b678df109"
     },
     {
       "path": "login.html",
@@ -784,6 +784,16 @@
       "path": "tests/v267-navigation-work.test.cjs",
       "size": 2297,
       "sha256": "f2c0905a625e569752d3cf7abdc5cd933e62fcb3c438a87caef36ec7573bdc6f"
+    },
+    {
+      "path": "tests/v267-scoped-render.test.cjs",
+      "sha256": "be4e140c96576fe71980cf978be8d77f3b1d97d184e9bd1f6292b59d27ddca39",
+      "size": 2352
+    },
+    {
+      "path": "V267_NAVIGATION_REPAIR_STATUS.md",
+      "sha256": "6744572c7f4f7a2080f3f8d3a8cee65542fbc0bd6c6301dd7b262075f58a1bd3",
+      "size": 1518
     }
   ],
   "version": "V198"
