@@ -822,8 +822,8 @@
     },
     {
       "path": "V267_RELEASE_STATUS.md",
-      "sha256": "b1750cc45b5e4da31253d63286069e327f93fe644a7ecb78e0a235a0d3b9d734",
-      "size": 1351
+      "sha256": "a6a53b15972bcddb0658a15d71bddc4da8292f0b5ec2464598abbe8ddf4054fd",
+      "size": 1430
     },
     {
       "path": "api/rent-receipt.py",
@@ -902,8 +902,8 @@
     },
     {
       "path": "V267_STAGING_SETUP.md",
-      "sha256": "8efc8abe8d3b80396093cef8d0e4d101d4736db2246ca40821ff8c8833c7d390",
-      "size": 11080
+      "sha256": "1e6124dd6b40002c2d85297f1283e095143f815f9c558f81901c90b27b9d2d17",
+      "size": 12431
     },
     {
       "path": "staging-database/tests/rental_transaction.sql",
