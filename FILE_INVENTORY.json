@@ -859,6 +859,26 @@
       "path": "V267_INTEGRATION_REVIEW.md",
       "sha256": "aa15cf5dc02a119a7f0b02975ca33210d3272c5c271e338b4433ac283cd7ff61",
       "size": 6009
+    },
+    {
+      "path": "lib/v267/migration-preflight.js",
+      "size": 5801,
+      "sha256": "0d4663406503650dbe3b0a31dcf93c9ac87f99fa218fdbfae77bd3ec26204b97"
+    },
+    {
+      "path": "scripts/configure-v267-staging.mjs",
+      "size": 1922,
+      "sha256": "4d423dd06e7a740bd4d4361afed7e2415dc4e94d1536145db190eb93788dbfda"
+    },
+    {
+      "path": "tests/v267-migration-preflight.test.cjs",
+      "size": 4554,
+      "sha256": "29d57b4a3ac6dfd1844aa2eedbce527e41d4cf1bcd7e07db4d335b52e40b41b2"
+    },
+    {
+      "path": "V267_STAGING_ISOLATION.md",
+      "size": 3984,
+      "sha256": "497c4c913e978a923162e9696dade6c22c368cbb0ed70efdd0944a46fa51ce26"
     }
   ],
   "version": "V198"
