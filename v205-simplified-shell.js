@@ -26,6 +26,7 @@
     statement:'<path d="M4 19V5M4 19h16M8 16v-5M13 16V8M18 16v-8"/>',
     tool:'<path d="M14.7 6.3a4 4 0 0 0-5-5L7 4l3 3 2.7-2.7a4 4 0 0 0 2 5L5.9 18.1a2.1 2.1 0 1 0 3 3l8.8-8.8a4 4 0 0 0 5-5L20 10l-3-3 2.7-2.7"/>',
     arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+    bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
     close:'<path d="M18 6 6 18M6 6l12 12"/>'
   };
 
@@ -99,12 +100,13 @@
     root.setAttribute('aria-label','مساحة العمل اليومية في عقاري');
     root.innerHTML=
       '<header class="v205-welcome">'+
-        '<div><p class="v205-kicker">مساحة العمل <span lang="en">V267</span></p><h1>نظرة عامة</h1><span class="v205-date">'+todayLabel()+'</span></div>'+
+        '<div><p class="v205-kicker">إدارة الأملاك في الكويت</p><h1>لوحة المدير العام</h1><span class="v205-date">'+todayLabel()+'</span></div>'+
         '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick" aria-haspopup="dialog" aria-controls="v201CreateMenu">'+icon('plus')+' إجراء سريع</button></div>'+ 
       '</header>'+ 
       '<nav id="v205PrimarySections" class="v205-primary-sections" aria-label="أقسام المنصة الرئيسية" hidden>'+primaryMarkup()+'</nav>'+ 
+      '<nav class="v267-modules" aria-label="إدارة المحفظة العقارية">'+'<button type="button" data-v199-go="properties">'+icon('building')+'<b>العقارات والوحدات</b><small>محفظتك العقارية وملفات الوحدات</small></button>'+'<button type="button" data-v199-go="tenants">'+icon('users')+'<b>المستأجرون</b><small>البيانات والتواصل والمتابعة</small></button>'+'<button type="button" data-v199-go="collectionProPage">'+icon('wallet')+'<b>المتأخرات والتحصيل</b><small>المستحقات والدفعات والوصولات</small></button>'+'<button type="button" data-v199-go="smartContractsPage">'+icon('file')+'<b>العقود</b><small>إدارة العقود وتجديدها</small></button>'+'<button type="button" data-v199-go="maintenanceProPage">'+icon('tool')+'<b>الصيانة</b><small>الطلبات ومتابعة التنفيذ</small></button>'+'<button type="button" data-v199-go="financeSuitePage">'+icon('wallet')+'<b>الفواتير</b><small>المصروفات والسجلات المالية</small></button>'+'<button type="button" data-v199-go="serviceManagementPage">'+icon('building')+'<b>الخدمات</b><small>الكهرباء والماء وعقود الخدمات</small></button>'+'<button type="button" data-v199-action="notifications">'+icon('bell')+'<b>التنبيهات</b><small>كل ما يحتاج انتباهك</small></button>'+'</nav>'+
       '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>إجراءات سريعة</h2></div></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+
-      '<div id="v205LegacyDashboardSlot" class="v205-dashboard-slot"></div>'+ 
+      '<details class="v205-section v267-details"><summary>تفاصيل المحفظة والأداء المالي</summary><div id="v205LegacyDashboardSlot" class="v205-dashboard-slot"></div></details>'+ 
       '<details class="v205-section v205-workflow"><summary>دليل ترتيب ملف العقار</summary><ol>'+workflowMarkup()+'</ol></details>'+
       '<footer class="v205-home-footer"><span>عقاري</span><small>إدارة الأملاك • V267</small></footer>';
     home.insertBefore(root,home.firstChild);

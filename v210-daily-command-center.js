@@ -137,7 +137,11 @@
       };
     });
     if(scopeKey()!==scope)return null;
-    return {scope:scope,period:period,summary:aggregate(items)};
+    const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const dailyRows=propertyNames(scope).map(function(name){return window.AQARI_V202?.dailyCollectionSummary?.(name,day)});
+    const daily=dailyRows.length&&dailyRows.every(function(row){return row&&row.day===day})?dailyRows.reduce(function(out,row){out.paid+=Math.round(row.paid*1000);out.undated+=row.undated;return out},{paid:0,undated:0}):null;
+    if(scopeKey()!==scope)return null;
+    return {scope:scope,period:period,summary:aggregate(items),daily:daily,day:day};
   }
 
   function priorityMarkup(items){
@@ -155,8 +159,9 @@
     return '<section id="v210DailyCommandCenter" class="v210-command" aria-labelledby="v210Title">'+
       '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'"></label></header>'+
       '<div class="v210-kpis" aria-live="polite">'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-today"><span>تحصيل اليوم</span><strong>'+(state.daily?esc(money(state.daily.paid/1000)):'—')+'</strong><small>'+(state.daily?(state.daily.undated?'دفعات مؤرخة فقط؛ توجد دفعات بلا تاريخ':'الدفعات المسجلة بتاريخ اليوم — الكويت'):'لا يتوفر سجل دفعات مؤرخ')+'</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>المحصّل</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>تحصيل الشهر</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+summary.lateTenants+'</strong><small>'+esc(money(summary.balance))+' متبقي</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-amber"><span>بانتظار المراجعة</span><strong>'+summary.pendingApprovals+'</strong><small>دفعات أو سجلات معلّقة</small></button>'+
         '<button type="button" data-v210-route="documentsHub"><span>مستندات جاهزة</span><strong>'+summary.readyDocuments+'</strong><small>عقود أو وصولات متاحة</small></button>'+
@@ -173,7 +178,7 @@
     const state=snapshot();
     const home=document.getElementById('v205SimpleHome');
     if(!state||!home){clear();return}
-    const signature=JSON.stringify([state.scope,state.period,state.summary]);
+    const signature=JSON.stringify([state.scope,state.period,state.summary,state.day,state.daily]);
     const current=document.getElementById('v210DailyCommandCenter');
     if(current&&signature===lastSignature)return;
     const holder=document.createElement('div');

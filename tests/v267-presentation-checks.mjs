@@ -57,7 +57,7 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
     assert.equal(presentation.commandMeta, presentation.commandVersion);
     // V267 uses an overview with explicitly monthly collection figures. The old
     // signed-out check's priority-before-KPI layout no longer describes this UI.
-    assert.equal(presentation.overview, 'نظرة عامة');
+    assert.equal(presentation.overview, 'لوحة المدير العام');
     assert.equal(presentation.commandTitle, 'التحصيل والمتابعة');
     assert.equal(presentation.periodLabel, 'شهر التحصيل');
     assert.equal(presentation.periodType, 'month');

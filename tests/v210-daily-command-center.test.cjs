@@ -34,8 +34,8 @@ test('V210 revalidates scope around every protected snapshot',()=>{
   assert.match(js,/if\(scopeKey\(\)!==scope\)return null/);
 });
 
-test('V210 exposes the six daily execution indicators',()=>{
-  for(const label of ['المستحق','المحصّل','متأخرون','بانتظار المراجعة','مستندات جاهزة','مهام حرجة'])assert.ok(js.includes(label),label);
+test('V210 exposes the daily and monthly execution indicators',()=>{
+  for(const label of ['المستحق','تحصيل اليوم','تحصيل الشهر','متأخرون','بانتظار المراجعة','مستندات جاهزة','مهام حرجة'])assert.ok(js.includes(label),label);
 });
 
 test('V210 aggregate calculates daily KPIs and priorities deterministically',()=>{

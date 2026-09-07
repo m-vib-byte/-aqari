@@ -169,7 +169,7 @@
     {
       "path": "login.html",
       "size": 16714,
-      "sha256": "6f895ccd031553ee535418946f8150f97f3430d2b07a5691dc018d36d2e7ca76"
+      "sha256": "923000a45ff5d3a6ec1bd1ccf572eadb110ad7ae8cda742b529ba24ba341bf7f"
     },
     {
       "path": "lib/read-only.js",
@@ -408,8 +408,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 170249,
-      "sha256": "699670bef9599c98558b29a16cbb908a6d69d707009f4834a197d695f69f3bb4"
+      "size": 170998,
+      "sha256": "7e0b2abe14070941aa496457adefb100b1a9b58da9e529cae7a2ec280e87b7c9"
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -438,8 +438,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "size": 5125,
-      "sha256": "a4c61a7ec30daf67d3a6dd5db7dd389e3153157b4accc1ce5aba1a7f91f622b1"
+      "size": 5164,
+      "sha256": "8a925e32192e0d4c63a00538054975d8381915e6af4e9c3b1d64e9f33fc3cff6"
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
@@ -488,8 +488,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 227940,
-      "sha256": "d1f88f4a296caece9e9f70390be8efaf0e78e49405d2052dafe41aa0b0b9e208"
+      "size": 228785,
+      "sha256": "23156bf483863d08357851523b67ecdbfe6108882c25ea42a54c597f211f0cbb"
     },
     {
       "path": "v205-simple.css",
@@ -498,8 +498,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 23146,
-      "sha256": "fcff814294db9ef639337d67c0d4d06019f1c461447ff86711ff9e19a87f78bb"
+      "size": 24853,
+      "sha256": "5411db453c27e7534f0861753db00c6df7f0a635fde7dd7adc2e9749a710bdb0"
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -543,8 +543,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "size": 14484,
-      "sha256": "ca3d8123c7728d2587322abddca1475a74623335aea5db70a07a283fecff76bc"
+      "size": 15506,
+      "sha256": "8f2e48f4d313144661ef2c4639231211925fcaf7f131c25c63e6b95aa5e184fb"
     },
     {
       "path": "V211_1_SUPABASE_RPC_DRAFT.md",
@@ -698,8 +698,8 @@
     },
     {
       "path": "v267-premium-workspace.css",
-      "size": 17161,
-      "sha256": "4a5374b449bd4fa794aff8bc1625c8a7019f307a66d31f669e855e0edbe62e9f"
+      "size": 21004,
+      "sha256": "15cb54873a109e01dafbed9ba85a24360fcea7a8a0e194324d0626d507c3816a"
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -743,8 +743,8 @@
     },
     {
       "path": "tests/v267-presentation-checks.mjs",
-      "size": 12322,
-      "sha256": "fe5167e8f764c63efacfa7625a198e3a1ce96be11fd8d4d0e9a161bfb8b6beda"
+      "size": 12337,
+      "sha256": "bccd9a689bd6e6b59f62e9f17f21a1c2db80ef4b7156bba17c5af33674b94c55"
     },
     {
       "path": "tests/recovery.e2e.mjs",

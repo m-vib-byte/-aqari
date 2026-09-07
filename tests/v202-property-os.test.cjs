@@ -65,6 +65,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       tenantMailto: typeof tenantMailto === 'function' ? tenantMailto : null,
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
       secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
+      dailyCollectionSummary,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
@@ -3231,4 +3232,15 @@ test('V208.1 never mixes invalid-date payment metadata with another legal receip
   const tenantHtml = runtime.tenantStatementDocument(context, record, '2026-08');
   assert.doesNotMatch(tenantHtml, /WIRE|BAD-999|R-INVALID-LATEST|INVALID-DATE-NOTE|PENDING-NOTE|PENDING-999/);
   assert.match(tenantHtml, /KNET|012345|R-A-PAID/);
+});
+
+test('executive daily collections use dated settled ledger entries within the authorized property', () => {
+ const runtime=loadRuntime(fixture(),[],activeRuntimeWindow());
+ const day=runtime.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-08-12');
+ assert.ok(day);assert.equal(day.paid,40);assert.equal(day.count,1);
+ assert.equal(runtime.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-09-07').paid,0);
+ assert.equal(runtime.dailyCollectionSummary('missing','2026-08-12'),null);
+ assert.equal(runtime.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','bad'),null);
+ const signedOut=loadRuntime(fixture());
+ assert.equal(signedOut.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-08-12'),null);
 });
