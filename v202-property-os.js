@@ -2588,13 +2588,18 @@
       const primary=window.AQARI_CLOUD_SYNC.decodeCloudPayload(payload)?.primary;
       if(!primary)throw new Error('تعذرت قراءة بيانات مساحة العمل.');
       // Compare before appending: never overwrite collections added from another device.
-      for(const key of ['collections','rentLedgerV202','contractsV202']){
+      for(const key of ['collections','rentLedgerV202','contractsV202','rentReceiptsV267']){
         if(JSON.stringify(primary[key]||[])!==JSON.stringify(data[key]||[]))throw new Error('تغيّرت البيانات أو توجد تعديلات محلية غير محفوظة. حدّث الصفحة قبل تسجيل التحصيل.');
       }
       const cloudContract=(primary.contractsV202||[]).map((c,i)=>normalizeContract(c,'db-v202',i)).find(c=>c&&contractId(c)===ledgerEntry.contractId);
       if(!cloudContract||!signedContract(cloudContract)||!contractCoversPeriod(cloudContract,ledgerEntry.period)||normalizedIdentity(cloudContract.property)!==normalizedIdentity(name))throw new Error('العقد غير محفوظ كعقد فعال في السحابة. احفظ العقد أولاً.');
+      if(normalizedIdentity(cloudContract.tenant)!==normalizedIdentity(ledgerEntry.tenant)||normalizedIdentity(cloudContract.unit)!==normalizedIdentity(ledgerEntry.unit)||ledgerEntry.contractNo!==cloudContract.contract_no)throw new Error('بيانات التحصيل لا تطابق العقد المحفوظ.');
+      if((primary.collections||[]).some(row=>normalizedReference(row[0])===normalizedReference(record[0]))||(primary.rentLedgerV202||[]).some(row=>normalizedReference(ledgerReference(row))===normalizedReference(record[0])))throw new Error('رقم الوصل مسجل مسبقاً.');
+      const sourceContract=(primary.contractsV202||[]).find(c=>String(c.id)===ledgerEntry.contractId);
+      const receiptSnapshot={id:record[0],template:'rent-voucher-v267-1',record:JSON.parse(JSON.stringify(record)),contract:JSON.parse(JSON.stringify(cloudContract)),tenantId:sourceContract?.tenantId||null,tenantNameEn:sourceContract?.tenantProfile?.nameEn||'',brand:statementBrand(name)};
       primary.collections=(primary.collections||[]).concat([record]);
       primary.rentLedgerV202=(primary.rentLedgerV202||[]).concat([ledgerEntry]);
+      primary.rentReceiptsV267=(primary.rentReceiptsV267||[]).concat([receiptSnapshot]);
       primary.audit=(primary.audit||[]).concat([['المدير','تسجيل إيجار',name,'تم']]);
       submitted=true;
       await paymentCloudOperation(()=>window.AQARI_SUPABASE.saveAppState(payload,Number(cloud?.revision||0),scope));
@@ -2602,9 +2607,9 @@
       const verified=await paymentCloudOperation(()=>window.AQARI_SUPABASE.loadAppState(scope));
       if(!current())return false;
       const confirmed=window.AQARI_CLOUD_SYNC.decodeCloudPayload(verified?.payload)?.primary;
-      if(!confirmed?.collections?.some(row=>JSON.stringify(row)===JSON.stringify(record))||!confirmed?.rentLedgerV202?.some(row=>JSON.stringify(row)===JSON.stringify(ledgerEntry)))throw new Error('لم تؤكد إعادة القراءة وجود التحصيل.');
+      if(!confirmed?.collections?.some(row=>JSON.stringify(row)===JSON.stringify(record))||!confirmed?.rentLedgerV202?.some(row=>JSON.stringify(row)===JSON.stringify(ledgerEntry))||!confirmed?.rentReceiptsV267?.some(row=>JSON.stringify(row)===JSON.stringify(receiptSnapshot)))throw new Error('لم تؤكد إعادة القراءة وجود التحصيل والوصل.');
       // Only publish confirmed server records locally. A local-cache failure must not undo a server payment.
-      for(const key of ['collections','rentLedgerV202','audit'])data[key]=confirmed[key];
+      for(const key of ['collections','rentLedgerV202','rentReceiptsV267','audit'])data[key]=confirmed[key];
       try{if(typeof persist==='function')persist()}catch(_){ }
       const returnTrigger=paymentTrigger;
       activePropertyPeriod=ledgerEntry.period;activeTab='collections';
@@ -2637,6 +2642,21 @@
         '<div class="v202-document-signatures"><div><span>المحاسب / Accountant</span><b>________________</b></div><div><span>المستأجر / Tenant</span><b>________________</b></div><div><span>الختم والتوقيع / Stamp & Signature</span><b>________________</b></div></div>'+ 
         '<footer>'+escapeHtml(brand.ar)+' / '+escapeHtml(brand.en)+' • وصل صادر حسب عملية التحصيل المسجلة / Issued from the recorded rent collection</footer>'+ 
       '</article>';
+  }
+
+  // Layout transcribed from the supplied blank rent-voucher reference; no signature is synthesized.
+  function savedVoucher(record){
+    const matches=rows('rentReceiptsV267').filter(r=>r.id===record?.[0]&&[1,3,4,5,6,8,9].every(i=>String(r.record?.[i]??'')===String(record?.[i]??''))&&strictCollectionMoney(r.record?.[2])===strictCollectionMoney(record?.[2]));
+    if(matches.length!==1||!collectionReceiptEligible(record))return '';
+    const saved=matches[0],c=saved.contract,brand=saved.brand;
+    if(!c?.id||!c.contract_no||!c.unit||!c.tenant||!brand)return '';
+    const ledger=rawLedgerRecords().filter(x=>normalizedReference(ledgerReference(x))===normalizedReference(saved.id));
+    if(ledger.length!==1||String(ledger[0].contractId)!==String(c.id)||!exactIdentityMatch(ledger[0].property,c.property)||!exactIdentityMatch(ledger[0].unit,c.unit)||!exactIdentityMatch(ledger[0].tenant,c.tenant)||strictMoney(ledger[0].paid)!==strictCollectionMoney(record[2]))return '';
+    const e=escapeHtml,amount=strictCollectionMoney(record[2]);if(!Number.isFinite(amount)||amount<=0)return '';
+    const fils=Math.round(amount*1000),line=(ar,en,value)=>'<div class="v267-voucher-line"><span>'+e(ar)+'</span><strong>'+e(value)+'</strong><small lang="en">'+e(en)+'</small></div>';
+    return '<article class="v202-document v267-voucher" data-v267-voucher><h1>'+e(brand.ar)+'</h1><header><div><b>وصل إيجار</b><br><span lang="en">Rent Voucher</span></div><div>رقم الوصل / No.<strong>'+e(saved.id)+'</strong><br>التاريخ / Date: '+e(record[5])+'</div><div class="v267-voucher-money"><span>دينار K.D<br><b>'+Math.floor(fils/1000)+'</b></span><span>فلس Fils<br><b>'+String(fils%1000).padStart(3,'0')+'</b></span></div></header>'+
+      line('وصلني من السيد / السادة','Received From',c.tenant+(saved.tenantNameEn?' / '+saved.tenantNameEn:''))+line('مبلغ وقدره','Sum Of KD',amount.toFixed(3)+' د.ك')+line('طريقة الدفع / المرجع','Cash / Cheque / K-net No.',record[9]+' / '+record[0])+line('وذلك من إيجار شهر','Rent of Month',record[8])+line('وحدة رقم','Room No.',c.unit)+line('العقار / رقم العقد','Property / Contract No.',c.property+' / '+c.contract_no)+
+      '<section class="v267-voucher-terms"><p>في حالة عدم توقيع العقد وعدم تسلم كامل قيمة الإيجار خلال يومين من تاريخ هذا الإيصال تعتبر الحجز ملغية ويعتبر الحجز لاغياً.</p><p lang="en">If the contract is not signed or full payment is not received within two days of receiving this receipt, this reservation is considered void and the customer shall have no right in potential claim.</p><p>هذا الإيصال لإثبات المبلغ المدفوع فقط، ولا يعكس السعر المتفق عليه للإيجار.</p><p lang="en">This receipt is proof of payment and does not reflect the actual agreed upon rental price.</p><p>يعتبر هذا الإيصال لاغياً في حال عدم تحصيل الشيك.</p><p lang="en">This receipt is considered void in case of failure of processing the cheque.</p></section><p class="v267-voucher-band">تسديد الإيجارات بحد أقصاها الخامس من كل شهر (التأمين لا يرد)</p><div class="v267-voucher-signatures"><p>اسم المستلم / Receiver Name<br>________________<br>توقيع المستلم / Receiver Signature<br>________________</p><p>اسم المحاسب / Accountant Name<br>________________<br>توقيع المحاسب / Accountant Signature<br>________________</p></div><footer>'+e(brand.addressAr)+' • '+e(record[9])+'</footer></article>';
   }
 
   function rowOrEmpty(cells,colspan){return cells||'<tr><td colspan="'+colspan+'">لا توجد بيانات مرتبطة</td></tr>'}
@@ -3201,7 +3221,7 @@
     overlay.className='v202-dialog-overlay v202-document-overlay';
     overlay.setAttribute('aria-hidden','true');
     overlay.setAttribute('inert','');
-    overlay.innerHTML='<section class="v202-document-shell" role="dialog" aria-modal="true" aria-labelledby="v202DocumentDialogTitle"><header class="v202-document-toolbar"><button type="button" data-v202-document-close>رجوع</button><h2 id="v202DocumentDialogTitle">مستند عقاري</h2><button type="button" class="is-primary" data-v202-print>'+icon('printer')+' طباعة / PDF</button></header><div id="v202DocumentBody"></div></section>';
+    overlay.innerHTML='<section class="v202-document-shell" role="dialog" aria-modal="true" aria-labelledby="v202DocumentDialogTitle"><header class="v202-document-toolbar"><button type="button" data-v202-document-close>رجوع</button><h2 id="v202DocumentDialogTitle">مستند عقاري</h2><button type="button" data-v267-document-download>تحميل نسخة HTML</button><button type="button" class="is-primary" data-v202-print>'+icon('printer')+' طباعة / حفظ PDF</button></header><div id="v202DocumentBody"></div></section>';
     document.body.appendChild(overlay);
   }
 
@@ -3270,6 +3290,9 @@
   function openReceiptDocument(record,trigger){
     if(!protectedAccessReady())return false;
     activeTenantStatementKey='';
+    if(activeProperty&&propertyKey(activeProperty)!==propertyKey(record?.[4]))return false;
+    const voucher=savedVoucher(record);
+    if(voucher){openDocument('وصل الإيجار / Rent Receipt',voucher,trigger,'#v202PropertyWorkspace [data-v202-action="payment"]');return true;}
     const resolved=resolvedTenantReceipt(record);
     if(!resolved)return false;
     const markup=tenantReceiptDocument(resolved.context,resolved.record,resolved.entry,resolved.period);
@@ -3468,9 +3491,22 @@
     if(!protectedAccessReady())return false;
     document.body.classList.add('v202-print-document');
     document.body.classList.toggle('v206-print-ledger',Boolean(document.querySelector('#v202DocumentBody [data-v206-ledger]')));
+    window.addEventListener('afterprint',function(){document.body.classList.remove('v202-print-document','v206-print-ledger')},{once:true});
     window.print();
-    setTimeout(function(){document.body.classList.remove('v202-print-document','v206-print-ledger')},400);
     return true;
+  }
+
+  async function downloadDocument(){
+    if(!protectedAccessReady())return false;
+    const scope=activeAccessScope(),body=document.getElementById('v202DocumentBody');
+    const markup=body?.innerHTML;if(!markup)return false;
+    const title=document.getElementById('v202DocumentDialogTitle')?.textContent||'AQARI V267';
+    const response=await fetch('/v267-unified.css?release=V267',{cache:'force-cache'});
+    if(!response.ok||!protectedAccessReady()||!sameAccessScope(scope,activeAccessScope())||body.innerHTML!==markup)return false;
+    const css=await response.text();
+    if(!protectedAccessReady()||!sameAccessScope(scope,activeAccessScope())||body.innerHTML!==markup)return false;
+    const blob=new Blob(['<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHtml(title)+'</title><style>'+css+'</style><body>'+markup+'</body></html>'],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='AQARI-V267-document.html';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);return true;
   }
 
   function topLayer(){
@@ -3637,6 +3673,7 @@
       if(target.closest('[data-v202-document-close]')){event.preventDefault();event.stopImmediatePropagation();return closeDocument()}
       if(target.closest('[data-v206-export-csv]')){event.preventDefault();event.stopImmediatePropagation();return exportPropertyRentLedgerCsv()}
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
+      if(target.closest('[data-v267-document-download]')){event.preventDefault();event.stopImmediatePropagation();return downloadDocument().catch(()=>window.alert('تعذر تحميل المستند. أعد المحاولة.'))}
       const ledgerStatement=target.closest('[data-v206-ledger-statement-key]');
       if(ledgerStatement){event.preventDefault();event.stopImmediatePropagation();return openLedgerTenantStatement(ledgerStatement)}
       const ledgerContract=target.closest('[data-v206-ledger-contract-key]');
@@ -3733,6 +3770,11 @@
     document.body.setAttribute('data-v202-ready','true');
     window.AQARI_V202=Object.freeze({
       version:V202_DESIGN,
+      canCreateContract:function(name){return protectedAccessReady()&&rentWriteAllowed()&&!protectedPropertyActive(name)},
+      showContractCopies:function(id,count,markup){
+        if(!protectedAccessReady()||![1,3].includes(count)||!rows('contractsV202').some(c=>String(c.id)===String(id)&&c.source==='v267-cloud'))return false;
+        openDocument('عقد الإيجار • '+count+' نسخ',markup,document.activeElement,'#contractPreviewV55');return true;
+      },
       seal:sealProtectedImport,
       openProperty:function(name,period){return protectedAccessReady()?openWorkspace(name,document.activeElement,period):false},
       rentOfficeProperties:function(){return secureRentOfficeProperties()},

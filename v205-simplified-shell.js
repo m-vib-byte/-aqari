@@ -2,6 +2,16 @@
   'use strict';
 
   const DESIGN='V205-preview';
+  let rentalRecordsPromise;
+  function rentalRecords(action,...args){
+    if(!rentalRecordsPromise)rentalRecordsPromise=new Promise((resolve,reject)=>{
+      if(window.AQARI_RENTAL_RECORDS)return resolve(window.AQARI_RENTAL_RECORDS);
+      const script=document.createElement('script');script.src='/v267-rental-records.js?release=V267';
+      script.onload=()=>resolve(window.AQARI_RENTAL_RECORDS);
+      script.onerror=()=>{rentalRecordsPromise=null;script.remove();reject(Error('تعذر تحميل نموذج الحفظ. أعد المحاولة.'))};document.head.appendChild(script);
+    });
+    return rentalRecordsPromise.then(api=>api[action](...args)).catch(e=>window.alert(e.message));
+  }
   const PRIMARY_SECTIONS=[
     ['home','home','الرئيسية'],
     ['properties','properties','العقارات'],
@@ -444,10 +454,34 @@
     if(typeof legacyAdd==='function'&&!legacyAdd.__v267Payment){
       const guardedAdd=function(){
         if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return openChooser('payment',document.activeElement);
+        if(typeof cur!=='undefined'&&cur==='tenants')return rentalRecords('openTenant');
+        if(typeof cur!=='undefined'&&cur==='leases')return window.go?.('smartContractsPage');
         return legacyAdd.apply(this,arguments);
       };
       guardedAdd.__v267Payment=true;window.add=guardedAdd;
     }
+    const legacyEdit=window.edit;
+    if(typeof legacyEdit==='function')window.edit=function(index){
+      if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return window.alert('الوصل المحفوظ لا يُعدّل مباشرة. راجع الدفعة من ملف العقار.');
+      if(typeof cur!=='undefined'&&cur==='tenants')return rentalRecords('openTenant',index);
+      if(typeof cur!=='undefined'&&cur==='leases')return window.go?.('smartContractsPage');
+      return legacyEdit.apply(this,arguments);
+    };
+    const legacyDelete=window.del;
+    if(typeof legacyDelete==='function')window.del=function(index){
+      if(typeof cur!=='undefined'&&['collections','collectionProPage','leases','tenants'].includes(cur))return window.alert('هذا السجل مرتبط بمستندات وعقود محفوظة. لا يمكن حذفه من القائمة العامة.');
+      return legacyDelete.apply(this,arguments);
+    };
+    const legacyContracts=window.localContractsV55;
+    window.localContractsV55=function(){
+      const cloud=Array.isArray(appData().contractsV202)?appData().contractsV202.filter(c=>c.source==='v267-cloud'):[];
+      const local=typeof legacyContracts==='function'?legacyContracts():[];
+      return JSON.parse(JSON.stringify(cloud.concat(local.filter(c=>!cloud.some(x=>String(x.id)===String(c.id))))));
+    };
+    window.generateContractV55=()=>rentalRecords('generate');
+    window.previewContractV55=c=>rentalRecords('preview',c);
+    window.readyContractV55=id=>rentalRecords('status',id,'ready');
+    window.updateContractStatusV56=(id,status)=>rentalRecords('status',id,status);
     window.AQARI_V205=Object.freeze({
       version:DESIGN,
       seal:function(){closeChooser(false)},

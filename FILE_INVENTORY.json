@@ -407,8 +407,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "648a00773d20df7397ac7ba15a8ebca7d9ca2af254acee8baa410071f9fed69f",
-      "size": 173848
+      "sha256": "eea597bcd48f30811cd4ac4310b4f1b6159d1a84a84fc651d4fd4edaea420c74",
+      "size": 178373
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -487,8 +487,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "e93dc8de2612a8e8b3cf98278070d5d3e2725a0d6c06a58251eaa9ff43311007",
-      "size": 246675
+      "sha256": "6eacf71e795dbb61b8fce3d6ecbd11240a0f0e09b8dbd784419337622c111d51",
+      "size": 253954
     },
     {
       "path": "v205-simple.css",
@@ -497,8 +497,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "sha256": "3f83e0693489a9fc1809a16b35b9451333e6567bd39419ef8f525081611acea7",
-      "size": 23834
+      "sha256": "b57c23ccd7e8a2ce2d0a806e0b1cbaef80a14698cfe3f98444e333400fd197d2",
+      "size": 26373
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -767,8 +767,8 @@
     },
     {
       "path": "v267-unified.css",
-      "sha256": "f565f7628a7300a9d4b396a5d34157e4384afeb637c83cbdd7856e1e1bc8d496",
-      "size": 6665
+      "sha256": "adeb9615037a76983ad39144fbd978c2608dd5fb792cb15b34937f300391e827",
+      "size": 9202
     },
     {
       "path": "tests/v267-partners.test.cjs",
@@ -804,6 +804,26 @@
       "path": "V267_PAYMENT_SAVE_REVIEW.md",
       "sha256": "2ff9ddd0ecf204edaf144dba9abd2f23372af6f624803aaaf7c5abf172b49ab7",
       "size": 2208
+    },
+    {
+      "path": "v267-rental-records.js",
+      "sha256": "8afcfbe85e56db02354777cca65793cdab887b5824b9c876bf7235583827b8da",
+      "size": 18939
+    },
+    {
+      "path": "tests/v267-rental-records.test.cjs",
+      "sha256": "c7d50454aaf6751c05c30df8d9c12ae63fb740b45efbd2a910cc5317dc71dcc6",
+      "size": 6762
+    },
+    {
+      "path": "V267_RENTAL_FLOW_REVIEW.md",
+      "sha256": "fc58eb764c5e7e75fa11fd93e88d25494d12e42d2b77da154bd7b7785db6c77a",
+      "size": 4339
+    },
+    {
+      "path": "V267_RELEASE_STATUS.md",
+      "sha256": "2f031c0d32f9ff52730a9191ac5a667d8ed6b6bbae20cb79d10077dc76f39a51",
+      "size": 1159
     }
   ],
   "version": "V198"
