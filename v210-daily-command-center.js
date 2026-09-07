@@ -158,17 +158,18 @@
     const critical=summary.dueProperties+summary.pendingApprovals+summary.setup;
     return '<section id="v210DailyCommandCenter" class="v210-command" aria-labelledby="v210Title">'+
       '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'"></label></header>'+
-      '<div class="v210-kpis" aria-live="polite">'+
+      '<div class="v267-collection-hero v210-kpis" aria-live="polite">'+
         '<button type="button" data-v210-route="collectionProPage" class="is-today"><span>تحصيل اليوم</span><strong>'+(state.daily?esc(money(state.daily.paid/1000)):'—')+'</strong><small>'+(state.daily?(state.daily.undated?'دفعات مؤرخة فقط؛ توجد دفعات بلا تاريخ':'الدفعات المسجلة بتاريخ اليوم — الكويت'):'لا يتوفر سجل دفعات مؤرخ')+'</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>تحصيل الشهر</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
+      '</div><details class="v267-financial-detail"><summary>المستحقات وحالة المحفظة</summary><div class="v210-kpis v267-secondary-kpis">'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+summary.lateTenants+'</strong><small>'+esc(money(summary.balance))+' متبقي</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-amber"><span>بانتظار المراجعة</span><strong>'+summary.pendingApprovals+'</strong><small>دفعات أو سجلات معلّقة</small></button>'+
         '<button type="button" data-v210-route="documentsHub"><span>مستندات جاهزة</span><strong>'+summary.readyDocuments+'</strong><small>عقود أو وصولات متاحة</small></button>'+
         '<div class="is-dark"><span>مهام حرجة</span><strong>'+critical+'</strong><small>'+summary.properties+' عقار في '+esc(periodLabel(period))+'</small></div>'+
       '</div>'+
-      '<div class="v210-body"><div class="v210-priorities"><div class="v210-title"><div><span>ترتيب تلقائي</span><h3>أولوية المتابعة</h3></div><button type="button" data-v210-route="collectionProPage">عرض الكل</button></div>'+priorityMarkup(summary.priorities)+'</div>'+
-      '<aside class="v210-actions" aria-label="إجراءات سريعة"><span>نفّذ الآن</span><button type="button" data-v210-route="collectionProPage"><strong>تسجيل تحصيل</strong><small>دفعة ووصل</small></button><button type="button" data-v210-action="search"><strong>بحث شامل</strong><small>مستأجر أو عقد أو وحدة</small></button><button type="button" data-v210-route="documentsHub"><strong>مركز المستندات</strong><small>العقود والوصولات</small></button><button type="button" data-v210-route="maintenanceProPage"><strong>متابعة الصيانة</strong><small>الطلبات المفتوحة</small></button></aside></div>'+
+      '</details><div class="v210-body"><div class="v210-priorities"><div class="v210-title"><div><span>ترتيب تلقائي</span><h3>أولوية المتابعة</h3></div><button type="button" data-v210-route="collectionProPage">عرض الكل</button></div>'+priorityMarkup(summary.priorities)+'</div>'+
+      '</div>'+ 
     '</section>';
   }
 

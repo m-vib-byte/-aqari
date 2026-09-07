@@ -464,7 +464,7 @@
     {
       "path": "v199-ui.js",
       "size": 32390,
-      "sha256": "bb650f0591d340579a2e521b71015cd896113b020c39c5548d2a3ff215a74f4b"
+      "sha256": "91a22b4d73bcc4eada3d5770396d7aea6455a098ed3f9aea8099f6f9c9ed7649"
     },
     {
       "path": "v200-luxury.css",
@@ -478,8 +478,8 @@
     },
     {
       "path": "v201-experience.js",
-      "size": 35180,
-      "sha256": "d68c360f691b0f34ee429fc930f5e296bf86e3432215779f73faf77fe82c8cd1"
+      "size": 35952,
+      "sha256": "69b15fc1e7392b61664a2b4f2d769d3df39eebda2788ca0d1aed129d9028cb3a"
     },
     {
       "path": "v202-prestige.css",
@@ -498,8 +498,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "size": 24853,
-      "sha256": "5411db453c27e7534f0861753db00c6df7f0a635fde7dd7adc2e9749a710bdb0"
+      "size": 23362,
+      "sha256": "f67246a4d463f9032dd123a224d34ff012c994731f5934245cd5b964fab47cca"
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -543,8 +543,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "size": 15506,
-      "sha256": "8f2e48f4d313144661ef2c4639231211925fcaf7f131c25c63e6b95aa5e184fb"
+      "size": 15005,
+      "sha256": "e4fcbfa6bef1f2cf34faaf759a6ef7db743bc409be8241dfff528bd14a7a97eb"
     },
     {
       "path": "V211_1_SUPABASE_RPC_DRAFT.md",
@@ -698,8 +698,8 @@
     },
     {
       "path": "v267-premium-workspace.css",
-      "size": 21004,
-      "sha256": "15cb54873a109e01dafbed9ba85a24360fcea7a8a0e194324d0626d507c3816a"
+      "size": 27539,
+      "sha256": "f87d048c66b6968e6627aa33b3e10ff617ec133e3c0d5a6a7fdd70a578a62f30"
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -744,7 +744,7 @@
     {
       "path": "tests/v267-presentation-checks.mjs",
       "size": 12337,
-      "sha256": "bccd9a689bd6e6b59f62e9f17f21a1c2db80ef4b7156bba17c5af33674b94c55"
+      "sha256": "5f9295b47dc3b277b01d7f2b5d8b6804e5e9da9cff578994a96bf4d4dca70044"
     },
     {
       "path": "tests/recovery.e2e.mjs",

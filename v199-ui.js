@@ -164,8 +164,8 @@
     bar.setAttribute('aria-label','التنقل السريع');
     bar.innerHTML=
       '<button type="button" class="v199-bottom-button is-active" data-v199-go="home" aria-current="page">'+icon('home')+'<span>الرئيسية</span></button>'+
-      '<button type="button" class="v199-bottom-button" data-v199-go="properties">'+icon('building')+'<span>العقارات</span></button>'+
       '<button type="button" class="v199-bottom-button" data-v199-go="collectionProPage">'+icon('wallet')+'<span>التحصيل</span></button>'+
+      '<button type="button" class="v199-bottom-button" data-v199-go="properties">'+icon('building')+'<span>العقارات</span></button>'+
       '<button type="button" class="v199-bottom-button" data-v199-go="maintenanceProPage">'+icon('tool')+'<span>الصيانة</span></button>'+
       '<button type="button" class="v199-bottom-button" data-v199-action="more">'+icon('more')+'<span>المزيد</span></button>';
   }

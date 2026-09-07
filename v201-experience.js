@@ -82,8 +82,13 @@
     section.className='v201-menu-business';
     section.setAttribute('data-v201-business','');
     section.innerHTML=
-      '<p>إدارة الأملاك</p>'+ 
+      '<button type="button" class="v199-menu-action" data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button><p>المحفظة والعقود</p>'+ 
       '<button type="button" class="v199-menu-action" data-v199-go="tenants">'+icon('users')+' المستأجرون</button>'+ 
+      '<button type="button" class="v199-menu-action" data-v199-go="smartContractsPage">'+icon('receipt')+' العقود وتجديدها</button>'+
+      '<p>المالية والخدمات</p>'+
+      '<button type="button" class="v199-menu-action" data-v199-go="financeSuitePage">'+icon('receipt')+' الفواتير والمصروفات</button>'+
+      '<button type="button" class="v199-menu-action" data-v199-go="serviceManagementPage">'+icon('building')+' إدارة الخدمات</button>'+
+      '<button type="button" class="v199-menu-action" data-v199-action="notifications">'+icon('receipt')+' التنبيهات</button>'+
       '<button type="button" class="v199-menu-action" data-v199-go="reports">'+icon('receipt')+' التقارير</button>'+ 
       '<button type="button" class="v199-menu-action" data-v199-go="documentsHub">'+icon('building')+' المستندات والعقود</button>';
     if(accountHead?.nextSibling)menu.insertBefore(section,accountHead.nextSibling);

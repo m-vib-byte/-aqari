@@ -101,7 +101,7 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
     assert.equal(navigation.sections.find(item => item.current === 'page')?.key, 'home');
     assert.equal(navigation.mobileRole, 'navigation');
     assert.ok(navigation.mobileLabel);
-    assert.deepEqual(navigation.mobile.map(item => item.key), ['home','properties','collectionProPage','maintenanceProPage','more']);
+    assert.deepEqual(navigation.mobile.map(item => item.key), ['home','collectionProPage','properties','maintenanceProPage','more']);
     assert.ok(navigation.mobile.every(item => item.visible && item.label && item.width >= 44 && item.height >= 44), 'five visible mobile touch targets must be at least 44px');
 
     await page.locator('#v205SimpleHome [data-v205-command="search"]').click();
