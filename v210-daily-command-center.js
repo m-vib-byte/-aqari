@@ -199,7 +199,9 @@
     const homePage=document.getElementById('home');
     if(homePage&&!homePage.classList.contains('on'))return;
     if(records?.length&&records.every(function(r){return r.target?.closest?.('#v210DailyCommandCenter,#v202PropertyWorkspace,#v199MoreMenu')}))return;
-    clearTimeout(timer);timer=setTimeout(render,160);
+    // Keep the first deadline: ongoing DOM updates must not starve the summary.
+    if(timer)return;
+    timer=setTimeout(function(){timer=0;if(document.visibilityState==='hidden')return;const h=document.getElementById('home');if(h&&!h.classList.contains('on'))return;render()},160);
   }
 
   function syncPeriod(value){

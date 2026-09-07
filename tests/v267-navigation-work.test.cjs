@@ -26,3 +26,12 @@ test('timeline output and unrelated property mutations cannot retrigger cloud ti
  r.ctx.run([{target:{inside:true},addedNodes:[{nodeType:1,matches:()=>true}],removedNodes:[]}]);assert.equal(r.work.length,0);
  r.ctx.run([{target:{inside:true},addedNodes:[],removedNodes:[]}]);assert.equal(r.work.length,1);
 });
+test('continuous home mutations retain the first render deadline and allow subsequent refresh',()=>{
+ for(const [file,end] of [['v208-portfolio-collections.js','  function restoreSearchFocus'],['v210-daily-command-center.js','  function syncPeriod']]){
+  let renders=0;const r=scheduler(file,'  function schedule(',end,{render(){renders++}});r.setPages(true,false);
+  for(let i=0;i<1000;i++)r.ctx.run([]);
+  assert.equal(r.work.length,1);r.work[0]();assert.equal(renders,1);
+  r.ctx.run([]);assert.equal(r.work.length,2);
+  r.setPages(false,false);r.work[1]();assert.equal(renders,1);
+ }
+});

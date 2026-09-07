@@ -233,7 +233,9 @@
   function schedule(){
     const homePage=document.getElementById('home'),collectionPage=document.getElementById('collectionProPage');
     if(homePage&&collectionPage&&!homePage.classList.contains('on')&&!collectionPage.classList.contains('on'))return;
-    clearTimeout(timer);timer=setTimeout(render,120);
+    // Keep the first deadline: ongoing DOM updates must not starve the summary.
+    if(timer)return;
+    timer=setTimeout(function(){timer=0;const h=document.getElementById('home'),c=document.getElementById('collectionProPage');if(h&&c&&!h.classList.contains('on')&&!c.classList.contains('on'))return;render()},120);
   }
 
   function restoreSearchFocus(start,end){
