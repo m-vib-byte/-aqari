@@ -3322,6 +3322,10 @@ test('V267 synthetic tenant → saved lease → collection → immutable voucher
  reader.setActiveProperty('SYNTHETIC TEST PROPERTY');reader.setActivePeriod('2026-08');
  assert.match(reader.collectionsPanel(reader.contextFor('SYNTHETIC TEST PROPERTY')),/V267-ROUNDTRIP/);
  const row=reloaded.collections.find(x=>x[0]==='V267-ROUNDTRIP');assert.ok(row);assert.equal(reloaded.rentReceiptsV267.length,1);
+ const linkedContext=reader.contextFor('SYNTHETIC TEST PROPERTY');
+ const linkedTenant=reader.unitDirectoryRecords(linkedContext,'2026-08').find(x=>String(x.contractId)==='987');
+ const linkedPayment=reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP');
+ assert.match(reader.tenantReceiptDocument(linkedContext,linkedTenant,linkedPayment,'2026-08'),/Rent Voucher/);
  assert.match(reader.savedVoucher(row),/New Synthetic Tenant/);
  reloaded.contractsV202.find(c=>c.id===987).tenant='CHANGED LATER';
  assert.match(reader.savedVoucher(row),/New Synthetic Tenant/);assert.doesNotMatch(reader.savedVoucher(row),/CHANGED LATER/);

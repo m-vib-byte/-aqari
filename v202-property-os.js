@@ -2765,6 +2765,13 @@
     const selectedPeriod=validPeriod(period)?period:record.period;
     const receiptNo=ledgerReference(entry);
     if(!validPeriod(selectedPeriod)||!receiptNo||!settledPayment(entry.status)||!validRecordedDate(entry.paidAt)||!validLedgerPaymentAmount(entry))return '';
+    const snapshots=rows('rentReceiptsV267').filter(x=>normalizedReference(x.id)===normalizedReference(receiptNo));
+    if(snapshots.length){
+      if(snapshots.length!==1)return '';
+      const s=snapshots[0];
+      if(String(s.contract?.id)!==String(entry.contractId)||!exactIdentityMatch(s.contract?.property,record.property||context.property?.[0])||!exactIdentityMatch(s.contract?.unit,record.unit)||!exactIdentityMatch(s.contract?.tenant,record.tenant)||s.record?.[8]!==selectedPeriod||strictCollectionMoney(s.record?.[2])!==strictMoney(entry.paid))return '';
+      return savedVoucher(s.record);
+    }
     const brand=statementBrand(record.property||context.property?.[0]);
     const paymentStatus=statusLabel(entry.status||record.paymentStatus);
     const transaction=ledgerTransactionNo(entry);
