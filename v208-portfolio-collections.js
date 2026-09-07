@@ -230,7 +230,11 @@
     }
   }
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(render,120)}
+  function schedule(){
+    const homePage=document.getElementById('home'),collectionPage=document.getElementById('collectionProPage');
+    if(homePage&&collectionPage&&!homePage.classList.contains('on')&&!collectionPage.classList.contains('on'))return;
+    clearTimeout(timer);timer=setTimeout(render,120);
+  }
 
   function restoreSearchFocus(start,end){
     requestAnimationFrame(()=>{
@@ -346,6 +350,7 @@
     document.body.classList.add('aq-v208');
     window.AQARI_V208=Object.freeze({version:DESIGN,seal:seal,resume:resume});
     observer.observe(document.body,{subtree:true,childList:true});
+    ['home','collectionProPage'].forEach(id=>{const page=document.getElementById(id);if(page)observer.observe(page,{attributes:true,attributeFilter:['class']})});
     installAuthListener();
     render();
     [600,1800,5000].forEach(delay=>setTimeout(function(){installAuthListener();schedule()},delay));

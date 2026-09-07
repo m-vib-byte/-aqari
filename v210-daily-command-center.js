@@ -196,6 +196,8 @@
 
   function schedule(records){
     if(document.visibilityState==='hidden')return;
+    const homePage=document.getElementById('home');
+    if(homePage&&!homePage.classList.contains('on'))return;
     if(records?.length&&records.every(function(r){return r.target?.closest?.('#v210DailyCommandCenter,#v202PropertyWorkspace,#v199MoreMenu')}))return;
     clearTimeout(timer);timer=setTimeout(render,160);
   }
@@ -249,6 +251,8 @@
     document.body.classList.add('aq-v210');
     window.AQARI_V210=Object.freeze({version:DESIGN,seal:seal,resume:resume,refresh:function(){lastSignature='';render()},testing:Object.freeze({aggregate:aggregate})});
     observer.observe(document.body,{subtree:true,childList:true});
+    const homePage=document.getElementById('home');
+    if(homePage)observer.observe(homePage,{attributes:true,attributeFilter:['class']});
     installAuthListener();render();
     [600,1800,5000].forEach(function(delay){setTimeout(function(){installAuthListener();schedule()},delay)});
     let meta=document.querySelector('meta[name="aqari-daily-command-center"]');

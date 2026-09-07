@@ -522,8 +522,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "sha256": "c973174f20349d302bb34d4adea1bd4644764283d5108c59257b80b67b9e82b2",
-      "size": 19858
+      "size": 20260,
+      "sha256": "7dd2ebd715e59dc7f46bdf852865864c494188b7e324541f58fe075b189eaea4"
     },
     {
       "path": "v209-global-search.css",
@@ -542,8 +542,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "size": 15223,
-      "sha256": "59c1f56a032b67449f31498efac9cc9fa6f54e2ae1807f73e657c7e3eb63f36d"
+      "size": 15475,
+      "sha256": "1e2122595e8abb035e01d335ac97fa961f78b3abb60226b81e03c780eb8df7c6"
     },
     {
       "path": "V211_1_SUPABASE_RPC_DRAFT.md",
@@ -562,8 +562,8 @@
     },
     {
       "path": "v211-follow-up-center.js",
-      "sha256": "145efad885d4f63d74ea17486518c6a7fffc0b799d9f369283a8889364e86e48",
-      "size": 11361
+      "size": 12084,
+      "sha256": "4dc6165843ca0dd3f1875fd3de54983c424ec322f720749716e56a27619cbbc8"
     },
     {
       "path": "v211-follow-up-cloud.js",
@@ -779,6 +779,11 @@
       "path": "V267_FINAL_PREVIEW_REVIEW.md",
       "size": 2031,
       "sha256": "24ff71075625d3f06e1a865ff6379cdf913739e0df53b6d40d9c03f7df68d3a9"
+    },
+    {
+      "path": "tests/v267-navigation-work.test.cjs",
+      "size": 2297,
+      "sha256": "f2c0905a625e569752d3cf7abdc5cd933e62fcb3c438a87caef36ec7573bdc6f"
     }
   ],
   "version": "V198"
