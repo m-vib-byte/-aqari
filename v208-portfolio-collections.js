@@ -196,6 +196,8 @@
   function signature(items){return JSON.stringify({access:accessReady(),period,query,filter,items:items.map(item=>[item.name,item.state,item.due,item.collected,item.balance,item.units,item.canRecordPayment,item.official])})}
 
   function render(){
+    // Do not rebuild portfolio summaries behind an active entry or document dialog.
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
     if(!accessReady()){
       clearViews();
       return;
@@ -230,7 +232,9 @@
     }
   }
 
-  function schedule(){
+  function schedule(records){
+    if(records?.length&&records.every(r=>r.type==='attributes'&&!['home','collectionProPage','modal','v202PaymentDialog','v202PropertyWorkspace','v202DocumentDialog'].includes(r.target?.id)))return;
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
     const homePage=document.getElementById('home'),collectionPage=document.getElementById('collectionProPage');
     if(homePage&&collectionPage&&!homePage.classList.contains('on')&&!collectionPage.classList.contains('on'))return;
     // Keep the first deadline: ongoing DOM updates must not starve the summary.
@@ -351,7 +355,7 @@
   function boot(){
     document.body.classList.add('aq-v208');
     window.AQARI_V208=Object.freeze({version:DESIGN,seal:seal,resume:resume});
-    observer.observe(document.body,{subtree:true,childList:true});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
     ['home','collectionProPage'].forEach(id=>{const page=document.getElementById(id);if(page)observer.observe(page,{attributes:true,attributeFilter:['class']})});
     installAuthListener();
     render();

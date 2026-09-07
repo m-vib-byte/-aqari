@@ -522,8 +522,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "sha256": "ecc4531f43777bbbc41c4e4ebaffddadef51df1fc472cc4d8e2aed18c6af2167",
-      "size": 20524
+      "sha256": "6563ed9f1308f03cd0ba9c59ab6290c5e5914ea658197bf54ff1ee0402acdcd5",
+      "size": 21105
     },
     {
       "path": "v209-global-search.css",
@@ -542,8 +542,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "sha256": "864c01313a61462e0bba0f0a2b61772d88f275bbae1f01ede5d6a32d61157d7d",
-      "size": 15706
+      "sha256": "0bfa7997e1b39f21cb2d7af6482696c2c582858def1c3722eed45dd170757141",
+      "size": 16280
     },
     {
       "path": "V211_1_SUPABASE_RPC_DRAFT.md",
@@ -782,8 +782,8 @@
     },
     {
       "path": "tests/v267-navigation-work.test.cjs",
-      "sha256": "a454259afa793ac77cd0668f0379744afe42b2e127ec4837149add5eaf0aab01",
-      "size": 2889
+      "sha256": "467c5122631e987d737e78de519558ab14966ade8235288b9e63b1791d9f4e17",
+      "size": 3422
     },
     {
       "path": "tests/v267-scoped-render.test.cjs",

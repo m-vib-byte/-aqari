@@ -176,6 +176,8 @@
   function clear(){document.getElementById('v210DailyCommandCenter')?.remove();lastSignature=''}
 
   function render(){
+    // Do not rebuild portfolio summaries behind an active entry or document dialog.
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
     const state=snapshot();
     const home=document.getElementById('v205SimpleHome');
     if(!state||!home){clear();return}
@@ -195,6 +197,8 @@
   }
 
   function schedule(records){
+    if(records?.length&&records.every(r=>r.type==='attributes'&&!['home','collectionProPage','modal','v202PaymentDialog','v202PropertyWorkspace','v202DocumentDialog'].includes(r.target?.id)))return;
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
     if(document.visibilityState==='hidden')return;
     const homePage=document.getElementById('home');
     if(homePage&&!homePage.classList.contains('on'))return;
@@ -252,7 +256,7 @@
   function boot(){
     document.body.classList.add('aq-v210');
     window.AQARI_V210=Object.freeze({version:DESIGN,seal:seal,resume:resume,refresh:function(){lastSignature='';render()},testing:Object.freeze({aggregate:aggregate})});
-    observer.observe(document.body,{subtree:true,childList:true});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
     const homePage=document.getElementById('home');
     if(homePage)observer.observe(homePage,{attributes:true,attributeFilter:['class']});
     installAuthListener();render();

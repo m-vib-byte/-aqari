@@ -35,3 +35,12 @@ test('continuous home mutations retain the first render deadline and allow subse
   r.setPages(false,false);r.work[1]();assert.equal(renders,1);
  }
 });
+test('entry dialogs suspend background summaries throughout typing and resume after close',()=>{
+ for(const [file,end] of [['v208-portfolio-collections.js','  function restoreSearchFocus'],['v210-daily-command-center.js','  function syncPeriod']]){
+  let dialog=true;const r=scheduler(file,'  function schedule(',end);r.setPages(true,false);
+  r.ctx.document.querySelector=()=>dialog?{}:null;
+  for(let i=0;i<1000;i++)r.ctx.run([]);
+  assert.equal(r.work.length,0);
+  dialog=false;r.ctx.run([]);assert.equal(r.work.length,1);
+ }
+});
