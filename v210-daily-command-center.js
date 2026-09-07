@@ -156,8 +156,8 @@
     const summary=state.summary;
     const rate=summary.due>0?Math.min(100,Math.max(0,summary.collected/summary.due*100)):0;
     const critical=summary.dueProperties+summary.pendingApprovals+summary.setup;
-    return '<section id="v210DailyCommandCenter" class="v210-command" aria-labelledby="v210Title">'+
-      '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'"></label></header>'+
+    return '<section id="v210DailyCommandCenter" class="v210-command" data-period="'+esc(state.period)+'" aria-labelledby="v210Title">'+
+      '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'" required pattern="[0-9]{4}-(0[1-9]|1[0-2])" placeholder="YYYY-MM" dir="ltr" aria-describedby="v210PeriodHint"><small id="v210PeriodHint" hidden>أدخل السنة ثم الشهر، مثال: '+esc(period)+'</small></label></header>'+
       '<div class="v267-collection-hero v210-kpis" aria-live="polite">'+
         '<button type="button" data-v210-route="collectionProPage" class="is-today"><span>تحصيل اليوم</span><strong>'+(state.daily?esc(money(state.daily.paid/1000)):'—')+'</strong><small>'+(state.daily?(state.daily.undated?'دفعات مؤرخة فقط؛ توجد دفعات بلا تاريخ':'الدفعات المسجلة بتاريخ اليوم — الكويت'):'لا يتوفر سجل دفعات مؤرخ')+'</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>تحصيل الشهر</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
@@ -188,6 +188,9 @@
     holder.innerHTML=markup(state);
     const next=holder.firstElementChild;
     if(!next)return;
+    const monthInput=next.querySelector('#v210Period');
+    const monthHint=next.querySelector('#v210PeriodHint');
+    if(monthInput&&monthHint)monthHint.hidden=monthInput.type==='month';
     if(current)current.replaceWith(next);
     else{
       const anchor=home.querySelector('.v205-welcome');
@@ -225,7 +228,11 @@
   }
 
   document.addEventListener('input',function(event){
-    if(event.target?.id==='v210Period')syncPeriod(text(event.target.value));
+    if(event.target?.id==='v210Period'){
+      const value=text(event.target.value);
+      event.target.setCustomValidity(PERIOD.test(value)?'':'أدخل شهراً صحيحاً بصيغة السنة ثم الشهر، مثل 2026-09.');
+      if(event.target.validity.valid)syncPeriod(value);
+    }
   });
 
   document.addEventListener('click',function(event){

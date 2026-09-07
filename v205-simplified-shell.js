@@ -226,7 +226,8 @@
     document.body.classList.remove('v205-chooser-open');
     setChooserBackgroundInert(false,overlay);
     overlay.setAttribute('inert','');
-    if(restoreFocus&&chooserTrigger instanceof HTMLElement)setTimeout(function(){chooserTrigger.focus()},0);
+    const focusTarget=chooserTrigger;
+    if(restoreFocus&&focusTarget instanceof HTMLElement)setTimeout(function(){if(focusTarget.isConnected)focusTarget.focus()},0);
     chooserTrigger=null;
   }
 

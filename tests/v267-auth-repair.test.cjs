@@ -36,3 +36,16 @@ test('transport timeout resets loading without erasing a persisted session',()=>
  vm.runInNewContext(source.slice(start,end)+";resetTimedOutCore({code:'AQARI_TIMEOUT'});",context);
  assert.equal(context.corePromise,null);assert.equal(clears,0);
 });
+test('closing the property chooser restores the captured connected trigger after cleanup',()=>{
+ const source=fs.readFileSync('v205-simplified-shell.js','utf8');
+ const start=source.indexOf('function closeChooser('),end=source.indexOf('function openPropertyAction(',start);
+ for(const connected of [true,false]){
+  let focused=0;const queued=[];
+  class Element{constructor(){this.isConnected=connected;}focus(){focused++;}}
+  const overlay={classList:{contains(){return true;},remove(){}},setAttribute(){}};
+  const context={chooserTrigger:new Element(),HTMLElement:Element,document:{getElementById(){return overlay;},body:{classList:{remove(){}}}},setChooserBackgroundInert(){},setTimeout(fn){queued.push(fn);}};
+  vm.runInNewContext(source.slice(start,end)+';closeChooser(true);',context);
+  assert.equal(context.chooserTrigger,null);assert.equal(focused,0);assert.equal(queued.length,1);
+  queued[0]();assert.equal(focused,connected?1:0);
+ }
+});

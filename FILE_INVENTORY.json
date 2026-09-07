@@ -462,7 +462,7 @@
     },
     {
       "path": "v199-ui.js",
-      "sha256": "91a22b4d73bcc4eada3d5770396d7aea6455a098ed3f9aea8099f6f9c9ed7649",
+      "sha256": "763aec460569573b215910276606437acd6b4dceb7410e480494228aeb20a2f4",
       "size": 32390
     },
     {
@@ -497,7 +497,7 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "sha256": "de8597fcb6c175cbbcd3afe04a8ad3194dacfaadd14108285b5424c7b261e1fa",
+      "sha256": "06e813c8c524f1fa22e2ede4eb5cdefd41346e254682adb1d23f2d30e3af4527",
       "size": 27525
     },
     {
@@ -542,7 +542,7 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "sha256": "0bfa7997e1b39f21cb2d7af6482696c2c582858def1c3722eed45dd170757141",
+      "sha256": "304fb844d049095277782a2df015032bb053b911e819f45cb82a2f843ba72432",
       "size": 16280
     },
     {
@@ -742,7 +742,7 @@
     },
     {
       "path": "tests/v267-presentation-checks.mjs",
-      "sha256": "5f9295b47dc3b277b01d7f2b5d8b6804e5e9da9cff578994a96bf4d4dca70044",
+      "sha256": "9f7f9663ca98bf84fffa9389643a2c339aff3fbea6e830e2b18aabe04d5fe501",
       "size": 12337
     },
     {
@@ -963,7 +963,7 @@
     {
       "path": "tests/v267-auth-repair.test.cjs",
       "size": 3560,
-      "sha256": "eb8024387783e746d72df90b9cd599993a7e39d8210e758caf2dd4cdc458e817"
+      "sha256": "89569511c70c4322395a63ed73f572f316a4b212d9c3aeab850bf04faedfe54f"
     }
   ],
   "version": "V198"

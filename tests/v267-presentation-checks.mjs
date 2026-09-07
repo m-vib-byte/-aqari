@@ -31,8 +31,10 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
       commandMeta:document.querySelector('meta[name="aqari-daily-command-center"]')?.content,
       overview:document.querySelector('#v205SimpleHome h1')?.textContent.trim(),
       commandTitle:document.getElementById('v210Title')?.textContent.trim(),
-      periodLabel:document.querySelector('label[for="v210Period"]')?.textContent.trim(),
+      periodLabel:document.querySelector('label[for="v210Period"] > span')?.textContent.trim(),
       periodType:document.getElementById('v210Period')?.type,
+      declaredPeriodType:document.getElementById('v210Period')?.getAttribute('type'),
+      nativeMonthType:(()=>{const probe=document.createElement('input');probe.setAttribute('type','month');return probe.type;})(),
       shell:Boolean(document.getElementById('aqariV199Topbar')),
       dashboard:Boolean(document.querySelector('#v205LegacyDashboardSlot #aqariV199Dashboard')),
       propertyActions:document.querySelectorAll('#v201PropertyCenter [data-v201-property-action]').length,
@@ -60,12 +62,35 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
     assert.equal(presentation.overview, 'لوحة المدير العام');
     assert.equal(presentation.commandTitle, 'التحصيل والمتابعة');
     assert.equal(presentation.periodLabel, 'شهر التحصيل');
-    assert.equal(presentation.periodType, 'month');
+    assert.equal(presentation.declaredPeriodType, 'month');
+    assert.equal(presentation.periodType, presentation.nativeMonthType, 'use the native month picker when this engine supports it');
     assert.equal(presentation.propertyActions, 4);
     assert.ok(presentation.mobileCreateHidden, 'home must not expose a duplicate floating create button');
     for (const route of ['tenants','reports','documentsHub']) assert.ok(presentation.businessLinks.includes(route), route+' missing from More menu');
     assert.equal(presentation.fakeBars, 0, 'dashboard must not render fabricated chart bars');
     assert.equal(presentation.overflow, false, 'authenticated home must fit 390px');
+
+    // WebKit without a native month picker exposes type="month" as a text
+    // control. Verify the actual filtering and validation on BOTH engines,
+    // including rejection of malformed input in that fallback.
+    const originalPeriod=await page.locator('#v210DailyCommandCenter').getAttribute('data-period');
+    const changedPeriod=originalPeriod==='2026-02'?'2026-03':'2026-02';
+    await page.locator('#v210Period').fill(changedPeriod);
+    await page.waitForFunction(value=>document.getElementById('v210DailyCommandCenter')?.getAttribute('data-period')===value,changedPeriod);
+    assert.equal(await page.locator('#v210Period').inputValue(),changedPeriod);
+    const rejectPeriod=async value=>{
+      await page.locator('#v210Period').fill(value);
+      assert.equal(await page.locator('#v210Period').evaluate(node=>node.validity.valid),false,'invalid months must be rejected');
+      assert.equal(await page.locator('#v210DailyCommandCenter').getAttribute('data-period'),changedPeriod,'invalid entry must not change the report period');
+    };
+    await rejectPeriod('');
+    if(presentation.nativeMonthType==='text'){
+      assert.ok(await page.locator('#v210PeriodHint').isVisible(),'text fallback must explain the month format');
+      await rejectPeriod('2026-13');
+      await rejectPeriod('not-a-month');
+    }
+    await page.locator('#v210Period').fill(originalPeriod);
+    await page.waitForFunction(value=>document.getElementById('v210DailyCommandCenter')?.getAttribute('data-period')===value,originalPeriod);
 
     const navigation = await page.evaluate(() => {
       const sections = Array.from(document.querySelectorAll('#v205PrimarySections [data-v205-section]'), node => ({
@@ -141,6 +166,7 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
       if (!populated) assert.ok(await page.locator('#v205ChooserList .v205-chooser-empty').isVisible());
       await page.keyboard.press('Escape');
       await page.waitForSelector('#v205PropertyChooser.on', { state:'hidden' });
+      await page.waitForFunction(key=>document.activeElement?.getAttribute('data-v205-daily-action')===key,action);
     }
 
     await page.locator('#v205SimpleHome [data-v205-command="quick"]').click();
