@@ -38,10 +38,21 @@ class ReceiptTests(unittest.TestCase):
         def read(path,auth):
             if path.startswith('/auth/'):return {'id':U}
             if 'memberships?' in path:return [dict(user_id=U,workspace_id=workspace,role=role,is_active=active)]
-            return [dict(workspace_id=W,payload=fixture())]
+            if path.startswith('/rest/v1/rpc/aqari_read_state_v267?'):return dict(workspace_id=W,payload=fixture())
+            self.fail('Staff export must use the filtered-state RPC')
         return read
     def test_authenticated_export(self):
         self.assertTrue(api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',self.reader()).startswith(b'%PDF-'))
+    def test_accountant_export_uses_filtered_state_without_bulk_access(self):
+        self.assertTrue(api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',self.reader(role='accountant')).startswith(b'%PDF-'))
+    def test_filtered_state_cannot_export_hidden_or_other_workspace_receipt(self):
+        for state in [None,dict(workspace_id=U,payload=fixture()),dict(workspace_id=W,payload={})]:
+            base=self.reader(role='accountant')
+            def read(path,auth):
+                if path.startswith('/rest/v1/rpc/aqari_read_state_v267?'):return state
+                return base(path,auth)
+            with self.assertRaises((PermissionError,ValueError)):
+                api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',read)
     def test_denied_scope_role_and_inactive(self):
         for reader in [self.reader(role='viewer'),self.reader(active=False),self.reader(workspace=U)]:
             with self.assertRaises(PermissionError):api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',reader)

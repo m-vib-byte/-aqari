@@ -7,17 +7,28 @@ const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools')
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
-let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,calls=[],failingWrite=false;
+let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false;
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
  'const uid='+JSON.stringify(uid)+',wid='+JSON.stringify(wid)+';'+
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://djkpkkgoibruaezdrchb.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
+ 'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://djkpkkgoibruaezdrchb.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
  'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json()}:{error:await r.json()});return x;}'+
  'window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:"general_manager",is_active:true}},getClient:async()=>({rpc:query,from:name=>query(name,{})}),getSession:async()=>({user:{id:uid},access_token:"synthetic-not-a-real-token"})};'+
  'const {install}=await import("/src/v267/workspace.js");install();</script></body></html>';
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://127.0.0.1');
+ if(url.pathname.startsWith('/storage-fixture/storage/v1/object/')){
+  if(req.headers.authorization!=='Bearer synthetic-not-a-real-token')return reply(res,{error:'AUTH'},403);
+  if(!url.pathname.includes('/aqari-documents/'+wid+'/'))return reply(res,{error:'SCOPE'},403);
+  if(req.method==='POST'){
+   if(req.headers['x-upsert']!=='false'||storageBytes!==null)return reply(res,{error:'REPLACEMENT'},409);
+   const chunks=[];req.on('data',chunk=>chunks.push(chunk));req.on('end',()=>{storageBytes=Buffer.concat(chunks);storageUploads++;reply(res,{stored:storageBytes.length});});return;
+  }
+  if(req.method==='GET'&&storageBytes){res.writeHead(200,{'content-type':'image/jpeg','cache-control':'no-store'});res.end(storageBytes);return;}
+  return reply(res,{error:'NOT_STORED'},404);
+ }
  if(url.pathname.startsWith('/fixture/')){let body='';req.on('data',x=>body+=x);req.on('end',()=>{
   const name=url.pathname.slice(9),args=JSON.parse(body||'{}');calls.push(name);
   if(name==='aqari_workspace_access')return reply(res,{user_id:uid,workspace_id:wid,role:'general_manager',sections:settings.sections,labels:settings.labels,permissions:Object.fromEntries(sections.map(s=>[s,{read:true,write:settings.sections[s]!==false}]))});
@@ -48,19 +59,14 @@ try{
  for(const [engineName,engine]of [['chromium',chromium],['webkit',webkit]]){
   const browser=await engine.launch();
   try{for(const [device,viewport]of [['iphone',{width:390,height:844}],['ipad',{width:820,height:1180}],['desktop',{width:1440,height:1000}]]){
-   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;calls=[];failingWrite=false;
+   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;
    const context=await browser.newContext({viewport,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
-   // The isolated component harness never sends credentials or requests to a real service.
+   // The fixture redirects only the pinned Storage URL to its local HTTP endpoint.
+   // Node receives the actual upload bytes on both engines; no inspector postData shortcut.
+   // No credential or request reaches a real service.
    await context.route('**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.origin==='http://127.0.0.1:4175')return route.continue();
-    if(url.origin==='https://djkpkkgoibruaezdrchb.supabase.co'&&url.pathname.startsWith('/storage/v1/object/')){
-     const headers={'access-control-allow-origin':'http://127.0.0.1:4175','access-control-allow-methods':'GET,POST,OPTIONS','access-control-allow-headers':'apikey,authorization,content-type,x-upsert'};
-     if(request.method()==='OPTIONS')return route.fulfill({status:204,headers});
-     assert.equal(request.headers().authorization,'Bearer synthetic-not-a-real-token');
-     if(request.method()==='POST'){assert.equal(request.headers()['x-upsert'],'false');assert.equal(storageBytes,null);storageBytes=request.postDataBuffer();return route.fulfill({status:200,headers,contentType:'application/json',body:'{}'});}
-     assert.ok(storageBytes);return route.fulfill({status:200,headers,contentType:'image/jpeg',body:storageBytes});
-    }
     return route.abort();
    });
    const name=engineName+'-'+device;const start=Date.now();
@@ -95,7 +101,7 @@ try{
     await page.getByRole('button',{name:'تدوير الصورة',exact:true}).click();
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
     await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتأكيد ارتباطه بالسجل.',{exact:true}).waitFor();
-    assert.equal(docs.length,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
+    assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.ok(storageBytes[0]===255&&storageBytes[1]===216,'reencoded JPEG');
     assert.equal(await page.getByText('رفع بواسطة: مدير اختبار',{exact:true}).count(),1);
     const layout=await page.getByRole('dialog').evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth,buttons:[...el.querySelectorAll('button')].filter(b=>b.getBoundingClientRect().height>0).every(b=>b.getBoundingClientRect().height>=44)}));

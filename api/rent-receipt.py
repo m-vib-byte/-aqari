@@ -60,10 +60,12 @@ def export_pdf(input_data, auth, read=upstream):
     if initial_members == []:
         return export_tenant_pdf(workspace, reference, uid, auth, read)
     check_member()
-    states = read("/rest/v1/aqari_app_state?" + urlencode({"select": "workspace_id,payload", "workspace_id": "eq." + workspace}), auth)
-    if not isinstance(states, list) or len(states) != 1 or states[0].get("workspace_id") != workspace:
+    # Staff reads use the same server-side section projection as the app.
+    # A legitimate accountant must not need unrestricted bulk-state access.
+    state = read("/rest/v1/rpc/aqari_read_state_v267?" + urlencode({"p_workspace_id": workspace}), auth)
+    if not isinstance(state, dict) or state.get("workspace_id") != workspace or not isinstance(state.get("payload"), dict):
         raise PermissionError("ACCESS_DENIED")
-    saved = verified_receipt(states[0]["payload"], reference)
+    saved = verified_receipt(state["payload"], reference)
     check_member()
     return render_receipt(saved)
 

@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "5b2b8b67653a7beda21c3987e724245c3dff140a1e5e06b9c2e72e3919cd36d2",
-      "size": 2988
+      "sha256": "ac618ec1f5ce4837a1d2bf518901ae0a051628ea4da4235008d9e0c792bf45e2",
+      "size": 3406
     },
     {
       "path": "api/autosync-status.js",
@@ -827,8 +827,8 @@
     },
     {
       "path": "api/rent-receipt.py",
-      "sha256": "b8e68bc6178b05b23d0f45f33c876eb64fc4ad3fa94719ec8d5f0091e8cfd386",
-      "size": 7807
+      "sha256": "7aca03700ec5485ab2e177cdc06ddc0215fcfb34811acc4906f8ba6cd9f5e644",
+      "size": 7943
     },
     {
       "path": "lib/rent_pdf.py",
@@ -852,8 +852,8 @@
     },
     {
       "path": "tests/rent_pdf_test.py",
-      "sha256": "386cc9fe12e140d793c9f8f77411d705d9928d43748c576e27a42a23a2db8ab5",
-      "size": 6383
+      "sha256": "60d1c644c8311f3c9d9b6e4adc53c0f50d978d322baa9a982b9836d39260bd43",
+      "size": 7285
     },
     {
       "path": "V267_INTEGRATION_REVIEW.md",
@@ -1052,8 +1052,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "69e50f0f419ea8cb7bf28e964da4db64280324b76184e2e002e22c35d1b829d3",
-      "size": 12877
+      "sha256": "63bdf1120914d3f0f160be650b937c82b08256b4c4011f76d27d29cd1567d846",
+      "size": 13342
     }
   ],
   "version": "V198"
