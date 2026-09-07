@@ -1052,8 +1052,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "48b7f4495f643d084c39eeeae66fad698749182fa86afe816ce6d2496a1e0780",
-      "size": 12402
+      "sha256": "8041444cbfdb06a2ff1c631f0860ed8d2db71a091548b0f6b0680684286664dd",
+      "size": 12432
     }
   ],
   "version": "V198"

@@ -69,7 +69,7 @@ try{
     await page.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
     const dialog=page.getByRole('dialog');
-    await dialog.getByLabel('الصيانة',{exact:true}).uncheck();
+    await dialog.getByRole('checkbox',{name:'الصيانة',exact:true}).uncheck();
     await dialog.getByLabel('سبب التعديل',{exact:true}).fill('اختبار حفظ آلي مستقل');
     await dialog.getByRole('button',{name:'حفظ الإعدادات والتحقق',exact:true}).click();
     await page.getByText('تم الحفظ وإعادة القراءة وتسجيل التعديل.',{exact:true}).waitFor();
@@ -77,7 +77,7 @@ try{
     await dialog.getByRole('button',{name:'إغلاق',exact:true}).click();
     await page.reload();await page.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
-    assert.equal(await page.getByRole('dialog').getByLabel('الصيانة',{exact:true}).isChecked(),false);
+    assert.equal(await page.getByRole('dialog').getByRole('checkbox',{name:'الصيانة',exact:true}).isChecked(),false);
     failingWrite=true;await page.getByLabel('سبب التعديل',{exact:true}).fill('حفظ مرفوض');
     await page.getByRole('button',{name:'حفظ الإعدادات والتحقق',exact:true}).click();
     await page.getByText('لا تملك صلاحية هذه العملية.',{exact:true}).waitFor();assert.equal(revision,1);failingWrite=false;
