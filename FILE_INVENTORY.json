@@ -992,8 +992,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "1a9815ff1d8c180e983fc2f89a0708f8a8a2144dfeda1e3659de9215abc3a436",
-      "size": 1736
+      "sha256": "b7894b2573477e42b1db2e169acd989418cf1615f2352261706ec745f737d52c",
+      "size": 1884
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1052,7 +1052,7 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "bdf9b73f79202c9ec9712aaf4d7280a8f2ff1534bf486b3af9f512d791a7e5c4",
+      "sha256": "69e50f0f419ea8cb7bf28e964da4db64280324b76184e2e002e22c35d1b829d3",
       "size": 12877
     }
   ],

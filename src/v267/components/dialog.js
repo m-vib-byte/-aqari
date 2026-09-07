@@ -1,6 +1,10 @@
 import {createSession,safeError} from '../api/session.js';
 export const node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
-export function field(labelText,control){const el=node('label',labelText);el.append(control);return el;}
+let fieldId=0;
+export function field(labelText,control){
+ const group=node('div'),label=node('label',labelText);control.id||='aq267-field-'+(++fieldId);
+ label.htmlFor=control.id;group.className='aq267-field';group.append(label,control);return group;
+}
 let active;
 export function createDialog(title){
  if(active)return null;

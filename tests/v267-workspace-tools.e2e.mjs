@@ -75,8 +75,8 @@ try{
     await page.getByText('تم الحفظ وإعادة القراءة وتسجيل التعديل.',{exact:true}).waitFor();
     assert.equal(revision,1);assert.equal(settings.sections.maintenance,false);assert.equal(audit.length,1);
     assert.equal(await page.locator('#fixtureKpi').textContent(),'42','label changes preserve financial numbers');
-    assert.equal(await page.getByRole('button',{name:'إغلاق المزيد',exact:true}).count(),1,'close action stays distinct from navigation');
     await dialog.getByRole('button',{name:'إغلاق',exact:true}).click();
+    assert.equal(await page.getByRole('button',{name:'إغلاق المزيد',exact:true}).count(),1,'close action stays distinct from navigation');
     await page.reload();await page.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('dialog').getByRole('checkbox',{name:'الصيانة',exact:true}).isChecked(),false);
