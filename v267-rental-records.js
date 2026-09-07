@@ -79,7 +79,7 @@ function preview(c){
  if(!scope())return false;
  const target=byId('contractPreviewV55');if(!target)return false;
  target.innerHTML=contractMarkup(c,1);
- for(const [count,label]of [[1,'عرض وطباعة نسخة'],[3,'توليد ثلاث نسخ من نفس العقد']]){
+ for(const [count,label]of [[1,'عرض وطباعة نسخة'],[2,'توليد نسختين من نفس العقد']]){
   const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{
    const saved=(data().contractsV202||[]).find(x=>String(x.id)===String(c.id));
    if(!scope()||!saved)return window.alert('احفظ العقد في السحابة أولاً.');

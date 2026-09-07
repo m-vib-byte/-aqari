@@ -487,8 +487,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "e02c73b976c7ff7fc591531987b3117488e25cd1d15e87423ab4ae6d1a824f69",
-      "size": 254562
+      "sha256": "59bba05a57c46774b141badad7653459cd0d54d6fcbe75477338862f67557ce7",
+      "size": 255436
     },
     {
       "path": "v205-simple.css",
@@ -807,8 +807,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "8afcfbe85e56db02354777cca65793cdab887b5824b9c876bf7235583827b8da",
-      "size": 18939
+      "sha256": "87ddec4f72e5fed973d692c815868fcac49a33a58d0de160114e6a28a6419baa",
+      "size": 18936
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
@@ -817,13 +817,48 @@
     },
     {
       "path": "V267_RENTAL_FLOW_REVIEW.md",
-      "sha256": "fc58eb764c5e7e75fa11fd93e88d25494d12e42d2b77da154bd7b7785db6c77a",
-      "size": 4339
+      "sha256": "2f1da549e53e519f7ca406b6cd30ffb7cce9c0972f7736155492cbe1ff8be744",
+      "size": 4606
     },
     {
       "path": "V267_RELEASE_STATUS.md",
-      "sha256": "2f031c0d32f9ff52730a9191ac5a667d8ed6b6bbae20cb79d10077dc76f39a51",
-      "size": 1159
+      "sha256": "fb8d722a70f8bcbadd10ea68776e9ee4da8b94061ec47169e01eab1efc6b65e5",
+      "size": 1333
+    },
+    {
+      "path": "api/rent-receipt.py",
+      "sha256": "30c64695d21730fb87a8416774f575d0513ae0dad02e0dddc224db89ee3552dd",
+      "size": 5007
+    },
+    {
+      "path": "lib/rent_pdf.py",
+      "sha256": "45eb37a210e66c58ed37f6bfc82a6eb4156f1094a08dc189a7bffed3126794b5",
+      "size": 7423
+    },
+    {
+      "path": "lib/pdf_fonts/AqariSans.ttf",
+      "sha256": "0bdf67d95aa8018c83492274191e75a81387537d59c388245e8fd3b4c7fad177",
+      "size": 80280
+    },
+    {
+      "path": "lib/pdf_fonts/LICENSE.txt",
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+      "size": 3859
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "b9d81172ecc68a2073de7fac95c36312f7c54c0227b7c0e231def495d1550f4c",
+      "size": 59
+    },
+    {
+      "path": "tests/rent_pdf_test.py",
+      "sha256": "2371c2f6963bddf57196e43158591b2c29b03945b40fc7bfa77f6ed5037973f8",
+      "size": 4398
+    },
+    {
+      "path": "V267_INTEGRATION_REVIEW.md",
+      "sha256": "aa15cf5dc02a119a7f0b02975ca33210d3272c5c271e338b4433ac283cd7ff61",
+      "size": 6009
     }
   ],
   "version": "V198"

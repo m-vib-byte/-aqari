@@ -2654,7 +2654,7 @@
     if(ledger.length!==1||String(ledger[0].contractId)!==String(c.id)||!exactIdentityMatch(ledger[0].property,c.property)||!exactIdentityMatch(ledger[0].unit,c.unit)||!exactIdentityMatch(ledger[0].tenant,c.tenant)||strictMoney(ledger[0].paid)!==strictCollectionMoney(record[2]))return '';
     const e=escapeHtml,amount=strictCollectionMoney(record[2]);if(!Number.isFinite(amount)||amount<=0)return '';
     const fils=Math.round(amount*1000),line=(ar,en,value)=>'<div class="v267-voucher-line"><span>'+e(ar)+'</span><strong>'+e(value)+'</strong><small lang="en">'+e(en)+'</small></div>';
-    return '<article class="v202-document v267-voucher" data-v267-voucher><h1>'+e(brand.ar)+'</h1><header><div><b>وصل إيجار</b><br><span lang="en">Rent Voucher</span></div><div>رقم الوصل / No.<strong>'+e(saved.id)+'</strong><br>التاريخ / Date: '+e(record[5])+'</div><div class="v267-voucher-money"><span>دينار K.D<br><b>'+Math.floor(fils/1000)+'</b></span><span>فلس Fils<br><b>'+String(fils%1000).padStart(3,'0')+'</b></span></div></header>'+
+    return '<article class="v202-document v267-voucher" data-v267-voucher data-receipt-no="'+e(saved.id)+'"><h1>'+e(brand.ar)+'</h1><header><div><b>وصل إيجار</b><br><span lang="en">Rent Voucher</span></div><div>رقم الوصل / No.<strong>'+e(saved.id)+'</strong><br>التاريخ / Date: '+e(record[5])+'</div><div class="v267-voucher-money"><span>دينار K.D<br><b>'+Math.floor(fils/1000)+'</b></span><span>فلس Fils<br><b>'+String(fils%1000).padStart(3,'0')+'</b></span></div></header>'+
       line('وصلني من السيد / السادة','Received From',c.tenant+(saved.tenantNameEn?' / '+saved.tenantNameEn:''))+line('مبلغ وقدره','Sum Of KD',amount.toFixed(3)+' د.ك')+line('طريقة الدفع / المرجع','Cash / Cheque / K-net No.',record[9]+' / '+record[0])+line('وذلك من إيجار شهر','Rent of Month',record[8])+line('وحدة رقم','Room No.',c.unit)+line('العقار / رقم العقد','Property / Contract No.',c.property+' / '+c.contract_no)+
       '<section class="v267-voucher-terms"><p>في حالة عدم توقيع العقد وعدم تسلم كامل قيمة الإيجار خلال يومين من تاريخ هذا الإيصال تعتبر الحجز ملغية ويعتبر الحجز لاغياً.</p><p lang="en">If the contract is not signed or full payment is not received within two days of receiving this receipt, this reservation is considered void and the customer shall have no right in potential claim.</p><p>هذا الإيصال لإثبات المبلغ المدفوع فقط، ولا يعكس السعر المتفق عليه للإيجار.</p><p lang="en">This receipt is proof of payment and does not reflect the actual agreed upon rental price.</p><p>يعتبر هذا الإيصال لاغياً في حال عدم تحصيل الشيك.</p><p lang="en">This receipt is considered void in case of failure of processing the cheque.</p></section><p class="v267-voucher-band">تسديد الإيجارات بحد أقصاها الخامس من كل شهر (التأمين لا يرد)</p><div class="v267-voucher-signatures"><p>اسم المستلم / Receiver Name<br>________________<br>توقيع المستلم / Receiver Signature<br>________________</p><p>اسم المحاسب / Accountant Name<br>________________<br>توقيع المحاسب / Accountant Signature<br>________________</p></div><footer>'+e(brand.addressAr)+' • '+e(record[9])+'</footer></article>';
   }
@@ -3242,6 +3242,8 @@
     const body=document.getElementById('v202DocumentBody');
     if(heading)heading.textContent=title;
     if(body)body.innerHTML=markup;
+    const download=overlay.querySelector('[data-v267-document-download]');
+    if(download){download.hidden=!body?.querySelector('[data-receipt-no]');download.textContent='تحميل وصل إيجار PDF';}
     overlay.classList.add('on');
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden','false');
@@ -3503,17 +3505,30 @@
     return true;
   }
 
+  let receiptDownloadBusy=false;
   async function downloadDocument(){
-    if(!protectedAccessReady())return false;
+    if(receiptDownloadBusy||!protectedAccessReady())return false;
     const scope=activeAccessScope(),body=document.getElementById('v202DocumentBody');
-    const markup=body?.innerHTML;if(!markup)return false;
-    const title=document.getElementById('v202DocumentDialogTitle')?.textContent||'AQARI V267';
-    const response=await fetch('/v267-unified.css?release=V267',{cache:'force-cache'});
-    if(!response.ok||!protectedAccessReady()||!sameAccessScope(scope,activeAccessScope())||body.innerHTML!==markup)return false;
-    const css=await response.text();
-    if(!protectedAccessReady()||!sameAccessScope(scope,activeAccessScope())||body.innerHTML!==markup)return false;
-    const blob=new Blob(['<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+escapeHtml(title)+'</title><style>'+css+'</style><body>'+markup+'</body></html>'],{type:'text/html;charset=utf-8'});
-    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='AQARI-V267-document.html';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);return true;
+    const reference=body?.querySelector('[data-receipt-no]')?.dataset.receiptNo;
+    if(!reference)return false;
+    const current=()=>protectedAccessReady()&&sameAccessScope(scope,activeAccessScope())&&body?.querySelector('[data-receipt-no]')?.dataset.receiptNo===reference;
+    const button=document.querySelector('[data-v267-document-download]');
+    const controller=new AbortController();let timer;
+    receiptDownloadBusy=true;if(button)button.disabled=true;
+    try{
+      timer=setTimeout(()=>controller.abort(),30000);
+      const session=await window.AQARI_SUPABASE.getSession();
+      if(!current()||session?.user?.id!==scope.userId||!session?.access_token)return false;
+      const response=await fetch('/api/rent-receipt',{method:'POST',cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({workspaceId:scope.workspaceId,receiptNo:reference})});
+      if(!response.ok||response.headers.get('Content-Type')?.split(';')[0]!=='application/pdf')throw Error('PDF_UNAVAILABLE');
+      const blob=await response.blob();
+      if(!current())return false;
+      if(await blob.slice(0,5).text()!=='%PDF-')throw Error('INVALID_PDF');
+      if(!current())return false;
+      const url=URL.createObjectURL(blob),link=document.createElement('a');
+      link.href=url;link.download='AQARI-V267-rent-receipt.pdf';document.body.appendChild(link);link.click();link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),60000);return true;
+    }finally{clearTimeout(timer);receiptDownloadBusy=false;if(button)button.disabled=false;}
   }
 
   function topLayer(){
@@ -3779,7 +3794,7 @@
       version:V202_DESIGN,
       canCreateContract:function(name){return protectedAccessReady()&&rentWriteAllowed()&&!protectedPropertyActive(name)},
       showContractCopies:function(id,count,markup){
-        if(!protectedAccessReady()||![1,3].includes(count)||!rows('contractsV202').some(c=>String(c.id)===String(id)&&c.source==='v267-cloud'))return false;
+        if(!protectedAccessReady()||![1,2].includes(count)||!rows('contractsV202').some(c=>String(c.id)===String(id)&&c.source==='v267-cloud'))return false;
         openDocument('عقد الإيجار • '+count+' نسخ',markup,document.activeElement,'#contractPreviewV55');return true;
       },
       seal:sealProtectedImport,
