@@ -450,7 +450,7 @@ test('operational endpoints report the V198 cloud mode', async () => {
   assert.equal(ops.capabilities.centralizedDataApi, true);
   assert.equal(release.version, 'V198');
   assert.equal(release.productVersion, 'V267');
-  assert.equal(release.releaseStage, 'production');
+  assert.equal(release.releaseStage, 'preview');
   assert.equal(release.ok, true);
 });
 

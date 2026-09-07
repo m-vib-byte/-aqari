@@ -1,0 +1,17 @@
+create index aqari_docs_workspace on public.aqari_documents(workspace_id,entity_ref);
+create index aqari_lease_tenant on public.aqari_leases(workspace_id,tenant_id);
+create index aqari_maintenance_lease on public.aqari_maintenance_requests(workspace_id,lease_id);
+create index aqari_maintenance_tenant on public.aqari_maintenance_requests(workspace_id,tenant_id,created_at desc);
+create index aqari_outbox_lease_period on public.aqari_notification_outbox(workspace_id,lease_id,period,kind,status);
+create index aqari_audit_workspace on public.aqari_operation_audit(workspace_id,created_at desc);
+create index aqari_payment_lease_period on public.aqari_rent_payments(workspace_id,lease_id,period);
+alter policy docs_staff_insert on public.aqari_documents with check(private.aqari_writer(workspace_id) and created_by=(select auth.uid()) and status='draft' and storage_path like workspace_id::text||'/%');
+alter policy maintenance_insert on public.aqari_maintenance_requests with check(created_by=(select auth.uid()) and status='received' and cost=0 and exists(select 1 from public.aqari_leases l where l.workspace_id=aqari_maintenance_requests.workspace_id and l.id=lease_id and l.tenant_id=aqari_maintenance_requests.tenant_id and l.status='signed' and current_date between l.start_date and l.end_date and (private.aqari_writer(l.workspace_id) or private.aqari_owns_tenant(l.workspace_id,l.tenant_id))));
+alter policy staff_read on public.aqari_tenants using(private.aqari_staff(workspace_id) or private.aqari_owns_tenant(workspace_id,id));
+drop policy tenant_self on public.aqari_tenants;
+alter policy staff_read on public.aqari_leases using(private.aqari_staff(workspace_id) or private.aqari_owns_tenant(workspace_id,tenant_id));
+drop policy tenant_lease on public.aqari_leases;
+alter policy staff_read on public.aqari_rent_payments using(private.aqari_staff(workspace_id) or exists(select 1 from public.aqari_leases l where l.id=lease_id and private.aqari_owns_tenant(l.workspace_id,l.tenant_id)));
+drop policy tenant_payment on public.aqari_rent_payments;
+alter policy docs_staff_read on public.aqari_documents using(private.aqari_staff(workspace_id) or (status='uploaded' and document_type='tenant_attachment' and exists(select 1 from public.aqari_tenants t where t.workspace_id=aqari_documents.workspace_id and t.external_ref=aqari_documents.entity_ref and private.aqari_owns_tenant(t.workspace_id,t.id))));
+drop policy tenant_document on public.aqari_documents;

@@ -167,8 +167,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "28bc288eed813742a65a7fc266d26b5e8e4592954432ef999eb12db567b5048d",
-      "size": 16880
+      "sha256": "5527509815a5009b2ba1b29721a3c6dac17b03fb3be14408880f88567398ecc6",
+      "size": 16911
     },
     {
       "path": "lib/read-only.js",
@@ -177,8 +177,8 @@
     },
     {
       "path": "lib/release-config.js",
-      "sha256": "b9e34c1bb152a9c76bf17e5c63380bfc0d8cc900aef6830f6dfaf227128e73a1",
-      "size": 2881
+      "sha256": "d2bd63f71855df3bcf96817733804cb9c8d903527d0b34f6d24c054cd4829e1a",
+      "size": 2878
     },
     {
       "path": "lib/supabase-probe.js",
@@ -237,8 +237,8 @@
     },
     {
       "path": "public-config.js",
-      "sha256": "1eb133ad88728acc879f5e0241502015206866d7c36bd03e06f5761e3162a292",
-      "size": 288
+      "sha256": "3518ffff1987524b61c92c4e5c14a7ce6242c272a1fef55c103bf95fdbfa9066",
+      "size": 363
     },
     {
       "path": "README_DEPLOY.md",
@@ -402,8 +402,8 @@
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
-      "sha256": "40489a9a1d6f169b62b95ec4a1979e7ab197d17def9f8c4699bd27f2b7d72f77",
-      "size": 24870
+      "sha256": "5d0e88f907936ac23f0591af4a08fa7a5e2fd443d44df70f938b610edf77804e",
+      "size": 24867
     },
     {
       "path": "tests/v202-property-os.test.cjs",
@@ -497,8 +497,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "sha256": "b57c23ccd7e8a2ce2d0a806e0b1cbaef80a14698cfe3f98444e333400fd197d2",
-      "size": 26373
+      "sha256": "964495f6a94e0c3c9965033834e9e8c75aa04c6f8f9f9c7794f7a2054d526873",
+      "size": 26776
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -807,8 +807,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "87ddec4f72e5fed973d692c815868fcac49a33a58d0de160114e6a28a6419baa",
-      "size": 18936
+      "sha256": "ff29e4d87744ede58df690d2a40615ae29507cccfca555f8360c4aa03b4c9147",
+      "size": 21275
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
@@ -822,8 +822,8 @@
     },
     {
       "path": "V267_RELEASE_STATUS.md",
-      "sha256": "fb8d722a70f8bcbadd10ea68776e9ee4da8b94061ec47169e01eab1efc6b65e5",
-      "size": 1333
+      "sha256": "09f3fdc35c808eeba8b78dc0477399f860b7844567a9d32e5bae6194d8312265",
+      "size": 1302
     },
     {
       "path": "api/rent-receipt.py",
@@ -867,18 +867,78 @@
     },
     {
       "path": "scripts/configure-v267-staging.mjs",
-      "size": 1922,
-      "sha256": "4d423dd06e7a740bd4d4361afed7e2415dc4e94d1536145db190eb93788dbfda"
+      "sha256": "9618e4b27022209885fa4eb47cff063b4270079d09bf1b52105bc4e4be3803ae",
+      "size": 1928
     },
     {
       "path": "tests/v267-migration-preflight.test.cjs",
-      "size": 4554,
-      "sha256": "29d57b4a3ac6dfd1844aa2eedbce527e41d4cf1bcd7e07db4d335b52e40b41b2"
+      "sha256": "2ae897b85e18cc1c54c338964e73a41b49bdd18b23d8a4465f86a9620fda1104",
+      "size": 4557
     },
     {
       "path": "V267_STAGING_ISOLATION.md",
       "size": 3984,
       "sha256": "497c4c913e978a923162e9696dade6c22c368cbb0ed70efdd0944a46fa51ce26"
+    },
+    {
+      "path": "tenant.html",
+      "sha256": "f335f4a07e1b402cc696b72abafa77b5abbdb4875c3be4ab97db10ad1613fe06",
+      "size": 2967
+    },
+    {
+      "path": "v267-signup.js",
+      "sha256": "5653df6da936aafaa74f330781d7ab84e49e42fae4442bd45b92a1cac9f7e09c",
+      "size": 1291
+    },
+    {
+      "path": "v267-tenant-portal.js",
+      "sha256": "f156dd3cf5b37a36c1175d19c821a050f36277a16f396ba34f0c8f4e4aedf17b",
+      "size": 5965
+    },
+    {
+      "path": "tests/v267-staging-isolation.test.cjs",
+      "sha256": "33fd6ed7900071faa2469a675ba6869c3726c5db7665495d30dce11721960592",
+      "size": 1471
+    },
+    {
+      "path": "V267_STAGING_SETUP.md",
+      "sha256": "639c9f0b710d6d9888a45428ef0fcffdf3e34cd3f014e4b04293e8d2600285e5",
+      "size": 6304
+    },
+    {
+      "path": "staging-database/tests/rental_transaction.sql",
+      "sha256": "2a0e9e6f442c9410b624f74a08f5cc1e6ac5e1900e90e8ed1965c10dff7a3d10",
+      "size": 5360
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260907084346_v267_projection_variable_fix.sql",
+      "sha256": "63af668c1150187b6aee5dce1816808186305fa7c9bfb480cb3d16e8a8f8a2f0",
+      "size": 10450
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260907084949_v267_tenant_portal_identity.sql",
+      "sha256": "2c6058eec7d2c8c71645d235493ff3b627a294df19ed3ed9d7adf6870d9562ab",
+      "size": 7155
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
+      "sha256": "4bcbbc5f191f63eaf9a2af82d0c9662ca41fde719ce810db984167f46984e19d",
+      "size": 16487
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260907085409_v267_staging_query_indexes.sql",
+      "sha256": "31545808bb3865599c918bf60dd165efbd83d41735dded5f1b3e44b24d473ae1",
+      "size": 2468
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260907084805_v267_staging_documents_health.sql",
+      "sha256": "3ad48a77f1af59cd2335653a94d13bb85a15817790a1d922882ec320416747f9",
+      "size": 5781
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260907083736_v267_isolated_core.sql",
+      "sha256": "a78cfb40fb7bbed0a778f154d297cff956493e5a580b7599c4f9de507bacb71e",
+      "size": 13034
     }
   ],
   "version": "V198"

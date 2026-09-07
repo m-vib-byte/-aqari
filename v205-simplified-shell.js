@@ -456,6 +456,7 @@
         if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return openChooser('payment',document.activeElement);
         if(typeof cur!=='undefined'&&cur==='tenants')return rentalRecords('openTenant');
         if(typeof cur!=='undefined'&&cur==='leases')return window.go?.('smartContractsPage');
+        if(typeof cur!=='undefined'&&['properties','employees','payroll','maintenance','expenses','services'].includes(cur))return rentalRecords('openRecord',cur);
         return legacyAdd.apply(this,arguments);
       };
       guardedAdd.__v267Payment=true;window.add=guardedAdd;
@@ -465,11 +466,12 @@
       if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return window.alert('الوصل المحفوظ لا يُعدّل مباشرة. راجع الدفعة من ملف العقار.');
       if(typeof cur!=='undefined'&&cur==='tenants')return rentalRecords('openTenant',index);
       if(typeof cur!=='undefined'&&cur==='leases')return window.go?.('smartContractsPage');
+      if(typeof cur!=='undefined'&&['properties','employees','payroll','maintenance','expenses','services'].includes(cur))return rentalRecords('openRecord',cur,index);
       return legacyEdit.apply(this,arguments);
     };
     const legacyDelete=window.del;
     if(typeof legacyDelete==='function')window.del=function(index){
-      if(typeof cur!=='undefined'&&['collections','collectionProPage','leases','tenants'].includes(cur))return window.alert('هذا السجل مرتبط بمستندات وعقود محفوظة. لا يمكن حذفه من القائمة العامة.');
+      if(typeof cur!=='undefined'&&['collections','collectionProPage','leases','tenants','properties','employees','payroll','maintenance','expenses','services'].includes(cur))return window.alert('هذا السجل مرتبط بمستندات وعقود محفوظة. لا يمكن حذفه من القائمة العامة.');
       return legacyDelete.apply(this,arguments);
     };
     const legacyContracts=window.localContractsV55;

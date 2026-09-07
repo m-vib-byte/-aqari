@@ -137,6 +137,33 @@ function openTenant(index){
  };
  modal.classList.add('on');return true;
 }
+const recordModules=new Set(['properties','employees','payroll','maintenance','expenses','services']);
+function openRecord(module,index){
+ if(!scope()||!recordModules.has(module)||typeof mods==='undefined'||!mods[module])return false;
+ const bound=scope(),existing=Number.isInteger(index)?copy(data()[module]?.[index]):null,labels=mods[module][1];
+ const modal=byId('modal');byId('mt').textContent=(existing?'تعديل ':'إضافة ')+mods[module][0];
+ byId('fields').innerHTML='<div class="v267-tenant-form">'+labels.map((label,i)=>'<label>'+esc(label)+'<input id="v267Record_'+i+'" value="'+esc(existing?.[i]||'')+'" autocomplete="off"></label>').join('')+'<p id="v267RecordStatus" role="status"></p></div>';
+ let saving=false;
+ byId('saveBtn').onclick=async()=>{
+  if(saving)return;saving=true;const button=byId('saveBtn'),status=byId('v267RecordStatus');button.disabled=true;
+  try{
+   if(!same(bound,scope()))fail('تغيرت جلسة الدخول.');
+   const row=labels.map((_,i)=>text(byId('v267Record_'+i).value));if(!row[0]||row.some(v=>v.length>2000))fail('أكمل بيانات السجل.');
+   status.textContent='جاري الحفظ والتحقق من السحابة…';
+   await store.change([module,'audit'],cloud=>{
+    const rows=cloud[module]||[];
+    if(existing&&!same(rows[index],existing))fail('تغير السجل؛ حدّث الصفحة.');
+    if(module==='properties'&&rows.some((r,i)=>i!==index&&key(r[0])===key(row[0])))fail('اسم العقار مسجل مسبقاً.');
+    if(module==='properties'&&existing&&existing[0]!==row[0])fail('اسم العقار مرتبط بسجلاته؛ تعديل الاسم يحتاج إجراء مخصص.');
+    const saved=existing?existing.map((v,i)=>i<row.length?row[i]:v):row;
+    if(existing)rows[index]=saved;else rows.push(saved);cloud[module]=rows;
+    cloud.audit=(cloud.audit||[]).concat([[bound.userId,existing?'تعديل سجل':'إضافة سجل',module,new Date().toISOString()]]);return {row:saved,index:existing?index:rows.length-1};
+   },(cloud,saved)=>same(cloud[module]?.[saved.index],saved.row));
+   modal.classList.remove('on');if(typeof render==='function')render();
+  }catch(e){status.textContent=e.message||'تعذر تأكيد الحفظ.'}finally{button.disabled=false;saving=false;}
+ };
+ modal.classList.add('on');return true;
+}
 async function saveLease(input){
  if(root.AQARI_V202?.canCreateContract(input.property)!==true)fail('هذا العقار غير متاح للكتابة في هذه المعاينة.');
  const keys=['contractsV202','tenantProfilesV267','tenantDirectoryV202','properties','leases','audit'];
@@ -171,5 +198,5 @@ async function status(id,next){
   const saved=await saveLease({...c,status:next});root.previewContractV55(saved);notice.textContent='تم حفظ حالة العقد والتحقق منها.';
  }catch(e){if(notice)notice.textContent=e.message;else window.alert(e.message)}
 }
-Object.assign(api,{openTenant,generate,status,saveLease,preview});
+Object.assign(api,{openTenant,openRecord,generate,status,saveLease,preview});
 })(typeof window!=='undefined'?window:globalThis);
