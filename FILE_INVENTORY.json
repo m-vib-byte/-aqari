@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "84f523bfdf8fde658b204ffe97653971552d5b3e39284de8eaab92fd0abafe69",
-      "size": 2956
+      "sha256": "5b2b8b67653a7beda21c3987e724245c3dff140a1e5e06b9c2e72e3919cd36d2",
+      "size": 2988
     },
     {
       "path": "api/autosync-status.js",
@@ -162,13 +162,13 @@
     },
     {
       "path": "index.html",
-      "sha256": "5d811a44aca4d8c92fe990f8a599038fdc1decda18a745f011886b4d639074d5",
-      "size": 1106243
+      "sha256": "aef1e64cbae08c42a58089387a870d2024c208c095455fd4fbfb23464972a6a8",
+      "size": 1115447
     },
     {
       "path": "login.html",
-      "sha256": "5527509815a5009b2ba1b29721a3c6dac17b03fb3be14408880f88567398ecc6",
-      "size": 16911
+      "sha256": "847b0f7c01f8c0b310a7afd7b36e60bf1f920f41a6452798cb7903b52cd73f91",
+      "size": 16602
     },
     {
       "path": "lib/read-only.js",
@@ -237,8 +237,8 @@
     },
     {
       "path": "public-config.js",
-      "sha256": "3518ffff1987524b61c92c4e5c14a7ce6242c272a1fef55c103bf95fdbfa9066",
-      "size": 363
+      "sha256": "6019d8b30217782812d5322ff9a971fd57710601699a494ebf3f84c76c12dbbe",
+      "size": 489
     },
     {
       "path": "README_DEPLOY.md",
@@ -362,8 +362,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "e573f46786331ec6fdb4de3d13b545e18a16b0f00bf4ddecfe9b27375beec9b8",
-      "size": 24070
+      "sha256": "47512fb2f38eb6245d85fb60de74fb460f6bdba6dfae53ca62a37d1d33c36ed6",
+      "size": 25098
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -497,8 +497,8 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "sha256": "f22e26c35b37d500e2e097885cf2f3e363b4f1cb260d5c7407987e19081d2d6e",
-      "size": 27461
+      "sha256": "de8597fcb6c175cbbcd3afe04a8ad3194dacfaadd14108285b5424c7b261e1fa",
+      "size": 27525
     },
     {
       "path": "v206-integrated-ledger.css",
@@ -867,8 +867,8 @@
     },
     {
       "path": "scripts/configure-v267-staging.mjs",
-      "sha256": "9618e4b27022209885fa4eb47cff063b4270079d09bf1b52105bc4e4be3803ae",
-      "size": 1928
+      "sha256": "18c37a9a241e77eeea55a128222ce6dfea7afda8b3604f60f7f6037c38acdb93",
+      "size": 2048
     },
     {
       "path": "tests/v267-migration-preflight.test.cjs",
@@ -887,13 +887,13 @@
     },
     {
       "path": "v267-signup.js",
-      "sha256": "5653df6da936aafaa74f330781d7ab84e49e42fae4442bd45b92a1cac9f7e09c",
-      "size": 1291
+      "sha256": "51f051b291973ac70537b402494fd9d3eb7df4c9cf3bbf880bafa8c894628369",
+      "size": 1308
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "54f8128bbf4367f8b97df457f571087e99291543eb06c6d96be2821cd7f7c1b3",
-      "size": 8320
+      "sha256": "4a08f2642fddc0e68bd3cbc34662cf8ff236c8ae71e27a0adbae7e4f67b7bb06",
+      "size": 8348
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -959,6 +959,11 @@
       "path": "v267-service-desk.js",
       "sha256": "0f601eeab0280ebe01cf6aaa46c8fc80a261d249fbd40716fd3bd3e19b666437",
       "size": 9217
+    },
+    {
+      "path": "tests/v267-auth-repair.test.cjs",
+      "size": 3560,
+      "sha256": "eb8024387783e746d72df90b9cd599993a7e39d8210e758caf2dd4cdc458e817"
     }
   ],
   "version": "V198"

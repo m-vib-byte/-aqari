@@ -28,8 +28,13 @@ button:disabled{cursor:wait;opacity:.58}.secondary{display:grid;grid-template-co
 .status.ready{background:#eef7f2;color:#196849}.status.bad{background:#fcf0f0;color:#9c3338}
 .note{margin:18px 0 0;color:var(--muted);font-size:13px;text-align:center}
 @media(max-width:460px){main{padding:24px 20px}.secondary{grid-template-columns:1fr}}
+/* Inline V267 login rules: no stylesheet request on the entry path. */
+@media screen {
+body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36px;box-shadow:0 16px 70px #65502008}body.v267-login-page .login-brand{border:0;margin-bottom:30px;padding:0}body.v267-login-page .login-monogram{display:grid;place-items:center;width:52px;height:52px;background:#f6efdf;border-radius:16px;font-size:32px!important}body.v267-login-page h1{font-size:30px;margin-bottom:12px}body.v267-login-page .subtitle{margin-bottom:30px}body.v267-login-page input{min-height:56px;border-radius:14px;background:#fff}body.v267-login-page button.primary{min-height:56px;border-radius:14px}body.v267-login-page .status{background:#faf6ec;color:#6b5735}@media(max-width:460px){body.v267-login-page{align-items:start;padding-top:max(36px,env(safe-area-inset-top))}body.v267-login-page main{padding:26px 22px}body.v267-login-page .secondary{grid-template-columns:1fr 1fr}body.v267-login-page .secondary button{font-size:12px;padding:8px;min-height:52px}}
+}
+
 </style>
-<link rel="stylesheet" href="/v267-unified.css?release=V267"></head>
+</head>
 <body class="v267-login-page">
   <main aria-labelledby="title">
   <div class="login-brand"><span class="login-monogram" aria-hidden="true">ع</span><span lang="en">AQARI V267</span></div><h1 id="title">أملاكك، بكل وضوح.</h1>
@@ -49,277 +54,277 @@ button:disabled{cursor:wait;opacity:.58}.secondary{display:grid;grid-template-co
   <div id="status" class="status ready" role="status" aria-live="polite">أدخل البريد وكلمة المرور. تجهيز الاتصال يتم في الخلفية.</div>
   <p class="note"><a href="/tenant.html">دخول المستأجر</a></p>
   </main>
-  <script>
-  (function(){
-  'use strict';
-  var SUPABASE_VERSION = '2.114.0';
-  var SAME_ORIGIN_LIBRARY = '/vendor/supabase-js-' + SUPABASE_VERSION + '.js';
-  var DIRECT_LIBRARY = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@' + SUPABASE_VERSION + '/dist/umd/supabase.min.js';
-  var SUPABASE_INTEGRITY = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
-  var RELEASE = 'V267';
-  var busy = false;
-  var preparing = false;
-  var corePromise = null;
-  var releaseResetPromise = null;
-  var restoreEpoch = 0;
-  var restoreFlight = null;
-  var manualEntry = /(?:^|[?&])manual=1(?:&|$)/.test(String(window.location.search || ''));
-  var form = document.getElementById('loginForm');
-  var email = document.getElementById('email');
-  var password = document.getElementById('password');
-  var loginButton = document.getElementById('loginButton');
-  var recoveryButton = document.getElementById('recoveryButton');
-  var retryButton = document.getElementById('retryButton');
-  var stagingSignupButton = document.getElementById('stagingSignupButton');
-  var status = document.getElementById('status');
-  function setStatus(message, kind){
-    status.textContent = message;
-    status.className = 'status' + (kind ? ' ' + kind : '');
-  }
-  function setControls(){
-    loginButton.disabled = busy;
-    recoveryButton.disabled = busy;
-    if(stagingSignupButton) stagingSignupButton.disabled = busy;
-    retryButton.disabled = busy || preparing;
-  }
-  function setBusy(value){
-    busy = Boolean(value);
-    setControls();
-  }
-  function setPreparing(value){
-    preparing = Boolean(value);
-    setControls();
-  }
-  function withTimeout(promise, milliseconds, stage){
-    return new Promise(function(resolve,reject){
-      var settled = false;
-      var timer = setTimeout(function(){
-        if(settled) return;
-        settled = true;
-        var error = new Error('انتهت مهلة ' + (stage || 'الاتصال'));
-        error.code = 'AQARI_TIMEOUT';
-        reject(error);
-      },milliseconds);
-      Promise.resolve(promise).then(function(value){
-        if(settled) return;
-        settled = true;
-        clearTimeout(timer);
-        resolve(value);
-      },function(error){
-        if(settled) return;
-        settled = true;
-        clearTimeout(timer);
-        reject(error);
-      });
-    });
-  }
-  function resetTimedOutCore(error){
-    if(!error || error.code !== 'AQARI_TIMEOUT') return;
-    try{ window.AQARI_SUPABASE && window.AQARI_SUPABASE.clearPersistedSession(); }catch(_error){}
-    corePromise = null;
-  }
-  function loadScript(src, id, milliseconds, integrity){
-    return new Promise(function(resolve,reject){
-      var previous = document.getElementById(id);
-      if(previous && previous.getAttribute('data-loaded') === 'true') return resolve(previous);
-      if(previous) previous.remove();
-      var script = document.createElement('script');
-      var settled = false;
-      var timer = setTimeout(function(){ finish(new Error('تعذر تحميل ' + src)); }, milliseconds);
-      function finish(error){
-        if(settled) return;
-        settled = true;
-        clearTimeout(timer);
-        script.onload = null;
-        script.onerror = null;
-        if(error){ script.remove(); reject(error); return; }
-        script.setAttribute('data-loaded','true');
-        resolve(script);
-      }
-      script.id = id;
-      script.src = src;
-      script.async = true;
-      if(integrity){
-        script.integrity = integrity;
-        script.crossOrigin = 'anonymous';
-      }
-      script.onload = function(){ finish(); };
-      script.onerror = function(){ finish(new Error('تعذر تحميل ' + src)); };
-      document.head.appendChild(script);
-    });
-  }
-  function retireLegacyReleaseState(){
-    if(releaseResetPromise) return releaseResetPromise;
-    var tasks = [];
-    try{
-      if('caches' in window){
-        tasks.push(window.caches.keys().then(function(keys){
-          return Promise.all(keys.map(function(key){ return window.caches.delete(key); }));
-        }));
-      }
-    }catch(_error){}
-    try{
-      if('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations){
-        tasks.push(navigator.serviceWorker.getRegistrations().then(function(registrations){
-          return Promise.all(registrations.map(function(registration){ return registration.unregister(); }));
-        }));
-      }
-    }catch(_error){}
-    releaseResetPromise = Promise.all(tasks).catch(function(){ return []; });
-    return releaseResetPromise;
-  }
-  function validContext(context){
-    var userId = String(context && context.user && context.user.id || '');
-    var workspaceId = String(context && context.workspace && context.workspace.id || '');
-    var membership = context && context.membership;
-    return Boolean(userId && workspaceId && membership && membership.is_active === true &&
-      String(membership.user_id || '') === userId &&
-      String(membership.workspace_id || '') === workspaceId);
-  }
-  function friendlyError(error){
-    var raw = String(error && error.message || error || 'خطأ غير معروف');
-    if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';
-    if(/email not confirmed/i.test(raw)) return 'أكد البريد الإلكتروني أولاً ثم حاول الدخول.';
-    if(/not authorized|membership|workspace|AQARI_ACCESS_DENIED/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';
-    if(/failed to fetch|network|load|مهلة|timeout/i.test(raw)) return 'تعذر الاتصال الآن. اضغط «إعادة محاولة الاتصال».';
-    return raw;
-  }
-  async function loadCore(forceDirect, reportStages){
-    if(!window.AQARI_PUBLIC_CONFIG){
-      if(reportStages) setStatus('تحميل إعدادات الدخول (1/4)…','');
-      await loadScript('/public-config.js','aqari-login-config',4000);
-    }
-    if(!window.supabase || !window.supabase.createClient){
-      if(reportStages) setStatus('تحميل مكتبة الدخول (2/4)…','');
-      if(forceDirect){
-        await loadScript(DIRECT_LIBRARY,'aqari-login-supabase-direct',8000,SUPABASE_INTEGRITY);
-      }else{
-        try{
-          await loadScript(SAME_ORIGIN_LIBRARY,'aqari-login-supabase-local',6000,SUPABASE_INTEGRITY);
-        }catch(_error){
-          if(reportStages) setStatus('تعذر المسار الأول؛ جاري تجربة الاتصال الاحتياطي…','');
-          await loadScript(DIRECT_LIBRARY,'aqari-login-supabase-direct',8000,SUPABASE_INTEGRITY);
-        }
-      }
-    }
-    if(!window.AQARI_SUPABASE){
-      if(reportStages) setStatus('تشغيل الاتصال الآمن (3/4)…','');
-      await loadScript('/supabase-adapter.js','aqari-login-adapter',4000);
-    }
-    if(!window.AQARI_SUPABASE || typeof window.AQARI_SUPABASE.getClient !== 'function'){
-      throw new Error('Supabase adapter unavailable');
-    }
-    if(reportStages) setStatus('تجهيز تسجيل الدخول (4/4)…','');
-    await withTimeout(window.AQARI_SUPABASE.getClient(),6000,'تجهيز محرك الدخول');
-    if(stagingSignupButton) stagingSignupButton.hidden = window.AQARI_PUBLIC_CONFIG?.releaseStage !== 'preview';
-    return window.AQARI_SUPABASE;
-  }
-  function ensureCore(forceDirect, reportStages){
-    if(!forceDirect && corePromise) return corePromise;
-    var pending = loadCore(Boolean(forceDirect),Boolean(reportStages)).catch(function(error){
-      if(corePromise === pending) corePromise = null;
-      throw error;
-    });
-    corePromise = pending;
-    return pending;
-  }
-  function warmCore(){
-    ensureCore(false,false).then(function(){
-      if(!busy && !preparing) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
-      return restoreExistingSession();
-    }).catch(function(){
-      if(!busy && !preparing) setStatus('أدخل بياناتك واضغط «دخول»؛ سنعيد الاتصال تلقائيًا.','ready');
-    });
-  }
-  function restoreExistingSession(){
-    if(manualEntry || busy || preparing || restoreFlight) return restoreFlight;
-    var epoch = restoreEpoch;
-    var pending = (async function(){
-      var session = await withTimeout(window.AQARI_SUPABASE.getSession(),10000,'استعادة الجلسة');
-      if(!session || busy || epoch !== restoreEpoch) return;
-      setStatus('جاري استعادة الجلسة وفتح الصفحة الرئيسية…','');
-      var context = await withTimeout(window.AQARI_SUPABASE.refreshContext(),20000,'التحقق من مساحة العمل');
-      if(busy || epoch !== restoreEpoch) return;
-      if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
-      window.location.replace('/app?release=' + encodeURIComponent(RELEASE));
-    })().catch(function(error){
-      if(!busy && epoch === restoreEpoch) setStatus(friendlyError(error),'bad');
-    }).finally(function(){ if(restoreFlight === pending) restoreFlight = null; });
-    restoreFlight = pending;
-    return pending;
-  }
-  async function prepare(forceDirect){
-    setPreparing(true);
-    setStatus(forceDirect ? 'جاري تجربة الاتصال الاحتياطي؛ الدخول متاح…' : 'جاري تجهيز الاتصال؛ الدخول متاح…','');
-    try{
-      await withTimeout(ensureCore(Boolean(forceDirect),true),18000,'إعادة تجهيز الاتصال');
-      if(!busy) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
-    }catch(error){
-      resetTimedOutCore(error);
-      if(!busy) setStatus(friendlyError(error),'bad');
-    }finally{
-      setPreparing(false);
-    }
-  }
-  form.addEventListener('submit',async function(event){
-    event.preventDefault();
-    if(busy) return;
-    restoreEpoch += 1;
-    var emailValue = String(email.value || '').trim().toLowerCase();
-    var passwordValue = password.value || '';
-    if(!emailValue || !passwordValue){ setStatus('أدخل البريد وكلمة المرور.','bad'); return; }
-    setBusy(true);
-    setStatus('جاري فتح الاتصال…','');
-    try{
-      await withTimeout(ensureCore(false,true),18000,'فتح الاتصال');
-      setStatus('جاري التحقق من الحساب والصلاحيات…','');
-      await withTimeout(window.AQARI_SUPABASE.signIn(emailValue,passwordValue),20000,'التحقق من الحساب');
-      var context = window.AQARI_SUPABASE.context;
-      if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
-      await withTimeout(retireLegacyReleaseState(),3000).catch(function(){});
-      password.value = '';
-      setStatus('تم الدخول؛ جاري فتح الإصدار ' + RELEASE + '…','ready');
-      window.location.replace('/app?release=' + encodeURIComponent(RELEASE));
-    }catch(error){
-      resetTimedOutCore(error);
-      password.value = '';
-      setStatus(friendlyError(error),'bad');
-    }finally{
-      setBusy(false);
-    }
-  });
-  recoveryButton.addEventListener('click',async function(){
-    if(busy) return;
-    var emailValue = String(email.value || '').trim().toLowerCase();
-    if(!emailValue){ setStatus('أدخل البريد الإلكتروني أولاً.','bad'); email.focus(); return; }
-    setBusy(true);
-    setStatus('جاري تجهيز استعادة كلمة المرور…','');
-    try{
-      await withTimeout(ensureCore(false,true),18000,'تجهيز استعادة كلمة المرور');
-      setStatus('جاري إرسال رابط الاستعادة…','');
-      await withTimeout(window.AQARI_SUPABASE.resetPasswordForEmail(emailValue,window.location.origin),15000,'إرسال رابط الاستعادة');
-      setStatus('إذا كان الحساب موجودًا فستصل رسالة استعادة كلمة المرور.','ready');
-    }catch(error){
-      resetTimedOutCore(error);
-      setStatus(friendlyError(error),'bad');
-    }finally{
-      setBusy(false);
-    }
-  });
-  stagingSignupButton?.addEventListener('click',async function(){
-    if(busy)return;restoreEpoch+=1;
-    try{var signup=await import('/v267-signup.js');await signup.openSignup({email,password,setStatus,setBusy,ensureCore,withTimeout,friendlyError});}
-    catch(error){setBusy(false);setStatus(friendlyError(error),'bad');}
-  });
-  retryButton.addEventListener('click',function(){ if(!busy && !preparing) prepare(true); });
-  window.addEventListener('online',function(){ if(!busy && !preparing) warmCore(); });
-  window.addEventListener('pageshow',function(event){
-    if(event.persisted) window.location.reload();
-  });
-  setControls();
-  retireLegacyReleaseState();
-  warmCore();
-  })();
-  </script>
+<script>
+(function(){
+'use strict';
+var SUPABASE_VERSION = '2.114.0';
+var SAME_ORIGIN_LIBRARY = '/vendor/supabase-js-' + SUPABASE_VERSION + '.js';
+var DIRECT_LIBRARY = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@' + SUPABASE_VERSION + '/dist/umd/supabase.min.js';
+var SUPABASE_INTEGRITY = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
+var RELEASE = 'V267';
+var busy = false;
+var preparing = false;
+var corePromise = null;
+var releaseResetPromise = null;
+var restoreEpoch = 0;
+var restoreFlight = null;
+var manualEntry = /(?:^|[?&])manual=1(?:&|$)/.test(String(window.location.search || ''));
+var form = document.getElementById('loginForm');
+var email = document.getElementById('email');
+var password = document.getElementById('password');
+var loginButton = document.getElementById('loginButton');
+var recoveryButton = document.getElementById('recoveryButton');
+var retryButton = document.getElementById('retryButton');
+var stagingSignupButton = document.getElementById('stagingSignupButton');
+var status = document.getElementById('status');
+function setStatus(message, kind){
+status.textContent = message;
+status.className = 'status' + (kind ? ' ' + kind : '');
+}
+function setControls(){
+loginButton.disabled = busy;
+recoveryButton.disabled = busy;
+if(stagingSignupButton) stagingSignupButton.disabled = busy;
+retryButton.disabled = busy || preparing;
+}
+function setBusy(value){
+busy = Boolean(value);
+setControls();
+}
+function setPreparing(value){
+preparing = Boolean(value);
+setControls();
+}
+function withTimeout(promise, milliseconds, stage){
+return new Promise(function(resolve,reject){
+var settled = false;
+var timer = setTimeout(function(){
+if(settled) return;
+settled = true;
+var error = new Error('انتهت مهلة ' + (stage || 'الاتصال'));
+error.code = 'AQARI_TIMEOUT';
+reject(error);
+},milliseconds);
+Promise.resolve(promise).then(function(value){
+if(settled) return;
+settled = true;
+clearTimeout(timer);
+resolve(value);
+},function(error){
+if(settled) return;
+settled = true;
+clearTimeout(timer);
+reject(error);
+});
+});
+}
+function resetTimedOutCore(error){
+if(!error || error.code !== 'AQARI_TIMEOUT') return;
+// A transport timeout does not invalidate a verified Supabase session.
+corePromise = null;
+}
+function loadScript(src, id, milliseconds, integrity){
+return new Promise(function(resolve,reject){
+var previous = document.getElementById(id);
+if(previous && previous.getAttribute('data-loaded') === 'true') return resolve(previous);
+if(previous) previous.remove();
+var script = document.createElement('script');
+var settled = false;
+var timer = setTimeout(function(){ finish(new Error('تعذر تحميل ' + src)); }, milliseconds);
+function finish(error){
+if(settled) return;
+settled = true;
+clearTimeout(timer);
+script.onload = null;
+script.onerror = null;
+if(error){ script.remove(); reject(error); return; }
+script.setAttribute('data-loaded','true');
+resolve(script);
+}
+script.id = id;
+script.src = src;
+script.async = true;
+if(integrity){
+script.integrity = integrity;
+script.crossOrigin = 'anonymous';
+}
+script.onload = function(){ finish(); };
+script.onerror = function(){ finish(new Error('تعذر تحميل ' + src)); };
+document.head.appendChild(script);
+});
+}
+function retireLegacyReleaseState(){
+if(releaseResetPromise) return releaseResetPromise;
+var tasks = [];
+try{
+if('caches' in window){
+tasks.push(window.caches.keys().then(function(keys){
+return Promise.all(keys.map(function(key){ return window.caches.delete(key); }));
+}));
+}
+}catch(_error){}
+try{
+if('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations){
+tasks.push(navigator.serviceWorker.getRegistrations().then(function(registrations){
+return Promise.all(registrations.map(function(registration){ return registration.unregister(); }));
+}));
+}
+}catch(_error){}
+releaseResetPromise = Promise.all(tasks).catch(function(){ return []; });
+return releaseResetPromise;
+}
+function validContext(context){
+var userId = String(context && context.user && context.user.id || '');
+var workspaceId = String(context && context.workspace && context.workspace.id || '');
+var membership = context && context.membership;
+return Boolean(userId && workspaceId && membership && membership.is_active === true &&
+String(membership.user_id || '') === userId &&
+String(membership.workspace_id || '') === workspaceId);
+}
+function friendlyError(error){
+var raw = String(error && error.message || error || 'خطأ غير معروف');
+if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';
+if(/email not confirmed/i.test(raw)) return 'أكد البريد الإلكتروني أولاً ثم حاول الدخول.';
+if(/not authorized|membership|workspace|AQARI_ACCESS_DENIED/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';
+if(/failed to fetch|network|load|مهلة|timeout/i.test(raw)) return 'تعذر الاتصال الآن. اضغط «إعادة محاولة الاتصال».';
+return raw;
+}
+async function loadCore(forceDirect, reportStages){
+if(!window.AQARI_PUBLIC_CONFIG){
+if(reportStages) setStatus('تحميل إعدادات الدخول (1/4)…','');
+await loadScript('/public-config.js','aqari-login-config',4000);
+}
+if(!window.supabase || !window.supabase.createClient){
+if(reportStages) setStatus('تحميل مكتبة الدخول (2/4)…','');
+if(forceDirect){
+await loadScript(DIRECT_LIBRARY,'aqari-login-supabase-direct',8000,SUPABASE_INTEGRITY);
+}else{
+try{
+await loadScript(SAME_ORIGIN_LIBRARY,'aqari-login-supabase-local',6000,SUPABASE_INTEGRITY);
+}catch(_error){
+if(reportStages) setStatus('تعذر المسار الأول؛ جاري تجربة الاتصال الاحتياطي…','');
+await loadScript(DIRECT_LIBRARY,'aqari-login-supabase-direct',8000,SUPABASE_INTEGRITY);
+}
+}
+}
+if(!window.AQARI_SUPABASE){
+if(reportStages) setStatus('تشغيل الاتصال الآمن (3/4)…','');
+await loadScript('/supabase-adapter.js','aqari-login-adapter',4000);
+}
+if(!window.AQARI_SUPABASE || typeof window.AQARI_SUPABASE.getClient !== 'function'){
+throw new Error('Supabase adapter unavailable');
+}
+if(reportStages) setStatus('تجهيز تسجيل الدخول (4/4)…','');
+await withTimeout(window.AQARI_SUPABASE.getClient(),6000,'تجهيز محرك الدخول');
+if(stagingSignupButton) stagingSignupButton.hidden = window.AQARI_PUBLIC_CONFIG?.releaseStage !== 'preview';
+return window.AQARI_SUPABASE;
+}
+function ensureCore(forceDirect, reportStages){
+if(!forceDirect && corePromise) return corePromise;
+var pending = loadCore(Boolean(forceDirect),Boolean(reportStages)).catch(function(error){
+if(corePromise === pending) corePromise = null;
+throw error;
+});
+corePromise = pending;
+return pending;
+}
+function warmCore(){
+ensureCore(false,false).then(function(){
+if(!busy && !preparing) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
+return restoreExistingSession();
+}).catch(function(){
+if(!busy && !preparing) setStatus('أدخل بياناتك واضغط «دخول»؛ سنعيد الاتصال تلقائيًا.','ready');
+});
+}
+function restoreExistingSession(){
+if(manualEntry || busy || preparing || restoreFlight) return restoreFlight;
+var epoch = restoreEpoch;
+var pending = (async function(){
+var session = await withTimeout(window.AQARI_SUPABASE.getSession(),10000,'استعادة الجلسة');
+if(!session || busy || epoch !== restoreEpoch) return;
+setStatus('جاري استعادة الجلسة وفتح الصفحة الرئيسية…','');
+var context = await withTimeout(window.AQARI_SUPABASE.refreshContext(),20000,'التحقق من مساحة العمل');
+if(busy || epoch !== restoreEpoch) return;
+if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
+window.location.replace('/app?release=' + encodeURIComponent(RELEASE));
+})().catch(function(error){
+if(!busy && epoch === restoreEpoch) setStatus(friendlyError(error),'bad');
+}).finally(function(){ if(restoreFlight === pending) restoreFlight = null; });
+restoreFlight = pending;
+return pending;
+}
+async function prepare(forceDirect){
+setPreparing(true);
+setStatus(forceDirect ? 'جاري تجربة الاتصال الاحتياطي؛ الدخول متاح…' : 'جاري تجهيز الاتصال؛ الدخول متاح…','');
+try{
+await withTimeout(ensureCore(Boolean(forceDirect),true),18000,'إعادة تجهيز الاتصال');
+if(!busy) setStatus('الاتصال جاهز. أدخل البريد وكلمة المرور.','ready');
+}catch(error){
+resetTimedOutCore(error);
+if(!busy) setStatus(friendlyError(error),'bad');
+}finally{
+setPreparing(false);
+}
+}
+form.addEventListener('submit',async function(event){
+event.preventDefault();
+if(busy) return;
+restoreEpoch += 1;
+var emailValue = String(email.value || '').trim().toLowerCase();
+var passwordValue = password.value || '';
+if(!emailValue || !passwordValue){ setStatus('أدخل البريد وكلمة المرور.','bad'); return; }
+setBusy(true);
+setStatus('جاري فتح الاتصال…','');
+try{
+await withTimeout(ensureCore(false,true),18000,'فتح الاتصال');
+setStatus('جاري التحقق من الحساب والصلاحيات…','');
+await withTimeout(window.AQARI_SUPABASE.signIn(emailValue,passwordValue),20000,'التحقق من الحساب');
+var context = window.AQARI_SUPABASE.context;
+if(!validContext(context)) throw new Error('Account is not authorized for an active AQARI workspace');
+await withTimeout(retireLegacyReleaseState(),3000).catch(function(){});
+password.value = '';
+setStatus('تم الدخول؛ جاري فتح الإصدار ' + RELEASE + '…','ready');
+window.location.replace('/app?release=' + encodeURIComponent(RELEASE));
+}catch(error){
+resetTimedOutCore(error);
+password.value = '';
+setStatus(friendlyError(error),'bad');
+}finally{
+setBusy(false);
+}
+});
+recoveryButton.addEventListener('click',async function(){
+if(busy) return;
+var emailValue = String(email.value || '').trim().toLowerCase();
+if(!emailValue){ setStatus('أدخل البريد الإلكتروني أولاً.','bad'); email.focus(); return; }
+setBusy(true);
+setStatus('جاري تجهيز استعادة كلمة المرور…','');
+try{
+await withTimeout(ensureCore(false,true),18000,'تجهيز استعادة كلمة المرور');
+setStatus('جاري إرسال رابط الاستعادة…','');
+await withTimeout(window.AQARI_SUPABASE.resetPasswordForEmail(emailValue),15000,'إرسال رابط الاستعادة');
+setStatus('إذا كان الحساب موجودًا فستصل رسالة استعادة كلمة المرور.','ready');
+}catch(error){
+resetTimedOutCore(error);
+setStatus(friendlyError(error),'bad');
+}finally{
+setBusy(false);
+}
+});
+stagingSignupButton?.addEventListener('click',async function(){
+if(busy)return;restoreEpoch+=1;
+try{var signup=await import('/v267-signup.js');await signup.openSignup({email,password,setStatus,setBusy,ensureCore,withTimeout,friendlyError});}
+catch(error){setBusy(false);setStatus(friendlyError(error),'bad');}
+});
+retryButton.addEventListener('click',function(){ if(!busy && !preparing) prepare(true); });
+window.addEventListener('online',function(){ if(!busy && !preparing) warmCore(); });
+window.addEventListener('pageshow',function(event){
+if(event.persisted) window.location.reload();
+});
+setControls();
+retireLegacyReleaseState();
+warmCore();
+})();
+</script>
 </body>
 </html>

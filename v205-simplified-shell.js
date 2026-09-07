@@ -476,7 +476,8 @@
     };
     const legacyContracts=window.localContractsV55;
     window.localContractsV55=function(){
-      const cloud=Array.isArray(appData().contractsV202)?appData().contractsV202.filter(c=>c.source==='v267-cloud'):[];
+      const data=typeof db!=='undefined'&&db&&typeof db==='object'?db:{};
+      const cloud=Array.isArray(data.contractsV202)?data.contractsV202.filter(c=>c.source==='v267-cloud'):[];
       const local=typeof legacyContracts==='function'?legacyContracts():[];
       return JSON.parse(JSON.stringify(cloud.concat(local.filter(c=>!cloud.some(x=>String(x.id)===String(c.id))))));
     };

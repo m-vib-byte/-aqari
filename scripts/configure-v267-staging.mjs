@@ -8,7 +8,7 @@ export function stageConfiguration({url,publishableKey},existing){
  if(!existing.includes("export const PRODUCT_VERSION = 'V267'"))throw Error('V267_ONLY');
  if((existing.match(/url: '[^']+'/g)||[]).length!==1||(existing.match(/publishableKey: '[^']+'/g)||[]).length!==1||(existing.match(/export const RELEASE_STAGE = '[^']+'/g)||[]).length!==1)throw Error('CONFIG_LAYOUT_CHANGED');
  let config=existing.replace(/url: '[^']+'/,`url: '${url.replace(/\/$/,'')}'`).replace(/publishableKey: '[^']+'/,`publishableKey: '${publishableKey}'`).replace(/export const RELEASE_STAGE = '[^']+'/,"export const RELEASE_STAGE = 'preview'");
- const browser='window.AQARI_PUBLIC_CONFIG = Object.freeze('+JSON.stringify({version:'V198',apiContractVersion:'V198',productVersion:'V267',releaseStage:'preview',supabaseUrl:url.replace(/\/$/,''),supabasePublishableKey:publishableKey,supabaseAuthStorageKey:'sb-'+match[1]+'-auth-token'},null,2)+');\n';
+ const browser='window.AQARI_PUBLIC_CONFIG = Object.freeze('+JSON.stringify({version:'V198',apiContractVersion:'V198',productVersion:'V267',releaseStage:'preview',supabaseAuthRedirectUrl:'https://aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app/login.html?release=V267',supabaseUrl:url.replace(/\/$/,''),supabasePublishableKey:publishableKey,supabaseAuthStorageKey:'sb-'+match[1]+'-auth-token'},null,2)+');\n';
  return {server:config,browser};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){

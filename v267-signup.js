@@ -6,7 +6,7 @@ export async function openSignup({email,password,setStatus,setBusy,ensureCore,wi
       try{
         await withTimeout(ensureCore(false,true),18000,'تجهيز الحساب');
         var client=await window.AQARI_SUPABASE.getClient();
-        var result=await withTimeout(client.auth.signUp({email:emailValue,password:passwordValue,options:{emailRedirectTo:window.location.origin}}),20000,'إنشاء الحساب');
+        var result=await withTimeout(client.auth.signUp({email:emailValue,password:passwordValue,options:{emailRedirectTo:window.AQARI_SUPABASE.authRedirectUrl()}}),20000,'إنشاء الحساب');
         if(result.error)throw result.error;
         setStatus('راجع بريدك لتأكيد حساب المعاينة، ثم ارجع إلى هذا الرابط وسجل الدخول. بيانات الموقع الرئيسي منفصلة.','ready');
       }catch(error){setStatus(friendlyError(error),'bad');}
