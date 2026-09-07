@@ -10486,6 +10486,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 </script>
 <script id="aqari-v131-royal-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   function safeCall(name){try{if(typeof window[name]==='function') return window[name]()}catch(e){console.warn(e)}}
   function buildRoyalHero(){
     try{
@@ -10517,6 +10519,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v132-diamond-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const money = v => {
     const n = Number(String(v ?? '').replace(/[^\d.-]/g,'')) || 0;
     return n;
@@ -10630,6 +10634,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v133-platinum-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const money=n=>{
     try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}
@@ -10766,6 +10772,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v134-signature-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const n=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const fmt=x=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(x)}catch(e){return String(Math.round(x))}}
@@ -10883,6 +10891,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v135-elite-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -10996,6 +11006,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v136-imperial-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -11121,6 +11133,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v137-supreme-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -11282,6 +11296,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v138-prestige-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -11413,6 +11429,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v139-sovereign-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
  const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
  const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
  const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -11466,6 +11484,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v140-royal-master-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -11667,6 +11687,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v141-black-gold-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
 
   function nav(id){
@@ -11919,6 +11941,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v142-executive-desk-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
 
@@ -12084,6 +12108,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v143-financial-command-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -12278,6 +12304,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v144-collection-intelligence-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -12473,6 +12501,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v145-smart-workspace-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -12707,6 +12737,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v146-contract-expiry-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
 
   function nav(id){
@@ -12903,6 +12935,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v147-maintenance-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
  const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
  function nav(id){try{if(typeof window.go==='function')return window.go(id);const el=document.getElementById(id);if(el){document.querySelectorAll('.p').forEach(x=>x.classList.remove('on'));el.classList.add('on');scrollTo({top:0,behavior:'smooth'})}}catch(e){}}
  function txt(r,i,...keys){for(const k of keys){if(r && r[k]!=null && String(r[k]).trim())return String(r[k])}return String(r?.[i]??'')}
@@ -12982,6 +13016,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v148-owner-property-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
  const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
  const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
  const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -13070,6 +13106,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v149-payroll-hr-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
  const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
  const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
  const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -13177,6 +13215,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v150-operations-hub-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -13412,6 +13452,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v151-governance-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
 
   function nav(id){
@@ -13568,6 +13610,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v152-communication-payment-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -13717,6 +13761,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v153-bank-close-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -13879,6 +13925,8 @@ const rv129=render;render=function(){rv129();renderNotificationRulesV129();refre
 
 <script id="aqari-v154-onboarding-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   function build(){
     const home=document.getElementById('home');
     if(!home)return;
@@ -14048,6 +14096,8 @@ ${link}
 
 <script id="aqari-v155-portals-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   function build(){
     const home=document.getElementById('home');
     if(!home)return;
@@ -14249,6 +14299,8 @@ ${currentLink}
 
 <script id="aqari-v156-handover-vault-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}
@@ -14477,6 +14529,8 @@ ${currentLink}
 
 <script id="aqari-v157-complete-control-js">
 (function(){
+  // V267 replaces these hidden legacy home panels; do not register their render hooks or timers.
+  if(document.querySelector('meta[name="aqari-release"]')?.content==='V267')return;
   const arr=k=>Array.isArray(window.db?.[k])?window.db[k]:[];
   const num=v=>Number(String(v??'').replace(/[^\d.-]/g,''))||0;
   const fmt=n=>{try{return new Intl.NumberFormat('ar-KW',{maximumFractionDigits:0}).format(n)}catch(e){return String(Math.round(n))}}

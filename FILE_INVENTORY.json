@@ -162,8 +162,8 @@
     },
     {
       "path": "index.html",
-      "size": 1101329,
-      "sha256": "b9367813981bd388c307d73a1ca374ccb42c810f42b183574e75913b678df109"
+      "size": 1106243,
+      "sha256": "5d811a44aca4d8c92fe990f8a599038fdc1decda18a745f011886b4d639074d5"
     },
     {
       "path": "login.html",
@@ -792,8 +792,13 @@
     },
     {
       "path": "V267_NAVIGATION_REPAIR_STATUS.md",
-      "sha256": "6744572c7f4f7a2080f3f8d3a8cee65542fbc0bd6c6301dd7b262075f58a1bd3",
-      "size": 1518
+      "sha256": "e6e839201f6590ef18707da751e5227fe125f395eea028b4744f9c2883343249",
+      "size": 2262
+    },
+    {
+      "path": "tests/v267-retired-home.test.cjs",
+      "sha256": "b7fe0e25a61cbe20f3ad468afd2287605d58f8e568d8b214c89c635dbde70568",
+      "size": 963
     }
   ],
   "version": "V198"
