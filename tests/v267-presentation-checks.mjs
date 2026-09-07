@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 // These checks belong to the verified synthetic workspace flow. A signed-out
 // Preview must not load the optional modules needed to render these controls.
-export async function checkV267AuthenticatedPresentation(page, { populated = false } = {}) {
+export async function checkV267AuthenticatedPresentation(page, { populated = false, artifactPath } = {}) {
   const desktop = page.viewportSize();
   try {
     await page.setViewportSize({ width:390, height:844 });
@@ -197,6 +197,24 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
     await page.keyboard.press('Escape');
     await page.waitForSelector('#modal.on', { state:'hidden' });
     await page.evaluate(() => window.go('home'));
+    for(const [route,target] of [['collectionProPage','collectionProPage'],['properties','list'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
+      await page.locator('.mobilebar [data-v199-go="'+route+'"]').click();
+      await page.waitForSelector('#'+target,{state:'visible'});
+      const bottomBar=await page.locator('.mobilebar').evaluate(node=>{
+        const rect=node.getBoundingClientRect();
+        return {position:getComputedStyle(node).position,bottom:rect.bottom,viewport:innerHeight};
+      });
+      assert.equal(bottomBar.position,'fixed','mobile navigation must stay fixed across sections');
+      assert.ok(Math.abs(bottomBar.bottom-bottomBar.viewport)<=1,'navigation must remain at the viewport bottom');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth+1),false,route+' must fit the iPhone viewport');
+    }
+    await page.locator('.mobilebar [data-v199-action="more"]').click();
+    await page.waitForSelector('#v199MoreMenu.on',{state:'visible'});
+    assert.ok(await page.locator('#v199MoreMenu [data-v199-go="tenants"]').isVisible(),'More must expose the tenant destination');
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('#v199MoreMenu.on',{state:'hidden'});
+    await page.waitForSelector('#v210DailyCommandCenter',{state:'visible'});
+    if(artifactPath)await page.screenshot({path:artifactPath});
   } finally {
     if (desktop) await page.setViewportSize(desktop);
   }

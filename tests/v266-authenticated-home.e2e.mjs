@@ -146,7 +146,7 @@ try{
             assert.ok(await page.locator('#'+target).isVisible(),'visible full-platform section: '+route);
           }
           assert.ok(await page.locator('#home').isVisible());
-          if(scenario==='empty'||scenario==='populated')await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated'});
+          if(scenario==='empty'||scenario==='populated')await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated',artifactPath:path.join(out,name+'-iphone-layout.png')});
         }
         assert.deepEqual(await page.evaluate(()=>window.__earlyAuthenticatedScripts),[], 'authenticated UI must wait for verified membership and BOTH workspace data scopes');
         const state=await page.evaluate(()=>({phase:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-phase'),stage:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),heartbeat:window.__homeHeartbeats}));

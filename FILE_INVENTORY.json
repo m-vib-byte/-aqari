@@ -617,8 +617,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "822a4101ebf73a6e1f8450b02df0482b64c3a0973cb942de5af74b5cfe4b284b",
-      "size": 13059
+      "size": 13113,
+      "sha256": "7e7ab8164fe4e0053ff806494fefac6084d15997ea75c31197e2343df032b4c8"
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
@@ -742,8 +742,8 @@
     },
     {
       "path": "tests/v267-presentation-checks.mjs",
-      "sha256": "9f7f9663ca98bf84fffa9389643a2c339aff3fbea6e830e2b18aabe04d5fe501",
-      "size": 12337
+      "size": 15803,
+      "sha256": "cbc3f84075f1b4036f21fe474d8f2cbe6eb500932c2761598c3c883741f1365d"
     },
     {
       "path": "tests/recovery.e2e.mjs",
@@ -822,8 +822,8 @@
     },
     {
       "path": "V267_RELEASE_STATUS.md",
-      "sha256": "a6a53b15972bcddb0658a15d71bddc4da8292f0b5ec2464598abbe8ddf4054fd",
-      "size": 1430
+      "size": 1880,
+      "sha256": "53ef829941434089f46ea26643f24ff132489db5baa0e49367ca5f2d768617ee"
     },
     {
       "path": "api/rent-receipt.py",
@@ -902,8 +902,8 @@
     },
     {
       "path": "V267_STAGING_SETUP.md",
-      "sha256": "1e6124dd6b40002c2d85297f1283e095143f815f9c558f81901c90b27b9d2d17",
-      "size": 12431
+      "size": 13383,
+      "sha256": "0be17b00e337d0fffb48d2086540de5bb6dba09a822d9e52d7b2add2271848b7"
     },
     {
       "path": "staging-database/tests/rental_transaction.sql",
@@ -964,6 +964,11 @@
       "path": "tests/v267-auth-repair.test.cjs",
       "size": 3560,
       "sha256": "89569511c70c4322395a63ed73f572f316a4b212d9c3aeab850bf04faedfe54f"
+    },
+    {
+      "path": "V267_AUTH_REPAIR_REPORT.md",
+      "sha256": "c07d58864593c806b182dc4ac154a8febd1a32c67d5da23e96438421797d6c53",
+      "size": 11766
     }
   ],
   "version": "V198"
