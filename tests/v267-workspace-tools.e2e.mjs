@@ -9,7 +9,7 @@ const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-22
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
 let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,calls=[],failingWrite=false;
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
-const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><div id="v199MoreMenu"></div><script type="module">'+
+const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
  'const uid='+JSON.stringify(uid)+',wid='+JSON.stringify(wid)+';'+
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://djkpkkgoibruaezdrchb.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
@@ -74,6 +74,8 @@ try{
     await dialog.getByRole('button',{name:'حفظ الإعدادات والتحقق',exact:true}).click();
     await page.getByText('تم الحفظ وإعادة القراءة وتسجيل التعديل.',{exact:true}).waitFor();
     assert.equal(revision,1);assert.equal(settings.sections.maintenance,false);assert.equal(audit.length,1);
+    assert.equal(await page.locator('#fixtureKpi').textContent(),'42','label changes preserve financial numbers');
+    assert.equal(await page.getByRole('button',{name:'إغلاق المزيد',exact:true}).count(),1,'close action stays distinct from navigation');
     await dialog.getByRole('button',{name:'إغلاق',exact:true}).click();
     await page.reload();await page.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();

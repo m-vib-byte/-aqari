@@ -4,7 +4,9 @@ import {LANGUAGES,ROUTES,label} from './components/catalog.js';
 let installed=false,access=null,locale='ar',loading=null,session,notice;
 function updateLabels(){
  if(!access)return;
- for(const el of document.querySelectorAll('[data-v199-go],[data-v205-route],[data-aq267-label],[data-v199-action="more"]')){
+ // Rename navigation only: dashboard action cards also carry routing attributes
+ // and their final span may be a financial number, not a label.
+ for(const el of document.querySelectorAll('.v199-nav-button[data-v199-go],.v199-bottom-button[data-v199-go],#v199MoreMenu .v199-menu-action[data-v199-go],[data-v205-section][data-v199-go],[data-aq267-label],.v199-bottom-button[data-v199-action="more"]')){
   const key=el.dataset.aq267Label||ROUTES[el.dataset.v199Go||el.dataset.v205Route]||(el.dataset.v199Action==='more'?'more':null);if(!key)continue;
   const text=label(key,locale,access.labels),span=el.querySelector(':scope > span:last-child');
   if(span&&!span.querySelector('svg'))span.textContent=text;
