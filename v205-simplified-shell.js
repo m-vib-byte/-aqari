@@ -508,6 +508,10 @@
         authenticated:isAuthenticated
       })
     });
+    import('/src/v267/workspace.js?release=V267').then(api=>api.install()).catch(function(){
+      const menu=document.getElementById('v199MoreMenu');
+      if(menu&&!document.getElementById('aq267-tools-error')){const message=document.createElement('p');message.id='aq267-tools-error';message.textContent='تعذر تحميل أدوات مساحة العمل. حدّث الصفحة لإعادة المحاولة.';menu.append(message);}
+    });
     setTimeout(scheduleEnhance,500);
   }
 

@@ -542,11 +542,12 @@
       ? requireExactAccess(state, expected)
       : await bindAccess(expectedAccess);
     const client = await getClient();
-    const { data, error } = await client
+    const query = boundAccess.role === 'general_manager' ? client
       .from('aqari_app_state')
       .select('workspace_id, payload, revision, updated_by, updated_at')
       .eq('workspace_id', boundAccess.workspaceId)
-      .maybeSingle();
+      .maybeSingle() : client.rpc('aqari_read_state_v267', { p_workspace_id:boundAccess.workspaceId });
+    const { data, error } = await query;
     if(error) throw error;
     if(data && data.workspace_id !== boundAccess.workspaceId) throw accessError('Cloud state workspace does not match authenticated access');
     await recheckBoundAccess(boundAccess);
@@ -557,6 +558,18 @@
     const boundAccess = await bindAccess(expectedAccess, { write:true });
     const current = await loadAppState(boundAccess);
     const expected = Number(expectedRevision);
+
+    if(boundAccess.role !== 'general_manager'){
+      if(!current || !Number.isInteger(expected) || expected !== Number(current.revision)) throw revisionConflict(current?.revision);
+      await recheckBoundAccess(boundAccess, { write:true });
+      const { data, error } = await state.client.rpc('aqari_save_state_v267', {
+        p_workspace_id:boundAccess.workspaceId, p_payload:payload, p_expected_revision:expected
+      });
+      if(error) throw error;
+      if(!data || data.workspace_id !== boundAccess.workspaceId) throw accessError();
+      await recheckBoundAccess(boundAccess, { write:true });
+      return data;
+    }
 
     if(current){
       const currentRevision = Number(current.revision);

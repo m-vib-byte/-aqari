@@ -19,9 +19,13 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: Real authenticated renderer with synthetic backend
         run: node tests/v266-authenticated-home.e2e.mjs
+      - name: V267 control and scanner flows with isolated synthetic backend
+        run: node tests/v267-workspace-tools.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: authenticated-home-results
-          path: test-results/authenticated-home
+          path: |
+            test-results/authenticated-home
+            test-results/v267-workspace-tools
           retention-days: 2

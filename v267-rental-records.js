@@ -96,7 +96,7 @@ async function upload(file,kind,tenantId,bound){
  if(!types.includes(file.type)||file.size<=0||file.size>25*1024*1024)fail('المرفق يجب أن يكون صورة أو PDF أو Word وألا يتجاوز ٢٥ ميجابايت.');
  const check=()=>{if(!same(bound,scope()))fail('تغيّرت جلسة الدخول أثناء الرفع.');};check();
  const client=await root.AQARI_SUPABASE.getClient();check();
- const reserved=await bounded(()=>client.rpc('aqari_reserve_document',{p_workspace_id:bound.workspaceId,p_document_type:'tenant_attachment',p_entity_type:'other',p_entity_ref:tenantId,p_title:kind,p_original_filename:file.name,p_mime_type:file.type,p_metadata:{release:'V267',tenantProfileId:tenantId,attachmentKind:kind}}));check();if(reserved.error)throw reserved.error;
+ const reserved=await bounded(()=>client.rpc('aqari_reserve_document',{p_workspace_id:bound.workspaceId,p_document_type:'tenant_attachment',p_entity_type:'tenant',p_entity_ref:tenantId,p_title:kind,p_original_filename:file.name,p_mime_type:file.type,p_metadata:{release:'V267',tenantProfileId:tenantId,attachmentKind:kind}}));check();if(reserved.error)throw reserved.error;
  const doc=Array.isArray(reserved.data)?reserved.data[0]:reserved.data;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path.startsWith(bound.workspaceId+'/'))fail('تعذر حجز المرفق.');
  const uploaded=await bounded(()=>client.storage.from(doc.storage_bucket).upload(doc.storage_path,file,{contentType:file.type,upsert:false}));check();if(uploaded.error)throw uploaded.error;
  const finalized=await bounded(()=>client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:file.size,p_mime_type:file.type}));check();if(finalized.error)throw finalized.error;
@@ -104,7 +104,7 @@ async function upload(file,kind,tenantId,bound){
 }
 function openTenant(index){
  if(!scope())return false;
- const row=Number.isInteger(index)?data().tenants?.[index]:null;
+ let row=Number.isInteger(index)?data().tenants?.[index]:null;
  const existing=(data().tenantProfilesV267||[]).find(p=>p.id===profileRef(row));
  const p=copy(existing||{id:crypto.randomUUID(),nameAr:row?.[0]||'',attachments:[]});
  const modal=byId('modal');byId('mt').textContent='ملف المستأجر • AQARI V267';
@@ -119,9 +119,7 @@ function openTenant(index){
    profile(p,data().tenantProfilesV267||[]);
    const uploads=attachmentKinds.flatMap(([kind])=>Array.from(byId('v267File_'+kind).files||[]).map(file=>({kind,file})));
    if(uploads.length>12)fail('يمكن رفع ١٢ مرفقاً في العملية الواحدة.');
-   status.textContent='جاري حفظ المرفقات والملف والتحقق منهما…';
-   for(const {kind,file}of uploads){if(uploadedFiles.has(file))continue;const attachment=await upload(file,kind,p.id,bound);p.attachments.push(attachment);uploadedFiles.set(file,attachment);}
-   for(const [kind]of attachmentKinds)byId('v267File_'+kind).value='';
+   status.textContent='جاري حفظ ملف المستأجر والتحقق منه قبل رفع المرفقات…';
    if(!same(bound,scope()))fail('تغيّرت جلسة الدخول. أعد فتح الملف.');
    await store.change(['tenants','tenantProfilesV267','tenantDirectoryV202','audit'],cloud=>{
     const profiles=cloud.tenantProfilesV267||[];const next=profile(p,profiles),at=profiles.findIndex(x=>x.id===p.id);
@@ -132,6 +130,15 @@ function openTenant(index){
     if(original){const updated=copy(original);updated[0]=next.nameAr;if(!updated[4])updated[4]=next.id;else if(profileRef(updated)!==next.id)updated.push({aqariTenantProfileV267:next.id});rows[index]=updated;}else rows.push([next.nameAr,'','','نشط',next.id]);cloud.tenants=rows;
     cloud.audit=(cloud.audit||[]).concat([['المدير','حفظ ملف مستأجر',next.id,new Date().toISOString()]]);return next;
    },(cloud,saved)=>(cloud.tenantProfilesV267||[]).some(x=>same(x,saved))&&(cloud.tenants||[]).some(x=>profileRef(x)===saved.id));
+   index=(data().tenants||[]).findIndex(x=>profileRef(x)===p.id);row=copy(data().tenants[index]);
+   status.textContent='تم حفظ المستأجر. جاري رفع المرفقات إلى ملفه المحفوظ…';
+   for(const {kind,file}of uploads){if(uploadedFiles.has(file))continue;const attachment=await upload(file,kind,p.id,bound);p.attachments.push(attachment);uploadedFiles.set(file,attachment);}
+   if(uploads.length)await store.change(['tenantProfilesV267'],cloud=>{
+    const saved=(cloud.tenantProfilesV267||[]).find(x=>x.id===p.id);if(!saved)fail('تعذر العثور على ملف المستأجر المحفوظ.');
+    const known=new Set((saved.attachments||[]).map(x=>x.id));
+    saved.attachments=(saved.attachments||[]).concat(p.attachments.filter(x=>!known.has(x.id)));return copy(saved);
+   },(cloud,saved)=>(cloud.tenantProfilesV267||[]).some(x=>same(x,saved)));
+   for(const [kind]of attachmentKinds)byId('v267File_'+kind).value='';
    modal.classList.remove('on');if(typeof render==='function')render();
   }catch(e){status.textContent=e.message||'تعذر حفظ ملف المستأجر.'}finally{button.disabled=false;saving=false}
  };
