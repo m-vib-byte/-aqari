@@ -440,10 +440,19 @@
     window.addEventListener('storage',scheduleEnhance);
     window.addEventListener('focus',scheduleEnhance);
     document.body.setAttribute('data-v205-ready','true');
+    const legacyAdd=window.add;
+    if(typeof legacyAdd==='function'&&!legacyAdd.__v267Payment){
+      const guardedAdd=function(){
+        if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return openChooser('payment',document.activeElement);
+        return legacyAdd.apply(this,arguments);
+      };
+      guardedAdd.__v267Payment=true;window.add=guardedAdd;
+    }
     window.AQARI_V205=Object.freeze({
       version:DESIGN,
       seal:function(){closeChooser(false)},
       refresh:scheduleEnhance,
+      startPayment:function(trigger){return openChooser('payment',trigger)},
       navigate:function(route){syncPrimaryNavigation(route);return window.go?.(route)},
       openProperty:function(name){return window.AQARI_V202?.openProperty(name)},
       testing:Object.freeze({

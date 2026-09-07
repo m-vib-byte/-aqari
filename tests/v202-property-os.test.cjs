@@ -70,6 +70,8 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
       savePayment,
+      commitPayment,
+      searchPaymentContracts,
       pickedRecord,
       protectedFields: PROTECTED_FIELDS,
       protectedPropertyActive,
@@ -1048,7 +1050,7 @@ test('V206.1 reserves voucher-only references when generating the next receipt n
   assert.equal(runtime.nextReceiptNumber(), `AQ-R-${year}-0002`);
 });
 
-test('V206.1 persists a canonical payment that survives a clean reload', () => {
+test('V267 confirms the canonical payment in cloud storage before exposing it locally and reloading', async () => {
   const data = fixture();
   const elements = {
     v202PaymentContract: { value: 'contract-a' },
@@ -1062,20 +1064,26 @@ test('V206.1 persists a canonical payment that survives a clean reload', () => {
     v202PaymentError: { textContent: '' },
   };
   let persisted = 0;
-  const writer = loadRuntime(data, [], activeRuntimeWindow(), {
+  let cloud=JSON.parse(JSON.stringify(data));
+  const runtimeWindow=activeRuntimeWindow();
+  runtimeWindow.AQARI_CLOUD_SYNC={decodeCloudPayload:payload=>({primary:payload})};
+  runtimeWindow.AQARI_SUPABASE.loadAppState=async()=>({payload:JSON.parse(JSON.stringify(cloud)),revision:1});
+  runtimeWindow.AQARI_SUPABASE.saveAppState=async(payload)=>{cloud=JSON.parse(JSON.stringify(payload));return {revision:2}};
+  const writer = loadRuntime(data, [], runtimeWindow, {
     elements,
     persist() { persisted += 1; },
   });
   writer.setActiveProperty('SYNTHETIC TEST PROPERTY');
 
-  assert.equal(writer.savePayment({ preventDefault() {} }), true);
+  assert.equal(await writer.savePayment({ preventDefault() {} }), true);
+  assert.ok(cloud.collections.some(row=>row[0]==='R-SAVE-RELOAD'));
   assert.equal(persisted, 1);
   const savedCollection = data.collections.find((row) => row[0] === 'R-SAVE-RELOAD');
   assert.ok(savedCollection);
   assert.equal(savedCollection.length, 10);
   assert.equal(savedCollection[2], 15);
 
-  const reader = loadRuntime(data, [], activeRuntimeWindow());
+  const reader = loadRuntime(JSON.parse(JSON.stringify(cloud)), [], activeRuntimeWindow());
   const context = reader.contextFor('SYNTHETIC TEST PROPERTY');
   const record = reader.unitDirectoryRecords(context, '2026-08').find((entry) => entry.contractId === 'contract-a');
   assert.equal(context.propertyLedger.some((entry) => entry.receiptNo === 'R-SAVE-RELOAD'), true);
@@ -3244,3 +3252,38 @@ test('executive daily collections use dated settled ledger entries within the au
  const signedOut=loadRuntime(fixture());
  assert.equal(signedOut.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-08-12'),null);
 });
+
+
+test('V267 payment search matches name, contract and localized exact apartment without accepting an expired or partial unit',()=>{
+ const runtime=loadRuntime(fixture(),[],activeRuntimeWindow());
+ const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+ assert.ok(runtime.searchPaymentContracts(context,'TEST TENANT').length>=2);
+ assert.ok(runtime.searchPaymentContracts(context,'DUPLICATE-TEST').length>=2);
+ assert.equal(runtime.searchPaymentContracts(context,'D').length,0);
+ const custom={propertyContracts:[{...context.propertyContracts.find(c=>c.id==='contract-a'),id:'unit14',contract_no:'R-14',tenant:'Ali',unit:'14'}]};
+ assert.equal(runtime.searchPaymentContracts(custom,'٤').length,0);
+ assert.equal(runtime.searchPaymentContracts(custom,'١٤')[0].id,'unit14');
+});
+
+for(const mode of ['reject','missing-readback','conflict','scope-change']){
+ test('V267 cloud payment '+mode+' cannot expose a successful local collection',async()=>{
+  const data=fixture(),error={textContent:''};let reads=0,saves=0;
+  let cloud=JSON.parse(JSON.stringify(data));const w=activeRuntimeWindow();
+  w.AQARI_CLOUD_SYNC={decodeCloudPayload:payload=>({primary:payload})};
+  w.AQARI_SUPABASE.loadAppState=async()=>{
+   reads++;if(mode==='scope-change')w.AQARI_SUPABASE.context=null;
+   const payload=JSON.parse(JSON.stringify(cloud));
+   if(mode==='conflict')payload.collections.push(['other-device']);
+   return {payload,revision:4};
+  };
+  w.AQARI_SUPABASE.saveAppState=async(payload,revision)=>{saves++;assert.equal(revision,4);if(mode==='reject')throw Error('network');if(mode!=='missing-readback')cloud=JSON.parse(JSON.stringify(payload));};
+  const runtime=loadRuntime(data,[],w,{elements:{v202PaymentError:error},persist(){assert.fail('must not publish unconfirmed data')}});
+  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const before=JSON.stringify(data);
+  const record=['VERIFY','TEST TENANT',10,'مدفوع','SYNTHETIC TEST PROPERTY','2026-08-28','A','','2026-08','KNET'];
+  const ledger={receiptNo:'VERIFY',contractId:'contract-a',period:'2026-08'};
+  assert.equal(await runtime.commitPayment(record,ledger),false);
+  assert.equal(JSON.stringify(data),before);
+  assert.equal(saves,['conflict','scope-change'].includes(mode)?0:1);
+ });
+}

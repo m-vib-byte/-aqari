@@ -2294,6 +2294,32 @@
     return context.propertyContracts.filter(function(contract){return signedContract(contract)&&statementIncludesContract(contract,currentPeriod())});
   }
 
+  function paymentSearchKey(value){
+    return String(value||'').normalize('NFKC').replace(/[٠-٩]/g,c=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(c))).replace(/[۰-۹]/g,c=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c))).trim().toLocaleLowerCase('ar');
+  }
+  function searchPaymentContracts(context,query){
+    const available=paymentContracts(context),key=paymentSearchKey(query);
+    if(!key)return available;
+    const exactUnit=available.filter(c=>paymentSearchKey(c.unit)===key);
+    if(context.propertyContracts.some(c=>paymentSearchKey(c.unit)===key))return exactUnit;
+    if(/^\d+$/.test(key))return available.filter(c=>paymentSearchKey(c.contract_no)===key);
+    return available.filter(c=>[c.tenant,c.contract_no,contractId(c),c.unit].some(v=>paymentSearchKey(v).includes(key)));
+  }
+  function updatePaymentSearch(){
+    if(paymentSaving)return;
+    const context=contextFor(activeProperty),select=document.getElementById('v202PaymentContract');
+    if(!context||!select)return;
+    const query=document.getElementById('v267PaymentSearch')?.value||'';
+    const matches=searchPaymentContracts(context,query),old=select.value;
+    select.innerHTML='<option value="">اختر العقد والوحدة</option>'+matches.map(c=>'<option value="'+escapeHtml(contractId(c))+'">'+escapeHtml(c.tenant)+' — '+escapeHtml(c.unit)+' — '+escapeHtml(c.contract_no||contractId(c))+'</option>').join('');
+    select.value=matches.length===1?contractId(matches[0]):matches.some(c=>contractId(c)===old)?old:'';
+    const amount=document.getElementById('v202PaymentAmount');if(amount)amount.value='';
+    updatePaymentBalance();
+    const details=document.getElementById('v267PaymentContractDetails');
+    if(details&&!matches.length)details.textContent='لا يوجد عقد فعال لهذه الوحدة';
+    else if(details&&!select.value)details.textContent='توجد عدة عقود مطابقة. اختر العقد الصحيح من القائمة.';
+  }
+
   function selectedPaymentContract(){
     const selected=document.getElementById('v202PaymentContract')?.value||'';
     const context=contextFor(activeProperty);
@@ -2389,6 +2415,8 @@
       (!available.length?'<div class="v202-inline-note is-warning">'+icon('alert')+' لا يوجد عقد موقّع سارٍ مع مستأجر ووحدة محددين. أكمل العقد أولاً.</div>':'')+
       '<form class="v202-form" id="v202PaymentForm">'+
         '<label><span>العقار</span><input value="'+escapeHtml(activeProperty)+'" disabled></label>'+ 
+        '<label class="v202-form-wide"><span>ابحث بالاسم أو رقم العقد أو رقم الشقة</span><input id="v267PaymentSearch" type="search" autocomplete="off" placeholder="اسم المستأجر أو رقم العقد أو الشقة"></label>'+
+        '<div id="v267PaymentContractDetails" class="v202-form-wide" role="status"></div>'+
         '<label><span>العقد / الوحدة</span><select id="v202PaymentContract" required '+(available.length?'':'disabled')+'><option value="">اختر العقد والوحدة</option>'+available.map(function(contract){const id=contractId(contract);return '<option value="'+escapeHtml(id)+'" '+(String(id)===String(preferredContractId||'')?'selected':'')+'>'+escapeHtml(contract.tenant)+' — '+escapeHtml(contract.unit)+' — '+escapeHtml(contract.contract_no||id)+'</option>'}).join('')+'</select></label>'+ 
         '<label><span>رقم الوصل</span><input id="v202PaymentNumber" value="'+nextReceiptNumber()+'" required></label>'+ 
         '<label><span>المبلغ (د.ك)</span><input id="v202PaymentAmount" inputmode="decimal" autocomplete="off" placeholder="0.000" required></label>'+ 
@@ -2399,7 +2427,7 @@
         '<label class="v202-form-wide"><span>ملاحظة اختيارية</span><input id="v202PaymentNote" placeholder="مثال: إيجار شهر سبتمبر"></label>'+ 
         '<div class="v202-payment-balance v202-form-wide" id="v202PaymentBalance" aria-live="polite">اختر العقد والوحدة لحساب المتبقي.</div>'+ 
         '<div class="v202-form-error" id="v202PaymentError" role="alert" aria-live="polite"></div>'+ 
-        '<div class="v202-form-actions"><button type="button" data-v202-payment-close>إلغاء</button><button type="submit" class="is-primary">حفظ وإصدار الوصل '+icon('arrow')+'</button></div>'+ 
+        '<div class="v202-form-actions"><button type="button" data-v202-payment-close>إلغاء</button><button id="v267PaymentSubmit" type="submit" class="is-primary" disabled>حفظ وإصدار الوصل '+icon('arrow')+'</button></div>'+
       '</form>'+ 
     '</section>';
   }
@@ -2448,6 +2476,9 @@
   function updatePaymentBalance(){
     const contract=selectedPaymentContract();
     const period=document.getElementById('v202PaymentPeriod')?.value||currentPeriod();
+    const submit=document.getElementById('v267PaymentSubmit');if(submit)submit.disabled=paymentSaving||paymentNeedsReload||!contract;
+    const details=document.getElementById('v267PaymentContractDetails');
+    if(details)details.textContent=contract?'المستأجر: '+contract.tenant+' • العقار: '+activeProperty+' • الشقة: '+contract.unit+' • العقد: '+(contract.contract_no||contractId(contract)):(document.getElementById('v267PaymentSearch')?.value?'لا يوجد عقد فعال لهذه الوحدة أو لا توجد نتيجة محددة. اختر عقداً من النتائج عند تعددها.':'اختر عقداً فعالاً قبل إصدار الإيصال.');
     const due=contractRent(contract);
     const paid=contract?paidForPeriod(activeProperty,contract,period):0;
     const remaining=due>0?exactMoneyDifference(due,paid):0;
@@ -2467,6 +2498,7 @@
 
   function savePayment(event){
     event.preventDefault();
+    if(paymentSaving||paymentNeedsReload)return false;
     const error=document.getElementById('v202PaymentError');
     if(!protectedAccessReady()||!rentWriteAllowed()){
       if(error)error.textContent='ليست لديك صلاحية تسجيل دفعة إيجار.';
@@ -2521,38 +2553,74 @@
     }
     const finalStatus=status==='قيد المراجعة'?status:(amount<balance?'جزئي':'مدفوع');
     const record=[receipt,tenant,amount,finalStatus,activeProperty,date,contract.unit,note,period,method];
-    const data=appData();
-    const previous={};
-    ['collections','rentLedgerV202','audit'].forEach(function(key){
-      previous[key]={owned:Object.prototype.hasOwnProperty.call(data,key),value:data[key]};
-    });
+
     const ledgerEntry={
       id:'rent-'+receipt,receiptNo:receipt,property:activeProperty,unit:contract.unit,tenant,
       contractId:contractId(contract),contractNo:contract.contract_no||'',period,due,paid:amount,
       balance:settledPayment(finalStatus)?exactMoneyDifference(balance,amount):balance,paidAt:date,
       method,status:finalStatus,note,source:'v202-entry',paymentKey:paymentKey(activeProperty,contract,contract.unit,period)
     };
-    try{
-      data.collections=(Array.isArray(previous.collections.value)?previous.collections.value:[]).concat([record]);
-      data.rentLedgerV202=(Array.isArray(previous.rentLedgerV202.value)?previous.rentLedgerV202.value:[]).concat([ledgerEntry]);
-      data.audit=(Array.isArray(previous.audit.value)?previous.audit.value:[]).concat([['المدير','تسجيل إيجار',activeProperty,'تم']]);
-      if(typeof persist!=='function')throw new Error('persist unavailable');
-      persist();
-    }catch(_){
-      Object.keys(previous).forEach(function(key){
-        try{if(previous[key].owned)data[key]=previous[key].value;else delete data[key]}catch(_){ }
-      });
-      try{localStorage.setItem('aqari_v30',JSON.stringify(data))}catch(_){ }
-      if(error)error.textContent='تعذر حفظ الدفعة. لم يصدر وصل، ولم تتغير الأرقام. حاول مرة أخرى.';
-      return false;
-    }
-    try{if(typeof render==='function')render()}catch(_){ }
-    const returnTrigger=paymentTrigger;
-    closePayment(false);
-    renderWorkspace();
-    if(collectionReceiptEligible(record))openReceiptDocument(record,returnTrigger);
-    return true;
+    return commitPayment(record,ledgerEntry);
   }
+
+  let paymentSaving=false;
+  let paymentNeedsReload=false;
+  async function paymentCloudOperation(operation){
+    let timer;
+    try{return await Promise.race([operation(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('انتهت مهلة الاتصال بالسحابة.')),20000)})])}
+    finally{clearTimeout(timer)}
+  }
+  async function commitPayment(record,ledgerEntry){
+    if(paymentSaving||paymentNeedsReload)return false;
+    const scope=activeAccessScope(),name=activeProperty,data=appData();
+    const error=document.getElementById('v202PaymentError');
+    const form=document.getElementById('v202PaymentForm');
+    const controls=Array.from(form?.querySelectorAll('input,select,button')||[]).map(node=>[node,node.disabled]);
+    const current=()=>protectedAccessReady()&&rentWriteAllowed()&&sameAccessScope(scope,activeAccessScope())&&activeProperty===name&&!protectedPropertyActive(name);
+    let submitted=false;
+    paymentSaving=true;controls.forEach(([node])=>node.disabled=true);
+    if(error)error.textContent='جاري الحفظ في السحابة والتحقق من السجل…';
+    try{
+      if(!current()||!window.AQARI_SUPABASE?.saveAppState||!window.AQARI_CLOUD_SYNC?.decodeCloudPayload)throw new Error('تعذر الوصول إلى الحفظ السحابي. لم يتم إصدار إيصال.');
+      const cloud=await paymentCloudOperation(()=>window.AQARI_SUPABASE.loadAppState(scope));
+      if(!current())return false;
+      const payload=JSON.parse(JSON.stringify(cloud?.payload||{}));
+      const primary=window.AQARI_CLOUD_SYNC.decodeCloudPayload(payload)?.primary;
+      if(!primary)throw new Error('تعذرت قراءة بيانات مساحة العمل.');
+      // Compare before appending: never overwrite collections added from another device.
+      for(const key of ['collections','rentLedgerV202','contractsV202']){
+        if(JSON.stringify(primary[key]||[])!==JSON.stringify(data[key]||[]))throw new Error('تغيّرت البيانات أو توجد تعديلات محلية غير محفوظة. حدّث الصفحة قبل تسجيل التحصيل.');
+      }
+      const cloudContract=(primary.contractsV202||[]).map((c,i)=>normalizeContract(c,'db-v202',i)).find(c=>c&&contractId(c)===ledgerEntry.contractId);
+      if(!cloudContract||!signedContract(cloudContract)||!contractCoversPeriod(cloudContract,ledgerEntry.period)||normalizedIdentity(cloudContract.property)!==normalizedIdentity(name))throw new Error('العقد غير محفوظ كعقد فعال في السحابة. احفظ العقد أولاً.');
+      primary.collections=(primary.collections||[]).concat([record]);
+      primary.rentLedgerV202=(primary.rentLedgerV202||[]).concat([ledgerEntry]);
+      primary.audit=(primary.audit||[]).concat([['المدير','تسجيل إيجار',name,'تم']]);
+      submitted=true;
+      await paymentCloudOperation(()=>window.AQARI_SUPABASE.saveAppState(payload,Number(cloud?.revision||0),scope));
+      if(!current())return false;
+      const verified=await paymentCloudOperation(()=>window.AQARI_SUPABASE.loadAppState(scope));
+      if(!current())return false;
+      const confirmed=window.AQARI_CLOUD_SYNC.decodeCloudPayload(verified?.payload)?.primary;
+      if(!confirmed?.collections?.some(row=>JSON.stringify(row)===JSON.stringify(record))||!confirmed?.rentLedgerV202?.some(row=>JSON.stringify(row)===JSON.stringify(ledgerEntry)))throw new Error('لم تؤكد إعادة القراءة وجود التحصيل.');
+      // Only publish confirmed server records locally. A local-cache failure must not undo a server payment.
+      for(const key of ['collections','rentLedgerV202','audit'])data[key]=confirmed[key];
+      try{if(typeof persist==='function')persist()}catch(_){ }
+      const returnTrigger=paymentTrigger;
+      activePropertyPeriod=ledgerEntry.period;activeTab='collections';
+      closePayment(false);renderWorkspace();
+      if(collectionReceiptEligible(record))openReceiptDocument(record,returnTrigger);
+      return true;
+    }catch(cause){
+      if(submitted)paymentNeedsReload=true;
+      if(current()&&error)error.textContent=submitted?'لم يكتمل تأكيد الحفظ. قد تكون الدفعة وصلت؛ حدّث الصفحة وابحث برقم الوصل '+record[0]+' قبل إعادة تسجيلها.':String(cause.message||'تعذر الحفظ السحابي. لم يصدر إيصال.');
+      return false;
+    }finally{
+      paymentSaving=false;controls.forEach(([node,disabled])=>node.disabled=disabled);
+      if(paymentNeedsReload){const submit=document.getElementById('v267PaymentSubmit');if(submit)submit.disabled=true;}
+    }
+  }
+
 
   function receiptDocument(record){
     const property=String(record?.[4]||activeProperty||'');
@@ -3590,6 +3658,7 @@
     document.addEventListener('input',function(event){
       const target=event.target instanceof HTMLInputElement?event.target:null;
       if(target?.id==='v202UnitSearch')filterUnitCards(target.value);
+      if(target?.id==='v267PaymentSearch')updatePaymentSearch();
     },true);
 
     document.addEventListener('toggle',function(event){

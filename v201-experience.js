@@ -308,6 +308,10 @@
   function startCreate(target){
     const origin=createTrigger;
     closeCreate(false);
+    if(target==='collections'){
+      if(typeof window.AQARI_V205?.startPayment==='function')return window.AQARI_V205.startPayment(origin);
+      return window.go?.('collectionProPage');
+    }
     if(typeof window.go==='function')window.go(target);
     setTimeout(function(){
       modalTrigger=origin instanceof HTMLElement?origin:document.activeElement;
