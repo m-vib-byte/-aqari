@@ -1822,10 +1822,108 @@
         '<button type="button" id="v202TabUnits" role="tab" aria-controls="v202Panel" data-v202-tab="units">الوحدات <span>'+unitDirectoryRecords(context,activePropertyPeriod||latestOfficialPeriod(activeProperty)).length+'</span></button>'+ 
         '<button type="button" id="v202TabContracts" role="tab" aria-controls="v202Panel" data-v202-tab="contracts">العقود <span>'+context.propertyContracts.length+'</span></button>'+ 
         '<button type="button" id="v202TabCollections" role="tab" aria-controls="v202Panel" data-v202-tab="collections">التحصيل <span>'+context.propertyCollections.length+'</span></button>'+ 
+        '<button type="button" id="v202TabPartners" role="tab" aria-controls="v202Panel" data-v202-tab="partners">الشركاء والحصص</button>'+
         '<button type="button" id="v202TabExpenses" role="tab" aria-controls="v202Panel" data-v202-tab="expenses">المصروفات <span>'+context.expenses.length+'</span></button>'+ 
       '</div>'+ 
       '<div class="v202-panel" id="v202Panel" role="tabpanel" tabindex="0"></div>'+ 
     '</section>';
+  }
+
+  function partnersPanel(context){
+    const name=activeProperty,scope=activeAccessScope();
+    const panel=document.getElementById('v202Panel');
+    panel.innerHTML='<section class="v267-partners"><h3>الشركاء والحصص</h3><p role="status">جاري قراءة سجل الشركاء من السحابة…</p></section>';
+    const valid=()=>protectedAccessReady()&&sameAccessScope(scope,activeAccessScope())&&activeProperty===name&&activeTab==='partners'&&panel.isConnected;
+    let state=null,busy=false;
+    const E=window.AQARI_SHARES;
+    if(!E){
+      let script=document.getElementById('v267PartnersEngine');
+      if(!script){script=document.createElement('script');script.id='v267PartnersEngine';script.src='/v267-partners.js?release=V267';document.head.appendChild(script)}
+      script.addEventListener('load',()=>{if(valid())partnersPanel(context)},{once:true});
+      script.addEventListener('error',()=>{if(valid())panel.innerHTML='<p role="alert">تعذر تحميل الحصص. حدّث الصفحة وحاول مرة أخرى.</p>'},{once:true});
+      return;
+    }
+    const key=propertyKey(name);
+    function stateFrom(cloud){
+      const primary=window.AQARI_CLOUD_SYNC.decodeCloudPayload(cloud?.payload)?.primary;
+      if(!primary)throw new Error('تعذر قراءة بيانات مساحة العمل.');
+      return {primary,state:primary.propertySharesV267?.[key]||E.empty()};
+    }
+    function currentBasis(){
+      const c=contextFor(name);
+      if(!c)throw new Error('تعذر قراءة الحساب المالي للعقار.');
+      const income=exactMoneySum(c.settledCollections.map(r=>r?.[2]),strictCollectionMoney);
+      return {income:E.scaled(income.toFixed(3),3),expenses:E.scaled(c.expenseTotal.toFixed(3),3),due:E.scaled(Math.max(0,c.due).toFixed(3),3)};
+    }
+    const cash=n=>money(n/1000);
+    const escape=escapeHtml;
+    function render(){
+      if(!valid())return;
+      const manager=window.AQARI_SUPABASE.context.membership.role==='general_manager';
+      const list=state.owners.length?state.owners:[{id:crypto.randomUUID(),name:'',role:'مالك',bps:10000}];
+      const historical=new Map(state.owners.map(r=>[r.id,r]));
+      state.events.forEach(e=>{(e.rows||e.after||[]).forEach(r=>{if(!historical.has(r.id))historical.set(r.id,r)})});
+      const basis=currentBasis();
+      const completeBasis=!protectedPropertyActive(name);
+      let preview='';
+      if(state.enabled&&completeBasis){
+        try{
+          const draft=E.transition(state,{type:'distribution',basis},scope.userId,new Date().toISOString(),'preview');
+          preview='<details open><summary>معاينة التوزيع الجديد</summary>'+draft.events.at(-1).rows.map(r=>'<article class="v267-share-event"><b>'+escape(r.name)+'</b><p>إيرادات: '+cash(r.income)+' · مصروفات: '+cash(r.expenses)+' · صافي: '+cash(r.net)+'</p></article>').join('')+'</details>';
+        }catch(_){preview='<p>لا توجد مبالغ جديدة للتوزيع.</p>'}
+      }
+      panel.innerHTML='<section class="v267-partners"><header><div><p>AQARI V267</p><h3>الشركاء والحصص</h3><p>اختياري للعقارات المشتركة وعقارات الورثة.</p></div><span>'+ (state.enabled?'مفعّل':'غير مفعّل')+'</span></header>'+
+      '<details '+(!state.enabled?'open':'')+'><summary>إعداد الشركاء والنسب</summary><form id="v267OwnersForm"><div id="v267OwnersRows">'+list.map(r=>ownerRow(r)).join('')+'</div>'+
+      (manager?'<button type="button" data-partners-add>إضافة مالك أو وارث</button><button type="submit">حفظ وتفعيل الحصص</button><button type="button" data-partners-disable>إيقاف التوزيع الجديد</button>':'<p>تعديل الحصص متاح للمدير العام.</p>')+'</form></details>'+
+      '<div class="v267-shares-summary"><article><span>إيرادات محصلة مسجلة</span><strong>'+cash(basis.income)+'</strong></article><article><span>مصروفات مسجلة</span><strong>'+cash(basis.expenses)+'</strong></article><article><span>الصافي النقدي</span><strong>'+cash(basis.income-basis.expenses)+'</strong></article></div>'+
+      '<p>التوزيع تراكمي من السجلات المتاحة للعقار. تُوزّع الفروق منذ آخر توزيع فقط؛ تغيير الحصص لا يغيّر التوزيعات السابقة. أي نقص في سجلات المصروفات ينعكس على الصافي.</p>'+
+      preview+(!completeBasis?'<p role="status">توزيع الأرباح غير متاح لهذا الملف المحمي حتى تتوفر مصادر المصروفات الكاملة؛ لم تُفترض مصروفات صفرية.</p>':'')+
+      (manager&&state.enabled&&completeBasis?'<button type="button" data-partners-distribute>تسجيل توزيع المبالغ الجديدة</button>':'')+
+      '<h3>كشف حساب كل شريك</h3><div class="v267-partner-statements">'+Array.from(historical.values()).map(r=>'<details><summary>'+escape(r.name)+' · '+cash(E.balance(state,r.id))+' مستحق</summary><p>'+escape(r.role)+' · '+(r.bps/100)+'٪ '+(state.owners.some(o=>o.id===r.id)?'':'(شريك سابق)')+'</p>'+
+        state.events.filter(e=>e.type==='distribution'&&e.rows.some(row=>row.id===r.id)||e.type==='payment'&&e.partnerId===r.id).map(e=>{
+          const row=e.rows?.find(x=>x.id===r.id);
+          return '<article class="v267-share-event"><time>'+escape(localDate(e.at))+'</time><p>'+(row?'إيرادات: '+cash(row.income)+' · مصروفات: '+cash(row.expenses)+' · صافي: '+cash(row.net)+'<br>إيجارات غير محصلة وقت التوزيع: '+cash(row.receivable):'صرف: '+cash(e.amount)+' · '+escape(e.reference))+'</p></article>';
+        }).join('')+
+        (manager&&E.balance(state,r.id)>0?'<form data-partner-payment="'+escape(r.id)+'"><label>المبلغ المصروف (د.ك)<input name="amount" inputmode="decimal" required></label><label>مرجع التحويل أو السند<input name="reference" maxlength="150" required></label><button type="submit">تسجيل صرف للشريك</button></form>':'')+'</details>').join('')+'</div>'+
+      '<details><summary>سجل التوزيعات والتعديلات — آخر ٥٠ من ('+state.events.length+')</summary>'+state.events.slice(-50).reverse().map(e=>'<article class="v267-share-event"><b>'+escape({owners:'تعديل الحصص',disable:'إيقاف التوزيع',distribution:'توزيع جديد',payment:'صرف لشريك'}[e.type]||e.type)+'</b><p>'+escape(localDate(e.at))+'</p>'+
+      (e.type==='owners'?'<p>قبل: '+e.before.map(r=>escape(r.name)+' '+r.bps/100+'٪').join('، ')+'</p><p>بعد: '+e.after.map(r=>escape(r.name)+' '+r.bps/100+'٪').join('، ')+'</p>':'')+'</article>').join('')+'</details><p id="v267SharesStatus" role="status" aria-live="polite">السجل محفوظ في مساحة العمل السحابية.</p></section>';
+      panel.querySelectorAll('input').forEach(input=>{if(!manager)input.disabled=true});
+      panel.querySelector('[data-partners-add]')?.addEventListener('click',()=>{
+        const container=panel.querySelector('#v267OwnersRows');container.insertAdjacentHTML('beforeend',ownerRow({id:crypto.randomUUID(),name:'',role:'وارث',bps:0}));
+      });
+      panel.querySelector('#v267OwnersForm')?.addEventListener('submit',event=>{
+        event.preventDefault();
+        save({type:'owners',rows:Array.from(panel.querySelectorAll('[data-owner-row]')).map(row=>({id:row.dataset.ownerRow,name:row.querySelector('[name=name]').value,role:row.querySelector('[name=role]').value,percent:row.querySelector('[name=percent]').value}))});
+      });
+      panel.querySelector('#v267OwnersRows')?.addEventListener('click',event=>{const b=event.target.closest('[data-owner-remove]');if(b&&manager)b.closest('[data-owner-row]').remove()});
+      panel.querySelector('[data-partners-disable]')?.addEventListener('click',()=>save({type:'disable'}));
+      panel.querySelector('[data-partners-distribute]')?.addEventListener('click',()=>save({type:'distribution',basis:currentBasis()}));
+      panel.querySelectorAll('[data-partner-payment]').forEach(form=>form.addEventListener('submit',event=>{event.preventDefault();save({type:'payment',partnerId:form.dataset.partnerPayment,amount:form.elements.amount.value,reference:form.elements.reference.value})}));
+    }
+    function ownerRow(r){return '<fieldset data-owner-row="'+escape(r.id)+'"><legend>مالك / وارث</legend><label>الاسم<input name="name" value="'+escape(r.name)+'" maxlength="150" required></label><label>الصفة<input name="role" value="'+escape(r.role)+'" maxlength="80" required></label><label>الحصة ٪<input name="percent" inputmode="decimal" value="'+r.bps/100+'" required></label><button type="button" data-owner-remove>إزالة من القائمة</button></fieldset>'}
+    async function save(action){
+      if(busy||!valid())return;
+      const status=panel.querySelector('#v267SharesStatus');
+      try{
+        if(window.AQARI_SUPABASE.context.membership.role!=='general_manager')throw new Error('التعديل متاح للمدير العام فقط.');
+        busy=true;panel.querySelectorAll('button').forEach(b=>b.disabled=true);status.textContent='جاري حفظ التعديل…';
+        if(action.type==='distribution'&&protectedPropertyActive(name))throw new Error('مصادر المصروفات الكاملة غير متاحة لهذا العقار.');
+        const next=E.transition(state,action,scope.userId,new Date().toISOString(),crypto.randomUUID());
+        const cloud=await window.AQARI_SUPABASE.loadAppState(scope);
+        if(!valid())return;
+        const fresh=stateFrom(cloud);
+        if(fresh.state.version!==state.version)throw new Error('تم تعديل الحصص من جهاز آخر. افتح تبويب الحصص مجدداً قبل المحاولة.');
+        const payload=JSON.parse(JSON.stringify(cloud.payload));
+        const primary=window.AQARI_CLOUD_SYNC.decodeCloudPayload(payload)?.primary;
+        primary.propertySharesV267={...primary.propertySharesV267,[key]:next};
+        await window.AQARI_SUPABASE.saveAppState(payload,cloud.revision,scope);
+        if(!valid())return;
+        appData().propertySharesV267={...appData().propertySharesV267,[key]:next};
+        state=next;render();panel.querySelector('#v267SharesStatus').textContent='تم الحفظ في السحابة.';
+      }catch(error){if(valid())status.textContent=error?.code==='AQARI_REVISION_CONFLICT'?'تغيّرت البيانات من جهاز آخر. أعد فتح الحصص.':String(error.message||'تعذر الحفظ. لم يتم تسجيل التعديل.')}
+      finally{busy=false;if(valid())panel.querySelectorAll('button').forEach(b=>b.disabled=false)}
+    }
+    window.AQARI_SUPABASE.loadAppState(scope).then(cloud=>{if(valid()){state=stateFrom(cloud).state;render()}}).catch(()=>{if(valid())panel.innerHTML='<p role="alert">تعذرت قراءة الحصص من السحابة. أعد فتح هذا التبويب للمحاولة.</p>'});
   }
 
   function renderPanel(context){
@@ -1838,6 +1936,7 @@
       button.tabIndex=selected?0:-1;
       if(selected)panel.setAttribute('aria-labelledby',button.id);
     });
+    if(activeTab==='partners'){partnersPanel(context);return true}
     if(activeTab==='units')panel.innerHTML=unitsPanel(context,activePropertyPeriod||latestOfficialPeriod(activeProperty));
     else if(activeTab==='contracts')panel.innerHTML=contractsPanel(context);
     else if(activeTab==='collections')panel.innerHTML=collectionsPanel(context,activePropertyPeriod);

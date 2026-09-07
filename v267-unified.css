@@ -1,0 +1,59 @@
+/* Shared AQARI V267 visual system, loaded before first paint. Visibility belongs to auth. */
+@media screen {
+ :root {color-scheme:light;--aq-surface:#fff;--aq-canvas:#faf9f6;--aq-ink:#292720;--aq-muted:#777166;--aq-gold:#86652e;--aq-line:#e9e4da}
+ body {font-family:system-ui,-apple-system,"SF Arabic","Geeza Pro",Tahoma,sans-serif;background:var(--aq-canvas);color:var(--aq-ink)}
+ *,*::before,*::after {box-sizing:border-box}
+ input,select,textarea {font-size:16px;max-width:100%}
+ button,a,input,select,summary {touch-action:manipulation}
+ button,summary {min-height:48px}
+ :focus-visible {outline:3px solid #9b7839;outline-offset:3px}
+ body.aq-v199.aq-v267 main>.p {border:0!important;background:transparent!important;color:var(--aq-ink)!important}
+ body.aq-v199.aq-v267 main>.p :is(.c,.card,.box,.panel),
+ body.aq-v199.aq-v267 :is(.v202-workspace,.v202-panel,.v206-ledger,.v208-shell,.v211-card,.v266-card,.modal>.box) {background:#fff!important;border-color:var(--aq-line)!important;color:var(--aq-ink)!important;border-radius:20px!important;box-shadow:none!important}
+ body.aq-v199.aq-v267 :is(.v202-workspace-head,.v202-workspace-header,.v202-summary,.v202-tabs,.v211-head,.v266-head) {background:#fff!important;color:var(--aq-ink)!important;border-color:var(--aq-line)!important}
+ body.aq-v199.aq-v267 main>.p :is(h1,h2,h3,h4),body.aq-v199.aq-v267 #v202PropertyWorkspace :is(h1,h2,h3,h4) {color:var(--aq-ink)!important}
+ body.aq-v199.aq-v267 main>.p :is(button,input,select,textarea),body.aq-v199.aq-v267 #v202PropertyWorkspace :is(button,input,select,textarea) {border-radius:12px!important;border-color:var(--aq-line);min-height:48px;font-family:inherit}
+ body.aq-v199.aq-v267 main>.p :is(button.g,button.primary,.is-primary),body.aq-v199.aq-v267 #v202PropertyWorkspace button.g {background:var(--aq-gold)!important;color:#fff!important;border-color:var(--aq-gold)!important}
+ body.aq-v199.aq-v267 main>.p table {background:#fff!important;border-collapse:collapse}
+ body.aq-v199.aq-v267 main>.p th {background:#f7f1e5!important;color:#65512d!important;border-color:var(--aq-line)!important}
+ body.aq-v199.aq-v267 main>.p td {border-color:var(--aq-line)!important}
+ #aqariCloudGateV168.aq-v168-gate {background:#faf9f6!important;padding:24px 16px!important}
+ #aqariCloudGateV168 .aq-v168-login {width:min(460px,100%)!important;background:#fff!important;color:#292720!important;border:1px solid #e9e4da!important;border-radius:26px!important;box-shadow:0 16px 70px #6550200a!important;padding:28px!important}
+ #aqariCloudGateV168 .aq-v168-logo {color:#292720!important;border-bottom:1px solid #e9e4da;padding-bottom:20px}
+ #aqariCloudGateV168 .aq-v168-logo h1 {color:#292720!important}
+ #aqariCloudGateV168 :is(.v199-login-intro,.v199-gate-version) {background:#f8f1e3!important;color:#86652e!important}
+ #aqariCloudGateV168 :is(input,button) {min-height:52px!important;border-radius:12px!important;font-size:16px!important}
+ #aqariCloudGateV168 button.g {background:#86652e!important;color:#fff!important}
+ #aqariCloudGateV168 .aq-v168-msg {background:#faf6ec!important;color:#6b5735!important;border-color:#e9e4da!important}
+ .v267-partners {max-width:100%;min-width:0}
+ .v267-partners header {display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;background:transparent!important}
+ .v267-partners details {border:1px solid #e9e4da;border-radius:16px;background:#fff;padding:12px 16px;margin:14px 0}
+ .v267-partners summary {cursor:pointer;padding:10px 0;font-weight:650;overflow-wrap:anywhere}
+ .v267-partners fieldset {display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;margin:12px 0;padding:16px;border:1px solid #e9e4da;border-radius:14px;min-width:0}
+ .v267-partners label {display:grid;gap:6px}
+ .v267-partners input {width:100%;min-width:0;padding:12px;background:#fff;color:#292720}
+ .v267-partners button {padding:12px 18px;margin:6px 4px;background:#f7f1e5;color:#735523;white-space:normal}
+ .v267-shares-summary {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
+ .v267-shares-summary article {padding:20px;background:#faf6ec;border-radius:16px}
+ .v267-shares-summary strong {display:block;font-size:24px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+ .v267-share-event {padding:12px 0;border-bottom:1px solid #eee7db;overflow-wrap:anywhere}
+ .v267-partners [role=status] {padding:12px;border-radius:12px;background:#faf6ec}
+}
+@media screen and (max-width:800px) {
+ body.aq-v199.aq-v267 main.w {max-width:100%;width:100%;padding-inline:14px!important}
+ body.aq-v199.aq-v267 main>.p {max-width:100%;min-width:0}
+ body.aq-v199.aq-v267 main>.p :is(.grid,.f) {grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))!important}
+ body.aq-v199.aq-v267 main>.p :is(.r,.tabs) {flex-wrap:wrap;max-width:100%;gap:8px}
+ body.aq-v199.aq-v267 .v202-tabs {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;overflow:visible!important}
+ body.aq-v199.aq-v267 .v202-tabs button {white-space:normal!important;min-width:0!important}
+ body.aq-v199.aq-v267 .v202-workspace {width:100%!important;max-width:100%!important;max-height:100dvh!important;border-radius:22px 22px 0 0!important}
+ body.aq-v199.aq-v267 :is(.v202-workspace-overlay,.v201-create-overlay,.v205-chooser-overlay) {backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+ .v267-partners fieldset {grid-template-columns:minmax(0,1fr)}
+ .v267-shares-summary {grid-template-columns:minmax(0,1fr)}
+ .v267-partners form button {width:100%;margin-inline:0}
+}
+@media (prefers-reduced-motion:reduce) {*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+@media screen {
+body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36px;box-shadow:0 16px 70px #65502008}body.v267-login-page .login-brand{border:0;margin-bottom:30px;padding:0}body.v267-login-page .login-monogram{display:grid;place-items:center;width:52px;height:52px;background:#f6efdf;border-radius:16px;font-size:32px!important}body.v267-login-page h1{font-size:30px;margin-bottom:12px}body.v267-login-page .subtitle{margin-bottom:30px}body.v267-login-page input{min-height:56px;border-radius:14px;background:#fff}body.v267-login-page button.primary{min-height:56px;border-radius:14px}body.v267-login-page .status{background:#faf6ec;color:#6b5735}@media(max-width:460px){body.v267-login-page{align-items:start;padding-top:max(36px,env(safe-area-inset-top))}body.v267-login-page main{padding:26px 22px}body.v267-login-page .secondary{grid-template-columns:1fr 1fr}body.v267-login-page .secondary button{font-size:12px;padding:8px;min-height:52px}}
+}

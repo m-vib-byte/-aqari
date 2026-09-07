@@ -162,13 +162,13 @@
     },
     {
       "path": "index.html",
-      "sha256": "f99f2d0dc26de4751d65922220ee45f54be72c59aa27af25176c0001df8f20a7",
-      "size": 1098131
+      "size": 1098231,
+      "sha256": "1eba458765cfc528b8208a817508f0e0f88d033bbb73b216e48fbfb7d5ea8e79"
     },
     {
       "path": "login.html",
-      "sha256": "923000a45ff5d3a6ec1bd1ccf572eadb110ad7ae8cda742b529ba24ba341bf7f",
-      "size": 16714
+      "size": 16880,
+      "sha256": "28bc288eed813742a65a7fc266d26b5e8e4592954432ef999eb12db567b5048d"
     },
     {
       "path": "lib/read-only.js",
@@ -487,8 +487,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "23156bf483863d08357851523b67ecdbfe6108882c25ea42a54c597f211f0cbb",
-      "size": 228785
+      "size": 240175,
+      "sha256": "1aee44b92b10ef616a020de02e29bb8be255345c8061208e50dcbd53eaca1aa9"
     },
     {
       "path": "v205-simple.css",
@@ -542,8 +542,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "sha256": "e4fcbfa6bef1f2cf34faaf759a6ef7db743bc409be8241dfff528bd14a7a97eb",
-      "size": 15005
+      "size": 15223,
+      "sha256": "59c1f56a032b67449f31498efac9cc9fa6f54e2ae1807f73e657c7e3eb63f36d"
     },
     {
       "path": "V211_1_SUPABASE_RPC_DRAFT.md",
@@ -572,8 +572,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "465984f789fd64810f8090d7d7cce5536faf1f0d8a69085bd6f7b31763ee55f7",
-      "size": 3820
+      "size": 4175,
+      "sha256": "b4bf029d8d06111a94d3ae53d4fd9b9f1181eadadd13987753f88725b8fb794d"
     },
     {
       "path": "VERSION.json",
@@ -754,6 +754,31 @@
       "path": ".github/workflows/recovery-entry.yml",
       "sha256": "f5e3aa63740eaaa1b3dc16dc86c6a1fc9dc24341295c03e886e6ac02c8f086d8",
       "size": 746
+    },
+    {
+      "path": "recovery.html",
+      "size": 5510,
+      "sha256": "32453641a7245ce01e43ed872d2acaa04b54764f8d910a3cb316d56cc3e2239a"
+    },
+    {
+      "path": "v267-partners.js",
+      "size": 4363,
+      "sha256": "0a2cba792d253117f30de8c865f18f24e7ac5000e4959a1d1bf34dd68c466ea3"
+    },
+    {
+      "path": "v267-unified.css",
+      "size": 6665,
+      "sha256": "f565f7628a7300a9d4b396a5d34157e4384afeb637c83cbdd7856e1e1bc8d496"
+    },
+    {
+      "path": "tests/v267-partners.test.cjs",
+      "size": 3207,
+      "sha256": "8794a0fb1937a0aeabbce6d0f2115b650211c9d713aabe3bf4e343a437bf6c03"
+    },
+    {
+      "path": "V267_FINAL_PREVIEW_REVIEW.md",
+      "size": 2031,
+      "sha256": "24ff71075625d3f06e1a865ff6379cdf913739e0df53b6d40d9c03f7df68d3a9"
     }
   ],
   "version": "V198"

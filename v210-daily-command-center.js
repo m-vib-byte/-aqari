@@ -194,7 +194,11 @@
     lastSignature=signature;
   }
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(render,120)}
+  function schedule(records){
+    if(document.visibilityState==='hidden')return;
+    if(records?.length&&records.every(function(r){return r.target?.closest?.('#v210DailyCommandCenter,#v202PropertyWorkspace,#v199MoreMenu')}))return;
+    clearTimeout(timer);timer=setTimeout(render,160);
+  }
 
   function syncPeriod(value){
     if(!PERIOD.test(value)||value===period)return false;
