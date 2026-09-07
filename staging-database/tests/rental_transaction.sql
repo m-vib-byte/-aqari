@@ -16,9 +16,26 @@ do $$ begin
   raise exception 'TENANT_DELETION_ACCEPTED';
  exception when raise_exception then if sqlerrm<>'TENANT_HISTORY_REQUIRED' then raise;end if;end;
 end $$;
-update public.aqari_app_state set payload=payload||'{"collections":[["R1","مستأجر اختبار",100,"مدفوع","عقار اختبار","2026-09-07","1","اختبار","2026-09","كي نت"]],"rentLedgerV202":[{"receiptNo":"R1","contractId":"c1","contractNo":"L1","property":"عقار اختبار","unit":"1","tenant":"مستأجر اختبار","paid":100,"period":"2026-09","paidAt":"2026-09-07","status":"مدفوع","method":"كي نت"}],"rentReceiptsV267":[{"id":"R1","template":"rent-voucher-v267-1","record":["R1","مستأجر اختبار",100,"مدفوع","عقار اختبار","2026-09-07","1","اختبار","2026-09","كي نت"],"contract":{"id":"c1"}}]}'::jsonb;
+do $$ declare w uuid;begin
+ select workspace_id into w from public.aqari_memberships where user_id=auth.uid();
+ if public.aqari_prepare_rent_reminders(w,'2026-08-28',5)<>2 then raise exception 'REMINDER_START_FAILED';end if;
+ if public.aqari_prepare_rent_reminders(w,'2026-08-28',5)<>0 then raise exception 'DUPLICATE_REMINDER';end if;
+ if public.aqari_prepare_rent_reminders(w,'2026-08-29',5)<>0 then raise exception 'ALTERNATE_DAY_FAILED';end if;
+ if public.aqari_prepare_rent_reminders(w,'2026-08-30',5)<>2 then raise exception 'SECOND_REMINDER_FAILED';end if;
+ if public.aqari_prepare_rent_reminders(w,'2026-09-06',5)<>0 then raise exception 'GRACE_DEADLINE_FAILED';end if;
+end $$;
+do $$ begin
+ begin
+  update public.aqari_app_state set payload=payload||'{"collections":[["R1","مستأجر اختبار",100,"مدفوع","عقار اختبار","2026-09-07","1","اختبار","2026-09","كي نت"]],"rentLedgerV202":[{"receiptNo":"R1","contractId":"c1","contractNo":"L1","property":"عقار اختبار","unit":"1","tenant":"مستأجر اختبار","paid":100,"period":"2026-09","paidAt":"2026-09-07","status":"مدفوع","method":"كي نت"}],"rentReceiptsV267":[{"id":"R1","template":"rent-voucher-v267-1","record":["R1","مستأجر اختبار",100,"مدفوع","عقار اختبار","2026-09-07","1","اختبار","2026-09","كي نت"],"contract":{"id":"c1"}}]}'::jsonb;
+  raise exception 'INCOMPLETE_RECEIPT_ACCEPTED';
+ exception when raise_exception then if sqlerrm<>'RECEIPT_SNAPSHOT_INVALID' then raise;end if;end;
+ if (select count(*) from public.aqari_rent_payments)<>0 then raise exception 'FAILED_RECEIPT_PARTIAL_SAVE';end if;
+end $$;
+update public.aqari_app_state set payload=payload||'{"collections":[["R1","مستأجر اختبار",100,"مدفوع","عقار اختبار","2026-09-07","1","اختبار","2026-09","كي نت"]],"rentLedgerV202":[{"receiptNo":"R1","contractId":"c1","contractNo":"L1","property":"عقار اختبار","unit":"1","tenant":"مستأجر اختبار","paid":100,"period":"2026-09","paidAt":"2026-09-07","status":"مدفوع","method":"كي نت"}],"rentReceiptsV267":[{"id":"R1","template":"rent-voucher-v267-1","record":["R1","مستأجر اختبار",100,"مدفوع","عقار اختبار","2026-09-07","1","اختبار","2026-09","كي نت"],"contract":{"id":"c1","contract_no":"L1","status":"signed","tenant":"مستأجر اختبار","property":"عقار اختبار","unit":"1","start_date":"2026-01-01","end_date":"2026-12-31"}}]}'::jsonb;
 do $$ begin
  if (select count(*) from public.aqari_rent_payments)<>1 or (select sum(amount) from public.aqari_rent_payments)<>100 then raise exception 'PAYMENT_READBACK_FAILED';end if;
+ if (select count(*) from public.aqari_notification_outbox where kind='rent_reminder' and status='cancelled')<>4 then raise exception 'REMINDERS_NOT_CANCELLED';end if;
+ if public.aqari_prepare_rent_reminders((select workspace_id from public.aqari_memberships where user_id=auth.uid()),'2026-09-01',5)<>0 then raise exception 'PAID_TENANT_REMINDER';end if;
  if (select count(*) from public.aqari_notification_outbox where kind='payment_thanks' and status='awaiting_configuration')<>1 then raise exception 'THANKS_QUEUE_FAILED';end if;
  begin
   update public.aqari_app_state set payload=jsonb_set(payload,'{rentLedgerV202,0,paid}','90');raise exception 'PAYMENT_EDIT_ACCEPTED';
@@ -47,8 +64,25 @@ do $$ declare snap jsonb;begin
  update public.aqari_maintenance_requests set cost=500;
  if (select sum(cost) from public.aqari_maintenance_requests)<>0 then raise exception 'TENANT_CHANGED_COST';end if;
 end $$;
+select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+do $$ declare affected integer;begin
+ update public.aqari_maintenance_requests set status='in_progress',cost=12.500 where revision=1;
+ get diagnostics affected=row_count;if affected<>1 then raise exception 'STAFF_MAINTENANCE_UPDATE_FAILED';end if;
+ if (select count(*) from public.aqari_maintenance_requests where revision=2 and status='in_progress' and cost=12.500)<>1 then raise exception 'STAFF_MAINTENANCE_READBACK_FAILED';end if;
+ update public.aqari_maintenance_requests set cost=99 where revision=1;
+ get diagnostics affected=row_count;if affected<>0 then raise exception 'STALE_MAINTENANCE_OVERWRITE';end if;
+ update public.aqari_maintenance_requests set status='completed' where revision=2;
+ begin
+  update public.aqari_maintenance_requests set status='received';raise exception 'CLOSED_REQUEST_CHANGED';
+ exception when raise_exception then if sqlerrm<>'MAINTENANCE_CLOSED' then raise;end if;end;
+ if (select count(*) from public.aqari_operation_audit where action like '%maintenance_update%')<>2 then raise exception 'MAINTENANCE_AUDIT_FAILED';end if;
+end $$;
+select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+do $$ begin
+ if (public.aqari_tenant_portal_snapshot()#>>'{maintenance,0,status}')<>'completed' then raise exception 'TENANT_STATUS_READBACK_FAILED';end if;
+end $$;
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
 do $$ begin if (select count(*) from public.aqari_rent_payments)<>0 or (select count(*) from public.aqari_app_state)<>0 then raise exception 'CROSS_USER_LEAK';end if;end $$;
 reset role;
 rollback;
-select 'PASS: linked save/readback, overlap rejection, history retention, immutable payment/receipt, queued thanks, outsider isolation, verified tenant portal, tenant/admin separation, maintenance save/readback, tenant cost restriction; fixtures rolled back' result;
+select 'PASS: linked save/readback, incomplete receipt transaction rollback, overlap rejection, history retention, immutable payment/receipt, alternate-day reminder window, duplicate reminder prevention, payment cancellation, queued thanks, outsider isolation, verified tenant portal, tenant/admin separation, maintenance save/readback, tenant cost restriction, staff status/cost persistence, stale-write rejection, maintenance audit, tenant status refresh; fixtures rolled back' result;

@@ -58,4 +58,32 @@ class ReceiptTests(unittest.TestCase):
             return base(path,auth)
         with self.assertRaises(PermissionError):api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',read)
 
+    def tenant_reader(self, change=None, revoke=False):
+        state=fixture(); lease_id='33333333-3333-4333-8333-333333333333'; tenant_id='44444444-4444-4444-8444-444444444444'
+        payment=dict(workspace_id=W,lease_id=lease_id,reference='TEST-001',amount=125.375,period='2026-09-01',paid_at='2026-09-07',status='paid',payment_method='كي نت',record=state['rentLedgerV202'][0],receipt=state['rentReceiptsV267'][0])
+        if change:change(payment)
+        calls=0
+        def read(path,auth):
+            nonlocal calls
+            if path.startswith('/auth/'):return {'id':U}
+            if 'memberships?' in path:return []
+            if 'portal_accounts?' in path:return [dict(user_id=U,workspace_id=W,tenant_id=tenant_id,is_active=True)]
+            if 'rent_payments?' in path:return [payment]
+            if 'aqari_leases?' in path:
+                calls+=1
+                if revoke and calls>1:return []
+                return [dict(id=lease_id,workspace_id=W,tenant_id=tenant_id,external_ref='123',contract_no='TEST-L-001')]
+            self.fail('Tenant export must not read administration state')
+        return read
+    def test_tenant_receipt_uses_private_saved_payment(self):
+        result=api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',self.tenant_reader())
+        self.assertTrue(result.startswith(b'%PDF-'))
+    def test_tenant_rejects_other_workspace_and_changed_amount(self):
+        for change in [lambda p:p.update(workspace_id=U),lambda p:p.update(amount=1),lambda p:p['receipt']['contract'].update(contract_no='OTHER')]:
+            with self.assertRaises((PermissionError,ValueError)):
+                api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',self.tenant_reader(change))
+    def test_tenant_access_revocation_before_export(self):
+        with self.assertRaises(PermissionError):
+            api.export_pdf(dict(workspaceId=W,receiptNo='TEST-001'),'Bearer a.b.c',self.tenant_reader(revoke=True))
+
 if __name__=='__main__':unittest.main()

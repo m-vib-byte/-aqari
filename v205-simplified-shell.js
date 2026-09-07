@@ -484,6 +484,15 @@
     window.previewContractV55=c=>rentalRecords('preview',c);
     window.readyContractV55=id=>rentalRecords('status',id,'ready');
     window.updateContractStatusV56=(id,status)=>rentalRecords('status',id,status);
+    const serviceHost=document.querySelector('#maintenanceProPage > .c');
+    if(serviceHost&&!document.getElementById('v267ServiceDeskLinks')){
+      const links=document.createElement('div');links.id='v267ServiceDeskLinks';links.className='r';
+      for(const [mode,label] of [['maintenance','متابعة طلبات المستأجرين'],['notifications','سجل التنبيهات']]){
+        const button=document.createElement('button');button.type='button';button.textContent=label;
+        button.onclick=()=>import('/v267-service-desk.js').then(api=>api.openDesk(mode)).catch(e=>window.alert(e.message));links.append(button);
+      }
+      serviceHost.prepend(links);
+    }
     window.AQARI_V205=Object.freeze({
       version:DESIGN,
       seal:function(){closeChooser(false)},
