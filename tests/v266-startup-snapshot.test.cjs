@@ -25,7 +25,7 @@ test('native startup reads one payload and performs post-read server confirmatio
   assert.equal(row.payload.synthetic,true);assert.equal(r.calls.length,3);assert.equal(r.calls[2].path,'/api/workspace-confirmation');
   assert.equal(r.calls.filter(c=>c.body?.p_include_payload===true).length,1);
   assert.equal(r.calls.filter(c=>c.body?.p_include_payload===false).length,1);
-  for(const c of r.calls){assert.equal(c.options.headers.Authorization,'Bearer synthetic-token');assert.equal(c.options.cache,'no-store');assert.equal(c.options.credentials,'omit');assert.equal(c.options.redirect,'error')}
+  for(const c of r.calls){assert.equal(c.options.headers.Authorization,'Bearer synthetic-token');assert.equal(c.options.cache,'no-store');assert.equal(c.options.credentials,c.path==='/api/workspace-confirmation'?'same-origin':'omit');assert.equal(c.options.redirect,'error')}
 });
 for(const mutation of ['revoked','role','workspace','user','profile','session','clear']){
   test('post-read '+mutation+' change discards the startup payload',async()=>{
@@ -58,4 +58,22 @@ test('a denied or missing RPC fails closed rather than authorizing from browser 
 test('the startup snapshot is consumed once and ordinary reads retain their SDK preflight',async()=>{
  const r=runtime();await r.api.refreshContext();await r.api.loadAppState(bound,{reuseVerifiedContext:true});
  await assert.rejects(r.api.loadAppState(bound),/getUser|SDK/);
+});
+
+// Preview protection validates its own same-origin cookie before the app's JWT.
+test('protected preview allows JWT confirmation without exposing cookies to Supabase',async()=>{
+  const r=runtime(({url,options,response})=>{
+    if(url==='/api/workspace-confirmation' && options.credentials!=='same-origin')
+      return {ok:false,status:401};
+    return response;
+  });
+    await r.api.refreshContext();
+    const row=await r.api.loadAppState(bound,{reuseVerifiedContext:true});
+    assert.equal(r.api.context.membership.role,'general_manager');
+    assert.equal(row.payload.synthetic,true);
+  for(const c of r.calls){
+    assert.equal(c.options.credentials,c.path==='/api/workspace-confirmation'?'same-origin':'omit');
+    assert.equal(c.options.headers.Authorization,'Bearer synthetic-token');
+    assert.equal(c.options.redirect,'error');
+  }
 });

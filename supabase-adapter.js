@@ -34,7 +34,10 @@
       headers:{ apikey:cfg.supabasePublishableKey, Authorization:'Bearer ' + session.access_token,
         Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'}) },
       body:body === undefined ? undefined : JSON.stringify(body),
-      signal:controller.signal, cache:'no-store', credentials:'omit', redirect:'error'
+      // Preview protection needs its same-origin cookie before the JWT reaches
+      // our handler. Never send browser cookies to the external Supabase API.
+      signal:controller.signal, cache:'no-store',
+      credentials:confirmationRequest ? 'same-origin' : 'omit', redirect:'error'
     }).then(async response => {
       if(!response.ok){
         const error = accessError(response.status === 401 || response.status === 403
