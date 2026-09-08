@@ -602,7 +602,7 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "a14ed6ec7a44954737cd1b06d100bd0a3986d81624cdbdfe8ecae7787226d803",
+      "sha256": "fa5c57f4392c70b39c5460989130732f571362f995e52ae7542b032fd545dbb6",
       "size": 917
     },
     {
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "334326a8fbf384cbab7a635608a6435bdbbe57ebb27e3bbc8983097b982b7f75",
-      "size": 25737
+      "sha256": "3221a4a8dc43ae2b6f17ad4c78c717a98f4e519aabeca05499a7cadc9328719b",
+      "size": 27891
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "size": 6982,
-      "sha256": "f0c31cda33af746e77491e5a80f2575d0aa579126a147cf31cf2260ea7bc9715"
+      "size": 7899,
+      "sha256": "0fa8cc6a52b98114362dc940a96a7e5161a8553accc294a328e5a3c5d6a55175"
     },
     {
       "path": "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "115a196ff498725dc40c2917fddcfd0a6670de58b9cf549c3f68241511b6c882",
-      "size": 110791
+      "sha256": "04e8d891284f6e0dd424f9c6b8c97e27824b341e914b194291ea79da9b30fe9b",
+      "size": 113016
     },
     {
       "path": "tests/v267-locale.test.mjs",

@@ -9,9 +9,10 @@ const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools')
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
-let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0;
+let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false;
 const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
 const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
+const secondStatement=structuredClone(statement);secondStatement.property_id='p2';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
 const lease={id:'lease1',external_ref:'source1',contract_no:'C-101',start_date:'2026-08-01',end_date:'2027-07-31',monthly_rent:'125.750',deposit:null,status:'draft',snapshot:{property:propertyName,unit:'101',tenant:tenantName,pending:[]}};
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
@@ -62,8 +63,8 @@ const server=http.createServer((req,res)=>{
     if(args._insert){const row=args._insert;assert.equal(row.property_id,'p1');assert.equal(row.meter_id,'meter1');assert.equal(row.recorded_by,uid);assert.equal(row.entry_type,'bill');assert.equal(row.payment_status,'unpaid');assert.equal(row.amount_due,'12.345');assert.equal(row.amount_paid,'0.000');assert.equal(row.source_ref,'مرجع أصلي <فاتورة> {date}');assert.equal(row.notes,'ملاحظات <أصلية>');assert.ok(!entries.some(x=>x.id===row.id));entries.push({...row,recorded_at:'2026-09-08T12:00:00Z'});entryWrites++;return reply(res,null);}
     const rows=entries.filter(x=>(!args.id||x.id===args.id)&&(!args.meter_id||x.meter_id===args.meter_id)&&(!args.property_id||x.property_id===args.property_id));return reply(res,args._single?rows[0]:rows);
    }
-   if(name==='aqari_property_statements')return reply(res,args.period&&args.period!==statement.period?[]:[statement]);
-   if(name==='aqari_statement_links')return reply(res,[]);
+   if(name==='aqari_property_statements')return reply(res,[statement,secondStatement].filter(x=>(!args.period||x.period===args.period)&&(!args.property_id||x.property_id===args.property_id)));
+   if(name==='aqari_statement_links')return statementReadDenied?reply(res,{message:'ACCESS_DENIED'},403):reply(res,[]);
    if(name==='aqari_leases')return reply(res,[lease]);
    if(name==='aqari_units')return reply(res,[{id:'unit1',property_id:'p1',unit_no:'101'},{id:'unit2',property_id:'p1',unit_no:'101'}]);
    if(name==='aqari_tenants')return reply(res,[{id:'tenant1',full_name:tenantName,civil_id:'synthetic',phone:'0000'}]);
@@ -113,7 +114,19 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  const row=dialog.locator('details');await row.locator('summary').click();
  assert.equal(await row.getByText(tr('طريقة السداد')+': كي نت من المصدر',{exact:true}).count(),1,'source payment method is not translated');
  assert.equal(await row.locator('summary').textContent(),fmt('الوحدة {unit} — {tenant} — {rent} د.ك',{unit:'101',tenant:tenantName,rent:'125.750'}));
- await fit('statements');await close();
+ assert.ok(!(await dialog.textContent()).includes('402'),'no hardcoded unit conflicts leak between properties');
+ await fit('statements');
+ await field('الشهر').fill('2026-09');await field('الشهر').press('Tab');
+ await page.getByText(tr('لا يوجد كشف محفوظ لهذا الشهر.'),{exact:true}).waitFor();
+ assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true);
+ assert.equal(await dialog.locator('details').count(),0,'missing month clears previous statement');
+ await field('الشهر').fill('2026-08');await field('الشهر').press('Tab');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ statementReadDenied=true;await button('عرض الكشف').click();await page.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();
+ assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true,'failed reread cannot leave a linkable candidate');
+ statementReadDenied=false;await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ await dialog.locator('details summary').click();assert.equal(await dialog.getByText(tr('التأمين')+': 100.000',{exact:true}).count(),1,'confirmed deposit is not labelled pending');
+ assert.equal(await dialog.getByRole('heading',{name:'عقار آخر — 2026-08',exact:true}).count(),1);
+ await close();
  await page.getByRole('button',{name:tr('اعتماد عقود المصدر'),exact:true}).click();
  await page.getByText(tr('راجع المستند قبل تنفيذ المرحلة التالية.'),{exact:true}).waitFor();
  assert.equal(await dialog.getByText(fmt('العقار: {property} • الوحدة: {unit} • المستأجر: {tenant}',{property:propertyName,unit:'101',tenant:tenantName}),{exact:true}).count(),1);
@@ -131,7 +144,7 @@ try{
  for(const [engineName,engine]of [['chromium',chromium],['webkit',webkit]]){
   const browser=await engine.launch();
   try{for(const [device,viewport]of [['iphone',{width:390,height:844}],['ipad',{width:820,height:1180}],['desktop',{width:1440,height:1000}]]){
-   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;
+   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;statementReadDenied=false;
    const context=await browser.newContext({viewport,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    // The fixture redirects only the pinned Storage URL to its local HTTP endpoint.
    // Node receives the actual upload bytes on both engines; no inspector postData shortcut.

@@ -9,7 +9,7 @@ permissions:
 jobs:
   home:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,7 +19,7 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: Real authenticated renderer with synthetic backend
         run: node tests/v266-authenticated-home.e2e.mjs
-      - name: V267 control and scanner flows with isolated synthetic backend
+      - name: V267 multilingual control, scanner and operational form flows
         run: node tests/v267-workspace-tools.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
