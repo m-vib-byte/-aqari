@@ -1079,6 +1079,11 @@
       "path": "staging-database/supabase/migrations/20260908084026_v267_property_source_statements.sql",
       "sha256": "309629ae0561d6e8f53feddea8e904283bea8f1f4a4c32014e72eae9150418cf",
       "size": 1361
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908085009_v267_source_property_read_projection.sql",
+      "sha256": "6cff35a9be24888c4f41ff9064bf593c8a5a40c9a832222e77ab75ae106dbf79",
+      "size": 1901
     }
   ],
   "version": "V198"
