@@ -3332,3 +3332,14 @@ test('V267 synthetic tenant → saved lease → collection → immutable voucher
  assert.equal(reader.savedVoucher([...row.slice(0,2),999,...row.slice(3)]),'');
  reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP').contractId='wrong';assert.equal(reader.savedVoucher(row),'');
 });
+
+
+test('property cash net never treats reference rent as collected money', () => {
+  const data=fixture();data.properties[0][3]='8870';
+  let runtime=loadRuntime(data);
+  assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,0);
+  data.expenses=[['SYNTHETIC TEST PROPERTY','maintenance','25','supplier']];
+  runtime=loadRuntime(data);
+  assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,null,
+    'Undated legacy expenses cannot support a monthly cash net');
+});
