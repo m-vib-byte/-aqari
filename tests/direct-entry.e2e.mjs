@@ -48,7 +48,12 @@ try {
           results.push(result);
           await page.screenshot({ path:output+'/'+engineName+'-'+mode+'.png' });
           console.log('DIRECT_ENTRY', JSON.stringify(result));
-        } finally { await context.close(); }
+        } finally {
+          // Root can finish painting while a routed vendor asset is in flight.
+          // Complete those callbacks before disposing their request context.
+          try { await context.unrouteAll({ behavior:'wait' }); }
+          finally { await context.close(); }
+        }
       }
     } finally { await browser.close(); }
   }

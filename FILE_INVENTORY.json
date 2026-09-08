@@ -632,8 +632,8 @@
     },
     {
       "path": "tests/direct-entry.e2e.mjs",
-      "sha256": "eeb5c8664ed9d40513591c3f20ad66106ac069484238c60431a8d681701f4d79",
-      "size": 3230
+      "sha256": "c9e103d84641948df30166033da8e08d8d656dac1ddea74f1d54a2fe9e4af345",
+      "size": 3483
     },
     {
       "path": ".github/workflows/direct-entry.yml",
