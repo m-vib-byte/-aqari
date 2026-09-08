@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "e3820ca6333d8339117235ce79e45a5d3f8b69e8d88034ccf9722cf13a49da91",
-      "size": 4963
+      "sha256": "9ee82ae7e7d54c8e46360749351f1699278d5ca10866d72597b95b8434adf3d5",
+      "size": 5334
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
