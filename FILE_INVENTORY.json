@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "ac618ec1f5ce4837a1d2bf518901ae0a051628ea4da4235008d9e0c792bf45e2",
-      "size": 3406
+      "sha256": "31db3c0565cb9e858e0a51224f01e00b7344e0cd718f04fa3c92caa15cd5cc49",
+      "size": 3486
     },
     {
       "path": "api/autosync-status.js",
@@ -832,8 +832,8 @@
     },
     {
       "path": "lib/rent_pdf.py",
-      "sha256": "45eb37a210e66c58ed37f6bfc82a6eb4156f1094a08dc189a7bffed3126794b5",
-      "size": 7423
+      "sha256": "9e9f733f1451e3185b82bd8779701d0d80d7c5e50f63bc42a8c7855b7b421d38",
+      "size": 7611
     },
     {
       "path": "lib/pdf_fonts/AqariSans.ttf",
@@ -1017,8 +1017,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "274594aa6709ba7fd4e537630703d7a8d883d0ec8af84f9325ccc93e7091726a",
-      "size": 4425
+      "sha256": "fcb0e59ea0ab425c7846ec55c311bfef689985fda61320046fa90053f48a7303",
+      "size": 4718
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1054,6 +1054,31 @@
       "path": "tests/v267-workspace-tools.e2e.mjs",
       "sha256": "63bdf1120914d3f0f160be650b937c82b08256b4c4011f76d27d29cd1567d846",
       "size": 13342
+    },
+    {
+      "path": "lib/property_statement_pdf.py",
+      "sha256": "61fde3fba137ef13f5c58fe11dc5ca296d8521c4957e2ca9472707982b537a34",
+      "size": 5820
+    },
+    {
+      "path": "api/property-statement.py",
+      "sha256": "28769fd4911db67bd8668893582de1eb58a597830ffeb14f34f1e79b60e03036",
+      "size": 2530
+    },
+    {
+      "path": "src/v267/pages/property-statements.js",
+      "sha256": "3f2e2174e5368776307f679a4bb41795a24a0a809686500c15cbed8bc626e02e",
+      "size": 5108
+    },
+    {
+      "path": "tests/property_statement_test.py",
+      "sha256": "fe9b9c836244133af52f788f371a47ed0d448df0aea43c39058ac93891a76365",
+      "size": 1728
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908084026_v267_property_source_statements.sql",
+      "sha256": "309629ae0561d6e8f53feddea8e904283bea8f1f4a4c32014e72eae9150418cf",
+      "size": 1361
     }
   ],
   "version": "V198"

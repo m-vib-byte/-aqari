@@ -32,7 +32,8 @@ export function install(){
  control.onclick=()=>import('./pages/control-center.js').then(m=>m.openControlCenter()).catch(e=>notice.textContent=safeError(e));
  scan.onclick=()=>import('./pages/document-scanner.js').then(m=>m.openDocumentScanner()).catch(e=>notice.textContent=safeError(e));
  language.onchange=()=>{locale=language.value;updateLabels();};
- tools.append(control,scan,field('لغة المسميات',language),notice);menu.append(tools);
+ const statements=node('button','كشوف العقارات — برج شيخة');statements.hidden=currentScope().role!=='general_manager';statements.onclick=()=>import('./pages/property-statements.js').then(m=>m.openPropertyStatements()).catch(e=>notice.textContent=safeError(e));
+ tools.append(control,scan,statements,field('لغة المسميات',language),notice);menu.append(tools);
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
  document.addEventListener('click',event=>{
   if(event.target.closest?.('[data-v199-action="more"]')){refresh();return;}

@@ -86,6 +86,9 @@ def shaped(text):
 
 
 def render_receipt(saved):
+    if saved.get('contract', {}).get('property') == 'برج شيخة':
+        from lib.property_statement_pdf import render_shaikhah_receipt
+        return render_shaikhah_receipt(saved)
     if FONT not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont(FONT, str(FONT_PATH)))
     stream = BytesIO()
