@@ -482,6 +482,11 @@
       const local=typeof legacyContracts==='function'?legacyContracts():[];
       return JSON.parse(JSON.stringify(cloud.concat(local.filter(c=>!cloud.some(x=>String(x.id)===String(c.id))))));
     };
+    const previousContractList=window.loadContractsV55;
+    window.loadContractsV55=function(){
+      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return rentalRecords('loadSavedContracts');
+      return previousContractList?.apply(this,arguments);
+    };
     window.generateContractV55=()=>rentalRecords('generate');
     window.previewContractV55=c=>rentalRecords('preview',c);
     window.readyContractV55=id=>rentalRecords('status',id,'ready');
