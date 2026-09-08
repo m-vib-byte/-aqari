@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "fb3a904498e0572d9d3e0c3ec555a5b307e8f598467bd662beae507571cd871a",
-      "size": 3543
+      "sha256": "65a01b7d5fa05d34ddf8450fc733cc2b93b7225eb82b7e2b179cc884547d7aec",
+      "size": 3589
     },
     {
       "path": "api/autosync-status.js",
@@ -397,8 +397,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "d0cd44e8d26c4437c8253afea4d941ea0042034adfce779ae999481f7691ef99",
-      "size": 178750
+      "sha256": "b2b2666baa95ab027c1aaeb96393933fca0785dfc4d44ca071a9f6bdaf958c8a",
+      "size": 182329
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -477,8 +477,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "6e3c09afdd6d179f5ea3261a12e7544f2849e10cd998d9baf2fe62f0ec8093e8",
-      "size": 255593
+      "sha256": "a6cf3f730139c06630c18dd1d2b782ca733b1ee8f3b89f7b439a1365d1affa9e",
+      "size": 259584
     },
     {
       "path": "v205-simple.css",
@@ -942,8 +942,8 @@
     },
     {
       "path": "v267-service-desk.js",
-      "sha256": "0f601eeab0280ebe01cf6aaa46c8fc80a261d249fbd40716fd3bd3e19b666437",
-      "size": 9217
+      "sha256": "ac5e77d64739baf72d4b1915448c37243213fef02ec26d6d24a6b548947c4127",
+      "size": 8725
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
@@ -1037,13 +1037,13 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "af831621c3f266ca45f98626c39594eadd33884758da4e0e286d36ad4e362953",
-      "size": 30931
+      "sha256": "4a3eeb521e474d0c06b633e8a734699686f473c6eb83a5d5b01e095b63c09f25",
+      "size": 38133
     },
     {
       "path": "lib/property_statement_pdf.py",
-      "sha256": "61fde3fba137ef13f5c58fe11dc5ca296d8521c4957e2ca9472707982b537a34",
-      "size": 5820
+      "sha256": "0785312d450d753c66483f986ddaf0f1df24d34dab2c09d97481851e13ffbd1b",
+      "size": 6648
     },
     {
       "path": "api/property-statement.py",
@@ -1052,8 +1052,8 @@
     },
     {
       "path": "tests/property_statement_test.py",
-      "sha256": "fe9b9c836244133af52f788f371a47ed0d448df0aea43c39058ac93891a76365",
-      "size": 1728
+      "sha256": "52f3d448d55b2c22c836a2ccbab0872394f4c1851105645b9f6838d0279296f7",
+      "size": 2963
     },
     {
       "path": "staging-database/supabase/migrations/20260908084026_v267_property_source_statements.sql",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "c26df9095a24b3a0edaf790cbad9a0893c8517569cb45e395313c63e7f7be5d4",
-      "size": 131432
+      "sha256": "0badbf9b841135f20529d27ae16366af2f27c8b4a018cafceeef19191de0d22b",
+      "size": 145573
     },
     {
       "path": "tests/v267-locale.test.mjs",
@@ -1214,6 +1214,11 @@
       "path": "src/v267/components/ui-text.js",
       "sha256": "2e6c947f801832a742db9a1901cb831c2f87be2ae0dc53c3aa177d0f0a517d14",
       "size": 553
+    },
+    {
+      "path": "tests/property-statements-navigation.test.mjs",
+      "sha256": "d7bc50b80917da6e4c639c01486f6c8a721dcb842754c395fe7766a6abf6f562",
+      "size": 4754
     }
   ],
   "version": "V198"

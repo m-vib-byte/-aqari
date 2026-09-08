@@ -17,4 +17,21 @@ class StatementTests(unittest.TestCase):
   row=dict(workspace_id=W,property_id=P,period='2026-08-01',content=content)
   out=api.export_statement(dict(workspaceId=W,propertyId=P,period='2026-08'),'Bearer a.b.c',lambda path,auth:dict(id=U) if path.startswith('/auth') else [row])
   self.assertTrue(out.startswith(b'%PDF-'));self.assertEqual(len(PdfReader(BytesIO(out)).pages),1)
+ def test_notes_are_scoped_to_saved_statement(self):
+  from lib.property_statement_pdf import statement_notes
+  clean=dict(rows=[dict(unit='101',pending=None)],pending=[])
+  self.assertEqual(statement_notes(clean),[])
+  saved=dict(rows=[dict(unit='402',pending=['contract_dates']),dict(unit='703',pending=['payment_date'])],pending=['insurance_difference'])
+  notes=statement_notes(saved)
+  self.assertEqual(len(notes),3)
+  self.assertIn('402',notes[1]);self.assertIn('703',notes[2])
+  self.assertNotIn('403',' '.join(notes))
+  self.assertNotIn('2450',' '.join(notes))
+  self.assertNotIn('2200',' '.join(notes))
+ def test_clean_export_contains_no_foreign_dispute_amounts(self):
+  from lib.property_statement_pdf import render_statement
+  content=dict(property_name='Independent property',period='2026-09',rows=[dict(unit='101',insurance_kd=None,insurance_status='pending_reconciliation',pending=None)],summary=dict(printed_totals=dict(rent_kd=195,advance_kd=0,cleaning_kd=5)))
+  pdf=render_statement(content)
+  text=' '.join(page.extract_text() for page in PdfReader(BytesIO(pdf)).pages)
+  self.assertIn('101',text);self.assertNotIn('None',text);self.assertNotIn('2450',text);self.assertNotIn('2200',text);self.assertNotIn('703',text)
 if __name__=='__main__':unittest.main()

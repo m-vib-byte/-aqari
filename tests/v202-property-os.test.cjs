@@ -23,6 +23,9 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       contractRent,
       contracts,
       contextFor,
+      journey,
+      dueKpi,
+      dueNeedsReview,
       ledgerRecords,
       rentStatementItems,
       propertyRentLedgerRows: typeof propertyRentLedgerRows === 'function' ? propertyRentLedgerRows : null,
@@ -3331,4 +3334,68 @@ test('V267 synthetic tenant → saved lease → collection → immutable voucher
  assert.match(reader.savedVoucher(row),/New Synthetic Tenant/);assert.doesNotMatch(reader.savedVoucher(row),/CHANGED LATER/);
  assert.equal(reader.savedVoucher([...row.slice(0,2),999,...row.slice(3)]),'');
  reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP').contractId='wrong';assert.equal(reader.savedVoucher(row),'');
+});
+
+
+test('property cash net never treats reference rent as collected money', () => {
+  const data=fixture();data.properties[0][3]='8870';
+  let runtime=loadRuntime(data);
+  assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,0);
+  data.expenses=[['SYNTHETIC TEST PROPERTY','maintenance','25','supplier']];
+  runtime=loadRuntime(data);
+  assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,null,
+    'Undated legacy expenses cannot support a monthly cash net');
+});
+
+test('property journey does not claim a printable statement from legacy expenses or collection counts', () => {
+  const runtime=loadRuntime(fixture());
+  const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  context.activeContracts=[];
+  context.official=null;
+  context.propertyCollections=[['historic unverified row']];
+  context.expenses=[['undated expense']];
+  const pending=runtime.journey(context);
+  assert.match(pending,/يلزم اعتماد بيانات العقود أولاً/);
+  assert.doesNotMatch(pending,/جاهز للطباعة/);
+  context.official={period:context.period};
+  assert.match(runtime.journey(context),/كشف مصدر محفوظ/);
+});
+
+test('property dues remain pending for drafts and invalid terms instead of declaring a zero balance', () => {
+  const data=fixture();
+  data.contractsV202=data.contractsV202.filter(c=>c.id==='contract-a');
+  let runtime=loadRuntime(data),context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  context.period='2026-08';context.official=null;
+  assert.equal(runtime.dueNeedsReview(context),false);
+  context.due=0;
+  assert.match(runtime.dueKpi(context),/لا يوجد متبقٍ على العقود المعتمدة/);
+  data.contractsV202[0].status='draft';
+  runtime=loadRuntime(data);context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.official=null;
+  assert.equal(runtime.dueNeedsReview(context),true);
+  assert.match(runtime.dueKpi(context),/قيد المراجعة/);
+  assert.doesNotMatch(runtime.dueKpi(context),/لا يوجد متبق/);
+  context.official={period:context.period};
+  assert.match(runtime.dueKpi(context),/حسب كشف المصدر/);
+  data.contractsV202[0].status='signed';
+  runtime=loadRuntime(data);context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.period='2026-08';context.official=null;
+  context.propertyContracts.push({...context.propertyContracts[0],id:'unresolved',start_date:'unreadable'});
+  assert.equal(runtime.dueNeedsReview(context),true);
+});
+
+test('empty monthly statement is marked for review in printable output', () => {
+  const data=fixture();data.contractsV202.forEach(c=>{c.status='draft';});
+  const runtime=loadRuntime(data,[],activeRuntimeWindow()),context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const model=runtime.propertyRentLedgerModel(context,'2026-09');
+  assert.equal(model.reviewRequired,true);
+  assert.equal(model.rows.length,0);
+  const document=runtime.propertyRentLedgerDocument(context,'2026-09');
+  assert.match(document,/Pending review/);
+  assert.match(document,/not a clearance/);
+  assert.doesNotMatch(document,/DUE<\/span><strong>٠ د.ك/);
+  assert.doesNotMatch(document,/BALANCE<\/span><strong>٠ د.ك/);
+  assert.doesNotMatch(document,/حسب البيانات المعتمدة وقت الإصدار/);
+  const csv=runtime.propertyRentLedgerCsv(model);
+  assert.match(csv,/Official due","قيد المراجعة \/ Pending review/);
+  assert.match(csv,/Balance","قيد المراجعة \/ Pending review/);
+  assert.match(csv,/not a clearance/);
 });

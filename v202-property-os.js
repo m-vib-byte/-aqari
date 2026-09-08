@@ -1401,7 +1401,7 @@
     });
     return {
       property,period,propertyContracts,activeContracts,linkedTenants,propertyLedger,propertyCollections,settledCollections,periodSettledCollections,paymentCount,expenses,maintenance,official,
-      openMaintenance,units,occupiedUnits,income,collected,expenseTotal,due,net:income-expenseTotal
+      openMaintenance,units,occupiedUnits,income,collected,expenseTotal,due,net:expenses.length ? null : exactMoneySum(periodSettledCollections.map(function(row){return row?.[2]}),strictCollectionMoney)
     };
   }
 
@@ -1705,6 +1705,7 @@
 
   function healthFor(context){
     if(!context.activeContracts.length)return {tone:'link',label:'يحتاج ربط عقد',detail:'ابدأ بعقد لربط المستأجر والتحصيل بالعقار'};
+    if(dueNeedsReview(context))return {tone:'attention',label:'المستحقات تحتاج مراجعة',detail:'توجد بيانات عقود غير معتمدة؛ الإجمالي غير مكتمل'};
     if(context.due>0)return {tone:'attention',label:'يحتاج تحصيل',detail:'يوجد إيجار مستحق مرتبط بالعقار'};
     if(context.openMaintenance.length)return {tone:'attention',label:'توجد متابعة',detail:'طلبات صيانة تحتاج متابعة'};
     return {tone:'good',label:'الوضع منتظم',detail:'لا توجد متابعة عاجلة في البيانات المسجلة'};
@@ -1717,6 +1718,23 @@
 
   function kpi(label,value,meta,tone){
     return '<div class="v202-kpi '+(tone?'is-'+tone:'')+'"><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(value)+'</strong><small>'+escapeHtml(meta)+'</small></div>';
+  }
+
+  function dueNeedsReview(context){
+    if(context.official)return false;
+    if(!context.activeContracts.length)return true;
+    const directory=directoryEntriesFor(context.property?.[0]);
+    return context.propertyContracts.some(function(contract){
+      if(contractStatus(contract?.status)==='cancelled')return false;
+      if(!validContractTerms(contract))return true;
+      if(!contractCoversPeriod(contract,context.period))return false;
+      return !signedContract(contract)||importedContractNeedsVerification(contract,directoryRecordFor(directory,contract));
+    });
+  }
+
+  function dueKpi(context){
+    if(dueNeedsReview(context))return kpi('الإيجار المستحق','قيد المراجعة','يلزم اكتمال اعتماد عقود الفترة • '+periodLabel(context.period),'attention');
+    return kpi('الإيجار المستحق',money(context.due),(context.official?'حسب كشف المصدر':context.due?'مستحق العقود المعتمدة':'لا يوجد متبقٍ على العقود المعتمدة')+' • '+periodLabel(context.period),context.due?'attention':'');
   }
 
   function journey(context){
@@ -1732,7 +1750,7 @@
       {label:'بيانات العقار',done:true,copy:'العقار مسجل'},
       {label:'العقد',done:verifiedActive.length>0&&needsVerification===0,copy:contractCopy},
       {label:'التحصيل',done:context.propertyCollections.length>0,copy:context.propertyCollections.length?context.propertyCollections.length+' عملية':'لا يوجد تحصيل'},
-      {label:'الكشف',done:context.propertyCollections.length>0||context.expenses.length>0,copy:'جاهز للطباعة'}
+      {label:'الكشف',done:Boolean(context.official)||verifiedActive.length>0,copy:context.official?'كشف مصدر محفوظ':verifiedActive.length?'بيانات عقود الفترة متاحة':'يلزم اعتماد بيانات العقود أولاً'}
     ];
     return '<div class="v202-journey" aria-label="مسار تشغيل العقار">'+steps.map(function(step,index){
       const current=!step.done&&steps.slice(0,index).every(function(previous){return previous.done});
@@ -1805,11 +1823,11 @@
       '<header class="v202-workspace-head"><div class="v202-property-identity"><span class="v202-property-mark">'+icon('building')+'</span><div><p>ملف العقار التشغيلي</p><h2 id="v202PropertyTitle">'+escapeHtml(activeProperty)+'</h2><span id="v202PropertyDescription">العقد والتحصيل والوصولات والكشف في مكان واحد.</span></div></div><div class="v202-head-side"><span class="v202-health is-'+health.tone+'">'+health.label+'</span><button type="button" class="v202-icon-button" data-v202-close aria-label="إغلاق ملف العقار">'+icon('close')+'</button></div></header>'+
       '<div class="v202-property-kpis">'+
         kpi('الوحدات',String(context.units),'المسجلة في العقار')+
-        kpi('الإيراد المسجل',money(context.income),'حسب بيانات العقار','gold')+
+        kpi('إيجار المصدر',money(context.income),'قيمة مرجعية وليست تحصيلاً فعلياً','gold')+
         kpi('المقبوضات المرتبطة',money(context.collected),context.paymentCount+' دفعة معتمدة • '+periodLabel(context.period),'good')+
-        kpi('الإيجار المستحق',money(context.due),(context.due?'يحتاج متابعة':'لا يوجد مستحق مرتبط')+' • '+periodLabel(context.period),context.due?'attention':'')+
+        dueKpi(context)+
         kpi('المصروفات',money(context.expenseTotal),context.expenses.length+' بند مسجل')+
-        kpi('الصافي التشغيلي',money(context.net),'الإيراد ناقص المصروفات','gold')+
+        kpi('صافي المقبوضات المسجلة',context.net===null?'معلّق':money(context.net),context.net===null?'يلزم توثيق فترة المصروفات وحالة صرفها':'دفعات الفترة المعتمدة؛ ليس ربحاً محاسبياً نهائياً','gold')+
       '</div>'+
       '<nav class="v202-actions" aria-label="إجراءات العقار">'+
         '<button type="button" data-v202-action="contract">'+icon('contract')+'<span><strong>'+(protectedOnly?'عقود العقار':'إبرام عقد')+'</strong><small>'+(protectedOnly?'عرض العقود المرتبطة':'إنشاء وربط العقد')+'</small></span></button>'+
@@ -3033,6 +3051,7 @@
     const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
     const ledgerRows=propertyRentLedgerRows(context,selectedPeriod);
     const official=officialStatementFor(property,selectedPeriod);
+    const reviewRequired=dueNeedsReview({...context,period:selectedPeriod,official,activeContracts:context.propertyContracts.filter(function(contract){return signedContract(contract)&&validContractTerms(contract)&&contractCoversPeriod(contract,selectedPeriod)})});
     const computedDue=exactMoneySum(ledgerRows.map(function(row){return row.due}));
     const computedPaid=exactMoneySum(ledgerRows.map(function(row){return row.paid}));
     const pending=exactMoneySum(ledgerRows.map(function(row){return row.pending}));
@@ -3049,7 +3068,7 @@
     const occupiedUnitCount=officialOccupiedUnitCount==null?Math.min(ledgerRows.length,unitCount):officialOccupiedUnitCount;
     return {
       property,owner:String(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:''),period:selectedPeriod,
-      brand:statementBrand(property),rows:ledgerRows,official:Boolean(official),
+      brand:statementBrand(property),rows:ledgerRows,official:Boolean(official),reviewRequired,
       unitCount,occupiedUnitCount,vacantUnitCount:Math.max(0,unitCount-occupiedUnitCount),
       sourcePages:official&&hasField(official,'sourcePages')?String(official.sourcePages):'',
       detailTotals:{due:computedDue,paid:computedPaid},
@@ -3110,19 +3129,20 @@
     const occupancyNote=model.official?' يعرض الجدول '+model.occupiedUnitCount+' وحدة مرتبطة/مشغولة'+(model.vacantUnitCount?'، و'+model.vacantUnitCount+' وحدات شاغرة أو بلا عقد تفصيلي':'')+'.':'';
     const officialNote=model.official?'<p class="v206-ledger-source"><strong>مطابق للكشف الرسمي / <span lang="en">OFFICIAL TOTALS</span></strong><span>الإجماليات مأخوذة من الكشف المعتمد، وتفاصيل الوحدات معروضة للمطابقة.'+occupancyNote+(model.sourcePages?' مرجع الصفحات / Source pages: '+escapeHtml(model.sourcePages)+'.':'')+'</span></p>':'';
     return '<article class="v202-document v206-ledger" data-v206-ledger data-v206-ledger-version="V206-preview" data-v206-property="'+escapeHtml(model.property)+'">'+
-        '<div class="v206-ledger-tools v202-no-print"><div><label for="v202StatementPeriod">شهر الكشف / Statement month</label><input id="v202StatementPeriod" type="month" value="'+escapeHtml(model.period)+'"></div><button type="button" data-v206-export-csv>تصدير CSV / Export CSV</button></div>'+ 
+        '<div class="v206-ledger-tools v202-no-print"><div><label for="v202StatementPeriod">شهر الكشف / Statement month</label><input id="v202StatementPeriod" type="month" value="'+escapeHtml(model.period)+'"></div><button type="button" data-v206-export-csv>تصدير CSV / Export CSV</button><button type="button" data-v267-source-statement>كشف المصدر المحفوظ</button></div>'+ 
         '<header class="v206-ledger-brand"><div class="v206-ledger-brand-name"><strong>'+escapeHtml(model.brand.ar)+'</strong><b>'+escapeHtml(model.brand.en)+'</b><span>'+escapeHtml(model.brand.addressAr)+'</span><small>'+escapeHtml(model.brand.addressEn)+'</small></div><p class="v206-ledger-meta">'+escapeHtml(contact)+'</p></header>'+ 
         '<section class="v206-ledger-header"><div class="v206-ledger-title"><span>كشف إيجار العقار</span><small lang="en">PROPERTY RENT LEDGER</small><h2>'+escapeHtml(model.property||'عقار غير مسجل')+'</h2><p>المالك / <span lang="en">Owner</span>: '+escapeHtml(model.owner||'غير مسجل / Not recorded')+'</p></div><div class="v206-ledger-identity"><strong>'+escapeHtml(periodLabel(model.period))+'</strong><small lang="en">'+escapeHtml(periodLabelEnglish(model.period))+'</small></div></section>'+ 
         '<section class="v206-ledger-summary" aria-label="ملخص التحصيل">'+
-          '<div><span>الوحدات / UNITS</span><strong>'+model.unitCount+'</strong></div>'+ 
-          '<div><span>المستحق / DUE</span><strong>'+escapeHtml(money(model.totals.due))+'</strong></div>'+ 
+          '<div><span>'+(model.official?'الوحدات / UNITS':'الوحدات في الكشف / STATEMENT UNITS')+'</span><strong>'+model.unitCount+'</strong></div>'+ 
+          '<div><span>المستحق / DUE</span><strong>'+escapeHtml(model.reviewRequired?'قيد المراجعة / Pending review':money(model.totals.due))+'</strong></div>'+ 
           '<div><span>المحصّل / COLLECTED</span><strong>'+escapeHtml(money(model.totals.paid))+'</strong></div>'+ 
-          '<div><span>المتبقي / BALANCE</span><strong>'+escapeHtml(money(model.totals.balance))+'</strong></div>'+ 
+          '<div><span>المتبقي / BALANCE</span><strong>'+escapeHtml(model.reviewRequired?'قيد المراجعة / Pending review':money(model.totals.balance))+'</strong></div>'+ 
         '</section>'+ 
+        (model.reviewRequired?'<p class="v206-ledger-source" role="status">بيانات عقود الشهر غير مكتملة أو غير معتمدة. هذا كشف للمراجعة ولا يثبت خلو الوحدة من المستحقات. / Incomplete contract evidence: review statement, not a clearance.</p>':'')+
         officialNote+propertyRentLedgerCommandCenter(model)+
         '<div class="v206-ledger-table-wrap" role="region" aria-label="جدول كشف الإيجار التفصيلي، مرر أفقياً لعرض جميع الأعمدة" tabindex="0"><table class="v206-ledger-table"><caption>كشف الإيجارات التفصيلي / Detailed rent ledger</caption><thead><tr>'+headers+'</tr></thead><tbody>'+rowOrEmpty(rows,14)+'</tbody><tfoot>'+totalRow+'</tfoot></table></div>'+ 
         (model.totals.pending?'<p class="v206-ledger-footnote">دفعات قيد المراجعة بقيمة '+escapeHtml(money(model.totals.pending))+' مستبعدة من المحصّل / Pending payments are excluded from collected totals.</p>':'')+
-        '<footer>'+escapeHtml(model.brand.ar)+' / '+escapeHtml(model.brand.en)+' • كشف صادر من منصة عقاري حسب البيانات المعتمدة وقت الإصدار</footer>'+ 
+        '<footer>'+escapeHtml(model.brand.ar)+' / '+escapeHtml(model.brand.en)+' • '+(model.reviewRequired?'كشف للمراجعة؛ اكتمال المستحقات غير مثبت':'كشف صادر من منصة عقاري حسب البيانات المعتمدة وقت الإصدار')+'</footer>'+ 
       '</article>';
   }
 
@@ -3148,19 +3168,36 @@
       ['إجمالي الوحدات / Total units',model.unitCount??''],
       ['الوحدات المشغولة / Occupied units',model.occupiedUnitCount??''],
       ['الوحدات الشاغرة / Vacant units',model.vacantUnitCount??''],
-      ['المستحق الرسمي / Official due',model.totals?.due??''],
+      ['المستحق الرسمي / Official due',model.reviewRequired?'قيد المراجعة / Pending review':model.totals?.due??''],
       ['المحصّل الرسمي / Official collected',model.totals?.paid??''],
       ['قيد المراجعة / Pending',model.totals?.pending??''],
-      ['المتبقي / Balance',model.totals?.balance??''],
+      ['المتبقي / Balance',model.reviewRequired?'قيد المراجعة / Pending review':model.totals?.balance??''],
       ['إجمالي التأمين / Total insurance',model.totals?.insurance??''],
       ['إجمالي العربون / Total advance',model.totals?.advance??''],
       ['إجمالي رسوم النظافة / Total cleaning',model.totals?.cleaningFee??''],
       ['مرجع الصفحات / Source pages',model.sourcePages||''],
-      ['مطابقة التفاصيل / Detail reconciliation',model.official?'الإجماليات الرسمية معتمدة؛ صفوف التفاصيل للمطابقة / Official totals are authoritative; detail rows are for reconciliation':'محسوب من الصفوف / Calculated from rows']
+      ['مطابقة التفاصيل / Detail reconciliation',model.reviewRequired?'عقود غير مكتملة؛ ليس إثبات خلو مستحقات / Incomplete contracts; not a clearance':model.official?'الإجماليات الرسمية معتمدة؛ صفوف التفاصيل للمطابقة / Official totals are authoritative; detail rows are for reconciliation':'محسوب من الصفوف / Calculated from rows']
     ];
     lines.push(new Array(PROPERTY_RENT_LEDGER_COLUMNS.length).fill(''));
     metadata.forEach(function(row){lines.push(row.concat(new Array(PROPERTY_RENT_LEDGER_COLUMNS.length-row.length).fill('')))});
     return '\uFEFF'+lines.map(function(line){return line.map(propertyRentLedgerCsvCell).join(',')}).join('\r\n');
+  }
+
+  async function openSavedPropertyStatement(button){
+    if(!protectedAccessReady()||button.disabled)return false;
+    const ledger=button.closest('[data-v206-ledger]');
+    const property=String(ledger?.getAttribute('data-v206-property')||'');
+    const period=ledger?.querySelector('#v202StatementPeriod')?.value;
+    if(!property||propertyKey(property)!==propertyKey(activeProperty)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(period||''))return false;
+    button.disabled=true;
+    try{
+      const module=await import('/src/v267/pages/property-statements.js');
+      if(!protectedAccessReady()||propertyKey(property)!==propertyKey(activeProperty))return false;
+      closeDocument();
+      module.openPropertyStatements({propertyName:property,period});
+      return true;
+    }catch{window.alert('تعذر فتح كشف المصدر المحفوظ. أعد المحاولة.');return false;}
+    finally{button.disabled=false;}
   }
 
   function exportPropertyRentLedgerCsv(){
@@ -3694,6 +3731,8 @@
       }
       if(target.closest('[data-v202-payment-close]')){event.preventDefault();event.stopImmediatePropagation();return closePayment()}
       if(target.closest('[data-v202-document-close]')){event.preventDefault();event.stopImmediatePropagation();return closeDocument()}
+      const savedStatement=target.closest('[data-v267-source-statement]');
+      if(savedStatement){event.preventDefault();event.stopImmediatePropagation();return openSavedPropertyStatement(savedStatement)}
       if(target.closest('[data-v206-export-csv]')){event.preventDefault();event.stopImmediatePropagation();return exportPropertyRentLedgerCsv()}
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
       if(target.closest('[data-v267-document-download]')){event.preventDefault();event.stopImmediatePropagation();return downloadDocument().catch(()=>window.alert('تعذر تحميل المستند. أعد المحاولة.'))}
