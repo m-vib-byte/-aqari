@@ -3051,6 +3051,7 @@
     const selectedPeriod=validPeriod(period)?period:latestOfficialPeriod(property);
     const ledgerRows=propertyRentLedgerRows(context,selectedPeriod);
     const official=officialStatementFor(property,selectedPeriod);
+    const reviewRequired=dueNeedsReview({...context,period:selectedPeriod,official,activeContracts:context.propertyContracts.filter(function(contract){return signedContract(contract)&&validContractTerms(contract)&&contractCoversPeriod(contract,selectedPeriod)})});
     const computedDue=exactMoneySum(ledgerRows.map(function(row){return row.due}));
     const computedPaid=exactMoneySum(ledgerRows.map(function(row){return row.paid}));
     const pending=exactMoneySum(ledgerRows.map(function(row){return row.pending}));
@@ -3067,7 +3068,7 @@
     const occupiedUnitCount=officialOccupiedUnitCount==null?Math.min(ledgerRows.length,unitCount):officialOccupiedUnitCount;
     return {
       property,owner:String(context.property?.[1]&&context.property[1]!=='—'?context.property[1]:''),period:selectedPeriod,
-      brand:statementBrand(property),rows:ledgerRows,official:Boolean(official),
+      brand:statementBrand(property),rows:ledgerRows,official:Boolean(official),reviewRequired,
       unitCount,occupiedUnitCount,vacantUnitCount:Math.max(0,unitCount-occupiedUnitCount),
       sourcePages:official&&hasField(official,'sourcePages')?String(official.sourcePages):'',
       detailTotals:{due:computedDue,paid:computedPaid},
@@ -3132,11 +3133,12 @@
         '<header class="v206-ledger-brand"><div class="v206-ledger-brand-name"><strong>'+escapeHtml(model.brand.ar)+'</strong><b>'+escapeHtml(model.brand.en)+'</b><span>'+escapeHtml(model.brand.addressAr)+'</span><small>'+escapeHtml(model.brand.addressEn)+'</small></div><p class="v206-ledger-meta">'+escapeHtml(contact)+'</p></header>'+ 
         '<section class="v206-ledger-header"><div class="v206-ledger-title"><span>كشف إيجار العقار</span><small lang="en">PROPERTY RENT LEDGER</small><h2>'+escapeHtml(model.property||'عقار غير مسجل')+'</h2><p>المالك / <span lang="en">Owner</span>: '+escapeHtml(model.owner||'غير مسجل / Not recorded')+'</p></div><div class="v206-ledger-identity"><strong>'+escapeHtml(periodLabel(model.period))+'</strong><small lang="en">'+escapeHtml(periodLabelEnglish(model.period))+'</small></div></section>'+ 
         '<section class="v206-ledger-summary" aria-label="ملخص التحصيل">'+
-          '<div><span>الوحدات / UNITS</span><strong>'+model.unitCount+'</strong></div>'+ 
-          '<div><span>المستحق / DUE</span><strong>'+escapeHtml(money(model.totals.due))+'</strong></div>'+ 
+          '<div><span>'+(model.official?'الوحدات / UNITS':'الوحدات في الكشف / STATEMENT UNITS')+'</span><strong>'+model.unitCount+'</strong></div>'+ 
+          '<div><span>المستحق / DUE</span><strong>'+escapeHtml(model.reviewRequired?'قيد المراجعة / Pending review':money(model.totals.due))+'</strong></div>'+ 
           '<div><span>المحصّل / COLLECTED</span><strong>'+escapeHtml(money(model.totals.paid))+'</strong></div>'+ 
-          '<div><span>المتبقي / BALANCE</span><strong>'+escapeHtml(money(model.totals.balance))+'</strong></div>'+ 
+          '<div><span>المتبقي / BALANCE</span><strong>'+escapeHtml(model.reviewRequired?'قيد المراجعة / Pending review':money(model.totals.balance))+'</strong></div>'+ 
         '</section>'+ 
+        (model.reviewRequired?'<p class="v206-ledger-source" role="status">بيانات عقود الشهر غير مكتملة أو غير معتمدة. هذا كشف للمراجعة ولا يثبت خلو الوحدة من المستحقات. / Incomplete contract evidence: review statement, not a clearance.</p>':'')+
         officialNote+propertyRentLedgerCommandCenter(model)+
         '<div class="v206-ledger-table-wrap" role="region" aria-label="جدول كشف الإيجار التفصيلي، مرر أفقياً لعرض جميع الأعمدة" tabindex="0"><table class="v206-ledger-table"><caption>كشف الإيجارات التفصيلي / Detailed rent ledger</caption><thead><tr>'+headers+'</tr></thead><tbody>'+rowOrEmpty(rows,14)+'</tbody><tfoot>'+totalRow+'</tfoot></table></div>'+ 
         (model.totals.pending?'<p class="v206-ledger-footnote">دفعات قيد المراجعة بقيمة '+escapeHtml(money(model.totals.pending))+' مستبعدة من المحصّل / Pending payments are excluded from collected totals.</p>':'')+

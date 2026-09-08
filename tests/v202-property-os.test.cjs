@@ -3381,3 +3381,16 @@ test('property dues remain pending for drafts and invalid terms instead of decla
   context.propertyContracts.push({...context.propertyContracts[0],id:'unresolved',start_date:'unreadable'});
   assert.equal(runtime.dueNeedsReview(context),true);
 });
+
+test('empty monthly statement is marked for review in printable output', () => {
+  const data=fixture();data.contractsV202.forEach(c=>{c.status='draft';});
+  const runtime=loadRuntime(data,[],activeRuntimeWindow()),context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const model=runtime.propertyRentLedgerModel(context,'2026-09');
+  assert.equal(model.reviewRequired,true);
+  assert.equal(model.rows.length,0);
+  const document=runtime.propertyRentLedgerDocument(context,'2026-09');
+  assert.match(document,/Pending review/);
+  assert.match(document,/not a clearance/);
+  assert.doesNotMatch(document,/DUE<\/span><strong>٠ د.ك/);
+  assert.doesNotMatch(document,/BALANCE<\/span><strong>٠ د.ك/);
+});
