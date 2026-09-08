@@ -11,7 +11,7 @@ test('statement navigation isolates months and disables actions after missing da
   replaceChildren(){this.children=[];}
   addEventListener(){}
  }
- const content={property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195}]};
+ const content={property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
  let failLinks=false;
  const queries=[];
@@ -25,6 +25,9 @@ test('statement navigation isolates months and disables actions after missing da
   mod.openPropertyStatements();await tasks[0];await Promise.resolve();
   const [property,month,refresh,pdf,link,result]=dialog.body.children;
   assert.equal(pdf.disabled,false);assert.equal(month.value,'2026-08');
+  const cards=result.children.filter(el=>el.tag==='details');
+  assert.ok(cards[0].children.some(el=>el.textContent==='التأمين: 50'));
+  assert.ok(cards[1].children.some(el=>el.textContent==='التأمين: 75 — معلق'));
   month.value='2026-09';await month.onchange();
   assert.equal(result.children.length,0);assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);
   assert.match(dialog.status.textContent,/لا يوجد كشف/);
