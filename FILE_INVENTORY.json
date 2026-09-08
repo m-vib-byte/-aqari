@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "bdb58b459b337dcd0458d3986365c562a6944a28589068a564e2fd4f435c4584",
-      "size": 5316
+      "sha256": "4573e4c4836efb88a636fde9ac4e20861ced66fbd91838c174474a3ee27296bc",
+      "size": 5572
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1149,6 +1149,21 @@
       "path": "src/v267/pages/automation-status.js",
       "sha256": "3664ee90b5e380cc1625ba6bd5a48fd2a0dad973f896b48b0f25d2e7d439befc",
       "size": 1581
+    },
+    {
+      "path": "src/v267/components/data-quality.mjs",
+      "sha256": "6328618018afbfafa663ed6b2611e4e1b7baaf188171e217baada7f6d7f14a47",
+      "size": 1109
+    },
+    {
+      "path": "src/v267/pages/data-quality.js",
+      "sha256": "369a84f043f612ae4aba6636d64c2b9689d19197e804f386e7ff886849c9009b",
+      "size": 2811
+    },
+    {
+      "path": "tests/data-quality.test.mjs",
+      "sha256": "393181647a7c21121d7a810bf9025098100d7eec9409d114d0fe79a0081b657f",
+      "size": 1052
     }
   ],
   "version": "V198"
