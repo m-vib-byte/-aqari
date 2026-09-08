@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "9ee82ae7e7d54c8e46360749351f1699278d5ca10866d72597b95b8434adf3d5",
-      "size": 5334
+      "sha256": "bdb58b459b337dcd0458d3986365c562a6944a28589068a564e2fd4f435c4584",
+      "size": 5316
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1107,8 +1107,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "size": 7236,
-      "sha256": "5c46869ba1e86eb79cec58a42dbd5c13e1d453f2e22edb46b5ff2eee273c42d7"
+      "size": 10913,
+      "sha256": "d6c301da05c79bbee629af9a3414322cec864ff15dc26b31bf51d8d4ecf6a9f8"
     },
     {
       "path": "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
@@ -1122,8 +1122,28 @@
     },
     {
       "path": "staging-database/tests/utility_register.sql",
-      "size": 2184,
-      "sha256": "f372ff33fefe6520d5d81316fa005260908a89115794243d1ee4e96e925a5a1f"
+      "size": 2620,
+      "sha256": "4d2ecf5fefe8293ba491d2167b585a90e6ee28e85ab63889eea2483ac35dc7ae"
+    },
+    {
+      "path": "src/v267/components/payment-proof.js",
+      "sha256": "7039255a36414ae24a6d3f3cb8b1ce087d2cd852a98cdedb90f1a65b8e01d609",
+      "size": 2558
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908110635_v267_utility_payment_evidence.sql",
+      "sha256": "46dfa29d055044c4fda45c83eeb27a0f4b350ace148f965a3579d8dd7ef447c1",
+      "size": 1703
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908110843_v267_utility_evidence_required_values.sql",
+      "sha256": "f142ee247aadb2ec32f9e743e3b4f7fd5279eb7fb37fbf668454bf8fd0428af0",
+      "size": 194
+    },
+    {
+      "path": "tests/payment-proof.test.mjs",
+      "sha256": "2964177aec1d5dfc3630440e29eca9fe4e0810a19e857ddf01c819e0d0d0fb16",
+      "size": 1878
     }
   ],
   "version": "V198"

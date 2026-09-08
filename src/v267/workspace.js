@@ -33,9 +33,9 @@ export function install(){
  scan.onclick=()=>import('./pages/document-scanner.js').then(m=>m.openDocumentScanner()).catch(e=>notice.textContent=safeError(e));
  language.onchange=()=>{locale=language.value;updateLabels();};
  const statements=node('button','كشوف العقارات — برج شيخة');statements.hidden=currentScope().role!=='general_manager';statements.onclick=()=>import('./pages/property-statements.js').then(m=>m.openPropertyStatements()).catch(e=>notice.textContent=safeError(e));
- const utilities=node('button','الإعدادات والخدمات — عدادات برج شيخة');utilities.onclick=()=>import('./pages/utility-meters.js').then(m=>m.openUtilityMeters()).catch(e=>notice.textContent=safeError(e));
+ const utilities=node('button','الإعدادات والخدمات — عدادات العقارات');utilities.onclick=()=>import('./pages/utility-meters.js').then(m=>m.openUtilityMeters()).catch(e=>notice.textContent=safeError(e));
  tools.append(control,scan,statements,utilities,field('لغة المسميات',language),notice);menu.append(tools);
- for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=node('button','عدادات الكهرباء والماء — برج شيخة');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(node('h3','خدمات برج شيخة'),button);page.prepend(card);}}
+ for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=node('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(node('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
  document.addEventListener('click',event=>{
   if(event.target.closest?.('[data-v199-action="more"]')){refresh();return;}

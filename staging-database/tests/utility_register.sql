@@ -17,6 +17,10 @@ begin
  begin
   insert into public.aqari_utility_entries(workspace_id,property_id,meter_id,entry_type,invoice_no,bill_period,amount_due,amount_paid,payment_status,source_ref) values(m.workspace_id,m.property_id,m.id,'bill','BAD-STATE','2026-09-01',20,5,'paid','invalid status test');raise exception 'INVALID_PAID_ACCEPTED';
  exception when check_violation then null;end;
+ begin
+  insert into public.aqari_utility_entries(workspace_id,property_id,meter_id,entry_type,invoice_no,bill_period,amount_due,amount_paid,source_ref,payment_document_id,payment_date,payment_method)
+  values(m.workspace_id,m.property_id,m.id,'bill','UNVERIFIED-PROOF','2026-09-01',20,5,'proof mismatch',gen_random_uuid(),'2026-09-08','knet');raise exception 'UNVERIFIED_PROOF_ACCEPTED';
+ exception when check_violation then null;end;
 end $$;
 select set_config('request.jwt.claims','{"sub":"00000000-0000-0000-0000-000000000001","role":"authenticated"}',true);
 do $$begin if exists(select 1 from public.aqari_utility_meters) or exists(select 1 from public.aqari_utility_entries) then raise exception 'OUTSIDER_READ';end if;end $$;
