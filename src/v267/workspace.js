@@ -1,14 +1,15 @@
+import {uiText,refreshText} from './components/ui-text.js';
 import {t,getLocale,bindLocale,setLocale,direction} from './components/locale.js';
 import {installFinancialIntegrity} from './pages/financial-integrity.js';
 import {createSession,currentScope,safeError} from './api/session.js';
 import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
 let installed=false,access=null,loading=null,session,notice;
-function ui(tag,source){const el=node(tag,t(source));el.dataset.aq267Text=source;return el;}
+const ui=uiText;
 function updateLabels(){
  const locale=getLocale();
  for(const region of document.querySelectorAll('.aq267-tools')){region.lang=locale;region.dir=direction();}
- for(const el of document.querySelectorAll('.aq267-tools [data-aq267-text]'))el.textContent=t(el.dataset.aq267Text);
+ for(const el of document.querySelectorAll('.aq267-tools [data-aq267-text]'))refreshText(el);
  const choice=document.getElementById('aq267-interface-language');if(choice)choice.value=locale;
  if(!access)return;
  // Rename navigation only: dashboard action cards also carry routing attributes

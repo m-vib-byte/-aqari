@@ -15,14 +15,14 @@ const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sh
 const secondStatement=structuredClone(statement);secondStatement.property_id='p2';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
 const lease={id:'lease1',external_ref:'source1',contract_no:'C-101',start_date:'2026-08-01',end_date:'2027-07-31',monthly_rent:'125.750',deposit:null,status:'draft',snapshot:{property:propertyName,unit:'101',tenant:tenantName,pending:[]}};
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
-const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
+const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><div id="home"></div><section id="collectionProPage"></section><section id="financeSuitePage"></section><section id="reports"></section><section id="documentsHub"></section><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
  'const uid='+JSON.stringify(uid)+',wid='+JSON.stringify(wid)+';'+
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://djkpkkgoibruaezdrchb.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
  'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://djkpkkgoibruaezdrchb.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
  'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json()}:{error:await r.json()});return x;}'+
  'window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:"general_manager",is_active:true}},getClient:async()=>({rpc:query,from:name=>query(name,{})}),getSession:async()=>({user:{id:uid},access_token:"synthetic-not-a-real-token"})};'+
- 'const {install}=await import("/src/v267/workspace.js");install();</script></body></html>';
+ 'const {install}=await import("/src/v267/workspace.js");install();await import("/src/v267/pages/automation-status.js");</script></body></html>';
 const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://127.0.0.1');
  if(url.pathname.startsWith('/storage-fixture/storage/v1/object/')){
@@ -55,7 +55,7 @@ const server=http.createServer((req,res)=>{
   if(name==='aqari_documents')return reply(res,args._single?docs.find(d=>d.id===args.id):[{id:'signed1',document_no:'SIGN-TEST',title:'عقد أصلي <موقع>',status:'uploaded'}]);
   if(name==='aqari_read_state_v267')return reply(res,{revision:1});
   if(name==='aqari_review_source_lease'){reviewWrites++;return reply(res,{message:'UNEXPECTED_REVIEW_WRITE'},400);}
-  if(['aqari_properties','aqari_utility_meters','aqari_utility_entries','aqari_property_statements','aqari_statement_links','aqari_leases','aqari_units','aqari_tenants'].includes(name)){
+  if(['aqari_properties','aqari_utility_meters','aqari_utility_entries','aqari_property_statements','aqari_statement_links','aqari_leases','aqari_units','aqari_tenants','aqari_rent_payments'].includes(name)){
    assert.equal(args.workspace_id??args._insert?.workspace_id,wid,'all form queries are workspace scoped');
    if(name==='aqari_properties')return reply(res,[{id:'p1',name:propertyName,external_ref:'source1'},{id:'p2',name:'عقار آخر',external_ref:'source2'}]);
    if(name==='aqari_utility_meters')return reply(res,args.property_id==='p1'?[{id:'meter1',property_id:'p1',kind:'electricity',serial_no:'E-001',account_no:'AC-123',unit_no:'101',notes:'قراءة أصلية <محفوظة>'}]:[]);
@@ -66,6 +66,7 @@ const server=http.createServer((req,res)=>{
    if(name==='aqari_property_statements')return reply(res,[statement,secondStatement].filter(x=>(!args.period||x.period===args.period)&&(!args.property_id||x.property_id===args.property_id)));
    if(name==='aqari_statement_links')return statementReadDenied?reply(res,{message:'ACCESS_DENIED'},403):reply(res,[]);
    if(name==='aqari_leases')return reply(res,[lease]);
+   if(name==='aqari_rent_payments')return reply(res,[{id:'pay1',amount:'120.000',status:'paid',paid_at:'2026-08-02'},{id:'pay2',amount:'5.750',status:'partial',paid_at:'2026-08-03'},{id:'unpaid',amount:'1000.000',status:'draft',paid_at:'2026-08-03'},{id:'other-month',amount:'20.000',status:'paid',paid_at:'2026-07-03'}]);
    if(name==='aqari_units')return reply(res,[{id:'unit1',property_id:'p1',unit_no:'101'},{id:'unit2',property_id:'p1',unit_no:'101'}]);
    if(name==='aqari_tenants')return reply(res,[{id:'tenant1',full_name:tenantName,civil_id:'synthetic',phone:'0000'}]);
   }
@@ -76,6 +77,26 @@ const server=http.createServer((req,res)=>{
  res.writeHead(200,{'content-type':file.endsWith('.css')?'text/css':'text/javascript'});res.end(fs.readFileSync(file));
 });
 await new Promise(resolve=>server.listen(4175,'127.0.0.1',resolve));
+async function verifyFinancialPanels(page,locale,name){
+ const tr=source=>translate(source,locale),fmt=(source,values)=>formatMessage(source,values,locale);
+ for(const id of ['collectionProPage','financeSuitePage','reports','documentsHub']){
+  const panel=page.locator('#'+id),month=panel.getByLabel(tr('شهر التحصيل الفعلي'),{exact:true});
+  await month.fill('2026-08');await month.press('Tab');
+  await panel.getByText(tr('تمت القراءة من مساحة العمل الحالية. لا يوجد تغيير أو حفظ مالي من هذه الشاشة.'),{exact:true}).waitFor();
+  if(id!=='documentsHub')assert.equal(await panel.getByRole('heading',{name:fmt('التحصيل الفعلي خلال {month}: {amount} د.ك',{month:'2026-08',amount:'125.750'}),exact:true}).count(),1);
+ }
+ const alternate=locale==='en'?'ur':'en',before=calls.length;
+ await page.locator('#aq267-interface-language').selectOption(alternate);
+ await page.locator('#financeSuitePage').getByRole('heading',{name:formatMessage('التحصيل الفعلي خلال {month}: {amount} د.ك',{month:'2026-08',amount:'125.750'},alternate),exact:true}).waitFor();
+ await page.locator('#aqari-v267-automation-status').getByRole('heading',{name:translate('التنبيهات والأتمتة',alternate),exact:true}).waitFor();
+ assert.equal(await page.locator('#financeSuitePage .aq267-tools').getAttribute('dir'),alternate==='ur'?'rtl':'ltr');
+ await page.locator('#aq267-interface-language').selectOption(locale);
+ await page.locator('#financeSuitePage').getByRole('heading',{name:fmt('التحصيل الفعلي خلال {month}: {amount} د.ك',{month:'2026-08',amount:'125.750'}),exact:true}).waitFor();
+ assert.equal(calls.length,before,'translating loaded financial panels does not read or write business data');
+ assert.equal(await page.locator('#financeSuitePage').getByLabel(tr('شهر التحصيل الفعلي'),{exact:true}).inputValue(),'2026-08','language preserves selected financial month');
+ const box=await page.locator('#financeSuitePage').evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.scroll<=box.client+1,'financial translation fits viewport');
+ await page.locator('#financeSuitePage').screenshot({path:path.join(out,name+'-'+locale+'-finance.png')});
+}
 async function verifyLocalizedForms(page,locale,name,viewport){
  const tr=source=>translate(source,locale),fmt=(source,values)=>formatMessage(source,values,locale);
  const dialog=page.getByRole('dialog'),close=()=>dialog.getByRole('button',{name:tr('إغلاق'),exact:true}).click();
@@ -204,6 +225,7 @@ try{
      await page.getByRole('button',{name:navLabel('control_center',locale),exact:true}).waitFor();
      await page.reload();
      assert.equal(await page.locator('#aq267-interface-language').inputValue(),locale,'language survives reload');
+     await verifyFinancialPanels(page,locale,name);
      await page.getByRole('button',{name:navLabel('control_center',locale),exact:true}).click();
      await page.getByText(translate('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',locale),{exact:true}).waitFor();
      const localizedDialog=page.getByRole('dialog');
@@ -228,6 +250,7 @@ try{
     }
     await page.evaluate(()=>{window.AQARI_DATA_GATE.scope=null;window.dispatchEvent(new CustomEvent('aqari:auth-boundary'));});
     assert.equal(await page.getByRole('dialog').count(),0);
+    assert.equal(await page.locator('#financeSuitePage h3').count(),0,'logout clears cached financial values');
     assert.deepEqual(errors,[]);
     results.push({name,passed:true,ms:Date.now()-start,layout,languageLayouts,controlRevision:revision,documents:docs.length,scope:'synthetic component backend; no real account or physical device'});console.log('PASS',name);
    }catch(e){failed=true;results.push({name,passed:false,error:e.stack,calls,errors});console.error('FAIL',name,e.stack);await page.screenshot({path:path.join(out,name+'-failure.png'),fullPage:true}).catch(()=>{});}

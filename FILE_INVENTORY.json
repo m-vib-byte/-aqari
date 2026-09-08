@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "8cb2572a96d8ea2170a99b68255447aa96476fd74eabbcb618dbb0146f56a918",
-      "size": 6830
+      "sha256": "f65ac3259304a1ff7b0ccba5bd63244205657ba7025a2ca3ac7d15c5dbf477e3",
+      "size": 6791
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "3221a4a8dc43ae2b6f17ad4c78c717a98f4e519aabeca05499a7cadc9328719b",
-      "size": 27891
+      "sha256": "af831621c3f266ca45f98626c39594eadd33884758da4e0e286d36ad4e362953",
+      "size": 30931
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1147,8 +1147,8 @@
     },
     {
       "path": "src/v267/pages/automation-status.js",
-      "sha256": "3664ee90b5e380cc1625ba6bd5a48fd2a0dad973f896b48b0f25d2e7d439befc",
-      "size": 1581
+      "sha256": "9a915543099e9107a8e5de91282ae5d0fab53f3c98924e27b05cae872caa9820",
+      "size": 1755
     },
     {
       "path": "src/v267/components/data-quality.mjs",
@@ -1172,8 +1172,8 @@
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
-      "sha256": "0ae23ac2f3d0293bed4d538607102ca86b04ea5f8407d15a04243ed8f9572c16",
-      "size": 5997
+      "sha256": "313c997937959aad96058981a6fce95d2ab14861d541030e1561fb38e7b6d492",
+      "size": 6253
     },
     {
       "path": "tests/financial-evidence.test.mjs",
@@ -1202,13 +1202,18 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "04e8d891284f6e0dd424f9c6b8c97e27824b341e914b194291ea79da9b30fe9b",
-      "size": 113016
+      "sha256": "c26df9095a24b3a0edaf790cbad9a0893c8517569cb45e395313c63e7f7be5d4",
+      "size": 131432
     },
     {
       "path": "tests/v267-locale.test.mjs",
       "sha256": "85199444f449b6aaf0ae1dd473b257f20817a92615f62e26abf672c079f34abb",
       "size": 4139
+    },
+    {
+      "path": "src/v267/components/ui-text.js",
+      "sha256": "2e6c947f801832a742db9a1901cb831c2f87be2ae0dc53c3aa177d0f0a517d14",
+      "size": 553
     }
   ],
   "version": "V198"
