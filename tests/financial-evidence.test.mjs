@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {paymentTotal} from '../src/v267/components/financial-evidence.mjs';
+test('only confirmed receipts by cash date, never contractual rent',()=>{assert.deepEqual(paymentTotal([{amount:'195',paid_at:'2026-09-08',period:'2026-08-01',status:'paid'},{amount:'250',paid_at:'2026-09-08',status:'cancelled'},{amount:'100',paid_at:'2026-08-31',status:'paid'},{amount:'0.125',paid_at:'2026-09-09',status:'جزئي'}],'2026-09'),{amount:'195.125',count:2});});
+test('empty real ledger is zero receipts, not forecast profit',()=>assert.deepEqual(paymentTotal([],'2026-09'),{amount:'0.000',count:0}));
+test('invalid precision fails rather than hiding corrupt totals',()=>assert.throws(()=>paymentTotal([{amount:'1.0001',paid_at:'2026-09-08',status:'paid'}],'2026-09')));

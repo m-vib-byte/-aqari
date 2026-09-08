@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "4573e4c4836efb88a636fde9ac4e20861ced66fbd91838c174474a3ee27296bc",
-      "size": 5572
+      "sha256": "506e90120682186cf3567c827af2b6cdea399b019f95fcdd30065661f8b2c6b6",
+      "size": 5674
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1164,6 +1164,21 @@
       "path": "tests/data-quality.test.mjs",
       "sha256": "393181647a7c21121d7a810bf9025098100d7eec9409d114d0fe79a0081b657f",
       "size": 1052
+    },
+    {
+      "path": "src/v267/components/financial-evidence.mjs",
+      "sha256": "65d4086cd85baaee671c4678566f93873ae0d357395dedf332822ce7fbf8e94b",
+      "size": 650
+    },
+    {
+      "path": "src/v267/pages/financial-integrity.js",
+      "sha256": "034a95558e340aa583bb70595787839e093d52e1b7f9695c658962e3298b4fdb",
+      "size": 5431
+    },
+    {
+      "path": "tests/financial-evidence.test.mjs",
+      "sha256": "a317687f4617788d7cf9f31f44c628d7749a7d1f7f2c6c9ed6ece5bba39f74a2",
+      "size": 832
     }
   ],
   "version": "V198"

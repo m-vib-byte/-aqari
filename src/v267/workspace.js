@@ -1,3 +1,4 @@
+import {installFinancialIntegrity} from './pages/financial-integrity.js';
 import {createSession,currentScope,safeError} from './api/session.js';
 import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
@@ -22,7 +23,7 @@ async function refresh(){
  access=data;updateLabels();if(notice)notice.textContent='';return data;})().catch(e=>{access=null;if(notice)notice.textContent=safeError(e);return null;}).finally(()=>{loading=null;});return loading;
 }
 export function install(){
- if(installed)return;currentScope();installed=true;
+ if(installed)return;currentScope();installed=true;installFinancialIntegrity();
  if(!document.getElementById('aq267-workspace-css')){const css=node('link');css.id='aq267-workspace-css';css.rel='stylesheet';css.href='/src/v267/styles/workspace.css?release=V267';document.head.append(css);}
  const menu=document.getElementById('v199MoreMenu');if(!menu){installed=false;return;}
  const tools=node('section'),control=node('button',label('control_center')),scan=node('button',label('scan_document')),language=node('select');tools.className='aq267-tools';tools.id='aq267-workspace-tools';notice=node('p');notice.setAttribute('role','status');
