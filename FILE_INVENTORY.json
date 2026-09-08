@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "fcb0e59ea0ab425c7846ec55c311bfef689985fda61320046fa90053f48a7303",
-      "size": 4718
+      "sha256": "e3820ca6333d8339117235ce79e45a5d3f8b69e8d88034ccf9722cf13a49da91",
+      "size": 4963
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1104,6 +1104,26 @@
       "path": "v267-rental-records.js",
       "size": 24107,
       "sha256": "340b8336d8b52af7af18101e51560dbc09512debb389001ead17f0896ac9cd5a"
+    },
+    {
+      "path": "src/v267/pages/utility-meters.js",
+      "size": 7236,
+      "sha256": "5c46869ba1e86eb79cec58a42dbd5c13e1d453f2e22edb46b5ff2eee273c42d7"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
+      "size": 4196,
+      "sha256": "b838d3851b10b21db3990ff3e233659e773c9a16d95412765501f5f3a584bdc9"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908095242_v267_utility_finance_permissions.sql",
+      "size": 611,
+      "sha256": "d5945c0b59f35993f2432337b9e7b12236c28fd85f060b8806e1996c80777f0b"
+    },
+    {
+      "path": "staging-database/tests/utility_register.sql",
+      "size": 2184,
+      "sha256": "f372ff33fefe6520d5d81316fa005260908a89115794243d1ee4e96e925a5a1f"
     }
   ],
   "version": "V198"
