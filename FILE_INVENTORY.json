@@ -1066,11 +1066,6 @@
       "size": 2530
     },
     {
-      "path": "src/v267/pages/property-statements.js",
-      "sha256": "3f2e2174e5368776307f679a4bb41795a24a0a809686500c15cbed8bc626e02e",
-      "size": 5108
-    },
-    {
       "path": "tests/property_statement_test.py",
       "sha256": "fe9b9c836244133af52f788f371a47ed0d448df0aea43c39058ac93891a76365",
       "size": 1728
@@ -1084,6 +1079,16 @@
       "path": "staging-database/supabase/migrations/20260908085009_v267_source_property_read_projection.sql",
       "sha256": "6cff35a9be24888c4f41ff9064bf593c8a5a40c9a832222e77ab75ae106dbf79",
       "size": 1901
+    },
+    {
+      "path": "src/v267/pages/property-statements.js",
+      "size": 6639,
+      "sha256": "f5cf41d3585238856642824047b90e03167af04626c43f89ba7c0d7d0e6224c9"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
+      "size": 22390,
+      "sha256": "e35bc61d9c9f1e94a46985908758f1d7386a03eee03093bd2279e03d39abf3c1"
     }
   ],
   "version": "V198"
