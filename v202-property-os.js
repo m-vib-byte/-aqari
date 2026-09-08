@@ -1705,6 +1705,7 @@
 
   function healthFor(context){
     if(!context.activeContracts.length)return {tone:'link',label:'يحتاج ربط عقد',detail:'ابدأ بعقد لربط المستأجر والتحصيل بالعقار'};
+    if(dueNeedsReview(context))return {tone:'attention',label:'المستحقات تحتاج مراجعة',detail:'توجد بيانات عقود غير معتمدة؛ الإجمالي غير مكتمل'};
     if(context.due>0)return {tone:'attention',label:'يحتاج تحصيل',detail:'يوجد إيجار مستحق مرتبط بالعقار'};
     if(context.openMaintenance.length)return {tone:'attention',label:'توجد متابعة',detail:'طلبات صيانة تحتاج متابعة'};
     return {tone:'good',label:'الوضع منتظم',detail:'لا توجد متابعة عاجلة في البيانات المسجلة'};
@@ -1717,6 +1718,23 @@
 
   function kpi(label,value,meta,tone){
     return '<div class="v202-kpi '+(tone?'is-'+tone:'')+'"><span>'+escapeHtml(label)+'</span><strong>'+escapeHtml(value)+'</strong><small>'+escapeHtml(meta)+'</small></div>';
+  }
+
+  function dueNeedsReview(context){
+    if(context.official)return false;
+    if(!context.activeContracts.length)return true;
+    const directory=directoryEntriesFor(context.property?.[0]);
+    return context.propertyContracts.some(function(contract){
+      if(contractStatus(contract?.status)==='cancelled')return false;
+      if(!validContractTerms(contract))return true;
+      if(!contractCoversPeriod(contract,context.period))return false;
+      return !signedContract(contract)||importedContractNeedsVerification(contract,directoryRecordFor(directory,contract));
+    });
+  }
+
+  function dueKpi(context){
+    if(dueNeedsReview(context))return kpi('الإيجار المستحق','قيد المراجعة','يلزم اكتمال اعتماد عقود الفترة • '+periodLabel(context.period),'attention');
+    return kpi('الإيجار المستحق',money(context.due),(context.official?'حسب كشف المصدر':context.due?'مستحق العقود المعتمدة':'لا يوجد متبقٍ على العقود المعتمدة')+' • '+periodLabel(context.period),context.due?'attention':'');
   }
 
   function journey(context){
@@ -1807,7 +1825,7 @@
         kpi('الوحدات',String(context.units),'المسجلة في العقار')+
         kpi('إيجار المصدر',money(context.income),'قيمة مرجعية وليست تحصيلاً فعلياً','gold')+
         kpi('المقبوضات المرتبطة',money(context.collected),context.paymentCount+' دفعة معتمدة • '+periodLabel(context.period),'good')+
-        kpi('الإيجار المستحق',money(context.due),(context.due?'يحتاج متابعة':'لا يوجد مستحق مرتبط')+' • '+periodLabel(context.period),context.due?'attention':'')+
+        dueKpi(context)+
         kpi('المصروفات',money(context.expenseTotal),context.expenses.length+' بند مسجل')+
         kpi('صافي المقبوضات المسجلة',context.net===null?'معلّق':money(context.net),context.net===null?'يلزم توثيق فترة المصروفات وحالة صرفها':'دفعات الفترة المعتمدة؛ ليس ربحاً محاسبياً نهائياً','gold')+
       '</div>'+

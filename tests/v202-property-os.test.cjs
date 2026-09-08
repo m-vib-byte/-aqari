@@ -24,6 +24,8 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       contracts,
       contextFor,
       journey,
+      dueKpi,
+      dueNeedsReview,
       ledgerRecords,
       rentStatementItems,
       propertyRentLedgerRows: typeof propertyRentLedgerRows === 'function' ? propertyRentLedgerRows : null,
@@ -3357,4 +3359,25 @@ test('property journey does not claim a printable statement from legacy expenses
   assert.doesNotMatch(pending,/جاهز للطباعة/);
   context.official={period:context.period};
   assert.match(runtime.journey(context),/كشف مصدر محفوظ/);
+});
+
+test('property dues remain pending for drafts and invalid terms instead of declaring a zero balance', () => {
+  const data=fixture();
+  data.contractsV202=data.contractsV202.filter(c=>c.id==='contract-a');
+  let runtime=loadRuntime(data),context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  context.period='2026-08';context.official=null;
+  assert.equal(runtime.dueNeedsReview(context),false);
+  context.due=0;
+  assert.match(runtime.dueKpi(context),/لا يوجد متبقٍ على العقود المعتمدة/);
+  data.contractsV202[0].status='draft';
+  runtime=loadRuntime(data);context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.official=null;
+  assert.equal(runtime.dueNeedsReview(context),true);
+  assert.match(runtime.dueKpi(context),/قيد المراجعة/);
+  assert.doesNotMatch(runtime.dueKpi(context),/لا يوجد متبق/);
+  context.official={period:context.period};
+  assert.match(runtime.dueKpi(context),/حسب كشف المصدر/);
+  data.contractsV202[0].status='signed';
+  runtime=loadRuntime(data);context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.period='2026-08';context.official=null;
+  context.propertyContracts.push({...context.propertyContracts[0],id:'unresolved',start_date:'unreadable'});
+  assert.equal(runtime.dueNeedsReview(context),true);
 });
