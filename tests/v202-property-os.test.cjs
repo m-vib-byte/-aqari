@@ -3393,4 +3393,9 @@ test('empty monthly statement is marked for review in printable output', () => {
   assert.match(document,/not a clearance/);
   assert.doesNotMatch(document,/DUE<\/span><strong>٠ د.ك/);
   assert.doesNotMatch(document,/BALANCE<\/span><strong>٠ د.ك/);
+  assert.doesNotMatch(document,/حسب البيانات المعتمدة وقت الإصدار/);
+  const csv=runtime.propertyRentLedgerCsv(model);
+  assert.match(csv,/Official due","قيد المراجعة \/ Pending review/);
+  assert.match(csv,/Balance","قيد المراجعة \/ Pending review/);
+  assert.match(csv,/not a clearance/);
 });

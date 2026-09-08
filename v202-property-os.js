@@ -3142,7 +3142,7 @@
         officialNote+propertyRentLedgerCommandCenter(model)+
         '<div class="v206-ledger-table-wrap" role="region" aria-label="جدول كشف الإيجار التفصيلي، مرر أفقياً لعرض جميع الأعمدة" tabindex="0"><table class="v206-ledger-table"><caption>كشف الإيجارات التفصيلي / Detailed rent ledger</caption><thead><tr>'+headers+'</tr></thead><tbody>'+rowOrEmpty(rows,14)+'</tbody><tfoot>'+totalRow+'</tfoot></table></div>'+ 
         (model.totals.pending?'<p class="v206-ledger-footnote">دفعات قيد المراجعة بقيمة '+escapeHtml(money(model.totals.pending))+' مستبعدة من المحصّل / Pending payments are excluded from collected totals.</p>':'')+
-        '<footer>'+escapeHtml(model.brand.ar)+' / '+escapeHtml(model.brand.en)+' • كشف صادر من منصة عقاري حسب البيانات المعتمدة وقت الإصدار</footer>'+ 
+        '<footer>'+escapeHtml(model.brand.ar)+' / '+escapeHtml(model.brand.en)+' • '+(model.reviewRequired?'كشف للمراجعة؛ اكتمال المستحقات غير مثبت':'كشف صادر من منصة عقاري حسب البيانات المعتمدة وقت الإصدار')+'</footer>'+ 
       '</article>';
   }
 
@@ -3168,15 +3168,15 @@
       ['إجمالي الوحدات / Total units',model.unitCount??''],
       ['الوحدات المشغولة / Occupied units',model.occupiedUnitCount??''],
       ['الوحدات الشاغرة / Vacant units',model.vacantUnitCount??''],
-      ['المستحق الرسمي / Official due',model.totals?.due??''],
+      ['المستحق الرسمي / Official due',model.reviewRequired?'قيد المراجعة / Pending review':model.totals?.due??''],
       ['المحصّل الرسمي / Official collected',model.totals?.paid??''],
       ['قيد المراجعة / Pending',model.totals?.pending??''],
-      ['المتبقي / Balance',model.totals?.balance??''],
+      ['المتبقي / Balance',model.reviewRequired?'قيد المراجعة / Pending review':model.totals?.balance??''],
       ['إجمالي التأمين / Total insurance',model.totals?.insurance??''],
       ['إجمالي العربون / Total advance',model.totals?.advance??''],
       ['إجمالي رسوم النظافة / Total cleaning',model.totals?.cleaningFee??''],
       ['مرجع الصفحات / Source pages',model.sourcePages||''],
-      ['مطابقة التفاصيل / Detail reconciliation',model.official?'الإجماليات الرسمية معتمدة؛ صفوف التفاصيل للمطابقة / Official totals are authoritative; detail rows are for reconciliation':'محسوب من الصفوف / Calculated from rows']
+      ['مطابقة التفاصيل / Detail reconciliation',model.reviewRequired?'عقود غير مكتملة؛ ليس إثبات خلو مستحقات / Incomplete contracts; not a clearance':model.official?'الإجماليات الرسمية معتمدة؛ صفوف التفاصيل للمطابقة / Official totals are authoritative; detail rows are for reconciliation':'محسوب من الصفوف / Calculated from rows']
     ];
     lines.push(new Array(PROPERTY_RENT_LEDGER_COLUMNS.length).fill(''));
     metadata.forEach(function(row){lines.push(row.concat(new Array(PROPERTY_RENT_LEDGER_COLUMNS.length-row.length).fill('')))});
