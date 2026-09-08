@@ -111,11 +111,6 @@
       "size": 1220
     },
     {
-      "path": "cloud-sync.js",
-      "sha256": "cd761366eca908a8a9950645820e2246e85d4d691e7423060df16edaf9a014fd",
-      "size": 9964
-    },
-    {
       "path": "DEPLOYMENT_MANIFEST.json",
       "sha256": "008e3b6980456841cf3d9fb4038e334d96e2aedd8cf4582363d148ce634a7241",
       "size": 618
@@ -379,11 +374,6 @@
       "path": "sw.js",
       "sha256": "469e24f34e5310e52f31c5d2c6c701cba5f4320ef2b883fcdd2d45f250b61889",
       "size": 887
-    },
-    {
-      "path": "tests/auth-data-gate.test.cjs",
-      "sha256": "05bb7fd982b8f6e5aead8810bdcab8a8ff015478c84c65690e478c8fb87c6d39",
-      "size": 44295
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
@@ -1089,6 +1079,31 @@
       "path": "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
       "size": 22390,
       "sha256": "e35bc61d9c9f1e94a46985908758f1d7386a03eee03093bd2279e03d39abf3c1"
+    },
+    {
+      "path": "cloud-sync.js",
+      "size": 10631,
+      "sha256": "66ce005114a58392608015e63f38d523e04f181e69b8efdbd5f969864296ed52"
+    },
+    {
+      "path": "tests/auth-data-gate.test.cjs",
+      "size": 45757,
+      "sha256": "091b84d94364c5166fe8535b6e498ae5247fc1f96f2d31fa3d3f4aeaee9e8455"
+    },
+    {
+      "path": "staging-database/tests/source_linked_receipt_transaction.sql",
+      "size": 3392,
+      "sha256": "ad24234615b8d1fb275e5ed3d13d96cf7022007d9f8934e0f2f864f476130cd4"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908091751_v267_correct_phone_validation_pattern.sql",
+      "size": 12280,
+      "sha256": "576cbe6bda7cf081e77b093e54657481ecef8d2f087e539b57e66d57dc7697ff"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260908092545_v267_correct_imported_tenant_table_columns.sql",
+      "size": 8555,
+      "sha256": "e469e030b902649ff2723483ff82ceb3af9f94dbe0b232c3f2fb2e458f640e57"
     }
   ],
   "version": "V198"

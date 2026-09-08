@@ -586,6 +586,31 @@ test('cloud state seeds an empty workspace in memory without silently writing lo
   assert.equal(localStorage.getItem('aqari_v30::workspace::workspace-a'), null);
 });
 
+test('staging reload uses the verified cloud snapshot and preserves stale local state', () => {
+  const contextA = access('user-a', 'workspace-a');
+  const stale = {tenants:[], contractsV202:[]};
+  const fresh = {tenants:[['Imported Tenant']], contractsV202:[{id:'saved-contract'}]};
+  const key = 'aqari_v30::workspace::workspace-a';
+  const {window,localStorage} = runtime({[key]:JSON.stringify(stale)});
+  window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'};
+  window.AQARI_SUPABASE.context = contextA;
+  const result = window.AQARI_DATA_GATE.activate(contextA,fresh);
+  assert.deepEqual(JSON.parse(JSON.stringify(result)),fresh);
+  assert.deepEqual(JSON.parse(localStorage.getItem(key)),fresh);
+  assert.deepEqual(JSON.parse(localStorage.getItem(key+':before-cloud-activation')),stale);
+  window.AQARI_DATA_GATE.activate(contextA,fresh);
+  assert.deepEqual(JSON.parse(localStorage.getItem(key+':before-cloud-activation')),stale);
+});
+
+test('staging without a cloud response does not erase the scoped local state', () => {
+  const contextA = access('user-a','workspace-a');
+  const key = 'aqari_v30::workspace::workspace-a';
+  const {window} = runtime({[key]:JSON.stringify({tenants:[['Local']]})});
+  window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'};
+  window.AQARI_SUPABASE.context = contextA;
+  assert.equal(window.AQARI_DATA_GATE.activate(contextA,null).tenants[0][0],'Local');
+});
+
 test('data gate read then write preserves markup-like canonical text exactly', () => {
   const contextA = access('user-a', 'workspace-a');
   const { window, localStorage } = runtime();
