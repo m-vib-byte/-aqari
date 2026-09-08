@@ -15,8 +15,22 @@ export function createPaymentProof(session){
    if(!doc?.document_id||doc.storage_bucket!=='aqari-documents')throw Error('تعذر حجز إثبات الدفع.');
    pending={key,doc,attempted:false};
   }
-  if(!pending.attempted){pending.attempted=true;await session.storage('POST',pending.doc.storage_path,blob);}
-  const stored=await session.storage('GET',pending.doc.storage_path);
+  let stored;
+  if(pending.attempted){
+   try{stored=await session.storage('GET',pending.doc.storage_path);}
+   catch(error){if(error.status!==404)throw error;}
+  }
+  if(!stored){
+   pending.attempted=true;
+   try{await session.storage('POST',pending.doc.storage_path,blob);}
+   catch(error){
+    // An uncertain upload or a duplicate may already have stored these bytes.
+    // Verify before retrying; POST is always insert-only (x-upsert:false).
+    try{stored=await session.storage('GET',pending.doc.storage_path);}
+    catch{throw error;}
+   }
+   if(!stored)stored=await session.storage('GET',pending.doc.storage_path);
+  }
   if(stored.size!==blob.size||await checksum(stored)!==hash)throw Error('لم تتطابق نسخة إثبات الدفع بعد استرجاعها.');
   await session.request(session.client.rpc('aqari_finalize_document',{p_document_id:pending.doc.document_id,p_size_bytes:blob.size,p_mime_type:mime,p_checksum:hash}));
   const verified=await session.request(session.client.from('aqari_documents').select('id,status,checksum_sha256').eq('workspace_id',session.bound.workspace).eq('id',pending.doc.document_id).single());
