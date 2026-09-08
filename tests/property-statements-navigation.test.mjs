@@ -38,5 +38,16 @@ test('statement navigation isolates months and disables actions after missing da
   assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);assert.equal(result.children.length,0);
   failLinks=false;await refresh.onclick();assert.equal(pdf.disabled,false);
   const count=queries.length;month.value='';await month.onchange();assert.equal(queries.length,count);assert.equal(pdf.disabled,true);
+  dialog.body.replaceChildren();let next=tasks.length;
+  mod.openPropertyStatements({propertyName:content.property_name,period:'2026-09'});await tasks[next];await Promise.resolve();
+  assert.equal(dialog.body.children[1].value,'2026-09');assert.equal(dialog.body.children[3].disabled,true);
+  assert.match(dialog.status.textContent,/لا يوجد كشف محفوظ لهذا الشهر/);
+  dialog.body.replaceChildren();next=tasks.length;
+  mod.openPropertyStatements({propertyName:'عقار آخر',period:'2026-08'});await tasks[next];await Promise.resolve();
+  assert.equal(dialog.body.children[0].value,'');assert.equal(dialog.body.children[3].disabled,true);
+  assert.match(dialog.status.textContent,/لا يوجد كشف مصدر محفوظ لهذا العقار/);
+  dialog.body.replaceChildren();next=tasks.length;
+  mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08'});await tasks[next];await Promise.resolve();
+  assert.equal(dialog.body.children[0].value,'p');assert.equal(dialog.body.children[3].disabled,false);
  }finally{delete globalThis.__statementFixture;}
 });

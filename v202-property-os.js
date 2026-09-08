@@ -3129,7 +3129,7 @@
     const occupancyNote=model.official?' يعرض الجدول '+model.occupiedUnitCount+' وحدة مرتبطة/مشغولة'+(model.vacantUnitCount?'، و'+model.vacantUnitCount+' وحدات شاغرة أو بلا عقد تفصيلي':'')+'.':'';
     const officialNote=model.official?'<p class="v206-ledger-source"><strong>مطابق للكشف الرسمي / <span lang="en">OFFICIAL TOTALS</span></strong><span>الإجماليات مأخوذة من الكشف المعتمد، وتفاصيل الوحدات معروضة للمطابقة.'+occupancyNote+(model.sourcePages?' مرجع الصفحات / Source pages: '+escapeHtml(model.sourcePages)+'.':'')+'</span></p>':'';
     return '<article class="v202-document v206-ledger" data-v206-ledger data-v206-ledger-version="V206-preview" data-v206-property="'+escapeHtml(model.property)+'">'+
-        '<div class="v206-ledger-tools v202-no-print"><div><label for="v202StatementPeriod">شهر الكشف / Statement month</label><input id="v202StatementPeriod" type="month" value="'+escapeHtml(model.period)+'"></div><button type="button" data-v206-export-csv>تصدير CSV / Export CSV</button></div>'+ 
+        '<div class="v206-ledger-tools v202-no-print"><div><label for="v202StatementPeriod">شهر الكشف / Statement month</label><input id="v202StatementPeriod" type="month" value="'+escapeHtml(model.period)+'"></div><button type="button" data-v206-export-csv>تصدير CSV / Export CSV</button><button type="button" data-v267-source-statement>كشف المصدر المحفوظ</button></div>'+ 
         '<header class="v206-ledger-brand"><div class="v206-ledger-brand-name"><strong>'+escapeHtml(model.brand.ar)+'</strong><b>'+escapeHtml(model.brand.en)+'</b><span>'+escapeHtml(model.brand.addressAr)+'</span><small>'+escapeHtml(model.brand.addressEn)+'</small></div><p class="v206-ledger-meta">'+escapeHtml(contact)+'</p></header>'+ 
         '<section class="v206-ledger-header"><div class="v206-ledger-title"><span>كشف إيجار العقار</span><small lang="en">PROPERTY RENT LEDGER</small><h2>'+escapeHtml(model.property||'عقار غير مسجل')+'</h2><p>المالك / <span lang="en">Owner</span>: '+escapeHtml(model.owner||'غير مسجل / Not recorded')+'</p></div><div class="v206-ledger-identity"><strong>'+escapeHtml(periodLabel(model.period))+'</strong><small lang="en">'+escapeHtml(periodLabelEnglish(model.period))+'</small></div></section>'+ 
         '<section class="v206-ledger-summary" aria-label="ملخص التحصيل">'+
@@ -3181,6 +3181,23 @@
     lines.push(new Array(PROPERTY_RENT_LEDGER_COLUMNS.length).fill(''));
     metadata.forEach(function(row){lines.push(row.concat(new Array(PROPERTY_RENT_LEDGER_COLUMNS.length-row.length).fill('')))});
     return '\uFEFF'+lines.map(function(line){return line.map(propertyRentLedgerCsvCell).join(',')}).join('\r\n');
+  }
+
+  async function openSavedPropertyStatement(button){
+    if(!protectedAccessReady()||button.disabled)return false;
+    const ledger=button.closest('[data-v206-ledger]');
+    const property=String(ledger?.getAttribute('data-v206-property')||'');
+    const period=ledger?.querySelector('#v202StatementPeriod')?.value;
+    if(!property||propertyKey(property)!==propertyKey(activeProperty)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(period||''))return false;
+    button.disabled=true;
+    try{
+      const module=await import('/src/v267/pages/property-statements.js');
+      if(!protectedAccessReady()||propertyKey(property)!==propertyKey(activeProperty))return false;
+      closeDocument();
+      module.openPropertyStatements({propertyName:property,period});
+      return true;
+    }catch{window.alert('تعذر فتح كشف المصدر المحفوظ. أعد المحاولة.');return false;}
+    finally{button.disabled=false;}
   }
 
   function exportPropertyRentLedgerCsv(){
@@ -3714,6 +3731,8 @@
       }
       if(target.closest('[data-v202-payment-close]')){event.preventDefault();event.stopImmediatePropagation();return closePayment()}
       if(target.closest('[data-v202-document-close]')){event.preventDefault();event.stopImmediatePropagation();return closeDocument()}
+      const savedStatement=target.closest('[data-v267-source-statement]');
+      if(savedStatement){event.preventDefault();event.stopImmediatePropagation();return openSavedPropertyStatement(savedStatement)}
       if(target.closest('[data-v206-export-csv]')){event.preventDefault();event.stopImmediatePropagation();return exportPropertyRentLedgerCsv()}
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
       if(target.closest('[data-v267-document-download]')){event.preventDefault();event.stopImmediatePropagation();return downloadDocument().catch(()=>window.alert('تعذر تحميل المستند. أعد المحاولة.'))}
