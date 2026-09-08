@@ -69,7 +69,7 @@ jobs:
           echo 'AQARI_V266_INVENTORY_END'
       - run: node --test tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
       - name: V267 workspace isolation and image processing
-        run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs
+        run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

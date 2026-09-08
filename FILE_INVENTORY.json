@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "65a01b7d5fa05d34ddf8450fc733cc2b93b7225eb82b7e2b179cc884547d7aec",
-      "size": 3589
+      "sha256": "b85ff46baa079e74a94b2c37d93783027bd9fde1c7f37f25e1f1f2f570d012cc",
+      "size": 3625
     },
     {
       "path": "api/autosync-status.js",
@@ -977,8 +977,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "8c4e6d616cd3fa2cbab6b8fde816ee4155cd66477f3868daf832c552ed3b5f3a",
-      "size": 2108
+      "sha256": "3012d7b4d1814be25cbb3a31ebec0d3fcf5096faa97a1f5fadeafa0a12117602",
+      "size": 2285
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1219,6 +1219,11 @@
       "path": "tests/property-statements-navigation.test.mjs",
       "sha256": "d7bc50b80917da6e4c639c01486f6c8a721dcb842754c395fe7766a6abf6f562",
       "size": 4754
+    },
+    {
+      "path": "tests/v267-dialog-boundary.test.mjs",
+      "sha256": "034d5b48b19b185ee3c8829d4cc3394966f37fa372dabbc13ca7a53dd1da71df",
+      "size": 3436
     }
   ],
   "version": "V198"

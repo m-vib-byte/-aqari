@@ -11,14 +11,16 @@ export function createDialog(title,{localized=false}={}){
  if(active)return null;
  const session=createSession(),el=node('dialog'),close=node('button',localized?t('إغلاق'):'إغلاق'),status=node('p'),body=node('div');let busy=false,closed=false;
  el.className='aq267-dialog';el.dir=localized?direction():'rtl';el.lang=localized?getLocale():'ar';el.setAttribute('aria-label',title);close.type='button';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
- close.onclick=()=>el.close();el.append(close,node('h2',title),status,body);
+ close.onclick=closeDialog;el.append(close,node('h2',title),status,body);
  const trigger=document.activeElement;
- const boundary=()=>{try{session.check();}catch{el.close();}};
+ function dispose(){if(closed)return;closed=true;session.close();window.removeEventListener('aqari:auth-boundary',boundary);el.remove();active=null;if(trigger?.isConnected)trigger.focus();}
+ function closeDialog(){el.close();dispose();}
+ const boundary=()=>{try{session.check();}catch{closeDialog();}};
  window.addEventListener('aqari:auth-boundary',boundary);
- el.addEventListener('close',()=>{closed=true;session.close();window.removeEventListener('aqari:auth-boundary',boundary);el.remove();active=null;if(trigger?.isConnected)trigger.focus();},{once:true});
+ // Native close events are queued. Remove private data synchronously at an auth boundary.
+ el.addEventListener('close',dispose,{once:true});
  document.body.append(el);el.showModal();active=el;
  async function run(task){if(busy||closed)return;busy=true;status.textContent=localized?t('جارٍ الاتصال…'):'جارٍ الاتصال…';const controls=[...el.querySelectorAll('button,input,select,textarea')].filter(x=>x!==close);const disabled=controls.map(x=>x.disabled);controls.forEach(x=>x.disabled=true);
   try{session.check();await session.connect();await task();}catch(e){if(!closed)status.textContent=localized?t(safeError(e)):safeError(e);}finally{busy=false;if(!closed)controls.forEach((x,i)=>{if(x.isConnected)x.disabled=disabled[i];});}}
  return {el,body,status,session,run,get closed(){return closed;}};
 }
-
