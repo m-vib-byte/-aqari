@@ -55,3 +55,18 @@ test('provider failures are sanitized before translated status text is displayed
   assert.equal(t(safeError(Error('ACCESS_DENIED')),locale),t('لا تملك صلاحية هذه العملية.',locale));
  }
 });
+
+test('all translations preserve template placeholders, including counts and financial values',()=>{
+ const slots=text=>[...text.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)].map(x=>x[1]).sort();
+ for(const [source,translations]of Object.entries(MESSAGES))for(const [locale,translated]of Object.entries(translations))assert.deepEqual(slots(translated),slots(source),locale+' / '+source);
+});
+test('interpolation preserves stored names, decimal precision and literal markup without recursive substitutions',async()=>{
+ const {message}=await import('../src/v267/components/locale.js');
+ const source='الوحدة {unit} — {tenant} — {rent} د.ك';
+ for(const locale of Object.keys(LANGUAGES)){
+  const output=message(source,{unit:'٠١',tenant:'إغلاق <اسم> {rent} $&',rent:'125.750'},locale);
+  assert.ok(output.includes('إغلاق <اسم> {rent} $&'),'stored value is not translated or re-interpolated');
+  assert.ok(output.includes('٠١'));assert.ok(output.includes('125.750'));
+ }
+ assert.equal(message('{missing} / {empty}',{empty:null},'en'),'{missing} / ');
+});

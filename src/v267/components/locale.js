@@ -29,3 +29,10 @@ export const dateLocale=()=>DATE_LOCALES[locale];
 export function t(source,value=locale) {
  return valid(value)&&value!=='ar'&&Object.hasOwn(MESSAGES,source)?MESSAGES[source][value]||source:source;
 }
+
+// Interpolate source-code templates once. Record values remain literal text,
+// even when they contain another placeholder or match an interface message.
+export function message(source,values,value=locale) {
+ return t(source,value).replace(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g,(token,key)=>
+  Object.hasOwn(values,key)?String(values[key]??''):token);
+}

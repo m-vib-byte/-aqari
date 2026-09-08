@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "c8b51fe018fa6b83a20aac50f0fd7d906417570680cea0da61847cc7304eebe5",
-      "size": 3514
+      "sha256": "fb3a904498e0572d9d3e0c3ec555a5b307e8f598467bd662beae507571cd871a",
+      "size": 3543
     },
     {
       "path": "api/autosync-status.js",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "ab18b26174bb41e242188c3ebfa319f7780da324ee89d9e7d07e75e9c43c3eeb",
-      "size": 4832
+      "sha256": "c46471787b507c1a57fd595b589d5007c51a5cf6d39917ea0bd30362d5d2fd9a",
+      "size": 4881
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "bff39c8c529a09cf882507d8eff42ba799216a6b0ac4db588f604d808895e0ea",
-      "size": 16253
+      "sha256": "334326a8fbf384cbab7a635608a6435bdbbe57ebb27e3bbc8983097b982b7f75",
+      "size": 25737
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "size": 6639,
-      "sha256": "f5cf41d3585238856642824047b90e03167af04626c43f89ba7c0d7d0e6224c9"
+      "size": 6982,
+      "sha256": "f0c31cda33af746e77491e5a80f2575d0aa579126a147cf31cf2260ea7bc9715"
     },
     {
       "path": "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
@@ -1107,8 +1107,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "size": 10913,
-      "sha256": "d6c301da05c79bbee629af9a3414322cec864ff15dc26b31bf51d8d4ecf6a9f8"
+      "size": 11563,
+      "sha256": "ebc9a4dd365643d11dfd7942095ba8dc1b424b41932071233c74ab547c50bd98"
     },
     {
       "path": "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
@@ -1127,8 +1127,8 @@
     },
     {
       "path": "src/v267/components/payment-proof.js",
-      "sha256": "7039255a36414ae24a6d3f3cb8b1ce087d2cd852a98cdedb90f1a65b8e01d609",
-      "size": 2558
+      "sha256": "0d8ab0ebcf6e0cfba61764ba76abb03cbea3c66c15b285136bb4dd22bd68ecbe",
+      "size": 2934
     },
     {
       "path": "staging-database/supabase/migrations/20260908110635_v267_utility_payment_evidence.sql",
@@ -1142,8 +1142,8 @@
     },
     {
       "path": "tests/payment-proof.test.mjs",
-      "sha256": "2964177aec1d5dfc3630440e29eca9fe4e0810a19e857ddf01c819e0d0d0fb16",
-      "size": 1878
+      "sha256": "b88725aeb5146aca5e37f56db9814c420c1e08926b7425299b9dafb40b4258c4",
+      "size": 3591
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1157,8 +1157,8 @@
     },
     {
       "path": "src/v267/pages/data-quality.js",
-      "sha256": "369a84f043f612ae4aba6636d64c2b9689d19197e804f386e7ff886849c9009b",
-      "size": 2811
+      "sha256": "3131680082f5144d092fe96dc29b9d5d3bbbc8308dfe5160ba57cb502135268e",
+      "size": 2953
     },
     {
       "path": "tests/data-quality.test.mjs",
@@ -1182,8 +1182,8 @@
     },
     {
       "path": "src/v267/pages/lease-review.js",
-      "sha256": "3da70ae9d12db2e9d69e4c87c37dca67d85467d4ff2b54a2ac618d25d1ec3138",
-      "size": 5575
+      "sha256": "d0682312b45273192cd0ee7c3274151a43929bfcc0e8f05af6d94bf2ff16dfef",
+      "size": 6022
     },
     {
       "path": "staging-database/sql/source-lease-review.sql",
@@ -1197,18 +1197,18 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "sha256": "70a6abb85e31af50ee6b6440dc90adc70131164133ab5fac73fc46eba890f47a",
-      "size": 1557
+      "sha256": "728a20b5dcc6b3dc9b3db9e1a1ea552148e629ef60d45b269384fd19af07c108",
+      "size": 1906
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "f40b5822bbd6ae5c72391bca72b0f0cf9c3a2d1558d1d7a953a209f94bee1435",
-      "size": 47002
+      "sha256": "115a196ff498725dc40c2917fddcfd0a6670de58b9cf549c3f68241511b6c882",
+      "size": 110791
     },
     {
       "path": "tests/v267-locale.test.mjs",
-      "sha256": "120b1c55c38be024bfc890f0e2e9c395d22dcfacf31b5f91827b274a53c293c2",
-      "size": 3061
+      "sha256": "85199444f449b6aaf0ae1dd473b257f20817a92615f62e26abf672c079f34abb",
+      "size": 4139
     }
   ],
   "version": "V198"

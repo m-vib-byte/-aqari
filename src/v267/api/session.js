@@ -22,7 +22,7 @@ export function createSession(){
     const response=await fetch('https://djkpkkgoibruaezdrchb.supabase.co/storage/v1/object/'+(method==='GET'?'authenticated/':'')+'aqari-documents/'+suffix,{
      method,body,headers:{apikey:window.AQARI_PUBLIC_CONFIG.supabasePublishableKey,Authorization:'Bearer '+auth.access_token,...(body?{'Content-Type':body.type,'x-upsert':'false'}:{})},
      signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
-    check();if(!response.ok)throw Error('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.');return method==='GET'?response.blob():response.json();})();
+    check();if(!response.ok){const error=Error('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.');error.status=response.status;throw error;}return method==='GET'?response.blob():response.json();})();
    return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة رفع أو قراءة المستند. حدّث السجلات للتحقق.'));},20000);})]);
   }finally{clearTimeout(timer);jobs.delete(controller);}
  }

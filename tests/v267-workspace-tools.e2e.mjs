@@ -3,20 +3,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
-import {t as translate} from '../src/v267/components/locale.js';
+import {t as translate,message as formatMessage} from '../src/v267/components/locale.js';
 import {label as navLabel} from '../src/v267/components/catalog.js';
 const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools');
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
-let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false;
+let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0;
+const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
+const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
+const lease={id:'lease1',external_ref:'source1',contract_no:'C-101',start_date:'2026-08-01',end_date:'2027-07-31',monthly_rent:'125.750',deposit:null,status:'draft',snapshot:{property:propertyName,unit:'101',tenant:tenantName,pending:[]}};
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
  'const uid='+JSON.stringify(uid)+',wid='+JSON.stringify(wid)+';'+
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://djkpkkgoibruaezdrchb.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
  'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://djkpkkgoibruaezdrchb.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
- 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json()}:{error:await r.json()});return x;}'+
+ 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json()}:{error:await r.json()});return x;}'+
  'window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:"general_manager",is_active:true}},getClient:async()=>({rpc:query,from:name=>query(name,{})}),getSession:async()=>({user:{id:uid},access_token:"synthetic-not-a-real-token"})};'+
  'const {install}=await import("/src/v267/workspace.js");install();</script></body></html>';
 const server=http.createServer((req,res)=>{
@@ -48,7 +51,23 @@ const server=http.createServer((req,res)=>{
    docs.push(d);return reply(res,[{document_id:d.id,document_no:d.document_no,storage_bucket:'aqari-documents',storage_path:d.storage_path}]);
   }
   if(name==='aqari_finalize_document'){const d=docs.find(d=>d.id===args.p_document_id);assert.ok(storageBytes?.length);d.status='uploaded';d.checksum_sha256=args.p_checksum;d.size_bytes=args.p_size_bytes;return reply(res,d.id);}
-  if(name==='aqari_documents')return reply(res,docs.find(d=>d.id===args.id));
+  if(name==='aqari_documents')return reply(res,args._single?docs.find(d=>d.id===args.id):[{id:'signed1',document_no:'SIGN-TEST',title:'عقد أصلي <موقع>',status:'uploaded'}]);
+  if(name==='aqari_read_state_v267')return reply(res,{revision:1});
+  if(name==='aqari_review_source_lease'){reviewWrites++;return reply(res,{message:'UNEXPECTED_REVIEW_WRITE'},400);}
+  if(['aqari_properties','aqari_utility_meters','aqari_utility_entries','aqari_property_statements','aqari_statement_links','aqari_leases','aqari_units','aqari_tenants'].includes(name)){
+   assert.equal(args.workspace_id??args._insert?.workspace_id,wid,'all form queries are workspace scoped');
+   if(name==='aqari_properties')return reply(res,[{id:'p1',name:propertyName,external_ref:'source1'},{id:'p2',name:'عقار آخر',external_ref:'source2'}]);
+   if(name==='aqari_utility_meters')return reply(res,args.property_id==='p1'?[{id:'meter1',property_id:'p1',kind:'electricity',serial_no:'E-001',account_no:'AC-123',unit_no:'101',notes:'قراءة أصلية <محفوظة>'}]:[]);
+   if(name==='aqari_utility_entries'){
+    if(args._insert){const row=args._insert;assert.equal(row.property_id,'p1');assert.equal(row.meter_id,'meter1');assert.equal(row.recorded_by,uid);assert.equal(row.entry_type,'bill');assert.equal(row.payment_status,'unpaid');assert.equal(row.amount_due,'12.345');assert.equal(row.amount_paid,'0.000');assert.equal(row.source_ref,'مرجع أصلي <فاتورة> {date}');assert.equal(row.notes,'ملاحظات <أصلية>');assert.ok(!entries.some(x=>x.id===row.id));entries.push({...row,recorded_at:'2026-09-08T12:00:00Z'});entryWrites++;return reply(res,null);}
+    const rows=entries.filter(x=>(!args.id||x.id===args.id)&&(!args.meter_id||x.meter_id===args.meter_id)&&(!args.property_id||x.property_id===args.property_id));return reply(res,args._single?rows[0]:rows);
+   }
+   if(name==='aqari_property_statements')return reply(res,args.period&&args.period!==statement.period?[]:[statement]);
+   if(name==='aqari_statement_links')return reply(res,[]);
+   if(name==='aqari_leases')return reply(res,[lease]);
+   if(name==='aqari_units')return reply(res,[{id:'unit1',property_id:'p1',unit_no:'101'},{id:'unit2',property_id:'p1',unit_no:'101'}]);
+   if(name==='aqari_tenants')return reply(res,[{id:'tenant1',full_name:tenantName,civil_id:'synthetic',phone:'0000'}]);
+  }
   return reply(res,{message:'UNKNOWN_TEST_RPC'},400);
  });return;}
  if(url.pathname==='/'){res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(harness);return;}
@@ -56,12 +75,63 @@ const server=http.createServer((req,res)=>{
  res.writeHead(200,{'content-type':file.endsWith('.css')?'text/css':'text/javascript'});res.end(fs.readFileSync(file));
 });
 await new Promise(resolve=>server.listen(4175,'127.0.0.1',resolve));
+async function verifyLocalizedForms(page,locale,name,viewport){
+ const tr=source=>translate(source,locale),fmt=(source,values)=>formatMessage(source,values,locale);
+ const dialog=page.getByRole('dialog'),close=()=>dialog.getByRole('button',{name:tr('إغلاق'),exact:true}).click();
+ const button=source=>dialog.getByRole('button',{name:tr(source),exact:true});
+ const field=source=>dialog.getByLabel(tr(source),{exact:true});
+ async function fit(section){
+  assert.equal(await dialog.getAttribute('lang'),locale);assert.equal(await dialog.getAttribute('dir'),['ar','ur'].includes(locale)?'rtl':'ltr');
+  const box=await dialog.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}));
+  assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,section+' fits '+locale);
+  await page.screenshot({path:path.join(out,name+'-'+locale+'-'+section+'.png'),fullPage:true});
+ }
+ await page.getByRole('button',{name:tr('الإعدادات والخدمات — عدادات العقارات'),exact:true}).click();
+ await page.getByText(tr('تم استرجاع العدادات والسجلات من قاعدة البيانات.'),{exact:true}).waitFor();
+ assert.equal(await field('العقار').getByRole('option',{name:propertyName,exact:true}).count(),1,'property name is literal');
+ await field('نوع السجل').selectOption('bill');
+ await field('رقم الفاتورة').fill('B-'+locale);await field('شهر الفاتورة').fill('2026-08');
+ await field('المبلغ المستحق — د.ك').fill('١٢٫٣٤٥');await field('المبلغ المسدد — د.ك').fill('0.000');
+ await field('حالة السداد').selectOption('unpaid');await field('مرجع الصورة أو الفاتورة').fill('مرجع أصلي <فاتورة> {date}');await field('ملاحظات').fill('ملاحظات <أصلية>');
+ const before=entryWrites;
+ await field('المبلغ المسدد — د.ك').fill('1.000');
+ await button('حفظ والتحقق من السجل').click();
+ await page.getByText(tr('لإثبات السداد، أرفق المستند وأدخل المبلغ المسدد والتاريخ والطريقة.'),{exact:true}).waitFor();
+ assert.equal(entryWrites,before,'missing payment proof never saves a record');
+ await field('المبلغ المسدد — د.ك').fill('0.000');await button('حفظ والتحقق من السجل').click();
+ await page.getByText(tr('تم حفظ السجل والتحقق منه بإعادة القراءة. الأصل محفوظ دون حذف أو استبدال.'),{exact:true}).waitFor();
+ assert.equal(entryWrites,before+1);assert.equal(await dialog.getByRole('heading',{name:fmt('فاتورة {invoice}',{invoice:'B-'+locale}),exact:true}).count(),1);
+ assert.equal(await dialog.getByText(tr('المصدر: ')+'مرجع أصلي <فاتورة> {date}',{exact:true}).count(),entries.length);
+ await fit('utilities');
+ await field('العقار').selectOption('p2');await page.getByText(tr('لا توجد عدادات مؤكدة لهذا العقار. الهيكل جاهز؛ لن تُضاف أرقام أو قراءات افتراضية.'),{exact:true}).waitFor();
+ assert.equal(await dialog.locator('article').count(),0,'another property cannot display the previous property bills');
+ await field('العقار').selectOption('p1');await page.getByText(tr('تم استرجاع العدادات والسجلات من قاعدة البيانات.'),{exact:true}).waitFor();
+ assert.equal(await dialog.locator('article').count(),entries.length,'saved invoices reload');await close();
+ await page.getByRole('button',{name:tr('كشوف العقارات — برج شيخة'),exact:true}).click();
+ await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ assert.equal(await dialog.getByRole('heading',{name:propertyName+' — 2026-08',exact:true}).count(),1);
+ const row=dialog.locator('details');await row.locator('summary').click();
+ assert.equal(await row.getByText(tr('طريقة السداد')+': كي نت من المصدر',{exact:true}).count(),1,'source payment method is not translated');
+ assert.equal(await row.locator('summary').textContent(),fmt('الوحدة {unit} — {tenant} — {rent} د.ك',{unit:'101',tenant:tenantName,rent:'125.750'}));
+ await fit('statements');await close();
+ await page.getByRole('button',{name:tr('اعتماد عقود المصدر'),exact:true}).click();
+ await page.getByText(tr('راجع المستند قبل تنفيذ المرحلة التالية.'),{exact:true}).waitFor();
+ assert.equal(await dialog.getByText(fmt('العقار: {property} • الوحدة: {unit} • المستأجر: {tenant}',{property:propertyName,unit:'101',tenant:tenantName}),{exact:true}).count(),1);
+ await button('اعتماد العقد').click();await page.getByText(tr('حدد المستند والتأمين ومرجع المطابقة وأكد المراجعة.'),{exact:true}).waitFor();assert.equal(reviewWrites,0,'incomplete approval cannot write');
+ await fit('leases');await close();
+ await page.getByRole('button',{name:tr('مركز جودة البيانات'),exact:true}).click();
+ await page.getByText(tr('اكتمل الفحص للقراءة فقط. التعارضات المصدرية المعروفة تبقى معلقة دون تغيير.'),{exact:true}).waitFor();
+ assert.equal(await dialog.getByText(fmt('تمت قراءة {units} وحدة و{tenants} ملف مستأجر و{leases} عقداً من مساحة العمل الحالية.',{units:2,tenants:1,leases:1}),{exact:true}).count(),1);
+ assert.equal(await dialog.locator('summary').filter({hasText:tr('رقم وحدة مكرر داخل العقار — يحتاج مراجعة')}).count(),1);
+ await fit('quality');assert.equal(entryWrites,before+1);assert.equal(reviewWrites,0);
+ if(locale!=='ar')await close();
+}
 const results=[];let failed=false;
 try{
  for(const [engineName,engine]of [['chromium',chromium],['webkit',webkit]]){
   const browser=await engine.launch();
   try{for(const [device,viewport]of [['iphone',{width:390,height:844}],['ipad',{width:820,height:1180}],['desktop',{width:1440,height:1000}]]){
-   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;
+   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;
    const context=await browser.newContext({viewport,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    // The fixture redirects only the pinned Storage URL to its local HTTP endpoint.
    // Node receives the actual upload bytes on both engines; no inspector postData shortcut.
@@ -140,7 +210,8 @@ try{
      assert.equal(storageUploads,1,'language changes never upload or save data');
      await page.screenshot({path:path.join(out,name+'-'+locale+'.png'),fullPage:true});
      languageLayouts.push({locale,...measurement});
-     if(locale!=='ar')await page.getByRole('dialog').getByRole('button',{name:translate('إغلاق',locale),exact:true}).click();
+     await page.getByRole('dialog').getByRole('button',{name:translate('إغلاق',locale),exact:true}).click();
+     await verifyLocalizedForms(page,locale,name,viewport);
     }
     await page.evaluate(()=>{window.AQARI_DATA_GATE.scope=null;window.dispatchEvent(new CustomEvent('aqari:auth-boundary'));});
     assert.equal(await page.getByRole('dialog').count(),0);
