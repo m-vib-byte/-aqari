@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "31db3c0565cb9e858e0a51224f01e00b7344e0cd718f04fa3c92caa15cd5cc49",
-      "size": 3486
+      "sha256": "c8b51fe018fa6b83a20aac50f0fd7d906417570680cea0da61847cc7304eebe5",
+      "size": 3514
     },
     {
       "path": "api/autosync-status.js",
@@ -972,13 +972,13 @@
     },
     {
       "path": "src/v267/components/catalog.js",
-      "sha256": "5d2aee1c766bae537f7a88bde1a2539b2cabaff6cc35f3a6763dcd7ecf4ae918",
-      "size": 3642
+      "sha256": "adca707dd455da6d22410da286e270717a291038f385c6e19d346fa30643c6dc",
+      "size": 3596
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "b7894b2573477e42b1db2e169acd989418cf1615f2352261706ec745f737d52c",
-      "size": 1884
+      "sha256": "8c4e6d616cd3fa2cbab6b8fde816ee4155cd66477f3868daf832c552ed3b5f3a",
+      "size": 2108
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -987,13 +987,13 @@
     },
     {
       "path": "src/v267/pages/control-center.js",
-      "sha256": "940f6345ccdf1519577bbb3a4697b5d2ce45bb2b5aa30587397dc43a793592df",
-      "size": 7024
+      "sha256": "2ac48e71eed3319e72afe0ce1a4cf5b6cb864424a42a9a83ba163232897810eb",
+      "size": 7172
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "15770dae5015c7adf8b9d5b5e8e260060de684aadef1aa57ee1b647570909cca",
-      "size": 8785
+      "sha256": "c3fe0e492c052389504d7cf794903689c1047a1ed153045021ca348c2a59875a",
+      "size": 8982
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "c748435c5eca5343a53db722729c71f516ed045734194f6421771997394e50a4",
-      "size": 5926
+      "sha256": "8cb2572a96d8ea2170a99b68255447aa96476fd74eabbcb618dbb0146f56a918",
+      "size": 6830
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "63bdf1120914d3f0f160be650b937c82b08256b4c4011f76d27d29cd1567d846",
-      "size": 13342
+      "sha256": "bff39c8c529a09cf882507d8eff42ba799216a6b0ac4db588f604d808895e0ea",
+      "size": 16253
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1194,6 +1194,21 @@
       "path": "staging-database/tests/source_lease_review_transaction.sql",
       "sha256": "eb4b957ca4fe9e1ca6a8789e15bfda964c2c735c5819d0be5f39eda30f07efa9",
       "size": 2877
+    },
+    {
+      "path": "src/v267/components/locale.js",
+      "sha256": "70a6abb85e31af50ee6b6440dc90adc70131164133ab5fac73fc46eba890f47a",
+      "size": 1557
+    },
+    {
+      "path": "src/v267/components/translations.js",
+      "sha256": "f40b5822bbd6ae5c72391bca72b0f0cf9c3a2d1558d1d7a953a209f94bee1435",
+      "size": 47002
+    },
+    {
+      "path": "tests/v267-locale.test.mjs",
+      "sha256": "120b1c55c38be024bfc890f0e2e9c395d22dcfacf31b5f91827b274a53c293c2",
+      "size": 3061
     }
   ],
   "version": "V198"
