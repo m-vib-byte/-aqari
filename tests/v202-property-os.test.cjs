@@ -23,6 +23,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       contractRent,
       contracts,
       contextFor,
+      journey,
       ledgerRecords,
       rentStatementItems,
       propertyRentLedgerRows: typeof propertyRentLedgerRows === 'function' ? propertyRentLedgerRows : null,
@@ -3342,4 +3343,18 @@ test('property cash net never treats reference rent as collected money', () => {
   runtime=loadRuntime(data);
   assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,null,
     'Undated legacy expenses cannot support a monthly cash net');
+});
+
+test('property journey does not claim a printable statement from legacy expenses or collection counts', () => {
+  const runtime=loadRuntime(fixture());
+  const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  context.activeContracts=[];
+  context.official=null;
+  context.propertyCollections=[['historic unverified row']];
+  context.expenses=[['undated expense']];
+  const pending=runtime.journey(context);
+  assert.match(pending,/يلزم اعتماد بيانات العقود أولاً/);
+  assert.doesNotMatch(pending,/جاهز للطباعة/);
+  context.official={period:context.period};
+  assert.match(runtime.journey(context),/كشف مصدر محفوظ/);
 });

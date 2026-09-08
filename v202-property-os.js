@@ -1732,7 +1732,7 @@
       {label:'بيانات العقار',done:true,copy:'العقار مسجل'},
       {label:'العقد',done:verifiedActive.length>0&&needsVerification===0,copy:contractCopy},
       {label:'التحصيل',done:context.propertyCollections.length>0,copy:context.propertyCollections.length?context.propertyCollections.length+' عملية':'لا يوجد تحصيل'},
-      {label:'الكشف',done:context.propertyCollections.length>0||context.expenses.length>0,copy:'جاهز للطباعة'}
+      {label:'الكشف',done:Boolean(context.official)||verifiedActive.length>0,copy:context.official?'كشف مصدر محفوظ':verifiedActive.length?'بيانات عقود الفترة متاحة':'يلزم اعتماد بيانات العقود أولاً'}
     ];
     return '<div class="v202-journey" aria-label="مسار تشغيل العقار">'+steps.map(function(step,index){
       const current=!step.done&&steps.slice(0,index).every(function(previous){return previous.done});
