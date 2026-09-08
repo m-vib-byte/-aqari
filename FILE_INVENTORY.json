@@ -796,11 +796,6 @@
       "size": 2208
     },
     {
-      "path": "v267-rental-records.js",
-      "sha256": "bdaef07aa756fc2e73a1aa813e34d633361bd50637b541c3ffbeaa16fcaa567b",
-      "size": 21998
-    },
-    {
       "path": "tests/v267-rental-records.test.cjs",
       "sha256": "c7d50454aaf6751c05c30df8d9c12ae63fb740b45efbd2a910cc5317dc71dcc6",
       "size": 6762
@@ -1104,6 +1099,11 @@
       "path": "staging-database/supabase/migrations/20260908092545_v267_correct_imported_tenant_table_columns.sql",
       "size": 8555,
       "sha256": "e469e030b902649ff2723483ff82ceb3af9f94dbe0b232c3f2fb2e458f640e57"
+    },
+    {
+      "path": "v267-rental-records.js",
+      "size": 24107,
+      "sha256": "340b8336d8b52af7af18101e51560dbc09512debb389001ead17f0896ac9cd5a"
     }
   ],
   "version": "V198"

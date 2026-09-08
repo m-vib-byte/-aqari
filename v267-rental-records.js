@@ -78,6 +78,13 @@ function contractMarkup(c,count){
 function preview(c){
  if(!scope())return false;
  const target=byId('contractPreviewV55');if(!target)return false;
+ if(c.source==='statement-import'){
+  target.replaceChildren();
+  for(const value of ['ملف عقد محفوظ من كشف الإيجار — للمراجعة', 'العقد: '+c.contract_no, 'العقار: '+c.property+' — الوحدة: '+c.unit, 'المستأجر: '+(c.tenant||'غير مدون'), 'إيجار العقد: '+c.rent+' د.ك', 'الإيجار الحالي بالمصدر: '+c.currentRent+' د.ك', 'البداية: '+(c.start_date||'معلّقة حسب المصدر'), 'النهاية: '+(c.end_date||'معلّقة حسب المصدر'), 'التأمين: معلّق. لم يتم اعتماد التوقيع أو ترحيل دفعة من هذا الكشف.']){
+   const p=document.createElement('p');p.textContent=value;target.appendChild(p);
+  }
+  return true;
+ }
  target.innerHTML=contractMarkup(c,1);
  for(const [count,label]of [[1,'عرض وطباعة نسخة'],[2,'توليد نسختين من نفس العقد']]){
   const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{
@@ -205,5 +212,23 @@ async function status(id,next){
   const saved=await saveLease({...c,status:next});root.previewContractV55(saved);notice.textContent='تم حفظ حالة العقد والتحقق منها.';
  }catch(e){if(notice)notice.textContent=e.message;else window.alert(e.message)}
 }
-Object.assign(api,{openTenant,openRecord,generate,status,saveLease,preview});
+function loadSavedContracts(){
+ const body=byId('contractRowsV55');if(!body)return;
+ body.replaceChildren();if(!scope())return;
+ const contracts=data().contractsV202||[];
+ for(const [id,statusValue]of [['contractDraftCountV55','draft'],['contractReadyCountV55','ready'],['contractSignedCountV55','signed'],['contractExpiredCountV55','expired']]){
+  const count=byId(id);if(count)count.textContent=String(contracts.filter(c=>c.status===statusValue).length);
+ }
+ for(const c of contracts){
+  const row=document.createElement('tr');
+  for(const value of [c.contract_no,c.tenant||'غير مدون',c.unit,c.rent,c.source==='statement-import'?'محفوظ من الكشف — للمراجعة':c.status]){const td=document.createElement('td');td.textContent=String(value??'غير مدون');row.appendChild(td);}
+  const cell=document.createElement('td'),button=document.createElement('button');button.type='button';button.textContent='فتح الملف';button.onclick=()=>preview(c);cell.appendChild(button);row.appendChild(cell);body.appendChild(row);
+ }
+}
+const legacyLoadContracts=root.loadContractsV55;
+root.loadContractsV55=function(){
+ if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return loadSavedContracts();
+ return legacyLoadContracts?.apply(this,arguments);
+};
+Object.assign(api,{openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
 })(typeof window!=='undefined'?window:globalThis);
