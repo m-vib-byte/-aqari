@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {chromium,webkit} from 'playwright';
+import {t as translate} from '../src/v267/components/locale.js';
+import {label as navLabel} from '../src/v267/components/catalog.js';
 const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools');
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
@@ -112,13 +114,42 @@ try{
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
     await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح'}).count(),1);
+    await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
+    const languageLayouts=[];
+    for(const locale of ['en','hi','ur','ml','ar']){
+     await page.locator('#aq267-interface-language').selectOption(locale);
+     await page.getByRole('button',{name:navLabel('control_center',locale),exact:true}).waitFor();
+     await page.reload();
+     assert.equal(await page.locator('#aq267-interface-language').inputValue(),locale,'language survives reload');
+     await page.getByRole('button',{name:navLabel('control_center',locale),exact:true}).click();
+     await page.getByText(translate('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',locale),{exact:true}).waitFor();
+     const localizedDialog=page.getByRole('dialog');
+     assert.equal(await localizedDialog.getAttribute('lang'),locale);
+     assert.equal(await localizedDialog.getAttribute('dir'),['ar','ur'].includes(locale)?'rtl':'ltr');
+     assert.equal(await localizedDialog.getByRole('checkbox',{name:navLabel('maintenance',locale),exact:true}).isChecked(),false,'permissions unaffected by language');
+     const measurement=await localizedDialog.evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth,width:el.getBoundingClientRect().width}));
+     assert.ok(measurement.scroll<=measurement.client+1&&measurement.width<=viewport.width,'localized dialog fits viewport');
+     await localizedDialog.getByRole('button',{name:translate('إغلاق',locale),exact:true}).click();
+     await page.getByRole('button',{name:navLabel('scan_document',locale),exact:true}).click();
+     await page.getByText(translate('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',locale),{exact:true}).waitFor();
+     await page.getByLabel(translate('السجل المرتبط',locale),{exact:true}).selectOption('p1');
+     await page.getByText(translate('تم تحديث مستندات السجل المحدد.',locale),{exact:true}).waitFor();
+     assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),1,'stored title is never translated');
+     assert.equal(await page.getByText(translate('رفع بواسطة: ',locale)+'مدير اختبار',{exact:true}).count(),1,'author stays unchanged');
+     assert.equal(await page.locator('#fixtureKpi').textContent(),'42');
+     assert.equal(storageUploads,1,'language changes never upload or save data');
+     await page.screenshot({path:path.join(out,name+'-'+locale+'.png'),fullPage:true});
+     languageLayouts.push({locale,...measurement});
+     if(locale!=='ar')await page.getByRole('dialog').getByRole('button',{name:translate('إغلاق',locale),exact:true}).click();
+    }
     await page.evaluate(()=>{window.AQARI_DATA_GATE.scope=null;window.dispatchEvent(new CustomEvent('aqari:auth-boundary'));});
     assert.equal(await page.getByRole('dialog').count(),0);
     assert.deepEqual(errors,[]);
-    results.push({name,passed:true,ms:Date.now()-start,layout,controlRevision:revision,documents:docs.length,scope:'synthetic component backend; no real account or physical device'});console.log('PASS',name);
+    results.push({name,passed:true,ms:Date.now()-start,layout,languageLayouts,controlRevision:revision,documents:docs.length,scope:'synthetic component backend; no real account or physical device'});console.log('PASS',name);
    }catch(e){failed=true;results.push({name,passed:false,error:e.stack,calls,errors});console.error('FAIL',name,e.stack);await page.screenshot({path:path.join(out,name+'-failure.png'),fullPage:true}).catch(()=>{});}
    finally{await context.close();}
   }}finally{await browser.close();}
  }
 }finally{await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(results,null,2));}
 if(failed)process.exit(1);
+

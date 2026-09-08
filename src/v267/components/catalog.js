@@ -1,5 +1,6 @@
+import {LANGUAGES,getLocale} from './locale.js';
+export {LANGUAGES};
 export const SECTIONS = ['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
-export const LANGUAGES = {ar:'العربية',en:'English',hi:'हिन्दी',ur:'اردو',ml:'മലയാളം'};
 export const LABELS = {
  ar:['الرئيسية','التحصيل','العقارات','المستأجرون','العقود','الصيانة','الحسابات','الموظفون والرواتب','الشركاء والحصص','المستندات','التنبيهات','التقارير','المزيد','مركز تحكم المدير','مسح مستند'],
  en:['Home','Collections','Properties','Tenants','Contracts','Maintenance','Accounts','Staff and payroll','Partners and shares','Documents','Notifications','Reports','More','Manager controls','Scan document'],
@@ -9,7 +10,7 @@ export const LABELS = {
 };
 export const LABEL_KEYS = [...SECTIONS,'more','control_center','scan_document'];
 export const ROUTES = {home:'home',collections:'collections',collectionProPage:'collections',properties:'properties',tenants:'tenants',smartContractsPage:'contracts',leases:'contracts',maintenance:'maintenance',maintenanceProPage:'maintenance',financeSuitePage:'finance',expenses:'finance',services:'finance',employees:'employees',payroll:'employees',documentsHub:'documents',documentsCenterPage:'documents',notificationCenterPage:'notifications',reports:'reports'};
-export function label(key,locale='ar',custom={}) {
+export function label(key,locale=getLocale(),custom={}) {
  const index=LABEL_KEYS.indexOf(key);if(index<0)throw Error('Unknown label key');
  const value=custom[locale]?.[key];
  return typeof value==='string' && value.trim() && value.length<=80 && !/[<>\x00-\x1f]/.test(value) ? value : (LABELS[locale]||LABELS.ar)[index];
@@ -20,3 +21,4 @@ export function validateSettings(settings) {
  for(const [locale,labels]of Object.entries(settings.labels))for(const [key,value]of Object.entries(labels))if(!LANGUAGES[locale]||!LABEL_KEYS.includes(key)||typeof value!=='string'||!value.trim()||value.length>80||/[<>\x00-\x1f]/.test(value))throw Error('راجع المسميات.');
  return settings;
 }
+
