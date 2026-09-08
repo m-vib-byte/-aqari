@@ -150,6 +150,16 @@
   function installV266SchedulerControl(event){
     noteScriptLoaded(event);
     if(!authenticatedUIReady())return;
+    if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co'){
+      if(!document.getElementById('aqari-v267-automation-status-js')){
+        const script=document.createElement('script');
+        script.id='aqari-v267-automation-status-js';
+        script.type='module';
+        script.src=releaseAsset('/src/v267/pages/automation-status.js');
+        document.body.appendChild(script);
+      }
+      return;
+    }
     document.body?.classList.add('aq-v266');
 
     if(!document.getElementById('aqari-v266-scheduler-control-css')){

@@ -137,8 +137,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "sha256": "29453f7e953acd77cc2bd84da743ee5af0a63ce5a5ac2bc0502fd52e6d926746",
-      "size": 17489
+      "sha256": "e59e0189102d149c93be24e3f8bed964ae8c3425033ec8af2b0cc22c2d2c6e0c",
+      "size": 17936
     },
     {
       "path": "FIRST_RUN_MIGRATION.md",
@@ -1144,6 +1144,11 @@
       "path": "tests/payment-proof.test.mjs",
       "sha256": "2964177aec1d5dfc3630440e29eca9fe4e0810a19e857ddf01c819e0d0d0fb16",
       "size": 1878
+    },
+    {
+      "path": "src/v267/pages/automation-status.js",
+      "sha256": "3664ee90b5e380cc1625ba6bd5a48fd2a0dad973f896b48b0f25d2e7d439befc",
+      "size": 1581
     }
   ],
   "version": "V198"
