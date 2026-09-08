@@ -2,13 +2,13 @@ import {createSession,currentScope,safeError} from '../api/session.js';
 import {node,field} from '../components/dialog.js';
 import {paymentTotal} from '../components/financial-evidence.mjs';
 let installed=false,session,busy=false;const panels=new Map();
-const titles={financeSuitePage:'الحسابات — التحصيل المحفوظ',reports:'التقارير — بيانات التشغيل المؤكدة',documentsHub:'العقود والمستندات المحفوظة'};
+const titles={collectionProPage:'التحصيل المحفوظ ومراجعة المستحقات',financeSuitePage:'الحسابات — التحصيل المحفوظ',reports:'التقارير — بيانات التشغيل المؤكدة',documentsHub:'العقود والمستندات المحفوظة'};
 export function installFinancialIntegrity(){
  if(installed)return;currentScope();installed=true;
  for(const [id,title] of Object.entries(titles)){
  const page=document.getElementById(id);if(!page)continue;
  // Keep legacy IDs available to old renderers, but never display/export their estimates.
- const legacy=node('div');legacy.hidden=true;legacy.inert=true;legacy.style.setProperty('display','none','important');while(page.firstChild)legacy.append(page.firstChild);page.append(legacy);
+ const legacy=node('div');legacy.hidden=true;legacy.inert=true;legacy.style.setProperty('display','none','important');if(id==='collectionProPage'){const old=page.querySelector(':scope > .c');if(old)legacy.append(old);}else{while(page.firstChild)legacy.append(page.firstChild);}page.append(legacy);
  const panel=node('section'),status=node('p'),body=node('div'),month=node('input'),refresh=node('button','قراءة السجلات المحفوظة');panel.className='aq267-tools';month.type='month';
  // ISO month independent of locale separator/order.
  const parts=new Intl.DateTimeFormat('en',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit'}).formatToParts(new Date());month.value=parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
@@ -25,6 +25,7 @@ async function load(id){
  const leases=await read('aqari_leases','id,status,tenant_id,unit_id,start_date,end_date');const tenants=await read('aqari_tenants','id,full_name');
  if(id==='documentsHub'){const documents=await read('aqari_documents','id,status');own.check();p.body.append(node('p',`العقود المحفوظة: ${leases.length} • المسودات: ${leases.filter(x=>x.status==='draft').length} • المستندات المؤكد رفعها: ${documents.filter(x=>x.status==='uploaded').length}`),node('p','المسودة ليست عقداً موقعاً. افتح المزيد ← العقود لمراجعة ملف العقد؛ وأضف المستند من المزيد ← مسح مستند.'));}
  else{const payments=await read('aqari_rent_payments','id,amount,status,paid_at');const total=paymentTotal(payments,p.month.value);own.check();p.body.append(node('h3',`التحصيل الفعلي خلال ${p.month.value}: ${total.amount} د.ك`),node('p',`عدد الدفعات المحفوظة في الفترة: ${total.count}. الفترة حسب تاريخ الدفع، وليست شهر استحقاق الإيجار.`),node('p','صافي الربح والمصروفات والرواتب والهامش والتوقعات: غير متاحة للاعتماد حتى اكتمال الدفاتر المحاسبية. عدم وجود سجل لا يعني أن المصروف صفر.'),node('p',`جودة البيانات: ${tenants.filter(x=>!x.full_name?.trim()).length} ملفات بأسماء ناقصة؛ ${leases.filter(x=>!x.start_date||!x.end_date).length} عقداً بتواريخ معلقة؛ ${leases.filter(x=>x.status==='draft').length} عقداً مسودة.`),node('p','لا تُحسب نسبة إشغال أو تحصيل أو جودة شاملة من سجلات المصدر وحدها. كشف إيجارات المصدر مستقل عن الإيراد المحصل.'));}
+ if(id==='collectionProPage')p.body.append(node('p','المستحقات والمتأخرات ونسبة التحصيل لا تُعتمد من إجمالي إيجار المصدر أو أسماء بلا عقود موقّعة. استخدم العقود المعتمدة والدفعات المحفوظة؛ لا تُصدر وصلًا من قيمة الإيجار وحدها.'));
  p.status.textContent='تمت القراءة من مساحة العمل الحالية. لا يوجد تغيير أو حفظ مالي من هذه الشاشة.';
  }catch(e){p.body.replaceChildren();p.status.textContent=safeError(e);}finally{busy=false;p.refresh.disabled=false;own?.close();}
 }

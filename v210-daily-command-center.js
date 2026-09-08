@@ -91,10 +91,10 @@
   }
 
   function aggregate(items){
-    const output={properties:0,due:0,collected:0,balance:0,dueProperties:0,lateTenants:0,pendingApprovals:0,readyDocuments:0,setup:0,priorities:[]};
+    const output={unreviewed:0,properties:0,due:0,collected:0,balance:0,dueProperties:0,lateTenants:0,pendingApprovals:0,readyDocuments:0,setup:0,priorities:[]};
     (Array.isArray(items)?items:[]).forEach(function(item){
       if(!item||item.valid!==true)return;
-      output.properties+=1;
+      output.properties+=1;if(item.obligationsVerified===false)output.unreviewed+=1;
       output.due+=Math.max(0,number(item.due));
       output.collected+=Math.max(0,number(item.collected));
       output.balance+=Math.max(0,number(item.balance));
@@ -130,7 +130,7 @@
       if(!data)return {name:name,valid:false};
       const records=Array.isArray(data.records)?data.records:[];
       return {
-        name:name,valid:true,due:number(data.totalRent),collected:number(data.totalCollected),balance:number(data.totalBalance),units:number(data.unitCount),
+        name:name,valid:true,obligationsVerified:data.obligationsVerified!==false,due:number(data.totalRent),collected:number(data.totalCollected),balance:number(data.totalBalance),units:number(data.unitCount),
         pending:records.reduce(function(sum,row){return sum+Math.max(0,number(row?.pending))},0),
         canRecordPayment:data.canRecordPayment===true,
         records:records.map(function(row){return {billable:row?.billable===true,balance:number(row?.balance),pending:number(row?.pending),paymentStatus:text(row?.paymentStatus),hasContract:row?.hasContract===true,receiptNo:text(row?.receiptNo)}})
@@ -160,10 +160,10 @@
       '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'" required pattern="[0-9]{4}-(0[1-9]|1[0-2])" placeholder="YYYY-MM" dir="ltr" aria-describedby="v210PeriodHint"><small id="v210PeriodHint" hidden>أدخل السنة ثم الشهر، مثال: '+esc(period)+'</small></label></header>'+
       '<div class="v267-collection-hero v210-kpis" aria-live="polite">'+
         '<button type="button" data-v210-route="collectionProPage" class="is-today"><span>تحصيل اليوم</span><strong>'+(state.daily?esc(money(state.daily.paid/1000)):'—')+'</strong><small>'+(state.daily?(state.daily.undated?'دفعات مؤرخة فقط؛ توجد دفعات بلا تاريخ':'الدفعات المسجلة بتاريخ اليوم — الكويت'):'لا يتوفر سجل دفعات مؤرخ')+'</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>تحصيل الشهر</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>تحصيل الشهر</span><strong>'+esc(money(summary.collected))+'</strong><small>'+(summary.unreviewed?'النسبة معلقة حتى اعتماد العقود':rate.toFixed(0)+'٪ من المستحق')+'</small></button>'+
       '</div><details class="v267-financial-detail"><summary>المستحقات وحالة المحفظة</summary><div class="v210-kpis v267-secondary-kpis">'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+summary.lateTenants+'</strong><small>'+esc(money(summary.balance))+' متبقي</small></button>'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(summary.unreviewed?'معلّق':money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+(summary.unreviewed?'معلّق':summary.lateTenants)+'</strong><small>'+esc(summary.unreviewed?'معلّق':money(summary.balance))+' متبقي</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-amber"><span>بانتظار المراجعة</span><strong>'+summary.pendingApprovals+'</strong><small>دفعات أو سجلات معلّقة</small></button>'+
         '<button type="button" data-v210-route="documentsHub"><span>مستندات جاهزة</span><strong>'+summary.readyDocuments+'</strong><small>عقود أو وصولات متاحة</small></button>'+
         '<div class="is-dark"><span>مهام حرجة</span><strong>'+critical+'</strong><small>'+summary.properties+' عقار في '+esc(periodLabel(period))+'</small></div>'+

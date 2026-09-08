@@ -78,7 +78,7 @@ function contractMarkup(c,count){
 function preview(c){
  if(!scope())return false;
  const target=byId('contractPreviewV55');if(!target)return false;
- if(c.source==='statement-import'){
+ if(c.source==='statement-import'&&c.status!=='signed'){
   target.replaceChildren();
   for(const value of ['ملف عقد محفوظ من كشف الإيجار — للمراجعة', 'العقد: '+c.contract_no, 'العقار: '+c.property+' — الوحدة: '+c.unit, 'المستأجر: '+(c.tenant||'غير مدون'), 'إيجار العقد: '+c.rent+' د.ك', 'الإيجار الحالي بالمصدر: '+c.currentRent+' د.ك', 'البداية: '+(c.start_date||'معلّقة حسب المصدر'), 'النهاية: '+(c.end_date||'معلّقة حسب المصدر'), 'التأمين: معلّق. لم يتم اعتماد التوقيع أو ترحيل دفعة من هذا الكشف.']){
    const p=document.createElement('p');p.textContent=value;target.appendChild(p);
@@ -221,7 +221,7 @@ function loadSavedContracts(){
  }
  for(const c of contracts){
   const row=document.createElement('tr');
-  for(const value of [c.contract_no,c.tenant||'غير مدون',c.unit,c.rent,c.source==='statement-import'?'محفوظ من الكشف — للمراجعة':c.status]){const td=document.createElement('td');td.textContent=String(value??'غير مدون');row.appendChild(td);}
+  for(const value of [c.contract_no,c.tenant||'غير مدون',c.unit,c.rent,c.source==='statement-import'&&c.status==='draft'?'محفوظ من الكشف — للمراجعة':c.status]){const td=document.createElement('td');td.textContent=String(value??'غير مدون');row.appendChild(td);}
   const cell=document.createElement('td'),button=document.createElement('button');button.type='button';button.textContent='فتح الملف';button.onclick=()=>preview(c);cell.appendChild(button);row.appendChild(cell);body.appendChild(row);
  }
 }

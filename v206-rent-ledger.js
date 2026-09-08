@@ -118,7 +118,7 @@
     const totalPaid=numberFrom(data?.totalCollected);
     const totalBalance=Math.max(0,numberFrom(data?.totalBalance));
     return {
-      items,totalRent,totalPaid,totalBalance,
+      items,totalRent,totalPaid,totalBalance,obligationsVerified:data?.obligationsVerified!==false,
       totalContractRent:items.reduce(function(total,item){return total+item.contractRent},0),
       totalCurrentRent:totalRent||items.reduce(function(total,item){return total+item.currentRent},0),
       totalInsurance:numberFrom(data?.totalInsurance),totalAdvance:numberFrom(data?.totalAdvance),totalCleaning:numberFrom(data?.totalCleaning),
@@ -201,6 +201,7 @@
   }
 
   function dueList(model,property,period){
+    if(model.obligationsVerified===false)return '<p>المستحقات والمتأخرات معلقة حتى اعتماد عقود المصدر. لا تعني القيم الصفرية اكتمال السداد.</p>';
     const due=model.items.filter(function(item){return item.balance>0}).sort(function(left,right){return right.balance-left.balance});
     if(!due.length)return '<section class="v206-due-panel is-clear"><div><span>المطلوب تحصيله الآن / DUE NOW</span><strong>تم تحصيل جميع الإيجارات المستحقة لهذا الشهر</strong></div><span class="v206-clear-mark" aria-hidden="true">✓</span></section>';
     const paymentLabel=model.canRecordPayment?'تسجيل دفعة':'عرض التحصيل';
@@ -261,9 +262,9 @@
     const source=model.official?'مطابق للكشف الرسمي المخزن'+(model.sourcePages?' • الصفحات '+model.sourcePages:''):'محسوب من العقود والدفعات المعتمدة';
     const paymentLabel=model.canRecordPayment?'تسجيل إيجار':'عرض التحصيل';
     const command='<section class="v206-command v202-no-print" data-v206-command><div class="v206-command-head"><div><span>مكتب الإيجارات / RENT OFFICE</span><h3>'+esc(property)+'</h3><small>'+esc(periodLabel(period))+' • '+esc(source)+'</small></div><div class="v206-command-actions"><button type="button" class="is-primary" data-v206-action="payment">'+paymentLabel+'</button><button type="button" data-v206-action="print">طباعة / PDF</button><button type="button" data-v206-action="csv">Excel CSV</button></div></div><div class="v206-stats">'+
-      stat('المتوقع / EXPECTED',money(model.totalRent)+' د.ك',model.unitCount+' وحدة','')+
+      stat('المتوقع / EXPECTED',(model.obligationsVerified===false?'معلّق':money(model.totalRent)+' د.ك'),model.unitCount+' وحدة','')+
       stat('المحصل / COLLECTED',money(model.totalPaid)+' د.ك',model.paidCount+' مكتمل','is-good')+
-      stat('المتبقي / BALANCE',money(model.totalBalance)+' د.ك',model.dueCount+' مطلوب','is-due')+
+      stat('المتبقي / BALANCE',(model.obligationsVerified===false?'معلّق':money(model.totalBalance)+' د.ك'),model.dueCount+' مطلوب','is-due')+
       stat('نسبة التحصيل / RATE',model.collectionRate+'%',model.totalPending?money(model.totalPending)+' د.ك قيد المراجعة':'لا توجد دفعات معلقة','is-rate')+
       '</div>'+dueList(model,property,period)+'</section>';
     const columns='<colgroup><col class="v206-col-unit"><col class="v206-col-tenant"><col class="v206-col-contract"><col span="4" class="v206-col-money"><col class="v206-col-money"><col class="v206-col-date"><col class="v206-col-method"><col class="v206-col-knet"><col class="v206-col-voucher"><col class="v206-col-received"><col class="v206-col-accountant"></colgroup>';

@@ -36,7 +36,8 @@ export function install(){
  const statements=node('button','كشوف العقارات — برج شيخة');statements.hidden=currentScope().role!=='general_manager';statements.onclick=()=>import('./pages/property-statements.js').then(m=>m.openPropertyStatements()).catch(e=>notice.textContent=safeError(e));
  const utilities=node('button','الإعدادات والخدمات — عدادات العقارات');utilities.onclick=()=>import('./pages/utility-meters.js').then(m=>m.openUtilityMeters()).catch(e=>notice.textContent=safeError(e));
  const quality=node('button','مركز جودة البيانات');quality.hidden=currentScope().role!=='general_manager';quality.onclick=()=>import('./pages/data-quality.js').then(m=>m.openDataQuality()).catch(e=>notice.textContent=safeError(e));
- tools.append(control,scan,statements,utilities,quality,field('لغة المسميات',language),notice);menu.append(tools);
+ const review=node('button','اعتماد عقود المصدر');review.hidden=currentScope().role!=='general_manager';review.onclick=()=>import('./pages/lease-review.js').then(m=>m.openLeaseReview()).catch(e=>notice.textContent=safeError(e));
+ tools.append(control,scan,statements,utilities,quality,review,field('لغة المسميات',language),notice);menu.append(tools);
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=node('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(node('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
  document.addEventListener('click',event=>{

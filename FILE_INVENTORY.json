@@ -427,8 +427,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "sha256": "8a925e32192e0d4c63a00538054975d8381915e6af4e9c3b1d64e9f33fc3cff6",
-      "size": 5164
+      "sha256": "82be11ac76104a7d151e235d09e04c4622b181e72da739fc0d8022ef21b1c2b3",
+      "size": 6001
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
@@ -477,8 +477,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "59bba05a57c46774b141badad7653459cd0d54d6fcbe75477338862f67557ce7",
-      "size": 255436
+      "sha256": "6e3c09afdd6d179f5ea3261a12e7544f2849e10cd998d9baf2fe62f0ec8093e8",
+      "size": 255593
     },
     {
       "path": "v205-simple.css",
@@ -502,8 +502,8 @@
     },
     {
       "path": "v206-rent-ledger.js",
-      "sha256": "2e1548a2a08290704029f34c3ed677c5c5aa8122ca50538617e3e752ba892648",
-      "size": 24650
+      "sha256": "61f163e010dfea36887cc468de3f97e1e8053bb691eeacd7614efe2e125d5f4f",
+      "size": 25021
     },
     {
       "path": "v208-portfolio-collections.css",
@@ -512,8 +512,8 @@
     },
     {
       "path": "v208-portfolio-collections.js",
-      "sha256": "6563ed9f1308f03cd0ba9c59ab6290c5e5914ea658197bf54ff1ee0402acdcd5",
-      "size": 21105
+      "sha256": "8b993b47d13843f23ada10711dd1c87a7cc9cd6d4d3c63e7363e05f28e25a955",
+      "size": 21783
     },
     {
       "path": "v209-global-search.css",
@@ -532,8 +532,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "sha256": "304fb844d049095277782a2df015032bb053b911e819f45cb82a2f843ba72432",
-      "size": 16280
+      "sha256": "e58b30307decdacd6870052c44aa192df3c4619b685d9859a746c5c0e2bd2429",
+      "size": 17245
     },
     {
       "path": "V211_1_SUPABASE_RPC_DRAFT.md",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "aa7558747a0d1a9c1ba0c57ec3adc9cf107dde70765eee090770a985cffd402e",
-      "size": 4179
+      "sha256": "ab18b26174bb41e242188c3ebfa319f7780da324ee89d9e7d07e75e9c43c3eeb",
+      "size": 4832
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "506e90120682186cf3567c827af2b6cdea399b019f95fcdd30065661f8b2c6b6",
-      "size": 5674
+      "sha256": "c748435c5eca5343a53db722729c71f516ed045734194f6421771997394e50a4",
+      "size": 5926
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 24107,
-      "sha256": "340b8336d8b52af7af18101e51560dbc09512debb389001ead17f0896ac9cd5a"
+      "size": 24148,
+      "sha256": "cc4fee08662281c51c454a7cc847a8819b18ea7ad3841b69dbc47010c8619c75"
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1172,13 +1172,28 @@
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
-      "sha256": "034a95558e340aa583bb70595787839e093d52e1b7f9695c658962e3298b4fdb",
-      "size": 5431
+      "sha256": "0ae23ac2f3d0293bed4d538607102ca86b04ea5f8407d15a04243ed8f9572c16",
+      "size": 5997
     },
     {
       "path": "tests/financial-evidence.test.mjs",
       "sha256": "a317687f4617788d7cf9f31f44c628d7749a7d1f7f2c6c9ed6ece5bba39f74a2",
       "size": 832
+    },
+    {
+      "path": "src/v267/pages/lease-review.js",
+      "sha256": "3da70ae9d12db2e9d69e4c87c37dca67d85467d4ff2b54a2ac618d25d1ec3138",
+      "size": 5575
+    },
+    {
+      "path": "staging-database/sql/source-lease-review.sql",
+      "sha256": "abf83360356f983c21c82590c7d7239838b6a01bca45a6b68406c1d4e2dc5583",
+      "size": 6786
+    },
+    {
+      "path": "staging-database/tests/source_lease_review_transaction.sql",
+      "sha256": "eb4b957ca4fe9e1ca6a8789e15bfda964c2c735c5819d0be5f39eda30f07efa9",
+      "size": 2877
     }
   ],
   "version": "V198"

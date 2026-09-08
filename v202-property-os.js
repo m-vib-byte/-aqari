@@ -3373,6 +3373,7 @@
     });
     return Object.freeze({
       property,period:model.period,latestPeriod:latestOfficialPeriod(property),official:Boolean(model.official),
+      obligationsVerified:!context.propertyContracts.some(c=>c.source==='statement-import'&&(c.status!=='signed'||!c.operationalReview||c.pending?.length)),
       sourcePages:String(model.sourcePages||''),unitCount:model.unitCount,
       totalRent:numberFrom(model.totals.due),totalCollected:numberFrom(model.totals.paid),totalBalance:numberFrom(model.totals.balance),
       totalInsurance:numberFrom(model.totals.insurance),totalAdvance:numberFrom(model.totals.advance),totalCleaning:numberFrom(model.totals.cleaningFee),

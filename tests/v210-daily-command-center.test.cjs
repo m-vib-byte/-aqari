@@ -103,3 +103,12 @@ test('release loader installs V210 only after V209',()=>{
   assert.ok(loader.indexOf('installV210DailyCommandCenter')<loader.lastIndexOf('installV209GlobalSearch'));
   assert.match(loader,/addEventListener\('load', installV210DailyCommandCenter/);
 });
+
+test('V267 incomplete source contracts prevent a portfolio being treated as financially reviewed',()=>{
+ const document={readyState:'complete',body:{classList:{add(){}},prepend(){}},head:{appendChild(){}},addEventListener(){},getElementById(){return null},querySelector(){return null},createElement(){return {}}};
+ const context={window:{},document,MutationObserver:class{observe(){}},setTimeout(){return 1},clearTimeout(){},Intl,Date,console};
+ vm.runInNewContext(js,context);
+ const result=context.window.AQARI_V210.testing.aggregate([{name:'unreviewed source',valid:true,obligationsVerified:false,due:0,collected:0,balance:0,units:42,records:[]}]);
+ assert.equal(result.unreviewed,1,'zero operational dues must not imply a fully reviewed property');
+ assert.equal(result.collected,0,'source rent must not become received cash');
+});
