@@ -1372,8 +1372,8 @@
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
-      "size": 3489,
-      "sha256": "221fd15730fe515cb42a1868655c348699147227d533c0ddf91ca31a94510a3b"
+      "size": 3806,
+      "sha256": "64fb10e17ae8928cbc1a1435fbad5402b261ab25a9c24dc9bc4bbae5d1fbff7d"
     },
     {
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
