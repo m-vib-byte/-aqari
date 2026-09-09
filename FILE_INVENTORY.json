@@ -1357,13 +1357,13 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "size": 4456,
-      "sha256": "c5e5203b14b69249c406d60bb2f16763e87542df2a4bc104e63854b3e5132f24"
+      "size": 5206,
+      "sha256": "cd69649cb54066b21ffa9c50390b43d7eae9cb2739065a0dc342c783c9871c4c"
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "size": 3140,
-      "sha256": "54906217a8e8f6952379ed0aabd1dc1410255bf3cc1f0d26358225f2ef4df34c"
+      "size": 3527,
+      "sha256": "5ed588b3fe0a49e256dea0fa535694302da5529717f9d88355805cffe9e676f2"
     },
     {
       "path": "staging-database/sql/imported-tenant-edit.sql",
@@ -1372,8 +1372,8 @@
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
-      "size": 3063,
-      "sha256": "ce16f08c04fedce2541e5864203d06837a5675c45e2ba496da46c856ea701b42"
+      "size": 3489,
+      "sha256": "221fd15730fe515cb42a1868655c348699147227d533c0ddf91ca31a94510a3b"
     },
     {
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
@@ -1467,8 +1467,8 @@
     },
     {
       "path": "staging-database/tests/reminder_contract_balance.sql",
-      "sha256": "dd49b4cb472105371eeb1bdd7787f925201cf79a05a3632286bba16440d3b224",
-      "size": 9892
+      "sha256": "24a38ccef43d07ba6ce1fbdc8740f23c02cec61bd5ca4f2fd6b47fe4abe99aaa",
+      "size": 10734
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1532,8 +1532,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 635,
-      "sha256": "dee1f34b467c173f19f35360da17e2925b45e1a7538684b9b508507a9dd2c36c"
+      "size": 745,
+      "sha256": "99627758a6b9b6c09ae6682885b262f7cf172d92c526f9de2401dd8a50528422"
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
@@ -1729,6 +1729,11 @@
       "path": "staging-database/tests/vacating_settlement.sql",
       "sha256": "0d7f77fb1b6b52bcfc06c75cc90c0ee3de148a01f4d2af38ddd287d78f2be218",
       "size": 6009
+    },
+    {
+      "path": "staging-database/sql/tenant-contact-preference.sql",
+      "sha256": "2bab0f8bb1fa6a47188a6d74b712894f303e8af6fcccf3aa111eaf2e4bbc621d",
+      "size": 7079
     }
   ],
   "version": "V198"
