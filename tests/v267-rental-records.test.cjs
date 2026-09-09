@@ -98,11 +98,29 @@ test('preparation draft persists separately without mutating tenants, contracts 
 
 test('contract requires every new field and keeps original rent separate from discount',()=>{
  for(const field of ['floor','advance','cleaningFee','discount','accountant','receivedAt','writtenOn'])assert.throws(()=>valid({...contract,[field]:''}),field);
- for(const field of ['passportNo','email'])assert.throws(()=>api.lease(contract,[],[{...tenant,[field]:''}],[['عقار اختبار']]),field);
+ for(const field of ['nameAr','nameEn','nationality','civilId','passportNo','phone'])assert.throws(()=>api.lease(contract,[],[{...tenant,[field]:''}],[['عقار اختبار']]),field);
  assert.throws(()=>valid({...contract,discount:'101'}));
  const original=valid();assert.throws(()=>valid({...original,contractRent:120},[original]),/محفوظان/);
  const adjusted=valid({...original,discount:20},[original]);assert.equal(adjusted.contractRent,100.125);assert.equal(adjusted.rent,80.125);
  const linked=api.directoryFields(adjusted,tenant);assert.equal(linked.currentRent,80.125);assert.equal(linked.advance,0);assert.equal(linked.passportNo,tenant.passportNo);assert.equal(linked.accountant,contract.accountant);
+});
+test('a new contract accepts an absent tenant email without inventing contact data',()=>{
+ for(const email of [undefined,null,'','   ']){
+  const input={...tenant,email};if(email===undefined)delete input.email;
+  const savedProfile=api.profile(input);assert.equal(savedProfile.email,'');
+  const savedContract=api.lease(contract,[],[savedProfile],[['عقار اختبار']]);
+  assert.equal(savedContract.tenantProfile.email,'');
+  assert.equal(savedContract.tenantProfile.passportNo,tenant.passportNo);
+  assert.equal(api.directoryFields(savedContract,savedProfile).email,'');
+ }
+});
+test('optional tenant email is still validated when supplied to contract creation',()=>{
+ for(const email of ['wrong','missing@host','two@@example.invalid','name @example.invalid']){
+  assert.throws(()=>api.lease(contract,[],[{...tenant,email}],[['عقار اختبار']]),/البريد/);
+ }
+ const saved=api.lease(contract,[],[tenant],[['عقار اختبار']]);
+ assert.equal(saved.tenantProfile.email,tenant.email);
+ assert.equal(api.directoryFields(saved,tenant).email,tenant.email);
 });
 test('Kuwait contract dates are independent of browser timezone; delivery rejects invalid or future dates',()=>{
  assert.equal(api.kuwaitDate(new Date('2026-09-08T22:30:00Z')),'2026-09-09');

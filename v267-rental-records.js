@@ -27,7 +27,7 @@ function tenantDraft(input){
 function lease(input,existing,profiles,properties){
  const c=copy(input);c.contract_no=text(c.contract_no);c.property=text(c.property);c.unit=digits(c.unit);c.start_date=date(c.start_date);c.end_date=date(c.end_date);c.rent=amount(c.rent);c.deposit=amount(c.rentalTermsVersion===1?(text(c.deposit)||0):c.deposit);
  const tenant=profiles.find(p=>p.id===c.tenantId);if(!tenant)fail('احفظ ملف المستأجر الكامل أولاً.');profile(tenant,profiles);
- if(!text(tenant.passportNo)||!text(tenant.email))fail('أكمل البريد الإلكتروني ورقم الجواز في ملف المستأجر قبل كتابة العقد.');
+ if(!text(tenant.passportNo))fail('أكمل رقم الجواز في ملف المستأجر قبل كتابة العقد.');
  c.floor=text(c.floor);c.accountant=text(c.accountant);c.advance=amount(c.rentalTermsVersion===1?(text(c.advance)||0):c.advance);c.cleaningFee=amount(c.rentalTermsVersion===1?(text(c.cleaningFee)||0):c.cleaningFee);c.discount=amount(c.discount);
  c.contractRent=amount(c.contractRent??c.rent);c.rent=Number(((Math.round(c.contractRent*1000)-Math.round(c.discount*1000))/1000).toFixed(3));
  if(c.rentalTermsVersion===1){
@@ -135,7 +135,7 @@ function preview(c){
  if(c.status==='draft'){const b=document.createElement('button');b.type='button';b.textContent='جاهز للمراجعة';b.onclick=()=>status(c.id,'ready');target.appendChild(b)}
  return true;
 }
-const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — إلزامي للعقد','email'],['passportNo','رقم الجواز — إلزامي للعقد','text'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
+const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — إن وجد','email'],['passportNo','رقم الجواز — إلزامي للعقد','text'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
 const attachmentKinds=[['civilFront','البطاقة المدنية — الوجه'],['civilBack','البطاقة المدنية — الخلف'],['marriage','عقد الزواج'],['extra','مرفقات إضافية']];
 async function upload(file,kind,tenantId,bound){
  const types=['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];

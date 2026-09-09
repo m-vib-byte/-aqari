@@ -27,7 +27,7 @@ jobs:
           npm run check:final
           npm run check:production-ui
           npm run check:freeze
-          node --test tests/*.test.cjs
+          node --test tests/*.test.cjs tests/*.test.mjs
       - name: JavaScript syntax
         run: |
           find api scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check

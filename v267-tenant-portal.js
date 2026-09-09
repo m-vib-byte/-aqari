@@ -3,7 +3,7 @@ import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
 if(cfg?.supabaseUrl!=='https://djkpkkgoibruaezdrchb.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
-let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,userId=null,saveUncertain=false;
+let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set();
 const safeError=e=>/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
 function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
@@ -23,7 +23,7 @@ async function request(work){
 function lock(value){busy=value;for(const b of document.querySelectorAll('button'))b.disabled=b.id==='tenantLogout'?false:value;if(saveUncertain)$('maintenanceSave').disabled=true;}
 function start(){const token=++operation;lock(true);return token;}
 function finish(token){if(token===operation)lock(false);}
-function clear(){snapshot=null;releaseReceipts();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease'])$(id).replaceChildren();$('maintenanceForm').hidden=true;}
+function clear(){snapshot=null;noticeVersion++;releaseReceipts();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease','tenantNotices'])$(id).replaceChildren();setText($('tenantNoticesStatus'),'');$('maintenanceForm').hidden=true;}
 function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();bindLocale(null);updateLanguage();saveUncertain=false;operation++;lock(false);}
 const current=e=>e===epoch;
 function items(target,rows,format){$(target).replaceChildren();if(!rows.length)$(target).append(uiText('p','لا توجد سجلات محفوظة.'));for(const r of rows){const p=document.createElement('p');p.className='item';p.append(...format(r));$(target).append(p);}}
@@ -44,8 +44,45 @@ async function refresh(){
  items('tenantRequests',data.maintenance,m=>{const description=document.createElement('span');description.textContent='\n'+m.description;return [uiText('span','طلب {number} • ',{number:m.request_no}),uiText('span',states[m.status]||'غير معروف'),description];});
  $('maintenanceLease').replaceChildren();const today=new Date(Date.now()+10800000).toISOString().slice(0,10);
  for(const l of data.leases.filter(l=>l.status==='signed'&&l.start_date<=today&&l.end_date>=today)){const option=uiText('option','العقد {contract} • الوحدة {unit}',{contract:l.contract_no,unit:l.snapshot.unit});option.value=l.id;$('maintenanceLease').append(option);}
- $('maintenanceForm').hidden=!$('maintenanceLease').options.length;return data;
+ $('maintenanceForm').hidden=!$('maintenanceLease').options.length;loadNotices();return data;
 }
+const noticeDate=value=>new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'});
+async function loadNotices(){
+ if(!snapshot)return null;const e=epoch,version=++noticeVersion,account=snapshot.account;
+ const fresh=()=>current(e)&&version===noticeVersion&&snapshot?.account===account;
+ setText($('tenantNoticesStatus'),'جارٍ تحميل إعلانات عقارك…');
+ try{
+  const auth=await session();if(!fresh())return null;if(auth?.user.id!==account.user_id){invalidate();return null;}
+  const {data,error}=await request(signal=>client.rpc('aqari_property_notices',{p_workspace_id:account.workspace_id,p_action:'feed',p_data:{}}).abortSignal(signal));if(!fresh())return null;
+  if(error)throw Error('تعذر تحميل إعلانات العقار. يمكنك متابعة استخدام حسابك والمحاولة مجدداً.');
+  const verified=await session();if(!fresh())return null;if(verified?.user.id!==account.user_id){invalidate();return null;}
+  if(!Array.isArray(data)||data.some(record=>!record?.id||!Number.isInteger(record.revision)||record.status!=='published'||typeof record.title!=='string'||typeof record.body!=='string'))throw Error('تعذر تأكيد بيانات إعلانات العقار.');
+  $('tenantNotices').replaceChildren();if(!data.length)$('tenantNotices').append(uiText('p','لا توجد إعلانات أو إرشادات منشورة لعقارك حالياً.'));
+  const types={notice:'إعلان العقار',guidance:'إرشاد للمستأجر',circular:'تعميم إداري'};
+  for(const record of data){
+   const card=document.createElement('article'),title=document.createElement('h3'),body=document.createElement('p'),property=document.createElement('p');card.className='item';title.textContent=record.title;body.textContent=record.body;property.textContent=record.property_name||'';
+   card.append(uiText('span',types[record.kind]||'إعلان العقار'),title,property,body,uiText('p','تاريخ النشر: {date} • النسخة {revision}',{date:noticeDate(record.published_at),revision:record.revision}));
+   if(record.expires_at)card.append(uiText('p','نهاية العرض: {date}',{date:noticeDate(record.expires_at)}));
+   if(record.acknowledged_at)card.append(uiText('p','تم تسجيل اطلاعك في {date}',{date:noticeDate(record.acknowledged_at)}));
+   else{const button=uiText('button','أقر بأنني اطلعت على هذه النسخة');button.type='button';button.className='secondary';button.disabled=busy;button.onclick=()=>acknowledgeNotice(record);card.append(button);}
+   $('tenantNotices').append(card);
+  }
+  setText($('tenantNoticesStatus'),'تُعرض أحدث ٥٠ مادة متاحة لك. لا يسجل الاطلاع إلا عند ضغط زر الإقرار.');return data;
+ }catch(error){if(fresh()){ $('tenantNotices').replaceChildren();setText($('tenantNoticesStatus'),safeError(error));}return null;}
+}
+async function acknowledgeNotice(record){
+ if(busy||!snapshot)return;const token=start(),e=epoch,account=snapshot.account;
+ try{
+  const auth=await session();if(!current(e)||snapshot?.account!==account)return;if(auth?.user.id!==account.user_id){invalidate();return;}
+  const {data,error}=await request(signal=>client.rpc('aqari_property_notices',{p_workspace_id:account.workspace_id,p_action:'ack',p_data:{id:record.id,revision:record.revision}}).abortSignal(signal));if(!current(e)||snapshot?.account!==account)return;
+  if(error||!data?.acknowledged_at)throw Error('لم يتأكد تسجيل الاطلاع. حدّث الإعلانات للتحقق.');
+  const verified=await session();if(!current(e)||snapshot?.account!==account)return;if(verified?.user.id!==account.user_id){invalidate();return;}
+  const rows=await loadNotices();if(!current(e)||snapshot?.account!==account)return;
+  if(!rows?.some(row=>row.id===record.id&&row.revision===record.revision&&row.acknowledged_at))throw Error('لم يتأكد ظهور الإقرار في السجل الحالي. حدّث الإعلانات للتحقق.');
+  setText($('tenantNoticesStatus'),'تم حفظ إقرار اطلاعك على هذه النسخة والتحقق منه.');
+ }catch(error){if(current(e)&&snapshot?.account===account)setText($('tenantNoticesStatus'),safeError(error));}finally{finish(token);}
+}
+$('tenantNoticesRefresh').onclick=async()=>{if(busy||!snapshot)return;const token=start();try{await loadNotices();}finally{finish(token);}};
 async function reload(){const e=epoch;try{const data=await refresh();if(data&&current(e))notice('تم فتح ملفك المحفوظ.');return data;}catch(error){if(current(e)){clear();notice(safeError(error));}return null;}}
 async function receipt(payment,button){
  if(busy||!snapshot)return;const token=start(),e=epoch,account=snapshot.account;
