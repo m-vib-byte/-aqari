@@ -1532,8 +1532,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 530,
-      "sha256": "ba6d1c7a233cb672937984866a7f55bcffddc0f5723ff18924aeefc935ee195d"
+      "size": 635,
+      "sha256": "dee1f34b467c173f19f35360da17e2925b45e1a7538684b9b508507a9dd2c36c"
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
@@ -1724,6 +1724,11 @@
       "path": "tests/v267-vacating-settlement.test.mjs",
       "sha256": "4d1a75384ca171420db935d8f2c9abf813512b90cac71f91e9e81408bf3b0f7c",
       "size": 3187
+    },
+    {
+      "path": "staging-database/tests/vacating_settlement.sql",
+      "sha256": "0d7f77fb1b6b52bcfc06c75cc90c0ee3de148a01f4d2af38ddd287d78f2be218",
+      "size": 6009
     }
   ],
   "version": "V198"
