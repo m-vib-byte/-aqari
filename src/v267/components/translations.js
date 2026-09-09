@@ -1,6 +1,28 @@
 // Interface text only. Record values and legal documents are never translated.
 import {PARTNER_MESSAGES} from './partner-translations.js';
+import {DEPOSIT_MESSAGES} from './deposit-translations.js';
+import {EXIT_MESSAGES} from './exit-translations.js';
 export const MESSAGES = {
+ ...DEPOSIT_MESSAGES,
+ ...EXIT_MESSAGES,
+ "تمت قراءة طلبات الصيانة المحفوظة.": {
+  "en": "Saved maintenance requests loaded.",
+  "hi": "सहेजे गए रखरखाव अनुरोध लोड हो गए हैं।",
+  "ur": "محفوظ مرمت کی درخواستیں لوڈ ہو گئی ہیں۔",
+  "ml": "സംരക്ഷിച്ച അറ്റകുറ്റപ്പണി അഭ്യർത്ഥനകൾ ലോഡ് ചെയ്തു."
+ },
+ "تم الاحتفاظ بالتغييرات غير المحفوظة.": {
+  "en": "Your unsaved changes have been kept.",
+  "hi": "आपके बिना सहेजे बदलाव सुरक्षित रखे गए हैं।",
+  "ur": "آپ کی غیر محفوظ تبدیلیاں برقرار رکھی گئی ہیں۔",
+  "ml": "സംരക്ഷിക്കാത്ത മാറ്റങ്ങൾ നിലനിർത്തിയിട്ടുണ്ട്."
+ },
+ "تجاهل التعديل المحلي واسترجاع المحفوظ": {
+  "en": "Discard local changes and reload the saved request",
+  "hi": "स्थानीय बदलाव हटाएँ और सहेजा गया अनुरोध फिर से लोड करें",
+  "ur": "مقامی تبدیلیاں مسترد کریں اور محفوظ درخواست دوبارہ لوڈ کریں",
+  "ml": "പ്രാദേശിക മാറ്റങ്ങൾ ഉപേക്ഷിച്ച് സംരക്ഷിച്ച അഭ്യർത്ഥന വീണ്ടും ലോഡ് ചെയ്യുക"
+ },
  ...PARTNER_MESSAGES,
  "لغة الواجهة": {
   "en": "Interface language",
@@ -1171,6 +1193,18 @@ export const MESSAGES = {
   "hi": "मैंने दस्तावेज़ की समीक्षा करके सभी विवरण और हस्ताक्षर मिलाए हैं",
   "ur": "میں نے دستاویز کا جائزہ لے کر تمام تفصیلات اور دستخط ملائے ہیں",
   "ml": "രേഖ പരിശോധിച്ച് എല്ലാ വിവരങ്ങളും ഒപ്പുകളും ഒത്തുനോക്കി"
+ },
+ "العقار: {property} • الوحدة: {unit}": {
+  "en": "Property: {property} • Unit: {unit}",
+  "hi": "संपत्ति: {property} • इकाई: {unit}",
+  "ur": "جائیداد: {property} • یونٹ: {unit}",
+  "ml": "വസ്തു: {property} • യൂണിറ്റ്: {unit}"
+ },
+ "تم استرجاع السجل بعد التحقق من الصلاحية. راجع العملية السابقة في السجلات المحفوظة قبل إضافة عملية جديدة.": {
+  "en": "The register was reloaded after verifying access. Review the previous operation in the saved records before adding a new one.",
+  "hi": "अनुमति सत्यापित करके रजिस्टर फिर लोड किया गया। नई प्रविष्टि जोड़ने से पहले सहेजे गए रिकॉर्ड में पिछली कार्रवाई जाँचें।",
+  "ur": "اجازت کی تصدیق کے بعد رجسٹر دوبارہ لوڈ کیا گیا۔ نئی کارروائی سے پہلے محفوظ ریکارڈ میں پچھلی کارروائی کا جائزہ لیں۔",
+  "ml": "അനുമതി പരിശോധിച്ച ശേഷം രജിസ്റ്റർ വീണ്ടും ലഭ്യമാക്കി. പുതിയ ഇടപാട് ചേർക്കുന്നതിന് മുമ്പ് സംരക്ഷിച്ച രേഖകളിൽ മുൻ ഇടപാട് പരിശോധിക്കുക."
  },
  "العقار: {property} • الوحدة: {unit} • المستأجر: {tenant}": {
   "en": "Property: {property} • Unit: {unit} • Tenant: {tenant}",

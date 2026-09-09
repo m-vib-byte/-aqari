@@ -48,3 +48,8 @@ test('denied reread does not trigger another upload or finalization',async()=>{
  await assert.rejects(save(file,target));await assert.rejects(save(file,target),/denied/);
  assert.equal(posts,1);assert.ok(!s.calls.includes('aqari_finalize_document'));
 });
+test('another document with matching bytes cannot confirm the reserved payment proof',async()=>{
+ const s=session(),request=s.request.bind(s);
+ s.request=async q=>{const result=await request(q);return result?.status==='uploaded'?{...result,id:'other-document'}:result;};
+ await assert.rejects(createPaymentProof(s)(new File(['%PDF-1.4\nproof'],'proof.pdf'),target),/لم يتأكد حفظ إثبات الدفع/);
+});

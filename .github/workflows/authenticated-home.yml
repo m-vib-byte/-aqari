@@ -4,6 +4,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+concurrency:
+  group: aqari-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -17,6 +20,8 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
+      - name: Deposit ledger save, recovery and saved print in five languages
+        run: node tests/v267-deposit-ledger.e2e.mjs
       - name: Real authenticated renderer with synthetic backend
         run: node tests/v266-authenticated-home.e2e.mjs
       - name: V267 multilingual control, scanner and operational form flows
@@ -31,4 +36,5 @@ jobs:
             test-results/authenticated-home
             test-results/v267-workspace-tools
             test-results/v267-tenant-portal
+            test-results/v267-deposit-ledger
           retention-days: 2
