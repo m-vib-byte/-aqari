@@ -4,31 +4,19 @@ begin;
 select set_config('request.jwt.claim.sub',(select linked_by::text from public.aqari_statement_links limit 1),true);
 set local role authenticated;
 do $$
-declare w uuid; d jsonb; rev bigint; c jsonb; receipt_record jsonb; ledger jsonb; voucher jsonb; profile jsonb; doc record;
+declare w uuid; d jsonb; rev bigint; c jsonb; receipt_record jsonb; ledger jsonb; voucher jsonb;
 begin
  select workspace_id into strict w from public.aqari_memberships where user_id=auth.uid() and role='general_manager' and is_active;
  select payload,revision into d,rev from public.aqari_app_state where workspace_id=w;
  d:=jsonb_set(d,'{properties}',(d->'properties')||'[["اختبار عزل المعاملة"]]'::jsonb);
- profile:='{"id":"receipt-transaction-test","nameAr":"مستأجر اختبار المعاملة","nameEn":"Transaction Test","nationality":"Test","civilId":"123456789012","passportNo":"TEST-PASSPORT","phone":"55550000","email":"receipt-test@example.invalid"}'::jsonb;
- d:=jsonb_set(d,'{tenantProfilesV267}',(d->'tenantProfilesV267')||jsonb_build_array(profile));
+ d:=jsonb_set(d,'{tenantProfilesV267}',(d->'tenantProfilesV267')||'[{"id":"receipt-transaction-test","nameAr":"مستأجر اختبار المعاملة","nameEn":"Transaction Test","nationality":"Test","civilId":"123456789012","phone":"55550000","email":""}]'::jsonb);
  c:='{"id":"receipt-transaction-test","source":"v267-cloud","contract_no":"TEST-ROLLBACK-ONLY","tenantId":"receipt-transaction-test","tenant":"مستأجر اختبار المعاملة","property":"اختبار عزل المعاملة","unit":"TEST","rent":100,"deposit":0,"status":"signed","start_date":"2026-01-01","end_date":"2026-12-31"}'::jsonb;
- c:=c||'{"detailsVersion":2,"rentalTermsVersion":1,"floor":"الأول","contractRent":100,"discount":0,"advance":0,"cleaningFee":0,"accountant":"محاسب اختبار","status":"draft","contractReceived":"لم يستلم","receivedAt":"","evictionNotice":"لم يُبلّغ","depositReceivedOn":"","freeMonthApproved":false,"freeMonthPeriod":"","rentAdjustments":[]}'::jsonb||jsonb_build_object('tenantProfile',profile,'writtenOn',to_char(now() at time zone 'Asia/Kuwait','YYYY-MM-DD'));
  d:=jsonb_set(d,'{contractsV202}',(d->'contractsV202')||jsonb_build_array(c));
- perform public.aqari_save_state_v267(w,d,rev);
- select revision,payload into rev,d from public.aqari_app_state where workspace_id=w;
- -- Transactional metadata fixture only; no actual signed document bytes.
- select * into doc from public.aqari_reserve_document(w,'signed_contract','lease',c->>'id','Rollback-only fixture','fixture.jpg','image/jpeg','{"test":"rollback-only"}');
- insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',doc.storage_path,'{"size":100,"mimetype":"image/jpeg"}');
- perform public.aqari_finalize_document(doc.document_id,100,'image/jpeg',repeat('a',64));
- c:=c||'{"status":"signed","changeReason":"Signed metadata fixture for rolled-back test"}';
- d:=jsonb_set(d,'{contractsV202}',(select jsonb_agg(case when x->>'id'=c->>'id' then c else x end) from jsonb_array_elements(d->'contractsV202') x));
  perform public.aqari_save_state_v267(w,d,rev);
  select revision,payload into rev,d from public.aqari_app_state where workspace_id=w;
  receipt_record:='["TEST-ROLLBACK-ONLY","مستأجر اختبار المعاملة",100,"مدفوع","اختبار عزل المعاملة","2026-09-08","TEST","اختبار","2026-09","كي نت"]'::jsonb;
  ledger:='{"receiptNo":"TEST-ROLLBACK-ONLY","contractId":"receipt-transaction-test","contractNo":"TEST-ROLLBACK-ONLY","property":"اختبار عزل المعاملة","unit":"TEST","tenant":"مستأجر اختبار المعاملة","paid":100,"period":"2026-09","paidAt":"2026-09-08","status":"مدفوع","method":"كي نت"}'::jsonb;
  voucher:=jsonb_build_object('id','TEST-ROLLBACK-ONLY','template','rent-voucher-v267-1','record',receipt_record,'contract',c);
- ledger:=ledger||'{"due":100,"accountant":"محاسب اختبار","transactionNo":"SYNTHETIC-KNET-REF"}';
- voucher:=voucher||'{"detailsVersion":2,"accountant":"محاسب اختبار","transactionNo":"SYNTHETIC-KNET-REF"}';
  d:=jsonb_set(d,'{collections}',(d->'collections')||jsonb_build_array(receipt_record));
  d:=jsonb_set(d,'{rentLedgerV202}',(d->'rentLedgerV202')||jsonb_build_array(ledger));
  d:=jsonb_set(d,'{rentReceiptsV267}',(d->'rentReceiptsV267')||jsonb_build_array(voucher));

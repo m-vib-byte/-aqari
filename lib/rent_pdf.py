@@ -86,7 +86,7 @@ def shaped(text):
 
 
 def render_receipt(saved):
-    if saved.get('contract', {}).get('property') == 'برج شيخة' and saved.get('detailsVersion') != 2:
+    if saved.get('contract', {}).get('property') == 'برج شيخة':
         from lib.property_statement_pdf import render_shaikhah_receipt
         return render_shaikhah_receipt(saved)
     if FONT not in pdfmetrics.getRegisteredFontNames():
@@ -146,25 +146,6 @@ def render_receipt(saved):
         ("المبلغ المستلم", f"{money(row[2]):.3f} د.ك"), ("طريقة الدفع", row[9]),
     ]:
         y = wrapped(f"{title}: {value}", y, width - margin * 2, 11, 19) - 5
-    if saved.get('detailsVersion') == 2:
-        tenant = contract.get('tenantProfile', {})
-        for title, value in [
-            ('الدور', contract.get('floor')), ('الاسم بالعربي', tenant.get('nameAr')),
-            ('الاسم بالإنجليزي', tenant.get('nameEn')), ('الهاتف', tenant.get('phone')),
-            ('الجنسية', tenant.get('nationality')), ('الرقم المدني', tenant.get('civilId')),
-            ('رقم الجواز', tenant.get('passportNo')), ('البريد الإلكتروني', tenant.get('email')),
-            ('بداية العقد', contract.get('start_date')), ('نهاية العقد', contract.get('end_date')),
-            ('الإيجار عند كتابة العقد', contract.get('contractRent')), ('الإيجار الحالي بعد الخصم', contract.get('rent')),
-            ('التأمين', contract.get('deposit')), ('العربون', contract.get('advance')),
-            ('تاريخ استلام التأمين', contract.get('depositReceivedOn')),
-            ('الشهر المجاني المعتمد', ('نعم — ' + str(contract.get('freeMonthPeriod', ''))) if contract.get('freeMonthApproved') else ('لا' if contract.get('rentalTermsVersion') == 1 else 'غير مدون')),
-            ('رسوم النظافة', contract.get('cleaningFee')), ('رقم العملية', saved.get('transactionNo')),
-            ('استلام العقد', contract.get('contractReceived')), ('تاريخ ووقت الاستلام — الكويت', contract.get('receivedAt')),
-            ('حالة تبليغ الإخلاء', contract.get('evictionNotice')), ('المحاسب المسؤول', saved.get('accountant')),
-        ]:
-            if title == 'تاريخ ووقت الاستلام — الكويت' and value:
-                value = '\u202a' + str(value) + '\u202c'
-            y = wrapped(f'{title}: {value if value is not None and value != "" else "غير مدون"}', y, width - margin * 2, 11, 19) - 5
     if row[7]:
         y = wrapped("البيان: " + str(row[7]), y, width - margin * 2) - 8
     if y < 270:
@@ -176,7 +157,7 @@ def render_receipt(saved):
     y = wrapped("هذا الوصل لإثبات المبلغ المدفوع فقط، ولا يغيّر قيمة الإيجار المتفق عليها في العقد.", y, width - margin * 2 - 16, 10) - 4
     y = wrapped("يعتبر الوصل لاغياً في حال عدم تحصيل الشيك. تبقى حركة الإلغاء وأسبابها في السجل المالي.", y, width - margin * 2 - 16, 10)
     y -= 62
-    label("اسم المحاسب: " + str(saved.get("accountant") or "____________________"), y)
+    label("اسم المحاسب: ____________________", y)
     label("اسم المستلم: ____________________", y - 29)
     label("التوقيع والختم: ____________________", y - 58)
     label("AQARI V267 • " + str(saved["id"]), 27, 8)

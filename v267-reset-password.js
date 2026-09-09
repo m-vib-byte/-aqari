@@ -23,7 +23,7 @@ window.AQARI_RESET_READY=true;
 const cfg=window.AQARI_PUBLIC_CONFIG;
 const hash=new URLSearchParams(location.hash.slice(1));
 const valid=hash.get('type')==='recovery'&&hash.has('access_token')&&hash.has('refresh_token')&&!hash.has('error')&&!hash.has('error_code');
-if(!valid||cfg?.releaseStage!=='preview'||cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||!window.supabase?.createClient){
+if(!valid||cfg?.releaseStage!=='preview'||cfg?.supabaseUrl!=='https://djkpkkgoibruaezdrchb.supabase.co'||!window.supabase?.createClient){
  history.replaceState(null,'','/reset-password.html');render('expired');
 }else{
  const transport=createRecoveryTransport(window.fetch.bind(window));

@@ -6,10 +6,6 @@ on:
   push:
     branches: [main]
 
-concurrency:
-  group: aqari-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -31,7 +27,7 @@ jobs:
           npm run check:final
           npm run check:production-ui
           npm run check:freeze
-          node --test tests/*.test.cjs tests/*.test.mjs
+          node --test tests/*.test.cjs
       - name: JavaScript syntax
         run: |
           find api scripts -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check

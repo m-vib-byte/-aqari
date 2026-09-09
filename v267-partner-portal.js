@@ -2,7 +2,7 @@ import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/c
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 import {createPartnerSession} from './src/v267/api/partner-session.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
-if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
+if(cfg?.supabaseUrl!=='https://djkpkkgoibruaezdrchb.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-partner'}});
 let properties=[],operation=0,busy=false;
 function language(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب الشريك')+' | AQARI V267';$('partnerLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}

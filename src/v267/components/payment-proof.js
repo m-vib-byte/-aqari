@@ -1,5 +1,4 @@
 import {checksum} from './scan-image.js';
-import {createVerifiedUpload} from './verified-upload.js';
 
 // Per-dialog, immutable upload reservation. A timeout is retried by reading the same object.
 export function createPaymentProof(session){
@@ -14,12 +13,27 @@ export function createPaymentProof(session){
    const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:'property_document',p_entity_type:'property',p_entity_ref:target.propertyRef,p_title:'إثبات دفع فاتورة '+target.invoice,p_original_filename:file.name,p_mime_type:mime,p_metadata:{utility_entry_id:target.entryId,meter_id:target.meterId,release:'V267'}}));
    const doc=Array.isArray(rows)?rows[0]:rows;
    if(!doc?.document_id||doc.storage_bucket!=='aqari-documents')throw Error('تعذر حجز إثبات الدفع.');
-   pending={key,doc,upload:createVerifiedUpload(session,{path:doc.storage_path,blob})};
+   pending={key,doc,attempted:false};
   }
-  await pending.upload();
+  let stored;
+  if(pending.attempted){
+   try{stored=await session.storage('GET',pending.doc.storage_path);}
+   catch(error){if(error.status!==404)throw error;}
+  }
+  if(!stored){
+   pending.attempted=true;
+   try{await session.storage('POST',pending.doc.storage_path,blob);}
+   catch(error){
+    // Read after an uncertain upload before considering another insert-only POST.
+    try{stored=await session.storage('GET',pending.doc.storage_path);}
+    catch{throw error;}
+   }
+   if(!stored)stored=await session.storage('GET',pending.doc.storage_path);
+  }
+  if(stored.size!==blob.size||await checksum(stored)!==hash)throw Error('لم تتطابق نسخة إثبات الدفع بعد استرجاعها.');
   await session.request(session.client.rpc('aqari_finalize_document',{p_document_id:pending.doc.document_id,p_size_bytes:blob.size,p_mime_type:mime,p_checksum:hash}));
   const verified=await session.request(session.client.from('aqari_documents').select('id,status,checksum_sha256').eq('workspace_id',session.bound.workspace).eq('id',pending.doc.document_id).single());
-  if(verified?.id!==pending.doc.document_id||verified.status!=='uploaded'||verified.checksum_sha256!==hash)throw Error('لم يتأكد حفظ إثبات الدفع.');
+  if(verified.status!=='uploaded'||verified.checksum_sha256!==hash)throw Error('لم يتأكد حفظ إثبات الدفع.');
   return verified.id;
  };
 }

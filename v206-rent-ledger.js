@@ -104,11 +104,10 @@
       const contractRent=numberFrom(record?.contractRent)||rent;
       const currentRent=numberFrom(record?.currentRent)||rent;
       return {
-        insuranceDateRaw:String(record?.insuranceDateRaw||''),freeMonth:String(record?.freeMonth||''),nameAr:String(record?.nameAr||''),nameEn:String(record?.nameEn||''),floor:String(record?.floor||''),phone:String(record?.phone||''),nationality:String(record?.nationality||''),civilId:String(record?.civilId||''),passportNo:String(record?.passportNo||''),startDate:String(record?.startDate||''),endDate:String(record?.endDate||''),receivedAt:String(record?.receivedAt||''),evictionNotice:String(record?.evictionNotice||''),
         key:String(record?.key||''),unit:String(record?.unit||'—'),tenant:String(record?.tenant||'—'),
         contractNo:String(record?.contractNo||''),contractId:String(record?.contractId||''),hasContract:Boolean(record?.hasContract),
-        contractRent,currentRent,rent,insurance:record?.insurance==null?null:numberFrom(record.insurance),advance:record?.advance==null?null:numberFrom(record.advance),
-        cleaning:record?.cleaningFee==null?null:numberFrom(record.cleaningFee),paid:numberFrom(record?.paid),pending:numberFrom(record?.pending),
+        contractRent,currentRent,rent,insurance:numberFrom(record?.insurance),advance:numberFrom(record?.advance),
+        cleaning:numberFrom(record?.cleaningFee),paid:numberFrom(record?.paid),pending:numberFrom(record?.pending),
         balance:Math.max(0,numberFrom(record?.balance)),status:String(record?.paymentStatus||''),
         date:displayDate(record?.paidAt),method:String(record?.method||''),knet:String(record?.transactionNo||''),
         receipt:String(record?.receiptNo||''),contractReceived:String(record?.contractReceived||''),
@@ -174,14 +173,13 @@
       'رقم الوحدة / FLAT NO.','اسم المستأجر / NAME OF THE TENANT','رقم العقد / CONTRACT NO.',
       'إيجار العقد / RENT CONTRACT','التأمين / INSURANCE','العربون / ADVANCE','رسوم النظافة / CLEANING FEES',
       'الإيجار الحالي / CURRENT RENT','تاريخ الدفع / PAYMENT DATE','طريقة الدفع / PAYMENT METHOD',
-      'رقم العملية / TRANSACTION NUMBER','رقم الوصل / VOUCHER NO.','استلام العقد / CONTRACT RECEIVED','المحاسب / ACCOUNTANT',
-      'الدور','الاسم بالعربي','الاسم بالإنجليزي','الهاتف','الجنسية','الرقم المدني','رقم الجواز','البريد الإلكتروني','بداية العقد','نهاية العقد','وقت استلام العقد — الكويت','تبليغ الإخلاء','تاريخ استلام التأمين','الشهر المجاني المعتمد'
+      'رقم عملية كي نت / KNET OPERATION NUMBER','رقم الوصل / VOUCHER NO.','استلام العقد / CONTRACT RECEIVED','المحاسب / ACCOUNTANT'
     ];
     const lines=[headers.map(csvCell).join(',')];
     model.items.forEach(function(item){
       lines.push([
         item.unit,item.tenant,item.contractNo,item.contractRent,item.insurance,item.advance,item.cleaning,item.currentRent,
-        item.date,item.method,item.knet,item.receipt,item.contractReceived,item.accountant,item.floor,item.nameAr,item.nameEn,item.phone,item.nationality,item.civilId,item.passportNo,item.email,item.startDate,item.endDate,item.receivedAt,item.evictionNotice,item.insuranceDateRaw,item.freeMonth
+        item.date,item.method,item.knet,item.receipt,item.contractReceived,item.accountant
       ].map(csvCell).join(','));
     });
     const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
@@ -229,16 +227,13 @@
     return '<section class="v206-locked" role="status"><span aria-hidden="true">🔒</span><div><strong>سجّل الدخول لعرض كشف الإيجار</strong><p>أسماء المستأجرين، الدفعات والمستندات لا تظهر إلا لعضو فعّال داخل مساحة العمل.</p></div></section>';
   }
 
-  function tenantDetails(item){
-    return '<dl>'+[['تاريخ استلام التأمين',item.insuranceDateRaw],['الشهر المجاني المعتمد',item.freeMonth],['الدور',item.floor],['الاسم بالعربي',item.nameAr],['الاسم بالإنجليزي',item.nameEn],['الهاتف',item.phone],['الجنسية',item.nationality],['الرقم المدني',item.civilId],['رقم الجواز',item.passportNo],['البريد الإلكتروني',item.email],['بداية العقد',item.startDate],['نهاية العقد',item.endDate],['حالة تبليغ الإخلاء',item.evictionNotice]].map(([label,value])=>'<dt>'+esc(label)+'</dt><dd><bdi>'+esc(value||'غير مدون')+'</bdi></dd>').join('')+'</dl>';
-  }
   function rowMarkup(item,index){
     return '<tr class="'+(item.balance>0?'v206-due':'v206-paid')+'" data-v206-row-key="'+esc(item.key)+'" title="فتح كشف المستأجر">'+
-      tableCell(item.unit||index+1,'','ltr')+'<td class="v206-name"><button type="button" class="v206-tenant-link" data-v206-tenant-action="statement" data-v206-key="'+esc(item.key)+'" aria-label="فتح كشف المستأجر '+esc(item.tenant)+'"><bdi dir="auto">'+esc(item.tenant)+'</bdi></button>'+tenantDetails(item)+'</td>'+tableCell(item.contractNo,'','ltr')+
-      tableCell(item.contractRent?money(item.contractRent):'')+tableCell(item.insurance==null?'غير مدون':money(item.insurance))+
-      tableCell(item.advance==null?'غير مدون':money(item.advance))+tableCell(item.cleaning==null?'غير مدون':money(item.cleaning))+
+      tableCell(item.unit||index+1,'','ltr')+'<td class="v206-name"><button type="button" class="v206-tenant-link" data-v206-tenant-action="statement" data-v206-key="'+esc(item.key)+'" aria-label="فتح كشف المستأجر '+esc(item.tenant)+'"><bdi dir="auto">'+esc(item.tenant)+'</bdi></button></td>'+tableCell(item.contractNo,'','ltr')+
+      tableCell(item.contractRent?money(item.contractRent):'')+tableCell(item.insurance?money(item.insurance):'')+
+      tableCell(item.advance?money(item.advance):'')+tableCell(item.cleaning?money(item.cleaning):'')+
       tableCell(item.currentRent?money(item.currentRent):'')+tableCell(item.date,'','ltr')+tableCell(item.method)+
-      tableCell(item.knet,'','ltr')+tableCell(item.receipt,'','ltr')+'<td>'+esc(item.contractReceived||'غير مدون')+'<br><bdi dir="ltr">'+esc(item.receivedAt||'')+'</bdi></td>'+'<td><strong>'+esc(item.accountant||'غير مدون')+'</strong></td>'+'</tr>';
+      tableCell(item.knet,'','ltr')+tableCell(item.receipt,'','ltr')+tableCell(item.contractReceived)+tableCell(item.accountant)+'</tr>';
   }
 
   function render(periodValue){

@@ -9,8 +9,7 @@ const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools')
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
-let maintenanceReadUnavailable=false,maintenanceReadbackDenied=false,maintenanceLocationDenied=false,maintenanceLocationUnavailable=false,storageFailBefore=false,storageLoseReply=false,storageReadDenied=false,storageReadUnavailable=false,storageAttempts=0;
-let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false,maintenanceRows=[],maintenanceWrites=0,maintenanceWriteDenied=false,maintenanceWriteUnavailable=false,maintenanceReadDenied=false,prepareCalls=0;
+let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false,maintenanceRows=[],maintenanceWrites=0,maintenanceWriteDenied=false,maintenanceReadDenied=false,prepareCalls=0;
 const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
 const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
 const secondStatement=structuredClone(statement);secondStatement.property_id='p2';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
@@ -18,10 +17,10 @@ const lease={id:'lease1',external_ref:'source1',contract_no:'C-101',start_date:'
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><button id="fixtureMaintenance">Open maintenance fixture</button><div id="home"></div><section id="collectionProPage"></section><section id="financeSuitePage"></section><section id="reports"></section><section id="documentsHub"></section><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
  'const uid='+JSON.stringify(uid)+',wid='+JSON.stringify(wid)+';'+
- 'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://ofgmcsmxmdswlovsckqs.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
+ 'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://djkpkkgoibruaezdrchb.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
- 'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://ofgmcsmxmdswlovsckqs.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
- 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert","update"])x[k]=(...a)=>{if(k==="select")args._select=a[0];if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="maybeSingle")args._maybeSingle=true;if(k==="update")args._update=a[0];if(k==="range")args._range=a;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status});return x;}'+
+ 'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://djkpkkgoibruaezdrchb.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
+ 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert","update"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="maybeSingle")args._maybeSingle=true;if(k==="update")args._update=a[0];if(k==="range")args._range=a;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json()}:{error:await r.json()});return x;}'+
  'window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:"general_manager",is_active:true}},getClient:async()=>({rpc:query,from:name=>query(name,{})}),getSession:async()=>({user:{id:uid},access_token:"synthetic-not-a-real-token"})};'+
  'const {install}=await import("/src/v267/workspace.js");install();await import("/src/v267/pages/automation-status.js");document.getElementById("fixtureMaintenance").onclick=async()=>{const {openDesk}=await import("/v267-service-desk.js");await openDesk();};</script></body></html>';
 const server=http.createServer((req,res)=>{
@@ -30,12 +29,9 @@ const server=http.createServer((req,res)=>{
   if(req.headers.authorization!=='Bearer synthetic-not-a-real-token')return reply(res,{error:'AUTH'},403);
   if(!url.pathname.includes('/aqari-documents/'+wid+'/'))return reply(res,{error:'SCOPE'},403);
   if(req.method==='POST'){
-   storageAttempts++;if(storageFailBefore){storageFailBefore=false;req.resume();return reply(res,{error:'TEMPORARY_UNAVAILABLE'},503);}
    if(req.headers['x-upsert']!=='false'||storageBytes!==null)return reply(res,{error:'REPLACEMENT'},409);
-   const chunks=[];req.on('data',chunk=>chunks.push(chunk));req.on('end',()=>{storageBytes=Buffer.concat(chunks);storageUploads++;if(storageLoseReply){storageLoseReply=false;return reply(res,{error:'RESPONSE_LOST_AFTER_STORE'},503);}reply(res,{stored:storageBytes.length});});return;
+   const chunks=[];req.on('data',chunk=>chunks.push(chunk));req.on('end',()=>{storageBytes=Buffer.concat(chunks);storageUploads++;reply(res,{stored:storageBytes.length});});return;
   }
-  if(req.method==='GET'&&storageReadDenied)return reply(res,{error:'DENIED'},403);
-  if(req.method==='GET'&&storageReadUnavailable)return reply(res,{error:'TEMPORARY_UNAVAILABLE'},503);
   if(req.method==='GET'&&storageBytes){res.writeHead(200,{'content-type':'image/jpeg','cache-control':'no-store'});res.end(storageBytes);return;}
   return reply(res,{error:'NOT_STORED'},404);
  }
@@ -52,31 +48,22 @@ const server=http.createServer((req,res)=>{
   if(name==='aqari_document_entities')return reply(res,[{entity_ref:'p1',title:'عقار اختبار مستقل'}]);
   if(name==='aqari_document_listing')return reply(res,docs.map(d=>({...d,author_name:'مدير اختبار'})));
   if(name==='aqari_reserve_document'){
-   const d={id:'33333333-3333-4333-8333-333333333333',document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_path:wid+'/33333333-3333-4333-8333-333333333333.jpg',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
+   const d={id:'33333333-3333-4333-8333-333333333333',document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_path:wid+'/33333333-3333-4333-8333-333333333333.jpg',mime_type:'image/jpeg'};
    docs.push(d);return reply(res,[{document_id:d.id,document_no:d.document_no,storage_bucket:'aqari-documents',storage_path:d.storage_path}]);
   }
   if(name==='aqari_finalize_document'){const d=docs.find(d=>d.id===args.p_document_id);assert.ok(storageBytes?.length);d.status='uploaded';d.checksum_sha256=args.p_checksum;d.size_bytes=args.p_size_bytes;return reply(res,d.id);}
   if(name==='aqari_documents')return reply(res,args._single?docs.find(d=>d.id===args.id):[{id:'signed1',document_no:'SIGN-TEST',title:'عقد أصلي <موقع>',status:'uploaded'}]);
   if(name==='aqari_maintenance_requests'){
    assert.equal(args.workspace_id,wid,'maintenance requests stay workspace scoped');
-   assert.doesNotMatch(args._select,/aqari_leases|snapshot/,'maintenance never fetches private contract snapshots');
    if(args._update){
-    maintenanceWrites++;if(maintenanceWriteUnavailable)return reply(res,{message:'provider_token=private'},503);if(maintenanceWriteDenied)return reply(res,{message:'provider_token=private'},403);
+    maintenanceWrites++;if(maintenanceWriteDenied)return reply(res,{message:'provider_token=private'},403);
     const row=maintenanceRows.find(x=>x.id===args.id&&x.revision===args.revision);if(!row)return reply(res,null);
     assert.deepEqual(Object.keys(args._update).sort(),['cost','status']);assert.equal(args._update.status,'assigned');assert.equal(args._update.cost,'12.345');
     Object.assign(row,args._update);row.revision++;return reply(res,row);
    }
-   if(maintenanceReadbackDenied&&args._single)return reply(res,{message:'ACCESS_DENIED'},403);
    if(maintenanceReadDenied)return reply(res,{message:'ACCESS_DENIED'},403);
-   if(maintenanceReadUnavailable)return reply(res,{message:'SERVICE_UNAVAILABLE'},503);
    if(args._single)return reply(res,maintenanceRows.find(x=>x.id===args.id));
    return reply(res,maintenanceRows.slice(args._range[0],args._range[1]+1));
-  }
-  if(name==='aqari_maintenance_locations'){
-   assert.equal(args.p_workspace_id,wid);assert.deepEqual(args.p_request_ids,['request1','request2']);
-   if(maintenanceLocationDenied)return reply(res,{message:'ACCESS_DENIED'},403);
-   if(maintenanceLocationUnavailable)return reply(res,{message:'SERVICE_UNAVAILABLE'},503);
-   return reply(res,args.p_request_ids.map(request_id=>({request_id,property_name:propertyName,unit_no:'101'})));
   }
   if(name==='aqari_notification_outbox'){
    assert.equal(args.workspace_id,wid,'outbox stays workspace scoped');
@@ -174,13 +161,9 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true);
  assert.equal(await dialog.locator('details').count(),0,'missing month clears previous statement');
  await field('الشهر').fill('2026-08');await field('الشهر').press('Tab');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
- statementReadDenied=true;await button('عرض الكشف').click();await dialog.waitFor({state:'detached'});
- assert.equal(await dialog.locator('details').count(),0,'denied reread removes private statement rows');
- assert.equal(await button('تحميل PDF / طباعة').count(),0);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').count(),0,'failed reread cannot leave a printable or linkable candidate');
- statementReadDenied=false;await page.getByRole('button',{name:tr('كشوف العقارات — برج شيخة'),exact:true}).click();
- await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
- assert.equal(await dialog.getByRole('heading',{name:propertyName+' — 2026-08',exact:true}).count(),1,'restored access reloads the saved statement');
- await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ statementReadDenied=true;await button('عرض الكشف').click();await page.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();
+ assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true,'failed reread cannot leave a linkable candidate');
+ statementReadDenied=false;await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  await dialog.locator('details summary').click();assert.equal(await dialog.getByText(tr('التأمين')+': 100.000',{exact:true}).count(),1,'confirmed deposit is not labelled pending');
  assert.equal(await dialog.getByRole('heading',{name:'عقار آخر — 2026-08',exact:true}).count(),1);
  await close();
@@ -200,51 +183,27 @@ async function verifyServiceDesk(page,locale,name,viewport){
  const tr=source=>translate(source,locale),fmt=(source,values)=>formatMessage(source,values,locale);
  const dialog=page.getByRole('dialog'),close=()=>dialog.getByRole('button',{name:tr('إغلاق'),exact:true}).click();
  const refresh=()=>dialog.getByRole('button',{name:tr('تحديث السجلات'),exact:true}).click();
- const ready=()=>dialog.getByText(tr('تمت قراءة طلبات الصيانة المحفوظة.'),{exact:true}).waitFor();
+ const ready=()=>dialog.getByText(tr('السجلات من قاعدة المعاينة المستقلة.'),{exact:true}).waitFor();
  await page.locator('#fixtureMaintenance').click();await ready();
  assert.equal(await dialog.getAttribute('lang'),locale);assert.equal(await dialog.getAttribute('dir'),['ar','ur'].includes(locale)?'rtl':'ltr');
  const card=dialog.locator('article').filter({has:page.getByRole('heading',{name:fmt('طلب {number}',{number:'TEST-1'}),exact:true})});
  const completed=dialog.locator('article').filter({has:page.getByRole('heading',{name:fmt('طلب {number}',{number:'TEST-2'}),exact:true})});
  assert.equal(await card.getByText(tenantName,{exact:true}).count(),1,'tenant name is literal');
- assert.equal(await card.getByText(fmt('العقار: {property} • الوحدة: {unit}',{property:propertyName,unit:'101'}),{exact:true}).count(),1,'location is available without the private lease join');
- assert.ok(!(await card.textContent()).includes('C-101'),'maintenance location does not include a contract number');
  assert.equal(await card.getByText('وصف <طلب> {status}',{exact:true}).count(),1,'request description is literal');
  assert.equal(await completed.getByRole('button').count(),0,'closed requests cannot save');
  assert.equal(await completed.getByLabel(tr('التكلفة — د.ك'),{exact:true}).isDisabled(),true);
  const cost=card.getByLabel(tr('التكلفة — د.ك'),{exact:true}),save=()=>card.getByRole('button',{name:tr('حفظ الحالة والتكلفة'),exact:true});
- const before=maintenanceWrites,storedCostBefore=await cost.inputValue();
- await cost.fill('6.125');maintenanceLocationUnavailable=true;await refresh();
- await dialog.getByText(tr('تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.'),{exact:true}).waitFor();
- assert.equal(await dialog.locator('article').count(),2);assert.equal(await cost.inputValue(),'6.125','metadata outage preserves the unsaved cost');
- maintenanceLocationUnavailable=false;await refresh();await ready();assert.equal(await cost.inputValue(),'6.125');
- maintenanceLocationDenied=true;await refresh();await dialog.waitFor({state:'detached'});
- assert.equal(await dialog.locator('article').count(),0,'metadata permission denial clears requests and drafts');
- maintenanceLocationDenied=false;await page.locator('#fixtureMaintenance').click();await ready();assert.equal(await cost.inputValue(),storedCostBefore,'denied metadata cannot restore the revoked draft');
- await cost.fill('9.125');maintenanceReadUnavailable=true;await refresh();
- await dialog.getByText(tr('تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.'),{exact:true}).waitFor();
- assert.equal(await dialog.locator('article').count(),2,'temporary outage preserves the current requests');assert.equal(await cost.inputValue(),'9.125','temporary outage preserves unsaved cost');
- maintenanceReadUnavailable=false;await refresh();await ready();assert.equal(await cost.inputValue(),'9.125','recovery preserves unsaved cost');
+ const before=maintenanceWrites;
  await cost.fill('-1');await save().click();await dialog.getByText(tr('أدخل تكلفة صحيحة بدقة ثلاثة منازل.'),{exact:true}).waitFor();assert.equal(maintenanceWrites,before);
  await card.getByLabel(tr('حالة الطلب'),{exact:true}).selectOption('assigned');await cost.fill('١٢٫٣٤٥');await save().click();
  await dialog.getByText(tr('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(maintenanceWrites,before+1);assert.equal(await cost.inputValue(),'12.345');assert.equal(await card.getByLabel(tr('حالة الطلب'),{exact:true}).inputValue(),'assigned');
- maintenanceWriteUnavailable=true;await save().click();await dialog.getByText(tr('لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.'),{exact:true}).waitFor();
- assert.equal(await save().isDisabled(),true,'uncertain write cannot be repeated');assert.ok(!(await dialog.textContent()).includes('private'));maintenanceWriteUnavailable=false;
- await refresh();await ready();assert.equal(await save().isDisabled(),true,'ordinary refresh does not silently unlock an uncertain draft');
- assert.equal(maintenanceWrites,before+2,'refresh cannot repeat the uncertain write');
- const writesBeforeDiscard=maintenanceWrites;
- await card.getByRole('button',{name:tr('تجاهل التعديل المحلي واسترجاع المحفوظ'),exact:true}).click();await ready();
- assert.equal(await save().isEnabled(),true);assert.equal(maintenanceWrites,writesBeforeDiscard,'discard reloads without sending another write');
- assert.equal(await cost.inputValue(),'12.345');assert.equal(await card.getByLabel(tr('حالة الطلب'),{exact:true}).inputValue(),'assigned');
+ maintenanceWriteDenied=true;await save().click();await dialog.getByText(tr('لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.'),{exact:true}).waitFor();
+ assert.equal(await save().isDisabled(),true,'uncertain write cannot be repeated without refresh');assert.ok(!(await dialog.textContent()).includes('private'));maintenanceWriteDenied=false;
+ await refresh();await ready();assert.equal(await save().isEnabled(),true);
  const box=await dialog.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,'service translation fits viewport');
  await page.screenshot({path:path.join(out,name+'-'+locale+'-maintenance.png'),fullPage:true});
- await cost.fill('8.250');maintenanceReadDenied=true;await refresh();await dialog.waitFor({state:'detached'});assert.equal(await dialog.locator('article').count(),0,'denied reread clears previous requests');maintenanceReadDenied=false;
- await page.locator('#fixtureMaintenance').click();await ready();assert.equal(await cost.inputValue(),'12.345','restored access cannot revive a revoked private draft');assert.equal(maintenanceWrites,before+2,'access recovery only rereads');
- maintenanceWriteDenied=true;await save().click();await dialog.waitFor({state:'detached'});assert.equal(await dialog.locator('article').count(),0,'denied write disposes private data');maintenanceWriteDenied=false;
- await page.locator('#fixtureMaintenance').click();await ready();assert.equal(await cost.inputValue(),'12.345');assert.equal(maintenanceWrites,before+3,'reopening after denied write never repeats it');
- maintenanceReadbackDenied=true;await save().click();await dialog.waitFor({state:'detached'});
- assert.equal(await dialog.locator('article').count(),0,'revoked read access during save confirmation clears the private view');
- maintenanceReadbackDenied=false;await page.locator('#fixtureMaintenance').click();await ready();assert.equal(maintenanceWrites,before+4,'recovery cannot repeat an uncertain save');
+ maintenanceReadDenied=true;await refresh();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();assert.equal(await dialog.locator('article').count(),0,'denied reread clears previous requests');maintenanceReadDenied=false;
  await close();
  await page.getByRole('button',{name:tr('عرض سجل التنبيهات المحفوظ'),exact:true}).click();
  await dialog.getByText(tr('الإرسال غير مفعّل. هذه سجلات تجهيز وإلغاء، وليست رسائل مرسلة.'),{exact:true}).waitFor();
@@ -262,8 +221,7 @@ try{
  for(const [engineName,engine]of [['chromium',chromium],['webkit',webkit]]){
   const browser=await engine.launch();
   try{for(const [device,viewport]of [['iphone',{width:390,height:844}],['ipad',{width:820,height:1180}],['desktop',{width:1440,height:1000}]]){
-   maintenanceReadUnavailable=false;maintenanceReadbackDenied=false;maintenanceLocationDenied=false;maintenanceLocationUnavailable=false;storageFailBefore=false;storageLoseReply=false;storageReadDenied=false;storageReadUnavailable=false;storageAttempts=0;
-   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;statementReadDenied=false;maintenanceWrites=0;maintenanceWriteDenied=false;maintenanceWriteUnavailable=false;maintenanceReadDenied=false;prepareCalls=0;maintenanceRows=[{id:'request1',request_no:'TEST-1',workspace_id:wid,description:'وصف <طلب> {status}',status:'received',cost:'0.000',revision:1,lease:null,tenant:{full_name:tenantName}},{id:'request2',request_no:'TEST-2',workspace_id:wid,description:'طلب مغلق',status:'completed',cost:'2.000',revision:1,lease:null}];
+   settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;statementReadDenied=false;maintenanceWrites=0;maintenanceWriteDenied=false;maintenanceReadDenied=false;prepareCalls=0;maintenanceRows=[{id:'request1',request_no:'TEST-1',workspace_id:wid,description:'وصف <طلب> {status}',status:'received',cost:'0.000',revision:1,lease,tenant:{full_name:tenantName}},{id:'request2',request_no:'TEST-2',workspace_id:wid,description:'طلب مغلق',status:'completed',cost:'2.000',revision:1,lease}];
    const context=await browser.newContext({viewport,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    // The fixture redirects only the pinned Storage URL to its local HTTP endpoint.
    // Node receives the actual upload bytes on both engines; no inspector postData shortcut.
@@ -292,33 +250,20 @@ try{
     assert.equal(await page.getByRole('dialog').getByRole('checkbox',{name:'الصيانة',exact:true}).isChecked(),false);
     failingWrite=true;await page.getByLabel('سبب التعديل',{exact:true}).fill('حفظ مرفوض');
     await page.getByRole('button',{name:'حفظ الإعدادات والتحقق',exact:true}).click();
-    await page.getByRole('dialog').waitFor({state:'detached'});assert.equal(revision,1);failingWrite=false;
+    await page.getByText('لا تملك صلاحية هذه العملية.',{exact:true}).waitFor();assert.equal(revision,1);failingWrite=false;
+    await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
     await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
     await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');
     await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
-    await page.getByLabel('تصنيف المستند',{exact:true}).selectOption('ownership_deed');
     await page.getByLabel('عنوان المستند',{exact:true}).fill('وثيقة اختبار للمسح');
     const png=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=600;canvas.height=900;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,600,900);ctx.fillStyle='black';ctx.font='40px sans-serif';ctx.fillText('AQARI scan fixture',40,80);return canvas.toDataURL('image/png').split(',')[1];});
-    await page.getByLabel('تصوير المستند أو اختيار ملف',{exact:true}).setInputFiles({name:'scan.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+    await page.getByLabel('تصوير المستند أو اختيار صورة',{exact:true}).setInputFiles({name:'scan.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
     await page.getByText('راجع وضوح الصورة والعنوان والسجل، ثم ارفع النسخة.',{exact:true}).waitFor();
     await page.getByRole('button',{name:'تدوير الصورة',exact:true}).click();
-    storageFailBefore=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
-    await page.getByText('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.',{exact:true}).waitFor();
-    assert.equal(docs.length,1);assert.equal(storageUploads,0);assert.equal(storageAttempts,1);assert.equal(docs[0].status,'draft');
-    storageReadUnavailable=true;
-    await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
-    await page.getByRole('dialog').getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).waitFor({state:'visible'});
-    await page.waitForFunction(()=>[...document.querySelectorAll('.aq267-dialog button')].some(button=>button.textContent==='رفع نسخة جديدة والتحقق منها'&&!button.disabled));
-    assert.equal(storageAttempts,1,'unavailable reread cannot retry the upload');assert.equal(docs[0].status,'draft');
-    storageReadUnavailable=false;storageLoseReply=true;
-    await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
-    await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتصنيفه وارتباطه بالسجل.',{exact:true}).waitFor();
-    assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
+    await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتأكيد ارتباطه بالسجل.',{exact:true}).waitFor();
     assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
-    assert.equal(docs[0].metadata.document_category,'ownership_deed','selected category survives upload and canonical readback');
-    assert.equal(docs[0].document_type,'mobile_scan','property evidence cannot become a signed contract');
     assert.ok(storageBytes[0]===255&&storageBytes[1]===216,'reencoded JPEG');
     assert.equal(await page.getByText('رفع بواسطة: مدير اختبار',{exact:true}).count(),1);
     const layout=await page.getByRole('dialog').evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth,buttons:[...el.querySelectorAll('button')].filter(b=>b.getBoundingClientRect().height>0).every(b=>b.getBoundingClientRect().height>=44)}));
@@ -329,30 +274,6 @@ try{
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
     await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح'}).count(),1);
-    // The server may revoke a section/property scope while the same membership
-    // remains locally active. Exercise the real shared dialog and private URLs.
-    await page.evaluate(()=>{
-     window.fixtureRevokedUrls=[];const revoke=URL.revokeObjectURL.bind(URL);
-     URL.revokeObjectURL=url=>{window.fixtureRevokedUrls.push(url);return revoke(url);};
-     document.addEventListener('click',event=>{if(event.target.closest('.aq267-dialog a[download]'))event.preventDefault();});
-    });
-    await page.getByRole('dialog').getByRole('button',{name:'تحميل النسخة الأصلية',exact:true}).click();
-    await page.getByText('تم استرجاع الملف المحفوظ.',{exact:true}).waitFor();
-    const privateUrl=await page.getByRole('dialog').locator('a[download]').getAttribute('href');assert.ok(privateUrl?.startsWith('blob:'));
-    assert.equal(await page.evaluate(async url=>(await (await fetch(url)).blob()).size,privateUrl),storageBytes.length,'download URL contains the saved private document');
-    const uploadsBeforeDenial=storageAttempts;
-    storageReadDenied=true;await page.getByRole('dialog').getByRole('button',{name:'تحميل النسخة الأصلية',exact:true}).click();
-    await page.getByRole('dialog').waitFor({state:'detached'});
-    assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),0,'server read denial removes the cached private document');
-    assert.equal(await page.evaluate(()=>window.AQARI_SUPABASE.context.membership.is_active),true,'scope revocation is handled before a local membership update');
-    assert.equal(await page.evaluate(url=>window.fixtureRevokedUrls.includes(url),privateUrl),true,'server denial revokes generated private download URLs');
-    assert.equal(await page.evaluate(async url=>{try{await fetch(url);return false;}catch{return true;}},privateUrl),true,'revoked document URL cannot be read');
-    assert.equal(storageAttempts,uploadsBeforeDenial,'read denial never starts another upload');
-    storageReadDenied=false;await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
-    await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
-    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
-    assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),1,'restored access reloads the authoritative document in a fresh dialog');
-    assert.equal(storageAttempts,uploadsBeforeDenial,'access recovery only rereads');
     await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
     const languageLayouts=[];
     for(const locale of ['en','hi','ur','ml','ar']){
@@ -396,3 +317,4 @@ try{
  }
 }finally{await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(results,null,2));}
 if(failed)process.exit(1);
+

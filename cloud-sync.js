@@ -110,7 +110,7 @@
       activeScope = next;
       const local = readWorkspaceState(next);
       const decoded = decodeCloudPayload(cloudSeed);
-      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl === 'https://ofgmcsmxmdswlovsckqs.supabase.co' && decoded){
+      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl === 'https://djkpkkgoibruaezdrchb.supabase.co' && decoded){
         const cloud = prepareState(decoded.primary);
         if(Object.keys(local).length && JSON.stringify(local) !== JSON.stringify(cloud)){
           const backupKey = workspaceDataKey(next) + ':before-cloud-activation';

@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const moduleSource=path=>fs.readFileSync(path,'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
-const source='const EXIT_MESSAGES=(()=>{'+moduleSource('src/v267/components/exit-translations.js')+';return EXIT_MESSAGES;})();\n'+moduleSource('src/v267/components/deposit-translations.js')+'\n'+moduleSource('src/v267/components/partner-translations.js')+'\n'+moduleSource('src/v267/components/translations.js')+'\n'+moduleSource('src/v267/components/locale.js')+'\nconst node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};\n'+moduleSource('src/v267/components/ui-text.js')+'\n'+moduleSource('v267-tenant-portal.js');
+const source=moduleSource('src/v267/components/partner-translations.js')+'\n'+moduleSource('src/v267/components/translations.js')+'\n'+moduleSource('src/v267/components/locale.js')+'\nconst node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};\n'+moduleSource('src/v267/components/ui-text.js')+'\n'+moduleSource('v267-tenant-portal.js');
 const tick=()=>new Promise(r=>setTimeout(r,2));
 function fixture(){
  const elements=new Map(),events=new Map(),revoked=[],created=[],all=[],storage=new Map();
@@ -18,11 +18,11 @@ function fixture(){
  for(const id of ['notice','content','auth','tenantName','tenantLeases','tenantPayments','tenantRequests','maintenanceLease','maintenanceForm','maintenanceDescription','maintenanceSave','tenantEmail','tenantPassword','tenantLogin','tenantSignup','tenantLogout','tenantLanguage'])$(id);
  const payload={account:{user_id:'user-a',workspace_id:'workspace-a',tenant_id:'tenant-a',is_active:true},tenant:{id:'tenant-a',workspace_id:'workspace-a',full_name:'اسم <محفوظ>'},leases:[{id:'lease-a',contract_no:'C-A',snapshot:{unit:'101',property:'عقار اختبار'},monthly_rent:'125.750',status:'signed',start_date:'2026-01-01',end_date:'2027-12-31'}],payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[]};
  let authCallback,auth={user:{id:'user-a'},access_token:'fixture'},fast=false;
- const state={notices:[],noticeCalls:[],noticeRead:async()=>({data:structuredClone(state.notices)}),noticeAck:async row=>{const notice=state.notices.find(n=>n.id===row.id&&n.revision===row.revision);if(!notice)return {error:{message:'REVISION_CONFLICT'}};notice.acknowledged_at='2026-09-09T12:00:00Z';return {data:{acknowledged_at:notice.acknowledged_at}};},reads:0,inserts:[],signals:[],read:async()=>({data:structuredClone(payload)}),insert:async row=>{payload.maintenance.push({...row,request_no:1,status:'received'});return {};},fetch:async()=>({ok:true,headers:{get:()=> 'application/pdf'},blob:async()=>new Blob(['%PDF-fixture'])})};
- const client={auth:{getSession:async()=>({data:{session:auth}}),onAuthStateChange:fn=>{authCallback=fn;return {data:{subscription:{unsubscribe(){}}}};},signInWithPassword:async()=>({}),signUp:async()=>({}),signOut:async()=>{auth=null;authCallback('SIGNED_OUT',null);return {};},stopAutoRefresh(){},startAutoRefresh(){}},rpc:(name,args)=>({abortSignal:signal=>{state.signals.push(signal);if(name==='aqari_property_notices'){state.noticeCalls.push(structuredClone(args));return args.p_action==='ack'?state.noticeAck(args.p_data,signal):state.noticeRead(signal);}state.reads++;return state.read(signal);}}),from:()=>({insert:row=>({abortSignal:signal=>{state.inserts.push(row);state.signals.push(signal);return state.insert(row,signal);}})})};
+ const state={reads:0,inserts:[],signals:[],read:async()=>({data:structuredClone(payload)}),insert:async row=>{payload.maintenance.push({...row,request_no:1,status:'received'});return {};},fetch:async()=>({ok:true,headers:{get:()=> 'application/pdf'},blob:async()=>new Blob(['%PDF-fixture'])})};
+ const client={auth:{getSession:async()=>({data:{session:auth}}),onAuthStateChange:fn=>{authCallback=fn;return {data:{subscription:{unsubscribe(){}}}};},signInWithPassword:async()=>({}),signUp:async()=>({}),signOut:async()=>{auth=null;authCallback('SIGNED_OUT',null);return {};},stopAutoRefresh(){},startAutoRefresh(){}},rpc:()=>({abortSignal:signal=>{state.reads++;state.signals.push(signal);return state.read(signal);}}),from:()=>({insert:row=>({abortSignal:signal=>{state.inserts.push(row);state.signals.push(signal);return state.insert(row,signal);}})})};
  class TestURL extends URL{}TestURL.createObjectURL=()=>{const u='blob:fixture-'+created.length;created.push(u);return u;};TestURL.revokeObjectURL=u=>revoked.push(u);
- const ctx={window:{AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co',releaseStage:'preview',supabasePublishableKey:'synthetic',supabaseAuthStorageKey:'isolated',supabaseAuthRedirectUrl:'https://preview.example/tenant.html'},supabase:{createClient:()=>client},addEventListener:(type,fn)=>events.set(type,fn)},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)},document:{documentElement:{},getElementById:$,createElement:()=>new Element(),querySelectorAll:selector=>selector==='button'?[$('tenantSignup'),$('tenantLogout'),$('maintenanceSave')]:all.filter(el=>el.dataset.aq267Text)},URL:TestURL,Blob,AbortController,crypto:{randomUUID:()=> 'request-fixture'},fetch:(...args)=>state.fetch(...args),setTimeout:(fn,ms)=>setTimeout(fn,fast&&ms===20000?15:ms),clearTimeout,console};
- vm.createContext(ctx);vm.runInContext(source+'\nglobalThis.portalTest={refresh,reload,receipt,loadNotices,acknowledgeNotice,get snapshot(){return snapshot;},get busy(){return busy;}};',ctx);
+ const ctx={window:{AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co',releaseStage:'preview',supabasePublishableKey:'synthetic',supabaseAuthStorageKey:'isolated',supabaseAuthRedirectUrl:'https://preview.example/tenant.html'},supabase:{createClient:()=>client},addEventListener:(type,fn)=>events.set(type,fn)},localStorage:{getItem:key=>storage.get(key),setItem:(key,value)=>storage.set(key,value)},document:{documentElement:{},getElementById:$,createElement:()=>new Element(),querySelectorAll:selector=>selector==='button'?[$('tenantSignup'),$('tenantLogout'),$('maintenanceSave')]:all.filter(el=>el.dataset.aq267Text)},URL:TestURL,Blob,AbortController,crypto:{randomUUID:()=> 'request-fixture'},fetch:(...args)=>state.fetch(...args),setTimeout:(fn,ms)=>setTimeout(fn,fast&&ms===20000?15:ms),clearTimeout,console};
+ vm.createContext(ctx);vm.runInContext(source+'\nglobalThis.portalTest={refresh,reload,receipt,get snapshot(){return snapshot;},get busy(){return busy;}};',ctx);
  return {$,storage,document:ctx.document,state,payload,client,api:ctx.portalTest,revoked,created,events,emit:(event,next)=>{auth=next;authCallback(event,next);},fast:()=>{fast=true;}};
 }
 test('sign-out clears private fields and receipt URLs synchronously, including cross-tab sign-out',async()=>{
@@ -102,38 +102,4 @@ test('tenant language is restored only for its verified account and workspace',a
  f.emit('SIGNED_IN',{user:{id:'user-a'},access_token:'fixture'});await tick();await tick();assert.equal(f.document.documentElement.lang,'ml');
  f.payload.account.workspace_id='workspace-b';f.payload.tenant.workspace_id='workspace-b';await f.api.reload();assert.equal(f.document.documentElement.lang,'ar');
  f.$('tenantLanguage').value='en';f.$('tenantLanguage').events.change();f.payload.account.user_id='user-b';f.emit('SIGNED_IN',{user:{id:'user-b'},access_token:'fixture'});await tick();await tick();assert.equal(f.document.documentElement.lang,'ar');assert.deepEqual([...f.storage.values()],['ml','en']);
-});
-
-const publishedNotice=()=>({id:'notice-a',property_id:'property-a',property_name:'عقار <محفوظ>',kind:'guidance',title:'إرشاد <img src=x>',body:'نص <script> خاص بالمستأجر',status:'published',revision:2,published_at:'2026-09-09T10:00:00Z',expires_at:null,acknowledged_at:null});
-test('property feed stays literal and never records acknowledgement just by reading or refreshing',async()=>{
- const f=fixture();await tick();f.state.notices=[publishedNotice()];await f.api.loadNotices();
- assert.match(f.$('tenantNotices').textContent,/<img src=x>/);assert.match(f.$('tenantNotices').textContent,/<script>/);
- assert.equal(f.state.noticeCalls.filter(call=>call.p_action==='ack').length,0);assert.equal(f.state.noticeCalls.at(-1).p_workspace_id,'workspace-a');assert.deepEqual(f.state.noticeCalls.at(-1).p_data,{});
- await f.$('tenantNoticesRefresh').onclick();assert.equal(f.state.noticeCalls.filter(call=>call.p_action==='ack').length,0);
-});
-test('tenant explicitly acknowledges the exact published revision and receipt survives reopening',async()=>{
- const f=fixture();await tick();f.state.notices=[publishedNotice()];await f.api.loadNotices();
- await f.$('tenantNotices').children[0].children.at(-1).onclick();
- const call=f.state.noticeCalls.find(call=>call.p_action==='ack');assert.deepEqual(call.p_data,{id:'notice-a',revision:2});assert.equal(call.p_workspace_id,'workspace-a');assert.equal('tenant_id' in call.p_data,false);
- assert.match(f.$('tenantNoticesStatus').textContent,/تم حفظ إقرار/);await f.api.reload();await tick();assert.match(f.$('tenantNotices').textContent,/تم تسجيل اطلاعك/);
-});
-test('notice service failure preserves loaded tenant records, receipt links and maintenance draft',async()=>{
- const f=fixture();await tick();f.state.notices=[publishedNotice()];await f.api.loadNotices();await f.api.receipt(f.payload.payments[0],f.$('tenantPayments').children[0].children.at(-1));
- f.$('maintenanceDescription').value='مسودة طلب محفوظة';const links=f.$('tenantPayments').children[0].children.slice(1);f.state.noticeRead=async()=>({error:{message:'internal secret'}});await f.api.loadNotices();
- assert.equal(f.$('content').hidden,false);assert.equal(f.$('tenantName').textContent,'اسم <محفوظ>');assert.equal(f.$('maintenanceDescription').value,'مسودة طلب محفوظة');assert.deepEqual(f.$('tenantPayments').children[0].children.slice(1),links);assert.equal(f.$('tenantNotices').children.length,0);assert.ok(!f.$('tenantNoticesStatus').textContent.includes('internal secret'));
-});
-test('late notice feed cannot restore private text after a sign-out even if transport ignores abort',async()=>{
- const f=fixture();await tick();f.state.notices=[publishedNotice()];await f.api.loadNotices();let resolve;f.state.noticeRead=()=>new Promise(r=>{resolve=r;});const pending=f.api.loadNotices();await tick();f.emit('SIGNED_OUT',null);assert.equal(f.state.signals.at(-1).aborted,true);await pending;
- resolve({data:[publishedNotice()]});await tick();assert.equal(f.$('tenantNotices').textContent,'');assert.equal(f.$('tenantNoticesStatus').textContent,'');assert.equal(f.$('content').hidden,true);
-});
-test('late previous feed cannot overwrite a newer successful feed from the same account',async()=>{
- const f=fixture();await tick();let resolve;f.state.noticeRead=()=>new Promise(r=>{resolve=r;});const older=f.api.loadNotices();await tick();f.state.noticeRead=async()=>({data:[{...publishedNotice(),title:'النسخة الأحدث'}]});await f.api.loadNotices();resolve({data:[publishedNotice()]});await older;
- assert.match(f.$('tenantNotices').textContent,/النسخة الأحدث/);assert.ok(!f.$('tenantNotices').textContent.includes('<img src=x>'));
-});
-test('acknowledgement is not reported verified when re-read still lacks the receipt',async()=>{
- const f=fixture();await tick();f.state.notices=[publishedNotice()];await f.api.loadNotices();f.state.noticeAck=async()=>({data:{acknowledged_at:'2026-09-09T12:00:00Z'}});await f.api.acknowledgeNotice(publishedNotice());
- assert.match(f.$('tenantNoticesStatus').textContent,/لم يتأكد ظهور الإقرار/);assert.ok(!f.$('tenantNotices').textContent.includes('تم تسجيل اطلاعك'));assert.equal(f.$('content').hidden,false);
-});
-test('notice timeout aborts and releases the UI without erasing other tenant sections',async()=>{
- const f=fixture();await tick();f.fast();let signal;f.state.noticeRead=value=>{signal=value;return new Promise(()=>{});};await f.$('tenantNoticesRefresh').onclick();assert.equal(signal.aborted,true);assert.equal(f.api.busy,false);assert.equal(f.$('tenantName').textContent,'اسم <محفوظ>');
 });

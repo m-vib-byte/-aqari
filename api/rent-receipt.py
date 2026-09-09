@@ -67,44 +67,7 @@ def export_pdf(input_data, auth, read=upstream):
         raise PermissionError("ACCESS_DENIED")
     saved = verified_receipt(state["payload"], reference)
     check_member()
-    verify_scoped_payment(workspace, reference, saved, auth, read)
     return render_receipt(saved)
-
-
-def verify_scoped_payment(workspace, reference, saved, auth, read):
-    """Recheck property/section RLS and the immutable source in one final read."""
-    # The existing composite foreign key joins workspace_id and lease_id. An
-    # inner embed requires both payment and lease row policies to allow access
-    # in the same statement, including grants revoked after the state read.
-    path = "/rest/v1/aqari_rent_payments?" + urlencode({
-        "select": "workspace_id,lease_id,reference,amount,period,paid_at,status,payment_method,record,receipt,lease:aqari_leases!inner(id,workspace_id,external_ref,contract_no)",
-        "workspace_id": "eq." + workspace, "reference": "eq." + reference,
-        "limit": "2",
-    })
-    rows = read(path, auth)
-    if not isinstance(rows, list) or len(rows) != 1 or not isinstance(rows[0], dict):
-        raise PermissionError("ACCESS_DENIED")
-    payment = rows[0]
-    lease = payment.get("lease")
-    if (payment.get("workspace_id") != workspace or payment.get("reference") != reference
-            or not UUID.fullmatch(str(payment.get("lease_id", "")))
-            or not isinstance(lease, dict) or lease.get("workspace_id") != workspace
-            or lease.get("id") != payment["lease_id"]):
-        raise PermissionError("ACCESS_DENIED")
-    contract = saved["contract"]
-    if (str(contract.get("id")) != str(lease.get("external_ref"))
-            or contract.get("contract_no") != lease.get("contract_no")):
-        raise ValueError("CONTRACT_LINK_MISMATCH")
-    if payment.get("receipt") != saved:
-        raise ValueError("RECEIPT_SNAPSHOT_MISMATCH")
-    verified_receipt(dict(rentReceiptsV267=[saved], collections=[saved["record"]],
-                          contractsV202=[{"id": lease["external_ref"]}],
-                          rentLedgerV202=[payment.get("record")]), reference)
-    row = saved["record"]
-    if (money(payment.get("amount")) != money(row[2]) or payment.get("period") != row[8] + "-01"
-            or payment.get("paid_at") != row[5] or payment.get("status") != row[3]
-            or payment.get("payment_method") != row[9]):
-        raise ValueError("PAYMENT_LINK_MISMATCH")
 
 
 def export_tenant_pdf(workspace, reference, uid, auth, read):

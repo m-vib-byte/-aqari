@@ -592,7 +592,7 @@ test('staging reload uses the verified cloud snapshot and preserves stale local 
   const fresh = {tenants:[['Imported Tenant']], contractsV202:[{id:'saved-contract'}]};
   const key = 'aqari_v30::workspace::workspace-a';
   const {window,localStorage} = runtime({[key]:JSON.stringify(stale)});
-  window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
+  window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'};
   window.AQARI_SUPABASE.context = contextA;
   const result = window.AQARI_DATA_GATE.activate(contextA,fresh);
   assert.deepEqual(JSON.parse(JSON.stringify(result)),fresh);
@@ -606,7 +606,7 @@ test('staging without a cloud response does not erase the scoped local state', (
   const contextA = access('user-a','workspace-a');
   const key = 'aqari_v30::workspace::workspace-a';
   const {window} = runtime({[key]:JSON.stringify({tenants:[['Local']]})});
-  window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
+  window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'};
   window.AQARI_SUPABASE.context = contextA;
   assert.equal(window.AQARI_DATA_GATE.activate(contextA,null).tenants[0][0],'Local');
 });

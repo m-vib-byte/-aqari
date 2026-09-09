@@ -484,7 +484,7 @@
     };
     const previousContractList=window.loadContractsV55;
     window.loadContractsV55=function(){
-      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co')return rentalRecords('loadSavedContracts');
+      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return rentalRecords('loadSavedContracts');
       return previousContractList?.apply(this,arguments);
     };
     window.generateContractV55=()=>rentalRecords('generate');

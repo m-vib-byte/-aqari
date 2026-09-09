@@ -6,10 +6,6 @@ on:
     branches:
       - main
 
-concurrency:
-  group: aqari-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
@@ -73,17 +69,7 @@ jobs:
           echo 'AQARI_V266_INVENTORY_END'
       - run: node --test tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
       - name: V267 workspace isolation and image processing
-        run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs tests/v267-rental-records.test.cjs tests/imported-tenant-editor.test.mjs tests/v267-payroll.test.mjs
-      - name: Verify complete Staging runtime against release inventory
-        run: node scripts/verify-staging-runtime.mjs
-      - name: Contract approval at print issuance and maintenance draft recovery
-        run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs
-      - name: Staff access, expense persistence, vacating settlement and isolated PostgreSQL authorization
-        run: |
-          node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs
-          node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
-          npm ci --prefix staging-database/local-test --ignore-scripts
-          npm test --prefix staging-database/local-test
+        run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -92,3 +78,4 @@ jobs:
           python -m pip install -r requirements.txt pypdf==6.10.0
           python -m unittest discover -s tests -p rent_pdf_test.py -v
           python -m unittest discover -s tests -p property_statement_test.py -v
+

@@ -163,8 +163,7 @@ test('V206 renders a bilingual 14-column ledger and safe document actions', () =
   assert.match(rent, /<th scope="row" colspan="3">/);
   assert.match(rent, /role="region"/);
   assert.match(rent, /<bdi dir="auto">/);
-  assert.match(rent, /tenantDetails\(item\)/);
-  for(const field of ['civilId','phone','nationality','evictionNotice','nameEn','receivedAt','floor'])assert.match(rent,new RegExp(field));
+  assert.doesNotMatch(rent, /civilId|phone|nationality|evictionNotice/);
 });
 
 test('V206 layout is readable on mobile and prints only the live A4 landscape document', () => {
