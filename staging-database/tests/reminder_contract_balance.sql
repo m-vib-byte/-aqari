@@ -3,12 +3,14 @@ begin;
 insert into private.aqari_allowed_users values('reminder-terms-test@example.invalid','اختبار الربط','general_manager','aqari-v267-staging',true,now());
 insert into auth.users(id,email) values('67233333-3333-4333-8333-333333333333','reminder-terms-test@example.invalid');
 select set_config('request.jwt.claim.sub','67233333-3333-4333-8333-333333333333',true);
+-- Capture the synthetic user's workspace while fixture setup still runs as the test owner.
+-- Application roles intentionally cannot read aqari_memberships directly; public RPCs enforce scope.
+select set_config('reminder.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active limit 1),true);
 set local role authenticated;
 do $$
 <<verify>>
-declare w uuid; state jsonb; d jsonb; candidate jsonb; t jsonb; c jsonb; saved jsonb; ledger jsonb; receipt jsonb; row_data jsonb; f text; n bigint; doc record; lease_id uuid; paid_row jsonb; pay jsonb;
+declare w uuid:=current_setting('reminder.test.workspace')::uuid; state jsonb; d jsonb; candidate jsonb; t jsonb; c jsonb; saved jsonb; ledger jsonb; receipt jsonb; row_data jsonb; f text; n bigint; doc record; lease_id uuid; paid_row jsonb; pay jsonb;
 begin
- select workspace_id into w from public.aqari_memberships where user_id=auth.uid() and is_active;
  state:=public.aqari_read_state_v267(w);d:=state->'payload';
  d:=case when d->>'format'='aqari-cloud-state-v1' then d#>'{snapshot,values,aqari_v30}' when d->>'schema'='aqari-local-snapshot-v1' then d#>'{values,aqari_v30}' else d end;
  t:='{"id":"reminder-terms-t","nameAr":"مستأجر اختبار ربط","nameEn":"Linked Test Tenant","civilId":"678901234567","passportNo":"TEST-PASSPORT","phone":"55550000","nationality":"اختبار","email":"linked-tenant@example.invalid","address":"","preferredContact":"whatsapp","attachments":[]}'::jsonb;
