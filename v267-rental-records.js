@@ -123,6 +123,13 @@ function openTenant(index,draftId){
  const existing=(data().tenantProfilesV267||[]).find(p=>p.id===profileRef(row));
  const savedDraft=(data().tenantPreparationDraftsV267||[]).find(x=>x.id===(existing?.id||draftId));
  const p={...copy(existing||{id:crypto.randomUUID(),nameAr:row?.[0]||'',attachments:[]}),...copy(savedDraft||{})};
+ if(existing?.source==='statement-import'){
+  import('./src/v267/pages/imported-tenant.js').then(m=>m.openImportedTenant({ref:p.id,draft:savedDraft,
+   onDraft:async values=>{const pending=tenantDraft(values);await store.change(['tenantPreparationDraftsV267','audit'],cloud=>{cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==pending.id).concat([pending]);cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ مسودة بيانات مستأجر',pending.id,new Date().toISOString()]]);return pending;},(cloud,saved)=>(cloud.tenantPreparationDraftsV267||[]).some(x=>same(x,saved)));},
+   onSaved:async()=>{const bound=scope();if(!bound)fail('انتهت الجلسة.');const cloud=await bounded(()=>root.AQARI_SUPABASE.loadAppState(bound));if(!same(bound,scope()))fail('تغيّرت الجلسة.');const confirmed=primary(cloud.payload);for(const key of ['tenants','tenantProfilesV267','tenantDirectoryV202','tenantPreparationDraftsV267'])data()[key]=copy(confirmed[key]||[]);try{if(typeof persist==='function')persist()}catch(_){}if(typeof render==='function')render();}
+  })).catch(()=>window.alert('تعذر فتح ملف المستأجر المستورد. حدّث الصفحة وأعد المحاولة.'));
+  return true;
+ }
  const modal=byId('modal');byId('mt').textContent='ملف المستأجر • AQARI V267';
  byId('fields').innerHTML='<div class="v267-tenant-form">'+fields.map(([k,label,type])=>'<label>'+label+'<input id="v267Tenant_'+k+'" type="'+type+'" value="'+esc(p[k])+'" '+(k==='civilId'?'inputmode="numeric" maxlength="12"':'')+' autocomplete="off"></label>').join('')+attachmentKinds.map(([k,label])=>'<label>'+label+'<input id="v267File_'+k+'" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" '+(k==='extra'?'multiple':'')+'></label>').join('')+'<div id="v267TenantAttachments"></div><p id="v267TenantStatus" role="status" aria-live="polite"></p></div>';
  const list=byId('v267TenantAttachments');

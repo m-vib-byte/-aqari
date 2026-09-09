@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "5b32b6eb14235fc2b24ab108ad171965090778a98622a9337069ff3572e95a2d",
-      "size": 3881
+      "sha256": "b717ab06e5b776e31fc3120fb676023f8e6608ddf207249ff240abc0eb0c319a",
+      "size": 3953
     },
     {
       "path": "api/autosync-status.js",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 24148,
-      "sha256": "cc4fee08662281c51c454a7cc847a8819b18ea7ad3841b69dbc47010c8619c75"
+      "size": 29000,
+      "sha256": "da26edd219dad372d141952f614d3fa8c86da5d2beb90256a17bf0c9448de152"
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1354,6 +1354,31 @@
       "path": "docs/V267-PRIVATE-FILES-VERIFICATION.md",
       "sha256": "d52fd9fd78ac70cc433313c1d299cfd06d85ab8216821f7799ad24a82e236500",
       "size": 3421
+    },
+    {
+      "path": "src/v267/pages/imported-tenant.js",
+      "size": 4419,
+      "sha256": "a3f64cc0eea2d7b5f51c54b5ab385f186aca6d409b79bf9a0a24d96b416b5e3b"
+    },
+    {
+      "path": "tests/imported-tenant-editor.test.mjs",
+      "size": 3140,
+      "sha256": "54906217a8e8f6952379ed0aabd1dc1410255bf3cc1f0d26358225f2ef4df34c"
+    },
+    {
+      "path": "staging-database/sql/imported-tenant-edit.sql",
+      "size": 9162,
+      "sha256": "998610defe17ef948df2648c4f68803814af9504322b16f86a400784acf7d4dd"
+    },
+    {
+      "path": "staging-database/tests/imported_tenant_edit.sql",
+      "size": 2923,
+      "sha256": "9102654b897bf118be2e4abc79dd44b08d7bb78cac20366ea33b7e7a5ba1d9f6"
+    },
+    {
+      "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
+      "size": 3519,
+      "sha256": "38e338aa441c21d556f02be0bd972810576c8eb98d3140c46d1a28eb48ea8729"
     }
   ],
   "version": "V198"
