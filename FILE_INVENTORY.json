@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "ceab9592ffba4a1ec4eaa24acb58e18fc49c2bbc325495389451dab63a6180a9",
-      "size": 3702
+      "sha256": "aff0247fe900a04093d53b0ba348295a3619b557bbdef7cc27eba1f18b6b3a38",
+      "size": 3735
     },
     {
       "path": "api/autosync-status.js",
@@ -162,8 +162,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "847b0f7c01f8c0b310a7afd7b36e60bf1f920f41a6452798cb7903b52cd73f91",
-      "size": 16602
+      "sha256": "ec0a97f59adb23a3f7e315595c9953dbfbd6d6dbaaacc3952d354d1c9b1765bc",
+      "size": 16995
     },
     {
       "path": "lib/read-only.js",
@@ -622,8 +622,8 @@
     },
     {
       "path": "tests/login-speed.e2e.mjs",
-      "sha256": "9d2c2712548314e68111633682f4770ea87fa8fc572ac34a1351c5c8c072df4d",
-      "size": 4576
+      "sha256": "2275181d4d6150a460782dd47f865122f60a74fcfe7358c427266249b5d73f58",
+      "size": 6198
     },
     {
       "path": ".github/workflows/login-speed.yml",
@@ -1239,6 +1239,16 @@
       "path": "tests/v267-admin-receipt-download.test.cjs",
       "sha256": "ea170cc98665ca3607f0be0cebdbb8aeb3dec2573f95379463a9e7b40fa4a360",
       "size": 4513
+    },
+    {
+      "path": "v267-login-locale.js",
+      "sha256": "fc21166a5a2c9c4a446f39286e7c572875b28ff2fd5067d36630bc61c23b4153",
+      "size": 17395
+    },
+    {
+      "path": "tests/v267-login-locale.test.cjs",
+      "sha256": "bff2d336e2e969d3a347c08eb47cf250e76eaca9e72a0e1975b60a8088e365f7",
+      "size": 4462
     }
   ],
   "version": "V198"
