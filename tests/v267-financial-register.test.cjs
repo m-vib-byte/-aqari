@@ -25,10 +25,12 @@ function fixture(initial=[],options={}){
  const rpc=async(name,args)=>{
   assert.equal(name,'aqari_financial_register');assert.equal(args.p_workspace_id,'workspace-fixture');calls.push(clone(args));const values=args.p_data;
   if(args.p_action==='list'){
+   if(state.listError)throw state.listError;
    if(state.failList)throw Error('تعذر اتصال القراءة');
    const rows=records.filter(record=>record.expense_date.startsWith(values.month));const approved=rows.filter(record=>record.state==='approved');
    return {manager:state.manager,can_write:state.canWrite,properties:clone(properties),documents:clone(documents),expenses:clone(rows).map(row=>state.wrongReadback?{...row,amount:'999.000'}:row),history:clone(history),period:clone(state.period),summary:{approved_expenses:approved.reduce((sum,row)=>sum+Math.round(Number(row.amount)*1000),0)/1000+'',count:approved.length}};
   }
+  if(state.writeError)throw state.writeError;
   if(args.p_action==='close_period'){
    state.period={month:values.month+'-01',closed_at:'2026-09-10T09:00:00Z',closed_by_name:'المدير',reason:values.reason,snapshot:{}};
    history.push({entity_id:values.month,action:args.p_action,actor_name:'المدير',recorded_at:'2026-09-10T09:00:00Z',reason:values.reason});return clone(state.period);
@@ -42,11 +44,12 @@ function fixture(initial=[],options={}){
   }else if(args.p_action==='cancel')Object.assign(row,{state:'cancelled',revision:row.revision+1,cancelled_at:'2026-09-10T09:00:00Z',cancelled_by_name:'المدير',cancel_reason:values.reason});
   else throw Error('unsupported action');
   history.push({entity_id:row.id,action:'expense.'+args.p_action,actor_name:'مدير <مسجل>',recorded_at:'2026-09-10T09:00:00Z',reason:values.reason||''});
+  if(state.listErrorAfterWrite)state.listError=state.listErrorAfterWrite;
   if(args.p_action==='save'&&state.saveErrorAfterPersist)throw Error('انقطع الرد بعد الحفظ');
   return clone(row);
  };
  const el=node('dialog'),close=node('button','إغلاق');el.append(close);
- const d={el,body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},cleanups:[],onDispose(fn){this.cleanups.push(fn);},run(work){d.pending=Promise.resolve().then(work).catch(error=>{d.status.textContent=error.message;});return d.pending;}};el.append(d.body);
+ const d={el,body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},cleanups:[],onDispose(fn){this.cleanups.push(fn);},run(work){d.lastError=null;d.pending=Promise.resolve().then(work).catch(error=>{d.lastError=error;d.status.textContent=error.message;});return d.pending;}};el.append(d.body);
  const ctx={node,field,createDialog:()=>d,crypto:{randomUUID:()=> 'expense-new-'+(++sequence)},window:{confirm:message=>{confirmations.push(message);return state.confirm;}},console};vm.createContext(ctx);vm.runInContext(source+'\nopenFinancialRegister();',ctx);
  const button=label=>descendants(d.body).find(element=>element.tag==='button'&&element.textContent===label);
  const control=label=>descendants(d.body).find(element=>element.label===label)?.children[0];
@@ -116,4 +119,74 @@ test('local close and Escape guard dirty input without intercepting forced dispo
  const f=fixture();await f.d.pending;f.newDraft();f.state.confirm=false;
  for(const name of ['click','cancel']){let prevented=false,stopped=false;for(const listener of f.d.el.listeners[name])listener({target:f.close,preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});assert.equal(prevented,true);assert.equal(stopped,true);}
  const count=f.confirmations.length;for(const cleanup of f.d.cleanups)cleanup();assert.equal(f.confirmations.length,count);
+});
+
+test('denied financial reads clear private records, history, document choices and drafts without reviving them on recovery',async()=>{
+ for(const error of [Object.assign(Error('denied'),{status:401}),Object.assign(Error('denied'),{status:403}),Object.assign(Error('denied'),{code:'42501'}),Error('ACCESS_DENIED')]){
+  const f=fixture([expense()]);await f.d.pending;
+  f.history.push({entity_id:'expense-existing',action:'expense.save',actor_name:'مدقق سري',recorded_at:'2026-09-10T09:00:00Z',reason:'مرجع تدقيق سري'});
+  await f.button('تحديث السجل والتحقق من الحفظ').onclick();f.button('عرض سجل المصروف').onclick();
+  const oldHistory=f.button('عرض سجل المصروف');assert.match(f.d.body.textContent,/مرجع تدقيق سري/);
+  const reason=f.control('سبب اعتماد المصروف');reason.value='اعتماد محلي غير محفوظ';reason.oninput();
+  f.newDraft();f.control('مستند المصروف المحفوظ').value='document-one';f.state.listError=error;
+  await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+  assert.equal(f.d.status.textContent,error.message);assert.equal(f.editor().hidden,true);assert.equal(f.button('إعداد مصروف جديد').hidden,true);
+  assert.doesNotMatch(f.d.body.textContent,/المستفيد الأصلي|مرجع تدقيق سري|مدقق سري|فاتورة <محفوظة>|12\.005/);
+  for(const label of ['المستفيد','بند المصروف','المبلغ بالدينار الكويتي','رقم مرجع التحويل أو الشيك','البيان والتفاصيل'])assert.equal(f.control(label).value,'');
+  for(const label of ['العقار','مستند المصروف المحفوظ'])assert.equal(f.control(label).children.length,0);
+  oldHistory.onclick();assert.doesNotMatch(f.d.body.textContent,/صيانة أصلية|مرجع تدقيق سري/);
+  assert.equal(f.records.length,1);assert.equal(f.calls.filter(call=>call.p_action!=='list').length,0);
+  f.state.listError=null;f.history.length=0;await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+  assert.match(f.d.body.textContent,/المستفيد الأصلي/);assert.equal(f.editor().hidden,true);assert.equal(f.control('المستفيد').value,'');
+  assert.equal(f.control('سبب اعتماد المصروف').value,'');assert.doesNotMatch(f.d.body.textContent,/مرجع تدقيق سري/);
+ }
+});
+
+test('read denial after a persisted expense clears its draft and blocks blind repeat until authorized reread',async()=>{
+ const denied=Object.assign(Error('ACCESS_DENIED'),{status:403,code:'42501'}),f=fixture([],{listErrorAfterWrite:denied});await f.d.pending;
+ f.newDraft();await f.submit(f.editor());
+ assert.equal(f.records.length,1);assert.equal(f.editor().hidden,true);assert.equal(f.control('المستفيد').value,'');assert.equal(f.button('إعداد مصروف جديد').hidden,true);
+ assert.doesNotMatch(f.d.body.textContent,/مقاول <محفوظ>|صيانة <مسجلة>|120\.005/);
+ await f.submit(f.editor());await f.button('تحديث السجل والتحقق من الحفظ').onclick();f.button('إعداد مصروف جديد').onclick();
+ assert.equal(f.editor().hidden,true);assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);
+ f.state.listError=null;f.state.listErrorAfterWrite=null;await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+ assert.match(f.d.status.textContent,/راجع العملية السابقة/);assert.match(f.d.body.textContent,/120\.005/);assert.equal(f.editor().hidden,true);
+ assert.equal(f.control('المستفيد').value,'');assert.equal(f.button('إعداد مصروف جديد').disabled,false);
+ assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);assert.equal(f.records.length,1);
+});
+
+test('temporary 503 financial reads preserve drafts and the uncertain-save lock until readback succeeds',async()=>{
+ const unavailable=Object.assign(Error('SERVICE_UNAVAILABLE'),{status:503}),f=fixture([expense()]);await f.d.pending;
+ f.newDraft();f.state.listError=unavailable;await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+ assert.match(f.d.body.textContent,/المستفيد الأصلي/);assert.equal(f.editor().hidden,false);assert.equal(f.control('المستفيد').value,'مقاول <محفوظ>');
+ assert.equal(f.control('المبلغ بالدينار الكويتي').value,'١٢٠٫٠٠٥');
+ f.state.listError=null;f.state.listErrorAfterWrite=unavailable;await f.submit(f.editor());
+ assert.equal(f.records.length,2);assert.equal(f.editor().hidden,false);assert.equal(f.button('إعداد مصروف جديد').disabled,true);
+ await f.submit(f.editor());await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+ assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);assert.equal(f.control('المستفيد').value,'مقاول <محفوظ>');
+ f.state.listError=null;f.state.listErrorAfterWrite=null;await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+ assert.match(f.d.status.textContent,/تم التحقق من العملية السابقة/);assert.equal(f.editor().hidden,true);
+ assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);assert.equal(f.records.length,2);
+});
+
+test('denied write RPCs clear financial data and propagate the original authorization error to the dialog',async()=>{
+ for(const denied of [Object.assign(Error('session expired'),{status:401}),Object.assign(Error('write denied'),{status:403}),Object.assign(Error('insufficient privilege'),{code:'42501'}),Error('ACCESS_DENIED')]){
+  const f=fixture([expense()]);await f.d.pending;f.newDraft();f.state.writeError=denied;await f.submit(f.editor());
+  assert.equal(f.d.lastError,denied,'the dialog must receive the original denial with its status, code and message');
+  assert.equal(f.editor().hidden,true);assert.equal(f.control('المستفيد').value,'');assert.equal(f.button('إعداد مصروف جديد').hidden,true);
+  assert.doesNotMatch(f.d.body.textContent,/المستفيد الأصلي|مقاول <محفوظ>|صيانة أصلية|12\.005/);
+  assert.equal(f.control('العقار').children.length,0);assert.equal(f.control('مستند المصروف المحفوظ').children.length,0);
+  assert.equal(f.records.length,1);assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);
+  await f.submit(f.editor());assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);
+ }
+});
+
+test('temporary 503 write failures retain the draft and block repetition until saved-state reconciliation',async()=>{
+ const f=fixture();await f.d.pending;f.newDraft();f.state.writeError=Object.assign(Error('SERVICE_UNAVAILABLE'),{status:503});await f.submit(f.editor());
+ const first=f.calls.find(call=>call.p_action==='save');assert.equal(f.editor().hidden,false);assert.equal(f.control('المستفيد').value,'مقاول <محفوظ>');
+ assert.equal(f.control('المبلغ بالدينار الكويتي').value,'١٢٠٫٠٠٥');assert.equal(f.button('إعداد مصروف جديد').disabled,true);assert.equal(f.records.length,0);
+ await f.submit(f.editor());assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);
+ f.state.writeError=null;await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.match(f.d.status.textContent,/لا يطابق/);
+ await f.submit(f.editor());const saves=f.calls.filter(call=>call.p_action==='save');assert.equal(saves.length,2);assert.equal(saves[1].p_data.id,first.p_data.id);
+ assert.equal(f.records.length,1);assert.equal(f.editor().hidden,true);
 });

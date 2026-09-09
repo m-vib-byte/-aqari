@@ -24,7 +24,7 @@ function validMonth(value){return /^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&value.s
 export function openFinancialRegister(){
  const d=createDialog('سجل المصروفات وإقفال الفترة المالية');if(!d)return;
  let currentMonth=today().slice(0,7),records=[],properties=[],documents=[],history=[],period=null,summary={},manager=false,canWrite=false;
- let editing=null,requestId=crypto.randomUUID(),baseline='',pendingWrite=null;
+ let editing=null,requestId=crypto.randomUUID(),baseline='',pendingWrite=null,readDenied=false;
  const reasons=new Map();
  const toolbar=node('div'),month=node('input'),reload=node('button','تحديث السجل والتحقق من الحفظ'),add=node('button','إعداد مصروف جديد');
  const overview=node('div'),list=node('div'),editor=node('form'),audit=node('div'),closing=node('div');
@@ -44,6 +44,13 @@ export function openFinancialRegister(){
  const dirty=()=>!editor.hidden&&JSON.stringify(formValues())!==baseline;
  const allowDiscard=()=>!dirty()||window.confirm('توجد تعديلات غير محفوظة في مسودة المصروف. هل تريد تركها؟');
  function closeEditor(){editing=null;requestId=crypto.randomUUID();editor.reset();editor.hidden=true;baseline='';}
+ function clearPrivate(){
+  readDenied=true;records=[];properties=[];documents=[];history=[];period=null;summary={};manager=false;canWrite=false;reasons.clear();
+  // Keep only a lock, never financial values, until an explicit authorized reread.
+  pendingWrite=pendingWrite?{redacted:true}:null;
+  closeEditor();property.replaceChildren();document.replaceChildren();
+  overview.replaceChildren();list.replaceChildren();audit.replaceChildren();closing.replaceChildren();add.hidden=true;add.disabled=true;
+ }
  function populateProperties(selected=''){
   property.replaceChildren();const placeholder=node('option','اختر العقار');placeholder.value='';property.append(placeholder);
   for(const item of properties){const option=node('option',item.name);option.value=item.id;property.append(option);}
@@ -82,6 +89,7 @@ export function openFinancialRegister(){
    &&(write.action!=='cancel'||Boolean(row.cancelled_at)&&row.cancel_reason===write.reason);
  }
  function inspectHistory(record){
+  if(readDenied)return;
   audit.replaceChildren(text('h3','سجل الإجراء: '+(record.voucher_no||record.category)));
   const events=history.filter(event=>event.entity_id===record.id);
   if(!events.length)audit.append(node('p','لا توجد إجراءات معروضة لهذا السجل.'));
@@ -95,6 +103,7 @@ export function openFinancialRegister(){
   });};return form;
  }
  function render(){
+  if(readDenied)return;
   add.hidden=!canWrite||Boolean(period?.closed_at);add.disabled=Boolean(pendingWrite);overview.replaceChildren();
   overview.append(text('p','الفترة: '+currentMonth+' • المصروفات المعتمدة: '+money(summary.approved_expenses??'0')+' د.ك • عددها: '+Number(summary.count||0)));
   if(period?.closed_at)overview.append(text('p','الفترة مقفلة منذ '+stamp(period.closed_at)+' بواسطة '+(period.closed_by_name||'الإدارة')+' — '+(period.reason||'')+'؛ لا يسمح بإضافة مصروفات أو تعديلها في هذه الفترة.'));
@@ -132,13 +141,16 @@ export function openFinancialRegister(){
  }
  const financialValues=record=>Object.fromEntries(['property_id','expense_date','category','payee','amount','method','reference','description','document_id'].map(key=>[key,record[key]??null]));
  async function load(nextMonth=currentMonth,{reconcile=false}={}){
-  const data=await rpc('list',{month:nextMonth});
+  let data;
+  try{data=await rpc('list',{month:nextMonth});}
+  catch(error){if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED')clearPrivate();throw error;}
   if(!Array.isArray(data?.expenses)||!Array.isArray(data.properties)||!Array.isArray(data.documents)||!Array.isArray(data.history)||!data.summary)throw Error('تعذر قراءة سجل المصروفات المحفوظ.');
   const selectedProperty=property.value,selectedDocument=document.value;
-  records=data.expenses;properties=data.properties;documents=data.documents;history=data.history;period=data.period;summary=data.summary;manager=data.manager===true;canWrite=data.can_write===true;currentMonth=nextMonth;month.value=currentMonth;
+  readDenied=false;records=data.expenses;properties=data.properties;documents=data.documents;history=data.history;period=data.period;summary=data.summary;manager=data.manager===true;canWrite=data.can_write===true;currentMonth=nextMonth;month.value=currentMonth;
   populateProperties(selectedProperty);populateDocuments(selectedDocument);
   if(reconcile&&pendingWrite){
-   if(confirmWrite(pendingWrite)){if(pendingWrite.action==='save'||editing?.id===pendingWrite.id||pendingWrite.action==='close_period')closeEditor();d.status.textContent='تم التحقق من العملية السابقة بإعادة القراءة من قاعدة البيانات.';}
+   if(pendingWrite.redacted)d.status.textContent='تم استرجاع السجل بعد التحقق من الصلاحية. راجع العملية السابقة في السجلات المحفوظة قبل إضافة عملية جديدة.';
+   else if(confirmWrite(pendingWrite)){if(pendingWrite.action==='save'||editing?.id===pendingWrite.id||pendingWrite.action==='close_period')closeEditor();d.status.textContent='تم التحقق من العملية السابقة بإعادة القراءة من قاعدة البيانات.';}
    else d.status.textContent='السجل المحفوظ لا يطابق العملية المطلوبة. احتُفظ بمدخلات المسودة؛ راجع السجل قبل إعادة الحفظ.';
    pendingWrite=null;
   }
@@ -152,7 +164,10 @@ export function openFinancialRegister(){
    if(!confirmWrite(pendingWrite))throw Error('لم تتأكد مطابقة العملية من السجل المحفوظ.');
    if(action==='save'||editing?.id===proof.id||action==='close_period')closeEditor();pendingWrite=null;render();
    d.status.textContent=action==='save'?'تم حفظ المسودة والتحقق منها بإعادة القراءة.':action==='approve'?'تم اعتماد المصروف والتحقق من قيمته وسجله.':action==='cancel'?'تم الإلغاء والتحقق منه مع حفظ البيانات الأصلية.':'تم إقفال الشهر والتحقق من سجل الإقفال.';
-  }catch(error){render();throw Error((error?.message||'تعذر تأكيد العملية.')+' حدّث السجل للتحقق قبل إعادة المحاولة.');}
+  }catch(error){
+   if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED'){clearPrivate();throw error;}
+   render();throw Error((error?.message||'تعذر تأكيد العملية.')+' حدّث السجل للتحقق قبل إعادة المحاولة.');
+  }
  }
  property.onchange=()=>populateDocuments('');
  add.onclick=()=>openEditor();discard.onclick=()=>{if(allowDiscard())closeEditor();};
@@ -184,6 +199,6 @@ export function openFinancialRegister(){
   d.el.addEventListener('click',event=>{if(event.target===closeButton&&!allowDiscard()){event.preventDefault();event.stopImmediatePropagation();}},true);
   d.el.addEventListener('cancel',event=>{if(!allowDiscard()){event.preventDefault();event.stopImmediatePropagation();}},true);
  }
- d.onDispose(()=>{records=[];properties=[];documents=[];history=[];editing=null;pendingWrite=null;reasons.clear();});
+ d.onDispose(()=>{clearPrivate();pendingWrite=null;});
  d.run(async()=>{await load();d.status.textContent='تم استرجاع المصروفات وحالة الفترة من قاعدة البيانات.';});
 }

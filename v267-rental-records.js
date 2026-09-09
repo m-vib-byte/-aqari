@@ -156,17 +156,7 @@ function preview(c){
 }
 const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — إن وجد','email'],['passportNo','رقم الجواز — إلزامي للعقد','text'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
 const attachmentKinds=[['civilFront','البطاقة المدنية — الوجه'],['civilBack','البطاقة المدنية — الخلف'],['marriage','عقد الزواج'],['extra','مرفقات إضافية']];
-async function upload(file,kind,tenantId,bound){
- const types=['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
- if(!types.includes(file.type)||file.size<=0||file.size>25*1024*1024)fail('المرفق يجب أن يكون صورة أو PDF أو Word وألا يتجاوز ٢٥ ميجابايت.');
- const check=()=>{if(!same(bound,scope()))fail('تغيّرت جلسة الدخول أثناء الرفع.');};check();
- const client=await root.AQARI_SUPABASE.getClient();check();
- const reserved=await bounded(()=>client.rpc('aqari_reserve_document',{p_workspace_id:bound.workspaceId,p_document_type:'tenant_attachment',p_entity_type:'tenant',p_entity_ref:tenantId,p_title:kind,p_original_filename:file.name,p_mime_type:file.type,p_metadata:{release:'V267',tenantProfileId:tenantId,attachmentKind:kind}}));check();if(reserved.error)throw reserved.error;
- const doc=Array.isArray(reserved.data)?reserved.data[0]:reserved.data;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path.startsWith(bound.workspaceId+'/'))fail('تعذر حجز المرفق.');
- const uploaded=await bounded(()=>client.storage.from(doc.storage_bucket).upload(doc.storage_path,file,{contentType:file.type,upsert:false}));check();if(uploaded.error)throw uploaded.error;
- const finalized=await bounded(()=>client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:file.size,p_mime_type:file.type}));check();if(finalized.error)throw finalized.error;
- return {id:doc.document_id,bucket:doc.storage_bucket,path:doc.storage_path,name:file.name,kind,size:file.size};
-}
+
 function openTenant(index,draftId){
  if(!scope())return false;
  let row=Number.isInteger(index)?data().tenants?.[index]:null;
@@ -184,7 +174,7 @@ function openTenant(index,draftId){
  byId('fields').innerHTML='<div class="v267-tenant-form">'+fields.map(([k,label,type])=>'<label>'+label+'<input id="v267Tenant_'+k+'" type="'+type+'" value="'+esc(p[k])+'" '+(k==='civilId'?'inputmode="numeric" maxlength="12"':'')+' autocomplete="off"></label>').join('')+attachmentKinds.map(([k,label])=>'<label>'+label+'<input id="v267File_'+k+'" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" '+(k==='extra'?'multiple':'')+'></label>').join('')+'<div id="v267TenantAttachments"></div><p id="v267TenantStatus" role="status" aria-live="polite"></p></div>';
  const list=byId('v267TenantAttachments');
  for(const a of p.attachments){const b=document.createElement('button');b.type='button';b.textContent='عرض '+a.name;b.onclick=async()=>{try{const s=scope();if(!s||!a.path.startsWith(s.workspaceId+'/'))return;const client=await root.AQARI_SUPABASE.getClient();const r=await bounded(()=>client.storage.from(a.bucket).createSignedUrl(a.path,60));if(r.error)throw r.error;if(same(s,scope())&&r.data?.signedUrl){const link=document.createElement('a');link.href=r.data.signedUrl;link.target='_blank';link.rel='noopener';link.textContent='فتح '+a.name;byId('v267TenantStatus').replaceChildren(link)}}catch(_){byId('v267TenantStatus').textContent='تعذر فتح المرفق.'}};list.appendChild(b)}
- let saving=false;const uploadedFiles=new Map();
+ let saving=false,uploadAttachment;const uploadedFiles=new WeakMap();
  if(root.AQARI_SUPABASE?.context?.membership?.role==='general_manager'){
   const note=document.createElement('p');note.textContent='يمكن حفظ مسودة ناقصة واستكمالها لاحقاً. المسودة لا تصدر عقداً أو وصلاً، ولا تحفظ المرفقات حتى اكتمال الملف.';
   const draftButton=document.createElement('button');draftButton.type='button';draftButton.textContent='حفظ مسودة واستكمال لاحقاً';
@@ -234,7 +224,16 @@ function openTenant(index,draftId){
    },(cloud,saved)=>(cloud.tenantProfilesV267||[]).some(x=>same(x,saved))&&(cloud.tenants||[]).some(x=>profileRef(x)===saved.id));
    index=(data().tenants||[]).findIndex(x=>profileRef(x)===p.id);row=copy(data().tenants[index]);
    status.textContent='تم حفظ المستأجر. جاري رفع المرفقات إلى ملفه المحفوظ…';
-   for(const {kind,file}of uploads){if(uploadedFiles.has(file))continue;const attachment=await upload(file,kind,p.id,bound);p.attachments.push(attachment);uploadedFiles.set(file,attachment);}
+   if(uploads.length&&!uploadAttachment){
+    const {createTenantAttachmentUploader}=await import('./src/v267/components/tenant-attachment-upload.js');
+    const check=()=>{if(!same(bound,scope()))fail('تغيّرت جلسة الدخول أثناء الرفع.');};check();
+    uploadAttachment=createTenantAttachmentUploader({getClient:()=>root.AQARI_SUPABASE.getClient(),check,bounded,workspaceId:bound.workspaceId,userId:bound.userId});
+   }
+   for(const {kind,file}of uploads){
+    let kinds=uploadedFiles.get(file);if(kinds?.has(kind))continue;
+    const attachment=await uploadAttachment(file,kind,p.id);p.attachments.push(attachment);
+    if(!kinds){kinds=new Set();uploadedFiles.set(file,kinds);}kinds.add(kind);
+   }
    if(uploads.length)await store.change(['tenantProfilesV267'],cloud=>{
     const saved=(cloud.tenantProfilesV267||[]).find(x=>x.id===p.id);if(!saved)fail('تعذر العثور على ملف المستأجر المحفوظ.');
     const known=new Set((saved.attachments||[]).map(x=>x.id));

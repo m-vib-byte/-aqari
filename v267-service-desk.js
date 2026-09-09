@@ -37,14 +37,28 @@ export async function openDesk(mode='maintenance'){
  async function load(wanted=page){
   checkReadAccess();remember();
   const table=mode==='maintenance'?'aqari_maintenance_requests':'aqari_notification_outbox';
-  const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,description,status,cost,revision,lease:aqari_leases(contract_no,snapshot),tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
+  const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,description,status,cost,revision,tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
+  const locations=new Map();
+  if(mode==='maintenance'&&rows.length){
+   // Maintenance staff cannot read leases. Resolve only the location metadata
+   // through the same maintenance/property ACL, without loading contract snapshots.
+   const savedLocations=await read(session.client.rpc('aqari_maintenance_locations',{p_workspace_id:session.bound.workspace,p_request_ids:rows.map(row=>row.id)}));
+   if(!Array.isArray(savedLocations)||savedLocations.length!==rows.length)throw Error('لم تتأكد إعادة القراءة.');
+   for(const location of savedLocations){
+    if(!rows.some(row=>row.id===location.request_id)||locations.has(location.request_id)||typeof location.property_name!=='string'||typeof location.unit_no!=='string')throw Error('لم تتأكد إعادة القراءة.');
+    locations.set(location.request_id,location);
+   }
+  }
   const cards=[],nextEditors=new Map();
   if(!rows.length)cards.push(node('p',t('لا توجد سجلات محفوظة في هذه الصفحة.')));
   for(const fresh of rows){
    const draft=drafts.get(fresh.id),row=draft?.row||fresh;
    const card=node('article');
    card.append(node('h3',mode==='maintenance'?message('طلب {number}',{number:row.request_no}):t(row.kind==='rent_reminder'?'تذكير الإيجار':row.kind==='payment_thanks'?'شكر على السداد':'غير معروف')));
-   card.append(node('p',message('العقد {contract} • {property} • الوحدة {unit}',{contract:row.lease?.contract_no||'',property:row.lease?.snapshot?.property||'',unit:row.lease?.snapshot?.unit||''})));
+   if(mode==='maintenance'){
+    const location=locations.get(fresh.id);
+    card.append(node('p',message('العقار: {property} • الوحدة: {unit}',{property:location.property_name,unit:location.unit_no})));
+   }else card.append(node('p',message('العقد {contract} • {property} • الوحدة {unit}',{contract:row.lease?.contract_no||'',property:row.lease?.snapshot?.property||'',unit:row.lease?.snapshot?.unit||''})));
    if(mode==='notifications'){
     card.append(node('p',message('{channel} • {status}\nالفترة {period} • {date}',{channel:t(row.channel==='email'?'البريد الإلكتروني':row.channel==='whatsapp'?'واتساب':'غير معروف'),status:t(names[row.status]||'غير معروف'),period:row.period??'',date:String(row.scheduled_at??'').slice(0,10)})));
    }else{
@@ -78,7 +92,10 @@ export async function openDesk(mode='maintenance'){
         if(verified.id!==row.id||verified.revision!==saved.revision||verified.status!==newStatus||Number(verified.cost)!==Number(value))throw Error('لم تتأكد إعادة القراءة.');
         editors.delete(row.id);drafts.delete(row.id);
         await load();confirmed=true;status.textContent=t('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.');
-       }catch{checkReadAccess();throw Error(uncertainSave);}
+       }catch(error){
+        if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED'){clearPrivate();throw error;}
+        checkReadAccess();throw Error(uncertainSave);
+       }
       });
       // run restores controls; uncertain writes require an explicit saved-state reload.
       if(sent&&!confirmed&&!d.closed&&card.isConnected){drafts.set(row.id,{row,status:state.value,cost:cost.value,uncertain:true});save.disabled=true;}
