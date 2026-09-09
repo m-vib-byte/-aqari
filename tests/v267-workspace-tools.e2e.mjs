@@ -299,7 +299,7 @@ try{
     await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     await page.getByLabel('عنوان المستند',{exact:true}).fill('وثيقة اختبار للمسح');
     const png=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=600;canvas.height=900;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,600,900);ctx.fillStyle='black';ctx.font='40px sans-serif';ctx.fillText('AQARI scan fixture',40,80);return canvas.toDataURL('image/png').split(',')[1];});
-    await page.getByLabel('تصوير المستند أو اختيار صورة',{exact:true}).setInputFiles({name:'scan.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+    await page.getByLabel('تصوير المستند أو اختيار ملف',{exact:true}).setInputFiles({name:'scan.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
     await page.getByText('راجع وضوح الصورة والعنوان والسجل، ثم ارفع النسخة.',{exact:true}).waitFor();
     await page.getByRole('button',{name:'تدوير الصورة',exact:true}).click();
     storageFailBefore=true;
