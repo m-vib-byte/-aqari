@@ -216,6 +216,11 @@ begin
    select x into prior from jsonb_array_elements(coalesce(old_data->k,'[]'))x where private.aqari_staff_row_id(k,x)=ident;
    if prior=v then continue;end if;
    if not private.aqari_staff_row_allowed(p_workspace_id,k,v,'write') or (prior is not null and not private.aqari_staff_row_allowed(p_workspace_id,k,prior,'write')) then raise insufficient_privilege using message='STAFF_PROPERTY_DENIED';end if;
+   -- A property assignment cannot opt out of contract approval and signed-file
+   -- validation by submitting a legacy shape. Unchanged history stays readable.
+   if k='contractsV202' and (v->>'source' is distinct from 'v267-cloud' or v->>'detailsVersion' is distinct from '2' or v->>'rentalTermsVersion' is distinct from '1') then
+    raise insufficient_privilege using message='STAFF_CURRENT_CONTRACT_REQUIRED';
+   end if;
    if prior is not null then
     select coalesce(jsonb_agg(case when private.aqari_staff_row_id(k,x)=ident then v else x end order by n),'[]') into combined from jsonb_array_elements(combined)with ordinality q(x,n);
    else combined:=combined||jsonb_build_array(v);end if;

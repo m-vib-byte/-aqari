@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "f179ecce554d462c1539349acf4dd464df70410e66446a451d856ac3c7a5a16c",
-      "size": 5220
+      "sha256": "202f858fca0c86028a3b1216d60738127d725c8f56f0c11e7ef78ae4b3828d04",
+      "size": 6070
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1032,8 +1032,8 @@
     },
     {
       "path": "tests/v267-workspace-controls.test.cjs",
-      "sha256": "adbc1a7f2532d88f81627a4fa5300ed7041bdb2af6afd362ceeed8b49b7b5deb",
-      "size": 4458
+      "sha256": "4b2431caeb41af12f3e770b6be6a5a97440d0ae3e9449f1b9601d12bf4af19de",
+      "size": 6775
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "3af257305beb3a4549af21e5a6186ce3994effe6e0823a3a7f3725cb72960e9f",
-      "size": 74464
+      "sha256": "f32c3afd32dc6745a7d9a5177bda172fcc4494cb557c33c37d092b5570d5a79d",
+      "size": 75264
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1529,6 +1529,26 @@
       "path": "src/v267/pages/financial-register.js",
       "size": 19836,
       "sha256": "e85bd0dd753428746705327da1b92a8131bbe2acf3bc6d8aee7f9adb9d040c7a"
+    },
+    {
+      "path": "staging-database/local-test/package.json",
+      "size": 404,
+      "sha256": "072bd4d0c75807c3b60ea50644657c4243af4f0fd0e93c893309f93e7bea69af"
+    },
+    {
+      "path": "staging-database/sql/staff-property-scope.sql",
+      "size": 28487,
+      "sha256": "c9cb8387f05ab0b51e06a933d3c5182ca59c3c685f09f9f6ff3652fb5fe69f43"
+    },
+    {
+      "path": "staging-database/tests/staff_contract_approval.sql",
+      "size": 7722,
+      "sha256": "e1f6653844e9baf2ab091878e57ef484ac3d44c2b71d58764021fd9ae347d460"
+    },
+    {
+      "path": "docs/V267-CONNECTION-AND-CONTRACT-REPAIR.md",
+      "size": 3821,
+      "sha256": "d3bba1b5553da9649ff26ed116e0f149a44e24d7924afe086e5aa9d24963ba14"
     }
   ],
   "version": "V198"

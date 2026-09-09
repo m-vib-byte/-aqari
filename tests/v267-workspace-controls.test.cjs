@@ -57,3 +57,35 @@ test('backend errors never expose raw provider messages',async()=>{
  assert.ok(!safeError(Error('upstream secret_value')).includes('secret_value'));
  assert.match(safeError(Error('ACCESS_DENIED')),/صلاحية/);
 });
+
+test('initial client connection times out and a late resolution cannot replace the retry client',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+ const s=createSession();let finish;window.AQARI_SUPABASE.getClient=()=>new Promise(resolve=>finish=resolve);
+ const pending=s.connect(),rejected=assert.rejects(pending,/انتهت مهلة الاتصال/);
+ await Promise.resolve();t.mock.timers.tick(20000);await rejected;
+ const retryClient={fresh:true};window.AQARI_SUPABASE.getClient=async()=>retryClient;
+ assert.equal(await s.connect(),retryClient);finish({stale:true});await Promise.resolve();await Promise.resolve();
+ assert.equal(s.client,retryClient);s.close();
+});
+
+test('closing the dialog interrupts client setup even when the provider never resolves',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+ const s=createSession();window.AQARI_SUPABASE.getClient=()=>new Promise(()=>{});
+ const pending=s.connect();let outcome='pending';pending.then(()=>outcome='resolved',()=>outcome='rejected');
+ s.close();for(let n=0;n<8;n++)await Promise.resolve();
+ assert.equal(outcome,'rejected','close must settle setup without waiting for the connection deadline');
+ await assert.rejects(pending,/جلسة/);assert.equal(s.client,undefined);
+});
+
+test('changed account during client setup rejects the candidate without retaining it',async()=>{
+ context();const {createSession}=await moduleAt('api/session.js');const s=createSession();let finish;
+ window.AQARI_SUPABASE.getClient=()=>new Promise(resolve=>finish=resolve);
+ const pending=s.connect();await Promise.resolve();window.AQARI_SUPABASE.context.user.id='another';finish({private:'discard'});
+ await assert.rejects(pending,/جلسة/);assert.equal(s.client,undefined);s.close();
+});
+
+test('a synchronous client setup error permits a successful retry',async()=>{
+ context();const {createSession}=await moduleAt('api/session.js');const s=createSession();
+ window.AQARI_SUPABASE.getClient=()=>{throw Error('provider unavailable');};await assert.rejects(s.connect(),/provider unavailable/);
+ const client={ready:true};window.AQARI_SUPABASE.getClient=async()=>client;assert.equal(await s.connect(),client);s.close();
+});

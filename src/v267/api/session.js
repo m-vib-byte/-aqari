@@ -9,7 +9,20 @@ export function safeError(e){return messages[String(e?.message||'').split(':')[0
 export function createSession(){
  const bound=currentScope(),jobs=new Set();let closed=false,client;
  const check=()=>{if(closed||JSON.stringify(currentScope())!==JSON.stringify(bound))throw Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.');};
- async function connect(){check();client=await window.AQARI_SUPABASE.getClient();check();return client;}
+ async function connect(){
+  check();const controller=new AbortController();jobs.add(controller);let timer,aborted;
+  try{
+   const stopped=new Promise((_,reject)=>{
+    aborted=()=>reject(Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.'));
+    controller.signal.addEventListener('abort',aborted,{once:true});
+    timer=setTimeout(()=>{reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));controller.abort();},20000);
+   });
+   // Check before starting and after resolving: an old attempt must never store
+   // its client after timeout, close, account change or a successful retry.
+   const work=Promise.resolve().then(()=>{check();return window.AQARI_SUPABASE.getClient();});
+   const candidate=await Promise.race([work,stopped]);check();client=candidate;return client;
+  }finally{clearTimeout(timer);controller.signal.removeEventListener('abort',aborted);jobs.delete(controller);}
+ }
  async function request(query){check();const controller=new AbortController();jobs.add(controller);let timer;
   try{const work=query.abortSignal(controller.signal);const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));},20000);});const r=await Promise.race([work,timeout]);check();if(r.error)throw r.error;return r.data;}finally{clearTimeout(timer);jobs.delete(controller);}}
  function close(){closed=true;for(const job of jobs)job.abort();jobs.clear();}

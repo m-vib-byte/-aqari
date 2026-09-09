@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node run-isolated.mjs ../sql/staff-property-scope.sql ../sql/financial-register.sql ../sql/workspace-feature-discovery.sql ../tests/staff_property_scope.sql ../tests/financial_register.sql"
+    "test": "node run-isolated.mjs ../sql/staff-property-scope.sql ../sql/financial-register.sql ../sql/workspace-feature-discovery.sql ../tests/staff_property_scope.sql ../tests/financial_register.sql ../tests/staff_contract_approval.sql"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8"
