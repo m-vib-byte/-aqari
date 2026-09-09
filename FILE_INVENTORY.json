@@ -977,8 +977,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "dbf2d6db0cdde940078b426974c3923374b3e921a00bf057238eb5e10a8a6c1b",
-      "size": 2589
+      "sha256": "a0f58a35388ddc57eeade7aec7201b8dae112c6751bbe765c77928e16a77ff98",
+      "size": 2862
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "c7958df258d4cca43e90657e076d5bfff553b416f56017cd78e0ec954ef9ea64",
-      "size": 42131
+      "sha256": "7766c270f18a252622d15b687a88496429afbcd975c820fbe03095dd889fc68a",
+      "size": 44895
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1222,8 +1222,8 @@
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
-      "sha256": "4a62f6c0be6c0d95415f222d9a6f906be225ca1ddb0ea5989633259f9bacef20",
-      "size": 4023
+      "sha256": "bb1961f595b15349416ff5f05dcb402307fc274140512b9127cd9ed357e66bd3",
+      "size": 9855
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
@@ -1412,8 +1412,8 @@
     },
     {
       "path": "staging-database/tests/employees_payroll.sql",
-      "sha256": "b36e675f2bc60b8e490076d90eda96006db850865e7be9f47116f602eb861ce0",
-      "size": 9120
+      "sha256": "4866deab5021cde02f73dee59690b968fc6bc29e863271d978889ed4aba96cc8",
+      "size": 10219
     },
     {
       "path": "tests/v267-payroll.test.mjs",
@@ -1452,8 +1452,8 @@
     },
     {
       "path": "staging-database/tests/salary_slip.sql",
-      "sha256": "8208fc6e9d542a3c0770f5bf0212f481502aa350d48bdc8b82e8e18021968bb7",
-      "size": 9892
+      "sha256": "4deb97b9ef7d9d77d0110e3d649b98152c93d343acba8cf198bd8eaef5f985a9",
+      "size": 10991
     },
     {
       "path": "staging-database/SALARY_SLIP_RELEASE_NOTE.md",
@@ -1594,6 +1594,11 @@
       "path": "docs/V267-DOCUMENT-UPLOAD-RECOVERY.md",
       "sha256": "f6aa0820575d5afcb243a024859c101dc9a13e2d4656971ac48b93a68b885807",
       "size": 3356
+    },
+    {
+      "path": "docs/V267-SERVER-ACCESS-REVOCATION.md",
+      "sha256": "0157fb5c994ba8816e92ae6cd840980f641f4de7f1d2bb32b5fb86d1d674f878",
+      "size": 3549
     }
   ],
   "version": "V198"

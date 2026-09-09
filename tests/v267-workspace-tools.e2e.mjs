@@ -9,7 +9,7 @@ const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools')
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
-let maintenanceReadUnavailable=false,maintenanceReadbackDenied=false,storageFailBefore=false,storageLoseReply=false,storageReadDenied=false,storageAttempts=0;
+let maintenanceReadUnavailable=false,maintenanceReadbackDenied=false,storageFailBefore=false,storageLoseReply=false,storageReadDenied=false,storageReadUnavailable=false,storageAttempts=0;
 let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false,maintenanceRows=[],maintenanceWrites=0,maintenanceWriteDenied=false,maintenanceReadDenied=false,prepareCalls=0;
 const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
 const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
@@ -35,6 +35,7 @@ const server=http.createServer((req,res)=>{
    const chunks=[];req.on('data',chunk=>chunks.push(chunk));req.on('end',()=>{storageBytes=Buffer.concat(chunks);storageUploads++;if(storageLoseReply){storageLoseReply=false;return reply(res,{error:'RESPONSE_LOST_AFTER_STORE'},503);}reply(res,{stored:storageBytes.length});});return;
   }
   if(req.method==='GET'&&storageReadDenied)return reply(res,{error:'DENIED'},403);
+  if(req.method==='GET'&&storageReadUnavailable)return reply(res,{error:'TEMPORARY_UNAVAILABLE'},503);
   if(req.method==='GET'&&storageBytes){res.writeHead(200,{'content-type':'image/jpeg','cache-control':'no-store'});res.end(storageBytes);return;}
   return reply(res,{error:'NOT_STORED'},404);
  }
@@ -217,8 +218,8 @@ async function verifyServiceDesk(page,locale,name,viewport){
  assert.equal(await cost.inputValue(),'12.345');assert.equal(await card.getByLabel(tr('حالة الطلب'),{exact:true}).inputValue(),'assigned');
  const box=await dialog.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,'service translation fits viewport');
  await page.screenshot({path:path.join(out,name+'-'+locale+'-maintenance.png'),fullPage:true});
- await cost.fill('8.250');maintenanceReadDenied=true;await refresh();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();assert.equal(await dialog.locator('article').count(),0,'denied reread clears previous requests');maintenanceReadDenied=false;
- await refresh();await ready();assert.equal(await cost.inputValue(),'12.345','restored access cannot revive a revoked private draft');assert.equal(maintenanceWrites,before+2,'access recovery only rereads');
+ await cost.fill('8.250');maintenanceReadDenied=true;await refresh();await dialog.waitFor({state:'detached'});assert.equal(await dialog.locator('article').count(),0,'denied reread clears previous requests');maintenanceReadDenied=false;
+ await page.locator('#fixtureMaintenance').click();await ready();assert.equal(await cost.inputValue(),'12.345','restored access cannot revive a revoked private draft');assert.equal(maintenanceWrites,before+2,'access recovery only rereads');
  maintenanceReadbackDenied=true;await save().click();
  await dialog.getByText(tr('لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.'),{exact:true}).waitFor();
  assert.equal(await dialog.locator('article').count(),0,'revoked read access during save confirmation clears the private view');
@@ -240,7 +241,7 @@ try{
  for(const [engineName,engine]of [['chromium',chromium],['webkit',webkit]]){
   const browser=await engine.launch();
   try{for(const [device,viewport]of [['iphone',{width:390,height:844}],['ipad',{width:820,height:1180}],['desktop',{width:1440,height:1000}]]){
-   maintenanceReadUnavailable=false;maintenanceReadbackDenied=false;storageFailBefore=false;storageLoseReply=false;storageReadDenied=false;storageAttempts=0;
+   maintenanceReadUnavailable=false;maintenanceReadbackDenied=false;storageFailBefore=false;storageLoseReply=false;storageReadDenied=false;storageReadUnavailable=false;storageAttempts=0;
    settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;statementReadDenied=false;maintenanceWrites=0;maintenanceWriteDenied=false;maintenanceReadDenied=false;prepareCalls=0;maintenanceRows=[{id:'request1',request_no:'TEST-1',workspace_id:wid,description:'وصف <طلب> {status}',status:'received',cost:'0.000',revision:1,lease,tenant:{full_name:tenantName}},{id:'request2',request_no:'TEST-2',workspace_id:wid,description:'طلب مغلق',status:'completed',cost:'2.000',revision:1,lease}];
    const context=await browser.newContext({viewport,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    // The fixture redirects only the pinned Storage URL to its local HTTP endpoint.
@@ -270,8 +271,7 @@ try{
     assert.equal(await page.getByRole('dialog').getByRole('checkbox',{name:'الصيانة',exact:true}).isChecked(),false);
     failingWrite=true;await page.getByLabel('سبب التعديل',{exact:true}).fill('حفظ مرفوض');
     await page.getByRole('button',{name:'حفظ الإعدادات والتحقق',exact:true}).click();
-    await page.getByText('لا تملك صلاحية هذه العملية.',{exact:true}).waitFor();assert.equal(revision,1);failingWrite=false;
-    await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
+    await page.getByRole('dialog').waitFor({state:'detached'});assert.equal(revision,1);failingWrite=false;
     await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
     await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');
@@ -285,12 +285,12 @@ try{
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
     await page.getByText('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.',{exact:true}).waitFor();
     assert.equal(docs.length,1);assert.equal(storageUploads,0);assert.equal(storageAttempts,1);assert.equal(docs[0].status,'draft');
-    storageReadDenied=true;
+    storageReadUnavailable=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
     await page.getByRole('dialog').getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).waitFor({state:'visible'});
     await page.waitForFunction(()=>[...document.querySelectorAll('.aq267-dialog button')].some(button=>button.textContent==='رفع نسخة جديدة والتحقق منها'&&!button.disabled));
-    assert.equal(storageAttempts,1,'denied reread cannot retry the upload');assert.equal(docs[0].status,'draft');
-    storageReadDenied=false;storageLoseReply=true;
+    assert.equal(storageAttempts,1,'unavailable reread cannot retry the upload');assert.equal(docs[0].status,'draft');
+    storageReadUnavailable=false;storageLoseReply=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
     await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتأكيد ارتباطه بالسجل.',{exact:true}).waitFor();
     assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
@@ -305,6 +305,30 @@ try{
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
     await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح'}).count(),1);
+    // The server may revoke a section/property scope while the same membership
+    // remains locally active. Exercise the real shared dialog and private URLs.
+    await page.evaluate(()=>{
+     window.fixtureRevokedUrls=[];const revoke=URL.revokeObjectURL.bind(URL);
+     URL.revokeObjectURL=url=>{window.fixtureRevokedUrls.push(url);return revoke(url);};
+     document.addEventListener('click',event=>{if(event.target.closest('.aq267-dialog a[download]'))event.preventDefault();});
+    });
+    await page.getByRole('dialog').getByRole('button',{name:'تحميل النسخة الأصلية',exact:true}).click();
+    await page.getByText('تم استرجاع الملف المحفوظ.',{exact:true}).waitFor();
+    const privateUrl=await page.getByRole('dialog').locator('a[download]').getAttribute('href');assert.ok(privateUrl?.startsWith('blob:'));
+    assert.equal(await page.evaluate(async url=>(await (await fetch(url)).blob()).size,privateUrl),storageBytes.length,'download URL contains the saved private document');
+    const uploadsBeforeDenial=storageAttempts;
+    storageReadDenied=true;await page.getByRole('dialog').getByRole('button',{name:'تحميل النسخة الأصلية',exact:true}).click();
+    await page.getByRole('dialog').waitFor({state:'detached'});
+    assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),0,'server read denial removes the cached private document');
+    assert.equal(await page.evaluate(()=>window.AQARI_SUPABASE.context.membership.is_active),true,'scope revocation is handled before a local membership update');
+    assert.equal(await page.evaluate(url=>window.fixtureRevokedUrls.includes(url),privateUrl),true,'server denial revokes generated private download URLs');
+    assert.equal(await page.evaluate(async url=>{try{await fetch(url);return false;}catch{return true;}},privateUrl),true,'revoked document URL cannot be read');
+    assert.equal(storageAttempts,uploadsBeforeDenial,'read denial never starts another upload');
+    storageReadDenied=false;await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
+    await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
+    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
+    assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),1,'restored access reloads the authoritative document in a fresh dialog');
+    assert.equal(storageAttempts,uploadsBeforeDenial,'access recovery only rereads');
     await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
     const languageLayouts=[];
     for(const locale of ['en','hi','ur','ml','ar']){

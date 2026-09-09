@@ -9,13 +9,22 @@ insert into auth.users(id,email) values
  ('f2670000-0000-4000-8000-000000000001','hr-manager@example.invalid'),
  ('f2670000-0000-4000-8000-000000000002','hr-admin@example.invalid'),
  ('f2670000-0000-4000-8000-000000000003','hr-isolated@example.invalid');
+select set_config('aqari.test.hr.workspace',(select workspace_id::text from public.aqari_memberships where user_id='f2670000-0000-4000-8000-000000000001' and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
- ('f2670000-0000-4000-8000-000000000011','c05fcb74-8315-43aa-86b7-0b420c05d2cd','hr-test-property-a','Synthetic HR property A','{}'),
- ('f2670000-0000-4000-8000-000000000012','c05fcb74-8315-43aa-86b7-0b420c05d2cd','hr-test-property-b','Synthetic HR property B','{}');
+ ('f2670000-0000-4000-8000-000000000011',current_setting('aqari.test.hr.workspace')::uuid,'hr-test-property-a','Synthetic HR property A','{}'),
+ ('f2670000-0000-4000-8000-000000000012',current_setting('aqari.test.hr.workspace')::uuid,'hr-test-property-b','Synthetic HR property B','{}');
 select set_config('request.jwt.claim.sub','f2670000-0000-4000-8000-000000000001',true);
 set local role authenticated;
+-- HR grants supplement operational property scope; both are required.
+
+do $fixture$
+declare w uuid:=current_setting('aqari.test.hr.workspace')::uuid;
+begin
+ perform public.aqari_staff_access(w,'save',jsonb_build_object('user_id','f2670000-0000-4000-8000-000000000002','operational_role','accountant','property_ids',jsonb_build_array('f2670000-0000-4000-8000-000000000011'),'is_active',true,'revision',0,'reason','Synthetic accountant A operational scope required by current staff access gate'));
+ perform public.aqari_staff_access(w,'save',jsonb_build_object('user_id','f2670000-0000-4000-8000-000000000003','operational_role','accountant','property_ids',jsonb_build_array('f2670000-0000-4000-8000-000000000012'),'is_active',true,'revision',0,'reason','Synthetic accountant B operational scope required by current staff access gate'));
+end $fixture$;
 do $$
-declare w uuid:='c05fcb74-8315-43aa-86b7-0b420c05d2cd'; eid uuid:='f2670000-0000-4000-8000-000000000021';r jsonb; p jsonb; payload jsonb;
+declare w uuid:=current_setting('aqari.test.hr.workspace')::uuid; eid uuid:='f2670000-0000-4000-8000-000000000021';r jsonb; p jsonb; payload jsonb;
 begin
  payload:=jsonb_build_object('employee_id',eid,'revision',0,'property_ids',jsonb_build_array('f2670000-0000-4000-8000-000000000011'),'basic','500.001','allowances','25.009','hired_on','2026-01-01','status','active',
  'profile',jsonb_build_object('name_ar','موظف اصطناعي للاختبار','name_en','Synthetic employee','civil_id','SYNTHETIC-CIVIL','passport','SYNTHETIC-PASSPORT','nationality','Synthetic','nationality_en','Synthetic English','phone','SYNTHETIC-PHONE','job_ar','اختبار','job_en','Test','work_location','Test property'));
@@ -42,18 +51,18 @@ begin
  begin perform public.aqari_hr(w,'paid',jsonb_build_object('employee_id',eid,'payroll_id',p->>'id','revision',3));raise exception 'UNAPPROVED_PAID';exception when raise_exception then if sqlerrm='UNAPPROVED_PAID' then raise;end if;end;
 end $$;
 select set_config('request.jwt.claim.sub','f2670000-0000-4000-8000-000000000003',true);
-do $$ declare w uuid:='c05fcb74-8315-43aa-86b7-0b420c05d2cd';begin
+do $$ declare w uuid:=current_setting('aqari.test.hr.workspace')::uuid;begin
  if jsonb_array_length(public.aqari_hr(w,'list')->'employees')<>0 then raise exception 'CROSS_PROPERTY_LIST';end if;
  begin perform public.aqari_hr(w,'get','{"employee_id":"f2670000-0000-4000-8000-000000000021"}');raise exception 'CROSS_PROPERTY_READ';exception when insufficient_privilege then null;end;
  begin perform public.aqari_hr(w,'access');raise exception 'NON_MANAGER_GRANTS';exception when insufficient_privilege then null;end;
 end $$;
 select set_config('request.jwt.claim.sub','f2670000-0000-4000-8000-000000000002',true);
-do $$ declare w uuid:='c05fcb74-8315-43aa-86b7-0b420c05d2cd';data jsonb:=jsonb_build_object('employee_id','f2670000-0000-4000-8000-000000000021','payroll_id',current_setting('hr.test.payroll'),'revision',3);begin
+do $$ declare w uuid:=current_setting('aqari.test.hr.workspace')::uuid;data jsonb:=jsonb_build_object('employee_id','f2670000-0000-4000-8000-000000000021','payroll_id',current_setting('hr.test.payroll'),'revision',3);begin
  begin perform public.aqari_hr(w,'approve_chairman',data);raise exception 'WRONG_APPROVER';exception when insufficient_privilege then null;end;
  perform public.aqari_hr(w,'approve_admin',data);
 end $$;
 select set_config('request.jwt.claim.sub','f2670000-0000-4000-8000-000000000001',true);
-do $$ declare w uuid:='c05fcb74-8315-43aa-86b7-0b420c05d2cd';r jsonb;begin
+do $$ declare w uuid:=current_setting('aqari.test.hr.workspace')::uuid;r jsonb;begin
  perform public.aqari_hr(w,'approve_chairman',jsonb_build_object('employee_id','f2670000-0000-4000-8000-000000000021','payroll_id',current_setting('hr.test.payroll'),'revision',4));
  r:=public.aqari_hr(w,'reserve',jsonb_build_object('employee_id','f2670000-0000-4000-8000-000000000021','id','f2670000-0000-4000-8000-000000000041','payroll_id',current_setting('hr.test.payroll'),'kind','signed_salary','filename','synthetic-test.pdf','mime_type','application/pdf','size_bytes',12));
  if r->>'storage_path' not like '%/2026/09/%' then raise exception 'MONTH_ARCHIVE_FAILED';end if;
@@ -64,7 +73,7 @@ reset role;
 -- Metadata fixture only, transactionally rolled back. No binary uploaded here.
 insert into storage.objects(bucket_id,name,metadata) values('aqari-hr-private',current_setting('hr.test.path'),'{"size":12,"mimetype":"application/pdf"}');
 set local role authenticated;
-do $$ declare w uuid:='c05fcb74-8315-43aa-86b7-0b420c05d2cd';r jsonb;begin
+do $$ declare w uuid:=current_setting('aqari.test.hr.workspace')::uuid;r jsonb;begin
  perform public.aqari_hr(w,'finalize','{"employee_id":"f2670000-0000-4000-8000-000000000021","id":"f2670000-0000-4000-8000-000000000041","attestations":{"signature":true,"fingerprint":true,"stamp":true}}');
  r:=public.aqari_hr(w,'paid',jsonb_build_object('employee_id','f2670000-0000-4000-8000-000000000021','payroll_id',current_setting('hr.test.payroll'),'revision',5));
  if (r->>'advance_balance')::numeric<>120 or r#>>'{payroll,0,state}'<>'paid' then raise exception 'PAYMENT_BALANCE_FAILED';end if;
@@ -78,3 +87,4 @@ end $$;
 reset role;
 select 'PASS: Dhahawi components, slip identity, bilingual nationality, loan disbursement,  employee persistence, CAS, audit, property isolation, payroll arithmetic, approval roles, signed-file gate, storage isolation, repayment replay' as result;
 rollback;
+
