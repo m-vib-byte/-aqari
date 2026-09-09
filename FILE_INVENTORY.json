@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "a5f6503f13a064cda25e21e40d1eeae529841f268d5021b023599f24735ebcb5",
-      "size": 3847
+      "sha256": "5b32b6eb14235fc2b24ab108ad171965090778a98622a9337069ff3572e95a2d",
+      "size": 3881
     },
     {
       "path": "api/autosync-status.js",
@@ -977,8 +977,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "3012d7b4d1814be25cbb3a31ebec0d3fcf5096faa97a1f5fadeafa0a12117602",
-      "size": 2285
+      "sha256": "dbf2d6db0cdde940078b426974c3923374b3e921a00bf057238eb5e10a8a6c1b",
+      "size": 2589
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -992,8 +992,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "c3fe0e492c052389504d7cf794903689c1047a1ed153045021ca348c2a59875a",
-      "size": 8982
+      "sha256": "71b0065f802926b1cc5747de3dce0106b9d1532f75dba7dae839bacae22c3de7",
+      "size": 9105
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "size": 7899,
-      "sha256": "0fa8cc6a52b98114362dc940a96a7e5161a8553accc294a328e5a3c5d6a55175"
+      "size": 7176,
+      "sha256": "f46cc941c4e05819594d5ac08df4532ccd3d6328240f05d976cb803507fc58ed"
     },
     {
       "path": "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
@@ -1107,8 +1107,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "size": 11563,
-      "sha256": "ebc9a4dd365643d11dfd7942095ba8dc1b424b41932071233c74ab547c50bd98"
+      "size": 11598,
+      "sha256": "d8dfdfa0efe0a93fc6c1bbf1ef000ba9b32826572278e7a8d133bcd91de16ee7"
     },
     {
       "path": "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
@@ -1217,13 +1217,13 @@
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "sha256": "d7bc50b80917da6e4c639c01486f6c8a721dcb842754c395fe7766a6abf6f562",
-      "size": 4754
+      "sha256": "9298edd0fbc7c874e0a2632255b23ccadf7580a770e761f4df5ad2a6d7a78c37",
+      "size": 5053
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
-      "sha256": "034d5b48b19b185ee3c8829d4cc3394966f37fa372dabbc13ca7a53dd1da71df",
-      "size": 3436
+      "sha256": "9df447dadde86ee9f0d046412dbbf52fe24475a31c604afa25f03ac72655850a",
+      "size": 4023
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
@@ -1334,6 +1334,26 @@
       "path": "docs/V267-PASSWORD-RECOVERY.md",
       "sha256": "5418775f0fbfb45d34960775818ac0bf9f2f8d3cae2dd888f4da169e11de89ba",
       "size": 4165
+    },
+    {
+      "path": "src/v267/components/private-urls.js",
+      "sha256": "58c6234c12380ecd1e442a9413d8fca66e07759d9414cc9a6d3e2228df2b4782",
+      "size": 510
+    },
+    {
+      "path": "src/v267/api/protected-pdf.js",
+      "sha256": "9468d093ac06378b109aea136301cd0c889acaead8d9d8ebe621e2542db8a31b",
+      "size": 1446
+    },
+    {
+      "path": "tests/v267-private-files.test.mjs",
+      "sha256": "8bf2bf6d438ace2cde118a56e7fe890cf618ad4e2c51f765cae0329864e9b9b9",
+      "size": 3919
+    },
+    {
+      "path": "docs/V267-PRIVATE-FILES-VERIFICATION.md",
+      "sha256": "d52fd9fd78ac70cc433313c1d299cfd06d85ab8216821f7799ad24a82e236500",
+      "size": 3421
     }
   ],
   "version": "V198"

@@ -16,13 +16,14 @@ test('statement navigation isolates months and disables actions after missing da
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
  let failLinks=false;
  const queries=[];
- const dialog={body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(){return q;},limit(){return q;}};return q;}},async request(q){queries.push(q);if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
+ const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(){return q;},limit(){return q;}};return q;}},async request(q){queries.push(q);if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
  const tasks=[];
  dialog.run=(fn)=>{const p=Promise.resolve().then(fn).catch(()=>{dialog.status.textContent='read failed';});tasks.push(p);return p;};
  globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
  try{
   const source=(await readFile(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8')).replace("import {t,message} from '../components/locale.js';","const {t,message}=globalThis.__statementFixture;").replace("import {createDialog,node,field} from '../components/dialog.js';","const {createDialog,node,field}=globalThis.__statementFixture;");
-  const mod=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+  const linked=source.replace("'../components/private-urls.js'",JSON.stringify(new URL('../src/v267/components/private-urls.js',import.meta.url).href)).replace("'../api/protected-pdf.js'",JSON.stringify(new URL('../src/v267/api/protected-pdf.js',import.meta.url).href));
+  const mod=await import('data:text/javascript;base64,'+Buffer.from(linked).toString('base64'));
   mod.openPropertyStatements();await tasks[0];await Promise.resolve();
   const [property,month,refresh,pdf,link,result]=dialog.body.children;
   assert.equal(pdf.disabled,false);assert.equal(month.value,'2026-08');
