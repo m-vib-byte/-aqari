@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "5b32b6eb14235fc2b24ab108ad171965090778a98622a9337069ff3572e95a2d",
-      "size": 3881
+      "sha256": "2551ac9fdf32b30e4b1306c01c64d8f3d4af81823f1eef40be7596e279636f8b",
+      "size": 3916
     },
     {
       "path": "api/autosync-status.js",
@@ -797,8 +797,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "c7d50454aaf6751c05c30df8d9c12ae63fb740b45efbd2a910cc5317dc71dcc6",
-      "size": 6762
+      "sha256": "60c32c9aab9ebdff2cf07ad164b006cabbe71b2ca393e7142e32fa6fbe423c39",
+      "size": 7812
     },
     {
       "path": "V267_RENTAL_FLOW_REVIEW.md",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 24148,
-      "sha256": "cc4fee08662281c51c454a7cc847a8819b18ea7ad3841b69dbc47010c8619c75"
+      "size": 27718,
+      "sha256": "0d0e54b4dcd0de483c3bf53c4fdf44287569b7d55278d0f944489c3a59f6a64d"
     },
     {
       "path": "src/v267/pages/utility-meters.js",

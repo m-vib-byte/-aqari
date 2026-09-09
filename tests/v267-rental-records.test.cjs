@@ -73,3 +73,16 @@ test('scope loss after write never copies the previous account into local state'
  const f=fixture(),save=f.options.save;f.options.save=async(...args)=>{await save(...args);f.switchScope()};
  await assert.rejects(saveTenant(f.store));assert.equal(f.options.local().tenantProfilesV267.length,0);
 });
+
+test('preparation draft accepts incomplete details but cannot issue a lease',()=>{
+ const draft=api.tenantDraft({id:'draft-only',nameAr:'مسودة',phone:'٥٥',civilId:''});
+ assert.equal(draft.phone,'55');
+ assert.throws(()=>api.profile(draft),/أكمل/);
+ assert.throws(()=>api.lease({...contract,tenantId:draft.id},[],[draft],[['عقار اختبار']]),/أكمل/);
+ assert.throws(()=>api.tenantDraft({id:'empty'}),/اسماً/);
+});
+test('preparation draft persists separately without mutating tenants, contracts or source evidence',async()=>{
+ const f=fixture();const before=f.read();const draft=api.tenantDraft({id:'draft-1',nameEn:'Later entry'});
+ await f.store.change(['tenantPreparationDraftsV267'],db=>{db.tenantPreparationDraftsV267=[draft];return draft},(db,saved)=>db.tenantPreparationDraftsV267.some(x=>x.id===saved.id));
+ const after=f.reload();assert.deepEqual(after.tenants,before.tenants);assert.deepEqual(after.contractsV202,before.contractsV202);assert.equal(after.tenantPreparationDraftsV267[0].nameEn,'Later entry');
+});
