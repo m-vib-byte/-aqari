@@ -78,10 +78,10 @@ jobs:
         run: node scripts/verify-staging-runtime.mjs
       - name: Contract approval at print issuance and maintenance draft recovery
         run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs
-      - name: Staff access, expense persistence and isolated PostgreSQL authorization
+      - name: Staff access, expense persistence, vacating settlement and isolated PostgreSQL authorization
         run: |
           node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs
-          node --test tests/v267-deposit*.test.mjs
+          node --test tests/v267-deposit*.test.mjs tests/v267-vacating-settlement.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
           npm test --prefix staging-database/local-test
       - uses: actions/setup-python@v5
