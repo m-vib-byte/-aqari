@@ -27,18 +27,18 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "333b3f8a4350dd1dff3d6c584c7fc76e69e782f628907585b7b392d50fe73035",
-      "size": 2193
+      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
+      "size": 2326
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "sha256": "0f4acd5a2043d514537c3e6ac9cfc6403e8c02a5b7225a120dd294205684760b",
-      "size": 3483
+      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
+      "size": 3616
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "c17b7fa9537eed9e008337008f078dc73c999b5f330d6e808be992f3b303d433",
-      "size": 4106
+      "sha256": "f0dc6e21490c2d00e94f62e90e162d38592cb94f4b420297aaadfec3e255b476",
+      "size": 4600
     },
     {
       "path": "api/autosync-status.js",
@@ -453,7 +453,7 @@
     {
       "path": "v199-ui.js",
       "sha256": "763aec460569573b215910276606437acd6b4dceb7410e480494228aeb20a2f4",
-      "size": 32390
+      "size": 32178
     },
     {
       "path": "v200-luxury.css",
@@ -602,8 +602,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "549e295914c59fe75be3085dd86dcebb0aa91bdff6624026702174bab5048aa2",
-      "size": 1083
+      "sha256": "a05e84132618546d0ffdd0771623f0f739016428543c1fadecbfb52ecd020b6e",
+      "size": 1215
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
@@ -627,8 +627,8 @@
     },
     {
       "path": ".github/workflows/login-speed.yml",
-      "sha256": "66a1bc8e3b857ab43d7d410883c0484d67e15e3154f673b9f444d7866df59faa",
-      "size": 755
+      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
+      "size": 887
     },
     {
       "path": "tests/direct-entry.e2e.mjs",
@@ -657,8 +657,8 @@
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
-      "sha256": "30f8749558ad2391d7d4178da9d2dda1458015241664893da9ebac86cff9aa05",
-      "size": 614
+      "sha256": "0f5ff0abecc1f093bf3c9386e441b66003b284bda8a69ba51b74c2c30805789e",
+      "size": 746
     },
     {
       "path": "tests/startup-module-boundary.test.cjs",
@@ -692,8 +692,8 @@
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
-      "sha256": "4d2438f96674573d18484ae7554adb7ae2e01eff5da0201a6ffdea86be78635d",
-      "size": 443
+      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
+      "size": 575
     },
     {
       "path": "RELEASE_NOTES_V267.md",
@@ -742,8 +742,8 @@
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
-      "sha256": "f5e3aa63740eaaa1b3dc16dc86c6a1fc9dc24341295c03e886e6ac02c8f086d8",
-      "size": 746
+      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
+      "size": 878
     },
     {
       "path": "recovery.html",
@@ -812,8 +812,8 @@
     },
     {
       "path": "api/rent-receipt.py",
-      "sha256": "7aca03700ec5485ab2e177cdc06ddc0215fcfb34811acc4906f8ba6cd9f5e644",
-      "size": 7943
+      "sha256": "4c76d07ea4cf7d2e029dda97bc8d840e2047b5651e1ce7e497ddd30b4bea4429",
+      "size": 10161
     },
     {
       "path": "lib/rent_pdf.py",
@@ -837,8 +837,8 @@
     },
     {
       "path": "tests/rent_pdf_test.py",
-      "sha256": "6042212ab3bdf6eaff6f62d337cd71304531c59fe3397e2a2ed64eb6b2b5d566",
-      "size": 8505
+      "sha256": "febff26517d4711ce16666aa7291e20572cf6e9319aea19379c4f7aacc777c4e",
+      "size": 12741
     },
     {
       "path": "V267_INTEGRATION_REVIEW.md",
@@ -947,7 +947,7 @@
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
-      "size": 3560,
+      "size": 4510,
       "sha256": "89569511c70c4322395a63ed73f572f316a4b212d9c3aeab850bf04faedfe54f"
     },
     {
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "1ee6d6cd753d35e84691a585a35b2729d04373bcafbd11339950edb82415802d",
-      "size": 8111
+      "sha256": "5b294d69314e17f4ac300c6a5a55fb4b428644e2747e2c310d422d7e9e3b5f94",
+      "size": 9225
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "7aa3dfd71827d940a5938370523059ca62a5712713a444fb793624cd37788412",
-      "size": 1109
+      "sha256": "fc70b4808f323f03299253a142c675c3777df7ea4965d4785c60f1b604aad981",
+      "size": 1181
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1519,6 +1519,16 @@
       "path": "tests/v267-property-notices.test.cjs",
       "sha256": "50e5083770aac3e033658ace893d9f63d8f75587be0f1c08661141623f7c5354",
       "size": 7318
+    },
+    {
+      "path": "src/v267/pages/staff-access.js",
+      "size": 13190,
+      "sha256": "4ba3cd1224e59b433488dde81b45ffe76d9fbdb55aad57a92902eac2508a043f"
+    },
+    {
+      "path": "src/v267/pages/financial-register.js",
+      "size": 19836,
+      "sha256": "e85bd0dd753428746705327da1b92a8131bbe2acf3bc6d8aee7f9adb9d040c7a"
     }
   ],
   "version": "V198"
