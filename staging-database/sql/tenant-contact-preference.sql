@@ -31,7 +31,7 @@ declare definition text:=pg_get_functiondef('private.aqari_imported_tenant_save(
  old_allow text; new_allow text; validation_anchor text; directory_anchor text;
 begin
  if position('preferredContact' in definition)=0 then
-  if position("'passportNo'" in definition)>0 then
+  if position('''passportNo''' in definition)>0 then
    old_allow:='(''nameAr'',''nameEn'',''civilId'',''passportNo'',''phone'',''email'',''nationality'',''address'')';
   else
    old_allow:='(''nameAr'',''nameEn'',''civilId'',''phone'',''email'',''nationality'',''address'')';
@@ -74,11 +74,11 @@ end $patch$;
 do $patch$
 declare definition text:=pg_get_functiondef('private.aqari_v267_project_state()'::regprocedure);
  anchor text:='   insert into public.aqari_notification_outbox(workspace_id,lease_id,period,kind,channel,idempotency_key) values(new.workspace_id,lease_ref,((r->>''period'')||''-01'')::date,''payment_thanks'',''email'',''thanks:''||lease_ref::text||'':''||(r->>''period'')) on conflict(workspace_id,idempotency_key) do nothing;';
- replacement text:='   insert into public.aqari_notification_outbox(workspace_id,lease_id,period,kind,channel,idempotency_key)\n   select new.workspace_id,lease_ref,((r->>''period'')||''-01'')::date,''payment_thanks'',chosen.channel,''thanks:''||lease_ref::text||'':''||(r->>''period'')\n   from public.aqari_leases thanks_lease join public.aqari_tenants thanks_tenant on thanks_tenant.workspace_id=thanks_lease.workspace_id and thanks_tenant.id=thanks_lease.tenant_id\n   cross join lateral (select private.aqari_preferred_delivery_channel(thanks_tenant.profile,thanks_tenant.email,thanks_tenant.phone) channel) chosen\n   where thanks_lease.workspace_id=new.workspace_id and thanks_lease.id=lease_ref and chosen.channel is not null\n   on conflict(workspace_id,idempotency_key) do nothing;';
+ replacement text:=E'   insert into public.aqari_notification_outbox(workspace_id,lease_id,period,kind,channel,idempotency_key)\n   select new.workspace_id,lease_ref,((r->>''period'')||''-01'')::date,''payment_thanks'',chosen.channel,''thanks:''||lease_ref::text||'':''||(r->>''period'')\n   from public.aqari_leases thanks_lease join public.aqari_tenants thanks_tenant on thanks_tenant.workspace_id=thanks_lease.workspace_id and thanks_tenant.id=thanks_lease.tenant_id\n   cross join lateral (select private.aqari_preferred_delivery_channel(thanks_tenant.profile,thanks_tenant.email,thanks_tenant.phone) channel) chosen\n   where thanks_lease.workspace_id=new.workspace_id and thanks_lease.id=lease_ref and chosen.channel is not null\n   on conflict(workspace_id,idempotency_key) do nothing;';
 begin
  if position('aqari_preferred_delivery_channel' in definition)=0 then
   if (length(definition)-length(replace(definition,anchor,'')))/length(anchor)<>1 then raise exception 'PAYMENT_THANKS_CONTACT_ANCHOR_CHANGED';end if;
-  execute replace(definition,anchor,replace(replacement,'\n',E'\n'));
+  execute replace(definition,anchor,replacement);
  end if;
 end $patch$;
 commit;
