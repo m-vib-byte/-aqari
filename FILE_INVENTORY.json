@@ -992,8 +992,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "e6d1a9974458f31901fb3ebdc34f98a2fa7f25b023929eda34f9eb0ebfc7bcac",
-      "size": 8815
+      "sha256": "38e6dd9a61fc323302e506d9cb3225f39e2f3af39af5f667440b0dc24a7ee9e9",
+      "size": 12566
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -1722,8 +1722,8 @@
     },
     {
       "path": "tests/v267-vacating-settlement.test.mjs",
-      "sha256": "4d1a75384ca171420db935d8f2c9abf813512b90cac71f91e9e81408bf3b0f7c",
-      "size": 3187
+      "sha256": "ca1d149f3141ce6a860ae5cc46633174ea4f7be6b0abed70ef7065c49601db9e",
+      "size": 5198
     },
     {
       "path": "staging-database/tests/vacating_settlement.sql",
@@ -1734,6 +1734,11 @@
       "path": "staging-database/sql/tenant-contact-preference.sql",
       "sha256": "2bab0f8bb1fa6a47188a6d74b712894f303e8af6fcccf3aa111eaf2e4bbc621d",
       "size": 7079
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260909225520_v267_document_catalog.sql",
+      "sha256": "8ae64a99d80c3211059aa5b7ef425c61526cb00295792cb1570186768a414396",
+      "size": 4912
     }
   ],
   "version": "V198"
