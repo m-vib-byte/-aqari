@@ -1,9 +1,16 @@
-const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=message=>{$('notice').textContent=message;};
+import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/components/locale.js';
+import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
+const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
 if(cfg?.supabaseUrl!=='https://djkpkkgoibruaezdrchb.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set();
 const safeError=e=>/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
+function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
+bindLocale(null);
+for(const [code,label] of Object.entries(LANGUAGES)){const option=document.createElement('option');option.value=code;option.textContent=label;$('tenantLanguage').append(option);}
+$('tenantLanguage').addEventListener('change',()=>{setLocale($('tenantLanguage').value);updateLanguage();});
+updateLanguage();
 function releaseReceipts(){for(const url of receiptUrls)URL.revokeObjectURL(url);receiptUrls.clear();}
 async function bounded(promise){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('انتهت مهلة الاتصال.')),20000);})]);}finally{clearTimeout(timer);}}
 async function request(work){
@@ -17,9 +24,9 @@ function lock(value){busy=value;for(const b of document.querySelectorAll('button
 function start(){const token=++operation;lock(true);return token;}
 function finish(token){if(token===operation)lock(false);}
 function clear(){snapshot=null;releaseReceipts();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease'])$(id).replaceChildren();$('maintenanceForm').hidden=true;}
-function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();saveUncertain=false;operation++;lock(false);}
+function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();bindLocale(null);updateLanguage();saveUncertain=false;operation++;lock(false);}
 const current=e=>e===epoch;
-function items(target,rows,format){$(target).replaceChildren();if(!rows.length){const p=document.createElement('p');p.textContent='لا توجد سجلات محفوظة.';$(target).append(p);}for(const r of rows){const p=document.createElement('p');p.className='item';p.textContent=format(r);$(target).append(p);}}
+function items(target,rows,format){$(target).replaceChildren();if(!rows.length)$(target).append(uiText('p','لا توجد سجلات محفوظة.'));for(const r of rows){const p=document.createElement('p');p.className='item';p.append(...format(r));$(target).append(p);}}
 async function session(){const {data,error}=await bounded(client.auth.getSession());if(error)throw Error('تعذر التحقق من جلسة الدخول.');return data.session;}
 async function refresh(){
  const e=epoch,version=++readVersion;clear();const auth=await session();if(!current(e)||version!==readVersion)return null;
@@ -29,14 +36,14 @@ async function refresh(){
  const verified=await session();if(!current(e)||version!==readVersion)return null;
  if(verified?.user.id!==auth.user.id){invalidate();return null;}
  if(data?.account?.user_id!==auth.user.id||data.account.is_active!==true||!data.account.workspace_id||data.tenant?.id!==data.account.tenant_id||data.tenant.workspace_id!==data.account.workspace_id||!['leases','payments','maintenance'].every(k=>Array.isArray(data[k])))throw Error('تعذر تأكيد ارتباط الملف بحسابك.');
- snapshot=data;$('tenantLogout').hidden=false;$('auth').hidden=true;$('content').hidden=false;$('tenantName').textContent=data.tenant.full_name;
- items('tenantLeases',data.leases,l=>`العقد ${l.contract_no} • الوحدة ${l.snapshot.unit} • ${l.snapshot.property}\nالإيجار ${Number(l.monthly_rent).toFixed(3)} د.ك • من ${l.start_date} إلى ${l.end_date}`);
- releaseReceipts();items('tenantPayments',data.payments,p=>`وصل إيجار ${p.reference} • ${Number(p.amount).toFixed(3)} د.ك • ${p.paid_at}`);
- for(const [i,payment] of data.payments.entries()){const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='فتح وصل الإيجار';button.onclick=()=>receipt(payment,button);$('tenantPayments').children[i].append(button);}
+ bindLocale({user:data.account.user_id,workspace:data.account.workspace_id});updateLanguage();snapshot=data;$('tenantLogout').hidden=false;$('auth').hidden=true;$('content').hidden=false;$('tenantName').textContent=data.tenant.full_name;
+ items('tenantLeases',data.leases,l=>[uiText('span','العقد {contract} • الوحدة {unit} • {property}\nالإيجار {amount} د.ك • من {start} إلى {end}',{contract:l.contract_no,unit:l.snapshot.unit,property:l.snapshot.property,amount:Number(l.monthly_rent).toFixed(3),start:l.start_date,end:l.end_date})]);
+ releaseReceipts();items('tenantPayments',data.payments,p=>[uiText('span','وصل إيجار {reference} • {amount} د.ك • {date}',{reference:p.reference,amount:Number(p.amount).toFixed(3),date:p.paid_at})]);
+ for(const [i,payment] of data.payments.entries()){const button=uiText('button','فتح وصل الإيجار');button.type='button';button.className='secondary';button.onclick=()=>receipt(payment,button);$('tenantPayments').children[i].append(button);}
  const states={received:'تم الاستلام',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى'};
- items('tenantRequests',data.maintenance,m=>`طلب ${m.request_no} • ${states[m.status]||'غير معروف'}\n${m.description}`);
+ items('tenantRequests',data.maintenance,m=>{const description=document.createElement('span');description.textContent='\n'+m.description;return [uiText('span','طلب {number} • ',{number:m.request_no}),uiText('span',states[m.status]||'غير معروف'),description];});
  $('maintenanceLease').replaceChildren();const today=new Date(Date.now()+10800000).toISOString().slice(0,10);
- for(const l of data.leases.filter(l=>l.status==='signed'&&l.start_date<=today&&l.end_date>=today)){const option=document.createElement('option');option.value=l.id;option.textContent=`العقد ${l.contract_no} • الوحدة ${l.snapshot.unit}`;$('maintenanceLease').append(option);}
+ for(const l of data.leases.filter(l=>l.status==='signed'&&l.start_date<=today&&l.end_date>=today)){const option=uiText('option','العقد {contract} • الوحدة {unit}',{contract:l.contract_no,unit:l.snapshot.unit});option.value=l.id;$('maintenanceLease').append(option);}
  $('maintenanceForm').hidden=!$('maintenanceLease').options.length;return data;
 }
 async function reload(){const e=epoch;try{const data=await refresh();if(data&&current(e))notice('تم فتح ملفك المحفوظ.');return data;}catch(error){if(current(e)){clear();notice(safeError(error));}return null;}}
@@ -51,8 +58,8 @@ async function receipt(payment,button){
   });
   const verified=await session();if(!current(e))return;if(verified?.user.id!==account.user_id){invalidate();return;}if(snapshot?.account!==account)return;
   const url=URL.createObjectURL(blob);receiptUrls.add(url);
-  const view=document.createElement('a');view.href=url;view.target='_blank';view.rel='noopener';view.textContent='عرض الوصل وطباعته';view.style.display='block';view.style.padding='12px';
-  const download=document.createElement('a');download.href=url;download.download='rent-receipt.pdf';download.textContent='تحميل PDF';download.style.display='block';download.style.padding='12px';
+  const view=document.createElement('a');view.href=url;view.target='_blank';view.rel='noopener';setText(view,'عرض الوصل وطباعته');view.style.display='block';view.style.padding='12px';
+  const download=document.createElement('a');download.href=url;download.download='rent-receipt.pdf';setText(download,'تحميل PDF');download.style.display='block';download.style.padding='12px';
   button.replaceWith(view,download);notice('تم استرجاع الوصل المحفوظ. يمكنك طباعته من عارض PDF أو قائمة المشاركة على الآيفون.');
  }catch(error){if(current(e))notice(safeError(error));}finally{finish(token);}
 }

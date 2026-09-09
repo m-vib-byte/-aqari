@@ -602,8 +602,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "fa5c57f4392c70b39c5460989130732f571362f995e52ae7542b032fd545dbb6",
-      "size": 917
+      "sha256": "549e295914c59fe75be3085dd86dcebb0aa91bdff6624026702174bab5048aa2",
+      "size": 1083
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
@@ -867,8 +867,8 @@
     },
     {
       "path": "tenant.html",
-      "sha256": "d895fa2b8036367b6f013b99bb1889674517eccdfb2a2df034071a7ab9c5c13c",
-      "size": 2974
+      "sha256": "648ecfce3a51f73a33e083102bea68a66d4b6e4b786b312cfebbb24ab913291f",
+      "size": 3961
     },
     {
       "path": "v267-signup.js",
@@ -877,8 +877,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "2f504ff0ff5ca13e3a099a2089a4929348674a127957abdf869da81bb84e83c2",
-      "size": 11690
+      "sha256": "ef1217d97a0ccc2e0fe310f1beae2e311730787bcbac26ec0913be3cda5b4835",
+      "size": 12805
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "0badbf9b841135f20529d27ae16366af2f27c8b4a018cafceeef19191de0d22b",
-      "size": 145573
+      "sha256": "6243a9e0ea87dba24bb9a2aa9e6b7189414cf2ebea882cf8e5bd009a4159b62c",
+      "size": 164062
     },
     {
       "path": "tests/v267-locale.test.mjs",
@@ -1227,8 +1227,13 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "c76442b11a20d95a0626339d12d218ea0f4d49842b3f298e0d8f8b6818b1666f",
-      "size": 10288
+      "sha256": "7cad90c4319129f72bb0a5b082d4caf7d2ebf09b3727bec7058a4aec6c8e4710",
+      "size": 13931
+    },
+    {
+      "path": "tests/v267-tenant-portal.e2e.mjs",
+      "sha256": "85a6ff9957c4d8396b7818c06933705ecf5a206ac112e8a51bc3f49869b69c34",
+      "size": 7190
     }
   ],
   "version": "V198"

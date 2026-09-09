@@ -21,6 +21,8 @@ jobs:
         run: node tests/v266-authenticated-home.e2e.mjs
       - name: V267 multilingual control, scanner and operational form flows
         run: node tests/v267-workspace-tools.e2e.mjs
+      - name: Tenant portal five-language flows with synthetic backend
+        run: node tests/v267-tenant-portal.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -28,4 +30,5 @@ jobs:
           path: |
             test-results/authenticated-home
             test-results/v267-workspace-tools
+            test-results/v267-tenant-portal
           retention-days: 2
