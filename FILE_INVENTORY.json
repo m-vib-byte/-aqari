@@ -1692,8 +1692,8 @@
     },
     {
       "path": "tests/v267-deposit-ledger.e2e.mjs",
-      "sha256": "0ad0b1bd61ca8c829fdbc61ec006009954570150132f990bf928c0a5cae9b613",
-      "size": 12025
+      "sha256": "9ddf74dff649b7e1f75322b1c3706fcf0a18df4ab702230b2ace0ee3c525ed1b",
+      "size": 12056
     },
     {
       "path": "tests/v267-deposit-ledger.test.mjs",

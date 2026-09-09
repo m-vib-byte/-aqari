@@ -25,7 +25,7 @@ const server=http.createServer((req,res)=>{
   const {p_workspace_id,p_action:a,p_data:d}=JSON.parse(body);assert.equal(p_workspace_id,wid,'RPC binds current workspace');
   if(denied)return reply(res,{code:'42501',message:'ACCESS_DENIED'},403);
   if(a==='list')return reply(res,{manager,leases:[lease()],entries:d.lease_id?[...rows].reverse():[]});
-  if(a==='get')return readUnavailable?reply(res,{message:'TEMPORARY_UNAVAILABLE'},503):reply(res,{entry:rows.find(x=>x.id===d.id)||null,lease:lease()});
+  if(a==='get')return readUnavailable?reply(res,{message:'TEMPORARY_UNAVAILABLE'},503):reply(res,{entry:rows.find(x=>x.id===d.id)||null,lease:rows.some(x=>x.id===d.id)?lease():null});
   assert.ok(['receive','refund'].includes(a));assert.equal(d.lease_id,lid);
   if(a==='refund'&&!manager)return reply(res,{code:'42501',message:'ACCESS_DENIED'},403);
   const existing=rows.find(x=>x.id===d.id);if(existing)return reply(res,{entry:existing,lease:lease()});
