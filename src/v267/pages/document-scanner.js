@@ -36,7 +36,7 @@ const categoryLabel=value=>Object.values(DOCUMENT_CATALOG).flat().find(([key])=>
 
 export async function openDocumentScanner(initial={}){
  const dialog=createDialog(t('مسح المستندات وحفظ النسخ الأصلية'),{localized:true});if(!dialog)return;
- const {session,body,status,run}=dialog;
+ const {session,body,status}=dialog;
  const urls=createPrivateUrls(dialog),downloads=createPrivateUrls(dialog);
  const type=node('select'),category=node('select'),query=node('input'),search=node('button',t('بحث السجلات المحفوظة')),records=node('select'),title=node('input'),file=node('input'),rotate=node('button',t('تدوير الصورة')),preview=node('img'),save=node('button',t('رفع نسخة جديدة والتحقق منها')),reload=node('button',t('تحديث المستندات')),list=node('div'),next=node('button',t('مستندات أقدم')),previous=node('button',t('مستندات أحدث'));
  query.maxLength=100;title.maxLength=180;preview.alt=t('معاينة صورة المستند قبل الرفع');file.type='file';
@@ -44,7 +44,10 @@ export async function openDocumentScanner(initial={}){
  file.setAttribute('capture','environment');
  for(const [value,text]of [['property',t('العقار')],['tenant',t('المستأجر')],['lease',t('العقد')]]){const o=node('option',text);o.value=value;type.append(o);}
  type.value=['property','tenant','lease'].includes(initial.type)?initial.type:'property';
- let img=null,blob=null,rotation=0,previewUrl=null,page=0,pending=null,renderId=0,uploadMime='',uploadName='';
+ let img=null,blob=null,rotation=0,previewUrl=null,page=0,pending=null,renderId=0,uploadMime='',uploadName='',running=false;
+ // The shared dialog restores prior disabled states. Reconcile the image-only
+ // control after that restoration, without allowing an overlapping task to unlock it.
+ async function run(task){if(running||dialog.closed)return;running=true;try{await dialog.run(task);}finally{running=false;if(!dialog.closed)rotate.disabled=!img;}}
  const crop={top:0,bottom:0,left:0,right:0},cropBox=node('details');cropBox.append(node('summary',t('قص حواف الصورة')));
  for(const [edge,text]of [['top',t('أعلى')],['bottom',t('أسفل')],['left',t('يسار')],['right',t('يمين')]]){const input=node('input');input.type='range';input.min='0';input.max='40';input.value='0';input.onchange=()=>run(async()=>{crop[edge]=Number(input.value);await prepare();});cropBox.append(field(text,input));}
  body.append(node('p',t('اختر سجلاً محفوظاً، ثم اختر نوع المستند وارفع صورة أو PDF أو DOCX. كل رفع ينشئ نسخة جديدة مرتبطة بالسجل مع وقت الرفع واسم من رفعها، دون استبدال النسخ السابقة.')),field(t('نوع السجل'),type),field(t('تصنيف المستند'),category),field(t('اسم السجل أو رقم العقد أو الوحدة'),query),search,field(t('السجل المرتبط'),records),field(t('عنوان المستند'),title),field(t('تصوير المستند أو اختيار ملف'),file),rotate,cropBox,preview,save,reload,list,previous,next);
@@ -66,7 +69,7 @@ export async function openDocumentScanner(initial={}){
   if(IMAGE_MIMES.has(chosen.type)){
    const decoded=await decodeImage(chosen);session.check();if(dialog.closed)return;img=decoded;rotation=0;
    for(const edge of Object.keys(crop))crop[edge]=0;for(const input of cropBox.querySelectorAll('input'))input.value='0';
-   rotate.disabled=false;cropBox.hidden=false;uploadName=uploadName.replace(/\.[^.]+$/,'')+'.jpg';await prepare();
+   cropBox.hidden=false;uploadName=uploadName.replace(/\.[^.]+$/,'')+'.jpg';await prepare();
   }else{
    blob=chosen;uploadMime=chosen.type;status.textContent=t('تم اختيار الملف. راجع التصنيف والعنوان والسجل ثم ارفع النسخة.');
   }
