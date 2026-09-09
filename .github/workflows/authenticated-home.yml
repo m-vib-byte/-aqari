@@ -26,6 +26,8 @@ jobs:
         run: node tests/v267-workspace-tools.e2e.mjs
       - name: Tenant portal five-language flows with synthetic backend
         run: node tests/v267-tenant-portal.e2e.mjs
+      - name: Deposit ledger save, recovery and saved print in five languages
+        run: node tests/v267-deposit-ledger.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -34,4 +36,5 @@ jobs:
             test-results/authenticated-home
             test-results/v267-workspace-tools
             test-results/v267-tenant-portal
+            test-results/v267-deposit-ledger
           retention-days: 2

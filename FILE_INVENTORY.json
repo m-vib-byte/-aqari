@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "b3c48eed6a40013c0cc484e1cec664a4ee0ea0c68a423848b5d63210575e7bfb",
-      "size": 4774
+      "sha256": "fa69cbe897fd81c43bc6c909ab77bf52e3cc114f7a92a6f4b0e581512a2652e9",
+      "size": 4825
     },
     {
       "path": "api/autosync-status.js",
@@ -602,8 +602,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "a05e84132618546d0ffdd0771623f0f739016428543c1fadecbfb52ecd020b6e",
-      "size": 1215
+      "sha256": "b58bbff8831b7333f126133565890e128b2baf71dedea7aad1c33294d3bfdc78",
+      "size": 1390
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "5b294d69314e17f4ac300c6a5a55fb4b428644e2747e2c310d422d7e9e3b5f94",
-      "size": 9225
+      "sha256": "843e534345bf65e579af99756f5375ce3a21ae82aa0126974932f6de5f6fdfd6",
+      "size": 9681
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "d4d80909dee32f65cadf2f6de2240fcbb2ab0feebfca941a7a58c7cde57de3dc",
-      "size": 167299
+      "sha256": "3a64ceb5635b749528637568d0674b6b4f2c512f79a20820edf52400f4e675c1",
+      "size": 167381
     },
     {
       "path": "tests/v267-locale.test.mjs",
@@ -1227,8 +1227,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "d06db75b409edf9d18ae62250ab93eab9cfb1943b2b11c445841492e2af9719a",
-      "size": 19252
+      "sha256": "9c220578c18e9f95e9c3b879d960e8dc9be079abe79ce3908d54bc18d8e7503b",
+      "size": 19317
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "d8220e6801540080487f64f3f75bf4ac79e484d1b9f46f574a8ab0845409a8df",
-      "size": 1409
+      "sha256": "af2bf29122d5d286adb7738ec983f0c1344ad64d6c540e440b0089069586b005",
+      "size": 1526
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "e66612eeaa2a985b34f341c27a67e7224f0a7da5d767a610ea6271b7f1c0f84d",
-      "size": 77491
+      "sha256": "61b355f5a4b9d579a4d1fe8a0f96164cb844f87809a7f7bec37ad1c9b04e1fce",
+      "size": 78307
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1532,8 +1532,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 472,
-      "sha256": "539c09e461c83226c9c5000e38c8b0fa17769dadfb4db53fce75e0008ee6da80"
+      "size": 530,
+      "sha256": "ba6d1c7a233cb672937984866a7f55bcffddc0f5723ff18924aeefc935ee195d"
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
@@ -1654,6 +1654,56 @@
       "path": "tests/v267-tenant-attachment-form.test.cjs",
       "sha256": "8c8222a075c51dd42e3712e812165c4a4f2f707ae78cd0fbceaba16dbfca2032",
       "size": 7468
+    },
+    {
+      "path": "docs/V267-DEPOSIT-LEDGER.md",
+      "sha256": "5cf558eac7778dc06e9b0ee3d2898f8f205e266f79ba5b5cd6c8c815742a145c",
+      "size": 5314
+    },
+    {
+      "path": "src/v267/components/deposit-translations.js",
+      "sha256": "b544e78c2854de0c027175a4b31daa787080f711acc573b704aeda6b6ab6db09",
+      "size": 40457
+    },
+    {
+      "path": "src/v267/domain/deposit-ledger.js",
+      "sha256": "d6b8782625ccef87e896d36a7331991a7de7c93aed7d5107bfff4aecec601c57",
+      "size": 10204
+    },
+    {
+      "path": "src/v267/pages/deposit-ledger.js",
+      "sha256": "5847d0a92b529f4e0658bdf18b9dfe4b8ba102a8c0e8039234ab0f35875d3e0a",
+      "size": 14552
+    },
+    {
+      "path": "staging-database/sql/deposit-register.sql",
+      "sha256": "3840d8781bc406839c1ded1ec05be864ca271ccdcf2e909592cc4e4c9abf6e24",
+      "size": 14097
+    },
+    {
+      "path": "staging-database/sql/workspace-feature-discovery.sql",
+      "sha256": "4fbf2c13d89835864c91013370e97170306ccfa8fb544bf36fcad3b1dbeae482",
+      "size": 1791
+    },
+    {
+      "path": "staging-database/tests/deposit_register.sql",
+      "sha256": "652b7bd73dce328319d99c4f0c8d6902aff022ff41f501d004561121cefdc414",
+      "size": 17030
+    },
+    {
+      "path": "tests/v267-deposit-ledger.e2e.mjs",
+      "sha256": "0ad0b1bd61ca8c829fdbc61ec006009954570150132f990bf928c0a5cae9b613",
+      "size": 12025
+    },
+    {
+      "path": "tests/v267-deposit-ledger.test.mjs",
+      "sha256": "70ca541005f27681cb2aa05a006c105b7912fcee658e6e1636547340b98f178c",
+      "size": 22155
+    },
+    {
+      "path": "tests/v267-workspace-features.test.cjs",
+      "sha256": "97f7bc1807871558093fd6c7b2a4fe198e49d158b0265f7121989747e060bf81",
+      "size": 2206
     }
   ],
   "version": "V198"
