@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 const messages={
+ "دخول الشريك":{"en":"Partner sign-in","hi":"भागीदार साइन इन","ur":"شریک کا سائن ان","ml":"പങ്കാളി സൈൻ ഇൻ"},
  "تسجيل الدخول": {
   "en": "Sign in",
   "hi": "साइन इन",

@@ -52,22 +52,22 @@ body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36
 </div>
 <button id="stagingSignupButton" type="button" hidden data-login-text>إنشاء حساب المعاينة لأول مرة</button>
 <div id="status" class="status ready" role="status" aria-live="polite">أدخل البريد وكلمة المرور. تجهيز الاتصال يتم في الخلفية.</div>
-<p class="note"><a href="/tenant.html" data-login-text>دخول المستأجر</a></p>
+<p class="note"><a href="/tenant.html" data-login-text>دخول المستأجر</a> · <a href="/partner.html" data-login-text>دخول الشريك</a></p>
 </main>
 <script>
 (function(){
 'use strict';
-var SUPABASE_VERSION = '2.114.0';
+var SUPABASE_VERSION='2.114.0';
 var SAME_ORIGIN_LIBRARY = '/vendor/supabase-js-' + SUPABASE_VERSION + '.js';
 var DIRECT_LIBRARY = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@' + SUPABASE_VERSION + '/dist/umd/supabase.min.js';
 var SUPABASE_INTEGRITY = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
-var RELEASE = 'V267';
-var busy = false;
-var preparing = false;
-var corePromise = null;
-var releaseResetPromise = null;
-var restoreEpoch = 0;
-var restoreFlight = null;
+var RELEASE='V267';
+var busy=false;
+var preparing=false;
+var corePromise=null;
+var releaseResetPromise=null;
+var restoreEpoch=0;
+var restoreFlight=null;
 var manualEntry = /(?:^|[?&])manual=1(?:&|$)/.test(String(window.location.search || ''));
 var form = document.getElementById('loginForm');
 var email = document.getElementById('email');
@@ -76,7 +76,7 @@ var loginButton = document.getElementById('loginButton');
 var recoveryButton = document.getElementById('recoveryButton');
 var retryButton = document.getElementById('retryButton');
 var stagingSignupButton = document.getElementById('stagingSignupButton');
-var status = document.getElementById('status');
+var status=document.getElementById('status');
 function setStatus(message, kind){
 status.aqariSource = message;
 status.textContent = window.AQARI_LOGIN_TRANSLATE ? window.AQARI_LOGIN_TRANSLATE(message) : message;
@@ -121,7 +121,6 @@ reject(error);
 }
 function resetTimedOutCore(error){
 if(!error || error.code !== 'AQARI_TIMEOUT') return;
-// Keep verified sessions on transport timeout.
 corePromise = null;
 }
 function loadScript(src, id, milliseconds, integrity){

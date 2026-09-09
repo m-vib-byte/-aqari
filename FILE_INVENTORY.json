@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "f435a56371112989b52fd8138f4443e151bfeec064610c92e5977f98aa6b0cda",
-      "size": 3773
+      "sha256": "eea9f9c95a61819c7895df4985c087371fbbeb1c10159c5bc538a07626c866a4",
+      "size": 3809
     },
     {
       "path": "api/autosync-status.js",
@@ -162,8 +162,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "ec0a97f59adb23a3f7e315595c9953dbfbd6d6dbaaacc3952d354d1c9b1765bc",
-      "size": 16995
+      "sha256": "4a62275b8435ccca1ac1453f3517737107edd4547ab6b68fc7d3d399f099b4ca",
+      "size": 16998
     },
     {
       "path": "lib/read-only.js",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "c46471787b507c1a57fd595b589d5007c51a5cf6d39917ea0bd30362d5d2fd9a",
-      "size": 4881
+      "sha256": "6ebcfae874f023168370e1da22d600f50f7f4a5c148c9e0a25c07cd7c496e9dd",
+      "size": 5145
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "f65ac3259304a1ff7b0ccba5bd63244205657ba7025a2ca3ac7d15c5dbf477e3",
-      "size": 6791
+      "sha256": "424fc092ad22f38d527b0c115a2f91b2d9f3c735df763117db6f934d60c17310",
+      "size": 7070
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "6243a9e0ea87dba24bb9a2aa9e6b7189414cf2ebea882cf8e5bd009a4159b62c",
-      "size": 164062
+      "sha256": "9c52b69bccc4a99194579c5130cc3f5eda77d96d79df0894a4f7522b060eadde",
+      "size": 164144
     },
     {
       "path": "tests/v267-locale.test.mjs",
@@ -1227,8 +1227,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "7cad90c4319129f72bb0a5b082d4caf7d2ebf09b3727bec7058a4aec6c8e4710",
-      "size": 13931
+      "sha256": "c40990ddf1d6fd6d2442e95ff9da65f7188352db47fe65c21f0b7255d982e4bb",
+      "size": 13996
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
@@ -1242,8 +1242,8 @@
     },
     {
       "path": "v267-login-locale.js",
-      "sha256": "fc21166a5a2c9c4a446f39286e7c572875b28ff2fd5067d36630bc61c23b4153",
-      "size": 17395
+      "sha256": "0b03b37ff48475b8c02ee1ffe30f036dce32495500308570fb6fb79cef17b365",
+      "size": 17576
     },
     {
       "path": "tests/v267-login-locale.test.cjs",
@@ -1262,8 +1262,53 @@
     },
     {
       "path": "docs/V267-INSPECTION-STATUS-2026-09-09.md",
-      "sha256": "d2cb315f257f55fdf150d118c1ce35c0a24c8e41f6cb4762331429d30802d10c",
-      "size": 10182
+      "sha256": "47324b6e404826d8b3bf7646bb3e030a15f2d0bfdd19ab8c99a6fe6d5425023d",
+      "size": 11442
+    },
+    {
+      "path": "docs/V267-PARTNER-ACCESS.md",
+      "sha256": "dbfbc074f912dc71e066a3bbe48c70bf56c60ac16aacd2cb9995e8540255cca7",
+      "size": 6815
+    },
+    {
+      "path": "partner.html",
+      "sha256": "b128556b561bc0e3cd0241e74f266912b1fe706cb3c57a890df679315ab2d205",
+      "size": 4345
+    },
+    {
+      "path": "src/v267/api/partner-session.js",
+      "sha256": "1971bb1442863440ced6c84a15bf88d157923f90e428a75da505434419620a68",
+      "size": 2444
+    },
+    {
+      "path": "src/v267/components/partner-translations.js",
+      "sha256": "cfabbac97deb5b451f5ef627ccfa03c89eca3c29acf803af16fd3b5fb690ea0e",
+      "size": 11378
+    },
+    {
+      "path": "src/v267/pages/partner-access.js",
+      "sha256": "1868332ef532e9c3b418a8895827e4a4504ff85fa77b1a1e6aacf551f3d351b9",
+      "size": 3559
+    },
+    {
+      "path": "staging-database/sql/partner-property-access.sql",
+      "sha256": "d01ce391ebf8e63f395fddcedcb972f047fa76db66f8c51b4a69f1465b5ca5c5",
+      "size": 11673
+    },
+    {
+      "path": "staging-database/tests/partner_property_access.sql",
+      "sha256": "30f6c968e1f7fa5bd170da960045e95295d027076c7d408db2e38d39b0f5fc92",
+      "size": 9044
+    },
+    {
+      "path": "tests/v267-partner-session.test.mjs",
+      "sha256": "db60b775988097fd4d6fcb38b4037ade0a00c613d49242a8650879dff0372e68",
+      "size": 3533
+    },
+    {
+      "path": "v267-partner-portal.js",
+      "sha256": "4d7beabf51ba0c85815514384d8ad1382313ad3e0d2ad4fe5b2c1467db191438",
+      "size": 6105
     }
   ],
   "version": "V198"

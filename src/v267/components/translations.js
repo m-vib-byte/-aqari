@@ -1,5 +1,7 @@
 // Interface text only. Record values and legal documents are never translated.
+import {PARTNER_MESSAGES} from './partner-translations.js';
 export const MESSAGES = {
+ ...PARTNER_MESSAGES,
  "لغة الواجهة": {
   "en": "Interface language",
   "hi": "इंटरफ़ेस की भाषा",

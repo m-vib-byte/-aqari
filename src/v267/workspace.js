@@ -44,7 +44,8 @@ export function install(){
  const utilities=ui('button','الإعدادات والخدمات — عدادات العقارات');utilities.onclick=()=>import('./pages/utility-meters.js').then(m=>m.openUtilityMeters()).catch(e=>notice.textContent=t(safeError(e)));
  const quality=ui('button','مركز جودة البيانات');quality.hidden=currentScope().role!=='general_manager';quality.onclick=()=>import('./pages/data-quality.js').then(m=>m.openDataQuality()).catch(e=>notice.textContent=t(safeError(e)));
  const review=ui('button','اعتماد عقود المصدر');review.hidden=currentScope().role!=='general_manager';review.onclick=()=>import('./pages/lease-review.js').then(m=>m.openLeaseReview()).catch(e=>notice.textContent=t(safeError(e)));
- const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(control,scan,statements,utilities,quality,review,languageField,notice);menu.append(tools);updateLabels();
+ const partners=ui('button','صلاحيات الشركاء حسب العقار');partners.hidden=currentScope().role!=='general_manager';partners.onclick=()=>import('./pages/partner-access.js').then(m=>m.openPartnerAccess()).catch(e=>notice.textContent=t(safeError(e)));
+ const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
  document.addEventListener('click',event=>{
@@ -60,4 +61,3 @@ export function install(){
  window.addEventListener('aqari:auth-boundary',()=>{try{const c=currentScope();bindLocale(c);if(access&&(c.user!==access.user_id||c.workspace!==access.workspace_id)){access=null;session?.close();}}catch{access=null;session?.close();bindLocale(null);}updateLabels();});
  refresh();
 }
-
