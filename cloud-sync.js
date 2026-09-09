@@ -109,8 +109,18 @@
       window.AQARI_EARLY_STORAGE_GATE?.activate(context);
       activeScope = next;
       const local = readWorkspaceState(next);
-      if(Object.keys(local).length) return local;
       const decoded = decodeCloudPayload(cloudSeed);
+      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl === 'https://djkpkkgoibruaezdrchb.supabase.co' && decoded){
+        const cloud = prepareState(decoded.primary);
+        if(Object.keys(local).length && JSON.stringify(local) !== JSON.stringify(cloud)){
+          const backupKey = workspaceDataKey(next) + ':before-cloud-activation';
+          if(localStorage.getItem(backupKey) === null) localStorage.setItem(backupKey, JSON.stringify(local));
+        }
+        // A verified staging snapshot is authoritative after a reload or import.
+        // Never send the old browser cache back over the cloud snapshot.
+        return writeWorkspaceState(cloud, next);
+      }
+      if(Object.keys(local).length) return local;
       return prepareState(decoded?.primary || {});
     }catch(error){
       activeScope = null;

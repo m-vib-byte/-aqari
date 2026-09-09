@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { previewAccess, routePreviewRequest } from './preview-access.mjs';
 
 const base = process.env.AQARI_BASE_URL;
 const expectedSha = String(process.env.AQARI_EXPECTED_SHA || '').trim();
@@ -8,16 +9,14 @@ if(!base || !expectedSha){
 }
 
 const previewUrl = new URL(base);
-const appUrl = new URL('/app?release=V266', previewUrl).toString();
-const bypass = String(process.env.VERCEL_AUTOMATION_BYPASS_SECRET || previewUrl.searchParams.get('x-vercel-protection-bypass') || '').trim();
+const appUrl = new URL('/app?release=V267', previewUrl).toString();
+const access = previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
 const browser = await chromium.launch({ headless:true });
 const context = await browser.newContext({
   viewport:{ width:390, height:844 },
-  extraHTTPHeaders:bypass ? {
-    // Per-request authorization needs no cookie-setting redirect.
-    'x-vercel-protection-bypass':bypass
-  } : {}
+  serviceWorkers:'block'
 });
+await context.route('**/*', route => routePreviewRequest(route, access));
 const page = await context.newPage();
 const pageErrors = [];
 const responseErrors = [];
@@ -37,7 +36,7 @@ page.on('dialog', async dialog => {
 });
 await page.route('**/final-release-ui.js*', async route => {
   await new Promise(resolve => setTimeout(resolve, 5000));
-  await route.continue();
+  await route.fallback();
 });
 page.on('pageerror', error => pageErrors.push(error.stack || error.message));
 page.on('response', response => {
@@ -54,7 +53,7 @@ async function check(name, fn){
   catch(error){ failed = true; console.error('FAIL', name, '-', error.message); }
 }
 
-await check('Root opens the dedicated V266 login on every device', async () => {
+await check('Root opens the dedicated V267 login on every device', async () => {
   const loginPage = await context.newPage();
   try{
     const response = await loginPage.goto(new URL('/', previewUrl).toString(), { waitUntil:'domcontentloaded', timeout:30000 });
@@ -70,7 +69,7 @@ await check('Root opens the dedicated V266 login on every device', async () => {
   }
 });
 
-await check('V205 simplified platform loads on the secure V198 runtime', async () => {
+await check('V267 signed-out login shell loads on the secure V198 runtime', async () => {
   const navigation = page.goto(appUrl, { waitUntil:'domcontentloaded', timeout:30000 });
   await page.waitForSelector('#aqariCloudGateV168', { state:'visible', timeout:3500 });
   const firstPaint = await page.evaluate(() => ({
@@ -87,7 +86,7 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
   }
   const response = await navigation;
   if(!response?.ok()) throw new Error(`HTTP ${response?.status()}`);
-  await page.waitForTimeout(2000);
+  await page.waitForFunction(() => window.AQARI_SUPABASE && window.AQARI_CLOUD_SYNC && document.querySelector('.v199-gate-version') && !Array.from(document.querySelectorAll('[data-cloud-auth-action]')).some(button => button.disabled), undefined, { timeout:15000 });
   if(startupDialogs.length) throw new Error('blocking startup dialog: ' + JSON.stringify(startupDialogs));
   if(dbStatusRequests.length) throw new Error('startup triggered database status requests: ' + dbStatusRequests.join(','));
   const state = await page.evaluate(() => ({
@@ -106,35 +105,9 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     releaseStage:document.querySelector('meta[name="aqari-stage"]')?.content,
     title:document.title,
     luxury:document.body.classList.contains('aq-v200'),
-    easy:document.body.classList.contains('aq-v201'),
-    propertyOS:document.body.classList.contains('aq-v202'),
-    unitDirectory:document.body.classList.contains('aq-v203'),
-    propertyOSReady:document.body.getAttribute('data-v202-ready'),
-    propertyOSVersion:window.AQARI_V202?.version,
-    simplified:document.body.classList.contains('aq-v205'),
-    simplifiedReady:document.body.getAttribute('data-v205-ready'),
-    simplifiedVersion:window.AQARI_V205?.version,
-    portfolioCollections:document.body.classList.contains('aq-v208'),
-    globalSearch:document.body.classList.contains('aq-v209'),
-    globalSearchVersion:window.AQARI_V209?.version,
-    globalSearchRevision:window.AQARI_V209?.revision,
-    globalSearchMeta:document.querySelector('meta[name="aqari-global-search"]')?.content,
-    simpleHome:Boolean(document.getElementById('v205SimpleHome')),
+    premium:document.body.classList.contains('aq-v267'),
     shell:Boolean(document.getElementById('aqariV199Topbar')),
-    dashboard:Boolean(document.getElementById('aqariV199Dashboard')),
-    mobileItems:document.querySelectorAll('.mobilebar .v199-bottom-button').length,
-    createOptions:document.querySelectorAll('#v201CreateMenu [data-v201-create]').length,
-    propertyActions:document.querySelectorAll('#v201PropertyCenter [data-v201-property-action]').length,
-    mobileCreateHidden:!document.getElementById('v201MobileCreate')?.getClientRects().length,
-    businessLinks:Array.from(document.querySelectorAll('#v199MoreMenu [data-v199-go]')).map(node => node.getAttribute('data-v199-go')),
-    fakeBars:document.querySelectorAll('#aqariV199Dashboard .v199-mini-bars').length,
-    labels:Array.from(document.querySelectorAll('#aqariV199Dashboard .v199-kpi-label')).map(node => node.textContent.trim()),
-    priorityFirst:(() => {
-      const dashboard=document.getElementById('aqariV199Dashboard');
-      const priority=dashboard?.querySelector('.v201-priority-panel');
-      const kpis=dashboard?.querySelector('.v199-kpi-grid');
-      return Boolean(priority&&kpis&&(priority.compareDocumentPosition(kpis)&Node.DOCUMENT_POSITION_FOLLOWING));
-    })(),
+    premiumCss:Boolean(document.getElementById('aqari-v267-premium-workspace-css')),
     horizontalOverflow:document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
   }));
   if(!state.gate || !state.loginSecure || !state.localLoginSecure || !state.supabase || !state.cloud){
@@ -144,141 +117,31 @@ await check('V205 simplified platform loads on the secure V198 runtime', async (
     throw new Error('secure cloud gate did not become interactive after startup');
   }
   if(state.autosyncMode !== 'manual_only') throw new Error('automatic upload must remain disabled');
-  if(state.productRelease !== 'V266' || state.apiContract !== 'V198' || state.releaseStage !== 'production'){
+  if(state.productRelease !== 'V267' || state.apiContract !== 'V198' || state.releaseStage !== 'production'){
     throw new Error('visible release identity mismatch');
   }
-  if(!state.title.includes('V266')) throw new Error('document title has stale release identity');
-  if(state.design !== 'V206-preview' || !state.luxury || !state.easy || !state.propertyOS || !state.unitDirectory || state.propertyOSReady !== 'true' || state.propertyOSVersion !== 'V206-preview' || !state.simplified || state.simplifiedReady !== 'true' || state.simplifiedVersion !== 'V205-preview' || !state.portfolioCollections || !state.globalSearch || state.globalSearchVersion !== 'V209-global-search' || state.globalSearchRevision !== 'V209.1-self-heal' || state.globalSearchMeta !== 'V209-global-search' || !state.simpleHome || !state.shell || !state.dashboard) throw new Error('V209 presentation layer unavailable');
-  if(state.mobileItems !== 5) throw new Error(`mobile navigation count ${state.mobileItems}`);
-  if(state.createOptions !== 4) throw new Error(`quick-create option count ${state.createOptions}`);
-  if(state.propertyActions !== 4) throw new Error(`property action count ${state.propertyActions}`);
-  if(!state.mobileCreateHidden) throw new Error('duplicate mobile create trigger must stay hidden on home');
-  for(const route of ['tenants','reports','documentsHub']) if(!state.businessLinks.includes(route)) throw new Error(`${route} missing from More menu`);
-  if(state.fakeBars !== 0) throw new Error('hard-coded chart bars must not be shown');
-  if(!state.priorityFirst) throw new Error('today priorities must precede KPIs');
-  for(const label of ['الدخل المسجل','المقبوضات المسجلة','إيجار مستحق','طلبات صيانة مفتوحة']) if(!state.labels.includes(label)) throw new Error(`${label} missing`);
+  if(!state.title.includes('V267')) throw new Error('document title has stale release identity');
+  if(!state.luxury || !state.premium || !state.premiumCss || !state.shell) throw new Error('V267 login presentation unavailable');
   if(state.horizontalOverflow) throw new Error('page has horizontal overflow at 390px');
 });
 
-await check('V209 signed-out search stays sealed and fits the iPhone viewport', async () => {
-  await page.evaluate(() => document.querySelector('#v205SimpleHome [data-v205-command="search"]')?.click());
-  await page.waitForTimeout(180);
-  const state=await page.evaluate(() => {
-    const panel=document.getElementById('v199SearchPanel');
-    const input=document.getElementById('v199SearchInput');
-    const results=document.getElementById('v209SearchResults');
-    const rect=panel?.getBoundingClientRect();
-    let properties=[];
-    try{properties=window.AQARI_V202?.rentOfficeProperties?.()||[]}catch{}
-    return {
-      open:Boolean(panel?.classList.contains('on')),
-      role:panel?.getAttribute('role'),
-      dir:panel?.getAttribute('dir'),
-      inputValue:input?.value||'',
-      inputFont:input?parseFloat(getComputedStyle(input).fontSize):0,
-      signedOutMessage:String(results?.textContent||'').includes('سجّل الدخول'),
-      protectedProperties:Array.isArray(properties)?properties.length:-1,
-      left:rect?.left??-1,
-      right:rect?.right??-1,
-      viewport:document.documentElement.clientWidth,
-      horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
-    };
-  });
-  if(!state.open||state.role!=='search'||state.dir!=='rtl')throw new Error('V209 search surface did not open accessibly: '+JSON.stringify(state));
-  if(state.inputValue||!state.signedOutMessage||state.protectedProperties!==0)throw new Error('signed-out V209 search exposed or retained protected data');
-  if(state.inputFont<16)throw new Error(`V209 input font ${state.inputFont}px can trigger iPhone zoom`);
-  if(state.left<0||state.right>state.viewport+1||state.horizontalOverflow)throw new Error(`V209 panel escaped viewport: ${state.left}..${state.right}/${state.viewport}`);
-  await page.keyboard.press('Escape');
-});
-
-await check('V210 signed-out command center stays sealed and mobile-safe', async () => {
-  await page.waitForFunction(() => window.AQARI_V210?.version === 'V210-daily-command-center');
-  const state=await page.evaluate(() => ({
+// Authenticated layout, search, daily actions and quick-create are exercised
+// by v267-presentation-checks.mjs after the synthetic workspace is verified.
+await check('Authenticated modules and workspace data stay deferred while signed out', async () => {
+  const state = await page.evaluate(() => ({
     authenticated:Boolean(window.AQARI_SUPABASE?.context?.user),
-    apiVersion:window.AQARI_V210?.version,
+    unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),
+    modules:['201','202','205','206','208','209','210','211','266'].filter(version => Boolean(window['AQARI_V'+version])),
+    scripts:Array.from(document.scripts).map(script => script.id).filter(id => /^aqari-v(?:201|202|205|206|208|209|210|211|266)-/.test(id)),
+    searchOpen:Boolean(document.getElementById('v199SearchPanel')?.classList.contains('on')),
+    searchResults:document.querySelectorAll('#v209SearchResults [data-v209-result]').length,
     commandCenter:Boolean(document.getElementById('v210DailyCommandCenter')),
-    cssLoaded:Boolean(document.getElementById('aqari-v210-daily-command-center-css')),
-    scriptLoaded:Boolean(document.getElementById('aqari-v210-daily-command-center-js')),
-    meta:document.querySelector('meta[name="aqari-daily-command-center"]')?.content||'',
-    protectedSnapshot:window.AQARI_V210?.resume?.(null),
-    horizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
+    simpleHome:Boolean(document.getElementById('v205SimpleHome')),
+    gate:document.getElementById('aqariCloudGateV168')?.classList.contains('on')
   }));
-  if(state.authenticated)throw new Error('test requires a signed-out Preview');
-  if(state.apiVersion!=='V210-daily-command-center'||!state.cssLoaded||!state.scriptLoaded||state.meta!=='V210-daily-command-center')throw new Error('V210 assets or identity missing: '+JSON.stringify(state));
-  if(state.commandCenter||state.protectedSnapshot!==false)throw new Error('signed-out V210 command center exposed protected workspace data');
-  if(state.horizontalOverflow)throw new Error('V210 creates horizontal overflow at 390px');
-});
-
-await check('V205 keeps one visible mobile navigation with five clear sections', async () => {
-  await page.waitForSelector('body[data-v205-ready="true"]');
-  const state=await page.evaluate(() => {
-    const root=document.getElementById('v205SimpleHome');
-    const sections=Array.from(document.querySelectorAll('#v205PrimarySections [data-v205-section]')).map(node => {
-      const rect=node.getBoundingClientRect();
-      return {
-        key:node.getAttribute('data-v205-section'),
-        route:node.getAttribute('data-v199-go'),
-        label:node.textContent.trim(),
-        current:node.getAttribute('aria-current'),
-        width:rect.width,
-        height:rect.height
-      };
-    });
-    return {
-      lang:document.documentElement.lang,
-      dir:document.documentElement.dir,
-      rootDirection:root?getComputedStyle(root).direction:'',
-      navLabel:document.getElementById('v205PrimarySections')?.getAttribute('aria-label')||'',
-      inPageNavHidden:Boolean(document.getElementById('v205PrimarySections')?.hidden),
-      visibleTopNav:Boolean(document.querySelector('.v199-primary-nav')?.getClientRects().length),
-      mobileSections:Array.from(document.querySelectorAll('.mobilebar .v199-bottom-button')).map(node => {
-        const rect=node.getBoundingClientRect();
-        return {width:rect.width,height:rect.height,visible:Boolean(node.getClientRects().length)};
-      }),
-      sections,
-      overflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1
-    };
-  });
-  const expected=[
-    ['home','home','الرئيسية'],
-    ['properties','properties','العقارات'],
-    ['tenants','tenants','المستأجرون'],
-    ['collectionProPage','collectionProPage','التحصيل'],
-    ['maintenanceProPage','maintenanceProPage','الصيانة']
-  ];
-  if(state.lang!=='ar'||state.dir!=='rtl'||state.rootDirection!=='rtl')throw new Error('V205 must stay Arabic RTL');
-  if(!state.navLabel)throw new Error('primary navigation needs an accessible label');
-  if(state.sections.length!==5)throw new Error(`primary section count ${state.sections.length}`);
-  if(new Set(state.sections.map(item => item.key)).size!==5)throw new Error('primary section keys must be unique');
-  expected.forEach(([key,route,label],index) => {
-    const actual=state.sections[index];
-    if(actual?.key!==key||actual?.route!==route||!actual?.label.includes(label))throw new Error(`primary section ${index+1} mismatch`);
-  });
-  if(state.sections.filter(item => item.current==='page').length!==1)throw new Error('exactly one primary section must be current');
-  if(!state.inPageNavHidden)throw new Error('duplicate in-page navigation must stay hidden');
-  if(state.visibleTopNav)throw new Error('desktop navigation must stay hidden at mobile width');
-  if(state.mobileSections.length!==5||state.mobileSections.some(item => !item.visible||item.width<44||item.height<44))throw new Error('mobile navigation must expose five accessible touch targets');
-  if(state.overflow)throw new Error('V205 home overflows horizontally at 390px');
-});
-
-await check('V205 daily actions are complete and safe before property selection', async () => {
-  const actions=await page.evaluate(() => Array.from(document.querySelectorAll('#v205DailyActions [data-v205-daily-action]')).map(node => {
-    const rect=node.getBoundingClientRect();
-    return {
-      key:node.getAttribute('data-v205-daily-action'),
-      route:node.getAttribute('data-v199-go'),
-      label:node.textContent.trim(),
-      disabled:node.disabled,
-      width:rect.width,
-      height:rect.height
-    };
-  }));
-  const expected=['contract','payment','statement','maintenance'];
-  if(JSON.stringify(actions.map(item => item.key))!==JSON.stringify(expected))throw new Error(`daily actions: ${actions.map(item => item.key).join(',')}`);
-  for(const action of actions){
-    if(!action.label||!action.route||action.disabled)throw new Error(`${action.key} is not actionable`);
-    if(action.width<44||action.height<44)throw new Error(`${action.key} touch target is too small`);
-  }
+  if(state.authenticated || state.unlocked || !state.gate) throw new Error('test requires a locked signed-out Preview');
+  if(state.modules.length || state.scripts.length) throw new Error('authenticated presentation initialized before the workspace boundary: '+JSON.stringify(state));
+  if(state.searchOpen || state.searchResults || state.commandCenter || state.simpleHome) throw new Error('signed-out workspace surfaces must remain sealed');
 });
 
 await check('V205 signed-out home exposes no protected tenant data', async () => {
@@ -320,52 +183,22 @@ await check('V206 ledger remains sealed before authentication', async () => {
   const state=await page.evaluate(() => ({
     shown:document.getElementById('v202DocumentDialog')?.getAttribute('aria-hidden')==='false',
     ledger:Boolean(document.querySelector('#v202DocumentDialog [data-v206-ledger]')),
-    cssLoaded:Boolean(document.getElementById('aqari-v206-integrated-ledger-css')),
     legacyV206:Boolean(document.querySelector('#v201RentStatement [data-v206-ledger]'))
   }));
   if(state.shown||state.ledger||state.legacyV206) throw new Error('signed-out V206 ledger must not render');
-  if(!state.cssLoaded) throw new Error('V206 ledger stylesheet missing');
 });
 
-await check('V201 quick-create respects the auth gate and keeps an accessible modal', async () => {
-  const authState = await page.evaluate(() => ({
+await check('Signed-out actions remain behind the accessible auth modal', async () => {
+  const state = await page.evaluate(() => ({
     gateOpen:document.getElementById('aqariCloudGateV168')?.classList.contains('on'),
-    gateRole:document.getElementById('aqariCloudGateV168')?.getAttribute('role'),
-    gateModal:document.getElementById('aqariCloudGateV168')?.getAttribute('aria-modal'),
-    authenticated:Boolean(
-      window.AQARI_SUPABASE?.context?.user?.id &&
-      window.AQARI_SUPABASE?.context?.workspace?.id &&
-      window.AQARI_SUPABASE?.context?.membership?.is_active
-    )
+    role:document.getElementById('aqariCloudGateV168')?.getAttribute('role'),
+    modal:document.getElementById('aqariCloudGateV168')?.getAttribute('aria-modal'),
+    authenticated:Boolean(window.AQARI_SUPABASE?.context?.user),
+    createOpen:document.getElementById('v201CreateMenu')?.getAttribute('aria-hidden') === 'false'
   }));
-  if(authState.gateOpen && !authState.authenticated){
-    if(authState.gateRole !== 'dialog' || authState.gateModal !== 'true'){
-      throw new Error('signed-out cloud gate must remain an accessible modal');
-    }
-    return;
+  if(state.authenticated || !state.gateOpen || state.role !== 'dialog' || state.modal !== 'true' || state.createOpen) {
+    throw new Error('signed-out actions escaped the accessible auth boundary');
   }
-  await page.locator('#v205SimpleHome [data-v205-command="quick"]').click();
-  await page.waitForTimeout(160);
-  const open = await page.evaluate(() => ({
-    shown:document.getElementById('v201CreateMenu')?.getAttribute('aria-hidden') === 'false',
-    focused:Boolean(document.activeElement?.matches('[data-v201-create]'))
-  }));
-  if(!open.shown || !open.focused) throw new Error('quick-create sheet did not open accessibly');
-  await page.evaluate(() => document.querySelector('[data-v201-create="properties"]')?.click());
-  await page.waitForTimeout(180);
-  const modal = await page.evaluate(() => ({
-    open:document.getElementById('modal')?.classList.contains('on'),
-    role:document.getElementById('modal')?.getAttribute('role'),
-    ariaModal:document.getElementById('modal')?.getAttribute('aria-modal'),
-    labels:document.querySelectorAll('#fields .v201-field').length,
-    controls:document.querySelectorAll('#fields input,#fields select,#fields textarea').length
-  }));
-  if(!modal.open || modal.role !== 'dialog' || modal.ariaModal !== 'true') throw new Error('create modal accessibility contract failed');
-  if(!modal.controls || modal.labels !== modal.controls) throw new Error(`visible labels ${modal.labels}/${modal.controls}`);
-  await page.evaluate(() => {
-    document.getElementById('modal')?.classList.remove('on');
-    window.go?.('home');
-  });
 });
 
 await check('V79 database status is manual, coalesced, and render-safe', async () => {
@@ -380,14 +213,14 @@ await check('V79 database status is manual, coalesced, and render-safe', async (
 });
 
 async function readApi(path){
-  const response = await page.request.get(new URL(path, base).toString());
+  const response = await page.request.get(new URL(path, base).toString(), { headers:access.headersFor(new URL(path, base)), maxRedirects:0 });
   if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   const cacheControl = String(response.headers()['cache-control'] || '');
   if(!cacheControl.includes('no-store')) throw new Error(`${path} browser cache contract`);
   if(response.headers()['x-content-type-options'] !== 'nosniff') throw new Error(`${path} nosniff contract`);
   const body = await response.json();
   if(body.ok !== true || body.version !== 'V198') throw new Error(`${path} payload mismatch`);
-  const post = await page.request.post(new URL(path, base).toString());
+  const post = await page.request.post(new URL(path, base).toString(), { headers:access.headersFor(new URL(path, base)), maxRedirects:0 });
   if(post.status() !== 405) throw new Error(`${path} POST must be 405`);
   return body;
 }
@@ -416,7 +249,7 @@ await check('Preview SHA and environment', async () => {
   const body = await readApi('/api/production-meta');
   if(body.deployment?.environment !== 'preview') throw new Error('not a Preview deployment');
   if(body.deployment?.gitSha !== expectedSha) throw new Error(`SHA ${body.deployment?.gitSha || 'missing'} != ${expectedSha}`);
-  if(body.productVersion !== 'V266' || body.apiContractVersion !== 'V198') throw new Error('release identity mismatch');
+  if(body.productVersion !== 'V267' || body.apiContractVersion !== 'V198') throw new Error('release identity mismatch');
 });
 
 await check('Preview production-readiness contract', async () => {
@@ -438,13 +271,13 @@ await check('Preview production-readiness contract', async () => {
   console.log('INFO', `operational readiness checks: ${summary.passed}/${summary.required}`);
 });
 
-await check('V211 identity survives a blocked V201 presentation layer', async () => {
+await check('V267 login identity remains visible with authenticated presentation unavailable', async () => {
   const fallbackPage = await context.newPage();
   try{
     await fallbackPage.route('**/v201-experience.js*', route => route.abort('failed'));
     const fallbackUrl = new URL(base);
     fallbackUrl.pathname = '/app';
-    fallbackUrl.searchParams.set('release','V266');
+    fallbackUrl.searchParams.set('release','V267');
     const response = await fallbackPage.goto(fallbackUrl.toString(), { waitUntil:'domcontentloaded', timeout:30000 });
     if(!response?.ok()) throw new Error(`fallback HTTP ${response?.status()}`);
     await fallbackPage.waitForSelector('#aqariV199Topbar', { state:'attached', timeout:12000 });
@@ -455,7 +288,7 @@ await check('V211 identity survives a blocked V201 presentation layer', async ()
       stale:Array.from(document.querySelectorAll('#aqariV199Topbar,.v199-gate-version'))
         .some(node => /V200(?:\s+LUXURY)?/i.test(node.textContent || ''))
     }));
-    if(identity.header !== 'V266' || identity.gate !== 'AQARI V266' || identity.stale){
+    if(identity.header !== 'V267' || identity.gate !== 'AQARI V267' || identity.stale){
       throw new Error('fallback release identity mismatch: ' + JSON.stringify(identity));
     }
   }finally{
@@ -463,9 +296,9 @@ await check('V211 identity survives a blocked V201 presentation layer', async ()
   }
 });
 
-await check('PWA and V209 presentation assets', async () => {
-  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js','/v210-daily-command-center.css','/v210-daily-command-center.js']){
-    const response = await page.request.get(new URL(path, base).toString());
+await check('PWA and V267 presentation assets', async () => {
+  for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js','/v210-daily-command-center.css','/v210-daily-command-center.js','/v267-premium-workspace.css']){
+    const response = await page.request.get(new URL(path, base).toString(), { headers:access.headersFor(new URL(path, base)), maxRedirects:0 });
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
   if(pageErrors.length) throw new Error(pageErrors.slice(0,3).join(' | '));
@@ -474,4 +307,4 @@ await check('PWA and V209 presentation assets', async () => {
 
 await browser.close();
 if(failed) process.exit(1);
-console.log('AQARI V210 Daily Command Center Preview E2E on V198 runtime: PASS');
+console.log('AQARI V267 signed-out Preview E2E on V198 runtime: PASS');

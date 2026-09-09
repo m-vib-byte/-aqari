@@ -161,7 +161,7 @@ test('manual entry is an explicit login presentation choice, never an access byp
   assert.ok(login.includes("var manualEntry = /(?:^|[?&])manual=1(?:&|$)/.test(String(window.location.search || ''))"));
   assert.match(login,/if\(manualEntry \|\| busy \|\| preparing \|\| restoreFlight\) return restoreFlight/);
   assert.match(login,/AQARI_SUPABASE.signIn\(emailValue,passwordValue\)/);
-  assert.match(bridgeSource,/link.href = '\/login\?release=V266&manual=1'/);
+  assert.match(bridgeSource,/link.href = '\/login\?release=V267&manual=1'/);
 });
 
 // Include gateway security and timeout coverage in the existing CI suite.

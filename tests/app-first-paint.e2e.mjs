@@ -38,7 +38,7 @@ try {
             return route.abort();
           });
           const page=await context.newPage();
-          await page.goto(base+'/app?release=V266',{waitUntil:'commit',timeout:15000});
+          await page.goto(base+'/app?release=V267',{waitUntil:'commit',timeout:15000});
           if(variant==='before'){
             for(let i=0;i<40&&held.length<5;i++) await page.waitForTimeout(50);
             assert.equal(held.length,5,'negative control must really hold all five stylesheets');

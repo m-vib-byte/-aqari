@@ -41,8 +41,8 @@
   }
 
   function currentRelease(){
-    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V266').trim();
-    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V266';
+    const value=String(document.querySelector('meta[name="aqari-release"]')?.content||window.AQARI_RELEASE||'V267').trim();
+    return /^V\d+(?:\.\d+){0,3}$/.test(value)?value:'V267';
   }
 
   function numberFrom(value){
@@ -104,12 +104,13 @@
         '<span class="v199-brand-mark">'+icon('brand')+'</span><span class="v199-brand-copy"><strong>عقاري</strong><small>'+escapeHtml(currentRelease())+'</small></span>'+
       '</button>'+
       '<nav class="v199-primary-nav" aria-label="التنقل الرئيسي">'+
-        '<button type="button" class="v199-nav-button is-active" data-v199-go="home" aria-current="page">الرئيسية</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="properties">العقارات</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="tenants">المستأجرون</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="collectionProPage">التحصيل</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="maintenanceProPage">الصيانة</button>'+
-        '<button type="button" class="v199-nav-button" data-v199-go="reports">التقارير</button>'+
+        '<button type="button" class="v199-nav-button is-active" data-v199-go="home" aria-current="page">'+icon('home')+'<span>الرئيسية</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="properties">'+icon('building')+'<span>العقارات</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="tenants">'+icon('users')+'<span>المستأجرون</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="collectionProPage">'+icon('wallet')+'<span>التحصيل</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="maintenanceProPage">'+icon('tool')+'<span>الصيانة</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="reports">'+icon('chart')+'<span>التقارير</span></button>'+
+        '<button type="button" class="v199-nav-button" data-v199-go="documentsHub">'+icon('file')+'<span>العقود والمستندات</span></button>'+
       '</nav>'+
       '<div class="v199-toolbar">'+
         '<button type="button" class="v199-icon-button v199-search-trigger" data-v199-action="search" aria-label="فتح البحث" aria-controls="v199SearchPanel" aria-expanded="false">'+icon('search')+'</button>'+
@@ -163,8 +164,8 @@
     bar.setAttribute('aria-label','التنقل السريع');
     bar.innerHTML=
       '<button type="button" class="v199-bottom-button is-active" data-v199-go="home" aria-current="page">'+icon('home')+'<span>الرئيسية</span></button>'+
-      '<button type="button" class="v199-bottom-button" data-v199-go="properties">'+icon('building')+'<span>العقارات</span></button>'+
       '<button type="button" class="v199-bottom-button" data-v199-go="collectionProPage">'+icon('wallet')+'<span>التحصيل</span></button>'+
+      '<button type="button" class="v199-bottom-button" data-v199-go="properties">'+icon('building')+'<span>العقارات</span></button>'+
       '<button type="button" class="v199-bottom-button" data-v199-go="maintenanceProPage">'+icon('tool')+'<span>الصيانة</span></button>'+
       '<button type="button" class="v199-bottom-button" data-v199-action="more">'+icon('more')+'<span>المزيد</span></button>';
   }
@@ -288,7 +289,6 @@
       const revenue=numberFrom(row?.[3]);
       return '<div class="v199-property-row"><span class="v199-property-mark">'+icon('building')+'</span><span class="v199-property-copy"><strong>'+name+'</strong><small>'+owner+'</small></span><span class="v199-property-units">'+count+' وحدة</span><span class="v199-property-income">'+money(revenue)+'</span></div>';
     }).join('') || '<div class="v199-empty">أضف أول عقار لتظهر تفاصيل المحفظة هنا.</div>';
-    const bars=[34,48,43,61,55,72,68,76,64,82,78,Math.max(12,rate)].map(function(height){return '<span style="height:'+height+'%"></span>'}).join('');
 
     return '<div class="v199-overview-head">'+
       '<div><p class="v199-eyebrow">'+escapeHtml(currentDate())+'</p><h1>'+greeting()+'، <span id="v199GreetingName">'+escapeHtml(sessionLabel().split('•')[0].trim())+'</span></h1><p>هذه أهم أرقام محفظتك وما يحتاج متابعتك اليوم.</p></div>'+
@@ -301,7 +301,7 @@
       '<article class="v199-kpi"><div class="v199-kpi-top"><span class="v199-kpi-label">الصيانة المفتوحة</span><span class="v199-kpi-icon">'+icon('tool')+'</span></div><strong class="v199-kpi-value">'+maintenanceOpen+'</strong><div class="v199-kpi-meta"><span>عبر '+units+' وحدة في المحفظة</span></div></article>'+
     '</div>'+
     '<div class="v199-dashboard-grid">'+
-      '<article class="v199-panel"><div class="v199-panel-head"><div class="v199-panel-title"><h2>الأداء المالي</h2><p>ملخص الدخل والتحصيل والمصروفات</p></div><button type="button" class="v199-link-button" data-v199-go="financeSuitePage">عرض التفاصيل</button></div><div class="v199-finance-summary"><div class="v199-collection-card"><span>نسبة التحصيل</span><div class="v199-collection-number"><strong>'+rate+'%</strong><small>'+money(collected)+' محصّل</small></div><div class="v199-progress" aria-label="نسبة التحصيل '+rate+' بالمئة"><span style="width:'+rate+'%"></span></div><div class="v199-mini-bars" aria-hidden="true">'+bars+'</div></div><div class="v199-finance-stat"><span>الإيرادات</span><strong>'+money(income)+'</strong><small>إجمالي المحفظة</small></div><div class="v199-finance-stat"><span>المصروفات</span><strong>'+money(expenseTotal)+'</strong><small>مصروفات مسجلة</small></div><div class="v199-finance-stat"><span>صافي التشغيل</span><strong>'+money(net)+'</strong><small>بعد المصروف والرواتب</small></div></div></article>'+
+      '<article class="v199-panel"><div class="v199-panel-head"><div class="v199-panel-title"><h2>الأداء المالي</h2><p>ملخص الدخل والتحصيل والمصروفات</p></div><button type="button" class="v199-link-button" data-v199-go="financeSuitePage">عرض التفاصيل</button></div><div class="v199-finance-summary"><div class="v199-collection-card"><span>نسبة التحصيل</span><div class="v199-collection-number"><strong>'+rate+'%</strong><small>'+money(collected)+' محصّل</small></div><div class="v199-progress" aria-label="نسبة التحصيل '+rate+' بالمئة"><span style="width:'+rate+'%"></span></div></div><div class="v199-finance-stat"><span>الإيرادات</span><strong>'+money(income)+'</strong><small>إجمالي المحفظة</small></div><div class="v199-finance-stat"><span>المصروفات</span><strong>'+money(expenseTotal)+'</strong><small>مصروفات مسجلة</small></div><div class="v199-finance-stat"><span>صافي التشغيل</span><strong>'+money(net)+'</strong><small>بعد المصروف والرواتب</small></div></div></article>'+
       '<article class="v199-panel"><div class="v199-panel-head"><div class="v199-panel-title"><h2>أولوية اليوم</h2><p>الأعمال التي تحتاج قرارك</p></div></div><div class="v199-priority-list">'+
         '<button type="button" class="v199-priority-item" data-v199-go="collectionProPage"><span class="v199-priority-icon red">'+icon('alert')+'</span><span class="v199-priority-copy"><strong>متابعة المتأخرات</strong><small>'+money(overdue)+' غير محصّل</small></span><span class="v199-priority-value">'+overdueRows.length+'</span></button>'+
         '<button type="button" class="v199-priority-item" data-v199-go="maintenanceProPage"><span class="v199-priority-icon">'+icon('tool')+'</span><span class="v199-priority-copy"><strong>طلبات الصيانة</strong><small>طلبات مفتوحة بانتظار المتابعة</small></span><span class="v199-priority-value">'+maintenanceOpen+'</span></button>'+

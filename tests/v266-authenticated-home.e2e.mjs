@@ -4,6 +4,7 @@ import path from 'node:path';
 import http from 'node:http';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
+import { checkV267AuthenticatedPresentation } from './v267-presentation-checks.mjs';
 
 // Exercise the actual renderer and pinned SDK. The local HTTP backend also
 // serves requests initiated by service workers, which bypass Playwright route
@@ -91,19 +92,39 @@ try{
         await context.addInitScript(value=>{
           localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));
           setInterval(()=>{window.__homeHeartbeats=(window.__homeHeartbeats||0)+1;},100);
+          window.__earlyAuthenticatedScripts=[];
+          window.__authenticatedScriptLoads=[];
+          const append=Node.prototype.appendChild;
+          Node.prototype.appendChild=function(node){
+            if(node?.tagName==='SCRIPT'&&/^aqari-v(?:201|202|205|206|208|209|210|211|266)-/.test(node.id||'')){
+              const context=window.AQARI_SUPABASE?.context,member=context?.membership;
+              const userId=context?.user?.id,workspaceId=context?.workspace?.id;
+              const data=window.AQARI_DATA_GATE?.scope,storage=window.AQARI_EARLY_STORAGE_GATE?.scope;
+              const snapshot={
+                id:node.id,
+                unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),
+                verified:Boolean(userId&&workspaceId&&member?.is_active===true&&member.user_id===userId&&member.workspace_id===workspaceId&&['general_manager','property_manager','accountant','viewer'].includes(member.role)),
+                dataReady:Boolean(userId&&workspaceId&&data?.userId===userId&&data.workspaceId===workspaceId),
+                storageReady:Boolean(userId&&workspaceId&&storage?.userId===userId&&storage.workspaceId===workspaceId)
+              };
+              window.__authenticatedScriptLoads.push(snapshot);
+              if(!snapshot.unlocked||!snapshot.verified||!snapshot.dataReady||!snapshot.storageReady)window.__earlyAuthenticatedScripts.push(snapshot);
+            }
+            return append.call(this,node);
+          };
         },session);
         const page=await context.newPage();
         page.on('pageerror',error=>errors.push(error.stack));
         page.on('dialog',dialog=>dialog.dismiss());
         if(scenario==='manual'){
-          await page.goto(base+'/login?release=V266&manual=1',{waitUntil:'domcontentloaded'});
+          await page.goto(base+'/login?release=V267&manual=1',{waitUntil:'domcontentloaded'});
           await page.waitForFunction(()=>Boolean(window.AQARI_SUPABASE));
           await delay(800);
           assert.equal(new URL(page.url()).pathname,'/login','manual entry must not restore/redirect');
           await page.fill('#email',user.email);await page.fill('#password','Synthetic-password-only');
           await page.click('#loginButton');
-          await page.waitForURL('**/app?release=V266');
-        }else await page.goto(base+'/app?release=V266',{waitUntil:'domcontentloaded',timeout:30000});
+          await page.waitForURL('**/app?release=V267');
+        }else await page.goto(base+'/app?release=V267',{waitUntil:'domcontentloaded',timeout:30000});
         if(scenario==='timeout'||scenario==='confirmation-timeout'){
           await page.waitForSelector('[data-auth-phase="error"]',{timeout:16000});
           assert.ok(await page.locator('#aqariManualLoginRecovery').isVisible());
@@ -111,11 +132,23 @@ try{
           await delay(800);
           assert.equal(await page.locator('#aqariCloudGateV168').getAttribute('data-auth-phase'),'error');
           assert.equal(requests.filter(r=>r==='POST /rest/v1/rpc/aqari_startup_snapshot_v266').length,1,'late auth must not restart loading');
+          assert.deepEqual(await page.evaluate(()=>window.__authenticatedScriptLoads),[], 'timed-out startup must not load optional authenticated UI');
         }else{
           await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:18000});
-          await delay(700);
+          await page.waitForFunction(()=>['201','202','205','206','208','209','210','211','266'].every(version=>Boolean(window['AQARI_V'+version])),{},{timeout:18000});
+          const loadedVersions=await page.evaluate(()=>window.__authenticatedScriptLoads.map(item=>item.id.match(/^aqari-v(\d+)-/)[1]));
+          for(const version of ['201','202','205','206','208','209','210','211','266'])assert.ok(loadedVersions.includes(version),'authenticated script boundary was not observed: V'+version);
+          const beats=await page.evaluate(()=>window.__homeHeartbeats);
+          await delay(1000);
+          assert.ok(await page.evaluate(()=>window.__homeHeartbeats)>beats,'the completed UI must remain responsive');
+          for(const [route,target] of [['properties','list'],['tenants','list'],['smartContractsPage','smartContractsPage'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
+            await page.evaluate(route=>window.go(route),route);
+            assert.ok(await page.locator('#'+target).isVisible(),'visible full-platform section: '+route);
+          }
           assert.ok(await page.locator('#home').isVisible());
+          if(scenario==='empty'||scenario==='populated')await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated',artifactPath:path.join(out,name+'-iphone-layout.png')});
         }
+        assert.deepEqual(await page.evaluate(()=>window.__earlyAuthenticatedScripts),[], 'authenticated UI must wait for verified membership and BOTH workspace data scopes');
         const state=await page.evaluate(()=>({phase:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-phase'),stage:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),heartbeat:window.__homeHeartbeats}));
         assert.deepEqual(errors,[]);
         fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify({name,passed:true,state,requests},null,2));

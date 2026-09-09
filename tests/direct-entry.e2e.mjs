@@ -1,10 +1,11 @@
 import { chromium, webkit } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { previewAccess, routePreviewRequest } from './preview-access.mjs';
 
 const base = new URL(process.env.AQARI_BASE_URL || 'https://myaqari.com');
 assert.equal(base.protocol, 'https:');
-const bypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '';
+const access = previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
 const output = 'test-results/direct-entry';
 fs.mkdirSync(output, { recursive:true });
 const results = [];
@@ -16,7 +17,7 @@ try {
         const context = await browser.newContext({
           viewport:{ width:1473, height:850 },
           javaScriptEnabled:mode !== 'javascript-disabled',
-          extraHTTPHeaders:bypass ? { 'x-vercel-protection-bypass':bypass } : {}
+          serviceWorkers:'block'
         });
         try {
           // Fresh signed-out contexts only. Never forward the Preview secret
@@ -25,7 +26,7 @@ try {
             const request = route.request();
             const url = new URL(request.url());
             if (url.origin !== base.origin || (mode === 'scripts-blocked' && url.pathname.endsWith('.js'))) return route.abort();
-            return route.continue();
+            return routePreviewRequest(route, access);
           });
           const page = await context.newPage();
           const errors = [];
@@ -47,7 +48,12 @@ try {
           results.push(result);
           await page.screenshot({ path:output+'/'+engineName+'-'+mode+'.png' });
           console.log('DIRECT_ENTRY', JSON.stringify(result));
-        } finally { await context.close(); }
+        } finally {
+          // Root can finish painting while a routed vendor asset is in flight.
+          // Complete those callbacks before disposing their request context.
+          try { await context.unrouteAll({ behavior:'wait' }); }
+          finally { await context.close(); }
+        }
       }
     } finally { await browser.close(); }
   }

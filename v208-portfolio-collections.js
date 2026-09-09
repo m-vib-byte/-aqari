@@ -1,5 +1,6 @@
 (function(){
   'use strict';
+  // V206.3 secure API remains the only portfolio source; pending obligations are not zero balances.
 
   const DESIGN='V208-v2063-portfolio-collections';
   if(window.AQARI_V208?.version===DESIGN)return;
@@ -120,22 +121,23 @@
     const collected=Math.max(0,number(data.totalCollected));
     const balance=Math.max(0,number(data.totalBalance));
     const units=Math.max(0,number(data.unitCount));
-    const state=due>0?(balance>0?'due':'settled'):(units>0?'review':'setup');
-    return {name,state,period,due,collected,balance,units,canRecordPayment:Boolean(data.canRecordPayment),official:Boolean(data.official),valid:true};
+    const obligationsVerified=data.obligationsVerified!==false;
+    const state=!obligationsVerified?'review':due>0?(balance>0?'due':'settled'):(units>0?'review':'setup');
+    return {name,state,period,due,collected,balance,units,obligationsVerified,canRecordPayment:Boolean(data.canRecordPayment),official:Boolean(data.official),valid:true};
   }
 
   function summaries(){return propertyNames().map(officeSummary).filter(item=>item.valid)}
 
   function stats(items){
     return items.reduce((out,item)=>{
-      out.total+=1;
+      out.total+=1;if(item.obligationsVerified===false)out.unreviewed+=1;
       if(item.valid){out.dueTotal+=item.due;out.collectedTotal+=item.collected;out.balanceTotal+=item.balance}
       if(item.state==='due'){out.due+=1;if(!item.canRecordPayment)out.readOnlyDue+=1}
       else if(item.state==='settled')out.settled+=1;
       else if(item.state==='setup')out.setup+=1;
       else out.review+=1;
       return out;
-    },{total:0,dueTotal:0,collectedTotal:0,balanceTotal:0,due:0,settled:0,setup:0,review:0,readOnlyDue:0});
+    },{total:0,unreviewed:0,dueTotal:0,collectedTotal:0,balanceTotal:0,due:0,settled:0,setup:0,review:0,readOnlyDue:0});
   }
 
   function collectionRate(summary){return summary.dueTotal>0?Math.min(100,Math.max(0,summary.collectedTotal/summary.dueTotal*100)):0}
@@ -173,7 +175,7 @@
       const mode=item.canRecordPayment?'تسجيل متاح':'عرض فقط';
       const note=item.state==='due'?'يوجد رصيد مستحق لهذه الفترة':item.state==='settled'?'تحصيل الفترة مكتمل':item.state==='setup'?'لا توجد بيانات إيجار للفترة':'بيانات الفترة تحتاج مراجعة';
       const actions=item.valid?'<button type="button" data-v208-open="'+esc(item.name)+'">فتح التحصيل</button><button type="button" class="is-secondary" data-v208-statement="'+esc(item.name)+'">كشف الشهر</button>':'';
-      return '<article class="v208-property is-'+item.state+'"><div class="v208-property-main"><div><span>العقار</span><h3>'+esc(item.name)+'</h3><small>'+esc(note)+(item.state==='due'?' • '+esc(mode):'')+'</small></div>'+stateBadge(item)+'</div><div class="v208-property-data"><div><span>المستحق</span><strong>'+esc(item.valid?money(item.due):'—')+'</strong></div><div><span>المحصّل</span><strong>'+esc(item.valid?money(item.collected):'—')+'</strong></div><div><span>المتبقي</span><strong>'+esc(item.valid?money(item.balance):'—')+'</strong></div><div><span>الوحدات</span><strong>'+esc(item.valid?String(item.units):'—')+'</strong></div></div><footer>'+actions+'</footer></article>';
+      return '<article class="v208-property is-'+item.state+'"><div class="v208-property-main"><div><span>العقار</span><h3>'+esc(item.name)+'</h3><small>'+esc(note)+(item.state==='due'?' • '+esc(mode):'')+'</small></div>'+stateBadge(item)+'</div><div class="v208-property-data"><div><span>المستحق</span><strong>'+esc(item.valid&&item.obligationsVerified!==false?money(item.due):'—')+'</strong></div><div><span>المحصّل</span><strong>'+esc(item.valid?money(item.collected):'—')+'</strong></div><div><span>المتبقي</span><strong>'+esc(item.valid&&item.obligationsVerified!==false?money(item.balance):'—')+'</strong></div><div><span>الوحدات</span><strong>'+esc(item.valid?String(item.units):'—')+'</strong></div></div><footer>'+actions+'</footer></article>';
     }).join('');
   }
 
@@ -181,14 +183,14 @@
     const summary=stats(items);
     const rate=collectionRate(summary);
     const top=priority(items);
-    const priorityButton=top?'<button type="button" class="v208-priority" data-v208-open="'+esc(top.name)+'"><span>أعلى أولوية</span><strong>'+esc(top.name)+'</strong><small>'+esc(money(top.balance))+' متبقي'+(top.canRecordPayment?'':' • عرض فقط')+'</small></button>':'<span class="v208-priority is-clear">لا يوجد رصيد مستحق في هذه الفترة</span>';
-    return '<section class="v208-board" id="v208PortfolioCollections" aria-labelledby="v208PortfolioTitle"><header class="v208-board-head"><div><span>لوحة التحصيل الشاملة</span><h2 id="v208PortfolioTitle">كل العقارات في شاشة واحدة</h2><p>فترة موحّدة لكل العقارات، والأرقام مأخوذة من `rentOfficeData` الرسمي في V206.3 بدون قراءة Ledger مباشرة.</p></div>'+priorityButton+'</header><div class="v208-period"><label for="v208PortfolioPeriod"><span>شهر التحصيل</span><input id="v208PortfolioPeriod" type="month" value="'+esc(period)+'"></label><strong>'+esc(periodLabel(period))+'</strong></div><div class="v208-kpis" aria-live="polite"><div class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.dueTotal))+'</strong><small>'+summary.total+' عقار</small></div><div class="is-collected"><span>المحصّل</span><strong>'+esc(money(summary.collectedTotal))+'</strong><small>'+rate.toFixed(0)+'٪ نسبة التحصيل</small></div><div class="is-due"><span>المتبقي</span><strong>'+esc(money(summary.balanceTotal))+'</strong><small>'+summary.due+' عقار يحتاج متابعة</small></div><div class="is-settled"><span>منتظمة</span><strong>'+summary.settled+'</strong><small>'+(summary.readOnlyDue?summary.readOnlyDue+' مستحق للعرض فقط':'لا يوجد تنبيه صلاحيات')+'</small></div></div><div class="v208-tools"><label><span>بحث بالعقار</span><input type="search" data-v208-search value="'+esc(query)+'" placeholder="اكتب اسم العقار"></label><div class="v208-filters" role="group" aria-label="فلترة العقارات"><button type="button" data-v208-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(summary.due+summary.review)+'</button><button type="button" data-v208-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+summary.due+'</button><button type="button" data-v208-filter="settled" class="'+(filter==='settled'?'is-active':'')+'">منتظم '+summary.settled+'</button><button type="button" data-v208-filter="setup" class="'+(filter==='setup'?'is-active':'')+'">يحتاج ربط '+summary.setup+'</button><button type="button" data-v208-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+summary.total+'</button></div></div><div class="v208-grid" data-v208-results>'+propertyCards(items)+'</div></section>';
+    const priorityButton=top?'<button type="button" class="v208-priority" data-v208-open="'+esc(top.name)+'"><span>أعلى أولوية</span><strong>'+esc(top.name)+'</strong><small>'+esc(money(top.balance))+' متبقي'+(top.canRecordPayment?'':' • عرض فقط')+'</small></button>':'<span class="v208-priority is-clear">'+(summary.unreviewed?'المستحقات معلقة حتى اعتماد العقود':'لا يوجد رصيد مستحق في هذه الفترة')+'</span>';
+    return '<section class="v208-board" id="v208PortfolioCollections" aria-labelledby="v208PortfolioTitle"><header class="v208-board-head"><div><span>لوحة التحصيل الشاملة</span><h2 id="v208PortfolioTitle">كل العقارات في شاشة واحدة</h2><p>الفترة موحّدة لكل العقارات. المستحقات ونسبة التحصيل تبقى معلقة عند وجود عقود مصدر غير معتمدة.</p></div>'+priorityButton+'</header><div class="v208-period"><label for="v208PortfolioPeriod"><span>شهر التحصيل</span><input id="v208PortfolioPeriod" type="month" value="'+esc(period)+'"></label><strong>'+esc(periodLabel(period))+'</strong></div><div class="v208-kpis" aria-live="polite"><div class="is-gold"><span>المستحق</span><strong>'+esc(summary.unreviewed?'معلّق':money(summary.dueTotal))+'</strong><small>'+summary.total+' عقار</small></div><div class="is-collected"><span>المحصّل</span><strong>'+esc(money(summary.collectedTotal))+'</strong><small>'+(summary.unreviewed?'النسبة معلقة حتى اعتماد العقود':rate.toFixed(0)+'٪ نسبة التحصيل')+'</small></div><div class="is-due"><span>المتبقي</span><strong>'+esc(summary.unreviewed?'معلّق':money(summary.balanceTotal))+'</strong><small>'+summary.due+' عقار يحتاج متابعة</small></div><div class="is-settled"><span>منتظمة</span><strong>'+summary.settled+'</strong><small>'+(summary.readOnlyDue?summary.readOnlyDue+' مستحق للعرض فقط':'لا يوجد تنبيه صلاحيات')+'</small></div></div><div class="v208-tools"><label><span>بحث بالعقار</span><input type="search" data-v208-search value="'+esc(query)+'" placeholder="اكتب اسم العقار"></label><div class="v208-filters" role="group" aria-label="فلترة العقارات"><button type="button" data-v208-filter="action" class="'+(filter==='action'?'is-active':'')+'">مطلوب الآن '+(summary.due+summary.review)+'</button><button type="button" data-v208-filter="due" class="'+(filter==='due'?'is-active':'')+'">مستحق '+summary.due+'</button><button type="button" data-v208-filter="settled" class="'+(filter==='settled'?'is-active':'')+'">منتظم '+summary.settled+'</button><button type="button" data-v208-filter="setup" class="'+(filter==='setup'?'is-active':'')+'">يحتاج ربط '+summary.setup+'</button><button type="button" data-v208-filter="all" class="'+(filter==='all'?'is-active':'')+'">الكل '+summary.total+'</button></div></div><div class="v208-grid" data-v208-results>'+propertyCards(items)+'</div></section>';
   }
 
   function homeMarkup(items){
     const summary=stats(items);
     const top=priority(items);
-    const headline=summary.balanceTotal>0?money(summary.balanceTotal)+' متبقي':'تحصيل '+periodLabel(period)+' منتظم';
+    const headline=summary.unreviewed?'المستحقات معلقة حتى اعتماد العقود':summary.balanceTotal>0?money(summary.balanceTotal)+' متبقي':'تحصيل '+periodLabel(period)+' منتظم';
     const detail=summary.due?summary.due+' عقار يحتاج متابعة':(summary.total?'لا يوجد رصيد مستحق حالي':'لا توجد عقارات مرتبطة');
     return '<section class="v208-home-card" id="v208HomeCollections" aria-label="ملخص التحصيل"><div><span>التحصيل • '+esc(periodLabel(period))+'</span><strong>'+esc(headline)+'</strong><small>'+esc(detail)+(top?' • الأعلى: '+esc(top.name):'')+'</small></div><button type="button" data-v208-route>فتح لوحة التحصيل</button></section>';
   }
@@ -196,6 +198,8 @@
   function signature(items){return JSON.stringify({access:accessReady(),period,query,filter,items:items.map(item=>[item.name,item.state,item.due,item.collected,item.balance,item.units,item.canRecordPayment,item.official])})}
 
   function render(){
+    // Do not rebuild portfolio summaries behind an active entry or document dialog.
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
     if(!accessReady()){
       clearViews();
       return;
@@ -230,7 +234,15 @@
     }
   }
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(render,120)}
+  function schedule(records){
+    if(records?.length&&records.every(r=>r.type==='attributes'&&!['home','collectionProPage','modal','v202PaymentDialog','v202PropertyWorkspace','v202DocumentDialog'].includes(r.target?.id)))return;
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
+    const homePage=document.getElementById('home'),collectionPage=document.getElementById('collectionProPage');
+    if(homePage&&collectionPage&&!homePage.classList.contains('on')&&!collectionPage.classList.contains('on'))return;
+    // Keep the first deadline: ongoing DOM updates must not starve the summary.
+    if(timer)return;
+    timer=setTimeout(function(){timer=0;const h=document.getElementById('home'),c=document.getElementById('collectionProPage');if(h&&c&&!h.classList.contains('on')&&!c.classList.contains('on'))return;render()},120);
+  }
 
   function restoreSearchFocus(start,end){
     requestAnimationFrame(()=>{
@@ -345,7 +357,8 @@
   function boot(){
     document.body.classList.add('aq-v208');
     window.AQARI_V208=Object.freeze({version:DESIGN,seal:seal,resume:resume});
-    observer.observe(document.body,{subtree:true,childList:true});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+    ['home','collectionProPage'].forEach(id=>{const page=document.getElementById(id);if(page)observer.observe(page,{attributes:true,attributeFilter:['class']})});
     installAuthListener();
     render();
     [600,1800,5000].forEach(delay=>setTimeout(function(){installAuthListener();schedule()},delay));

@@ -32,7 +32,7 @@ assert.ok(html.indexOf('<main') < html.indexOf('<script>'), 'login UI must prece
 assert.match(html, /membership\.is_active === true/);
 assert.match(html, /AQARI_SUPABASE\.signIn/);
 assert.match(html, /sha384-0UK\+HVlz5Y7F\/\/atDpPysyocv/);
-assert.match(html, /AQARI • V266/);
+assert.match(html, /AQARI • V267/);
 assert.match(html, /window\.location\.replace\('\/app\?release='/);
 assert.match(html, /var context = window\.AQARI_SUPABASE\.context/);
 assert.match(html, /function restoreExistingSession/);
@@ -103,7 +103,7 @@ assert.match(adapter, /new Set\(\['general_manager', 'property_manager', 'accoun
 assert.doesNotMatch(adapter, /service_role/i);
 assert.ok(Buffer.byteLength(html) < 17_000, 'login plus automatic session restoration should stay under 17 KB');
 
-assert.match(serviceWorker, /AQARI_RELEASE = 'V266'/);
+assert.match(serviceWorker, /AQARI_RELEASE = 'V267'/);
 assert.match(serviceWorker, /caches\.keys\(\)/);
 assert.match(serviceWorker, /caches\.delete\(key\)/);
 assert.match(serviceWorker, /self\.clients\.claim\(\)/);

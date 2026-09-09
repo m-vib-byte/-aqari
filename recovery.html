@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<title>عقاري | استعادة الوصول</title>
+<title>AQARI V267 | استعادة الوصول</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f8f5ee;color:#312b21;font:16px system-ui,-apple-system,sans-serif;line-height:1.7}main{max-width:1100px;margin:24px auto;padding:16px}header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{font-size:21px}.card{background:#fff;border:1px solid #e0d4b8;border-radius:18px;padding:24px;margin-top:18px}.login{max-width:520px;margin:32px auto}label{display:block;margin:14px 0 6px}input,select,button{font:inherit}input,select{width:100%;padding:12px;border:1px solid #b9af9a;border-radius:8px}input{direction:ltr;text-align:left}button{padding:10px 18px;border:1px solid #94713b;border-radius:8px;background:#745523;color:white;cursor:pointer}button.secondary{background:white;color:#624718}button:disabled{opacity:.6;cursor:wait}a{color:#6d501c}p{margin:10px 0}.notice{background:#fff5df;border:1px solid #e1ce9e;border-radius:10px;padding:12px}.error{color:#7c2018;background:#fff0ed}.stats{display:flex;gap:12px;flex-wrap:wrap}.stat{flex:1;min-width:150px;background:#faf7ef;border-radius:12px;padding:16px}.stat strong{display:block;font-size:26px}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:right}th,td{padding:10px;border-bottom:1px solid #e7e1d3;vertical-align:top;white-space:normal}th{background:#f6f1e6}small,.muted{color:#6e6558}.tools{display:flex;gap:8px;flex-wrap:wrap}[hidden]{display:none!important}#status{white-space:pre-line}html:not(.aqari-auth-unlocked) #home{display:none!important}@media(max-width:560px){main{margin:0;padding:12px}.card{padding:18px}th,td{min-width:100px;padding:8px}}@media print{.tools,#aqariCloudGateV168{display:none!important}.card{border:0;padding:0}.scroll{overflow:visible}body{background:white}}
 </style>
@@ -13,7 +13,7 @@
 <script defer src="/vendor/supabase-js-2.114.0.js" integrity="sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi" crossorigin="anonymous"></script>
 <script defer src="/supabase-adapter.js"></script>
 <script defer src="/recovery.js"></script>
-</head>
+<link rel="stylesheet" href="/v267-unified.css?release=V267"></head>
 <body>
 <main>
 <header><h1>عقاري</h1><span>استعادة الوصول الآمن</span></header>
@@ -30,7 +30,7 @@
 <noscript>يلزم تشغيل JavaScript لإتمام التحقق الآمن. لا يمكن عرض البيانات دون التحقق.</noscript>
 </section>
 <section id="home" hidden aria-hidden="true">
-<div class="card"><header><div><h2 id="workspaceName"></h2><p id="accountLabel"></p></div><div class="tools"><button id="refreshButton" type="button">تحديث من السحابة</button><button id="logoutButton" class="secondary" type="button">تسجيل الخروج</button><a href="/app?release=V266">المنصة الكاملة</a></div></header><p id="cloudRevision" class="muted"></p><div id="summary" class="stats"></div></div>
+<div class="card"><header><div><h2 id="workspaceName"></h2><p id="accountLabel"></p></div><div class="tools"><button id="refreshButton" type="button">تحديث من السحابة</button><button id="logoutButton" class="secondary" type="button">تسجيل الخروج</button><a href="/app?release=V267">المنصة الكاملة</a></div></header><p id="cloudRevision" class="muted"></p><div id="summary" class="stats"></div></div>
 <div class="card"><h2>العقارات</h2><div id="propertiesTable" class="scroll"></div></div>
 <div class="card"><h2>دليل المستأجرين</h2><label for="propertyFilter">تصفية حسب العقار</label><select id="propertyFilter"><option value="">جميع العقارات</option></select><p class="muted">يعرض أول 250 سجلًا مطابقًا للتصفية، دون أرقام الهوية أو المستندات الخاصة.</p><div id="tenantsTable" class="scroll"></div></div>
 <div class="card"><h2>سجل الإيجارات السحابي</h2><p class="muted">آخر 120 سجلًا في ترتيب النسخة المخزنة. هذا عرض للسجلات وليس كشف تسوية محاسبيًا جديدًا.</p><div id="ledgerTable" class="scroll"></div></div>

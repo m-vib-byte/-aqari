@@ -2,6 +2,16 @@
   'use strict';
 
   const DESIGN='V205-preview';
+  let rentalRecordsPromise;
+  function rentalRecords(action,...args){
+    if(!rentalRecordsPromise)rentalRecordsPromise=new Promise((resolve,reject)=>{
+      if(window.AQARI_RENTAL_RECORDS)return resolve(window.AQARI_RENTAL_RECORDS);
+      const script=document.createElement('script');script.src='/v267-rental-records.js?release=V267';
+      script.onload=()=>resolve(window.AQARI_RENTAL_RECORDS);
+      script.onerror=()=>{rentalRecordsPromise=null;script.remove();reject(Error('تعذر تحميل نموذج الحفظ. أعد المحاولة.'))};document.head.appendChild(script);
+    });
+    return rentalRecordsPromise.then(api=>api[action](...args)).catch(e=>window.alert(e.message));
+  }
   const PRIMARY_SECTIONS=[
     ['home','home','الرئيسية'],
     ['properties','properties','العقارات'],
@@ -26,6 +36,7 @@
     statement:'<path d="M4 19V5M4 19h16M8 16v-5M13 16V8M18 16v-8"/>',
     tool:'<path d="M14.7 6.3a4 4 0 0 0-5-5L7 4l3 3 2.7-2.7a4 4 0 0 0 2 5L5.9 18.1a2.1 2.1 0 1 0 3 3l8.8-8.8a4 4 0 0 0 5-5L20 10l-3-3 2.7-2.7"/>',
     arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+    bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
     close:'<path d="M18 6 6 18M6 6l12 12"/>'
   };
 
@@ -56,7 +67,7 @@
   }
 
   function todayLabel(){
-    try{return new Intl.DateTimeFormat('ar-KW',{weekday:'long',day:'numeric',month:'long'}).format(new Date())}
+    try{return new Intl.DateTimeFormat('ar-KW',{weekday:'long',day:'numeric',month:'long',timeZone:'Asia/Kuwait'}).format(new Date())}
     catch(_){return new Date().toLocaleDateString('ar-KW')}
   }
 
@@ -99,14 +110,14 @@
     root.setAttribute('aria-label','مساحة العمل اليومية في عقاري');
     root.innerHTML=
       '<header class="v205-welcome">'+
-        '<div><p class="v205-kicker">مساحة العمل اليومية <span lang="en">DAILY WORKSPACE</span></p><h1>إدارة أملاكك صارت أوضح</h1><p>كل عقار ثم الوحدة والمستأجر والعقد والتحصيل — بخطوات مرتبة وسريعة.</p><span class="v205-date">'+todayLabel()+'</span></div>'+ 
+        '<div><p class="v205-kicker">إدارة الأملاك في الكويت</p><h1>لوحة المدير العام</h1><span class="v205-date">'+todayLabel()+'</span></div>'+
         '<div class="v205-welcome-actions"><button type="button" data-v205-command="search">'+icon('search')+' بحث</button><button type="button" class="is-primary" data-v205-command="quick" aria-haspopup="dialog" aria-controls="v201CreateMenu">'+icon('plus')+' إجراء سريع</button></div>'+ 
       '</header>'+ 
       '<nav id="v205PrimarySections" class="v205-primary-sections" aria-label="أقسام المنصة الرئيسية" hidden>'+primaryMarkup()+'</nav>'+ 
-      '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>ابدأ المهمة مباشرة</h2></div><p>أكثر العمليات استخداماً بدون قوائم طويلة.</p></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+ 
-      '<section class="v205-section v205-workflow"><div class="v205-section-head"><div><span>ترتيب واضح</span><h2>رحلة العقار من البداية للتحصيل</h2></div><p>كل معلومة تبقى مرتبطة بمكانها الصحيح.</p></div><ol>'+workflowMarkup()+'</ol></section>'+ 
-      '<div id="v205LegacyDashboardSlot" class="v205-dashboard-slot"></div>'+ 
-      '<footer class="v205-home-footer"><span>عقاري</span><small>واجهة V205 المبسطة • البيانات محفوظة ضمن نظام الدخول الآمن</small></footer>';
+      '<section class="v205-section v205-daily"><div class="v205-section-head"><div><span>المهام اليومية</span><h2>إجراءات سريعة</h2></div></div><div id="v205DailyActions" class="v205-daily-actions">'+actionsMarkup()+'</div></section>'+
+      '<details class="v205-section v267-details"><summary>تفاصيل المحفظة والأداء المالي</summary><div id="v205LegacyDashboardSlot" class="v205-dashboard-slot"></div></details>'+ 
+      '<details class="v205-section v205-workflow"><summary>دليل ترتيب ملف العقار</summary><ol>'+workflowMarkup()+'</ol></details>'+
+      '<footer class="v205-home-footer"><span>عقاري</span><small>إدارة الأملاك • V267</small></footer>';
     home.insertBefore(root,home.firstChild);
     return root;
   }
@@ -215,7 +226,8 @@
     document.body.classList.remove('v205-chooser-open');
     setChooserBackgroundInert(false,overlay);
     overlay.setAttribute('inert','');
-    if(restoreFocus&&chooserTrigger instanceof HTMLElement)setTimeout(function(){chooserTrigger.focus()},0);
+    const focusTarget=chooserTrigger;
+    if(restoreFocus&&focusTarget instanceof HTMLElement)setTimeout(function(){if(focusTarget.isConnected)focusTarget.focus()},0);
     chooserTrigger=null;
   }
 
@@ -288,21 +300,24 @@
   function simplifyCreateMenu(){
     const grid=document.querySelector('#v201CreateMenu .v201-create-grid');
     if(grid){
-      ['collections','tenants','maintenance','properties'].forEach(function(key){
-        const option=grid.querySelector('[data-v201-create="'+key+'"]');
-        if(option)grid.appendChild(option);
-      });
+      const ordered=['collections','tenants','maintenance','properties'].map(function(key){
+        return grid.querySelector('[data-v201-create="'+key+'"]');
+      }).filter(Boolean);
+      const current=Array.from(grid.children).filter(function(node){return ordered.includes(node)});
+      if(ordered.some(function(node,index){return current[index]!==node})){
+        ordered.forEach(function(node){grid.appendChild(node)});
+      }
     }
     const kicker=document.querySelector('#v201CreateMenu header p');
     const title=document.getElementById('v201CreateTitle');
     const description=document.getElementById('v201CreateDescription');
-    if(kicker)kicker.textContent='إجراء سريع';
-    if(title)title.textContent='شنو تبي تنجز؟';
-    if(description)description.textContent='اختر المهمة وبنفتح النموذج المناسب مباشرة.';
+    if(kicker&&kicker.textContent!=='إجراء سريع')kicker.textContent='إجراء سريع';
+    if(title&&title.textContent!=='شنو تبي تنجز؟')title.textContent='شنو تبي تنجز؟';
+    if(description&&description.textContent!=='اختر المهمة وبنفتح النموذج المناسب مباشرة.')description.textContent='اختر المهمة وبنفتح النموذج المناسب مباشرة.';
     const brand=document.querySelector('.v199-brand-copy small');
-    if(brand)brand.textContent='إدارة الأملاك';
+    if(brand&&brand.textContent!=='إدارة الأملاك')brand.textContent='إدارة الأملاك';
     const addLabel=document.querySelector('.v199-add-button span');
-    if(addLabel)addLabel.textContent='إجراء سريع';
+    if(addLabel&&addLabel.textContent!=='إجراء سريع')addLabel.textContent='إجراء سريع';
   }
 
   function syncDashboard(){
@@ -373,7 +388,7 @@
     if(target.closest('[data-v205-chooser-close]')){
       event.preventDefault();event.stopImmediatePropagation();return closeChooser(true);
     }
-    const route=target.closest('[data-v205-route]');
+    const route=target.closest('button[data-v205-route],a[data-v205-route]');
     if(route){
       event.preventDefault();event.stopImmediatePropagation();closeChooser(false);return window.go?.(route.getAttribute('data-v205-route'));
     }
@@ -423,7 +438,7 @@
     document.documentElement.lang='ar';
     document.documentElement.dir='rtl';
     document.body.classList.add('aq-v205');
-    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V266');
+    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V267');
     document.title='عقاري '+productRelease+' • إدارة الأملاك بسهولة';
     createHome();
     syncPrimaryNavigation('home');
@@ -436,10 +451,60 @@
     window.addEventListener('storage',scheduleEnhance);
     window.addEventListener('focus',scheduleEnhance);
     document.body.setAttribute('data-v205-ready','true');
+    const legacyAdd=window.add;
+    if(typeof legacyAdd==='function'&&!legacyAdd.__v267Payment){
+      const guardedAdd=function(){
+        if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return openChooser('payment',document.activeElement);
+        if(typeof cur!=='undefined'&&cur==='tenants')return rentalRecords('openTenant');
+        if(typeof cur!=='undefined'&&cur==='leases')return window.go?.('smartContractsPage');
+        if(typeof cur!=='undefined'&&['properties','employees','payroll','maintenance','expenses','services'].includes(cur))return rentalRecords('openRecord',cur);
+        return legacyAdd.apply(this,arguments);
+      };
+      guardedAdd.__v267Payment=true;window.add=guardedAdd;
+    }
+    const legacyEdit=window.edit;
+    if(typeof legacyEdit==='function')window.edit=function(index){
+      if(typeof cur!=='undefined'&&['collections','collectionProPage'].includes(cur))return window.alert('الوصل المحفوظ لا يُعدّل مباشرة. راجع الدفعة من ملف العقار.');
+      if(typeof cur!=='undefined'&&cur==='tenants')return rentalRecords('openTenant',index);
+      if(typeof cur!=='undefined'&&cur==='leases')return window.go?.('smartContractsPage');
+      if(typeof cur!=='undefined'&&['properties','employees','payroll','maintenance','expenses','services'].includes(cur))return rentalRecords('openRecord',cur,index);
+      return legacyEdit.apply(this,arguments);
+    };
+    const legacyDelete=window.del;
+    if(typeof legacyDelete==='function')window.del=function(index){
+      if(typeof cur!=='undefined'&&['collections','collectionProPage','leases','tenants','properties','employees','payroll','maintenance','expenses','services'].includes(cur))return window.alert('هذا السجل مرتبط بمستندات وعقود محفوظة. لا يمكن حذفه من القائمة العامة.');
+      return legacyDelete.apply(this,arguments);
+    };
+    const legacyContracts=window.localContractsV55;
+    window.localContractsV55=function(){
+      const data=typeof db!=='undefined'&&db&&typeof db==='object'?db:{};
+      const cloud=Array.isArray(data.contractsV202)?data.contractsV202.filter(c=>c.source==='v267-cloud'):[];
+      const local=typeof legacyContracts==='function'?legacyContracts():[];
+      return JSON.parse(JSON.stringify(cloud.concat(local.filter(c=>!cloud.some(x=>String(x.id)===String(c.id))))));
+    };
+    const previousContractList=window.loadContractsV55;
+    window.loadContractsV55=function(){
+      if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return rentalRecords('loadSavedContracts');
+      return previousContractList?.apply(this,arguments);
+    };
+    window.generateContractV55=()=>rentalRecords('generate');
+    window.previewContractV55=c=>rentalRecords('preview',c);
+    window.readyContractV55=id=>rentalRecords('status',id,'ready');
+    window.updateContractStatusV56=(id,status)=>rentalRecords('status',id,status);
+    const serviceHost=document.querySelector('#maintenanceProPage > .c');
+    if(serviceHost&&!document.getElementById('v267ServiceDeskLinks')){
+      const links=document.createElement('div');links.id='v267ServiceDeskLinks';links.className='r';
+      for(const [mode,label] of [['maintenance','متابعة طلبات المستأجرين'],['notifications','سجل التنبيهات']]){
+        const button=document.createElement('button');button.type='button';button.textContent=label;
+        button.onclick=()=>import('/v267-service-desk.js').then(api=>api.openDesk(mode)).catch(e=>window.alert(e.message));links.append(button);
+      }
+      serviceHost.prepend(links);
+    }
     window.AQARI_V205=Object.freeze({
       version:DESIGN,
       seal:function(){closeChooser(false)},
       refresh:scheduleEnhance,
+      startPayment:function(trigger){return openChooser('payment',trigger)},
       navigate:function(route){syncPrimaryNavigation(route);return window.go?.(route)},
       openProperty:function(name){return window.AQARI_V202?.openProperty(name)},
       testing:Object.freeze({
@@ -447,6 +512,10 @@
         dailyActions:function(){return DAILY_ACTIONS.map(function(item){return item[0]})},
         authenticated:isAuthenticated
       })
+    });
+    import('/src/v267/workspace.js?release=V267').then(api=>api.install()).catch(function(){
+      const menu=document.getElementById('v199MoreMenu');
+      if(menu&&!document.getElementById('aq267-tools-error')){const message=document.createElement('p');message.id='aq267-tools-error';message.textContent='تعذر تحميل أدوات مساحة العمل. حدّث الصفحة لإعادة المحاولة.';menu.append(message);}
     });
     setTimeout(scheduleEnhance,500);
   }

@@ -178,5 +178,22 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/old.html",
+      "destination": "/app?release=V267",
+      "permanent": false
+    },
+    {
+      "source": "/demo.html",
+      "destination": "/app?release=V267",
+      "permanent": false
+    },
+    {
+      "source": "/demo-v211.html",
+      "destination": "/app?release=V267",
+      "permanent": false
+    }
   ]
 }

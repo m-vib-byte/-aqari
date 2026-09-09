@@ -12,6 +12,21 @@
   let contextEpoch = 0;
   let contextRefresh = null;
   let contextVerifiedAt = 0;
+  // Capture only the presence of an auth callback error, never tokens or its raw text.
+  let callbackFailed = /(?:^|[?#&])(?:error|error_code|error_description)=/.test(
+    String(window.location?.hash || '') + String(window.location?.search || '')
+  );
+
+  function authRedirectUrl(){
+    if(!cfg.supabaseAuthRedirectUrl) return location.origin;
+    const target = new URL(cfg.supabaseAuthRedirectUrl);
+    if(target.protocol !== 'https:' || target.username || target.password || target.hash ||
+       target.hostname !== 'aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app' ||
+       target.pathname !== '/login.html' || target.search !== '?release=V267'){
+      throw new Error('AQARI_STAGING_REDIRECT_INVALID');
+    }
+    return target.href;
+  }
 
   // The startup snapshot avoids repeated SDK auth-lock acquisition between
   // table reads. All requests still carry this user's JWT and obey server RLS.
@@ -34,7 +49,10 @@
       headers:{ apikey:cfg.supabasePublishableKey, Authorization:'Bearer ' + session.access_token,
         Accept:'application/json', ...(body === undefined ? {} : {'Content-Type':'application/json'}) },
       body:body === undefined ? undefined : JSON.stringify(body),
-      signal:controller.signal, cache:'no-store', credentials:'omit', redirect:'error'
+      // Preview protection needs its same-origin cookie before the JWT reaches
+      // our handler. Never send browser cookies to the external Supabase API.
+      signal:controller.signal, cache:'no-store',
+      credentials:confirmationRequest ? 'same-origin' : 'omit', redirect:'error'
     }).then(async response => {
       if(!response.ok){
         const error = accessError(response.status === 401 || response.status === 403
@@ -384,6 +402,7 @@
   }
 
   async function signIn(email, password){
+    callbackFailed = false;
     const client = await getClient();
     const { data, error } = await client.auth.signInWithPassword({ email, password });
     if(error) throw error;
@@ -400,13 +419,13 @@
 
   async function signUp(email, password, options = {}){
     const client = await getClient();
-    const { data, error } = await client.auth.signUp({ email, password, options });
+    const { data, error } = await client.auth.signUp({ email, password, options:{...options,emailRedirectTo:authRedirectUrl()} });
     if(error) throw error;
     if(data.session) await refreshContext();
     return data;
   }
 
-  async function resetPasswordForEmail(email, redirectTo = location.origin){
+  async function resetPasswordForEmail(email, redirectTo = authRedirectUrl()){
     const client = await getClient();
     const { data, error } = await client.auth.resetPasswordForEmail(email, { redirectTo });
     if(error) throw error;
@@ -470,6 +489,7 @@
     const client = await getClient();
     const { data, error } = await client.auth.getSession();
     if(error) throw error;
+    if(callbackFailed) throw new Error('تعذر إكمال رابط الدخول. إذا كان بريدك مؤكداً، سجل الدخول بحسابك الحالي.');
     return data?.session || null;
   }
 
@@ -522,11 +542,12 @@
       ? requireExactAccess(state, expected)
       : await bindAccess(expectedAccess);
     const client = await getClient();
-    const { data, error } = await client
+    const query = boundAccess.role === 'general_manager' ? client
       .from('aqari_app_state')
       .select('workspace_id, payload, revision, updated_by, updated_at')
       .eq('workspace_id', boundAccess.workspaceId)
-      .maybeSingle();
+      .maybeSingle() : client.rpc('aqari_read_state_v267', { p_workspace_id:boundAccess.workspaceId });
+    const { data, error } = await query;
     if(error) throw error;
     if(data && data.workspace_id !== boundAccess.workspaceId) throw accessError('Cloud state workspace does not match authenticated access');
     await recheckBoundAccess(boundAccess);
@@ -537,6 +558,18 @@
     const boundAccess = await bindAccess(expectedAccess, { write:true });
     const current = await loadAppState(boundAccess);
     const expected = Number(expectedRevision);
+
+    if(boundAccess.role !== 'general_manager'){
+      if(!current || !Number.isInteger(expected) || expected !== Number(current.revision)) throw revisionConflict(current?.revision);
+      await recheckBoundAccess(boundAccess, { write:true });
+      const { data, error } = await state.client.rpc('aqari_save_state_v267', {
+        p_workspace_id:boundAccess.workspaceId, p_payload:payload, p_expected_revision:expected
+      });
+      if(error) throw error;
+      if(!data || data.workspace_id !== boundAccess.workspaceId) throw accessError();
+      await recheckBoundAccess(boundAccess, { write:true });
+      return data;
+    }
 
     if(current){
       const currentRevision = Number(current.revision);
@@ -578,7 +611,7 @@
 
   window.AQARI_SUPABASE = Object.freeze({
     version:'V206.2', getClient, refreshContext, signIn, signUp, signOut,
-    resetPasswordForEmail, updatePassword, onAuthStateChange, loadAppState, saveAppState,
+    resetPasswordForEmail, updatePassword, onAuthStateChange, loadAppState, saveAppState, authRedirectUrl,
     clearPersistedSession, getSession, hasSession, verifySessionNull,
     authStorageKey:AUTH_STORAGE_KEY,
     get context(){ return { ...state }; }

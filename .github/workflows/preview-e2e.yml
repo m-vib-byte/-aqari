@@ -32,8 +32,8 @@ jobs:
         run: |
           test -n "$AQARI_BASE_URL"
           test -n "$AQARI_EXPECTED_SHA"
-          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ] && ! printf '%s' "$AQARI_BASE_URL" | grep -Eq '(_vercel_share|x-vercel-protection-bypass)='; then
-            echo 'Configure VERCEL_AUTOMATION_BYPASS_SECRET or a protected share URL.' >&2
+          if [ -z "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            echo 'Configure the repository secret VERCEL_AUTOMATION_BYPASS_SECRET for the matching Preview.' >&2
             exit 1
           fi
       - name: Wait for matching Vercel Preview

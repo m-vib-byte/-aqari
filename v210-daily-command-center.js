@@ -91,10 +91,10 @@
   }
 
   function aggregate(items){
-    const output={properties:0,due:0,collected:0,balance:0,dueProperties:0,lateTenants:0,pendingApprovals:0,readyDocuments:0,setup:0,priorities:[]};
+    const output={unreviewed:0,properties:0,due:0,collected:0,balance:0,dueProperties:0,lateTenants:0,pendingApprovals:0,readyDocuments:0,setup:0,priorities:[]};
     (Array.isArray(items)?items:[]).forEach(function(item){
       if(!item||item.valid!==true)return;
-      output.properties+=1;
+      output.properties+=1;if(item.obligationsVerified===false)output.unreviewed+=1;
       output.due+=Math.max(0,number(item.due));
       output.collected+=Math.max(0,number(item.collected));
       output.balance+=Math.max(0,number(item.balance));
@@ -130,14 +130,18 @@
       if(!data)return {name:name,valid:false};
       const records=Array.isArray(data.records)?data.records:[];
       return {
-        name:name,valid:true,due:number(data.totalRent),collected:number(data.totalCollected),balance:number(data.totalBalance),units:number(data.unitCount),
+        name:name,valid:true,obligationsVerified:data.obligationsVerified!==false,due:number(data.totalRent),collected:number(data.totalCollected),balance:number(data.totalBalance),units:number(data.unitCount),
         pending:records.reduce(function(sum,row){return sum+Math.max(0,number(row?.pending))},0),
         canRecordPayment:data.canRecordPayment===true,
         records:records.map(function(row){return {billable:row?.billable===true,balance:number(row?.balance),pending:number(row?.pending),paymentStatus:text(row?.paymentStatus),hasContract:row?.hasContract===true,receiptNo:text(row?.receiptNo)}})
       };
     });
     if(scopeKey()!==scope)return null;
-    return {scope:scope,period:period,summary:aggregate(items)};
+    const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const dailyRows=propertyNames(scope).map(function(name){return window.AQARI_V202?.dailyCollectionSummary?.(name,day)});
+    const daily=dailyRows.length&&dailyRows.every(function(row){return row&&row.day===day})?dailyRows.reduce(function(out,row){out.paid+=Math.round(row.paid*1000);out.undated+=row.undated;return out},{paid:0,undated:0}):null;
+    if(scopeKey()!==scope)return null;
+    return {scope:scope,period:period,summary:aggregate(items),daily:daily,day:day};
   }
 
   function priorityMarkup(items){
@@ -152,34 +156,41 @@
     const summary=state.summary;
     const rate=summary.due>0?Math.min(100,Math.max(0,summary.collected/summary.due*100)):0;
     const critical=summary.dueProperties+summary.pendingApprovals+summary.setup;
-    return '<section id="v210DailyCommandCenter" class="v210-command" aria-labelledby="v210Title">'+
-      '<header class="v210-head"><div><span>لوحة التنفيذ اليومية • V210</span><h2 id="v210Title">الأهم اليوم، في نظرة واحدة</h2><p>أرقام مباشرة من دفتر الإيجارات المحمي ضمن مساحة عملك.</p></div><label for="v210Period"><span>الفترة</span><input id="v210Period" type="month" value="'+esc(period)+'"></label></header>'+
-      '<div class="v210-kpis" aria-live="polite">'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>المحصّل</span><strong>'+esc(money(summary.collected))+'</strong><small>'+rate.toFixed(0)+'٪ من المستحق</small></button>'+
-        '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+summary.lateTenants+'</strong><small>'+esc(money(summary.balance))+' متبقي</small></button>'+
+    return '<section id="v210DailyCommandCenter" class="v210-command" data-period="'+esc(state.period)+'" aria-labelledby="v210Title">'+
+      '<header class="v210-head"><div><span>ملخص التحصيل</span><h2 id="v210Title">التحصيل والمتابعة</h2><p>أرقام دفتر الإيجارات للفترة المختارة.</p></div><label for="v210Period"><span>شهر التحصيل</span><input id="v210Period" type="month" value="'+esc(period)+'" required pattern="[0-9]{4}-(0[1-9]|1[0-2])" placeholder="YYYY-MM" dir="ltr" aria-describedby="v210PeriodHint"><small id="v210PeriodHint" hidden>أدخل السنة ثم الشهر، مثال: '+esc(period)+'</small></label></header>'+
+      '<div class="v267-collection-hero v210-kpis" aria-live="polite">'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-today"><span>تحصيل اليوم</span><strong>'+(state.daily?esc(money(state.daily.paid/1000)):'—')+'</strong><small>'+(state.daily?(state.daily.undated?'دفعات مؤرخة فقط؛ توجد دفعات بلا تاريخ':'الدفعات المسجلة بتاريخ اليوم — الكويت'):'لا يتوفر سجل دفعات مؤرخ')+'</small></button>'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-green"><span>تحصيل الشهر</span><strong>'+esc(money(summary.collected))+'</strong><small>'+(summary.unreviewed?'النسبة معلقة حتى اعتماد العقود':rate.toFixed(0)+'٪ من المستحق')+'</small></button>'+
+      '</div><details class="v267-financial-detail"><summary>المستحقات وحالة المحفظة</summary><div class="v210-kpis v267-secondary-kpis">'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-gold"><span>المستحق</span><strong>'+esc(summary.unreviewed?'معلّق':money(summary.due))+'</strong><small>'+summary.dueProperties+' عقار يحتاج متابعة</small></button>'+
+        '<button type="button" data-v210-route="collectionProPage" class="is-red"><span>متأخرون</span><strong>'+(summary.unreviewed?'معلّق':summary.lateTenants)+'</strong><small>'+esc(summary.unreviewed?'معلّق':money(summary.balance))+' متبقي</small></button>'+
         '<button type="button" data-v210-route="collectionProPage" class="is-amber"><span>بانتظار المراجعة</span><strong>'+summary.pendingApprovals+'</strong><small>دفعات أو سجلات معلّقة</small></button>'+
         '<button type="button" data-v210-route="documentsHub"><span>مستندات جاهزة</span><strong>'+summary.readyDocuments+'</strong><small>عقود أو وصولات متاحة</small></button>'+
         '<div class="is-dark"><span>مهام حرجة</span><strong>'+critical+'</strong><small>'+summary.properties+' عقار في '+esc(periodLabel(period))+'</small></div>'+
       '</div>'+
-      '<div class="v210-body"><div class="v210-priorities"><div class="v210-title"><div><span>ترتيب تلقائي</span><h3>أولوية المتابعة</h3></div><button type="button" data-v210-route="collectionProPage">عرض الكل</button></div>'+priorityMarkup(summary.priorities)+'</div>'+
-      '<aside class="v210-actions" aria-label="إجراءات سريعة"><span>نفّذ الآن</span><button type="button" data-v210-route="collectionProPage"><strong>تسجيل تحصيل</strong><small>دفعة ووصل</small></button><button type="button" data-v210-action="search"><strong>بحث شامل</strong><small>مستأجر أو عقد أو وحدة</small></button><button type="button" data-v210-route="documentsHub"><strong>مركز المستندات</strong><small>العقود والوصولات</small></button><button type="button" data-v210-route="maintenanceProPage"><strong>متابعة الصيانة</strong><small>الطلبات المفتوحة</small></button></aside></div>'+
+      '</details><div class="v210-body"><div class="v210-priorities"><div class="v210-title"><div><span>ترتيب تلقائي</span><h3>أولوية المتابعة</h3></div><button type="button" data-v210-route="collectionProPage">عرض الكل</button></div>'+priorityMarkup(summary.priorities)+'</div>'+
+      '</div>'+ 
     '</section>';
   }
 
   function clear(){document.getElementById('v210DailyCommandCenter')?.remove();lastSignature=''}
 
   function render(){
+    // Do not rebuild portfolio summaries behind an active entry or document dialog.
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
     const state=snapshot();
     const home=document.getElementById('v205SimpleHome');
     if(!state||!home){clear();return}
-    const signature=JSON.stringify([state.scope,state.period,state.summary]);
+    const signature=JSON.stringify([state.scope,state.period,state.summary,state.day,state.daily]);
     const current=document.getElementById('v210DailyCommandCenter');
     if(current&&signature===lastSignature)return;
     const holder=document.createElement('div');
     holder.innerHTML=markup(state);
     const next=holder.firstElementChild;
     if(!next)return;
+    const monthInput=next.querySelector('#v210Period');
+    const monthHint=next.querySelector('#v210PeriodHint');
+    if(monthInput&&monthHint)monthHint.hidden=monthInput.type==='month';
     if(current)current.replaceWith(next);
     else{
       const anchor=home.querySelector('.v205-welcome');
@@ -188,7 +199,17 @@
     lastSignature=signature;
   }
 
-  function schedule(){clearTimeout(timer);timer=setTimeout(render,120)}
+  function schedule(records){
+    if(records?.length&&records.every(r=>r.type==='attributes'&&!['home','collectionProPage','modal','v202PaymentDialog','v202PropertyWorkspace','v202DocumentDialog'].includes(r.target?.id)))return;
+    if(document.querySelector?.('#modal.on,#v202PaymentDialog.on,#v202PropertyWorkspace.on,#v202DocumentDialog.on'))return;
+    if(document.visibilityState==='hidden')return;
+    const homePage=document.getElementById('home');
+    if(homePage&&!homePage.classList.contains('on'))return;
+    if(records?.length&&records.every(function(r){return r.target?.closest?.('#v210DailyCommandCenter,#v202PropertyWorkspace,#v199MoreMenu')}))return;
+    // Keep the first deadline: ongoing DOM updates must not starve the summary.
+    if(timer)return;
+    timer=setTimeout(function(){timer=0;if(document.visibilityState==='hidden')return;const h=document.getElementById('home');if(h&&!h.classList.contains('on'))return;render()},160);
+  }
 
   function syncPeriod(value){
     if(!PERIOD.test(value)||value===period)return false;
@@ -207,7 +228,11 @@
   }
 
   document.addEventListener('input',function(event){
-    if(event.target?.id==='v210Period')syncPeriod(text(event.target.value));
+    if(event.target?.id==='v210Period'){
+      const value=text(event.target.value);
+      event.target.setCustomValidity(PERIOD.test(value)?'':'أدخل شهراً صحيحاً بصيغة السنة ثم الشهر، مثل 2026-09.');
+      if(event.target.validity.valid)syncPeriod(value);
+    }
   });
 
   document.addEventListener('click',function(event){
@@ -238,7 +263,9 @@
   function boot(){
     document.body.classList.add('aq-v210');
     window.AQARI_V210=Object.freeze({version:DESIGN,seal:seal,resume:resume,refresh:function(){lastSignature='';render()},testing:Object.freeze({aggregate:aggregate})});
-    observer.observe(document.body,{subtree:true,childList:true});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
+    const homePage=document.getElementById('home');
+    if(homePage)observer.observe(homePage,{attributes:true,attributeFilter:['class']});
     installAuthListener();render();
     [600,1800,5000].forEach(function(delay){setTimeout(function(){installAuthListener();schedule()},delay)});
     let meta=document.querySelector('meta[name="aqari-daily-command-center"]');

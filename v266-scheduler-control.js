@@ -144,7 +144,7 @@
     panel.setAttribute('aria-busy','false');
     panel.innerHTML=
       '<div class="v266-head">'+
-        '<div><p class="v266-eyebrow">AQARI V266</p><h2 id="v266Title" tabindex="-1">التشغيل الآلي اليومي</h2><p>إنشاء الاستحقاقات والتذكيرات يعمل من السحابة كل يوم، حتى لو كانت المنصة مغلقة.</p></div>'+
+        '<div><p class="v266-eyebrow">AQARI V267</p><h2 id="v266Title" tabindex="-1">التشغيل الآلي اليومي</h2><p>إنشاء الاستحقاقات والتذكيرات يعمل من السحابة كل يوم، حتى لو كانت المنصة مغلقة.</p></div>'+
         '<span class="v266-state" id="v266State" data-state="idle">بانتظار التشغيل</span>'+
       '</div>'+
       '<div class="v266-status-grid">'+

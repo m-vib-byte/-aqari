@@ -15,7 +15,7 @@
   function setStatus(message,bad){const node=byId('status');node.textContent=message;node.classList.toggle('error',Boolean(bad));}
   function busy(value){byId('loginButton').disabled=value;byId('retryButton').disabled=value;byId('refreshButton').disabled=value;}
   function lock(message,phase='login'){
-    generation+=1;active=null;primary=null;
+    generation+=1;active=null;primary=null;byId('password').value='';
     document.documentElement.classList.remove('aqari-auth-unlocked');
     byId('home').hidden=true;byId('home').setAttribute('aria-hidden','true');
     byId('aqariCloudGateV168').hidden=false;byId('aqariCloudGateV168').setAttribute('data-auth-phase',phase);
@@ -134,10 +134,23 @@
   window.AQARI_RECOVERY=Object.freeze({version:'V266-RECOVERY-1',readOnly:true});
   if(!api){paused=true;lock('تعذر تحميل مكتبة الاتصال الآمن. أعد تحميل هذه الصفحة.','error');return;}
   api.onAuthStateChange((event,session)=>{
-    // Defer SDK work: never acquire its auth lock inside its callback.
+    // Clear private DOM synchronously; defer only SDK reads to avoid its auth lock.
+    if(event==='SIGNED_OUT'||event==='PASSWORD_RECOVERY'){
+      paused=true;flight=0;lock(event==='SIGNED_OUT'?'تم تسجيل الخروج.':'يلزم إعادة التحقق من الجلسة.');busy(false);return;
+    }
+    if(!active||!session?.user)return;
+    if(session.user.id!==active.userId){
+      const resume=!paused;
+      flight=0;lock('تغيّرت الجلسة؛ جاري إعادة التحقق…');busy(false);
+      const ticket=generation;
+      setTimeout(()=>{if(ticket===generation&&resume&&!paused)open();},0);
+      return;
+    }
+    if(flight)return;
+    const ticket=generation;
     setTimeout(()=>{
-      if(event==='SIGNED_OUT'){paused=true;flight=0;lock('تم تسجيل الخروج.');busy(false);return;}
-      if(active&&!flight&&session?.user){lock('تغيّرت الجلسة؛ جاري إعادة التحقق…');if(!paused)open();}
+      if(ticket!==generation||paused||!active||flight)return;
+      lock('تغيّرت الجلسة؛ جاري إعادة التحقق…');open();
     },0);
   }).catch(()=>{paused=true;flight=0;lock('تعذر تفعيل مراقبة الجلسة. أعد المحاولة.','error');busy(false);});
   open();

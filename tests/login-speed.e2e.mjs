@@ -18,7 +18,7 @@ const sdk = Buffer.from(await sdkResponse.arrayBuffer());
 assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'), '0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi');
 const paths = ['/public-config.js', '/vendor/supabase-js-2.114.0.js', '/supabase-adapter.js'];
 const config = "window.AQARI_PUBLIC_CONFIG={supabaseUrl:'https://example.invalid',supabasePublishableKey:'synthetic-public-key'};";
-const files = new Map([[paths[0], config], [paths[1], sdk], [paths[2], adapter]]);
+const files = new Map([[paths[0], config], [paths[1], sdk], [paths[2], adapter], ['/v267-login-locale.js', fs.readFileSync('v267-login-locale.js','utf8')]]);
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if(url.pathname === '/') {
@@ -57,6 +57,21 @@ try {
         for(const path of paths) assert.equal(result.resources.filter(r => r.path === path).length, 1, 'one download per script');
         assert.deepEqual(errors, []);
         results.push({ engine:name, variant:before ? 'sequential-baseline':'preloaded', ...result });
+        if(!before){
+          await page.locator('#loginLanguageControl').waitFor({state:'visible'});
+          await page.locator('#email').fill('fixture@example.test');await page.locator('#password').fill('synthetic-only');
+          for(const width of [390,820,1440]){
+            await page.setViewportSize({width,height:1000});
+            for(const [code,title] of Object.entries({ar:'أملاكك، بكل وضوح.',en:'Your properties, clearly.',hi:'आपकी संपत्तियाँ, स्पष्ट रूप से।',ur:'آپ کی املاک، واضح طور پر۔',ml:'നിങ്ങളുടെ സ്വത്തുകൾ, വ്യക്തമായി.'})){
+              await page.locator('#loginLanguage').selectOption(code);
+              assert.equal(await page.locator('#title').textContent(),title);assert.equal(await page.locator('html').getAttribute('dir'),['ar','ur'].includes(code)?'rtl':'ltr');
+              assert.equal(await page.locator('#email').inputValue(),'fixture@example.test');assert.equal(await page.locator('#password').inputValue(),'synthetic-only');assert.ok(await page.locator('#loginButton').isEnabled());
+              assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+              await page.screenshot({path:output+'/'+name+'-'+width+'-'+code+'.png',fullPage:true});
+            }
+          }
+          assert.deepEqual(errors,[]);console.log('LOGIN_LANGUAGES',name,'five languages at three widths; credentials preserved');
+        }
         await context.close();
       }
       const [before, after] = results.filter(r => r.engine === name);

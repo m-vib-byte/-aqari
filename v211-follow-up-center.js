@@ -93,6 +93,20 @@
     timelineEpoch+=1;const panel=document.getElementById('v211FollowUpCenter');if(!panel)return;
     Array.from(panel.querySelectorAll('.v211-row')).slice(0,40).forEach(row=>{const button=row.querySelector('[data-v211-action]');const selection=parseVisibleSelection(button);const current=selection&&liveRecord(selection);if(selection&&current)hydrateTimeline(row,selection,current)});
   }
+  let timelineTimer=0;
+  function scheduleTimelines(records){
+    const panel=document.getElementById('v211FollowUpCenter');
+    if(!panel||!document.body.classList.contains('v211-open'))return;
+    const relevant=records.some(record=>{
+      if(record.target?.closest?.('[data-v211-cloud-timeline]'))return false;
+      const nodes=[...record.addedNodes,...record.removedNodes];
+      if(nodes.length&&nodes.every(node=>node.nodeType===1&&node.matches?.('[data-v211-cloud-timeline]')))return false;
+      return panel.contains(record.target)||nodes.some(node=>node===panel||node.contains?.(panel));
+    });
+    if(!relevant)return;
+    clearTimeout(timelineTimer);
+    timelineTimer=setTimeout(hydrateVisibleTimelines,100);
+  }
   function installGuard(){
     document.addEventListener('click',function(event){
       const button=event.target?.closest?.('#v211FollowUpCenter [data-v211-action]');if(!button)return;
@@ -101,8 +115,8 @@
       if(action==='reminder')return void executeReminder(selection,button);
       executeAction(selection,action,button);
     },true);
-    const observer=new MutationObserver(function(){queueMicrotask(hydrateVisibleTimelines)});observer.observe(document.documentElement,{childList:true,subtree:true});
-    document.addEventListener('aqari:auth-change',()=>{actionEpoch+=1;timelineEpoch+=1},{passive:true});
+    const observer=new MutationObserver(scheduleTimelines);observer.observe(document.documentElement,{childList:true,subtree:true});
+    document.addEventListener('aqari:auth-change',()=>{actionEpoch+=1;timelineEpoch+=1;clearTimeout(timelineTimer)},{passive:true});
   }
   function loadCore(){if(document.getElementById('aqari-v211-follow-up-center-core-js'))return;const script=document.createElement('script');script.id='aqari-v211-follow-up-center-core-js';script.src='/v211-follow-up-center-core.js?v=211.0.1';script.async=false;script.addEventListener('load',hydrateVisibleTimelines,{once:true});document.body.appendChild(script)}
   function loadCloudThenCore(){

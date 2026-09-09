@@ -1,7 +1,7 @@
 {
   "app": "AQARI",
   "version": "V198",
-  "product_version": "V266",
+  "product_version": "V267",
   "stage": "production",
   "required_routes": [
     "/",

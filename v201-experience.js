@@ -59,7 +59,7 @@
 
   function releasePresentation(){
     document.body.classList.add('aq-v199','aq-v200','aq-v201');
-    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V266');
+    const productRelease=String(document.querySelector('meta[name="aqari-release"]')?.content||'V267');
     document.title='عقاري '+productRelease+' • إدارة الأملاك بسهولة';
     const theme=document.querySelector('meta[name="theme-color"]');
     if(theme)theme.content='#fbfaf7';
@@ -82,8 +82,13 @@
     section.className='v201-menu-business';
     section.setAttribute('data-v201-business','');
     section.innerHTML=
-      '<p>إدارة الأملاك</p>'+ 
+      '<button type="button" class="v199-menu-action" data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button><p>المحفظة والعقود</p>'+ 
       '<button type="button" class="v199-menu-action" data-v199-go="tenants">'+icon('users')+' المستأجرون</button>'+ 
+      '<button type="button" class="v199-menu-action" data-v199-go="smartContractsPage">'+icon('receipt')+' العقود وتجديدها</button>'+
+      '<p>المالية والخدمات</p>'+
+      '<button type="button" class="v199-menu-action" data-v199-go="financeSuitePage">'+icon('receipt')+' الفواتير والمصروفات</button>'+
+      '<button type="button" class="v199-menu-action" data-v199-go="serviceManagementPage">'+icon('building')+' إدارة الخدمات</button>'+
+      '<button type="button" class="v199-menu-action" data-v199-action="notifications">'+icon('receipt')+' التنبيهات</button>'+
       '<button type="button" class="v199-menu-action" data-v199-go="reports">'+icon('receipt')+' التقارير</button>'+ 
       '<button type="button" class="v199-menu-action" data-v199-go="documentsHub">'+icon('building')+' المستندات والعقود</button>';
     if(accountHead?.nextSibling)menu.insertBefore(section,accountHead.nextSibling);
@@ -303,6 +308,10 @@
   function startCreate(target){
     const origin=createTrigger;
     closeCreate(false);
+    if(target==='collections'){
+      if(typeof window.AQARI_V205?.startPayment==='function')return window.AQARI_V205.startPayment(origin);
+      return window.go?.('collectionProPage');
+    }
     if(typeof window.go==='function')window.go(target);
     setTimeout(function(){
       modalTrigger=origin instanceof HTMLElement?origin:document.activeElement;

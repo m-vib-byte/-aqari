@@ -23,6 +23,9 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       contractRent,
       contracts,
       contextFor,
+      journey,
+      dueKpi,
+      dueNeedsReview,
       ledgerRecords,
       rentStatementItems,
       propertyRentLedgerRows: typeof propertyRentLedgerRows === 'function' ? propertyRentLedgerRows : null,
@@ -65,10 +68,15 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       tenantMailto: typeof tenantMailto === 'function' ? tenantMailto : null,
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
       secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
+      dailyCollectionSummary,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
       savePayment,
+      commitPayment,
+      savedVoucher,
+      printDocument,
+      searchPaymentContracts,
       pickedRecord,
       protectedFields: PROTECTED_FIELDS,
       protectedPropertyActive,
@@ -81,6 +89,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       installHydrateBoundaryListener,
       sealProtectedImport,
       setActiveProperty(value) { activeProperty = String(value || ''); },
+      setActivePeriod(value) { activePropertyPeriod = value; },
       setActiveTenantStatementKey(value) { activeTenantStatementKey = String(value || ''); }
     });
   `;
@@ -121,6 +130,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
     render: runtimeOptions.render,
     setTimeout: runtimeOptions.setTimeout || function() {},
     clearTimeout() {},
+    requestAnimationFrame: runtimeOptions.requestAnimationFrame || function() {},
   };
   sandbox.globalThis = sandbox;
   vm.createContext(sandbox);
@@ -1047,7 +1057,7 @@ test('V206.1 reserves voucher-only references when generating the next receipt n
   assert.equal(runtime.nextReceiptNumber(), `AQ-R-${year}-0002`);
 });
 
-test('V206.1 persists a canonical payment that survives a clean reload', () => {
+test('V267 confirms the canonical payment in cloud storage before exposing it locally and reloading', async () => {
   const data = fixture();
   const elements = {
     v202PaymentContract: { value: 'contract-a' },
@@ -1061,20 +1071,26 @@ test('V206.1 persists a canonical payment that survives a clean reload', () => {
     v202PaymentError: { textContent: '' },
   };
   let persisted = 0;
-  const writer = loadRuntime(data, [], activeRuntimeWindow(), {
+  let cloud=JSON.parse(JSON.stringify(data));
+  const runtimeWindow=activeRuntimeWindow();
+  runtimeWindow.AQARI_CLOUD_SYNC={decodeCloudPayload:payload=>({primary:payload})};
+  runtimeWindow.AQARI_SUPABASE.loadAppState=async()=>({payload:JSON.parse(JSON.stringify(cloud)),revision:1});
+  runtimeWindow.AQARI_SUPABASE.saveAppState=async(payload)=>{cloud=JSON.parse(JSON.stringify(payload));return {revision:2}};
+  const writer = loadRuntime(data, [], runtimeWindow, {
     elements,
     persist() { persisted += 1; },
   });
   writer.setActiveProperty('SYNTHETIC TEST PROPERTY');
 
-  assert.equal(writer.savePayment({ preventDefault() {} }), true);
+  assert.equal(await writer.savePayment({ preventDefault() {} }), true);
+  assert.ok(cloud.collections.some(row=>row[0]==='R-SAVE-RELOAD'));
   assert.equal(persisted, 1);
   const savedCollection = data.collections.find((row) => row[0] === 'R-SAVE-RELOAD');
   assert.ok(savedCollection);
   assert.equal(savedCollection.length, 10);
   assert.equal(savedCollection[2], 15);
 
-  const reader = loadRuntime(data, [], activeRuntimeWindow());
+  const reader = loadRuntime(JSON.parse(JSON.stringify(cloud)), [], activeRuntimeWindow());
   const context = reader.contextFor('SYNTHETIC TEST PROPERTY');
   const record = reader.unitDirectoryRecords(context, '2026-08').find((entry) => entry.contractId === 'contract-a');
   assert.equal(context.propertyLedger.some((entry) => entry.receiptNo === 'R-SAVE-RELOAD'), true);
@@ -3231,4 +3247,155 @@ test('V208.1 never mixes invalid-date payment metadata with another legal receip
   const tenantHtml = runtime.tenantStatementDocument(context, record, '2026-08');
   assert.doesNotMatch(tenantHtml, /WIRE|BAD-999|R-INVALID-LATEST|INVALID-DATE-NOTE|PENDING-NOTE|PENDING-999/);
   assert.match(tenantHtml, /KNET|012345|R-A-PAID/);
+});
+
+test('executive daily collections use dated settled ledger entries within the authorized property', () => {
+ const runtime=loadRuntime(fixture(),[],activeRuntimeWindow());
+ const day=runtime.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-08-12');
+ assert.ok(day);assert.equal(day.paid,40);assert.equal(day.count,1);
+ assert.equal(runtime.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-09-07').paid,0);
+ assert.equal(runtime.dailyCollectionSummary('missing','2026-08-12'),null);
+ assert.equal(runtime.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','bad'),null);
+ const signedOut=loadRuntime(fixture());
+ assert.equal(signedOut.dailyCollectionSummary('SYNTHETIC TEST PROPERTY','2026-08-12'),null);
+});
+
+
+test('V267 payment search matches name, contract and localized exact apartment without accepting an expired or partial unit',()=>{
+ const runtime=loadRuntime(fixture(),[],activeRuntimeWindow());
+ const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+ assert.ok(runtime.searchPaymentContracts(context,'TEST TENANT').length>=2);
+ assert.ok(runtime.searchPaymentContracts(context,'DUPLICATE-TEST').length>=2);
+ assert.equal(runtime.searchPaymentContracts(context,'D').length,0);
+ const custom={propertyContracts:[{...context.propertyContracts.find(c=>c.id==='contract-a'),id:'unit14',contract_no:'R-14',tenant:'Ali',unit:'14'}]};
+ assert.equal(runtime.searchPaymentContracts(custom,'٤').length,0);
+ assert.equal(runtime.searchPaymentContracts(custom,'١٤')[0].id,'unit14');
+});
+
+for(const mode of ['reject','missing-readback','conflict','scope-change']){
+ test('V267 cloud payment '+mode+' cannot expose a successful local collection',async()=>{
+  const data=fixture(),error={textContent:''};let reads=0,saves=0;
+  let cloud=JSON.parse(JSON.stringify(data));const w=activeRuntimeWindow();
+  w.AQARI_CLOUD_SYNC={decodeCloudPayload:payload=>({primary:payload})};
+  w.AQARI_SUPABASE.loadAppState=async()=>{
+   reads++;if(mode==='scope-change')w.AQARI_SUPABASE.context=null;
+   const payload=JSON.parse(JSON.stringify(cloud));
+   if(mode==='conflict')payload.collections.push(['other-device']);
+   return {payload,revision:4};
+  };
+  w.AQARI_SUPABASE.saveAppState=async(payload,revision)=>{saves++;assert.equal(revision,4);if(mode==='reject')throw Error('network');if(mode!=='missing-readback')cloud=JSON.parse(JSON.stringify(payload));};
+  const runtime=loadRuntime(data,[],w,{elements:{v202PaymentError:error},persist(){assert.fail('must not publish unconfirmed data')}});
+  runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const before=JSON.stringify(data);
+  const record=['VERIFY','TEST TENANT',10,'مدفوع','SYNTHETIC TEST PROPERTY','2026-08-28','A','','2026-08','KNET'];
+  const ledger={receiptNo:'VERIFY',contractId:'contract-a',contractNo:data.contractsV202.find(c=>c.id==='contract-a').contract_no,tenant:'TEST TENANT',unit:'A',period:'2026-08'};
+  assert.equal(await runtime.commitPayment(record,ledger),false);
+  assert.equal(JSON.stringify(data),before);
+  assert.equal(saves,['conflict','scope-change'].includes(mode)?0:1);
+ });
+}
+
+test('V267 synthetic tenant → saved lease → collection → immutable voucher survives reload and opens for print',async()=>{
+ const rentalSandbox={module:{exports:{}}};vm.runInNewContext(fs.readFileSync(path.join(root,'v267-rental-records.js'),'utf8'),rentalSandbox);
+ const rentals=rentalSandbox.module.exports;
+ let data=fixture(),cloud=JSON.parse(JSON.stringify(data)),revision=1;
+ const w=activeRuntimeWindow();w.AQARI_CLOUD_SYNC={decodeCloudPayload:payload=>({primary:payload})};
+ w.AQARI_SUPABASE.loadAppState=async()=>({payload:JSON.parse(JSON.stringify(cloud)),revision});
+ w.AQARI_SUPABASE.saveAppState=async(payload,expected)=>{assert.equal(expected,revision);cloud=JSON.parse(JSON.stringify(payload));revision++;};
+ const store=rentals.createStore({scope:()=>({userId:'test',workspaceId:'workspace'}),local:()=>data,load:w.AQARI_SUPABASE.loadAppState,save:w.AQARI_SUPABASE.saveAppState,cache(){}});
+ const tenant={id:'new-profile',nameAr:'مستأجر اختبار جديد',nameEn:'New Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار'};
+ await store.change(['tenantProfilesV267','tenants'],db=>{const p=rentals.profile(tenant,[]);db.tenantProfilesV267=[p];db.tenants.push([p.nameAr,'','','نشط',p.id]);return p},(db,p)=>db.tenantProfilesV267[0].id===p.id);
+ data=JSON.parse(JSON.stringify(cloud));
+ for(const status of ['draft','ready','approved','signing','signed']){
+  await store.change(['contractsV202','tenantDirectoryV202'],db=>{
+   const c=rentals.lease({id:987,contract_no:'NEW-987',tenantId:tenant.id,property:'SYNTHETIC TEST PROPERTY',unit:'9',rent:'100',deposit:'50',start_date:'2026-01-01',end_date:'2026-12-31',status},db.contractsV202,db.tenantProfilesV267,db.properties);
+   db.contractsV202=db.contractsV202.filter(x=>x.id!==987).concat([c]);
+   db.tenantDirectoryV202=db.tenantDirectoryV202.filter(x=>x.contractNo!=='NEW-987').concat([{property:c.property,unit:c.unit,tenant:c.tenant,contractNo:c.contract_no,verified:status==='signed',source:'v267-cloud'}]);return c;
+  },(db,c)=>db.contractsV202.some(x=>x.id===c.id&&x.status===c.status));
+  data=JSON.parse(JSON.stringify(cloud));
+ }
+ const overlay={dataset:{},classList:{add(){},remove(){},contains(){return true}},setAttribute(){},removeAttribute(){},querySelector(){return null}};
+ const elements={v202PaymentContract:{value:'987'},v202PaymentNumber:{value:'V267-ROUNDTRIP'},v202PaymentAmount:{value:'100'},v202PaymentStatus:{value:'مدفوع'},v202PaymentPeriod:{value:'2026-08'},v202PaymentDate:{value:'2026-08-28'},v202PaymentMethod:{value:'KNET'},v202PaymentNote:{value:''},v202PaymentError:{textContent:''},v202DocumentDialog:overlay,v202DocumentDialogTitle:{textContent:''},v202DocumentBody:{innerHTML:''}};
+ let afterPrint,printCalls=0;w.addEventListener=(event,handler)=>{if(event==='afterprint')afterPrint=handler};w.print=()=>{assert.equal(typeof afterPrint,'function');printCalls++;afterPrint()};
+ const writer=loadRuntime(data,[],w,{elements});writer.setActiveProperty('SYNTHETIC TEST PROPERTY');
+ assert.equal(await writer.savePayment({preventDefault(){}}),true,elements.v202PaymentError.textContent);
+ assert.match(elements.v202DocumentBody.innerHTML,/Rent Voucher/);assert.match(elements.v202DocumentBody.innerHTML,/NEW-987/);
+ assert.equal(writer.printDocument(),true);assert.equal(printCalls,1);
+ const reloaded=JSON.parse(JSON.stringify(cloud)),reader=loadRuntime(reloaded,[],activeRuntimeWindow());
+ reader.setActiveProperty('SYNTHETIC TEST PROPERTY');reader.setActivePeriod('2026-08');
+ assert.match(reader.collectionsPanel(reader.contextFor('SYNTHETIC TEST PROPERTY')),/V267-ROUNDTRIP/);
+ const row=reloaded.collections.find(x=>x[0]==='V267-ROUNDTRIP');assert.ok(row);assert.equal(reloaded.rentReceiptsV267.length,1);
+ const linkedContext=reader.contextFor('SYNTHETIC TEST PROPERTY');
+ const linkedTenant=reader.unitDirectoryRecords(linkedContext,'2026-08').find(x=>String(x.contractId)==='987');
+ const linkedPayment=reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP');
+ assert.match(reader.tenantReceiptDocument(linkedContext,linkedTenant,linkedPayment,'2026-08'),/Rent Voucher/);
+ assert.match(reader.savedVoucher(row),/New Synthetic Tenant/);
+ reloaded.contractsV202.find(c=>c.id===987).tenant='CHANGED LATER';
+ assert.match(reader.savedVoucher(row),/New Synthetic Tenant/);assert.doesNotMatch(reader.savedVoucher(row),/CHANGED LATER/);
+ assert.equal(reader.savedVoucher([...row.slice(0,2),999,...row.slice(3)]),'');
+ reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP').contractId='wrong';assert.equal(reader.savedVoucher(row),'');
+});
+
+
+test('property cash net never treats reference rent as collected money', () => {
+  const data=fixture();data.properties[0][3]='8870';
+  let runtime=loadRuntime(data);
+  assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,0);
+  data.expenses=[['SYNTHETIC TEST PROPERTY','maintenance','25','supplier']];
+  runtime=loadRuntime(data);
+  assert.equal(runtime.contextFor('SYNTHETIC TEST PROPERTY').net,null,
+    'Undated legacy expenses cannot support a monthly cash net');
+});
+
+test('property journey does not claim a printable statement from legacy expenses or collection counts', () => {
+  const runtime=loadRuntime(fixture());
+  const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  context.activeContracts=[];
+  context.official=null;
+  context.propertyCollections=[['historic unverified row']];
+  context.expenses=[['undated expense']];
+  const pending=runtime.journey(context);
+  assert.match(pending,/يلزم اعتماد بيانات العقود أولاً/);
+  assert.doesNotMatch(pending,/جاهز للطباعة/);
+  context.official={period:context.period};
+  assert.match(runtime.journey(context),/كشف مصدر محفوظ/);
+});
+
+test('property dues remain pending for drafts and invalid terms instead of declaring a zero balance', () => {
+  const data=fixture();
+  data.contractsV202=data.contractsV202.filter(c=>c.id==='contract-a');
+  let runtime=loadRuntime(data),context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  context.period='2026-08';context.official=null;
+  assert.equal(runtime.dueNeedsReview(context),false);
+  context.due=0;
+  assert.match(runtime.dueKpi(context),/لا يوجد متبقٍ على العقود المعتمدة/);
+  data.contractsV202[0].status='draft';
+  runtime=loadRuntime(data);context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.official=null;
+  assert.equal(runtime.dueNeedsReview(context),true);
+  assert.match(runtime.dueKpi(context),/قيد المراجعة/);
+  assert.doesNotMatch(runtime.dueKpi(context),/لا يوجد متبق/);
+  context.official={period:context.period};
+  assert.match(runtime.dueKpi(context),/حسب كشف المصدر/);
+  data.contractsV202[0].status='signed';
+  runtime=loadRuntime(data);context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.period='2026-08';context.official=null;
+  context.propertyContracts.push({...context.propertyContracts[0],id:'unresolved',start_date:'unreadable'});
+  assert.equal(runtime.dueNeedsReview(context),true);
+});
+
+test('empty monthly statement is marked for review in printable output', () => {
+  const data=fixture();data.contractsV202.forEach(c=>{c.status='draft';});
+  const runtime=loadRuntime(data,[],activeRuntimeWindow()),context=runtime.contextFor('SYNTHETIC TEST PROPERTY');
+  const model=runtime.propertyRentLedgerModel(context,'2026-09');
+  assert.equal(model.reviewRequired,true);
+  assert.equal(model.rows.length,0);
+  const document=runtime.propertyRentLedgerDocument(context,'2026-09');
+  assert.match(document,/Pending review/);
+  assert.match(document,/not a clearance/);
+  assert.doesNotMatch(document,/DUE<\/span><strong>٠ د.ك/);
+  assert.doesNotMatch(document,/BALANCE<\/span><strong>٠ د.ك/);
+  assert.doesNotMatch(document,/حسب البيانات المعتمدة وقت الإصدار/);
+  const csv=runtime.propertyRentLedgerCsv(model);
+  assert.match(csv,/Official due","قيد المراجعة \/ Pending review/);
+  assert.match(csv,/Balance","قيد المراجعة \/ Pending review/);
+  assert.match(csv,/not a clearance/);
 });
