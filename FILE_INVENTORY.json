@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "eea9f9c95a61819c7895df4985c087371fbbeb1c10159c5bc538a07626c866a4",
-      "size": 3809
+      "sha256": "a5f6503f13a064cda25e21e40d1eeae529841f268d5021b023599f24735ebcb5",
+      "size": 3847
     },
     {
       "path": "api/autosync-status.js",
@@ -162,8 +162,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "4a62275b8435ccca1ac1453f3517737107edd4547ab6b68fc7d3d399f099b4ca",
-      "size": 16998
+      "sha256": "0e13d4aba28a21b0d4f4edb3e00ba2864110f51d750ee7b28ba581d2f4be894c",
+      "size": 16965
     },
     {
       "path": "lib/read-only.js",
@@ -1242,8 +1242,8 @@
     },
     {
       "path": "v267-login-locale.js",
-      "sha256": "0b03b37ff48475b8c02ee1ffe30f036dce32495500308570fb6fb79cef17b365",
-      "size": 17576
+      "sha256": "e1d8ae0f6a57e72c688faf994fbc959920dbdb25a1bf7b5517ab2c416d21fd71",
+      "size": 26467
     },
     {
       "path": "tests/v267-login-locale.test.cjs",
@@ -1309,6 +1309,31 @@
       "path": "v267-partner-portal.js",
       "sha256": "04d3dfaf5f7db8c1b6c8f53276313c78deb20999a91cce1b1c5a4908e3dc645a",
       "size": 6404
+    },
+    {
+      "path": "reset-password.html",
+      "sha256": "15ca00bb744884efae12b8c449e2021dbd9a3f87dbf6ba69e7414663e54552cf",
+      "size": 3309
+    },
+    {
+      "path": "src/v267/api/password-recovery.js",
+      "sha256": "21dad903b12aa3ebfd3e21201ba6aa123b60830a8a4f3d062aeb91be6810c253",
+      "size": 4119
+    },
+    {
+      "path": "tests/v267-password-recovery.test.mjs",
+      "sha256": "61ef036fa2ce073debd14e3a280d7c53c2c42d71a4b35489f9027a75b1a225e6",
+      "size": 6107
+    },
+    {
+      "path": "v267-reset-password.js",
+      "sha256": "82f6401a842820a8f83e8e583fa8cc142e985f5c059aafef3d668a0377784549",
+      "size": 3127
+    },
+    {
+      "path": "docs/V267-PASSWORD-RECOVERY.md",
+      "sha256": "5418775f0fbfb45d34960775818ac0bf9f2f8d3cae2dd888f4da169e11de89ba",
+      "size": 4165
     }
   ],
   "version": "V198"
