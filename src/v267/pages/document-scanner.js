@@ -2,6 +2,7 @@ import {createPrivateUrls} from '../components/private-urls.js';
 import {t,dateLocale} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {decodeImage,renderScan,checksum} from '../components/scan-image.js';
+import {createVerifiedUpload} from '../components/verified-upload.js';
 export async function openDocumentScanner(initial={}){
  const dialog=createDialog(t('مسح المستندات وحفظ النسخ الأصلية'),{localized:true});if(!dialog)return;
  const {session,body,status,run}=dialog;
@@ -34,13 +35,10 @@ export async function openDocumentScanner(initial={}){
   if(!pending||pending.hash!==hash||JSON.stringify(pending.target)!==JSON.stringify(target)){
    const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:target.type==='lease'?'signed_contract':'mobile_scan',p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title,p_original_filename:'scan.jpg',p_mime_type:'image/jpeg',p_metadata:{capture:'mobile',release:'V267'}}));
    const doc=Array.isArray(rows)?rows[0]:rows;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path.startsWith(session.bound.workspace+'/'))throw Error('تعذر حجز نسخة المستند.');
-   pending={doc,hash,target,uploadAttempted:false};
+   pending={doc,hash,target,upload:createVerifiedUpload(session,{path:doc.storage_path,blob:sentBlob})};
   }
   const {doc}=pending;
-  // If a previous response timed out, read the SAME path before another upload.
-  if(!pending.uploadAttempted){pending.uploadAttempted=true;await session.storage('POST',doc.storage_path,sentBlob);}
-  const stored=await session.storage('GET',doc.storage_path);session.check();
-  if(stored.size!==sentBlob.size||await checksum(stored)!==hash)throw Error('لم تتطابق إعادة قراءة المستند. لن يتم تأكيده.');
+  await pending.upload();
   await session.request(session.client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:sentBlob.size,p_mime_type:'image/jpeg',p_checksum:hash}));
   const verified=await session.request(session.client.from('aqari_documents').select('id,status,entity_type,entity_ref,created_by,checksum_sha256').eq('workspace_id',session.bound.workspace).eq('id',doc.document_id).single());
   if(verified.status!=='uploaded'||verified.entity_type!==target.type||verified.entity_ref!==target.ref||verified.created_by!==session.bound.user||verified.checksum_sha256!==hash)throw Error('لم تتأكد إعادة قراءة سجل المستند.');
@@ -50,4 +48,3 @@ export async function openDocumentScanner(initial={}){
  dialog.onDispose(()=>{renderId++;img=null;blob=null;pending=null;file.value='';preview.removeAttribute('src');previewUrl=null;});
  await run(loadRecords);
 }
-

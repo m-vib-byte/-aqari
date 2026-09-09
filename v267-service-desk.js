@@ -74,7 +74,7 @@ export async function openDesk(mode='maintenance'){
        try{
         const saved=await session.request(session.client.from('aqari_maintenance_requests').update({status:newStatus,cost:value}).eq('workspace_id',session.bound.workspace).eq('id',row.id).eq('revision',row.revision).select('id,revision,status,cost').maybeSingle());
         if(!saved||saved.id!==row.id)throw Error('تغير الطلب لدى مستخدم آخر.');
-        const verified=await session.request(session.client.from('aqari_maintenance_requests').select('id,revision,status,cost').eq('workspace_id',session.bound.workspace).eq('id',row.id).single());
+        const verified=await read(session.client.from('aqari_maintenance_requests').select('id,revision,status,cost').eq('workspace_id',session.bound.workspace).eq('id',row.id).single());
         if(verified.id!==row.id||verified.revision!==saved.revision||verified.status!==newStatus||Number(verified.cost)!==Number(value))throw Error('لم تتأكد إعادة القراءة.');
         editors.delete(row.id);drafts.delete(row.id);
         await load();confirmed=true;status.textContent=t('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.');

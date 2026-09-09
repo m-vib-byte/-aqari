@@ -17,7 +17,7 @@ function fixture(count=2){
  function from(table){assert.equal(table,'aqari_maintenance_requests');const query={filters:{},select(){return query;},eq(key,value){query.filters[key]=value;return query;},order(){return query;},update(values){query.values=values;return query;},
   async range(start,end){calls.push({kind:'list',start,end});if(state.loseSessionOnRead)state.sessionLost=true;if(state.readError)throw state.readError;if(state.failList)throw Error('network unavailable');return clone(rows.slice(start,end+1));},
   async maybeSingle(){calls.push({kind:'update',filters:clone(query.filters),values:clone(query.values)});assert.equal(query.filters.workspace_id,'fixture-workspace');const row=rows.find(r=>r.id===query.filters.id&&r.revision===query.filters.revision);if(!row)return null;Object.assign(row,query.values,{revision:row.revision+1});if(state.lostUpdate)throw Error('reply lost');return clone(row);},
-  async single(){calls.push({kind:'readback',filters:clone(query.filters)});const row=clone(rows.find(r=>r.id===query.filters.id));if(state.badReadback)row.id='another-request';return row;}
+  async single(){calls.push({kind:'readback',filters:clone(query.filters)});if(state.readbackError)throw state.readbackError;const row=clone(rows.find(r=>r.id===query.filters.id));if(state.badReadback)row.id='another-request';return row;}
  };return query;}
  const d={body:node('div'),el:node('dialog'),status:node('p'),session:{bound:{workspace:'fixture-workspace'},client:{from},request:query=>query,check(){if(state.closed||state.sessionLost)throw Error('closed');}},onDispose(fn){dispose=fn;},get closed(){return state.closed;},async run(task){if(d.busy||state.closed)return;d.busy=true;const controls=descendants(d.body).filter(e=>['button','input','select'].includes(e.tag)),disabled=controls.map(e=>e.disabled);controls.forEach(e=>e.disabled=true);try{await task();}catch(e){d.status.textContent=e.message;}finally{d.busy=false;controls.forEach((e,i)=>{if(e.isConnected)e.disabled=disabled[i];});}}};d.body.root=true;
  const context={node,field,createDialog:()=>d,currentScope:()=>({role:'general_manager'}),t:x=>x,message:(x,args)=>x.replace(/\{(\w+)\}/g,(_,k)=>args[k]),window:{}};vm.createContext(context);vm.runInContext(source,context);
@@ -68,6 +68,17 @@ test('lost write reply stays locked across refresh and cannot duplicate a reques
 });
 test('a readback for another request cannot confirm this save',async()=>{
  const f=fixture();await f.start();f.cost(0).value='3';f.state.badReadback=true;await f.save(0);assert.match(f.d.status.textContent,/لم يتأكد الحفظ/);assert.equal(f.button('حفظ الحالة والتكلفة',f.cards()[0]).disabled,true);
+});
+test('read permission revoked after a write clears all private rows and drafts before reporting uncertainty',async()=>{
+ for(const error of [Object.assign(Error('denied'),{status:403}),Object.assign(Error('expired'),{status:401}),Object.assign(Error('permission'),{code:'42501'})]){
+  const f=fixture();await f.start();f.cost(0).value='3';f.cost(1).value='8';f.state.readbackError=error;await f.save(0);
+  assert.equal(f.cards().length,0);assert.doesNotMatch(f.d.body.textContent,/طلب اختبار|مستأجر اختبار/);assert.match(f.d.status.textContent,/لم يتأكد الحفظ/);
+  assert.equal(f.calls.filter(c=>c.kind==='update').length,1);f.state.readbackError=null;await f.refresh();assert.equal(f.cost(0).value,'3');assert.equal(f.cost(1).value,'0','discarded draft cannot return');
+ }
+});
+test('temporary failure during post-save verification preserves input and prevents a duplicate write',async()=>{
+ const f=fixture();await f.start();f.cost(0).value='3';f.cost(1).value='8';f.state.readbackError=Object.assign(Error('unavailable'),{status:503});await f.save(0);
+ assert.equal(f.cards().length,2);assert.equal(f.cost(1).value,'8');assert.equal(f.button('حفظ الحالة والتكلفة',f.cards()[0]).disabled,true);await f.save(0);assert.equal(f.calls.filter(c=>c.kind==='update').length,1);
 });
 test('paging preserves local drafts and failed paging leaves the current page selected',async()=>{
  const f=fixture(51);await f.start();f.cost(0).value='9.250';await f.button('التالي').onclick();assert.equal(f.cards().length,1);await f.button('السابق').onclick();assert.equal(f.cost(0).value,'9.250');

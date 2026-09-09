@@ -942,8 +942,8 @@
     },
     {
       "path": "v267-service-desk.js",
-      "sha256": "e910a73f31b590b184da3814ae0f8214f2ba052094704c9471cfee313e8d3d4a",
-      "size": 10624
+      "sha256": "709b6f3a8531baee05d4f4f3cf7412267272372383730b6b8495c7c88f7dd893",
+      "size": 10613
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
@@ -992,8 +992,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "71b0065f802926b1cc5747de3dce0106b9d1532f75dba7dae839bacae22c3de7",
-      "size": 9105
+      "sha256": "e6d1a9974458f31901fb3ebdc34f98a2fa7f25b023929eda34f9eb0ebfc7bcac",
+      "size": 8815
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "ba449796388ea3f2bb10cce7cd350502917c3f266484eb15172e03d4493d1276",
-      "size": 39742
+      "sha256": "c7958df258d4cca43e90657e076d5bfff553b416f56017cd78e0ec954ef9ea64",
+      "size": 42131
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1127,8 +1127,8 @@
     },
     {
       "path": "src/v267/components/payment-proof.js",
-      "sha256": "0d8ab0ebcf6e0cfba61764ba76abb03cbea3c66c15b285136bb4dd22bd68ecbe",
-      "size": 2934
+      "sha256": "68caf25888e4d4cbf3e8e061c70ea55806bd222a95dc9f7fe4bef6efe2630c60",
+      "size": 2401
     },
     {
       "path": "staging-database/supabase/migrations/20260908110635_v267_utility_payment_evidence.sql",
@@ -1142,8 +1142,8 @@
     },
     {
       "path": "tests/payment-proof.test.mjs",
-      "sha256": "b88725aeb5146aca5e37f56db9814c420c1e08926b7425299b9dafb40b4258c4",
-      "size": 3591
+      "sha256": "8d367b6683b3e948fb649c1cbb1e59412b6827ab4368a2ccb4bea4492917b622",
+      "size": 4009
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1402,8 +1402,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "283380b011d2b319900c03a699f642d73d6e4bbfb173f72369df7fb445d9cf6a",
-      "size": 23510
+      "sha256": "a7ae7eb1d4beac08571a61789f8f43c992d1d4bb8732cc5b33ff7347f3dde5d4",
+      "size": 24612
     },
     {
       "path": "staging-database/sql/employees-payroll.sql",
@@ -1422,8 +1422,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "d5db76f321de8f9c5f32b056b0b8385d1ec7853d5c6bfe4f8fcb3c35960d0e4d",
-      "size": 16411
+      "sha256": "7cf1f1580cb3293ccb80d4f3e004917b8287130a3b2f9b98f21367ec203783f0",
+      "size": 17287
     },
     {
       "path": "staging-database/sql/rental-contract-provisions.sql",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "5695b08119c66e73d21821062fbabeb8ec32dca743e3d61409403b19c3afa138",
-      "size": 1242
+      "sha256": "dae0b0274cab4e6a2204c36e35f58ac30263d1512ece4ea57b3b0156fecfb32b",
+      "size": 1359
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "78829b5028637de62a63338c76abd1c8b28543355134d73b21d73717685497ea",
-      "size": 76341
+      "sha256": "88af88e28bdbf3c72b0237fa595261f0960891d5549bc02a696df71deffea163",
+      "size": 76940
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1557,8 +1557,8 @@
     },
     {
       "path": "tests/v267-service-desk.test.cjs",
-      "sha256": "3264e2815414fcfe21b99d5c67f6f7e2b4fe63aceb91c853b2532ef87a8300d2",
-      "size": 9572
+      "sha256": "d8eba4284e64d80de5ddf68ae0ed8c61a9ac3d7f116ce134c19a76a6fdbf5706",
+      "size": 10947
     },
     {
       "path": "docs/V267-PRINT-AND-MAINTENANCE-REPAIR.md",
@@ -1574,6 +1574,26 @@
       "path": "docs/V267-CI-MAINTENANCE-RECOVERY.md",
       "size": 3577,
       "sha256": "1f6aec39c8b80916bcc9e396c09b72e53fd4acb364949fc23024caec17881ebf"
+    },
+    {
+      "path": "src/v267/components/verified-upload.js",
+      "sha256": "f86249f9357e7cfac28825780f6c246d0489dd7f2a2e950d0e106087833b9c8f",
+      "size": 1335
+    },
+    {
+      "path": "tests/verified-upload.test.mjs",
+      "sha256": "34d03d9234e992fa351de66c0ae974865010159d50ef37dc52b26724ceb5d27f",
+      "size": 4295
+    },
+    {
+      "path": "tests/v267-document-upload-pages.test.mjs",
+      "sha256": "0a88ba14e98045db4d7ac13c2bec338c641abb04e9eb92a70c16a076319427e7",
+      "size": 8714
+    },
+    {
+      "path": "docs/V267-DOCUMENT-UPLOAD-RECOVERY.md",
+      "sha256": "f6aa0820575d5afcb243a024859c101dc9a13e2d4656971ac48b93a68b885807",
+      "size": 3356
     }
   ],
   "version": "V198"

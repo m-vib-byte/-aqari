@@ -1,5 +1,6 @@
 import {createDialog,node,field} from '../components/dialog.js';
 import {createPrivateUrls} from '../components/private-urls.js';
+import {createVerifiedUpload} from '../components/verified-upload.js';
 import {validateDocument,kuwaitTime,currentMonth} from '../domain/payroll.js';
 const states={draft:'مسودة',ready:'جاهز للمراجعة',approved:'معتمد',signing:'بانتظار التوقيع',signed:'موقّع',cancelled:'ملغى',expired:'منتهي'};
 const input=(type,value='')=>{const x=node('input');x.type=type;x.value=value??'';return x;};
@@ -51,8 +52,21 @@ export function openRentalContracts(){
   if(c.rentalTermsVersion===1)d.body.append(button('تعديل معتمد مع حفظ السجل السابق',async()=>form(c)));
   const transitions={draft:'ready',ready:'approved',approved:'signing',signing:'signed'};const next=transitions[c.status];if(next)d.body.append(button('نقل إلى: '+states[next],async()=>{if(['approved','signed'].includes(next)&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');await api.saveLease({...c,status:next,changeReason:'اعتماد انتقال حالة العقد إلى '+states[next]});await show(id);}));
   const docs=await d.session.request(d.session.client.from('aqari_documents').select('id,original_filename,storage_path,status').eq('workspace_id',d.session.bound.workspace).eq('entity_type','lease').eq('entity_ref',String(id)).eq('status','uploaded').order('created_at',{ascending:false}));d.body.append(node('h3','العقد الموقّع والملاحق المرتبطة'));for(const doc of docs)d.body.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);const a=node('a','فتح الأصل المحفوظ');a.href=urls.create(blob);a.target='_blank';a.rel='noopener';d.body.append(a);}));
-  const upload=node('form'),file=input('file'),confirm=input('checkbox'),save=node('button','رفع النسخة الموقعة وربطها بالعقد');file.accept='application/pdf,image/jpeg,image/png';file.required=confirm.required=true;upload.append(field('النسخة الموقعة — PDF أو صورة',file),field('راجعت النسخة وهي العقد الموقّع الفعلي لهذا المستأجر والوحدة',confirm),save);d.body.append(upload);let reserved=null;file.onchange=()=>{reserved=null;};
-  upload.onsubmit=event=>{event.preventDefault();const chosen=file.files?.[0];d.run(async()=>{await validateDocument(chosen);d.session.check();if(!confirm.checked)throw Error('أكد مطابقة النسخة الموقعة.');if(!reserved){const r=await rpc('aqari_reserve_document',{p_workspace_id:d.session.bound.workspace,p_document_type:'signed_contract',p_entity_type:'lease',p_entity_ref:String(id),p_title:'عقد موقّع '+c.contract_no,p_original_filename:chosen.name,p_mime_type:chosen.type,p_metadata:{release:'V267',tenantId:c.tenantId,property:c.property,unit:c.unit}});reserved=Array.isArray(r)?r[0]:r;}try{await d.session.storage('POST',reserved.storage_path,chosen);}catch(e){if(e.status!==409)throw e;}await rpc('aqari_finalize_document',{p_document_id:reserved.document_id,p_size_bytes:chosen.size,p_mime_type:chosen.type});await show(id);d.status.textContent='حُفظت النسخة الموقعة وربطت بالعقد والمستأجر والوحدة.';});};
+  const upload=node('form'),file=input('file'),confirm=input('checkbox'),save=node('button','رفع النسخة الموقعة وربطها بالعقد');file.accept='application/pdf,image/jpeg,image/png';file.required=confirm.required=true;upload.append(field('النسخة الموقعة — PDF أو صورة',file),field('راجعت النسخة وهي العقد الموقّع الفعلي لهذا المستأجر والوحدة',confirm),save);d.body.append(upload);let pending=null;
+  file.onchange=()=>{pending=null;confirm.checked=false;};
+  upload.onsubmit=event=>{event.preventDefault();const chosen=file.files?.[0];d.run(async()=>{
+   await validateDocument(chosen);d.session.check();if(!confirm.checked)throw Error('أكد مطابقة النسخة الموقعة.');
+   if(!pending){
+    const r=await rpc('aqari_reserve_document',{p_workspace_id:d.session.bound.workspace,p_document_type:'signed_contract',p_entity_type:'lease',p_entity_ref:String(id),p_title:'عقد موقّع '+c.contract_no,p_original_filename:chosen.name,p_mime_type:chosen.type,p_metadata:{release:'V267',tenantId:c.tenantId,property:c.property,unit:c.unit}}),doc=Array.isArray(r)?r[0]:r;
+    if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path?.startsWith(d.session.bound.workspace+'/'))throw Error('تعذر حجز نسخة المستند.');
+    pending={doc,upload:createVerifiedUpload(d.session,{path:doc.storage_path,blob:chosen})};
+   }
+   const {doc}=pending,hash=await pending.upload();
+   await rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:chosen.size,p_mime_type:chosen.type,p_checksum:hash});
+   const verified=await d.session.request(d.session.client.from('aqari_documents').select('id,status,entity_type,entity_ref,created_by,checksum_sha256').eq('workspace_id',d.session.bound.workspace).eq('id',doc.document_id).single());
+   if(verified?.id!==doc.document_id||verified.status!=='uploaded'||verified.entity_type!=='lease'||verified.entity_ref!==String(id)||verified.created_by!==d.session.bound.user||verified.checksum_sha256!==hash)throw Error('لم تتأكد إعادة قراءة سجل المستند.');
+   await show(id);d.status.textContent='حُفظت النسخة الموقعة وربطت بالعقد والمستأجر والوحدة.';
+  });};
   const history=await rpc('aqari_contract_history',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(id)});const box=node('details');box.append(node('summary','سجل العقد والنسخ السابقة / Contract history'));for(const h of history){const item=node('details');item.append(node('summary',h.actor_name+' · '+kuwaitTime(h.recorded_at)+' · '+h.reason),node('pre',JSON.stringify({before:h.before_snapshot,after:h.after_snapshot},null,2)));box.append(item);}d.body.append(box);d.status.textContent='تمت قراءة العقد ومستنداته وسجل نسخه المحفوظة.';
  }
  d.run(home);
