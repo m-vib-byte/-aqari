@@ -1397,13 +1397,13 @@
     },
     {
       "path": "src/v267/domain/payroll.js",
-      "sha256": "18cef9e7c425be28b94cce2f75a5ebf74321061b99b74560f2c7f491af8cf6ac",
-      "size": 5913
+      "sha256": "3234b24bdcab2878d2b01f0895ab71636ec681484b9e14fffbbef57735593c27",
+      "size": 6892
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "f083d4fe0011093be29fed9daefdf2ce7bdff7b5863e9f5174a4bc91e3cfe593",
-      "size": 21997
+      "sha256": "283380b011d2b319900c03a699f642d73d6e4bbfb173f72369df7fb445d9cf6a",
+      "size": 23510
     },
     {
       "path": "staging-database/sql/employees-payroll.sql",
@@ -1417,8 +1417,8 @@
     },
     {
       "path": "tests/v267-payroll.test.mjs",
-      "sha256": "7f516cef17c0d71969d43c5ed4d2a51b1a0657066cf5bdfd2a3df5f0203adc2b",
-      "size": 2145
+      "sha256": "9c5602e28b604209af554db45c3e9ef3670a418e2215ad783d3963f940117492",
+      "size": 4779
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -1437,8 +1437,28 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "979ca535c02c431c952272ad815af4e5521bcd086980c2dc30df6a25bb68f2a9",
-      "size": 991
+      "sha256": "e493d4e0b19fc2a13bdbcd8708c80f2bfd2069c9632e9bebed7217b60615ae6e",
+      "size": 1024
+    },
+    {
+      "path": "src/v267/domain/salary-slip.js",
+      "sha256": "ff9260237adb48add13f45f268e11725ce3de5692641c01d165546e65f18b842",
+      "size": 14975
+    },
+    {
+      "path": "staging-database/sql/salary-slip-dhahawi.sql",
+      "sha256": "eab15fec0c89f9954abe80a82bc512ec0f0cec1ede3502a4b07c65259c5ae053",
+      "size": 22171
+    },
+    {
+      "path": "staging-database/tests/salary_slip.sql",
+      "sha256": "8208fc6e9d542a3c0770f5bf0212f481502aa350d48bdc8b82e8e18021968bb7",
+      "size": 9892
+    },
+    {
+      "path": "staging-database/SALARY_SLIP_RELEASE_NOTE.md",
+      "sha256": "e0ca3c38a5cc281c03a382d58b6abdfefa0753fba287e8b6e191ccf02898f294",
+      "size": 2481
     }
   ],
   "version": "V198"

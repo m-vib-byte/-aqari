@@ -2,7 +2,7 @@ import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 const inventory=JSON.parse(readFileSync(new URL('../FILE_INVENTORY.json',import.meta.url),'utf8')).files;
-const paths=['v202-property-os.js','v206-rent-ledger.js','v267-rental-records.js','src/v267/api/session.js','src/v267/pages/employees.js','src/v267/pages/rental-contracts.js','src/v267/domain/payroll.js'];
+const paths=['v202-property-os.js','v206-rent-ledger.js','v267-rental-records.js','src/v267/api/session.js','src/v267/pages/employees.js','src/v267/pages/rental-contracts.js','src/v267/domain/payroll.js','src/v267/domain/salary-slip.js'];
 for(const path of paths){
  const url=new URL('../'+path,import.meta.url),bytes=readFileSync(url),expected=inventory.find(x=>x.path===path);
  if(!expected||bytes.length!==expected.size||createHash('sha256').update(bytes).digest('hex')!==expected.sha256)throw Error('Incomplete or mismatched Staging source: '+path);
