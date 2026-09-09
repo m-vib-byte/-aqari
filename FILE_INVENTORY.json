@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "b85ff46baa079e74a94b2c37d93783027bd9fde1c7f37f25e1f1f2f570d012cc",
-      "size": 3625
+      "sha256": "1c17419a640a2e19787d062dd365578f48d0d10535e3d2d886a3b450d5426db7",
+      "size": 3659
     },
     {
       "path": "api/autosync-status.js",
@@ -877,8 +877,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "4a08f2642fddc0e68bd3cbc34662cf8ff236c8ae71e27a0adbae7e4f67b7bb06",
-      "size": 8348
+      "sha256": "101fefd08e3d8590b14dab323eb9eb521d630b20e1d8d1b3a1df004ce5d92b2d",
+      "size": 11596
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -1224,6 +1224,11 @@
       "path": "tests/v267-dialog-boundary.test.mjs",
       "sha256": "034d5b48b19b185ee3c8829d4cc3394966f37fa372dabbc13ca7a53dd1da71df",
       "size": 3436
+    },
+    {
+      "path": "tests/v267-tenant-portal.test.cjs",
+      "sha256": "2d23a0d49e37b6b849b0df64dcedb0a2e407c646725bc43f035b14ac4c5af174",
+      "size": 9690
     }
   ],
   "version": "V198"
