@@ -1087,8 +1087,8 @@
     },
     {
       "path": "staging-database/tests/source_linked_receipt_transaction.sql",
-      "size": 3392,
-      "sha256": "ad24234615b8d1fb275e5ed3d13d96cf7022007d9f8934e0f2f864f476130cd4"
+      "size": 5078,
+      "sha256": "a3fa32db151cc0232b01edb6e7b0c5903b9688a5c6bc3d5976d3bf7cbb8a750b"
     },
     {
       "path": "staging-database/supabase/migrations/20260908091751_v267_correct_phone_validation_pattern.sql",
@@ -1459,6 +1459,21 @@
       "path": "staging-database/SALARY_SLIP_RELEASE_NOTE.md",
       "sha256": "e0ca3c38a5cc281c03a382d58b6abdfefa0753fba287e8b6e191ccf02898f294",
       "size": 2481
+    },
+    {
+      "path": "staging-database/sql/reminder-contract-balance.sql",
+      "sha256": "81a0f6f314f8871a4c75dbe8bee39374dc19be3cf004375a3e8a0cc59b2ab108",
+      "size": 5182
+    },
+    {
+      "path": "staging-database/tests/reminder_contract_balance.sql",
+      "sha256": "dd49b4cb472105371eeb1bdd7787f925201cf79a05a3632286bba16440d3b224",
+      "size": 9892
+    },
+    {
+      "path": "staging-database/RELEASE_GATE_2026_09_09.md",
+      "sha256": "8dab5e8b877f2963efe22203868b4a2d467947a2837bb0ba66f349cebd166158",
+      "size": 4505
     }
   ],
   "version": "V198"
