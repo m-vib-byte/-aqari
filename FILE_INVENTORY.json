@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "fa69cbe897fd81c43bc6c909ab77bf52e3cc114f7a92a6f4b0e581512a2652e9",
-      "size": 4825
+      "sha256": "3306cd904d412ddd6987120b24a300d3a0c15a834741da3ad7d89e62c9733d10",
+      "size": 4886
     },
     {
       "path": "api/autosync-status.js",
@@ -1707,13 +1707,23 @@
     },
     {
       "path": "src/v267/pages/vacating-settlement.js",
-      "sha256": "733cae691cb12e3c5d317a8d93d3a67c3132cbedd544df2118c71a0c771f30aa",
-      "size": 9177
+      "sha256": "c8904e4caeb1e74c2ce751673b3d448074e8f80d07d1a1e7435149ed168df343",
+      "size": 9181
     },
     {
       "path": "staging-database/sql/vacating-settlement.sql",
       "sha256": "41d64584ec149bdb61f4f87719aa8aa8b1944c8345ef68ef0babdf5d875bad3c",
       "size": 14894
+    },
+    {
+      "path": "staging-database/sql/vacating-settlement-hardening.sql",
+      "sha256": "d261e2c6be52d36eead95fabfa33ee9fb03dcdb93f26a8723bb99f5aa5e6ef57",
+      "size": 2939
+    },
+    {
+      "path": "tests/v267-vacating-settlement.test.mjs",
+      "sha256": "4d1a75384ca171420db935d8f2c9abf813512b90cac71f91e9e81408bf3b0f7c",
+      "size": 3187
     }
   ],
   "version": "V198"
