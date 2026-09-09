@@ -104,7 +104,7 @@
       const contractRent=numberFrom(record?.contractRent)||rent;
       const currentRent=numberFrom(record?.currentRent)||rent;
       return {
-        nameAr:String(record?.nameAr||''),nameEn:String(record?.nameEn||''),floor:String(record?.floor||''),phone:String(record?.phone||''),nationality:String(record?.nationality||''),civilId:String(record?.civilId||''),passportNo:String(record?.passportNo||''),startDate:String(record?.startDate||''),endDate:String(record?.endDate||''),receivedAt:String(record?.receivedAt||''),evictionNotice:String(record?.evictionNotice||''),
+        insuranceDateRaw:String(record?.insuranceDateRaw||''),freeMonth:String(record?.freeMonth||''),nameAr:String(record?.nameAr||''),nameEn:String(record?.nameEn||''),floor:String(record?.floor||''),phone:String(record?.phone||''),nationality:String(record?.nationality||''),civilId:String(record?.civilId||''),passportNo:String(record?.passportNo||''),startDate:String(record?.startDate||''),endDate:String(record?.endDate||''),receivedAt:String(record?.receivedAt||''),evictionNotice:String(record?.evictionNotice||''),
         key:String(record?.key||''),unit:String(record?.unit||'—'),tenant:String(record?.tenant||'—'),
         contractNo:String(record?.contractNo||''),contractId:String(record?.contractId||''),hasContract:Boolean(record?.hasContract),
         contractRent,currentRent,rent,insurance:record?.insurance==null?null:numberFrom(record.insurance),advance:record?.advance==null?null:numberFrom(record.advance),
@@ -175,13 +175,13 @@
       'إيجار العقد / RENT CONTRACT','التأمين / INSURANCE','العربون / ADVANCE','رسوم النظافة / CLEANING FEES',
       'الإيجار الحالي / CURRENT RENT','تاريخ الدفع / PAYMENT DATE','طريقة الدفع / PAYMENT METHOD',
       'رقم العملية / TRANSACTION NUMBER','رقم الوصل / VOUCHER NO.','استلام العقد / CONTRACT RECEIVED','المحاسب / ACCOUNTANT',
-      'الدور','الاسم بالعربي','الاسم بالإنجليزي','الهاتف','الجنسية','الرقم المدني','رقم الجواز','البريد الإلكتروني','بداية العقد','نهاية العقد','وقت استلام العقد — الكويت','تبليغ الإخلاء'
+      'الدور','الاسم بالعربي','الاسم بالإنجليزي','الهاتف','الجنسية','الرقم المدني','رقم الجواز','البريد الإلكتروني','بداية العقد','نهاية العقد','وقت استلام العقد — الكويت','تبليغ الإخلاء','تاريخ استلام التأمين','الشهر المجاني المعتمد'
     ];
     const lines=[headers.map(csvCell).join(',')];
     model.items.forEach(function(item){
       lines.push([
         item.unit,item.tenant,item.contractNo,item.contractRent,item.insurance,item.advance,item.cleaning,item.currentRent,
-        item.date,item.method,item.knet,item.receipt,item.contractReceived,item.accountant,item.floor,item.nameAr,item.nameEn,item.phone,item.nationality,item.civilId,item.passportNo,item.email,item.startDate,item.endDate,item.receivedAt,item.evictionNotice
+        item.date,item.method,item.knet,item.receipt,item.contractReceived,item.accountant,item.floor,item.nameAr,item.nameEn,item.phone,item.nationality,item.civilId,item.passportNo,item.email,item.startDate,item.endDate,item.receivedAt,item.evictionNotice,item.insuranceDateRaw,item.freeMonth
       ].map(csvCell).join(','));
     });
     const blob=new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
@@ -230,7 +230,7 @@
   }
 
   function tenantDetails(item){
-    return '<dl>'+[['الدور',item.floor],['الاسم بالعربي',item.nameAr],['الاسم بالإنجليزي',item.nameEn],['الهاتف',item.phone],['الجنسية',item.nationality],['الرقم المدني',item.civilId],['رقم الجواز',item.passportNo],['البريد الإلكتروني',item.email],['بداية العقد',item.startDate],['نهاية العقد',item.endDate],['حالة تبليغ الإخلاء',item.evictionNotice]].map(([label,value])=>'<dt>'+esc(label)+'</dt><dd><bdi>'+esc(value||'غير مدون')+'</bdi></dd>').join('')+'</dl>';
+    return '<dl>'+[['تاريخ استلام التأمين',item.insuranceDateRaw],['الشهر المجاني المعتمد',item.freeMonth],['الدور',item.floor],['الاسم بالعربي',item.nameAr],['الاسم بالإنجليزي',item.nameEn],['الهاتف',item.phone],['الجنسية',item.nationality],['الرقم المدني',item.civilId],['رقم الجواز',item.passportNo],['البريد الإلكتروني',item.email],['بداية العقد',item.startDate],['نهاية العقد',item.endDate],['حالة تبليغ الإخلاء',item.evictionNotice]].map(([label,value])=>'<dt>'+esc(label)+'</dt><dd><bdi>'+esc(value||'غير مدون')+'</bdi></dd>').join('')+'</dl>';
   }
   function rowMarkup(item,index){
     return '<tr class="'+(item.balance>0?'v206-due':'v206-paid')+'" data-v206-row-key="'+esc(item.key)+'" title="فتح كشف المستأجر">'+

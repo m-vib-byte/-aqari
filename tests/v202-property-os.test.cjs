@@ -1313,7 +1313,7 @@ test('V206 CSV is UTF-8 and neutralizes spreadsheet formulas', () => {
   assert.match(csv, /"'-10"/);
   assert.match(csv, /"' @SUM\(A1:A2\)"/);
   assert.match(csv, /"'012345"/);
-  assert.equal((csv.split(/\r?\n/)[0].match(/,/g) || []).length, 25);
+  assert.equal((csv.split(/\r?\n/)[0].match(/,/g) || []).length, 27);
 });
 
 test('V206.1 CSV carries authoritative totals, occupancy, and reconciliation metadata', () => {
@@ -3400,4 +3400,14 @@ test('empty monthly statement is marked for review in printable output', () => {
   assert.match(csv,/Official due","قيد المراجعة \/ Pending review/);
   assert.match(csv,/Balance","قيد المراجعة \/ Pending review/);
   assert.match(csv,/not a clearance/);
+});
+
+test('approved free month and dated discounts affect only the selected billing period',()=>{
+ const db=fixture();const c=db.contractsV202.find(c=>c.id==='contract-a');
+ Object.assign(c,{rentalTermsVersion:1,rent:100,contractRent:110,freeMonthApproved:true,freeMonthPeriod:'2026-09',rentAdjustments:[{effectiveMonth:'2026-10',discount:20,rent:90,reason:'Approved test'}],depositReceivedOn:'2026-08-01'});
+ const runtime=loadRuntime(db,[],activeRuntimeWindow());const normalized=runtime.contracts().find(x=>x.id==='contract-a');
+ assert.equal(runtime.contractRent(normalized,'2026-08'),100);assert.equal(runtime.contractRent(normalized,'2026-09'),0);assert.equal(runtime.contractRent(normalized,'2026-10'),90);assert.equal(runtime.contractRent(normalized,'2026-09',false),100);
+ const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.official=null;
+ const record=runtime.unitDirectoryRecords(context,'2026-09').find(x=>x.contractId==='contract-a');
+ assert.equal(record.freeMonth,'نعم — 2026-09');assert.equal(record.currentRent,100);
 });

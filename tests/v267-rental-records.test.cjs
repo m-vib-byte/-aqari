@@ -9,6 +9,15 @@ const api=sandbox.module.exports;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const tenant={id:'synthetic-tenant',nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',email:'tenant@example.invalid',passportNo:'TEST-P123',address:'',attachments:[]};
 const contract={id:123,contract_no:'TEST-123',tenantId:tenant.id,property:'عقار اختبار',unit:'٤',rent:'100.125',deposit:'50',start_date:'2026-09-01',end_date:'2027-08-31',status:'draft',floor:'1',advance:'0',cleaningFee:'5',discount:'10',accountant:'محاسب اختبار',receivedAt:'2026-09-01T10:30',writtenOn:'2026-09-09',evictionNotice:'لم يُبلّغ'};
+test('contract delivery may be pending; optional charges and an approved free month are explicit',()=>{
+ const c=api.lease({...contract,rentalTermsVersion:1,deposit:'',advance:'',cleaningFee:'',contractReceived:'لم يستلم',receivedAt:'',depositReceivedOn:'',freeMonthApproved:true,freeMonthPeriod:'2026-10',rentAdjustments:[]},[],[tenant],[['عقار اختبار']]);
+ assert.equal(c.deposit,0);assert.equal(c.receivedAt,'');assert.equal(c.contractReceived,'لم يستلم');assert.equal(api.effectiveRent(c,'2026-10'),0);assert.equal(api.effectiveRent(c,'2026-11'),90.125);assert.equal(api.directoryFields(c,tenant).freeMonth,'نعم — 2026-10');
+ assert.throws(()=>api.lease({...c,freeMonthPeriod:'2028-01'},[],[tenant],[['عقار اختبار']]),/الشهر المجاني/);
+ assert.throws(()=>api.lease({...c,depositReceivedOn:'2026-09-01'},[],[tenant],[['عقار اختبار']]),/التأمين/);
+ assert.throws(()=>api.lease({...c,contractReceived:'مستلم',receivedAt:''},[],[tenant],[['عقار اختبار']]),/استلام/);
+ const changed=api.lease({...c,rentAdjustments:[{effectiveMonth:'2026-11',discount:'20.125',reason:'Approved test change'}]},[c],[tenant],[['عقار اختبار']]);
+ assert.equal(api.effectiveRent(changed,'2026-09'),90.125);assert.equal(api.effectiveRent(changed,'2026-11'),80);assert.equal(api.effectiveRent(changed,'2026-10'),0);assert.equal(changed.contractRent,100.125);
+});
 function valid(c=contract,old=[]){return api.lease(c,old,[tenant],[['عقار اختبار']])}
 test('complete reusable tenant profile normalizes civil ID and prevents duplicates',()=>{
  assert.equal(api.profile({...tenant,civilId:'١٢٣٤٥٦٧٨٩٠١٢'}).civilId,tenant.civilId);
@@ -101,4 +110,13 @@ test('Kuwait contract dates are independent of browser timezone; delivery reject
  assert.throws(()=>api.receivedAt('2026-02-30T10:00'));
  assert.throws(()=>api.receivedAt('2026-09-01T25:00'));
  assert.throws(()=>api.receivedAt('2099-09-01T10:00'));
+});
+
+test('contract and annex retain both tenant names and escape inserted content',()=>{
+ const browserModule={module:{exports:{}},document:{},structuredClone};vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../v267-rental-records.js'),'utf8'),browserModule);
+ const c={...valid(),tenantProfile:{...tenant,nameEn:'Synthetic <Tenant>'},rentalTermsVersion:1,freeMonthApproved:true,freeMonthPeriod:'2026-10',rentAdjustments:[{effectiveMonth:'2026-11',discount:20,rent:80,reason:'Approved test'}]};
+ const contract=browserModule.module.exports.contractMarkup(c,1),annex=browserModule.module.exports.contractAnnexMarkup(c);
+ assert.match(contract,/حُرر هذا العقد في دولة الكويت بتاريخ 2026-09-09/);
+ for(const html of [contract,annex]){assert.match(html,/مستأجر اختبار/);assert.match(html,/Synthetic &lt;Tenant&gt;/);assert.doesNotMatch(html,/<Tenant>/);}
+ assert.match(annex,/2026-10/);assert.match(annex,/2026-11/);assert.match(annex,/Approved test/);
 });

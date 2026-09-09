@@ -156,6 +156,8 @@ def render_receipt(saved):
             ('بداية العقد', contract.get('start_date')), ('نهاية العقد', contract.get('end_date')),
             ('الإيجار عند كتابة العقد', contract.get('contractRent')), ('الإيجار الحالي بعد الخصم', contract.get('rent')),
             ('التأمين', contract.get('deposit')), ('العربون', contract.get('advance')),
+            ('تاريخ استلام التأمين', contract.get('depositReceivedOn')),
+            ('الشهر المجاني المعتمد', ('نعم — ' + str(contract.get('freeMonthPeriod', ''))) if contract.get('freeMonthApproved') else ('لا' if contract.get('rentalTermsVersion') == 1 else 'غير مدون')),
             ('رسوم النظافة', contract.get('cleaningFee')), ('رقم العملية', saved.get('transactionNo')),
             ('استلام العقد', contract.get('contractReceived')), ('تاريخ ووقت الاستلام — الكويت', contract.get('receivedAt')),
             ('حالة تبليغ الإخلاء', contract.get('evictionNotice')), ('المحاسب المسؤول', saved.get('accountant')),

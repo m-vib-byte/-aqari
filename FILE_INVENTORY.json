@@ -397,8 +397,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "c007ab967eb387d52c404897850179ff980233b19121606f0b57b1dae27dc7b5",
-      "size": 183462
+      "sha256": "3ca38e1495bf67865991934396319139028a2977932322632e3f231884c5c066",
+      "size": 184518
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -477,8 +477,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "6dc6f6e7e8fe119582205b3f03b6c643b73bc7485f34bd26027a98923a8084df",
-      "size": 265255
+      "sha256": "194a94b136c622e1b1edc53e8e1a04a4083160c2a5a5792ff1a0353a78e86c22",
+      "size": 267334
     },
     {
       "path": "v205-simple.css",
@@ -502,8 +502,8 @@
     },
     {
       "path": "v206-rent-ledger.js",
-      "sha256": "5113d38e8bd5d7b59dfdffc9e4f38a09a13bb077f378d5a7c0b573d2a713a54b",
-      "size": 26854
+      "sha256": "0524e58fb17910440873e2422eaf77d28829e60eb378e82ad82f308186ffb8b7",
+      "size": 27194
     },
     {
       "path": "v208-portfolio-collections.css",
@@ -797,8 +797,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "a363985ba81a8ad769df0a31f5ec4b5d7e81c93aa67dac9f8051c0e4d90c1e99",
-      "size": 9449
+      "sha256": "9d5004f73d8ce1cae71369cacd20a45a4f3d39987047421c9e3907be156029bd",
+      "size": 11903
     },
     {
       "path": "V267_RENTAL_FLOW_REVIEW.md",
@@ -817,8 +817,8 @@
     },
     {
       "path": "lib/rent_pdf.py",
-      "sha256": "56b7c9c9fa9828eb56de1d0384e828e9b2226e7816edd5b140b32faefb016323",
-      "size": 9371
+      "sha256": "fb9712bafbb2ee8779b5d69f23a0d2968e14c577c9b52575d32859effa264632",
+      "size": 9697
     },
     {
       "path": "lib/pdf_fonts/AqariSans.ttf",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "b94d20a3c16cfacaabdebd05dd3a0970d7feb912b940859f8c6f48c5ef138254",
-      "size": 7407
+      "sha256": "6033e2957e4d8797fdc6b2d91d3c099757251e0f7763f3dae2ff8cd38a444851",
+      "size": 7777
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 35562,
-      "sha256": "047f90376cc323bccd5fa8f8cc32052d277d1311747d61efdffc3c916506ea77"
+      "size": 39331,
+      "sha256": "1df3dc4aee05bbd561434812d888426a631bd8f4b08137c848d95cc12484e118"
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1402,8 +1402,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "a9395497a45d3d5757b5ca14df3d7fec09a6451733bc4c2a82327390aaab6e77",
-      "size": 21632
+      "sha256": "f083d4fe0011093be29fed9daefdf2ce7bdff7b5863e9f5174a4bc91e3cfe593",
+      "size": 21997
     },
     {
       "path": "staging-database/sql/employees-payroll.sql",
@@ -1419,6 +1419,21 @@
       "path": "tests/v267-payroll.test.mjs",
       "sha256": "7f516cef17c0d71969d43c5ed4d2a51b1a0657066cf5bdfd2a3df5f0203adc2b",
       "size": 2145
+    },
+    {
+      "path": "src/v267/pages/rental-contracts.js",
+      "sha256": "ca6c97c55e6043afcb1a9a1368b60a16526b988cf3104d84c932225fef9e9c76",
+      "size": 15111
+    },
+    {
+      "path": "staging-database/sql/rental-contract-provisions.sql",
+      "sha256": "5748e7b22e829c6399548f62103bf86204105745194da5810b4f45bb97570c0b",
+      "size": 16677
+    },
+    {
+      "path": "staging-database/tests/rental_contract_provisions.sql",
+      "sha256": "643ef283e6fe24c279aabfd8e54971a52b831593307002e2ce4802162e97aa69",
+      "size": 5186
     }
   ],
   "version": "V198"

@@ -25,12 +25,20 @@ function tenantDraft(input){
  return p;
 }
 function lease(input,existing,profiles,properties){
- const c=copy(input);c.contract_no=text(c.contract_no);c.property=text(c.property);c.unit=digits(c.unit);c.start_date=date(c.start_date);c.end_date=date(c.end_date);c.rent=amount(c.rent);c.deposit=amount(c.deposit);
+ const c=copy(input);c.contract_no=text(c.contract_no);c.property=text(c.property);c.unit=digits(c.unit);c.start_date=date(c.start_date);c.end_date=date(c.end_date);c.rent=amount(c.rent);c.deposit=amount(c.rentalTermsVersion===1?(text(c.deposit)||0):c.deposit);
  const tenant=profiles.find(p=>p.id===c.tenantId);if(!tenant)fail('احفظ ملف المستأجر الكامل أولاً.');profile(tenant,profiles);
  if(!text(tenant.passportNo)||!text(tenant.email))fail('أكمل البريد الإلكتروني ورقم الجواز في ملف المستأجر قبل كتابة العقد.');
- c.floor=text(c.floor);c.accountant=text(c.accountant);c.advance=amount(c.advance);c.cleaningFee=amount(c.cleaningFee);c.discount=amount(c.discount);
+ c.floor=text(c.floor);c.accountant=text(c.accountant);c.advance=amount(c.rentalTermsVersion===1?(text(c.advance)||0):c.advance);c.cleaningFee=amount(c.rentalTermsVersion===1?(text(c.cleaningFee)||0):c.cleaningFee);c.discount=amount(c.discount);
  c.contractRent=amount(c.contractRent??c.rent);c.rent=Number(((Math.round(c.contractRent*1000)-Math.round(c.discount*1000))/1000).toFixed(3));
- c.receivedAt=receivedAt(c.receivedAt);c.contractReceived='مستلم';c.evictionNotice=text(c.evictionNotice);
+ if(c.rentalTermsVersion===1){
+  if(!['مستلم','لم يستلم'].includes(c.contractReceived))fail('اختر حالة استلام العقد.');
+  c.receivedAt=c.contractReceived==='مستلم'?receivedAt(c.receivedAt):'';
+  c.depositReceivedOn=text(c.depositReceivedOn);if(c.depositReceivedOn){date(c.depositReceivedOn);if(c.deposit<=0||c.depositReceivedOn>kuwaitDate())fail('تاريخ استلام التأمين يحتاج مبلغاً موجباً ولا يكون في المستقبل.');}
+  if(typeof c.freeMonthApproved!=='boolean')fail('حدد اعتماد الشهر المجاني.');
+  c.freeMonthPeriod=text(c.freeMonthPeriod);if(c.freeMonthApproved){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(c.freeMonthPeriod)||c.freeMonthPeriod<c.start_date.slice(0,7)||c.freeMonthPeriod>c.end_date.slice(0,7))fail('حدد الشهر المجاني ضمن مدة العقد.');}else c.freeMonthPeriod='';
+  c.rentAdjustments=copy(c.rentAdjustments||[]);let last='';for(const a of c.rentAdjustments){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(a.effectiveMonth)||a.effectiveMonth<=last||a.effectiveMonth<c.start_date.slice(0,7)||a.effectiveMonth>c.end_date.slice(0,7)||!text(a.reason))fail('راجع شهر سريان التعديل وسببه.');a.discount=amount(a.discount);a.rent=Number(((Math.round(c.contractRent*1000)-Math.round(a.discount*1000))/1000).toFixed(3));if(a.rent<=0)fail('الخصم يجب أن يكون أقل من إيجار العقد.');last=a.effectiveMonth;}
+ }else{c.receivedAt=receivedAt(c.receivedAt);c.contractReceived='مستلم';}
+ c.evictionNotice=text(c.evictionNotice);
  c.writtenOn=date(c.writtenOn);c.detailsVersion=2;
  if(!c.floor||!c.accountant||c.floor.length>100||c.accountant.length>300||!['لم يُبلّغ','تم التبليغ','غير محدد'].includes(c.evictionNotice))fail('أكمل الدور واسم المحاسب وحالة تبليغ الإخلاء.');
  const prior=existing.find(x=>String(x.id)===String(c.id));
@@ -45,7 +53,7 @@ function lease(input,existing,profiles,properties){
   // An incomplete legacy date must not silently permit a second lease.
   if(!start||!end||c.start_date<=end&&c.end_date>=start)fail('يوجد عقد متعارض لهذه الوحدة. راجع العقد الحالي قبل إنشاء عقد آخر.');
  }
- c.tenant=tenant.nameAr;c.tenantProfile=copy(tenant);c.source='v267-cloud';return c;
+ c.tenant=c.rentalTermsVersion===1&&prior?prior.tenant:tenant.nameAr;c.tenantProfile=copy(c.rentalTermsVersion===1&&prior?prior.tenantProfile:tenant);c.source='v267-cloud';return c;
 }
 function receivedAt(value){
  const s=digits(value);const match=/^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?(?:\+03:00)?$/.exec(s);
@@ -54,7 +62,8 @@ function receivedAt(value){
  if(Date.parse(result)>Date.now())fail('وقت استلام العقد لا يمكن أن يكون في المستقبل.');return result;
 }
 function kuwaitDate(now=new Date()){return new Date(now.getTime()+3*60*60*1000).toISOString().slice(0,10)}
-function directoryFields(c,p){return {tenant:p.nameAr,nameAr:p.nameAr,nameEn:p.nameEn,phone:p.phone,nationality:p.nationality,civilId:p.civilId,passportNo:p.passportNo,email:p.email,floor:c.floor,contractStartRaw:c.start_date,contractEndRaw:c.end_date,insurance:c.deposit,advance:c.advance,cleaningFee:c.cleaningFee,currentRent:c.rent,contractReceived:c.contractReceived,receivedAt:c.receivedAt,accountant:c.accountant,evictionNotice:c.evictionNotice};}
+function effectiveRent(c,period,includeFree=true){if(c.rentalTermsVersion===1){if(includeFree&&c.freeMonthApproved&&c.freeMonthPeriod===period)return 0;const a=(c.rentAdjustments||[]).filter(a=>a.effectiveMonth<=period).at(-1);if(a)return amount(a.rent);}return amount(c.rent);}
+function directoryFields(c,p){return {tenant:p.nameAr,nameAr:p.nameAr,nameEn:p.nameEn,phone:p.phone,nationality:p.nationality,civilId:p.civilId,passportNo:p.passportNo,email:p.email,floor:c.floor,contractStartRaw:c.start_date,contractEndRaw:c.end_date,insurance:c.deposit,insuranceDateRaw:c.depositReceivedOn||'',freeMonth:c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'',advance:c.advance,cleaningFee:c.cleaningFee,currentRent:effectiveRent(c,kuwaitDate().slice(0,7),false),contractReceived:c.contractReceived,receivedAt:c.receivedAt,accountant:c.accountant,evictionNotice:c.evictionNotice};}
 function primary(payload){
  const p=payload?.format==='aqari-cloud-state-v1'?payload.snapshot?.values?.aqari_v30:payload?.schema==='aqari-local-snapshot-v1'?payload.values?.aqari_v30:payload;
  if(!p||typeof p!=='object'||Array.isArray(p))fail('تعذرت قراءة بيانات مساحة العمل.');return p;
@@ -79,7 +88,7 @@ function createStore(options){
   finally{busy=false}
  },get busy(){return busy}};
 }
-const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields};
+const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields,effectiveRent};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.AQARI_RENTAL_RECORDS=api;
 if(!root.document)return;
@@ -98,8 +107,12 @@ const byId=id=>document.getElementById(id);
 const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]:null;
 function contractMarkup(c,count){
  const p=c.tenantProfile||{};
- const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['الخصم',c.discount],['الإيجار الحالي بعد الخصم',c.rent],['التأمين',c.deposit],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
- return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy"><p>حرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+1)+' من '+count+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p></article>').join('');
+ const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['الخصم',c.discount],['الإيجار الحالي بعد الخصم',effectiveRent(c,kuwaitDate().slice(0,7),false)],['التأمين',c.deposit],['تاريخ استلام التأمين',c.depositReceivedOn||'لم يستلم / غير مدون'],['شهر مجاني معتمد',c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'غير مدون'],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
+ return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy"><p>حُرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+1)+' من '+count+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p></article>').join('');
+}
+function contractAnnexMarkup(c){
+ const p=c.tenantProfile||{};const rows=[['رقم العقد / Contract',c.contract_no],['اسم المستأجر بالعربي',p.nameAr||c.tenant],['Tenant full name in English',p.nameEn],['العقار / Property',c.property],['الوحدة / Unit',c.unit],['الدور / Floor',c.floor],['الإيجار الأصلي / Original rent',c.contractRent??c.rent],['الشهر المجاني المعتمد / Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا']];
+ return '<article class="v267-contract-copy"><h2>ملحق بيانات عقد الإيجار / Rental contract annex</h2>'+rows.map(([k,v])=>'<p><b>'+esc(k)+':</b> <bdi>'+esc(v||'غير مدون')+'</bdi></p>').join('')+'<h3>تعديلات الخصم المؤرخة / Dated rent adjustments</h3>'+(c.rentAdjustments||[]).map(a=>'<p><bdi dir="ltr">'+esc(a.effectiveMonth)+'</bdi> — الخصم / Discount: '+esc(a.discount)+' — الإيجار / Rent: '+esc(a.rent)+' د.ك<br>'+esc(a.reason)+'</p>').join('')+'<p>توقيع المؤجر / Lessor: ____________________</p><p>توقيع المستأجر / Tenant: ____________________</p></article>';
 }
 function preview(c){
  if(!scope())return false;
@@ -253,7 +266,7 @@ async function saveLease(input){
   const directory=(cloud.tenantDirectoryV202||[]).filter(x=>x.contractNo!==c.contract_no);
   directory.push({property:c.property,unit:c.unit,...directoryFields(c,p),contractNo:c.contract_no,source:'v267-cloud',verified:c.status==='signed',tenantProfileId:p.id});cloud.tenantDirectoryV202=directory;
   const leases=(cloud.leases||[]).filter(x=>x[4]!==c.id);leases.push([c.tenant,c.unit,c.rent,c.end_date,c.id]);cloud.leases=leases;
-  cloud.audit=(cloud.audit||[]).concat([['المدير','حفظ عقد '+c.status,c.contract_no,new Date().toISOString()]]);return c;
+  cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ عقد '+c.status,c.contract_no,new Date().toISOString()]]);return c;
  },(cloud,c)=>(cloud.contractsV202||[]).some(x=>same(x,c)));
  if(typeof loadContractsV55==='function')loadContractsV55();if(typeof renderWorkflowV56==='function')renderWorkflowV56();return saved;
 }
@@ -303,5 +316,5 @@ root.loadContractsV55=function(){
  if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return loadSavedContracts();
  return legacyLoadContracts?.apply(this,arguments);
 };
-Object.assign(api,{openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
+Object.assign(api,{defaultClauses:()=>typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[],contractMarkup,contractAnnexMarkup,openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
 })(typeof window!=='undefined'?window:globalThis);
