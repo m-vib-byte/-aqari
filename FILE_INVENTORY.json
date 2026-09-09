@@ -797,8 +797,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "38e6dd9a61fc323302e506d9cb3225f39e2f3af39af5f667440b0dc24a7ee9e9",
-      "size": 12566
+      "sha256": "253751acc4a7bbb71d40aac503dc39b1297905235357a012f04829ddeba92a70",
+      "size": 12797
     },
     {
       "path": "src/v267/pages/employees.js",
@@ -1562,8 +1562,8 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "size": 3607,
-      "sha256": "291bc4f0f843cb90abaedfed236a26a3db6b91916a25ff91da86d3dd64584a9e"
+      "size": 5991,
+      "sha256": "e4f091f77bae0238c0a87af5dc2d9a7157d2c5b57f1a20e503879625496dbd17"
     },
     {
       "path": "tests/v267-partner-session.test.mjs",

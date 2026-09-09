@@ -38,3 +38,24 @@ test('a saved record with another category or identity cannot confirm the origin
 test('wrong entity category fails before reserving or uploading',async()=>{
  const f=fixture();await assert.rejects(createOriginalDocumentUpload(f.s)(new File(['%PDF-1.7'],'x.pdf'),{...target,type:'tenant'}));assert.equal(f.calls.length,0);
 });
+
+// Reproduce the actual dialog's temporary disabled-state restoration around scanner tasks.
+test('scanner rotation follows the selected image after dialog controls are restored',async()=>{
+ const {readFileSync}=await import('node:fs');const nodes=[];let rotated=0;
+ const node=(tag,text='')=>{const n={tag,textContent:text,value:'',disabled:false,hidden:false,children:[],setAttribute(){},removeAttribute(){},append(...v){this.children.push(...v)},replaceChildren(...v){this.children=v},querySelectorAll(){return []},get options(){return this.children}};nodes.push(n);return n;};
+ const d={closed:false,body:node('div'),status:node('p'),onDispose(){},session:{bound:{workspace:'test'},check(){},client:{rpc:(name,args)=>({name,args})},async request(){return [];}},async run(task){const controls=nodes.filter(n=>['button','input','select','textarea'].includes(n.tag));const before=controls.map(n=>n.disabled);controls.forEach(n=>n.disabled=true);try{await task();}finally{controls.forEach((n,i)=>n.disabled=before[i]);}}};
+ const mocks={node,field:(_label,input)=>input,createDialog:()=>d,createPrivateUrls:()=>({create:()=> 'blob:synthetic',release(){},clear(){}}),t:s=>s,dateLocale:()=> 'ar',decodeImage:async()=>({image:true}),renderScan:async()=>{rotated++;return new Blob(['image']);},checksum:async()=>'',createVerifiedUpload:()=>async()=>{}};
+ globalThis.__scannerControlTest=mocks;
+ try{
+  const source=readFileSync(new URL('../src/v267/pages/document-scanner.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
+  const module=await import('data:text/javascript;base64,'+Buffer.from('const {'+Object.keys(mocks).join(',')+'}=globalThis.__scannerControlTest;\n'+source).toString('base64'));
+  await module.openDocumentScanner();
+  const rotate=nodes.find(n=>n.tag==='button'&&n.textContent==='تدوير الصورة'),file=nodes.find(n=>n.type==='file');
+  assert.equal(rotate.disabled,true);
+  file.files=[{type:'image/png',name:'scan.png'}];await file.onchange();
+  assert.equal(rotate.disabled,false,'decoded image enables rotation after dialog finally');
+  await rotate.onclick();assert.equal(rotated,2);assert.equal(rotate.disabled,false);
+  file.files=[{type:'application/pdf',name:'original.pdf'}];await file.onchange();
+  assert.equal(rotate.disabled,true,'PDF must not inherit image rotation controls');
+ }finally{delete globalThis.__scannerControlTest;}
+});
