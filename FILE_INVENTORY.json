@@ -1282,8 +1282,8 @@
     },
     {
       "path": "src/v267/components/partner-translations.js",
-      "sha256": "cfabbac97deb5b451f5ef627ccfa03c89eca3c29acf803af16fd3b5fb690ea0e",
-      "size": 11378
+      "sha256": "ae7433d4830456d47bff991caf58a9ff14ee272b4b17eb8381ffb06e7e1714cf",
+      "size": 12010
     },
     {
       "path": "src/v267/pages/partner-access.js",
@@ -1307,8 +1307,8 @@
     },
     {
       "path": "v267-partner-portal.js",
-      "sha256": "4d7beabf51ba0c85815514384d8ad1382313ad3e0d2ad4fe5b2c1467db191438",
-      "size": 6105
+      "sha256": "04d3dfaf5f7db8c1b6c8f53276313c78deb20999a91cce1b1c5a4908e3dc645a",
+      "size": 6404
     }
   ],
   "version": "V198"

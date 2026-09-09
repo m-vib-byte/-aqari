@@ -7,13 +7,13 @@ const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishabl
 let properties=[],operation=0,busy=false;
 function language(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب الشريك')+' | AQARI V267';$('partnerLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
 function controls(value){busy=value;for(const el of document.querySelectorAll('button,input,select'))el.disabled=el.id==='partnerLogout'||el.id==='partnerLanguage'?false:value;}
-function clear(){properties=[];$('partnerProperty').replaceChildren();$('partnerSummary').replaceChildren();$('partnerContent').hidden=true;$('partnerAuth').hidden=false;$('partnerPassword').value='';}
+function clear(){properties=[];$('partnerProperty').replaceChildren();$('partnerSummary').replaceChildren();$('partnerContent').hidden=true;$('partnerAuth').hidden=false;$('partnerPassword').value='';$('partnerLogout').hidden=true;}
 const session=createPartnerSession(client,()=>{operation++;clear();controls(false);bindLocale(null);language();notice('تغيرت الجلسة. سجّل الدخول أو حدّث البيانات.');});
 bindLocale(null);for(const [value,label]of Object.entries(LANGUAGES)){const o=document.createElement('option');o.value=value;o.textContent=label;$('partnerLanguage').append(o);}
 $('partnerLanguage').onchange=()=>{setLocale($('partnerLanguage').value);language();};language();
 const now=new Date();$('partnerMonth').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 async function bounded(work){let timer;try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('AUTH_TIMEOUT')),20000);})]);}finally{clearTimeout(timer);}}
-async function run(task){if(busy)return;const ticket=++operation;controls(true);notice('جارٍ الاتصال…');try{await task(ticket);}catch{if(ticket===operation){$('partnerSummary').replaceChildren();notice('تعذر إكمال العملية. تحقق من تأكيد بريدك وصلاحية العقار ثم أعد المحاولة.');}}finally{if(ticket===operation)controls(false);}}
+async function run(task){if(busy)return;const ticket=++operation;controls(true);notice('جارٍ الاتصال…');try{await task(ticket);}catch(error){if(ticket===operation){$('partnerSummary').replaceChildren();const anonymous=error?.message==='PARTNER_SIGN_IN_REQUIRED';$('partnerLogout').hidden=anonymous;notice(anonymous?'أدخل البريد وكلمة المرور للدخول إلى حساب الشريك.':'تعذر إكمال العملية. تحقق من تأكيد بريدك وصلاحية العقار ثم أعد المحاولة.');}}finally{if(ticket===operation)controls(false);}}
 async function detail(ticket){
  $('partnerSummary').replaceChildren();const property=properties.find(p=>p.id===$('partnerProperty').value),month=$('partnerMonth').value;
  if(!property||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('INVALID_SELECTION');
@@ -24,7 +24,7 @@ async function detail(ticket){
  $('partnerSummary').append(heading,list);notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');
 }
 async function load(ticket){
- const selected=$('partnerProperty').value;clear();const data=await session.read();if(ticket!==operation)return;properties=data.properties;
+ const selected=$('partnerProperty').value;clear();const data=await session.read();if(ticket!==operation)return;properties=data.properties;$('partnerLogout').hidden=false;
  if(!properties.length){notice('لا توجد عقارات مصرح بها لهذا الحساب. راجع الإدارة.');return;}
  for(const p of properties){const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('partnerProperty').append(o);}
  if(properties.some(p=>p.id===selected))$('partnerProperty').value=selected;
@@ -36,7 +36,7 @@ $('partnerSignup').onclick=()=>{if(!$('partnerLogin').reportValidity()||busy)ret
  const r=await bounded(client.auth.signUp({email,password,options:{emailRedirectTo:redirect}}));if(r.error)throw r.error;if(ticket!==operation)return;if(r.data?.session)await load(ticket);else notice('تحقق من بريدك لتأكيد الحساب، ثم ارجع إلى دخول الشريك.');
 });};
 $('partnerProperty').onchange=()=>run(detail);$('partnerMonth').onchange=()=>run(detail);$('partnerRefresh').onclick=()=>run(load);
-$('partnerLogout').onclick=()=>{session.invalidate();run(async ticket=>{const r=await bounded(client.auth.signOut({scope:'local'}));if(r.error)throw r.error;if(ticket===operation)notice('تم تسجيل الخروج.');});};
+$('partnerLogout').onclick=()=>{session.invalidate();$('partnerLogout').hidden=false;run(async ticket=>{const r=await bounded(client.auth.signOut({scope:'local'}));if(r.error)throw r.error;if(ticket===operation)notice('تم تسجيل الخروج.');});};
 window.addEventListener('pagehide',()=>session.invalidate());window.addEventListener('pageshow',event=>{if(event.persisted)run(load);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)session.invalidate();else run(load);});
 window.AQARI_PARTNER_READY=true;run(load);
