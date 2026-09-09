@@ -6,6 +6,7 @@ function printable(record,kind){
  const clearance=kind==='clearance',snapshot=clearance?record.clearance_snapshot:record.settlement_snapshot;
  if(!snapshot)throw Error(clearance?'لا توجد براءة ذمة محفوظة للطباعة.':'لا توجد تسوية نهائية محفوظة للطباعة.');
  const balances=clearance?snapshot.clearance_balances:snapshot.final_balances;
+ record=snapshot;
  const number=clearance?record.clearance_no:record.settlement_no;
  const title=clearance?'براءة ذمة وإخلاء طرف':'تسوية إخلاء نهائية';
  const rows=[['الرقم',number],['رقم العقد',record.contract_no],['المستأجر',record.tenant_name],['العقار',record.property_name],['الوحدة',record.unit_no],['تاريخ الإخلاء',record.vacate_date],['الإيجار المستحق حتى الإخلاء',money(balances?.rent_due_total)],['إجمالي المسدد',money(balances?.rent_paid_total)],['المتبقي على المستأجر',money(balances?.rent_balance)],['الرصيد الدائن للمستأجر',money(balances?.tenant_credit)],['رصيد التأمين غير المسوّى',money(balances?.deposit_balance)],['الأضرار المثبتة',money(record.damage_amount)],['مرجع تسوية الأضرار',record.charges_reference||'—'],['المفاتيح مستلمة',record.keys_returned?'نعم':'لا'],['فحص الوحدة مكتمل',record.inspection_completed?'نعم':'لا'],['قراءات العدادات مثبتة',record.meters_recorded?'نعم':'لا']];

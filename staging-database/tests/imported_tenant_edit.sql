@@ -34,7 +34,7 @@ do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; p jsonb:=jso
 end $$;
 set local role authenticated;
 do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; ref text; before jsonb; after jsonb; original_contracts jsonb; begin
-select external_ref into ref from public.aqari_tenants where workspace_id=w and import_source is not null order by id limit 1;
+select external_ref into ref from public.aqari_tenants where workspace_id=w and external_ref='SYNTHETIC-IMPORTED-TENANT';
 if ref is null then raise exception 'IMPORTED_FIXTURE_MISSING';end if;
 before:=public.aqari_imported_tenant_read(w,ref);
 select jsonb_agg(snapshot order by id) into original_contracts from public.aqari_leases where workspace_id=w;

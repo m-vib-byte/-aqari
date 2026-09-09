@@ -81,7 +81,7 @@ jobs:
       - name: Staff access, expense persistence, vacating settlement and isolated PostgreSQL authorization
         run: |
           node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs
-          node --test tests/v267-deposit*.test.mjs tests/v267-vacating-settlement.test.mjs
+          node --test tests/v267-deposit*.test.mjs tests/v267-vacating-settlement.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
           npm test --prefix staging-database/local-test
       - uses: actions/setup-python@v5

@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const moduleSource=path=>fs.readFileSync(path,'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
-const source=moduleSource('src/v267/components/deposit-translations.js')+'\n'+moduleSource('src/v267/components/partner-translations.js')+'\n'+moduleSource('src/v267/components/translations.js')+'\n'+moduleSource('src/v267/components/locale.js')+'\nconst node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};\n'+moduleSource('src/v267/components/ui-text.js')+'\n'+moduleSource('v267-tenant-portal.js');
+const source='const EXIT_MESSAGES=(()=>{'+moduleSource('src/v267/components/exit-translations.js')+';return EXIT_MESSAGES;})();\n'+moduleSource('src/v267/components/deposit-translations.js')+'\n'+moduleSource('src/v267/components/partner-translations.js')+'\n'+moduleSource('src/v267/components/translations.js')+'\n'+moduleSource('src/v267/components/locale.js')+'\nconst node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};\n'+moduleSource('src/v267/components/ui-text.js')+'\n'+moduleSource('v267-tenant-portal.js');
 const tick=()=>new Promise(r=>setTimeout(r,2));
 function fixture(){
  const elements=new Map(),events=new Map(),revoked=[],created=[],all=[],storage=new Map();

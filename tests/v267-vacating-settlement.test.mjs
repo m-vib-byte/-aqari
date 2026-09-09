@@ -82,3 +82,12 @@ test('document catalogue is constrained server-side by linked entity type',()=>{
  assert.match(documentCatalog,/p_document_type='signed_contract' and category is not null and category<>'lease_contract'/);
  assert.match(documentCatalog,/d\.metadata,p\.display_name as author_name/);
 });
+
+ test('printed identity and amounts remain bound to the saved snapshot after source edits',async()=>{
+ const vm=await import('node:vm');const ctx={};
+ vm.runInNewContext(page.slice(page.indexOf('const money='),page.indexOf('function openPrint'))+';this.render=printable;',ctx);
+ const snap={contract_no:'SAVED-CONTRACT',tenant_name:'SAVED-TENANT',property_name:'SAVED-PROPERTY',unit_no:'SAVED-UNIT',settlement_no:'SAVED-NUMBER',final_balances:{rent_balance:'1.125'}};
+ const html=ctx.render({tenant_name:'MUTATED-TENANT',contract_no:'MUTATED-CONTRACT',settlement_snapshot:snap},'settlement');
+ assert.match(html,/SAVED-TENANT/);assert.match(html,/SAVED-CONTRACT/);assert.match(html,/1\.125/);assert.doesNotMatch(html,/MUTATED/);
+ assert.throws(()=>ctx.render({},'settlement'));
+ });
