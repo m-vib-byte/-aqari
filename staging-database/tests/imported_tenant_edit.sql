@@ -6,9 +6,36 @@ select set_config('request.jwt.claim.sub','d8d8d8d8-1111-4111-8111-111111111111'
 -- Direct membership-table reads are intentionally denied to application roles;
 -- the RPCs below remain responsible for enforcing the active caller membership.
 select set_config('edit.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active limit 1),true);
+-- The isolated PGlite runner intentionally starts with no business data. Seed exactly one
+-- imported tenant inside this transaction, with the app-state profile matching byte-for-byte.
+-- The final rollback removes the synthetic tenant, audit rows and account fixtures.
+do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; p jsonb:=jsonb_build_object(
+ 'id','SYNTHETIC-IMPORTED-TENANT',
+ 'nameAr','مستأجر مستورد اصطناعي',
+ 'nameEn','Synthetic Imported Tenant',
+ 'nationality','Kuwait',
+ 'phone','+96550000000',
+ 'email','',
+ 'civilId','123456789012',
+ 'address','',
+ 'passportNo','',
+ 'preferredContact','email',
+ 'sourceValues',jsonb_build_object('fixture',true),
+ 'sourceReference',jsonb_build_object('fixture','isolated-local')
+); begin
+ insert into public.aqari_tenants(id,workspace_id,external_ref,full_name,civil_id,phone,email,profile,import_source)
+ values('d8d8d8d8-3333-4333-8333-333333333333'::uuid,w,p->>'id',p->>'nameAr',p->>'civilId',p->>'phone',null,p,jsonb_build_object('fixture',true));
+ update public.aqari_app_state set payload=jsonb_build_object(
+  'tenantProfilesV267',jsonb_build_array(p),
+  'tenants','[]'::jsonb,
+  'tenantDirectoryV202','[]'::jsonb,
+  'tenantPreparationDraftsV267','[]'::jsonb
+ ) where workspace_id=w;
+end $$;
 set local role authenticated;
 do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; ref text; before jsonb; after jsonb; original_contracts jsonb; begin
 select external_ref into ref from public.aqari_tenants where workspace_id=w and import_source is not null order by id limit 1;
+if ref is null then raise exception 'IMPORTED_FIXTURE_MISSING';end if;
 before:=public.aqari_imported_tenant_read(w,ref);
 select jsonb_agg(snapshot order by id) into original_contracts from public.aqari_leases where workspace_id=w;
 after:=public.aqari_imported_tenant_save(w,ref,'{"nameAr":"تعديل اصطناعي للاختبار فقط","passportNo":"SYNTHETIC-PASSPORT","preferredContact":"whatsapp"}',(before->>'revision')::bigint,'Synthetic rolled-back correction');
