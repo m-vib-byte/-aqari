@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "1c17419a640a2e19787d062dd365578f48d0d10535e3d2d886a3b450d5426db7",
-      "size": 3659
+      "sha256": "ceab9592ffba4a1ec4eaa24acb58e18fc49c2bbc325495389451dab63a6180a9",
+      "size": 3702
     },
     {
       "path": "api/autosync-status.js",
@@ -477,8 +477,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "a6cf3f730139c06630c18dd1d2b782ca733b1ee8f3b89f7b439a1365d1affa9e",
-      "size": 259584
+      "sha256": "8d9c2dc5a34184e17bf01533ed66fcf7f0ded34d92a62fb0830583cc3d5e200a",
+      "size": 260950
     },
     {
       "path": "v205-simple.css",
@@ -1234,6 +1234,11 @@
       "path": "tests/v267-tenant-portal.e2e.mjs",
       "sha256": "85a6ff9957c4d8396b7818c06933705ecf5a206ac112e8a51bc3f49869b69c34",
       "size": 7190
+    },
+    {
+      "path": "tests/v267-admin-receipt-download.test.cjs",
+      "sha256": "ea170cc98665ca3607f0be0cebdbb8aeb3dec2573f95379463a9e7b40fa4a360",
+      "size": 4513
     }
   ],
   "version": "V198"

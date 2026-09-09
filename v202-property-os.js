@@ -478,6 +478,7 @@
   }
 
   function clearProtectedDom(){
+    cancelReceiptDownload();
     document.querySelectorAll('.aq-protected-property').forEach(function(node){node.remove()});
     ['v202PropertyWorkspace','v202PaymentDialog','v202DocumentDialog'].forEach(function(id){
       const layer=document.getElementById(id);
@@ -650,6 +651,7 @@
     if(hydrateBoundaryListenerInstalled||typeof window.addEventListener!=='function')return;
     hydrateBoundaryListenerInstalled=true;
     window.addEventListener('aqari:auth-boundary',handleProtectedBoundaryState);
+    window.addEventListener('pagehide',cancelReceiptDownload);
   }
 
   function scheduleImportedHydration(){
@@ -3270,6 +3272,7 @@
   }
 
   function openDocument(title,markup,trigger,fallbackSelector){
+    cancelReceiptDownload();
     ensureDocumentDialog();
     documentTrigger=trigger||document.activeElement;
     documentFallbackSelector=fallbackSelector||'';
@@ -3513,6 +3516,7 @@
   }
 
   function closeDocument(){
+    cancelReceiptDownload();
     const overlay=document.getElementById('v202DocumentDialog');
     if(!overlay?.classList.contains('on'))return;
     overlay.classList.remove('on');
@@ -3543,30 +3547,48 @@
     return true;
   }
 
-  let receiptDownloadBusy=false;
+  let receiptDownloadJob=null;
+  const receiptDownloadUrls=new Set();
+  function cancelReceiptDownload(){
+    const job=receiptDownloadJob;
+    if(job){job.cancelled=true;job.controller.abort();receiptDownloadJob=null;if(job.button)job.button.disabled=false;}
+    for(const url of receiptDownloadUrls)URL.revokeObjectURL(url);
+    receiptDownloadUrls.clear();
+  }
   async function downloadDocument(){
-    if(receiptDownloadBusy||!protectedAccessReady())return false;
+    if(receiptDownloadJob||!protectedAccessReady())return false;
     const scope=activeAccessScope(),body=document.getElementById('v202DocumentBody');
     const reference=body?.querySelector('[data-receipt-no]')?.dataset.receiptNo;
     if(!reference)return false;
-    const current=()=>protectedAccessReady()&&sameAccessScope(scope,activeAccessScope())&&body?.querySelector('[data-receipt-no]')?.dataset.receiptNo===reference;
     const button=document.querySelector('[data-v267-document-download]');
-    const controller=new AbortController();let timer;
-    receiptDownloadBusy=true;if(button)button.disabled=true;
+    const job={controller:new AbortController(),button,cancelled:false};
+    receiptDownloadJob=job;if(button)button.disabled=true;
+    const current=()=>receiptDownloadJob===job&&!job.controller.signal.aborted&&protectedAccessReady()&&sameAccessScope(scope,activeAccessScope())&&body===document.getElementById('v202DocumentBody')&&body?.querySelector('[data-receipt-no]')?.dataset.receiptNo===reference;
+    let timer,rejectAbort;
+    const aborted=new Promise((_,reject)=>{rejectAbort=()=>reject(Error('PDF_TIMEOUT'));job.controller.signal.addEventListener('abort',rejectAbort,{once:true});});
     try{
-      timer=setTimeout(()=>controller.abort(),30000);
-      const session=await window.AQARI_SUPABASE.getSession();
-      if(!current()||session?.user?.id!==scope.userId||!session?.access_token)return false;
-      const response=await fetch('/api/rent-receipt',{method:'POST',cache:'no-store',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({workspaceId:scope.workspaceId,receiptNo:reference})});
-      if(!response.ok||response.headers.get('Content-Type')?.split(';')[0]!=='application/pdf')throw Error('PDF_UNAVAILABLE');
-      const blob=await response.blob();
-      if(!current())return false;
-      if(await blob.slice(0,5).text()!=='%PDF-')throw Error('INVALID_PDF');
-      if(!current())return false;
-      const url=URL.createObjectURL(blob),link=document.createElement('a');
-      link.href=url;link.download='AQARI-V267-rent-receipt.pdf';document.body.appendChild(link);link.click();link.remove();
-      setTimeout(()=>URL.revokeObjectURL(url),60000);return true;
-    }finally{clearTimeout(timer);receiptDownloadBusy=false;if(button)button.disabled=false;}
+      timer=setTimeout(()=>job.controller.abort(),30000);
+      return await Promise.race([aborted,(async()=>{
+        const session=await window.AQARI_SUPABASE.getSession();
+        if(!current()||session?.user?.id!==scope.userId||!session?.access_token)return false;
+        const response=await fetch('/api/rent-receipt',{method:'POST',cache:'no-store',credentials:'omit',redirect:'error',signal:job.controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({workspaceId:scope.workspaceId,receiptNo:reference})});
+        if(!current())return false;
+        if(!response.ok||response.headers.get('Content-Type')?.split(';')[0]!=='application/pdf')throw Error('PDF_UNAVAILABLE');
+        const blob=await response.blob();
+        if(!current())return false;
+        if(await blob.slice(0,5).text()!=='%PDF-')throw Error('INVALID_PDF');
+        if(!current())return false;
+        const verified=await window.AQARI_SUPABASE.getSession();
+        if(!current()||verified?.user?.id!==scope.userId||!verified?.access_token)return false;
+        const url=URL.createObjectURL(blob),link=document.createElement('a');receiptDownloadUrls.add(url);
+        link.href=url;link.download='AQARI-V267-rent-receipt.pdf';document.body.appendChild(link);link.click();link.remove();
+        setTimeout(()=>{if(receiptDownloadUrls.delete(url))URL.revokeObjectURL(url);},60000);return true;
+      })()]);
+    }catch(error){if(job.cancelled)return false;throw error;}
+    finally{
+      clearTimeout(timer);job.controller.signal.removeEventListener('abort',rejectAbort);
+      if(receiptDownloadJob===job){receiptDownloadJob=null;if(button)button.disabled=false;}
+    }
   }
 
   function topLayer(){
