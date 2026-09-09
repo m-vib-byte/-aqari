@@ -1372,8 +1372,8 @@
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
-      "size": 3806,
-      "sha256": "64fb10e17ae8928cbc1a1435fbad5402b261ab25a9c24dc9bc4bbae5d1fbff7d"
+      "size": 5163,
+      "sha256": "dc50a71b99bc8842744d5d350aaeceb9a95790ece6759454415c3f1a41d067b3"
     },
     {
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
@@ -1532,8 +1532,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 745,
-      "sha256": "99627758a6b9b6c09ae6682885b262f7cf172d92c526f9de2401dd8a50528422"
+      "size": 829,
+      "sha256": "8849ede4c32d17fdc63ea6a004426a3302e8e2604f4504340a1f26d2195bd013"
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
@@ -1739,6 +1739,16 @@
       "path": "staging-database/supabase/migrations/20260909225520_v267_document_catalog.sql",
       "sha256": "8ae64a99d80c3211059aa5b7ef425c61526cb00295792cb1570186768a414396",
       "size": 4912
+    },
+    {
+      "path": "staging-database/sql/vacating-settlement-list-alias-fix.sql",
+      "sha256": "f8208fcc1e6f086077b3150530e4bc2e138ae1d160ecb1a0a8cb0534d223dbf8",
+      "size": 1108
+    },
+    {
+      "path": "staging-database/tests/vacating_settlement_list.sql",
+      "sha256": "c98fc5122efc5c6cb4927fb50cf31df6fb277f6764dacb4d1766275cf653f853",
+      "size": 2345
     }
   ],
   "version": "V198"
