@@ -1313,7 +1313,7 @@ test('V206 CSV is UTF-8 and neutralizes spreadsheet formulas', () => {
   assert.match(csv, /"'-10"/);
   assert.match(csv, /"' @SUM\(A1:A2\)"/);
   assert.match(csv, /"'012345"/);
-  assert.equal((csv.split(/\r?\n/)[0].match(/,/g) || []).length, 13);
+  assert.equal((csv.split(/\r?\n/)[0].match(/,/g) || []).length, 25);
 });
 
 test('V206.1 CSV carries authoritative totals, occupancy, and reconciliation metadata', () => {
@@ -3327,6 +3327,7 @@ test('V267 synthetic tenant → saved lease → collection → immutable voucher
  const row=reloaded.collections.find(x=>x[0]==='V267-ROUNDTRIP');assert.ok(row);assert.equal(reloaded.rentReceiptsV267.length,1);assert.equal(reloaded.rentReceiptsV267[0].contract.contractRent,110);assert.equal(reloaded.rentReceiptsV267[0].contract.rent,100);assert.equal(reloaded.rentReceiptsV267[0].accountant,'محاسب اختبار');assert.equal(reloaded.rentReceiptsV267[0].transactionNo,'TX-ROUNDTRIP');
  const linkedContext=reader.contextFor('SYNTHETIC TEST PROPERTY');
  const linkedTenant=reader.unitDirectoryRecords(linkedContext,'2026-08').find(x=>String(x.contractId)==='987');
+ const liveLedger=reader.propertyRentLedgerDocument(linkedContext,'2026-08');assert.match(liveLedger,/New Synthetic Tenant/);assert.match(liveLedger,/TEST-P987/);assert.match(liveLedger,/2026-08-01T10:30:00\+03:00/);assert.match(liveLedger,/<strong>محاسب اختبار<\/strong>/);
  assert.equal(linkedTenant.floor,'2');assert.equal(linkedTenant.nameEn,'New Synthetic Tenant');assert.equal(linkedTenant.currentRent,100);assert.equal(linkedTenant.advance,0);
  const linkedPayment=reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP');
  assert.match(reader.tenantReceiptDocument(linkedContext,linkedTenant,linkedPayment,'2026-08'),/Rent Voucher/);
