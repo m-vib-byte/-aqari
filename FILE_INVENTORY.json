@@ -602,7 +602,7 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "b58bbff8831b7333f126133565890e128b2baf71dedea7aad1c33294d3bfdc78",
+      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
       "size": 1390
     },
     {
@@ -1692,8 +1692,8 @@
     },
     {
       "path": "tests/v267-deposit-ledger.e2e.mjs",
-      "sha256": "9ddf74dff649b7e1f75322b1c3706fcf0a18df4ab702230b2ace0ee3c525ed1b",
-      "size": 12056
+      "sha256": "64777daeb2434dc551b3ca008215e38836d2e9211e1aa4b243f73a784e3ff0c0",
+      "size": 12363
     },
     {
       "path": "tests/v267-deposit-ledger.test.mjs",

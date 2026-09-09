@@ -10,13 +10,13 @@ const tenant='مستأجر <literal> {amount}',property='عقار <source> {unit
 let rows=[],writes=0,lostReply=false,readUnavailable=false,denied=false,manager=true;
 const money=fils=>(Number(fils)/1000).toFixed(3);
 function lease(){const received=rows.filter(x=>x.kind==='receipt').reduce((s,x)=>s+Math.round(Number(x.amount)*1000),0),refunded=rows.filter(x=>x.kind==='refund').reduce((s,x)=>s+Math.round(Number(x.amount)*1000),0);return {id:lid,contract_no:'C-DEPOSIT-TEST',tenant_id:'44444444-4444-4444-8444-444444444444',tenant_name:tenant,property_id:'55555555-5555-4555-8555-555555555555',property_name:property,unit_id:'66666666-6666-4666-8666-666666666666',unit_no:'101',status:'signed',contract_deposit:'125.750',received:money(received),refunded:money(refunded),balance:money(received-refunded),can_receive:true,can_refund:manager};}
-const html=`<!doctype html><html class="aqari-auth-unlocked"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/src/v267/styles/workspace.css"><body><button id="open">Open synthetic deposit ledger</button><script type="module">
+const html=`<!doctype html><html class="aqari-auth-unlocked"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/src/v267/styles/workspace.css"><body><button id="open" disabled>Open synthetic deposit ledger</button><script type="module">
  const wid=${JSON.stringify(wid)},uid=${JSON.stringify(uid)};
  window.AQARI_PUBLIC_CONFIG={supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
  window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};
  window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,is_active:true,role:new URL(location.href).searchParams.get('role')||'general_manager'}},getClient:async()=>({rpc:(name,args)=>({abortSignal:signal=>fetch('/fixture/'+name,{method:'POST',body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status})})})};
  const {setLocale}=await import('/src/v267/components/locale.js');setLocale(new URL(location.href).searchParams.get('lang')||'ar');
- const {openDepositLedger}=await import('/src/v267/pages/deposit-ledger.js');document.getElementById('open').onclick=openDepositLedger;
+ const {openDepositLedger}=await import('/src/v267/pages/deposit-ledger.js');document.getElementById('open').onclick=openDepositLedger;document.getElementById('open').disabled=false;
  </script></body></html>`;
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const server=http.createServer((req,res)=>{
@@ -50,20 +50,20 @@ try{for(const [engine,browserType]of Object.entries({chromium,webkit})){
    rows=[];writes=0;lostReply=false;readUnavailable=false;denied=false;manager=true;
    const tr=s=>t(s,lang);await page.goto(origin+'/?lang='+lang);await page.locator('#open').click();
    const dialog=page.getByRole('dialog'),status=dialog.getByRole('status'),button=s=>dialog.getByRole('button',{name:tr(s),exact:true}),field=s=>dialog.getByLabel(tr(s),{exact:true});
-   const ready=()=>status.getByText(tr('تم استرجاع دفتر التأمين من السجلات المحفوظة.'),{exact:true}).waitFor();
-   const saved=()=>status.getByText(tr('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.'),{exact:true}).waitFor();
+   const ready=()=>dialog.getByText(tr('تم استرجاع دفتر التأمين من السجلات المحفوظة.'),{exact:true}).waitFor();
+   const saved=()=>dialog.getByText(tr('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.'),{exact:true}).waitFor();
    await ready();await field('العقد المحفوظ').selectOption(lid);await ready();
    assert.equal(await dialog.getAttribute('lang'),lang);assert.equal(await dialog.getAttribute('dir'),['ar','ur'].includes(lang)?'rtl':'ltr');
    assert.equal(await dialog.locator('dd').getByText(tenant,{exact:true}).count(),1);
    await field('المبلغ بالدينار الكويتي').fill('١٢٥٫٧٥١');await button('حفظ الحركة والتحقق من الوصل').click();
-   await status.getByText(tr('المبلغ يتجاوز التأمين المتبقي للعقد.'),{exact:true}).waitFor();assert.equal(writes,0,'rejected amount does not save');
+   await dialog.getByText(tr('المبلغ يتجاوز التأمين المتبقي للعقد.'),{exact:true}).waitFor();assert.equal(writes,0,'rejected amount does not save');
    await field('المبلغ بالدينار الكويتي').fill('١٢٥٫٧٥٠');await button('حفظ الحركة والتحقق من الوصل').click();await saved();assert.equal(writes,1,'corrected request can save after rejection');
    assert.equal(await dialog.locator('[data-aq267-deposit-entry]').count(),1);
    await button('إغلاق').click();await page.reload();await page.locator('#open').click();await ready();await field('العقد المحفوظ').selectOption(lid);await ready();assert.equal(await dialog.locator('[data-aq267-deposit-entry]').count(),1,'saved receipt reloads');
    await button('تسجيل رد تأمين').click();await field('المبلغ بالدينار الكويتي').fill('125.751');await field('سبب رد التأمين').fill('رد اختبار <literal>');await button('حفظ الحركة والتحقق من الوصل').click();
-   await status.getByText(tr('مبلغ الرد يتجاوز رصيد التأمين المحفوظ.'),{exact:true}).waitFor();assert.equal(writes,1);
+   await dialog.getByText(tr('مبلغ الرد يتجاوز رصيد التأمين المحفوظ.'),{exact:true}).waitFor();assert.equal(writes,1);
    await button('استخدام كامل الرصيد للرد').click();assert.equal(await field('المبلغ بالدينار الكويتي').inputValue(),'125.750');
-   lostReply=true;await button('حفظ الحركة والتحقق من الوصل').click();await status.getByText(tr('تعذر تأكيد العملية. حدّث السجل للتحقق قبل إعادة المحاولة.'),{exact:true}).waitFor();assert.equal(writes,2);
+   lostReply=true;await button('حفظ الحركة والتحقق من الوصل').click();await dialog.getByText(tr('تعذر تأكيد العملية. حدّث السجل للتحقق قبل إعادة المحاولة.'),{exact:true}).waitFor();assert.equal(writes,2);
    assert.equal(await button('حفظ الحركة والتحقق من الوصل').count(),0,'uncertain reply blocks another write');
    const stored=await page.evaluate(()=>Object.values(sessionStorage).join('\n'));assert.ok(!stored.includes(tenant)&&!stored.includes('125.750')&&!stored.includes('رد اختبار'),'pending marker excludes financial/identity fields');
    readUnavailable=false;await page.reload();await page.locator('#open').click();await saved();assert.equal(writes,2,'reload reconciles same saved operation');assert.equal(await dialog.locator('[data-aq267-deposit-entry]').count(),2);
@@ -76,11 +76,11 @@ try{for(const [engine,browserType]of Object.entries({chromium,webkit})){
    const printPage=await context.newPage();try{await printPage.setContent(receipt);await printPage.emulateMedia({media:'print'});assert.equal(await printPage.locator('script').count(),0);await printPage.screenshot({path:path.join(out,`${engine}-${viewport.width}-${lang}-saved-refund.png`),fullPage:true});}finally{await printPage.close();}
    const box=await dialog.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,'deposit dialog fits '+lang);
    await page.screenshot({path:path.join(out,`${engine}-${viewport.width}-${lang}-ledger.png`),fullPage:true});
-   denied=true;await button('تحديث السجل والتحقق من العملية').click();await status.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();assert.equal(await dialog.locator('[data-aq267-deposit-entry]').count(),0);assert.equal(await dialog.getByRole('link').count(),0);assert.ok(!(await dialog.textContent()).includes(tenant),'permission loss clears private details');
+   denied=true;await button('تحديث السجل والتحقق من العملية').click();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();assert.equal(await dialog.locator('[data-aq267-deposit-entry]').count(),0);assert.equal(await dialog.getByRole('link').count(),0);assert.ok(!(await dialog.textContent()).includes(tenant),'permission loss clears private details');
    await page.evaluate(()=>{document.documentElement.classList.remove('aqari-auth-unlocked');window.dispatchEvent(new Event('aqari:auth-boundary'));});assert.equal(await dialog.count(),0);
   }
   manager=false;denied=false;await page.goto(origin+'/?role=collector');await page.locator('#open').click();const dialog=page.getByRole('dialog');await dialog.getByLabel('العقد المحفوظ',{exact:true}).selectOption(lid);await dialog.getByText('تم استرجاع دفتر التأمين من السجلات المحفوظة.',{exact:true}).waitFor();assert.equal(await dialog.getByRole('button',{name:'تسجيل رد تأمين',exact:true}).count(),0,'collector cannot refund');
   assert.deepEqual(errors,[]);console.log(`PASS deposits ${engine} ${viewport.width}: five languages, save/reload, limits, lost-reply recovery, saved print, role and access clearing`);
-  }finally{await context.unrouteAll({behavior:'wait'});await context.close();}
+  }catch(error){console.error('DEPOSIT_FIXTURE_FAILURE',JSON.stringify({url:page.url(),errors,body:await page.locator('body').innerText()}));await page.screenshot({path:path.join(out,engine+'-'+viewport.width+'-failure.png'),fullPage:true});throw error;}finally{await context.unrouteAll({behavior:'wait'});await context.close();}
  }}finally{await browser.close();}
 }}finally{await new Promise(r=>server.close(r));}
