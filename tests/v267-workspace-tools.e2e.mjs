@@ -167,9 +167,13 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true);
  assert.equal(await dialog.locator('details').count(),0,'missing month clears previous statement');
  await field('الشهر').fill('2026-08');await field('الشهر').press('Tab');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
- statementReadDenied=true;await button('عرض الكشف').click();await page.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();
- assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true,'failed reread cannot leave a linkable candidate');
- statementReadDenied=false;await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ statementReadDenied=true;await button('عرض الكشف').click();await dialog.waitFor({state:'detached'});
+ assert.equal(await dialog.locator('details').count(),0,'denied reread removes private statement rows');
+ assert.equal(await button('تحميل PDF / طباعة').count(),0);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').count(),0,'failed reread cannot leave a printable or linkable candidate');
+ statementReadDenied=false;await page.getByRole('button',{name:tr('كشوف العقارات — برج شيخة'),exact:true}).click();
+ await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ assert.equal(await dialog.getByRole('heading',{name:propertyName+' — 2026-08',exact:true}).count(),1,'restored access reloads the saved statement');
+ await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  await dialog.locator('details summary').click();assert.equal(await dialog.getByText(tr('التأمين')+': 100.000',{exact:true}).count(),1,'confirmed deposit is not labelled pending');
  assert.equal(await dialog.getByRole('heading',{name:'عقار آخر — 2026-08',exact:true}).count(),1);
  await close();
