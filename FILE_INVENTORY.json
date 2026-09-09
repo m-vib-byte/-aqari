@@ -602,7 +602,7 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "7c00d86add7b738cd0f6c28417deaf161702a37539196b93de52dd320b0889c1",
+      "sha256": "fe1fd5e942cdcd7e80173bedf1468c0eb33fbbe872c9f398fb3e7ae0469785d9",
       "size": 1604
     },
     {
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "34f5462bedaa96dabf4037a010012c4aeb2a33772328110f2b1620949dd69e12",
-      "size": 47878
+      "sha256": "ce175c8703868e3e1d8c93a023f5c19bfe35832c2fc14db398bb7233c2d9e472",
+      "size": 48121
     },
     {
       "path": "lib/property_statement_pdf.py",
