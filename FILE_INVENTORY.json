@@ -137,7 +137,7 @@
     },
     {
       "path": "final-release-ui.js",
-      "sha256": "e59e0189102d149c93be24e3f8bed964ae8c3425033ec8af2b0cc22c2d2c6e0c",
+      "sha256": "5fa93fb0f952111ca63fd25e44b15ea2814223dd805f051458f1f19dd12b8221",
       "size": 17936
     },
     {
@@ -172,7 +172,7 @@
     },
     {
       "path": "lib/release-config.js",
-      "sha256": "d2bd63f71855df3bcf96817733804cb9c8d903527d0b34f6d24c054cd4829e1a",
+      "sha256": "c17ef6e580d0c41e950d79459a7590e1608f34cbf645c0668633b90e6cc85bf0",
       "size": 2878
     },
     {
@@ -232,7 +232,7 @@
     },
     {
       "path": "public-config.js",
-      "sha256": "6019d8b30217782812d5322ff9a971fd57710601699a494ebf3f84c76c12dbbe",
+      "sha256": "d4be5ee7f6591cbc30437602ee110b4ddddb2bd0619d985db200d5a7e83e3a36",
       "size": 489
     },
     {
@@ -487,7 +487,7 @@
     },
     {
       "path": "v205-simplified-shell.js",
-      "sha256": "d6aabbf20a216a6acab7065d2768f21cac67e6fa188231f71c29199f5f16da31",
+      "sha256": "b6e22695abcc5bf5a6d2fe77f78b4216d0add142c7ef51e6703910f64a3ce7b7",
       "size": 28329
     },
     {
@@ -852,13 +852,13 @@
     },
     {
       "path": "scripts/configure-v267-staging.mjs",
-      "sha256": "18c37a9a241e77eeea55a128222ce6dfea7afda8b3604f60f7f6037c38acdb93",
-      "size": 2048
+      "sha256": "6dfb0703b44cf8710889b438817f62bbca7f066137a855c9c6f55ae98ce087bc",
+      "size": 2101
     },
     {
       "path": "tests/v267-migration-preflight.test.cjs",
-      "sha256": "2ae897b85e18cc1c54c338964e73a41b49bdd18b23d8a4465f86a9620fda1104",
-      "size": 4557
+      "sha256": "5ea7d3c02d5c9c74f30c2d911b9e44f2c62137674116d7f6d5658f4e23511b35",
+      "size": 4916
     },
     {
       "path": "V267_STAGING_ISOLATION.md",
@@ -877,13 +877,13 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "f0c2447a219840b30bcc54f5052430f0fbde26806adbd727d76b4488d79124cb",
+      "sha256": "6e42f8e84012f71ccaa8e43c5efea8339920e87ab9c3c47a9518e73fd8c9417b",
       "size": 17347
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
-      "sha256": "33fd6ed7900071faa2469a675ba6869c3726c5db7665495d30dce11721960592",
-      "size": 1471
+      "sha256": "e8d9e17f37a6114869fa6c51773435154adf96061f6b018e722cd88fa67ba389",
+      "size": 2208
     },
     {
       "path": "V267_STAGING_SETUP.md",
@@ -967,7 +967,7 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "202f858fca0c86028a3b1216d60738127d725c8f56f0c11e7ef78ae4b3828d04",
+      "sha256": "64856d36a106923422e6a8a16ba2b8f4cb386e315c001ac61913cfa3e730e82a",
       "size": 6070
     },
     {
@@ -1032,12 +1032,12 @@
     },
     {
       "path": "tests/v267-workspace-controls.test.cjs",
-      "sha256": "4b2431caeb41af12f3e770b6be6a5a97440d0ae3e9449f1b9601d12bf4af19de",
-      "size": 6775
+      "sha256": "8af0d7579de070b0acfe7c42b5a03779d4028364e2c995562ddec837a3a57eb0",
+      "size": 8034
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "4a3eeb521e474d0c06b633e8a734699686f473c6eb83a5d5b01e095b63c09f25",
+      "sha256": "1729c946899c49d4f574dc8a385e8b6e0cc1d0564f0a5dfa94f8e669c8f8bba8",
       "size": 38133
     },
     {
@@ -1077,13 +1077,13 @@
     },
     {
       "path": "cloud-sync.js",
-      "size": 10631,
-      "sha256": "66ce005114a58392608015e63f38d523e04f181e69b8efdbd5f969864296ed52"
+      "sha256": "5571a4ad809cba7ea8f1d75ecbaf891e1cf4fbb89958fcd9c5fd5c8d44973d5d",
+      "size": 10631
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
-      "size": 45757,
-      "sha256": "091b84d94364c5166fe8535b6e498ae5247fc1f96f2d31fa3d3f4aeaee9e8455"
+      "sha256": "868ec717b14f1504819290ced89fc7f7272dc543f154ef027d7e81c7f4d30603",
+      "size": 45757
     },
     {
       "path": "staging-database/tests/source_linked_receipt_transaction.sql",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 42065,
-      "sha256": "5d38ed89d85ecce44db2841df5eb133141f96aa338b0e120bfea5367a9a7eeaa"
+      "sha256": "bf3fde73155d16c6888272d9986aecd13f0902d000f56d399b4643eb93a701ae",
+      "size": 42065
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1222,17 +1222,17 @@
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
-      "sha256": "9df447dadde86ee9f0d046412dbbf52fe24475a31c604afa25f03ac72655850a",
+      "sha256": "4a62f6c0be6c0d95415f222d9a6f906be225ca1ddb0ea5989633259f9bacef20",
       "size": 4023
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "ea14c17c72e881e9fc380587f81aff66f7d69ffa028230e7821bb1df4151b451",
+      "sha256": "d06db75b409edf9d18ae62250ab93eab9cfb1943b2b11c445841492e2af9719a",
       "size": 19252
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
-      "sha256": "85a6ff9957c4d8396b7818c06933705ecf5a206ac112e8a51bc3f49869b69c34",
+      "sha256": "4d3124c95a7612bd898486e2478e7a49af81f6588671c222af5a7bc9d76412ff",
       "size": 7190
     },
     {
@@ -1307,7 +1307,7 @@
     },
     {
       "path": "v267-partner-portal.js",
-      "sha256": "04d3dfaf5f7db8c1b6c8f53276313c78deb20999a91cce1b1c5a4908e3dc645a",
+      "sha256": "ec70c59a12c90dba344d81f0d891eb812239b9d42569eba2ba397fdfadfc2d49",
       "size": 6404
     },
     {
@@ -1327,7 +1327,7 @@
     },
     {
       "path": "v267-reset-password.js",
-      "sha256": "82f6401a842820a8f83e8e583fa8cc142e985f5c059aafef3d668a0377784549",
+      "sha256": "39147bac2ab679ada4b43e32fc95fd1d4408dc79c64e090402e75616363e4121",
       "size": 3127
     },
     {
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "7cde5ec2fc8dcdca019cbffecc619d930e72f05378a1f217d910763dcbac8218",
-      "size": 75713
+      "sha256": "78829b5028637de62a63338c76abd1c8b28543355134d73b21d73717685497ea",
+      "size": 76341
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1564,6 +1564,11 @@
       "path": "docs/V267-PRINT-AND-MAINTENANCE-REPAIR.md",
       "sha256": "7b7ad8296c4e732f2836a6d8bb668736784041c6c33b3447050bc0de30d31a34",
       "size": 4733
+    },
+    {
+      "path": "docs/V267-HOSTED-ISOLATION-2026-09-09.md",
+      "sha256": "40669e96525cc29578498679e37e81ff283dee1dd4fc9ce4eb7b19a368466f76",
+      "size": 5263
     }
   ],
   "version": "V198"

@@ -332,7 +332,7 @@ function loadSavedContracts(){
 }
 const legacyLoadContracts=root.loadContractsV55;
 root.loadContractsV55=function(){
- if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return loadSavedContracts();
+ if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co')return loadSavedContracts();
  return legacyLoadContracts?.apply(this,arguments);
 };
 Object.assign(api,{defaultClauses:()=>typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[],contractMarkup,contractAnnexMarkup,prepareContractPrint,openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});

@@ -1,7 +1,7 @@
 import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/components/locale.js';
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
-if(cfg?.supabaseUrl!=='https://djkpkkgoibruaezdrchb.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
+if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set();

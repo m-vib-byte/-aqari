@@ -1,7 +1,7 @@
 export function currentScope() {
  const c=window.AQARI_SUPABASE?.context,g=window.AQARI_DATA_GATE?.scope;
  if(!document.documentElement.classList.contains('aqari-auth-unlocked')||!c?.user?.id||!c?.workspace?.id||c.membership?.is_active!==true||c.membership.user_id!==c.user.id||c.membership.workspace_id!==c.workspace.id||g?.userId!==c.user.id||g?.workspaceId!==c.workspace.id)throw Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.');
- if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl!=='https://djkpkkgoibruaezdrchb.supabase.co')throw Error('هذه العملية متاحة في المعاينة المستقلة فقط.');
+ if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co')throw Error('هذه العملية متاحة في المعاينة المستقلة فقط.');
  return {user:c.user.id,workspace:c.workspace.id,role:c.membership.role};
 }
 const messages={PARTNER_STAFF_CONFLICT:'لا يمكن ربط حساب موظف عام بصلاحية شريك محدودة. استخدم بريداً مستقلاً للشريك.',INVALID_PARTNER_ACCESS:'راجع البريد والاسم والعقار وسبب التعديل.',SOURCE_FIELDS_PENDING:'الاسم أو تواريخ العقد أو بيانات المصدر ما زالت معلقة.',VERIFIED_LEASE_DOCUMENT_REQUIRED:'يلزم عقد موقّع محفوظ ومربوط بالعقد الصحيح.',DOCUMENTED_DEPOSIT_REQUIRED:'أدخل التأمين المثبت بالمستند دون قيمة افتراضية.',APPROVED_DOCUMENT_REQUIRED:'تأكيد التوقيع يتطلب نفس المستند والتأمين المعتمدين.',INVALID_REVIEW_TRANSITION:'تغيرت مرحلة العقد؛ حدّث السجلات.',REVIEW_DETAILS_REQUIRED:'وثّق مرجع المراجعة وسبب الاعتماد.',REVISION_CONFLICT:'تغيرت الإعدادات. حدّث السجلات قبل الحفظ.',ACCESS_DENIED:'لا تملك صلاحية هذه العملية.',SECTION_WRITE_DENIED:'القسم متوقف أو صلاحية الحفظ غير متاحة.',INVALID_LABEL:'راجع المسمى؛ النص يجب ألا يحتوي رموز HTML.',DOCUMENT_ENTITY_NOT_FOUND:'احفظ السجل الصحيح أولاً قبل رفع المستند.',STORED_FILE_NOT_CONFIRMED:'لم يتأكد الملف في التخزين. حدّث السجلات قبل إعادة الرفع.',DOCUMENT_IMMUTABLE:'النسخة الأصلية محفوظة ولا يمكن استبدالها.'};
@@ -32,7 +32,7 @@ export function createSession(){
   try{
    const work=(async()=>{const auth=await window.AQARI_SUPABASE.getSession();check();if(!auth?.access_token||auth.user?.id!==bound.user)throw Error('تغيرت جلسة الدخول.');
     const suffix=path.split('/').map(encodeURIComponent).join('/');
-    const response=await fetch('https://djkpkkgoibruaezdrchb.supabase.co/storage/v1/object/'+(method==='GET'?'authenticated/':'')+bucket+'/'+suffix,{
+    const response=await fetch('https://ofgmcsmxmdswlovsckqs.supabase.co/storage/v1/object/'+(method==='GET'?'authenticated/':'')+bucket+'/'+suffix,{
      method,body,headers:{apikey:window.AQARI_PUBLIC_CONFIG.supabasePublishableKey,Authorization:'Bearer '+auth.access_token,...(body?{'Content-Type':body.type,'x-upsert':'false'}:{})},
      signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
     check();if(!response.ok){const error=Error('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.');error.status=response.status;throw error;}return method==='GET'?response.blob():response.json();})();

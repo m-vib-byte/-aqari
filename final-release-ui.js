@@ -150,7 +150,7 @@
   function installV266SchedulerControl(event){
     noteScriptLoaded(event);
     if(!authenticatedUIReady())return;
-    if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co'){
+    if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co'){
       if(!document.getElementById('aqari-v267-automation-status-js')){
         const script=document.createElement('script');
         script.id='aqari-v267-automation-status-js';

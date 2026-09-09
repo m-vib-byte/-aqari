@@ -19,7 +19,7 @@ test('auth boundaries remove private DOM and abort requests before the queued cl
  const body=new Element('body');body.isConnected=true;
  const originalWindow=globalThis.window,originalDocument=globalThis.document;
  globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role:'general_manager'}}},addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role:'general_manager'}}},addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
  try{
   for(const change of ['logout','workspace','role','escape']){
    window.AQARI_DATA_GATE.scope={userId:user,workspaceId:workspace};window.AQARI_SUPABASE.context.membership.role='general_manager';

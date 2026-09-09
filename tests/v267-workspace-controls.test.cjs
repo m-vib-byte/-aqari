@@ -29,12 +29,29 @@ test('document content digest detects changed bytes',async()=>{
 });
 function context(){
  global.document={documentElement:{classList:{contains:()=>true}}};
- global.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}},getClient:async()=>({})}};
+ global.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}},getClient:async()=>({})}};
 }
 test('session rejects production configuration and a mismatched workspace',async()=>{
  context();const {currentScope}=await moduleAt('api/session.js');assert.equal(currentScope().workspace,'w');
- window.AQARI_PUBLIC_CONFIG.supabaseUrl='https://example.invalid';assert.throws(currentScope);
+ for(const url of ['https://example.invalid','https://djkpkkgoibruaezdrchb.supabase.co','https://qtavnufzbkdfeauyukot.supabase.co']){
+  window.AQARI_PUBLIC_CONFIG.supabaseUrl=url;assert.throws(currentScope,/المعاينة المستقلة/);
+ }
  context();window.AQARI_DATA_GATE.scope.workspaceId='other';assert.throws(currentScope);
+});
+test('document requests use only the isolated database and stop before fetching if configuration changes',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');const s=createSession();const requests=[];
+ window.AQARI_PUBLIC_CONFIG.supabasePublishableKey='sb_publishable_test';
+ window.AQARI_SUPABASE.getSession=async()=>({access_token:'synthetic-token',user:{id:'u'}});
+ t.mock.method(global,'fetch',async(url,options)=>{requests.push({url,options});return {ok:true,blob:async()=>new Blob(['fixture'])};});
+ try{
+  assert.equal(await (await s.storage('GET','w/document.pdf')).text(),'fixture');
+  assert.equal(requests.length,1);
+  assert.equal(requests[0].url,'https://ofgmcsmxmdswlovsckqs.supabase.co/storage/v1/object/authenticated/aqari-documents/w/document.pdf');
+  assert.equal(requests[0].options.headers.apikey,'sb_publishable_test');
+  window.AQARI_PUBLIC_CONFIG.supabaseUrl='https://djkpkkgoibruaezdrchb.supabase.co';
+  await assert.rejects(s.storage('GET','w/document.pdf'),/المعاينة المستقلة/);
+  assert.equal(requests.length,1);
+ }finally{s.close();}
 });
 test('closing a page aborts in-flight requests',async()=>{
  context();const {createSession}=await moduleAt('api/session.js');const s=createSession();let signal;
