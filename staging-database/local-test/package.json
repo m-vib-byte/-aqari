@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node run-isolated.mjs ../sql/staff-property-scope.sql ../sql/financial-register.sql ../sql/deposit-register.sql ../sql/workspace-feature-discovery.sql ../sql/maintenance-locations.sql ../tests/staff_property_scope.sql ../tests/financial_register.sql ../tests/deposit_register.sql ../tests/staff_contract_approval.sql ../tests/maintenance_locations.sql"
+    "test": "node run-isolated.mjs ../sql/staff-property-scope.sql ../sql/financial-register.sql ../sql/deposit-register.sql ../sql/workspace-feature-discovery.sql ../sql/maintenance-locations.sql ../sql/vacating-settlement.sql ../sql/vacating-settlement-hardening.sql ../tests/staff_property_scope.sql ../tests/financial_register.sql ../tests/deposit_register.sql ../tests/staff_contract_approval.sql ../tests/maintenance_locations.sql ../tests/vacating_settlement.sql"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8"
