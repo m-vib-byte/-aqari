@@ -8,11 +8,13 @@ select workspace_id into w from public.aqari_memberships where user_id=auth.uid(
 select external_ref into ref from public.aqari_tenants where workspace_id=w and import_source is not null order by id limit 1;
 before:=public.aqari_imported_tenant_read(w,ref);
 select jsonb_agg(snapshot order by id) into original_contracts from public.aqari_leases where workspace_id=w;
-after:=public.aqari_imported_tenant_save(w,ref,'{"nameAr":"تعديل اصطناعي للاختبار فقط","passportNo":"SYNTHETIC-PASSPORT"}',(before->>'revision')::bigint,'Synthetic rolled-back correction');
+after:=public.aqari_imported_tenant_save(w,ref,'{"nameAr":"تعديل اصطناعي للاختبار فقط","passportNo":"SYNTHETIC-PASSPORT","preferredContact":"whatsapp"}',(before->>'revision')::bigint,'Synthetic rolled-back correction');
 if after#>>'{profile,passportNo}'<>'SYNTHETIC-PASSPORT' then raise exception 'PASSPORT_NOT_SAVED';end if;
+if after#>>'{profile,preferredContact}'<>'whatsapp' then raise exception 'CONTACT_PREFERENCE_NOT_SAVED';end if;
 if after#>>'{profile,nameAr}'<>'تعديل اصطناعي للاختبار فقط' or after#>'{profile,sourceValues}' is distinct from before#>'{profile,sourceValues}' or after#>'{profile,sourceReference}' is distinct from before#>'{profile,sourceReference}' then raise exception 'EDIT_OR_SOURCE_FAILED';end if;
 if after#>'{history,0,before_profile}' is distinct from before->'profile' or after#>'{history,0,after_profile}' is distinct from after->'profile' then raise exception 'AUDIT_FAILED';end if;
 if (select jsonb_agg(snapshot order by id) from public.aqari_leases where workspace_id=w) is distinct from original_contracts then raise exception 'CONTRACT_HISTORY_CHANGED';end if;
+begin perform public.aqari_imported_tenant_save(w,ref,'{"preferredContact":"carrier-pigeon"}',(after->>'revision')::bigint,'invalid preference');raise exception 'INVALID_CONTACT_ACCEPTED';exception when raise_exception then if sqlerrm='INVALID_CONTACT_ACCEPTED' then raise;end if;end;
 begin perform public.aqari_imported_tenant_save(w,ref,'{"nameAr":"stale"}',(before->>'revision')::bigint,'stale correction');raise exception 'STALE_ACCEPTED';exception when serialization_failure then null;end;
 begin perform public.aqari_imported_tenant_save(w,ref,'{"sourceValues":{}}',(after->>'revision')::bigint,'source overwrite');raise exception 'SOURCE_ACCEPTED';exception when raise_exception then if sqlerrm='SOURCE_ACCEPTED' then raise;end if;end;
 end $$;
