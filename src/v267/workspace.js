@@ -6,11 +6,12 @@ import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
 let installed=false,access=null,loading=null,session,notice;
 function updateFeatureTools(){
- const staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement');
+ const staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
  if(staff)staff.hidden=access?.features?.staff_access!==true||access?.role!=='general_manager';
  if(finance)finance.hidden=access?.features?.financial_register!==true||access?.permissions?.finance?.read!==true;
  if(deposits)deposits.hidden=access?.features?.deposit_register!==true||access?.permissions?.collections?.read!==true;
- if(vacating)vacating.hidden=access?.permissions?.contracts?.read!==true;
+ if(vacating)vacating.hidden=access?.features?.vacating_settlement!==true||access?.permissions?.contracts?.read!==true||access?.permissions?.collections?.read!==true;
+ if(vacatingReview)vacatingReview.hidden=access?.features?.vacating_review!==true||access?.role!=='general_manager';
 }
 const ui=uiText;
 function updateLabels(){
@@ -59,7 +60,8 @@ export function install(){
  const financialRegister=node('button','سجل المصروفات وإقفال الفترة المالية');financialRegister.id='aq267-financial-register';financialRegister.hidden=true;financialRegister.onclick=()=>import('./pages/financial-register.js').then(m=>m.openFinancialRegister()).catch(e=>notice.textContent=t(safeError(e)));
  const deposits=ui('button','دفتر التأمين — القبض والرد');deposits.id='aq267-deposit-ledger';deposits.hidden=true;deposits.onclick=()=>import('./pages/deposit-ledger.js').then(m=>m.openDepositLedger()).catch(e=>notice.textContent=t(safeError(e)));
  const vacating=ui('button','تسوية الإخلاء وبراءة الذمة');vacating.id='aq267-vacating-settlement';vacating.hidden=true;vacating.onclick=()=>import('./pages/vacating-settlement.js').then(m=>m.openVacatingSettlement()).catch(e=>notice.textContent=t(safeError(e)));
- tools.append(staffAccess,financialRegister,deposits,vacating);
+ const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
+ tools.append(staffAccess,financialRegister,deposits,vacating,vacatingReview);
  const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.

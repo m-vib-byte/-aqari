@@ -35,6 +35,7 @@ create table if not exists private.aqari_vacating_settlements(
  check(jsonb_typeof(settlement_snapshot)='object' or settlement_snapshot is null),
  check(jsonb_typeof(clearance_snapshot)='object' or clearance_snapshot is null)
 );
+alter table private.aqari_vacating_settlements enable row level security;
 revoke all on private.aqari_vacating_settlements from public,anon,authenticated;
 create sequence if not exists private.aqari_vacating_settlement_seq;
 create sequence if not exists private.aqari_clearance_seq;
@@ -47,13 +48,14 @@ declare l public.aqari_leases; due_total numeric:=0;paid_total numeric:=0;deposi
 begin
  select * into l from public.aqari_leases where workspace_id=w and id=lid;
  if not found then raise exception 'VACATING_LEASE_NOT_FOUND' using errcode='22023';end if;
+ if l.start_date is null or l.monthly_rent is null or l.end_date is null or vdate<l.start_date then raise exception 'VACATING_INCOMPLETE_CONTRACT' using errcode='22023';end if;
  period_start:=date_trunc('month',coalesce(l.start_date,vdate))::date;
  period_end:=date_trunc('month',vdate)::date;
  if period_start<=period_end then
   select coalesce(sum(case when l.snapshot->>'rentalTermsVersion'='1' then coalesce(private.aqari_contract_due(l.snapshot,to_char(p,'YYYY-MM')),l.monthly_rent) else l.monthly_rent end),0)
   into due_total from generate_series(period_start,period_end,interval '1 month') p;
  end if;
- select coalesce(sum(p.amount),0) into paid_total from public.aqari_rent_payments p where p.workspace_id=w and p.lease_id=lid;
+ select coalesce(sum(p.amount),0) into paid_total from public.aqari_rent_payments p where p.workspace_id=w and p.lease_id=lid and p.status in ('paid','partial','مدفوع','جزئي');
  select coalesce(sum(case e.kind when 'receipt' then e.amount else -e.amount end),0) into deposit_balance from private.aqari_deposit_entries e where e.workspace_id=w and e.lease_id=lid;
  return jsonb_build_object('rent_due_total',due_total::numeric(18,3)::text,'rent_paid_total',paid_total::numeric(18,3)::text,
   'rent_balance',greatest(due_total-paid_total,0)::numeric(18,3)::text,'tenant_credit',greatest(paid_total-due_total,0)::numeric(18,3)::text,
@@ -84,7 +86,7 @@ language plpgsql security definer set search_path='' as $$
 declare w uuid:=p_workspace_id;d jsonb:=coalesce(p_data,'{}');action text:=p_action;k text;allowed text[];lid uuid;s private.aqari_vacating_settlements;l public.aqari_leases;
  vdate date;damage numeric;why text;ref text;revision_value bigint;balances jsonb;actor text;snapshot jsonb;rows jsonb;leases jsonb;seq text;
 begin
- if auth.uid() is null or not private.aqari_can(w,'contracts','read') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
+ if auth.uid() is null or not private.aqari_can(w,'contracts','read') or not private.aqari_can(w,'collections','read') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
  if jsonb_typeof(d)<>'object' or octet_length(d::text)>12000 then raise exception 'VACATING_INVALID_DATA' using errcode='22023';end if;
  allowed:=case action when 'list' then array[]::text[] when 'get' then array['lease_id']
   when 'save' then array['lease_id','vacate_date','keys_returned','inspection_completed','meters_recorded','damage_amount','damage_notes','charges_resolved','charges_reference','revision']
@@ -92,19 +94,26 @@ begin
  if allowed is null then raise exception 'VACATING_UNKNOWN_ACTION' using errcode='22023';end if;
  for k in select jsonb_object_keys(d) loop if not(k=any(allowed)) then raise exception 'VACATING_UNKNOWN_FIELD' using errcode='22023';end if;end loop;
  if action='list' then
+  if (select count(*) from public.aqari_leases where workspace_id=w)>2000 then raise exception 'VACATING_LIST_LIMIT' using errcode='22023';end if;
   select coalesce(jsonb_agg(jsonb_build_object('id',l.id,'contract_no',l.contract_no,'tenant_name',t.full_name,'property_name',p.name,'unit_no',u.unit_no,'status',l.status) order by l.contract_no),'[]') into leases
   from public.aqari_leases l join public.aqari_tenants t on t.workspace_id=w and t.id=l.tenant_id join public.aqari_units u on u.workspace_id=w and u.id=l.unit_id join public.aqari_properties p on p.workspace_id=w and p.id=u.property_id
-  where l.workspace_id=w and private.aqari_can_lease(w,l.id,'contracts','read');
-  select coalesce(jsonb_agg(private.aqari_vacating_json(w,x.lease_id) order by x.updated_at desc),'[]') into rows from private.aqari_vacating_settlements x where x.workspace_id=w and private.aqari_can_lease(w,x.lease_id,'contracts','read');
+  where l.workspace_id=w and private.aqari_can_lease(w,l.id,'contracts','read') and private.aqari_can_lease(w,l.id,'collections','read');
+  select coalesce(jsonb_agg(private.aqari_vacating_json(w,x.lease_id) order by x.updated_at desc),'[]') into rows from private.aqari_vacating_settlements x where x.workspace_id=w and private.aqari_can_lease(w,x.lease_id,'contracts','read') and private.aqari_can_lease(w,x.lease_id,'collections','read');
   return jsonb_build_object('manager',private.aqari_manager(w),'leases',leases,'settlements',rows);
  end if;
  if jsonb_typeof(d->'lease_id') is distinct from 'string' then raise exception 'VACATING_INVALID_LEASE' using errcode='22023';end if;
  lid:=(d->>'lease_id')::uuid;
  if not private.aqari_can_lease(w,lid,'contracts',case when action in('save','finalize','clearance') then 'write' else 'read' end) then raise insufficient_privilege using message='ACCESS_DENIED';end if;
+ if not private.aqari_can_lease(w,lid,'collections','read') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
  if action='get' then
   if not exists(select 1 from private.aqari_vacating_settlements x where x.workspace_id=w and x.lease_id=lid) then return jsonb_build_object('settlement',null,'balances',null);end if;
   return jsonb_build_object('settlement',private.aqari_vacating_json(w,lid));
  end if;
+ -- Serialize evidence changes in the same workspace-before-lease order as deposits.
+ perform 1 from public.aqari_app_state where workspace_id=w for update;
+ if not found then raise exception 'VACATING_WORKSPACE_UNAVAILABLE' using errcode='22023';end if;
+ perform 1 from public.aqari_leases where workspace_id=w and id=lid for update;
+ if not found then raise insufficient_privilege using message='ACCESS_DENIED';end if;
  if action='save' then
   if not private.aqari_can(w,'contracts','write') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
   if jsonb_typeof(d->'vacate_date') is distinct from 'string' or d->>'vacate_date' !~ '^\d{4}-\d{2}-\d{2}$' then raise exception 'VACATING_INVALID_DATE' using errcode='22023';end if;
@@ -114,7 +123,7 @@ begin
   if jsonb_typeof(d->'keys_returned') is distinct from 'boolean' or jsonb_typeof(d->'inspection_completed') is distinct from 'boolean' or jsonb_typeof(d->'meters_recorded') is distinct from 'boolean' or jsonb_typeof(d->'charges_resolved') is distinct from 'boolean' then raise exception 'VACATING_INVALID_CHECKLIST' using errcode='22023';end if;
   if jsonb_typeof(d->'damage_amount') is distinct from 'string' or d->>'damage_amount' !~ '^[0-9]{1,12}(\.[0-9]{1,3})?$' then raise exception 'VACATING_INVALID_DAMAGE' using errcode='22023';end if;
   damage:=(d->>'damage_amount')::numeric;why:=btrim(coalesce(d->>'damage_notes',''));ref:=btrim(coalesce(d->>'charges_reference',''));
-  if length(why)>1000 or (damage>0 and length(why)<3) or length(ref)>160 or ((d->>'charges_resolved')::boolean and damage>0 and length(ref)<3) then raise exception 'VACATING_INVALID_DAMAGE' using errcode='22023';end if;
+  if length(why)>1000 or (damage>0 and length(why)<3) or length(ref)>160 or ((d->>'charges_resolved')::boolean and length(ref)<3) then raise exception 'VACATING_INVALID_DAMAGE' using errcode='22023';end if;
   revision_value:=coalesce((d->>'revision')::bigint,0);
   insert into private.aqari_vacating_settlements(workspace_id,lease_id,vacate_date,keys_returned,inspection_completed,meters_recorded,damage_amount,damage_notes,charges_resolved,charges_reference,created_by,updated_by)
   values(w,lid,vdate,(d->>'keys_returned')::boolean,(d->>'inspection_completed')::boolean,(d->>'meters_recorded')::boolean,damage,why,(d->>'charges_resolved')::boolean,ref,auth.uid(),auth.uid())
@@ -132,7 +141,7 @@ begin
  if action='finalize' then
   if s.status<>'draft' then return jsonb_build_object('settlement',private.aqari_vacating_json(w,lid));end if;
   if not s.keys_returned or not s.inspection_completed or not s.meters_recorded then raise exception 'VACATING_CHECKLIST_OPEN' using errcode='22023';end if;
-  if s.damage_amount>0 and not s.charges_resolved then raise exception 'VACATING_DAMAGE_OPEN' using errcode='22023';end if;
+  if not s.charges_resolved or length(btrim(s.charges_reference))<3 then raise exception 'VACATING_DAMAGE_OPEN' using errcode='22023';end if;
   balances:=private.aqari_vacating_balances(w,lid,s.vacate_date);
   select coalesce(nullif(p.display_name,''),auth.uid()::text) into actor from public.aqari_profiles p where p.user_id=auth.uid();
   seq:=nextval('private.aqari_vacating_settlement_seq')::text;

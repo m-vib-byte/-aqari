@@ -3,12 +3,24 @@ begin;
 insert into private.aqari_allowed_users values('reminder-terms-test@example.invalid','اختبار الربط','general_manager','aqari-v267-staging',true,now());
 insert into auth.users(id,email) values('67233333-3333-4333-8333-333333333333','reminder-terms-test@example.invalid');
 select set_config('request.jwt.claim.sub','67233333-3333-4333-8333-333333333333',true);
+select set_config('reminder.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
+-- Simulate the Storage service only for this user's reserved fixture document.
+-- Do not grant authenticated users direct access to Storage's internal table.
+create function pg_temp.seed_reminder_upload(object_path text) returns void
+language plpgsql security definer set search_path='' as $$
+begin
+ if not exists(select 1 from public.aqari_documents where storage_path=object_path and created_by=auth.uid()
+  and workspace_id=current_setting('reminder.test.workspace')::uuid and status='draft') then raise insufficient_privilege;end if;
+ insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',object_path,'{"size":100,"mimetype":"image/jpeg"}');
+end $$;
+revoke all on function pg_temp.seed_reminder_upload(text) from public;
+grant execute on function pg_temp.seed_reminder_upload(text) to authenticated;
 set local role authenticated;
 do $$
 <<verify>>
 declare w uuid; state jsonb; d jsonb; candidate jsonb; t jsonb; c jsonb; saved jsonb; ledger jsonb; receipt jsonb; row_data jsonb; f text; n bigint; doc record; lease_id uuid; paid_row jsonb; pay jsonb;
 begin
- select workspace_id into w from public.aqari_memberships where user_id=auth.uid() and is_active;
+ w:=current_setting('reminder.test.workspace')::uuid;
  state:=public.aqari_read_state_v267(w);d:=state->'payload';
  d:=case when d->>'format'='aqari-cloud-state-v1' then d#>'{snapshot,values,aqari_v30}' when d->>'schema'='aqari-local-snapshot-v1' then d#>'{values,aqari_v30}' else d end;
  t:='{"id":"reminder-terms-t","nameAr":"مستأجر اختبار ربط","nameEn":"Linked Test Tenant","civilId":"678901234567","passportNo":"TEST-PASSPORT","phone":"55550000","nationality":"اختبار","email":"linked-tenant@example.invalid","address":"","preferredContact":"whatsapp","attachments":[]}'::jsonb;
@@ -22,7 +34,7 @@ begin
  if jsonb_array_length(public.aqari_contract_history(w,c->>'id'))<>1 then raise exception 'INITIAL_VERSION_MISSING';end if;
  -- Transactional Storage metadata fixture, NOT an actual uploaded signed document.
  select * into doc from public.aqari_reserve_document(w,'signed_contract','lease',c->>'id','Rollback-only test document','fixture.jpg','image/jpeg','{"test":"rollback-only"}');
- insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',doc.storage_path,'{"size":100,"mimetype":"image/jpeg"}');
+ perform pg_temp.seed_reminder_upload(doc.storage_path);
  perform public.aqari_finalize_document(doc.document_id,100,'image/jpeg',repeat('a',64));
  c:=c||'{"status":"signed","changeReason":"Synthetic signed metadata fixture"}';
  d:=jsonb_set(d,'{contractsV202}',(select jsonb_agg(case when x->>'id'=c->>'id' then c else x end) from jsonb_array_elements(d->'contractsV202') x));

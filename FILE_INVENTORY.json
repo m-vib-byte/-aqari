@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "3306cd904d412ddd6987120b24a300d3a0c15a834741da3ad7d89e62c9733d10",
-      "size": 4886
+      "sha256": "bfaebaccc91e4af9afd2f0f2fc87801c82d5e9a3b001dbf33fa0d0aef1dc42fc",
+      "size": 4876
     },
     {
       "path": "api/autosync-status.js",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "09894a14a766f8a091aeb6d5612c2a453e92118b8529be2812a1de3663c77bab",
-      "size": 10112
+      "sha256": "ba4b6b61af5ed7b1ba8825f4619fa329ccee41617f690f04b2e66e3437e61fa5",
+      "size": 10698
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "db907b47617b1f04642c843ae02eb67c82a80ff74fb0e4a8cfad995c6ad5a22f",
-      "size": 1566
+      "sha256": "ac76fd6593d090e8170fd535ad8bc52726552d57ebddb5bc2d0b068f54bb58d6",
+      "size": 1639
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1467,8 +1467,8 @@
     },
     {
       "path": "staging-database/tests/reminder_contract_balance.sql",
-      "sha256": "24a38ccef43d07ba6ce1fbdc8740f23c02cec61bd5ca4f2fd6b47fe4abe99aaa",
-      "size": 10734
+      "sha256": "8360f7e3972ad04fa6c712e4e9da8ce71f7d2436a483564e1d45ba61cc97e6db",
+      "size": 11587
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "61b355f5a4b9d579a4d1fe8a0f96164cb844f87809a7f7bec37ad1c9b04e1fce",
-      "size": 78307
+      "sha256": "f260a51a475d4385d6824c6ceae88a4933843f6ff008ffa4db072ba309f27d52",
+      "size": 79616
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1532,8 +1532,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 829,
-      "sha256": "8849ede4c32d17fdc63ea6a004426a3302e8e2604f4504340a1f26d2195bd013"
+      "size": 925,
+      "sha256": "d826e557258b841c38ea0b87263dc98fb8e521b133c68dbf8ad65bde81f699b8"
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
@@ -1682,8 +1682,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "4fbf2c13d89835864c91013370e97170306ccfa8fb544bf36fcad3b1dbeae482",
-      "size": 1791
+      "sha256": "69ac19966b32d068a9f2988474b5fbdbce7d36ca9e4cfab5f9ac8743dffbcb87",
+      "size": 2253
     },
     {
       "path": "staging-database/tests/deposit_register.sql",
@@ -1702,33 +1702,33 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "97f7bc1807871558093fd6c7b2a4fe198e49d158b0265f7121989747e060bf81",
-      "size": 2206
+      "sha256": "15c7fcd9452fd66552e61f97759e2491a76f4c4de2abfb52a53c8165942e7a50",
+      "size": 2626
     },
     {
       "path": "src/v267/pages/vacating-settlement.js",
-      "sha256": "c8904e4caeb1e74c2ce751673b3d448074e8f80d07d1a1e7435149ed168df343",
-      "size": 9181
+      "sha256": "c7b7e7265fb39f7a9d4e08e52a51014e737843eec70de4f1b680fec8d0087b19",
+      "size": 11321
     },
     {
       "path": "staging-database/sql/vacating-settlement.sql",
-      "sha256": "41d64584ec149bdb61f4f87719aa8aa8b1944c8345ef68ef0babdf5d875bad3c",
-      "size": 14894
+      "sha256": "06d356bc680cd035e57093f07f0cbf11dcd32ad831779784efe5b2ce17641b67",
+      "size": 16078
     },
     {
       "path": "staging-database/sql/vacating-settlement-hardening.sql",
-      "sha256": "d261e2c6be52d36eead95fabfa33ee9fb03dcdb93f26a8723bb99f5aa5e6ef57",
-      "size": 2939
+      "sha256": "6c9835f8ddee6ccf78a171123d32dcbaf45d02991ccd3000bf0b06cebf64cf87",
+      "size": 3116
     },
     {
       "path": "tests/v267-vacating-settlement.test.mjs",
-      "sha256": "ca1d149f3141ce6a860ae5cc46633174ea4f7be6b0abed70ef7065c49601db9e",
-      "size": 5198
+      "sha256": "ec19760cb5573622b3f0b96ace5da1d0ef4eac85dd48a94511434f02b78b423f",
+      "size": 5412
     },
     {
       "path": "staging-database/tests/vacating_settlement.sql",
-      "sha256": "0d7f77fb1b6b52bcfc06c75cc90c0ee3de148a01f4d2af38ddd287d78f2be218",
-      "size": 6009
+      "sha256": "b6732a78657ac11042e6864180dea850788848c496a1dcd691b7ca6e7aeac803",
+      "size": 6042
     },
     {
       "path": "staging-database/sql/tenant-contact-preference.sql",
@@ -1749,6 +1749,46 @@
       "path": "staging-database/tests/vacating_settlement_list.sql",
       "sha256": "c98fc5122efc5c6cb4927fb50cf31df6fb277f6764dacb4d1766275cf653f853",
       "size": 2345
+    },
+    {
+      "path": "docs/V267-VACATING-REVIEW-AND-GUARDS.md",
+      "size": 6389,
+      "sha256": "73957eb0b066abc63c87e7df4bffab2953636c92bcb7a6bb5dee785abc8efc30"
+    },
+    {
+      "path": "src/v267/domain/vacating-review.js",
+      "size": 6265,
+      "sha256": "501ce1590eb5e895b6cc5fb8631aecbc401bde687740fc0b2c9221af98f1d6b1"
+    },
+    {
+      "path": "src/v267/pages/vacating-review.js",
+      "size": 7922,
+      "sha256": "c3734533515157f87905afca19a6230a5654e6e738a49939c69259d057a1bb10"
+    },
+    {
+      "path": "staging-database/sql/vacating-review.sql",
+      "size": 9788,
+      "sha256": "a1b9042f70f9c4251ae90a00dc6b6b088dc4a7af62d478eaeddaa1388f7a43a5"
+    },
+    {
+      "path": "staging-database/tests/vacating_review.sql",
+      "size": 11329,
+      "sha256": "4f74aba56ab242c49bc10830feb087afbdae1dece664637cdcb61640593e8b05"
+    },
+    {
+      "path": "staging-database/tests/vacating_settlement_guards.sql",
+      "size": 6850,
+      "sha256": "25a7c122b4e44a3244aa7808451d46962f15db47f9cc94a7cffcfb9ed15dcfbf"
+    },
+    {
+      "path": "tests/v267-vacating-print.test.mjs",
+      "size": 1193,
+      "sha256": "83f04f05753fce43519c8cd7eaa8f555200e33136c246077c1195f0943bdccfe"
+    },
+    {
+      "path": "tests/v267-vacating-review.test.mjs",
+      "size": 4686,
+      "sha256": "caa2a34ea46468a4a36b82f5300d6e758fa18a2bdece87afb6233086393d9bc2"
     }
   ],
   "version": "V198"

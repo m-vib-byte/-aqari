@@ -5,9 +5,9 @@ import {readFileSync} from 'node:fs';
 const base=readFileSync(new URL('../staging-database/sql/vacating-settlement.sql',import.meta.url),'utf8');
 const hardening=readFileSync(new URL('../staging-database/sql/vacating-settlement-hardening.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/vacating-settlement.js',import.meta.url),'utf8');
-const workspace=readFileSync(new URL('../src/v267/workspace.js',import.meta.url),'utf8');
 const documentScanner=readFileSync(new URL('../src/v267/pages/document-scanner.js',import.meta.url),'utf8');
 const documentCatalog=readFileSync(new URL('../staging-database/supabase/migrations/20260909225520_v267_document_catalog.sql',import.meta.url),'utf8');
+const workspace=readFileSync(new URL('../src/v267/workspace.js',import.meta.url),'utf8');
 
 test('vacating settlement is private and server-authoritative',()=>{
  assert.match(base,/revoke all on private\.aqari_vacating_settlements from public,anon,authenticated/i);
@@ -44,7 +44,8 @@ test('immutable snapshots are normalized to the committed status and numbers',()
 
 test('workspace exposes the feature only through the contracts permission boundary',()=>{
  assert.match(workspace,/aq267-vacating-settlement/);
- assert.match(workspace,/vacating\.hidden=access\?\.permissions\?\.contracts\?\.read!==true/);
+ assert.match(workspace,/vacating\.hidden=.*access\?\.permissions\?\.contracts\?\.read!==true/);
+ assert.match(workspace,/vacating\.hidden=.*access\?\.permissions\?\.collections\?\.read!==true/);
  assert.match(workspace,/import\('\.\/pages\/vacating-settlement\.js'\)/);
 });
 
@@ -53,10 +54,12 @@ test('UI saves then renders the canonical server response and prints saved snaps
  assert.match(page,/fill\(result\.settlement\)/);
  assert.match(page,/rpc\('finalize'/);
  assert.match(page,/rpc\('clearance'/);
- assert.match(page,/record\.clearance_snapshot:record\.settlement_snapshot/);
+ assert.match(page,/currentRecord\.clearance_snapshot:currentRecord\.settlement_snapshot/);
  assert.match(page,/snapshot\.clearance_balances:snapshot\.final_balances/);
- assert.match(page,/window\.open\('','_blank'\)/);
- assert.match(page,/w\.opener=null/);
+ assert.match(page,/urls\.create\(new Blob/);
+ assert.match(page,/rpc\('get',\{lease_id:id\}\)/);
+ assert.match(page,/link\.rel='noopener'/);
+ assert.match(page,/createPrivateUrls\(d\)/);
  assert.doesNotMatch(page,/window\.open\('','_blank','noopener/);
 });
 

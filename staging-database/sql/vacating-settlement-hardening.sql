@@ -6,6 +6,7 @@ declare l public.aqari_leases; due_total numeric:=0;paid_total numeric:=0;deposi
 begin
  select * into l from public.aqari_leases where workspace_id=w and id=lid;
  if not found then raise exception 'VACATING_LEASE_NOT_FOUND' using errcode='22023';end if;
+ if l.start_date is null or l.monthly_rent is null or l.end_date is null or vdate<l.start_date then raise exception 'VACATING_INCOMPLETE_CONTRACT' using errcode='22023';end if;
  period_start:=date_trunc('month',coalesce(l.start_date,vdate))::date;
  period_end:=date_trunc('month',vdate)::date;
  if period_start<=period_end then
