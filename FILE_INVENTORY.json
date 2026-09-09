@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "6ebcfae874f023168370e1da22d600f50f7f4a5c148c9e0a25c07cd7c496e9dd",
-      "size": 5145
+      "sha256": "f179ecce554d462c1539349acf4dd464df70410e66446a451d856ac3c7a5a16c",
+      "size": 5220
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "424fc092ad22f38d527b0c115a2f91b2d9f3c735df763117db6f934d60c17310",
-      "size": 7070
+      "sha256": "b94d20a3c16cfacaabdebd05dd3a0970d7feb912b940859f8c6f48c5ef138254",
+      "size": 7407
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1394,6 +1394,31 @@
       "path": "docs/V267-LINKED-RENTAL-DETAILS.md",
       "sha256": "c3a30b362f0de6f18fe9a99518ce92ea2b4cbbfda3bda02cf2c1b1f64c02a976",
       "size": 3864
+    },
+    {
+      "path": "src/v267/domain/payroll.js",
+      "sha256": "18cef9e7c425be28b94cce2f75a5ebf74321061b99b74560f2c7f491af8cf6ac",
+      "size": 5913
+    },
+    {
+      "path": "src/v267/pages/employees.js",
+      "sha256": "a9395497a45d3d5757b5ca14df3d7fec09a6451733bc4c2a82327390aaab6e77",
+      "size": 21632
+    },
+    {
+      "path": "staging-database/sql/employees-payroll.sql",
+      "sha256": "304b58beb99f4771a125c5e6abe48dd19e6092d95db27eb8b83ea2896c72f0b3",
+      "size": 27017
+    },
+    {
+      "path": "staging-database/tests/employees_payroll.sql",
+      "sha256": "b36e675f2bc60b8e490076d90eda96006db850865e7be9f47116f602eb861ce0",
+      "size": 9120
+    },
+    {
+      "path": "tests/v267-payroll.test.mjs",
+      "sha256": "7f516cef17c0d71969d43c5ed4d2a51b1a0657066cf5bdfd2a3df5f0203adc2b",
+      "size": 2145
     }
   ],
   "version": "V198"

@@ -13,13 +13,13 @@ export function createSession(){
  async function request(query){check();const controller=new AbortController();jobs.add(controller);let timer;
   try{const work=query.abortSignal(controller.signal);const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));},20000);});const r=await Promise.race([work,timeout]);check();if(r.error)throw r.error;return r.data;}finally{clearTimeout(timer);jobs.delete(controller);}}
  function close(){closed=true;for(const job of jobs)job.abort();jobs.clear();}
- async function storage(method,path,body){
-  check();if(!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
+ async function storage(method,path,body,bucket='aqari-documents'){
+  check();if(!['aqari-documents','aqari-hr-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
   const controller=new AbortController();jobs.add(controller);let timer;
   try{
    const work=(async()=>{const auth=await window.AQARI_SUPABASE.getSession();check();if(!auth?.access_token||auth.user?.id!==bound.user)throw Error('تغيرت جلسة الدخول.');
     const suffix=path.split('/').map(encodeURIComponent).join('/');
-    const response=await fetch('https://djkpkkgoibruaezdrchb.supabase.co/storage/v1/object/'+(method==='GET'?'authenticated/':'')+'aqari-documents/'+suffix,{
+    const response=await fetch('https://djkpkkgoibruaezdrchb.supabase.co/storage/v1/object/'+(method==='GET'?'authenticated/':'')+bucket+'/'+suffix,{
      method,body,headers:{apikey:window.AQARI_PUBLIC_CONFIG.supabasePublishableKey,Authorization:'Bearer '+auth.access_token,...(body?{'Content-Type':body.type,'x-upsert':'false'}:{})},
      signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
     check();if(!response.ok){const error=Error('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.');error.status=response.status;throw error;}return method==='GET'?response.blob():response.json();})();

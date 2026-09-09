@@ -45,7 +45,8 @@ export function install(){
  const quality=ui('button','مركز جودة البيانات');quality.hidden=currentScope().role!=='general_manager';quality.onclick=()=>import('./pages/data-quality.js').then(m=>m.openDataQuality()).catch(e=>notice.textContent=t(safeError(e)));
  const review=ui('button','اعتماد عقود المصدر');review.hidden=currentScope().role!=='general_manager';review.onclick=()=>import('./pages/lease-review.js').then(m=>m.openLeaseReview()).catch(e=>notice.textContent=t(safeError(e)));
  const partners=ui('button','صلاحيات الشركاء حسب العقار');partners.hidden=currentScope().role!=='general_manager';partners.onclick=()=>import('./pages/partner-access.js').then(m=>m.openPartnerAccess()).catch(e=>notice.textContent=t(safeError(e)));
- const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
+ const employees=node('button','الموظفون والرواتب / Employees and payroll');employees.onclick=()=>import('./pages/employees.js').then(m=>m.openEmployees()).catch(e=>notice.textContent=t(safeError(e)));
+ const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(employees,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
  document.addEventListener('click',event=>{
@@ -55,6 +56,7 @@ export function install(){
   try{currentScope();}catch{access=null;return;}
   if(!access){event.preventDefault();event.stopImmediatePropagation();refresh().then(data=>{if(data)window.alert(t('تم التحقق من الصلاحيات. اختر القسم المطلوب.'));});return;}
   if(access.sections[key]===false||access.permissions[key]?.read!==true){event.preventDefault();event.stopImmediatePropagation();window.alert(t('هذا القسم متوقف أو غير متاح لصلاحية حسابك.'));return;}
+  if(key==='employees'){event.preventDefault();event.stopImmediatePropagation();employees.onclick();return;}
   queueMicrotask(updateLabels);
  },true);
  window.addEventListener('aqari:v267-controls-changed',refresh);
