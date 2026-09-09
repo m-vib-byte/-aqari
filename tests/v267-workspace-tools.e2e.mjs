@@ -183,7 +183,7 @@ async function verifyServiceDesk(page,locale,name,viewport){
  const tr=source=>translate(source,locale),fmt=(source,values)=>formatMessage(source,values,locale);
  const dialog=page.getByRole('dialog'),close=()=>dialog.getByRole('button',{name:tr('إغلاق'),exact:true}).click();
  const refresh=()=>dialog.getByRole('button',{name:tr('تحديث السجلات'),exact:true}).click();
- const ready=()=>dialog.getByText(tr('السجلات من قاعدة المعاينة المستقلة.'),{exact:true}).waitFor();
+ const ready=()=>dialog.getByText(tr('تمت قراءة طلبات الصيانة المحفوظة.'),{exact:true}).waitFor();
  await page.locator('#fixtureMaintenance').click();await ready();
  assert.equal(await dialog.getAttribute('lang'),locale);assert.equal(await dialog.getAttribute('dir'),['ar','ur'].includes(locale)?'rtl':'ltr');
  const card=dialog.locator('article').filter({has:page.getByRole('heading',{name:fmt('طلب {number}',{number:'TEST-1'}),exact:true})});
@@ -200,10 +200,19 @@ async function verifyServiceDesk(page,locale,name,viewport){
  assert.equal(maintenanceWrites,before+1);assert.equal(await cost.inputValue(),'12.345');assert.equal(await card.getByLabel(tr('حالة الطلب'),{exact:true}).inputValue(),'assigned');
  maintenanceWriteDenied=true;await save().click();await dialog.getByText(tr('لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.'),{exact:true}).waitFor();
  assert.equal(await save().isDisabled(),true,'uncertain write cannot be repeated without refresh');assert.ok(!(await dialog.textContent()).includes('private'));maintenanceWriteDenied=false;
- await refresh();await ready();assert.equal(await save().isEnabled(),true);
+ await refresh();await ready();assert.equal(await save().isDisabled(),true,'refresh preserves the uncertain-write lock');
+ assert.equal(maintenanceWrites,before+2,'refresh cannot repeat the uncertain write');
+ await card.getByRole('button',{name:tr('تجاهل التعديل المحلي واسترجاع المحفوظ'),exact:true}).click();await ready();
+ assert.equal(await save().isEnabled(),true,'explicit saved-record recovery unlocks editing');
+ assert.equal(await cost.inputValue(),'12.345');assert.equal(maintenanceWrites,before+2,'recovery reads without writing');
  const box=await dialog.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,'service translation fits viewport');
  await page.screenshot({path:path.join(out,name+'-'+locale+'-maintenance.png'),fullPage:true});
- maintenanceReadDenied=true;await refresh();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();assert.equal(await dialog.locator('article').count(),0,'denied reread clears previous requests');maintenanceReadDenied=false;
+ await cost.fill('9.250');
+ maintenanceReadDenied=true;await refresh();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();
+ assert.equal(await dialog.locator('article').count(),2,'failed refresh preserves the displayed requests');
+ assert.equal(await cost.inputValue(),'9.250','failed refresh preserves unsaved edits');assert.equal(maintenanceWrites,before+2);
+ maintenanceReadDenied=false;await refresh();await ready();assert.equal(await cost.inputValue(),'9.250','successful refresh retains local edits');
+ await card.getByRole('button',{name:tr('تجاهل التعديل المحلي واسترجاع المحفوظ'),exact:true}).click();await ready();assert.equal(await cost.inputValue(),'12.345');
  await close();
  await page.getByRole('button',{name:tr('عرض سجل التنبيهات المحفوظ'),exact:true}).click();
  await dialog.getByText(tr('الإرسال غير مفعّل. هذه سجلات تجهيز وإلغاء، وليست رسائل مرسلة.'),{exact:true}).waitFor();
@@ -317,4 +326,3 @@ try{
  }
 }finally{await new Promise(resolve=>server.close(resolve));fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(results,null,2));}
 if(failed)process.exit(1);
-
