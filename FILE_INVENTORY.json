@@ -1037,8 +1037,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "2cbdc366381a62d00b9044b542ac369f3afb1f8da257e9bd3dd5fd23c9f708cb",
-      "size": 48633
+      "sha256": "56b9b968df0c24c2393e8a999ac4de7bbdfb0d4f5db99b06c58c2928c514419a",
+      "size": 48706
     },
     {
       "path": "lib/property_statement_pdf.py",

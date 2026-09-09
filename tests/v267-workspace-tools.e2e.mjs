@@ -317,7 +317,7 @@ try{
     assert.equal(storageAttempts,1,'unavailable reread cannot retry the upload');assert.equal(docs[0].status,'draft');
     storageReadUnavailable=false;storageLoseReply=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
-    await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتأكيد ارتباطه بالسجل.',{exact:true}).waitFor();
+    await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتصنيفه وارتباطه بالسجل.',{exact:true}).waitFor();
     assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
     assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.ok(storageBytes[0]===255&&storageBytes[1]===216,'reencoded JPEG');
@@ -392,7 +392,7 @@ try{
     assert.equal(await page.locator('#financeSuitePage h3').count(),0,'logout clears cached financial values');
     assert.deepEqual(errors,[]);
     results.push({name,passed:true,ms:Date.now()-start,layout,languageLayouts,controlRevision:revision,documents:docs.length,scope:'synthetic component backend; no real account or physical device'});console.log('PASS',name);
-   }catch(e){failed=true;results.push({name,passed:false,error:e.stack,calls,errors});console.error('FAIL',name,e.stack);await page.screenshot({path:path.join(out,name+'-failure.png'),fullPage:true}).catch(()=>{});}
+   }catch(e){failed=true;results.push({name,passed:false,error:e.stack,calls,errors});console.error('FAIL',name,e.stack,JSON.stringify({body:await page.locator('body').innerText(),errors}));await page.screenshot({path:path.join(out,name+'-failure.png'),fullPage:true}).catch(()=>{});}
    finally{await context.close();}
   }}finally{await browser.close();}
  }
