@@ -10,8 +10,8 @@ Concurrent work added a separate `vacating-settlement` implementation to the sha
 
 ## Evidence
 
-- 724 combined Node tests passed, zero failures/skips, after preserving the concurrent settlement and contact-preference changes.
-- Nine local in-memory PostgreSQL suites passed: staff property scope, financial register, deposits, staff contract approval, maintenance locations, existing vacating settlement, imported tenant editing, reminder contract balance, and the new document-backed vacating register.
+- 726 combined Node tests passed, zero failures/skips, after preserving the concurrent settlement and contact-preference changes.
+- Ten local in-memory PostgreSQL suites passed: staff property scope, financial register, deposits, staff contract approval, maintenance locations, existing vacating settlement, settlement list readback, imported tenant editing, reminder contract balance, and the new document-backed vacating register.
 - The combined run exposed fixture assumptions: direct authenticated membership-table access, dependence on real imported tenants, and privileged Storage metadata insertion. Tests now determine the synthetic workspace before switching role, create a rollback-only imported profile, and isolate the Storage metadata helper. Business RPCs and permission-denial assertions still run as authenticated. No application grants were relaxed.
 - New vacating hosted migration and transactional acceptance passed only on isolated `ofgmcsmxmdswlovsckqs`. Post-rollback Auth users, memberships, leases, vacating records/operations, documents and Storage objects were zero. Protected current production and historical V266 were not changed.
 - Document fixtures prove metadata/authorization behavior, not genuine signatures, physical key handover or real uploaded file bytes.

@@ -6,6 +6,8 @@ const base=readFileSync(new URL('../staging-database/sql/vacating-settlement.sql
 const hardening=readFileSync(new URL('../staging-database/sql/vacating-settlement-hardening.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/vacating-settlement.js',import.meta.url),'utf8');
 const workspace=readFileSync(new URL('../src/v267/workspace.js',import.meta.url),'utf8');
+const documentScanner=readFileSync(new URL('../src/v267/pages/document-scanner.js',import.meta.url),'utf8');
+const documentCatalog=readFileSync(new URL('../staging-database/supabase/migrations/20260909225520_v267_document_catalog.sql',import.meta.url),'utf8');
 
 test('vacating settlement is private and server-authoritative',()=>{
  assert.match(base,/revoke all on private\.aqari_vacating_settlements from public,anon,authenticated/i);
@@ -56,4 +58,27 @@ test('UI saves then renders the canonical server response and prints saved snaps
  assert.match(page,/window\.open\('','_blank'\)/);
  assert.match(page,/w\.opener=null/);
  assert.doesNotMatch(page,/window\.open\('','_blank','noopener/);
+});
+
+test('document catalogue covers owner, tenant, property, finance and vacating evidence',()=>{
+ for(const key of [
+  'owner_identity','ownership_deed','survey_plan','utility_bill',
+  'tenant_identity','commercial_registration','power_of_attorney',
+  'lease_contract','contract_addendum','receipt','cheque','bank_transfer',
+  'vacating_inspection','utility_clearance','vacating_notice','amicable_settlement','damage_invoice'
+ ]) assert.match(documentScanner,new RegExp(`['"]${key}['"]`));
+ assert.match(documentScanner,/application\/pdf/);
+ assert.match(documentScanner,/application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document/);
+ assert.match(documentScanner,/document_category:target\.category/);
+ assert.match(documentScanner,/p_mime_type:target\.mime/);
+ assert.match(documentScanner,/p_checksum:hash/);
+ assert.match(documentScanner,/verified\.metadata\?\.document_category!==target\.category/);
+});
+
+test('document catalogue is constrained server-side by linked entity type',()=>{
+ assert.match(documentCatalog,/when 'property' then category = any\(array\['owner_identity','ownership_deed','survey_plan','utility_bill'\]\)/);
+ assert.match(documentCatalog,/when 'tenant' then category = any\(array\['tenant_identity','commercial_registration','power_of_attorney'\]\)/);
+ assert.match(documentCatalog,/when 'lease' then category = any\(array\['lease_contract','contract_addendum','receipt','cheque','bank_transfer','vacating_inspection','utility_clearance','vacating_notice','amicable_settlement','damage_invoice'\]\)/);
+ assert.match(documentCatalog,/p_document_type='signed_contract' and category is not null and category<>'lease_contract'/);
+ assert.match(documentCatalog,/d\.metadata,p\.display_name as author_name/);
 });

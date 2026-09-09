@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node run-isolated.mjs ../sql/staff-property-scope.sql ../sql/financial-register.sql ../sql/deposit-register.sql ../sql/vacating-register.sql ../sql/workspace-feature-discovery.sql ../sql/maintenance-locations.sql ../sql/vacating-settlement.sql ../sql/vacating-settlement-hardening.sql ../sql/tenant-contact-preference.sql ../tests/staff_property_scope.sql ../tests/financial_register.sql ../tests/deposit_register.sql ../tests/staff_contract_approval.sql ../tests/maintenance_locations.sql ../tests/vacating_settlement.sql ../tests/imported_tenant_edit.sql ../tests/reminder_contract_balance.sql ../tests/vacating_register.sql"
+    "test": "node run-isolated.mjs ../sql/staff-property-scope.sql ../sql/financial-register.sql ../sql/deposit-register.sql ../sql/vacating-register.sql ../sql/workspace-feature-discovery.sql ../sql/maintenance-locations.sql ../sql/vacating-settlement.sql ../sql/vacating-settlement-list-alias-fix.sql ../sql/vacating-settlement-hardening.sql ../sql/tenant-contact-preference.sql ../tests/staff_property_scope.sql ../tests/financial_register.sql ../tests/deposit_register.sql ../tests/staff_contract_approval.sql ../tests/maintenance_locations.sql ../tests/vacating_settlement_list.sql ../tests/vacating_settlement.sql ../tests/imported_tenant_edit.sql ../tests/reminder_contract_balance.sql ../tests/vacating_register.sql"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8"
