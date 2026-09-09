@@ -1,5 +1,5 @@
 import {createDialog,node,field} from '../components/dialog.js';
-const fields=[['nameAr','الاسم بالعربية'],['nameEn','الاسم بالإنجليزية'],['civilId','الرقم المدني'],['phone','الهاتف'],['email','البريد الإلكتروني'],['nationality','الجنسية'],['address','العنوان']];
+const fields=[['nameAr','الاسم بالعربية'],['nameEn','الاسم بالإنجليزية'],['civilId','الرقم المدني'],['passportNo','رقم الجواز'],['phone','الهاتف'],['email','البريد الإلكتروني'],['nationality','الجنسية'],['address','العنوان']];
 export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  const d=createDialog('تعديل المستأجر المستورد');if(!d)return;
  const {body,status,session,run}=d,inputs={};let current=null,uncertain=false;

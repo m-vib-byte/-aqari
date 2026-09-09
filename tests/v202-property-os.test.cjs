@@ -352,7 +352,7 @@ function paymentElements(receipt = 'R-TEST-SAVE') {
     v202PaymentStatus: { value: 'مدفوع' },
     v202PaymentPeriod: { value: '2026-08' },
     v202PaymentDate: { value: '2026-08-28' },
-    v202PaymentMethod: { value: 'KNET' },
+    v202PaymentMethod: { value: 'KNET' },v267PaymentTransaction:{value:'TX-TEST'},
     v202PaymentNote: { value: '' },
     v202PaymentError: { textContent: '' },
   };
@@ -1066,7 +1066,7 @@ test('V267 confirms the canonical payment in cloud storage before exposing it lo
     v202PaymentStatus: { value: 'قيد المراجعة' },
     v202PaymentPeriod: { value: '2026-08' },
     v202PaymentDate: { value: '2026-08-28' },
-    v202PaymentMethod: { value: 'KNET' },
+    v202PaymentMethod: { value: 'KNET' },v267PaymentTransaction:{value:'TX-TEST'},
     v202PaymentNote: { value: 'roundtrip test' },
     v202PaymentError: { textContent: '' },
   };
@@ -3303,19 +3303,19 @@ test('V267 synthetic tenant → saved lease → collection → immutable voucher
  w.AQARI_SUPABASE.loadAppState=async()=>({payload:JSON.parse(JSON.stringify(cloud)),revision});
  w.AQARI_SUPABASE.saveAppState=async(payload,expected)=>{assert.equal(expected,revision);cloud=JSON.parse(JSON.stringify(payload));revision++;};
  const store=rentals.createStore({scope:()=>({userId:'test',workspaceId:'workspace'}),local:()=>data,load:w.AQARI_SUPABASE.loadAppState,save:w.AQARI_SUPABASE.saveAppState,cache(){}});
- const tenant={id:'new-profile',nameAr:'مستأجر اختبار جديد',nameEn:'New Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار'};
+ const tenant={id:'new-profile',nameAr:'مستأجر اختبار جديد',nameEn:'New Synthetic Tenant',email:'new@example.invalid',passportNo:'TEST-P987',civilId:'123456789012',phone:'55555555',nationality:'اختبار'};
  await store.change(['tenantProfilesV267','tenants'],db=>{const p=rentals.profile(tenant,[]);db.tenantProfilesV267=[p];db.tenants.push([p.nameAr,'','','نشط',p.id]);return p},(db,p)=>db.tenantProfilesV267[0].id===p.id);
  data=JSON.parse(JSON.stringify(cloud));
  for(const status of ['draft','ready','approved','signing','signed']){
   await store.change(['contractsV202','tenantDirectoryV202'],db=>{
-   const c=rentals.lease({id:987,contract_no:'NEW-987',tenantId:tenant.id,property:'SYNTHETIC TEST PROPERTY',unit:'9',rent:'100',deposit:'50',start_date:'2026-01-01',end_date:'2026-12-31',status},db.contractsV202,db.tenantProfilesV267,db.properties);
+   const c=rentals.lease({id:987,contract_no:'NEW-987',tenantId:tenant.id,property:'SYNTHETIC TEST PROPERTY',unit:'9',rent:'110',deposit:'50',floor:'2',advance:0,cleaningFee:5,discount:10,accountant:'محاسب اختبار',receivedAt:'2026-08-01T10:30',writtenOn:'2026-09-09',evictionNotice:'لم يُبلّغ',start_date:'2026-01-01',end_date:'2026-12-31',status},db.contractsV202,db.tenantProfilesV267,db.properties);
    db.contractsV202=db.contractsV202.filter(x=>x.id!==987).concat([c]);
-   db.tenantDirectoryV202=db.tenantDirectoryV202.filter(x=>x.contractNo!=='NEW-987').concat([{property:c.property,unit:c.unit,tenant:c.tenant,contractNo:c.contract_no,verified:status==='signed',source:'v267-cloud'}]);return c;
+   db.tenantDirectoryV202=db.tenantDirectoryV202.filter(x=>x.contractNo!=='NEW-987').concat([{property:c.property,unit:c.unit,...rentals.directoryFields(c,db.tenantProfilesV267[0]),contractNo:c.contract_no,verified:status==='signed',source:'v267-cloud'}]);return c;
   },(db,c)=>db.contractsV202.some(x=>x.id===c.id&&x.status===c.status));
   data=JSON.parse(JSON.stringify(cloud));
  }
  const overlay={dataset:{},classList:{add(){},remove(){},contains(){return true}},setAttribute(){},removeAttribute(){},querySelector(){return null}};
- const elements={v202PaymentContract:{value:'987'},v202PaymentNumber:{value:'V267-ROUNDTRIP'},v202PaymentAmount:{value:'100'},v202PaymentStatus:{value:'مدفوع'},v202PaymentPeriod:{value:'2026-08'},v202PaymentDate:{value:'2026-08-28'},v202PaymentMethod:{value:'KNET'},v202PaymentNote:{value:''},v202PaymentError:{textContent:''},v202DocumentDialog:overlay,v202DocumentDialogTitle:{textContent:''},v202DocumentBody:{innerHTML:''}};
+ const elements={v202PaymentContract:{value:'987'},v202PaymentNumber:{value:'V267-ROUNDTRIP'},v202PaymentAmount:{value:'100'},v202PaymentStatus:{value:'مدفوع'},v202PaymentPeriod:{value:'2026-08'},v202PaymentDate:{value:'2026-08-28'},v202PaymentMethod:{value:'KNET'},v267PaymentTransaction:{value:'TX-ROUNDTRIP'},v202PaymentNote:{value:''},v202PaymentError:{textContent:''},v202DocumentDialog:overlay,v202DocumentDialogTitle:{textContent:''},v202DocumentBody:{innerHTML:''}};
  let afterPrint,printCalls=0;w.addEventListener=(event,handler)=>{if(event==='afterprint')afterPrint=handler};w.print=()=>{assert.equal(typeof afterPrint,'function');printCalls++;afterPrint()};
  const writer=loadRuntime(data,[],w,{elements});writer.setActiveProperty('SYNTHETIC TEST PROPERTY');
  assert.equal(await writer.savePayment({preventDefault(){}}),true,elements.v202PaymentError.textContent);
@@ -3324,9 +3324,10 @@ test('V267 synthetic tenant → saved lease → collection → immutable voucher
  const reloaded=JSON.parse(JSON.stringify(cloud)),reader=loadRuntime(reloaded,[],activeRuntimeWindow());
  reader.setActiveProperty('SYNTHETIC TEST PROPERTY');reader.setActivePeriod('2026-08');
  assert.match(reader.collectionsPanel(reader.contextFor('SYNTHETIC TEST PROPERTY')),/V267-ROUNDTRIP/);
- const row=reloaded.collections.find(x=>x[0]==='V267-ROUNDTRIP');assert.ok(row);assert.equal(reloaded.rentReceiptsV267.length,1);
+ const row=reloaded.collections.find(x=>x[0]==='V267-ROUNDTRIP');assert.ok(row);assert.equal(reloaded.rentReceiptsV267.length,1);assert.equal(reloaded.rentReceiptsV267[0].contract.contractRent,110);assert.equal(reloaded.rentReceiptsV267[0].contract.rent,100);assert.equal(reloaded.rentReceiptsV267[0].accountant,'محاسب اختبار');assert.equal(reloaded.rentReceiptsV267[0].transactionNo,'TX-ROUNDTRIP');
  const linkedContext=reader.contextFor('SYNTHETIC TEST PROPERTY');
  const linkedTenant=reader.unitDirectoryRecords(linkedContext,'2026-08').find(x=>String(x.contractId)==='987');
+ assert.equal(linkedTenant.floor,'2');assert.equal(linkedTenant.nameEn,'New Synthetic Tenant');assert.equal(linkedTenant.currentRent,100);assert.equal(linkedTenant.advance,0);
  const linkedPayment=reloaded.rentLedgerV202.find(x=>x.receiptNo==='V267-ROUNDTRIP');
  assert.match(reader.tenantReceiptDocument(linkedContext,linkedTenant,linkedPayment,'2026-08'),/Rent Voucher/);
  assert.match(reader.savedVoucher(row),/New Synthetic Tenant/);

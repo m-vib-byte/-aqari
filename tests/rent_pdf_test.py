@@ -20,6 +20,19 @@ def fixture():
     return dict(collections=[row], contractsV202=[c], rentLedgerV202=[entry], rentReceiptsV267=[saved])
 
 class ReceiptTests(unittest.TestCase):
+    def test_linked_details_are_rendered_from_saved_snapshot_across_pages(self):
+        from unittest.mock import patch
+        from lib import rent_pdf
+        saved=fixture()['rentReceiptsV267'][0]
+        saved.update(detailsVersion=2,accountant='Synthetic Accountant',transactionNo='TX-TEST-267')
+        saved['contract'].update(floor='FLOOR-2',contractRent=150,discount=24.625,rent=125.375,deposit=50,advance=0,cleaningFee=5,contractReceived='مستلم',receivedAt='2026-09-01T10:30:00+03:00',evictionNotice='لم يُبلّغ',tenantProfile=dict(nameAr='مستأجر اختبار',nameEn='Test English Name',email='tenant@example.invalid',phone='55555555',civilId='123456789012',passportNo='TEST-PASSPORT',nationality='اختبار'))
+        with patch.object(rent_pdf,'shaped',wraps=rent_pdf.shaped) as rendered:
+            pdf=render_receipt(saved)
+        calls=' '.join(str(c.args[0]) for c in rendered.call_args_list)
+        for value in ['FLOOR-2','Test English Name','tenant@example.invalid','TEST-PASSPORT','Synthetic Accountant','TX-TEST-267','2026-09-01T10:30:00+03:00','150','125.375']:
+            self.assertIn(value,calls)
+        self.assertGreaterEqual(len(PdfReader(BytesIO(pdf)).pages),2)
+
     def test_real_embedded_font_deterministic_pdf(self):
         state=fixture(); saved=verified_receipt(state,'TEST-001')
         result=render_receipt(saved)

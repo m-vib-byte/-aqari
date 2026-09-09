@@ -7,8 +7,8 @@ const sandbox={module:{exports:{}},structuredClone};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../v267-rental-records.js'),'utf8'),sandbox);
 const api=sandbox.module.exports;
 const clone=x=>JSON.parse(JSON.stringify(x));
-const tenant={id:'synthetic-tenant',nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',email:'',address:'',attachments:[]};
-const contract={id:123,contract_no:'TEST-123',tenantId:tenant.id,property:'عقار اختبار',unit:'٤',rent:'100.125',deposit:'50',start_date:'2026-09-01',end_date:'2027-08-31',status:'draft'};
+const tenant={id:'synthetic-tenant',nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',email:'tenant@example.invalid',passportNo:'TEST-P123',address:'',attachments:[]};
+const contract={id:123,contract_no:'TEST-123',tenantId:tenant.id,property:'عقار اختبار',unit:'٤',rent:'100.125',deposit:'50',start_date:'2026-09-01',end_date:'2027-08-31',status:'draft',floor:'1',advance:'0',cleaningFee:'5',discount:'10',accountant:'محاسب اختبار',receivedAt:'2026-09-01T10:30',writtenOn:'2026-09-09',evictionNotice:'لم يُبلّغ'};
 function valid(c=contract,old=[]){return api.lease(c,old,[tenant],[['عقار اختبار']])}
 test('complete reusable tenant profile normalizes civil ID and prevents duplicates',()=>{
  assert.equal(api.profile({...tenant,civilId:'١٢٣٤٥٦٧٨٩٠١٢'}).civilId,tenant.civilId);
@@ -18,7 +18,7 @@ test('complete reusable tenant profile normalizes civil ID and prevents duplicat
  assert.throws(()=>api.profile(tenant,[{...tenant,id:'other'}]),/مسجل/);
 });
 test('lease binds a saved profile and exact property/unit with three-decimal money',()=>{
- const c=valid();assert.equal(c.unit,'4');assert.equal(c.rent,100.125);assert.equal(c.tenantProfile.nameEn,tenant.nameEn);
+ const c=valid();assert.equal(c.unit,'4');assert.equal(c.rent,90.125);assert.equal(c.contractRent,100.125);assert.equal(c.tenantProfile.nameEn,tenant.nameEn);
  assert.throws(()=>api.lease(contract,[],[],[['عقار اختبار']]),/احفظ ملف/);
  assert.throws(()=>valid({...contract,rent:'1.1234'}),/مبلغ/);
  assert.throws(()=>valid({...contract,start_date:'2026-02-30'}),/تاريخ/);
@@ -85,4 +85,20 @@ test('preparation draft persists separately without mutating tenants, contracts 
  const f=fixture();const before=f.read();const draft=api.tenantDraft({id:'draft-1',nameEn:'Later entry'});
  await f.store.change(['tenantPreparationDraftsV267'],db=>{db.tenantPreparationDraftsV267=[draft];return draft},(db,saved)=>db.tenantPreparationDraftsV267.some(x=>x.id===saved.id));
  const after=f.reload();assert.deepEqual(after.tenants,before.tenants);assert.deepEqual(after.contractsV202,before.contractsV202);assert.equal(after.tenantPreparationDraftsV267[0].nameEn,'Later entry');
+});
+
+test('contract requires every new field and keeps original rent separate from discount',()=>{
+ for(const field of ['floor','advance','cleaningFee','discount','accountant','receivedAt','writtenOn'])assert.throws(()=>valid({...contract,[field]:''}),field);
+ for(const field of ['passportNo','email'])assert.throws(()=>api.lease(contract,[],[{...tenant,[field]:''}],[['عقار اختبار']]),field);
+ assert.throws(()=>valid({...contract,discount:'101'}));
+ const original=valid();assert.throws(()=>valid({...original,contractRent:120},[original]),/محفوظان/);
+ const adjusted=valid({...original,discount:20},[original]);assert.equal(adjusted.contractRent,100.125);assert.equal(adjusted.rent,80.125);
+ const linked=api.directoryFields(adjusted,tenant);assert.equal(linked.currentRent,80.125);assert.equal(linked.advance,0);assert.equal(linked.passportNo,tenant.passportNo);assert.equal(linked.accountant,contract.accountant);
+});
+test('Kuwait contract dates are independent of browser timezone; delivery rejects invalid or future dates',()=>{
+ assert.equal(api.kuwaitDate(new Date('2026-09-08T22:30:00Z')),'2026-09-09');
+ assert.equal(api.receivedAt('2026-09-01T10:30'),'2026-09-01T10:30:00+03:00');
+ assert.throws(()=>api.receivedAt('2026-02-30T10:00'));
+ assert.throws(()=>api.receivedAt('2026-09-01T25:00'));
+ assert.throws(()=>api.receivedAt('2099-09-01T10:00'));
 });

@@ -7,8 +7,8 @@
   const RENT_WRITE_ROLES=new Set(['general_manager','property_manager','accountant']);
   const PROTECTED_FIELDS=Object.freeze({
     contractsV202:['id','contract_no','tenant','property','unit','rent','contractRent','status','start_date','end_date','source'],
-    tenantDirectoryV202:['property','unit','tenant','contractNo','phone','nationality','civilId','email','source','verified','sourcePage','contractStartRaw','contractEndRaw','paymentDateRaw','contractReceipt','contractReceived','accountant','insurance','insuranceDateRaw','advance','advanceDateRaw','cleaningFee','currentRent','freeMonth','evictionNotice','notes'],
-    rentLedgerV202:['id','receiptNo','voucherNo','property','unit','tenant','contractId','contract_id','contractNo','contract_no','period','due','paid','balance','paidAt','method','transactionNo','knetTransactionNo','contractReceived','status','note','source','paymentKey'],
+    tenantDirectoryV202:['tenantProfileId','nameAr','nameEn','passportNo','floor','receivedAt','property','unit','tenant','contractNo','phone','nationality','civilId','email','source','verified','sourcePage','contractStartRaw','contractEndRaw','paymentDateRaw','contractReceipt','contractReceived','accountant','insurance','insuranceDateRaw','advance','advanceDateRaw','cleaningFee','currentRent','freeMonth','evictionNotice','notes'],
+    rentLedgerV202:['id','receiptNo','voucherNo','property','unit','tenant','contractId','contract_id','contractNo','contract_no','period','due','paid','balance','paidAt','method','transactionNo','knetTransactionNo','contractReceived','accountant','status','note','source','paymentKey'],
     rentStatementsV202:['id','property','period','totalRent','totalCollected','totalAdvance','totalInsurance','totalCleaning','sourcePages','unitCount','occupiedUnitCount','payerCount','importedAt','source']
   });
   const STATUS_LABELS={
@@ -690,7 +690,7 @@
       }
       return {
         property:identityText(property.value),unit:identityText(unit.value),tenant:identityText(tenant.value),contractNo:identityText(contractNo.value),phone:textField('phone'),
-        nationality:textField('nationality'),civilId:textField('civilId'),email:textField('email'),
+        nationality:textField('nationality'),civilId:textField('civilId'),email:textField('email'),nameAr:textField('nameAr'),nameEn:textField('nameEn'),passportNo:textField('passportNo'),floor:textField('floor'),receivedAt:textField('receivedAt'),
         source:source.value,verified:entry.verified===true,sourcePage:textField('sourcePage'),
         contractStartRaw:textField('contractStartRaw'),contractEndRaw:textField('contractEndRaw'),
         paymentDateRaw:textField('paymentDateRaw'),contractReceipt:textField('contractReceipt'),
@@ -866,6 +866,7 @@
     return {
       id,contract_no:contractNo,tenant,property,unit,rent:rentValue==null?'':rentValue,
       contractRent:faceRent==null?'':faceRent,deposit:depositAlias.value,
+      floor:scalarText(entry.floor),receivedAt:scalarText(entry.receivedAt),accountant:scalarText(entry.accountant),evictionNotice:scalarText(entry.evictionNotice),contractReceived:scalarText(entry.contractReceived),
       status:contractStatus(statusAlias.value),start_date:startAlias.value,
       end_date:endAlias.value,source:sourceAlias.value||String(source||''),_explicitId:Boolean(explicitId),
       _rentRecorded:Boolean(rentRecorded),_contractRentRecorded:Boolean(faceRentRecorded)
@@ -1600,9 +1601,10 @@
         endDate:String(contract?.end_date||directoryRecord.contractEndRaw||''),legalStartDate:String(contract?.start_date||''),legalEndDate:String(contract?.end_date||''),contractRent:contractFaceRent,currentRent,rent:due,paid,pending,balance,paymentStatus,
         receipts,paidAt:paymentDates[0]||(validRecordedDate(directoryRecord.paymentDateRaw)?String(directoryRecord.paymentDateRaw).trim():''),methods,
         phone:String(directoryRecord.phone||''),nationality:String(directoryRecord.nationality||''),
+        nameAr:String(directoryRecord.nameAr||''),nameEn:String(directoryRecord.nameEn||''),passportNo:String(directoryRecord.passportNo||''),floor:String(directoryRecord.floor||contract?.floor||''),receivedAt:String(directoryRecord.receivedAt||contract?.receivedAt||''),
         civilId:String(directoryRecord.civilId||''),email:String(directoryRecord.email||''),verified:contractVerified,
         sourcePage:String(directoryRecord.sourcePage||''),contractReceipt:String(directoryRecord.contractReceipt||''),contractReceived,
-        accountant:String(directoryRecord.accountant||''),insurance:directoryRecord.insurance,insuranceDateRaw:String(directoryRecord.insuranceDateRaw||''),
+        accountant:String(directoryRecord.accountant||contract?.accountant||''),insurance:directoryRecord.insurance,insuranceDateRaw:String(directoryRecord.insuranceDateRaw||''),
         advance:directoryRecord.advance,advanceDateRaw:String(directoryRecord.advanceDateRaw||''),
         cleaningFee:directoryRecord.cleaningFee,freeMonth:String(directoryRecord.freeMonth||''),
         evictionNotice:String(directoryRecord.evictionNotice||''),notes:String(directoryRecord.notes||''),paymentNotes,knetTransactions,
@@ -2443,6 +2445,7 @@
         '<label><span>شهر الإيجار</span><input id="v202PaymentPeriod" type="month" value="'+selectedPeriod+'" required></label>'+ 
         '<label><span>تاريخ السداد</span><input id="v202PaymentDate" type="date" value="'+todayValue()+'" required></label>'+ 
         '<label><span>طريقة السداد</span><select id="v202PaymentMethod"><option>كي نت</option><option>تحويل بنكي</option><option>نقدي</option><option>أخرى</option></select></label>'+ 
+        '<label><span>رقم العملية — إلزامي لغير الكاش</span><input id="v267PaymentTransaction" maxlength="150"></label>'+
         '<label><span>حالة السداد</span><select id="v202PaymentStatus"><option>مدفوع</option><option>جزئي</option><option>قيد المراجعة</option></select></label>'+ 
         '<label class="v202-form-wide"><span>ملاحظة اختيارية</span><input id="v202PaymentNote" placeholder="مثال: إيجار شهر سبتمبر"></label>'+ 
         '<div class="v202-payment-balance v202-form-wide" id="v202PaymentBalance" aria-live="polite">اختر العقد والوحدة لحساب المتبقي.</div>'+ 
@@ -2537,6 +2540,8 @@
     const date=document.getElementById('v202PaymentDate')?.value||todayValue();
     const method=document.getElementById('v202PaymentMethod')?.value||'غير محدد';
     const note=document.getElementById('v202PaymentNote')?.value.trim()||'';
+    const transactionNo=referenceText(document.getElementById('v267PaymentTransaction')?.value);
+    if(method!=='نقدي'&&!transactionNo){if(error)error.textContent='أدخل رقم العملية لهذه الدفعة.';return false;}
     if(!contract||!tenant||!contract.unit){
       if(error)error.textContent='اختر عقداً موقّعاً سارياً مربوطاً بمستأجر ووحدة.';
       return false;
@@ -2578,7 +2583,7 @@
       id:'rent-'+receipt,receiptNo:receipt,property:activeProperty,unit:contract.unit,tenant,
       contractId:contractId(contract),contractNo:contract.contract_no||'',period,due,paid:amount,
       balance:settledPayment(finalStatus)?exactMoneyDifference(balance,amount):balance,paidAt:date,
-      method,status:finalStatus,note,source:'v202-entry',paymentKey:paymentKey(activeProperty,contract,contract.unit,period)
+      method,transactionNo,accountant:contract.accountant||'',status:finalStatus,note,source:'v202-entry',paymentKey:paymentKey(activeProperty,contract,contract.unit,period)
     };
     return commitPayment(record,ledgerEntry);
   }
@@ -2616,7 +2621,7 @@
       if(normalizedIdentity(cloudContract.tenant)!==normalizedIdentity(ledgerEntry.tenant)||normalizedIdentity(cloudContract.unit)!==normalizedIdentity(ledgerEntry.unit)||ledgerEntry.contractNo!==cloudContract.contract_no)throw new Error('بيانات التحصيل لا تطابق العقد المحفوظ.');
       if((primary.collections||[]).some(row=>normalizedReference(row[0])===normalizedReference(record[0]))||(primary.rentLedgerV202||[]).some(row=>normalizedReference(ledgerReference(row))===normalizedReference(record[0])))throw new Error('رقم الوصل مسجل مسبقاً.');
       const sourceContract=(primary.contractsV202||[]).find(c=>String(c.id)===ledgerEntry.contractId);
-      const receiptSnapshot={id:record[0],template:'rent-voucher-v267-1',record:JSON.parse(JSON.stringify(record)),contract:JSON.parse(JSON.stringify(cloudContract)),tenantId:sourceContract?.tenantId||null,tenantNameEn:sourceContract?.tenantProfile?.nameEn||'',brand:statementBrand(name)};
+      const receiptSnapshot={id:record[0],template:'rent-voucher-v267-1',record:JSON.parse(JSON.stringify(record)),contract:JSON.parse(JSON.stringify({...cloudContract,...sourceContract,id:cloudContract.id})),tenantId:sourceContract?.tenantId||null,tenantNameEn:sourceContract?.tenantProfile?.nameEn||'',brand:statementBrand(name),detailsVersion:sourceContract?.detailsVersion||1,accountant:sourceContract?.accountant||ledgerEntry.accountant||'',transactionNo:ledgerEntry.transactionNo||''};
       primary.collections=(primary.collections||[]).concat([record]);
       primary.rentLedgerV202=(primary.rentLedgerV202||[]).concat([ledgerEntry]);
       primary.rentReceiptsV267=(primary.rentReceiptsV267||[]).concat([receiptSnapshot]);
@@ -2676,6 +2681,7 @@
     const fils=Math.round(amount*1000),line=(ar,en,value)=>'<div class="v267-voucher-line"><span>'+e(ar)+'</span><strong>'+e(value)+'</strong><small lang="en">'+e(en)+'</small></div>';
     return '<article class="v202-document v267-voucher" data-v267-voucher data-receipt-no="'+e(saved.id)+'"><h1>'+e(brand.ar)+'</h1><header><div><b>وصل إيجار</b><br><span lang="en">Rent Voucher</span></div><div>رقم الوصل / No.<strong>'+e(saved.id)+'</strong><br>التاريخ / Date: '+e(record[5])+'</div><div class="v267-voucher-money"><span>دينار K.D<br><b>'+Math.floor(fils/1000)+'</b></span><span>فلس Fils<br><b>'+String(fils%1000).padStart(3,'0')+'</b></span></div></header>'+
       line('وصلني من السيد / السادة','Received From',c.tenant+(saved.tenantNameEn?' / '+saved.tenantNameEn:''))+line('مبلغ وقدره','Sum Of KD',amount.toFixed(3)+' د.ك')+line('طريقة الدفع / المرجع','Cash / Cheque / K-net No.',record[9]+' / '+record[0])+line('وذلك من إيجار شهر','Rent of Month',record[8])+line('وحدة رقم','Room No.',c.unit)+line('العقار / رقم العقد','Property / Contract No.',c.property+' / '+c.contract_no)+
+      (saved.detailsVersion===2?line('الدور','Floor',c.floor)+line('البريد الإلكتروني','Email',c.tenantProfile?.email)+line('الهاتف','Phone',c.tenantProfile?.phone)+line('الرقم المدني','Civil ID',c.tenantProfile?.civilId)+line('رقم الجواز','Passport',c.tenantProfile?.passportNo)+line('الجنسية','Nationality',c.tenantProfile?.nationality)+line('بداية ونهاية العقد','Contract term',c.start_date+' — '+c.end_date)+line('إيجار العقد / بعد الخصم','Original / Current rent',c.contractRent+' / '+c.rent)+line('التأمين / العربون / النظافة','Deposit / Advance / Cleaning',c.deposit+' / '+c.advance+' / '+c.cleaningFee)+line('رقم العملية','Transaction',saved.transactionNo||'كاش')+line('حالة ووقت استلام العقد — الكويت','Contract received',c.contractReceived+' '+c.receivedAt)+line('تبليغ الإخلاء','Eviction notice',c.evictionNotice)+line('المحاسب المسؤول','Accountant',saved.accountant):'')+
       '<section class="v267-voucher-terms"><p>في حالة عدم توقيع العقد وعدم تسلم كامل قيمة الإيجار خلال يومين من تاريخ هذا الإيصال تعتبر الحجز ملغية ويعتبر الحجز لاغياً.</p><p lang="en">If the contract is not signed or full payment is not received within two days of receiving this receipt, this reservation is considered void and the customer shall have no right in potential claim.</p><p>هذا الإيصال لإثبات المبلغ المدفوع فقط، ولا يعكس السعر المتفق عليه للإيجار.</p><p lang="en">This receipt is proof of payment and does not reflect the actual agreed upon rental price.</p><p>يعتبر هذا الإيصال لاغياً في حال عدم تحصيل الشيك.</p><p lang="en">This receipt is considered void in case of failure of processing the cheque.</p></section><p class="v267-voucher-band">تسديد الإيجارات بحد أقصاها الخامس من كل شهر (التأمين لا يرد)</p><div class="v267-voucher-signatures"><p>اسم المستلم / Receiver Name<br>________________<br>توقيع المستلم / Receiver Signature<br>________________</p><p>اسم المحاسب / Accountant Name<br>________________<br>توقيع المحاسب / Accountant Signature<br>________________</p></div><footer>'+e(brand.addressAr)+' • '+e(record[9])+'</footer></article>';
   }
 
@@ -3028,6 +3034,7 @@
         knetTransactionNo:String(latest?ledgerTransactionNo(latest):''),voucherNo:ledgerReference(latestReceipt),
         receiptReference:ledgerReference(latestReceipt),
         contractReceived:String(record?.contractReceived||record?.contractReceipt||''),accountant:String(record?.accountant||''),
+        nameAr:record?.nameAr||'',nameEn:record?.nameEn||'',floor:record?.floor||'',phone:record?.phone||'',nationality:record?.nationality||'',civilId:record?.civilId||'',passportNo:record?.passportNo||'',startDate:record?.startDate||'',endDate:record?.endDate||'',receivedAt:record?.receivedAt||'',evictionNotice:record?.evictionNotice||'',
         due,paid,pending,balance,paymentStatus,settledPayments:entries.length
       };
     }).sort(function(left,right){
@@ -3408,6 +3415,7 @@
         insurance:row.insurance,advance:row.advance,cleaningFee:row.cleaningFee,
         paid:numberFrom(row.paid),pending:numberFrom(row.pending),balance:numberFrom(row.balance),paymentStatus:String(row.paymentStatus||''),
         paidAt:String(row.paymentDate||''),method:String(row.paymentMethod||''),transactionNo:String(row.knetTransactionNo||''),
+        nameAr:row.nameAr,nameEn:row.nameEn,floor:row.floor,phone:row.phone,nationality:row.nationality,civilId:row.civilId,passportNo:row.passportNo,startDate:row.startDate,endDate:row.endDate,receivedAt:row.receivedAt,evictionNotice:row.evictionNotice,
         receiptNo:String(row.receiptReference||''),contractReceived:String(row.contractReceived||''),accountant:String(row.accountant||''),email
       });
     });

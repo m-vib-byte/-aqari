@@ -397,13 +397,13 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "b2b2666baa95ab027c1aaeb96393933fca0785dfc4d44ca071a9f6bdaf958c8a",
-      "size": 182329
+      "sha256": "9f0ffd754ed6bc9e436e0d3a7802cb087d41278bfc4318b8a75533b2745f09b0",
+      "size": 183176
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
-      "sha256": "10c7a4b16680e0b44bacd2b0b0e757d5d785893e1ca06c2eec56f03bd3a6d544",
-      "size": 8967
+      "sha256": "fbc5bdf6e0d09858e1b678c70c9001acc1b466299386b83cc51f8f035ef492dc",
+      "size": 9081
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
@@ -477,8 +477,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "8d9c2dc5a34184e17bf01533ed66fcf7f0ded34d92a62fb0830583cc3d5e200a",
-      "size": 260950
+      "sha256": "7e96d7183e9c1be2dc392cb0fbef8c5d87bed9a93d88448c0753668da9b9b775",
+      "size": 263991
     },
     {
       "path": "v205-simple.css",
@@ -502,8 +502,8 @@
     },
     {
       "path": "v206-rent-ledger.js",
-      "sha256": "61f163e010dfea36887cc468de3f97e1e8053bb691eeacd7614efe2e125d5f4f",
-      "size": 25021
+      "sha256": "5113d38e8bd5d7b59dfdffc9e4f38a09a13bb077f378d5a7c0b573d2a713a54b",
+      "size": 26854
     },
     {
       "path": "v208-portfolio-collections.css",
@@ -797,8 +797,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "c7d50454aaf6751c05c30df8d9c12ae63fb740b45efbd2a910cc5317dc71dcc6",
-      "size": 6762
+      "sha256": "a363985ba81a8ad769df0a31f5ec4b5d7e81c93aa67dac9f8051c0e4d90c1e99",
+      "size": 9449
     },
     {
       "path": "V267_RENTAL_FLOW_REVIEW.md",
@@ -817,8 +817,8 @@
     },
     {
       "path": "lib/rent_pdf.py",
-      "sha256": "9e9f733f1451e3185b82bd8779701d0d80d7c5e50f63bc42a8c7855b7b421d38",
-      "size": 7611
+      "sha256": "56b7c9c9fa9828eb56de1d0384e828e9b2226e7816edd5b140b32faefb016323",
+      "size": 9371
     },
     {
       "path": "lib/pdf_fonts/AqariSans.ttf",
@@ -837,8 +837,8 @@
     },
     {
       "path": "tests/rent_pdf_test.py",
-      "sha256": "60d1c644c8311f3c9d9b6e4adc53c0f50d978d322baa9a982b9836d39260bd43",
-      "size": 7285
+      "sha256": "6042212ab3bdf6eaff6f62d337cd71304531c59fe3397e2a2ed64eb6b2b5d566",
+      "size": 8505
     },
     {
       "path": "V267_INTEGRATION_REVIEW.md",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 29000,
-      "sha256": "da26edd219dad372d141952f614d3fa8c86da5d2beb90256a17bf0c9448de152"
+      "size": 35562,
+      "sha256": "047f90376cc323bccd5fa8f8cc32052d277d1311747d61efdffc3c916506ea77"
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1357,8 +1357,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "size": 4419,
-      "sha256": "a3f64cc0eea2d7b5f51c54b5ab385f186aca6d409b79bf9a0a24d96b416b5e3b"
+      "size": 4456,
+      "sha256": "c5e5203b14b69249c406d60bb2f16763e87542df2a4bc104e63854b3e5132f24"
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
@@ -1372,13 +1372,28 @@
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
-      "size": 2923,
-      "sha256": "9102654b897bf118be2e4abc79dd44b08d7bb78cac20366ea33b7e7a5ba1d9f6"
+      "size": 3063,
+      "sha256": "ce16f08c04fedce2541e5864203d06837a5675c45e2ba496da46c856ea701b42"
     },
     {
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
       "size": 3519,
       "sha256": "38e338aa441c21d556f02be0bd972810576c8eb98d3140c46d1a28eb48ea8729"
+    },
+    {
+      "path": "staging-database/sql/linked-rental-details.sql",
+      "sha256": "6b3cc45714b7c683e803c1f7db6fbf0a0a7905d5d2e08e252e17118e55251afc",
+      "size": 11381
+    },
+    {
+      "path": "staging-database/tests/linked_rental_details.sql",
+      "sha256": "649723a5d68222043a9f24c6ea48515ce3e23b64d8ea314a21256b2e0cbf1685",
+      "size": 6360
+    },
+    {
+      "path": "docs/V267-LINKED-RENTAL-DETAILS.md",
+      "sha256": "ee07d50c3cbba62711ba16d08952f2335c1a333a77af4e7c4b02d8423323b07b",
+      "size": 3324
     }
   ],
   "version": "V198"

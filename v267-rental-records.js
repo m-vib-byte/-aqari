@@ -9,7 +9,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 function date(value){const s=text(value);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s).toISOString().slice(0,10)!==s)fail('أدخل تاريخاً صحيحاً.');return s}
 function amount(value){const s=digits(value).replace('٫','.');if(!/^\d+(\.\d{1,3})?$/.test(s)||!Number.isSafeInteger(Math.round(Number(s)*1000)))fail('أدخل مبلغاً صحيحاً بدقة ثلاثة منازل كحد أقصى.');return Number(s)}
 function profile(input,others=[]){
- const p={};for(const field of ['id','nameAr','nameEn','civilId','phone','email','nationality','address'])p[field]=text(input[field]);
+ const p={};for(const field of ['id','nameAr','nameEn','civilId','passportNo','phone','email','nationality','address'])p[field]=text(input[field]);
  p.civilId=digits(p.civilId);p.phone=digits(p.phone).replace(/[ ()-]/g,'');
  if(!p.id||!p.nameAr||!p.nameEn||!p.nationality||!/^\d{12}$/.test(p.civilId)||!/^\+?\d{8,15}$/.test(p.phone))fail('أكمل الاسم العربي والإنجليزي والجنسية والرقم المدني من ١٢ رقماً والهاتف.');
  if(Object.values(p).some(v=>v.length>300)||p.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))fail('راجع أطوال البيانات والبريد الإلكتروني.');
@@ -18,7 +18,7 @@ function profile(input,others=[]){
 }
 // A saved preparation draft is deliberately not a tenant, lease or payment.
 function tenantDraft(input){
- const p={};for(const field of ['id','nameAr','nameEn','civilId','phone','email','nationality','address'])p[field]=text(input[field]);
+ const p={};for(const field of ['id','nameAr','nameEn','civilId','passportNo','phone','email','nationality','address'])p[field]=text(input[field]);
  if(!p.id||Object.values(p).some(v=>v.length>300))fail('راجع طول بيانات المسودة.');
  if(!p.nameAr&&!p.nameEn)fail('أدخل اسماً لتمييز المسودة؛ يمكن استكمال بقية البيانات لاحقاً.');
  p.civilId=digits(p.civilId);p.phone=digits(p.phone).replace(/[ ()-]/g,'');
@@ -27,6 +27,14 @@ function tenantDraft(input){
 function lease(input,existing,profiles,properties){
  const c=copy(input);c.contract_no=text(c.contract_no);c.property=text(c.property);c.unit=digits(c.unit);c.start_date=date(c.start_date);c.end_date=date(c.end_date);c.rent=amount(c.rent);c.deposit=amount(c.deposit);
  const tenant=profiles.find(p=>p.id===c.tenantId);if(!tenant)fail('احفظ ملف المستأجر الكامل أولاً.');profile(tenant,profiles);
+ if(!text(tenant.passportNo)||!text(tenant.email))fail('أكمل البريد الإلكتروني ورقم الجواز في ملف المستأجر قبل كتابة العقد.');
+ c.floor=text(c.floor);c.accountant=text(c.accountant);c.advance=amount(c.advance);c.cleaningFee=amount(c.cleaningFee);c.discount=amount(c.discount);
+ c.contractRent=amount(c.contractRent??c.rent);c.rent=Number(((Math.round(c.contractRent*1000)-Math.round(c.discount*1000))/1000).toFixed(3));
+ c.receivedAt=receivedAt(c.receivedAt);c.contractReceived='مستلم';c.evictionNotice=text(c.evictionNotice);
+ c.writtenOn=date(c.writtenOn);c.detailsVersion=2;
+ if(!c.floor||!c.accountant||c.floor.length>100||c.accountant.length>300||!['لم يُبلّغ','تم التبليغ','غير محدد'].includes(c.evictionNotice))fail('أكمل الدور واسم المحاسب وحالة تبليغ الإخلاء.');
+ const prior=existing.find(x=>String(x.id)===String(c.id));
+ if(prior?.detailsVersion===2&&(Number(prior.contractRent)!==c.contractRent||prior.writtenOn!==c.writtenOn))fail('إيجار العقد عند الكتابة وتاريخ تحريره محفوظان ولا يتغيران بتغيير الخصم.');
  if(!c.id||!c.contract_no||!c.unit||!properties.some(p=>key(p[0])===key(c.property))||c.rent<=0||c.end_date<c.start_date)fail('راجع العقار والوحدة ورقم العقد والإيجار وفترة العقد.');
  if(!['draft','ready','approved','signing','signed','cancelled','expired'].includes(c.status))fail('حالة عقد غير صالحة.');
  for(const old of existing){
@@ -39,6 +47,14 @@ function lease(input,existing,profiles,properties){
  }
  c.tenant=tenant.nameAr;c.tenantProfile=copy(tenant);c.source='v267-cloud';return c;
 }
+function receivedAt(value){
+ const s=digits(value);const match=/^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?(?:\+03:00)?$/.exec(s);
+ if(!match)fail('أدخل تاريخ ووقت استلام العقد بتوقيت الكويت.');date(match[1]);
+ const result=match[1]+'T'+match[2]+':'+match[3]+':'+(match[4]||'00')+'+03:00';
+ if(Date.parse(result)>Date.now())fail('وقت استلام العقد لا يمكن أن يكون في المستقبل.');return result;
+}
+function kuwaitDate(now=new Date()){return new Date(now.getTime()+3*60*60*1000).toISOString().slice(0,10)}
+function directoryFields(c,p){return {tenant:p.nameAr,nameAr:p.nameAr,nameEn:p.nameEn,phone:p.phone,nationality:p.nationality,civilId:p.civilId,passportNo:p.passportNo,email:p.email,floor:c.floor,contractStartRaw:c.start_date,contractEndRaw:c.end_date,insurance:c.deposit,advance:c.advance,cleaningFee:c.cleaningFee,currentRent:c.rent,contractReceived:c.contractReceived,receivedAt:c.receivedAt,accountant:c.accountant,evictionNotice:c.evictionNotice};}
 function primary(payload){
  const p=payload?.format==='aqari-cloud-state-v1'?payload.snapshot?.values?.aqari_v30:payload?.schema==='aqari-local-snapshot-v1'?payload.values?.aqari_v30:payload;
  if(!p||typeof p!=='object'||Array.isArray(p))fail('تعذرت قراءة بيانات مساحة العمل.');return p;
@@ -63,7 +79,7 @@ function createStore(options){
   finally{busy=false}
  },get busy(){return busy}};
 }
-const api={profile,tenantDraft,lease,primary,createStore,date,amount,key};
+const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.AQARI_RENTAL_RECORDS=api;
 if(!root.document)return;
@@ -81,7 +97,9 @@ const esc=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','
 const byId=id=>document.getElementById(id);
 const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]:null;
 function contractMarkup(c,count){
- return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy"><p>AQARI V267 • نسخة '+(i+1)+' من '+count+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2><p>حالة العقد: '+esc(({draft:'مسودة',ready:'جاهز للمراجعة',approved:'مراجع',signing:'بانتظار التوقيع',signed:'موقّع',cancelled:'ملغى',expired:'منتهي'})[c.status]||c.status)+'</p><h3>'+esc(c.property)+' — الوحدة '+esc(c.unit)+'</h3><p>المستأجر: '+esc(c.tenant)+' / '+esc(c.tenantProfile?.nameEn)+'</p><p>الرقم المدني: '+esc(c.tenantProfile?.civilId)+' • الهاتف: '+esc(c.tenantProfile?.phone)+'</p><p>الجنسية: '+esc(c.tenantProfile?.nationality)+'</p><p>الإيجار الشهري: '+esc(c.rent)+' د.ك • التأمين: '+esc(c.deposit)+' د.ك</p><p>من '+esc(c.start_date)+' إلى '+esc(c.end_date)+'</p>'+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p></article>').join('');
+ const p=c.tenantProfile||{};
+ const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['الخصم',c.discount],['الإيجار الحالي بعد الخصم',c.rent],['التأمين',c.deposit],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
+ return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy"><p>حرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+1)+' من '+count+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p></article>').join('');
 }
 function preview(c){
  if(!scope())return false;
@@ -104,7 +122,7 @@ function preview(c){
  if(c.status==='draft'){const b=document.createElement('button');b.type='button';b.textContent='جاهز للمراجعة';b.onclick=()=>status(c.id,'ready');target.appendChild(b)}
  return true;
 }
-const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — اختياري','email'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
+const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — إلزامي للعقد','email'],['passportNo','رقم الجواز — إلزامي للعقد','text'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
 const attachmentKinds=[['civilFront','البطاقة المدنية — الوجه'],['civilBack','البطاقة المدنية — الخلف'],['marriage','عقد الزواج'],['extra','مرفقات إضافية']];
 async function upload(file,kind,tenantId,bound){
  const types=['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -175,6 +193,7 @@ function openTenant(index,draftId){
     const profiles=cloud.tenantProfilesV267||[];const next=profile(p,profiles),at=profiles.findIndex(x=>x.id===p.id);
     if((cloud.tenantDirectoryV202||[]).some(x=>digits(x.civilId)===next.civilId&&key(x.tenant)!==key(next.nameAr)))fail('الرقم المدني مرتبط باسم مستأجر آخر في سجل الوحدات. راجع الملف الموجود.');
     if(at<0)profiles.push(next);else profiles[at]=next;cloud.tenantProfilesV267=profiles;
+    cloud.tenantDirectoryV202=(cloud.tenantDirectoryV202||[]).map(x=>x.tenantProfileId===next.id?{...x,nameAr:next.nameAr,nameEn:next.nameEn,phone:next.phone,email:next.email,passportNo:next.passportNo,civilId:next.civilId,nationality:next.nationality}:x);
     if(root.AQARI_SUPABASE?.context?.membership?.role==='general_manager')cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==p.id);
     const rows=cloud.tenants||[];const original=Number.isInteger(index)?rows[index]:null;
     if(row&&!same(row,original))fail('تغيّر سجل المستأجر. حدّث الصفحة.');
@@ -232,7 +251,7 @@ async function saveLease(input){
   if(i<0)old.push(c);else old[i]=c;cloud.contractsV202=old;
   const p=profiles.find(x=>x.id===c.tenantId);
   const directory=(cloud.tenantDirectoryV202||[]).filter(x=>x.contractNo!==c.contract_no);
-  directory.push({property:c.property,unit:c.unit,tenant:p.nameAr,contractNo:c.contract_no,phone:p.phone,nationality:p.nationality,civilId:p.civilId,email:p.email,source:'v267-cloud',verified:c.status==='signed',tenantProfileId:p.id});cloud.tenantDirectoryV202=directory;
+  directory.push({property:c.property,unit:c.unit,...directoryFields(c,p),contractNo:c.contract_no,source:'v267-cloud',verified:c.status==='signed',tenantProfileId:p.id});cloud.tenantDirectoryV202=directory;
   const leases=(cloud.leases||[]).filter(x=>x[4]!==c.id);leases.push([c.tenant,c.unit,c.rent,c.end_date,c.id]);cloud.leases=leases;
   cloud.audit=(cloud.audit||[]).concat([['المدير','حفظ عقد '+c.status,c.contract_no,new Date().toISOString()]]);return c;
  },(cloud,c)=>(cloud.contractsV202||[]).some(x=>same(x,c)));
@@ -244,7 +263,7 @@ async function generate(){
   if(!tenant||!property)fail('اختر المستأجر والعقار.');
   const id=Date.now()*1024+crypto.getRandomValues(new Uint16Array(1))[0]%1024;
   notice.textContent='جاري حفظ العقد والتحقق منه…';
-  const c=await saveLease({id,contract_no:'AQ-LEASE-'+id,tenantId:profileRef(tenant),property:property[0],unit:byId('contractUnitV55').value,rent:byId('contractRentV55').value,deposit:byId('contractDepositV55').value||'0',start_date:byId('contractStartV55').value,end_date:byId('contractEndV55').value,language:byId('contractLangV55').value,status:'draft',clauses:typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[]});
+  const c=await saveLease({id,contract_no:byId('contractNumberV267').value,tenantId:profileRef(tenant),property:property[0],unit:byId('contractUnitV55').value,rent:byId('contractRentV55').value,deposit:byId('contractDepositV55').value,floor:byId('contractFloorV267').value,advance:byId('contractAdvanceV267').value,cleaningFee:byId('contractCleaningV267').value,discount:byId('contractDiscountV267').value,receivedAt:byId('contractReceivedV267').value,writtenOn:kuwaitDate(),accountant:byId('contractAccountantV267').value,evictionNotice:byId('contractEvictionV267').value,start_date:byId('contractStartV55').value,end_date:byId('contractEndV55').value,language:byId('contractLangV55').value,status:'draft',clauses:typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[]});
   notice.textContent='تم حفظ المسودة والتحقق من وجودها في السحابة. أكمل دورة التوقيع قبل التحصيل.';root.previewContractV55(c);
  }catch(e){notice.textContent=e.message||'تعذر حفظ العقد.'}
 }
@@ -256,7 +275,17 @@ async function status(id,next){
   const saved=await saveLease({...c,status:next});root.previewContractV55(saved);notice.textContent='تم حفظ حالة العقد والتحقق منها.';
  }catch(e){if(notice)notice.textContent=e.message;else window.alert(e.message)}
 }
+function installContractFields(){
+ const tenant=byId('contractTenantV55'),form=tenant?.parentElement;if(!form||byId('contractNumberV267'))return;
+ for(const [id,label]of [['contractTenantV55','المستأجر'],['contractPropertyV55','العقار'],['contractUnitV55','رقم الوحدة'],['contractRentV55','قيمة الإيجار عند كتابة العقد'],['contractDepositV55','مبلغ التأمين'],['contractStartV55','بداية العقد'],['contractEndV55','نهاية العقد']]){const input=byId(id);if(!input)continue;input.required=true;input.setAttribute('aria-label',label);const wrap=document.createElement('label');wrap.textContent=label;input.before(wrap);wrap.append(input);}
+ for(const [id,label,type]of [['contractNumberV267','رقم العقد','text'],['contractFloorV267','الدور','text'],['contractAdvanceV267','العربون — أدخل صفر إن لم يوجد','text'],['contractCleaningV267','رسوم النظافة — أدخل صفر إن لم توجد','text'],['contractDiscountV267','الخصم — أدخل صفر إن لم يوجد','text'],['contractReceivedV267','تاريخ ووقت استلام المستأجر للعقد — توقيت الكويت','datetime-local'],['contractAccountantV267','اسم المحاسب المسؤول','text']]){const wrap=document.createElement('label'),input=document.createElement('input');wrap.textContent=label;input.id=id;input.type=type;input.required=true;input.setAttribute('aria-label',label);input.maxLength=300;wrap.append(input);form.append(wrap);}
+ const label=document.createElement('label');label.textContent='حالة تبليغ الإخلاء';const eviction=document.createElement('select');eviction.id='contractEvictionV267';eviction.setAttribute('aria-label',label.textContent);for(const value of ['غير محدد','لم يُبلّغ','تم التبليغ']){const option=document.createElement('option');option.textContent=option.value=value;eviction.append(option);}label.append(eviction);form.append(label);
+ const summary=document.createElement('div');summary.id='contractTenantDetailsV267';summary.setAttribute('role','status');form.after(summary);
+ const update=()=>{if(!scope()){summary.replaceChildren();return;}const index=Number(tenant.value),row=data().tenants?.[index],p=(data().tenantProfilesV267||[]).find(x=>x.id===profileRef(row));summary.replaceChildren();const textNode=document.createElement('p');textNode.textContent=p?fields.map(([k,label])=>label+': '+(p[k]||'غير مكتمل')).join(' • '):'اختر ملف مستأجر محفوظاً.';summary.append(textNode);if(p){const button=document.createElement('button');button.type='button';button.textContent='استكمال بيانات المستأجر';button.onclick=()=>openTenant(index);summary.append(button);}};
+ tenant.addEventListener('change',update);root.addEventListener('aqari:auth-boundary',()=>{if(!scope()){summary.replaceChildren();for(const input of form.querySelectorAll('input'))input.value='';}});update();
+}
 function loadSavedContracts(){
+ installContractFields();
  const body=byId('contractRowsV55');if(!body)return;
  body.replaceChildren();if(!scope())return;
  const contracts=data().contractsV202||[];
