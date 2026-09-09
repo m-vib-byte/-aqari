@@ -1,5 +1,15 @@
 # Staging checkpoint and data-source gate
 
+## Current readback — 2026-09-09
+
+The September 7 checkpoint below is historical; its empty-table counts are not the current state. Read-only inspection of the same isolated Staging project on September 9 found one property (برج شيخة), 42 units, 41 tenants and 42 leases, all in draft status. Rent payments, documents, maintenance records, source-lease reviews, tenant portal accounts and notification-outbox records were all zero. One confirmed Auth account exists.
+
+The September 8 Shaikhah reconciliation records a real-manager import and source links. It leaves three source discrepancies unresolved: deposit detail total 2,450 versus summary 2,200 KWD; reversed start/end dates for units 402 and 403; and the date/period of unit 703's payment (receipt 1069, transaction 429508). The existing import is not authorization to invent payments or approve contracts. Actual signed contracts and payment evidence still govern those actions.
+
+No new business data was written during this September 9 inspection. This readback is not a new backup and does not demonstrate a successful restore. Production, the domain and V266 remain outside the work pending the owner's final approval.
+
+## Historical checkpoint — 2026-09-07
+
 Checkpoint made on 2026-09-07 before the workspace-control migrations:
 
 - Staging project: djkpkkgoibruaezdrchb.

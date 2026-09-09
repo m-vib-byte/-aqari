@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "aff0247fe900a04093d53b0ba348295a3619b557bbdef7cc27eba1f18b6b3a38",
-      "size": 3735
+      "sha256": "f435a56371112989b52fd8138f4443e151bfeec064610c92e5977f98aa6b0cda",
+      "size": 3773
     },
     {
       "path": "api/autosync-status.js",
@@ -957,8 +957,8 @@
     },
     {
       "path": "docs/V267-DATA-CHECKPOINT-AND-ROLLBACK.md",
-      "sha256": "575296db9351a43864637dbdabe4c8f1469f1e2d6a6117949f642420038b6310",
-      "size": 2624
+      "sha256": "5048886dc9c69e5896862cb15b7511589d5eb4a3414df6fef059d94dd45c551b",
+      "size": 3857
     },
     {
       "path": "docs/V267-WORKSPACE-ARCHITECTURE.md",
@@ -1249,6 +1249,21 @@
       "path": "tests/v267-login-locale.test.cjs",
       "sha256": "bff2d336e2e969d3a347c08eb47cf250e76eaca9e72a0e1975b60a8088e365f7",
       "size": 4462
+    },
+    {
+      "path": "recovery.js",
+      "sha256": "684c96719f7bbed960a6164f39da7a1d1bb2774f5e31df73d07fe3a884886161",
+      "size": 11980
+    },
+    {
+      "path": "tests/v267-recovery-boundary.test.cjs",
+      "sha256": "5e27f1754210f8df2f45277e6e21f27ed01cd168a77ae5d66cbfd8a45be8a7bf",
+      "size": 1948
+    },
+    {
+      "path": "docs/V267-INSPECTION-STATUS-2026-09-09.md",
+      "sha256": "d2cb315f257f55fdf150d118c1ce35c0a24c8e41f6cb4762331429d30802d10c",
+      "size": 10182
     }
   ],
   "version": "V198"
