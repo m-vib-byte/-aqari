@@ -867,8 +867,8 @@
     },
     {
       "path": "tenant.html",
-      "sha256": "f335f4a07e1b402cc696b72abafa77b5abbdb4875c3be4ab97db10ad1613fe06",
-      "size": 2967
+      "sha256": "d895fa2b8036367b6f013b99bb1889674517eccdfb2a2df034071a7ab9c5c13c",
+      "size": 2974
     },
     {
       "path": "v267-signup.js",
@@ -877,8 +877,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "101fefd08e3d8590b14dab323eb9eb521d630b20e1d8d1b3a1df004ce5d92b2d",
-      "size": 11596
+      "sha256": "2f504ff0ff5ca13e3a099a2089a4929348674a127957abdf869da81bb84e83c2",
+      "size": 11690
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -1227,8 +1227,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "2d23a0d49e37b6b849b0df64dcedb0a2e407c646725bc43f035b14ac4c5af174",
-      "size": 9690
+      "sha256": "c76442b11a20d95a0626339d12d218ea0f4d49842b3f298e0d8f8b6818b1666f",
+      "size": 10288
     }
   ],
   "version": "V198"

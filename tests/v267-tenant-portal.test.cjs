@@ -72,3 +72,9 @@ test('account switch discards pending old data and loads only the newly matched 
  f.emit('SIGNED_IN',{user:{id:'user-b'},access_token:'new'});assert.equal(f.$('tenantName').textContent,'');await old;resolve({data:oldData});await tick();await tick();
  assert.equal(f.$('tenantName').textContent,'اسم الحساب الجديد');assert.equal(f.api.snapshot.account.user_id,'user-b');
 });
+
+test('failed sign-out keeps private data cleared and exposes a working retry',async()=>{
+ const f=fixture();await tick();const original=f.client.auth.signOut;f.client.auth.signOut=async()=>({error:{message:'network failure'}});
+ await f.$('tenantLogout').onclick();assert.equal(f.api.snapshot,null);assert.equal(f.$('content').hidden,true);assert.equal(f.$('tenantLogout').hidden,false);assert.equal(f.$('tenantLogout').disabled,false);
+ f.client.auth.signOut=original;await f.$('tenantLogout').onclick();assert.equal(f.$('tenantLogout').hidden,true);assert.equal(f.$('content').hidden,true);
+});

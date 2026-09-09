@@ -16,7 +16,7 @@ async function request(work){
 function lock(value){busy=value;for(const b of document.querySelectorAll('button'))b.disabled=b.id==='tenantLogout'?false:value;if(saveUncertain)$('maintenanceSave').disabled=true;}
 function start(){const token=++operation;lock(true);return token;}
 function finish(token){if(token===operation)lock(false);}
-function clear(){snapshot=null;releaseReceipts();$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease'])$(id).replaceChildren();$('maintenanceForm').hidden=true;}
+function clear(){snapshot=null;releaseReceipts();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease'])$(id).replaceChildren();$('maintenanceForm').hidden=true;}
 function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();saveUncertain=false;operation++;lock(false);}
 const current=e=>e===epoch;
 function items(target,rows,format){$(target).replaceChildren();if(!rows.length){const p=document.createElement('p');p.textContent='لا توجد سجلات محفوظة.';$(target).append(p);}for(const r of rows){const p=document.createElement('p');p.className='item';p.textContent=format(r);$(target).append(p);}}
@@ -29,7 +29,7 @@ async function refresh(){
  const verified=await session();if(!current(e)||version!==readVersion)return null;
  if(verified?.user.id!==auth.user.id){invalidate();return null;}
  if(data?.account?.user_id!==auth.user.id||data.account.is_active!==true||!data.account.workspace_id||data.tenant?.id!==data.account.tenant_id||data.tenant.workspace_id!==data.account.workspace_id||!['leases','payments','maintenance'].every(k=>Array.isArray(data[k])))throw Error('تعذر تأكيد ارتباط الملف بحسابك.');
- snapshot=data;$('auth').hidden=true;$('content').hidden=false;$('tenantName').textContent=data.tenant.full_name;
+ snapshot=data;$('tenantLogout').hidden=false;$('auth').hidden=true;$('content').hidden=false;$('tenantName').textContent=data.tenant.full_name;
  items('tenantLeases',data.leases,l=>`العقد ${l.contract_no} • الوحدة ${l.snapshot.unit} • ${l.snapshot.property}\nالإيجار ${Number(l.monthly_rent).toFixed(3)} د.ك • من ${l.start_date} إلى ${l.end_date}`);
  releaseReceipts();items('tenantPayments',data.payments,p=>`وصل إيجار ${p.reference} • ${Number(p.amount).toFixed(3)} د.ك • ${p.paid_at}`);
  for(const [i,payment] of data.payments.entries()){const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='فتح وصل الإيجار';button.onclick=()=>receipt(payment,button);$('tenantPayments').children[i].append(button);}
@@ -67,7 +67,7 @@ $('tenantSignup').onclick=async()=>{
  try{const {error}=await bounded(client.auth.signUp({email:$('tenantEmail').value.trim(),password:$('tenantPassword').value,options:{emailRedirectTo:new URL(cfg.supabaseAuthRedirectUrl).origin+'/tenant.html'}}));if(!current(e))return;if(error)throw Error('تعذر إنشاء الحساب. يجب أن يكون بريدك مسجلاً في ملف مستأجر واحد لدى الإدارة.');notice('راجع بريدك لتأكيد الحساب، ثم ارجع إلى هذه الصفحة وسجل الدخول.');}
  catch(error){if(current(e))notice(safeError(error));}finally{if(current(e))$('tenantPassword').value='';finish(token);}
 };
-$('tenantLogout').onclick=async()=>{invalidate();const e=epoch,token=start();try{const {error}=await bounded(client.auth.signOut());if(!current(e))return;if(error)throw error;notice('تم تسجيل الخروج.');}catch{if(current(e))notice('تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.');}finally{finish(token);}};
+$('tenantLogout').onclick=async()=>{invalidate();const e=epoch,token=start();try{const {error}=await bounded(client.auth.signOut());if(!current(e))return;if(error)throw error;notice('تم تسجيل الخروج.');}catch{if(current(e)){$('tenantLogout').hidden=false;notice('تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.');}}finally{finish(token);}};
 $('maintenanceForm').addEventListener('submit',async event=>{
  event.preventDefault();if(busy||!snapshot||saveUncertain)return;const token=start(),e=epoch,account=snapshot.account;let sent=false,confirmed=false;
  try{
