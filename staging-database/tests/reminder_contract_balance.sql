@@ -4,8 +4,17 @@ insert into private.aqari_allowed_users values('reminder-terms-test@example.inva
 insert into auth.users(id,email) values('67233333-3333-4333-8333-333333333333','reminder-terms-test@example.invalid');
 select set_config('request.jwt.claim.sub','67233333-3333-4333-8333-333333333333',true);
 select set_config('reminder.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
-create function pg_temp.reminder_storage_fixture(p text) returns void language sql security definer set search_path='' as $$insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',p,'{"size":100,"mimetype":"image/jpeg"}')$$;
-grant execute on function pg_temp.reminder_storage_fixture(text) to authenticated;
+-- Simulate the Storage service only for this user's reserved fixture document.
+-- Do not grant authenticated users direct access to Storage's internal table.
+create function pg_temp.seed_reminder_upload(object_path text) returns void
+language plpgsql security definer set search_path='' as $$
+begin
+ if not exists(select 1 from public.aqari_documents where storage_path=object_path and created_by=auth.uid()
+  and workspace_id=current_setting('reminder.test.workspace')::uuid and status='draft') then raise insufficient_privilege;end if;
+ insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',object_path,'{"size":100,"mimetype":"image/jpeg"}');
+end $$;
+revoke all on function pg_temp.seed_reminder_upload(text) from public;
+grant execute on function pg_temp.seed_reminder_upload(text) to authenticated;
 set local role authenticated;
 do $$
 <<verify>>
@@ -25,7 +34,7 @@ begin
  if jsonb_array_length(public.aqari_contract_history(w,c->>'id'))<>1 then raise exception 'INITIAL_VERSION_MISSING';end if;
  -- Transactional Storage metadata fixture, NOT an actual uploaded signed document.
  select * into doc from public.aqari_reserve_document(w,'signed_contract','lease',c->>'id','Rollback-only test document','fixture.jpg','image/jpeg','{"test":"rollback-only"}');
- perform pg_temp.reminder_storage_fixture(doc.storage_path);
+ perform pg_temp.seed_reminder_upload(doc.storage_path);
  perform public.aqari_finalize_document(doc.document_id,100,'image/jpeg',repeat('a',64));
  c:=c||'{"status":"signed","changeReason":"Synthetic signed metadata fixture"}';
  d:=jsonb_set(d,'{contractsV202}',(select jsonb_agg(case when x->>'id'=c->>'id' then c else x end) from jsonb_array_elements(d->'contractsV202') x));

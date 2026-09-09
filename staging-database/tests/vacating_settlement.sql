@@ -36,7 +36,7 @@ declare w uuid:=current_setting('vac.test.workspace')::uuid;r jsonb;rev bigint;
 begin
  begin perform count(*) from private.aqari_vacating_settlements;raise exception 'PRIVATE_SETTLEMENT_TABLE_EXPOSED';exception when insufficient_privilege then null;end;
  perform public.aqari_deposit_register(w,'receive','{"id":"f267e600-0000-4000-8000-000000000001","lease_id":"f267e400-0000-4000-8000-000000000001","amount":"50.000","on_date":"2026-01-10","method":"cash","reference":"","reason":""}');
- r:=public.aqari_vacating_settlement(w,'save','{"lease_id":"f267e400-0000-4000-8000-000000000001","vacate_date":"2026-01-31","keys_returned":true,"inspection_completed":true,"meters_recorded":true,"damage_amount":"0.000","damage_notes":"","charges_resolved":true,"charges_reference":"","revision":0}');
+ r:=public.aqari_vacating_settlement(w,'save','{"lease_id":"f267e400-0000-4000-8000-000000000001","vacate_date":"2026-01-31","keys_returned":true,"inspection_completed":true,"meters_recorded":true,"damage_amount":"0.000","damage_notes":"","charges_resolved":true,"charges_reference":"inspection-and-charges-review-123","revision":0}');
  if r#>>'{settlement,balances,rent_due_total}'<>'100.000' then raise exception 'VACATING_DUE_WRONG';end if;
  if r#>>'{settlement,balances,rent_paid_total}'<>'100.000' then raise exception 'CANCELLED_PAYMENT_COUNTED';end if;
  if r#>>'{settlement,balances,rent_balance}'<>'0.000' or r#>>'{settlement,balances,tenant_credit}'<>'0.000' then raise exception 'VACATING_RENT_BALANCE_WRONG';end if;
