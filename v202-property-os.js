@@ -2238,6 +2238,8 @@
     const requested=normalizedIdentity(contractValue||button?.getAttribute('data-v202-tenant-contract'));
     const current=normalizedIdentity(record?.contractId||record?.contractNo);
     if(!record?.hasContract||!requested||requested!==current)return false;
+    const cloudContract=rows('contractsV202').find(c=>String(c.id)===String(record.contractId)&&c.source==='v267-cloud');
+    if(cloudContract)return window.AQARI_V202?.showContractCopies(cloudContract.id,1,['approved','signing','signed'].includes(cloudContract.status)?'official':'draft');
     openDocument(record.verified?'عقد الإيجار / Tenancy Contract':'مسودة عقد غير معتمدة / Unverified Contract Draft',tenantContractDocument(context,record),button,'#v202PropertyWorkspace [data-v202-unit-statement]');
     return true;
   }
@@ -3876,9 +3878,11 @@
     window.AQARI_V202=Object.freeze({
       version:V202_DESIGN,
       canCreateContract:function(name){return protectedAccessReady()&&rentWriteAllowed()&&!protectedPropertyActive(name)},
-      showContractCopies:function(id,count,markup){
-        if(!protectedAccessReady()||![1,2].includes(count)||!rows('contractsV202').some(c=>String(c.id)===String(id)&&c.source==='v267-cloud'))return false;
-        openDocument('عقد الإيجار • '+count+' نسخ',markup,document.activeElement,'#contractPreviewV55');return true;
+      showContractCopies:async function(id,count,mode='official'){
+        if(!protectedAccessReady()||![1,2].includes(count)||!['official','draft'].includes(mode))return false;
+        const bound=activeAccessScope(),page=await import('./src/v267/pages/rental-contracts.js');
+        if(!protectedAccessReady()||JSON.stringify(bound)!==JSON.stringify(activeAccessScope()))return false;
+        return page.openContractPrint(id,count,mode);
       },
       seal:sealProtectedImport,
       openProperty:function(name,period){return protectedAccessReady()?openWorkspace(name,document.activeElement,period):false},

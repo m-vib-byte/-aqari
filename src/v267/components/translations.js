@@ -1,6 +1,24 @@
 // Interface text only. Record values and legal documents are never translated.
 import {PARTNER_MESSAGES} from './partner-translations.js';
 export const MESSAGES = {
+ "تمت قراءة طلبات الصيانة المحفوظة.": {
+  "en": "Saved maintenance requests loaded.",
+  "hi": "सहेजे गए रखरखाव अनुरोध लोड हो गए हैं।",
+  "ur": "محفوظ مرمت کی درخواستیں لوڈ ہو گئی ہیں۔",
+  "ml": "സംരക്ഷിച്ച അറ്റകുറ്റപ്പണി അഭ്യർത്ഥനകൾ ലോഡ് ചെയ്തു."
+ },
+ "تم الاحتفاظ بالتغييرات غير المحفوظة.": {
+  "en": "Your unsaved changes have been kept.",
+  "hi": "आपके बिना सहेजे बदलाव सुरक्षित रखे गए हैं।",
+  "ur": "آپ کی غیر محفوظ تبدیلیاں برقرار رکھی گئی ہیں۔",
+  "ml": "സംരക്ഷിക്കാത്ത മാറ്റങ്ങൾ നിലനിർത്തിയിട്ടുണ്ട്."
+ },
+ "تجاهل التعديل المحلي واسترجاع المحفوظ": {
+  "en": "Discard local changes and reload the saved request",
+  "hi": "स्थानीय बदलाव हटाएँ और सहेजा गया अनुरोध फिर से लोड करें",
+  "ur": "مقامی تبدیلیاں مسترد کریں اور محفوظ درخواست دوبارہ لوڈ کریں",
+  "ml": "പ്രാദേശിക മാറ്റങ്ങൾ ഉപേക്ഷിച്ച് സംരക്ഷിച്ച അഭ്യർത്ഥന വീണ്ടും ലോഡ് ചെയ്യുക"
+ },
  ...PARTNER_MESSAGES,
  "لغة الواجهة": {
   "en": "Interface language",

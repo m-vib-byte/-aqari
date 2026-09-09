@@ -4,6 +4,24 @@ import {validateDocument,kuwaitTime,currentMonth} from '../domain/payroll.js';
 const states={draft:'مسودة',ready:'جاهز للمراجعة',approved:'معتمد',signing:'بانتظار التوقيع',signed:'موقّع',cancelled:'ملغى',expired:'منتهي'};
 const input=(type,value='')=>{const x=node('input');x.type=type;x.value=value??'';return x;};
 function select(rows,value){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}if(value!==undefined)x.value=String(value);return x;}
+function printControls(d,api,urls,id,choices){
+ const output=node('div');let previousUrl;
+ async function prepare(count,mode){
+  output.replaceChildren();if(previousUrl){urls.release(previousUrl);previousUrl=null;}
+  const prepared=await api.prepareContractPrint(id,count,mode);d.session.check();
+  previousUrl=urls.create(new Blob([prepared.html],{type:'text/html;charset=utf-8'}));
+  const link=node('a',mode==='official'?'فتح النسخة المعتمدة وملاحقها للطباعة / Open approved copy and annexes':'فتح المسودة وملاحقها للمراجعة / Open draft and annexes');
+  link.href=previousUrl;link.target='_blank';link.rel='noopener';output.append(link);
+  d.status.textContent=mode==='official'?'تم التحقق من اعتماد العقد المحفوظ قبل إصدار النسخة.':'مسودة للمراجعة فقط، غير صالحة للتوقيع.';
+ }
+ for(const [count,mode,label]of choices){const b=node('button',label);b.type='button';b.onclick=()=>d.run(()=>prepare(count,mode));d.body.append(b);}
+ d.body.append(output);return prepare;
+}
+export function openContractPrint(id,count=1,mode='official'){
+ const d=createDialog('طباعة العقد وملاحقه / Contract printing');if(!d)return false;
+ const prepare=printControls(d,window.AQARI_RENTAL_RECORDS,createPrivateUrls(d),id,[[count,mode,'إعادة التحقق وتجهيز النسخة / Check and prepare copy']]);
+ d.run(()=>prepare(count,mode));return true;
+}
 export function openRentalContracts(){
  const d=createDialog('إبرام عقود الإيجار / Rental contracts');if(!d)return;
  const api=window.AQARI_RENTAL_RECORDS,urls=createPrivateUrls(d);let data,properties=[],units=[];
@@ -28,7 +46,8 @@ export function openRentalContracts(){
  }
  async function show(id){await load();const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');clear('عقد '+c.contract_no);d.body.append(button('العودة للعقود / Back',home),node('p',(states[c.status]||c.status)+' · '+c.property+' · '+c.unit));
   if(c.source==='statement-import'){d.body.append(node('p','هذا عقد مستورد محفوظ للمراجعة. تُحسم بياناته من المرجع الأصلي عبر مسار اعتماد عقود المصدر.'));d.status.textContent='تم فتح مرجع العقد المستورد دون تعديل بيانات المصدر.';return;}
-  const markup=node('div');markup.innerHTML=api.contractMarkup(c,1);d.body.append(markup);const printed=node('a','فتح العقد وملاحقه للطباعة / Print contract and annexes');printed.href=urls.create(new Blob(['<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>عقد إيجار</title><style>body{font:15px/1.7 system-ui;margin:22px}.v267-contract-copy{break-after:page}</style>'+api.contractMarkup(c,1)+api.contractAnnexMarkup(c)],{type:'text/html;charset=utf-8'}));printed.target='_blank';printed.rel='noopener';d.body.append(printed);
+  const markup=node('div');markup.innerHTML=api.contractMarkup(c,1);d.body.append(markup);
+  printControls(d,api,urls,id,[[1,'draft','مسودة للمراجعة فقط / Review draft'],[1,'official','تجهيز نسخة معتمدة للطباعة / Prepare approved copy'],[2,'official','تجهيز نسختين معتمدتين مع الملاحق / Prepare two approved sets']]);
   if(c.rentalTermsVersion===1)d.body.append(button('تعديل معتمد مع حفظ السجل السابق',async()=>form(c)));
   const transitions={draft:'ready',ready:'approved',approved:'signing',signing:'signed'};const next=transitions[c.status];if(next)d.body.append(button('نقل إلى: '+states[next],async()=>{if(['approved','signed'].includes(next)&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');await api.saveLease({...c,status:next,changeReason:'اعتماد انتقال حالة العقد إلى '+states[next]});await show(id);}));
   const docs=await d.session.request(d.session.client.from('aqari_documents').select('id,original_filename,storage_path,status').eq('workspace_id',d.session.bound.workspace).eq('entity_type','lease').eq('entity_ref',String(id)).eq('status','uploaded').order('created_at',{ascending:false}));d.body.append(node('h3','العقد الموقّع والملاحق المرتبطة'));for(const doc of docs)d.body.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);const a=node('a','فتح الأصل المحفوظ');a.href=urls.create(blob);a.target='_blank';a.rel='noopener';d.body.append(a);}));

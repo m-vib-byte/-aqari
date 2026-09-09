@@ -59,6 +59,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       openUnitReceipt: typeof openUnitReceipt === 'function' ? openUnitReceipt : null,
       openUnitPayment: typeof openUnitPayment === 'function' ? openUnitPayment : null,
       openTenantReceipt: typeof openTenantReceipt === 'function' ? openTenantReceipt : null,
+      openTenantContract,
       openReceiptDocument: typeof openReceiptDocument === 'function' ? openReceiptDocument : null,
       resolvedTenantReceipt: typeof resolvedTenantReceipt === 'function' ? resolvedTenantReceipt : null,
       receiptDocument: typeof receiptDocument === 'function' ? receiptDocument : null,
@@ -3294,6 +3295,19 @@ for(const mode of ['reject','missing-readback','conflict','scope-change']){
   assert.equal(saves,['conflict','scope-change'].includes(mode)?0:1);
  });
 }
+
+test('V267 unit and ledger contract entry uses the shared printing gate instead of a cached document',()=>{
+ for(const status of ['draft','ready','approved','signing','signed','cancelled']){
+  const data=fixture(),w=activeRuntimeWindow(),calls=[];
+  data.contractsV202.find(c=>c.id==='contract-a').source='v267-cloud';data.contractsV202.find(c=>c.id==='contract-a').status=status;
+  w.AQARI_V202={showContractCopies:(...args)=>{calls.push(args);return true;}};
+  const runtime=loadRuntime(data,[],w);runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
+  const record=runtime.unitDirectoryRecords(runtime.contextFor('SYNTHETIC TEST PROPERTY'),'2026-08').find(r=>r.contractId==='contract-a');
+  runtime.setActiveTenantStatementKey(record.key);
+  assert.equal(runtime.openTenantContract(null,'contract-a','2026-08'),true);
+  assert.deepEqual(calls,[['contract-a',1,['approved','signing','signed'].includes(status)?'official':'draft']]);
+ }
+});
 
 test('V267 synthetic tenant → saved lease → collection → immutable voucher survives reload and opens for print',async()=>{
  const rentalSandbox={module:{exports:{}}};vm.runInNewContext(fs.readFileSync(path.join(root,'v267-rental-records.js'),'utf8'),rentalSandbox);

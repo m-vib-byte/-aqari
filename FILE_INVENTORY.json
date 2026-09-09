@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "f0dc6e21490c2d00e94f62e90e162d38592cb94f4b420297aaadfec3e255b476",
-      "size": 4600
+      "sha256": "b3c48eed6a40013c0cc484e1cec664a4ee0ea0c68a423848b5d63210575e7bfb",
+      "size": 4774
     },
     {
       "path": "api/autosync-status.js",
@@ -397,8 +397,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "3ca38e1495bf67865991934396319139028a2977932322632e3f231884c5c066",
-      "size": 184518
+      "sha256": "c3225afefd6ba7e82293d18d5d552cb44096de2bb1fb41176ad138de9eac034d",
+      "size": 185488
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
@@ -477,8 +477,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "194a94b136c622e1b1edc53e8e1a04a4083160c2a5a5792ff1a0353a78e86c22",
-      "size": 267334
+      "sha256": "0600c3fab4405ce4bbfb198e0911f62b3751ea2aeba2f3b0ae9feb619b21d816",
+      "size": 267725
     },
     {
       "path": "v205-simple.css",
@@ -942,8 +942,8 @@
     },
     {
       "path": "v267-service-desk.js",
-      "sha256": "ac5e77d64739baf72d4b1915448c37243213fef02ec26d6d24a6b548947c4127",
-      "size": 8725
+      "sha256": "52c65821d976d0ed0beacf3c442b95e43d3a46fe841b7e3f0db52973df95b5d8",
+      "size": 10184
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "size": 39262,
-      "sha256": "4942b1177bdb1a510b6688c3e43f397c862890edd6e8d57045af4da3939ad379"
+      "size": 42065,
+      "sha256": "5d38ed89d85ecce44db2841df5eb133141f96aa338b0e120bfea5367a9a7eeaa"
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "9c52b69bccc4a99194579c5130cc3f5eda77d96d79df0894a4f7522b060eadde",
-      "size": 164144
+      "sha256": "9e73a5db03fde476d43d9544fb2cf7147dc4c7b6d62d2e1da2c2b340b07ffa6c",
+      "size": 165729
     },
     {
       "path": "tests/v267-locale.test.mjs",
@@ -1422,8 +1422,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "ca6c97c55e6043afcb1a9a1368b60a16526b988cf3104d84c932225fef9e9c76",
-      "size": 15111
+      "sha256": "d5db76f321de8f9c5f32b056b0b8385d1ec7853d5c6bfe4f8fcb3c35960d0e4d",
+      "size": 16411
     },
     {
       "path": "staging-database/sql/rental-contract-provisions.sql",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "fc70b4808f323f03299253a142c675c3777df7ea4965d4785c60f1b604aad981",
-      "size": 1181
+      "sha256": "5695b08119c66e73d21821062fbabeb8ec32dca743e3d61409403b19c3afa138",
+      "size": 1242
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "f32c3afd32dc6745a7d9a5177bda172fcc4494cb557c33c37d092b5570d5a79d",
-      "size": 75264
+      "sha256": "7cde5ec2fc8dcdca019cbffecc619d930e72f05378a1f217d910763dcbac8218",
+      "size": 75713
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1549,6 +1549,21 @@
       "path": "docs/V267-CONNECTION-AND-CONTRACT-REPAIR.md",
       "size": 3821,
       "sha256": "d3bba1b5553da9649ff26ed116e0f149a44e24d7924afe086e5aa9d24963ba14"
+    },
+    {
+      "path": "tests/v267-contract-print.test.cjs",
+      "sha256": "d70cc217a66758f5fd9af9b05750ea0c8eba8244d4b1f06a476d493c4a47fec3",
+      "size": 8680
+    },
+    {
+      "path": "tests/v267-service-desk.test.cjs",
+      "sha256": "3d0d67ed99259c93572e4390b8b9a93ad3e406010ced1eb11ea767076c924936",
+      "size": 7892
+    },
+    {
+      "path": "docs/V267-PRINT-AND-MAINTENANCE-REPAIR.md",
+      "sha256": "7b7ad8296c4e732f2836a6d8bb668736784041c6c33b3447050bc0de30d31a34",
+      "size": 4733
     }
   ],
   "version": "V198"

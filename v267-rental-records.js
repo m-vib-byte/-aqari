@@ -105,14 +105,34 @@ const store=createStore({scope,local:data,load:s=>bounded(()=>root.AQARI_SUPABAS
 const esc=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const byId=id=>document.getElementById(id);
 const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]:null;
-function contractMarkup(c,count){
+const draftNotice='<p class="v267-draft-notice" style="border:2px solid currentColor;padding:12px;font-weight:700;text-align:center">مسودة للمراجعة — غير صالحة للتوقيع<br>DRAFT — NOT FOR SIGNATURE</p>';
+function contractMarkup(c,count){return renderContract(c,count,false);}
+function renderContract(c,count,official,firstCopy=1,total=count){
+ if(![1,2].includes(count))fail('اختر نسخة واحدة أو نسختين.');
  const p=c.tenantProfile||{};
  const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['الخصم',c.discount],['الإيجار الحالي بعد الخصم',effectiveRent(c,kuwaitDate().slice(0,7),false)],['التأمين',c.deposit],['تاريخ استلام التأمين',c.depositReceivedOn||'لم يستلم / غير مدون'],['شهر مجاني معتمد',c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'غير مدون'],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
- return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy"><p>حُرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+1)+' من '+count+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p></article>').join('');
+ return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<p>حُرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+firstCopy)+' من '+total+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+(official?'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p>':draftNotice)+'</article>').join('');
 }
-function contractAnnexMarkup(c){
+function contractAnnexMarkup(c){return renderAnnex(c,false);}
+function renderAnnex(c,official){
  const p=c.tenantProfile||{};const rows=[['رقم العقد / Contract',c.contract_no],['اسم المستأجر بالعربي',p.nameAr||c.tenant],['Tenant full name in English',p.nameEn],['العقار / Property',c.property],['الوحدة / Unit',c.unit],['الدور / Floor',c.floor],['الإيجار الأصلي / Original rent',c.contractRent??c.rent],['الشهر المجاني المعتمد / Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا']];
- return '<article class="v267-contract-copy"><h2>ملحق بيانات عقد الإيجار / Rental contract annex</h2>'+rows.map(([k,v])=>'<p><b>'+esc(k)+':</b> <bdi>'+esc(v||'غير مدون')+'</bdi></p>').join('')+'<h3>تعديلات الخصم المؤرخة / Dated rent adjustments</h3>'+(c.rentAdjustments||[]).map(a=>'<p><bdi dir="ltr">'+esc(a.effectiveMonth)+'</bdi> — الخصم / Discount: '+esc(a.discount)+' — الإيجار / Rent: '+esc(a.rent)+' د.ك<br>'+esc(a.reason)+'</p>').join('')+'<p>توقيع المؤجر / Lessor: ____________________</p><p>توقيع المستأجر / Tenant: ____________________</p></article>';
+ return '<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<h2>ملحق بيانات عقد الإيجار / Rental contract annex</h2>'+rows.map(([k,v])=>'<p><b>'+esc(k)+':</b> <bdi>'+esc(v??'غير مدون')+'</bdi></p>').join('')+'<h3>تعديلات الخصم المؤرخة / Dated rent adjustments</h3>'+(c.rentAdjustments||[]).map(a=>'<p><bdi dir="ltr">'+esc(a.effectiveMonth)+'</bdi> — الخصم / Discount: '+esc(a.discount)+' — الإيجار / Rent: '+esc(a.rent)+' د.ك<br>'+esc(a.reason)+'</p>').join('')+(official?'<p>توقيع المؤجر / Lessor: ____________________</p><p>توقيع المستأجر / Tenant: ____________________</p>':draftNotice)+'</article>';
+}
+async function prepareContractPrint(id,count=1,mode='official'){
+ if(![1,2].includes(count)||!['official','draft'].includes(mode)||!text(id))fail('طلب طباعة غير صالح.');
+ const bound=scope(),role=root.AQARI_SUPABASE?.context?.membership?.role;
+ if(!bound)fail('صلاحية قراءة العقد غير متاحة.');
+ const saved=await bounded(()=>root.AQARI_SUPABASE.loadAppState({...bound,role}));
+ if(!same(bound,scope())||role!==root.AQARI_SUPABASE?.context?.membership?.role)fail('تغيّرت جلسة الدخول. أعد فتح العقد.');
+ if(saved?.workspace_id!==bound.workspaceId)fail('تعذرت قراءة العقد من مساحة العمل الحالية.');
+ const matches=(primary(saved.payload).contractsV202||[]).filter(c=>String(c.id)===String(id));
+ if(matches.length!==1||matches[0].source!=='v267-cloud')fail('العقد المحفوظ غير متاح للطباعة.');
+ const c=copy(matches[0]),official=mode==='official';
+ if(official&&!['approved','signing','signed'].includes(c.status))fail('اعتماد المدير العام مطلوب قبل الطباعة الرسمية. استخدم مسودة المراجعة.');
+ const markup=Array.from({length:count},(_,i)=>'<section data-contract-set="'+(i+1)+'">'+renderContract(c,1,official,i+1,count)+renderAnnex(c,official)+'</section>').join('');
+ const title=(official?'عقد إيجار معتمد ':'مسودة عقد إيجار ')+c.contract_no;
+ const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>body{font:15px/1.7 system-ui;margin:22px;overflow-wrap:anywhere}.v267-contract-copy{break-after:page}section:last-child article:last-child{break-after:auto}.v267-draft-notice{break-inside:avoid}</style></head><body>'+markup+'</body></html>';
+ return {title,html,mode,count,contractId:String(c.id),revision:saved.revision};
 }
 function preview(c){
  if(!scope())return false;
@@ -125,11 +145,10 @@ function preview(c){
   return true;
  }
  target.innerHTML=contractMarkup(c,1);
- for(const [count,label]of [[1,'عرض وطباعة نسخة'],[2,'توليد نسختين من نفس العقد']]){
-  const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{
-   const saved=(data().contractsV202||[]).find(x=>String(x.id)===String(c.id));
-   if(!scope()||!saved)return window.alert('احفظ العقد في السحابة أولاً.');
-   root.AQARI_V202?.showContractCopies(saved.id,count,contractMarkup(saved,count));
+ for(const [count,mode,label]of [[1,'draft','مسودة للمراجعة فقط'],[1,'official','طباعة نسخة معتمدة'],[2,'official','طباعة نسختين معتمدتين مع الملاحق']]){
+  const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=async()=>{
+   if(button.disabled)return;button.disabled=true;
+   try{await root.AQARI_V202?.showContractCopies(c.id,count,mode);}catch(_){if(scope())root.alert('تعذر فتح الطباعة. أعد فتح العقد وحاول مجدداً.');}finally{button.disabled=false;}
   };target.appendChild(button);
  }
  if(c.status==='draft'){const b=document.createElement('button');b.type='button';b.textContent='جاهز للمراجعة';b.onclick=()=>status(c.id,'ready');target.appendChild(b)}
@@ -316,5 +335,5 @@ root.loadContractsV55=function(){
  if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return loadSavedContracts();
  return legacyLoadContracts?.apply(this,arguments);
 };
-Object.assign(api,{defaultClauses:()=>typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[],contractMarkup,contractAnnexMarkup,openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
+Object.assign(api,{defaultClauses:()=>typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[],contractMarkup,contractAnnexMarkup,prepareContractPrint,openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
 })(typeof window!=='undefined'?window:globalThis);
