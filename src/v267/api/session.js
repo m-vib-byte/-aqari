@@ -24,7 +24,7 @@ export function createSession(){
   }finally{clearTimeout(timer);controller.signal.removeEventListener('abort',aborted);jobs.delete(controller);}
  }
  async function request(query){check();const controller=new AbortController();jobs.add(controller);let timer;
-  try{const work=query.abortSignal(controller.signal);const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));},20000);});const r=await Promise.race([work,timeout]);check();if(r.error)throw r.error;return r.data;}finally{clearTimeout(timer);jobs.delete(controller);}}
+  try{const work=query.abortSignal(controller.signal);const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));},20000);});const r=await Promise.race([work,timeout]);check();if(r.error){const error=Object.assign(new Error(r.error.message||'REQUEST_FAILED'),r.error);if(Number.isInteger(r.status))error.status=r.status;throw error;}return r.data;}finally{clearTimeout(timer);jobs.delete(controller);}}
  function close(){closed=true;for(const job of jobs)job.abort();jobs.clear();}
  async function storage(method,path,body,bucket='aqari-documents'){
   check();if(!['aqari-documents','aqari-hr-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');

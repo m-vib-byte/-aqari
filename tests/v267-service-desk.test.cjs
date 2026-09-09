@@ -3,7 +3,7 @@ const source=fs.readFileSync('v267-service-desk.js','utf8').replace(/^import .*;
 const clone=x=>JSON.parse(JSON.stringify(x));
 function fixture(count=2){
  const rows=Array.from({length:count},(_,i)=>({id:'request-'+i,request_no:i+1,workspace_id:'fixture-workspace',description:'طلب اختبار '+i,status:'received',cost:'0',revision:1,lease:{contract_no:'C-'+i,snapshot:{property:'عقار اختبار',unit:String(i+1)}},tenant:{full_name:'مستأجر اختبار'}}));
- const state={failList:false,lostUpdate:false,badReadback:false,closed:false},calls=[];let dispose;
+ const state={failList:false,readError:null,sessionLost:false,loseSessionOnRead:false,lostUpdate:false,badReadback:false,closed:false},calls=[];let dispose;
  const descendants=x=>[x,...x.children.flatMap(descendants)];
  class Element{
   constructor(tag,text=''){this.tag=tag;this.children=[];this.value='';this.disabled=false;this.hidden=false;this._text=text;this.classList={add(){}};}
@@ -15,11 +15,11 @@ function fixture(count=2){
  }
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const group=node('label',label);group.append(control);return group;};
  function from(table){assert.equal(table,'aqari_maintenance_requests');const query={filters:{},select(){return query;},eq(key,value){query.filters[key]=value;return query;},order(){return query;},update(values){query.values=values;return query;},
-  async range(start,end){calls.push({kind:'list',start,end});if(state.failList)throw Error('network unavailable');return clone(rows.slice(start,end+1));},
+  async range(start,end){calls.push({kind:'list',start,end});if(state.loseSessionOnRead)state.sessionLost=true;if(state.readError)throw state.readError;if(state.failList)throw Error('network unavailable');return clone(rows.slice(start,end+1));},
   async maybeSingle(){calls.push({kind:'update',filters:clone(query.filters),values:clone(query.values)});assert.equal(query.filters.workspace_id,'fixture-workspace');const row=rows.find(r=>r.id===query.filters.id&&r.revision===query.filters.revision);if(!row)return null;Object.assign(row,query.values,{revision:row.revision+1});if(state.lostUpdate)throw Error('reply lost');return clone(row);},
   async single(){calls.push({kind:'readback',filters:clone(query.filters)});const row=clone(rows.find(r=>r.id===query.filters.id));if(state.badReadback)row.id='another-request';return row;}
  };return query;}
- const d={body:node('div'),el:node('dialog'),status:node('p'),session:{bound:{workspace:'fixture-workspace'},client:{from},request:query=>query,check(){if(state.closed)throw Error('closed');}},onDispose(fn){dispose=fn;},get closed(){return state.closed;},async run(task){if(d.busy||state.closed)return;d.busy=true;const controls=descendants(d.body).filter(e=>['button','input','select'].includes(e.tag)),disabled=controls.map(e=>e.disabled);controls.forEach(e=>e.disabled=true);try{await task();}catch(e){d.status.textContent=e.message;}finally{d.busy=false;controls.forEach((e,i)=>{if(e.isConnected)e.disabled=disabled[i];});}}};d.body.root=true;
+ const d={body:node('div'),el:node('dialog'),status:node('p'),session:{bound:{workspace:'fixture-workspace'},client:{from},request:query=>query,check(){if(state.closed||state.sessionLost)throw Error('closed');}},onDispose(fn){dispose=fn;},get closed(){return state.closed;},async run(task){if(d.busy||state.closed)return;d.busy=true;const controls=descendants(d.body).filter(e=>['button','input','select'].includes(e.tag)),disabled=controls.map(e=>e.disabled);controls.forEach(e=>e.disabled=true);try{await task();}catch(e){d.status.textContent=e.message;}finally{d.busy=false;controls.forEach((e,i)=>{if(e.isConnected)e.disabled=disabled[i];});}}};d.body.root=true;
  const context={node,field,createDialog:()=>d,currentScope:()=>({role:'general_manager'}),t:x=>x,message:(x,args)=>x.replace(/\{(\w+)\}/g,(_,k)=>args[k]),window:{}};vm.createContext(context);vm.runInContext(source,context);
  const cards=()=>descendants(d.body).filter(e=>e.tag==='article');
  const button=(label,parent=d.body)=>descendants(parent).find(e=>e.tag==='button'&&e.textContent===label);
@@ -34,6 +34,23 @@ test('failed refresh leaves the displayed requests, edited fields and navigation
 test('successful refresh retains edits and the original server revision',async()=>{
  const f=fixture();await f.start();f.cost(0).value='12.125';f.status(0).value='in_progress';await f.refresh();assert.equal(f.cost(0).value,'12.125');assert.equal(f.status(0).value,'in_progress');
  await f.save(0);const update=f.calls.find(c=>c.kind==='update');assert.equal(update.filters.revision,1);assert.equal(f.rows[0].revision,2);assert.equal(f.rows[0].cost,'12.125');assert.match(f.d.status.textContent,/تم حفظ الطلب/);
+});
+test('denied reads clear request data and drafts, including when access later returns',async()=>{
+ for(const error of [Error('ACCESS_DENIED'),Object.assign(Error('database denied'),{code:'42501'}),Object.assign(Error('opaque rejection'),{status:403}),Object.assign(Error('expired'),{status:401})]){
+  const f=fixture();await f.start();f.cost(0).value='91.125';await f.refresh();f.state.readError=error;await f.refresh();
+  assert.equal(f.cards().length,0);assert.doesNotMatch(f.d.body.textContent,/طلب اختبار|مستأجر اختبار/);
+  f.state.readError=null;await f.refresh();assert.equal(f.cost(0).value,'0','revoked-session draft is not restored');
+ }
+});
+test('temporary service errors preserve drafts without treating an outage as an authorization denial',async()=>{
+ const f=fixture();await f.start();const card=f.cards()[0];f.cost(0).value='7.125';f.state.readError=Object.assign(Error('unavailable'),{status:503});await f.refresh();
+ assert.equal(f.cards()[0],card);assert.equal(f.cost(0).value,'7.125');f.state.readError=null;await f.refresh();assert.equal(f.cost(0).value,'7.125');
+});
+test('loss of session before or during a reread clears the old private view',async()=>{
+ for(const during of [false,true]){
+  const f=fixture();await f.start();f.cost(0).value='14';if(during)f.state.loseSessionOnRead=true;else f.state.sessionLost=true;
+  await f.refresh();assert.equal(f.cards().length,0);assert.doesNotMatch(f.d.body.textContent,/طلب اختبار|مستأجر اختبار/);
+ }
 });
 test('a changed server revision never silently rebases a local draft over another employee',async()=>{
  const f=fixture();await f.start();f.cost(0).value='20';f.rows[0].revision=2;f.rows[0].cost='15';await f.refresh();

@@ -18,17 +18,27 @@ export async function openDesk(mode='maintenance'){
  const {session,status}=d,list=node('div'),reload=node('button',t('تحديث السجلات')),previous=node('button',t('السابق')),next=node('button',t('التالي'));
  let page=0,prepare;
  const drafts=new Map();let editors=new Map();
- d.onDispose(()=>{drafts.clear();editors.clear();list.replaceChildren();});
+ function clearPrivate(){drafts.clear();editors.clear();list.replaceChildren();previous.hidden=next.hidden=true;}
+ d.onDispose(clearPrivate);
+ function checkReadAccess(){try{session.check();}catch(error){clearPrivate();throw error;}}
+ async function read(query){
+  try{const rows=await session.request(query);checkReadAccess();return rows;}
+  catch(error){
+   checkReadAccess();
+   if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED')clearPrivate();
+   throw error;
+  }
+ }
  function remember(){for(const [id,editor]of editors){const prior=drafts.get(id),{row,state,cost}=editor;
   if(prior?.uncertain||state.value!==row.status||cost.value!==String(row.cost??''))drafts.set(id,{row,status:state.value,cost:cost.value,uncertain:prior?.uncertain===true});
   else drafts.delete(id);
  }}
  previous.hidden=true;next.hidden=true;
  async function load(wanted=page){
-  session.check();remember();
+  checkReadAccess();remember();
   const table=mode==='maintenance'?'aqari_maintenance_requests':'aqari_notification_outbox';
-  const rows=await session.request(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,description,status,cost,revision,lease:aqari_leases(contract_no,snapshot),tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
-  session.check();const cards=[],nextEditors=new Map();
+  const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,description,status,cost,revision,lease:aqari_leases(contract_no,snapshot),tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
+  const cards=[],nextEditors=new Map();
   if(!rows.length)cards.push(node('p',t('لا توجد سجلات محفوظة في هذه الصفحة.')));
   for(const fresh of rows){
    const draft=drafts.get(fresh.id),row=draft?.row||fresh;
@@ -68,9 +78,9 @@ export async function openDesk(mode='maintenance'){
         if(verified.id!==row.id||verified.revision!==saved.revision||verified.status!==newStatus||Number(verified.cost)!==Number(value))throw Error('لم تتأكد إعادة القراءة.');
         editors.delete(row.id);drafts.delete(row.id);
         await load();confirmed=true;status.textContent=t('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.');
-       }catch{throw Error(uncertainSave);}
+       }catch{checkReadAccess();throw Error(uncertainSave);}
       });
-      // run restores controls; uncertain writes stay locked until a fresh read.
+      // run restores controls; uncertain writes require an explicit saved-state reload.
       if(sent&&!confirmed&&!d.closed&&card.isConnected){drafts.set(row.id,{row,status:state.value,cost:cost.value,uncertain:true});save.disabled=true;}
      };
      save.disabled=stale||draft?.uncertain===true;

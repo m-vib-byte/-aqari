@@ -74,6 +74,16 @@ test('backend errors never expose raw provider messages',async()=>{
  assert.ok(!safeError(Error('upstream secret_value')).includes('secret_value'));
  assert.match(safeError(Error('ACCESS_DENIED')),/صلاحية/);
 });
+test('request errors retain authoritative HTTP status and database code without modifying the SDK error',async()=>{
+ context();const {createSession,safeError}=await moduleAt('api/session.js');const s=createSession();
+ const raw=Object.freeze({message:'private provider detail',code:'42501',status:500});
+ try{
+  await assert.rejects(s.request({abortSignal:async()=>({error:raw,status:403,data:null})}),error=>{
+   assert.equal(error.status,403);assert.equal(error.code,'42501');assert.equal(error.message,raw.message);assert.doesNotMatch(safeError(error),/private provider detail/);return true;
+  });
+  assert.equal(raw.status,500);assert.equal(await s.request({abortSignal:async()=>({data:'fresh read',status:200})}),'fresh read');
+ }finally{s.close();}
+});
 
 test('initial client connection times out and a late resolution cannot replace the retry client',async t=>{
  context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});

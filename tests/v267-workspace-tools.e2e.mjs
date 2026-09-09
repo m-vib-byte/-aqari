@@ -9,6 +9,7 @@ const root=process.cwd(),out=path.join(root,'test-results/v267-workspace-tools')
 fs.mkdirSync(out,{recursive:true});
 const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-222222222222';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
+let maintenanceReadUnavailable=false;
 let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false,maintenanceRows=[],maintenanceWrites=0,maintenanceWriteDenied=false,maintenanceReadDenied=false,prepareCalls=0;
 const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
 const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
@@ -20,7 +21,7 @@ const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="r
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://ofgmcsmxmdswlovsckqs.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
  'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://ofgmcsmxmdswlovsckqs.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
- 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert","update"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="maybeSingle")args._maybeSingle=true;if(k==="update")args._update=a[0];if(k==="range")args._range=a;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json()}:{error:await r.json()});return x;}'+
+ 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert","update"])x[k]=(...a)=>{if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="maybeSingle")args._maybeSingle=true;if(k==="update")args._update=a[0];if(k==="range")args._range=a;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status});return x;}'+
  'window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:"general_manager",is_active:true}},getClient:async()=>({rpc:query,from:name=>query(name,{})}),getSession:async()=>({user:{id:uid},access_token:"synthetic-not-a-real-token"})};'+
  'const {install}=await import("/src/v267/workspace.js");install();await import("/src/v267/pages/automation-status.js");document.getElementById("fixtureMaintenance").onclick=async()=>{const {openDesk}=await import("/v267-service-desk.js");await openDesk();};</script></body></html>';
 const server=http.createServer((req,res)=>{
@@ -62,6 +63,7 @@ const server=http.createServer((req,res)=>{
     Object.assign(row,args._update);row.revision++;return reply(res,row);
    }
    if(maintenanceReadDenied)return reply(res,{message:'ACCESS_DENIED'},403);
+   if(maintenanceReadUnavailable)return reply(res,{message:'SERVICE_UNAVAILABLE'},503);
    if(args._single)return reply(res,maintenanceRows.find(x=>x.id===args.id));
    return reply(res,maintenanceRows.slice(args._range[0],args._range[1]+1));
   }
@@ -194,25 +196,26 @@ async function verifyServiceDesk(page,locale,name,viewport){
  assert.equal(await completed.getByLabel(tr('التكلفة — د.ك'),{exact:true}).isDisabled(),true);
  const cost=card.getByLabel(tr('التكلفة — د.ك'),{exact:true}),save=()=>card.getByRole('button',{name:tr('حفظ الحالة والتكلفة'),exact:true});
  const before=maintenanceWrites;
+ await cost.fill('9.125');maintenanceReadUnavailable=true;await refresh();
+ await dialog.getByText(tr('تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.'),{exact:true}).waitFor();
+ assert.equal(await dialog.locator('article').count(),2,'temporary outage preserves the current requests');assert.equal(await cost.inputValue(),'9.125','temporary outage preserves unsaved cost');
+ maintenanceReadUnavailable=false;await refresh();await ready();assert.equal(await cost.inputValue(),'9.125','recovery preserves unsaved cost');
  await cost.fill('-1');await save().click();await dialog.getByText(tr('أدخل تكلفة صحيحة بدقة ثلاثة منازل.'),{exact:true}).waitFor();assert.equal(maintenanceWrites,before);
  await card.getByLabel(tr('حالة الطلب'),{exact:true}).selectOption('assigned');await cost.fill('١٢٫٣٤٥');await save().click();
  await dialog.getByText(tr('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(maintenanceWrites,before+1);assert.equal(await cost.inputValue(),'12.345');assert.equal(await card.getByLabel(tr('حالة الطلب'),{exact:true}).inputValue(),'assigned');
  maintenanceWriteDenied=true;await save().click();await dialog.getByText(tr('لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.'),{exact:true}).waitFor();
- assert.equal(await save().isDisabled(),true,'uncertain write cannot be repeated without refresh');assert.ok(!(await dialog.textContent()).includes('private'));maintenanceWriteDenied=false;
- await refresh();await ready();assert.equal(await save().isDisabled(),true,'refresh preserves the uncertain-write lock');
+ assert.equal(await save().isDisabled(),true,'uncertain write cannot be repeated');assert.ok(!(await dialog.textContent()).includes('private'));maintenanceWriteDenied=false;
+ await refresh();await ready();assert.equal(await save().isDisabled(),true,'ordinary refresh does not silently unlock an uncertain draft');
  assert.equal(maintenanceWrites,before+2,'refresh cannot repeat the uncertain write');
+ const writesBeforeDiscard=maintenanceWrites;
  await card.getByRole('button',{name:tr('تجاهل التعديل المحلي واسترجاع المحفوظ'),exact:true}).click();await ready();
- assert.equal(await save().isEnabled(),true,'explicit saved-record recovery unlocks editing');
- assert.equal(await cost.inputValue(),'12.345');assert.equal(maintenanceWrites,before+2,'recovery reads without writing');
+ assert.equal(await save().isEnabled(),true);assert.equal(maintenanceWrites,writesBeforeDiscard,'discard reloads without sending another write');
+ assert.equal(await cost.inputValue(),'12.345');assert.equal(await card.getByLabel(tr('حالة الطلب'),{exact:true}).inputValue(),'assigned');
  const box=await dialog.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,'service translation fits viewport');
  await page.screenshot({path:path.join(out,name+'-'+locale+'-maintenance.png'),fullPage:true});
- await cost.fill('9.250');
- maintenanceReadDenied=true;await refresh();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();
- assert.equal(await dialog.locator('article').count(),2,'failed refresh preserves the displayed requests');
- assert.equal(await cost.inputValue(),'9.250','failed refresh preserves unsaved edits');assert.equal(maintenanceWrites,before+2);
- maintenanceReadDenied=false;await refresh();await ready();assert.equal(await cost.inputValue(),'9.250','successful refresh retains local edits');
- await card.getByRole('button',{name:tr('تجاهل التعديل المحلي واسترجاع المحفوظ'),exact:true}).click();await ready();assert.equal(await cost.inputValue(),'12.345');
+ await cost.fill('8.250');maintenanceReadDenied=true;await refresh();await dialog.getByText(tr('لا تملك صلاحية هذه العملية.'),{exact:true}).waitFor();assert.equal(await dialog.locator('article').count(),0,'denied reread clears previous requests');maintenanceReadDenied=false;
+ await refresh();await ready();assert.equal(await cost.inputValue(),'12.345','restored access cannot revive a revoked private draft');assert.equal(maintenanceWrites,before+2,'access recovery only rereads');
  await close();
  await page.getByRole('button',{name:tr('عرض سجل التنبيهات المحفوظ'),exact:true}).click();
  await dialog.getByText(tr('الإرسال غير مفعّل. هذه سجلات تجهيز وإلغاء، وليست رسائل مرسلة.'),{exact:true}).waitFor();

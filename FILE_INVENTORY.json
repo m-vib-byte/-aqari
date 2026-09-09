@@ -942,8 +942,8 @@
     },
     {
       "path": "v267-service-desk.js",
-      "sha256": "52c65821d976d0ed0beacf3c442b95e43d3a46fe841b7e3f0db52973df95b5d8",
-      "size": 10184
+      "sha256": "e910a73f31b590b184da3814ae0f8214f2ba052094704c9471cfee313e8d3d4a",
+      "size": 10624
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "64856d36a106923422e6a8a16ba2b8f4cb386e315c001ac61913cfa3e730e82a",
-      "size": 6070
+      "sha256": "b739aa0f9102f84648e41e5a4204a0a715f15ec12f8de77163a6efaae8f2f2f5",
+      "size": 6202
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1032,13 +1032,13 @@
     },
     {
       "path": "tests/v267-workspace-controls.test.cjs",
-      "sha256": "8af0d7579de070b0acfe7c42b5a03779d4028364e2c995562ddec837a3a57eb0",
-      "size": 8034
+      "sha256": "c1cf9f550357bd4df9f33f5b4326979c334466fb63fb066e74af30d4f3914dc2",
+      "size": 8793
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "dda9747bfa4c9d48fbd4bc22141c0c1d0ecb3119f21386fcf6fef43d164f1e5f",
-      "size": 39113
+      "sha256": "ba449796388ea3f2bb10cce7cd350502917c3f266484eb15172e03d4493d1276",
+      "size": 39742
     },
     {
       "path": "lib/property_statement_pdf.py",
@@ -1557,8 +1557,8 @@
     },
     {
       "path": "tests/v267-service-desk.test.cjs",
-      "sha256": "3d0d67ed99259c93572e4390b8b9a93ad3e406010ced1eb11ea767076c924936",
-      "size": 7892
+      "sha256": "3264e2815414fcfe21b99d5c67f6f7e2b4fe63aceb91c853b2532ef87a8300d2",
+      "size": 9572
     },
     {
       "path": "docs/V267-PRINT-AND-MAINTENANCE-REPAIR.md",
@@ -1569,6 +1569,11 @@
       "path": "docs/V267-HOSTED-ISOLATION-2026-09-09.md",
       "sha256": "40669e96525cc29578498679e37e81ff283dee1dd4fc9ce4eb7b19a368466f76",
       "size": 5263
+    },
+    {
+      "path": "docs/V267-CI-MAINTENANCE-RECOVERY.md",
+      "size": 3577,
+      "sha256": "1f6aec39c8b80916bcc9e396c09b72e53fd4acb364949fc23024caec17881ebf"
     }
   ],
   "version": "V198"
