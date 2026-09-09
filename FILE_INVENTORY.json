@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "843e534345bf65e579af99756f5375ce3a21ae82aa0126974932f6de5f6fdfd6",
-      "size": 9681
+      "sha256": "09894a14a766f8a091aeb6d5612c2a453e92118b8529be2812a1de3663c77bab",
+      "size": 10112
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "af2bf29122d5d286adb7738ec983f0c1344ad64d6c540e440b0089069586b005",
-      "size": 1526
+      "sha256": "db907b47617b1f04642c843ae02eb67c82a80ff74fb0e4a8cfad995c6ad5a22f",
+      "size": 1566
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1704,6 +1704,16 @@
       "path": "tests/v267-workspace-features.test.cjs",
       "sha256": "97f7bc1807871558093fd6c7b2a4fe198e49d158b0265f7121989747e060bf81",
       "size": 2206
+    },
+    {
+      "path": "src/v267/pages/vacating-settlement.js",
+      "sha256": "733cae691cb12e3c5d317a8d93d3a67c3132cbedd544df2118c71a0c771f30aa",
+      "size": 9177
+    },
+    {
+      "path": "staging-database/sql/vacating-settlement.sql",
+      "sha256": "41d64584ec149bdb61f4f87719aa8aa8b1944c8345ef68ef0babdf5d875bad3c",
+      "size": 14894
     }
   ],
   "version": "V198"
