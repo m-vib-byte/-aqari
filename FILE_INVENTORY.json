@@ -1772,8 +1772,8 @@
     },
     {
       "path": "src/v267/pages/vacating.js",
-      "sha256": "eb0efb5c219fd8dc293d582c611f57dc8af7258cd42e8a953a491981fff18992",
-      "size": 13060
+      "sha256": "9a9e78570586b347063ef5f8e7cc7bbbe5e4539fcb0d32486b939b40ae60d88f",
+      "size": 13057
     },
     {
       "path": "staging-database/local-test/package-lock.json",

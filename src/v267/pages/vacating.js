@@ -17,7 +17,7 @@ export function openVacating(){
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_vacating_register',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
  const txt=(tag,s)=>node(tag,t(s)),say=s=>{if(!d.closed)d.status.textContent=t(s);};
  const button=(label,fn)=>{const b=txt('button',label);b.type='button';b.onclick=()=>work(fn);return b;};
- const work=fn=>d.run(async()=>{try{await fn();d.session.check();}catch(e){if(!isDepositDenied(e))render();if(messages[e.message]){const mapped=Error(t(messages[e.message]));Object.assign(mapped,{code:e.code,status:e.status});throw mapped;}throw e;}});
+ const work=fn=>d.run(async()=>{try{await fn();d.session.check();}catch(e){if(!isDepositDenied(e))render();if(messages[e.message]){const mapped=Error(messages[e.message]);Object.assign(mapped,{code:e.code,status:e.status});throw mapped;}throw e;}});
  function clearOutput(){urls.clear();output=null;}
  async function readSelected(){
   clearOutput();record=selected?await rpc('get',{lease_id:selected}):null;d.session.check();draft=record?{...record,obligations:record.obligations.map(x=>({...x})),document_ids:[...record.document_ids],reason:''}:fresh();
