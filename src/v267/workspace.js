@@ -11,6 +11,7 @@ function updateFeatureTools(){
  if(finance)finance.hidden=access?.features?.financial_register!==true||access?.permissions?.finance?.read!==true;
  if(deposits)deposits.hidden=access?.features?.deposit_register!==true||access?.permissions?.collections?.read!==true;
  if(vacating)vacating.hidden=access?.permissions?.contracts?.read!==true;
+ // The document-backed issuer remains review-only until the settlement paths are reconciled.
 }
 const ui=uiText;
 function updateLabels(){

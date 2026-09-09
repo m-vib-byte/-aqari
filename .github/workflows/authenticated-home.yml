@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, design/v267-premium-workspace, review/v267-vacating-baseline]
 concurrency:
   group: aqari-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -20,12 +20,14 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
-      - name: Deposit ledger save, recovery and saved print in five languages
-        run: node tests/v267-deposit-ledger.e2e.mjs
-      - name: Real authenticated renderer with synthetic backend
-        run: node tests/v266-authenticated-home.e2e.mjs
       - name: V267 multilingual control, scanner and operational form flows
         run: node tests/v267-workspace-tools.e2e.mjs
+      - name: Deposit ledger save, recovery and saved print in five languages
+        run: node tests/v267-deposit-ledger.e2e.mjs
+      - name: Vacating, settlement and clearance in five languages
+        run: node tests/v267-vacating.e2e.mjs
+      - name: Real authenticated renderer with synthetic backend
+        run: node tests/v266-authenticated-home.e2e.mjs
       - name: Tenant portal five-language flows with synthetic backend
         run: node tests/v267-tenant-portal.e2e.mjs
       - uses: actions/upload-artifact@v4
@@ -37,4 +39,5 @@ jobs:
             test-results/v267-workspace-tools
             test-results/v267-tenant-portal
             test-results/v267-deposit-ledger
+            test-results/v267-vacating
           retention-days: 2

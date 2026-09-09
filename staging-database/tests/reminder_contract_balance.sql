@@ -6,6 +6,11 @@ select set_config('request.jwt.claim.sub','67233333-3333-4333-8333-333333333333'
 -- Capture the synthetic user's workspace while fixture setup still runs as the test owner.
 -- Application roles intentionally cannot read aqari_memberships directly; public RPCs enforce scope.
 select set_config('reminder.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active limit 1),true);
+-- Test-only metadata helper; application RPCs stay under authenticated permissions.
+create function pg_temp.reminder_storage_fixture(document_path text) returns void language sql security definer set search_path='' as $$
+ insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',document_path,'{"size":100,"mimetype":"image/jpeg"}');
+$$;
+grant execute on function pg_temp.reminder_storage_fixture(text) to authenticated;
 set local role authenticated;
 do $$
 <<verify>>
@@ -24,7 +29,7 @@ begin
  if jsonb_array_length(public.aqari_contract_history(w,c->>'id'))<>1 then raise exception 'INITIAL_VERSION_MISSING';end if;
  -- Transactional Storage metadata fixture, NOT an actual uploaded signed document.
  select * into doc from public.aqari_reserve_document(w,'signed_contract','lease',c->>'id','Rollback-only test document','fixture.jpg','image/jpeg','{"test":"rollback-only"}');
- insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',doc.storage_path,'{"size":100,"mimetype":"image/jpeg"}');
+ perform pg_temp.reminder_storage_fixture(doc.storage_path);
  perform public.aqari_finalize_document(doc.document_id,100,'image/jpeg',repeat('a',64));
  c:=c||'{"status":"signed","changeReason":"Synthetic signed metadata fixture"}';
  d:=jsonb_set(d,'{contractsV202}',(select jsonb_agg(case when x->>'id'=c->>'id' then c else x end) from jsonb_array_elements(d->'contractsV202') x));

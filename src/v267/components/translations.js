@@ -1,7 +1,9 @@
 // Interface text only. Record values and legal documents are never translated.
 import {PARTNER_MESSAGES} from './partner-translations.js';
 import {DEPOSIT_MESSAGES} from './deposit-translations.js';
+import {VACATING_MESSAGES} from './vacating-translations.js';
 export const MESSAGES = {
+ ...VACATING_MESSAGES,
  ...DEPOSIT_MESSAGES,
  "تمت قراءة طلبات الصيانة المحفوظة.": {
   "en": "Saved maintenance requests loaded.",
