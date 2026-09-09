@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "b717ab06e5b776e31fc3120fb676023f8e6608ddf207249ff240abc0eb0c319a",
-      "size": 3953
+      "sha256": "c17b7fa9537eed9e008337008f078dc73c999b5f330d6e808be992f3b303d433",
+      "size": 4106
     },
     {
       "path": "api/autosync-status.js",
@@ -1434,6 +1434,11 @@
       "path": "staging-database/tests/rental_contract_provisions.sql",
       "sha256": "643ef283e6fe24c279aabfd8e54971a52b831593307002e2ce4802162e97aa69",
       "size": 5186
+    },
+    {
+      "path": "scripts/verify-staging-runtime.mjs",
+      "sha256": "979ca535c02c431c952272ad815af4e5521bcd086980c2dc30df6a25bb68f2a9",
+      "size": 991
     }
   ],
   "version": "V198"
