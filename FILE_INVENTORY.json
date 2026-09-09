@@ -602,8 +602,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "3b6f8b50720b9bfd6e20d1998363d80d378e8350e183f0c01fe8224e668098f1",
-      "size": 1573
+      "sha256": "7c00d86add7b738cd0f6c28417deaf161702a37539196b93de52dd320b0889c1",
+      "size": 1604
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",

@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, design/v267-premium-workspace]
+    branches: [main, design/v267-premium-workspace, review/v267-vacating-baseline]
 concurrency:
   group: aqari-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
