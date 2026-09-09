@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "3306cd904d412ddd6987120b24a300d3a0c15a834741da3ad7d89e62c9733d10",
-      "size": 4886
+      "sha256": "0754f2c998bd8ffb62841261cd4309a75bca94dc69fc34b3997a6c406addcccd",
+      "size": 4915
     },
     {
       "path": "api/autosync-status.js",
@@ -602,8 +602,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
-      "size": 1390
+      "sha256": "3b6f8b50720b9bfd6e20d1998363d80d378e8350e183f0c01fe8224e668098f1",
+      "size": 1573
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
@@ -1002,8 +1002,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "09894a14a766f8a091aeb6d5612c2a453e92118b8529be2812a1de3663c77bab",
-      "size": 10112
+      "sha256": "00179909efbf4844104cf97ca21fe9fb43747346126ac0d40203ac165e9d1300",
+      "size": 10206
     },
     {
       "path": "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "3a64ceb5635b749528637568d0674b6b4f2c512f79a20820edf52400f4e675c1",
-      "size": 167381
+      "sha256": "6de180794e9ab5f48fd21220fc8717be09923d9590b51c1c9f9f3460022bf630",
+      "size": 167466
     },
     {
       "path": "tests/v267-locale.test.mjs",
@@ -1227,8 +1227,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "9c220578c18e9f95e9c3b879d960e8dc9be079abe79ce3908d54bc18d8e7503b",
-      "size": 19317
+      "sha256": "8f82c06f066692767b202eaa6696b7a1969ccc29ea75c8c9cb06d6882e31670b",
+      "size": 19383
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
@@ -1372,8 +1372,8 @@
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
-      "size": 3489,
-      "sha256": "221fd15730fe515cb42a1868655c348699147227d533c0ddf91ca31a94510a3b"
+      "size": 4351,
+      "sha256": "329753dcf37559d7d18ae41bdbac1190a1ea38ed5eac8eb07761619b6080cc1f"
     },
     {
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "db907b47617b1f04642c843ae02eb67c82a80ff74fb0e4a8cfad995c6ad5a22f",
-      "size": 1566
+      "sha256": "912ba8cc7f4c8e9ecf8c820b1ee8b55ab8f905aea71dcd0032f21ceaefb07229",
+      "size": 1672
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1467,8 +1467,8 @@
     },
     {
       "path": "staging-database/tests/reminder_contract_balance.sql",
-      "sha256": "24a38ccef43d07ba6ce1fbdc8740f23c02cec61bd5ca4f2fd6b47fe4abe99aaa",
-      "size": 10734
+      "sha256": "dc2ae101f34b641dabf23985ae73f8e4f97b3112560e4497f41db9199d158af5",
+      "size": 11222
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "61b355f5a4b9d579a4d1fe8a0f96164cb844f87809a7f7bec37ad1c9b04e1fce",
-      "size": 78307
+      "sha256": "012bd2fee1704455d6a644999a22c23d45cdd5b26b16e1532a38caed0b62f52e",
+      "size": 78765
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1532,8 +1532,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 745,
-      "sha256": "99627758a6b9b6c09ae6682885b262f7cf172d92c526f9de2401dd8a50528422"
+      "size": 805,
+      "sha256": "7a290593b211d2cffd0394db0e879075412048d282de0efe1f404b75de8537ea"
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
@@ -1682,8 +1682,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "4fbf2c13d89835864c91013370e97170306ccfa8fb544bf36fcad3b1dbeae482",
-      "size": 1791
+      "sha256": "e34c947dbee50593e6b73988726bbaa14dc650fabee4f6045dbd5c62e8f72684",
+      "size": 1918
     },
     {
       "path": "staging-database/tests/deposit_register.sql",
@@ -1734,6 +1734,111 @@
       "path": "staging-database/sql/tenant-contact-preference.sql",
       "sha256": "2bab0f8bb1fa6a47188a6d74b712894f303e8af6fcccf3aa111eaf2e4bbc621d",
       "size": 7079
+    },
+    {
+      "path": "V167_SETUP.md",
+      "sha256": "f704468ebee719445377efec8bf431bac340c4be66ff1911095f4283a89564f6",
+      "size": 315
+    },
+    {
+      "path": "V168_SUPABASE.md",
+      "sha256": "c31f03e33618f4bf3bbcc1f3b5b875f09d14c2aa9657a7d69e2919bcba10509e",
+      "size": 2021
+    },
+    {
+      "path": "docs/V267-REPAIR-PASS-2026-09-09.md",
+      "sha256": "9da80a5054cc368a272a078e1b4a2552b1f71b20f5664cada8f391667eebdc61",
+      "size": 5765
+    },
+    {
+      "path": "docs/V267-VACATING-REVIEW.md",
+      "sha256": "c0a878518b194620f25c77a286c8540baf5180d9a0f755c0ffedf2aad370aad3",
+      "size": 4508
+    },
+    {
+      "path": "old.html",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+      "size": 1
+    },
+    {
+      "path": "src/v267/components/vacating-translations.js",
+      "sha256": "aa73ea6f3a1f8f0731b813205aa579fa51ab1991c41175873839c61201c078cf",
+      "size": 21449
+    },
+    {
+      "path": "src/v267/domain/vacating.js",
+      "sha256": "6e29ea91785c61af48f75d300ca60af41187b2166331fc07312101da727a2dd9",
+      "size": 8225
+    },
+    {
+      "path": "src/v267/pages/vacating.js",
+      "sha256": "eb0efb5c219fd8dc293d582c611f57dc8af7258cd42e8a953a491981fff18992",
+      "size": 13060
+    },
+    {
+      "path": "staging-database/local-test/package-lock.json",
+      "sha256": "a398a35daef08c4009801f65c667eb79238422af3ccfcbb735af47e888123198",
+      "size": 570
+    },
+    {
+      "path": "staging-database/local-test/schema-catalog-2026-09-09.json",
+      "sha256": "fc189725c5bd88c8db3d20d35ccafed3862a05ab9bc03429ed18262698d2b968",
+      "size": 279693
+    },
+    {
+      "path": "staging-database/sql/financial-register.sql",
+      "sha256": "17955a19d71a067d99008498422bbc46f1aad6d400a468799b4e2d3742409961",
+      "size": 22922
+    },
+    {
+      "path": "staging-database/sql/vacating-register.sql",
+      "sha256": "9a212250353637f2ecc32d9f61052baf0ce44adb491c3393eab39b26489fb718",
+      "size": 21290
+    },
+    {
+      "path": "staging-database/tests/financial_register.sql",
+      "sha256": "bed972e9f51bb167ebd3b2fddfeb81e924e0c459e8c91fd593dca38148b3ab20",
+      "size": 13682
+    },
+    {
+      "path": "staging-database/tests/staff_property_scope.sql",
+      "sha256": "23b5cab4b5ac1b205c98a6c1bbb0e5cbc124d9fc4ce127a8d94e4fdf7a93ff15",
+      "size": 26472
+    },
+    {
+      "path": "staging-database/tests/tenant_preparation_drafts.sql",
+      "sha256": "cdaa6adb4631684beaf0e84d69fa88b316e035d42005af9acc0967927573543a",
+      "size": 2355
+    },
+    {
+      "path": "staging-database/tests/vacating_register.sql",
+      "sha256": "04b354a4db48a8360d760a9de7bd5f87f3c3c357bf5c7286ef61dc5fbb23fdc4",
+      "size": 15165
+    },
+    {
+      "path": "supabase/migrations/20260902214925_v168_supabase_cloud_core.sql",
+      "sha256": "cf9e24279fcf7b467140e0fb58ce6ace1445686ada791a911f4abd98b9df30eb",
+      "size": 8952
+    },
+    {
+      "path": "supabase/migrations/20260902215319_v168_supabase_privilege_hardening.sql",
+      "sha256": "a34bc7ad9401fcaa3252cee61e88c2d3a757d34cf1bd048741c5a6bc5893ab68",
+      "size": 1591
+    },
+    {
+      "path": "tests/v267-staff-access.test.cjs",
+      "sha256": "26519dd34c69d18fee4b1aa6f99e67a71c2e0ace7428d3440e0fe06dca73663d",
+      "size": 11860
+    },
+    {
+      "path": "tests/v267-vacating.e2e.mjs",
+      "sha256": "798994e2f13f678657567eb3b377ce565c1ad7f41f047cdf362cbbe399b039d5",
+      "size": 8976
+    },
+    {
+      "path": "tests/v267-vacating.test.mjs",
+      "sha256": "be09075825844b73715eecbfdb0c0dbd07a1f7424d2841e4491aca7e295d2379",
+      "size": 5748
     }
   ],
   "version": "V198"
