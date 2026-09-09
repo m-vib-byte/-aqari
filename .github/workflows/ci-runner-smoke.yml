@@ -1,0 +1,19 @@
+name: CI runner smoke
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 2
+    steps:
+      - name: Runner started
+        run: |
+          echo "AQARI_CI_RUNNER_STARTED"
+          uname -a
+          node --version || true
