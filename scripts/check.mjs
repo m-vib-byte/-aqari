@@ -1,4 +1,8 @@
 import fs from 'node:fs';
+import {verifyDeploymentTarget} from './verify-deployment-target.mjs';
+
+// Run before a Vercel build can publish an artifact with the wrong data source.
+verifyDeploymentTarget();
 
 const requiredFiles = [
   'index.html',

@@ -512,8 +512,8 @@
     },
     {
       "path": "scripts/check.mjs",
-      "sha256": "1748b54bbcd16ca642c206151103d248b0ea5466e06368e793166f5a24a6dc6a",
-      "size": 567
+      "sha256": "018f6f372b1e03e04443307775f776ee9102b8b49eb268f4d35a182a69aa9777",
+      "size": 746
     },
     {
       "path": "scripts/cloud-sync-selftest.mjs",
@@ -1167,8 +1167,8 @@
     },
     {
       "path": "staging-database/tests/vacating_release.sql",
-      "sha256": "212af8d9811655af85be7c3b60605e75254c6defa83bd98c1992b11555ced676",
-      "size": 8766
+      "sha256": "c55242156eee1745a71c77576cd4fb790c9c8e9c73c177c4ba597098f9c6d487",
+      "size": 8640
     },
     {
       "path": "staging-database/tests/vacating_review.sql",
@@ -1862,13 +1862,23 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "b4bf029d8d06111a94d3ae53d4fd9b9f1181eadadd13987753f88725b8fb794d",
-      "size": 4175
+      "sha256": "e49f49f2b9b8ac9f2ddd097dae775c5a8fb59bb478ac8f1d22379a80905ddb22",
+      "size": 4210
     },
     {
       "path": "VERSION.json",
       "sha256": "a8bece4d1f536b2af865a993826f3a683bd7b883501296aee58c3f6fe3b63e4f",
       "size": 2022
+    },
+    {
+      "path": "scripts/verify-deployment-target.mjs",
+      "sha256": "01a17b5dad98bf4e6262142e31b1fe704497e62659cb4f0d2b0bfb144c61dc64",
+      "size": 2070
+    },
+    {
+      "path": "tests/v267-deployment-target.test.mjs",
+      "sha256": "e353a55919ecbb5fd8e0980549cace8679a7ec84634c0224e413bafc46776fb7",
+      "size": 3118
     }
   ],
   "version": "V198"
