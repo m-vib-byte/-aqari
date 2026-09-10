@@ -42,8 +42,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "1893fb67e38804524ce0e121230dd7b940a11db5706a5391cd865b886f72c16e",
-      "size": 4948
+      "sha256": "22dc570356ff9be6656e8bde3842c9a9b190bf747a544f05254a8bcf7afb8d78",
+      "size": 5126
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1862,8 +1862,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "2ba544876c4e4470859070f1ee87244e3584dea37c0ffafecf84f47c56b4ce35",
-      "size": 4236
+      "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
+      "size": 4252
     },
     {
       "path": "VERSION.json",
@@ -1877,8 +1877,33 @@
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
-      "sha256": "57c08b4a9a7bf393bc7b980b228163bf7852810e97eaec147d0a1ff3fb09a529",
-      "size": 3162
+      "sha256": "9f2355baeff38b501e31d4382c7f68742a745fb8fdf79d9c26820aaa234d58b6",
+      "size": 3417
+    },
+    {
+      "path": "scripts/prepare-v267-production.mjs",
+      "sha256": "09149bd070eb03c375d1b44909aff8dbb2937ddc8aeb0d130304e980733a2bf7",
+      "size": 7040
+    },
+    {
+      "path": "tests/v267-production-preparation.test.mjs",
+      "sha256": "e7a8d6bd794db20f354a51c9f8b04f10560e05fb3c3aed6eefc738c4a07abfcd",
+      "size": 9874
+    },
+    {
+      "path": "config/production-target.json",
+      "sha256": "1bff6d2a9a51962e213a90504455d85e795f225f0e6018a037c219699adb5b98",
+      "size": 113
+    },
+    {
+      "path": "scripts/build-vercel.mjs",
+      "sha256": "589005c344df32ba575b3d233a70543ab40c46d832f59cbf578fd1e1e4d79615",
+      "size": 755
+    },
+    {
+      "path": "docs/V267-DEPLOYMENT-CHECK-2026-09-10.md",
+      "size": 9122,
+      "sha256": "2f085ee1cc67c67a5e640dd23b1be70002a269a6cf6c6fe288f070e7347470b3"
     }
   ],
   "version": "V198"

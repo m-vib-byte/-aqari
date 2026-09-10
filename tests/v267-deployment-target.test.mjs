@@ -17,7 +17,7 @@ function configuration() {
   return {browser,backend};
 }
 
-test('the actual preview candidate cannot pass the production package build', () => {
+test('raw preview configuration cannot pass production validation before deliberate preparation', () => {
   const result = spawnSync(process.execPath, ['scripts/check.mjs'], {
     cwd:new URL('..',import.meta.url), encoding:'utf8', env:{...process.env,VERCEL_ENV:'production'}
   });
@@ -27,10 +27,13 @@ test('the actual preview candidate cannot pass the production package build', ()
   assert.match(result.stderr,/Auth callbacks must return to myaqari.com/);
 });
 
-test('the Vercel build actually invokes the package check', () => {
+test('the Vercel build prepares its target before invoking the package check', () => {
   const config=JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
-  assert.equal(config.buildCommand,'npm run check');
+  assert.equal(config.buildCommand,'node scripts/build-vercel.mjs');
   assert.equal(config.outputDirectory,'.');
+  const build=readFileSync(new URL('../scripts/build-vercel.mjs',import.meta.url),'utf8');
+  assert.match(build,/VERCEL_ENV==='production'/);
+  assert.match(build,/await import\('\.\/check\.mjs'\)/);
 });
 
 test('a consistent production configuration preserves the domain data source', () => {
