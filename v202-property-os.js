@@ -2601,6 +2601,14 @@
     try{return await Promise.race([operation(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('انتهت مهلة الاتصال بالسحابة.')),20000)})])}
     finally{clearTimeout(timer)}
   }
+  // JSONB object key order is not a data change; array order and values are.
+  function sameStoredJson(a,b){
+    if(a===b)return true;
+    if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;
+    if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,index)=>sameStoredJson(value,b[index]));
+    const keys=Object.keys(a);
+    return keys.length===Object.keys(b).length&&keys.every(key=>Object.hasOwn(b,key)&&sameStoredJson(a[key],b[key]));
+  }
   async function commitPayment(record,ledgerEntry){
     if(paymentSaving||paymentNeedsReload)return false;
     const scope=activeAccessScope(),name=activeProperty,data=appData();
@@ -2620,7 +2628,7 @@
       if(!primary)throw new Error('تعذرت قراءة بيانات مساحة العمل.');
       // Compare before appending: never overwrite collections added from another device.
       for(const key of ['collections','rentLedgerV202','contractsV202','rentReceiptsV267']){
-        if(JSON.stringify(primary[key]||[])!==JSON.stringify(data[key]||[]))throw new Error('تغيّرت البيانات أو توجد تعديلات محلية غير محفوظة. حدّث الصفحة قبل تسجيل التحصيل.');
+        if(!sameStoredJson(primary[key]||[],data[key]||[]))throw new Error('تغيّرت البيانات أو توجد تعديلات محلية غير محفوظة. حدّث الصفحة قبل تسجيل التحصيل.');
       }
       const cloudContract=(primary.contractsV202||[]).map((c,i)=>normalizeContract(c,'db-v202',i)).find(c=>c&&contractId(c)===ledgerEntry.contractId);
       if(!cloudContract||!signedContract(cloudContract)||!contractCoversPeriod(cloudContract,ledgerEntry.period)||normalizedIdentity(cloudContract.property)!==normalizedIdentity(name))throw new Error('العقد غير محفوظ كعقد فعال في السحابة. احفظ العقد أولاً.');
@@ -2638,7 +2646,7 @@
       const verified=await paymentCloudOperation(()=>window.AQARI_SUPABASE.loadAppState(scope));
       if(!current())return false;
       const confirmed=window.AQARI_CLOUD_SYNC.decodeCloudPayload(verified?.payload)?.primary;
-      if(!confirmed?.collections?.some(row=>JSON.stringify(row)===JSON.stringify(record))||!confirmed?.rentLedgerV202?.some(row=>JSON.stringify(row)===JSON.stringify(ledgerEntry))||!confirmed?.rentReceiptsV267?.some(row=>JSON.stringify(row)===JSON.stringify(receiptSnapshot)))throw new Error('لم تؤكد إعادة القراءة وجود التحصيل والوصل.');
+      if(!confirmed?.collections?.some(row=>sameStoredJson(row,record))||!confirmed?.rentLedgerV202?.some(row=>sameStoredJson(row,ledgerEntry))||!confirmed?.rentReceiptsV267?.some(row=>sameStoredJson(row,receiptSnapshot)))throw new Error('لم تؤكد إعادة القراءة وجود التحصيل والوصل.');
       // Only publish confirmed server records locally. A local-cache failure must not undo a server payment.
       for(const key of ['collections','rentLedgerV202','rentReceiptsV267','audit'])data[key]=confirmed[key];
       try{if(typeof persist==='function')persist()}catch(_){ }

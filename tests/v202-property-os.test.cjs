@@ -3273,7 +3273,7 @@ test('V267 payment search matches name, contract and localized exact apartment w
  assert.equal(runtime.searchPaymentContracts(custom,'١٤')[0].id,'unit14');
 });
 
-for(const mode of ['reject','missing-readback','conflict','scope-change']){
+for(const mode of ['reject','missing-readback','conflict','scope-change','altered-receipt','reordered-record','changed-amount']){
  test('V267 cloud payment '+mode+' cannot expose a successful local collection',async()=>{
   const data=fixture(),error={textContent:''};let reads=0,saves=0;
   let cloud=JSON.parse(JSON.stringify(data));const w=activeRuntimeWindow();
@@ -3284,7 +3284,13 @@ for(const mode of ['reject','missing-readback','conflict','scope-change']){
    if(mode==='conflict')payload.collections.push(['other-device']);
    return {payload,revision:4};
   };
-  w.AQARI_SUPABASE.saveAppState=async(payload,revision)=>{saves++;assert.equal(revision,4);if(mode==='reject')throw Error('network');if(mode!=='missing-readback')cloud=JSON.parse(JSON.stringify(payload));};
+  w.AQARI_SUPABASE.saveAppState=async(payload,revision)=>{
+   saves++;assert.equal(revision,4);if(mode==='reject')throw Error('network');
+   if(mode!=='missing-readback')cloud=JSON.parse(JSON.stringify(payload));
+   if(mode==='altered-receipt')cloud.rentReceiptsV267[0].contract.unit='wrong-unit';
+   if(mode==='reordered-record')cloud.collections.at(-1).reverse();
+   if(mode==='changed-amount')cloud.rentLedgerV202.at(-1).paid=999;
+  };
   const runtime=loadRuntime(data,[],w,{elements:{v202PaymentError:error},persist(){assert.fail('must not publish unconfirmed data')}});
   runtime.setActiveProperty('SYNTHETIC TEST PROPERTY');
   const before=JSON.stringify(data);
@@ -3310,12 +3316,13 @@ test('V267 unit and ledger contract entry uses the shared printing gate instead 
 });
 
 test('V267 synthetic tenant → saved lease → collection → immutable voucher survives reload and opens for print',async()=>{
+ const jsonb=value=>Array.isArray(value)?value.map(jsonb):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,jsonb(value[key])])):value;
  const rentalSandbox={module:{exports:{}}};vm.runInNewContext(fs.readFileSync(path.join(root,'v267-rental-records.js'),'utf8'),rentalSandbox);
  const rentals=rentalSandbox.module.exports;
  let data=fixture(),cloud=JSON.parse(JSON.stringify(data)),revision=1;
  const w=activeRuntimeWindow();w.AQARI_CLOUD_SYNC={decodeCloudPayload:payload=>({primary:payload})};
- w.AQARI_SUPABASE.loadAppState=async()=>({payload:JSON.parse(JSON.stringify(cloud)),revision});
- w.AQARI_SUPABASE.saveAppState=async(payload,expected)=>{assert.equal(expected,revision);cloud=JSON.parse(JSON.stringify(payload));revision++;};
+ w.AQARI_SUPABASE.loadAppState=async()=>({payload:jsonb(JSON.parse(JSON.stringify(cloud))),revision});
+ w.AQARI_SUPABASE.saveAppState=async(payload,expected)=>{assert.equal(expected,revision);cloud=jsonb(JSON.parse(JSON.stringify(payload)));revision++;};
  const store=rentals.createStore({scope:()=>({userId:'test',workspaceId:'workspace'}),local:()=>data,load:w.AQARI_SUPABASE.loadAppState,save:w.AQARI_SUPABASE.saveAppState,cache(){}});
  const tenant={id:'new-profile',nameAr:'مستأجر اختبار جديد',nameEn:'New Synthetic Tenant',email:'new@example.invalid',passportNo:'TEST-P987',civilId:'123456789012',phone:'55555555',nationality:'اختبار'};
  await store.change(['tenantProfilesV267','tenants'],db=>{const p=rentals.profile(tenant,[]);db.tenantProfilesV267=[p];db.tenants.push([p.nameAr,'','','نشط',p.id]);return p},(db,p)=>db.tenantProfilesV267[0].id===p.id);

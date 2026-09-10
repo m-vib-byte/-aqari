@@ -1397,8 +1397,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "c3225afefd6ba7e82293d18d5d552cb44096de2bb1fb41176ad138de9eac034d",
-      "size": 185488
+      "sha256": "03ee26254d67a557080b6702cc3aed54f078ed25dc990d3a09260727ec611d2f",
+      "size": 185964
     },
     {
       "path": "tests/v205-click-routing.test.cjs",
@@ -1707,8 +1707,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "0600c3fab4405ce4bbfb198e0911f62b3751ea2aeba2f3b0ae9feb619b21d816",
-      "size": 267725
+      "sha256": "4bdaf962d5e1deb1119689738b060334cfeb78c44b949eb30f7b9d53cb9fbf8c",
+      "size": 268175
     },
     {
       "path": "v205-simple.css",
