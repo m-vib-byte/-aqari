@@ -146,6 +146,11 @@
       "size": 10631
     },
     {
+      "path": "config/production-target.json",
+      "sha256": "1bff6d2a9a51962e213a90504455d85e795f225f0e6018a037c219699adb5b98",
+      "size": 113
+    },
+    {
       "path": "DEMO_V211.md",
       "sha256": "e044bb2b122eb43187c4147e28c2aba718d0c1608607356a5c3aad2f1f5d1e39",
       "size": 1261
@@ -184,6 +189,11 @@
       "path": "docs/V267-DATA-CHECKPOINT-AND-ROLLBACK.md",
       "sha256": "5048886dc9c69e5896862cb15b7511589d5eb4a3414df6fef059d94dd45c551b",
       "size": 3857
+    },
+    {
+      "path": "docs/V267-DEPLOYMENT-CHECK-2026-09-10.md",
+      "size": 9122,
+      "sha256": "2f085ee1cc67c67a5e640dd23b1be70002a269a6cf6c6fe288f070e7347470b3"
     },
     {
       "path": "docs/V267-DEPOSIT-LEDGER.md",
@@ -511,6 +521,11 @@
       "size": 1176
     },
     {
+      "path": "scripts/build-vercel.mjs",
+      "sha256": "589005c344df32ba575b3d233a70543ab40c46d832f59cbf578fd1e1e4d79615",
+      "size": 755
+    },
+    {
       "path": "scripts/check.mjs",
       "sha256": "018f6f372b1e03e04443307775f776ee9102b8b49eb268f4d35a182a69aa9777",
       "size": 746
@@ -546,6 +561,11 @@
       "size": 759
     },
     {
+      "path": "scripts/prepare-v267-production.mjs",
+      "sha256": "09149bd070eb03c375d1b44909aff8dbb2937ddc8aeb0d130304e980733a2bf7",
+      "size": 7040
+    },
+    {
       "path": "scripts/preview-e2e-selftest.mjs",
       "sha256": "235e631e78c9f00ca4c5fb7517a8914db4cacd2da1d77540343da61b654da317",
       "size": 1100
@@ -569,6 +589,11 @@
       "path": "scripts/smoke.mjs",
       "sha256": "70b53eddc4d8d8b3ac1fbbe8a2f80edff68ce04319f9094a724598b820b17c70",
       "size": 828
+    },
+    {
+      "path": "scripts/verify-deployment-target.mjs",
+      "sha256": "01a17b5dad98bf4e6262142e31b1fe704497e62659cb4f0d2b0bfb144c61dc64",
+      "size": 2070
     },
     {
       "path": "scripts/verify-deployment.mjs",
@@ -932,8 +957,8 @@
     },
     {
       "path": "staging-database/sql/vacating-release.sql",
-      "sha256": "95e0e2898b9cf04c5858aeee6a86e0888d45424ff5823eb16474bdb73fffa559",
-      "size": 12642
+      "sha256": "4140db73e3467d99b3fac9dc6c591c530929f8ad0ecaf55aa6c0af0dc69477ae",
+      "size": 12639
     },
     {
       "path": "staging-database/sql/vacating-review.sql",
@@ -1167,8 +1192,8 @@
     },
     {
       "path": "staging-database/tests/vacating_release.sql",
-      "sha256": "c55242156eee1745a71c77576cd4fb790c9c8e9c73c177c4ba597098f9c6d487",
-      "size": 8640
+      "sha256": "9915633648d09d20613f19ec840ef95eab4d7e0fc02eecc28e4aefa296bb7760",
+      "size": 8755
     },
     {
       "path": "staging-database/tests/vacating_review.sql",
@@ -1461,6 +1486,11 @@
       "size": 8680
     },
     {
+      "path": "tests/v267-deployment-target.test.mjs",
+      "sha256": "9f2355baeff38b501e31d4382c7f68742a745fb8fdf79d9c26820aaa234d58b6",
+      "size": 3417
+    },
+    {
       "path": "tests/v267-deposit-ledger.e2e.mjs",
       "sha256": "64777daeb2434dc551b3ca008215e38836d2e9211e1aa4b243f73a784e3ff0c0",
       "size": 12363
@@ -1549,6 +1579,11 @@
       "path": "tests/v267-private-files.test.mjs",
       "sha256": "8bf2bf6d438ace2cde118a56e7fe890cf618ad4e2c51f765cae0329864e9b9b9",
       "size": 3919
+    },
+    {
+      "path": "tests/v267-production-preparation.test.mjs",
+      "sha256": "e7a8d6bd794db20f354a51c9f8b04f10560e05fb3c3aed6eefc738c4a07abfcd",
+      "size": 9874
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
@@ -1869,41 +1904,6 @@
       "path": "VERSION.json",
       "sha256": "a8bece4d1f536b2af865a993826f3a683bd7b883501296aee58c3f6fe3b63e4f",
       "size": 2022
-    },
-    {
-      "path": "scripts/verify-deployment-target.mjs",
-      "sha256": "01a17b5dad98bf4e6262142e31b1fe704497e62659cb4f0d2b0bfb144c61dc64",
-      "size": 2070
-    },
-    {
-      "path": "tests/v267-deployment-target.test.mjs",
-      "sha256": "9f2355baeff38b501e31d4382c7f68742a745fb8fdf79d9c26820aaa234d58b6",
-      "size": 3417
-    },
-    {
-      "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "09149bd070eb03c375d1b44909aff8dbb2937ddc8aeb0d130304e980733a2bf7",
-      "size": 7040
-    },
-    {
-      "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "e7a8d6bd794db20f354a51c9f8b04f10560e05fb3c3aed6eefc738c4a07abfcd",
-      "size": 9874
-    },
-    {
-      "path": "config/production-target.json",
-      "sha256": "1bff6d2a9a51962e213a90504455d85e795f225f0e6018a037c219699adb5b98",
-      "size": 113
-    },
-    {
-      "path": "scripts/build-vercel.mjs",
-      "sha256": "589005c344df32ba575b3d233a70543ab40c46d832f59cbf578fd1e1e4d79615",
-      "size": 755
-    },
-    {
-      "path": "docs/V267-DEPLOYMENT-CHECK-2026-09-10.md",
-      "size": 9122,
-      "sha256": "2f085ee1cc67c67a5e640dd23b1be70002a269a6cf6c6fe288f070e7347470b3"
     }
   ],
   "version": "V198"
