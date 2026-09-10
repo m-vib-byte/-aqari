@@ -817,8 +817,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "7cf1f1580cb3293ccb80d4f3e004917b8287130a3b2f9b98f21367ec203783f0",
-      "size": 17287
+      "sha256": "0c23a7432e7a1f3c2cbd814e79b3c5a2bfebc1dce3761f01d57c8f23b6a6d6cf",
+      "size": 17329
     },
     {
       "path": "src/v267/pages/staff-access.js",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "d70cc217a66758f5fd9af9b05750ea0c8eba8244d4b1f06a476d493c4a47fec3",
-      "size": 8680
+      "sha256": "c9f5bf0f6e1138818260ec39c0561b7ee54bfa24e6e2b2656ae584e8e0338a9d",
+      "size": 9836
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
@@ -1867,8 +1867,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "a816a5f590ca5a78495011b3ac596735eb614d1ced37977ebfcf0e7f6d495d21",
-      "size": 41366
+      "sha256": "30178fed5d36f8e3d41f33c1f8ff7cb377e8b5223d014bffeb13e01fddc4fe7d",
+      "size": 41576
     },
     {
       "path": "v267-reset-password.js",

@@ -1,5 +1,10 @@
 (function(root){
 'use strict';
+// The legacy shell and module pages share one runtime and one guarded store.
+if(root.AQARI_RENTAL_RECORDS){
+ if(typeof module!=='undefined'&&module.exports)module.exports=root.AQARI_RENTAL_RECORDS;
+ return;
+}
 const copy=x=>JSON.parse(JSON.stringify(x));
 const fail=message=>{throw new Error(message)};
 const text=x=>String(x??'').normalize('NFKC').trim();

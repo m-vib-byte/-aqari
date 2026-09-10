@@ -1,3 +1,4 @@
+import '../../../v267-rental-records.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {createVerifiedUpload} from '../components/verified-upload.js';

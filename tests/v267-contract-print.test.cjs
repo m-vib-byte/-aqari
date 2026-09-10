@@ -81,3 +81,29 @@ test('print dialog creates no file until verified and clears an old file before 
 test('closing during preparation prevents creation of a late private file',async()=>{
  const f=pageFixture();let resolve;f.state.pending=new Promise(r=>{resolve=r;});f.open();await new Promise(r=>setImmediate(r));f.close();resolve();await f.d.pending;assert.equal(f.links().length,0);assert.equal(f.created.length,0);
 });
+
+test('rental page initializes its runtime on a direct first visit and shares legacy state',()=>{
+ const {spawnSync}=require('node:child_process');
+ for(const legacyFirst of [false,true]){
+  const script=`
+   import assert from 'node:assert/strict';
+   import fs from 'node:fs';
+   import vm from 'node:vm';
+   globalThis.window={document:{}};
+   const source=fs.readFileSync('v267-rental-records.js','utf8');
+   const legacy=()=>vm.runInNewContext(source,{window});
+   if(${legacyFirst})legacy();
+   const previous=window.AQARI_RENTAL_RECORDS;
+   await import('./src/v267/pages/rental-contracts.js');
+   const api=window.AQARI_RENTAL_RECORDS;
+   for(const method of ['primary','saveLease','prepareContractPrint'])assert.equal(typeof api?.[method],'function');
+   if(previous)assert.equal(api,previous);
+   const list=window.loadContractsV55;
+   legacy();
+   assert.equal(window.AQARI_RENTAL_RECORDS,api);
+   assert.equal(window.loadContractsV55,list);
+  `;
+  const result=spawnSync(process.execPath,['--input-type=module','-e',script],{cwd:require('node:path').join(__dirname,'..'),encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);
+ }
+});
