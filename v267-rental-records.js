@@ -9,16 +9,40 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 function date(value){const s=text(value);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s).toISOString().slice(0,10)!==s)fail('أدخل تاريخاً صحيحاً.');return s}
 function amount(value){const s=digits(value).replace('٫','.');if(!/^\d+(\.\d{1,3})?$/.test(s)||!Number.isSafeInteger(Math.round(Number(s)*1000)))fail('أدخل مبلغاً صحيحاً بدقة ثلاثة منازل كحد أقصى.');return Number(s)}
 function profile(input,others=[]){
- const p={};for(const field of ['id','nameAr','nameEn','civilId','phone','email','nationality','address'])p[field]=text(input[field]);
+ const p={};for(const field of ['id','nameAr','nameEn','civilId','passportNo','phone','email','nationality','address'])p[field]=text(input[field]);
  p.civilId=digits(p.civilId);p.phone=digits(p.phone).replace(/[ ()-]/g,'');
  if(!p.id||!p.nameAr||!p.nameEn||!p.nationality||!/^\d{12}$/.test(p.civilId)||!/^\+?\d{8,15}$/.test(p.phone))fail('أكمل الاسم العربي والإنجليزي والجنسية والرقم المدني من ١٢ رقماً والهاتف.');
  if(Object.values(p).some(v=>v.length>300)||p.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))fail('راجع أطوال البيانات والبريد الإلكتروني.');
  if(others.some(x=>x.id!==p.id&&digits(x.civilId)===p.civilId))fail('الرقم المدني مسجل لمستأجر آخر. افتح الملف الموجود.');
  p.attachments=copy(input.attachments||[]);return p;
 }
+// A saved preparation draft is deliberately not a tenant, lease or payment.
+function tenantDraft(input){
+ const p={};for(const field of ['id','nameAr','nameEn','civilId','passportNo','phone','email','nationality','address'])p[field]=text(input[field]);
+ if(!p.id||Object.values(p).some(v=>v.length>300))fail('راجع طول بيانات المسودة.');
+ if(!p.nameAr&&!p.nameEn)fail('أدخل اسماً لتمييز المسودة؛ يمكن استكمال بقية البيانات لاحقاً.');
+ p.civilId=digits(p.civilId);p.phone=digits(p.phone).replace(/[ ()-]/g,'');
+ return p;
+}
 function lease(input,existing,profiles,properties){
- const c=copy(input);c.contract_no=text(c.contract_no);c.property=text(c.property);c.unit=digits(c.unit);c.start_date=date(c.start_date);c.end_date=date(c.end_date);c.rent=amount(c.rent);c.deposit=amount(c.deposit);
+ const c=copy(input);c.contract_no=text(c.contract_no);c.property=text(c.property);c.unit=digits(c.unit);c.start_date=date(c.start_date);c.end_date=date(c.end_date);c.rent=amount(c.rent);c.deposit=amount(c.rentalTermsVersion===1?(text(c.deposit)||0):c.deposit);
  const tenant=profiles.find(p=>p.id===c.tenantId);if(!tenant)fail('احفظ ملف المستأجر الكامل أولاً.');profile(tenant,profiles);
+ if(!text(tenant.passportNo))fail('أكمل رقم الجواز في ملف المستأجر قبل كتابة العقد.');
+ c.floor=text(c.floor);c.accountant=text(c.accountant);c.advance=amount(c.rentalTermsVersion===1?(text(c.advance)||0):c.advance);c.cleaningFee=amount(c.rentalTermsVersion===1?(text(c.cleaningFee)||0):c.cleaningFee);c.discount=amount(c.discount);
+ c.contractRent=amount(c.contractRent??c.rent);c.rent=Number(((Math.round(c.contractRent*1000)-Math.round(c.discount*1000))/1000).toFixed(3));
+ if(c.rentalTermsVersion===1){
+  if(!['مستلم','لم يستلم'].includes(c.contractReceived))fail('اختر حالة استلام العقد.');
+  c.receivedAt=c.contractReceived==='مستلم'?receivedAt(c.receivedAt):'';
+  c.depositReceivedOn=text(c.depositReceivedOn);if(c.depositReceivedOn){date(c.depositReceivedOn);if(c.deposit<=0||c.depositReceivedOn>kuwaitDate())fail('تاريخ استلام التأمين يحتاج مبلغاً موجباً ولا يكون في المستقبل.');}
+  if(typeof c.freeMonthApproved!=='boolean')fail('حدد اعتماد الشهر المجاني.');
+  c.freeMonthPeriod=text(c.freeMonthPeriod);if(c.freeMonthApproved){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(c.freeMonthPeriod)||c.freeMonthPeriod<c.start_date.slice(0,7)||c.freeMonthPeriod>c.end_date.slice(0,7))fail('حدد الشهر المجاني ضمن مدة العقد.');}else c.freeMonthPeriod='';
+  c.rentAdjustments=copy(c.rentAdjustments||[]);let last='';for(const a of c.rentAdjustments){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(a.effectiveMonth)||a.effectiveMonth<=last||a.effectiveMonth<c.start_date.slice(0,7)||a.effectiveMonth>c.end_date.slice(0,7)||!text(a.reason))fail('راجع شهر سريان التعديل وسببه.');a.discount=amount(a.discount);a.rent=Number(((Math.round(c.contractRent*1000)-Math.round(a.discount*1000))/1000).toFixed(3));if(a.rent<=0)fail('الخصم يجب أن يكون أقل من إيجار العقد.');last=a.effectiveMonth;}
+ }else{c.receivedAt=receivedAt(c.receivedAt);c.contractReceived='مستلم';}
+ c.evictionNotice=text(c.evictionNotice);
+ c.writtenOn=date(c.writtenOn);c.detailsVersion=2;
+ if(!c.floor||!c.accountant||c.floor.length>100||c.accountant.length>300||!['لم يُبلّغ','تم التبليغ','غير محدد'].includes(c.evictionNotice))fail('أكمل الدور واسم المحاسب وحالة تبليغ الإخلاء.');
+ const prior=existing.find(x=>String(x.id)===String(c.id));
+ if(prior?.detailsVersion===2&&(Number(prior.contractRent)!==c.contractRent||prior.writtenOn!==c.writtenOn))fail('إيجار العقد عند الكتابة وتاريخ تحريره محفوظان ولا يتغيران بتغيير الخصم.');
  if(!c.id||!c.contract_no||!c.unit||!properties.some(p=>key(p[0])===key(c.property))||c.rent<=0||c.end_date<c.start_date)fail('راجع العقار والوحدة ورقم العقد والإيجار وفترة العقد.');
  if(!['draft','ready','approved','signing','signed','cancelled','expired'].includes(c.status))fail('حالة عقد غير صالحة.');
  for(const old of existing){
@@ -29,8 +53,17 @@ function lease(input,existing,profiles,properties){
   // An incomplete legacy date must not silently permit a second lease.
   if(!start||!end||c.start_date<=end&&c.end_date>=start)fail('يوجد عقد متعارض لهذه الوحدة. راجع العقد الحالي قبل إنشاء عقد آخر.');
  }
- c.tenant=tenant.nameAr;c.tenantProfile=copy(tenant);c.source='v267-cloud';return c;
+ c.tenant=c.rentalTermsVersion===1&&prior?prior.tenant:tenant.nameAr;c.tenantProfile=copy(c.rentalTermsVersion===1&&prior?prior.tenantProfile:tenant);c.source='v267-cloud';return c;
 }
+function receivedAt(value){
+ const s=digits(value);const match=/^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?(?:\+03:00)?$/.exec(s);
+ if(!match)fail('أدخل تاريخ ووقت استلام العقد بتوقيت الكويت.');date(match[1]);
+ const result=match[1]+'T'+match[2]+':'+match[3]+':'+(match[4]||'00')+'+03:00';
+ if(Date.parse(result)>Date.now())fail('وقت استلام العقد لا يمكن أن يكون في المستقبل.');return result;
+}
+function kuwaitDate(now=new Date()){return new Date(now.getTime()+3*60*60*1000).toISOString().slice(0,10)}
+function effectiveRent(c,period,includeFree=true){if(c.rentalTermsVersion===1){if(includeFree&&c.freeMonthApproved&&c.freeMonthPeriod===period)return 0;const a=(c.rentAdjustments||[]).filter(a=>a.effectiveMonth<=period).at(-1);if(a)return amount(a.rent);}return amount(c.rent);}
+function directoryFields(c,p){return {tenant:p.nameAr,nameAr:p.nameAr,nameEn:p.nameEn,phone:p.phone,nationality:p.nationality,civilId:p.civilId,passportNo:p.passportNo,email:p.email,floor:c.floor,contractStartRaw:c.start_date,contractEndRaw:c.end_date,insurance:c.deposit,insuranceDateRaw:c.depositReceivedOn||'',freeMonth:c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'',advance:c.advance,cleaningFee:c.cleaningFee,currentRent:effectiveRent(c,kuwaitDate().slice(0,7),false),contractReceived:c.contractReceived,receivedAt:c.receivedAt,accountant:c.accountant,evictionNotice:c.evictionNotice};}
 function primary(payload){
  const p=payload?.format==='aqari-cloud-state-v1'?payload.snapshot?.values?.aqari_v30:payload?.schema==='aqari-local-snapshot-v1'?payload.values?.aqari_v30:payload;
  if(!p||typeof p!=='object'||Array.isArray(p))fail('تعذرت قراءة بيانات مساحة العمل.');return p;
@@ -55,7 +88,7 @@ function createStore(options){
   finally{busy=false}
  },get busy(){return busy}};
 }
-const api={profile,lease,primary,createStore,date,amount,key};
+const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields,effectiveRent};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.AQARI_RENTAL_RECORDS=api;
 if(!root.document)return;
@@ -72,8 +105,34 @@ const store=createStore({scope,local:data,load:s=>bounded(()=>root.AQARI_SUPABAS
 const esc=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const byId=id=>document.getElementById(id);
 const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]:null;
-function contractMarkup(c,count){
- return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy"><p>AQARI V267 • نسخة '+(i+1)+' من '+count+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2><p>حالة العقد: '+esc(({draft:'مسودة',ready:'جاهز للمراجعة',approved:'مراجع',signing:'بانتظار التوقيع',signed:'موقّع',cancelled:'ملغى',expired:'منتهي'})[c.status]||c.status)+'</p><h3>'+esc(c.property)+' — الوحدة '+esc(c.unit)+'</h3><p>المستأجر: '+esc(c.tenant)+' / '+esc(c.tenantProfile?.nameEn)+'</p><p>الرقم المدني: '+esc(c.tenantProfile?.civilId)+' • الهاتف: '+esc(c.tenantProfile?.phone)+'</p><p>الجنسية: '+esc(c.tenantProfile?.nationality)+'</p><p>الإيجار الشهري: '+esc(c.rent)+' د.ك • التأمين: '+esc(c.deposit)+' د.ك</p><p>من '+esc(c.start_date)+' إلى '+esc(c.end_date)+'</p>'+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p></article>').join('');
+const draftNotice='<p class="v267-draft-notice" style="border:2px solid currentColor;padding:12px;font-weight:700;text-align:center">مسودة للمراجعة — غير صالحة للتوقيع<br>DRAFT — NOT FOR SIGNATURE</p>';
+function contractMarkup(c,count){return renderContract(c,count,false);}
+function renderContract(c,count,official,firstCopy=1,total=count){
+ if(![1,2].includes(count))fail('اختر نسخة واحدة أو نسختين.');
+ const p=c.tenantProfile||{};
+ const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['الخصم',c.discount],['الإيجار الحالي بعد الخصم',effectiveRent(c,kuwaitDate().slice(0,7),false)],['التأمين',c.deposit],['تاريخ استلام التأمين',c.depositReceivedOn||'لم يستلم / غير مدون'],['شهر مجاني معتمد',c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'غير مدون'],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
+ return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<p>حُرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+firstCopy)+' من '+total+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+(official?'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p>':draftNotice)+'</article>').join('');
+}
+function contractAnnexMarkup(c){return renderAnnex(c,false);}
+function renderAnnex(c,official){
+ const p=c.tenantProfile||{};const rows=[['رقم العقد / Contract',c.contract_no],['اسم المستأجر بالعربي',p.nameAr||c.tenant],['Tenant full name in English',p.nameEn],['العقار / Property',c.property],['الوحدة / Unit',c.unit],['الدور / Floor',c.floor],['الإيجار الأصلي / Original rent',c.contractRent??c.rent],['الشهر المجاني المعتمد / Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا']];
+ return '<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<h2>ملحق بيانات عقد الإيجار / Rental contract annex</h2>'+rows.map(([k,v])=>'<p><b>'+esc(k)+':</b> <bdi>'+esc(v??'غير مدون')+'</bdi></p>').join('')+'<h3>تعديلات الخصم المؤرخة / Dated rent adjustments</h3>'+(c.rentAdjustments||[]).map(a=>'<p><bdi dir="ltr">'+esc(a.effectiveMonth)+'</bdi> — الخصم / Discount: '+esc(a.discount)+' — الإيجار / Rent: '+esc(a.rent)+' د.ك<br>'+esc(a.reason)+'</p>').join('')+(official?'<p>توقيع المؤجر / Lessor: ____________________</p><p>توقيع المستأجر / Tenant: ____________________</p>':draftNotice)+'</article>';
+}
+async function prepareContractPrint(id,count=1,mode='official'){
+ if(![1,2].includes(count)||!['official','draft'].includes(mode)||!text(id))fail('طلب طباعة غير صالح.');
+ const bound=scope(),role=root.AQARI_SUPABASE?.context?.membership?.role;
+ if(!bound)fail('صلاحية قراءة العقد غير متاحة.');
+ const saved=await bounded(()=>root.AQARI_SUPABASE.loadAppState({...bound,role}));
+ if(!same(bound,scope())||role!==root.AQARI_SUPABASE?.context?.membership?.role)fail('تغيّرت جلسة الدخول. أعد فتح العقد.');
+ if(saved?.workspace_id!==bound.workspaceId)fail('تعذرت قراءة العقد من مساحة العمل الحالية.');
+ const matches=(primary(saved.payload).contractsV202||[]).filter(c=>String(c.id)===String(id));
+ if(matches.length!==1||matches[0].source!=='v267-cloud')fail('العقد المحفوظ غير متاح للطباعة.');
+ const c=copy(matches[0]),official=mode==='official';
+ if(official&&!['approved','signing','signed'].includes(c.status))fail('اعتماد المدير العام مطلوب قبل الطباعة الرسمية. استخدم مسودة المراجعة.');
+ const markup=Array.from({length:count},(_,i)=>'<section data-contract-set="'+(i+1)+'">'+renderContract(c,1,official,i+1,count)+renderAnnex(c,official)+'</section>').join('');
+ const title=(official?'عقد إيجار معتمد ':'مسودة عقد إيجار ')+c.contract_no;
+ const html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title><style>body{font:15px/1.7 system-ui;margin:22px;overflow-wrap:anywhere}.v267-contract-copy{break-after:page}section:last-child article:last-child{break-after:auto}.v267-draft-notice{break-inside:avoid}</style></head><body>'+markup+'</body></html>';
+ return {title,html,mode,count,contractId:String(c.id),revision:saved.revision};
 }
 function preview(c){
  if(!scope())return false;
@@ -86,39 +145,63 @@ function preview(c){
   return true;
  }
  target.innerHTML=contractMarkup(c,1);
- for(const [count,label]of [[1,'عرض وطباعة نسخة'],[2,'توليد نسختين من نفس العقد']]){
-  const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=()=>{
-   const saved=(data().contractsV202||[]).find(x=>String(x.id)===String(c.id));
-   if(!scope()||!saved)return window.alert('احفظ العقد في السحابة أولاً.');
-   root.AQARI_V202?.showContractCopies(saved.id,count,contractMarkup(saved,count));
+ for(const [count,mode,label]of [[1,'draft','مسودة للمراجعة فقط'],[1,'official','طباعة نسخة معتمدة'],[2,'official','طباعة نسختين معتمدتين مع الملاحق']]){
+  const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=async()=>{
+   if(button.disabled)return;button.disabled=true;
+   try{await root.AQARI_V202?.showContractCopies(c.id,count,mode);}catch(_){if(scope())root.alert('تعذر فتح الطباعة. أعد فتح العقد وحاول مجدداً.');}finally{button.disabled=false;}
   };target.appendChild(button);
  }
  if(c.status==='draft'){const b=document.createElement('button');b.type='button';b.textContent='جاهز للمراجعة';b.onclick=()=>status(c.id,'ready');target.appendChild(b)}
  return true;
 }
-const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — اختياري','email'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
+const fields=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم بالإنجليزي','text'],['civilId','الرقم المدني','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني — إن وجد','email'],['passportNo','رقم الجواز — إلزامي للعقد','text'],['nationality','الجنسية','text'],['address','العنوان — اختياري','text']];
 const attachmentKinds=[['civilFront','البطاقة المدنية — الوجه'],['civilBack','البطاقة المدنية — الخلف'],['marriage','عقد الزواج'],['extra','مرفقات إضافية']];
-async function upload(file,kind,tenantId,bound){
- const types=['application/pdf','image/jpeg','image/png','image/webp','image/heic','image/heif','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
- if(!types.includes(file.type)||file.size<=0||file.size>25*1024*1024)fail('المرفق يجب أن يكون صورة أو PDF أو Word وألا يتجاوز ٢٥ ميجابايت.');
- const check=()=>{if(!same(bound,scope()))fail('تغيّرت جلسة الدخول أثناء الرفع.');};check();
- const client=await root.AQARI_SUPABASE.getClient();check();
- const reserved=await bounded(()=>client.rpc('aqari_reserve_document',{p_workspace_id:bound.workspaceId,p_document_type:'tenant_attachment',p_entity_type:'tenant',p_entity_ref:tenantId,p_title:kind,p_original_filename:file.name,p_mime_type:file.type,p_metadata:{release:'V267',tenantProfileId:tenantId,attachmentKind:kind}}));check();if(reserved.error)throw reserved.error;
- const doc=Array.isArray(reserved.data)?reserved.data[0]:reserved.data;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path.startsWith(bound.workspaceId+'/'))fail('تعذر حجز المرفق.');
- const uploaded=await bounded(()=>client.storage.from(doc.storage_bucket).upload(doc.storage_path,file,{contentType:file.type,upsert:false}));check();if(uploaded.error)throw uploaded.error;
- const finalized=await bounded(()=>client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:file.size,p_mime_type:file.type}));check();if(finalized.error)throw finalized.error;
- return {id:doc.document_id,bucket:doc.storage_bucket,path:doc.storage_path,name:file.name,kind,size:file.size};
-}
-function openTenant(index){
+
+function openTenant(index,draftId){
  if(!scope())return false;
  let row=Number.isInteger(index)?data().tenants?.[index]:null;
  const existing=(data().tenantProfilesV267||[]).find(p=>p.id===profileRef(row));
- const p=copy(existing||{id:crypto.randomUUID(),nameAr:row?.[0]||'',attachments:[]});
+ const savedDraft=(data().tenantPreparationDraftsV267||[]).find(x=>x.id===(existing?.id||draftId));
+ const p={...copy(existing||{id:crypto.randomUUID(),nameAr:row?.[0]||'',attachments:[]}),...copy(savedDraft||{})};
+ if(existing?.source==='statement-import'){
+  import('./src/v267/pages/imported-tenant.js').then(m=>m.openImportedTenant({ref:p.id,draft:savedDraft,
+   onDraft:async values=>{const pending=tenantDraft(values);await store.change(['tenantPreparationDraftsV267','audit'],cloud=>{cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==pending.id).concat([pending]);cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ مسودة بيانات مستأجر',pending.id,new Date().toISOString()]]);return pending;},(cloud,saved)=>(cloud.tenantPreparationDraftsV267||[]).some(x=>same(x,saved)));},
+   onSaved:async()=>{const bound=scope();if(!bound)fail('انتهت الجلسة.');const cloud=await bounded(()=>root.AQARI_SUPABASE.loadAppState(bound));if(!same(bound,scope()))fail('تغيّرت الجلسة.');const confirmed=primary(cloud.payload);for(const key of ['tenants','tenantProfilesV267','tenantDirectoryV202','tenantPreparationDraftsV267'])data()[key]=copy(confirmed[key]||[]);try{if(typeof persist==='function')persist()}catch(_){}if(typeof render==='function')render();}
+  })).catch(()=>window.alert('تعذر فتح ملف المستأجر المستورد. حدّث الصفحة وأعد المحاولة.'));
+  return true;
+ }
  const modal=byId('modal');byId('mt').textContent='ملف المستأجر • AQARI V267';
  byId('fields').innerHTML='<div class="v267-tenant-form">'+fields.map(([k,label,type])=>'<label>'+label+'<input id="v267Tenant_'+k+'" type="'+type+'" value="'+esc(p[k])+'" '+(k==='civilId'?'inputmode="numeric" maxlength="12"':'')+' autocomplete="off"></label>').join('')+attachmentKinds.map(([k,label])=>'<label>'+label+'<input id="v267File_'+k+'" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" '+(k==='extra'?'multiple':'')+'></label>').join('')+'<div id="v267TenantAttachments"></div><p id="v267TenantStatus" role="status" aria-live="polite"></p></div>';
  const list=byId('v267TenantAttachments');
  for(const a of p.attachments){const b=document.createElement('button');b.type='button';b.textContent='عرض '+a.name;b.onclick=async()=>{try{const s=scope();if(!s||!a.path.startsWith(s.workspaceId+'/'))return;const client=await root.AQARI_SUPABASE.getClient();const r=await bounded(()=>client.storage.from(a.bucket).createSignedUrl(a.path,60));if(r.error)throw r.error;if(same(s,scope())&&r.data?.signedUrl){const link=document.createElement('a');link.href=r.data.signedUrl;link.target='_blank';link.rel='noopener';link.textContent='فتح '+a.name;byId('v267TenantStatus').replaceChildren(link)}}catch(_){byId('v267TenantStatus').textContent='تعذر فتح المرفق.'}};list.appendChild(b)}
- let saving=false;const uploadedFiles=new Map();
+ let saving=false,uploadAttachment;const uploadedFiles=new WeakMap();
+ if(root.AQARI_SUPABASE?.context?.membership?.role==='general_manager'){
+  const note=document.createElement('p');note.textContent='يمكن حفظ مسودة ناقصة واستكمالها لاحقاً. المسودة لا تصدر عقداً أو وصلاً، ولا تحفظ المرفقات حتى اكتمال الملف.';
+  const draftButton=document.createElement('button');draftButton.type='button';draftButton.textContent='حفظ مسودة واستكمال لاحقاً';
+  draftButton.onclick=async()=>{
+   if(saving)return;saving=true;draftButton.disabled=true;byId('saveBtn').disabled=true;
+   const status=byId('v267TenantStatus');
+   try{
+    if(root.AQARI_SUPABASE?.context?.membership?.role!=='general_manager')fail('صلاحية المدير مطلوبة.');
+    const values={id:p.id};for(const [k]of fields)values[k]=byId('v267Tenant_'+k).value;
+    const pending=tenantDraft(values);status.textContent='جاري حفظ المسودة والتحقق منها…';
+    await store.change(['tenantPreparationDraftsV267','audit'],cloud=>{
+     cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==pending.id).concat([pending]);
+     cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ مسودة بيانات مستأجر',pending.id,new Date().toISOString()]]);return pending;
+    },(cloud,saved)=>(cloud.tenantPreparationDraftsV267||[]).some(x=>same(x,saved)));
+    status.textContent='تم حفظ المسودة في السحابة. يمكنك إغلاقها والعودة لاستكمالها. المرفقات المختارة لم تُرفع.';
+   }catch(e){status.textContent=e.message||'تعذر تأكيد حفظ المسودة.'}finally{saving=false;draftButton.disabled=false;byId('saveBtn').disabled=false;}
+  };
+  byId('fields').append(note,draftButton);
+  if(!row){
+   const drafts=data().tenantPreparationDraftsV267||[];
+   if(drafts.length){const select=document.createElement('select');select.setAttribute('aria-label','استكمال مسودة مستأجر');const empty=document.createElement('option');empty.value='';empty.textContent='استكمال مسودة محفوظة…';select.append(empty);
+    for(const draft of drafts){if((data().tenantProfilesV267||[]).some(x=>x.id===draft.id))continue;const option=document.createElement('option');option.value=draft.id;option.textContent=draft.nameAr||draft.nameEn;select.append(option);}
+    select.onchange=()=>{if(!saving&&select.value)openTenant(undefined,select.value);};byId('fields').prepend(select);
+   }
+  }
+ }
+
  byId('saveBtn').onclick=async()=>{
   if(saving)return;saving=true;const button=byId('saveBtn'),status=byId('v267TenantStatus'),bound=scope();button.disabled=true;
   try{
@@ -128,10 +211,12 @@ function openTenant(index){
    if(uploads.length>12)fail('يمكن رفع ١٢ مرفقاً في العملية الواحدة.');
    status.textContent='جاري حفظ ملف المستأجر والتحقق منه قبل رفع المرفقات…';
    if(!same(bound,scope()))fail('تغيّرت جلسة الدخول. أعد فتح الملف.');
-   await store.change(['tenants','tenantProfilesV267','tenantDirectoryV202','audit'],cloud=>{
+   await store.change(['tenants','tenantProfilesV267','tenantDirectoryV202','audit',...(root.AQARI_SUPABASE?.context?.membership?.role==='general_manager'?['tenantPreparationDraftsV267']:[])],cloud=>{
     const profiles=cloud.tenantProfilesV267||[];const next=profile(p,profiles),at=profiles.findIndex(x=>x.id===p.id);
     if((cloud.tenantDirectoryV202||[]).some(x=>digits(x.civilId)===next.civilId&&key(x.tenant)!==key(next.nameAr)))fail('الرقم المدني مرتبط باسم مستأجر آخر في سجل الوحدات. راجع الملف الموجود.');
     if(at<0)profiles.push(next);else profiles[at]=next;cloud.tenantProfilesV267=profiles;
+    cloud.tenantDirectoryV202=(cloud.tenantDirectoryV202||[]).map(x=>x.tenantProfileId===next.id?{...x,nameAr:next.nameAr,nameEn:next.nameEn,phone:next.phone,email:next.email,passportNo:next.passportNo,civilId:next.civilId,nationality:next.nationality}:x);
+    if(root.AQARI_SUPABASE?.context?.membership?.role==='general_manager')cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==p.id);
     const rows=cloud.tenants||[];const original=Number.isInteger(index)?rows[index]:null;
     if(row&&!same(row,original))fail('تغيّر سجل المستأجر. حدّث الصفحة.');
     if(original){const updated=copy(original);updated[0]=next.nameAr;if(!updated[4])updated[4]=next.id;else if(profileRef(updated)!==next.id)updated.push({aqariTenantProfileV267:next.id});rows[index]=updated;}else rows.push([next.nameAr,'','','نشط',next.id]);cloud.tenants=rows;
@@ -139,7 +224,16 @@ function openTenant(index){
    },(cloud,saved)=>(cloud.tenantProfilesV267||[]).some(x=>same(x,saved))&&(cloud.tenants||[]).some(x=>profileRef(x)===saved.id));
    index=(data().tenants||[]).findIndex(x=>profileRef(x)===p.id);row=copy(data().tenants[index]);
    status.textContent='تم حفظ المستأجر. جاري رفع المرفقات إلى ملفه المحفوظ…';
-   for(const {kind,file}of uploads){if(uploadedFiles.has(file))continue;const attachment=await upload(file,kind,p.id,bound);p.attachments.push(attachment);uploadedFiles.set(file,attachment);}
+   if(uploads.length&&!uploadAttachment){
+    const {createTenantAttachmentUploader}=await import('./src/v267/components/tenant-attachment-upload.js');
+    const check=()=>{if(!same(bound,scope()))fail('تغيّرت جلسة الدخول أثناء الرفع.');};check();
+    uploadAttachment=createTenantAttachmentUploader({getClient:()=>root.AQARI_SUPABASE.getClient(),check,bounded,workspaceId:bound.workspaceId,userId:bound.userId});
+   }
+   for(const {kind,file}of uploads){
+    let kinds=uploadedFiles.get(file);if(kinds?.has(kind))continue;
+    const attachment=await uploadAttachment(file,kind,p.id);p.attachments.push(attachment);
+    if(!kinds){kinds=new Set();uploadedFiles.set(file,kinds);}kinds.add(kind);
+   }
    if(uploads.length)await store.change(['tenantProfilesV267'],cloud=>{
     const saved=(cloud.tenantProfilesV267||[]).find(x=>x.id===p.id);if(!saved)fail('تعذر العثور على ملف المستأجر المحفوظ.');
     const known=new Set((saved.attachments||[]).map(x=>x.id));
@@ -188,9 +282,9 @@ async function saveLease(input){
   if(i<0)old.push(c);else old[i]=c;cloud.contractsV202=old;
   const p=profiles.find(x=>x.id===c.tenantId);
   const directory=(cloud.tenantDirectoryV202||[]).filter(x=>x.contractNo!==c.contract_no);
-  directory.push({property:c.property,unit:c.unit,tenant:p.nameAr,contractNo:c.contract_no,phone:p.phone,nationality:p.nationality,civilId:p.civilId,email:p.email,source:'v267-cloud',verified:c.status==='signed',tenantProfileId:p.id});cloud.tenantDirectoryV202=directory;
+  directory.push({property:c.property,unit:c.unit,...directoryFields(c,p),contractNo:c.contract_no,source:'v267-cloud',verified:c.status==='signed',tenantProfileId:p.id});cloud.tenantDirectoryV202=directory;
   const leases=(cloud.leases||[]).filter(x=>x[4]!==c.id);leases.push([c.tenant,c.unit,c.rent,c.end_date,c.id]);cloud.leases=leases;
-  cloud.audit=(cloud.audit||[]).concat([['المدير','حفظ عقد '+c.status,c.contract_no,new Date().toISOString()]]);return c;
+  cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ عقد '+c.status,c.contract_no,new Date().toISOString()]]);return c;
  },(cloud,c)=>(cloud.contractsV202||[]).some(x=>same(x,c)));
  if(typeof loadContractsV55==='function')loadContractsV55();if(typeof renderWorkflowV56==='function')renderWorkflowV56();return saved;
 }
@@ -200,7 +294,7 @@ async function generate(){
   if(!tenant||!property)fail('اختر المستأجر والعقار.');
   const id=Date.now()*1024+crypto.getRandomValues(new Uint16Array(1))[0]%1024;
   notice.textContent='جاري حفظ العقد والتحقق منه…';
-  const c=await saveLease({id,contract_no:'AQ-LEASE-'+id,tenantId:profileRef(tenant),property:property[0],unit:byId('contractUnitV55').value,rent:byId('contractRentV55').value,deposit:byId('contractDepositV55').value||'0',start_date:byId('contractStartV55').value,end_date:byId('contractEndV55').value,language:byId('contractLangV55').value,status:'draft',clauses:typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[]});
+  const c=await saveLease({id,contract_no:byId('contractNumberV267').value,tenantId:profileRef(tenant),property:property[0],unit:byId('contractUnitV55').value,rent:byId('contractRentV55').value,deposit:byId('contractDepositV55').value,floor:byId('contractFloorV267').value,advance:byId('contractAdvanceV267').value,cleaningFee:byId('contractCleaningV267').value,discount:byId('contractDiscountV267').value,receivedAt:byId('contractReceivedV267').value,writtenOn:kuwaitDate(),accountant:byId('contractAccountantV267').value,evictionNotice:byId('contractEvictionV267').value,start_date:byId('contractStartV55').value,end_date:byId('contractEndV55').value,language:byId('contractLangV55').value,status:'draft',clauses:typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[]});
   notice.textContent='تم حفظ المسودة والتحقق من وجودها في السحابة. أكمل دورة التوقيع قبل التحصيل.';root.previewContractV55(c);
  }catch(e){notice.textContent=e.message||'تعذر حفظ العقد.'}
 }
@@ -212,7 +306,17 @@ async function status(id,next){
   const saved=await saveLease({...c,status:next});root.previewContractV55(saved);notice.textContent='تم حفظ حالة العقد والتحقق منها.';
  }catch(e){if(notice)notice.textContent=e.message;else window.alert(e.message)}
 }
+function installContractFields(){
+ const tenant=byId('contractTenantV55'),form=tenant?.parentElement;if(!form||byId('contractNumberV267'))return;
+ for(const [id,label]of [['contractTenantV55','المستأجر'],['contractPropertyV55','العقار'],['contractUnitV55','رقم الوحدة'],['contractRentV55','قيمة الإيجار عند كتابة العقد'],['contractDepositV55','مبلغ التأمين'],['contractStartV55','بداية العقد'],['contractEndV55','نهاية العقد']]){const input=byId(id);if(!input)continue;input.required=true;input.setAttribute('aria-label',label);const wrap=document.createElement('label');wrap.textContent=label;input.before(wrap);wrap.append(input);}
+ for(const [id,label,type]of [['contractNumberV267','رقم العقد','text'],['contractFloorV267','الدور','text'],['contractAdvanceV267','العربون — أدخل صفر إن لم يوجد','text'],['contractCleaningV267','رسوم النظافة — أدخل صفر إن لم توجد','text'],['contractDiscountV267','الخصم — أدخل صفر إن لم يوجد','text'],['contractReceivedV267','تاريخ ووقت استلام المستأجر للعقد — توقيت الكويت','datetime-local'],['contractAccountantV267','اسم المحاسب المسؤول','text']]){const wrap=document.createElement('label'),input=document.createElement('input');wrap.textContent=label;input.id=id;input.type=type;input.required=true;input.setAttribute('aria-label',label);input.maxLength=300;wrap.append(input);form.append(wrap);}
+ const label=document.createElement('label');label.textContent='حالة تبليغ الإخلاء';const eviction=document.createElement('select');eviction.id='contractEvictionV267';eviction.setAttribute('aria-label',label.textContent);for(const value of ['غير محدد','لم يُبلّغ','تم التبليغ']){const option=document.createElement('option');option.textContent=option.value=value;eviction.append(option);}label.append(eviction);form.append(label);
+ const summary=document.createElement('div');summary.id='contractTenantDetailsV267';summary.setAttribute('role','status');form.after(summary);
+ const update=()=>{if(!scope()){summary.replaceChildren();return;}const index=Number(tenant.value),row=data().tenants?.[index],p=(data().tenantProfilesV267||[]).find(x=>x.id===profileRef(row));summary.replaceChildren();const textNode=document.createElement('p');textNode.textContent=p?fields.map(([k,label])=>label+': '+(p[k]||'غير مكتمل')).join(' • '):'اختر ملف مستأجر محفوظاً.';summary.append(textNode);if(p){const button=document.createElement('button');button.type='button';button.textContent='استكمال بيانات المستأجر';button.onclick=()=>openTenant(index);summary.append(button);}};
+ tenant.addEventListener('change',update);root.addEventListener('aqari:auth-boundary',()=>{if(!scope()){summary.replaceChildren();for(const input of form.querySelectorAll('input'))input.value='';}});update();
+}
 function loadSavedContracts(){
+ installContractFields();
  const body=byId('contractRowsV55');if(!body)return;
  body.replaceChildren();if(!scope())return;
  const contracts=data().contractsV202||[];
@@ -227,8 +331,8 @@ function loadSavedContracts(){
 }
 const legacyLoadContracts=root.loadContractsV55;
 root.loadContractsV55=function(){
- if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://djkpkkgoibruaezdrchb.supabase.co')return loadSavedContracts();
+ if(root.AQARI_PUBLIC_CONFIG?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co')return loadSavedContracts();
  return legacyLoadContracts?.apply(this,arguments);
 };
-Object.assign(api,{openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
+Object.assign(api,{defaultClauses:()=>typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[],contractMarkup,contractAnnexMarkup,prepareContractPrint,openTenant,openRecord,generate,status,saveLease,preview,loadSavedContracts});
 })(typeof window!=='undefined'?window:globalThis);

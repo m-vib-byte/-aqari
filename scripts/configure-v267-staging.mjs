@@ -1,9 +1,9 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
-const PRODUCTION='qtavnufzbkdfeauyukot';
+const PROTECTED_PROJECTS=new Set(['qtavnufzbkdfeauyukot','djkpkkgoibruaezdrchb']);
 export function stageConfiguration({url,publishableKey},existing){
  const match=String(url).match(/^https:\/\/([a-z0-9]{20})\.supabase\.co\/?$/);
- if(!match||match[1]===PRODUCTION)throw Error('ISOLATED_STAGING_PROJECT_REQUIRED');
+ if(!match||PROTECTED_PROJECTS.has(match[1]))throw Error('ISOLATED_STAGING_PROJECT_REQUIRED');
  if(!/^sb_publishable_[A-Za-z0-9_-]+$/.test(String(publishableKey)))throw Error('PUBLISHABLE_KEY_REQUIRED');
  if(!existing.includes("export const PRODUCT_VERSION = 'V267'"))throw Error('V267_ONLY');
  if((existing.match(/url: '[^']+'/g)||[]).length!==1||(existing.match(/publishableKey: '[^']+'/g)||[]).length!==1||(existing.match(/export const RELEASE_STAGE = '[^']+'/g)||[]).length!==1)throw Error('CONFIG_LAYOUT_CHANGED');

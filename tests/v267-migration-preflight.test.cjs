@@ -1,6 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const api=import('../lib/v267/migration-preflight.js');
 const config=import('../scripts/configure-v267-staging.mjs');
+test('staging generator also rejects the database currently shared with the live domain',async()=>{
+ const {stageConfiguration}=await config;
+ for(const slash of ['','/'])assert.throws(()=>stageConfiguration({url:'https://djkpkkgoibruaezdrchb.supabase.co'+slash,publishableKey:'sb_publishable_TEST'},"export const PRODUCT_VERSION = 'V267';"),/ISOLATED/);
+});
 function fixture(){return {properties:[['عقار اختبار']],tenantProfilesV267:[{id:'t1',nameAr:'شخص اختبار',civilId:'123456789012',phone:'55550000'}],contractsV202:[{id:'c1',contract_no:'L1',property:'عقار اختبار',unit:'1',tenant:'شخص اختبار',tenantId:'t1',rent:100,start_date:'2026-01-01',end_date:'2026-12-31',status:'signed',source:'v267-cloud'}],tenantDirectoryV202:[{contractNo:'L1',property:'عقار اختبار',unit:'1',tenant:'شخص اختبار',civilId:'123456789012',phone:'55550000',verified:true}],rentLedgerV202:[],collections:[]}}
 test('preflight is read-only, deterministic and excludes personal fields from report',async()=>{const {migrationPreflight}=await api;const f=fixture(),before=JSON.stringify(f),r=migrationPreflight(f);assert.equal(JSON.stringify(f),before);assert.equal(r.canMigrate,true);assert.deepEqual(r,migrationPreflight(f));assert.ok(!JSON.stringify(r).includes('123456789012'));});
 test('protected signed import cannot silently become an operational lease',async()=>{const {migrationPreflight}=await api;const f=fixture();f.contractsV202[0].source='protected-rent-import-v202';f.tenantDirectoryV202[0].verified=false;const r=migrationPreflight(f);assert.equal(r.canMigrate,false);assert.equal(r.issueCounts.IMPORTED_REQUIRES_REVIEW,1);assert.equal(r.issueCounts.IDENTITY_REQUIRES_REVIEW,1);});

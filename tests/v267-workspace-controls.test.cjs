@@ -29,12 +29,29 @@ test('document content digest detects changed bytes',async()=>{
 });
 function context(){
  global.document={documentElement:{classList:{contains:()=>true}}};
- global.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://djkpkkgoibruaezdrchb.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}},getClient:async()=>({})}};
+ global.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}},getClient:async()=>({})}};
 }
 test('session rejects production configuration and a mismatched workspace',async()=>{
  context();const {currentScope}=await moduleAt('api/session.js');assert.equal(currentScope().workspace,'w');
- window.AQARI_PUBLIC_CONFIG.supabaseUrl='https://example.invalid';assert.throws(currentScope);
+ for(const url of ['https://example.invalid','https://djkpkkgoibruaezdrchb.supabase.co','https://qtavnufzbkdfeauyukot.supabase.co']){
+  window.AQARI_PUBLIC_CONFIG.supabaseUrl=url;assert.throws(currentScope,/المعاينة المستقلة/);
+ }
  context();window.AQARI_DATA_GATE.scope.workspaceId='other';assert.throws(currentScope);
+});
+test('document requests use only the isolated database and stop before fetching if configuration changes',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');const s=createSession();const requests=[];
+ window.AQARI_PUBLIC_CONFIG.supabasePublishableKey='sb_publishable_test';
+ window.AQARI_SUPABASE.getSession=async()=>({access_token:'synthetic-token',user:{id:'u'}});
+ t.mock.method(global,'fetch',async(url,options)=>{requests.push({url,options});return {ok:true,blob:async()=>new Blob(['fixture'])};});
+ try{
+  assert.equal(await (await s.storage('GET','w/document.pdf')).text(),'fixture');
+  assert.equal(requests.length,1);
+  assert.equal(requests[0].url,'https://ofgmcsmxmdswlovsckqs.supabase.co/storage/v1/object/authenticated/aqari-documents/w/document.pdf');
+  assert.equal(requests[0].options.headers.apikey,'sb_publishable_test');
+  window.AQARI_PUBLIC_CONFIG.supabaseUrl='https://djkpkkgoibruaezdrchb.supabase.co';
+  await assert.rejects(s.storage('GET','w/document.pdf'),/المعاينة المستقلة/);
+  assert.equal(requests.length,1);
+ }finally{s.close();}
 });
 test('closing a page aborts in-flight requests',async()=>{
  context();const {createSession}=await moduleAt('api/session.js');const s=createSession();let signal;
@@ -56,4 +73,46 @@ test('backend errors never expose raw provider messages',async()=>{
  const {safeError}=await moduleAt('api/session.js');
  assert.ok(!safeError(Error('upstream secret_value')).includes('secret_value'));
  assert.match(safeError(Error('ACCESS_DENIED')),/صلاحية/);
+});
+test('request errors retain authoritative HTTP status and database code without modifying the SDK error',async()=>{
+ context();const {createSession,safeError}=await moduleAt('api/session.js');const s=createSession();
+ const raw=Object.freeze({message:'private provider detail',code:'42501',status:500});
+ try{
+  await assert.rejects(s.request({abortSignal:async()=>({error:raw,status:403,data:null})}),error=>{
+   assert.equal(error.status,403);assert.equal(error.code,'42501');assert.equal(error.message,raw.message);assert.doesNotMatch(safeError(error),/private provider detail/);return true;
+  });
+  assert.equal(raw.status,500);assert.equal(await s.request({abortSignal:async()=>({data:'fresh read',status:200})}),'fresh read');
+ }finally{s.close();}
+});
+
+test('initial client connection times out and a late resolution cannot replace the retry client',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+ const s=createSession();let finish;window.AQARI_SUPABASE.getClient=()=>new Promise(resolve=>finish=resolve);
+ const pending=s.connect(),rejected=assert.rejects(pending,/انتهت مهلة الاتصال/);
+ await Promise.resolve();t.mock.timers.tick(20000);await rejected;
+ const retryClient={fresh:true};window.AQARI_SUPABASE.getClient=async()=>retryClient;
+ assert.equal(await s.connect(),retryClient);finish({stale:true});await Promise.resolve();await Promise.resolve();
+ assert.equal(s.client,retryClient);s.close();
+});
+
+test('closing the dialog interrupts client setup even when the provider never resolves',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+ const s=createSession();window.AQARI_SUPABASE.getClient=()=>new Promise(()=>{});
+ const pending=s.connect();let outcome='pending';pending.then(()=>outcome='resolved',()=>outcome='rejected');
+ s.close();for(let n=0;n<8;n++)await Promise.resolve();
+ assert.equal(outcome,'rejected','close must settle setup without waiting for the connection deadline');
+ await assert.rejects(pending,/جلسة/);assert.equal(s.client,undefined);
+});
+
+test('changed account during client setup rejects the candidate without retaining it',async()=>{
+ context();const {createSession}=await moduleAt('api/session.js');const s=createSession();let finish;
+ window.AQARI_SUPABASE.getClient=()=>new Promise(resolve=>finish=resolve);
+ const pending=s.connect();await Promise.resolve();window.AQARI_SUPABASE.context.user.id='another';finish({private:'discard'});
+ await assert.rejects(pending,/جلسة/);assert.equal(s.client,undefined);s.close();
+});
+
+test('a synchronous client setup error permits a successful retry',async()=>{
+ context();const {createSession}=await moduleAt('api/session.js');const s=createSession();
+ window.AQARI_SUPABASE.getClient=()=>{throw Error('provider unavailable');};await assert.rejects(s.connect(),/provider unavailable/);
+ const client={ready:true};window.AQARI_SUPABASE.getClient=async()=>client;assert.equal(await s.connect(),client);s.close();
 });

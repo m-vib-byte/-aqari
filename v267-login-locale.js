@@ -328,6 +328,7 @@ const messages={
  }
 };
 const languages=['ar','en','hi','ur','ml'];let language='ar';
+try{const saved=window.localStorage.getItem('aqari_login_language');if(languages.includes(saved))language=saved;}catch(_){ /* Storage may be unavailable in private browsing. */ }
 const translate=source=>language==='ar'?source:messages[source]?.[language]||source;
 window.AQARI_LOGIN_TRANSLATE=translate;
 const selector=document.getElementById('loginLanguage'),status=document.getElementById('status');
@@ -343,6 +344,7 @@ function render(){
  document.getElementById('password').placeholder=translate('كلمة المرور');
  status.textContent=translate(status.aqariSource);
 }
-selector.addEventListener('change',()=>{if(!languages.includes(selector.value))return;language=selector.value;render();});
+selector.value=language;
+selector.addEventListener('change',()=>{if(!languages.includes(selector.value))return;language=selector.value;try{window.localStorage.setItem('aqari_login_language',language);}catch(_){}render();});
 document.getElementById('loginLanguageControl').hidden=false;render();
 })();
