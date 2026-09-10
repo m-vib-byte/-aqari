@@ -1,0 +1,46 @@
+name: V267 exact inventory refresh
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: review/v267-staging-rebased
+      - name: Refresh only changed V267 freeze entries
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('fs');
+          const crypto=require('crypto');
+          const inventoryPath='FILE_INVENTORY.json';
+          const targets=[
+            'staging-database/sql/vacating-release.sql',
+            'staging-database/tests/vacating_release.sql'
+          ];
+          const inventory=JSON.parse(fs.readFileSync(inventoryPath,'utf8'));
+          const byPath=new Map(inventory.files.map(entry=>[entry.path,entry]));
+          for(const path of targets){
+            const bytes=fs.readFileSync(path);
+            const entry={path,sha256:crypto.createHash('sha256').update(bytes).digest('hex'),size:bytes.length};
+            byPath.set(path,entry);
+            console.log(`V267_INVENTORY_REFRESH|${path}|${entry.size}|${entry.sha256}`);
+          }
+          inventory.files=[...byPath.values()].sort((a,b)=>a.path.localeCompare(b.path,'en'));
+          fs.writeFileSync(inventoryPath,JSON.stringify(inventory,null,2)+'\n');
+          NODE
+          git config user.name aqari-ci
+          git config user.email aqari-ci@users.noreply.github.com
+          git add FILE_INVENTORY.json
+          if git diff --cached --quiet; then
+            echo 'V267_INVENTORY_NO_CHANGE'
+            exit 0
+          fi
+          git commit -m 'chore(v267): refresh freeze inventory after release fixes'
+          git push origin HEAD:review/v267-staging-rebased
