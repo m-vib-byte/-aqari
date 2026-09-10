@@ -69,6 +69,7 @@ insert into public.aqari_maintenance_requests(id,workspace_id,lease_id,tenant_id
 set local role authenticated;
 select pg_temp.release_expect(current_setting('release.test.revision')::bigint,'VACATING_OPEN_MAINTENANCE');
 reset role;
+update public.aqari_maintenance_requests set status='in_progress' where id='f267f800-0000-4000-8000-000000000001';
 update public.aqari_maintenance_requests set status='completed' where id='f267f800-0000-4000-8000-000000000001';
 
 set local role authenticated;
