@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const base=readFileSync(new URL('../staging-database/sql/vacating-settlement.sql',import.meta.url),'utf8');
 const hardening=readFileSync(new URL('../staging-database/sql/vacating-settlement-hardening.sql',import.meta.url),'utf8');
+const releaseSql=readFileSync(new URL('../staging-database/sql/vacating-release.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/vacating-settlement.js',import.meta.url),'utf8');
 const documentScanner=readFileSync(new URL('../src/v267/pages/document-scanner.js',import.meta.url),'utf8');
 const documentCatalog=readFileSync(new URL('../staging-database/supabase/migrations/20260909225520_v267_document_catalog.sql',import.meta.url),'utf8');
@@ -42,6 +43,27 @@ test('immutable snapshots are normalized to the committed status and numbers',()
  assert.match(hardening,/before update on private\.aqari_vacating_settlements/);
 });
 
+test('post-clearance release preserves contract history and reconciles PR71 safety gates',()=>{
+ assert.match(releaseSql,/create or replace function public\.aqari_vacating_release/);
+ assert.match(releaseSql,/s\.status<>'cleared'/);
+ assert.match(releaseSql,/VACATING_CLEARANCE_REQUIRED/);
+ assert.match(releaseSql,/VACATING_RELEASE_BALANCE_CHANGED/);
+ assert.match(releaseSql,/VACATING_HANDOVER_REQUIRED/);
+ assert.match(releaseSql,/VACATING_OPEN_MAINTENANCE/);
+ assert.match(releaseSql,/VACATING_OPEN_UTILITIES/);
+ assert.match(releaseSql,/VACATING_FUTURE_PAYMENT_REVIEW_REQUIRED/);
+ assert.match(releaseSql,/VACATING_UNCERTAIN_PAYMENT/);
+ assert.match(releaseSql,/VACATING_DEPOSIT_HISTORY_REQUIRED/);
+ assert.match(releaseSql,/VACATING_SOURCE_REVIEW_REQUIRED/);
+ assert.match(releaseSql,/update public\.aqari_leases set status='expired',vacated_on=s\.vacate_date/);
+ assert.match(releaseSql,/original_contract_end_date/);
+ assert.match(releaseSql,/daterange\(start_date,coalesce\(vacated_on,end_date\),'\[\]'\)/);
+ assert.match(releaseSql,/aqari_released_lease_guard/);
+ assert.match(releaseSql,/VACATING_CONTRACT_IMMUTABLE/);
+ assert.match(releaseSql,/kind='rent_reminder'/);
+ assert.doesNotMatch(releaseSql,/set end_date=s\.vacate_date/);
+});
+
 test('workspace exposes the feature only through the contracts permission boundary',()=>{
  assert.match(workspace,/aq267-vacating-settlement/);
  assert.match(workspace,/vacating\.hidden=.*access\?\.permissions\?\.contracts\?\.read!==true/);
@@ -49,11 +71,18 @@ test('workspace exposes the feature only through the contracts permission bounda
  assert.match(workspace,/import\('\.\/pages\/vacating-settlement\.js'\)/);
 });
 
-test('UI saves then renders the canonical server response and prints saved snapshots',()=>{
+test('UI saves, clears, releases only after clearance, rereads canonical state and prints snapshots',()=>{
  assert.match(page,/rpc\('save'/);
  assert.match(page,/fill\(result\.settlement\)/);
  assert.match(page,/rpc\('finalize'/);
  assert.match(page,/rpc\('clearance'/);
+ assert.match(page,/aqari_vacating_release/);
+ assert.match(page,/إنهاء العقد وإطلاق الوحدة/);
+ assert.match(page,/releaseUnit\.disabled=current\.status!=='cleared'\|\|!isManager/);
+ assert.match(page,/await confirm\(result\)/);
+ assert.match(page,/current\?\.status!=='released'/);
+ assert.match(page,/VACATING_HANDOVER_REQUIRED/);
+ assert.match(page,/VACATING_OPEN_MAINTENANCE/);
  assert.match(page,/currentRecord\.clearance_snapshot:currentRecord\.settlement_snapshot/);
  assert.match(page,/snapshot\.clearance_balances:snapshot\.final_balances/);
  assert.match(page,/urls\.create\(new Blob/);
@@ -86,10 +115,10 @@ test('document catalogue is constrained server-side by linked entity type',()=>{
  assert.match(documentCatalog,/d\.metadata,p\.display_name as author_name/);
 });
 
- test('printed identity and amounts remain bound to the saved snapshot after source edits',async()=>{
+test('printed identity, amounts and HTML escaping remain bound to the saved snapshot after source edits',async()=>{
  const {printable:render}=await import('../src/v267/pages/vacating-settlement.js');const ctx={render};
- const snap={contract_no:'SAVED-CONTRACT',tenant_name:'SAVED-TENANT',property_name:'SAVED-PROPERTY',unit_no:'SAVED-UNIT',settlement_no:'SAVED-NUMBER',lease_id:'LEASE',damage_amount:'0.000',final_balances:{rent_balance:'1.125',rent_due_total:'1.125',rent_paid_total:'0.000',tenant_credit:'0.000',deposit_balance:'0.000'}};
+ const snap={contract_no:'SAVED-CONTRACT',tenant_name:'SAVED-"TENANT"',property_name:'SAVED-PROPERTY',unit_no:'SAVED-UNIT',settlement_no:'SAVED-NUMBER',lease_id:'LEASE',damage_amount:'0.000',keys_returned:true,inspection_completed:true,meters_recorded:true,final_balances:{rent_balance:'1.125',rent_due_total:'1.125',rent_paid_total:'0.000',tenant_credit:'0.000',deposit_balance:'0.000'}};
  const html=ctx.render({tenant_name:'MUTATED-TENANT',contract_no:'MUTATED-CONTRACT',lease_id:'LEASE',settlement_no:'SAVED-NUMBER',settlement_snapshot:snap},'settlement');
- assert.match(html,/SAVED-TENANT/);assert.match(html,/SAVED-CONTRACT/);assert.match(html,/1\.125/);assert.doesNotMatch(html,/MUTATED/);
+ assert.match(html,/SAVED-&quot;TENANT&quot;/);assert.match(html,/SAVED-CONTRACT/);assert.match(html,/1\.125/);assert.doesNotMatch(html,/MUTATED/);
  assert.throws(()=>ctx.render({},'settlement'));
- });
+});
