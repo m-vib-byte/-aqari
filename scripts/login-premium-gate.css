@@ -1,0 +1,20 @@
+/* Presentation only: do not override visibility, display, inert or auth classes. */
+#aqariCloudGateV168{background:radial-gradient(ellipse at 22% 48%,#51402b 0,transparent 60%),#261e18!important;color:#f6f0e5!important}
+#aqariCloudGateV168 .aq-v168-login{background:#fbf9f5!important;border:1px solid #cfb587!important;border-radius:20px!important;box-shadow:0 28px 80px #0003!important;padding:38px!important}
+#aqariCloudGateV168 .aq-v168-logo h2,#aqariCloudGateV168 .aq-v168-logo h1{color:#302820!important;letter-spacing:-1px}
+#aqariCloudGateV168 .aq-v168-logo p{color:#776b5e!important}
+#aqariCloudGateV168 .aq-v168-login:before{content:"MYAQARI · L1";display:block;text-align:left;direction:ltr;font:10px Arial,sans-serif;letter-spacing:2px;color:#9b7a49;margin-bottom:24px}
+#aqariCloudGateV168 .aq-v168-login input{background:#fffdf9!important;border:1px solid #ded6c9!important;border-radius:11px!important;color:#302820!important;min-height:54px!important;font-size:16px!important}
+#aqariCloudGateV168 .aq-v168-login label{color:#4f4335!important;font-size:13px!important}
+#aqariCloudGateV168 .aq-v168-login input:focus{outline:3px solid #b99c692e!important;border-color:#95703d!important}
+#aqariCloudGateV168 .aq-v168-login button{border-radius:10px!important}
+#aqariCloudGateV168 .aq-v168-login button[data-cloud-auth-action="login"]{background:linear-gradient(115deg,#987440,#775731)!important;color:white!important}
+#aqariCloudGateV168 #v199LoginIntro{color:#eee6d7!important}
+#aqariCloudGateV168 #v199LoginIntro h2{color:#eee6d7!important;font-weight:500!important;line-height:1.5!important}
+#aqariCloudGateV168 #v199LoginIntro>p{color:#c8b798!important}
+#aqariCloudGateV168 .v199-login-point{color:#dbcca9!important;background:#ffffff08!important;border-color:#b79a613b!important}
+#aqariCloudGateV168 .v199-login-footer{color:#776b5e!important;font-size:10px!important;line-height:1.9}
+#aqariCloudGateV168 .v199-gate-version{color:#806033!important}
+#aqariCloudGateV168 #cloudGateMsgV168{font-size:13px!important;line-height:1.9!important;border-radius:10px!important}
+#aqariCloudGateV168 #aqariManualLoginRecovery{color:#795a2d!important;font-size:14px!important;text-underline-offset:5px}
+@media(max-width:680px){#aqariCloudGateV168 .aq-v168-login{padding:28px 23px!important;border-radius:18px!important;width:100%!important;max-width:440px!important}}

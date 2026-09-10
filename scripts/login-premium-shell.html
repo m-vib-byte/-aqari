@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#261e18">
+<meta name="aqari-hotfix" content="s1">
+<meta name="aqari-login-design" content="L1">
+<meta name="robots" content="noindex,nofollow">
+<title>تسجيل الدخول | عقاري</title>
+<link rel="icon" href="/aqari-icon.svg" type="image/svg+xml">
+<link rel="preload" href="/public-config.js" as="script">
+<link rel="preload" href="/vendor/supabase-js-2.114.0.js" as="script" crossorigin="anonymous" integrity="sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi">
+<link rel="preload" href="/supabase-adapter.js" as="script">
+<style>
+:root{color-scheme:light;--ink:#302820;--muted:#776b5e;--gold:#95703d;--line:#ded6c9;--paper:#fbf9f5;--espresso:#261e18}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}body{background:var(--espresso);color:var(--ink)}button,input,summary{font:inherit}button,a,summary{-webkit-tap-highlight-color:transparent}button,a,input,summary{outline-offset:5px}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #95703d}button{cursor:pointer}a{color:inherit;text-underline-offset:4px}svg{display:block}[hidden]{display:none!important}.screen{min-height:100vh;min-height:100svh;display:grid;grid-template-columns:minmax(420px,1fr) minmax(0,1.03fr);direction:ltr}.entry,.identity{direction:rtl}.entry{background:var(--paper);display:flex;flex-direction:column;padding:36px clamp(28px,5vw,84px) 24px;position:relative}.entry:before{content:"";height:3px;background:linear-gradient(90deg,#c2a570,#745232);position:absolute;inset:0 0 auto}.entry-header{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{display:flex;align-items:center;gap:12px}.brand-symbol{width:43px;height:47px;color:var(--gold)}.wordmark{font-size:30px;font-weight:800;line-height:1.1;letter-spacing:-1px}.wordmark small{display:block;font:9px Arial,sans-serif;letter-spacing:3px;margin-top:8px;color:var(--muted)}.edition{font-size:11px;letter-spacing:.12em;color:#847768;direction:ltr}.form-wrap{width:min(400px,100%);margin:auto;padding:58px 0 30px}.eyebrow{display:flex;align-items:center;gap:8px;color:#826139;font-size:12px;letter-spacing:.02em;margin:0 0 18px}.eyebrow:before{content:"";width:23px;height:1px;background:#a58451}h1{font-size:clamp(29px,3vw,39px);font-weight:750;letter-spacing:-1.2px;line-height:1.45;margin:0 0 8px}.subtitle{font-size:14px;color:var(--muted);line-height:1.9;margin:0 0 27px}.field{margin-top:20px}.label-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}label{display:block;font-size:13px;font-weight:650}.field-box{position:relative}.field-icon{width:18px;height:18px;position:absolute;right:16px;top:18px;color:#9b8c79;pointer-events:none}.field input{width:100%;height:55px;border:1px solid var(--line);border-radius:11px;background:#fffdf9;color:var(--ink);font-size:16px;direction:ltr;text-align:left;padding:12px 45px 12px 16px;transition:border-color .15s,box-shadow .15s}.field input::placeholder{color:#9c9286;font-size:14px}.field input:focus{border-color:#9c793f;box-shadow:0 0 0 3px #a4875120;outline:none}.field input[aria-invalid="true"]{border-color:#ac5141;box-shadow:0 0 0 3px #ac514110}.password-field input{padding-left:70px}.text-button{border:0;background:none;color:#85612f;padding:5px 0;min-height:32px;font-size:12px;font-weight:650}.text-button:hover{text-decoration:underline}.reveal{position:absolute;left:7px;top:7px;height:41px;min-width:57px;border:0;background:transparent;color:#756248;border-radius:7px;font-size:12px}.reveal:hover{background:#eee7db}.caps{margin:8px 0 0;color:#9a4f20;font-size:12px}.submit{width:100%;min-height:55px;padding:13px 20px;margin-top:25px;display:flex;justify-content:center;align-items:center;gap:12px;border:1px solid #6a4f2d;border-radius:11px;background:linear-gradient(115deg,#987440,#775731);color:white;font-weight:700;font-size:15px;box-shadow:0 7px 16px #7454221b;transition:transform .15s,box-shadow .15s}.submit svg{width:18px;height:18px}.submit:hover{box-shadow:0 9px 24px #74542230;transform:translateY(-1px)}.submit:active{transform:translateY(0)}button:disabled{cursor:wait;opacity:.65}.spinner{height:15px;width:15px;border:2px solid #ffffff55;border-top-color:white;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.status-area{margin-top:22px;border-top:1px solid #e8e1d6;padding-top:18px}.status-heading{font-size:11px;color:#857767;display:flex;align-items:center;gap:7px}.status-dot{width:6px;height:6px;border-radius:50%;background:#b19362}.status{font-size:12px;line-height:1.9;color:#756752;margin:7px 0 0;min-height:23px;overflow-wrap:anywhere}.status.ready{color:#4d6351}.status.bad{color:#963d2f;background:#fbefea;padding:9px 12px;border-radius:8px}.support{margin-top:20px;border:1px solid #e6dfd2;border-radius:10px;padding:0 13px;background:#f8f5ef}.support summary{cursor:pointer;min-height:44px;font-size:12px;color:#776549;padding:12px 0}.support p{font-size:12px;line-height:1.9;color:var(--muted);margin:0 0 8px}.support-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-bottom:12px}.support-actions button{border:1px solid #d4c5ad;border-radius:7px;background:#fffdf9;color:#705633;min-height:38px;padding:8px 10px;font-size:11px}.support-actions a{font-size:11px;line-height:1.8}.security-note{display:flex;justify-content:center;align-items:flex-start;gap:7px;color:#877a69;font-size:11px;line-height:1.8;margin-top:23px;text-align:center}.security-note svg{width:14px;height:17px;flex-shrink:0;margin-top:2px}.entry-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:10px;color:#958776;border-top:1px solid #e9e1d5;padding-top:17px}.entry-footer span:last-child{direction:ltr;letter-spacing:.1em}.identity{position:relative;overflow:hidden;display:flex;flex-direction:column;padding:42px clamp(32px,5vw,74px);background:radial-gradient(ellipse at 20% 60%,#51402b 0,transparent 55%),linear-gradient(140deg,#30271f,#211a15 75%);color:#eee6d7}.identity:after{content:"";position:absolute;inset:20px;border:1px solid #c8ae7930;border-radius:2px;pointer-events:none}.identity-header{display:flex;justify-content:space-between;align-items:center;gap:15px;position:relative;z-index:1}.identity-header span{font:11px Arial,sans-serif;letter-spacing:3px;color:#bcaa87}.identity-header small{font-size:11px;color:#b5a48a}.identity-copy{margin-top:65px;position:relative;z-index:1}.identity-copy .kicker{font-size:12px;letter-spacing:.08em;color:#c2a776;margin:0 0 15px}.identity-copy h2{font-size:clamp(33px,3.6vw,50px);line-height:1.55;letter-spacing:-1.4px;font-weight:500;margin:0}.identity-copy h2 em{font-style:normal;color:#cfb382}.identity-copy p{font-size:13px;line-height:2;color:#b8ab98;max-width:330px;margin:14px 0 0}.architecture{width:100%;height:310px;max-height:35vh;margin:13px 0 5px;position:relative;z-index:0;opacity:.9}.architecture svg{width:100%;height:100%;overflow:visible}.identity-footer{margin-top:auto;position:relative;z-index:1}.capabilities{display:flex;gap:0;border-top:1px solid #b39c7633;padding-top:23px}.capability{flex:1}.capability+.capability{border-right:1px solid #b39c7633;padding-right:20px}.capability b{display:block;font-size:12px;font-weight:500}.capability small{display:block;font:8px Arial,sans-serif;color:#b4a085;letter-spacing:1.5px;margin-top:9px}.signature{font-size:10px;color:#9f8f77;margin:30px 0 0;line-height:1.8}.noscript{font-size:12px;line-height:1.9;color:#963d2f;background:#fbefea;padding:12px;border-radius:8px}
+@media(min-width:1500px){.screen{max-width:1800px;margin:0 auto}.form-wrap{padding-top:80px;padding-bottom:80px}.identity-copy{margin-top:100px}}
+@media(max-width:900px){.screen{grid-template-columns:minmax(350px,1fr) minmax(0,.86fr)}.entry{padding:28px 28px 20px}.identity{padding:38px 32px}.identity-copy{margin-top:70px}.identity-copy h2{font-size:33px}.identity-copy p{font-size:12px}.identity-header small{display:none}.capability+.capability{padding-right:12px}.architecture{height:260px}}
+@media(max-width:680px){body{background:var(--paper)}.screen{display:block;min-height:100svh}.identity{display:none}.entry{min-height:100svh;padding:max(28px,env(safe-area-inset-top)) 25px max(19px,env(safe-area-inset-bottom))}.entry-header{margin-bottom:0}.brand-symbol{width:34px;height:39px}.wordmark{font-size:27px}.wordmark small{font-size:8px;letter-spacing:2.5px}.edition{font-size:10px}.form-wrap{padding:45px 0 26px;width:min(400px,100%)}.eyebrow{margin-bottom:13px;font-size:11px}h1{font-size:32px}.subtitle{margin-bottom:26px;font-size:13px}.field{margin-top:19px}.security-note{margin-top:20px}.entry-footer{margin-top:auto}.status-area{margin-top:20px}.support{margin-top:16px}}
+@media(max-height:740px) and (max-width:680px){.form-wrap{padding-top:28px;padding-bottom:20px}.subtitle{margin-bottom:20px}.field{margin-top:15px}.security-note{margin-top:15px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="screen">
+<main class="entry" aria-labelledby="title">
+<header class="entry-header"><div class="brand" aria-label="عقاري"><svg class="brand-symbol" viewBox="0 0 44 48" fill="none" aria-hidden="true"><path d="M5 42V19L21 8v34M21 2l18 11v29H5M27 17h6M27 24h6M27 31h6M12 22v4m0 5v4M2 46h40" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><div class="wordmark">عقاري<small lang="en">MYAQARI</small></div></div><span class="edition" lang="en">PROPERTY MANAGEMENT</span></header>
+<div class="form-wrap">
+<p class="eyebrow">مساحتك لإدارة الأملاك</p><h1 id="title">مرحبًا بعودتك.</h1><p class="subtitle">كل التفاصيل تبدأ من هنا.<br>سجّل الدخول إلى مساحة عملك في عقاري.</p>
+<form id="loginForm" method="post" action="/login?manual=1" novalidate>
+<div class="field"><div class="label-row"><label for="email">البريد الإلكتروني</label></div><div class="field-box"><svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.5"/></svg><input id="email" name="email" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="name@example.com" aria-describedby="status" required></div></div>
+<div class="field"><div class="label-row"><label for="password">كلمة المرور</label><button id="recoveryButton" class="text-button" type="button">نسيت كلمة المرور؟</button></div><div class="field-box password-field"><svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input id="password" name="password" type="password" autocomplete="current-password" placeholder="أدخل كلمة المرور" aria-describedby="capsWarning status" required><button id="togglePassword" class="reveal" type="button" aria-label="إظهار كلمة المرور" aria-controls="password" aria-pressed="false" hidden>إظهار</button></div><p id="capsWarning" class="caps" hidden>مفتاح الحروف الكبيرة مفعّل (Caps Lock).</p></div>
+<button id="loginButton" class="primary submit" type="submit" disabled><span id="loginSpinner" class="spinner" aria-hidden="true" hidden></span><span id="loginButtonLabel">الدخول إلى عقاري</span><svg id="loginArrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 12H4m6-6-6 6 6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</form>
+<div class="status-area"><div class="status-heading"><span class="status-dot" aria-hidden="true"></span>حالة تسجيل الدخول</div><div id="status" class="status ready" role="status" aria-live="polite" aria-atomic="true">أدخل البريد وكلمة المرور. تجهيز الاتصال يتم في الخلفية.</div></div>
+<details id="loginHelp" class="support"><summary>تحتاج مساعدة في الدخول؟</summary><p>عند تعثّر الاتصال، أعد المحاولة دون مسح بياناتك. صفحة الاستعادة المؤقتة تتيح عرض بيانات السحابة للقراءة فقط.</p><div class="support-actions"><button id="retryButton" type="button">إعادة محاولة الاتصال</button><a href="/recovery.html">الاستعادة المؤقتة — قراءة فقط</a></div></details>
+<p class="security-note"><svg viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="m10 2 7 3v6c0 4-7 9-7 9S3 15 3 11V5l7-3Z" stroke="currentColor" stroke-width="1.3"/><path d="m7 10 2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg><span>يخضع الوصول إلى بياناتك للتحقق من الحساب والصلاحيات.</span></p>
+<noscript><p class="noscript">يلزم تفعيل JavaScript لإتمام تسجيل الدخول الآمن. لن تظهر بياناتك دون التحقق من الحساب.</p></noscript>
+</div>
+<footer class="entry-footer"><span>عقاري · لإدارة الأملاك</span><span lang="en">V266 · L1</span></footer>
+</main>
+<aside class="identity" aria-label="منصة عقاري لإدارة الأملاك">
+<div class="identity-header"><span lang="en">MYAQARI.COM</span><small>تفاصيل أقل تشتّتًا. رؤية أكثر وضوحًا.</small></div>
+<div class="identity-copy"><p class="kicker">أملاكك تستحق اهتمامك</p><h2>إدارة أملاكك،<br><em>برؤية أوضح.</em></h2><p>مساحة تجمع عقاراتك وعقودك ومتابعة إيجاراتك،<br>لتبقى قريبًا من كل تفصيلة.</p></div>
+<div class="architecture" aria-hidden="true"><svg viewBox="0 0 500 330" fill="none"><defs><linearGradient id="towerFill" x1="125" y1="70" x2="325" y2="310" gradientUnits="userSpaceOnUse"><stop stop-color="#bea170" stop-opacity=".14"/><stop offset="1" stop-color="#bea170" stop-opacity=".015"/></linearGradient><linearGradient id="towerLine" x1="50" y1="50" x2="450" y2="320" gradientUnits="userSpaceOnUse"><stop stop-color="#b99965" stop-opacity=".8"/><stop offset="1" stop-color="#b99965" stop-opacity=".2"/></linearGradient><pattern id="towerWindows" width="19" height="21" patternUnits="userSpaceOnUse"><path d="M4 5h6v10H4Z" stroke="#bd9d69" stroke-opacity=".26" stroke-width=".6"/></pattern></defs><ellipse cx="270" cy="292" rx="195" ry="26" stroke="#b69561" stroke-opacity=".12"/><circle cx="261" cy="153" r="141" stroke="#b69561" stroke-opacity=".11"/><circle cx="261" cy="153" r="125" stroke="#b69561" stroke-opacity=".07"/><path d="M31 286h437M63 305h370M220 314l128-21" stroke="#b99965" stroke-opacity=".28"/><g stroke="url(#towerLine)" stroke-width="1"><path d="M180 276V74l103-40 65 37v217l-109 15-59-27Z" fill="url(#towerFill)"/><path d="M180 74l59 33 109-36M239 107v196M283 34v34l-76 28M251 87l69-23"/><path d="M195 91v185m14-178v184m15-177v184M250 120v162m18-168v163m18-168v163m18-168v163m18-168v163m15-167v163" opacity=".45"/><path d="m239 130 109-34m-109 58 109-33m-109 57 109-31m-109 55 109-27m-109 50 109-24m-109 47 109-19m-109 40 109-15" opacity=".5"/><path d="M92 264V170l65-26 23 14v118l-67 16-21-28Z" fill="url(#towerFill)"/><path d="m92 170 21 20 67-32m-67 32v102"/><path d="M119 194h55v79h-55" fill="url(#towerWindows)" stroke="none"/><path d="M348 199l63-23 29 21v75l-72 18-20-16v-75Z" fill="url(#towerFill)"/><path d="m348 199 20 20 72-22m-72 22v71m10-57 52-15m-52 29 52-14m-52 28 52-14" opacity=".7"/></g><path d="M52 220v37m-6-7 6 7 6-7M389 94h33m-7-6 7 6-7 6" stroke="#c0a16f" stroke-opacity=".45"/><circle cx="389" cy="94" r="2" fill="#c0a16f"/><path d="M184 31v12m-6-6h12" stroke="#c0a16f" stroke-opacity=".5"/></svg></div>
+<div class="identity-footer"><div class="capabilities"><div class="capability"><b>العقارات</b><small lang="en">PROPERTIES</small></div><div class="capability"><b>العقود</b><small lang="en">CONTRACTS</small></div><div class="capability"><b>التحصيل</b><small lang="en">COLLECTIONS</small></div></div><p class="signature">عقاري — مساحة عملك، بطابعك.</p></div>
+</aside>
+</div>
+<!--AQARI_EXISTING_AUTH-->
+<script id="aqari-login-experience">
+(function(){
+  'use strict';
+  var byId=function(id){return document.getElementById(id);};
+  var email=byId('email'),password=byId('password'),form=byId('loginForm');
+  var toggle=byId('togglePassword'),caps=byId('capsWarning'),button=byId('loginButton'),status=byId('status');
+  toggle.hidden=false;
+  function hidePassword(){password.type='password';toggle.textContent='إظهار';toggle.setAttribute('aria-label','إظهار كلمة المرور');toggle.setAttribute('aria-pressed','false');}
+  toggle.addEventListener('click',function(){
+    var showing=password.type==='password';password.type=showing?'text':'password';
+    toggle.textContent=showing?'إخفاء':'إظهار';toggle.setAttribute('aria-label',showing?'إخفاء كلمة المرور':'إظهار كلمة المرور');toggle.setAttribute('aria-pressed',String(showing));
+  });
+  function capsState(event){caps.hidden=!(event.getModifierState&&event.getModifierState('CapsLock'));}
+  password.addEventListener('keydown',capsState);password.addEventListener('keyup',capsState);
+  password.addEventListener('blur',function(){caps.hidden=true;});
+  function invalid(node,message){node.setAttribute('aria-invalid','true');status.textContent=message;status.className='status bad';node.focus();}
+  form.addEventListener('submit',function(event){
+    if(button.disabled)return;
+    email.removeAttribute('aria-invalid');password.removeAttribute('aria-invalid');
+    email.value=email.value.trim();
+    if(!email.value||email.validity.typeMismatch){event.preventDefault();event.stopImmediatePropagation();invalid(email,'أدخل بريدًا إلكترونيًا صحيحًا، مثل name@example.com.');return;}
+    if(!password.value){event.preventDefault();event.stopImmediatePropagation();invalid(password,'أدخل كلمة المرور لإكمال تسجيل الدخول.');return;}
+    hidePassword();
+  },true);
+  [email,password].forEach(function(node){node.addEventListener('input',function(){node.removeAttribute('aria-invalid');});});
+  function sync(){
+    var busy=button.disabled;form.setAttribute('aria-busy',String(busy));
+    byId('loginSpinner').hidden=!busy;byId('loginArrow').hidden=busy;
+    byId('loginButtonLabel').textContent=busy?'جاري إكمال الطلب…':'الدخول إلى عقاري';
+    toggle.disabled=busy;
+    if(status.classList.contains('bad'))byId('loginHelp').open=true;
+  }
+  // Observe only existing status/busy state. No auth calls, timers, storage or routing.
+  if(typeof MutationObserver==='function'){
+    var observer=new MutationObserver(sync);
+    observer.observe(button,{attributes:true,attributeFilter:['disabled']});
+    observer.observe(status,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:['class']});
+  }
+  window.addEventListener('pagehide',hidePassword);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)hidePassword();});
+  sync();
+})();
+</script>
+</body>
+</html>
