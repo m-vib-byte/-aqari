@@ -72,9 +72,10 @@ reset role;
 update public.aqari_maintenance_requests set status='in_progress' where id='f267f800-0000-4000-8000-000000000001';
 update public.aqari_maintenance_requests set status='completed' where id='f267f800-0000-4000-8000-000000000001';
 
+-- The application release RPC itself must succeed only under authenticated least privilege.
 set local role authenticated;
 do $$
-declare w uuid:=current_setting('release.test.workspace')::uuid;r jsonb;rev bigint:=current_setting('release.test.revision')::bigint;overlap_blocked boolean:=false;
+declare w uuid:=current_setting('release.test.workspace')::uuid;r jsonb;rev bigint:=current_setting('release.test.revision')::bigint;
 begin
  r:=public.aqari_vacating_release(w,'f267f400-0000-4000-8000-000000000001',rev);
  if r#>>'{settlement,status}'<>'released' or r#>>'{lease,status}'<>'expired' or r#>>'{lease,vacated_on}'<>'2026-01-31' then raise exception 'LEASE_RELEASE_FAILED';end if;
@@ -82,7 +83,14 @@ begin
  if jsonb_array_length(coalesce(r->'handover_documents','[]'))<>1 then raise exception 'HANDOVER_EVIDENCE_NOT_SNAPSHOTTED';end if;
  r:=public.aqari_vacating_release(w,'f267f400-0000-4000-8000-000000000001',rev);
  if r#>>'{lease,vacated_on}'<>'2026-01-31' then raise exception 'RELEASE_RECOVERY_FAILED';end if;
+end $$;
+reset role;
 
+-- Direct fixture rows exercise the schema occupancy constraint as the owner/test harness.
+-- Do not grant authenticated direct INSERT on leases merely to make this integrity test pass.
+do $$
+declare w uuid:=current_setting('release.test.workspace')::uuid;overlap_blocked boolean:=false;
+begin
  insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot) values
  ('f267f400-0000-4000-8000-000000000002',w,'release-lease-b','f267f200-0000-4000-8000-000000000002','f267f300-0000-4000-8000-000000000001','TEST-RELEASE-B','2026-02-01','2026-12-31',100,50,'signed','{}');
  begin
@@ -92,7 +100,6 @@ begin
  end;
  if not overlap_blocked then raise exception 'VACATE_DAY_OVERLAP_ALLOWED';end if;
 end $$;
-reset role;
 
 do $$
 begin
