@@ -15,6 +15,17 @@ test('receipt download rechecks identity after body read and scopes the request'
  const second=fixture();second.state.fetch=async()=>({ok:true,headers:{get:()=> 'application/pdf'},blob:async()=>{second.state.auth={user:{id:'other'},access_token:'other'};return new Blob(['%PDF-test']);}});
  assert.equal(await second.downloadDocument(),false);assert.equal(second.state.created.length,0);
 });
+test('protected Preview PDF download retains same-origin protection while requiring the user JWT',async()=>{
+ const f=fixture(),pdf=f.state.fetch;
+ f.state.fetch=async(url,options)=>{
+  assert.equal(url,'/api/rent-receipt');
+  if(options.credentials!=='same-origin')throw Error('Preview protection would redirect this request');
+  assert.equal(options.headers.Authorization,'Bearer synthetic');
+  assert.equal(options.redirect,'error');
+  return pdf();
+ };
+ assert.equal(await f.downloadDocument(),true);assert.equal(f.state.clicks.length,1);f.cancelReceiptDownload();
+});
 test('closing and reopening the same receipt discards old work and cannot unlock the new download',async()=>{
  const f=fixture();let resolveFirst,resolveSecond;
  f.state.fetch=()=>new Promise(r=>{resolveFirst=r;});const first=f.downloadDocument();await tick();f.cancelReceiptDownload();assert.equal(f.state.requests[0].signal.aborted,true);

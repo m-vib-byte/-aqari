@@ -1472,8 +1472,8 @@
     },
     {
       "path": "tests/v267-admin-receipt-download.test.cjs",
-      "sha256": "ea170cc98665ca3607f0be0cebdbb8aeb3dec2573f95379463a9e7b40fa4a360",
-      "size": 4513
+      "sha256": "2c78fc9bce15844b4a99246843404a03f729dd196b3c3d6545181a955ee93de2",
+      "size": 5086
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
@@ -1707,8 +1707,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "4bdaf962d5e1deb1119689738b060334cfeb78c44b949eb30f7b9d53cb9fbf8c",
-      "size": 268175
+      "sha256": "54cda46b769e12bc9af49e2ae7d2523c993d7c2bb96d6a85fd16d847712819fc",
+      "size": 268343
     },
     {
       "path": "v205-simple.css",

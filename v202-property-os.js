@@ -3602,7 +3602,9 @@
       return await Promise.race([aborted,(async()=>{
         const session=await window.AQARI_SUPABASE.getSession();
         if(!current()||session?.user?.id!==scope.userId||!session?.access_token)return false;
-        const response=await fetch('/api/rent-receipt',{method:'POST',cache:'no-store',credentials:'omit',redirect:'error',signal:job.controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({workspaceId:scope.workspaceId,receiptNo:reference})});
+        // This same-origin endpoint needs the Preview protection cookie before
+        // the server can validate the user's JWT and saved receipt permissions.
+        const response=await fetch('/api/rent-receipt',{method:'POST',cache:'no-store',credentials:'same-origin',redirect:'error',signal:job.controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},body:JSON.stringify({workspaceId:scope.workspaceId,receiptNo:reference})});
         if(!current())return false;
         if(!response.ok||response.headers.get('Content-Type')?.split(';')[0]!=='application/pdf')throw Error('PDF_UNAVAILABLE');
         const blob=await response.blob();
