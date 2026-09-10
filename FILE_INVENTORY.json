@@ -1622,8 +1622,8 @@
     },
     {
       "path": "tests/v267-tenant-attachment-form.test.cjs",
-      "sha256": "8c8222a075c51dd42e3712e812165c4a4f2f707ae78cd0fbceaba16dbfca2032",
-      "size": 7468
+      "sha256": "05246ef4cef7eac0516c893dd520626ebb34d3e6f92bbfb71bedb7422441db7e",
+      "size": 9700
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
@@ -1867,8 +1867,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "46d5de259120545143a16730f2ae8309c679c9b9bad45924346acaddeffeacec",
-      "size": 40931
+      "sha256": "a816a5f590ca5a78495011b3ac596735eb614d1ced37977ebfcf0e7f6d495d21",
+      "size": 41366
     },
     {
       "path": "v267-reset-password.js",

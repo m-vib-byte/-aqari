@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const clone=value=>structuredClone(value);
 const source=fs.readFileSync('v267-rental-records.js','utf8');
 const tenant={nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',email:'',passportNo:'TEST-P123',address:''};
-async function fixture({loseFinalizeKind=null}={}){
+async function fixture({loseFinalizeKind=null,roundtrip=clone}={}){
  const tenantAttachmentModule=await import('../src/v267/components/tenant-attachment-upload.js');
  // Only module loading is supplied by the fixture; the form and upload code run unchanged.
  const importCall="import('./src/v267/components/tenant-attachment-upload.js')";
@@ -42,13 +42,38 @@ async function fixture({loseFinalizeKind=null}={}){
   AQARI_DATA_GATE:{scope:clone(bound)},AQARI_EARLY_STORAGE_GATE:{scope:clone(bound)},
   AQARI_SUPABASE:{context:{user:{id:bound.userId},workspace:{id:bound.workspaceId},membership:{user_id:bound.userId,workspace_id:bound.workspaceId,is_active:true,role:'general_manager'}},getClient:async()=>client,
    async loadAppState(){return {workspace_id:bound.workspaceId,revision,payload:clone(saved)};},
-   async saveAppState(payload,expectedRevision){assert.equal(expectedRevision,revision);saved=clone(payload);revision++;return {revision};}}
+   async saveAppState(payload,expectedRevision){assert.equal(expectedRevision,revision);saved=roundtrip(clone(payload));revision++;return {revision};}}
  };
  context.window=context;vm.runInNewContext(runtime,context);assert.equal(context.module.exports.openTenant(),true);
  for(const [key,value]of Object.entries(tenant))$('v267Tenant_'+key).value=value;
  return {$,docs,calls,objects,saved:()=>clone(saved),save:()=>$('saveBtn').onclick(),attach(kind,file){$('v267File_'+kind).files=[file];}};
 }
 const file=()=>new File(['%PDF-1.4\nsynthetic tenant attachment'],'tenant.pdf',{type:'application/pdf'});
+// JSONB preserves values and array positions, but does not preserve object key order.
+function jsonbRoundtrip(value){
+ if(Array.isArray(value))return value.map(jsonbRoundtrip);
+ if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.length-b.length||a.localeCompare(b)).map(([key,item])=>[key,jsonbRoundtrip(item)]));
+ return value;
+}
+test('the original tenant form confirms JSONB readback and nested attachments despite reordered object keys',async()=>{
+ const f=await fixture({roundtrip:jsonbRoundtrip});f.attach('civilFront',file());f.attach('civilBack',file());await f.save();
+ const saved=f.saved();assert.equal(saved.tenants.length,1);assert.equal(saved.tenantProfilesV267.length,1);
+ assert.deepEqual(saved.tenantProfilesV267[0].attachments.map(item=>item.kind),['civilFront','civilBack']);
+ assert.equal(f.docs.length,2);assert.equal(f.objects.size,2);assert.equal(f.$('modal').classList.contains('on'),false);
+ assert.doesNotMatch(f.$('v267TenantStatus').textContent,/لم يكتمل تأكيد الحفظ/);
+});
+test('JSONB readback with an altered tenant value remains unconfirmed and prevents a duplicate retry',async()=>{
+ const f=await fixture({roundtrip:payload=>{const saved=jsonbRoundtrip(payload);saved.tenantProfilesV267[0].phone='11111111';return saved;}});
+ await f.save();assert.equal(f.saved().tenants.length,1);assert.equal(f.$('modal').classList.contains('on'),true);
+ assert.match(f.$('v267TenantStatus').textContent,/لم يكتمل تأكيد الحفظ/);
+ await f.save();assert.match(f.$('v267TenantStatus').textContent,/تحديث الصفحة مطلوب/);assert.equal(f.saved().tenants.length,1);
+});
+test('reordered attachment arrays still fail readback confirmation',async()=>{
+ const f=await fixture({roundtrip:payload=>{const saved=jsonbRoundtrip(payload);saved.tenantProfilesV267[0].attachments.reverse();return saved;}});
+ f.attach('civilFront',file());f.attach('civilBack',file());await f.save();
+ assert.equal(f.saved().tenantProfilesV267[0].attachments.length,2);
+ assert.equal(f.$('modal').classList.contains('on'),true);assert.match(f.$('v267TenantStatus').textContent,/لم يكتمل تأكيد الحفظ/);
+});
 test('the original tenant form retries a lost finalize response using the same stored document',async()=>{
  const f=await fixture({loseFinalizeKind:'civilFront'});f.attach('civilFront',file());await f.save();
  assert.equal(f.saved().tenants.length,1);assert.equal(f.saved().tenantProfilesV267[0].attachments.length,0);

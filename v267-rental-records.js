@@ -5,7 +5,14 @@ const fail=message=>{throw new Error(message)};
 const text=x=>String(x??'').normalize('NFKC').trim();
 const digits=x=>text(x).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776));
 const key=x=>digits(x).toLowerCase();
-const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+// JSONB can reorder object keys. Confirm every value while retaining array order.
+function same(a,b){
+ if(a===b)return true;
+ if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;
+ if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,index)=>same(value,b[index]));
+ const keys=Object.keys(a);
+ return keys.length===Object.keys(b).length&&keys.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&same(a[k],b[k]));
+}
 function date(value){const s=text(value);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s).toISOString().slice(0,10)!==s)fail('أدخل تاريخاً صحيحاً.');return s}
 function amount(value){const s=digits(value).replace('٫','.');if(!/^\d+(\.\d{1,3})?$/.test(s)||!Number.isSafeInteger(Math.round(Number(s)*1000)))fail('أدخل مبلغاً صحيحاً بدقة ثلاثة منازل كحد أقصى.');return Number(s)}
 function profile(input,others=[]){
