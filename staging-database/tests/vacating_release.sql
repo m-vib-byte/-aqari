@@ -63,9 +63,9 @@ select public.aqari_finalize_document(
  current_setting('release.test.document_id')::uuid,12,'application/pdf',repeat('a',64));
 reset role;
 
--- A real open maintenance row must block release even after clearance and handover document evidence.
+-- A valid active maintenance state must block release even after clearance and handover document evidence.
 insert into public.aqari_maintenance_requests(id,workspace_id,lease_id,tenant_id,description,status,cost,created_by)
- values('f267f800-0000-4000-8000-000000000001',current_setting('release.test.workspace')::uuid,'f267f400-0000-4000-8000-000000000001','f267f200-0000-4000-8000-000000000001','طلب صيانة اصطناعي قبل الإخلاء','open',0,auth.uid());
+ values('f267f800-0000-4000-8000-000000000001',current_setting('release.test.workspace')::uuid,'f267f400-0000-4000-8000-000000000001','f267f200-0000-4000-8000-000000000001','طلب صيانة اصطناعي قبل الإخلاء','received',0,auth.uid());
 set local role authenticated;
 select pg_temp.release_expect(current_setting('release.test.revision')::bigint,'VACATING_OPEN_MAINTENANCE');
 reset role;
@@ -79,11 +79,9 @@ begin
  if r#>>'{settlement,status}'<>'released' or r#>>'{lease,status}'<>'expired' or r#>>'{lease,vacated_on}'<>'2026-01-31' then raise exception 'LEASE_RELEASE_FAILED';end if;
  if r#>>'{lease,contract_end_date}'<>'2026-12-31' then raise exception 'ORIGINAL_END_DATE_CHANGED';end if;
  if jsonb_array_length(coalesce(r->'handover_documents','[]'))<>1 then raise exception 'HANDOVER_EVIDENCE_NOT_SNAPSHOTTED';end if;
- -- Lost-response/idempotence: same completed release remains readable with the pre-release revision.
  r:=public.aqari_vacating_release(w,'f267f400-0000-4000-8000-000000000001',rev);
  if r#>>'{lease,vacated_on}'<>'2026-01-31' then raise exception 'RELEASE_RECOVERY_FAILED';end if;
 
- -- Unit becomes available the following day; vacate day remains occupied.
  insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot) values
  ('f267f400-0000-4000-8000-000000000002',w,'release-lease-b','f267f200-0000-4000-8000-000000000002','f267f300-0000-4000-8000-000000000001','TEST-RELEASE-B','2026-02-01','2026-12-31',100,50,'signed','{}');
  begin
@@ -95,7 +93,6 @@ begin
 end $$;
 reset role;
 
--- Historical contract identity/terms become immutable after release.
 do $$
 begin
  begin
@@ -107,4 +104,4 @@ begin
 end $$;
 
 rollback;
-select 'PASS: clearance precedes release; verified handover evidence required; open maintenance blocks; contract end preserved; released lease immutable; unit frees next day; vacate-day overlap blocked; repeated release idempotent' result;
+select 'PASS: clearance precedes release; verified handover evidence required; active maintenance blocks; contract end preserved; released lease immutable; unit frees next day; vacate-day overlap blocked; repeated release idempotent' result;
