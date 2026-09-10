@@ -43,10 +43,25 @@ begin
 end $$;
 reset role;
 
--- Metadata-only synthetic document proof. No claim of a real signed/uploaded user file is made by this test.
-insert into public.aqari_documents(id,workspace_id,document_no,document_type,entity_type,entity_ref,title,original_filename,mime_type,storage_bucket,storage_path,status,size_bytes,created_by,checksum_sha256,metadata)
- values('f267f700-0000-4000-8000-000000000001',current_setting('release.test.workspace')::uuid,'REL-TEST-DOC','mobile_scan','lease','release-lease-a','محضر تسليم اصطناعي','release-fixture.pdf','application/pdf','aqari-documents',current_setting('release.test.workspace')||'/f267f700-0000-4000-8000-000000000001.pdf','uploaded',12,auth.uid(),repeat('a',64),'{"document_category":"vacating_inspection","purpose":"vacating_handover"}');
-insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',current_setting('release.test.workspace')||'/f267f700-0000-4000-8000-000000000001.pdf','{"size":12,"mimetype":"application/pdf"}');
+-- Synthetic handover evidence follows the same reserve -> storage -> finalize path as the app.
+-- Storage metadata is synthetic here; this test does not claim a real user file upload or device acceptance.
+set local role authenticated;
+do $$
+declare w uuid:=current_setting('release.test.workspace')::uuid;doc record;
+begin
+ select * into doc from public.aqari_reserve_document(
+  w,'mobile_scan','lease','release-lease-a','محضر تسليم اصطناعي','release-fixture.pdf','application/pdf',
+  '{"document_category":"vacating_inspection","purpose":"vacating_handover"}'::jsonb);
+ perform set_config('release.test.document_id',doc.document_id::text,true);
+ perform set_config('release.test.document_path',doc.storage_path,true);
+end $$;
+reset role;
+insert into storage.objects(bucket_id,name,metadata) values(
+ 'aqari-documents',current_setting('release.test.document_path'),'{"size":12,"mimetype":"application/pdf"}');
+set local role authenticated;
+select public.aqari_finalize_document(
+ current_setting('release.test.document_id')::uuid,12,'application/pdf',repeat('a',64));
+reset role;
 
 -- A real open maintenance row must block release even after clearance and handover document evidence.
 insert into public.aqari_maintenance_requests(id,workspace_id,lease_id,tenant_id,description,status,cost,created_by)
