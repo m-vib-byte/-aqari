@@ -1192,8 +1192,8 @@
     },
     {
       "path": "staging-database/tests/vacating_release.sql",
-      "sha256": "9915633648d09d20613f19ec840ef95eab4d7e0fc02eecc28e4aefa296bb7760",
-      "size": 8755
+      "sha256": "a2cf03f09ae3c067346494104b629fbc5e1455c2fce8437ddcec6f6c16e27d17",
+      "size": 9119
     },
     {
       "path": "staging-database/tests/vacating_review.sql",
