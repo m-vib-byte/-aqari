@@ -54,7 +54,7 @@ returns jsonb language plpgsql security definer set search_path='' as $$
 declare
  w uuid:=p_workspace_id;lid uuid:=p_lease_id;expected bigint:=p_revision;
  s private.aqari_vacating_settlements;l public.aqari_leases;app public.aqari_app_state;
- actor text;balances jsonb;clearance_balances jsonb;data jsonb;contract jsonb;updated_contract jsonb;ref text;release_snapshot jsonb;
+ actor text;balances jsonb;clearance_balances jsonb;data jsonb;contract jsonb;updated_contract jsonb;ref text;release_payload jsonb;
  deposit_json jsonb;handover_docs jsonb;open_maintenance bigint;open_utilities bigint;future_payments bigint;uncertain_payments bigint;
 begin
  if auth.uid() is null or not private.aqari_manager(w)
@@ -134,7 +134,7 @@ begin
  end if;
 
  select coalesce(nullif(p.display_name,''),auth.uid()::text) into actor from public.aqari_profiles p where p.user_id=auth.uid();
- release_snapshot:=jsonb_build_object(
+ release_payload:=jsonb_build_object(
   'lease_id',l.id,'contract_no',l.contract_no,'unit_id',l.unit_id,'original_contract_end_date',l.end_date,
   'effective_occupancy_end',s.vacate_date,'clearance_no',s.clearance_no,'clearance_snapshot',s.clearance_snapshot,
   'handover_documents',handover_docs,'open_maintenance',open_maintenance,'open_utilities',open_utilities,
@@ -159,7 +159,7 @@ begin
  end if;
 
  update private.aqari_vacating_settlements set status='released',revision=revision+1,
-  released_by=auth.uid(),released_by_name=coalesce(actor,auth.uid()::text),released_at=now(),release_snapshot=release_snapshot,
+  released_by=auth.uid(),released_by_name=coalesce(actor,auth.uid()::text),released_at=now(),release_snapshot=release_payload,
   updated_by=auth.uid(),updated_at=now() where workspace_id=w and lease_id=lid;
  update public.aqari_notification_outbox set status='cancelled'
   where workspace_id=w and lease_id=lid and status in('awaiting_configuration','queued') and kind='rent_reminder';
