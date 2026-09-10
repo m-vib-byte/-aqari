@@ -1,0 +1,26 @@
+name: V267 inventory diagnostic
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact candidate digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            src/v267/pages/vacating-settlement.js \
+            staging-database/local-test/package.json \
+            tests/v267-vacating-settlement.test.mjs \
+            staging-database/sql/vacating-release.sql \
+            staging-database/tests/vacating_release.sql; do
+            printf 'V267_DIGEST|%s|' "$file"
+            wc -c < "$file" | tr -d '\n '
+            printf '|'
+            sha256sum "$file" | awk '{print $1}'
+          done
