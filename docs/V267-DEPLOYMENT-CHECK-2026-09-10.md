@@ -6,7 +6,9 @@ Production publication remains blocked by the owner's existing conditions. No pr
 
 The unmodified candidate `6bd72500b7bb9fc644520d02425835c4de971e64` passed `VERCEL_ENV=production node scripts/check.mjs` despite containing a preview release stage, preview Auth callback and isolated test database. The package check now rejects those production settings, checks browser/server agreement, and is explicitly invoked as the Vercel build command. It preserves the currently observed domain database and session namespace as the production target contract.
 
-The complete release checksum check also reproduced a stale inventory entry for `staging-database/tests/vacating_release.sql`. The SQL bytes match the immutable GitHub source and were not changed; only that entry's checksum/size was corrected. The complete release checksum check then passed. All 33 selected runtime integrity/syntax checks also passed.
+The complete release checksum check also reproduced a stale inventory entry for `staging-database/tests/vacating_release.sql`. The SQL bytes match the immutable GitHub source and were not changed; only that entry's checksum/size was corrected. The complete release checksum check then passed. All 31 selected runtime integrity/syntax checks also passed (correcting the initial commit message's count of 33).
+
+The first Preview build of the repair executed the new check successfully, then Vercel required an explicit static output directory. The configuration now explicitly preserves the existing repository-root static layout with `outputDirectory: "."`; the Vercel wiring regression covers this setting. This follow-up changes build packaging only.
 
 This checks build configuration only. It does not authorize promotion of an existing preview artifact, perform a database migration, create a backup, prove schema compatibility or establish acceptance. Existing preview isolation and runtime code are unchanged. A genuine production configuration still needs a compatible runtime and full acceptance; editing the release marker alone is insufficient. See [Vercel build configuration](https://vercel.com/docs/project-configuration#buildcommand).
 

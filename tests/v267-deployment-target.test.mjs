@@ -30,6 +30,7 @@ test('the actual preview candidate cannot pass the production package build', ()
 test('the Vercel build actually invokes the package check', () => {
   const config=JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
   assert.equal(config.buildCommand,'npm run check');
+  assert.equal(config.outputDirectory,'.');
 });
 
 test('a consistent production configuration preserves the domain data source', () => {

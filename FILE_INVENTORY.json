@@ -1862,8 +1862,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "e49f49f2b9b8ac9f2ddd097dae775c5a8fb59bb478ac8f1d22379a80905ddb22",
-      "size": 4210
+      "sha256": "2ba544876c4e4470859070f1ee87244e3584dea37c0ffafecf84f47c56b4ce35",
+      "size": 4236
     },
     {
       "path": "VERSION.json",
@@ -1877,8 +1877,8 @@
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
-      "sha256": "e353a55919ecbb5fd8e0980549cace8679a7ec84634c0224e413bafc46776fb7",
-      "size": 3118
+      "sha256": "57c08b4a9a7bf393bc7b980b228163bf7852810e97eaec147d0a1ff3fb09a529",
+      "size": 3162
     }
   ],
   "version": "V198"
