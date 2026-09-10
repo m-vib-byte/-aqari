@@ -2,7 +2,7 @@ import {createDialog,node,field} from '../components/dialog.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 
 const money=value=>{const raw=String(value??'');if(!/^\d{1,15}(?:\.\d{1,3})?$/.test(raw))throw Error('المبلغ المحفوظ غير مكتمل؛ حدّث السجل.');const [whole,fraction='']=raw.split('.');return whole+'.'+fraction.padEnd(3,'0');};
-const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function printable(currentRecord,kind){
  if(!currentRecord||!['clearance','settlement'].includes(kind))throw Error('اختر مستنداً محفوظاً.');
  const clearance=kind==='clearance',snapshot=clearance?currentRecord.clearance_snapshot:currentRecord.settlement_snapshot;
