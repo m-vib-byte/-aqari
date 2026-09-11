@@ -1,44 +1,9 @@
 {
   "files": [
     {
-      "path": ".github/workflows/startup-ui-order.yml",
-      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
-      "size": 575
-    },
-    {
-      "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "22dc570356ff9be6656e8bde3842c9a9b190bf747a544f05254a8bcf7afb8d78",
-      "size": 5126
-    },
-    {
-      "path": ".github/workflows/release-gate.yml",
-      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
-      "size": 3616
-    },
-    {
-      "path": ".github/workflows/recovery-entry.yml",
-      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
-      "size": 878
-    },
-    {
-      "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
-      "size": 2326
-    },
-    {
-      "path": ".github/workflows/login-speed.yml",
-      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
-      "size": 887
-    },
-    {
-      "path": ".github/workflows/direct-entry.yml",
-      "sha256": "f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60",
-      "size": 1152
-    },
-    {
-      "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
-      "size": 1390
+      "path": ".env.example",
+      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
+      "size": 339
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
@@ -46,9 +11,44 @@
       "size": 746
     },
     {
-      "path": ".env.example",
-      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
-      "size": 339
+      "path": ".github/workflows/authenticated-home.yml",
+      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
+      "size": 1390
+    },
+    {
+      "path": ".github/workflows/direct-entry.yml",
+      "sha256": "f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60",
+      "size": 1152
+    },
+    {
+      "path": ".github/workflows/login-speed.yml",
+      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
+      "size": 887
+    },
+    {
+      "path": ".github/workflows/preview-e2e.yml",
+      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
+      "size": 2326
+    },
+    {
+      "path": ".github/workflows/recovery-entry.yml",
+      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
+      "size": 878
+    },
+    {
+      "path": ".github/workflows/release-gate.yml",
+      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
+      "size": 3616
+    },
+    {
+      "path": ".github/workflows/runtime-contracts.yml",
+      "sha256": "22dc570356ff9be6656e8bde3842c9a9b190bf747a544f05254a8bcf7afb8d78",
+      "size": 5126
+    },
+    {
+      "path": ".github/workflows/startup-ui-order.yml",
+      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
+      "size": 575
     },
     {
       "path": "api/autosync-status.js",
@@ -812,8 +812,8 @@
     },
     {
       "path": "src/v267/pages/operations-center.js",
-      "sha256": "5f6aa848fd5479ed761f7d6e57f4098753f2c30eac50b101f97c97c58bf20eb3",
-      "size": 13459
+      "sha256": "6ce5a724edbd57251713a4762c07f6d8bbc8ec83c088f28fe5eae44ce92dc06e",
+      "size": 20491
     },
     {
       "path": "src/v267/pages/original-documents.js",
@@ -962,8 +962,8 @@
     },
     {
       "path": "staging-database/sql/operations-register.sql",
-      "sha256": "b7f4080c63a7827c7629306fd03725850a2a4027c5a59c50d166be695c9c2c09",
-      "size": 26253
+      "sha256": "7c8577be58e47674dfc26b11f34eef46b4155cabfa64929170dfce2c66e78b25",
+      "size": 27571
     },
     {
       "path": "staging-database/sql/optional-tenant-email.sql",
@@ -1627,8 +1627,8 @@
     },
     {
       "path": "tests/v267-operations-center.test.cjs",
-      "sha256": "8663ee87ad8758dff9cf975ca39855a1d5103b915fda2dd1e69485fe4788ee19",
-      "size": 1638
+      "sha256": "76d5231098598f6d970aa801bb5d14b852f0088184ff319bb738e795c14c4b98",
+      "size": 2121
     },
     {
       "path": "tests/v267-operations-policy.test.cjs",
@@ -1637,8 +1637,8 @@
     },
     {
       "path": "tests/v267-operations-rpc.test.cjs",
-      "sha256": "8aa7317e4cf3bcd8c2c4e58b5203eb80546d6b29249ce61ab8edef1b196ad831",
-      "size": 2094
+      "sha256": "fc3f64909a1a9d6c9bd7c2360d07c59c9dbedd991fd4b4972d5167cb7b8f6e20",
+      "size": 2531
     },
     {
       "path": "tests/v267-operations-schema.test.cjs",

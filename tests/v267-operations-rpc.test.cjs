@@ -11,6 +11,12 @@ test('operations RPC is one authenticated manager boundary with explicit domains
  assert.match(source,/revoke all on function[\s\S]*from public,anon,authenticated/);
  assert.match(source,/grant execute on function public\.aqari_operations_register[\s\S]*to authenticated/);
 });
+test('vendor contracts require property scope and a verified archived document',()=>{
+ assert.match(source,/p_action='contract'/);
+ assert.match(source,/private\.aqari_can_property\(w,property_id,'maintenance','write'\)/);
+ assert.match(source,/not private\.aqari_operations_document\(w,property_id,document_id\)/);
+ assert.match(source,/status,document_id,approved_by,approved_at[\s\S]*'active',document_id,auth\.uid\(\),now\(\)/);
+});
 test('returned cheques create one immutable tenant debit and freeze renewal',()=>{
  assert.match(source,/next_state='returned' then true/);
  assert.match(source,/kind,direction,amount[\s\S]*'cheque_return','debit'/);

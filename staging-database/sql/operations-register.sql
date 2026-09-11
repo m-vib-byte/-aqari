@@ -151,7 +151,7 @@ begin
 
  elsif p_domain='vendors' then
   if not private.aqari_can(w,'maintenance','write') then raise insufficient_privilege using message='ACCESS_DENIED'; end if;
-  if p_action<>'save' then raise exception 'INVALID_VENDOR_ACTION' using errcode='22023'; end if;
+  if p_action='save' then
   select * into vendor from private.aqari_vendors v where v.workspace_id=w and v.id=ident for update;
   expected:=coalesce((d->>'revision')::integer,0); if coalesce(vendor.revision,0) is distinct from expected then raise serialization_failure using message='REVISION_CONFLICT'; end if;
   if length(btrim(coalesce(d->>'name',''))) not between 2 and 200 or coalesce(d->>'status','active') not in ('active','suspended','archived') then raise exception 'INVALID_VENDOR_DATA' using errcode='22023'; end if;
@@ -164,6 +164,25 @@ begin
     where v.workspace_id=w and v.id=ident returning * into vendor;
   end if;
   after_row:=to_jsonb(vendor);
+  elsif p_action='contract' then
+   lease_id:=nullif(d->>'vendor_id','')::uuid; property_id:=nullif(d->>'property_id','')::uuid; document_id:=nullif(d->>'document_id','')::uuid;
+   if not private.aqari_can_property(w,property_id,'maintenance','write')
+    or not exists(select 1 from private.aqari_vendors v where v.workspace_id=w and v.id=lease_id and v.status='active')
+    or not private.aqari_operations_document(w,property_id,document_id)
+   then raise insufficient_privilege using message='ACCESS_DENIED_OR_DOCUMENT_UNVERIFIED'; end if;
+   amount_value:=private.aqari_hr_money(d->'amount');
+   if length(btrim(coalesce(d->>'contract_no','')))<2
+    or length(btrim(coalesce(d->>'service_kind','')))<2
+    or nullif(d->>'starts_on','')::date>nullif(d->>'ends_on','')::date
+    or amount_value<0
+   then raise exception 'INVALID_VENDOR_CONTRACT' using errcode='22023'; end if;
+   insert into private.aqari_vendor_contracts as vc(
+    id,workspace_id,vendor_id,property_id,contract_no,starts_on,ends_on,service_kind,amount,status,document_id,approved_by,approved_at
+   ) values(
+    ident,w,lease_id,property_id,btrim(d->>'contract_no'),(d->>'starts_on')::date,(d->>'ends_on')::date,
+    btrim(d->>'service_kind'),amount_value,'active',document_id,auth.uid(),now()
+   ) returning to_jsonb(vc) into after_row;
+  else raise exception 'INVALID_VENDOR_ACTION' using errcode='22023'; end if;
 
  elsif p_domain='work_orders' then
   if not private.aqari_can(w,'maintenance','write') then raise insufficient_privilege using message='ACCESS_DENIED'; end if;
