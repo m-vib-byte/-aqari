@@ -397,8 +397,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "3acc2888e0f217991889ae3fa71dbb85a5412576fd456906e7991e0a4b6d2c27",
-      "size": 80249
+      "sha256": "6c913c599a6eea8c2909a7d6c98cc53ec3c3fe4f23ebec7eb3db71c87c7fc84e",
+      "size": 80936
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -1257,8 +1257,8 @@
     },
     {
       "path": "staging-database/tests/vacating_release.sql",
-      "sha256": "a2cf03f09ae3c067346494104b629fbc5e1455c2fce8437ddcec6f6c16e27d17",
-      "size": 9119
+      "sha256": "76c1495d073e0506a200d1d3a49630be9dceee232fa8ae91aa93dc085293749c",
+      "size": 10235
     },
     {
       "path": "staging-database/tests/vacating_review.sql",
