@@ -376,6 +376,11 @@
       "sha256": "0d4663406503650dbe3b0a31dcf93c9ac87f99fa218fdbfae77bd3ec26204b97"
     },
     {
+      "path": "lib/v267/operations-policy.js",
+      "sha256": "f02b7f3d6479bea09022dca6e1072bfeb014f1f516729246eb68ae0a4b25860d",
+      "size": 11829
+    },
+    {
       "path": "login.html",
       "sha256": "0e13d4aba28a21b0d4f4edb3e00ba2864110f51d750ee7b28ba581d2f4be894c",
       "size": 16965
@@ -1544,6 +1549,11 @@
       "path": "tests/v267-navigation-work.test.cjs",
       "sha256": "467c5122631e987d737e78de519558ab14966ade8235288b9e63b1791d9f4e17",
       "size": 3422
+    },
+    {
+      "path": "tests/v267-operations-policy.test.cjs",
+      "sha256": "50dcf38c4a0f7ff2145540832993644ccbba15aef210473fb883bb15849e1b0e",
+      "size": 4358
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
