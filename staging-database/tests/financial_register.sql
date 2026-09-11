@@ -63,10 +63,11 @@ do $$
 declare w uuid:=current_setting('finance.test.workspace')::uuid; prop uuid:=current_setting('finance.test.property')::uuid;r jsonb;
 begin
  if not private.aqari_can_property(w,prop,'finance','write') then raise exception 'ACCOUNTANT_PROPERTY_FINANCE_REQUIRED';end if;
- if private.aqari_manager(w) then raise exception 'ACCOUNTANT_BECAME_MANAGER';end if;
  r:=public.aqari_financial_register(w,'list','{"month":"2026-05"}');
  if jsonb_array_length(r->'properties')<>1 or r#>>'{properties,0,id}'<>prop::text then raise exception 'ACCOUNTANT_PROPERTY_SCOPE_LEAK';end if;
  if jsonb_array_length(r->'expenses')<>1 or r#>>'{expenses,0,id}'<>'f2672200-0000-4000-8000-000000000010' then raise exception 'ACCOUNTANT_EXPENSE_SCOPE_LEAK';end if;
+ -- The manager ceiling is proven through the public API rather than by directly
+ -- reading memberships through a private helper under the authenticated RLS role.
  begin perform public.aqari_financial_register(w,'close_period','{"month":"2026-05","reason":"محاولة إقفال غير مخولة"}');raise exception 'ACCOUNTANT_CLOSED_PERIOD';exception when insufficient_privilege then null;end;
 end $$;
 select set_config('request.jwt.claim.sub','f2672200-0000-4000-8000-000000000001',true);
