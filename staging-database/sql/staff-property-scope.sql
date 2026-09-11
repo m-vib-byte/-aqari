@@ -94,6 +94,7 @@ begin
    'assignments',coalesce((select jsonb_agg(to_jsonb(g)-'updated_by' order by g.updated_at desc) from private.aqari_staff_assignments g where g.workspace_id=p_workspace_id),'[]'),
    'audit',coalesce((select jsonb_agg(to_jsonb(q) order by q.id desc) from(select actor_name,recorded_at,reason,before_snapshot,after_snapshot,id from private.aqari_staff_assignment_audit where workspace_id=p_workspace_id order by id desc limit 100)q),'[]'));
  end if;
+ perform private.aqari_require_sensitive_aal2(p_workspace_id);
  if p_action is distinct from 'save' or jsonb_typeof(p_data) is distinct from 'object'
   or exists(select 1 from jsonb_object_keys(p_data) k where k not in('user_id','operational_role','property_ids','is_active','revision','reason')) then raise exception 'بيانات صلاحية الموظف غير صالحة.';end if;
  uid:=(p_data->>'user_id')::uuid;effective:=p_data->>'operational_role';expected:=(p_data->>'revision')::bigint;why:=btrim(p_data->>'reason');

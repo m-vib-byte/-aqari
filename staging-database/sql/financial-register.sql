@@ -153,6 +153,7 @@ begin
      (x.entity_id=v_month::text or exists(select 1 from private.aqari_financial_expenses ex where ex.workspace_id=w and ex.id::text=x.entity_id and ex.expense_date>=v_month and ex.expense_date<(v_month+interval '1 month')::date)) order by x.id desc limit 100) a),'[]'),'summary',summary);
  end if;
  if not private.aqari_can(w,'finance','write') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
+ perform private.aqari_require_sensitive_aal2(w);
  perform 1 from public.aqari_app_state where workspace_id=w for update;
  if not found then raise insufficient_privilege using message='ACCESS_DENIED';end if;
  if p_action='close_period' then

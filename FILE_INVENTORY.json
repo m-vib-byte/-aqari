@@ -831,6 +831,11 @@
       "size": 17329
     },
     {
+      "path": "src/v267/pages/security-center.js",
+      "sha256": "43301303cf57b2c6e5585c9ab238ddc390f58aabeec654cf1aa037e77b9a5ad1",
+      "size": 5896
+    },
+    {
       "path": "src/v267/pages/staff-access.js",
       "size": 13190,
       "sha256": "4ba3cd1224e59b433488dde81b45ffe76d9fbdb55aad57a92902eac2508a043f"
@@ -857,8 +862,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "4c6faa383ce0e46b73a783f78c2e9c23587ba5dbffb57ff17043bcd05d83610d",
-      "size": 11915
+      "sha256": "f580d7612017ee874ad22093e09e9735abcea183c7a94d8e4b2851c3b0570910",
+      "size": 12373
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -906,6 +911,11 @@
       "sha256": "a27144f5157f5007b6114c03498d0eabdd70e8ad7267ff760c1c4645aca70fe0"
     },
     {
+      "path": "staging-database/sql/financial-register.sql",
+      "sha256": "c2f35140d659b30b7956c8ef37fca595b7c4c0eba429617c00699549ad6ad96e",
+      "size": 22972
+    },
+    {
       "path": "staging-database/sql/imported-tenant-edit.sql",
       "size": 9162,
       "sha256": "998610defe17ef948df2648c4f68803814af9504322b16f86a400784acf7d4dd"
@@ -921,14 +931,19 @@
       "size": 2766
     },
     {
+      "path": "staging-database/sql/mfa-enforcement.sql",
+      "sha256": "a55a41bff10671758d4491dde60038df093dcf00b6968547396eda36f4cd79e2",
+      "size": 1165
+    },
+    {
       "path": "staging-database/sql/operations-completion.sql",
       "sha256": "57d0b7cfc6405f78b148cadea6f59e69c93d1ddef434d5d13ff69c47472ee1e3",
       "size": 17251
     },
     {
       "path": "staging-database/sql/operations-register.sql",
-      "sha256": "62c08103f0aff658115e34412d03747bfe1925747f2b697510e196371890324c",
-      "size": 26170
+      "sha256": "b7f4080c63a7827c7629306fd03725850a2a4027c5a59c50d166be695c9c2c09",
+      "size": 26253
     },
     {
       "path": "staging-database/sql/optional-tenant-email.sql",
@@ -967,8 +982,8 @@
     },
     {
       "path": "staging-database/sql/staff-property-scope.sql",
-      "size": 28487,
-      "sha256": "c9cb8387f05ab0b51e06a933d3c5182ca59c3c685f09f9f6ff3652fb5fe69f43"
+      "size": 28550,
+      "sha256": "21e919a856f0189cccc781c7f8fe406da8cb904674ebd2221ecda7f00c4fc315"
     },
     {
       "path": "staging-database/sql/tenant-contact-preference.sql",
@@ -1561,6 +1576,11 @@
       "size": 4462
     },
     {
+      "path": "tests/v267-mfa-enforcement.test.cjs",
+      "sha256": "bb2a28fd06eb3d1f4d3c5e769956c91c7423ad689350847d29f3d9c2ff56a0f3",
+      "size": 899
+    },
+    {
       "path": "tests/v267-migration-preflight.test.cjs",
       "sha256": "5ea7d3c02d5c9c74f30c2d911b9e44f2c62137674116d7f6d5658f4e23511b35",
       "size": 4916
@@ -1582,8 +1602,8 @@
     },
     {
       "path": "tests/v267-operations-rpc.test.cjs",
-      "sha256": "b76229fa906d1225df324743e4682705601b0934d857756a7de3200aa577206b",
-      "size": 1996
+      "sha256": "8aa7317e4cf3bcd8c2c4e58b5203eb80546d6b29249ce61ab8edef1b196ad831",
+      "size": 2094
     },
     {
       "path": "tests/v267-operations-schema.test.cjs",
@@ -1654,6 +1674,11 @@
       "path": "tests/v267-scoped-render.test.cjs",
       "sha256": "be4e140c96576fe71980cf978be8d77f3b1d97d184e9bd1f6292b59d27ddca39",
       "size": 2352
+    },
+    {
+      "path": "tests/v267-security-center.test.cjs",
+      "sha256": "e8c7c0207550dd459043708bb7094449fbc4088a8e49bf81d553103275ff2af4",
+      "size": 1259
     },
     {
       "path": "tests/v267-service-desk.test.cjs",

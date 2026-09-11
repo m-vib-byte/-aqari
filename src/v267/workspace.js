@@ -6,7 +6,8 @@ import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
 let installed=false,access=null,loading=null,session,notice;
 function updateFeatureTools(){
- const operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
+ const security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
+ if(security)security.hidden=access?.role!=='general_manager'&&access?.role!=='accountant';
  if(operations)operations.hidden=access?.role!=='general_manager';
  if(staff)staff.hidden=access?.features?.staff_access!==true||access?.role!=='general_manager';
  if(finance)finance.hidden=access?.features?.financial_register!==true||access?.permissions?.finance?.read!==true;
@@ -64,10 +65,11 @@ export function install(){
  const deposits=ui('button','دفتر التأمين — القبض والرد');deposits.id='aq267-deposit-ledger';deposits.hidden=true;deposits.onclick=()=>import('./pages/deposit-ledger.js').then(m=>m.openDepositLedger()).catch(e=>notice.textContent=t(safeError(e)));
  const vacating=ui('button','تسوية الإخلاء وبراءة الذمة');vacating.id='aq267-vacating-settlement';vacating.hidden=true;vacating.onclick=()=>import('./pages/vacating-settlement.js').then(m=>m.openVacatingSettlement()).catch(e=>notice.textContent=t(safeError(e)));
  const exitReview=ui('button','طلب إخلاء ومراجعة التسوية');exitReview.id='aq267-exit-review';exitReview.hidden=true;exitReview.onclick=()=>import('./pages/exit-review.js').then(m=>m.openExitReview()).catch(e=>notice.textContent=t(safeError(e)));
+ const securityCenter=ui('button','الأمان والتوثيق الثنائي');securityCenter.id='aq267-security-center';securityCenter.hidden=true;securityCenter.onclick=()=>import('./pages/security-center.js').then(m=>m.openSecurityCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const operationsCenter=ui('button','مركز العمليات — الشيكات والموردون والقضايا والعهدة');operationsCenter.id='aq267-operations-center';operationsCenter.hidden=true;operationsCenter.onclick=()=>import('./pages/operations-center.js').then(m=>m.openOperationsCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
- tools.append(staffAccess,financialRegister,deposits,operationsCenter,originals,exitReview,vacating,vacatingReview);
+ tools.append(staffAccess,financialRegister,deposits,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
  const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.

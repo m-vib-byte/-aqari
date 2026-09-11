@@ -6,6 +6,7 @@ const source=readFileSync(resolve(__dirname,'../staging-database/sql/operations-
 
 test('operations RPC is one authenticated manager boundary with explicit domains',()=>{
  assert.match(source,/auth\.uid\(\) is null or not private\.aqari_manager\(w\)/);
+ assert.match(source,/p_action<>'list' then perform private\.aqari_require_sensitive_aal2\(w\)/);
  assert.match(source,/p_domain not in \('overview','cheques','vendors','work_orders','legal_cases','petty_cash'\)/);
  assert.match(source,/revoke all on function[\s\S]*from public,anon,authenticated/);
  assert.match(source,/grant execute on function public\.aqari_operations_register[\s\S]*to authenticated/);

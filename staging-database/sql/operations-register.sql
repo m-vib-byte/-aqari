@@ -84,6 +84,7 @@ declare
  amount_value numeric(15,3); next_state text; from_state text; event_id uuid; result jsonb;
 begin
  if auth.uid() is null or not private.aqari_manager(w) then raise insufficient_privilege using message='ACCESS_DENIED'; end if;
+ if p_action<>'list' then perform private.aqari_require_sensitive_aal2(w); end if;
  if d is null or jsonb_typeof(d)<>'object' or octet_length(d::text)>32000 then raise exception 'INVALID_OPERATION_DATA' using errcode='22023'; end if;
  if p_domain not in ('overview','cheques','vendors','work_orders','legal_cases','petty_cash') then raise exception 'INVALID_OPERATION_DOMAIN' using errcode='22023'; end if;
  select coalesce(nullif(display_name,''),auth.uid()::text) into actor from public.aqari_profiles where user_id=auth.uid();
