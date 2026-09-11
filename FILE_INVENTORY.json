@@ -1257,8 +1257,8 @@
     },
     {
       "path": "staging-database/tests/vacating_settlement_guards.sql",
-      "size": 6850,
-      "sha256": "25a7c122b4e44a3244aa7808451d46962f15db47f9cc94a7cffcfb9ed15dcfbf"
+      "size": 7144,
+      "sha256": "934fdab8d3f5ffcdb8bb699d7ab64ddc6622c45c5bdd6d310b20663a4463ec9f"
     },
     {
       "path": "staging-database/tests/vacating_settlement_list.sql",
