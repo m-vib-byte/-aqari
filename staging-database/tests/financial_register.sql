@@ -80,7 +80,7 @@ begin
  perform public.aqari_financial_register(w,'close_period','{"month":"2026-05","reason":"إقفال اختبار مالي متراجع عنه"}');
  begin perform public.aqari_financial_register(w,'save',jsonb_build_object('id','f2672200-0000-4000-8000-000000000012','revision',0,'property_id',current_setting('finance.test.property')::uuid,'expense_date','2026-05-13','category','اختبار','payee','اختبار','amount','1','method','cash','reference','','description','','document_id',null));raise exception 'CLOSED_PERIOD_WRITE_ACCEPTED';
  exception when raise_exception then if sqlerrm<>'الفترة المالية مقفلة؛ لا يمكن تسجيل أو تغيير عملية فيها.' then raise;end if;end;
- if not exists(select 1 from jsonb_array_elements(public.aqari_financial_register(w,'list','{"month":"2026-05"}')->'history')x where x->>'action'='period_closed' and x->>'actor_name'='مدير اختبار مالي') then raise exception 'PERIOD_CLOSE_AUDIT_MISSING';end if;
+ if not exists(select 1 from jsonb_array_elements(public.aqari_financial_register(w,'list','{"month":"2026-05"}')->'history')x where x->>'action'='period.close' and x->>'actor_name'='مدير اختبار مالي') then raise exception 'PERIOD_CLOSE_AUDIT_MISSING';end if;
 end $$;
 rollback;
 select 'PASS: financial register draft/readback/document approval, accountant property scope, audited cancellation and period close all preserve AAL2 enforcement; fixtures rolled back.' as result;
