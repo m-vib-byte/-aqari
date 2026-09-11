@@ -796,6 +796,11 @@
       "sha256": "cd69649cb54066b21ffa9c50390b43d7eae9cb2739065a0dc342c783c9871c4c"
     },
     {
+      "path": "src/v267/pages/kpi-dashboard.js",
+      "sha256": "94e25ff6d780159b8d4941677abd41dd28d3980cb975e7b7fe5ac1e5a2347e7e",
+      "size": 2541
+    },
+    {
       "path": "src/v267/pages/lease-review.js",
       "sha256": "d0682312b45273192cd0ee7c3274151a43929bfcc0e8f05af6d94bf2ff16dfef",
       "size": 6022
@@ -867,8 +872,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "6ef44393f1577d9fe8e8203466a47a9d4a3023794cf3aafa8128672a0db8046a",
-      "size": 12898
+      "sha256": "c758b19c7b28afedb2a9064e38119c18017c62bc3fb821610fe79fc764f2e4dc",
+      "size": 13287
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -924,6 +929,11 @@
       "path": "staging-database/sql/imported-tenant-edit.sql",
       "size": 9162,
       "sha256": "998610defe17ef948df2648c4f68803814af9504322b16f86a400784acf7d4dd"
+    },
+    {
+      "path": "staging-database/sql/kpi-dashboard.sql",
+      "sha256": "993e02d69f15342825a10e08be8f1060baacc141bef5f0a47e869d7cd2fba3c0",
+      "size": 2798
     },
     {
       "path": "staging-database/sql/linked-rental-details.sql",
@@ -1574,6 +1584,11 @@
       "path": "tests/v267-financial-register.test.cjs",
       "sha256": "b63913599090b179abd93d3742bea161f9801d6dd57d99d15260a0b46b236594",
       "size": 25185
+    },
+    {
+      "path": "tests/v267-kpi-dashboard.test.cjs",
+      "sha256": "689d50e268417e1bd161b0edb17f46690d4d8be7dd5909d314164bcf2a7ba8b9",
+      "size": 1093
     },
     {
       "path": "tests/v267-locale.test.mjs",

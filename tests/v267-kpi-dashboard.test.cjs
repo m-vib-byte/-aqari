@@ -1,0 +1,5 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {readFileSync}=require('node:fs');const {resolve}=require('node:path');
+const sql=readFileSync(resolve(__dirname,'../staging-database/sql/kpi-dashboard.sql'),'utf8'),ui=readFileSync(resolve(__dirname,'../src/v267/pages/kpi-dashboard.js'),'utf8');
+test('KPI RPC separates actual and projected finance',()=>{for(const key of ["'actual_income'","'approved_expenses'","'actual_net'","'projected_net'","'projection_basis'"])assert.match(sql,new RegExp(key));assert.match(sql,/p\.status<>'cancelled'/);assert.match(sql,/e\.state='approved'/);});
+test('KPI RPC protects scope and bounds reporting period',()=>{assert.match(sql,/private\.aqari_manager\(w\)/);assert.match(sql,/to_date-from_date>366/);assert.match(sql,/revoke all on function public\.aqari_kpi_dashboard/);});
+test('KPI UI reads the RPC and labels expected values separately',()=>{assert.match(ui,/aqari_kpi_dashboard/);assert.match(ui,/المتوقع منفصل عن الفعلي/);assert.doesNotMatch(ui,/Math\.random|localStorage|sessionStorage/);});
