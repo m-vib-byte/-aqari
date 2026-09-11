@@ -877,8 +877,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "22ec252198b6822e3669674b6fa3a31e7631c8f3e0023248318610bf31d51768",
-      "size": 1159
+      "sha256": "22d1bedcecc31ead4e97219d3a99e76ffdebbae2ac9887ab09ed7707402a8910",
+      "size": 1186
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
