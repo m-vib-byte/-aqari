@@ -86,6 +86,16 @@ begin
 end $$;
 reset role;
 
+-- Releasing the unit must never erase the tenant's historical file, contract, payment or handover evidence.
+do $$
+declare w uuid:=current_setting('release.test.workspace')::uuid;doc_id uuid:=current_setting('release.test.document_id')::uuid;
+begin
+ if not exists(select 1 from public.aqari_tenants where workspace_id=w and id='f267f200-0000-4000-8000-000000000001') then raise exception 'VACATED_TENANT_HISTORY_DELETED';end if;
+ if not exists(select 1 from public.aqari_leases where workspace_id=w and id='f267f400-0000-4000-8000-000000000001' and status='expired' and vacated_on='2026-01-31') then raise exception 'VACATED_LEASE_HISTORY_DELETED';end if;
+ if not exists(select 1 from public.aqari_rent_payments where workspace_id=w and id='f267f500-0000-4000-8000-000000000001' and amount=100 and status='paid') then raise exception 'VACATED_PAYMENT_HISTORY_DELETED';end if;
+ if not exists(select 1 from public.aqari_documents where workspace_id=w and id=doc_id and status='uploaded' and entity_type='lease' and entity_ref='release-lease-a') then raise exception 'VACATED_HANDOVER_HISTORY_DELETED';end if;
+end $$;
+
 -- Direct fixture rows exercise the schema occupancy constraint as the owner/test harness.
 -- Do not grant authenticated direct INSERT on leases merely to make this integrity test pass.
 do $$
