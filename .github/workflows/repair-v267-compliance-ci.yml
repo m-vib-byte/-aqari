@@ -1,0 +1,67 @@
+name: Repair V267 compliance CI
+
+on:
+  push:
+    branches:
+      - fix/v267-jsonb-readback
+    paths:
+      - .github/workflows/repair-v267-compliance-ci.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-jsonb-readback
+      - name: Repair compliance tool wiring and production transform guard
+        shell: python
+        run: |
+          import hashlib, json, pathlib
+
+          workspace = pathlib.Path('src/v267/workspace.js')
+          text = workspace.read_text(encoding='utf-8')
+          old_decl = "const guide=document.getElementById('aq267-user-guide'),kpis=document.getElementById('aq267-kpi-dashboard'),maintenancePlans=document.getElementById('aq267-maintenance-plans'),security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');"
+          new_decl = "const guide=document.getElementById('aq267-user-guide'),compliance=document.getElementById('aq267-compliance-center'),kpis=document.getElementById('aq267-kpi-dashboard'),maintenancePlans=document.getElementById('aq267-maintenance-plans'),security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');"
+          old_append = "tools.append(staffAccess,financialRegister,deposits,guideButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);"
+          new_append = "tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);"
+          if text.count(old_decl) != 1 or text.count(old_append) != 1:
+              raise SystemExit('WORKSPACE_SOURCE_CHANGED')
+          text = text.replace(old_decl, new_decl).replace(old_append, new_append)
+          workspace.write_text(text, encoding='utf-8')
+
+          prep = pathlib.Path('scripts/prepare-v267-production.mjs')
+          ptext = prep.read_text(encoding='utf-8')
+          old = "patch.set(workspacePath,replaceExact(read(workspacePath),'tools.append(staffAccess,financialRegister,deposits,originals,exitReview,vacating,vacatingReview);','originals.hidden=true;originals.disabled=true;\\n tools.append(staffAccess,financialRegister,deposits,originals,exitReview,vacating,vacatingReview);',1,workspacePath));"
+          new = "patch.set(workspacePath,replaceExact(read(workspacePath),'tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);','originals.hidden=true;originals.disabled=true;\\n tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);',1,workspacePath));"
+          if ptext.count(old) != 1:
+              raise SystemExit('PRODUCTION_PREPARATION_SOURCE_CHANGED')
+          prep.write_text(ptext.replace(old, new), encoding='utf-8')
+
+          inventory_path = pathlib.Path('FILE_INVENTORY.json')
+          data = json.loads(inventory_path.read_text(encoding='utf-8'))
+          entries = {entry['path']: entry for entry in data['files']}
+          for target in [workspace, prep]:
+              key = str(target)
+              entry = entries.get(key)
+              if entry is None:
+                  raise SystemExit('INVENTORY_ENTRY_REQUIRED: '+key)
+              payload = target.read_bytes()
+              entry['size'] = len(payload)
+              entry['sha256'] = hashlib.sha256(payload).hexdigest()
+              print(key, entry['size'], entry['sha256'])
+          inventory_path.write_text(json.dumps(data, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+      - name: Commit repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/v267/workspace.js scripts/prepare-v267-production.mjs FILE_INVENTORY.json
+          git diff --cached --check
+          git commit -m 'fix(v267): wire compliance center and production transform'
+          git push origin HEAD:fix/v267-jsonb-readback
