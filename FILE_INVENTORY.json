@@ -657,8 +657,8 @@
     },
     {
       "path": "src/v267/components/document-catalog.js",
-      "size": 2335,
-      "sha256": "da66d8b9df22f5abb74139c27a1ed4870635f650e3d2e19c41ee5be704419478"
+      "size": 12203,
+      "sha256": "6614ea102319965a11fa19d2ada5c4df4cef35cdc6df13c9a6a986e15ca0f763"
     },
     {
       "path": "src/v267/components/exit-translations.js",
@@ -1514,6 +1514,11 @@
       "path": "tests/v267-dialog-boundary.test.mjs",
       "sha256": "bb1961f595b15349416ff5f05dcb402307fc274140512b9127cd9ed357e66bd3",
       "size": 9855
+    },
+    {
+      "path": "tests/v267-document-catalog-completion.test.cjs",
+      "sha256": "8ffe476a93448acfa2412b5bf11830d53bd33e975423c9de04bc72d98f28b7b8",
+      "size": 1681
     },
     {
       "path": "tests/v267-document-upload-pages.test.mjs",
