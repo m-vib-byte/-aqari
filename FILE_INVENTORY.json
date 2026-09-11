@@ -917,8 +917,8 @@
     },
     {
       "path": "staging-database/sql/operations-completion.sql",
-      "sha256": "2545a7bb5fa07c47c7d502abe96ad6572c7b1d5e6e95fc9f186a26787b7a9e49",
-      "size": 18347
+      "sha256": "57d0b7cfc6405f78b148cadea6f59e69c93d1ddef434d5d13ff69c47472ee1e3",
+      "size": 17251
     },
     {
       "path": "staging-database/sql/optional-tenant-email.sql",
@@ -1567,8 +1567,8 @@
     },
     {
       "path": "tests/v267-operations-schema.test.cjs",
-      "sha256": "4144e07451b492e6fd8fc5e2e0ca6e536998c816301ea22cc593b6c264b291ee",
-      "size": 1757
+      "sha256": "2d217649f9ebbf00f2dc1e651ba7fd25ba926cdbe61840ee4ebc548b3e898304",
+      "size": 1785
     },
     {
       "path": "tests/v267-original-documents.test.mjs",

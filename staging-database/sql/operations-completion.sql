@@ -2,15 +2,6 @@
 -- CODE ONLY: apply later to the isolated staging project after review. Never apply directly to Production.
 begin;
 
-create table private.aqari_financial_periods(
- id uuid primary key, workspace_id uuid not null references public.aqari_workspaces(id),
- starts_on date not null, ends_on date not null, status text not null default 'open' check(status in ('open','closed')),
- closed_by uuid, closed_at timestamptz, reopened_by uuid, reopened_at timestamptz,
- reopen_reason text not null default '', revision integer not null default 1 check(revision>0),
- unique(workspace_id,starts_on,ends_on), check(starts_on<=ends_on),
- check(status='open' or (closed_by is not null and closed_at is not null))
-);
-
 create table private.aqari_cheques(
  id uuid primary key, workspace_id uuid not null references public.aqari_workspaces(id),
  lease_id uuid not null, cheque_no text not null, bank_name text not null,
@@ -207,7 +198,7 @@ do $$
 declare table_name text;
 begin
  foreach table_name in array array[
-  'aqari_financial_periods','aqari_cheques','aqari_cheque_events','aqari_vendors','aqari_vendor_contracts',
+  'aqari_cheques','aqari_cheque_events','aqari_vendors','aqari_vendor_contracts',
   'aqari_work_orders','aqari_legal_cases','aqari_legal_case_events','aqari_legal_costs','aqari_petty_cash_funds',
   'aqari_petty_cash_entries','aqari_commercial_terms','aqari_common_charge_allocations','aqari_unit_inspections',
   'aqari_tenant_year_ratings','aqari_property_channels','aqari_integration_outbox','aqari_notification_deliveries'
@@ -235,22 +226,13 @@ create trigger aqari_outbox_immutable before delete on private.aqari_integration
 create trigger aqari_delivery_immutable before delete on private.aqari_notification_deliveries
  for each row execute function private.aqari_reject_immutable_change();
 
-create function private.aqari_assert_period_open(w uuid,on_date date) returns void
-language plpgsql stable security definer set search_path='' as $$
-begin
- if exists(select 1 from private.aqari_financial_periods p
-  where p.workspace_id=w and p.status='closed' and on_date between p.starts_on and p.ends_on)
- then raise exception 'FINANCIAL_PERIOD_CLOSED' using errcode='23514'; end if;
-end $$;
-revoke all on function private.aqari_assert_period_open(uuid,date) from public,anon,authenticated;
-
 create function public.aqari_operations_health(p_workspace_id uuid) returns jsonb
 language plpgsql stable security definer set search_path='' as $$
 begin
  if auth.uid() is null or not private.aqari_manager(p_workspace_id)
  then raise insufficient_privilege using message='ACCESS_DENIED'; end if;
  return jsonb_build_object(
-  'financial_periods',(select count(*) from private.aqari_financial_periods where workspace_id=p_workspace_id),
+  'closed_financial_periods',(select count(*) from private.aqari_financial_periods where workspace_id=p_workspace_id),
   'open_cheques',(select count(*) from private.aqari_cheques where workspace_id=p_workspace_id and state not in ('cleared','settled','cancelled')),
   'active_vendor_contracts',(select count(*) from private.aqari_vendor_contracts where workspace_id=p_workspace_id and status='active'),
   'open_work_orders',(select count(*) from private.aqari_work_orders where workspace_id=p_workspace_id and status not in ('completed','cancelled')),
