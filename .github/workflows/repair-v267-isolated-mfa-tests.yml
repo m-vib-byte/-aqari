@@ -1,0 +1,60 @@
+name: Repair V267 isolated MFA tests
+
+on:
+  push:
+    branches:
+      - fix/v267-jsonb-readback
+    paths:
+      - .github/workflows/repair-v267-isolated-mfa-tests.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-jsonb-readback
+      - name: Set AAL2 only for isolated privileged fixtures and refresh inventory
+        shell: python
+        run: |
+          import hashlib, json, pathlib
+          edits = {
+            pathlib.Path('staging-database/tests/staff_property_scope.sql'): (
+              "select set_config('request.jwt.claim.sub','76400000-0000-4000-8000-000000000001',true);",
+              "select set_config('request.jwt.claim.sub','76400000-0000-4000-8000-000000000001',true);\nselect set_config('request.jwt.claims','{\"aal\":\"aal2\"}',true);"
+            ),
+            pathlib.Path('staging-database/tests/staff_contract_approval.sql'): (
+              "select set_config('request.jwt.claim.sub','76500000-0000-4000-8000-000000000001',true);",
+              "select set_config('request.jwt.claim.sub','76500000-0000-4000-8000-000000000001',true);\nselect set_config('request.jwt.claims','{\"aal\":\"aal2\"}',true);"
+            ),
+          }
+          inventory_path = pathlib.Path('FILE_INVENTORY.json')
+          data = json.loads(inventory_path.read_text(encoding='utf-8'))
+          for target, (old, new) in edits.items():
+              text = target.read_text(encoding='utf-8')
+              if text.count(old) < 1:
+                  raise SystemExit(f'MFA_FIXTURE_ANCHOR_REQUIRED:{target}')
+              text = text.replace(old, new, 1)
+              target.write_text(text, encoding='utf-8')
+              entry = next((row for row in data['files'] if row['path'] == str(target)), None)
+              if entry is None:
+                  raise SystemExit(f'INVENTORY_ENTRY_REQUIRED:{target}')
+              payload = target.read_bytes()
+              entry['size'] = len(payload)
+              entry['sha256'] = hashlib.sha256(payload).hexdigest()
+              print(str(target), entry['size'], entry['sha256'])
+          inventory_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+      - name: Commit isolated MFA fixture repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add staging-database/tests/staff_property_scope.sql staging-database/tests/staff_contract_approval.sql FILE_INVENTORY.json
+          git diff --cached --check
+          git commit -m 'test(v267): exercise isolated sensitive writes at AAL2'
+          git push origin HEAD:fix/v267-jsonb-readback
