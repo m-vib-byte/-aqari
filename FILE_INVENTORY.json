@@ -1,44 +1,9 @@
 {
   "files": [
     {
-      "path": ".github/workflows/startup-ui-order.yml",
-      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
-      "size": 575
-    },
-    {
-      "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "22dc570356ff9be6656e8bde3842c9a9b190bf747a544f05254a8bcf7afb8d78",
-      "size": 5126
-    },
-    {
-      "path": ".github/workflows/release-gate.yml",
-      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
-      "size": 3616
-    },
-    {
-      "path": ".github/workflows/recovery-entry.yml",
-      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
-      "size": 878
-    },
-    {
-      "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
-      "size": 2326
-    },
-    {
-      "path": ".github/workflows/login-speed.yml",
-      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
-      "size": 887
-    },
-    {
-      "path": ".github/workflows/direct-entry.yml",
-      "sha256": "f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60",
-      "size": 1152
-    },
-    {
-      "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
-      "size": 1390
+      "path": ".env.example",
+      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
+      "size": 339
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
@@ -46,9 +11,44 @@
       "size": 746
     },
     {
-      "path": ".env.example",
-      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
-      "size": 339
+      "path": ".github/workflows/authenticated-home.yml",
+      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
+      "size": 1390
+    },
+    {
+      "path": ".github/workflows/direct-entry.yml",
+      "sha256": "f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60",
+      "size": 1152
+    },
+    {
+      "path": ".github/workflows/login-speed.yml",
+      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
+      "size": 887
+    },
+    {
+      "path": ".github/workflows/preview-e2e.yml",
+      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
+      "size": 2326
+    },
+    {
+      "path": ".github/workflows/recovery-entry.yml",
+      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
+      "size": 878
+    },
+    {
+      "path": ".github/workflows/release-gate.yml",
+      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
+      "size": 3616
+    },
+    {
+      "path": ".github/workflows/runtime-contracts.yml",
+      "sha256": "22dc570356ff9be6656e8bde3842c9a9b190bf747a544f05254a8bcf7afb8d78",
+      "size": 5126
+    },
+    {
+      "path": ".github/workflows/startup-ui-order.yml",
+      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
+      "size": 575
     },
     {
       "path": "api/autosync-status.js",
@@ -272,8 +272,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "3acc2888e0f217991889ae3fa71dbb85a5412576fd456906e7991e0a4b6d2c27",
-      "size": 80249
+      "size": 81776,
+      "sha256": "ed189c8c1d3b5c5c76f3bb321f6866da5233526af03d92e2a57def0dcbbc291f"
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
