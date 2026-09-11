@@ -16,6 +16,9 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('f267d000-0000-4000-8000-000000000002','deposit-collector@example.invalid',now()),
  ('f267d000-0000-4000-8000-000000000003','deposit-maintenance@example.invalid',now());
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
+-- This suite validates deposit policy under the production MFA guard. Manager-only
+-- setup/actions run under an explicit synthetic AAL2 claim; scoped staff remain AAL1.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 select set_config('deposit.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('f267d100-0000-4000-8000-000000000001',current_setting('deposit.test.workspace')::uuid,'deposit-a','عقار التأمين أ','{}'),
@@ -78,6 +81,7 @@ begin
  perform pg_temp.deposit_expect('receive',d||'{"amount":"200.002"}','DEPOSIT_RECEIPT_EXCEEDS_CONTRACT');
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claims','{"aal":"aal1"}',true);
 do $$
 declare w uuid:=current_setting('deposit.test.workspace')::uuid;r jsonb;d jsonb:=current_setting('deposit.test.first')::jsonb;
 begin
@@ -103,6 +107,7 @@ begin
  if jsonb_array_length(public.aqari_deposit_register(w,'list','{"lease_id":"f267d400-0000-4000-8000-000000000001"}')->'entries')<>2 then raise exception 'RETRY_CREATED_RECORDS';end if;
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 do $$
 declare w uuid:=current_setting('deposit.test.workspace')::uuid;r jsonb;d jsonb:=current_setting('deposit.test.first')::jsonb;
 begin
@@ -123,6 +128,7 @@ begin
  perform public.aqari_deposit_register(w,'receive',d||'{"id":"f267d500-0000-4000-8000-000000000032","lease_id":"f267d400-0000-4000-8000-000000000002","amount":"100","on_date":"2026-05-13"}');
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claims','{"aal":"aal1"}',true);
 select pg_temp.deposit_expect('get','{"id":"f267d500-0000-4000-8000-000000000030"}','ACCESS_DENIED');
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000003',true);
 select pg_temp.deposit_expect('list','{}','ACCESS_DENIED');
@@ -139,6 +145,7 @@ begin
  if (select count(*) from public.aqari_rent_payments)<>(select rent_payments from deposit_before_counts) then raise exception 'DEPOSIT_COUNTED_AS_RENT';end if;
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 set local role authenticated;
 do $$
 declare w uuid:=current_setting('deposit.test.workspace')::uuid;r jsonb;d jsonb:=current_setting('deposit.test.refund')::jsonb;
@@ -154,6 +161,7 @@ begin
  perform public.aqari_staff_access(w,'save',jsonb_build_object('user_id','f267d000-0000-4000-8000-000000000002','operational_role','collector','property_ids',jsonb_build_array('f267d100-0000-4000-8000-000000000001'),'is_active',false,'revision',1,'reason','سحب صلاحية اختبار'));
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000002',true);
+select set_config('request.jwt.claims','{"aal":"aal1"}',true);
 select pg_temp.deposit_expect('receive',current_setting('deposit.test.first')::jsonb,'ACCESS_DENIED');
 reset role;
 rollback to savepoint deposit_fixtures;
