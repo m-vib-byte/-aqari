@@ -24,6 +24,9 @@ select set_config('aqari.test.scope.workspace',(select workspace_id::text from p
 create temporary table aqari_staff_scope_baseline on commit drop as
  select private.aqari_unwrap(payload) as payload from public.aqari_app_state where workspace_id=current_setting('aqari.test.scope.workspace')::uuid;
 select set_config('request.jwt.claim.sub','76400000-0000-4000-8000-000000000001',true);
+-- This suite validates property scoping, not MFA enrollment. Privileged manager writes
+-- therefore run under an explicit synthetic AAL2 claim, matching the production guard.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 set local role authenticated;
 do $$
 declare w uuid:=current_setting('aqari.test.scope.workspace')::uuid;state jsonb;d jsonb;t jsonb;c jsonb;r jsonb;row_data jsonb;receipt jsonb;suffix text;rent_paid numeric;
