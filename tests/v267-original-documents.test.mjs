@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {DOCUMENT_CATEGORIES,documentCategory} from '../src/v267/components/document-catalog.js';
 import {originalDocument,createOriginalDocumentUpload} from '../src/v267/components/original-document-upload.js';
 test('all requested document families have explicit permitted record links',()=>{
- assert.equal(Object.keys(DOCUMENT_CATEGORIES).length,21);
+ assert.equal(Object.keys(DOCUMENT_CATEGORIES).length,47);
  for(const [category,spec]of Object.entries(DOCUMENT_CATEGORIES))for(const entity of ['property','tenant','lease']){
   if(spec.entities.includes(entity))assert.equal(documentCategory(category,entity).documentType,category==='signed_lease'?'signed_contract':'supporting_document');
   else assert.throws(()=>documentCategory(category,entity));
