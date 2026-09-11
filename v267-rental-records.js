@@ -118,7 +118,7 @@ function scope(){
 }
 async function bounded(task){let timer;try{return await Promise.race([task(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('انتهت مهلة الاتصال.')),20000)})])}finally{clearTimeout(timer)}}
 const store=createStore({scope,local:data,load:s=>bounded(()=>root.AQARI_SUPABASE.loadAppState(s)),save:(p,r,s)=>bounded(()=>root.AQARI_SUPABASE.saveAppState(p,r,s)),cache:()=>{if(typeof persist==='function')persist()}});
-const esc=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+const esc=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const byId=id=>document.getElementById(id);
 const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]:null;
 const draftNotice='<p class="v267-draft-notice" style="border:2px solid currentColor;padding:12px;font-weight:700;text-align:center">مسودة للمراجعة — غير صالحة للتوقيع<br>DRAFT — NOT FOR SIGNATURE</p>';
