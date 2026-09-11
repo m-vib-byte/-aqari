@@ -1,0 +1,44 @@
+name: Refresh V267 inventory entries
+
+on:
+  push:
+    branches:
+      - fix/v267-new-tenant-contact-preference
+    paths:
+      - .github/workflows/refresh-v267-inventory.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-new-tenant-contact-preference
+      - name: Refresh changed V267 inventory entries
+        shell: python
+        run: |
+          import hashlib, json, pathlib
+          inventory_path = pathlib.Path('FILE_INVENTORY.json')
+          data = json.loads(inventory_path.read_text(encoding='utf-8'))
+          targets = ['v267-rental-records.js', 'tests/v267-rental-records.test.cjs']
+          entries = {entry['path']: entry for entry in data['files']}
+          for target in targets:
+              payload = pathlib.Path(target).read_bytes()
+              entries[target]['size'] = len(payload)
+              entries[target]['sha256'] = hashlib.sha256(payload).hexdigest()
+              print(target, entries[target]['size'], entries[target]['sha256'])
+          inventory_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+      - name: Commit verified inventory refresh
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add FILE_INVENTORY.json
+          git diff --cached --check
+          git commit -m 'chore: refresh V267 runtime inventory'
+          git push origin HEAD:fix/v267-new-tenant-contact-preference
