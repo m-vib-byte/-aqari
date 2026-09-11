@@ -1517,8 +1517,8 @@
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
-      "sha256": "8ffe476a93448acfa2412b5bf11830d53bd33e975423c9de04bc72d98f28b7b8",
-      "size": 1681
+      "sha256": "98048e943370b78330fbe76d746105f7bb91eb24ae2012da861543b09926385a",
+      "size": 1650
     },
     {
       "path": "tests/v267-document-upload-pages.test.mjs",
@@ -1562,13 +1562,13 @@
     },
     {
       "path": "tests/v267-operations-policy.test.cjs",
-      "sha256": "50dcf38c4a0f7ff2145540832993644ccbba15aef210473fb883bb15849e1b0e",
-      "size": 4358
+      "sha256": "0707d61112845dc056a3959e6d0522e8bbd725c556daabc11443f815e033318a",
+      "size": 4151
     },
     {
       "path": "tests/v267-operations-schema.test.cjs",
-      "sha256": "a79cb336529695512126eec87b2b9e15b6c65bf06a47abc008d9453288d6d4f7",
-      "size": 1763
+      "sha256": "4144e07451b492e6fd8fc5e2e0ca6e536998c816301ea22cc593b6c264b291ee",
+      "size": 1757
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
