@@ -10,6 +10,9 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76500000-0000-4000-8000-000000000002','staff-contract-property@example.invalid',now());
 select set_config('aqari.test.contract.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76500000-0000-4000-8000-000000000001'),true);
 select set_config('request.jwt.claim.sub','76500000-0000-4000-8000-000000000001',true);
+-- Privileged manager setup is expected to run after MFA; model that explicitly
+-- in the isolated fixture while leaving production AAL2 enforcement intact.
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 set local role authenticated;
 do $$
 declare w uuid:=current_setting('aqari.test.contract.workspace')::uuid;s jsonb;d jsonb;t jsonb;c jsonb;prop uuid;
