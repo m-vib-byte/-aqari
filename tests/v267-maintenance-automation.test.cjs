@@ -1,0 +1,6 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {readFileSync}=require('node:fs');const {resolve}=require('node:path');
+const source=readFileSync(resolve(__dirname,'../staging-database/sql/maintenance-automation.sql'),'utf8');
+test('maintenance plans generate persistent tasks and require completion evidence',()=>{assert.match(source,/unique\(workspace_id,plan_id,due_on\)/);assert.match(source,/COMPLETION_DOCUMENT_REQUIRED/);assert.match(source,/photo_document_ids/);assert.match(source,/next_due_on=next_date/);});
+test('alert engine covers maintenance, leases and vendor contracts at 30 60 90 days',()=>{for(const kind of ['maintenance_due','lease_expiry','vendor_contract_expiry'])assert.match(source,new RegExp(kind));assert.match(source,/days_left in \(90,60,30\)/);});
+test('alert creation is idempotent and does not pretend to deliver externally',()=>{assert.match(source,/unique\(workspace_id,as_of\)/);assert.match(source,/on conflict\(workspace_id,idempotency_key\) do nothing/);assert.doesNotMatch(source,/fetch\(|http_post|net\.http/);});
+test('writes require permission and aal2 for sensitive actors',()=>{assert.match(source,/private\.aqari_can\(w,'maintenance','write'\)/);assert.match(source,/private\.aqari_require_sensitive_aal2\(w\)/);assert.match(source,/revoke all on function public\.aqari_maintenance_plans/);});

@@ -801,6 +801,11 @@
       "size": 6022
     },
     {
+      "path": "src/v267/pages/maintenance-plans.js",
+      "sha256": "1b5f8ff68896070f95a22f127c5eda5e8d59fefacc2a2db3f4c91cd6d0cdc9e0",
+      "size": 6392
+    },
+    {
       "path": "src/v267/pages/operations-center.js",
       "sha256": "5f6aa848fd5479ed761f7d6e57f4098753f2c30eac50b101f97c97c58bf20eb3",
       "size": 13459
@@ -862,8 +867,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "f580d7612017ee874ad22093e09e9735abcea183c7a94d8e4b2851c3b0570910",
-      "size": 12373
+      "sha256": "6ef44393f1577d9fe8e8203466a47a9d4a3023794cf3aafa8128672a0db8046a",
+      "size": 12898
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -924,6 +929,11 @@
       "path": "staging-database/sql/linked-rental-details.sql",
       "sha256": "6b3cc45714b7c683e803c1f7db6fbf0a0a7905d5d2e08e252e17118e55251afc",
       "size": 11381
+    },
+    {
+      "path": "staging-database/sql/maintenance-automation.sql",
+      "sha256": "2fe1eaca85917d180de988fb3260dab574b58c93d5808ee238c386c2204f8e0f",
+      "size": 15967
     },
     {
       "path": "staging-database/sql/maintenance-locations.sql",
@@ -1574,6 +1584,16 @@
       "path": "tests/v267-login-locale.test.cjs",
       "sha256": "bff2d336e2e969d3a347c08eb47cf250e76eaca9e72a0e1975b60a8088e365f7",
       "size": 4462
+    },
+    {
+      "path": "tests/v267-maintenance-automation.test.cjs",
+      "sha256": "a6f88c5334d868f1768117881ba23d69cf3e65f3fc6d2090a9e367cb0b763203",
+      "size": 1372
+    },
+    {
+      "path": "tests/v267-maintenance-plans.test.cjs",
+      "sha256": "002f2cf45a992049ce63b3379a477dae0d4d17fa0ec783a23bbe57bd25011eb0",
+      "size": 1079
     },
     {
       "path": "tests/v267-mfa-enforcement.test.cjs",
