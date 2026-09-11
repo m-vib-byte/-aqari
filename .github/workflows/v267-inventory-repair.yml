@@ -1,0 +1,51 @@
+name: V267 inventory repair
+
+on:
+  push:
+    branches:
+      - fix/v267-jsonb-readback
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-jsonb-readback
+          fetch-depth: 0
+      - name: Refresh changed fixture inventory entries
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const inventoryPath = 'FILE_INVENTORY.json';
+          const targets = new Set([
+            'staging-database/tests/staff_property_scope.sql',
+            'staging-database/tests/financial_register.sql',
+            'staging-database/tests/staff_contract_approval.sql'
+          ]);
+          const inv = JSON.parse(fs.readFileSync(inventoryPath, 'utf8'));
+          const seen = new Set();
+          for (const row of inv.files) {
+            if (!targets.has(row.path)) continue;
+            const data = fs.readFileSync(row.path);
+            row.sha256 = crypto.createHash('sha256').update(data).digest('hex');
+            row.size = data.length;
+            seen.add(row.path);
+          }
+          const missing = [...targets].filter((p) => !seen.has(p));
+          if (missing.length) throw new Error(`Inventory entries missing: ${missing.join(', ')}`);
+          fs.writeFileSync(inventoryPath, JSON.stringify(inv, null, 2) + '\n');
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add FILE_INVENTORY.json
+          if git diff --cached --quiet; then
+            echo "Inventory already current"
+            exit 0
+          fi
+          git commit -m "chore(v267): refresh AAL2 fixture inventory"
+          git push origin HEAD:fix/v267-jsonb-readback
