@@ -1,0 +1,22 @@
+import {createDialog,node} from '../components/dialog.js';
+const guides=Object.freeze({
+ general_manager:{title:'المدير العام',steps:['فعّل التوثيق الثنائي من مركز الأمان قبل أي اعتماد حساس.','راجع مركز جودة البيانات قبل اعتماد العقود أو الأرصدة المستوردة.','استخدم مركز العمليات لإدارة الشيكات والموردين وأوامر الشغل والقضايا والعهدة.','راجع لوحة مؤشرات الأداء؛ المتوقع منفصل دائماً عن التحصيل الفعلي.','أقفل الفترة المالية فقط بعد إنهاء المسودات والرواتب والمراجعة.']},
+ accountant:{title:'المحاسب',steps:['ادخل بحسابك ولا تشارك رمز التوثيق الثنائي.','سجل المصروف كمسودة واربط مستند العقار المحفوظ قبل الاعتماد.','لا تعدّل عقداً أو حصة شريك؛ هذه العمليات خارج صلاحية المحاسب.','راجع المرجع والمبلغ والفترة قبل تسجيل التحصيل.','بعد الإقفال لا تعالج الحركة القديمة؛ أنشئ تصحيحاً موثقاً وفق صلاحية الإدارة.']},
+ collector:{title:'موظف التحصيل',steps:['ابحث عن العقد الفعال بالاسم أو الوحدة أو رقم العقد.','لا تسجل تحصيلاً دون عقد فعال ولا تغيّر قيمة العقد الأصلية.','أدخل الطريقة والمرجع والمبلغ والفترة ثم تحقق من ظهور الوصل بعد إعادة القراءة.','في السداد الجزئي يبقى المتبقي مستحقاً؛ في الكامل تتوقف المطالبة.','لا يحق لك الاطلاع على حصص الشركاء أو أرباح المالك.']},
+ maintenance:{title:'مسؤول الصيانة',steps:['سجل الطلب بوصف واضح واربطه بالمستأجر والوحدة عند وجود عقد فعال.','استخدم الرقم الموحد نفسه في جميع المتابعات.','أرفق الصور كمستندات خاصة ولا تشارك روابطها خارج الصلاحية.','أنشئ خطة دورية للمصعد أو التكييف أو الإطفاء وحدد الموعد والتكرار.','لا تغلق المهمة دون مستند إنجاز وصور وتكلفة محفوظة.']},
+ property_manager:{title:'مدير العقار',steps:['تأكد أن نطاق حسابك يشمل العقار قبل العمل.','راجع ملف العقار والوحدات والعقود والمستندات من المصدر نفسه.','لا تعتمد تحصيلاً أو مصروفاً خارج الصلاحية الممنوحة.','تابع الصيانة والتعاميم الخاصة بعقاراتك فقط.']},
+ tenant:{title:'المستأجر',steps:['استخدم حسابك الشخصي وحدد كلمة مرور لا تشاركها.','راجع العقد والمستحقات والوصولات المرتبطة بوحدتك فقط.','قدّم طلب الصيانة بالوصف والصور وتابع رقمه الموحد.','اطلع على إعلانات وإرشادات عقارك وسجل الاطلاع عند الطلب.','عند الإخلاء تابع المفاتيح والمعاينة والتسوية قبل براءة الذمة.']},
+ partner:{title:'المالك الشريك',steps:['يعرض حسابك العقارات والحصص المخولة لك فقط.','راجع الدخل والمصروف والتوزيع الفعلي ولا تعتبر الربح النظري مبلغاً موزعاً.','بلّغ الإدارة عن أي اختلاف دون تعديل بيانات شريك آخر.']}
+});
+const text=(tag,value)=>node(tag,String(value??''));
+export function openUserGuide(){
+ const d=createDialog('دليل استخدام AQARI V267');if(!d)return;
+ const search=node('input'),roles=node('nav'),content=node('section');search.type='search';search.placeholder='ابحث في الدليل';search.autocomplete='off';
+ d.body.append(text('p','دليل تشغيل مدمج بلا بيانات شخصية. الصلاحيات الفعلية في قاعدة البيانات تتقدم على هذا الشرح.'),search,roles,content);
+ let selected='general_manager';
+ function render(){
+  const query=search.value.trim();roles.replaceChildren();for(const [key,guide]of Object.entries(guides)){const button=node('button',guide.title);button.type='button';button.setAttribute('aria-pressed',String(key===selected));button.onclick=()=>{selected=key;render();};roles.append(button);}
+  const guide=guides[selected];content.replaceChildren(text('h2',guide.title));const list=node('ol');for(const step of guide.steps){if(!query||step.includes(query)||guide.title.includes(query))list.append(text('li',step));}if(!list.children.length)content.append(text('p','لا توجد نتيجة ضمن الصلاحية المختارة.'));else content.append(list);
+ }
+ search.oninput=render;d.onDispose(()=>{search.value='';roles.replaceChildren();content.replaceChildren();});render();
+}
