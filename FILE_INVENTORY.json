@@ -1597,8 +1597,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "ee06468aa63bd1c755b4c4c00e40d95bc9f3ad6b816a8077a1ec1cbe6b781a4f",
-      "size": 13027
+      "sha256": "e4ad7dbf5d33b757adbeaa50d7830d62ede51bf94d9dab5391a4e11607445fdc",
+      "size": 13739
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -1867,8 +1867,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "30178fed5d36f8e3d41f33c1f8ff7cb377e8b5223d014bffeb13e01fddc4fe7d",
-      "size": 41576
+      "sha256": "a02842a316a009d3cec3c23dbed72ee822fa2c59c84341b2644607b23321064a",
+      "size": 42853
     },
     {
       "path": "v267-reset-password.js",
