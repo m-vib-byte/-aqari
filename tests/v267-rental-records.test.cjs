@@ -26,6 +26,14 @@ test('complete reusable tenant profile normalizes civil ID and prevents duplicat
  assert.throws(()=>api.profile({...tenant,email:'wrong'}),/البريد/);
  assert.throws(()=>api.profile(tenant,[{...tenant,id:'other'}]),/مسجل/);
 });
+test('new tenant profiles and drafts persist a validated preferred contact channel',()=>{
+ assert.equal(api.profile(tenant).preferredContact,'both');
+ assert.equal(api.profile({...tenant,preferredContact:'WHATSAPP'}).preferredContact,'whatsapp');
+ assert.equal(api.tenantDraft({id:'draft-contact',nameAr:'مسودة',preferredContact:'email'}).preferredContact,'email');
+ assert.throws(()=>api.profile({...tenant,preferredContact:'sms'}),/وسيلة تواصل/);
+ assert.throws(()=>api.tenantDraft({id:'draft-contact',nameAr:'مسودة',preferredContact:'push'}),/وسيلة تواصل/);
+ const c=valid();assert.equal(api.directoryFields(c,{...tenant,preferredContact:'phone'}).preferredContact,'phone');
+});
 test('lease binds a saved profile and exact property/unit with three-decimal money',()=>{
  const c=valid();assert.equal(c.unit,'4');assert.equal(c.rent,90.125);assert.equal(c.contractRent,100.125);assert.equal(c.tenantProfile.nameEn,tenant.nameEn);
  assert.throws(()=>api.lease(contract,[],[],[['عقار اختبار']]),/احفظ ملف/);
