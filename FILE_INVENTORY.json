@@ -801,6 +801,11 @@
       "size": 6022
     },
     {
+      "path": "src/v267/pages/operations-center.js",
+      "sha256": "5f6aa848fd5479ed761f7d6e57f4098753f2c30eac50b101f97c97c58bf20eb3",
+      "size": 13459
+    },
+    {
       "path": "src/v267/pages/original-documents.js",
       "size": 4483,
       "sha256": "258f42dcca65f777e9e5820a12b4cc47894c3fc1c3cbc9c57af03b592e715f02"
@@ -852,8 +857,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "0970b3e3b3943c6399d02425d63fe46087c8ef37be57283810945c35e395bb3b",
-      "size": 11411
+      "sha256": "4c6faa383ce0e46b73a783f78c2e9c23587ba5dbffb57ff17043bcd05d83610d",
+      "size": 11915
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -919,6 +924,11 @@
       "path": "staging-database/sql/operations-completion.sql",
       "sha256": "57d0b7cfc6405f78b148cadea6f59e69c93d1ddef434d5d13ff69c47472ee1e3",
       "size": 17251
+    },
+    {
+      "path": "staging-database/sql/operations-register.sql",
+      "sha256": "62c08103f0aff658115e34412d03747bfe1925747f2b697510e196371890324c",
+      "size": 26170
     },
     {
       "path": "staging-database/sql/optional-tenant-email.sql",
@@ -1561,9 +1571,19 @@
       "size": 3422
     },
     {
+      "path": "tests/v267-operations-center.test.cjs",
+      "sha256": "8663ee87ad8758dff9cf975ca39855a1d5103b915fda2dd1e69485fe4788ee19",
+      "size": 1638
+    },
+    {
       "path": "tests/v267-operations-policy.test.cjs",
       "sha256": "0707d61112845dc056a3959e6d0522e8bbd725c556daabc11443f815e033318a",
       "size": 4151
+    },
+    {
+      "path": "tests/v267-operations-rpc.test.cjs",
+      "sha256": "b76229fa906d1225df324743e4682705601b0934d857756a7de3200aa577206b",
+      "size": 1996
     },
     {
       "path": "tests/v267-operations-schema.test.cjs",
