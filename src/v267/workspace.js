@@ -8,6 +8,7 @@ let installed=false,access=null,loading=null,session,notice;
 function updateFeatureTools(){
  const guide=document.getElementById('aq267-user-guide'),kpis=document.getElementById('aq267-kpi-dashboard'),maintenancePlans=document.getElementById('aq267-maintenance-plans'),security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
  if(guide)guide.hidden=false;
+ if(compliance)compliance.hidden=access?.role!=='general_manager';
  if(kpis)kpis.hidden=access?.role!=='general_manager';
  if(maintenancePlans)maintenancePlans.hidden=access?.permissions?.maintenance?.read!==true;
  if(security)security.hidden=access?.role!=='general_manager'&&access?.role!=='accountant';
@@ -69,6 +70,7 @@ export function install(){
  const vacating=ui('button','تسوية الإخلاء وبراءة الذمة');vacating.id='aq267-vacating-settlement';vacating.hidden=true;vacating.onclick=()=>import('./pages/vacating-settlement.js').then(m=>m.openVacatingSettlement()).catch(e=>notice.textContent=t(safeError(e)));
  const exitReview=ui('button','طلب إخلاء ومراجعة التسوية');exitReview.id='aq267-exit-review';exitReview.hidden=true;exitReview.onclick=()=>import('./pages/exit-review.js').then(m=>m.openExitReview()).catch(e=>notice.textContent=t(safeError(e)));
  const guideButton=ui('button','دليل استخدام AQARI V267');guideButton.id='aq267-user-guide';guideButton.hidden=false;guideButton.onclick=()=>import('./pages/user-guide.js').then(m=>m.openUserGuide()).catch(e=>notice.textContent=t(safeError(e)));
+ const complianceButton=ui('button','العقود التجارية والخدمات وفحص الوحدات');complianceButton.id='aq267-compliance-center';complianceButton.hidden=true;complianceButton.onclick=()=>import('./pages/compliance-center.js').then(m=>m.openComplianceCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const kpiButton=ui('button','لوحة مؤشرات الأداء الفعلية');kpiButton.id='aq267-kpi-dashboard';kpiButton.hidden=true;kpiButton.onclick=()=>import('./pages/kpi-dashboard.js').then(m=>m.openKpiDashboard()).catch(e=>notice.textContent=t(safeError(e)));
  const maintenancePlansButton=ui('button','الصيانة الدورية وتنبيهات 30/60/90');maintenancePlansButton.id='aq267-maintenance-plans';maintenancePlansButton.hidden=true;maintenancePlansButton.onclick=()=>import('./pages/maintenance-plans.js').then(m=>m.openMaintenancePlans()).catch(e=>notice.textContent=t(safeError(e)));
  const securityCenter=ui('button','الأمان والتوثيق الثنائي');securityCenter.id='aq267-security-center';securityCenter.hidden=true;securityCenter.onclick=()=>import('./pages/security-center.js').then(m=>m.openSecurityCenter()).catch(e=>notice.textContent=t(safeError(e)));

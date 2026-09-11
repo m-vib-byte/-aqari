@@ -1,44 +1,9 @@
 {
   "files": [
     {
-      "path": ".env.example",
-      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
-      "size": 339
-    },
-    {
-      "path": ".github/workflows/app-first-paint.yml",
-      "sha256": "0f5ff0abecc1f093bf3c9386e441b66003b284bda8a69ba51b74c2c30805789e",
-      "size": 746
-    },
-    {
-      "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
-      "size": 1390
-    },
-    {
-      "path": ".github/workflows/direct-entry.yml",
-      "sha256": "f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60",
-      "size": 1152
-    },
-    {
-      "path": ".github/workflows/login-speed.yml",
-      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
-      "size": 887
-    },
-    {
-      "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
-      "size": 2326
-    },
-    {
-      "path": ".github/workflows/recovery-entry.yml",
-      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
-      "size": 878
-    },
-    {
-      "path": ".github/workflows/release-gate.yml",
-      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
-      "size": 3616
+      "path": ".github/workflows/startup-ui-order.yml",
+      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
+      "size": 575
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -46,9 +11,44 @@
       "size": 5126
     },
     {
-      "path": ".github/workflows/startup-ui-order.yml",
-      "sha256": "14f4498d2dc4ecb35f14f60992ff0335d7bcf388308a1f04a9e4aed8400d0691",
-      "size": 575
+      "path": ".github/workflows/release-gate.yml",
+      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
+      "size": 3616
+    },
+    {
+      "path": ".github/workflows/recovery-entry.yml",
+      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
+      "size": 878
+    },
+    {
+      "path": ".github/workflows/preview-e2e.yml",
+      "sha256": "72ee12ad40b75abcee4a592b399c1294e3ffad93735486be8d52a6d6b83d543a",
+      "size": 2326
+    },
+    {
+      "path": ".github/workflows/login-speed.yml",
+      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
+      "size": 887
+    },
+    {
+      "path": ".github/workflows/direct-entry.yml",
+      "sha256": "f0e056654e00335bf13e80ab4bb32179e6ec03b08435dcee8c56e3fbd22d7d60",
+      "size": 1152
+    },
+    {
+      "path": ".github/workflows/authenticated-home.yml",
+      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
+      "size": 1390
+    },
+    {
+      "path": ".github/workflows/app-first-paint.yml",
+      "sha256": "0f5ff0abecc1f093bf3c9386e441b66003b284bda8a69ba51b74c2c30805789e",
+      "size": 746
+    },
+    {
+      "path": ".env.example",
+      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
+      "size": 339
     },
     {
       "path": "api/autosync-status.js",
@@ -872,8 +872,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "238cc5eeca15e7b144ed927958515110883ffda54404ca81b05f12d3b4aa4077",
-      "size": 13636
+      "sha256": "204d7f363ff222c6856525e6ea53f72a720a34935ce1fd2ab3f4f22fb09c8d77",
+      "size": 14036
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -2019,6 +2019,26 @@
       "path": "tests/v267-user-guide.test.cjs",
       "sha256": "030cd34b2cbef8c28c269603da788893496a76ce56eab0bfb98963abba2a6e01",
       "size": 914
+    },
+    {
+      "path": "staging-database/sql/compliance-register.sql",
+      "sha256": "5cccec8b582fc87f36a76807d510f927930d2ccf6d06dc474e76c556a5bb5db1",
+      "size": 11097
+    },
+    {
+      "path": "src/v267/pages/compliance-center.js",
+      "sha256": "5f37aba6687365d779d37e2b368f44c3e0b60cabbe963b2693050b46348a9e42",
+      "size": 7894
+    },
+    {
+      "path": "tests/v267-compliance-register.test.cjs",
+      "sha256": "09652ad62c238a1430e44f1e88c34abda8f4fa5d6e99f7ba0be0f8f7b5b74e1d",
+      "size": 1378
+    },
+    {
+      "path": "tests/v267-compliance-center.test.cjs",
+      "sha256": "3e8a999a6839fd314fadc5c11d7725da125f70e57f79924d0986079fd46f31ee",
+      "size": 1173
     }
   ],
   "version": "V198"
