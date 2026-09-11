@@ -567,8 +567,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "09149bd070eb03c375d1b44909aff8dbb2937ddc8aeb0d130304e980733a2bf7",
-      "size": 7040
+      "sha256": "5fcad8bf93a6a434f47d87fa13cb27686bb21a9d85df2e9443e806db7dc56613",
+      "size": 7228
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -872,8 +872,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "204d7f363ff222c6856525e6ea53f72a720a34935ce1fd2ab3f4f22fb09c8d77",
-      "size": 14036
+      "sha256": "6686ad2110a6c8f0f2a2df096e1509536470ab1de805357c39abfce6d2a9ea27",
+      "size": 14115
     },
     {
       "path": "staging-database/local-test/package.json",

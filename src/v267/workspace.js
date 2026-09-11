@@ -6,7 +6,7 @@ import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
 let installed=false,access=null,loading=null,session,notice;
 function updateFeatureTools(){
- const guide=document.getElementById('aq267-user-guide'),kpis=document.getElementById('aq267-kpi-dashboard'),maintenancePlans=document.getElementById('aq267-maintenance-plans'),security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
+ const guide=document.getElementById('aq267-user-guide'),compliance=document.getElementById('aq267-compliance-center'),kpis=document.getElementById('aq267-kpi-dashboard'),maintenancePlans=document.getElementById('aq267-maintenance-plans'),security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
  if(guide)guide.hidden=false;
  if(compliance)compliance.hidden=access?.role!=='general_manager';
  if(kpis)kpis.hidden=access?.role!=='general_manager';
@@ -77,7 +77,7 @@ export function install(){
  const operationsCenter=ui('button','مركز العمليات — الشيكات والموردون والقضايا والعهدة');operationsCenter.id='aq267-operations-center';operationsCenter.hidden=true;operationsCenter.onclick=()=>import('./pages/operations-center.js').then(m=>m.openOperationsCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
- tools.append(staffAccess,financialRegister,deposits,guideButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
+ tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
  const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
