@@ -83,9 +83,18 @@ export function openOfficialDocumentCenter(){
   }finally{preparing=false;controls();}
  });};
  async function pdf(item){
+  const {blob,status}=await d.session.operation(async signal=>{
   const auth=await d.session.client.auth.getSession();d.session.check();const token=auth?.data?.session?.access_token;if(!token||auth?.data?.session?.user?.id!==d.session.bound.user)throw Error('انتهت جلسة الدخول.');
-  const response=await fetch('/api/official-document',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},credentials:'same-origin',cache:'no-store',redirect:'error',body:JSON.stringify({workspaceId:d.session.bound.workspace,documentId:item.id,version:item.current_version})});
-  d.session.check();if(!response.ok)throw Error('تعذر إنشاء ملف PDF.');const blob=await response.blob();if(blob.type!=='application/pdf'||await blob.slice(0,5).text()!=='%PDF-')throw Error('الملف الناتج ليس PDF موثوقاً.');d.session.check();saveBlob(blob,item.document_no+'-v'+item.current_version+'.pdf');
+  const response=await fetch('/api/official-document',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},signal,credentials:'same-origin',cache:'no-store',redirect:'error',body:JSON.stringify({workspaceId:d.session.bound.workspace,documentId:item.id,version:item.current_version})});
+  d.session.check();if(response.status===503)throw Error('أرشيف ملفات PDF يحتاج إكمال إعداد التخزين الآمن. المستند محفوظ ولم يصدر ملف غير مؤرشف.');if(!response.ok){const error=Error('تعذر استرجاع ملف PDF المؤرشف.');error.status=response.status;throw error;}
+  const blob=await response.blob();d.session.check();if(blob.type!=='application/pdf'||blob.size>2097152||await blob.slice(0,5).text()!=='%PDF-')throw Error('الملف الناتج ليس PDF موثوقاً.');
+  const expected=response.headers.get('X-Aqari-Archived-SHA256'),status=response.headers.get('X-Aqari-Document-Status');
+  const actual=[...new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()))].map(x=>x.toString(16).padStart(2,'0')).join('');
+  if(!/^[a-f0-9]{64}$/.test(expected||'')||expected!==actual||!['issued','void'].includes(status))throw Error('لم تتطابق بصمة الملف مع الأرشيف. لم يتم التنزيل.');
+  const finalAuth=await d.session.client.auth.getSession();d.session.check();if(finalAuth?.data?.session?.user?.id!==d.session.bound.user||!finalAuth?.data?.session?.access_token)throw Error('تغيرت جلسة الدخول. لم يتم تنزيل الملف.');
+  return {blob,status};});
+  d.session.check();saveBlob(blob,item.document_no+'-v'+item.current_version+(status==='void'?'-ملغى':'')+'.pdf');
+  d.status.textContent=status==='void'?'نُزّلت النسخة الأصلية المؤرشفة لمستند ملغى؛ تبقى حالة الإلغاء موثقة في السجل.':'تم تنزيل النسخة المؤرشفة والتحقق من بصمتها. للطباعة افتح الملف ثم اختر طباعة.';
  }
  async function historyOf(item){const r=await rpc('get',{id:item.id});if(r?.series?.id!==item.id||r.series.workspace_id!==d.session.bound.workspace||!Array.isArray(r.versions))throw Error('تعذر تأكيد أرشيف المستند.');return r;}
  function render(){list.replaceChildren(node('h3','الإصدارات المحفوظة'));

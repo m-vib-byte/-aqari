@@ -2,8 +2,8 @@
   "files": [
     {
       "path": ".env.example",
-      "sha256": "1f53307e26942fca129fec59ea1df3248f7819b80e55f14b2d93e5dab855a830",
-      "size": 339
+      "sha256": "6911bf6cdd138753ac5e6b9b2a068adf1efd1f7bac171f50e27db1ad96dd7edf",
+      "size": 343
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "985d0a3912beb86a424bc3216f0d14646db2fd91b0c3ba1f736913d21f04a4d1",
-      "size": 5783
+      "sha256": "aae6d5672cca3fdaf3f2cfe7d832a8a97fcc4be49d688b24f892867230251701",
+      "size": 5870
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -242,8 +242,8 @@
     },
     {
       "path": "api/official-document.py",
-      "sha256": "86c8071263de9cb13057a64eed0ab69e59658589095089d5bdaa10bcf2ba12a2",
-      "size": 4112
+      "sha256": "7d2e18d4f34f10641423f91f5e1752924238769563e6bcd92090930175628118",
+      "size": 8836
     },
     {
       "path": "api/ops/status.js",
@@ -352,8 +352,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "size": 276275,
-      "sha256": "df67cb9125efe5c0b886af971f9bd9a798ce99d10882af14a11194da5998a777"
+      "size": 278667,
+      "sha256": "cee1823ca69aa7653feaebed329a7c2048291d37634987953e676ceff303403a"
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -442,8 +442,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "size": 92118,
-      "sha256": "62aa02e20724330d1fe5e24f62fda41e87035f50dc091069c480fa227b64bfa5"
+      "size": 92979,
+      "sha256": "b613f1e986ad6ef4bda919d350dbf1f645028694bda53f8fbd7d9b77795d77fa"
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -653,7 +653,7 @@
     {
       "path": "scripts/audit-v267-evidence.mjs",
       "size": 5537,
-      "sha256": "3caffed54a4cb2a16ebb3bec16f60e91c045ec6ecbbc653ac332c59264d1278b"
+      "sha256": "fd0ff03b7ca42ae98c48727f3b3c397a168f81114ea2e7992ed6b236bf383d2f"
     },
     {
       "path": "scripts/autosync-selftest.mjs",
@@ -777,8 +777,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "65e3d5e76e4588282641123ab2a1dc04d80c8ba04ce452e03968638c00f27173",
-      "size": 9629
+      "sha256": "3cba8a3037e47fcea3e902487579cf1290ad8bf342f684995efc92ad9376c891",
+      "size": 10070
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -992,8 +992,8 @@
     },
     {
       "path": "src/v267/pages/official-document-center.js",
-      "sha256": "f847936fc3923393b77abdb3fc82f82f03b2d75cb4c83cc885e5af0111d7e45a",
-      "size": 14399
+      "sha256": "7c099f1f30f6acca0df1b043664882b8a032eed246daa0cc12c6fea7dedf3d10",
+      "size": 15897
     },
     {
       "path": "src/v267/pages/operations-center.js",
@@ -1037,8 +1037,8 @@
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "c3d60c6aecc0a69595f3c4bf80d04ecffb9d70766488ddea9d1120d6e38a917e",
-      "size": 6401
+      "sha256": "aa8c02a58befde5c77f3d8312c2ba3404094e64cf3170c1912ec857c1aa3c3f1",
+      "size": 6672
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1082,8 +1082,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 3164,
-      "sha256": "b6c265350c80f3bc8f9a1ba8a3698de2e8440415e0ccee7d2f8f98f715f8f3bd"
+      "size": 3248,
+      "sha256": "edde0986152c69c19b693628976d454ed3561bfba766728299bdf683aadbff23"
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -2002,8 +2002,8 @@
     },
     {
       "path": "tests/v267-official-document-runtime.test.mjs",
-      "sha256": "e10b756ea8d589817eff59f3dfe39137baaef55723c0da7d3a4b574e0b83d5d5",
-      "size": 4665
+      "sha256": "a3245bc66a15a959791c83a008b5d16dcca938d51354e7426b932c3395a5327f",
+      "size": 6584
     },
     {
       "path": "tests/v267-official-document-source-runtime.test.mjs",
@@ -2362,8 +2362,28 @@
     },
     {
       "path": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md",
-      "size": 3043,
-      "sha256": "19bfcd0cf42b4a6b5cff02ab36bf65b9e23fe1354a396e4f2488fcacb3c9ff20"
+      "size": 3371,
+      "sha256": "7639cf4f71b7cbc096d17f4cb204e0ff0fd48c21fa8eba5f3e2b9084f1ee939f"
+    },
+    {
+      "path": "staging-database/sql/official-document-pdf-archive.sql",
+      "size": 6588,
+      "sha256": "f704920331cf865dd65659d392787b6fed80ec73a6d0f1068c97026a2c46e63e"
+    },
+    {
+      "path": "staging-database/tests/official_document_pdf_archive.sql",
+      "size": 11823,
+      "sha256": "c04fd9bd9571c42328a988b61788c9b3e39b8437b5eef6a62d81bf9e224238cf"
+    },
+    {
+      "path": "tests/official_document_archive_test.py",
+      "size": 7646,
+      "sha256": "bd2f4b8ef2f7a5d685d4962b4769aba17d59280e39df358112da4e158cf2480c"
+    },
+    {
+      "path": "docs/V267-PDF-ARCHIVE-2026-09-12.md",
+      "size": 6661,
+      "sha256": "016cd2c0ec4332690dcbeaf24bcb06f0b5775e2c559ec9435a06d1ef93576a05"
     }
   ],
   "version": "V198"

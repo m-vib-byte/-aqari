@@ -99,5 +99,6 @@ jobs:
           python -m unittest discover -s tests -p rent_pdf_test.py -v
           python -m unittest discover -s tests -p property_statement_test.py -v
           python -m unittest discover -s tests -p official_document_pdf_test.py -v
+          python -m unittest discover -s tests -p official_document_archive_test.py -v
           python -m unittest discover -s tests -p provider_webhook_test.py -v
           python -m unittest discover -s tests -p outbound_adapters_test.py -v

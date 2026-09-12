@@ -60,6 +60,12 @@ export function createSession(){
  async function request(query){check();const controller=new AbortController();jobs.add(controller);
   try{const r=await waitForRequest(query.abortSignal(controller.signal),controller,'انتهت مهلة الاتصال. حدّث السجلات للتحقق.');check();if(r.error){const error=Object.assign(new Error(r.error.message||'REQUEST_FAILED'),r.error);if(Number.isInteger(r.status))error.status=r.status;throw error;}return r.data;}finally{jobs.delete(controller);}}
  function close(){closed=true;for(const job of jobs)job.abort();jobs.clear();}
+ async function operation(task){
+  check();const controller=new AbortController();jobs.add(controller);
+  try{const work=Promise.resolve().then(()=>{check();return task(controller.signal);});
+   const result=await waitForRequest(work,controller,'انتهت مهلة قراءة المستند. أعد المحاولة للتحقق من النسخة المحفوظة.');check();return result;
+  }finally{jobs.delete(controller);}
+ }
  async function storage(method,path,body,bucket='aqari-documents'){
   check();if(!['aqari-documents','aqari-hr-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
   const controller=new AbortController();jobs.add(controller);
@@ -75,5 +81,5 @@ export function createSession(){
    check();return result;
   }finally{jobs.delete(controller);}
  }
- return {bound,connect,check,request,storage,close,get client(){return client;}};
+ return {bound,connect,check,request,storage,operation,close,get client(){return client;}};
 }

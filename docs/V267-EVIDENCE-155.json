@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceParentSHA": "5e0e241612a32d1540f12d7e37bd9154389b2516",
-  "matrixSha256": "62aa02e20724330d1fe5e24f62fda41e87035f50dc091069c480fa227b64bfa5",
+  "sourceParentSHA": "b38d745630821aa57c39f291c4fa59bf1e5f20cd",
+  "matrixSha256": "b613f1e986ad6ef4bda919d350dbf1f645028694bda53f8fbd7d9b77795d77fa",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -313,6 +313,17 @@
         "staging-database/tests/final_gap_register.sql",
         "staging-database/sql/final-gap-readback-hardening.sql"
       ]
+    },
+    "E39": {
+      "files": [
+        "staging-database/sql/official-document-pdf-archive.sql",
+        "api/official-document.py",
+        "src/v267/pages/official-document-center.js",
+        "staging-database/tests/official_document_pdf_archive.sql",
+        "tests/official_document_archive_test.py",
+        "tests/v267-official-document-runtime.test.mjs",
+        "docs/V267-PDF-ARCHIVE-2026-09-12.md"
+      ]
     }
   },
   "files": [
@@ -412,8 +423,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "65e3d5e76e4588282641123ab2a1dc04d80c8ba04ce452e03968638c00f27173",
-      "bytes": 9629,
+      "sha256": "3cba8a3037e47fcea3e902487579cf1290ad8bf342f684995efc92ad9376c891",
+      "bytes": 10070,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1385,8 +1396,8 @@
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "c3d60c6aecc0a69595f3c4bf80d04ecffb9d70766488ddea9d1120d6e38a917e",
-      "bytes": 6401,
+      "sha256": "aa8c02a58befde5c77f3d8312c2ba3404094e64cf3170c1912ec857c1aa3c3f1",
+      "bytes": 6672,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1403,8 +1414,8 @@
     },
     {
       "path": "src/v267/pages/official-document-center.js",
-      "sha256": "f847936fc3923393b77abdb3fc82f82f03b2d75cb4c83cc885e5af0111d7e45a",
-      "bytes": 14399,
+      "sha256": "7c099f1f30f6acca0df1b043664882b8a032eed246daa0cc12c6fea7dedf3d10",
+      "bytes": 15897,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1440,8 +1451,8 @@
     },
     {
       "path": "api/official-document.py",
-      "sha256": "86c8071263de9cb13057a64eed0ab69e59658589095089d5bdaa10bcf2ba12a2",
-      "bytes": 4112,
+      "sha256": "7d2e18d4f34f10641423f91f5e1752924238769563e6bcd92090930175628118",
+      "bytes": 8836,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1458,8 +1469,8 @@
     },
     {
       "path": "tests/v267-official-document-runtime.test.mjs",
-      "sha256": "e10b756ea8d589817eff59f3dfe39137baaef55723c0da7d3a4b574e0b83d5d5",
-      "bytes": 4665,
+      "sha256": "a3245bc66a15a959791c83a008b5d16dcca938d51354e7426b932c3395a5327f",
+      "bytes": 6584,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1759,6 +1770,47 @@
       "publicFunctions": [
         "public.aqari_final_gap_register"
       ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/official-document-pdf-archive.sql",
+      "sha256": "f704920331cf865dd65659d392787b6fed80ec73a6d0f1068c97026a2c46e63e",
+      "bytes": 6588,
+      "declaredTables": [
+        "private.aqari_official_pdf_artifacts"
+      ],
+      "publicFunctions": [
+        "public.aqari_official_pdf_get",
+        "public.aqari_official_pdf_commit"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/official_document_pdf_archive.sql",
+      "sha256": "c04fd9bd9571c42328a988b61788c9b3e39b8437b5eef6a62d81bf9e224238cf",
+      "bytes": 11823,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/official_document_archive_test.py",
+      "sha256": "bd2f4b8ef2f7a5d685d4962b4769aba17d59280e39df358112da4e158cf2480c",
+      "bytes": 7646,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-PDF-ARCHIVE-2026-09-12.md",
+      "sha256": "016cd2c0ec4332690dcbeaf24bcb06f0b5775e2c559ec9435a06d1ef93576a05",
+      "bytes": 6661,
+      "declaredTables": [],
+      "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": null
     }
@@ -4052,13 +4104,14 @@
       "id": 69,
       "sourceId": "G06-08",
       "requirement": "حفظ نسخة المستند الأصلية كما صدرت دون تعديل لاحق.",
-      "reportedImplementation": "جزئي — E12، E13، E08 وE35 تحفظ الأصول واللقطات وإصدارات التصحيح؛ PDF الرسمي يعاد توليده من اللقطة ولا تحفظ بايتاته كنسخة إصدار مستقلة بعد.",
-      "acceptanceRemaining": "حفظ بايتات PDF الأصلية والتحقق من ثباتها بعد ترقية المحرك، مع منع تعديل/حذف النسخ.",
+      "reportedImplementation": "جزئي — E12، E13، E08 وE35 وE39؛ حفظ بايتات أول PDF لكل إصدار في جدول خاص ثابت مع RPC محكوم، وإعادة القراءة والتحقق من البصمة، و20 اختبار Python و23 مجموعة SQL محلية ناجحة.",
+      "acceptanceRemaining": "الإعداد والقبول المستضافان وربط الأرشفة ذريًا بوقت الإصدار؛ الأرشفة الحالية عند أول تصدير ولا تستعيد ملفًا تاريخيًا لم يحفظ أصلًا.",
       "evidenceIds": [
         "E12",
         "E13",
         "E08",
-        "E35"
+        "E35",
+        "E39"
       ],
       "evidenceFiles": [
         "api/rent-receipt.py",
@@ -4086,7 +4139,11 @@
         "staging-database/sql/official-document-access-hardening.sql",
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
-        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+        "staging-database/sql/official-document-pdf-archive.sql",
+        "staging-database/tests/official_document_pdf_archive.sql",
+        "tests/official_document_archive_test.py",
+        "docs/V267-PDF-ARCHIVE-2026-09-12.md"
       ],
       "uiFiles": [
         "src/v267/pages/document-scanner.js",
@@ -4103,7 +4160,8 @@
         "staging-database/sql/official-document-source-binding.sql",
         "staging-database/sql/official-document-account-statement.sql",
         "staging-database/sql/official-document-template-validation.sql",
-        "staging-database/sql/official-document-access-hardening.sql"
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/sql/official-document-pdf-archive.sql"
       ],
       "testFiles": [
         "staging-database/tests/rental_transaction.sql",
@@ -4113,7 +4171,9 @@
         "staging-database/tests/official_document_register.sql",
         "tests/official_document_pdf_test.py",
         "staging-database/tests/official_document_source_binding.sql",
-        "tests/v267-official-document-source-runtime.test.mjs"
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "staging-database/tests/official_document_pdf_archive.sql",
+        "tests/official_document_archive_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -5807,7 +5867,7 @@
       "sourceId": "G11-01",
       "requirement": "حزمة رسمية: كشف مستأجر، مخالصة، مديونية وتجديد وعدم تجديد، قبض وصرف، خصم وتسوية ومديونية ورد تأمين، أضرار ومفاتيح، تحصيل يومي، رواتب، أوامر صيانة واعتماد مصروف وغيرها.",
       "reportedImplementation": "جزئي — E35 يوفر حقولاً عربية لـ16 قالباً وربطاً بالمصدر وحفظاً وترقيماً وPDF؛ اختبر إصدار 12 نوعاً في SQL محلي. التسوية المكملة ومحاضر المعاينة وبقية الأنواع غير مكتملة.",
-      "acceptanceRemaining": "تطبيق وقبول مستضاف، إكمال التسوية والحقول المكملة وربط الصور والتوقيعات وأرشفة بايتات PDF واختبار الأجهزة.",
+      "acceptanceRemaining": "تطبيق وقبول مستضاف، إكمال التسوية والحقول المكملة وربط الصور والتوقيعات وتفعيل E39 لأرشفة بايتات PDF وقت التصدير وإكمالها وقت الإصدار واختبار الأجهزة.",
       "evidenceIds": [
         "E35"
       ],
