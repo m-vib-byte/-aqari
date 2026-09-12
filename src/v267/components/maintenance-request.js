@@ -20,6 +20,9 @@ async function sha256(file){
  const digest=await crypto.subtle.digest('SHA-256',bytes);
  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+async function cancelReservedAttachment(client,attachmentId){
+ try{await client.rpc('aqari_maintenance_attachment_cancel',{p_attachment_id:attachmentId});}catch{}
+}
 export async function uploadMaintenanceFiles({client,workspaceId,requestId,files,check,run=promise=>promise}){
  const list=validateMaintenanceFiles(files),saved=[];
  for(const file of list){
@@ -30,15 +33,20 @@ export async function uploadMaintenanceFiles({client,workspaceId,requestId,files
   if(reserveError)throw reserveError;
   const row=Array.isArray(reserved)?reserved[0]:reserved;
   if(!row?.attachment_id||!row.storage_path||row.storage_bucket!=='aqari-documents')throw Error('تعذر حجز مرفق الصيانة.');
-  const {error:uploadError}=await run(client.storage.from(row.storage_bucket).upload(row.storage_path,file,{contentType:file.type,upsert:false}));
-  if(uploadError)throw uploadError;
-  check?.();
-  const checksum=await sha256(file);check?.();
-  const {data:finalized,error:finalizeError}=await run(client.rpc('aqari_maintenance_attachment_finalize',{
-   p_attachment_id:row.attachment_id,p_size_bytes:file.size,p_checksum:checksum
-  }));
-  if(finalizeError||finalized!==row.attachment_id)throw finalizeError||Error('تعذر تأكيد مرفق الصيانة.');
-  saved.push({id:row.attachment_id,path:row.storage_path,checksum});
+  try{
+   const {error:uploadError}=await run(client.storage.from(row.storage_bucket).upload(row.storage_path,file,{contentType:file.type,upsert:false}));
+   if(uploadError)throw uploadError;
+   check?.();
+   const checksum=await sha256(file);check?.();
+   const {data:finalized,error:finalizeError}=await run(client.rpc('aqari_maintenance_attachment_finalize',{
+    p_attachment_id:row.attachment_id,p_size_bytes:file.size,p_checksum:checksum
+   }));
+   if(finalizeError||finalized!==row.attachment_id)throw finalizeError||Error('تعذر تأكيد مرفق الصيانة.');
+   saved.push({id:row.attachment_id,path:row.storage_path,checksum});
+  }catch(error){
+   await cancelReservedAttachment(client,row.attachment_id);
+   throw error;
+  }
  }
  return saved;
 }

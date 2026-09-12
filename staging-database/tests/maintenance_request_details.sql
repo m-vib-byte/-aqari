@@ -58,8 +58,42 @@ begin
  if req->>'request_type'<>'air_conditioning' then raise exception 'MAINTENANCE_TYPE_READBACK_FAILED';end if;
  if not exists(select 1 from jsonb_array_elements(snap->'maintenance_attachments') a where a->>'id'=att::text and a->>'request_id'='f2678100-0000-4000-8000-000000000010' and a->>'status'='uploaded' and a->>'checksum_sha256'=repeat('a',64)) then raise exception 'MAINTENANCE_ATTACHMENT_READBACK_FAILED';end if;
  if (select count(*) from public.aqari_maintenance_attachments where id=att)<>1 then raise exception 'TENANT_ATTACHMENT_RLS_FAILED';end if;
+ begin
+  perform public.aqari_maintenance_attachment_cancel(att);
+  raise exception 'UPLOADED_ATTACHMENT_CANCELLED';
+ exception when others then
+  if sqlerrm='UPLOADED_ATTACHMENT_CANCELLED' then raise;end if;
+  if sqlerrm<>'INVALID_MAINTENANCE_ATTACHMENT_STATE' then raise;end if;
+ end;
 end $$;
 reset role;
+
+-- A second draft simulates bytes uploaded before a later failure; cancellation must remove the object and hide the metadata.
+select set_config('request.jwt.claim.sub','f2678100-0000-4000-8000-000000000002',true);
+set local role authenticated;
+do $$
+declare reserved record;w uuid:=current_setting('maintenance.details.workspace')::uuid;req uuid:='f2678100-0000-4000-8000-000000000010';
+begin
+ select * into reserved from public.aqari_maintenance_attachment_reserve(w,req,'failed.jpg','image/jpeg');
+ perform set_config('maintenance.details.failed_attachment',reserved.attachment_id::text,true);
+ perform set_config('maintenance.details.failed_path',reserved.storage_path,true);
+end $$;
+reset role;
+insert into storage.objects(bucket_id,name,metadata) values('aqari-documents',current_setting('maintenance.details.failed_path'),'{"size":111,"mimetype":"image/jpeg"}');
+select set_config('request.jwt.claim.sub','f2678100-0000-4000-8000-000000000002',true);
+set local role authenticated;
+do $$
+begin
+ perform public.aqari_maintenance_attachment_cancel(current_setting('maintenance.details.failed_attachment')::uuid);
+ if (select count(*) from public.aqari_maintenance_attachments where id=current_setting('maintenance.details.failed_attachment')::uuid)<>0 then raise exception 'CANCELLED_ATTACHMENT_EXPOSED';end if;
+end $$;
+reset role;
+do $$
+declare att uuid:=current_setting('maintenance.details.failed_attachment')::uuid;path text:=current_setting('maintenance.details.failed_path');
+begin
+ if (select status from public.aqari_maintenance_attachments where id=att) is distinct from 'cancelled' then raise exception 'MAINTENANCE_DRAFT_CANCEL_STATUS_FAILED';end if;
+ if exists(select 1 from storage.objects where bucket_id='aqari-documents' and name=path) then raise exception 'MAINTENANCE_DRAFT_STORAGE_ORPHANED';end if;
+end $$;
 
 -- An unrelated authenticated subject receives no attachment metadata and no Storage table access.
 select set_config('request.jwt.claim.sub','f2678100-0000-4000-8000-000000000099',true);
@@ -75,4 +109,4 @@ begin
 end $$;
 reset role;
 rollback;
-select 'PASS: typed tenant maintenance request, private photo reserve/finalize/readback and outsider isolation; fixtures rolled back.' result;
+select 'PASS: typed tenant maintenance request, private photo finalize/readback, failed-draft cleanup and outsider isolation; fixtures rolled back.' result;
