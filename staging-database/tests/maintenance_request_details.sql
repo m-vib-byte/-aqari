@@ -36,9 +36,11 @@ begin
  insert into public.aqari_maintenance_requests(id,workspace_id,lease_id,tenant_id,description,request_type)
  values(req,w,lease,tenant,'المكيف لا يبرد ويحتاج فحصاً','air_conditioning');
  select * into reserved from public.aqari_maintenance_attachment_reserve(w,req,'ac.jpg','image/jpeg');
+ if reserved.attachment_id is null or reserved.storage_bucket is distinct from 'aqari-documents' or reserved.storage_path is null then raise exception 'MAINTENANCE_ATTACHMENT_RESERVE_FAILED';end if;
  perform set_config('maintenance.details.attachment',reserved.attachment_id::text,true);
  perform set_config('maintenance.details.path',reserved.storage_path,true);
- if not exists(select 1 from public.aqari_maintenance_attachments where id=reserved.attachment_id and status='draft') then raise exception 'MAINTENANCE_ATTACHMENT_RESERVE_FAILED';end if;
+ -- Draft metadata is intentionally hidden by RLS until the stored bytes are finalized.
+ if (select count(*) from public.aqari_maintenance_attachments where id=reserved.attachment_id)<>0 then raise exception 'MAINTENANCE_DRAFT_ATTACHMENT_EXPOSED';end if;
 end $$;
 reset role;
 
