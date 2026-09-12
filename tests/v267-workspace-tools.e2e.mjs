@@ -279,6 +279,7 @@ try{
     const directory=page.locator('#aq267-service-directory');
     await directory.waitFor({state:'visible'});
     const serviceSearch=directory.getByRole('searchbox',{name:'ابحث عن خدمة',exact:true});
+    assert.equal(await page.locator('#aq267-kpi-dashboard').isVisible(),false,'grouped menu keeps unavailable backend features hidden');
     await serviceSearch.fill('راتب');
     await directory.getByRole('button',{name:'الموظفون والرواتب / Employees and payroll',exact:true}).waitFor({state:'visible',timeout:3000});
     await serviceSearch.fill('مركز تحكم المدير');

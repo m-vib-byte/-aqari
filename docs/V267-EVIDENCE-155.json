@@ -465,8 +465,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "c2d3fe17cbe18efac71529ba35e439abbcc279a16a4e909e80fffc854d75de65",
-      "bytes": 6720,
+      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
+      "bytes": 6716,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

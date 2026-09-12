@@ -357,7 +357,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "dc318eeabac5eb4ea3a9d4099191f68c2bc0381147e02308d8cef153e5623f63",
+      "sha256": "8679e8c7fbf4aeb566a09b54c0fb8b9b292e508c2099f33d77093e711b37a402",
       "size": 305438
     },
     {
@@ -1132,8 +1132,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "c2d3fe17cbe18efac71529ba35e439abbcc279a16a4e909e80fffc854d75de65",
-      "size": 6720
+      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
+      "size": 6716
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -2407,8 +2407,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "5b11010cd6717d460c1068581931156c7a3cea87bf962d0fbf64f902102743b9",
-      "size": 50230
+      "sha256": "60f9287b43f8bb957acc3d01981fff0b526211590bc20a955284cceb891e7d95",
+      "size": 50367
     },
     {
       "path": "tests/verified-upload.test.mjs",
