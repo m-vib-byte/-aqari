@@ -32,6 +32,8 @@ jobs:
           one("moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('v267-tenant-portal.js')", "moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('src/v267/components/maintenance-request.js')+'\\n'+moduleSource('v267-tenant-portal.js')")
           one("'maintenanceLease','maintenanceForm','maintenanceDescription','maintenanceSave'", "'maintenanceLease','maintenanceForm','maintenanceType','maintenancePhotos','maintenanceDescription','maintenanceSave'")
           one("payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[]};", "payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[],maintenance_attachments:[]};")
+          one(" const payload={account:", " $('maintenanceType').value='general';\n const payload={account:")
+          one("document:{documentElement:{},getElementById:$,createElement:()=>new Element(),querySelectorAll:", "document:{documentElement:{},getElementById:$,createElement:()=>new Element(),createTextNode:text=>{const n=new Element();n.textContent=text;return n;},querySelectorAll:")
           p.write_text(text,encoding='utf-8')
       - uses: actions/setup-node@v4
         with:
