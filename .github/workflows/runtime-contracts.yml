@@ -73,7 +73,9 @@ jobs:
           echo 'AQARI_V266_INVENTORY_END'
       - run: node --test tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
       - name: Document scanner upload and multipage PDF
-        run: node --test tests/v267-scanner-workflow.test.mjs tests/v267-original-documents.test.mjs tests/v267-document-upload-pages.test.mjs
+        run: node --test tests/v267-scanner-workflow.test.mjs tests/v267-original-documents.test.mjs tests/v267-document-upload-pages.test.mjs tests/v267-contract-scanner-entry.test.cjs
+      - name: Immutable document handoff register
+        run: node --test tests/v267-document-handoff-register.test.cjs
       - name: V267 workspace isolation and image processing
         run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs tests/v267-rental-records.test.cjs tests/imported-tenant-editor.test.mjs tests/v267-payroll.test.mjs
       - name: Verify complete Staging runtime against release inventory
@@ -94,8 +96,8 @@ jobs:
           node scripts/build-hosted-readiness-test.mjs --check
       - name: V267 deployment target and partial production preparation
         run: node --test tests/v267-deployment-target.test.mjs tests/v267-production-preparation.test.mjs
-      - name: Contract approval at print issuance and maintenance draft recovery
-        run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs
+      - name: Contract approval, maintenance attachment recovery and petty-cash invoice guard
+        run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs tests/v267-maintenance-attachments.test.mjs tests/v267-maintenance-cancel-runtime.test.mjs tests/v267-petty-cash-invoice-guard.test.cjs
       - name: Staff access, expense persistence, vacating settlement and isolated PostgreSQL authorization
         run: |
           node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs tests/v267-unit-meter-runtime.test.mjs tests/v267-unit-readiness-runtime.test.mjs tests/v267-staff-circulars-runtime.test.mjs tests/v267-service-directory.test.mjs tests/v267-lease-expiry-runtime.test.mjs tests/v267-maintenance-report-runtime.test.mjs
