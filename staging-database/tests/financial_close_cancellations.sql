@@ -15,12 +15,14 @@ insert into public.aqari_rent_payments(id,workspace_id,lease_id,reference,amount
 insert into private.aqari_financial_periods(workspace_id,month,closed_by,closed_by_name,reason,snapshot) values (current_setting('close.w')::uuid,'2025-12-01','8f690000-0000-4000-8000-000000000001','مدير اختبار','لقطة قديمة لا تعدل','{"rent_payments":777.777,"rent_payment_count":7,"historical":true}');
 set local role authenticated;
 do $$
-declare w uuid:=current_setting('close.w')::uuid;r jsonb;again jsonb;before_snapshot jsonb;
+declare w uuid:=current_setting('close.w')::uuid;r jsonb;again jsonb;before_snapshot jsonb;kpi jsonb;
 begin
  before_snapshot:=public.aqari_financial_register(w,'list','{"month":"2025-12"}')#>'{period,snapshot}';
  perform public.aqari_final_gap_register(w,'cancel_receipt','{"id":"8f690000-0000-4000-8000-000000000060","payment_id":"8f690000-0000-4000-8000-000000000014","reason":"إلغاء موثق قبل الإقفال"}');
+ kpi:=public.aqari_kpi_dashboard(w,'2026-01-01','2026-01-31');
  r:=public.aqari_financial_register(w,'close_period','{"month":"2026-01","reason":"إقفال اختبار يستبعد الملغى"}');
- if (r#>>'{period,snapshot,rent_payments}')::numeric is distinct from 50.125 then raise exception 'CLOSE_CANCELLED_RECEIPT_TOTAL: expected 50.125 got %',r#>>'{period,snapshot,rent_payments}';end if;
+ if (r#>>'{period,snapshot,rent_payments}')::numeric is distinct from 50.125 then raise exception 'CLOSE_CANCELLED_RECEIPT_TOTAL: expected 50.125 got %; KPI also returned %',r#>>'{period,snapshot,rent_payments}',kpi#>>'{collections,actual}';end if;
+ if (kpi#>>'{collections,actual}')::numeric is distinct from 50.125 or (kpi#>>'{profit,actual_net}')::numeric is distinct from 50.125 then raise exception 'KPI_CANCELLED_RECEIPT_TOTAL: %',kpi;end if;
  if (r#>>'{period,snapshot,rent_payment_count}')::integer is distinct from 1 then raise exception 'CLOSE_CANCELLED_RECEIPT_COUNT';end if;
  if (r#>>'{period,snapshot,approved_expenses}')::numeric is distinct from 0 then raise exception 'CLOSE_EXPENSE_TOTAL_CHANGED';end if;
  again:=public.aqari_financial_register(w,'close_period','{"month":"2026-01","reason":"إعادة الطلب لا تغير اللقطة"}');
@@ -41,4 +43,4 @@ set local role authenticated;
 do $$begin begin perform public.aqari_financial_register(current_setting('close.w')::uuid,'close_period','{"month":"2026-02","reason":"رفض غير مخول"}');raise exception 'NONMANAGER_CLOSED_MONTH';exception when insufficient_privilege then null;end;end $$;
 reset role;
 rollback;
-select 'PASS: cancelled excluded; partial retained; other month excluded; immutable snapshots; audited close; role/period guards; source records preserved';
+select 'PASS: cancelled excluded from close and KPIs; partial retained; other month excluded; immutable snapshots; audited close; role/period guards; source records preserved';

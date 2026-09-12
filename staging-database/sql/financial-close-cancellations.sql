@@ -1,5 +1,5 @@
--- Apply after final-gap-register.sql. No financial records or saved snapshots change.
--- Only future month-close totals exclude receipts already cancelled in this workspace.
+-- Apply after final-gap-register.sql and the KPI function. No financial records or saved snapshots change.
+-- Future month closes and current KPIs exclude receipts already cancelled in this workspace.
 begin;
 do $patch$
 declare
@@ -21,4 +21,21 @@ begin
  -- serialization lock, immutable periods and audit logic remain unmodified.
  execute replace(source,anchor,replacement);
 end $patch$;
+
+-- The dashboard must use the same cancellation evidence as future period closes.
+do $kpi_patch$
+declare
+ source text;
+ anchor text := 'where p.workspace_id=w and p.status<>''cancelled'' and p.paid_at::date between from_date and to_date;';
+ replacement text := 'where p.workspace_id=w and p.status<>''cancelled'' and p.paid_at::date between from_date and to_date and not exists(select 1 from private.aqari_receipt_cancellations c where c.workspace_id=w and c.payment_id=p.id);';
+ old_count integer;
+ new_count integer;
+begin
+ source := pg_get_functiondef('public.aqari_kpi_dashboard(uuid,date,date)'::regprocedure);
+ old_count := (length(source)-length(replace(source,anchor,'')))/length(anchor);
+ new_count := (length(source)-length(replace(source,replacement,'')))/length(replacement);
+ if old_count=0 and new_count=1 then return;end if;
+ if old_count<>1 or new_count<>0 then raise exception 'FINANCIAL_KPI_SOURCE_CHANGED';end if;
+ execute replace(source,anchor,replacement);
+end $kpi_patch$;
 commit;
