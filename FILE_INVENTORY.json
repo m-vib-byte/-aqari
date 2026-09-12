@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "aae6d5672cca3fdaf3f2cfe7d832a8a97fcc4be49d688b24f892867230251701",
-      "size": 5870
+      "sha256": "ca18f7a1f3cc783779fb4e17fd9a4d9fdeb337e36c8b77e408dc181b1657a730",
+      "size": 5913
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -376,6 +376,11 @@
       "size": 1705
     },
     {
+      "path": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md",
+      "size": 3371,
+      "sha256": "7639cf4f71b7cbc096d17f4cb204e0ff0fd48c21fa8eba5f3e2b9084f1ee939f"
+    },
+    {
       "path": "docs/V267-HOSTED-ISOLATION-2026-09-09.md",
       "sha256": "40669e96525cc29578498679e37e81ff283dee1dd4fc9ce4eb7b19a368466f76",
       "size": 5263
@@ -421,6 +426,11 @@
       "size": 4165
     },
     {
+      "path": "docs/V267-PDF-ARCHIVE-2026-09-12.md",
+      "size": 6661,
+      "sha256": "016cd2c0ec4332690dcbeaf24bcb06f0b5775e2c559ec9435a06d1ef93576a05"
+    },
+    {
       "path": "docs/V267-PRINT-AND-MAINTENANCE-REPAIR.md",
       "sha256": "7b7ad8296c4e732f2836a6d8bb668736784041c6c33b3447050bc0de30d31a34",
       "size": 4733
@@ -454,6 +464,11 @@
       "path": "docs/V267-SERVER-ACCESS-REVOCATION.md",
       "sha256": "0157fb5c994ba8816e92ae6cd840980f641f4de7f1d2bb32b5fb86d1d674f878",
       "size": 3549
+    },
+    {
+      "path": "docs/V267-UNIT-READINESS-2026-09-12.md",
+      "sha256": "738d4f9e9e2acc61acf868c8b9ced1d77b713206de97d104c3ae7ef875e099ab",
+      "size": 4471
     },
     {
       "path": "docs/V267-VACATING-REVIEW-AND-GUARDS.md",
@@ -707,8 +722,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "4e7b157e730d7dddac34c1d832865f4e99ee4e7aacfdea1f7c828b451131bf59",
-      "size": 7390
+      "sha256": "10bd380a7d218d84a021f2e39005492cb0e9a6c80d669287aa8af2c01d4f8ed9",
+      "size": 7422
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -777,8 +792,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "3cba8a3037e47fcea3e902487579cf1290ad8bf342f684995efc92ad9376c891",
-      "size": 10070
+      "sha256": "2a253974b0353502085a628d6a6caa922cdca9d2c5bc9a0d6289f1cfaa6136b7",
+      "size": 10768
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1036,6 +1051,11 @@
       "size": 13190
     },
     {
+      "path": "src/v267/pages/unit-readiness.js",
+      "sha256": "06f8a9f95c21a27c47f45ee62503413958b7f37a7b928c058b063f2ae5d23d54",
+      "size": 6831
+    },
+    {
       "path": "src/v267/pages/user-guide.js",
       "sha256": "aa8c02a58befde5c77f3d8312c2ba3404094e64cf3170c1912ec857c1aa3c3f1",
       "size": 6672
@@ -1062,8 +1082,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "68cbc92e61297eaf936a810612dd55e3226a068756e86a9fa20634bf9687c730",
-      "size": 16456
+      "sha256": "8a6cf3ccbb0038f44b43383c7aa5dda1a69d2d4f21fa31d301868b8745fba9bf",
+      "size": 16955
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1081,9 +1101,19 @@
       "size": 2481
     },
     {
+      "path": "staging-database/local-test/fixtures/financial-close-cancellations-v1.sql",
+      "size": 2403,
+      "sha256": "38719e27854de3bfede2d8c1ad0e95f318922f27601ec83a1497928b3ffa49a3"
+    },
+    {
+      "path": "staging-database/local-test/fixtures/unit-readiness-existing.sql",
+      "sha256": "5f2c06a0246ac219f13e14e3c0feff769b38b4bdba4172e7f52907d3b5e0b406",
+      "size": 5698
+    },
+    {
       "path": "staging-database/local-test/package.json",
-      "size": 3248,
-      "sha256": "edde0986152c69c19b693628976d454ed3561bfba766728299bdf683aadbff23"
+      "sha256": "9fcc0681370bf3de8dfc89804537973fdff6957c4cb6daaf356834ba1d3b9fc6",
+      "size": 3380
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -1186,6 +1216,11 @@
       "size": 4749
     },
     {
+      "path": "staging-database/sql/official-document-pdf-archive.sql",
+      "size": 6588,
+      "sha256": "f704920331cf865dd65659d392787b6fed80ec73a6d0f1068c97026a2c46e63e"
+    },
+    {
       "path": "staging-database/sql/official-document-register.sql",
       "sha256": "ea64c00cb0284c77b5de3d12f9e75ee84bf82c6ef44767f6bc2e61157ae79883",
       "size": 11022
@@ -1266,6 +1301,11 @@
       "size": 9908
     },
     {
+      "path": "staging-database/sql/unit-readiness.sql",
+      "sha256": "a884866c19e6893da6d114907193a10b9136007da780dca0a4a7e325b8f0825a",
+      "size": 8105
+    },
+    {
       "path": "staging-database/sql/v267-advisor-remediation.sql",
       "sha256": "27b4c4899119850d8afab7e86ae3965496147fd5e97cc36e799ea202ce564153",
       "size": 1266
@@ -1297,8 +1337,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "b3aef2154dfceccb360631039f24736feba9d919b79206ec4fd8cdd3224d9e82",
-      "size": 4023
+      "sha256": "03f13d36e9966858d58df4ca4faed828ab7fc3b7780e9a722b3ba5e5e0a4a058",
+      "size": 4187
     },
     {
       "path": "staging-database/supabase/migrations/20260907083736_v267_isolated_core.sql",
@@ -1471,6 +1511,11 @@
       "size": 10353
     },
     {
+      "path": "staging-database/tests/official_document_pdf_archive.sql",
+      "size": 11823,
+      "sha256": "c04fd9bd9571c42328a988b61788c9b3e39b8437b5eef6a62d81bf9e224238cf"
+    },
+    {
       "path": "staging-database/tests/official_document_register.sql",
       "sha256": "13eb8583cde76adb2bed39aa4e067c3ae972022dd1c713d5ce7b04fa5f9441e5",
       "size": 6043
@@ -1534,6 +1579,16 @@
       "path": "staging-database/tests/unit_meter_readings.sql",
       "sha256": "4badb7334fd26a118aaeb6eadba48e3dfef3bc317cc008b96a164601bd57b593",
       "size": 8825
+    },
+    {
+      "path": "staging-database/tests/unit_readiness.sql",
+      "sha256": "bd1cffe889ddb47e7aae425a476ca30006e0d41328d2fb11328ec6ac3360292f",
+      "size": 8024
+    },
+    {
+      "path": "staging-database/tests/unit_readiness_projection.sql",
+      "sha256": "43e9aced331838d997e1225b4e074795411b3b02b5d8686da42ed84bcc3bef74",
+      "size": 3849
     },
     {
       "path": "staging-database/tests/utility_register.sql",
@@ -1664,6 +1719,11 @@
       "path": "tests/mobile-login-shell.test.cjs",
       "sha256": "bf04e523b72aaf6faa779bb28fcd67da700beddc73c636fbc44453513b523211",
       "size": 6381
+    },
+    {
+      "path": "tests/official_document_archive_test.py",
+      "size": 7646,
+      "sha256": "bd2f4b8ef2f7a5d685d4962b4769aba17d59280e39df358112da4e158cf2480c"
     },
     {
       "path": "tests/official_document_pdf_test.py",
@@ -1946,6 +2006,11 @@
       "size": 16222
     },
     {
+      "path": "tests/v267-financial-close-gate.test.mjs",
+      "size": 2260,
+      "sha256": "53cd9e523c7b87b8ea7a3998481e42f70a5e5049294171890798bb0bd6e26d8c"
+    },
+    {
       "path": "tests/v267-financial-register.test.cjs",
       "sha256": "b63913599090b179abd93d3742bea161f9801d6dd57d99d15260a0b46b236594",
       "size": 25185
@@ -2131,6 +2196,11 @@
       "size": 7191
     },
     {
+      "path": "tests/v267-unit-readiness-runtime.test.mjs",
+      "sha256": "c4179659c3aa15dfa9e5393dba020e778cd828d0b7a1c36e8b35fe5a68008b4c",
+      "size": 7561
+    },
+    {
       "path": "tests/v267-user-guide.test.cjs",
       "sha256": "030cd34b2cbef8c28c269603da788893496a76ce56eab0bfb98963abba2a6e01",
       "size": 914
@@ -2157,8 +2227,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "4a5c0d368523adc0ca9c185fe063d87e05ec4561702ca16eb0a39500663c76b1",
-      "size": 4001
+      "sha256": "b6de25096719c3d831e782079e9b0ab3b5292de3e11c708669feb382bd0cbb76",
+      "size": 4220
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
@@ -2349,41 +2419,6 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
-    },
-    {
-      "path": "staging-database/local-test/fixtures/financial-close-cancellations-v1.sql",
-      "size": 2403,
-      "sha256": "38719e27854de3bfede2d8c1ad0e95f318922f27601ec83a1497928b3ffa49a3"
-    },
-    {
-      "path": "tests/v267-financial-close-gate.test.mjs",
-      "size": 2260,
-      "sha256": "53cd9e523c7b87b8ea7a3998481e42f70a5e5049294171890798bb0bd6e26d8c"
-    },
-    {
-      "path": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md",
-      "size": 3371,
-      "sha256": "7639cf4f71b7cbc096d17f4cb204e0ff0fd48c21fa8eba5f3e2b9084f1ee939f"
-    },
-    {
-      "path": "staging-database/sql/official-document-pdf-archive.sql",
-      "size": 6588,
-      "sha256": "f704920331cf865dd65659d392787b6fed80ec73a6d0f1068c97026a2c46e63e"
-    },
-    {
-      "path": "staging-database/tests/official_document_pdf_archive.sql",
-      "size": 11823,
-      "sha256": "c04fd9bd9571c42328a988b61788c9b3e39b8437b5eef6a62d81bf9e224238cf"
-    },
-    {
-      "path": "tests/official_document_archive_test.py",
-      "size": 7646,
-      "sha256": "bd2f4b8ef2f7a5d685d4962b4769aba17d59280e39df358112da4e158cf2480c"
-    },
-    {
-      "path": "docs/V267-PDF-ARCHIVE-2026-09-12.md",
-      "size": 6661,
-      "sha256": "016cd2c0ec4332690dcbeaf24bcb06f0b5775e2c559ec9435a06d1ef93576a05"
     }
   ],
   "version": "V198"
