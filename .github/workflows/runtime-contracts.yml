@@ -98,7 +98,7 @@ jobs:
         run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs
       - name: Staff access, expense persistence, vacating settlement and isolated PostgreSQL authorization
         run: |
-          node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs tests/v267-unit-meter-runtime.test.mjs tests/v267-unit-readiness-runtime.test.mjs tests/v267-staff-circulars-runtime.test.mjs tests/v267-service-directory.test.mjs tests/v267-lease-expiry-runtime.test.mjs
+          node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs tests/v267-unit-meter-runtime.test.mjs tests/v267-unit-readiness-runtime.test.mjs tests/v267-staff-circulars-runtime.test.mjs tests/v267-service-directory.test.mjs tests/v267-lease-expiry-runtime.test.mjs tests/v267-maintenance-report-runtime.test.mjs
           node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
           npm run test:completion --prefix staging-database/local-test
