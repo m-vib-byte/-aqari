@@ -1,0 +1,75 @@
+-- Synthetic transactional acceptance; local memory or independently verified test branch only.
+-- Run after staff-property-scope.sql and unit-meters.sql. All fixture writes roll back.
+begin;
+insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
+ ('unit-meter-manager@example.invalid','مدير اختبار الموقع','general_manager','aqari-v267-staging'),
+ ('unit-meter-staff@example.invalid','صيانة اختبار الموقع','property_manager','aqari-v267-staging'),
+ ('unit-meter-accountant@example.invalid','محاسب اختبار الموقع','accountant','aqari-v267-staging');
+insert into auth.users(id,email,email_confirmed_at) values
+ ('76510000-0000-4000-8000-000000000001','unit-meter-manager@example.invalid',now()),
+ ('76510000-0000-4000-8000-000000000002','unit-meter-staff@example.invalid',now()),
+ ('76510000-0000-4000-8000-000000000003','unit-meter-accountant@example.invalid',now());
+select set_config('aqari.test.location.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76510000-0000-4000-8000-000000000001' and is_active),true);
+select set_config('request.jwt.claim.sub','76510000-0000-4000-8000-000000000001',true);
+insert into public.aqari_workspaces(id,slug,name) values('76510000-0000-4000-8000-000000000099','unit-meter-foreign-fixture','Other synthetic workspace');
+do $$
+declare w uuid;f integer;p uuid;u uuid;t uuid;l uuid;r uuid;
+begin
+ for f in 1..3 loop
+  w:=case when f=3 then '76510000-0000-4000-8000-000000000099'::uuid else current_setting('aqari.test.location.workspace')::uuid end;
+  p:=('76510000-0000-4000-8000-00000000010'||f)::uuid;u:=('76510000-0000-4000-8000-00000000020'||f)::uuid;
+  t:=('76510000-0000-4000-8000-00000000030'||f)::uuid;l:=('76510000-0000-4000-8000-00000000040'||f)::uuid;r:=('76510000-0000-4000-8000-00000000050'||f)::uuid;
+  insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values(p,w,'unit-meter-property-'||f,'Location property '||f,'{"private":"property owner PII"}');
+  insert into public.aqari_units(id,workspace_id,property_id,unit_no) values(u,w,p,'UNIT-'||f);
+  insert into public.aqari_tenants(id,workspace_id,external_ref,full_name,civil_id,phone,profile) values(t,w,'unit-meter-tenant-'||f,'PRIVATE TENANT '||f,'76510000000'||f,'7650000'||f,'{"private":"tenant PII"}');
+  insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot)
+   values(l,w,'unit-meter-lease-'||f,t,u,'PRIVATE-CONTRACT-'||f,current_date-1,current_date+30,987.654,456.789,'signed','{"private":"lease PII and financial snapshot","property":"stale snapshot location","unit":"stale unit"}');
+  insert into public.aqari_maintenance_requests(id,workspace_id,lease_id,tenant_id,description) values(r,w,l,t,'Synthetic location request '||f);
+ end loop;
+ insert into private.aqari_staff_assignments(workspace_id,user_id,operational_role,property_ids,is_active,updated_by) values
+  (current_setting('aqari.test.location.workspace')::uuid,'76510000-0000-4000-8000-000000000002','maintenance',array['76510000-0000-4000-8000-000000000101']::uuid[],true,'76510000-0000-4000-8000-000000000001'),
+  (current_setting('aqari.test.location.workspace')::uuid,'76510000-0000-4000-8000-000000000003','accountant',array['76510000-0000-4000-8000-000000000101']::uuid[],true,'76510000-0000-4000-8000-000000000001');
+end $$;
+insert into public.aqari_utility_meters(id,workspace_id,property_id,source_key,kind,serial_no,unit_no,source_refs)
+ select ('76510000-0000-4000-8000-00000000060'||n)::uuid,case when n=3 then '76510000-0000-4000-8000-000000000099'::uuid else current_setting('aqari.test.location.workspace')::uuid end,('76510000-0000-4000-8000-00000000010'||n)::uuid,'TEST-METER-'||n,'electricity','SERIAL-'||n,'UNIT-'||n,'[]'::jsonb from generate_series(1,3)n;
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+set local role authenticated;
+do $$declare w uuid:=current_setting('aqari.test.location.workspace')::uuid;d jsonb;r jsonb;rows jsonb;bad jsonb;begin
+ d:='{"id":"76510000-0000-4000-8000-000000000701","lease_id":"76510000-0000-4000-8000-000000000401","meter_id":"76510000-0000-4000-8000-000000000601","phase":"entry","reading":"100.125","observed_on":"2026-01-01","source_ref":"محضر دخول الاختبار","reason":"قراءة أولية موثقة"}';
+ r:=public.aqari_unit_meter_register(w,'record',d);
+ if r->>'reading'<>'100.125' or r->>'unit_id'<>'76510000-0000-4000-8000-000000000201' or r->>'reading_unit'<>'kWh' then raise exception 'ENTRY_READBACK_FAILED';end if;
+ if public.aqari_unit_meter_register(w,'record',d) is distinct from r then raise exception 'EXACT_RETRY_FAILED';end if;
+ begin perform public.aqari_unit_meter_register(w,'record',d||'{"reading":"101"}');raise exception 'CHANGED_RETRY_ACCEPTED';exception when unique_violation then null;end;
+ begin perform public.aqari_unit_meter_register(w,'record',d||'{"id":"76510000-0000-4000-8000-000000000702"}');raise exception 'DUPLICATE_ENTRY_ACCEPTED';exception when unique_violation then null;end;
+ foreach bad in array array['{"meter_id":"76510000-0000-4000-8000-000000000602"}'::jsonb,'{"reading":"-1"}','{"reading":"NaN"}','{"observed_on":"2099-01-01"}','{"id":"76510000-0000-4000-8000-000000000702","photo_document_id":"76510000-0000-4000-8000-000000000999"}'] loop
+  begin perform public.aqari_unit_meter_register(w,'record',d||bad);raise exception 'INVALID_READING_ACCEPTED: %',bad;exception when check_violation then null;end;
+ end loop;
+ begin perform public.aqari_unit_meter_register(w,'record',d||'{"lease_id":"76510000-0000-4000-8000-000000000403"}');raise exception 'FOREIGN_LEASE_ACCEPTED';exception when insufficient_privilege then null;end;
+ d:=d||'{"id":"76510000-0000-4000-8000-000000000702","phase":"exit","observed_on":"2026-02-01","reading":"130.125"}';
+ r:=public.aqari_unit_meter_register(w,'record',d);
+ begin perform public.aqari_unit_meter_register(w,'record',d||'{"id":"76510000-0000-4000-8000-000000000703","supersedes_id":"76510000-0000-4000-8000-000000000702","reading":"90"}');raise exception 'DECREASING_EXIT_ACCEPTED';exception when check_violation then null;end;
+ d:=d||'{"id":"76510000-0000-4000-8000-000000000703","supersedes_id":"76510000-0000-4000-8000-000000000702","reading":"140.125","reason":"تصحيح موثق دون حذف الأصل"}';
+ r:=public.aqari_unit_meter_register(w,'record',d);
+ rows:=public.aqari_unit_meter_register(w,'list')->'readings';
+ if jsonb_array_length(rows)<>3 or not exists(select 1 from jsonb_array_elements(rows)x where x->>'id'='76510000-0000-4000-8000-000000000702' and (x->>'superseded')::boolean and x->>'reading'='130.125') then raise exception 'CORRECTION_HISTORY_LOST';end if;
+ begin perform public.aqari_unit_meter_register(w,'record',d||'{"id":"76510000-0000-4000-8000-000000000704"}');raise exception 'STALE_CORRECTION_ACCEPTED';exception when check_violation then null;end;
+ begin perform 1 from private.aqari_unit_meter_readings;raise exception 'PRIVATE_TABLE_EXPOSED';exception when insufficient_privilege then null;end;
+end $$;
+select set_config('request.jwt.claim.sub','76510000-0000-4000-8000-000000000002',true);
+do $$declare w uuid:=current_setting('aqari.test.location.workspace')::uuid;r jsonb;begin
+ r:=public.aqari_unit_meter_register(w,'list');
+ if jsonb_array_length(r->'leases')<>1 or jsonb_array_length(r->'meters')<>1 or r::text~'PRIVATE|987.654|456.789|tenant_id|snapshot' then raise exception 'STAFF_SCOPE_OR_MINIMAL_PROJECTION_FAILED';end if;
+ begin perform public.aqari_unit_meter_register(w,'record','{"id":"76510000-0000-4000-8000-000000000710","lease_id":"76510000-0000-4000-8000-000000000402"}');raise exception 'UNASSIGNED_WRITE_ACCEPTED';exception when insufficient_privilege then null;end;
+end $$;
+select set_config('request.jwt.claim.sub','76510000-0000-4000-8000-000000000003',true);
+do $$begin
+ begin perform public.aqari_unit_meter_register(current_setting('aqari.test.location.workspace')::uuid,'record','{"id":"76510000-0000-4000-8000-000000000710","lease_id":"76510000-0000-4000-8000-000000000401"}');raise exception 'ACCOUNTANT_WRITE_ACCEPTED';exception when insufficient_privilege then null;end;
+end $$;
+reset role;
+do $$begin
+ begin update private.aqari_unit_meter_readings set reading=999;raise exception 'IMMUTABLE_READINGS_CHANGED';exception when check_violation then null;end;
+ if (select count(*) from private.aqari_operations_audit where domain='unit_meter')<>3 then raise exception 'AUDIT_MISSING';end if;
+ if has_function_privilege('anon','public.aqari_unit_meter_register(uuid,text,jsonb)','execute') then raise exception 'ANON_ACCESS';end if;
+end $$;
+rollback;
+select 'PASS: meter entry/exit, persistence, retry, correction, scope, photo rejection, chronology, audit';

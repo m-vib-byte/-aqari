@@ -55,7 +55,7 @@ export function audit(root){
   return {...r,evidenceFiles:files,uiFiles:files.filter(p=>p.startsWith('src/')||/^v\d+.*\.js$/.test(p)),sqlFiles:files.filter(p=>p.endsWith('.sql')&&!p.includes('/tests/')),testFiles:files.filter(p=>fileCache.get(p).testKind),requiredVerification:needs,
    fullAcceptance:'NOT_PROVEN',productionCompletion:'NOT_PROVEN'};
  });
- return {schemaVersion:1,sourceParentSHA:'741f39d92e14bef8f28599ac1943fb0a8d4c8780',matrixSha256:hash(matrix),releaseGate:'HOLD',method:'References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.',evidence,files:[...fileCache.values()],requirements};
+ return {schemaVersion:1,sourceParentSHA:'2c2d7ae506bd866c306f76adddcf50b9eb36b8bc',matrixSha256:hash(matrix),releaseGate:'HOLD',method:'References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.',evidence,files:[...fileCache.values()],requirements};
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');const result=audit(root);

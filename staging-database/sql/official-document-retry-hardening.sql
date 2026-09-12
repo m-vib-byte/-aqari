@@ -1,82 +1,6 @@
--- AQARI V267 official forms: immutable issued snapshots and controlled archive.
--- CODE ONLY. Apply to isolated Staging after document catalog and MFA helpers.
+-- Function-only upgrade preserving existing immutable versions and events.
 begin;
-
-create sequence if not exists private.aqari_official_document_no_seq;
-
-create table private.aqari_official_document_series(
- id uuid primary key,
- workspace_id uuid not null,
- kind text not null,
- document_no text not null,
- entity_type text not null check(entity_type in ('property','unit','tenant','lease','employee','vendor','work_order','legal_case')),
- entity_id uuid not null,
- status text not null default 'issued' check(status in ('issued','void')),
- current_version integer not null default 1 check(current_version>0),
- created_by uuid not null,
- created_at timestamptz not null default now(),
- voided_by uuid,
- voided_at timestamptz,
- void_reason text,
- unique(workspace_id,id),
- unique(workspace_id,document_no)
-);
-
-create table private.aqari_official_document_versions(
- id uuid primary key,
- workspace_id uuid not null,
- series_id uuid not null,
- version integer not null check(version>0),
- template_version integer not null check(template_version>0),
- title text not null,
- body text not null,
- payload jsonb not null check(jsonb_typeof(payload)='object'),
- content_sha256 text not null check(content_sha256 ~ '^[a-f0-9]{64}$'),
- supersedes_version integer,
- issued_by uuid not null,
- issued_by_name text not null,
- issued_at timestamptz not null default now(),
- unique(workspace_id,series_id,version),
- foreign key(workspace_id,series_id) references private.aqari_official_document_series(workspace_id,id)
-);
-
-create table private.aqari_official_document_events(
- id uuid primary key,
- workspace_id uuid not null,
- series_id uuid not null,
- action text not null check(action in ('issue','supersede','void','pdf_export')),
- reason text not null,
- actor_id uuid not null,
- recorded_at timestamptz not null default now(),
- details jsonb not null default '{}',
- unique(workspace_id,id),
- foreign key(workspace_id,series_id) references private.aqari_official_document_series(workspace_id,id)
-);
-
-create index aqari_official_document_archive_scope on private.aqari_official_document_series(workspace_id,entity_type,entity_id,created_at desc);
-create index aqari_official_document_versions_scope on private.aqari_official_document_versions(workspace_id,series_id,version desc);
-
-alter table private.aqari_official_document_series enable row level security;
-alter table private.aqari_official_document_versions enable row level security;
-alter table private.aqari_official_document_events enable row level security;
-revoke all on private.aqari_official_document_series,private.aqari_official_document_versions,private.aqari_official_document_events from public,anon,authenticated;
-
-create trigger aqari_official_versions_immutable before update or delete on private.aqari_official_document_versions
- for each row execute function private.aqari_reject_immutable_change();
-create trigger aqari_official_events_immutable before update or delete on private.aqari_official_document_events
- for each row execute function private.aqari_reject_immutable_change();
-
-create function private.aqari_official_document_access(w uuid,write_access boolean default false) returns boolean
-language sql stable security definer set search_path='' as $$
- select exists(
-  select 1 from public.aqari_memberships m
-  where m.workspace_id=w and m.user_id=auth.uid() and m.is_active
-   and (m.role='general_manager' or (not write_access and m.role='accountant'))
- )
-$$;
-revoke all on function private.aqari_official_document_access(uuid,boolean) from public,anon,authenticated;
-
-create function public.aqari_official_document_register(
+create or replace function public.aqari_official_document_register(
  p_workspace_id uuid,p_action text,p_data jsonb default '{}'
 ) returns jsonb
 language plpgsql volatile security definer set search_path='' as $$
@@ -164,6 +88,4 @@ begin
  return jsonb_build_object('series',to_jsonb(series));
 end $$;
 
-revoke all on function public.aqari_official_document_register(uuid,text,jsonb) from public,anon;
-grant execute on function public.aqari_official_document_register(uuid,text,jsonb) to authenticated;
 commit;

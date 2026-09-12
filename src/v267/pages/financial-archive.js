@@ -4,6 +4,11 @@ const PAGE_SIZE=50;
 const AUDIT_LIMIT=100;
 const validMonth=value=>/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(value);
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
+const streams={rent:'تحصيل إيجار',expense:'مصروف',deposit:'تأمين',adjustment:'تسوية ذمة',opening:'رصيد افتتاحي',tenant_ledger:'قيد مستأجر',credit_allocation:'تخصيص رصيد سابق',petty_cash:'عهدة مالية'};
+const states={paid:'مسدد',partial:'جزئي',unpaid:'غير مسدد',confirmed:'مؤكد',approved:'معتمد',draft:'مسودة',cancelled:'ملغى',recorded:'مسجل'};
+const directions={received:'استلام',paid:'صرف',receipt:'قبض تأمين',refund:'رد تأمين',debit:'مدين',credit:'دائن',allocation:'تخصيص',fund:'تمويل عهدة',spend:'صرف عهدة',settle:'تسوية عهدة'};
+const columns=['التاريخ','نوع الحركة','العقار','الاتجاه','المبلغ بالدينار','الحالة','المرجع','البيان'];
+export function archiveCsvCell(value){let s=String(value??'');if(/^[\s]*[=+\-@]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';}
 function monthValue(now=new Date()){
  const parts=new Intl.DateTimeFormat('en',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit'}).formatToParts(now);
  return `${parts.find(x=>x.type==='year').value}-${parts.find(x=>x.type==='month').value}`;
@@ -14,7 +19,6 @@ function money(value){
  return Number.isFinite(amount)&&amount<=Number.MAX_SAFE_INTEGER/1000?`${amount.toFixed(3)} د.ك`:'غير متاح';
 }
 const normalize=value=>String(value??'').normalize('NFKC').replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).toLocaleLowerCase('ar').trim();
-const stateLabels={draft:'مسودة',approved:'معتمد',cancelled:'ملغى'};
 
 export function openFinancialArchive(){
  const d=createDialog('الأرشيف المالي التاريخي');if(!d)return;
@@ -22,29 +26,29 @@ export function openFinancialArchive(){
  const downloads=new Map();let generation=0,loading=false,loaded=null;
  month.type='month';month.value=monthValue();loadButton.type='button';
  output.setAttribute('aria-label','نتيجة الأرشيف المالي');output.setAttribute('aria-live','polite');
- d.body.append(node('p','يعرض هذا القسم السجلات المحفوظة دون تعديلها. الشهر المقفل يظهر مع لقطة الإقفال الأصلية عند توفر صلاحية عرضها.'),field('الشهر',month),loadButton,output);
+ d.body.append(node('p','يعرض السجل التحصيل والمصروفات والتأمين والذمم والعهدة كلّاً بنوعه. الرصيد الافتتاحي وتخصيص الرصيد لا يمثلان تحصيلاً جديداً. لقطة الإقفال تبقى كما صدرت.'),field('الشهر',month),loadButton,output);
  function release(url){const timer=downloads.get(url);if(timer!==undefined)clearTimeout(timer);downloads.delete(url);URL.revokeObjectURL(url);}
  function clear(){loaded=null;output.replaceChildren();for(const url of [...downloads.keys()])release(url);}
  function invalidate(){generation++;clear();d.status.textContent='تغيّر الشهر؛ اضغط استرجاع الشهر لعرض بياناته.';}
  month.oninput=invalidate;month.onchange=invalidate;
  function validate(data,selectedMonth){
-  if(!object(data)||!object(data.summary)||!Array.isArray(data.expenses)||!Array.isArray(data.history))throw Error('تعذر استرجاع الأرشيف المالي.');
+  if(!object(data)||data.month!==selectedMonth||!object(data.summary)||!Array.isArray(data.entries)||!Array.isArray(data.history)||!Array.isArray(data.properties))throw Error('تعذر تأكيد شهر الأرشيف أو سجلاته.');
+  if(data.workspace_id!==undefined&&data.workspace_id!==d.session.bound.workspace)throw Error('تعذر التحقق من نطاق سجلات الأرشيف.');
   if(data.period!==null&&data.period!==undefined){
    if(!object(data.period)||data.period.month!==`${selectedMonth}-01`||(data.period.workspace_id!==undefined&&data.period.workspace_id!==d.session.bound.workspace)||(data.period.snapshot!==undefined&&data.period.snapshot!==null&&!object(data.period.snapshot)))throw Error('تعذر التحقق من شهر لقطة الإقفال.');
   }
-  if(data.expenses.some(x=>!object(x)||typeof x.expense_date!=='string'||x.expense_date.slice(0,7)!==selectedMonth||(x.workspace_id!==undefined&&x.workspace_id!==d.session.bound.workspace)))throw Error('تعذر التحقق من نطاق سجلات الأرشيف.');
+  if(data.entries.some(x=>!object(x)||typeof x.on_date!=='string'||x.on_date.slice(0,7)!==selectedMonth||(x.workspace_id!==undefined&&x.workspace_id!==d.session.bound.workspace)))throw Error('تعذر التحقق من نطاق سجلات الأرشيف.');
  }
  async function load(){
   if(loading||d.closed)return;
-  // Capture the month before session.connect can yield; never label old data with a new selection.
   const selection={month:month.value},epoch=++generation;clear();loading=true;output.setAttribute('aria-busy','true');
   try{await d.run(async()=>{
    if(!validMonth(selection.month))throw Error('اختر شهراً صحيحاً.');
-   const result=await d.session.request(d.session.client.rpc('aqari_financial_register',{p_workspace_id:d.session.bound.workspace,p_action:'list',p_data:selection}));
+   const result=await d.session.request(d.session.client.rpc('aqari_financial_archive',{p_workspace_id:d.session.bound.workspace,p_month:selection.month}));
    d.session.check();
    if(d.closed||epoch!==generation||selection.month!==month.value)return;
    validate(result,selection.month);
-   // The export and displayed rows share the same immutable JSON readback, not mutable controls.
+   // Keep the exact canonical multi-stream readback; do not revert to the expense-only register.
    const data=JSON.parse(JSON.stringify(result));
    loaded={month:selection.month,epoch,retrievedAt:new Date().toISOString()};
    render(data,loaded);d.status.textContent=`تم استرجاع بيانات ${selection.month}.`;
@@ -60,44 +64,55 @@ export function openFinancialArchive(){
   metric('المصروفات المعتمدة',money(s.approved_expenses));
   const count=s.approved_expense_count??s.count;
   metric('عدد المصروفات المعتمدة',Number.isSafeInteger(count)&&count>=0?String(count):'غير متاح');
-  if(Object.hasOwn(s,'rent_payments'))metric('الإيجارات المسجلة في لقطة الإقفال',money(s.rent_payments));
-  output.append(node('p',notice),summary,node('p','الأرقام تخص البيانات المعادة فقط، وليست كشفاً محاسبياً شاملاً.'),node('p',`المصروفات: ${data.expenses.length} • أحداث التدقيق المعادة: ${data.history.length} (بحد أقصى أحدث ${AUDIT_LIMIT} حدثاً).`));
-  const search=node('input'),state=node('select'),resultCount=node('p'),table=node('table'),thead=node('thead'),tbody=node('tbody'),pager=node('div'),previous=node('button','السابق'),next=node('button','التالي'),pageText=node('span');
-  search.type='search';search.placeholder='رقم السند أو المستفيد أو العقار';search.maxLength=200;
-  for(const [value,label] of [['','كل الحالات'],...Object.entries(stateLabels)]){const option=node('option',label);option.value=value;state.append(option);}
-  table.style.minWidth='44rem';table.style.width='100%';table.style.borderCollapse='separate';table.style.borderSpacing='0.75rem 0.5rem';
-  table.append(node('caption','مصروفات الشهر المسترجع'),thead,tbody);const header=node('tr');
-  for(const label of ['التاريخ','السند','العقار','المستفيد','المبلغ','الحالة']){const th=node('th',label);th.scope='col';th.style.whiteSpace='nowrap';header.append(th);}thead.append(header);
-  const wrap=node('div');wrap.style.overflowX='auto';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','جدول المصروفات؛ قابل للتمرير أفقياً');wrap.append(table);
+  if(Object.hasOwn(s,'rent_payments'))metric('التحصيل في لقطة الإقفال',money(s.rent_payments));
+  if(Object.hasOwn(s,'rent_payment_count'))metric('عدد عمليات التحصيل في اللقطة',Number.isSafeInteger(s.rent_payment_count)&&s.rent_payment_count>=0?String(s.rent_payment_count):'غير متاح');
+  output.append(node('p',notice),summary,node('p','الأرقام تخص البيانات المعادة فقط، وليست كشفاً محاسبياً شاملاً أو صافي ربح.'),node('p',`الحركات: ${data.entries.length} • أحداث التدقيق المعادة: ${data.history.length} (بحد أقصى أحدث ${AUDIT_LIMIT} حدثاً).`));
+  if(s.legacy_finance_reconciled===false)output.append(node('p','مطابقة السجلات المالية القديمة ما زالت غير معتمدة.'));
+  if(data.history_truncated)output.append(node('p','المعروض آخر ١٠٠ حدث تدقيق؛ لا يمثل كامل تاريخ التدقيق.'));
+  const search=node('input'),state=node('select'),stream=node('select'),resultCount=node('p'),table=node('table'),thead=node('thead'),tbody=node('tbody'),pager=node('div'),previous=node('button','السابق'),next=node('button','التالي'),pageText=node('span');
+  search.type='search';search.placeholder='رقم المرجع أو البيان أو العقار';search.maxLength=200;
+  function options(control,first,labels){for(const [value,label] of [['',first],...Object.entries(labels)]){const option=node('option',label);option.value=value;control.append(option);}}
+  options(state,'كل الحالات',states);options(stream,'كل الحركات',streams);
+  table.style.minWidth='58rem';table.style.width='100%';table.style.borderCollapse='separate';table.style.borderSpacing='0.75rem 0.5rem';
+  table.append(node('caption','حركات الشهر المسترجع'),thead,tbody);const header=node('tr');
+  for(const label of columns){const th=node('th',label);th.scope='col';th.style.whiteSpace='nowrap';header.append(th);}thead.append(header);
+  const wrap=node('div');wrap.style.overflowX='auto';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','جدول الحركات؛ قابل للتمرير أفقياً');wrap.append(table);
   previous.type=next.type='button';pager.append(previous,pageText,next);resultCount.setAttribute('role','status');
-  const properties=new Map((Array.isArray(data.properties)?data.properties:[]).filter(object).map(x=>[x.id,String(x.name??'')]));
-  const rows=data.expenses.map(expense=>({expense,property:properties.get(expense.property_id)||'غير متاح',terms:normalize([expense.voucher_no,expense.reference,expense.payee,expense.category,expense.description,properties.get(expense.property_id)].join(' '))}));
+  const properties=new Map(data.properties.filter(object).map(x=>[x.id,String(x.name??'')]));
+  const property=id=>properties.get(id)||(id?'عقار ضمن السجل':'قيد عام دون توزيع على عقار');
+  const rows=data.entries.map(entry=>({entry,property:property(entry.property_id),terms:normalize([entry.reference,entry.description,property(entry.property_id),streams[entry.stream]].join(' '))}));
+  const csvRows=rows.map(({entry:e,property:p})=>[e.on_date,streams[e.stream]||'حركة أخرى',p,directions[e.direction]||'غير محدد',e.amount,states[e.status]||'غير محددة',e.reference,e.description]);
   let page=0;
   function showRows(){
-   const query=normalize(search.value),matching=rows.filter(x=>(!state.value||x.expense.state===state.value)&&(!query||x.terms.includes(query))),pages=Math.max(1,Math.ceil(matching.length/PAGE_SIZE));
+   const query=normalize(search.value),matching=rows.filter(x=>(!state.value||x.entry.status===state.value)&&(!stream.value||x.entry.stream===stream.value)&&(!query||x.terms.includes(query))),pages=Math.max(1,Math.ceil(matching.length/PAGE_SIZE));
    page=Math.max(0,Math.min(page,pages-1));tbody.replaceChildren();
-   for(const {expense:x,property} of matching.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE)){
-    const tr=node('tr');for(const [index,value] of [x.expense_date,x.voucher_no||x.reference||'—',property,x.payee||'—',money(x.amount),stateLabels[x.state]||'غير معروفة'].entries()){const td=node('td',value);if([0,1,4].includes(index))td.style.whiteSpace='nowrap';tr.append(td);}tbody.append(tr);
+   for(const {entry:e,property:p} of matching.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE)){
+    const values=[e.on_date,streams[e.stream]||'حركة أخرى',p,directions[e.direction]||'غير محدد',money(e.amount),states[e.status]||'غير محددة',e.reference||'—',e.description||'—'];
+    const tr=node('tr');for(const [index,value] of values.entries()){const td=node('td',value);if([0,4,6].includes(index))td.style.whiteSpace='nowrap';tr.append(td);}tbody.append(tr);
    }
-   if(!matching.length){const tr=node('tr'),td=node('td',rows.length?'لا توجد مصروفات تطابق البحث.':'لا توجد مصروفات محفوظة لهذا الشهر.');td.colSpan=6;tr.append(td);tbody.append(tr);}
-   resultCount.textContent=`النتائج: ${matching.length} من ${rows.length} مصروفاً.`;pageText.textContent=`الصفحة ${page+1} من ${pages}`;previous.disabled=page===0;next.disabled=page>=pages-1;
+   if(!matching.length){const tr=node('tr'),td=node('td',rows.length?'لا توجد حركات تطابق البحث.':'لا توجد حركات محفوظة لهذا الشهر.');td.colSpan=columns.length;tr.append(td);tbody.append(tr);}
+   resultCount.textContent=`النتائج: ${matching.length} من ${rows.length} حركة.`;pageText.textContent=`الصفحة ${page+1} من ${pages}`;previous.disabled=page===0;next.disabled=page>=pages-1;
   }
-  search.oninput=state.onchange=()=>{page=0;showRows();};previous.onclick=()=>{page--;showRows();};next.onclick=()=>{page++;showRows();};
-  output.append(field('البحث في المصروفات',search),field('حالة المصروف',state),resultCount,wrap,pager);showRows();
+  search.oninput=state.onchange=stream.onchange=()=>{page=0;showRows();};previous.onclick=()=>{page--;showRows();};next.onclick=()=>{page++;showRows();};
+  output.append(field('البحث في الحركات',search),field('حالة الحركة',state),field('نوع الحركة',stream),resultCount,wrap,pager);showRows();
   const details=node('details');details.append(node('summary','عرض ملخص التدقيق الخام'),node('pre',JSON.stringify(s,null,2)));output.append(details);
-  const exportButton=node('button','تصدير نسخة JSON للتدقيق');exportButton.type='button';
-  exportButton.onclick=()=>{
+  const audit=node('details');audit.append(node('summary','أحداث التدقيق المعادة'));
+  for(const event of data.history)if(object(event))audit.append(node('p',[event.recorded_at,event.actor_name,event.reason].filter(Boolean).join(' — ')));
+  output.append(audit);
+  function exportData(kind){
    if(d.closed)return;
    if(loaded!==identity||generation!==identity.epoch||month.value!==identity.month){invalidate();return;}
    try{
     d.session.check();
-    const value={month:identity.month,period:data.period,summary:s,expenses:data.expenses,history:data.history,workspace_id:d.session.bound.workspace,retrieved_at:identity.retrievedAt,audit_history_limit:AUDIT_LIMIT};
-    const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=node('a');
-    downloads.set(url,setTimeout(()=>release(url),60_000));a.href=url;a.download=`AQARI-finance-${identity.month}.json`;a.rel='noopener';a.hidden=true;
+    const value={...data,month:identity.month,workspace_id:d.session.bound.workspace,retrieved_at:identity.retrievedAt,audit_history_limit:AUDIT_LIMIT};
+    const contents=kind==='csv'?'\uFEFF'+[columns,...csvRows].map(row=>row.map(archiveCsvCell).join(',')).join('\r\n'):JSON.stringify(value,null,2);
+    const blob=new Blob([contents],{type:kind==='csv'?'text/csv;charset=utf-8':'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=node('a');
+    downloads.set(url,setTimeout(()=>release(url),60_000));a.href=url;a.download=`AQARI-finance-${identity.month}.${kind}`;a.rel='noopener';a.hidden=true;
     document.body.append(a);try{a.click();}catch(error){release(url);throw error;}finally{a.remove();}
    }catch(error){d.run(()=>{throw error;});}
-  };
-  output.append(node('p','التصدير يشمل كل المصروفات المعادة للشهر، ولا يتأثر بمرشح البحث. سجل التدقيق محدود بالأحداث المعادة.'),exportButton);
+  }
+  const json=node('button','تصدير السجل للتدقيق'),csv=node('button','تنزيل جدول CSV');json.type=csv.type='button';json.onclick=()=>exportData('json');csv.onclick=()=>exportData('csv');
+  output.append(node('p','التصدير يشمل كل الحركات المعادة للشهر، ولا يتأثر بمرشح البحث. سجل التدقيق محدود بالأحداث المعادة.'),json,csv);
  }
  loadButton.onclick=load;d.onDispose(()=>{generation++;clear();});load();
 }

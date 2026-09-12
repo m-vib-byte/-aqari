@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: 22
       - name: Archive behavior regression
-        run: node --test tests/v267-financial-archive.test.cjs
+        run: node --test tests/v267-financial-archive.test.cjs tests/v267-financial-archive-runtime.test.mjs
       - run: npm install --ignore-scripts --no-audit
       - run: npx playwright install --with-deps chromium webkit
       - name: Native browser and download verification
@@ -57,9 +57,10 @@ jobs:
           import hashlib, json, subprocess
           from pathlib import Path
           verified = {
-              'src/v267/pages/financial-archive.js': '7f72ed6d0c1bb19a6de5aca374fe2eaa66acc88999a46e1f53d456de31a8c130',
-              'tests/v267-financial-archive.test.cjs': '3b4097cc4913a8617fdc0377ba9426caeae1e88a8f3ee09fbd9c59eb753aaee7',
-              'tests/v267-financial-archive.browser.mjs': '97b27ca35a324a070abde1592f2dcf42af345eb41a4ee1af92d29aa8b2ecc234',
+              'src/v267/pages/financial-archive.js': 'ffc66df90525f9e83d2a80ae863e4d023409a38782bf762941677a809dd305ea',
+              'tests/v267-financial-archive.test.cjs': '80a55313e62515ebef0cd93ae94221aedbfa7533149f60b3d22b18a923b6f45c',
+              'tests/v267-financial-archive-runtime.test.mjs': '13dcea67f325c57f551cd7f054aa3003b66b2131a6cef23fd3dc70ca19b83f5f',
+              'tests/v267-financial-archive.browser.mjs': '7dd27c2c9127162d7269e1ea681a1d29b39f0ab21ff9f33415e16aa6e342fbb1',
           }
           for name, expected in verified.items():
               assert hashlib.sha256(Path(name).read_bytes()).hexdigest() == expected, name
@@ -84,7 +85,7 @@ jobs:
           for name in paths:
               data = Path(name).read_bytes()
               desired[name] = {'path': name, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data)}
-          if actual_blob != '344d5b92aaf12a605d60dde02c3fc94fc526cd7d':
+          if actual_blob != '0381adf416332aa5d0d2c67a3f24ad3e44ae7e4b':
               assert all(rows.get(name) == row for name, row in desired.items()), 'Inventory base changed; reconcile before writing'
               print('Verified repair inventory already matches; no rewrite.')
           else:
@@ -99,7 +100,7 @@ jobs:
       - name: Verify the combined inventory and evidence
         run: |
           node scripts/release-freeze-selftest.mjs
-          node --test tests/v267-evidence-matrix.test.mjs tests/v267-financial-archive.test.cjs
+          node --test tests/v267-evidence-matrix.test.mjs tests/v267-financial-archive.test.cjs tests/v267-financial-archive-runtime.test.mjs
       - name: Commit inventory on repair branch only
         shell: bash
         run: |
