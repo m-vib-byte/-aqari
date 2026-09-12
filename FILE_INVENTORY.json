@@ -2062,8 +2062,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "ce47ed84b9e8adb63c2b23be46d27f805e769d3bbb9316ab790889053a5c6537",
-      "size": 10106
+      "sha256": "7f72ed6d0c1bb19a6de5aca374fe2eaa66acc88999a46e1f53d456de31a8c130",
+      "size": 10361
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -2162,13 +2162,13 @@
     },
     {
       "path": "tests/v267-financial-archive.browser.mjs",
-      "sha256": "ef747d878bfb041ecffb3c5a8b2efb0c068fb2bc89ee1f71c524b31c9126a600",
-      "size": 11659
+      "sha256": "97b27ca35a324a070abde1592f2dcf42af345eb41a4ee1af92d29aa8b2ecc234",
+      "size": 12272
     },
     {
       "path": ".github/workflows/archive-integrity.yml",
-      "sha256": "16aa907980f74b651bf3078a4bb86341a8b633ae2d228d823716b2735cb3373e",
-      "size": 4024
+      "sha256": "9d28d5cdb5795d87a606212c3953eed77fc0f133b2fa4cbb92aeab08e8067fcb",
+      "size": 4000
     }
   ],
   "version": "V198"
