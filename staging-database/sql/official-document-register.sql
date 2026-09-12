@@ -71,7 +71,7 @@ language sql stable security definer set search_path='' as $$
  select exists(
   select 1 from public.aqari_memberships m
   where m.workspace_id=w and m.user_id=auth.uid() and m.is_active
-   and (m.role='general_manager' or (not write_access and m.role in ('property_manager','accountant','collector')))
+   and (m.role='general_manager' or (not write_access and m.role='accountant'))
  )
 $$;
 revoke all on function private.aqari_official_document_access(uuid,boolean) from public,anon,authenticated;
@@ -118,6 +118,14 @@ begin
   if doc_no='' then doc_no:='AQ-'||to_char(now() at time zone 'Asia/Kuwait','YYYYMMDD')||'-'||lpad(nextval('private.aqari_official_document_no_seq')::text,8,'0'); end if;
   supplied_hash:=lower(coalesce(d->>'content_sha256',''));
   if supplied_hash!~'^[a-f0-9]{64}$' or length(btrim(coalesce(d->>'kind','')))<2 or length(btrim(coalesce(d->>'title','')))<2 or length(btrim(coalesce(d->>'body','')))<5 then raise exception 'INVALID_DOCUMENT_SNAPSHOT' using errcode='23514'; end if;
+  select * into series from private.aqari_official_document_series where workspace_id=w and id=ident;
+  if found then
+   select * into strict version_row from private.aqari_official_document_versions where workspace_id=w and series_id=ident and version=1;
+   if series.kind=d->>'kind' and series.entity_type=d->>'entity_type' and series.entity_id=(d->>'entity_id')::uuid and version_row.content_sha256=supplied_hash then
+    return jsonb_build_object('series',to_jsonb(series),'version',to_jsonb(version_row),'replayed',true);
+   end if;
+   raise exception 'DOCUMENT_IDEMPOTENCY_CONFLICT' using errcode='23505';
+  end if;
   insert into private.aqari_official_document_series(id,workspace_id,kind,document_no,entity_type,entity_id,created_by)
   values(ident,w,d->>'kind',doc_no,d->>'entity_type',(d->>'entity_id')::uuid,auth.uid()) returning * into series;
   insert into private.aqari_official_document_versions(id,workspace_id,series_id,version,template_version,title,body,payload,content_sha256,issued_by,issued_by_name)

@@ -2082,8 +2082,8 @@
     },
     {
       "path": "staging-database/sql/official-document-register.sql",
-      "sha256": "7fceca63679010dc6198571cbbc066d5c811e1fe322ae664cb383565b4885f34",
-      "size": 10003
+      "sha256": "9dc8b85a6065e7cfbbc21ec553d1f64ed224f14c835b5b2c3b64d382d612986e",
+      "size": 10589
     },
     {
       "path": "staging-database/tests/external_integration_register.sql",
@@ -2122,8 +2122,8 @@
     },
     {
       "path": "tests/v267-official-document-register.test.cjs",
-      "sha256": "40515fc8d177b945759b81bb125c575f91d74c305c585dfcddfc8bd3528f0f37",
-      "size": 1430
+      "sha256": "833fafdfe83c2d3a8205e1edca3d4fec25f5c24a7304f55c1b1fb6d0a1c9e983",
+      "size": 1664
     }
   ],
   "version": "V198"
