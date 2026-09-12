@@ -1,6 +1,8 @@
 import {createDialog,node,field} from './src/v267/components/dialog.js';
 import {t,message} from './src/v267/components/locale.js';
 import {currentScope} from './src/v267/api/session.js';
+const maintenanceTypeLabels={plumbing:'سباكة',electrical:'كهرباء',air_conditioning:'تكييف',elevator:'مصعد',fire_safety:'إطفاء',water:'مياه',general:'عام',other:'أخرى'};
+const maintenanceTypeLabel=value=>maintenanceTypeLabels[value]||maintenanceTypeLabels.other;
 
 const names={received:'تم الاستلام',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى',awaiting_configuration:'بانتظار إعداد الإرسال',queued:'في الانتظار',sending:'جارٍ الإرسال',sent:'تم الإرسال',failed:'تعذر الإرسال'};
 const transitions={received:['received','assigned','in_progress','cancelled'],assigned:['assigned','in_progress','cancelled'],in_progress:['in_progress','completed','cancelled'],completed:['completed'],cancelled:['cancelled']};
@@ -37,7 +39,7 @@ export async function openDesk(mode='maintenance'){
  async function load(wanted=page){
   checkReadAccess();remember();
   const table=mode==='maintenance'?'aqari_maintenance_requests':'aqari_notification_outbox';
-  const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,description,status,cost,revision,tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
+  const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,description,request_type,status,cost,revision,tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
   const locations=new Map();
   if(mode==='maintenance'&&rows.length){
    // Maintenance staff cannot read leases. Resolve only the location metadata
@@ -62,7 +64,7 @@ export async function openDesk(mode='maintenance'){
    if(mode==='notifications'){
     card.append(node('p',message('{channel} • {status}\nالفترة {period} • {date}',{channel:t(row.channel==='email'?'البريد الإلكتروني':row.channel==='whatsapp'?'واتساب':'غير معروف'),status:t(names[row.status]||'غير معروف'),period:row.period??'',date:String(row.scheduled_at??'').slice(0,10)})));
    }else{
-    card.append(node('p',row.tenant?.full_name||''),node('p',row.description||''));
+    card.append(node('p',row.tenant?.full_name||''),node('p',t('نوع الصيانة')+': '+maintenanceTypeLabel(row.request_type)),node('p',row.description||''));
     const state=node('select'),cost=node('input'),save=node('button',t('حفظ الحالة والتكلفة')),allowed=transitions[row.status]||[];
     for(const value of allowed){const option=node('option',t(names[value]));option.value=value;state.append(option);}
     if(!allowed.length){const option=node('option',t('غير معروف'));option.value=row.status;state.append(option);}

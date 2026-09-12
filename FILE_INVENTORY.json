@@ -906,6 +906,11 @@
       "size": 1906
     },
     {
+      "path": "src/v267/components/maintenance-request.js",
+      "size": 2596,
+      "sha256": "e5f37c6b89abb22accc787f38a4bf9c0b408a4df889bf3383173ffe3b38af491"
+    },
+    {
       "path": "src/v267/components/official-form-fields.js",
       "sha256": "175f07008c6d7d6ac29e84e89be8926b1cf950cf8e6b702f55f0b962e6a88655",
       "size": 4647
@@ -1277,8 +1282,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "f976f57083b27e8f19b65696b840c5e075c33678dd9efc193f885709ab5bd45d",
-      "size": 3578
+      "sha256": "1218550fb2e01efecfa4b3e31e71ddacc7532d745ee267cfb11829dd451ec0f0",
+      "size": 3738
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -1369,6 +1374,11 @@
       "path": "staging-database/sql/maintenance-locations.sql",
       "sha256": "36ba19b2f4b364d18b9b202ec706ae68e4a32e8f6b1b8e53f0dd57014a5aa856",
       "size": 2766
+    },
+    {
+      "path": "staging-database/sql/maintenance-request-details.sql",
+      "size": 8478,
+      "sha256": "e17dd5421642d2e66680728f50dba00c174c033882e36e29bce56f838e93c587"
     },
     {
       "path": "staging-database/sql/mfa-enforcement.sql",
@@ -1741,6 +1751,11 @@
       "size": 10353
     },
     {
+      "path": "staging-database/tests/maintenance_request_details.sql",
+      "size": 5907,
+      "sha256": "80364c87f86d904ee77a5e639f227f602a1da58542ef0825f7290c1c09b35fa1"
+    },
+    {
       "path": "staging-database/tests/official_document_pdf_archive.sql",
       "size": 11823,
       "sha256": "c04fd9bd9571c42328a988b61788c9b3e39b8437b5eef6a62d81bf9e224238cf"
@@ -1902,8 +1917,8 @@
     },
     {
       "path": "tenant.html",
-      "sha256": "bda0d3e6ce0c2a5482f07cba9188f9cdaa09657152b7eb827a86288a3e0fdd45",
-      "size": 4365
+      "sha256": "4868e2fe9b1089cbfd6ec4f42fcad01d3180825eb8dbdae636474b1b425fc228",
+      "size": 4918
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
@@ -2296,6 +2311,11 @@
       "size": 1079
     },
     {
+      "path": "tests/v267-maintenance-request.test.mjs",
+      "size": 2480,
+      "sha256": "ccc4c94c915c21360e7c3835fcb22b16fd3de67f01fe228af42ceac7588e20d1"
+    },
+    {
       "path": "tests/v267-mfa-enforcement.test.cjs",
       "sha256": "bb2a28fd06eb3d1f4d3c5e769956c91c7423ad689350847d29f3d9c2ff56a0f3",
       "size": 899
@@ -2447,8 +2467,8 @@
     },
     {
       "path": "tests/v267-service-desk.test.cjs",
-      "sha256": "706f9eb88a1337de5ab492a613572979c50d42e917c74db59d50505a117668b0",
-      "size": 16276
+      "sha256": "5d351b42ea25c1fd28bb54ee557f92bc5f21abd441eec5de428cea55e1998c60",
+      "size": 16512
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
@@ -2477,8 +2497,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "4a3c8736690f078e07b8f1ed5921d1866679f0d761dc2715f7afec191dfe6542",
-      "size": 19719
+      "sha256": "fb5453845bfda5cc17b837ada3fbb0f138b2170e8f361ef52674da9bae7a5d53",
+      "size": 19991
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
@@ -2687,8 +2707,8 @@
     },
     {
       "path": "v267-service-desk.js",
-      "sha256": "9cf0e55be94d61bc7129309b13837b9f95e73fa20c4ca63ed0ce5153239e6cbb",
-      "size": 11809
+      "sha256": "d8a0ffc128dae46cc21cad3759408cd6ce2fe6b7bcf151e245b76c4a8f68fdd7",
+      "size": 12201
     },
     {
       "path": "v267-signup.js",
@@ -2697,8 +2717,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "0b68c8d35d6d47405f5ef513d28500164bd33e48e1e2d599ac88bfd5324c92d4",
-      "size": 18944
+      "sha256": "eee4087d1861ba8b1022b882e2cecc9de72fc19c7bcd5ba678e595439cfb92fa",
+      "size": 21716
     },
     {
       "path": "v267-unified.css",

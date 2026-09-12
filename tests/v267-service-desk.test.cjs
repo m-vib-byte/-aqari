@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const source=fs.readFileSync('v267-service-desk.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function fixture(count=2){
- const rows=Array.from({length:count},(_,i)=>({id:'request-'+i,request_no:i+1,workspace_id:'fixture-workspace',description:'طلب اختبار '+i,status:'received',cost:'0',revision:1,lease:{contract_no:'C-'+i,snapshot:{property:'عقار اختبار',unit:String(i+1)}},tenant:{full_name:'مستأجر اختبار'}}));
+ const rows=Array.from({length:count},(_,i)=>({id:'request-'+i,request_no:i+1,workspace_id:'fixture-workspace',description:'طلب اختبار '+i,request_type:'general',status:'received',cost:'0',revision:1,lease:{contract_no:'C-'+i,snapshot:{property:'عقار اختبار',unit:String(i+1)}},tenant:{full_name:'مستأجر اختبار'}}));
  const state={failList:false,readError:null,locationError:null,locations:null,sessionLost:false,loseSessionOnRead:false,loseSessionOnLocation:false,lostUpdate:false,badReadback:false,closed:false},calls=[];let dispose;
  const locations=rows.map(row=>({request_id:row.id,property_name:row.lease.snapshot.property,unit_no:row.lease.snapshot.unit}));
  const descendants=x=>[x,...x.children.flatMap(descendants)];
@@ -22,7 +22,7 @@ function fixture(count=2){
  };return query;}
  async function rpc(name,args){assert.equal(name,'aqari_maintenance_locations');assert.equal(args.p_workspace_id,'fixture-workspace');assert.ok(args.p_request_ids.length<=50);calls.push({kind:'locations',args:clone(args)});if(state.loseSessionOnLocation)state.sessionLost=true;if(state.locationError)throw state.locationError;return clone(state.locations??locations.filter(row=>args.p_request_ids.includes(row.request_id)));}
  const d={body:node('div'),el:node('dialog'),status:node('p'),session:{bound:{workspace:'fixture-workspace'},client:{from,rpc},request:query=>query,check(){if(state.closed||state.sessionLost)throw Error('closed');}},onDispose(fn){dispose=fn;},get closed(){return state.closed;},async run(task){if(d.busy||state.closed)return;d.busy=true;const controls=descendants(d.body).filter(e=>['button','input','select'].includes(e.tag)),disabled=controls.map(e=>e.disabled);controls.forEach(e=>e.disabled=true);try{await task();}catch(e){state.lastError=e;d.status.textContent=e.message;}finally{d.busy=false;controls.forEach((e,i)=>{if(e.isConnected)e.disabled=disabled[i];});}}};d.body.root=true;
- const context={node,field,createDialog:()=>d,currentScope:()=>({role:'general_manager'}),t:x=>x,message:(x,args)=>x.replace(/\{(\w+)\}/g,(_,k)=>args[k]),window:{}};vm.createContext(context);vm.runInContext(source,context);
+ const context={node,field,createDialog:()=>d,currentScope:()=>({role:'general_manager'}),maintenanceTypeLabel:x=>({general:'عام',electrical:'كهرباء',plumbing:'سباكة',air_conditioning:'تكييف',elevator:'مصعد',fire_safety:'إطفاء وسلامة',other:'أخرى'}[x]||'أخرى'),t:x=>x,message:(x,args)=>x.replace(/\{(\w+)\}/g,(_,k)=>args[k]),window:{}};vm.createContext(context);vm.runInContext(source,context);
  const cards=()=>descendants(d.body).filter(e=>e.tag==='article');
  const button=(label,parent=d.body)=>descendants(parent).find(e=>e.tag==='button'&&e.textContent===label);
  const cost=index=>descendants(cards()[index]).find(e=>e.tag==='input');
