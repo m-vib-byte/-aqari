@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "ba93cac78742395a971330bf59493a3039b13ac4d1263352a22dd641574388d0",
-      "size": 7026
+      "sha256": "2a8bfc37a7174372177e8132df8cf5fce8644021c25005b5b63038e1087cf8a6",
+      "size": 7207
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "6f706f077e37c08cb8840c3429ec7bce5b7ef5a8698a22f0f83f99b3d2c5c6af",
-      "size": 584081
+      "sha256": "0379014d660fe999c9bc1184a8f61c19babbb0cc4583ca9e79857bc389939586",
+      "size": 590212
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -476,6 +476,11 @@
       "size": 5210
     },
     {
+      "path": "docs/V267-MAINTENANCE-REPORT-2026-09-12.md",
+      "size": 6082,
+      "sha256": "f9826a9142aef7be4bba6fdefd5f51f2095d2f3eef74ed0be7aece1406cdc2b8"
+    },
+    {
       "path": "docs/V267-MAINTENANCE-WORKFLOW-2026-09-12.md",
       "sha256": "aa3ec05cceb65fa3e81bd2f5d2e5846abba146115f1df81522549ae91e376394",
       "size": 9095
@@ -542,8 +547,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "cad12ef194506726e3ee1ca6e038114395c1b3ee69aebd4eae1ab334d30d92ba",
-      "size": 120247
+      "sha256": "17b23cdc1da5ee13f39b952b234694880b8ae825028917b08a65ebb76be38862",
+      "size": 121402
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -862,8 +867,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "c71adaa36897d45d53684e5d8d938279d303a086f68ed8b928b172c77eccd863",
-      "size": 7452
+      "sha256": "40cf0b86df3e4f1e4803331cf0399ee9ecc6903f3322248cd186bd36544f44c2",
+      "size": 7500
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -1226,6 +1231,11 @@
       "size": 15904
     },
     {
+      "path": "src/v267/pages/maintenance-report.js",
+      "size": 7076,
+      "sha256": "0f928b8df2cde7db58643cfb9cc21745350737c9e5aca2ae23f7719ff708c417"
+    },
+    {
       "path": "src/v267/pages/official-document-center.js",
       "sha256": "7c099f1f30f6acca0df1b043664882b8a032eed246daa0cc12c6fea7dedf3d10",
       "size": 15897
@@ -1322,8 +1332,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "37f06120bb740e3d31ef17f395c4c2f385493475c0ebdd475428257eca6cb31a",
-      "size": 21001
+      "sha256": "bac7fe3570ef3cc46de08aa258b2e9ab1c642f850d3657557a687004e8ed98c9",
+      "size": 22115
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1487,8 +1497,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "169adb1d4f88acf3d2f9bae70e31ae4576893aaabe4371139961b8a5133abc43",
-      "size": 6517
+      "sha256": "68433aeca7e095e631b344d3d7bd8352dc686c5208d72e374e92842d5fb4f2f7",
+      "size": 6759
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -1609,6 +1619,16 @@
       "path": "staging-database/sql/maintenance-locations.sql",
       "sha256": "36ba19b2f4b364d18b9b202ec706ae68e4a32e8f6b1b8e53f0dd57014a5aa856",
       "size": 2766
+    },
+    {
+      "path": "staging-database/sql/maintenance-report-discovery.sql",
+      "size": 983,
+      "sha256": "44426f31157d607712bf50b18fe0966406ddfc4ce84b74ea47731e0940e0c358"
+    },
+    {
+      "path": "staging-database/sql/maintenance-status-report.sql",
+      "size": 5167,
+      "sha256": "e0d6fe5726beb652632f54b885f6ec4974b2bfa0de5031eeb8419c1803e8f0cf"
     },
     {
       "path": "staging-database/sql/maintenance-workflow.sql",
@@ -1792,8 +1812,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "190dcc63323b00bd4236ac0dd1b97486d5b671445edc04b97b1cb023638c93e8",
-      "size": 4525
+      "sha256": "90cdb4e939102fd3de98f2fe87945267865d96f4e0db9f8e98f522a9cd4cd529",
+      "size": 4750
     },
     {
       "path": "staging-database/supabase/migrations/20260907083736_v267_isolated_core.sql",
@@ -1991,6 +2011,11 @@
       "size": 1088
     },
     {
+      "path": "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql",
+      "size": 6151,
+      "sha256": "e7b905b79cb45bacaefdcc697a841a5b073e94b53c071e0a97b439be447c1256"
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "0101fd2c0846297748d2d3d298ae61e810fda60091c5b6d66ecbe7d17f82efbd",
       "size": 15626
@@ -2094,6 +2119,11 @@
       "path": "staging-database/tests/maintenance_locations.sql",
       "sha256": "e2ac8c483255bf795fdc800d8db96c40a42c66d9647e12e86b86845123228c72",
       "size": 10353
+    },
+    {
+      "path": "staging-database/tests/maintenance_status_cost_time_report.sql",
+      "size": 6948,
+      "sha256": "51755d2cb07fd001c443ba44a84268423dc84da06398466b862c24c7937e47a2"
     },
     {
       "path": "staging-database/tests/maintenance_workflow.sql",
@@ -2601,6 +2631,11 @@
       "size": 9836
     },
     {
+      "path": "tests/v267-contract-scanner-entry.test.cjs",
+      "size": 1172,
+      "sha256": "affdf39cc915803067e8521e06c98d132f88a540526995d72c40181a8e18e43c"
+    },
+    {
       "path": "tests/v267-deployment-target.test.mjs",
       "sha256": "9f2355baeff38b501e31d4382c7f68742a745fb8fdf79d9c26820aaa234d58b6",
       "size": 3417
@@ -2756,9 +2791,19 @@
       "size": 1372
     },
     {
+      "path": "tests/v267-maintenance-cancel-runtime.test.mjs",
+      "size": 4098,
+      "sha256": "0a9606ee773dca47f319f189eff6a2abd1ea699a7ec54a4177a1c2958692eb19"
+    },
+    {
       "path": "tests/v267-maintenance-plans.test.cjs",
       "sha256": "bc7e6573acb3915e1697be825b0f2c7712e436a094e9a372e5abd86c76b3a7c3",
       "size": 1081
+    },
+    {
+      "path": "tests/v267-maintenance-report-runtime.test.mjs",
+      "size": 5789,
+      "sha256": "7d35de073e77332fb97f4044421d725ff2e475a13d9e2171711788b4fa96b3f9"
     },
     {
       "path": "tests/v267-maintenance-reservation-cancel.test.mjs",
@@ -3002,8 +3047,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "b6de25096719c3d831e782079e9b0ab3b5292de3e11c708669feb382bd0cbb76",
-      "size": 4220
+      "sha256": "b90cd18230830fe6fc362627d396d1bc33b78cc011224b081aa8e34a84f6158f",
+      "size": 4709
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",

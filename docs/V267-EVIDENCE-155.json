@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "cad12ef194506726e3ee1ca6e038114395c1b3ee69aebd4eae1ab334d30d92ba",
+  "matrixSha256": "17b23cdc1da5ee13f39b952b234694880b8ae825028917b08a65ebb76be38862",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -488,6 +488,19 @@
         "staging-database/tests/commercial_sales.sql",
         "staging-database/hosted-test/completion/06-commercial_sales.sql"
       ]
+    },
+    "E50": {
+      "files": [
+        "docs/V267-MAINTENANCE-REPORT-2026-09-12.md",
+        "src/v267/pages/maintenance-report.js",
+        "staging-database/sql/maintenance-status-report.sql",
+        "staging-database/sql/maintenance-report-discovery.sql",
+        "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql",
+        "staging-database/tests/maintenance_status_cost_time_report.sql",
+        "tests/v267-maintenance-report-runtime.test.mjs",
+        "tests/v267-contract-scanner-entry.test.cjs",
+        "tests/v267-maintenance-cancel-runtime.test.mjs"
+      ]
     }
   },
   "files": [
@@ -529,8 +542,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "37f06120bb740e3d31ef17f395c4c2f385493475c0ebdd475428257eca6cb31a",
-      "bytes": 21001,
+      "sha256": "bac7fe3570ef3cc46de08aa258b2e9ab1c642f850d3657557a687004e8ed98c9",
+      "bytes": 22115,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -549,8 +562,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "190dcc63323b00bd4236ac0dd1b97486d5b671445edc04b97b1cb023638c93e8",
-      "bytes": 4525,
+      "sha256": "90cdb4e939102fd3de98f2fe87945267865d96f4e0db9f8e98f522a9cd4cd529",
+      "bytes": 4750,
       "declaredTables": [],
       "publicFunctions": [
         "public.aqari_workspace_access"
@@ -560,8 +573,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "b6de25096719c3d831e782079e9b0ab3b5292de3e11c708669feb382bd0cbb76",
-      "bytes": 4220,
+      "sha256": "b90cd18230830fe6fc362627d396d1bc33b78cc011224b081aa8e34a84f6158f",
+      "bytes": 4709,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -3135,6 +3148,94 @@
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "database-suite"
+    },
+    {
+      "path": "docs/V267-MAINTENANCE-REPORT-2026-09-12.md",
+      "sha256": "f9826a9142aef7be4bba6fdefd5f51f2095d2f3eef74ed0be7aece1406cdc2b8",
+      "bytes": 6082,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/pages/maintenance-report.js",
+      "sha256": "0f928b8df2cde7db58643cfb9cc21745350737c9e5aca2ae23f7719ff708c417",
+      "bytes": 7076,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_maintenance_status_report",
+        "aqari_workspace_access"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/maintenance-status-report.sql",
+      "sha256": "e0d6fe5726beb652632f54b885f6ec4974b2bfa0de5031eeb8419c1803e8f0cf",
+      "bytes": 5167,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_maintenance_status_report"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/maintenance-report-discovery.sql",
+      "sha256": "44426f31157d607712bf50b18fe0966406ddfc4ce84b74ea47731e0940e0c358",
+      "bytes": 983,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql",
+      "sha256": "e7b905b79cb45bacaefdcc697a841a5b073e94b53c071e0a97b439be447c1256",
+      "bytes": 6151,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_maintenance_status_report"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/maintenance_status_cost_time_report.sql",
+      "sha256": "51755d2cb07fd001c443ba44a84268423dc84da06398466b862c24c7937e47a2",
+      "bytes": 6948,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-maintenance-report-runtime.test.mjs",
+      "sha256": "7d35de073e77332fb97f4044421d725ff2e475a13d9e2171711788b4fa96b3f9",
+      "bytes": 5789,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "tests/v267-contract-scanner-entry.test.cjs",
+      "sha256": "affdf39cc915803067e8521e06c98d132f88a540526995d72c40181a8e18e43c",
+      "bytes": 1172,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "tests/v267-maintenance-cancel-runtime.test.mjs",
+      "sha256": "0a9606ee773dca47f319f189eff6a2abd1ea699a7ec54a4177a1c2958692eb19",
+      "bytes": 4098,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
     }
   ],
   "requirements": [
@@ -7626,22 +7727,41 @@
       "id": 80,
       "sourceId": "G07-11",
       "requirement": "تقرير الصيانة حسب الحالة والتكلفة والزمن.",
-      "reportedImplementation": "جزئي — E16 يحفظ الحالة والتكلفة والوقت؛ تقرير المدد الشامل غير مثبت.",
-      "acceptanceRemaining": "تطابق عدد الطلبات والتكلفة ومدة الاستجابة/الإغلاق مع سجل الأحداث.",
+      "reportedImplementation": "جزئي — E16، E50؛ دُمجت الواجهة مع تقرير خادمي واكتشاف مقيد بالصلاحيات، وصُححت قراءة التدقيق القديم والتوافق مع مخطط المعاينة؛ نجح SQL المستضاف للحالة والتكلفة والزمن وعزل العقار.",
+      "acceptanceRemaining": "قبول عرض التقرير ومطابقة السجلات بالحسابات والأجهزة الفعلية، وقياس الأداء على الحجم التشغيلي.",
       "evidenceIds": [
-        "E16"
+        "E16",
+        "E50"
       ],
       "evidenceFiles": [
         "v267-service-desk.js",
-        "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql"
+        "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql",
+        "docs/V267-MAINTENANCE-REPORT-2026-09-12.md",
+        "src/v267/pages/maintenance-report.js",
+        "staging-database/sql/maintenance-status-report.sql",
+        "staging-database/sql/maintenance-report-discovery.sql",
+        "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql",
+        "staging-database/tests/maintenance_status_cost_time_report.sql",
+        "tests/v267-maintenance-report-runtime.test.mjs",
+        "tests/v267-contract-scanner-entry.test.cjs",
+        "tests/v267-maintenance-cancel-runtime.test.mjs"
       ],
       "uiFiles": [
-        "v267-service-desk.js"
+        "v267-service-desk.js",
+        "src/v267/pages/maintenance-report.js"
       ],
       "sqlFiles": [
-        "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql"
+        "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql",
+        "staging-database/sql/maintenance-status-report.sql",
+        "staging-database/sql/maintenance-report-discovery.sql",
+        "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql"
       ],
-      "testFiles": [],
+      "testFiles": [
+        "staging-database/tests/maintenance_status_cost_time_report.sql",
+        "tests/v267-maintenance-report-runtime.test.mjs",
+        "tests/v267-contract-scanner-entry.test.cjs",
+        "tests/v267-maintenance-cancel-runtime.test.mjs"
+      ],
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -9131,11 +9251,12 @@
       "id": 109,
       "sourceId": "G10-08",
       "requirement": "حجز طلب صيانة من حساب المستأجر مع وصف وصور.",
-      "reportedImplementation": "جزئي — E17، E47؛ أضيفت صور وPDF للبلاغ المحفوظ من حساب المستأجر، مع استئناف نفس الأصل بعد تحديث الصفحة ومنع التكرار؛ الاختبارات محلية.",
-      "acceptanceRemaining": "مستأجر فعلي ينشئ طلبًا ويرفع صوره ويسترجعها من Storage بعد التحديث؛ إلغاء الحجز غير المرفوع ما زال مطلوبًا.",
+      "reportedImplementation": "جزئي — E17، E47، E50؛ أضيفت صور وPDF للبلاغ المحفوظ من حساب المستأجر، مع استئناف نفس الأصل بعد تحديث الصفحة ومنع التكرار؛ الاختبارات محلية.",
+      "acceptanceRemaining": "مستأجر فعلي ينشئ طلبًا ويرفع صوره ويسترجعها من Storage بعد التحديث؛ إلغاء الحجز غير المرفوع مختبر محليًا؛ بقي قبول الكاميرا والبايتات والاسترجاع بحساب فعلي.",
       "evidenceIds": [
         "E17",
-        "E47"
+        "E47",
+        "E50"
       ],
       "evidenceFiles": [
         "v267-tenant-portal.js",
@@ -9172,12 +9293,22 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-MAINTENANCE-REPORT-2026-09-12.md",
+        "src/v267/pages/maintenance-report.js",
+        "staging-database/sql/maintenance-status-report.sql",
+        "staging-database/sql/maintenance-report-discovery.sql",
+        "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql",
+        "staging-database/tests/maintenance_status_cost_time_report.sql",
+        "tests/v267-maintenance-report-runtime.test.mjs",
+        "tests/v267-contract-scanner-entry.test.cjs",
+        "tests/v267-maintenance-cancel-runtime.test.mjs"
       ],
       "uiFiles": [
         "v267-tenant-portal.js",
         "src/v267/components/maintenance-attachments.js",
-        "src/v267/components/maintenance-attachment-panel.js"
+        "src/v267/components/maintenance-attachment-panel.js",
+        "src/v267/pages/maintenance-report.js"
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907084949_v267_tenant_portal_identity.sql",
@@ -9186,7 +9317,10 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-status-report.sql",
+        "staging-database/sql/maintenance-report-discovery.sql",
+        "staging-database/supabase/migrations/20260912204517_v267_maintenance_status_report_safe_audit.sql"
       ],
       "testFiles": [
         "tests/v267-tenant-portal.test.cjs",
@@ -9196,7 +9330,11 @@
         "tests/v267-maintenance-storage-session.test.mjs",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_status_cost_time_report.sql",
+        "tests/v267-maintenance-report-runtime.test.mjs",
+        "tests/v267-contract-scanner-entry.test.cjs",
+        "tests/v267-maintenance-cancel-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"

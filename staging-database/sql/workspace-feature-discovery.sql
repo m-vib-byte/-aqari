@@ -15,6 +15,7 @@ begin
   'sections',coalesce(cfg->'sections','{}'),'permissions',access,'labels',coalesce(cfg->'labels','{}'),
   'features',jsonb_build_object(
    'lease_expiry_report',private.aqari_can(p_workspace_id,'reports','read') and private.aqari_can(p_workspace_id,'contracts','read') and to_regprocedure('public.aqari_lease_expiry_report(uuid,text,integer,uuid,text,integer)') is not null,
+   'maintenance_report',private.aqari_can(p_workspace_id,'reports','read') and private.aqari_can(p_workspace_id,'maintenance','read') and to_regprocedure('public.aqari_maintenance_status_report(uuid,date,date)') is not null,
    'staff_circulars',to_regprocedure('public.aqari_staff_circulars(uuid,text,jsonb)') is not null,
    'final_gap_register',r='general_manager' and to_regprocedure('public.aqari_final_gap_register(uuid,text,jsonb)') is not null,
    'official_documents',r='general_manager' and to_regprocedure('public.aqari_official_document_register(uuid,text,jsonb)') is not null and to_regprocedure('public.aqari_official_document_context(uuid,text,uuid,uuid,jsonb)') is not null,
