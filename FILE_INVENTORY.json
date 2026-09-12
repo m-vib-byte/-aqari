@@ -357,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "8b92e5380a44012d686224dedbb00be56063f640310979a3523aad7c50611adc",
-      "size": 299960
+      "sha256": "ec6a3aa0914d7e9087216ce4012273e27d3499bb97ff3a0069368a6a80c8ef34",
+      "size": 300894
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -387,8 +387,8 @@
     },
     {
       "path": "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
-      "sha256": "cb2edbce3f6db9e7c35ea05ec1cafd0948d1f8f4374084173d1d8a059916bed9",
-      "size": 9653
+      "sha256": "0c2d6baee8dd447cdcde95f8e4bf22f28a3032d1eb87e270430bd2c10095700c",
+      "size": 11245
     },
     {
       "path": "docs/V267-HOSTED-FINANCIAL-ACCEPTANCE-2026-09-12.md",
@@ -467,8 +467,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "8eba9976b6dc696a4ea872cd4e1553c52a75d946f98be6a3a0f56d933016e04f",
-      "size": 96267
+      "sha256": "aff23ba52e69a495655d8a4c8fcfc493c173b424ca2ce56f85ce0ea7fa50920e",
+      "size": 96282
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",

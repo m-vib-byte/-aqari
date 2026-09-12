@@ -1959,12 +1959,12 @@
       "testKind": "database-suite"
     },
     {
-      "bytes": 9653,
+      "bytes": 11245,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
       "publicFunctions": [],
-      "sha256": "cb2edbce3f6db9e7c35ea05ec1cafd0948d1f8f4374084173d1d8a059916bed9",
+      "sha256": "0c2d6baee8dd447cdcde95f8e4bf22f28a3032d1eb87e270430bd2c10095700c",
       "testKind": null
     },
     {
@@ -2026,7 +2026,7 @@
       "testKind": "database-suite"
     }
   ],
-  "matrixSha256": "8eba9976b6dc696a4ea872cd4e1553c52a75d946f98be6a3a0f56d933016e04f",
+  "matrixSha256": "aff23ba52e69a495655d8a4c8fcfc493c173b424ca2ce56f85ce0ea7fa50920e",
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "releaseGate": "HOLD",
   "releasePolicy": {
@@ -4790,7 +4790,7 @@
       ]
     },
     {
-      "acceptanceRemaining": "بقية التقارير، القبول المستضاف، العرض والطباعة في Excel وعلى الأجهزة الفعلية.",
+      "acceptanceRemaining": "بقية التقارير، العرض والطباعة في Excel وعلى الأجهزة الفعلية.",
       "evidenceFiles": [
         "v202-property-os.js",
         "v206-rent-ledger.js",
@@ -4819,18 +4819,26 @@
         "src/v267/pages/financial-archive.js",
         "tests/v267-financial-archive.test.cjs",
         "tests/financial_archive_xlsx_test.py",
-        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md"
+        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
         "E11",
         "E12",
         "E35",
-        "E40"
+        "E40",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 77,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E11، E12 وE35 تثبت PDF للوصولات والنماذج؛ E40 يصدّر الأرشيف إلى XLSX فعلي بمرشحات وأرقام وتواريخ وإعادة تحقق من الصلاحية، مع اختبار الملف المستقل.",
+      "reportedImplementation": "جزئي — E11، E12 وE35 تثبت PDF للوصولات والنماذج؛ E40 وE43 يثبتان تصدير الأرشيف إلى XLSX بمرشحات وأرقام وتواريخ وإعادة تحقق؛ نجح تنزيله بحساب المدير على المعاينة وفحص الملف المستقل.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -4854,7 +4862,13 @@
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
         "tests/v267-financial-archive.test.cjs",
-        "tests/financial_archive_xlsx_test.py"
+        "tests/financial_archive_xlsx_test.py",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "v202-property-os.js",

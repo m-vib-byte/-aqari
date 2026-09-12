@@ -62,3 +62,13 @@ That journey exposed two genuine compatibility defects with existing saved recei
 After this repair and the rolled-back hosted tests, the same 79 application tables still matched the checkpoint exactly. No receipt amount, status, snapshot, lease, or readiness state was edited. Existing dashboard and monthly archive figures use different views of test source records; they have not been reconciled by guessing or deleting a saved payment.
 
 The security center reports AAL1 and no verified second factor for this account. Sensitive saves/approvals remain subject to the existing AAL2 requirement. Creating a new authenticator factor requires the account owner's secure browser interaction; no factor was created, no credential was read, and no MFA rule was relaxed. Full acceptance of the 155 items, provider integrations, complete backup/restore, and V266 rollback remain open. The status UI patch has local evidence here; its fresh deployment and browser verification must be checked separately from the already verified activation commit.
+
+## Deployed UI and actual Excel download
+
+Code commit `352675caec1631f147f170b5b84bd3588491023e` produced READY deployment `dpl_BBbyqYKSCMBvrq5CG7vJUwBb3Dnw`. Reloading the stable branch `/app?release=V267` restored the same manager session and displayed the dashboard. The stray text disappeared. In the financial archive, both existing test receipts displayed **مسدد** and their saved collector. Selecting **مسدد** retained both records.
+
+The manager then triggered the real **تنزيل Excel للنتائج** action. The browser download-event listener timed out at its three-second limit, but the completed file appeared in the synchronized browser download directory at **2026-09-12 13:08:32 UTC**. Independent openpyxl inspection verified the two existing receipt references, numeric amounts of 100.000 each, date cells, saved collector, paid labels, RTL sheets, frozen headings and the paid filter recorded in report metadata. No duplicate download was triggered after the listener timeout.
+
+Downloaded file: 11,533 bytes; SHA-256 `6b4483ff98b66d82ebb5bf69e699f8421940c483016dd1002e26785a28d8dcf7`. This is a real hosted-account export of existing isolated test receipts; it is not a full backup, source reconciliation, Microsoft Excel visual/printing test, physical-device acceptance, or acceptance of every report.
+
+At the recorded check, eight of nine workflows for this code SHA had passed, including Preview E2E and Runtime contracts; Authenticated home regression was still running. Its final outcome must be read from the run, not inferred. Release gate remains HOLD.
