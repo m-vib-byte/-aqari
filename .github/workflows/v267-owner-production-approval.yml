@@ -1,0 +1,71 @@
+name: V267 owner production approval policy
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/v267-owner-production-approval.mjs'
+      - 'tests/v267-owner-production-approval.test.mjs'
+      - '.github/workflows/v267-owner-production-approval.yml'
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: 'Exact 40-character V267 candidate SHA'
+        required: true
+        type: string
+      final_tested_sha:
+        description: 'Exact SHA tested by the owner on the final hosted candidate'
+        required: true
+        type: string
+      owner_approved_sha:
+        description: 'Exact SHA explicitly approved by the owner for Production'
+        required: true
+        type: string
+      approval_decision:
+        description: 'Must be exactly approved_for_production'
+        required: true
+        type: string
+      final_test_completed_at:
+        description: 'ISO-8601 timestamp when final owner testing completed'
+        required: true
+        type: string
+      owner_approved_at:
+        description: 'ISO-8601 timestamp of later explicit Production approval'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  policy-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify fail-closed owner policy
+        run: node --test tests/v267-owner-production-approval.test.mjs
+
+  validate-explicit-production-approval:
+    if: github.event_name == 'workflow_dispatch'
+    needs: policy-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      V267_OWNER_FINAL_TESTED_SHA: ${{ inputs.final_tested_sha }}
+      V267_OWNER_PRODUCTION_APPROVAL_SHA: ${{ inputs.owner_approved_sha }}
+      V267_OWNER_PRODUCTION_APPROVAL_DECISION: ${{ inputs.approval_decision }}
+      V267_OWNER_FINAL_TEST_COMPLETED_AT: ${{ inputs.final_test_completed_at }}
+      V267_OWNER_PRODUCTION_APPROVAL_AT: ${{ inputs.owner_approved_at }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate exact candidate and approval ordering
+        run: node scripts/v267-owner-production-approval.mjs --candidate-sha '${{ inputs.candidate_sha }}'
+      - name: Confirm this workflow cannot deploy or merge
+        run: |
+          echo 'Validation only: this workflow has no merge, deploy, Vercel, Supabase, DNS, or Production write step.'
