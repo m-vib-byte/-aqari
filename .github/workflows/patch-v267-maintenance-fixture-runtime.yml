@@ -1,0 +1,50 @@
+name: Patch V267 maintenance tenant fixture
+
+on:
+  push:
+    branches:
+      - fix/v267-maintenance-request-attachments
+    paths:
+      - .github/workflows/patch-v267-maintenance-fixture-runtime.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-maintenance-request-attachments
+      - name: Patch tenant portal fixture for maintenance module
+        shell: python
+        run: |
+          import pathlib
+          p=pathlib.Path('tests/v267-tenant-portal.test.cjs')
+          text=p.read_text(encoding='utf-8')
+          def one(old,new):
+              global text
+              if text.count(old)!=1:
+                  raise SystemExit('ANCHOR_CHANGED:'+old[:100])
+              text=text.replace(old,new)
+          one("moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('v267-tenant-portal.js')", "moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('src/v267/components/maintenance-request.js')+'\\n'+moduleSource('v267-tenant-portal.js')")
+          one("'maintenanceLease','maintenanceForm','maintenanceDescription','maintenanceSave'", "'maintenanceLease','maintenanceForm','maintenanceType','maintenancePhotos','maintenanceDescription','maintenanceSave'")
+          one("payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[]};", "payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[],maintenance_attachments:[]};")
+          p.write_text(text,encoding='utf-8')
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify tenant fixture and maintenance helper
+        run: node --test tests/v267-tenant-portal.test.cjs tests/v267-maintenance-request.test.mjs
+      - name: Commit fixture only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/v267-tenant-portal.test.cjs
+          git diff --cached --check
+          git commit -m 'test(v267): load typed maintenance helpers in tenant fixture'
+          git push origin HEAD:fix/v267-maintenance-request-attachments
