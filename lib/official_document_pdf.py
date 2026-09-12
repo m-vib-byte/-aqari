@@ -1,7 +1,10 @@
 """Render only a verified, immutable official-document snapshot from the database."""
 from io import BytesIO
+import json
 import re
 from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import arabic_reshaper
 from bidi.algorithm import get_display
 from reportlab.lib.pagesizes import A4
@@ -11,9 +14,20 @@ from reportlab.pdfgen import canvas
 
 FONT = "AqariSans"
 FONT_PATH = Path(__file__).parent / "pdf_fonts" / "AqariSans.ttf"
+CATALOG = json.loads((Path(__file__).parent / "official_form_catalog.json").read_text(encoding="utf-8"))
 
 def shaped(value):
-    return get_display(arabic_reshaper.reshape(str(value)), base_dir="R")
+    # Isolate Latin references and ISO dates so RTL layout does not reorder their parts.
+    logical = re.sub(r"[+\-]?[A-Za-z0-9][A-Za-z0-9:/._+\-]*", lambda m: "\u200e"+m.group(0)+"\u200e", str(value))
+    return get_display(arabic_reshaper.reshape(logical), base_dir="R")
+
+def issued_date(value):
+    try:
+        date = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if date.tzinfo is not None: date = date.astimezone(ZoneInfo("Asia/Kuwait"))
+        return date.strftime("%Y/%m/%d %H:%M")
+    except ValueError:
+        return str(value)
 
 def verified_version(result, document_id, requested_version):
     if not isinstance(result, dict) or not isinstance(result.get("series"), dict) or not isinstance(result.get("versions"), list):
@@ -52,7 +66,13 @@ def render_official_document(series, version):
             trial = (current+" "+word).strip()
             if pdfmetrics.stringWidth(shaped(trial), FONT, size) < width-margin*2:
                 current = trial; continue
-            emit(current, size, gap); current = word
+            if current: emit(current, size, gap)
+            current = ""
+            # Long references/URLs must wrap too, without clipping identifiers.
+            for char in word:
+                if current and pdfmetrics.stringWidth(shaped(current+char), FONT, size) >= width-margin*2:
+                    emit(current, size, gap); current = ""
+                current += char
         if current: emit(current, size, gap)
 
     def emit(text, size, gap):
@@ -63,8 +83,19 @@ def render_official_document(series, version):
 
     line("AQARI V267", 16, 24); line(version["title"], 20, 30)
     pdf.line(margin, y, right, y); y -= 25
-    line(f"رقم المستند: {series['document_no']}"); line(f"الإصدار: {version['version']}"); line(f"تاريخ الإصدار: {version['issued_at']}"); line(f"أصدره: {version['issued_by_name']}"); y -= 10
+    line(f"رقم المستند: {series['document_no']}"); line(f"الإصدار: {version['version']}"); line(f"تاريخ الإصدار: {issued_date(version['issued_at'])}"); line(f"أصدره: {version['issued_by_name']}"); y -= 10
     line(version["body"], 11, 20); y -= 15
+    template = CATALOG["templates"].get(series.get("kind"), {})
+    for key in template.get("required", []):
+        if key in ("documentNo", "issuedAt") or key not in version["payload"]: continue
+        value = version["payload"][key]
+        if not isinstance(value, (str, int, float)): continue
+        label = CATALOG["fields"].get(key, {}).get("label")
+        if label: line(f"{label}: {value}", 10, 17)
+    exception = version["payload"].get("exceptionReason")
+    if isinstance(exception, str) and exception.strip():
+        line(f"الاستثناء المعتمد: {exception}", 11, 19)
+    y -= 10
     line(f"بصمة المحتوى: {version['content_sha256']}", 8, 14)
     if series.get("status") == "void": line(f"ملغى — {series.get('void_reason') or 'إلغاء موثق'}", 12, 20)
     pdf.setFont(FONT, 8); pdf.drawRightString(right, 27, shaped(f"AQARI V267 • {series['document_no']} • v{version['version']}"))

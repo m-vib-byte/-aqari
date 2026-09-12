@@ -1,18 +1,19 @@
 {
   "schemaVersion": 1,
-  "sourceParentSHA": "03e4582902cbbf2eaa9900c92d23abefd95f0d32",
-  "matrixSha256": "066f74ba0e667a93232e98d397a957f3f40e5806cc21a70808212e1b29175c69",
+  "sourceParentSHA": "9e811ca33613ec64e5194ab205b3fb149b5436fc",
+  "matrixSha256": "0eb23c386fdc82d6a1f2405918003ba7876c2a04552413819688c4b6837e4c01",
   "releaseGate": "HOLD",
   "releasePolicy": {
-    "all155RequiredBeforeRelease": false,
+    "all155RequiredBeforeRelease": true,
     "required": [
+      "requirements-155-acceptance",
       "practical-core-acceptance",
       "data-integrity",
       "tested-data-and-attachment-backup",
       "tested-rollback"
     ],
     "authorizationAlreadyGranted": true,
-    "evidenceReport": "docs/V267-INCREMENTAL-RELEASE-2026-09-12.md"
+    "evidenceReport": "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
   },
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "evidence": {
@@ -268,7 +269,15 @@
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
         "staging-database/sql/official-document-retry-hardening.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ]
     },
     "E36": {
@@ -345,8 +354,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "498f0aa7a250ad262d8f7c70ca6590c8b6984c7b7fa8325c4bcd6eb96858ef75",
-      "bytes": 3922,
+      "sha256": "b3aef2154dfceccb360631039f24736feba9d919b79206ec4fd8cdd3224d9e82",
+      "bytes": 4023,
       "declaredTables": [],
       "publicFunctions": [
         "public.aqari_workspace_access"
@@ -401,8 +410,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "b739aa0f9102f84648e41e5a4204a0a715f15ec12f8de77163a6efaae8f2f2f5",
-      "bytes": 6202,
+      "sha256": "65e3d5e76e4588282641123ab2a1dc04d80c8ba04ce452e03968638c00f27173",
+      "bytes": 9629,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1374,8 +1383,8 @@
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "8736016325bf7850a083d196883977d7caded7f64816d8ce597e38c03fb0e50d",
-      "bytes": 5259,
+      "sha256": "c3d60c6aecc0a69595f3c4bf80d04ecffb9d70766488ddea9d1120d6e38a917e",
+      "bytes": 6401,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1392,12 +1401,14 @@
     },
     {
       "path": "src/v267/pages/official-document-center.js",
-      "sha256": "51905664b2c820aebbae308701d41ae0a6cffd4eb2b43c83ef92782dfa1086c8",
-      "bytes": 7670,
+      "sha256": "f847936fc3923393b77abdb3fc82f82f03b2d75cb4c83cc885e5af0111d7e45a",
+      "bytes": 14399,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
-        "aqari_official_document_register"
+        "aqari_official_document_register",
+        "aqari_official_document_context",
+        "aqari_official_document_number"
       ],
       "testKind": null
     },
@@ -1418,8 +1429,8 @@
     },
     {
       "path": "lib/official_document_pdf.py",
-      "sha256": "58ec0f6cfbe100c705220cb473015c55469b35e3f46977c2251bbe01dba2f52f",
-      "bytes": 3870,
+      "sha256": "32633429f4f09cb8517b45571aa2b90766534464da226fd762f80a0c27f29b97",
+      "bytes": 5486,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1436,8 +1447,8 @@
     },
     {
       "path": "tests/v267-official-document-center.test.cjs",
-      "sha256": "c746976d8afcc745e33e835d915be816f034825bb2a7c34240fea9d8dbf0f9c3",
-      "bytes": 1166,
+      "sha256": "789e29f06342388fe57a3f779bf3ad3ee2411b94dfcef3a284cc34379ee263bc",
+      "bytes": 1242,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1474,12 +1485,91 @@
     },
     {
       "path": "tests/official_document_pdf_test.py",
-      "sha256": "a59b35a922a3e2438b605c0eee6f7bfc9f0168816e06360d286d7d493d6d66bd",
-      "bytes": 1968,
+      "sha256": "abfa8e4701ac94108449c7d30a977855b35b270574d58efabd29e20646247001",
+      "bytes": 4125,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "local-test"
+    },
+    {
+      "path": "src/v267/components/official-form-fields.js",
+      "sha256": "175f07008c6d7d6ac29e84e89be8926b1cf950cf8e6b702f55f0b962e6a88655",
+      "bytes": 4647,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/official-document-source-binding.sql",
+      "sha256": "4770949ad9be6c836cfda51421671c3c1356fdcb6941f4e1b4f129a0e64fa643",
+      "bytes": 22026,
+      "declaredTables": [
+        "private.aqari_official_number_reservations"
+      ],
+      "publicFunctions": [
+        "public.aqari_official_document_number",
+        "public.aqari_official_document_context"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/official-document-account-statement.sql",
+      "sha256": "08bd81f68965550e1075115f3bd947905750970c9feab15c6da660fb100a5463",
+      "bytes": 4749,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/official-document-template-validation.sql",
+      "sha256": "8c27d5b54b424113b9c3bfe9c5008379d7eb9555e05ec991f77407daced3b460",
+      "bytes": 16935,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/official-document-access-hardening.sql",
+      "sha256": "b20a0a1f92ef251fcfeab94e06b520b807c497701012f0a3b5d692019a51f0b2",
+      "bytes": 7997,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_official_document_register"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/official_document_source_binding.sql",
+      "sha256": "fc1bddfc298071b6b9327b6ef85b5f29082e0a2880ce903a4f638982d600a8f7",
+      "bytes": 19792,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-official-document-source-runtime.test.mjs",
+      "sha256": "1902277d993695a20ed426ac245707dcf89fc80734ec6ee6e080990877051498",
+      "bytes": 10859,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+      "sha256": "c90c92970622a42bfa20c15aeb352b05eb495ba41839101247ffd047d3d9b69b",
+      "bytes": 10854,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -2977,24 +3067,57 @@
       "id": 41,
       "sourceId": "G04-07",
       "requirement": "إصدار وصل تأمين تلقائي مستقل عن وصل الإيجار.",
-      "reportedImplementation": "جزئي — E27 ينفذ قبض التأمين بسند مرقم مستقل عن الإيجار؛ يبقى القبول الفعلي والطباعة على الأجهزة.",
-      "acceptanceRemaining": "قبض تأمين ووصل مستقل مرقم دون احتسابه إيجاراً أو إيراداً جديداً.",
+      "reportedImplementation": "جزئي — E27 وE35 يربطان PDF بحركة التأمين المستقلة المحفوظة مع قبول ورفض SQL محلي؛ لم يثبت الاستخدام والطباعة المستضافان.",
+      "acceptanceRemaining": "قبض ورد مؤكدان ووصل مستقل دون احتسابه إيجاراً، واختبار الأجهزة الفعلية.",
       "evidenceIds": [
-        "E27"
+        "E27",
+        "E35"
       ],
       "evidenceFiles": [
         "docs/V267-DEPOSIT-LEDGER.md",
         "staging-database/sql/deposit-register.sql",
         "staging-database/tests/deposit_register.sql",
-        "tests/v267-deposit-ledger.e2e.mjs"
+        "tests/v267-deposit-ledger.e2e.mjs",
+        "src/v267/pages/official-document-center.js",
+        "staging-database/sql/official-document-register.sql",
+        "lib/official_document_pdf.py",
+        "api/official-document.py",
+        "tests/v267-official-document-center.test.cjs",
+        "tests/v267-official-document-runtime.test.mjs",
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
-      "uiFiles": [],
+      "uiFiles": [
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
+      ],
       "sqlFiles": [
-        "staging-database/sql/deposit-register.sql"
+        "staging-database/sql/deposit-register.sql",
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/deposit_register.sql",
-        "tests/v267-deposit-ledger.e2e.mjs"
+        "tests/v267-deposit-ledger.e2e.mjs",
+        "tests/v267-official-document-center.test.cjs",
+        "tests/v267-official-document-runtime.test.mjs",
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -3070,27 +3193,49 @@
       "id": 44,
       "sourceId": "G04-10",
       "requirement": "ترقيم تسلسلي للوصولات.",
-      "reportedImplementation": "جزئي — E09، E12 يفرضان تفرد المرجع؛ التسلسل المتزامن لكل نوع/عقار غير مثبت بالكامل.",
-      "acceptanceRemaining": "إصدار متزامن دون تكرار مع سياسة سلسلة مستقلة موثقة للوصل والتأمين.",
+      "reportedImplementation": "جزئي — E35 يحجز رقماً خادمياً ثابتاً للطلب ويفرض تفرد المصدر المالي ويختبر إعادة الطلب دون تكرار؛ لم يختبر التزامن المستضاف لكل نوع/عقار.",
+      "acceptanceRemaining": "اختبار إصدار متزامن وسياسة سلاسل الوصولات والتأمين المعتمدة.",
       "evidenceIds": [
-        "E09",
-        "E12"
+        "E35"
       ],
       "evidenceFiles": [
-        "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
-        "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
-        "api/rent-receipt.py",
-        "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
-        "staging-database/tests/rental_transaction.sql"
+        "src/v267/pages/official-document-center.js",
+        "staging-database/sql/official-document-register.sql",
+        "lib/official_document_pdf.py",
+        "api/official-document.py",
+        "tests/v267-official-document-center.test.cjs",
+        "tests/v267-official-document-runtime.test.mjs",
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
-      "uiFiles": [],
+      "uiFiles": [
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
+      ],
       "sqlFiles": [
-        "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
-        "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
-        "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql"
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
-        "staging-database/tests/rental_transaction.sql"
+        "tests/v267-official-document-center.test.cjs",
+        "tests/v267-official-document-runtime.test.mjs",
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -3747,8 +3892,8 @@
       "id": 65,
       "sourceId": "G06-04",
       "requirement": "توليد إنذار تأخير سداد من النظام.",
-      "reportedImplementation": "جزئي — E35 يوفر قالب إشعار مديونية وإصداراً مرقماً ثابتاً وPDF؛ التعبئة الآلية من رصيد العقد المعتمد غير موصولة بعد.",
-      "acceptanceRemaining": "ربط حقول القالب بـRPC الرصيد الفعلي ورفض الإصدار عند عدم وجود مديونية.",
+      "reportedImplementation": "جزئي — E35 يربط المديونية برصيد العقد والدفعات والتسويات الفعلية وPDF محفوظ المحتوى؛ المطابقات الافتتاحية والتجارية غير المحسومة توقف الإصدار.",
+      "acceptanceRemaining": "قبول مستضاف، واختبار عدم المديونية، وإكمال مطابقة الأرصدة المتقدمة دون تخمين.",
       "evidenceIds": [
         "E35"
       ],
@@ -3761,20 +3906,35 @@
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
         "staging-database/sql/official-document-retry-hardening.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
       "uiFiles": [
-        "src/v267/pages/official-document-center.js"
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
       ],
       "sqlFiles": [
         "staging-database/sql/official-document-register.sql",
-        "staging-database/sql/official-document-retry-hardening.sql"
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -3831,16 +3991,29 @@
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
         "staging-database/sql/official-document-retry-hardening.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
       "uiFiles": [
         "src/v267/pages/compliance-center.js",
-        "src/v267/pages/official-document-center.js"
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
       ],
       "sqlFiles": [
         "staging-database/sql/compliance-register.sql",
         "staging-database/sql/official-document-register.sql",
-        "staging-database/sql/official-document-retry-hardening.sql"
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-compliance-center.test.cjs",
@@ -3848,7 +4021,9 @@
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -3875,12 +4050,13 @@
       "id": 69,
       "sourceId": "G06-08",
       "requirement": "حفظ نسخة المستند الأصلية كما صدرت دون تعديل لاحق.",
-      "reportedImplementation": "مطبق بدليل — E12، E13، E08 لحفظ الوصول والمستندات وإصدارات العقد.",
-      "acceptanceRemaining": "إعادة قراءة الأصل بنفس البصمة ومنع التعديل/الحذف؛ التغيير بإصدار جديد.",
+      "reportedImplementation": "جزئي — E12، E13، E08 وE35 تحفظ الأصول واللقطات وإصدارات التصحيح؛ PDF الرسمي يعاد توليده من اللقطة ولا تحفظ بايتاته كنسخة إصدار مستقلة بعد.",
+      "acceptanceRemaining": "حفظ بايتات PDF الأصلية والتحقق من ثباتها بعد ترقية المحرك، مع منع تعديل/حذف النسخ.",
       "evidenceIds": [
         "E12",
         "E13",
-        "E08"
+        "E08",
+        "E35"
       ],
       "evidenceFiles": [
         "api/rent-receipt.py",
@@ -3891,20 +4067,51 @@
         "docs/V267-PRIVATE-FILES-VERIFICATION.md",
         "src/v267/pages/rental-contracts.js",
         "staging-database/sql/rental-contract-provisions.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/rental_contract_provisions.sql",
+        "src/v267/pages/official-document-center.js",
+        "staging-database/sql/official-document-register.sql",
+        "lib/official_document_pdf.py",
+        "api/official-document.py",
+        "tests/v267-official-document-center.test.cjs",
+        "tests/v267-official-document-runtime.test.mjs",
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
       "uiFiles": [
         "src/v267/pages/document-scanner.js",
-        "src/v267/pages/rental-contracts.js"
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
         "staging-database/supabase/migrations/20260907204823_v267_document_scanner.sql",
-        "staging-database/sql/rental-contract-provisions.sql"
+        "staging-database/sql/rental-contract-provisions.sql",
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/rental_transaction.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/rental_contract_provisions.sql",
+        "tests/v267-official-document-center.test.cjs",
+        "tests/v267-official-document-runtime.test.mjs",
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4200,25 +4407,40 @@
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
         "staging-database/sql/official-document-retry-hardening.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
       "uiFiles": [
         "v202-property-os.js",
         "v206-rent-ledger.js",
         "src/v267/pages/property-statements.js",
-        "src/v267/pages/official-document-center.js"
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
         "staging-database/sql/official-document-register.sql",
-        "staging-database/sql/official-document-retry-hardening.sql"
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/rental_transaction.sql",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -5582,8 +5804,8 @@
       "id": 122,
       "sourceId": "G11-01",
       "requirement": "حزمة رسمية: كشف مستأجر، مخالصة، مديونية وتجديد وعدم تجديد، قبض وصرف، خصم وتسوية ومديونية ورد تأمين، أضرار ومفاتيح، تحصيل يومي، رواتب، أوامر صيانة واعتماد مصروف وغيرها.",
-      "reportedImplementation": "جزئي — E35 يربط كتالوج النماذج الحالي بإصدار مرقم ولقطة ثابتة وPDF وأرشيف إصدارات؛ ما زال جرد النماذج المكملة ومصادرها التفصيلية مطلوباً.",
-      "acceptanceRemaining": "تشغيل SQL المعزول، إصدار كل نوع من بيانات فعلية مخولة، مطابقة PDF، واستكمال الأنواع غير الموجودة في الكتالوج.",
+      "reportedImplementation": "جزئي — E35 يوفر حقولاً عربية لـ16 قالباً وربطاً بالمصدر وحفظاً وترقيماً وPDF؛ اختبر إصدار 12 نوعاً في SQL محلي. التسوية المكملة ومحاضر المعاينة وبقية الأنواع غير مكتملة.",
+      "acceptanceRemaining": "تطبيق وقبول مستضاف، إكمال التسوية والحقول المكملة وربط الصور والتوقيعات وأرشفة بايتات PDF واختبار الأجهزة.",
       "evidenceIds": [
         "E35"
       ],
@@ -5596,20 +5818,35 @@
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
         "staging-database/sql/official-document-retry-hardening.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "src/v267/components/official-form-fields.js",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
       ],
       "uiFiles": [
-        "src/v267/pages/official-document-center.js"
+        "src/v267/pages/official-document-center.js",
+        "src/v267/components/official-form-fields.js"
       ],
       "sqlFiles": [
         "staging-database/sql/official-document-register.sql",
-        "staging-database/sql/official-document-retry-hardening.sql"
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "staging-database/sql/official-document-source-binding.sql",
+        "staging-database/sql/official-document-account-statement.sql",
+        "staging-database/sql/official-document-template-validation.sql",
+        "staging-database/sql/official-document-access-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
         "staging-database/tests/official_document_register.sql",
-        "tests/official_document_pdf_test.py"
+        "tests/official_document_pdf_test.py",
+        "staging-database/tests/official_document_source_binding.sql",
+        "tests/v267-official-document-source-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"

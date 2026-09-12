@@ -1,0 +1,41 @@
+-- Authoritative per-contract statement. No credentials or production seed data.
+begin;
+create or replace function private.aqari_official_statement(w uuid,lid uuid,from_date date,to_date date)
+returns jsonb language plpgsql stable security definer set search_path='' as $$
+declare l public.aqari_leases;opening numeric;charges numeric;payments numeric;credits numeric;finish date;
+begin
+ if auth.uid() is null or not private.aqari_can_lease(w,lid,'collections','read') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
+ select * into l from public.aqari_leases where workspace_id=w and id=lid;
+ if not found or l.status not in ('signed','expired') or l.start_date is null or l.end_date is null or l.monthly_rent is null then raise exception 'DOCUMENT_ACTIVE_LEASE_REQUIRED' using errcode='23514';end if;
+ if from_date is null or to_date is null or from_date>to_date or from_date<l.start_date or to_date>(now() at time zone 'Asia/Kuwait')::date or to_date-l.start_date>36600 then raise exception 'INVALID_DOCUMENT_RANGE' using errcode='23514';end if;
+ -- An opening entry needs an explicit reconciled cut-over; adding historical rent again would double count.
+ if exists(select 1 from private.aqari_tenant_ledger_entries e where e.workspace_id=w and e.tenant_id=l.tenant_id
+  and e.kind in ('opening_credit','opening_debit','opening_balance') and e.occurred_on<=to_date) then raise exception 'DOCUMENT_OPENING_RECONCILIATION_REQUIRED' using errcode='23514';end if;
+ if exists(select 1 from private.aqari_tenant_ledger_entries e where e.workspace_id=w and e.tenant_id=l.tenant_id and e.lease_id is null
+  and e.direction='debit' and e.occurred_on<=to_date) then raise exception 'DOCUMENT_UNALLOCATED_DEBT_REVIEW_REQUIRED' using errcode='23514';end if;
+ if exists(select 1 from private.aqari_commercial_terms c where c.workspace_id=w and c.lease_id=lid and (c.sales_percentage>0 or c.grace_days>0 or c.cam_amount>0)) then
+  raise exception 'DOCUMENT_COMMERCIAL_RECONCILIATION_REQUIRED' using errcode='23514';end if;
+ if exists(select 1 from private.aqari_tenant_ledger_entries e join private.aqari_credit_allocations a on a.workspace_id=e.workspace_id and a.credit_entry_id=e.id
+  where e.workspace_id=w and e.lease_id=lid and a.lease_id<>lid) then raise exception 'DOCUMENT_CREDIT_TRANSFER_REVIEW_REQUIRED' using errcode='23514';end if;
+ finish:=least(l.end_date,coalesce(l.vacated_on,l.end_date),to_date);
+ with entries as (
+  select greatest(p::date,l.start_date) on_date,'charge' stream,
+   case when l.snapshot->>'rentalTermsVersion'='1' then coalesce(private.aqari_contract_due(l.snapshot,to_char(p,'YYYY-MM')),l.monthly_rent) else l.monthly_rent end amount
+   from generate_series(date_trunc('month',l.start_date),date_trunc('month',finish),interval '1 month')p
+  union all select p.paid_at,'payment',p.amount from public.aqari_rent_payments p where p.workspace_id=w and p.lease_id=lid and p.paid_at<=to_date
+   and p.status in ('paid','partial','مدفوع','جزئي') and not exists(select 1 from private.aqari_receipt_cancellations c where c.workspace_id=w and c.payment_id=p.id)
+  union all select a.occurred_on,case a.direction when 'debit' then 'charge' else 'credit' end,a.amount from private.aqari_tenant_adjustments a where a.workspace_id=w and a.lease_id=lid and a.occurred_on<=to_date
+  union all select e.occurred_on,case e.direction when 'debit' then 'charge' else 'credit' end,e.amount from private.aqari_tenant_ledger_entries e
+   where e.workspace_id=w and e.lease_id=lid and e.occurred_on<=to_date and e.kind<>'receipt_cancellation'
+  union all select a.period,'credit',a.amount from private.aqari_credit_allocations a join private.aqari_tenant_ledger_entries e on e.workspace_id=w and e.id=a.credit_entry_id
+   where a.workspace_id=w and a.lease_id=lid and e.lease_id is null and a.period<=to_date
+ )select coalesce(sum(case when stream='charge' then amount else -amount end)filter(where on_date<from_date),0),
+  coalesce(sum(amount)filter(where stream='charge' and on_date between from_date and to_date),0),
+  coalesce(sum(amount)filter(where stream='payment' and on_date between from_date and to_date),0),
+  coalesce(sum(amount)filter(where stream='credit' and on_date between from_date and to_date),0)
+  into opening,charges,payments,credits from entries;
+ return jsonb_build_object('fromDate',from_date::text,'toDate',to_date::text,'openingBalance',opening::numeric(18,3)::text,'charges',charges::numeric(18,3)::text,
+  'payments',payments::numeric(18,3)::text,'credits',credits::numeric(18,3)::text,'closingBalance',(opening+charges-payments-credits)::numeric(18,3)::text);
+end $$;
+revoke all on function private.aqari_official_statement(uuid,uuid,date,date) from public,anon,authenticated;
+commit;

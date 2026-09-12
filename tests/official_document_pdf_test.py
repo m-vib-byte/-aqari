@@ -1,5 +1,7 @@
 import unittest
-from lib.official_document_pdf import verified_version, render_official_document, FONT_PATH
+from lib.official_document_pdf import verified_version, render_official_document, FONT_PATH, CATALOG, shaped, issued_date
+from io import BytesIO
+from pypdf import PdfReader
 
 DOC='10000000-0000-4000-8000-000000000001'; WS='10000000-0000-4000-8000-000000000002'
 def fixture():
@@ -23,5 +25,36 @@ class OfficialDocumentPdfTest(unittest.TestCase):
                 data=fixture();data['versions'][0][key]=value
                 with self.assertRaises(ValueError): verified_version(data,DOC,1)
         with self.assertRaises(ValueError): verified_version(fixture(),DOC,True)
+
+    def test_all_catalogue_forms_render_required_values_from_archived_payload(self):
+        for kind,spec in CATALOG['templates'].items():
+            with self.subTest(kind=kind):
+                data=fixture();data['series']['kind']=kind
+                version=data['versions'][0];version['title']=spec['title']
+                version['payload']={key:'FIELD'+str(i)+'END' for i,key in enumerate(spec['required'])}
+                version['body']='نص محفوظ';version['payload']['exceptionReason']='استثناء موثق TEST-EXCEPTION'
+                pdf=PdfReader(BytesIO(render_official_document(data['series'],version)))
+                # Layout extraction preserves the LRM-isolated Latin spans next
+                # to Arabic; default bidi extraction drops those visible spans.
+                text=''.join(page.extract_text(extraction_mode='layout') for page in pdf.pages).replace('\u200e','')
+                for key,value in version['payload'].items():
+                    if key not in ('documentNo','issuedAt','exceptionReason'):self.assertIn(value,text)
+                self.assertIn('TEST-EXCEPTION',text)
+
+    def test_rtl_preserves_dates_and_identifiers_and_uses_kuwait_issue_time(self):
+        self.assertIn('2026-09-12',shaped('التاريخ 2026-09-12'))
+        self.assertIn('AQ-20260912-00000001',shaped('الرقم AQ-20260912-00000001'))
+        self.assertIn('-5.125',shaped('الرصيد -5.125'))
+        self.assertEqual(issued_date('2026-09-12T08:45:00Z'),'2026/09/12 11:45')
+
+    def test_long_unbroken_reference_wraps_without_horizontal_clipping(self):
+        data=fixture();data['versions'][0]['body']='A'*5000
+        pdf=PdfReader(BytesIO(render_official_document(data['series'],data['versions'][0])))
+        positions=[]
+        for page in pdf.pages:
+            page.extract_text(visitor_text=lambda text,cm,tm,font,size:positions.append((text,tm[4],size)))
+        self.assertTrue(positions)
+        self.assertGreater(len(pdf.pages),1)
+        self.assertTrue(all(x>=40 for text,x,size in positions if 'AAAAA' in text))
 
 if __name__=='__main__': unittest.main()

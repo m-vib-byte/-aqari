@@ -76,6 +76,10 @@ jobs:
         run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs tests/v267-rental-records.test.cjs tests/imported-tenant-editor.test.mjs tests/v267-payroll.test.mjs
       - name: Verify complete Staging runtime against release inventory
         run: node scripts/verify-staging-runtime.mjs
+      - name: Official document sources, immutable readback and shared PDF catalogue
+        run: |
+          node scripts/build-official-form-sql.mjs --check
+          node --test tests/v267-official-document-source-runtime.test.mjs tests/v267-official-document-center.test.cjs tests/v267-document-catalog-completion.test.cjs tests/v267-dialog-progress.test.mjs
       - name: V267 deployment target and partial production preparation
         run: node --test tests/v267-deployment-target.test.mjs tests/v267-production-preparation.test.mjs
       - name: Contract approval at print issuance and maintenance draft recovery
