@@ -1,4 +1,5 @@
 import {node,field} from '../components/dialog.js';
+import {mountCommercialPaymentAllocations} from '../components/commercial-payment-allocations.js';
 
 const option=(value,text)=>{const el=node('option',text);el.value=value;return el;};
 const input=(type='text')=>{const el=node('input');el.type=type;return el;};
@@ -26,11 +27,11 @@ const errorText=error=>({
 }[error?.message]||error?.message||'تعذر التحقق من السجل.');
 
 export function mountCommercialSales(d,container){
- let state=null,pending=null,disposed=false;
+ let state=null,pending=null,disposed=false,paymentDeskDispose=()=>{};
  const month=input('month'),loadButton=node('button','عرض استحقاقات الشهر'),content=node('div'),retry=node('button','إعادة محاولة الحفظ والتحقق');
  month.value=previousMonth();loadButton.type=retry.type='button';retry.hidden=true;
  container.append(node('h2','استحقاقات نسبة المبيعات'),node('p','سجّل مبيعات الشهر من تقرير محفوظ. يُحتسب الاستحقاق كنسبة إضافية إلى الإيجار الأساسي بعد تأكيد نص العقد. التصحيح بقيد عكسي مع إبقاء الأصل.'),field('شهر المبيعات',month),loadButton,retry,content);
- month.onchange=()=>{if(pending){month.value=pending.payload.month;return;}state=null;content.replaceChildren();};
+ month.onchange=()=>{if(pending){month.value=pending.payload.month;return;}paymentDeskDispose();paymentDeskDispose=()=>{};state=null;content.replaceChildren();};
  const call=async(action,payload)=>{d.session.check();const value=await d.session.request(d.session.client.rpc('aqari_commercial_sales',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload}));d.session.check();return value;};
  async function read(period){
   const data=await call('list',{month:period});
@@ -69,7 +70,7 @@ export function mountCommercialSales(d,container){
   state=fresh;month.value=fresh.month;pending=null;retry.hidden=true;month.disabled=loadButton.disabled=false;render();d.status.textContent='تم اعتماد القيد والتحقق منه بإعادة قراءة سجل الشهر.';
  }
  function render(){
-  content.replaceChildren();if(!state)return;
+  paymentDeskDispose();paymentDeskDispose=()=>{};content.replaceChildren();if(!state)return;
   const form=node('form'),lease=node('select'),gross=input(),document=node('select'),reference=input(),review=input('checkbox'),preview=node('p');
   lease.append(option('','اختر العقد التجاري'));for(const row of state.leases)lease.append(option(row.id,row.contract_no+' — '+row.property_name+' — '+row.sales_percentage+'%'));
   for(const el of [lease,gross,document,reference])el.required=true;gross.inputMode='decimal';reference.maxLength=200;
@@ -94,8 +95,10 @@ export function mountCommercialSales(d,container){
    if(!row.reversal){const reversal=node('form'),date=input('date'),reason=input();date.value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kuwait'});reason.required=true;reason.minLength=5;reason.maxLength=500;reversal.append(field('تاريخ القيد العكسي',date),field('سبب العكس',reason),node('button','عكس الاستحقاق بقيد دائن'));reversal.onsubmit=e=>{e.preventDefault();return d.run(async()=>{if(pending)return submit();if(reason.value.trim().length<5)throw Error('أدخل سبب العكس بخمسة أحرف على الأقل.');proposal('reverse',{sale_id:row.id,month:state.month,occurred_on:date.value,reason:reason.value.trim()});await submit();});};card.append(reversal);}
    content.append(card);
   }
+  const paymentDesk=node('section');paymentDesk.className='aq267-commercial-payment-desk';content.append(paymentDesk);
+  paymentDeskDispose=mountCommercialPaymentAllocations(d,paymentDesk,{leases:state.leases}).dispose;
  }
  loadButton.onclick=()=>d.run(async()=>{try{await load();}catch(error){if(error?.code==='PGRST202')throw Error('استحقاقات المبيعات تحتاج تفعيل تحديث قاعدة البيانات. بقية مركز المطابقة متاحة.');throw error;}});
  retry.onclick=()=>d.run(submit);
- d.onDispose(()=>{disposed=true;state=pending=null;container.replaceChildren();});
+ d.onDispose(()=>{disposed=true;state=pending=null;paymentDeskDispose();container.replaceChildren();});
 }
