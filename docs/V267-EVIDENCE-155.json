@@ -1426,8 +1426,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "eb3b3ea9c9a11b525747539bed0e82f305e5742f467435ff3214de645c464f64",
-      "bytes": 2212,
+      "sha256": "7f72ed6d0c1bb19a6de5aca374fe2eaa66acc88999a46e1f53d456de31a8c130",
+      "bytes": 10361,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "599cc59995af431b333aa6c83d56909249cadfdbaf218e257b23bbb9c306f1fa",
-      "bytes": 908,
+      "sha256": "3b4097cc4913a8617fdc0377ba9426caeae1e88a8f3ee09fbd9c59eb753aaee7",
+      "bytes": 13534,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
