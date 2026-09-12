@@ -342,8 +342,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "8f563bb32d478ce68bb96a3c41fe513c264f346f0552f1747dfd860bcda7983a",
-      "size": 261158
+      "sha256": "7ed56508a833622b61351ea3e9966168a6d7b1caf7bb662200274669ad2cfe1a",
+      "size": 261160
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -912,8 +912,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "a3965f6f6eb8ffc81a7390df010d59a55f65b4c2e63c73da4b06fb262fe2d1ab",
-      "size": 5235
+      "sha256": "ffc66df90525f9e83d2a80ae863e4d023409a38782bf762941677a809dd305ea",
+      "size": 12937
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
@@ -1842,13 +1842,13 @@
     },
     {
       "path": "tests/v267-financial-archive-runtime.test.mjs",
-      "sha256": "d9e8444621ab0b1dbbff152200e90b4a6cb81438bf0f43933e6a6e99b3b3140f",
-      "size": 4109
+      "sha256": "13dcea67f325c57f551cd7f054aa3003b66b2131a6cef23fd3dc70ca19b83f5f",
+      "size": 4235
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "e8363884e1298afa532c33b6e5311a1c0bda48a6b437744f9fc8592380479dcc",
-      "size": 1324
+      "sha256": "80a55313e62515ebef0cd93ae94221aedbfa7533149f60b3d22b18a923b6f45c",
+      "size": 16222
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
@@ -2249,6 +2249,16 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
+    },
+    {
+      "path": "tests/v267-financial-archive.browser.mjs",
+      "sha256": "7dd27c2c9127162d7269e1ea681a1d29b39f0ab21ff9f33415e16aa6e342fbb1",
+      "size": 14108
+    },
+    {
+      "path": ".github/workflows/archive-integrity.yml",
+      "sha256": "7be7231f8cf6e897b2900b6914beb2992926d3b5c430c4f51eb73be5b963c6b8",
+      "size": 5534
     }
   ],
   "version": "V198"
