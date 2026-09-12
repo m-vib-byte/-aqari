@@ -1,0 +1,49 @@
+name: Refresh V267 opening balance inventory
+
+on:
+  push:
+    branches:
+      - fix/v267-jsonb-readback
+    paths:
+      - .github/workflows/refresh-v267-opening-balance-inventory.yml
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-jsonb-readback
+      - name: Refresh exact changed-file inventory entries
+        shell: python
+        run: |
+          import hashlib,json,pathlib
+          inv=pathlib.Path('FILE_INVENTORY.json');data=json.loads(inv.read_text(encoding='utf-8'));entries={e['path']:e for e in data['files']}
+          targets=['src/v267/pages/final-gap-center.js','staging-database/sql/opening-balance-statement.sql','staging-database/tests/opening_balance_statement.sql']
+          for target in targets:
+              p=pathlib.Path(target)
+              if not p.is_file(): raise SystemExit('MISSING_TARGET:'+target)
+              payload=p.read_bytes();entry=entries.get(target)
+              if entry is None: entry={'path':target};data['files'].append(entry);entries[target]=entry
+              entry['size']=len(payload);entry['sha256']=hashlib.sha256(payload).hexdigest();print(target,entry['size'],entry['sha256'])
+          data['files'].sort(key=lambda e:e['path']);inv.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify release freeze after refresh
+        run: node scripts/release-freeze-selftest.mjs
+      - name: Commit refresh and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/refresh-v267-opening-balance-inventory.yml
+          git add FILE_INVENTORY.json
+          git diff --cached --check
+          git commit -m 'chore(v267): refresh opening balance source inventory'
+          git push origin HEAD:fix/v267-jsonb-readback
