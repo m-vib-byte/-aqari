@@ -117,8 +117,13 @@ async function verifyFinancialPanels(page,locale,name){
  const tr=source=>translate(source,locale),fmt=(source,values)=>formatMessage(source,values,locale);
  for(const id of ['collectionProPage','financeSuitePage','reports','documentsHub']){
   const panel=page.locator('#'+id),month=panel.getByLabel(tr('شهر التحصيل الفعلي'),{exact:true});
-  await month.fill('2026-08');await month.press('Tab');
+  if(id==='documentsHub'){
+   assert.equal(await month.count(),0,'document retrieval is independent of the collection month');
+   assert.equal(await panel.locator('.aq267-document-actions > button').count(),3,'document entry exposes scan, original upload and contract files');
+   await panel.getByRole('button',{name:tr('قراءة السجلات المحفوظة'),exact:true}).click();
+  }else{await month.fill('2026-08');await month.press('Tab');}
   await panel.getByText(tr('تمت القراءة من مساحة العمل الحالية. لا يوجد تغيير أو حفظ مالي من هذه الشاشة.'),{exact:true}).waitFor();
+  if(id==='documentsHub')assert.equal(await panel.getByText(fmt('العقود المحفوظة: {leases} • المسودات: {drafts} • المستندات المؤكد رفعها: {documents}',{leases:1,drafts:1,documents:1}),{exact:true}).count(),1,'document totals come from the saved synthetic records');
   if(id!=='documentsHub')assert.equal(await panel.getByRole('heading',{name:fmt('التحصيل الفعلي خلال {month}: {amount} د.ك',{month:'2026-08',amount:'125.750'}),exact:true}).count(),1);
  }
  const alternate=locale==='en'?'ur':'en',before=calls.length;

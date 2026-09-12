@@ -363,7 +363,7 @@
     {
       "path": "docs/V267-EVIDENCE-155.json",
       "size": 311359,
-      "sha256": "d815a35d9be6d1c7329594a3e8d99904f70d935c4a1d53ca3ca43eceec03f596"
+      "sha256": "cee62f97b2884eeb0b1c0f65286c11881cc34aba5a23b9f298601e519b5b2896"
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -2522,8 +2522,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "64d007800467d33f47a127287406ebec0a4f144d9ef8c60659fee12ebb8852b0",
-      "size": 52152
+      "size": 52859,
+      "sha256": "d274d56ed5ecd3a741471cb79bf2b3290b267a71ac693e7c498ec76bace0889a"
     },
     {
       "path": "tests/verified-upload.test.mjs",
