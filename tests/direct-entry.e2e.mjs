@@ -2,10 +2,13 @@ import { chromium, webkit } from 'playwright';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { previewAccess, routePreviewRequest } from './preview-access.mjs';
+import { githubPreviewAccess } from './github-preview-oidc.mjs';
 
 const base = new URL(process.env.AQARI_BASE_URL || 'https://myaqari.com');
 assert.equal(base.protocol, 'https:');
-const access = previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
+const access = process.env.AQARI_PREVIEW_AUTH === 'github-oidc'
+  ? githubPreviewAccess(base)
+  : previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
 const output = 'test-results/direct-entry';
 fs.mkdirSync(output, { recursive:true });
 const results = [];

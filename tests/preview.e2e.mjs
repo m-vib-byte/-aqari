@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 import { previewAccess, routePreviewRequest } from './preview-access.mjs';
+import { githubPreviewAccess } from './github-preview-oidc.mjs';
 
 const base = process.env.AQARI_BASE_URL;
 const expectedSha = String(process.env.AQARI_EXPECTED_SHA || '').trim();
@@ -10,7 +11,9 @@ if(!base || !expectedSha){
 
 const previewUrl = new URL(base);
 const appUrl = new URL('/app?release=V267', previewUrl).toString();
-const access = previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
+const access = process.env.AQARI_PREVIEW_AUTH === 'github-oidc'
+  ? githubPreviewAccess(base)
+  : previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
 const browser = await chromium.launch({ headless:true });
 const context = await browser.newContext({
   viewport:{ width:390, height:844 },
@@ -213,14 +216,14 @@ await check('V79 database status is manual, coalesced, and render-safe', async (
 });
 
 async function readApi(path){
-  const response = await page.request.get(new URL(path, base).toString(), { headers:access.headersFor(new URL(path, base)), maxRedirects:0 });
+  const response = await page.request.get(new URL(path, base).toString(), { headers:await access.headersFor(new URL(path, base)), maxRedirects:0 });
   if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   const cacheControl = String(response.headers()['cache-control'] || '');
   if(!cacheControl.includes('no-store')) throw new Error(`${path} browser cache contract`);
   if(response.headers()['x-content-type-options'] !== 'nosniff') throw new Error(`${path} nosniff contract`);
   const body = await response.json();
   if(body.ok !== true || body.version !== 'V198') throw new Error(`${path} payload mismatch`);
-  const post = await page.request.post(new URL(path, base).toString(), { headers:access.headersFor(new URL(path, base)), maxRedirects:0 });
+  const post = await page.request.post(new URL(path, base).toString(), { headers:await access.headersFor(new URL(path, base)), maxRedirects:0 });
   if(post.status() !== 405) throw new Error(`${path} POST must be 405`);
   return body;
 }
@@ -298,7 +301,7 @@ await check('V267 login identity remains visible with authenticated presentation
 
 await check('PWA and V267 presentation assets', async () => {
   for(const path of ['/manifest.webmanifest','/sw.js','/aqari-icon.svg','/v199-ui.css','/v199-ui.js','/v200-luxury.css','/v201-easy.css','/v201-experience.js','/v202-prestige.css','/v202-property-os.js','/v205-simple.css','/v205-simplified-shell.js','/v206-integrated-ledger.css','/v208-portfolio-collections.css','/v208-portfolio-collections.js','/v209-global-search.css','/v209-global-search.js','/v210-daily-command-center.css','/v210-daily-command-center.js','/v267-premium-workspace.css']){
-    const response = await page.request.get(new URL(path, base).toString(), { headers:access.headersFor(new URL(path, base)), maxRedirects:0 });
+    const response = await page.request.get(new URL(path, base).toString(), { headers:await access.headersFor(new URL(path, base)), maxRedirects:0 });
     if(!response.ok()) throw new Error(`${path} HTTP ${response.status()}`);
   }
   if(pageErrors.length) throw new Error(pageErrors.slice(0,3).join(' | '));
