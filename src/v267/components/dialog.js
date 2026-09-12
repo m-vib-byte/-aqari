@@ -1,5 +1,10 @@
 import {t,getLocale,direction} from './locale.js';
 import {createSession,safeError} from '../api/session.js';
+
+if(typeof document!=='undefined'&&!document.getElementById('aq267-semantic-colors-css')){
+ const css=document.createElement('link');css.id='aq267-semantic-colors-css';css.rel='stylesheet';css.href='/src/v267/styles/semantic-colors.css?release=V267';document.head.append(css);
+}
+
 export const node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
 let fieldId=0;
 export function field(labelText,control){
@@ -10,7 +15,7 @@ let active;
 export function createDialog(title,{localized=false}={}){
  if(active)return null;
  const session=createSession(),el=node('dialog'),close=node('button',localized?t('إغلاق'):'إغلاق'),status=node('p'),body=node('div');let busy=false,closed=false;
- el.className='aq267-dialog';el.dir=localized?direction():'rtl';el.lang=localized?getLocale():'ar';el.setAttribute('aria-label',title);close.type='button';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+ el.className='aq267-dialog';el.dir=localized?direction():'rtl';el.lang=localized?getLocale():'ar';el.setAttribute('aria-label',title);close.type='button';close.className='aq267-close';close.setAttribute('aria-label',localized?t('إغلاق'):'إغلاق');close.title=localized?t('إغلاق'):'إغلاق';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  close.onclick=closeDialog;el.append(close,node('h2',title),status,body);
  const trigger=document.activeElement,cleanups=new Set();
  function onDispose(cleanup){if(closed){cleanup();return ()=>{};}cleanups.add(cleanup);return ()=>cleanups.delete(cleanup);}
