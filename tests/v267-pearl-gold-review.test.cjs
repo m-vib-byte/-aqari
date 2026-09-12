@@ -1,0 +1,25 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const crypto=require('node:crypto');
+const root=path.resolve(__dirname,'..');
+const html=fs.readFileSync(path.join(root,'v267-requirements.html'),'utf8');
+const css=fs.readFileSync(path.join(root,'src/v267/styles/pearl-gold.css'),'utf8');
+const workspace=fs.readFileSync(path.join(root,'src/v267/styles/workspace.css'),'utf8');
+const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+const ctx={document:{getElementById:()=>({})}};
+vm.runInNewContext(script.split('function stats()')[0]+';this.api={normalize,kind,esc,parse,completeRegister};',ctx);
+const {normalize,kind,esc,parse,completeRegister}=ctx.api;
+const counts=[16,7,11,16,11,8,11,10,11,20,8,26];
+function fixture(){let n=0;return counts.map((count,g)=>'## المجموعة '+(g+1)+': مجموعة اختبار\n'+Array.from({length:count},(_,i)=>`| ${++n} | G${String(g+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')} | متطلب اصطناعي | جزئي — اختبار فقط | تحقق اصطناعي |`).join('\n')).join('\n')}
+test('shared visual sheet is used by review and workspace',()=>{assert.match(html,/href="\/src\/v267\/styles\/pearl-gold\.css"/);assert.ok(workspace.startsWith('@import url("./pearl-gold.css");\n'));assert.match(html,/data-design="pearl-gold-01"/)});
+test('existing workspace declarations are preserved byte for byte',()=>{const original=Buffer.from(workspace.replace('@import url("./pearl-gold.css");\n',''));const hash=crypto.createHash('sha1').update(Buffer.from('blob '+original.length+'\0')).update(original).digest('hex');assert.equal(hash,'eb5bec319ff13a22b719bdbd3a690901e112eb64')});
+test('review source remains the same-candidate requirements file with no writes',()=>{assert.match(script,/const source='\/docs\/V267-REQUIREMENTS-155\.md'/);assert.match(script,/fetch\(source,\{cache:'no-store'\}\)/);assert.doesNotMatch(script,/method\s*:\s*['"](?:POST|PUT|PATCH|DELETE)/i)});
+test('Arabic digits and diacritics are searchable',()=>{assert.equal(normalize('١٥٥'),'155');assert.equal(normalize('إِيجار'),'ايجار')});
+test('status is not inferred from an incidental evidence mention',()=>{assert.equal(kind('جزئي — جزء مطبق بدليل'),'partial');assert.equal(kind('قيد المراجعة؛ ليس مطبق بدليل'),'other')});
+test('155 distinct rows with exact sequence are required',()=>{const rows=parse(fixture());assert.equal(rows.length,155);assert.equal(completeRegister(rows),true);rows[154].n=154;assert.equal(completeRegister(rows),false);rows[154].n=155;rows[154].id=rows[0].id;assert.equal(completeRegister(rows),false)});
+test('missing rows and HTML authentication pages never count as a complete register',()=>{assert.equal(completeRegister(parse('<html>Sign in</html>')),false);assert.equal(completeRegister(parse(fixture()).slice(0,154)),false)});
+test('source markup is escaped instead of executed',()=>{assert.equal(esc('<img onerror="x">'), '&lt;img onerror=&quot;x&quot;&gt;')});
+test('accessible controls, reduced motion, screen-only styling and isolated ratios',()=>{assert.match(html,/field-label/);assert.match(html,/aria-pressed="false"/);assert.match(html,/aria-live="polite"/);assert.match(css,/@media screen/);assert.doesNotMatch(css,/@media print/);assert.match(css,/prefers-reduced-motion/);assert.match(css,/direction:ltr;unicode-bidi:isolate/);assert.doesNotMatch(css,/@font-face|backdrop-filter/)});
