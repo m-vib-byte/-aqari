@@ -96,8 +96,8 @@ jobs:
           node scripts/build-hosted-readiness-test.mjs --check
       - name: V267 deployment target and partial production preparation
         run: node --test tests/v267-deployment-target.test.mjs tests/v267-production-preparation.test.mjs
-      - name: Contract approval at print issuance and maintenance draft recovery
-        run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs
+      - name: Contract approval and maintenance attachment recovery
+        run: node --test tests/v267-contract-print.test.cjs tests/v267-service-desk.test.cjs tests/v267-maintenance-attachments.test.mjs tests/v267-maintenance-cancel-runtime.test.mjs
       - name: Staff access, expense persistence, vacating settlement and isolated PostgreSQL authorization
         run: |
           node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs tests/v267-unit-meter-runtime.test.mjs tests/v267-unit-readiness-runtime.test.mjs tests/v267-staff-circulars-runtime.test.mjs tests/v267-service-directory.test.mjs tests/v267-lease-expiry-runtime.test.mjs tests/v267-maintenance-report-runtime.test.mjs
