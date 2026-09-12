@@ -7,18 +7,21 @@ insert into auth.users(id,email,email_confirmed_at) values
 select set_config('request.jwt.claim.sub','f2678100-0000-4000-8000-000000000001',true);
 select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 select set_config('maintenance.details.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
-set local role authenticated;
-
-do $$
-declare w uuid:=current_setting('maintenance.details.workspace')::uuid;s jsonb;d jsonb;
-begin
- s:=public.aqari_read_state_v267(w);d:=s->'payload';
- d:=jsonb_set(d,'{properties}',coalesce(d->'properties','[]')||'[["عقار صيانة تجريبي"]]'::jsonb);
- d:=jsonb_set(d,'{tenantProfilesV267}',coalesce(d->'tenantProfilesV267','[]')||'[{"id":"maintenance-tenant","nameAr":"مستأجر صيانة","nameEn":"Maintenance Tenant","nationality":"اختبار","civilId":"777888999111","phone":"+96550001122","email":"maintenance-tenant@example.invalid"}]'::jsonb);
- d:=jsonb_set(d,'{contractsV202}',coalesce(d->'contractsV202','[]')||'[{"id":"maintenance-lease","source":"v267-cloud","contract_no":"MNT-1","tenantId":"maintenance-tenant","tenant":"مستأجر صيانة","property":"عقار صيانة تجريبي","unit":"7","rent":100,"deposit":0,"status":"signed","start_date":"2026-01-01","end_date":"2026-12-31"}]'::jsonb);
- perform public.aqari_save_state_v267(w,d,(s->>'revision')::bigint);
-end $$;
 reset role;
+
+-- Direct relational fixtures avoid weakening or bypassing the separate V267 contract-detail workflow.
+do $$
+declare w uuid:=current_setting('maintenance.details.workspace')::uuid;
+begin
+ insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
+ ('f2678110-0000-4000-8000-000000000001',w,'maintenance-property','عقار صيانة تجريبي','{}');
+ insert into public.aqari_tenants(id,workspace_id,external_ref,full_name,civil_id,phone,email,profile) values
+ ('f2678120-0000-4000-8000-000000000001',w,'maintenance-tenant','مستأجر صيانة','777888999111','+96550001122','maintenance-tenant@example.invalid','{"id":"maintenance-tenant","nameAr":"مستأجر صيانة","nameEn":"Maintenance Tenant","nationality":"اختبار","civilId":"777888999111","passportNo":"TEST-PASS-1","phone":"+96550001122","email":"maintenance-tenant@example.invalid"}');
+ insert into public.aqari_units(id,workspace_id,property_id,unit_no) values
+ ('f2678130-0000-4000-8000-000000000001',w,'f2678110-0000-4000-8000-000000000001','7');
+ insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot) values
+ ('f2678140-0000-4000-8000-000000000001',w,'maintenance-lease','f2678120-0000-4000-8000-000000000001','f2678130-0000-4000-8000-000000000001','MNT-1','2026-01-01','2026-12-31',100,0,'signed','{"property":"عقار صيانة تجريبي","unit":"7","tenant":"مستأجر صيانة"}');
+end $$;
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('f2678100-0000-4000-8000-000000000002','maintenance-tenant@example.invalid',now());
