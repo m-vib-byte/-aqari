@@ -2,8 +2,8 @@
 begin;
 
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
- ('opening-manager@example.invalid','مدير اختبار الرصيد الافتتاحي','general_manager','aqari-v267-opening-balance-test'),
- ('opening-viewer@example.invalid','مشاهد اختبار الرصيد الافتتاحي','viewer','aqari-v267-opening-balance-test');
+ ('opening-manager@example.invalid','مدير اختبار الرصيد الافتتاحي','general_manager','aqari-v267-staging'),
+ ('opening-viewer@example.invalid','مشاهد اختبار الرصيد الافتتاحي','viewer','aqari-v267-staging');
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('7f6b1000-0000-4000-8000-000000000001','opening-manager@example.invalid',now()),
