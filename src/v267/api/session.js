@@ -72,7 +72,7 @@ export function createSession(){
   }finally{jobs.delete(controller);}
  }
  async function storage(method,path,body,bucket='aqari-documents'){
-  check();if(!['aqari-documents','aqari-hr-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
+  check();if(!['aqari-documents','aqari-hr-private','aqari-maintenance-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
   const controller=new AbortController();jobs.add(controller);
   try{
    const work=(async()=>{const auth=await window.AQARI_SUPABASE.getSession();check();if(!auth?.access_token||auth.user?.id!==bound.user)throw Error('تغيرت جلسة الدخول.');

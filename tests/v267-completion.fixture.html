@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="robots" content="noindex,nofollow">
+ <title>فحص السجلات والحسابات — بيانات اصطناعية</title>
+ <link rel="stylesheet" href="/src/v267/styles/workspace.css">
+ <style>
+  *{box-sizing:border-box}body{margin:0;background:#f7f5ef;color:#292820;font:16px/1.7 system-ui}
+  .fixture-banner{position:sticky;top:0;z-index:10;background:#725622;color:white;padding:10px 18px;text-align:center;font-weight:700}
+  main{width:min(1100px,100%);margin:0 auto;padding:18px}h1{font-size:26px;margin:8px 0}.fixture-description{color:#6b665e;margin:8px 0 16px}
+  .fixture-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-block:16px}.fixture-tabs button,.fixture-controls button{min-height:48px;padding:10px 16px;font:inherit;border:1px solid #d6c59c;border-radius:12px;background:white;color:#634918;cursor:pointer}
+  .fixture-tabs button[aria-selected=true]{background:#8a6a32;color:#fff}.fixture-tabs button:focus-visible,button:focus-visible{outline:3px solid #73521f;outline-offset:3px}
+  .fixture-panel{margin-bottom:16px}.fixture-panel .aq267-dialog{width:100%;max-width:820px;max-height:none;margin:0 auto;overflow:visible}
+  .fixture-controls{border:1px solid #e3d8c1;border-radius:14px;padding:12px;margin-block:16px;background:#fff}.fixture-controls summary{cursor:pointer;min-height:40px}.fixture-buttons{display:flex;gap:8px;flex-wrap:wrap}.fixture-controls p{margin:8px 0}
+  .fixture-status{padding:10px 14px;border:1px solid #e3d8c1;border-radius:12px;background:#fffdf7;white-space:pre-line}.fixture-caption{font-size:14px;color:#6b665e}
+  [hidden]{display:none!important}button:disabled{opacity:.5;cursor:wait}
+  @media(max-width:560px){main{padding:12px}.fixture-banner{font-size:14px;padding:8px 10px}h1{font-size:22px}.fixture-buttons button{width:100%}}
+ </style>
+</head>
+<body>
+ <div class="fixture-banner">بيانات اصطناعية — فحص واجهة فقط</div>
+ <main>
+  <header><h1>السجلات المالية والحسابات</h1><p class="fixture-description">مكوّنات المنصة الفعلية مع بيانات اختبار داخل ذاكرة هذه الصفحة. لا تسجيل دخول ولا اتصال بقاعدة بيانات، وتختفي التعديلات عند تحديث الصفحة.</p></header>
+  <div class="fixture-tabs" role="tablist" aria-label="صفحات الفحص">
+   <button id="fixture-tab-records" type="button" role="tab" aria-selected="true" aria-controls="fixture-panel-records">السجل المحفوظ</button>
+   <button id="fixture-tab-accounts" type="button" role="tab" aria-selected="false" aria-controls="fixture-panel-accounts" tabindex="-1">إدارة الحسابات</button>
+  </div>
+  <section id="fixture-panel-records" class="fixture-panel" role="tabpanel" aria-labelledby="fixture-tab-records"><div id="fixture-records" class="aq267-dialog"></div></section>
+  <section id="fixture-panel-accounts" class="fixture-panel" role="tabpanel" aria-labelledby="fixture-tab-accounts" hidden><div id="fixture-accounts" class="aq267-dialog"></div></section>
+  <p id="fixture-status" class="fixture-status" role="status" aria-live="polite">جارٍ تحميل مكوّنات الفحص…</p>
+  <details class="fixture-controls">
+   <summary>التحكم في سيناريو الفحص الاصطناعي</summary>
+   <p>جرّب تعديل اسم حساب مع سبب، ثم افتح السجل. لا تتغير قيمة الوصولات أو بيانات الحساب وقت الترحيل.</p>
+   <div class="fixture-buttons">
+    <button id="fixture-reload" type="button">إعادة قراءة البيانات الاصطناعية</button>
+    <button id="fixture-lost" type="button" aria-pressed="false">فقد رد الحفظ التالي: متوقف</button>
+    <button id="fixture-read-fail" type="button" aria-pressed="false">تعذر القراءة: متوقف</button>
+   </div>
+   <p id="fixture-operation-log" class="fixture-caption" aria-live="polite">لم تبدأ أي عملية تعديل اصطناعية.</p>
+  </details>
+  <p class="fixture-caption">هذه معاينة للمظهر والتفاعل، وليست إثباتًا لتسجيل دخول حقيقي أو حفظ مستضاف أو اختبار جهاز فعلي.</p>
+ </main>
+ <script type="module" src="/tests/v267-completion.fixture.mjs"></script>
+</body>
+</html>

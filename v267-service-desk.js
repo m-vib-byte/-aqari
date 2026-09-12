@@ -17,8 +17,9 @@ export async function openDesk(mode='maintenance'){
  d.body.append(style);
  const {session,status}=d,list=node('div'),reload=node('button',t('تحديث السجلات')),previous=node('button',t('السابق')),next=node('button',t('التالي'));
  let page=0,prepare;
- const drafts=new Map();let editors=new Map();
- function clearPrivate(){drafts.clear();editors.clear();list.replaceChildren();previous.hidden=next.hidden=true;}
+ const drafts=new Map(),attachmentDisposers=new Set();let editors=new Map();
+ function clearAttachments(){for(const dispose of attachmentDisposers)dispose();attachmentDisposers.clear();}
+ function clearPrivate(){clearAttachments();drafts.clear();editors.clear();list.replaceChildren();previous.hidden=next.hidden=true;}
  d.onDispose(clearPrivate);
  function checkReadAccess(){try{session.check();}catch(error){clearPrivate();throw error;}}
  async function read(query){
@@ -63,6 +64,18 @@ export async function openDesk(mode='maintenance'){
     card.append(node('p',message('{channel} • {status}\nالفترة {period} • {date}',{channel:t(row.channel==='email'?'البريد الإلكتروني':row.channel==='whatsapp'?'واتساب':'غير معروف'),status:t(names[row.status]||'غير معروف'),period:row.period??'',date:String(row.scheduled_at??'').slice(0,10)})));
    }else{
     card.append(node('p',row.tenant?.full_name||''),node('p',row.description||''));
+    const attachmentButton=node('button',t('صور البلاغ ومرفقاته'));attachmentButton.type='button';card.append(attachmentButton);
+    attachmentButton.onclick=()=>d.run(async()=>{
+     const {mountMaintenanceAttachments}=await import('./src/v267/components/maintenance-attachment-panel.js');checkReadAccess();
+     if(!card.isConnected)return;const container=node('div');attachmentButton.replaceWith(container);
+     await mountMaintenanceAttachments(container,{workspaceId:session.bound.workspace,requestId:row.id,userId:session.bound.user,
+      check:()=>{checkReadAccess();if(!card.isConnected)throw Error('تم إغلاق البلاغ.');},onDispose:fn=>attachmentDisposers.add(fn),
+      rpc:(name,args)=>read(session.client.rpc(name,args)),storage:(...args)=>session.storage(...args)});
+    });
+    if(session.bound.role==='general_manager'){
+     const workOrder=node('button',t('أمر الشغل المرتبط بالبلاغ'));workOrder.type='button';card.append(workOrder);
+     workOrder.onclick=()=>d.run(async()=>{const {openOperationsCenter}=await import('./src/v267/pages/operations-center.js');checkReadAccess();if(!card.isConnected)return;d.close();await openOperationsCenter({requestId:row.id});});
+    }
     const state=node('select'),cost=node('input'),save=node('button',t('حفظ الحالة والتكلفة')),allowed=transitions[row.status]||[];
     for(const value of allowed){const option=node('option',t(names[value]));option.value=value;state.append(option);}
     if(!allowed.length){const option=node('option',t('غير معروف'));option.value=row.status;state.append(option);}
@@ -105,7 +118,7 @@ export async function openDesk(mode='maintenance'){
    }
    cards.push(card);
   }
-  list.replaceChildren(...cards);editors=nextEditors;page=wanted;
+  clearAttachments();list.replaceChildren(...cards);editors=nextEditors;page=wanted;
   previous.hidden=page===0;next.hidden=rows.length<50;
  }
  async function refresh(wanted=page){

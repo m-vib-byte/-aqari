@@ -1,6 +1,13 @@
 -- Synthetic authorization/SQL test, NOT evidence of a real browser login.
 -- Only the isolated Staging project. Every fixture and settings change is rolled back.
 begin;
+-- Restore existing column ACLs when run with the table-only local schema catalog.
+grant select(workspace_id,payload,revision,updated_by,updated_at) on public.aqari_app_state to authenticated;
+grant insert(workspace_id,payload) on public.aqari_app_state to authenticated;
+grant update(payload) on public.aqari_app_state to authenticated;
+grant select(workspace_id,user_id,role,is_active,created_at) on public.aqari_memberships to authenticated;
+grant select(id,name,slug,created_at) on public.aqari_workspaces to authenticated;
+grant select(user_id,display_name,created_at,updated_at) on public.aqari_profiles to authenticated;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
  ('controls-manager@example.invalid','اختبار صلاحيات المدير','general_manager','aqari-v267-staging'),
  ('controls-accountant@example.invalid','اختبار صلاحيات المحاسب','accountant','aqari-v267-staging');
@@ -18,9 +25,12 @@ do $$ declare w uuid;v bigint;cfg jsonb;snap jsonb;begin
  begin perform public.aqari_save_controls(w,cfg,0,'اختبار تعارض');raise exception 'STALE_WRITE_ACCEPTED';exception when serialization_failure then null;end;
  begin perform public.aqari_save_controls(w,jsonb_set(cfg,'{labels,ar,home}','"<script>"'),1,'اختبار حقن');raise exception 'UNSAFE_LABEL_ACCEPTED';exception when raise_exception then if sqlerrm<>'INVALID_LABEL' then raise;end if;end;
  begin perform public.aqari_save_controls(w,jsonb_set(cfg,'{sections,unknown}','true'),1,'اختبار مفتاح');raise exception 'UNKNOWN_KEY_ACCEPTED';exception when raise_exception then if sqlerrm<>'INVALID_SECTION' then raise;end if;end;
- update public.aqari_app_state set payload=payload||'{"propertySharesV267":{"private":"only manager"}}'::jsonb where workspace_id=w;
+ cfg:='[{"id":"controls-private-owner","name":"only manager","role":"مالك","bps":10000}]';
+ update public.aqari_app_state set payload=payload||jsonb_build_object('propertySharesV267',jsonb_build_object('private',
+  jsonb_build_object('version',1,'enabled',true,'owners',cfg,'events',jsonb_build_array(jsonb_build_object(
+   'id','controls-private-event','type','owners','actor',auth.uid()::text,'at','2026-09-12T00:00:00Z','before','[]'::jsonb,'after',cfg))))) where workspace_id=w;
  snap:=public.aqari_startup_snapshot_v266(w,'general_manager',true);
- if snap#>>'{app_state,payload,propertySharesV267,private}'<>'only manager' then raise exception 'MANAGER_STARTUP_FAILED';end if;
+ if snap#>>'{app_state,payload,propertySharesV267,private,owners,0,name}'<>'only manager' then raise exception 'MANAGER_STARTUP_FAILED';end if;
 end $$;
 select set_config('request.jwt.claim.sub','77777777-7777-4777-8777-777777777777',true);
 do $$ declare w uuid;snap jsonb;r bigint;begin

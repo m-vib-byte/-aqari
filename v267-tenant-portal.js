@@ -4,7 +4,7 @@ const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=so
 if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,engagementVersion=0,userId=null,saveUncertain=false;
-const receiptUrls=new Set(),jobs=new Set();
+const receiptUrls=new Set(),jobs=new Set(),attachmentDisposers=new Set();
 const safeError=e=>/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
 function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
 bindLocale(null);
@@ -23,7 +23,7 @@ async function request(work){
 function lock(value){busy=value;for(const b of document.querySelectorAll('button'))b.disabled=b.id==='tenantLogout'?false:value;if(saveUncertain)$('maintenanceSave').disabled=true;}
 function start(){const token=++operation;lock(true);return token;}
 function finish(token){if(token===operation)lock(false);}
-function clear(){snapshot=null;noticeVersion++;releaseReceipts();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease','tenantNotices'])$(id).replaceChildren();setText($('tenantNoticesStatus'),'');$('maintenanceForm').hidden=true;}
+function clear(){snapshot=null;noticeVersion++;releaseReceipts();for(const dispose of attachmentDisposers)dispose();attachmentDisposers.clear();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease','tenantNotices'])$(id).replaceChildren();setText($('tenantNoticesStatus'),'');$('maintenanceForm').hidden=true;}
 function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();bindLocale(null);updateLanguage();saveUncertain=false;operation++;lock(false);}
 const current=e=>e===epoch;
 function items(target,rows,format){$(target).replaceChildren();if(!rows.length)$(target).append(uiText('p','لا توجد سجلات محفوظة.'));for(const r of rows){const p=document.createElement('p');p.className='item';p.append(...format(r));$(target).append(p);}}
@@ -42,9 +42,24 @@ async function refresh(){
  for(const [i,payment] of data.payments.entries()){const button=uiText('button','فتح وصل الإيجار');button.type='button';button.className='secondary';button.onclick=()=>receipt(payment,button);$('tenantPayments').children[i].append(button);}
  const states={received:'تم الاستلام',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى'};
  items('tenantRequests',data.maintenance,m=>{const description=document.createElement('span');description.textContent='\n'+m.description;return [uiText('span','طلب {number} • ',{number:m.request_no}),uiText('span',states[m.status]||'غير معروف'),description];});
+ for(const [i,record] of data.maintenance.entries()){const button=uiText('button','صور البلاغ ومرفقاته');button.type='button';button.className='secondary';button.onclick=()=>maintenanceFiles(record,button);$('tenantRequests').children[i].append(button);}
  $('maintenanceLease').replaceChildren();const today=new Date(Date.now()+10800000).toISOString().slice(0,10);
  for(const l of data.leases.filter(l=>l.status==='signed'&&l.start_date<=today&&l.end_date>=today)){const option=uiText('option','العقد {contract} • الوحدة {unit}',{contract:l.contract_no,unit:l.snapshot.unit});option.value=l.id;$('maintenanceLease').append(option);}
  $('maintenanceForm').hidden=!$('maintenanceLease').options.length;loadNotices();loadEngagement();return data;
+}
+async function maintenanceFiles(record,button){
+ if(busy||!snapshot)return;const e=epoch,account=snapshot.account,token=start();
+ const check=()=>{if(!current(e)||snapshot?.account!==account)throw Error('تغيرت الجلسة. أعد الدخول إلى حسابك.');};
+ try{
+  const auth=await session();check();if(auth?.user.id!==account.user_id){invalidate();return;}
+  if(!snapshot.maintenance.some(row=>row.id===record.id))throw Error('البلاغ غير متاح لهذا الحساب.');
+  const {mountMaintenanceAttachments}=await import('./src/v267/components/maintenance-attachment-panel.js');check();
+  const container=document.createElement('div');button.replaceWith(container);
+  const unpack=async work=>{check();const response=await request(work);check();if(response.error){const error=Error(response.error.message||'تعذر قراءة المرفقات.');error.status=Number(response.error.status??response.error.statusCode)||undefined;error.code=response.error.code;throw error;}return response.data;};
+  await mountMaintenanceAttachments(container,{workspaceId:account.workspace_id,requestId:record.id,userId:account.user_id,check,onDispose:fn=>attachmentDisposers.add(fn),
+   rpc:(name,args)=>unpack(signal=>client.rpc(name,args).abortSignal(signal)),
+   storage:(method,path,blob,bucket)=>unpack(()=>method==='POST'?client.storage.from(bucket).upload(path,blob,{contentType:blob.type,upsert:false}):client.storage.from(bucket).download(path))});
+ }catch(error){if(current(e))notice(safeError(error));}finally{finish(token);}
 }
 async function loadEngagement(){
  if(!snapshot)return null;const e=epoch,version=++engagementVersion,account=snapshot.account;let box=$('tenantEngagement');
@@ -131,7 +146,7 @@ $('maintenanceForm').addEventListener('submit',async event=>{
   const auth=await session();if(!current(e))return;if(auth?.user.id!==account.user_id){invalidate();return;}
   sent=true;const {error}=await request(signal=>client.from('aqari_maintenance_requests').insert({id,workspace_id:account.workspace_id,tenant_id:account.tenant_id,lease_id:lease.id,description}).abortSignal(signal));if(!current(e))return;if(error)throw error;
   const data=await refresh();if(!current(e))return;if(!data?.maintenance.some(m=>m.id===id))throw Error('READBACK_REQUIRED');
-  confirmed=true;$('maintenanceDescription').value='';notice('تم حفظ طلب الصيانة وظهوره في سجلك.');
+  confirmed=true;$('maintenanceDescription').value='';notice('تم حفظ طلب الصيانة وظهوره في سجلك. افتح «صور البلاغ ومرفقاته» لإضافة صور العطل أو استرجاعها.');
  }catch(error){if(current(e))notice(sent?'لم يتأكد الحفظ. أعد تحميل الصفحة وتحقق من الطلب قبل إرساله مرة أخرى.':safeError(error));}
  finally{if(current(e)&&sent&&!confirmed)saveUncertain=true;finish(token);}
 });

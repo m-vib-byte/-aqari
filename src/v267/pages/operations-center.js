@@ -23,13 +23,13 @@ function statusForm(record,kind,onSubmit){
  f.onsubmit=e=>{e.preventDefault();onSubmit({state:state.value,bank_reference:reference.value.trim(),reason:reason.value.trim()});};return f;
 }
 
-export function openOperationsCenter(){
- const d=createDialog('مركز العمليات المتكاملة');if(!d)return;
+export function openOperationsCenter(initial={}){
+ const d=createDialog(initial.requestId?'أمر الشغل المرتبط بالبلاغ':'مركز العمليات المتكاملة');if(!d)return;
  let data=null,pending=false,loaded=false;
  const notice=el('p','هذه الشاشة تقرأ السجلات الفعلية فقط. كل كتابة يعقبها استرجاع من قاعدة البيانات للتحقق منها.');
  const refresh=el('button','تحديث جميع السجلات');refresh.type='button';
  const summary=el('section'),cheques=section('الشيكات الآجلة والمرتجعة','تسجيل الشيك ثم توثيق انتقالاته البنكية وإعادة الدين عند الارتجاع.'),vendors=section('الموردون والمقاولون','ملف المورد أساس أوامر الشغل والعقود السنوية.'),orders=section('أوامر الشغل','أمر مرقم، اعتماد، تنفيذ، إنجاز ثم فاتورة مرتبطة بالمصروف.'),legal=section('القضايا والمصاريف القضائية','القضية والجلسات والتكاليف والذمة المرتبطة بالعقد.'),petty=section('العهدة المالية','سقف ورصيد وحركات موثقة؛ الصرف يحتاج فاتورة واعتماداً.');
- d.body.append(notice,refresh,summary,cheques,vendors,orders,legal,petty);
+ if(initial.requestId)d.body.append(notice,refresh,orders);else d.body.append(notice,refresh,summary,cheques,vendors,orders,legal,petty);
  const rpc=(domain,action,payload={})=>d.session.request(d.session.client.rpc('aqari_operations_register',{p_workspace_id:d.session.bound.workspace,p_domain:domain,p_action:action,p_data:payload}));
 
  async function load(proof=null){
@@ -37,6 +37,7 @@ export function openOperationsCenter(){
    rpc('overview','list'),rpc('cheques','list'),rpc('vendors','list'),rpc('work_orders','list'),rpc('legal_cases','list'),rpc('petty_cash','list')
   ]);
   if(!overview?.health||!Array.isArray(overview.properties)||!Array.isArray(overview.documents)||!Array.isArray(overview.leases)||!Array.isArray(vendorData.items)||!Array.isArray(orderData.items))throw Error('تعذر استرجاع مركز العمليات من قاعدة البيانات.');
+  if(initial.requestId&&(!Array.isArray(orderData.requests)||!orderData.requests.some(r=>r.id===initial.requestId)))throw Error('البلاغ غير متاح لإنشاء أمر شغل؛ حدّث حالة الصيانة وتحقق من الصلاحية.');
   data={overview,chequeData,vendorData,orderData,legalData,pettyData};loaded=true;render();
   if(proof&&!proof(data))throw Error('حُفظت العملية لكن نتيجة إعادة القراءة لا تطابق الطلب؛ لا تكررها قبل المراجعة.');
  }
@@ -76,10 +77,16 @@ export function openOperationsCenter(){
  }
  function renderOrders(){
   orders.querySelectorAll(':scope > :not(h2):not(p)').forEach(x=>x.remove());
-  const f=el('form'),property=selectFrom(data.overview.properties,'اختر العقار'),vendor=selectFrom(data.vendorData.items,'اختر المورد'),number=input(),description=el('textarea'),amount=input();number.required=description.required=amount.required=true;description.maxLength=5000;amount.inputMode='decimal';
-  f.append(field('العقار',property),field('المورد',vendor),field('رقم أمر الشغل',number),field('وصف الأعمال',description),field('القيمة المعتمدة د.ك',amount),formButton('إنشاء أمر الشغل'));
-  f.onsubmit=e=>{e.preventDefault();const id=uuid();runWrite('work_orders','create',{id,property_id:property.value,vendor_id:vendor.value,order_no:required(number.value,'رقم الأمر',2),description:required(description.value,'وصف العمل',3),approved_amount:money(amount.value)},x=>x.orderData.items.some(o=>o.id===id));};orders.append(f);
-  for(const o of data.orderData.items){const card=el('article');card.append(el('h3',`${o.order_no} — ${workStates[o.status]||o.status}`),el('p',`${titleFor(o.property_id,data.overview.properties)} • ${titleFor(o.vendor_id,data.vendorData.items)} • ${Number(o.approved_amount).toFixed(3)} د.ك`),el('p',o.description));if((transitions[o.status]||[]).length&&!pending)card.append(statusForm(o,'work',values=>runWrite('work_orders','status',{id:o.id,revision:o.revision,state:values.state,reason:values.reason,reference:values.bank_reference},x=>x.orderData.items.some(row=>row.id===o.id&&row.revision===o.revision+1&&row.status===values.state))));
+  const f=el('form'),property=selectFrom(data.overview.properties,'اختر العقار'),request=el('select'),unit=input(),linkNotice=el('p'),vendor=selectFrom(data.vendorData.items.filter(v=>v.status==='active'),'اختر المورد'),number=input(),description=el('textarea'),amount=input(),create=formButton('إنشاء أمر الشغل');number.required=description.required=amount.required=true;description.maxLength=5000;amount.inputMode='decimal';unit.readOnly=true;
+  const requests=Array.isArray(data.orderData.requests)?data.orderData.requests:[],linked=()=>requests.find(r=>r.id===request.value);
+  function requestChanged(){const r=linked();unit.value=r?.unit_no||'';create.disabled=pending||Boolean(r?.work_order_id);linkNotice.textContent=r?.work_order_id?`هذا البلاغ مرتبط بأمر الشغل ${r.work_order_no} الظاهر أدناه؛ لن يُنشأ أمر مكرر.`:r?'العقار والوحدة محفوظان من البلاغ؛ لا يعاد إدخالهما.':'';if(r&&!r.work_order_id){number.value='WO-'+r.request_no;description.value=r.description;}}
+  function propertyChanged(){request.replaceChildren(option('','أمر مستقل أو اختر بلاغ العقار'));for(const r of requests.filter(r=>r.property_id===property.value))request.append(option(r.id,`بلاغ ${r.request_no} • الوحدة ${r.unit_no}${r.work_order_id?' • مرتبط بأمر':''}`));request.value='';requestChanged();}
+  property.onchange=propertyChanged;request.onchange=requestChanged;propertyChanged();
+  if(initial.requestId){const r=requests.find(r=>r.id===initial.requestId);property.value=r.property_id;propertyChanged();request.value=r.id;property.disabled=request.disabled=true;requestChanged();}
+  if(!Array.isArray(data.orderData.requests))linkNotice.textContent='ربط البلاغات غير متاح في هذه النسخة.';
+  f.append(field('العقار',property),field('بلاغ الصيانة المرتبط',request),field('وحدة البلاغ',unit),linkNotice,field('المورد',vendor),field('رقم أمر الشغل',number),field('وصف الأعمال',description),field('القيمة المعتمدة د.ك',amount),create);
+  f.onsubmit=e=>{e.preventDefault();return d.run(async()=>{const r=linked();if(r?.work_order_id)throw Error('البلاغ مرتبط بأمر شغل محفوظ؛ افتح الأمر الموجود.');if(r&&r.property_id!==property.value)throw Error('بلاغ الصيانة لا يتبع العقار المحدد.');const id=uuid(),expected=money(amount.value),payload={id,property_id:property.value,vendor_id:vendor.value,order_no:required(number.value,'رقم الأمر',2),description:required(description.value,'وصف العمل',3),approved_amount:expected,maintenance_request_id:r?.id||null,request_revision:r?.revision||null,unit_id:r?.unit_id||null};await write('work_orders','create',payload,x=>x.orderData.items.some(o=>o.id===id&&o.property_id===payload.property_id&&o.vendor_id===payload.vendor_id&&Number(o.approved_amount)===Number(expected)&&(!r||(o.maintenance_request_id===r.id&&o.unit_id===r.unit_id&&o.request_snapshot?.id===r.id&&o.request_snapshot?.revision===r.revision))));});};orders.append(f);
+  for(const o of data.orderData.items.filter(o=>!initial.requestId||o.maintenance_request_id===initial.requestId)){const card=el('article');card.append(el('h3',`${o.order_no} — ${workStates[o.status]||o.status}`),el('p',`${titleFor(o.property_id,data.overview.properties)} • ${titleFor(o.vendor_id,data.vendorData.items)} • ${Number(o.approved_amount).toFixed(3)} د.ك`),el('p',o.description));if(o.maintenance_request_id)card.append(el('p',`البلاغ المرتبط: ${o.request_snapshot?.request_no||o.maintenance_request_id} • الوحدة: ${o.request_snapshot?.unit_no||'تحتاج مراجعة الربط السابق'}`));if((transitions[o.status]||[]).length&&!pending)card.append(statusForm(o,'work',values=>runWrite('work_orders','status',{id:o.id,revision:o.revision,state:values.state,reason:values.reason,reference:values.bank_reference},x=>x.orderData.items.some(row=>row.id===o.id&&row.revision===o.revision+1&&row.status===values.state))));
    if(o.status==='completed'&&!o.invoice_id&&!pending){const f=el('form'),invoice=input(),amount=input(),reference=input(),doc=selectFrom(data.overview.documents.filter(x=>x.property_id===o.property_id),'اختر فاتورة العقار المحفوظة'),reason=input();for(const x of [invoice,amount,reference,reason])x.required=true;amount.inputMode='decimal';f.append(el('h4','ربط فاتورة الإنجاز بالمصروف'),field('رقم الفاتورة',invoice),field('المبلغ',amount),field('المرجع المالي',reference),field('مستند الفاتورة المتحقق',doc),field('سبب الاعتماد',reason),formButton('اعتماد الفاتورة والمصروف'));f.onsubmit=e=>{e.preventDefault();const expenseId=uuid();runWrite('work_orders','invoice',{id:o.id,revision:o.revision,expense_id:expenseId,invoice_id:required(invoice.value,'رقم الفاتورة',2),amount:money(amount.value),reference:required(reference.value,'المرجع',3),document_id:doc.value,reason:required(reason.value,'سبب الاعتماد',3)},x=>x.orderData.items.some(row=>row.id===o.id&&row.invoice_id===invoice.value.trim()&&row.revision===o.revision+1));};card.append(f);}
    orders.append(card);
   }

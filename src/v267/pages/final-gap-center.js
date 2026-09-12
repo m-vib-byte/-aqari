@@ -1,4 +1,6 @@
 import {createDialog,node,field} from '../components/dialog.js';
+import {createFinancialRecordBrowser} from '../components/financial-record-browser.js';
+import {createCollectionAccountManager} from '../components/collection-account-manager.js';
 
 const option=(value,text)=>Object.assign(node('option',text),{value});
 const actions={preference:'تفضيل تواصل المستأجر',account:'حساب بنك أو صندوق للعقار',post_payment:'ترحيل التحصيل للحساب',reserve:'حجز أو فك احتياطي',tenant_entry:'حركة ذمة مستأجر / رصيد افتتاحي',allocate_credit:'تخصيص رصيد دائن',cancel_receipt:'إلغاء وصل موثق',channel:'قناة تواصل للعقار',rate:'تقييم ونجوم سنوية'};
@@ -11,7 +13,8 @@ export function openFinalGapCenter(){
  let data=null,pending=false,draftId=crypto.randomUUID(),controls={};
  const action=node('select'),form=node('form'),fields=node('section'),result=node('section'),saveButton=Object.assign(node('button','حفظ والتحقق'),{type:'submit'});
  for(const [value,text]of Object.entries(actions))action.append(option(value,text));action.value='preference';
- form.append(field('العملية',action),fields,saveButton);d.body.append(node('p','اختر السجلات المحفوظة وأدخل تفاصيل العملية. يحتفظ النظام بالسجل المالي وتاريخ التعديلات.'),form,result);
+ const archive=createFinancialRecordBrowser(),accountManager=createCollectionAccountManager(d,{onChanged:async()=>{await load();}}),refresh=Object.assign(node('button','تحديث السجلات المحفوظة'),{type:'button'});
+ form.append(field('العملية',action),fields,saveButton);d.body.append(node('p','اختر السجلات المحفوظة وأدخل تفاصيل العملية. يحتفظ النظام بالسجل المالي وتاريخ التعديلات.'),form,refresh,result,archive.el,accountManager.el);
  const rpc=(a,p={})=>d.session.request(d.session.client.rpc('aqari_final_gap_register',{p_workspace_id:d.session.bound.workspace,p_action:a,p_data:p}));
  const openingRpc=()=>d.session.request(d.session.client.rpc('aqari_opening_balance_statement',{p_workspace_id:d.session.bound.workspace,p_tenant_id:null}));
  const rows=name=>data?.[name]||[];
@@ -25,13 +28,13 @@ export function openFinalGapCenter(){
   }
   if(key==='credit_entry_id')return rows('ledger').filter(x=>x.direction==='credit').map(x=>[x.id,`${rows('tenants').find(t=>t.id===x.tenant_id)?.name||'مستأجر'} — ${x.amount} د.ك — ${x.reason}`]);
   if(key==='payment_id')return rows('payments').map(x=>[x.id,`${x.reference} — ${x.amount} د.ك`]);
-  if(key==='account_id')return rows('accounts').map(x=>[x.id,`${x.name} — ${x.masked_reference}`]);
-  if(key==='preferred_channel')return [['email','البريد الإلكتروني'],['whatsapp','واتساب'],['sms','رسالة نصية'],['push','إشعار التطبيق']];
+  if(key==='account_id')return rows('accounts').filter(x=>x.status==='active').map(x=>[x.id,`${x.name} — ${x.masked_reference}`]);
+  if(key==='preferred_channel')return [['email','البريد الإلكتروني'],['whatsapp','واتساب'],['both','واتساب والبريد الإلكتروني'],['sms','رسالة نصية'],['push','إشعار التطبيق'],['phone','اتصال هاتفي فقط'],['none','عدم إرسال رسائل']];
   if(key==='direction')return action.value==='reserve'?[['hold','حجز احتياطي'],['release','فك احتياطي']]:[['credit','رصيد دائن'],['debit','رصيد مدين']];
   if(key==='kind')return action.value==='account'?[['bank','حساب بنكي'],['cashbox','صندوق نقدي']]:action.value==='channel'?[['whatsapp','واتساب'],['instagram','إنستغرام'],['facebook','فيسبوك'],['website','موقع إلكتروني']]:[controls.direction?.value==='debit'?['opening_debit','رصيد افتتاحي مدين']:['opening_credit','رصيد افتتاحي دائن'],['adjustment','تسوية موثقة']];
   return null;
  }
- function populate(key,control){const previous=control.value,values=choices(key)||[];control.replaceChildren(...values.map(([v,t])=>option(v,t)));control.value=values.some(([v])=>v===previous)?previous:values[0]?.[0]||'';}
+ function populate(key,control){const previous=key==='preferred_channel'?rows('preferences').find(x=>x.tenant_id===controls.tenant_id?.value)?.preferred_channel:control.value,values=choices(key)||[];control.replaceChildren(...values.map(([v,t])=>option(v,t)));control.value=values.some(([v])=>v===previous)?previous:values[0]?.[0]||'';}
  function build(){
   fields.replaceChildren();controls={};
   for(const key of forms[action.value]){
@@ -40,7 +43,7 @@ export function openFinalGapCenter(){
    if(values)populate(key,control);
    if(key==='amount'){control.min='0.001';control.step='0.001';}
    if(key==='year'){control.min='2000';control.max=String(new Date().getFullYear());control.value=control.max;}
-   if(['tenant_id','credit_entry_id'].includes(key))control.onchange=()=>{if(controls.lease_id)populate('lease_id',controls.lease_id);};
+   if(['tenant_id','credit_entry_id'].includes(key))control.onchange=()=>{if(controls.lease_id)populate('lease_id',controls.lease_id);if(controls.preferred_channel)populate('preferred_channel',controls.preferred_channel);};
    if(key==='direction'&&action.value==='tenant_entry')control.onchange=()=>populate('kind',controls.kind);
    fields.append(field(labels[key],control));
   }
@@ -48,8 +51,10 @@ export function openFinalGapCenter(){
  async function load(){
   const x=await rpc('list');
   for(const key of ['tenants','properties','leases','payments','preferences','accounts','reserves','ledger','postings','credit_allocations','cancellations','channels','ratings','collector_performance'])if(!Array.isArray(x?.[key]))throw Error('تعذر استرجاع السجلات المالية كاملة.');
-  let opening=null;try{opening=await openingRpc();}catch{opening=null;}
-  data={...x,opening};render();
+  if(x.accounts.some(a=>Number.isInteger(a.revision))){const history=await d.session.request(d.session.client.rpc('aqari_collection_account_manage',{p_workspace_id:d.session.bound.workspace,p_action:'list',p_data:{}}));if(!Array.isArray(history?.posting_accounts))throw Error('تعذر استرجاع بيانات حسابات الترحيل المحفوظة.');x.posting_accounts=history.posting_accounts;}
+  let opening=null;
+  try{const report=await openingRpc();if(Array.isArray(report?.opening_entries)&&['opening_debit','opening_credit','opening_net','actual_collections'].every(k=>['string','number'].includes(typeof report?.totals?.[k])&&String(report.totals[k]).trim()!==''&&Number.isFinite(Number(report.totals[k]))))opening=report;}catch{opening=null;}
+  data={...x,opening};render();archive.update(data);accountManager.update(data);
  }
  function confirmed(a,p){
   if(a==='preference')return rows('preferences').some(x=>x.tenant_id===p.tenant_id&&x.preferred_channel===p.preferred_channel);
@@ -73,8 +78,9 @@ export function openFinalGapCenter(){
  function render(){
   const o=data.opening?.totals;
   result.replaceChildren(node('h3','السجلات المحفوظة'),node('p',`الحسابات: ${data.accounts.length} • حركات الذمم: ${data.ledger.length} • تخصيصات الرصيد: ${data.credit_allocations.length}`),node('h4','الأرصدة الافتتاحية منفصلة عن التحصيل'));
-  result.append(node('p',o?`افتتاحي مدين: ${Number(o.opening_debit).toFixed(3)} د.ك • افتتاحي دائن: ${Number(o.opening_credit).toFixed(3)} د.ك • صافي الافتتاح: ${Number(o.opening_net).toFixed(3)} د.ك • التحصيل الفعلي: ${Number(o.actual_collections).toFixed(3)} د.ك`:'سجل فصل الأرصدة الافتتاحية غير متاح على قاعدة البيانات الحالية.'));
-  result.append(node('h4','أداء المحصلين'));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));
+  result.append(node('p',o?`افتتاحي مدين: ${Number(o.opening_debit).toFixed(3)} د.ك • افتتاحي دائن: ${Number(o.opening_credit).toFixed(3)} د.ك • صافي الافتتاح: ${Number(o.opening_net).toFixed(3)} د.ك • التحصيل الفعلي — جميع الفترات: ${Number(o.actual_collections).toFixed(3)} د.ك`:'تعذر استرجاع فصل الأرصدة الافتتاحية؛ لا تعتمد على إجمالي قبل تحديث السجلات.'));
+  result.append(node('h4','أداء المحصلين — جميع الفترات'));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));
  }
- build();d.onDispose(()=>{data=null;controls={};fields.replaceChildren();});d.run(async()=>{await load();build();});
+ refresh.onclick=()=>d.run(async()=>{await load();d.status.textContent='تم تحديث السجلات من قاعدة البيانات.';});
+ build();d.onDispose(()=>{data=null;controls={};fields.replaceChildren();result.replaceChildren();archive.clear();accountManager.clear();});d.run(async()=>{await load();build();});
 }

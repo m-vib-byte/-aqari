@@ -14,7 +14,7 @@ test('every create or transition is followed by database readback proof',()=>{
  assert.match(source,/if\(proof&&!proof\(data\)\)throw Error/);
 });
 test('forms cover cheques, vendors, work orders, legal cases and petty cash',()=>{
- for(const action of ["runWrite('cheques','create'","runWrite('vendors','save'","runWrite('vendors','contract'","runWrite('work_orders','create'","runWrite('work_orders','invoice'","runWrite('legal_cases','create'","runWrite('legal_cases','event'","runWrite('legal_cases','cost'","runWrite('petty_cash','create'","runWrite('petty_cash','entry'"])assert.ok(source.includes(action),action);
+ for(const action of ["runWrite('cheques','create'","runWrite('vendors','save'","runWrite('vendors','contract'","await write('work_orders','create'","runWrite('work_orders','invoice'","runWrite('legal_cases','create'","runWrite('legal_cases','event'","runWrite('legal_cases','cost'","runWrite('petty_cash','create'","runWrite('petty_cash','entry'"])assert.ok(source.includes(action),action);
 });
 test('financial operation forms require verified documents, reasons and readback identifiers',()=>{
  assert.match(source,/data\.overview\.documents\.filter/);

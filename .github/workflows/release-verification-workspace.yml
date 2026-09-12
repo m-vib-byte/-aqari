@@ -38,6 +38,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify isolated hosted acceptance copies
+        run: |
+          python staging-database/hosted-test/generate-completion.py --check
+          python staging-database/hosted-test/test-generate-completion.py
       - name: PDF and provider rejection tests
         run: |
           python -m pip install -r requirements.txt pypdf==6.10.0

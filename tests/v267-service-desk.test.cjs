@@ -1,5 +1,5 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const source=fs.readFileSync('v267-service-desk.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
+const source=fs.readFileSync('v267-service-desk.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'').replace("import('./src/v267/components/maintenance-attachment-panel.js')",'Promise.resolve(maintenancePanelModule)').replace("import('./src/v267/pages/operations-center.js')",'Promise.resolve(operationsModule)');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function fixture(count=2){
  const rows=Array.from({length:count},(_,i)=>({id:'request-'+i,request_no:i+1,workspace_id:'fixture-workspace',description:'طلب اختبار '+i,status:'received',cost:'0',revision:1,lease:{contract_no:'C-'+i,snapshot:{property:'عقار اختبار',unit:String(i+1)}},tenant:{full_name:'مستأجر اختبار'}}));
@@ -10,6 +10,7 @@ function fixture(count=2){
   constructor(tag,text=''){this.tag=tag;this.children=[];this.value='';this.disabled=false;this.hidden=false;this._text=text;this.classList={add(){}};}
   append(...children){for(const c of children){c.parent=this;this.children.push(c);}}
   replaceChildren(...children){for(const c of this.children)c.parent=null;this.children=[];this.append(...children);}
+  replaceWith(...children){const i=this.parent.children.indexOf(this);this.parent.children.splice(i,1,...children);for(const c of children)c.parent=this.parent;}
   get isConnected(){return !state.closed&&(this.root||this.parent?.isConnected===true);}
   set textContent(value){this._text=value;this.replaceChildren();}
   get textContent(){return String(this._text)+this.children.map(c=>c.textContent).join('');}
@@ -21,8 +22,8 @@ function fixture(count=2){
   async single(){calls.push({kind:'readback',filters:clone(query.filters)});if(state.readbackError)throw state.readbackError;const row=clone(rows.find(r=>r.id===query.filters.id));if(state.badReadback)row.id='another-request';return row;}
  };return query;}
  async function rpc(name,args){assert.equal(name,'aqari_maintenance_locations');assert.equal(args.p_workspace_id,'fixture-workspace');assert.ok(args.p_request_ids.length<=50);calls.push({kind:'locations',args:clone(args)});if(state.loseSessionOnLocation)state.sessionLost=true;if(state.locationError)throw state.locationError;return clone(state.locations??locations.filter(row=>args.p_request_ids.includes(row.request_id)));}
- const d={body:node('div'),el:node('dialog'),status:node('p'),session:{bound:{workspace:'fixture-workspace'},client:{from,rpc},request:query=>query,check(){if(state.closed||state.sessionLost)throw Error('closed');}},onDispose(fn){dispose=fn;},get closed(){return state.closed;},async run(task){if(d.busy||state.closed)return;d.busy=true;const controls=descendants(d.body).filter(e=>['button','input','select'].includes(e.tag)),disabled=controls.map(e=>e.disabled);controls.forEach(e=>e.disabled=true);try{await task();}catch(e){state.lastError=e;d.status.textContent=e.message;}finally{d.busy=false;controls.forEach((e,i)=>{if(e.isConnected)e.disabled=disabled[i];});}}};d.body.root=true;
- const context={node,field,createDialog:()=>d,currentScope:()=>({role:'general_manager'}),t:x=>x,message:(x,args)=>x.replace(/\{(\w+)\}/g,(_,k)=>args[k]),window:{}};vm.createContext(context);vm.runInContext(source,context);
+ const d={body:node('div'),el:node('dialog'),status:node('p'),session:{bound:{workspace:'fixture-workspace',user:'fixture-user',role:'general_manager'},client:{from,rpc},request:query=>query,storage:(...args)=>{calls.push({kind:'storage',args});return Promise.resolve('private-bytes');},check(){if(state.closed||state.sessionLost)throw Error('closed');}},onDispose(fn){dispose=fn;},close(){state.closed=true;dispose();},get closed(){return state.closed;},async run(task){if(d.busy||state.closed)return;d.busy=true;const controls=descendants(d.body).filter(e=>['button','input','select'].includes(e.tag)),disabled=controls.map(e=>e.disabled);controls.forEach(e=>e.disabled=true);try{await task();}catch(e){state.lastError=e;d.status.textContent=e.message;}finally{d.busy=false;controls.forEach((e,i)=>{if(e.isConnected)e.disabled=disabled[i];});}}};d.body.root=true;
+ const context={node,field,createDialog:()=>d,currentScope:()=>({role:'general_manager'}),t:x=>x,message:(x,args)=>x.replace(/\{(\w+)\}/g,(_,k)=>args[k]),window:{},maintenancePanelModule:{async mountMaintenanceAttachments(container,options){options.check();state.attachmentOptions=options;options.onDispose(()=>{state.attachmentDisposed=true;container.replaceChildren();});}},operationsModule:{async openOperationsCenter(options){assert.equal(state.closed,true);state.workOrderOptions=options;}}};vm.createContext(context);vm.runInContext(source,context);
  const cards=()=>descendants(d.body).filter(e=>e.tag==='article');
  const button=(label,parent=d.body)=>descendants(parent).find(e=>e.tag==='button'&&e.textContent===label);
  const cost=index=>descendants(cards()[index]).find(e=>e.tag==='input');
@@ -127,4 +128,15 @@ test('paging preserves local drafts and failed paging leaves the current page se
 });
 test('dialog disposal removes visible request data and retained local drafts',async()=>{
  const f=fixture();await f.start();f.cost(0).value='13';await f.refresh();f.close();assert.equal(f.cards().length,0);assert.doesNotMatch(f.d.body.textContent,/طلب اختبار|مستأجر اختبار/);
+});
+
+test('staff attachment entry passes the exact saved request and scoped private transport then disposes on refresh',async()=>{
+ const f=fixture();await f.start();await f.button('صور البلاغ ومرفقاته',f.cards()[1]).onclick();const options=f.state.attachmentOptions;
+ assert.equal(options.requestId,'request-1');assert.equal(options.workspaceId,'fixture-workspace');assert.equal(options.userId,'fixture-user');
+ assert.equal(await options.storage('GET','fixture-workspace/request-1/doc',undefined,'aqari-maintenance-private'),'private-bytes');
+ assert.equal(f.calls.at(-1).args[3],'aqari-maintenance-private');await f.refresh();assert.equal(f.state.attachmentDisposed,true);assert.throws(()=>options.check(),/إغلاق/);
+});
+test('only the manager can open the linked work order and the previous private dialog closes first',async()=>{
+ const f=fixture();await f.start();await f.button('أمر الشغل المرتبط بالبلاغ',f.cards()[0]).onclick();assert.equal(f.state.workOrderOptions.requestId,'request-0');assert.equal(f.d.closed,true);
+ const g=fixture();g.d.session.bound.role='property_manager';await g.start();assert.equal(g.button('أمر الشغل المرتبط بالبلاغ'),undefined);
 });
