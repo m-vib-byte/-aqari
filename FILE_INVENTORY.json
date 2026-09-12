@@ -1062,8 +1062,8 @@
     },
     {
       "path": "src/v267/pages/final-gap-center.js",
-      "sha256": "92e58df3798d765d685bf9a10f2b20872ecee5f8be7d032dd0e937196efcdd22",
-      "size": 9150
+      "sha256": "d37da99c6bc48ccf3d9db48d10e4f0b8ea147cc9002fa42f7d4ca44e8eb40843",
+      "size": 10005
     },
     {
       "path": "src/v267/pages/financial-archive.js",
@@ -1411,6 +1411,11 @@
       "size": 16935
     },
     {
+      "path": "staging-database/sql/opening-balance-statement.sql",
+      "size": 3585,
+      "sha256": "b8bcb42265c39726f7f19706bf69c04afd649bf1531db46e77f2d18a7490f73c"
+    },
+    {
       "path": "staging-database/sql/operations-completion.sql",
       "sha256": "57d0b7cfc6405f78b148cadea6f59e69c93d1ddef434d5d13ff69c47472ee1e3",
       "size": 17251
@@ -1754,6 +1759,11 @@
       "path": "staging-database/tests/official_document_source_binding.sql",
       "sha256": "488ee6793088356d07675e515e55496a7a8e26036af935cfa0d8f7067ff923d3",
       "size": 20020
+    },
+    {
+      "path": "staging-database/tests/opening_balance_statement.sql",
+      "size": 5235,
+      "sha256": "f8caef7bbc231d6aeb618913f789a2f28655061fbd3ccefef9096f7878a3395c"
     },
     {
       "path": "staging-database/tests/optional_tenant_email.sql",
