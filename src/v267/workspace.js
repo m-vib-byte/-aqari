@@ -5,7 +5,8 @@ import {createSession,currentScope,safeError} from './api/session.js';
 import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
 import {organizeServices} from './components/service-directory.js';
-let installed=false,access=null,loading=null,session,notice,serviceDirectory;
+import {installPropertyExperience} from './components/property-experience.js';
+let installed=false,access=null,loading=null,session,notice,serviceDirectory,propertyExperience;
 function directoryScope(){
  try{const s=currentScope();return access&&s.user===access.user_id&&s.workspace===access.workspace_id&&s.role===access.role?JSON.stringify([s.workspace,s.user,s.role]):null;}catch{return null;}
 }
@@ -39,6 +40,7 @@ function updateFeatureTools(){
  if(exit)exit.hidden=access?.features?.exit_review!==true||access?.role!=='general_manager';
  if(vacating)vacating.hidden=access?.features?.vacating_settlement!==true||access?.permissions?.contracts?.read!==true||access?.permissions?.collections?.read!==true;
  serviceDirectory?.refresh(directoryScope());
+ propertyExperience?.refresh();
 }
 const ui=uiText;
 function updateLabels(){
@@ -70,6 +72,7 @@ export function install(){
  if(!document.getElementById('aq267-workspace-css')){const css=node('link');css.id='aq267-workspace-css';css.rel='stylesheet';css.href='/src/v267/styles/workspace.css?release=V267';document.head.append(css);}
  if(!document.getElementById('aq267-service-directory-css')){const css=node('link');css.id='aq267-service-directory-css';css.rel='stylesheet';css.href='/src/v267/styles/service-directory.css?release=V267';document.head.append(css);}
  const menu=document.getElementById('v199MoreMenu');if(!menu){installed=false;return;}
+ propertyExperience=installPropertyExperience({readable:()=>directoryAllowed({section:'properties'}),writable:()=>directoryAllowed({section:'properties'})&&access?.permissions?.properties?.write===true&&['general_manager','property_manager'].includes(access?.role)});
  const tools=node('section'),control=node('button',label('control_center')),scan=node('button',label('scan_document')),language=node('select');tools.className='aq267-tools';tools.id='aq267-workspace-tools';notice=node('p');notice.setAttribute('role','status');
  for(const [value,text]of Object.entries(LANGUAGES)){const option=node('option',text);option.value=value;language.append(option);}
  control.dataset.aq267Label='control_center';scan.dataset.aq267Label='scan_document';

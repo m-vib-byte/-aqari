@@ -1,0 +1,17 @@
+# Property search and simplified pages
+
+Implemented on the current PR #75 development candidate, starting at e382cec2e87a34117d15d01ad86b6989159d92a6.
+
+- The home page begins with property search by name, area/address and owner. Arabic diacritics, hamza, spelling variants and Arabic/Latin digits are normalized for searching. Six results appear at a time with explicit pagination. Each card opens the existing property workspace.
+- Property details show saved photos, asking price, location and explicit telephone/WhatsApp/map links. Links open only when corresponding data exists. Missing photos, asking prices and contact details remain visibly missing. Source rental income is never substituted for an advertised price. Financial KPIs remain available in an expandable section, and contracts/collections/units retain their current handlers.
+- Property creation and editing use a single form with a required property name; optional location, asking price, listing purpose, contact and up to four compressed JPEG photos. Administrative fields are grouped as optional. Existing property names remain locked to protect linked records.
+- Presentation metadata is a versioned extension of the existing property row. Other row fields and unknown extensions are retained. The existing cloud store performs revision checks, save and authoritative readback before showing success. The existing property projection preserves the complete row as metadata; no schema migration was added or applied.
+- Read/write controls depend on the current workspace access result. Search is cleared at authentication boundaries. Pending photo processing cannot repopulate a disposed form. Image rendering accepts bounded inline JPEGs, avoiding third-party tracking images.
+
+## Verification
+
+Executed 121 targeted local tests with no failures or skips: 115 existing property/rental regressions plus six new tests covering Arabic search, metadata preservation, price/source separation, validation, escaped links/images and save/readback. The full local JavaScript suite also passed: 1,005 tests, zero failures or skips. The Staging source inventory and syntax checks passed. Test fixtures are synthetic, not production data.
+
+The visual fixture `tests/v267-property-experience.fixture.html` uses the actual presentation, search and property-entry modules with an in-memory store. It makes no Supabase requests and creates no real account or property. Its buttons allow exercising save, reload, edit and permission withdrawal. Browser results, matching-SHA CI and hosted application acceptance must be recorded separately after execution.
+
+No production deployment, main merge, hosted SQL or real property mutation was performed for this change. The prior release gates for authenticated acceptance, full Database/Auth/Storage backup, restore and rollback remain unproven. This bounded UI change is not acceptance of all 155 requirements or activation of a public advertising marketplace.

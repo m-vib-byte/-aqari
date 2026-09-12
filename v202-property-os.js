@@ -1825,6 +1825,8 @@
     const canWrite=rentWriteAllowed()&&!protectedOnly;
     return '<section class="v202-workspace" role="dialog" aria-modal="true" aria-labelledby="v202PropertyTitle" aria-describedby="v202PropertyDescription">'+
       '<header class="v202-workspace-head"><div class="v202-property-identity"><span class="v202-property-mark">'+icon('building')+'</span><div><p>ملف العقار التشغيلي</p><h2 id="v202PropertyTitle">'+escapeHtml(activeProperty)+'</h2><span id="v202PropertyDescription">العقد والتحصيل والوصولات والكشف في مكان واحد.</span></div></div><div class="v202-head-side"><span class="v202-health is-'+health.tone+'">'+health.label+'</span><button type="button" class="v202-icon-button" data-v202-close aria-label="إغلاق ملف العقار">'+icon('close')+'</button></div></header>'+
+      (window.AQARI_PROPERTY_EXPERIENCE?.summaryMarkup?.(context.property)||'')+
+      '<details class="aq267-property-finance"><summary>المؤشرات المالية والوحدات</summary>'+
       '<div class="v202-property-kpis">'+
         kpi('الوحدات',String(context.units),'المسجلة في العقار')+
         kpi('إيجار المصدر',money(context.income),'قيمة مرجعية وليست تحصيلاً فعلياً','gold')+
@@ -1833,7 +1835,7 @@
         kpi('المصروفات',money(context.expenseTotal),context.expenses.length+' بند مسجل')+
         kpi('صافي المقبوضات المسجلة',context.net===null?'معلّق':money(context.net),context.net===null?'يلزم توثيق فترة المصروفات وحالة صرفها':'دفعات الفترة المعتمدة؛ ليس ربحاً محاسبياً نهائياً','gold')+
       '</div>'+
-      '<nav class="v202-actions" aria-label="إجراءات العقار">'+
+      '</details><nav class="v202-actions" aria-label="إجراءات العقار">'+
         '<button type="button" data-v202-action="contract">'+icon('contract')+'<span><strong>'+(protectedOnly?'عقود العقار':'إبرام عقد')+'</strong><small>'+(protectedOnly?'عرض العقود المرتبطة':'إنشاء وربط العقد')+'</small></span></button>'+
         '<button type="button" data-v202-action="payment">'+icon('wallet')+'<span><strong>'+(canWrite?'تسجيل إيجار':'التحصيل')+'</strong><small>'+(canWrite?'تحصيل وإصدار وصل':'عرض الدفعات والوصولات')+'</small></span></button>'+ 
         '<button type="button" data-v202-action="statement">'+icon('chart')+'<span><strong>كشف الإيجار</strong><small>كشف تفصيلي PDF</small></span></button>'+ 
@@ -3896,6 +3898,13 @@
       },
       seal:sealProtectedImport,
       openProperty:function(name,period){return protectedAccessReady()?openWorkspace(name,document.activeElement,period):false},
+      propertyRecords:function(){
+        if(!protectedAccessReady())return [];
+        return rows('properties').filter(Array.isArray).map(function(row){
+          const metadata=row.find(function(value){return value&&typeof value==='object'&&value.aqariPropertyPresentation===1});
+          return row.slice(0,4).concat(metadata?[{aqariPropertyPresentation:1,location:metadata.location,price:metadata.price,purpose:metadata.purpose,phone:metadata.phone,photos:Array.isArray(metadata.photos)?metadata.photos.slice(0,4):[]}]:[]);
+        });
+      },
       rentOfficeProperties:function(){return secureRentOfficeProperties()},
       rentOfficeData:function(name,period){return secureRentOfficeData(name,period)},
       dailyCollectionSummary:dailyCollectionSummary,

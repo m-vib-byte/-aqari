@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "e6eb0e9bfdf375299b3f2430c51932ecb9e2a5c4ccddd539342a8e74402f94f1",
-      "size": 6500
+      "sha256": "75406f0e32e490e9c914cd7158f4e031378fc466b651038880b43c369976f69a",
+      "size": 6638
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -459,6 +459,11 @@
       "path": "docs/V267-PRIVATE-FILES-VERIFICATION.md",
       "sha256": "d52fd9fd78ac70cc433313c1d299cfd06d85ab8216821f7799ad24a82e236500",
       "size": 3421
+    },
+    {
+      "path": "docs/V267-PROPERTY-EXPERIENCE-2026-09-12.md",
+      "sha256": "96e17f5da3ff1ef1113a6293c75dbf7c7b4593a61ba95b2b09cd8525a5e88788",
+      "size": 2964
     },
     {
       "path": "docs/V267-PROPERTY-NOTICES-GUIDE.md",
@@ -911,6 +916,16 @@
       "size": 510
     },
     {
+      "path": "src/v267/components/property-experience.js",
+      "sha256": "459e91aa0a61411d5de5c7f1e91172e03b91bb25838d550765054bdb1a0648c3",
+      "size": 4716
+    },
+    {
+      "path": "src/v267/components/property-form.js",
+      "sha256": "fbc783b1595522e668bb96916c7fef1226867c945d1dcd7e5bca56e0078fc285",
+      "size": 5599
+    },
+    {
       "path": "src/v267/components/scan-image.js",
       "sha256": "b2d6de0b958346ed0872ad471bd4d3c18715a5fab853154e6b2a6e761af132a4",
       "size": 2592
@@ -969,6 +984,11 @@
       "path": "src/v267/domain/payroll.js",
       "sha256": "3234b24bdcab2878d2b01f0895ab71636ec681484b9e14fffbbef57735593c27",
       "size": 6892
+    },
+    {
+      "path": "src/v267/domain/property-presentation.js",
+      "sha256": "c498ed705205c29305a6420fdaca60c4b9d9900ccb0c3b93128ab81b381606cd",
+      "size": 4909
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1151,6 +1171,11 @@
       "sha256": "788fc96d0c3f01b624906c41b867d9762a4272b11133e33a230116db7497c09a"
     },
     {
+      "path": "src/v267/styles/property-experience.css",
+      "sha256": "1fadd8dd4579d07c51aeeadd9779f2603a9b1e0ef563fe9311b2ecc926a42a9a",
+      "size": 5783
+    },
+    {
       "path": "src/v267/styles/service-directory.css",
       "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
       "size": 6716
@@ -1162,8 +1187,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "081b69123c2847154ac7075333008d09db6efe690c1f3c17b0e1301abe94c35d",
-      "size": 20524
+      "sha256": "0f3922412c54b884af9c092211483c9779c3c9ab63ec175ed6e3fd2989eb2971",
+      "size": 20922
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -2346,9 +2371,19 @@
       "size": 10096
     },
     {
+      "path": "tests/v267-property-experience.fixture.html",
+      "sha256": "49f55ea3c627dd5415b911c72f3e6bba9973fbff117edcb1b825dec98cc4c7b0",
+      "size": 4576
+    },
+    {
       "path": "tests/v267-property-notices.test.cjs",
       "sha256": "50e5083770aac3e033658ace893d9f63d8f75587be0f1c08661141623f7c5354",
       "size": 7318
+    },
+    {
+      "path": "tests/v267-property-presentation.test.mjs",
+      "sha256": "1f315b30125c8844ee55e12aa936c274c9c7a3637ad4a90416d8f9df233f1690",
+      "size": 4302
     },
     {
       "path": "tests/v267-recovery-boundary.test.cjs",
@@ -2502,8 +2537,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "54cda46b769e12bc9af49e2ae7d2523c993d7c2bb96d6a85fd16d847712819fc",
-      "size": 268343
+      "sha256": "4e692204f61342e6828d5215d0c7ba6787c5a42dd6ffe6b71c1f2d00eeab0433",
+      "size": 269102
     },
     {
       "path": "v205-simple.css",
@@ -2612,8 +2647,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "30178fed5d36f8e3d41f33c1f8ff7cb377e8b5223d014bffeb13e01fddc4fe7d",
-      "size": 41576
+      "sha256": "f68e9f677038d5a6f63c3bddcce1161a2ceb643c426f52894816e26da7c8956e",
+      "size": 42567
     },
     {
       "path": "v267-reset-password.js",
