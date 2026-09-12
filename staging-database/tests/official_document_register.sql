@@ -30,6 +30,6 @@ do $$ begin
  if jsonb_array_length(public.aqari_official_document_register(current_setting('aqari.test.official.workspace')::uuid,'list')->'items')<>1 then raise exception 'ACCOUNTANT_READ_FAILED';end if;
 end $$;
 reset role;
-begin update private.aqari_official_document_versions set title='tampered' where id='7f670000-0000-4000-8000-000000000011';raise exception 'IMMUTABLE_VERSION_CHANGED';exception when check_violation then null;end;
+do $$begin update private.aqari_official_document_versions set title='tampered' where id='7f670000-0000-4000-8000-000000000011';raise exception 'IMMUTABLE_VERSION_CHANGED';exception when check_violation then null;end$$;
 rollback;
 select 'PASS: issue/readback/supersede/history/void/role/MFA/immutability';

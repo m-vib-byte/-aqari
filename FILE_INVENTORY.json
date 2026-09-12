@@ -2092,8 +2092,8 @@
     },
     {
       "path": "staging-database/tests/official_document_register.sql",
-      "sha256": "a5394d6cdcb4055a1e118cb8f71b245b580142ed39aa008e3c7bbca3369f5e73",
-      "size": 4865
+      "sha256": "f8926654b3a1573965d72ef88779c2d734dd1df546b99c40c30f4157451e024e",
+      "size": 4872
     },
     {
       "path": "tests/official_document_pdf_test.py",
@@ -2149,6 +2149,11 @@
       "path": "tests/v267-final-gap-register.test.cjs",
       "sha256": "4dbf928667014a6ee76f44557f2eb90594b6eca6f604d65c0fc7d509222a79b5",
       "size": 2637
+    },
+    {
+      "path": "staging-database/tests/final_gap_register.sql",
+      "sha256": "c24ee6b87c52a55ce21568efba0c16e73bad48a9ae1de0a9997ec14074452584",
+      "size": 7110
     }
   ],
   "version": "V198"
