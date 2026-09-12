@@ -1,19 +1,21 @@
 {
   "schemaVersion": 1,
-  "sourceParentSHA": "9e811ca33613ec64e5194ab205b3fb149b5436fc",
-  "matrixSha256": "0eb23c386fdc82d6a1f2405918003ba7876c2a04552413819688c4b6837e4c01",
+  "sourceParentSHA": "5e0e241612a32d1540f12d7e37bd9154389b2516",
+  "matrixSha256": "62aa02e20724330d1fe5e24f62fda41e87035f50dc091069c480fa227b64bfa5",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
     "required": [
-      "requirements-155-acceptance",
-      "practical-core-acceptance",
+      "all-155-requirements-accepted",
+      "authenticated-live-acceptance",
+      "iphone-ipad-desktop-acceptance",
       "data-integrity",
-      "tested-data-and-attachment-backup",
-      "tested-rollback"
+      "tested-database-auth-and-attachment-backup",
+      "isolated-restore",
+      "tested-V266-rollback"
     ],
     "authorizationAlreadyGranted": true,
-    "evidenceReport": "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+    "evidenceReport": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md"
   },
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "evidence": {
