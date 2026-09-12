@@ -33,3 +33,22 @@ test('maintenance upload reserves private path, uploads without upsert and final
  assert.equal(calls[2][2].p_size_bytes,3);
  assert.match(calls[2][2].p_checksum,/^[a-f0-9]{64}$/);
 });
+
+test('failed maintenance upload finalization cancels the draft reservation and keeps the original error',async()=>{
+ const calls=[];
+ const id='22222222-2222-4222-8222-222222222222';
+ const failure=Error('STORED_FILE_NOT_CONFIRMED');
+ const client={
+  rpc:async(name,args)=>{
+   calls.push(['rpc',name,args]);
+   if(name==='aqari_maintenance_attachment_reserve')return {data:{attachment_id:id,storage_bucket:'aqari-documents',storage_path:'w/maintenance/r/'+id+'.jpg'},error:null};
+   if(name==='aqari_maintenance_attachment_finalize')return {data:null,error:failure};
+   if(name==='aqari_maintenance_attachment_cancel')return {data:id,error:null};
+   throw Error('unexpected rpc');
+  },
+  storage:{from:()=>({upload:async()=>({error:null})})}
+ };
+ await assert.rejects(uploadMaintenanceFiles({client,workspaceId:'w',requestId:'r',files:[photo()]}),error=>error===failure);
+ assert.equal(calls.at(-1)[1],'aqari_maintenance_attachment_cancel');
+ assert.deepEqual(calls.at(-1)[2],{p_attachment_id:id});
+});
