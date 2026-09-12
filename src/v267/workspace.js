@@ -21,6 +21,8 @@ function updateFeatureTools(){
  if(finance)finance.hidden=access?.features?.financial_register!==true||access?.permissions?.finance?.read!==true;
  if(deposits)deposits.hidden=access?.features?.deposit_register!==true||access?.permissions?.collections?.read!==true;
  if(vacatingReview)vacatingReview.hidden=access?.features?.vacating_review!==true||access?.role!=='general_manager';
+ const readiness=document.getElementById('aq267-unit-readiness');
+ if(readiness)readiness.hidden=access?.features?.unit_readiness!==true||access?.permissions?.properties?.read!==true;
  const exit=document.getElementById('aq267-exit-review');
  if(exit)exit.hidden=access?.features?.exit_review!==true||access?.role!=='general_manager';
  if(vacating)vacating.hidden=access?.features?.vacating_settlement!==true||access?.permissions?.contracts?.read!==true||access?.permissions?.collections?.read!==true;
@@ -83,9 +85,10 @@ export function install(){
  const officialDocumentsButton=ui('button','النماذج الرسمية وPDF والأرشيف');officialDocumentsButton.id='aq267-official-document-center';officialDocumentsButton.hidden=true;officialDocumentsButton.onclick=()=>import('./pages/official-document-center.js').then(m=>m.openOfficialDocumentCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const integrationsButton=ui('button','التكاملات الخارجية وWebhooks');integrationsButton.id='aq267-integration-center';integrationsButton.hidden=true;integrationsButton.onclick=()=>import('./pages/integration-center.js').then(m=>m.openIntegrationCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const financialArchiveButton=ui('button','الأرشيف المالي التاريخي');financialArchiveButton.id='aq267-financial-archive';financialArchiveButton.hidden=true;financialArchiveButton.onclick=()=>import('./pages/financial-archive.js').then(m=>m.openFinancialArchive()).catch(e=>notice.textContent=t(safeError(e)));
+ const readinessButton=ui('button','جاهزية الوحدات قبل التأجير');readinessButton.id='aq267-unit-readiness';readinessButton.hidden=true;readinessButton.onclick=()=>import('./pages/unit-readiness.js').then(m=>m.openUnitReadiness()).catch(e=>notice.textContent=t(safeError(e)));
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
- tools.append(staffAccess,financialRegister,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
+ tools.append(readinessButton,staffAccess,financialRegister,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
  const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
