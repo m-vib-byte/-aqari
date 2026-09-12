@@ -14,9 +14,9 @@ window.AQARI_SUPABASE={getClient:async()=>({}),context:{user:{id:'fixture'},work
 const state=window.AQARI_DIALOG_TEST={calls:0,phase:'ready',finish:null,pending:null,dialog:null};
 document.querySelector('#open').onclick=()=>{const d=state.dialog=createDialog('التحقق من انتهاء الاتصال');const read=node('button','قراءة سجل الاختبار');read.type='button';read.id='read';read.onclick=()=>{state.finish=null;state.pending=d.run(async()=>{state.calls++;state.phase='pending';await new Promise(resolve=>{state.finish=()=>{state.phase='resolved';resolve();};});state.phase='completed';});};d.body.append(node('p','هذا فحص ببيانات اصطناعية، وليس حساباً حقيقياً.'),read);};
 </script></body></html>`;
-// translations.js imports three additional real dictionaries. Omitting these
+// translations.js imports additional real dictionaries. Omitting these
 // modules yields HTTP 404 and prevents the entire fixture module from executing.
-const allowed=new Set(['src/v267/components/dialog.js','src/v267/api/session.js','src/v267/components/locale.js','src/v267/components/translations.js','src/v267/components/partner-translations.js','src/v267/components/deposit-translations.js','src/v267/components/exit-translations.js','src/v267/styles/workspace.css']);
+const allowed=new Set(['src/v267/components/dialog.js','src/v267/api/session.js','src/v267/components/locale.js','src/v267/components/translations.js','src/v267/components/partner-translations.js','src/v267/components/deposit-translations.js','src/v267/components/exit-translations.js','src/v267/components/lease-expiry-translations.js','src/v267/components/service-label-translations.js','src/v267/styles/workspace.css']);
 const server=createServer((req,res)=>{const p=new URL(req.url,'http://localhost').pathname.slice(1);res.setHeader('Cache-Control','no-store');if(!p){res.setHeader('Content-Type','text/html; charset=utf-8');return res.end(html);}if(p==='favicon.ico'){res.writeHead(204);return res.end();}if(!allowed.has(p)){console.error('Unserved fixture dependency: '+p);res.writeHead(404);return res.end();}res.setHeader('Content-Type',p.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8');res.end(fs.readFileSync(p));});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`,results=[];
 let browser;

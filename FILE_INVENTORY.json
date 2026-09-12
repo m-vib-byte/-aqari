@@ -357,7 +357,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "98aab45cd7516c631dc911c5b9b8b5e62f00379afb2bddee82e35dc6099814b7",
+      "sha256": "57f22a0ddd440ef26cedfb6f22671503349d680647383449c5571d968cc28421",
       "size": 308467
     },
     {
@@ -417,8 +417,8 @@
     },
     {
       "path": "docs/V267-LEASE-EXPIRY-2026-09-12.md",
-      "sha256": "397b6cb727b89799b131a7032977375f2c7bb741f9f199416591efd0b5bd686e",
-      "size": 6016
+      "sha256": "6c18bb3b080f9aa5f3f59c6c539b9f5d6f87643aded7a7fc7645a28f79b16c5d",
+      "size": 6605
     },
     {
       "path": "docs/V267-LINKED-RENTAL-DETAILS.md",
@@ -2147,8 +2147,8 @@
     },
     {
       "path": "tests/v267-dialog-progress.browser.mjs",
-      "size": 7936,
-      "sha256": "c3aa2770a4c62c9f460adbd71ba7d43e7ef0e068a8826d86a98ed107f17b0461"
+      "sha256": "03b8257a906553a9317237315f812294acfcf2134a6acbb4abaacb79c27d9ed7",
+      "size": 8033
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
@@ -2412,8 +2412,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "aa77700605866032378ab7adb5c402f4e0b493ac47b359d1272ec217e9a96529",
-      "size": 19435
+      "sha256": "4a3c8736690f078e07b8f1ed5921d1866679f0d761dc2715f7afec191dfe6542",
+      "size": 19719
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
