@@ -35,6 +35,7 @@ test('preparation refuses another database, private keys and unreviewed source d
   for(const projectRef of [PREVIEW_PROJECT,'qtavnufzbkdfeauyukot','unknown'])assert.throws(()=>productionPatch(read,{...options,projectRef}),/CURRENT_PRODUCTION_PROJECT_REQUIRED/);
   for(const publishableKey of ['service_role','sb_secret_never_public',''])assert.throws(()=>productionPatch(read,{...options,publishableKey}),/PUBLISHABLE_KEY_REQUIRED/);
   assert.throws(()=>productionPatch(path=>read(path)+(path==='cloud-sync.js'?PREVIEW_PROJECT:''),options),/PRODUCTION_SOURCE_CHANGED/);
+  assert.throws(()=>productionPatch(path=>path==='src/v267/workspace.js'?read(path).replace('tools.append(staffCirculars,readinessButton,','tools.append(readinessButton,'):read(path),options),/PRODUCTION_SOURCE_CHANGED/);
 });
 test('production document reads and writes retain scope, immutable uploads and the current data source',async()=>{
   const f=sessionFixture();

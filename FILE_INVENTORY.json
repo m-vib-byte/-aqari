@@ -357,7 +357,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "98ccccf7310bd2d6999f04c8ca71b8cbf353c7083a82e705c3cc994fce38b81e",
+      "sha256": "f7bd2c7c001c88ea6742075935f4fbb669b201644cf1493538f63fc8882cbe59",
       "size": 303540
     },
     {
@@ -482,8 +482,8 @@
     },
     {
       "path": "docs/V267-STAFF-CIRCULARS-2026-09-12.md",
-      "sha256": "152b7379a0131784e38d895f4060f22f7146400ae587882c538e3fef5ec5ea97",
-      "size": 4660
+      "sha256": "0f4d25250a569d7acaab613e24a687e63ed8f8f72d63bfd594e1bea03ea080c4",
+      "size": 5120
     },
     {
       "path": "docs/V267-UNIT-READINESS-2026-09-12.md",
@@ -752,8 +752,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "10bd380a7d218d84a021f2e39005492cb0e9a6c80d669287aa8af2c01d4f8ed9",
-      "size": 7422
+      "sha256": "c71adaa36897d45d53684e5d8d938279d303a086f68ed8b928b172c77eccd863",
+      "size": 7452
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -2277,8 +2277,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "e7a8d6bd794db20f354a51c9f8b04f10560e05fb3c3aed6eefc738c4a07abfcd",
-      "size": 9874
+      "sha256": "53004be669338d4edebde10c87fc5f9b28a0ef189ed8f6201973bb48b7f1829d",
+      "size": 10096
     },
     {
       "path": "tests/v267-property-notices.test.cjs",

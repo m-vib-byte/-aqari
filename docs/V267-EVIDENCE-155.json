@@ -2055,8 +2055,8 @@
     },
     {
       "path": "docs/V267-STAFF-CIRCULARS-2026-09-12.md",
-      "sha256": "152b7379a0131784e38d895f4060f22f7146400ae587882c538e3fef5ec5ea97",
-      "bytes": 4660,
+      "sha256": "0f4d25250a569d7acaab613e24a687e63ed8f8f72d63bfd594e1bea03ea080c4",
+      "bytes": 5120,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
