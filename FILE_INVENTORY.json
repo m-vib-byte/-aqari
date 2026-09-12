@@ -462,8 +462,8 @@
     },
     {
       "path": "docs/V267-PROPERTY-EXPERIENCE-2026-09-12.md",
-      "size": 4407,
-      "sha256": "7c41b240d9ad604df1af20f2552c4a22b535c2826f41c3c2fb1d61ff6252d4d9"
+      "size": 5110,
+      "sha256": "791c4c0c6578ed5da20ec4ca79bd81a2cc4b7c19374ffb0f137ec49c5ecb2471"
     },
     {
       "path": "docs/V267-PROPERTY-NOTICES-GUIDE.md",
@@ -1172,8 +1172,8 @@
     },
     {
       "path": "src/v267/styles/property-experience.css",
-      "sha256": "1fadd8dd4579d07c51aeeadd9779f2603a9b1e0ef563fe9311b2ecc926a42a9a",
-      "size": 5783
+      "sha256": "054b1fd4d6ca6e01555d0a67460ca8c9dcd1b927f269fad3713a7ae2f0a550f1",
+      "size": 5901
     },
     {
       "path": "src/v267/styles/service-directory.css",
