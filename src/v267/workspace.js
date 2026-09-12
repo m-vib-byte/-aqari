@@ -73,6 +73,7 @@ export function install(){
  if(!document.getElementById('aq267-service-directory-css')){const css=node('link');css.id='aq267-service-directory-css';css.rel='stylesheet';css.href='/src/v267/styles/service-directory.css?release=V267';document.head.append(css);}
  const menu=document.getElementById('v199MoreMenu');if(!menu){installed=false;return;}
  propertyExperience=installPropertyExperience({readable:()=>directoryAllowed({section:'properties'}),writable:()=>directoryAllowed({section:'properties'})&&access?.permissions?.properties?.write===true&&['general_manager','property_manager'].includes(access?.role)});
+ window.AQARI_DOCUMENTS={allowed:()=>directoryAllowed({section:'documents'})};
  const tools=node('section'),control=node('button',label('control_center')),scan=node('button',label('scan_document')),language=node('select');tools.className='aq267-tools';tools.id='aq267-workspace-tools';notice=node('p');notice.setAttribute('role','status');
  for(const [value,text]of Object.entries(LANGUAGES)){const option=node('option',text);option.value=value;language.append(option);}
  control.dataset.aq267Label='control_center';scan.dataset.aq267Label='scan_document';

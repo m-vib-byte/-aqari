@@ -36,7 +36,7 @@ const server=http.createServer((req,res)=>{
   }
   if(req.method==='GET'&&storageReadDenied)return reply(res,{error:'DENIED'},403);
   if(req.method==='GET'&&storageReadUnavailable)return reply(res,{error:'TEMPORARY_UNAVAILABLE'},503);
-  if(req.method==='GET'&&storageBytes){res.writeHead(200,{'content-type':'image/jpeg','cache-control':'no-store'});res.end(storageBytes);return;}
+  if(req.method==='GET'&&storageBytes){res.writeHead(200,{'content-type':docs[0]?.mime_type||'application/octet-stream','cache-control':'no-store'});res.end(storageBytes);return;}
   return reply(res,{error:'NOT_STORED'},404);
  }
  if(url.pathname.startsWith('/fixture/')){let body='';req.on('data',x=>body+=x);req.on('end',()=>{
@@ -56,7 +56,7 @@ const server=http.createServer((req,res)=>{
   if(name==='aqari_document_entities')return reply(res,[{entity_ref:'p1',title:'عقار اختبار مستقل'}]);
   if(name==='aqari_document_listing')return reply(res,docs.map(d=>({...d,author_name:'مدير اختبار'})));
   if(name==='aqari_reserve_document'){
-   const d={id:'33333333-3333-4333-8333-333333333333',document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_path:wid+'/33333333-3333-4333-8333-333333333333.jpg',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
+   const d={id:'33333333-3333-4333-8333-333333333333',document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_path:wid+'/33333333-3333-4333-8333-333333333333.pdf',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
    docs.push(d);return reply(res,[{document_id:d.id,document_no:d.document_no,storage_bucket:'aqari-documents',storage_path:d.storage_path}]);
   }
   if(name==='aqari_finalize_document'){const d=docs.find(d=>d.id===args.p_document_id);assert.ok(storageBytes?.length);d.status='uploaded';d.checksum_sha256=args.p_checksum;d.size_bytes=args.p_size_bytes;return reply(res,d.id);}
@@ -328,7 +328,7 @@ try{
     await page.getByLabel('تصنيف المستند',{exact:true}).selectOption('ownership_deed');
     await page.getByLabel('عنوان المستند',{exact:true}).fill('وثيقة اختبار للمسح');
     const png=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=600;canvas.height=900;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,600,900);ctx.fillStyle='black';ctx.font='40px sans-serif';ctx.fillText('AQARI scan fixture',40,80);return canvas.toDataURL('image/png').split(',')[1];});
-    await page.getByLabel('تصوير المستند أو اختيار ملف',{exact:true}).setInputFiles({name:'scan.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+    await page.getByLabel('اختيار ملف أو صور من الجهاز',{exact:true}).setInputFiles([{name:'scan-1.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')},{name:'scan-2.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')}]);
     await page.getByText('راجع وضوح الصورة والعنوان والسجل، ثم ارفع النسخة.',{exact:true}).waitFor();
     await page.getByRole('button',{name:'تدوير الصورة',exact:true}).click();
     storageFailBefore=true;
@@ -347,7 +347,8 @@ try{
     assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.equal(docs[0].metadata.document_category,'ownership_deed','selected category survives upload and canonical readback');
     assert.equal(docs[0].document_type,'mobile_scan','property evidence cannot become a signed contract');
-    assert.ok(storageBytes[0]===255&&storageBytes[1]===216,'reencoded JPEG');
+    assert.equal(storageBytes.subarray(0,5).toString(),'%PDF-','images collected in a PDF');
+    assert.equal(docs[0].mime_type,'application/pdf');assert.equal(docs[0].metadata.page_count,2);assert.match(storageBytes.toString('latin1'),/\/Count 2/);
     assert.equal(await page.getByText('رفع بواسطة: مدير اختبار',{exact:true}).count(),1);
     const layout=await page.getByRole('dialog').evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth,buttons:[...el.querySelectorAll('button')].filter(b=>b.getBoundingClientRect().height>0).every(b=>b.getBoundingClientRect().height>=44)}));
     assert.ok(layout.scroll<=layout.client+1);assert.ok(layout.width<=viewport.width);assert.ok(layout.buttons);

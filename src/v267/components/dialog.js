@@ -33,5 +33,5 @@ export function createDialog(title,{localized=false}={}){
    if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();
    else status.textContent=localized?t(safeError(e)):safeError(e);
   }}finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');controls.forEach((x,i)=>{if(x.isConnected)x.disabled=disabled[i];});}}}
- return {el,body,status,session,run,onDispose,get closed(){return closed;}};
+ return {el,body,status,session,run,onDispose,close:closeDialog,get closed(){return closed;}};
 }

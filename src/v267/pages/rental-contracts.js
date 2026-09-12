@@ -24,7 +24,7 @@ export function openContractPrint(id,count=1,mode='official'){
  const prepare=printControls(d,window.AQARI_RENTAL_RECORDS,createPrivateUrls(d),id,[[count,mode,'إعادة التحقق وتجهيز النسخة / Check and prepare copy']]);
  d.run(()=>prepare(count,mode));return true;
 }
-export function openRentalContracts(){
+export function openRentalContracts(initial={}){
  const d=createDialog('إبرام عقود الإيجار / Rental contracts');if(!d)return;
  const api=window.AQARI_RENTAL_RECORDS,urls=createPrivateUrls(d);let data,properties=[],units=[];
  const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=()=>d.run(fn);return b;};
@@ -47,6 +47,7 @@ export function openRentalContracts(){
   f.onsubmit=event=>{event.preventDefault();const fields=Object.fromEntries(Object.entries(controls).filter(([k])=>k!=='adjustment').map(([k,c])=>[k,c.value]));d.run(async()=>{const c={...existing,...fields,id,tenantId:tenant.value,property:property.value,unit:unit.value,rent:fields.contractRent,writtenOn:existing?.writtenOn||api.kuwaitDate(),rentalTermsVersion:1,contractReceived:received.value,freeMonthApproved:free.checked,freeMonthPeriod:freePeriod.value,evictionNotice:eviction.value,changeReason:reason.value.trim(),status:existing?.status||'draft',rentAdjustments:[...(existing?.rentAdjustments||[])],clauses:existing?.clauses||api.defaultClauses(),language:'ar-en'};const a=controls.adjustment;if(a?.enable.checked)c.rentAdjustments.push({effectiveMonth:a.effective.value,discount:a.discount.value,reason:a.why.value.trim()});await api.saveLease(c);d.session.check();await show(id);d.status.textContent='حُفظ العقد وربطه بالمستأجر والوحدة والعقار، مع سجل التغيير.';});};
  }
  async function show(id){await load();const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');clear('عقد '+c.contract_no);d.body.append(button('العودة للعقود / Back',home),node('p',(states[c.status]||c.status)+' · '+c.property+' · '+c.unit));
+  d.body.append(button('مسح أو رفع العقد ومرفقاته',async()=>{const m=await import('./document-scanner.js');d.session.check();d.close();return m.openDocumentScanner({type:'lease',ref:String(c.id),category:'lease_contract',onBack:()=>openRentalContracts({id:c.id})});}));
   if(c.source==='statement-import'){d.body.append(node('p','هذا عقد مستورد محفوظ للمراجعة. تُحسم بياناته من المرجع الأصلي عبر مسار اعتماد عقود المصدر.'));d.status.textContent='تم فتح مرجع العقد المستورد دون تعديل بيانات المصدر.';return;}
   const markup=node('div');markup.innerHTML=api.contractMarkup(c,1);d.body.append(markup);
   printControls(d,api,urls,id,[[1,'draft','مسودة للمراجعة فقط / Review draft'],[1,'official','تجهيز نسخة معتمدة للطباعة / Prepare approved copy'],[2,'official','تجهيز نسختين معتمدتين مع الملاحق / Prepare two approved sets']]);
@@ -70,5 +71,5 @@ export function openRentalContracts(){
   });};
   const history=await rpc('aqari_contract_history',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(id)});const box=node('details');box.append(node('summary','سجل العقد والنسخ السابقة / Contract history'));for(const h of history){const item=node('details');item.append(node('summary',h.actor_name+' · '+kuwaitTime(h.recorded_at)+' · '+h.reason),node('pre',JSON.stringify({before:h.before_snapshot,after:h.after_snapshot},null,2)));box.append(item);}d.body.append(box);d.status.textContent='تمت قراءة العقد ومستنداته وسجل نسخه المحفوظة.';
  }
- d.run(home);
+ d.run(initial.id!==undefined?()=>show(initial.id):home);
 }

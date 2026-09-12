@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DOCUMENT_CATEGORIES,documentCategory} from '../src/v267/components/document-catalog.js';
+import {scanGeometry,MAX_SOURCE_BYTES} from '../src/v267/components/scan-image.js';
+import {MAX_SCAN_PAGES,MAX_SCAN_BYTES} from '../src/v267/components/scan-pdf.js';
 import {originalDocument,createOriginalDocumentUpload} from '../src/v267/components/original-document-upload.js';
 test('all requested document families have explicit permitted record links',()=>{
  assert.equal(Object.keys(DOCUMENT_CATEGORIES).length,47);
@@ -44,7 +46,7 @@ test('scanner rotation follows the selected image after dialog controls are rest
  const {readFileSync}=await import('node:fs');const nodes=[];let rotated=0;
  const node=(tag,text='')=>{const n={tag,textContent:text,value:'',disabled:false,hidden:false,children:[],setAttribute(){},removeAttribute(){},append(...v){this.children.push(...v)},replaceChildren(...v){this.children=v},querySelectorAll(){return []},get options(){return this.children}};nodes.push(n);return n;};
  const d={closed:false,body:node('div'),status:node('p'),onDispose(){},session:{bound:{workspace:'test'},check(){},client:{rpc:(name,args)=>({name,args})},async request(){return [];}},async run(task){const controls=nodes.filter(n=>['button','input','select','textarea'].includes(n.tag));const before=controls.map(n=>n.disabled);controls.forEach(n=>n.disabled=true);try{await task();}finally{controls.forEach((n,i)=>n.disabled=before[i]);}}};
- const mocks={node,field:(_label,input)=>input,createDialog:()=>d,createPrivateUrls:()=>({create:()=> 'blob:synthetic',release(){},clear(){}}),t:s=>s,dateLocale:()=> 'ar',decodeImage:async()=>({image:true}),renderScan:async()=>{rotated++;return new Blob(['image']);},checksum:async()=>'',createVerifiedUpload:()=>async()=>{}};
+ const mocks={scanGeometry,MAX_SOURCE_BYTES,MAX_SCAN_PAGES,MAX_SCAN_BYTES,node,field:(_label,input)=>input,createDialog:()=>d,createPrivateUrls:()=>({create:()=> 'blob:synthetic',release(){},clear(){}}),t:s=>s,dateLocale:()=> 'ar',decodeImage:async()=>({naturalWidth:100,naturalHeight:200}),renderScan:async()=>{rotated++;return new Blob(['image']);},checksum:async()=>'',createVerifiedUpload:()=>async()=>{}};
  globalThis.__scannerControlTest=mocks;
  try{
   const source=readFileSync(new URL('../src/v267/pages/document-scanner.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
@@ -52,10 +54,10 @@ test('scanner rotation follows the selected image after dialog controls are rest
   await module.openDocumentScanner();
   const rotate=nodes.find(n=>n.tag==='button'&&n.textContent==='تدوير الصورة'),file=nodes.find(n=>n.type==='file');
   assert.equal(rotate.disabled,true);
-  file.files=[{type:'image/png',name:'scan.png'}];await file.onchange();
+  file.files=[new File(['fixture'],'scan.png',{type:'image/png'})];await file.onchange();
   assert.equal(rotate.disabled,false,'decoded image enables rotation after dialog finally');
   await rotate.onclick();assert.equal(rotated,2);assert.equal(rotate.disabled,false);
-  file.files=[{type:'application/pdf',name:'original.pdf'}];await file.onchange();
+  file.files=[new File(['%PDF-1.4'],'original.pdf',{type:'application/pdf'})];await file.onchange();
   assert.equal(rotate.disabled,true,'PDF must not inherit image rotation controls');
  }finally{delete globalThis.__scannerControlTest;}
 });

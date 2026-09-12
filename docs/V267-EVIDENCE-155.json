@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "c719452fb0c68b34dbd6facb49cc6eded3302076fa7ae8216a78c39b60ee130c",
+  "matrixSha256": "1be548d055411420e9d861434dbc873bde98141a3f53a84726e4ca00d1fb9e14",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -385,6 +385,15 @@
         "tests/v267-lease-expiry-runtime.test.mjs",
         "tests/v267-workspace-tools.e2e.mjs"
       ]
+    },
+    "E46": {
+      "files": [
+        "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
+        "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js",
+        "tests/v267-scanner-workflow.test.mjs"
+      ]
     }
   },
   "files": [
@@ -426,8 +435,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "0f3922412c54b884af9c092211483c9779c3c9ab63ec175ed6e3fd2989eb2971",
-      "bytes": 20922,
+      "sha256": "37f06120bb740e3d31ef17f395c4c2f385493475c0ebdd475428257eca6cb31a",
+      "bytes": 21001,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -484,8 +493,8 @@
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "618cde58bfd0bb85e654c6e2d61a537f3b0e6e5f070df27baa4c114be8bff7d6",
-      "bytes": 2029,
+      "sha256": "f2d28c6998ff95b805775632319a689b03761281646e1517bb0d51af02c2be69",
+      "bytes": 2890,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -627,8 +636,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "0c23a7432e7a1f3c2cbd814e79b3c5a2bfebc1dce3761f01d57c8f23b6a6d6cf",
-      "bytes": 17329,
+      "sha256": "c8eebaea13abf93b18d941fbbfaf3442020ea4dee2336f341f2c8c6a652d0634",
+      "bytes": 17674,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -724,8 +733,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "4e692204f61342e6828d5215d0c7ba6787c5a42dd6ffe6b71c1f2d00eeab0433",
-      "bytes": 269102,
+      "sha256": "bde7df547cdf60994fce6c89664751064090a9605b730cacab604eb5b8003c3c",
+      "bytes": 269911,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -780,8 +789,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "253751acc4a7bbb71d40aac503dc39b1297905235357a012f04829ddeba92a70",
-      "bytes": 12797,
+      "sha256": "7971c69dae0f8ced998daee90287b4a64e3d982b1f4b0957638e624bf1d8b901",
+      "bytes": 18010,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1031,8 +1040,8 @@
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
-      "sha256": "313c997937959aad96058981a6fce95d2ab14861d541030e1561fb38e7b6d492",
-      "bytes": 6253,
+      "sha256": "676edd093c6987f2298a95a0e230e9a0ccb025ea123961b1dc3cfbfa09d3f1b7",
+      "bytes": 6906,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1484,8 +1493,8 @@
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "b7e997b63f21f849b5ed3b9d865e14ecf79680ce2af0db769afcc544261e5c13",
-      "bytes": 7614,
+      "sha256": "5160dba6b3e73590b6abe5ec008e89aeda0115bdd89bcefbea7618dc814aa99b",
+      "bytes": 9171,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2200,12 +2209,48 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "a5c55c55313834d52f37564d69260f7373fd7596379dbe9e6ddfbbff528342c0",
-      "bytes": 51869,
+      "sha256": "64d007800467d33f47a127287406ebec0a4f144d9ef8c60659fee12ebb8852b0",
+      "bytes": 52152,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "browser-suite"
+    },
+    {
+      "path": "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
+      "sha256": "bfb80f78809bb8d81d97a3b065f289dafd00211172c62c04073830cff537ee32",
+      "bytes": 3338,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/components/scan-pdf.js",
+      "sha256": "24b211849a23de1e7f4aa628a5f5f59cb0758e82c971d4d89ed3fe3692f94241",
+      "bytes": 2578,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/components/document-target.js",
+      "sha256": "2a41b3a4fa9b4fdd3eaab94a7f93f702c2aa5e7fca89e39983a1dd88ececb0ce",
+      "bytes": 759,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/v267-scanner-workflow.test.mjs",
+      "sha256": "70924026cca70c7dcbe91935830425f8352c3c731348b3c982d7906154457d36",
+      "bytes": 9842,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
     }
   ],
   "requirements": [
@@ -4379,13 +4424,19 @@
       "id": 63,
       "sourceId": "G06-02",
       "requirement": "تسجيل توقيع العقد من الطرفين مع رفع النسخة الموقعة.",
-      "reportedImplementation": "جزئي — E08 يمنع حالة موقع دون مستند؛ فحص توقيع طرفين فعلي غير مثبت E01.",
+      "reportedImplementation": "جزئي — E46 يضيف مسح صفحات العقد وربطها مع إقرار المراجعة، وE08 يمنع حالة موقع دون مستند؛ فحص توقيع طرفين فعلي غير مثبت E01.",
       "acceptanceRemaining": "رفع الأصل الفعلي وربطه بالعقد وإثبات مراجعة توقيعي الطرفين دون توليد توقيع.",
       "evidenceIds": [
+        "E46",
         "E08",
         "E01"
       ],
       "evidenceFiles": [
+        "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
+        "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js",
+        "tests/v267-scanner-workflow.test.mjs",
         "src/v267/pages/rental-contracts.js",
         "staging-database/sql/rental-contract-provisions.sql",
         "staging-database/tests/rental_contract_provisions.sql",
@@ -4393,12 +4444,16 @@
         "staging-database/RELEASE_GATE_2026_09_09.md"
       ],
       "uiFiles": [
+        "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js",
         "src/v267/pages/rental-contracts.js"
       ],
       "sqlFiles": [
         "staging-database/sql/rental-contract-provisions.sql"
       ],
       "testFiles": [
+        "tests/v267-scanner-workflow.test.mjs",
         "staging-database/tests/rental_contract_provisions.sql"
       ],
       "requiredVerification": [
@@ -4832,18 +4887,23 @@
       "id": 73,
       "sourceId": "G07-04",
       "requirement": "حفظ مرفقات المستندات مع العقود والتحصيل والصيانة.",
-      "reportedImplementation": "جزئي — E12، E13 تدعمان العقود وإثبات الدفع؛ مرفقات طلب الصيانة غير مكتملة E17.",
+      "reportedImplementation": "جزئي — E46 يضيف دخولاً مباشراً للمرفقات من العقد والعقار والمستندات، وE12، E13 تدعمان العقود وإثبات الدفع؛ مرفقات طلب الصيانة غير مكتملة E17.",
       "acceptanceRemaining": "رفع واسترجاع ملف مرتبط بكل نوع مع رفض القراءة من حساب غير مخول.",
       "evidenceIds": [
+        "E46",
         "E12",
         "E13",
         "E17"
       ],
       "evidenceFiles": [
+        "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
+        "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js",
+        "tests/v267-scanner-workflow.test.mjs",
         "api/rent-receipt.py",
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
         "staging-database/tests/rental_transaction.sql",
-        "src/v267/pages/document-scanner.js",
         "staging-database/supabase/migrations/20260907204823_v267_document_scanner.sql",
         "docs/V267-PRIVATE-FILES-VERIFICATION.md",
         "v267-tenant-portal.js",
@@ -4852,6 +4912,8 @@
       ],
       "uiFiles": [
         "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js",
         "v267-tenant-portal.js"
       ],
       "sqlFiles": [
@@ -4860,6 +4922,7 @@
         "staging-database/supabase/migrations/20260907084949_v267_tenant_portal_identity.sql"
       ],
       "testFiles": [
+        "tests/v267-scanner-workflow.test.mjs",
         "staging-database/tests/rental_transaction.sql",
         "tests/v267-tenant-portal.test.cjs"
       ],
@@ -4873,23 +4936,32 @@
       "id": 74,
       "sourceId": "G07-05",
       "requirement": "ضغط الصور والمرفقات لتناسب الهاتف.",
-      "reportedImplementation": "جزئي — E13 يضغط الصور إلى JPEG؛ لا معالجة عامة لكل PDF ومرفق.",
+      "reportedImplementation": "جزئي — E46 يجمع الصور المرتبة في PDF ويختبر استرجاعه محلياً، وE13 يضغط الصور إلى JPEG؛ لا معالجة عامة لكل PDF ومرفق.",
       "acceptanceRemaining": "رفع ملفات ممثلة من الهاتف وحجم مناسب مع وضوح الأرقام والختوم.",
       "evidenceIds": [
+        "E46",
         "E13"
       ],
       "evidenceFiles": [
+        "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
         "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js",
+        "tests/v267-scanner-workflow.test.mjs",
         "staging-database/supabase/migrations/20260907204823_v267_document_scanner.sql",
         "docs/V267-PRIVATE-FILES-VERIFICATION.md"
       ],
       "uiFiles": [
-        "src/v267/pages/document-scanner.js"
+        "src/v267/pages/document-scanner.js",
+        "src/v267/components/scan-pdf.js",
+        "src/v267/components/document-target.js"
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907204823_v267_document_scanner.sql"
       ],
-      "testFiles": [],
+      "testFiles": [
+        "tests/v267-scanner-workflow.test.mjs"
+      ],
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
