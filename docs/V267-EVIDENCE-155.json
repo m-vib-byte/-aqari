@@ -2715,8 +2715,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "f89f9ded0530c16cca96fd8d22eddaf11d0231e36e0b0ef4acc7ed073f9ce550",
-      "bytes": 53127,
+      "sha256": "8a872c61930ce6064700162970529a5daa119cb141a204db2467b877c495c8a3",
+      "bytes": 57766,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2760,8 +2760,8 @@
     },
     {
       "path": "docs/V267-COMPLETION-BATCH-2026-09-12.md",
-      "sha256": "4cf25a50d8bcd82a8042bedc7352df1282d691ad15b2c05be899be10c7a67db4",
-      "bytes": 15147,
+      "sha256": "95f0ff697af0934ecd6f9a61f64c6ceea7ae2edc288e014d13e5718595e5cedd",
+      "bytes": 16684,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

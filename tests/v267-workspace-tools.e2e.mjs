@@ -2,6 +2,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {chromium,webkit} from 'playwright';
 import {t as translate,message as formatMessage} from '../src/v267/components/locale.js';
 import {label as navLabel} from '../src/v267/components/catalog.js';
@@ -11,6 +12,9 @@ const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-22
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
 let maintenanceReadUnavailable=false,maintenanceReadbackDenied=false,maintenanceLocationDenied=false,maintenanceLocationUnavailable=false,storageFailBefore=false,storageLoseReply=false,storageReadDenied=false,storageReadUnavailable=false,storageAttempts=0;
 let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false,maintenanceRows=[],maintenanceWrites=0,maintenanceWriteDenied=false,maintenanceWriteUnavailable=false,maintenanceReadDenied=false,prepareCalls=0;
+let maintenanceAttachmentCalls=[],maintenanceAttachmentReads=0,maintenanceAttachmentWrites=0;
+const maintenanceAttachmentBytes=Buffer.from([255,216,255,224,1,2,3,4,5,6,7,8]);
+const maintenanceAttachment={id:'44444444-4444-4444-8444-444444444444',workspace_id:wid,request_id:'request2',created_by:uid,filename:'closed-request-original.jpg',mime_type:'image/jpeg',size_bytes:maintenanceAttachmentBytes.length,checksum_sha256:createHash('sha256').update(maintenanceAttachmentBytes).digest('hex'),status:'uploaded',storage_bucket:'aqari-maintenance-private',storage_path:wid+'/request2/44444444-4444-4444-8444-444444444444'};
 const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
 const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
 const secondStatement=structuredClone(statement);secondStatement.property_id='p2';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
@@ -28,6 +32,11 @@ const server=http.createServer((req,res)=>{
  const url=new URL(req.url,'http://127.0.0.1');
  if(url.pathname.startsWith('/storage-fixture/storage/v1/object/')){
   if(req.headers.authorization!=='Bearer synthetic-not-a-real-token')return reply(res,{error:'AUTH'},403);
+  if(url.pathname.includes('/aqari-maintenance-private/')){
+   if(url.pathname!=='/storage-fixture/storage/v1/object/'+(req.method==='GET'?'authenticated/':'')+'aqari-maintenance-private/'+maintenanceAttachment.storage_path)return reply(res,{error:'SCOPE'},403);
+   if(req.method!=='GET'){maintenanceAttachmentWrites++;req.resume();return reply(res,{error:'CLOSED_REQUEST'},403);}
+   maintenanceAttachmentReads++;res.writeHead(200,{'content-type':maintenanceAttachment.mime_type,'cache-control':'no-store'});res.end(maintenanceAttachmentBytes);return;
+  }
   if(!url.pathname.includes('/aqari-documents/'+wid+'/'))return reply(res,{error:'SCOPE'},403);
   if(req.method==='POST'){
    storageAttempts++;if(storageFailBefore){storageFailBefore=false;req.resume();return reply(res,{error:'TEMPORARY_UNAVAILABLE'},503);}
@@ -61,6 +70,13 @@ const server=http.createServer((req,res)=>{
   }
   if(name==='aqari_finalize_document'){const d=docs.find(d=>d.id===args.p_document_id);assert.ok(storageBytes?.length);d.status='uploaded';d.checksum_sha256=args.p_checksum;d.size_bytes=args.p_size_bytes;return reply(res,d.id);}
   if(name==='aqari_documents')return reply(res,args._single?docs.find(d=>d.id===args.id):[{id:'signed1',document_no:'SIGN-TEST',title:'عقد أصلي <موقع>',status:'uploaded'}]);
+  if(name==='aqari_maintenance_attachments'){
+   assert.equal(args.p_workspace_id,wid,'maintenance attachments stay workspace scoped');
+   assert.equal(args.p_request_id,'request2','closed-card attachment reads use its exact request');
+   maintenanceAttachmentCalls.push(structuredClone(args));
+   if(args.p_action!=='list'){maintenanceAttachmentWrites++;return reply(res,{message:'CLOSED_REQUEST'},403);}
+   assert.deepEqual(args.p_data,{});return reply(res,{can_upload:false,attachments:[maintenanceAttachment]});
+  }
   if(name==='aqari_maintenance_requests'){
    assert.equal(args.workspace_id,wid,'maintenance requests stay workspace scoped');
    assert.doesNotMatch(args._select,/aqari_leases|snapshot/,'maintenance never fetches private contract snapshots');
@@ -219,8 +235,32 @@ async function verifyServiceDesk(page,locale,name,viewport){
  assert.equal(await card.getByText(fmt('العقار: {property} • الوحدة: {unit}',{property:propertyName,unit:'101'}),{exact:true}).count(),1,'location is available without the private lease join');
  assert.ok(!(await card.textContent()).includes('C-101'),'maintenance location does not include a contract number');
  assert.equal(await card.getByText('وصف <طلب> {status}',{exact:true}).count(),1,'request description is literal');
- assert.equal(await completed.getByRole('button').count(),0,'closed requests cannot save');
+ assert.equal(await completed.getByRole('button',{name:tr('حفظ الحالة والتكلفة'),exact:true}).count(),0,'closed requests expose no save action');
  assert.equal(await completed.getByLabel(tr('التكلفة — د.ك'),{exact:true}).isDisabled(),true);
+ const closedState=completed.getByLabel(tr('حالة الطلب'),{exact:true});
+ assert.equal(await closedState.isDisabled(),true,'closed requests cannot transition');
+ assert.deepEqual(await closedState.locator('option').evaluateAll(options=>options.map(option=>option.value)),['completed']);
+ const closedBefore=structuredClone(maintenanceRows.find(row=>row.id==='request2')),closedWritesBefore=maintenanceWrites,attachmentCallsBefore=maintenanceAttachmentCalls.length,attachmentReadsBefore=maintenanceAttachmentReads;
+ await completed.getByRole('button',{name:tr('صور البلاغ ومرفقاته'),exact:true}).click();
+ await completed.getByText('يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.',{exact:true}).waitFor();
+ assert.equal(await completed.locator('input[type=file]:visible').count(),0,'closed attachments expose no file or camera input');
+ const upload=completed.getByRole('button',{name:'رفع المرفقات والتحقق منها',exact:true,includeHidden:true});
+ assert.equal(await upload.isVisible(),false,'closed attachments expose no upload action');
+ assert.equal(await upload.isDisabled(),true);
+ // Even a synthetic change to the hidden input cannot invoke reserve/finalize or Storage POST.
+ await completed.locator('input[type=file]').first().setInputFiles({name:'blocked.jpg',mimeType:'image/jpeg',buffer:maintenanceAttachmentBytes});
+ assert.equal(await upload.isDisabled(),true);
+ await upload.evaluate(button=>button.onclick());
+ await completed.getByRole('button',{name:'استرجاع المرفق',exact:true}).click();
+ const originalLink=completed.getByRole('link',{name:'فتح / تحميل الملف المحفوظ',exact:true});await originalLink.waitFor();
+ const downloaded=await originalLink.evaluate(async link=>Array.from(new Uint8Array(await (await fetch(link.href)).arrayBuffer())));
+ assert.deepEqual(Buffer.from(downloaded),maintenanceAttachmentBytes,'closed request retrieves the unchanged original bytes');
+ assert.equal(await originalLink.getAttribute('download'),maintenanceAttachment.filename);
+ assert.equal(maintenanceAttachmentReads,attachmentReadsBefore+1);
+ assert.deepEqual(maintenanceAttachmentCalls.slice(attachmentCallsBefore).map(call=>call.p_action),['list','list'],'attachment opening and download only reread metadata');
+ assert.equal(maintenanceAttachmentWrites,0,'closed requests never reserve/finalize or upload');
+ assert.equal(maintenanceWrites,closedWritesBefore,'reading closed attachments never saves or transitions the request');
+ assert.deepEqual(maintenanceRows.find(row=>row.id==='request2'),closedBefore,'closed state, cost and revision remain unchanged');
  const cost=card.getByLabel(tr('التكلفة — د.ك'),{exact:true}),save=()=>card.getByRole('button',{name:tr('حفظ الحالة والتكلفة'),exact:true});
  const before=maintenanceWrites,storedCostBefore=await cost.inputValue();
  await cost.fill('6.125');maintenanceLocationUnavailable=true;await refresh();
@@ -273,6 +313,7 @@ try{
   const browser=await engine.launch();
   try{for(const [device,viewport]of [['iphone',{width:390,height:844}],['ipad',{width:820,height:1180}],['desktop',{width:1440,height:1000}]]){
    maintenanceReadUnavailable=false;maintenanceReadbackDenied=false;maintenanceLocationDenied=false;maintenanceLocationUnavailable=false;storageFailBefore=false;storageLoseReply=false;storageReadDenied=false;storageReadUnavailable=false;storageAttempts=0;
+   maintenanceAttachmentCalls=[];maintenanceAttachmentReads=0;maintenanceAttachmentWrites=0;
    settings={sections:{},permissions:{},labels:{}};revision=0;audit=[];docs=[];storageBytes=null;storageUploads=0;calls=[];failingWrite=false;entries=[];entryWrites=0;reviewWrites=0;statementReadDenied=false;maintenanceWrites=0;maintenanceWriteDenied=false;maintenanceWriteUnavailable=false;maintenanceReadDenied=false;prepareCalls=0;maintenanceRows=[{id:'request1',request_no:'TEST-1',workspace_id:wid,description:'وصف <طلب> {status}',status:'received',cost:'0.000',revision:1,lease:null,tenant:{full_name:tenantName}},{id:'request2',request_no:'TEST-2',workspace_id:wid,description:'طلب مغلق',status:'completed',cost:'2.000',revision:1,lease:null}];
    const context=await browser.newContext({viewport,deviceScaleFactor:1}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
    // The fixture redirects only the pinned Storage URL to its local HTTP endpoint.
