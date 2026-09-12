@@ -48,10 +48,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Refresh only verified repair checksums
         shell: python
         run: |
-          import hashlib, json
+          import hashlib, json, subprocess
           from pathlib import Path
           verified = {
               'src/v267/pages/financial-archive.js': '7f72ed6d0c1bb19a6de5aca374fe2eaa66acc88999a46e1f53d456de31a8c130',
@@ -65,12 +68,23 @@ jobs:
           inventory = json.loads(raw)
           rows = {row['path']: row for row in inventory['files']}
           assert len(rows) == len(inventory['files']), 'Duplicate inventory paths'
-          paths = [*verified, '.github/workflows/archive-integrity.yml']
+          evidence_path = Path('docs/V267-EVIDENCE-155.json')
+          before_evidence = json.loads(evidence_path.read_text())
+          subprocess.run(['node', 'scripts/audit-v267-evidence.mjs', '--write'], check=True)
+          after_evidence = json.loads(evidence_path.read_text())
+          assert {k:v for k,v in before_evidence.items() if k != 'files'} == {k:v for k,v in after_evidence.items() if k != 'files'}, 'Evidence acceptance or mapping changed'
+          before_files = {row['path']: row for row in before_evidence['files']}
+          after_files = {row['path']: row for row in after_evidence['files']}
+          assert before_files.keys() == after_files.keys(), 'Evidence file set changed'
+          for name, row in before_files.items():
+              if name not in verified:
+                  assert row == after_files[name], 'Unrelated evidence changed: ' + name
+          paths = [*verified, '.github/workflows/archive-integrity.yml', str(evidence_path)]
           desired = {}
           for name in paths:
               data = Path(name).read_bytes()
               desired[name] = {'path': name, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data)}
-          if actual_blob != 'ce97ec7d5b2fb4fcf5306bc455d1a4ded4c4c8ea':
+          if actual_blob != '344d5b92aaf12a605d60dde02c3fc94fc526cd7d':
               assert all(rows.get(name) == row for name, row in desired.items()), 'Inventory base changed; reconcile before writing'
               print('Verified repair inventory already matches; no rewrite.')
           else:
@@ -81,15 +95,19 @@ jobs:
                   else:
                       inventory['files'].append(row)
               Path('FILE_INVENTORY.json').write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + '\n')
-              print('Refreshed only the four verified archive repair entries.')
+              print('Preserved concurrent fixes; refreshed only archive and evidence checksums.')
+      - name: Verify the combined inventory and evidence
+        run: |
+          node scripts/release-freeze-selftest.mjs
+          node --test tests/v267-evidence-matrix.test.mjs tests/v267-financial-archive.test.cjs
       - name: Commit inventory on repair branch only
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet -- FILE_INVENTORY.json; then exit 0; fi
+          if git diff --quiet -- FILE_INVENTORY.json docs/V267-EVIDENCE-155.json; then exit 0; fi
           git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add FILE_INVENTORY.json
-          git commit -m 'Refresh verified archive repair inventory after browser tests'
+          git add FILE_INVENTORY.json docs/V267-EVIDENCE-155.json
+          git commit -m 'Reconcile tested archive inventory and evidence without losing concurrent V267 repairs'
           git push origin HEAD:refs/heads/fix/v267-archive-integrity
