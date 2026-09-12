@@ -7,7 +7,7 @@ const file=()=>new File([new Uint8Array([255,216,255,224]),'abandoned reservatio
 function fixture(){
  const docs=new Map(),objects=new Map(),calls=[];
  const state={failPost:false};
- const api=createMaintenanceAttachments({
+ const options={
   workspaceId:'w',requestId:'r',userId:'tenant-a',check(){},
   async rpc(name,args){
    assert.equal(name,'aqari_maintenance_attachments');calls.push(args.p_action);
@@ -33,35 +33,27 @@ function fixture(){
    if(method==='POST'){if(state.failPost)throw Error('storage unavailable');objects.set(path,blob);return;}
    if(!objects.has(path))throw Object.assign(Error('missing'),{status:404});return objects.get(path);
   }
- });
- return {api,docs,objects,calls,state};
+ };
+ return {api:createMaintenanceAttachments(options),options,docs,objects,calls,state};
 }
 
 test('abandoned reservation is visible after reload and can be cancelled to free the slot',async()=>{
  const f=fixture(),original=file();f.state.failPost=true;
  await assert.rejects(f.api.upload(original),/storage unavailable/);
- const before=await f.api.list();assert.equal(before.pending_reservations.length,1);assert.equal(before.attachments.length,0);
- const id=before.pending_reservations[0].id;
- const reopened=createMaintenanceAttachments({
-  workspaceId:'w',requestId:'r',userId:'tenant-a',check(){},
-  rpc:async(name,args)=>f.api.__unused?.(name,args),storage:async()=>{}
- });
- // Use the same RPC/storage fixture through a fresh public client to model reload.
- const fresh=fixture();
- fresh.docs.clear();for(const [key,value] of f.docs)fresh.docs.set(key,structuredClone(value));
- // The direct API exposes cancellation only after authoritative list readback.
- const result=await f.api.cancel(id);assert.equal(result.status,'cancelled');
- const after=await f.api.list();assert.equal(after.pending_reservations.length,0);assert.equal(after.attachments.length,0);
+ const reopened=createMaintenanceAttachments(f.options),before=await reopened.list();
+ assert.equal(before.pending_reservations.length,1);assert.equal(before.attachments.length,0);
+ const id=before.pending_reservations[0].id,result=await reopened.cancel(id);assert.equal(result.status,'cancelled');
+ const after=await reopened.list();assert.equal(after.pending_reservations.length,0);assert.equal(after.attachments.length,0);
 });
 
 test('cancelled drafts no longer consume the eight-file limit',async()=>{
- const f=fixture();
+ const f=fixture();f.state.failPost=true;
  for(let i=0;i<8;i++){
-  const candidate=new File([new Uint8Array([255,216,255,224]),String(i)],`f-${i}.jpg`,{type:'image/jpeg'});f.state.failPost=true;await assert.rejects(f.api.upload(candidate));
+  const candidate=new File([new Uint8Array([255,216,255,224]),String(i)],`f-${i}.jpg`,{type:'image/jpeg'});await assert.rejects(f.api.upload(candidate));
  }
  assert.equal((await f.api.list()).pending_reservations.length,8);
  const first=(await f.api.list()).pending_reservations[0];await f.api.cancel(first.id);
- f.state.failPost=true;const ninth=new File([new Uint8Array([255,216,255,224]),'ninth'],'ninth.jpg',{type:'image/jpeg'});await assert.rejects(f.api.upload(ninth),/storage unavailable/);
+ const ninth=new File([new Uint8Array([255,216,255,224]),'ninth'],'ninth.jpg',{type:'image/jpeg'});await assert.rejects(f.api.upload(ninth),/storage unavailable/);
  assert.equal((await f.api.list()).pending_reservations.length,8);
 });
 
@@ -69,4 +61,11 @@ test('finalized originals are never cancellable',async()=>{
  const f=fixture(),saved=await f.api.upload(file());
  await assert.rejects(f.api.cancel(saved.id),/الحجز غير المكتمل غير متاح للإلغاء/);
  assert.equal((await f.api.list()).attachments.length,1);
+});
+
+test('forged pending metadata is rejected before cancellation',async()=>{
+ const f=fixture(),original=file();f.state.failPost=true;await assert.rejects(f.api.upload(original));f.state.failPost=false;
+ const id=[...f.docs.keys()][0],doc=f.docs.get(id);doc.request_id='other';
+ await assert.rejects(f.api.list(),/الحجوزات غير المكتملة|ارتباط المرفق/);
+ assert.equal(f.calls.includes('cancel'),false);
 });
