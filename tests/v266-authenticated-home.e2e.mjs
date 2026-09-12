@@ -18,6 +18,7 @@ assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'),'0UK+HVlz5
 const base='http://127.0.0.1:4173';
 const isolatedOrigin='https://ofgmcsmxmdswlovsckqs.supabase.co';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
+const presentationVersions=['201','202','205','206','208','209','210','211'];
 const user={id:'11111111-1111-4111-8111-111111111111',email:'synthetic@example.invalid',aud:'authenticated',role:'authenticated',app_metadata:{provider:'email'},user_metadata:{}};
 const workspace={id:'22222222-2222-4222-8222-222222222222',name:'Synthetic workspace'};
 const membership={user_id:user.id,workspace_id:workspace.id,role:'general_manager',is_active:true};
@@ -90,12 +91,12 @@ const server=http.createServer((req,res)=>{
         return nativeFetch(input instanceof Request?new Request(target,input):target,options);
       };
     };
-    res.writeHead(200,{'content-type':'text/javascript'});res.end('window.AQARI_PUBLIC_CONFIG='+JSON.stringify({supabaseUrl:isolatedOrigin,supabasePublishableKey:'sb_publishable_synthetic',supabaseAuthStorageKey:'aqari-supabase-auth-v198'})+';('+localTransport.toString()+')('+JSON.stringify(isolatedOrigin)+','+JSON.stringify(base)+');');return;
+    res.writeHead(200,{'content-type':'text/javascript'});res.end('window.AQARI_PUBLIC_CONFIG='+JSON.stringify({releaseStage:'preview',supabaseUrl:isolatedOrigin,supabasePublishableKey:'sb_publishable_synthetic',supabaseAuthStorageKey:'aqari-supabase-auth-v198'})+';('+localTransport.toString()+')('+JSON.stringify(isolatedOrigin)+','+JSON.stringify(base)+');');return;
   }
   if(name==='vendor/supabase-js-2.114.0.js'){res.writeHead(200,{'content-type':'text/javascript'});res.end(sdk);return;}
   const file=path.resolve(root,name);
   if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end('Not found');return;}
-  const type={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'}[path.extname(name)]||'application/octet-stream';
+  const type={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'}[path.extname(name)]||'application/octet-stream';
   res.writeHead(200,{'content-type':type+'; charset=utf-8','cache-control':'no-store'});res.end(fs.readFileSync(file));
 });
 await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
@@ -118,7 +119,7 @@ try{
           window.__authenticatedScriptLoads=[];
           const append=Node.prototype.appendChild;
           Node.prototype.appendChild=function(node){
-            if(node?.tagName==='SCRIPT'&&/^aqari-v(?:201|202|205|206|208|209|210|211|266)-/.test(node.id||'')){
+            if(node?.tagName==='SCRIPT'&&/^aqari-v(?:201|202|205|206|208|209|210|211|266|267)-/.test(node.id||'')){
               const context=window.AQARI_SUPABASE?.context,member=context?.membership;
               const userId=context?.user?.id,workspaceId=context?.workspace?.id;
               const data=window.AQARI_DATA_GATE?.scope,storage=window.AQARI_EARLY_STORAGE_GATE?.scope;
@@ -157,9 +158,11 @@ try{
           assert.deepEqual(await page.evaluate(()=>window.__authenticatedScriptLoads),[], 'timed-out startup must not load optional authenticated UI');
         }else{
           await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:18000});
-          await page.waitForFunction(()=>['201','202','205','206','208','209','210','211','266'].every(version=>Boolean(window['AQARI_V'+version])),{},{timeout:18000});
+          await page.waitForFunction(versions=>versions.every(version=>Boolean(window['AQARI_V'+version])),presentationVersions,{timeout:18000});
+          await page.waitForSelector('#aqari-v267-automation-status',{timeout:18000});
+          assert.equal(await page.locator('#aqari-v266-scheduler-control-js').count(),0,'isolated V267 must not load the production scheduler');
           const loadedVersions=await page.evaluate(()=>window.__authenticatedScriptLoads.map(item=>item.id.match(/^aqari-v(\d+)-/)[1]));
-          for(const version of ['201','202','205','206','208','209','210','211','266'])assert.ok(loadedVersions.includes(version),'authenticated script boundary was not observed: V'+version);
+          for(const version of [...presentationVersions,'267'])assert.ok(loadedVersions.includes(version),'authenticated script boundary was not observed: V'+version);
           const beats=await page.evaluate(()=>window.__homeHeartbeats);
           await delay(1000);
           assert.ok(await page.evaluate(()=>window.__homeHeartbeats)>beats,'the completed UI must remain responsive');

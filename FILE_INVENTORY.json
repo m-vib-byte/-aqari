@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "2c95f07d5c26c05f4261a2d90914139515bb05437d4cbf4bb85fc6960c5b4385",
-      "size": 1390
+      "size": 1390,
+      "sha256": "3c817dfbbef48d04b905b6f9242737b5cd9347040c8f0918872fd5e1417a9a8f"
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -327,8 +327,8 @@
     },
     {
       "path": "docs/V267-AUTHENTICATED-FIXTURE-2026-09-12.md",
-      "sha256": "0ec536e6c34f769315bd766811315d6e3ba03c1c41537c79b6ee820bd823ab2f",
-      "size": 1874
+      "size": 2437,
+      "sha256": "9a3d67ec04a99398e74828006df2fa5f5277182d9d475e602befd65687762dd8"
     },
     {
       "path": "docs/V267-CI-MAINTENANCE-RECOVERY.md",
@@ -362,8 +362,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "d815a35d9be6d1c7329594a3e8d99904f70d935c4a1d53ca3ca43eceec03f596",
-      "size": 311359
+      "size": 311359,
+      "sha256": "d815a35d9be6d1c7329594a3e8d99904f70d935c4a1d53ca3ca43eceec03f596"
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -2127,8 +2127,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "9d4401778b3dc610a47d32f7cacd29d1d8de68ca20ced183de01b1fe6c487dc5",
-      "size": 14864
+      "size": 15179,
+      "sha256": "cc1f4a811a1a49d3816bfd3108c667dea23c1ff320ae60960f0365d009b5e415"
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -2567,8 +2567,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "bde7df547cdf60994fce6c89664751064090a9605b730cacab604eb5b8003c3c",
-      "size": 269911
+      "size": 269911,
+      "sha256": "bde7df547cdf60994fce6c89664751064090a9605b730cacab604eb5b8003c3c"
     },
     {
       "path": "v205-simple.css",
