@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createDialog,node} from '../src/v267/components/dialog.js';
 import {createPrivateUrls} from '../src/v267/components/private-urls.js';
+import {readProtectedPDF} from '../src/v267/api/protected-pdf.js';
 
 // Model the native queued close event: a closed dialog can still have DOM children.
 // No browser, service, credentials or business records are used by this unit test.
@@ -71,14 +72,14 @@ test('server access revocation disposes private views even while the local membe
  globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{getClient:async()=>({}),context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role:'general_manager'}}},addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
  let d;
  try{
-  for(const response of [{status:401,error:{message:'session expired'}},{status:403,error:{message:'property access revoked'}},{status:400,error:{message:'permission denied for table',code:'42501'}},{status:400,error:{message:'ACCESS_DENIED'}}]){
+  for(const response of [{status:401,error:{message:'session expired'}},{status:403,error:{message:'property access revoked'}},{status:400,error:{message:'permission denied for table',code:'42501'}},{status:400,error:{message:'ACCESS_DENIED'}},{status:401,pdf:true},{status:403,pdf:true}]){
    d=createDialog('Private employee record');d.body.append(node('p','private payroll and audit fixture'));
    const revoked=[],urls=createPrivateUrls(d,{createObjectURL:()=> 'blob:private-fixture',revokeObjectURL:url=>revoked.push(url)});
    const link=node('a','Downloaded private document');link.href=urls.create(new Blob(['private document']));d.body.append(link);
    let cleaned=0,signal;d.onDispose(()=>cleaned++);
    const inFlight=d.session.request({abortSignal(s){signal=s;return new Promise((resolve,reject)=>s.addEventListener('abort',()=>reject(Error('aborted')),{once:true}));}});
    const rejected=assert.rejects(inFlight);
-   await d.run(()=>d.session.request({abortSignal:async()=>response}));
+   await d.run(()=>response.pdf?readProtectedPDF(d,{getSession:async()=>({user:{id:user},access_token:'synthetic-only'}),fetcher:async()=>({ok:false,status:response.status})}):d.session.request({abortSignal:async()=>response}));
    assert.equal(window.AQARI_SUPABASE.context.membership.is_active,true,'server scope denial can precede local auth updates');
    assert.equal(d.closed,true,'server authorization denial closes the stale private record');
    assert.equal(body.children.length,0,'private DOM disappears before native close is dispatched');
@@ -113,6 +114,12 @@ test('temporary server outages preserve the open dialog, private URLs and unsave
   const revoked=[],urls=createPrivateUrls(d,{createObjectURL:()=> 'blob:pending-fixture',revokeObjectURL:url=>revoked.push(url)});urls.create(new Blob(['pending document']));
   await d.run(()=>d.session.request({abortSignal:async()=>({status:503,error:{message:'temporarily unavailable'}})}));
   assert.equal(d.closed,false);assert.equal(body.children.length,1);assert.equal(draft.value,'unsaved contract fixture');assert.equal(draft.disabled,false);assert.deepEqual(revoked,[]);
+  const getSession=async()=>({user:{id:user},access_token:'synthetic-only'});
+  await d.run(()=>readProtectedPDF(d,{getSession,fetcher:async()=>({ok:false,status:503})}));
+  assert.equal(d.closed,false,'PDF server outages keep the draft open');assert.equal(draft.value,'unsaved contract fixture');assert.equal(draft.disabled,false);assert.deepEqual(revoked,[]);
+  let recoveredPDF;
+  await d.run(async()=>{recoveredPDF=await readProtectedPDF(d,{getSession,fetcher:async()=>({ok:true,status:200,blob:async()=>new Blob(['synthetic PDF'],{type:'application/pdf'})})});});
+  assert.equal(recoveredPDF.type,'application/pdf','PDF export can be retried from the same dialog');
   await d.run(()=>d.session.request({abortSignal:async()=>({status:200,data:{saved:true}})}));
   assert.equal(d.closed,false,'the same dialog remains usable after service recovery');
  }finally{if(d&&!d.closed)d.el.children[0].onclick();globalThis.window=originalWindow;globalThis.document=originalDocument;}

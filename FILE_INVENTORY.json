@@ -772,8 +772,8 @@
     },
     {
       "path": "src/v267/api/protected-pdf.js",
-      "sha256": "9468d093ac06378b109aea136301cd0c889acaead8d9d8ebe621e2542db8a31b",
-      "size": 1446
+      "sha256": "a3dc7202eb27184178397e21ad8b90b0484adeab5ace4afbe83cbe2f990ca3de",
+      "size": 1577
     },
     {
       "path": "src/v267/api/session.js",
@@ -1877,8 +1877,8 @@
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
-      "sha256": "bb1961f595b15349416ff5f05dcb402307fc274140512b9127cd9ed357e66bd3",
-      "size": 9855
+      "sha256": "15b4a251669c9abfe88fb26b024e57ab105737ec8324868468c81487c1fc711e",
+      "size": 10794
     },
     {
       "path": "tests/v267-dialog-progress.browser.mjs",
@@ -2062,8 +2062,8 @@
     },
     {
       "path": "tests/v267-private-files.test.mjs",
-      "sha256": "8bf2bf6d438ace2cde118a56e7fe890cf618ad4e2c51f765cae0329864e9b9b9",
-      "size": 3919
+      "sha256": "e195cb95d933622343df7635719b6c4b3edc9af5ca9616c6478163130989e4d3",
+      "size": 4406
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
