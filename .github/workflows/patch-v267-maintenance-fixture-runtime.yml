@@ -18,34 +18,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: fix/v267-maintenance-request-attachments
-      - name: Patch tenant portal fixture for maintenance module
+      - name: Keep maintenance desk self-contained for existing fixture
         shell: python
         run: |
           import pathlib
-          p=pathlib.Path('tests/v267-tenant-portal.test.cjs')
+          p=pathlib.Path('v267-service-desk.js')
           text=p.read_text(encoding='utf-8')
-          def one(old,new):
-              global text
-              if text.count(old)!=1:
-                  raise SystemExit('ANCHOR_CHANGED:'+old[:100])
-              text=text.replace(old,new)
-          one("moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('v267-tenant-portal.js')", "moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('src/v267/components/maintenance-request.js')+'\\n'+moduleSource('v267-tenant-portal.js')")
-          one("'maintenanceLease','maintenanceForm','maintenanceDescription','maintenanceSave'", "'maintenanceLease','maintenanceForm','maintenanceType','maintenancePhotos','maintenanceDescription','maintenanceSave'")
-          one("payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[]};", "payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[],maintenance_attachments:[]};")
-          one("createElement:()=>new Element(),querySelectorAll:", "createElement:()=>new Element(),createTextNode:text=>{const node=new Element();node.textContent=text;return node;},querySelectorAll:")
-          p.write_text(text,encoding='utf-8')
+          old="import {maintenanceTypeLabel} from './src/v267/components/maintenance-request.js';\n"
+          new="const maintenanceTypeLabels={plumbing:'سباكة',electrical:'كهرباء',air_conditioning:'تكييف',elevator:'مصعد',fire_safety:'إطفاء',water:'مياه',general:'عام',other:'أخرى'};\nconst maintenanceTypeLabel=value=>maintenanceTypeLabels[value]||maintenanceTypeLabels.other;\n"
+          if text.count(old)!=1:
+              raise SystemExit('SERVICE_DESK_IMPORT_ANCHOR_CHANGED')
+          p.write_text(text.replace(old,new),encoding='utf-8')
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify tenant fixture and maintenance helper
-        run: node --test tests/v267-tenant-portal.test.cjs tests/v267-maintenance-request.test.mjs
-      - name: Commit fixture only
+      - name: Verify maintenance regression tests
+        run: node --test tests/v267-service-desk.test.cjs tests/v267-maintenance-request.test.mjs tests/v267-tenant-portal.test.cjs
+      - name: Commit service desk compatibility fix
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add tests/v267-tenant-portal.test.cjs
+          git add v267-service-desk.js
           git diff --cached --check
-          git commit -m 'test(v267): load typed maintenance helpers in tenant fixture'
+          git commit -m 'fix(v267): keep maintenance desk type labels fixture-safe'
           git push origin HEAD:fix/v267-maintenance-request-attachments
