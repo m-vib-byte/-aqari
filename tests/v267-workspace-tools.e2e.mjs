@@ -120,6 +120,7 @@ async function verifyFinancialPanels(page,locale,name){
   if(id==='documentsHub'){
    assert.equal(await month.count(),0,'document retrieval is independent of the collection month');
    assert.equal(await panel.locator('.aq267-document-actions > button').count(),3,'document entry exposes scan, original upload and contract files');
+   for(const label of ['مسح ورق أو رفع وثيقة','رفع ملف أصلي دون تعديل','فتح العقود ومرفقاتها'])assert.equal(await panel.getByRole('button',{name:tr(label),exact:true}).count(),1,'document entry has a named action');
    await panel.getByRole('button',{name:tr('قراءة السجلات المحفوظة'),exact:true}).click();
   }else{await month.fill('2026-08');await month.press('Tab');}
   await panel.getByText(tr('تمت القراءة من مساحة العمل الحالية. لا يوجد تغيير أو حفظ مالي من هذه الشاشة.'),{exact:true}).waitFor();

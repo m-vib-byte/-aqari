@@ -43,7 +43,40 @@ capture and file selection in one input and handled only one image at a time.
   two-page PDF while retaining its failure/retry/reload/revocation assertions.
 - Poppler parsed and rendered both pages of a generated synthetic PDF; both were
   visually checked, including order and legibility. There are no scripts or forms.
-- Hosted acceptance of this new change is recorded below after the Preview build.
+- Hosted acceptance of this change is recorded below.
+
+## Hosted acceptance
+
+The authenticated V267 Preview build for commit
+`8799e8431d604219289b62d8f7fba48336a07f8f` was READY. Using the actual UI and
+the existing preview acceptance property (not a real contract), two synthetic
+JPEG pages were selected, previewed and saved as one PDF. The saved document is
+`DOC-058ddee9-59f8-46e8-aac8-a15dc377c0ea`, titled
+«اختبار مسح ورقتين 12-09 — مستند اصطناعي غير رسمي». The application confirmed
+private-file readback, checksum, category and linked-record verification. The
+archive showed the saved document and its authenticated author.
+
+After a full page reload, opening the same property and its new Documents button
+showed the saved item with the property selection locked. Return reopened the
+property file. The Documents-to-contract route opened the saved test contract;
+its scanner selected the exact contract number, displayed the signed-page review
+checkbox, and listed the pre-existing attachment. No contract status was changed
+and no new signed-contract attestation was made.
+
+The saved document's download action successfully fetched the private object and
+displayed the download link. The browser adapter did not emit a download event,
+so no independently downloaded hosted PDF artifact is claimed. The separate
+two-page PDF generated locally was parsed and visually verified as described
+above. Physical camera capture remains unverified.
+
+The first browser CI run on `8799e84` passed the scanner's multi-page, retry,
+readback and reload checks, then failed in all six engine/viewport variants on a
+later financial-panel fixture: it tried to fill the collection-month input that
+was intentionally removed from Documents. The follow-up keeps the financial
+month checks on financial panels and explicitly checks the three document entry
+buttons and absence of a document-month restriction. Its result must be read from
+the follow-up commit's CI, not inferred from the local unit tests. Concurrent
+authenticated-renderer fixture corrections on the same branch were preserved.
 
 No production deployment, schema mutation, provider activation, or assertion that
 all 155 requirements are accepted is included. The release gate remains HOLD.

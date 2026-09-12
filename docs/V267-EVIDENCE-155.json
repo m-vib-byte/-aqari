@@ -789,8 +789,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "7971c69dae0f8ced998daee90287b4a64e3d982b1f4b0957638e624bf1d8b901",
-      "bytes": 18010,
+      "sha256": "dbb09a47b1a983fe9c9035b92e2bcd8a5f43cfa31ee856c412240d9d27211514",
+      "bytes": 18205,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -2209,8 +2209,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "d274d56ed5ecd3a741471cb79bf2b3290b267a71ac693e7c498ec76bace0889a",
-      "bytes": 52859,
+      "sha256": "f89f9ded0530c16cca96fd8d22eddaf11d0231e36e0b0ef4acc7ed073f9ce550",
+      "bytes": 53127,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2218,8 +2218,8 @@
     },
     {
       "path": "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
-      "sha256": "bfb80f78809bb8d81d97a3b065f289dafd00211172c62c04073830cff537ee32",
-      "bytes": 3338,
+      "sha256": "010f5ce5fd0eb8dc3238cabcf294b2640ef1d8c3f9d23a83ebb9bbe0261183a5",
+      "bytes": 5376,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

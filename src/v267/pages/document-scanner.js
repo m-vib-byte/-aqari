@@ -57,12 +57,12 @@ export async function openDocumentScanner(initial={}){
  let img=null,blob=null,rotation=0,previewUrl=null,page=0,pending=null,renderId=0,uploadMime='',uploadName='';
  const crop={top:0,bottom:0,left:0,right:0},cropBox=node('details');cropBox.append(node('summary',t('قص حواف الصورة')));
  for(const [edge,text]of [['top',t('أعلى')],['bottom',t('أسفل')],['left',t('يسار')],['right',t('يمين')]]){const input=node('input');input.type='range';input.min='0';input.max='40';input.value='0';input.onchange=()=>run(async()=>{crop[edge]=Number(input.value);await prepare();});cropBox.append(field(text,input));}
- const targetBox=node('section'),captureBox=node('section'),archiveBox=node('section');
- targetBox.append(node('h3',t('١. ربط المستند')),field(t('نوع السجل'),type),field(t('اسم السجل أو رقم العقد أو الوحدة'),query),search,field(t('السجل المرتبط'),records),field(t('تصنيف المستند'),category),field(t('عنوان المستند'),title));
+ const targetBox=node('section'),captureBox=node('section'),archiveBox=node('section'),queryField=field(t('اسم السجل أو رقم العقد أو الوحدة'),query);
+ targetBox.append(node('h3',t('١. ربط المستند')),field(t('نوع السجل'),type),queryField,search,field(t('السجل المرتبط'),records),field(t('تصنيف المستند'),category),field(t('عنوان المستند'),title));
  captureBox.append(node('h3',t('٢. تصوير الورق أو اختيار ملف')),node('p',t('صوّر كل صفحة، ثم أضف الصفحة التالية. تجمع الصور في PDF واحد بترتيبها. يمكنك أيضاً اختيار PDF أو DOCX جاهز حتى ٢٥ ميجابايت.')),field(t('تصوير ورقة بالكاميرا'),camera),field(t('اختيار ملف أو صور من الجهاز'),file),selection,rotate,cropBox,preview,addPage,pagesList,reviewField,save);
  archiveBox.append(node('h3',t('٣. المستندات المحفوظة')),reload,list,previous,next);
  body.append(targetBox,captureBox,archiveBox);preview.hidden=true;
- if(initial.ref){type.disabled=query.disabled=search.disabled=records.disabled=true;query.hidden=search.hidden=true;}
+ if(initial.ref){type.disabled=query.disabled=search.disabled=records.disabled=true;queryField.hidden=query.hidden=search.hidden=true;}
 
  function refreshCategories(){
   const previousValue=category.value;category.replaceChildren();
@@ -112,7 +112,7 @@ export async function openDocumentScanner(initial={}){
  rotate.onclick=()=>run(async()=>{if(!img)return;rotation=(rotation+90)%360;await prepare();});
  async function loadRecords(){records.replaceChildren();const placeholder=node('option',t('اختر السجل الصحيح'));placeholder.value='';records.append(placeholder);const rows=initial.ref?[await documentTarget(session,type.value,String(initial.ref))]:await session.request(session.client.rpc('aqari_document_entities',{p_workspace_id:session.bound.workspace,p_type:type.value,p_query:query.value.trim()}));
   for(const row of rows){const option=node('option',row.title);option.value=row.entity_ref;records.append(option);}if(initial.ref&&rows.some(r=>r.entity_ref===String(initial.ref)))records.value=String(initial.ref);
-  page=0;await loadDocuments();status.textContent=rows.length?t('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.'):t('لا توجد سجلات محفوظة مطابقة. احفظ السجل أولاً قبل رفع المستند.');}
+  page=0;await loadDocuments();status.textContent=rows.length?(initial.ref?t('المستندات مرتبطة بالملف المفتوح. اختر التصنيف ثم صوّر الورق أو ارفع الملف.'):t('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.')):t('لا توجد سجلات محفوظة مطابقة. احفظ السجل أولاً قبل رفع المستند.');}
  async function loadDocuments(){downloads.clear();list.replaceChildren();previous.hidden=true;next.hidden=true;if(!records.value)return;
   const rows=await session.request(session.client.rpc('aqari_document_listing',{p_workspace_id:session.bound.workspace,p_entity_type:type.value,p_entity_ref:records.value,p_page:page}));
   for(const row of rows){const card=node('article'),cat=categoryLabel(row.metadata?.document_category);card.append(node('h3',row.title),node('p',[cat,row.document_no].filter(Boolean).join(' • ')),node('p',new Date(row.created_at).toLocaleString(dateLocale())+' • '+(row.status==='uploaded'?t('محفوظ'):row.status==='draft'?t('لم يكتمل تأكيد الرفع'):t('ملغى'))),node('p',t('رفع بواسطة: ')+(row.author_name||t('مستخدم محفوظ'))));
