@@ -1,0 +1,41 @@
+name: Refresh V267 maintenance inventory
+on:
+  push:
+    branches: [fix/v267-maintenance-storage-api-cleanup]
+permissions:
+  contents: write
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-maintenance-storage-api-cleanup
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Refresh tracked maintenance hashes
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const paths=['src/v267/components/maintenance-request.js','tests/v267-maintenance-request.test.mjs'];
+          const inv=JSON.parse(fs.readFileSync('FILE_INVENTORY.json','utf8'));
+          for(const path of paths){
+            const row=inv.files.find(item=>item.path===path);
+            if(!row) throw new Error(`Inventory entry missing: ${path}`);
+            const bytes=fs.readFileSync(path);
+            row.sha256=crypto.createHash('sha256').update(bytes).digest('hex');
+            row.size=bytes.length;
+          }
+          fs.writeFileSync('FILE_INVENTORY.json',JSON.stringify(inv,null,2)+'\n');
+          NODE
+      - name: Commit refreshed inventory
+        run: |
+          if git diff --quiet -- FILE_INVENTORY.json; then exit 0; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add FILE_INVENTORY.json
+          git commit -m "chore(v267): refresh maintenance inventory"
+          git push

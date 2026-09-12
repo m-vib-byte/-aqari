@@ -20,8 +20,12 @@ async function sha256(file){
  const digest=await crypto.subtle.digest('SHA-256',bytes);
  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-async function cancelReservedAttachment(client,attachmentId){
- try{await client.rpc('aqari_maintenance_attachment_cancel',{p_attachment_id:attachmentId});}catch{}
+async function cancelReservedAttachment(client,row){
+ try{
+  const {error:removeError}=await client.storage.from(row.storage_bucket).remove([row.storage_path]);
+  if(removeError)return;
+  await client.rpc('aqari_maintenance_attachment_cancel',{p_attachment_id:row.attachment_id});
+ }catch{}
 }
 export async function uploadMaintenanceFiles({client,workspaceId,requestId,files,check,run=promise=>promise}){
  const list=validateMaintenanceFiles(files),saved=[];
@@ -44,7 +48,7 @@ export async function uploadMaintenanceFiles({client,workspaceId,requestId,files
    if(finalizeError||finalized!==row.attachment_id)throw finalizeError||Error('تعذر تأكيد مرفق الصيانة.');
    saved.push({id:row.attachment_id,path:row.storage_path,checksum});
   }catch(error){
-   await cancelReservedAttachment(client,row.attachment_id);
+   await cancelReservedAttachment(client,row);
    throw error;
   }
  }
