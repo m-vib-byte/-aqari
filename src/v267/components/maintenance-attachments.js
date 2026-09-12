@@ -4,6 +4,7 @@ import {checksum} from './scan-image.js';
 export const MAINTENANCE_BUCKET='aqari-maintenance-private';
 export const MAINTENANCE_FILE_LIMIT=10*1024*1024;
 export const MAINTENANCE_ATTACHMENT_LIMIT=8;
+const DEFAULT_ABANDON_REASON='تعذر استكمال رفع الملف الأصلي وتم تحرير الحجز من واجهة الصيانة.';
 export async function validateMaintenanceAttachment(file){
  if(!file||!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)||file.size<=0||file.size>MAINTENANCE_FILE_LIMIT)throw Error('اختر صورة JPEG أو PNG أو WebP أو PDF، بحجم أقصى ١٠ ميجابايت للملف.');
  const bytes=new Uint8Array(await file.slice(0,12).arrayBuffer()),ascii=(a,b)=>String.fromCharCode(...bytes.slice(a,b));
@@ -25,14 +26,17 @@ export function createMaintenanceAttachments({workspaceId,requestId,userId,check
   if(!result||!Array.isArray(result.attachments)||typeof result.can_upload!=='boolean'||result.attachments.length+pendingReservations.length>MAINTENANCE_ATTACHMENT_LIMIT)throw Error('تعذر تأكيد قائمة مرفقات البلاغ.');
   const ids=new Set();
   for(const doc of result.attachments){match(doc);if(doc.status!=='uploaded'||ids.has(doc.id))throw Error('تعذر تأكيد قائمة مرفقات البلاغ.');ids.add(doc.id);}
-  for(const doc of pendingReservations){match(doc);if(doc.status!=='reserved'||doc.created_by!==userId||ids.has(doc.id))throw Error('تعذر تأكيد الحجوزات غير المكتملة.');ids.add(doc.id);}
+  for(const doc of pendingReservations){match(doc);if(doc.status!=='reserved'||doc.can_abandon!==true||ids.has(doc.id))throw Error('تعذر تأكيد الحجوزات غير المكتملة.');ids.add(doc.id);}
+  if(result.abandoned_count!==undefined&&(!Number.isInteger(Number(result.abandoned_count))||Number(result.abandoned_count)<0))throw Error('تعذر تأكيد سجل الحجوزات المتروكة.');
   return {...result,pending_reservations:pendingReservations};
  }
- async function cancel(id){
+ async function abandon(id,reason=DEFAULT_ABANDON_REASON){
+  reason=String(reason||'').trim();
   if(typeof id!=='string'||!id)throw Error('تعذر تحديد الحجز غير المكتمل.');
-  const before=(await list()).pending_reservations.find(doc=>doc.id===id);if(!before)throw Error('الحجز غير المكتمل غير متاح للإلغاء.');
-  const result=await call('cancel',{id});
-  if(result?.id!==id||result?.status!=='cancelled')throw Error('لم يتأكد إلغاء الحجز غير المكتمل.');
+  if(reason.length<6||reason.length>240)throw Error('سبب التخلي عن الحجز غير صالح.');
+  const before=(await list()).pending_reservations.find(doc=>doc.id===id);if(!before||before.can_abandon!==true)throw Error('الحجز غير المكتمل غير متاح للتخلي.');
+  const result=await call('abandon',{id,reason});
+  if(result?.id!==id||result?.status!=='abandoned'||result?.abandoned_by!==userId||result?.abandon_reason!==reason||!result?.abandoned_at)throw Error('لم يتأكد أرشفة الحجز غير المكتمل.');
   const after=await list();if(after.pending_reservations.some(doc=>doc.id===id)||after.attachments.some(doc=>doc.id===id))throw Error('لم يتأكد تحرير مساحة المرفقات.');
   return result;
  }
@@ -58,5 +62,5 @@ export function createMaintenanceAttachments({workspaceId,requestId,userId,check
   if(blob?.size!==doc.size_bytes||await checksum(blob)!==doc.checksum_sha256)throw Error('لم تتطابق بصمة الملف المسترجع.');
   check();return {doc,blob};
  }
- return {list,cancel,upload,download};
+ return {list,abandon,cancel:(id)=>abandon(id),upload,download};
 }
