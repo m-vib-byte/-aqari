@@ -13,7 +13,7 @@ test('sensitive factor removal requires an aal2 session',()=>{
  assert.match(source,/ترقية الجلسة/);
 });
 test('TOTP code is constrained and enrollment secrets are cleared on disposal',()=>{
- assert.match(source,/input\.pattern='\\[0-9\\]\\{6\\}'/);
+ assert.ok(source.includes("input.pattern='[0-9]{6}'"));
  assert.match(source,/secret=null/);
  assert.match(source,/d\.onDispose/);
  assert.doesNotMatch(source,/localStorage|sessionStorage/);
