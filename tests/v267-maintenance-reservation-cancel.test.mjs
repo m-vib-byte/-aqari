@@ -13,8 +13,8 @@ function fixture(){
    assert.equal(name,'aqari_maintenance_attachments');calls.push({action:args.p_action,data:structuredClone(args.p_data)});
    if(args.p_action==='list')return {
     can_upload:true,
-    attachments:[...docs.values()].filter(d=>d.status==='uploaded').map(structuredClone),
-    pending_reservations:[...docs.values()].filter(d=>d.status==='reserved'&&d.created_by==='tenant-a').map(structuredClone)
+    attachments:[...docs.values()].filter(d=>d.status==='uploaded').map(row=>structuredClone(row)),
+    pending_reservations:[...docs.values()].filter(d=>d.status==='reserved'&&d.created_by==='tenant-a').map(row=>structuredClone(row))
    };
    if(args.p_action==='reserve'){
     const data=args.p_data,existing=[...docs.values()].find(d=>d.status!=='cancelled'&&d.filename===data.filename&&d.mime_type===data.mime_type&&d.size_bytes===data.size_bytes&&d.checksum_sha256===data.checksum_sha256);

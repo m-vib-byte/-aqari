@@ -119,12 +119,20 @@ select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 delete from private.aqari_commercial_terms where workspace_id=current_setting('aqari.test.sales.workspace')::uuid and lease_id='76550000-0000-4000-8000-000000000402';
 set local role authenticated;
 do $$declare w uuid:=current_setting('aqari.test.sales.workspace')::uuid;terms jsonb;allocation jsonb;r jsonb;begin
- terms:='{"id":"76550000-0000-4000-8000-000000000402","revision":1,"grace_days":10,"sales_percentage":5,"cam_amount":"0.000","permitted_activity":"تجارة اختبار","license_no":"TEST-LICENSE","compliance_reference":"مرجع اصطناعي معتمد"}';
+ terms:='{"id":"76550000-0000-4000-8000-000000000402","revision":1,"grace_days":10,"sales_percentage":5,"sales_rent_basis":"additional_to_base_rent","cam_amount":"0.000","permitted_activity":"تجارة اختبار","license_no":"TEST-LICENSE","compliance_reference":"مرجع اصطناعي معتمد"}';
  begin perform public.aqari_compliance_register(w,'commercial','save',terms);raise exception 'NONEXISTENT_TERMS_REVISION_ACCEPTED';exception when serialization_failure then null;end;
  begin perform public.aqari_compliance_register(w,'commercial','save',terms||'{"revision":0,"cam_amount":"NaN"}');raise exception 'NAN_CAM_ACCEPTED';exception when invalid_parameter_value then null;end;
  r:=public.aqari_compliance_register(w,'commercial','save',terms||'{"revision":0}');
  if (r->>'revision')::integer<>1 then raise exception 'FIRST_TERMS_SAVE_FAILED';end if;
  begin perform public.aqari_compliance_register(w,'commercial','save',terms||'{"revision":0}');raise exception 'STALE_FIRST_SAVE_OVERWROTE_TERMS';exception when serialization_failure then null;end;
+ -- Exercise the approved greater-of basis through the same RPC as the UI.
+ r:=public.aqari_compliance_register(w,'commercial','save',terms||'{"revision":1,"sales_rent_basis":"greater_of_base_or_percentage"}');
+ if r->>'sales_rent_basis'<>'greater_of_base_or_percentage' then raise exception 'APPROVED_BASIS_READBACK_FAILED';end if;
+ r:=public.aqari_commercial_sales(w,'record',pg_temp.sales_request(8,'2026-06')||'{"lease_id":"76550000-0000-4000-8000-000000000402","source_document_id":"76550000-0000-4000-8000-000000000502","terms_revision":2,"gross_sales":"3000.000","calculation_basis":"greater_of_base_or_percentage"}');
+ if (r->>'amount')::numeric<>50 or r->>'calculation_basis'<>'greater_of_base_or_percentage' then raise exception 'GREATER_BASIS_DOUBLE_COUNTED_RENT';end if;
+ r:=public.aqari_commercial_sales(w,'record',pg_temp.sales_request(9,'2026-07')||'{"lease_id":"76550000-0000-4000-8000-000000000402","source_document_id":"76550000-0000-4000-8000-000000000502","terms_revision":2,"gross_sales":"1000.000","calculation_basis":"greater_of_base_or_percentage"}');
+ if (r->>'amount')::numeric<>0 then raise exception 'GREATER_BASIS_CREATED_NEGATIVE_OR_EXTRA_CHARGE';end if;
+ begin perform public.aqari_commercial_sales(w,'record',pg_temp.sales_request(10,'2026-05')||'{"lease_id":"76550000-0000-4000-8000-000000000402","source_document_id":"76550000-0000-4000-8000-000000000502","terms_revision":2}');raise exception 'CLIENT_CHANGED_APPROVED_BASIS';exception when serialization_failure then if sqlerrm<>'SALES_TERMS_BASIS_CONFLICT' then raise;end if;end;
  allocation:='{"id":"76550000-0000-4000-8000-000000000801","property_id":"76550000-0000-4000-8000-000000000101","invoice_reference":"COMMON-SYNTHETIC-1","basis":"area","total_amount":"12.345","allocations":[{"unit_id":"76550000-0000-4000-8000-000000000201","amount":"12.345"}]}';
  r:=public.aqari_compliance_register(w,'common_charges','allocate',allocation);
  if (r->>'total_amount')::numeric<>12.345 then raise exception 'SIGNED_LEASE_ALLOCATION_FAILED';end if;

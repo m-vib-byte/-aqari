@@ -5,6 +5,21 @@ insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) 
 insert into public.aqari_units(id,workspace_id,property_id,unit_no) values
  ('77660000-0000-4000-8000-000000000201','77660000-0000-4000-8000-000000000099','77660000-0000-4000-8000-000000000101','G-1'),
  ('77660000-0000-4000-8000-000000000202','77660000-0000-4000-8000-000000000099','77660000-0000-4000-8000-000000000101','G-2');
+-- Establish verified readiness through the normal RPC. Keep the lease guard active.
+insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
+ ('commercial-grace-manager@example.invalid','مدير اختبار السماح','general_manager','commercial-grace-fixture');
+insert into auth.users(id,email,email_confirmed_at) values
+ ('77660000-0000-4000-8000-000000000001','commercial-grace-manager@example.invalid',now());
+select set_config('request.jwt.claim.sub','77660000-0000-4000-8000-000000000001',true);
+select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+do $$declare r jsonb;begin
+ for i in 1..2 loop
+  r:=public.aqari_unit_readiness_register('77660000-0000-4000-8000-000000000099','record',jsonb_build_object(
+   'id',gen_random_uuid(),'property_id','77660000-0000-4000-8000-000000000101','unit_no','G-'||i,'expected_revision',0,
+   'state','ready','inspected_on','2026-01-01','source_ref','Synthetic grace fixture inspection','reason','Isolated test readiness'));
+  if r->>'state'<>'ready' then raise exception 'GRACE_FIXTURE_UNIT_NOT_READY';end if;
+ end loop;
+end $$;
 insert into public.aqari_tenants(id,workspace_id,external_ref,full_name,civil_id,phone,profile) values
  ('77660000-0000-4000-8000-000000000301','77660000-0000-4000-8000-000000000099','GRACE-T1','Synthetic grace tenant 1','776600000001','77660001','{}'),
  ('77660000-0000-4000-8000-000000000302','77660000-0000-4000-8000-000000000099','GRACE-T2','Synthetic grace tenant 2','776600000002','77660002','{}');

@@ -34,7 +34,7 @@ function fixture(){
   assert.equal(name,'aqari_commercial_payment_allocations');assert.equal(args.p_workspace_id,'workspace');
   if(args.p_action==='allocate'){
    if(!allocation.value)allocation.value={id:args.p_data.id,sale_id:args.p_data.sale_id,payment_id:args.p_data.payment_id,amount:args.p_data.amount};
-   assert.deepEqual(args.p_data,allocation.value);
+   assert.deepEqual(structuredClone(args.p_data),allocation.value);
    if(lost)throw Error('connection lost after commit');return {...structuredClone(allocation.value),lease_id:'l1'};
   }
   if(args.p_action==='reverse'){
@@ -60,18 +60,18 @@ test('commercial payment money parser is exact to fils and accepts Arabic digits
 
 test('allocation uses the available payment balance and requires exact context readback',async()=>{
  const f=fixture();await f.load();assert.match(f.root.textContent,/المتبقي: 30.000/);f.control('الدفعة').value='p1';f.control('الدفعة').onchange();assert.equal(f.control('المبلغ المخصص د.ك').value,'30.000');await f.submit('تخصيص دفعة للمبيعات');
- assert.equal(f.allocation.value.amount,'30.000');assert.match(f.d.status.textContent,/تم تخصيص الدفعة/);assert.match(f.root.textContent,/المسدد: 30.000/);
+ assert.equal(f.allocation.value.amount,'30.000');assert.match(f.root.textContent,/تم تخصيص الدفعة/);assert.match(f.root.textContent,/المسدد: 30.000/);
  const writes=f.calls.filter(x=>x.name==='aqari_commercial_payment_allocations'&&x.args.p_action==='allocate');assert.equal(writes.length,1);assert.equal(f.calls.at(-1).name,'aqari_commercial_payment_context');
 });
 
 test('lost allocation response reuses the same request id and cannot claim success before readback',async()=>{
  const f=fixture();await f.load();f.control('الدفعة').value='p1';f.control('الدفعة').onchange();f.setLost(true);await f.submit('تخصيص دفعة للمبيعات');assert.match(f.d.status.textContent,/connection lost/);assert.equal(f.button('إعادة محاولة تخصيص السداد').hidden,false);
- const first=f.calls.find(x=>x.name==='aqari_commercial_payment_allocations').args.p_data;f.setLost(false);await f.button('إعادة محاولة تخصيص السداد').onclick();const writes=f.calls.filter(x=>x.name==='aqari_commercial_payment_allocations'&&x.args.p_action==='allocate');assert.equal(writes.length,2);assert.deepEqual(writes[0].args.p_data,writes[1].args.p_data);assert.equal(writes[1].args.p_data.id,first.id);assert.match(f.d.status.textContent,/تم تخصيص الدفعة/);
+ const first=f.calls.find(x=>x.name==='aqari_commercial_payment_allocations').args.p_data;f.setLost(false);await f.button('إعادة محاولة تخصيص السداد').onclick();const writes=f.calls.filter(x=>x.name==='aqari_commercial_payment_allocations'&&x.args.p_action==='allocate');assert.equal(writes.length,2);assert.deepEqual(writes[0].args.p_data,writes[1].args.p_data);assert.equal(writes[1].args.p_data.id,first.id);assert.match(f.root.textContent,/تم تخصيص الدفعة/);
 });
 
 test('reversal is append-only and verified by a fresh statement',async()=>{
  const f=fixture();await f.load();f.control('الدفعة').value='p1';f.control('الدفعة').onchange();await f.submit('تخصيص دفعة للمبيعات');f.control('سبب عكس التخصيص').value='Synthetic correction';f.control('تاريخ عكس التخصيص').value='2026-09-12';await f.submit('عكس تخصيص السداد');
- assert.equal(f.allocation.reversal.allocation_id,f.allocation.value.id);assert.match(f.d.status.textContent,/تم عكس تخصيص السداد/);assert.match(f.root.textContent,/المتبقي: 30.000/);assert.equal(f.calls.at(-1).name,'aqari_commercial_payment_context');
+ assert.equal(f.allocation.reversal.allocation_id,f.allocation.value.id);assert.match(f.root.textContent,/تم عكس تخصيص السداد/);assert.match(f.root.textContent,/المتبقي: 30.000/);assert.equal(f.calls.at(-1).name,'aqari_commercial_payment_context');
 });
 
 test('invalid context arithmetic is rejected before any write',async()=>{

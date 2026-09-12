@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "3d1e11b8fb6b5b36136511cdb87b40aeef57247cc515296f91e2ad8614b00634",
+  "matrixSha256": "cad12ef194506726e3ee1ca6e038114395c1b3ee69aebd4eae1ab334d30d92ba",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -468,6 +468,26 @@
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
         "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
       ]
+    },
+    "E48": {
+      "files": [
+        "docs/V267-DOCUMENT-HANDOVERS-2026-09-12.md",
+        "src/v267/components/document-handovers.js",
+        "src/v267/pages/original-documents.js",
+        "staging-database/sql/document-handovers.sql",
+        "staging-database/supabase/migrations/20260912201126_v267_document_handovers.sql",
+        "staging-database/tests/document_handovers.sql",
+        "tests/v267-document-handovers.test.mjs"
+      ]
+    },
+    "E49": {
+      "files": [
+        "docs/V267-COMMERCIAL-BASIS-REPAIR-2026-09-12.md",
+        "staging-database/sql/commercial-sales-basis-constraint.sql",
+        "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql",
+        "staging-database/tests/commercial_sales.sql",
+        "staging-database/hosted-test/completion/06-commercial_sales.sql"
+      ]
     }
   },
   "files": [
@@ -594,8 +614,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "8dc451562c5ccbf6e17123f4d7e64a7c2647aa38da4a2dff686c84b869766690",
-      "bytes": 10796,
+      "sha256": "39bd12bdbe03949c55f93f15de1767b05836e893d8795ad6425e744887fef482",
+      "bytes": 11683,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1146,8 +1166,8 @@
     },
     {
       "path": "staging-database/sql/maintenance-attachments.sql",
-      "sha256": "d0565f385e14567a458aafbd01e8a9f205f1d13921ff960fe26b710516ca83c3",
-      "bytes": 9204,
+      "sha256": "feddacd03535ec3128df5394403e8b75713c6adda5fc4ce6c9bdd5ed316de144",
+      "bytes": 12173,
       "declaredTables": [
         "private.aqari_maintenance_attachments"
       ],
@@ -1159,8 +1179,8 @@
     },
     {
       "path": "src/v267/components/maintenance-attachments.js",
-      "sha256": "d4eac5ef4059c35be3868fdb3df9ec1935c8187d46b6ba863a749b9527a930c9",
-      "bytes": 4679,
+      "sha256": "77fe3eeb474156895c0e953797ca235b479534f4f77c468d963d4c7b64ea18cc",
+      "bytes": 6152,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1168,8 +1188,8 @@
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
-      "sha256": "6487372e4d8a421cd2810e946df5b24768dd1241140648efbf14502ab574496b",
-      "bytes": 5530,
+      "sha256": "7ec6ee9ab50c1a5f851346f2c23a27e6642c711a527cfb37aa2ca291a9e2f0e7",
+      "bytes": 6565,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1790,8 +1810,8 @@
     },
     {
       "path": "src/v267/pages/compliance-center.js",
-      "sha256": "77dc55ce58f52953d3a45e69bb0fe7aed88033d723149bcac835d543fca26611",
-      "bytes": 8980,
+      "sha256": "6155bda0c53ed0d99af19a308bf6d57a53779783d5d95c9e30fec9ad273a4e3f",
+      "bytes": 9627,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1830,8 +1850,8 @@
     },
     {
       "path": "src/v267/pages/commercial-sales.js",
-      "sha256": "74899c28abebcd9dcc8d7d24d325050d4d1f2e863ef3ef1b6c6f1ec2fe5ab8ff",
-      "bytes": 11051,
+      "sha256": "6f03e7119fad62151871d63346c5a57679f5a49abe894b59bac833e3a8d00b01",
+      "bytes": 12300,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1864,8 +1884,8 @@
     },
     {
       "path": "staging-database/tests/commercial_sales.sql",
-      "sha256": "f8cab9e1588bf3fa1d02ebbf4a90a19fcb95643ac50401640c5d4d2bd0a1dd8a",
-      "bytes": 18155,
+      "sha256": "5b5b4c9b6b95780cfdbb4be2e85bcca68713fa86cdd722ca36458182fda1a1e0",
+      "bytes": 19766,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1891,8 +1911,8 @@
     },
     {
       "path": "tests/v267-commercial-sales-workflow.test.mjs",
-      "sha256": "2e2680117e812fd1c5dce1f8d54d4dcca57e2f7abda6ed19bf18b445b4024593",
-      "bytes": 9293,
+      "sha256": "04cd53486008c5063c24c63447aea1ef6063202986c14ab036f768839c4181c4",
+      "bytes": 9207,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1900,8 +1920,8 @@
     },
     {
       "path": "tests/v267-compliance-behavior.test.mjs",
-      "sha256": "a3adaa5cefcf4b91e9569671bc2e5c50309f95bb5e860d31b436cbcd6c5c92bc",
-      "bytes": 4554,
+      "sha256": "d611119e3dbbb83e1842ed48caa4b2c5271a47ebfdde333973bbea92fb4aa7dc",
+      "bytes": 5334,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2882,7 +2902,7 @@
     },
     {
       "path": "staging-database/hosted-test/completion/manifest.json",
-      "sha256": "c2e2c5ad19f4d2528345430780a8396259e3b85f1572ece97f7065a5834ef958",
+      "sha256": "c46889a7c4c6aeccd607c44d17e70d013353a703543c4d2484860021110815fd",
       "bytes": 3798,
       "declaredTables": [],
       "publicFunctions": [],
@@ -3004,6 +3024,117 @@
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": null
+    },
+    {
+      "path": "docs/V267-DOCUMENT-HANDOVERS-2026-09-12.md",
+      "sha256": "e1b3654cfd765e6708a3d6755a6317b6602083de9ee4172c9be3b3a85ae6d1d2",
+      "bytes": 6787,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/components/document-handovers.js",
+      "sha256": "167ec31810736ca18ef174bb8cd6cf2198858f92464ac69817023362a4ec7794",
+      "bytes": 8241,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_document_handover_register"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/pages/original-documents.js",
+      "sha256": "7abb21885908bded11cc316962d7ec55d90f80576788bf3c8b847d8b075ad262",
+      "bytes": 4669,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/document-handovers.sql",
+      "sha256": "1b2e33bfd71393913f89b2ee03c2c0c7109c0c5af2b3a7588ae6445c90809e61",
+      "bytes": 10473,
+      "declaredTables": [
+        "private.aqari_document_handovers",
+        "private.aqari_document_handover_voids"
+      ],
+      "publicFunctions": [
+        "public.aqari_document_handover_register"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912201126_v267_document_handovers.sql",
+      "sha256": "1b2e33bfd71393913f89b2ee03c2c0c7109c0c5af2b3a7588ae6445c90809e61",
+      "bytes": 10473,
+      "declaredTables": [
+        "private.aqari_document_handovers",
+        "private.aqari_document_handover_voids"
+      ],
+      "publicFunctions": [
+        "public.aqari_document_handover_register"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/document_handovers.sql",
+      "sha256": "8c2f2bf8d25bf9f067adbc27bb58f7e1c237e83c1ccf2463f830841e544c71cb",
+      "bytes": 9513,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-document-handovers.test.mjs",
+      "sha256": "3319f71eb4f8a8dbe3983ec92c30f917056f7f22fa94f525905437cc2d9cf2d4",
+      "bytes": 7669,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-COMMERCIAL-BASIS-REPAIR-2026-09-12.md",
+      "sha256": "ffd2167263d815f9121dfb2d4287b36dc64d96ce0f9ab9a7aa6d7fd3ed174ea5",
+      "bytes": 5330,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/commercial-sales-basis-constraint.sql",
+      "sha256": "1bafec166d2864b33b6a948ab1d083f30e3390f47bb8cbebbf9d806880a12404",
+      "bytes": 1088,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql",
+      "sha256": "1bafec166d2864b33b6a948ab1d083f30e3390f47bb8cbebbf9d806880a12404",
+      "bytes": 1088,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/hosted-test/completion/06-commercial_sales.sql",
+      "sha256": "000b1afc3592acba11c211a19f2ff7e1bb33ea8a37c161e7cc11139c0f659ff3",
+      "bytes": 23602,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
     }
   ],
   "requirements": [
@@ -10286,31 +10417,31 @@
       "id": 125,
       "sourceId": "G11-04",
       "requirement": "سجل تسليم واستلام الأوراق: من سلم ومتى.",
-      "reportedImplementation": "جزئي — E07، E08 يسجلان حالة ووقت استلام العقد؛ سجل تسليم كل الأوراق ناقص.",
-      "acceptanceRemaining": "لكل ورقة مسلم ومستلم وتوقيت وإثبات مرتبط بإصدارها الأصلي.",
+      "reportedImplementation": "جزئي — E48 يضيف سجلًا للمستندات الأصلية المرفوعة مع المسلّم والمستلم والوقت وعدد النسخ وإثبات محفوظ وبصمات ثابتة وإلغاء موثق؛ نجحت اختبارات الواجهة وSQL المحلية والمستضافة مع التراجع.",
+      "acceptanceRemaining": "قبول التشغيل بالحساب والأجهزة الفعلية، وربط المخرجات الرسمية المولدة مباشرة دون إعادة رفعها؛ الأسماء المدوّنة ليست تحققًا مستقلًا من هوية المستلم أو توقيعه.",
       "evidenceIds": [
-        "E07",
-        "E08"
+        "E48"
       ],
       "evidenceFiles": [
-        "v267-rental-records.js",
-        "staging-database/sql/linked-rental-details.sql",
-        "staging-database/tests/linked_rental_details.sql",
-        "src/v267/pages/rental-contracts.js",
-        "staging-database/sql/rental-contract-provisions.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "docs/V267-DOCUMENT-HANDOVERS-2026-09-12.md",
+        "src/v267/components/document-handovers.js",
+        "src/v267/pages/original-documents.js",
+        "staging-database/sql/document-handovers.sql",
+        "staging-database/supabase/migrations/20260912201126_v267_document_handovers.sql",
+        "staging-database/tests/document_handovers.sql",
+        "tests/v267-document-handovers.test.mjs"
       ],
       "uiFiles": [
-        "v267-rental-records.js",
-        "src/v267/pages/rental-contracts.js"
+        "src/v267/components/document-handovers.js",
+        "src/v267/pages/original-documents.js"
       ],
       "sqlFiles": [
-        "staging-database/sql/linked-rental-details.sql",
-        "staging-database/sql/rental-contract-provisions.sql"
+        "staging-database/sql/document-handovers.sql",
+        "staging-database/supabase/migrations/20260912201126_v267_document_handovers.sql"
       ],
       "testFiles": [
-        "staging-database/tests/linked_rental_details.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/document_handovers.sql",
+        "tests/v267-document-handovers.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -11192,11 +11323,12 @@
       "id": 140,
       "sourceId": "G12-11",
       "requirement": "العقود التجارية: فترات سماح، نسبة مبيعات، ومصروفات خدمات مشتركة CAM.",
-      "reportedImplementation": "جزئي — E33، E47؛ أضيف استحقاق شهري لنسبة إضافية إلى الإيجار بمصدر محفوظ، وقيد وعكس مطابقان وحارس إخلاء؛ اختبارات محلية ناجحة.",
-      "acceptanceRemaining": "قبول مستضاف، وتخصيص سداد المبيعات وكشف تجاري موحد، وتطبيق السماح وCAM وقواعد الأكبر من الإيجار أو النسبة؛ العكس إلغاء وليس سدادًا.",
+      "reportedImplementation": "جزئي — E33، E47، E49؛ أُصلح قيد رفض طريقة الأكبر من الإيجار أو نسبة المبيعات، ونجح الحفظ المستضاف وحساب الفرق50 والصفر عند انخفاض النسبة، ورفض تغيير الطريقة المعتمدة، مع تراجع البيانات الاصطناعية.",
+      "acceptanceRemaining": "قبول رحلة العقد التجاري والسماح وCAM والتخصيص والكشف والطباعة بحسابات المشروع وأجهزته الفعلية؛ لا يكفي اختبار طريقة المبيعات وحدها لإغلاق البند.",
       "evidenceIds": [
         "E33",
-        "E47"
+        "E47",
+        "E49"
       ],
       "evidenceFiles": [
         "src/v267/pages/compliance-center.js",
@@ -11235,7 +11367,11 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-COMMERCIAL-BASIS-REPAIR-2026-09-12.md",
+        "staging-database/sql/commercial-sales-basis-constraint.sql",
+        "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql",
+        "staging-database/hosted-test/completion/06-commercial_sales.sql"
       ],
       "uiFiles": [
         "src/v267/pages/compliance-center.js",
@@ -11249,7 +11385,9 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/commercial-sales-basis-constraint.sql",
+        "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql"
       ],
       "testFiles": [
         "tests/v267-compliance-center.test.cjs",
@@ -11261,7 +11399,8 @@
         "tests/v267-compliance-behavior.test.mjs",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/hosted-test/completion/06-commercial_sales.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"

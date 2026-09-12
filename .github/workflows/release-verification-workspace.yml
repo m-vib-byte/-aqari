@@ -35,6 +35,16 @@ jobs:
         run: npm run test:completion --prefix staging-database/local-test | tee /tmp/aqari-verification/sql-existing.log
       - name: Reproduce cancelled-receipt close bug then verify repair
         run: node scripts/verify-financial-close-regression.mjs | tee /tmp/aqari-verification/sql-close-regression.log
+      - name: Document handover persistence and access boundaries
+        run: |
+          node staging-database/local-test/run-isolated.mjs \
+            staging-database/sql/mfa-enforcement.sql \
+            staging-database/sql/staff-property-scope.sql \
+            staging-database/supabase/migrations/20260909225520_v267_document_catalog.sql \
+            staging-database/sql/document-categories.sql \
+            staging-database/sql/document-handovers.sql \
+            staging-database/sql/document-handovers.sql \
+            staging-database/tests/document_handovers.sql | tee /tmp/aqari-verification/sql-document-handovers.log
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'

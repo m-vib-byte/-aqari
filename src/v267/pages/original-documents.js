@@ -2,6 +2,7 @@ import {createDialog,node,field} from '../components/dialog.js';
 import {DOCUMENT_CATEGORIES} from '../components/document-catalog.js';
 import {createOriginalDocumentUpload} from '../components/original-document-upload.js';
 import {createPrivateUrls} from '../components/private-urls.js';
+import {mountDocumentHandovers} from '../components/document-handovers.js';
 export function openOriginalDocuments(){
  const d=createDialog('مستندات الأطراف والعقار والعقد والإخلاء');if(!d)return;
  const urls=createPrivateUrls(d),type=node('select'),query=node('input'),records=node('select'),category=node('select'),title=node('input'),file=node('input'),list=node('section');let upload;
@@ -13,6 +14,7 @@ export function openOriginalDocuments(){
  let page=0;
  async function load(){urls.clear();list.replaceChildren();if(!records.value)return;const rows=await rpc('aqari_document_listing',{p_entity_type:type.value,p_entity_ref:records.value,p_page:page});
   for(const r of rows){const a=node('article');a.append(node('h3',r.title),node('p',r.document_no));if(r.status==='uploaded')a.append(button('تحميل الملف المحفوظ',()=>d.run(async()=>{const blob=await d.session.storage('GET',r.storage_path);d.session.check();const link=node('a','فتح أو تحميل الملف الأصلي');link.href=urls.create(blob);link.download=r.document_no+(r.mime_type==='application/pdf'?'.pdf':r.mime_type==='image/png'?'.png':r.mime_type==='image/webp'?'.webp':'.jpg');a.append(link);})));list.append(a);}
+  for(const [i,r] of rows.entries())if(r.status==='uploaded')mountDocumentHandovers(d,list.children[i],r.id);
   if(!rows.length)list.append(node('p','لا توجد مستندات في هذه الصفحة.'));previous.disabled=page===0;next.disabled=rows.length<20;
  }
  async function search(){records.replaceChildren();const o=node('option','اختر السجل');o.value='';records.append(o);const rows=await rpc('aqari_document_entities',{p_type:type.value,p_query:query.value.trim()});for(const r of rows){const o=node('option',r.title);o.value=r.entity_ref;records.append(o);}page=0;await load();}

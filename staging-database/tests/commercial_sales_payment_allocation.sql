@@ -35,7 +35,7 @@ values
  ('76610000-0000-4000-8000-000000000902',current_setting('aqari.test.commercial.allocation.workspace')::uuid,'76610000-0000-4000-8000-000000000401','COMMERCIAL-ALLOC-PAY-2',100,'2026-07-01','2026-07-31','paid','cash','{}','{}');
 
 set local role authenticated;
-do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace')::uuid;reply jsonb;statement jsonb;detail text;row_data private.aqari_rent_due_periods;begin
+do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace')::uuid;reply jsonb;statement jsonb;detail text;paid_amount numeric;begin
  -- 400 * 7.5% = 30.000; second charge 2000 * 7.5% = 150.000.
  perform public.aqari_commercial_sales(w,'record',jsonb_build_object(
   'id','76610000-0000-4000-8000-000000000601','lease_id','76610000-0000-4000-8000-000000000401','month','2026-08','gross_sales','400.000','terms_revision',1,
@@ -46,8 +46,8 @@ do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace
  reply:=public.aqari_commercial_payment_allocations(w,'allocate',jsonb_build_object(
   'id','76610000-0000-4000-8000-000000000701','sale_id','76610000-0000-4000-8000-000000000601','payment_id','76610000-0000-4000-8000-000000000901','amount','30.000'));
  if reply->>'amount'<>'30.000' or reply->>'payment_id'<>'76610000-0000-4000-8000-000000000901' then raise exception 'COMMERCIAL_ALLOCATION_SAVE_FAILED';end if;
- select * into row_data from private.aqari_rent_due_periods where workspace_id=w and lease_id='76610000-0000-4000-8000-000000000401' and period='2026-08-01';
- if row_data.paid_amount<>70.000 then raise exception 'COMMERCIAL_PAYMENT_DOUBLE_COUNTED_AS_RENT: %',row_data.paid_amount;end if;
+ select (x->>'paid_amount')::numeric into paid_amount from jsonb_array_elements(public.aqari_rent_due_schedule(w,'76610000-0000-4000-8000-000000000401')->'periods')x where x->>'period'='2026-08-01';
+ if paid_amount is distinct from 70.000 then raise exception 'COMMERCIAL_PAYMENT_DOUBLE_COUNTED_AS_RENT: %',paid_amount;end if;
  statement:=public.aqari_commercial_statement(w,'76610000-0000-4000-8000-000000000401','2026-08-01','2026-08-31');
  if statement->>'commercial_due_total'<>'30.000' or statement->>'commercial_paid_total'<>'30.000' or statement->>'commercial_balance'<>'0.000' then raise exception 'COMMERCIAL_STATEMENT_ALLOCATION_FAILED: %',statement;end if;
  begin
@@ -63,8 +63,8 @@ do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace
  reply:=public.aqari_commercial_payment_allocations(w,'reverse',jsonb_build_object(
   'id','76610000-0000-4000-8000-000000000711','allocation_id','76610000-0000-4000-8000-000000000701','occurred_on','2026-09-01','reason','Synthetic immutable allocation correction'));
  if reply->>'allocation_id'<>'76610000-0000-4000-8000-000000000701' then raise exception 'COMMERCIAL_ALLOCATION_REVERSAL_FAILED';end if;
- select * into row_data from private.aqari_rent_due_periods where workspace_id=w and lease_id='76610000-0000-4000-8000-000000000401' and period='2026-08-01';
- if row_data.paid_amount<>100.000 then raise exception 'REVERSED_ALLOCATION_NOT_RETURNED_TO_RENT: %',row_data.paid_amount;end if;
+ select (x->>'paid_amount')::numeric into paid_amount from jsonb_array_elements(public.aqari_rent_due_schedule(w,'76610000-0000-4000-8000-000000000401')->'periods')x where x->>'period'='2026-08-01';
+ if paid_amount is distinct from 100.000 then raise exception 'REVERSED_ALLOCATION_NOT_RETURNED_TO_RENT: %',paid_amount;end if;
 end $$;
 reset role;
 
@@ -76,9 +76,9 @@ reset role;
 insert into private.aqari_receipt_cancellations(id,workspace_id,payment_id,reason,approved_by,approved_by_name,snapshot)
 values('76610000-0000-4000-8000-000000000911',current_setting('aqari.test.commercial.allocation.workspace')::uuid,'76610000-0000-4000-8000-000000000901','Synthetic receipt cancellation invalidates allocation','76610000-0000-4000-8000-000000000001','Synthetic manager','{}');
 
-do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace')::uuid;row_data private.aqari_rent_due_periods;statement jsonb;detail text;begin
- select * into row_data from private.aqari_rent_due_periods where workspace_id=w and lease_id='76610000-0000-4000-8000-000000000401' and period='2026-08-01';
- if row_data.paid_amount<>0.000 then raise exception 'CANCELLED_PAYMENT_STILL_COUNTS_AS_RENT: %',row_data.paid_amount;end if;
+do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace')::uuid;paid_amount numeric;statement jsonb;detail text;begin
+ select (x->>'paid_amount')::numeric into paid_amount from jsonb_array_elements(public.aqari_rent_due_schedule(w,'76610000-0000-4000-8000-000000000401')->'periods')x where x->>'period'='2026-08-01';
+ if paid_amount is distinct from 0.000 then raise exception 'CANCELLED_PAYMENT_STILL_COUNTS_AS_RENT: %',paid_amount;end if;
  statement:=private.aqari_commercial_statement_data(w,'76610000-0000-4000-8000-000000000401','2026-08-01','2026-08-31');
  if statement->>'commercial_paid_total'<>'0.000' or statement->>'commercial_balance'<>'30.000' then raise exception 'CANCELLED_PAYMENT_STILL_COUNTS_AS_COMMERCIAL: %',statement;end if;
  if exists(select 1 from private.aqari_commercial_active_allocations where workspace_id=w and allocation_id='76610000-0000-4000-8000-000000000703') then raise exception 'CANCELLED_PAYMENT_ALLOCATION_STILL_ACTIVE';end if;

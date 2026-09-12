@@ -44,9 +44,9 @@
       "name": "commercial_sales",
       "workspace_id": "76f10000-0000-4000-8000-000000000006",
       "workspace_slug": "hosted-completion-commercial-sales",
-      "source_sha256": "f8cab9e1588bf3fa1d02ebbf4a90a19fcb95643ac50401640c5d4d2bd0a1dd8a",
+      "source_sha256": "5b5b4c9b6b95780cfdbb4be2e85bcca68713fa86cdd722ca36458182fda1a1e0",
       "file": "06-commercial_sales.sql",
-      "sha256": "41b5bf021809d39ff7ab05bac8fdbb2bb4547616c1fdc030c16173e3a0676d44"
+      "sha256": "000b1afc3592acba11c211a19f2ff7e1bb33ea8a37c161e7cc11139c0f659ff3"
     },
     {
       "name": "commercial_sales_vacating",
