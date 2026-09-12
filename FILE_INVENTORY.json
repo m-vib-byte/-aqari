@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "82a969b7af76f5919bd2e48647389eca716ef8f447b1df243b5959be12912ac2",
-      "size": 6459
+      "sha256": "e6eb0e9bfdf375299b3f2430c51932ecb9e2a5c4ccddd539342a8e74402f94f1",
+      "size": 6500
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -357,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "8679e8c7fbf4aeb566a09b54c0fb8b9b292e508c2099f33d77093e711b37a402",
-      "size": 305438
+      "sha256": "98aab45cd7516c631dc911c5b9b8b5e62f00379afb2bddee82e35dc6099814b7",
+      "size": 308467
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -416,6 +416,11 @@
       "size": 11442
     },
     {
+      "path": "docs/V267-LEASE-EXPIRY-2026-09-12.md",
+      "sha256": "397b6cb727b89799b131a7032977375f2c7bb741f9f199416591efd0b5bd686e",
+      "size": 6016
+    },
+    {
       "path": "docs/V267-LINKED-RENTAL-DETAILS.md",
       "sha256": "c3a30b362f0de6f18fe9a99518ce92ea2b4cbbfda3bda02cf2c1b1f64c02a976",
       "size": 3864
@@ -467,8 +472,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "991f37f9c061a4dde377f928bb62d02a039a3a2370813eca694a5a6fd39f486c",
-      "size": 97254
+      "sha256": "c719452fb0c68b34dbd6facb49cc6eded3302076fa7ae8216a78c39b60ee130c",
+      "size": 98024
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -871,6 +876,11 @@
       "size": 650
     },
     {
+      "path": "src/v267/components/lease-expiry-translations.js",
+      "sha256": "1efae1c162572c15da9855c05695e53f933be7efb9692aca042424427f8e7318",
+      "size": 7624
+    },
+    {
       "path": "src/v267/components/locale.js",
       "sha256": "728a20b5dcc6b3dc9b3db9e1a1ea552148e629ef60d45b269384fd19af07c108",
       "size": 1906
@@ -911,14 +921,19 @@
       "size": 9356
     },
     {
+      "path": "src/v267/components/service-label-translations.js",
+      "sha256": "cbf3dff3833664b674ea450246afa2700caed3bd6a0a2e55e847b783c2919f56",
+      "size": 548
+    },
+    {
       "path": "src/v267/components/tenant-attachment-upload.js",
       "sha256": "c4c71ec2bbff94fc97bc8a2a46a67155ed6dcb5ae83acb0a4dca65d183786574",
       "size": 3246
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "f48fb6691a627f5b7a211438f5a3aa4fbd9fa3939acf7d34ca1a419d637d12a3",
-      "size": 167454
+      "sha256": "3f30170a643ffb4a471b90c4fe0668b827a29954439e627c003b77919960d859",
+      "size": 167651
     },
     {
       "path": "src/v267/components/ui-text.js",
@@ -1041,6 +1056,11 @@
       "size": 2541
     },
     {
+      "path": "src/v267/pages/lease-expiry-report.js",
+      "sha256": "29d61100e192458b34fcde446a66c0b02ac296dfbfa936659fc51659906b5655",
+      "size": 5772
+    },
+    {
       "path": "src/v267/pages/lease-review.js",
       "sha256": "d0682312b45273192cd0ee7c3274151a43929bfcc0e8f05af6d94bf2ff16dfef",
       "size": 6022
@@ -1142,8 +1162,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "811f5082024052a1672d4daab0e7d63d4b8d16167ad570b95f69edeefacf6900",
-      "size": 19957
+      "sha256": "081b69123c2847154ac7075333008d09db6efe690c1f3c17b0e1301abe94c35d",
+      "size": 20524
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1212,8 +1232,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "7adcc720c60685ff98eb05a2664717a539bde52f61e98bf47519647192095553",
-      "size": 3475
+      "sha256": "f976f57083b27e8f19b65696b840c5e075c33678dd9efc193f885709ab5bd45d",
+      "size": 3578
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -1284,6 +1304,11 @@
       "path": "staging-database/sql/kpi-dashboard.sql",
       "sha256": "993e02d69f15342825a10e08be8f1060baacc141bef5f0a47e869d7cd2fba3c0",
       "size": 2798
+    },
+    {
+      "path": "staging-database/sql/lease-expiry-report.sql",
+      "sha256": "2d1a21d29f14118bb71e7482cc197877c0e0765f997afc63bbadc9e60b2498e4",
+      "size": 4509
     },
     {
       "path": "staging-database/sql/linked-rental-details.sql",
@@ -1442,8 +1467,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "936cc57e529bbf9f7d163ee1ef5ce8c5ff74c22a58b3723cd427b06f7bb4e94f",
-      "size": 4286
+      "sha256": "190dcc63323b00bd4236ac0dd1b97486d5b671445edc04b97b1cb023638c93e8",
+      "size": 4525
     },
     {
       "path": "staging-database/supabase/migrations/20260907083736_v267_isolated_core.sql",
@@ -1591,6 +1616,21 @@
       "size": 20128
     },
     {
+      "path": "staging-database/supabase/migrations/20260912135234_v267_lease_expiry_report.sql",
+      "sha256": "f740734fe7c405516a18e01a951ed55ea8bdb9d9b02999eef79cd921e7d8c81e",
+      "size": 7741
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912135650_v267_lease_expiry_rls_join_performance.sql",
+      "sha256": "32d89c195bb9474adbd737181ab20c4a754dc0c3e00e5fe1189273437a9d6993",
+      "size": 4143
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912140036_v267_lease_expiry_scoped_reader.sql",
+      "sha256": "87cb157c280517927a4cc2c6a5edf03383ede70c2375f56156e0e1270ea9f2cf",
+      "size": 4510
+    },
+    {
       "path": "staging-database/tests/deposit_register.sql",
       "sha256": "03c34778919dfc751275c194cffea6b39e02c8230fbe7be07430f62295f0eec2",
       "size": 17579
@@ -1639,6 +1679,11 @@
       "path": "staging-database/tests/imported_tenant_edit.sql",
       "sha256": "645ad77d97244f40ae6de58e8dbe4681fa6d6c99adaed04ef4ed5d53aa3f844d",
       "size": 5472
+    },
+    {
+      "path": "staging-database/tests/lease_expiry_report.sql",
+      "sha256": "db35821d5b2beeb04680fbf2d391b47639f074277189a4c893b831d396ab5e5d",
+      "size": 9474
     },
     {
       "path": "staging-database/tests/linked_rental_details.sql",
@@ -2181,6 +2226,11 @@
       "size": 1093
     },
     {
+      "path": "tests/v267-lease-expiry-runtime.test.mjs",
+      "sha256": "fbd67369107dfc7b4b5efec041f076025ba8bf8ef44c8f68c422c53fed8e3562",
+      "size": 5544
+    },
+    {
       "path": "tests/v267-locale.test.mjs",
       "sha256": "85199444f449b6aaf0ae1dd473b257f20817a92615f62e26abf672c079f34abb",
       "size": 4139
@@ -2407,8 +2457,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "60f9287b43f8bb957acc3d01981fff0b526211590bc20a955284cceb891e7d95",
-      "size": 50367
+      "sha256": "a5c55c55313834d52f37564d69260f7373fd7596379dbe9e6ddfbbff528342c0",
+      "size": 51869
     },
     {
       "path": "tests/verified-upload.test.mjs",

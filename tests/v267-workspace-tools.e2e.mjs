@@ -41,7 +41,11 @@ const server=http.createServer((req,res)=>{
  }
  if(url.pathname.startsWith('/fixture/')){let body='';req.on('data',x=>body+=x);req.on('end',()=>{
   const name=url.pathname.slice(9),args=JSON.parse(body||'{}');calls.push(name);
-  if(name==='aqari_workspace_access')return reply(res,{user_id:uid,workspace_id:wid,role:'general_manager',sections:settings.sections,labels:settings.labels,permissions:Object.fromEntries(sections.map(s=>[s,{read:true,write:settings.sections[s]!==false}]))});
+  if(name==='aqari_workspace_access')return reply(res,{user_id:uid,workspace_id:wid,role:'general_manager',features:{lease_expiry_report:true},sections:settings.sections,labels:settings.labels,permissions:Object.fromEntries(sections.map(s=>[s,{read:true,write:settings.sections[s]!==false}]))});
+  if(name==='aqari_lease_expiry_report'){
+   assert.equal(args.p_workspace_id,wid);assert.ok([30,60,90].includes(args.p_days));
+   return reply(res,{as_of:'2026-09-12',timezone:'Asia/Kuwait',status:args.p_status,days:args.p_days,property_id:args.p_property_id,search:args.p_search,offset:args.p_offset,page_size:50,total:1,properties:[{id:'p1',name:propertyName}],rows:[{id:'expiry1',contract_no:'EXP-401',start_date:'2026-01-01',end_date:'2026-09-12',monthly_rent:'125.750',property_name:propertyName,unit_no:'401',tenant_name:tenantName,days_remaining:args.p_status==='expired'?-2:0}]});
+  }
   if(name==='aqari_control_center')return reply(res,{control:{workspace_id:wid,settings,revision},members:[{user_id:uid,role:'general_manager',is_active:true,display_name:'مدير اختبار'}]});
   if(name==='aqari_control_audit')return reply(res,audit);
   if(name==='aqari_save_controls'){
@@ -281,7 +285,7 @@ try{
     const serviceSearch=directory.getByRole('searchbox',{name:'ابحث عن خدمة',exact:true});
     assert.equal(await page.locator('#aq267-kpi-dashboard').isVisible(),false,'grouped menu keeps unavailable backend features hidden');
     await serviceSearch.fill('راتب');
-    await directory.getByRole('button',{name:'الموظفون والرواتب / Employees and payroll',exact:true}).waitFor({state:'visible',timeout:3000});
+    await directory.getByRole('button',{name:'الموظفون والرواتب',exact:true}).waitFor({state:'visible',timeout:3000});
     await serviceSearch.fill('مركز تحكم المدير');
     await directory.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByRole('dialog').getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
@@ -292,6 +296,13 @@ try{
     await page.screenshot({path:path.join(out,name+'-service-directory.png'),fullPage:true});
     await serviceSearch.press('Escape');
     assert.equal(await serviceSearch.inputValue(),'');
+    await page.locator('#v199MoreMenu').getByRole('button',{name:'العقود المنتهية والقريبة من الانتهاء',exact:true}).click();
+    await page.getByRole('heading',{name:'عقد EXP-401',exact:true}).waitFor();
+    await page.getByLabel('نوع التقرير',{exact:true}).selectOption('expired');
+    await page.getByRole('button',{name:'عرض التقرير',exact:true}).click();
+    await page.getByText('انتهى منذ 2 يومًا',{exact:true}).waitFor();
+    await page.getByRole('dialog').screenshot({path:path.join(out,name+'-lease-expiry.png')});
+    await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
 
     await page.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
@@ -377,6 +388,8 @@ try{
      await page.getByRole('button',{name:navLabel('control_center',locale),exact:true}).waitFor();
      await page.reload();
      assert.equal(await page.locator('#aq267-interface-language').inputValue(),locale,'language survives reload');
+     await page.locator('#aq267-service-directory').waitFor({state:'visible'});
+     await page.locator('#aq267-service-directory').screenshot({path:path.join(out,name+'-service-directory-'+locale+'.png')});
      await verifyFinancialPanels(page,locale,name);
      await page.getByRole('button',{name:navLabel('control_center',locale),exact:true}).click();
      await page.getByText(translate('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',locale),{exact:true}).waitFor();

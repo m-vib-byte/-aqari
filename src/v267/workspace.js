@@ -29,6 +29,8 @@ function updateFeatureTools(){
  if(finance)finance.hidden=access?.features?.financial_register!==true||access?.permissions?.finance?.read!==true;
  if(deposits)deposits.hidden=access?.features?.deposit_register!==true||access?.permissions?.collections?.read!==true;
  if(vacatingReview)vacatingReview.hidden=access?.features?.vacating_review!==true||access?.role!=='general_manager';
+ const expiryReport=document.getElementById('aq267-lease-expiry-report');
+ if(expiryReport)expiryReport.hidden=access?.features?.lease_expiry_report!==true||access?.permissions?.reports?.read!==true||access?.permissions?.contracts?.read!==true;
  const circulars=document.getElementById('aq267-staff-circulars');
  if(circulars)circulars.hidden=access?.features?.staff_circulars!==true;
  const readiness=document.getElementById('aq267-unit-readiness');
@@ -80,8 +82,8 @@ export function install(){
  const quality=ui('button','مركز جودة البيانات');quality.hidden=currentScope().role!=='general_manager';quality.onclick=()=>import('./pages/data-quality.js').then(m=>m.openDataQuality()).catch(e=>notice.textContent=t(safeError(e)));
  const review=ui('button','اعتماد عقود المصدر');review.hidden=currentScope().role!=='general_manager';review.onclick=()=>import('./pages/lease-review.js').then(m=>m.openLeaseReview()).catch(e=>notice.textContent=t(safeError(e)));
  const partners=ui('button','صلاحيات الشركاء حسب العقار');partners.hidden=currentScope().role!=='general_manager';partners.onclick=()=>import('./pages/partner-access.js').then(m=>m.openPartnerAccess()).catch(e=>notice.textContent=t(safeError(e)));
- const employees=node('button','الموظفون والرواتب / Employees and payroll');employees.onclick=()=>import('./pages/employees.js').then(m=>m.openEmployees()).catch(e=>notice.textContent=t(safeError(e)));
- const rentalContracts=node('button','إبرام عقود الإيجار / Rental contracts');rentalContracts.onclick=()=>import('./pages/rental-contracts.js').then(m=>m.openRentalContracts()).catch(e=>notice.textContent=t(safeError(e)));
+ const employees=ui('button','الموظفون والرواتب');employees.onclick=()=>import('./pages/employees.js').then(m=>m.openEmployees()).catch(e=>notice.textContent=t(safeError(e)));
+ const rentalContracts=ui('button','عقود الإيجار');rentalContracts.onclick=()=>import('./pages/rental-contracts.js').then(m=>m.openRentalContracts()).catch(e=>notice.textContent=t(safeError(e)));
  const propertyNotices=node('button','إعلانات العقارات وإرشادات المستأجرين');propertyNotices.hidden=currentScope().role!=='general_manager';propertyNotices.onclick=()=>import('./pages/property-notices.js').then(m=>m.openPropertyNotices()).catch(e=>notice.textContent=t(safeError(e)));
  const staffCirculars=ui('button','تعاميم الموظفين وإثبات الاطلاع');staffCirculars.id='aq267-staff-circulars';staffCirculars.hidden=true;staffCirculars.onclick=()=>import('./pages/staff-circulars.js').then(m=>m.openStaffCirculars()).catch(e=>notice.textContent=t(safeError(e)));
  const staffAccess=node('button','صلاحيات الموظفين حسب العقار');staffAccess.id='aq267-staff-access';staffAccess.hidden=true;staffAccess.onclick=()=>import('./pages/staff-access.js').then(m=>m.openStaffAccess()).catch(e=>notice.textContent=t(safeError(e)));
@@ -99,6 +101,7 @@ export function install(){
  const officialDocumentsButton=ui('button','النماذج الرسمية وPDF والأرشيف');officialDocumentsButton.id='aq267-official-document-center';officialDocumentsButton.hidden=true;officialDocumentsButton.onclick=()=>import('./pages/official-document-center.js').then(m=>m.openOfficialDocumentCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const integrationsButton=ui('button','التكاملات الخارجية وWebhooks');integrationsButton.id='aq267-integration-center';integrationsButton.hidden=true;integrationsButton.onclick=()=>import('./pages/integration-center.js').then(m=>m.openIntegrationCenter()).catch(e=>notice.textContent=t(safeError(e)));
  const financialArchiveButton=ui('button','الأرشيف المالي التاريخي');financialArchiveButton.id='aq267-financial-archive';financialArchiveButton.hidden=true;financialArchiveButton.onclick=()=>import('./pages/financial-archive.js').then(m=>m.openFinancialArchive()).catch(e=>notice.textContent=t(safeError(e)));
+ const expiryReportButton=ui('button','العقود المنتهية والقريبة من الانتهاء');expiryReportButton.id='aq267-lease-expiry-report';expiryReportButton.hidden=true;expiryReportButton.onclick=()=>import('./pages/lease-expiry-report.js').then(m=>m.openLeaseExpiryReport()).catch(e=>notice.textContent=t(safeError(e)));
  const readinessButton=ui('button','جاهزية الوحدات قبل التأجير');readinessButton.id='aq267-unit-readiness';readinessButton.hidden=true;readinessButton.onclick=()=>import('./pages/unit-readiness.js').then(m=>m.openUnitReadiness()).catch(e=>notice.textContent=t(safeError(e)));
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
@@ -108,7 +111,7 @@ export function install(){
  const route=(name,section)=>({...entry(document.querySelector('#aqariV199Topbar [data-v199-go="'+name+'"]'),section),menu:false});
  serviceDirectory=organizeServices({tools,allowed:directoryAllowed,groups:[
   {key:'finance',items:[route('collectionProPage','collections'),entry(deposits,'collections',false,'تأمين تامين قبض رد'),entry(financialRegister,'finance'),entry(financialArchiveButton,'finance'),entry(finalGapButton,null,true)]},
-  {key:'contracts',items:[entry(rentalContracts,'contracts'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
+  {key:'contracts',items:[entry(rentalContracts,'contracts'),entry(expiryReportButton,'reports'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
   {key:'properties',items:[route('properties','properties'),route('tenants','tenants'),entry(readinessButton,'properties'),entry(statements,null,true),entry(quality,null,true),entry(review,null,true)]},
   {key:'maintenance',items:[route('maintenanceProPage','maintenance'),entry(utilities),entry(maintenancePlansButton,'maintenance'),entry(complianceButton,null,true),entry(operationsCenter,null,true)]},
   {key:'staff',items:[entry(employees,'employees',false,'راتب رواتب موظف'),entry(staffAccess,null,true),entry(partners,null,true),entry(propertyNotices,null,true),entry(staffCirculars)]},

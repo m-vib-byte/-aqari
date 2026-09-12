@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "991f37f9c061a4dde377f928bb62d02a039a3a2370813eca694a5a6fd39f486c",
+  "matrixSha256": "c719452fb0c68b34dbd6facb49cc6eded3302076fa7ae8216a78c39b60ee130c",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -375,6 +375,16 @@
         "staging-database/tests/staff_circulars.sql",
         "tests/v267-staff-circulars-runtime.test.mjs"
       ]
+    },
+    "E45": {
+      "files": [
+        "docs/V267-LEASE-EXPIRY-2026-09-12.md",
+        "src/v267/pages/lease-expiry-report.js",
+        "staging-database/sql/lease-expiry-report.sql",
+        "staging-database/tests/lease_expiry_report.sql",
+        "tests/v267-lease-expiry-runtime.test.mjs",
+        "tests/v267-workspace-tools.e2e.mjs"
+      ]
     }
   },
   "files": [
@@ -416,8 +426,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "811f5082024052a1672d4daab0e7d63d4b8d16167ad570b95f69edeefacf6900",
-      "bytes": 19957,
+      "sha256": "081b69123c2847154ac7075333008d09db6efe690c1f3c17b0e1301abe94c35d",
+      "bytes": 20524,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -436,8 +446,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "936cc57e529bbf9f7d163ee1ef5ce8c5ff74c22a58b3723cd427b06f7bb4e94f",
-      "bytes": 4286,
+      "sha256": "190dcc63323b00bd4236ac0dd1b97486d5b671445edc04b97b1cb023638c93e8",
+      "bytes": 4525,
       "declaredTables": [],
       "publicFunctions": [
         "public.aqari_workspace_access"
@@ -1142,8 +1152,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "f48fb6691a627f5b7a211438f5a3aa4fbd9fa3939acf7d34ca1a419d637d12a3",
-      "bytes": 167454,
+      "sha256": "3f30170a643ffb4a471b90c4fe0668b827a29954439e627c003b77919960d859",
+      "bytes": 167651,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2137,6 +2147,65 @@
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-LEASE-EXPIRY-2026-09-12.md",
+      "sha256": "397b6cb727b89799b131a7032977375f2c7bb741f9f199416591efd0b5bd686e",
+      "bytes": 6016,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/pages/lease-expiry-report.js",
+      "sha256": "29d61100e192458b34fcde446a66c0b02ac296dfbfa936659fc51659906b5655",
+      "bytes": 5772,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_lease_expiry_report",
+        "aqari_workspace_access"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/lease-expiry-report.sql",
+      "sha256": "2d1a21d29f14118bb71e7482cc197877c0e0765f997afc63bbadc9e60b2498e4",
+      "bytes": 4509,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_lease_expiry_report"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/lease_expiry_report.sql",
+      "sha256": "db35821d5b2beeb04680fbf2d391b47639f074277189a4c893b831d396ab5e5d",
+      "bytes": 9474,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-lease-expiry-runtime.test.mjs",
+      "sha256": "fbd67369107dfc7b4b5efec041f076025ba8bf8ef44c8f68c422c53fed8e3562",
+      "bytes": 5544,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "tests/v267-workspace-tools.e2e.mjs",
+      "sha256": "a5c55c55313834d52f37564d69260f7373fd7596379dbe9e6ddfbbff528342c0",
+      "bytes": 51869,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "browser-suite"
     }
   ],
   "requirements": [
@@ -5043,24 +5112,36 @@
       "id": 79,
       "sourceId": "G07-10",
       "requirement": "تقرير العقود المنتهية والقريبة من الانتهاء.",
-      "reportedImplementation": "جزئي — E08 يحفظ التواريخ؛ التقرير التشغيلي الشامل غير مثبت.",
-      "acceptanceRemaining": "قوائم صحيحة بتاريخ الكويت مع فلاتر 30/60/90 يوماً وعدم احتساب مسودة كعقد نافذ.",
+      "reportedImplementation": "جزئي — E08 وE45؛ نُفذ تقرير بتوقيت الكويت ومرشحات 30/60/90 وعقار وبحث وصفحات، واجتاز اختبار قاعدة مستضافة والصلاحيات ومهلة استعلام ثانيتين على بيانات اصطناعية.",
+      "acceptanceRemaining": "قبول تشغيلي بحسابات المشروع وبياناته وأجهزة فعلية؛ زمن استعلام قاعدة الاختبار ليس زمن الاستخدام الكامل.",
       "evidenceIds": [
-        "E08"
+        "E08",
+        "E45"
       ],
       "evidenceFiles": [
         "src/v267/pages/rental-contracts.js",
         "staging-database/sql/rental-contract-provisions.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/rental_contract_provisions.sql",
+        "docs/V267-LEASE-EXPIRY-2026-09-12.md",
+        "src/v267/pages/lease-expiry-report.js",
+        "staging-database/sql/lease-expiry-report.sql",
+        "staging-database/tests/lease_expiry_report.sql",
+        "tests/v267-lease-expiry-runtime.test.mjs",
+        "tests/v267-workspace-tools.e2e.mjs"
       ],
       "uiFiles": [
-        "src/v267/pages/rental-contracts.js"
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/pages/lease-expiry-report.js"
       ],
       "sqlFiles": [
-        "staging-database/sql/rental-contract-provisions.sql"
+        "staging-database/sql/rental-contract-provisions.sql",
+        "staging-database/sql/lease-expiry-report.sql"
       ],
       "testFiles": [
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/rental_contract_provisions.sql",
+        "staging-database/tests/lease_expiry_report.sql",
+        "tests/v267-lease-expiry-runtime.test.mjs",
+        "tests/v267-workspace-tools.e2e.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
