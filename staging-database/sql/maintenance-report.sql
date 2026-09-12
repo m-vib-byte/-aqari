@@ -12,7 +12,7 @@ declare j jsonb;
 begin
   if p_action is null or left(ltrim(p_action),1)<>'{' then return null; end if;
   begin j:=p_action::jsonb; exception when others then return null; end;
-  if j->>'operation' not in ('maintenance_INSERT','maintenance_UPDATE') then return null; end if;
+  if lower(coalesce(j->>'operation','')) not in ('maintenance_insert','maintenance_update') then return null; end if;
   return j->>'status';
 end $$;
 
