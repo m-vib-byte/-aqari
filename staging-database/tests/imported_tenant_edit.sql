@@ -25,12 +25,16 @@ do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; p jsonb:=jso
 ); begin
  insert into public.aqari_tenants(id,workspace_id,external_ref,full_name,civil_id,phone,email,profile,import_source)
  values('d8d8d8d8-3333-4333-8333-333333333333'::uuid,w,p->>'id',p->>'nameAr',p->>'civilId',p->>'phone',null,p,jsonb_build_object('fixture',true));
- update public.aqari_app_state set payload=jsonb_build_object(
-  'tenantProfilesV267',jsonb_build_array(p),
-  'tenants','[]'::jsonb,
-  'tenantDirectoryV202','[]'::jsonb,
-  'tenantPreparationDraftsV267','[]'::jsonb
- ) where workspace_id=w;
+ -- Preserve all pre-existing tenant and lease history in a populated Staging
+ -- workspace. The projector correctly rejects destructive state replacement.
+ update public.aqari_app_state
+ set payload=jsonb_set(
+   payload,
+   '{tenantProfilesV267}',
+   coalesce(payload->'tenantProfilesV267','[]'::jsonb)||jsonb_build_array(p),
+   true
+ )
+ where workspace_id=w;
 end $$;
 set local role authenticated;
 do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; ref text; before jsonb; after jsonb; original_contracts jsonb; begin
@@ -53,4 +57,5 @@ do $$ declare w uuid:=current_setting('edit.test.workspace')::uuid; begin
 begin perform public.aqari_imported_tenant_read(w,'foreign');raise exception 'READ_ALLOWED';exception when insufficient_privilege then null;end;
 begin perform public.aqari_imported_tenant_save(w,'foreign','{}',0,'denied');raise exception 'WRITE_ALLOWED';exception when insufficient_privilege then null;end;
 end $$;
-reset role;rollback;
+reset role; rollback;
+select 'PASS: imported tenant profile update/readback, immutable source fields, audit history, stale revision and invalid contact rejection, accountant denial; fixtures rolled back' result;

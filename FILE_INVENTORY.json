@@ -1177,8 +1177,8 @@
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
-      "size": 5158,
-      "sha256": "8bae7aeb7f3fd8f1d64eed1c2464aa638bdc1219b8f37397d793f71dd4b85922"
+      "sha256": "645ad77d97244f40ae6de58e8dbe4681fa6d6c99adaed04ef4ed5d53aa3f844d",
+      "size": 5472
     },
     {
       "path": "staging-database/tests/linked_rental_details.sql",
@@ -2154,6 +2154,11 @@
       "path": "staging-database/tests/final_gap_register.sql",
       "sha256": "c24ee6b87c52a55ce21568efba0c16e73bad48a9ae1de0a9997ec14074452584",
       "size": 7110
+    },
+    {
+      "path": "staging-database/sql/v267-advisor-remediation.sql",
+      "sha256": "27b4c4899119850d8afab7e86ae3965496147fd5e97cc36e799ea202ce564153",
+      "size": 1266
     }
   ],
   "version": "V198"
