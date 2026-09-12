@@ -3,7 +3,7 @@ import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
 if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
-let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,userId=null,saveUncertain=false;
+let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,engagementVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set();
 const safeError=e=>/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
 function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
@@ -44,7 +44,18 @@ async function refresh(){
  items('tenantRequests',data.maintenance,m=>{const description=document.createElement('span');description.textContent='\n'+m.description;return [uiText('span','طلب {number} • ',{number:m.request_no}),uiText('span',states[m.status]||'غير معروف'),description];});
  $('maintenanceLease').replaceChildren();const today=new Date(Date.now()+10800000).toISOString().slice(0,10);
  for(const l of data.leases.filter(l=>l.status==='signed'&&l.start_date<=today&&l.end_date>=today)){const option=uiText('option','العقد {contract} • الوحدة {unit}',{contract:l.contract_no,unit:l.snapshot.unit});option.value=l.id;$('maintenanceLease').append(option);}
- $('maintenanceForm').hidden=!$('maintenanceLease').options.length;loadNotices();return data;
+ $('maintenanceForm').hidden=!$('maintenanceLease').options.length;loadNotices();loadEngagement();return data;
+}
+async function loadEngagement(){
+ if(!snapshot)return null;const e=epoch,version=++engagementVersion,account=snapshot.account;let box=$('tenantEngagement');
+ if(!box){box=document.createElement('section');box.id='tenantEngagement';box.setAttribute('aria-label','التواصل والتقييم');$('content').append(box);}
+ box.replaceChildren(uiText('h2','التواصل والتقييم'));
+ try{const auth=await session();if(!current(e)||version!==engagementVersion)return null;if(auth?.user.id!==account.user_id){invalidate();return null;}
+  const {data,error}=await request(signal=>client.rpc('aqari_tenant_engagement_feed').abortSignal(signal));if(!current(e)||version!==engagementVersion)return null;if(error||!data||!Array.isArray(data.channels)||!Array.isArray(data.ratings))throw Error('تعذر تحميل التواصل والتقييم.');
+  box.append(uiText('p','وسيلة التواصل المفضلة: {channel}',{channel:data.preference?.preferred_channel||'غير محددة'}));
+  const links=document.createElement('div');for(const c of data.channels){const a=document.createElement('a');a.href=c.public_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=c.kind;links.append(a);}box.append(links);
+  for(const r of data.ratings){const line=document.createElement('p');line.textContent=`${r.year}: ${'★'.repeat(r.stars)}${'☆'.repeat(4-r.stars)} — ${r.rating}`;box.append(line);}
+ }catch(error){if(current(e)&&version===engagementVersion)box.append(uiText('p','تعذر تحميل التواصل والتقييم.'));}
 }
 const noticeDate=value=>new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'});
 async function loadNotices(){

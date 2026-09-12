@@ -272,8 +272,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "406d678d06519d2300f17f65ddc59e4b47fa3d29ed323854fecb75c81243ebe1",
-      "size": 85990
+      "sha256": "7b95b76befbafc02ce95364f32662e2258e6f133542fca193d32a4afea074f67",
+      "size": 87790
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -872,8 +872,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "286bee8f39b825e291c22db788166dac6eb5f3e53830ff0a8a342a31f4d8d6ba",
-      "size": 15644
+      "sha256": "919e5d10799de43c9d75a75d53a9dd46a936fdda8b2a7a4364d33f39ce091ab1",
+      "size": 16098
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -1992,8 +1992,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "6e42f8e84012f71ccaa8e43c5efea8339920e87ab9c3c47a9518e73fd8c9417b",
-      "size": 17347
+      "sha256": "0b68c8d35d6d47405f5ef513d28500164bd33e48e1e2d599ac88bfd5324c92d4",
+      "size": 18944
     },
     {
       "path": "v267-unified.css",
@@ -2134,6 +2134,21 @@
       "path": "tests/outbound_adapters_test.py",
       "sha256": "08e83a2b264768e671bb00764ff20070514464238b160e58069faaf071356235",
       "size": 2176
+    },
+    {
+      "path": "src/v267/pages/final-gap-center.js",
+      "sha256": "a634622bad5c81f4fd00801a5393324b84845bb8f8ab017816a34491ae42b9d2",
+      "size": 4125
+    },
+    {
+      "path": "staging-database/sql/final-gap-register.sql",
+      "sha256": "59bbce6903fce36b3b0e045b21b42da3ae8b9bb5fac858f58b88950a272c2f00",
+      "size": 16187
+    },
+    {
+      "path": "tests/v267-final-gap-register.test.cjs",
+      "sha256": "4dbf928667014a6ee76f44557f2eb90594b6eca6f604d65c0fc7d509222a79b5",
+      "size": 2637
     }
   ],
   "version": "V198"
