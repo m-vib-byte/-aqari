@@ -2267,13 +2267,13 @@
     },
     {
       "path": "staging-database/sql/financial-close-cancellations.sql",
-      "size": 1380,
-      "sha256": "8c01131393c30937b0532ee8bcaf70c3f6b9cb16842141f89a0624c673255304"
+      "size": 2403,
+      "sha256": "38719e27854de3bfede2d8c1ad0e95f318922f27601ec83a1497928b3ffa49a3"
     },
     {
       "path": "staging-database/tests/financial_close_cancellations.sql",
-      "size": 5966,
-      "sha256": "418265c1e9cc6b812d9e36ac7f7ad95dc6584a61ac1e18006bf377a294f6f1bb"
+      "size": 6309,
+      "sha256": "a49670cf5c44daff11c0787188ae9eac6fc3a24c8c64787c76705cbd6d7d08a7"
     },
     {
       "path": "scripts/verify-financial-close-regression.mjs",
@@ -2282,8 +2282,13 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 4138,
-      "sha256": "86c915341ad0993a9a4472f7ba6ae9c2c8db9c48306d6fd0ca43487ecd848edd"
+      "size": 4606,
+      "sha256": "6579ea680b0f68b5a10d5ae75bb3105c40e5f84e67a62a34699843a1800b09fe"
+    },
+    {
+      "path": "tests/v267-dialog-progress.browser.mjs",
+      "size": 7936,
+      "sha256": "c3aa2770a4c62c9f460adbd71ba7d43e7ef0e068a8826d86a98ed107f17b0461"
     }
   ],
   "version": "V198"
