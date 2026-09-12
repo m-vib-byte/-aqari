@@ -20,6 +20,12 @@ jobs:
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Verify checked out Preview revision
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$AQARI_EXPECTED_SHA"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -41,18 +47,87 @@ jobs:
             exit 1
           fi
       - name: Wait for matching Vercel Preview
+        shell: bash
         run: |
-          for attempt in $(seq 1 45); do
-            body=$(curl -fsS -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET" "$AQARI_BASE_URL/api/production-meta" 2>/dev/null || true)
-            if printf '%s' "$body" | grep -Fq "$AQARI_EXPECTED_SHA" && printf '%s' "$body" | grep -Fq '"environment":"preview"'; then
-              echo "Matching Preview is ready."
-              exit 0
-            fi
-            echo "Waiting for Preview commit (attempt $attempt/45)..."
-            sleep 10
-          done
-          echo "Matching Vercel Preview was not ready in time." >&2
-          exit 1
+          node --input-type=module <<'NODE'
+          // Keep this gate fail-closed: never follow an authentication redirect,
+          // print the automation credential, or accept an unrelated SHA in JSON.
+          async function waitForMatchingPreview() {
+            const { AQARI_BASE_URL: base, AQARI_EXPECTED_SHA: expectedSha,
+              VERCEL_AUTOMATION_BYPASS_SECRET: secret,
+              AQARI_PROJECT_SLUG: project, AQARI_TEAM_SLUG: team } = process.env;
+            if (!secret || !/^[a-f0-9]{40}$/.test(expectedSha || '')) {
+              throw new Error('Preview gate configuration is incomplete.');
+            }
+            let url;
+            try { url = new URL(base); } catch {
+              throw new Error('Preview gate URL is invalid.');
+            }
+            if (!project || !team || url.protocol !== 'https:' || url.username ||
+                url.password || url.port || url.search || url.hash || url.pathname !== '/' ||
+                !url.hostname.startsWith(`${project}-git-`) ||
+                !url.hostname.endsWith(`-${team}.vercel.app`)) {
+              throw new Error('Preview gate requires this project branch Preview URL.');
+            }
+            url.pathname = '/api/production-meta';
+            const deadline = Date.now() + 450_000;
+            let lastState = 'not checked';
+            for (let attempt = 1; attempt <= 45 && Date.now() < deadline; attempt++) {
+              let response;
+              try {
+                response = await fetch(url, {
+                  headers: { 'x-vercel-protection-bypass': secret, accept: 'application/json' },
+                  redirect: 'manual', signal: AbortSignal.timeout(10_000)
+                });
+              } catch {
+                lastState = 'network request failed or timed out';
+              }
+              if (response) {
+                const status = response.status;
+                console.log(`Preview metadata attempt ${attempt}: HTTP ${status}.`);
+                if ((status >= 300 && status < 400) || status === 401 || status === 403) {
+                  throw new Error(`Preview access not authorized (HTTP ${status}). Check the existing project automation credential; no redirect was followed.`);
+                }
+                if (status === 200) {
+                  let metadata;
+                  try {
+                    const text = await response.text();
+                    if (text.length > 65_536) throw new Error('oversized');
+                    metadata = JSON.parse(text);
+                  } catch {
+                    throw new Error('Preview metadata is not a valid bounded JSON response.');
+                  }
+                  if (!metadata || metadata.ok !== true || metadata.app !== 'AQARI' ||
+                      metadata.deployment?.environment !== 'preview' ||
+                      !/^[a-f0-9]{40}$/.test(metadata.deployment?.gitSha || '')) {
+                    throw new Error('Preview metadata identity is invalid or targets a non-Preview environment.');
+                  }
+                  if (metadata.deployment.gitSha === expectedSha) {
+                    console.log(`Matching Preview verified at SHA ${expectedSha}.`);
+                    return;
+                  }
+                  lastState = `Preview is on a different SHA (${metadata.deployment.gitSha})`;
+                } else if ([404, 408, 429, 500, 502, 503, 504].includes(status)) {
+                  lastState = `Preview not ready (HTTP ${status})`;
+                } else {
+                  throw new Error(`Unexpected Preview metadata HTTP status ${status}.`);
+                }
+              }
+              console.log(lastState);
+              const remaining = deadline - Date.now();
+              if (attempt < 45 && remaining > 0) {
+                await new Promise(resolve => setTimeout(resolve, Math.min(10_000, remaining)));
+              }
+            }
+            throw new Error(`Matching Preview did not become ready: ${lastState}.`);
+          }
+          try {
+            await waitForMatchingPreview();
+          } catch (error) {
+            console.error(error.message);
+            process.exitCode = 1;
+          }
+          NODE
       - name: Preview E2E
         run: npm run test:e2e
       - name: Direct root entry with scripts unavailable
