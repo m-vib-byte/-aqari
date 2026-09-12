@@ -84,6 +84,22 @@ end $$;
 revoke all on function public.aqari_maintenance_attachment_finalize(uuid,bigint,text) from public,anon;
 grant execute on function public.aqari_maintenance_attachment_finalize(uuid,bigint,text) to authenticated;
 
+create or replace function public.aqari_maintenance_attachment_cancel(p_attachment_id uuid) returns uuid
+language plpgsql security definer set search_path='' as $$
+declare target public.aqari_maintenance_attachments%rowtype;
+begin
+ select * into target from public.aqari_maintenance_attachments where id=p_attachment_id for update;
+ if not found or target.created_by is distinct from auth.uid()
+  or not private.aqari_maintenance_attachment_access(target.workspace_id,target.request_id,'write') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
+ if target.status='cancelled' then return target.id;end if;
+ if target.status<>'draft' then raise exception 'INVALID_MAINTENANCE_ATTACHMENT_STATE';end if;
+ delete from storage.objects where bucket_id=target.storage_bucket and name=target.storage_path;
+ update public.aqari_maintenance_attachments set status='cancelled' where id=target.id;
+ return target.id;
+end $$;
+revoke all on function public.aqari_maintenance_attachment_cancel(uuid) from public,anon;
+grant execute on function public.aqari_maintenance_attachment_cancel(uuid) to authenticated;
+
 drop policy if exists v267_maintenance_attachment_upload on storage.objects;
 create policy v267_maintenance_attachment_upload on storage.objects
  for insert to authenticated
