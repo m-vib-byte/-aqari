@@ -22,6 +22,7 @@ jobs:
       AQARI_PROJECT_SLUG: aqari
       AQARI_TEAM_SLUG: m-vib-5421
       AQARI_PREVIEW_AUTH: github-oidc
+      AQARI_PREVIEW_OIDC_DIAGNOSTICS: '1'
     steps:
       - uses: actions/checkout@v4
         with:

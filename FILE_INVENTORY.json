@@ -32,8 +32,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "0cadcba53252ddffeebafb53f0cee3b612bcf8bef1b39b7d4da4b18f800e8043",
-      "size": 6193
+      "sha256": "948260d7b001daffcb96f8fab612b6efe1ce18e4385cd19600641519e9a24f23",
+      "size": 6747
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
@@ -769,6 +769,11 @@
       "path": "scripts/verify-financial-close-regression.mjs",
       "size": 2550,
       "sha256": "50ea44284f9f9273227d4942687f016eb669bdb3af5b92114f00fc168602598c"
+    },
+    {
+      "path": "scripts/verify-release-source.mjs",
+      "size": 1840,
+      "sha256": "b31a302497c678db1108bc2b33d35ea558c3ddc16839e4f385b3172dfa33c1a9"
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
@@ -1702,8 +1707,8 @@
     },
     {
       "path": "tests/direct-entry.e2e.mjs",
-      "sha256": "c9e103d84641948df30166033da8e08d8d656dac1ddea74f1d54a2fe9e4af345",
-      "size": 3483
+      "sha256": "45b2f6a7093de47a42abec0faf9e44e622802c93e8a85e72706018fcc90ea08a",
+      "size": 3631
     },
     {
       "path": "tests/financial-evidence.test.mjs",
@@ -1714,6 +1719,16 @@
       "path": "tests/financial_archive_xlsx_test.py",
       "size": 8815,
       "sha256": "0f81032fbf03979912ca1853cace020d50d189628f8a4edd3c8c26b630176b2a"
+    },
+    {
+      "path": "tests/github-preview-oidc.mjs",
+      "sha256": "ab859d3b8da76bf72cc50b52562dfd966bfa585e732260fa1cb62d584260415a",
+      "size": 3699
+    },
+    {
+      "path": "tests/github-preview-oidc.test.cjs",
+      "sha256": "3d193619ec40d44c0e30b5355811a9de88e138070acb25032e83f1b06f89b2fb",
+      "size": 5419
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
@@ -1762,8 +1777,8 @@
     },
     {
       "path": "tests/preview-access.mjs",
-      "sha256": "81e855c2b6f020d64a04b1bcd3476cde854e677c93e65287a9e26288e771bb75",
-      "size": 1594
+      "sha256": "6ecb65fd837cc8d8bb3c1880941e95678435f57f519613dd4b50b420a647886b",
+      "size": 1814
     },
     {
       "path": "tests/preview-access.test.cjs",
@@ -1772,8 +1787,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "sha256": "1d32315d7d24a17d91b1223a9e4607615b9389a8fed1b3b06e84ae169989d611",
-      "size": 19362
+      "sha256": "1b59d6e0a58576136336265b3312742998e86fb498b859531d0f5ade6c1eadd1",
+      "size": 19528
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
@@ -2161,6 +2176,11 @@
       "size": 1948
     },
     {
+      "path": "tests/v267-release-source-identity.test.mjs",
+      "size": 3828,
+      "sha256": "acb26b0c1626b3f80106dfbda5542d3256563a0c58a5ebc5b14569ab56413bab"
+    },
+    {
       "path": "tests/v267-rental-records.test.cjs",
       "sha256": "ee06468aa63bd1c755b4c4c00e40d95bc9f3ad6b816a8077a1ec1cbe6b781a4f",
       "size": 13027
@@ -2434,16 +2454,6 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
-    },
-    {
-      "path": "scripts/verify-release-source.mjs",
-      "size": 1840,
-      "sha256": "b31a302497c678db1108bc2b33d35ea558c3ddc16839e4f385b3172dfa33c1a9"
-    },
-    {
-      "path": "tests/v267-release-source-identity.test.mjs",
-      "size": 3828,
-      "sha256": "acb26b0c1626b3f80106dfbda5542d3256563a0c58a5ebc5b14569ab56413bab"
     }
   ],
   "version": "V198"

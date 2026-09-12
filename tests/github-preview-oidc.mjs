@@ -49,6 +49,13 @@ export function createGitHubOidcTokenProvider({
       throw new Error('GitHub OIDC returned an invalid, expired, or mismatched identity.');
     }
     mask(token);
+    // Only non-secret identity claims are diagnostic; never log the JWT or runner credential.
+    if (env.AQARI_PREVIEW_OIDC_DIAGNOSTICS === '1') {
+      console.log('GitHub Preview identity scope:', JSON.stringify(Object.fromEntries(
+        ['iss', 'aud', 'sub', 'repository', 'repository_id', 'ref', 'workflow_ref']
+          .map(key => [key, claims[key]])
+      )));
+    }
     cached = { token, refreshAt: claims.exp * 1000 - 60_000 };
     return token;
   }
