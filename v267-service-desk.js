@@ -1,7 +1,8 @@
 import {createDialog,node,field} from './src/v267/components/dialog.js';
 import {t,message} from './src/v267/components/locale.js';
 import {currentScope} from './src/v267/api/session.js';
-import {maintenanceTypeLabel} from './src/v267/components/maintenance-request.js';
+const maintenanceTypeLabels={plumbing:'سباكة',electrical:'كهرباء',air_conditioning:'تكييف',elevator:'مصعد',fire_safety:'إطفاء',water:'مياه',general:'عام',other:'أخرى'};
+const maintenanceTypeLabel=value=>maintenanceTypeLabels[value]||maintenanceTypeLabels.other;
 
 const names={received:'تم الاستلام',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى',awaiting_configuration:'بانتظار إعداد الإرسال',queued:'في الانتظار',sending:'جارٍ الإرسال',sent:'تم الإرسال',failed:'تعذر الإرسال'};
 const transitions={received:['received','assigned','in_progress','cancelled'],assigned:['assigned','in_progress','cancelled'],in_progress:['in_progress','completed','cancelled'],completed:['completed'],cancelled:['cancelled']};
