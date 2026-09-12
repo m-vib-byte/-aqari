@@ -1,7 +1,7 @@
 import {createDialog,node,field} from '../components/dialog.js';
 
 const option=(value,text)=>Object.assign(node('option',text),{value});
-const actions={preference:'تفضيل تواصل المستأجر',account:'حساب بنك أو صندوق للعقار',post_payment:'ترحيل التحصيل للحساب',reserve:'حجز أو فك احتياطي',tenant_entry:'حركة ذمة مستأجر',allocate_credit:'تخصيص رصيد دائن',cancel_receipt:'إلغاء وصل موثق',channel:'قناة تواصل للعقار',rate:'تقييم ونجوم سنوية'};
+const actions={preference:'تفضيل تواصل المستأجر',account:'حساب بنك أو صندوق للعقار',post_payment:'ترحيل التحصيل للحساب',reserve:'حجز أو فك احتياطي',tenant_entry:'حركة ذمة مستأجر / رصيد افتتاحي',allocate_credit:'تخصيص رصيد دائن',cancel_receipt:'إلغاء وصل موثق',channel:'قناة تواصل للعقار',rate:'تقييم ونجوم سنوية'};
 const labels={tenant_id:'المستأجر',property_id:'العقار',lease_id:'العقد',preferred_channel:'وسيلة التواصل',kind:'النوع',name:'اسم الحساب',masked_reference:'مرجع الحساب المحجوب',payment_id:'وصل الإيجار',account_id:'الحساب أو الصندوق',reason:'السبب',direction:'اتجاه الحركة',amount:'المبلغ بالدينار',occurred_on:'تاريخ الحركة',credit_entry_id:'الرصيد الدائن',period:'شهر الاستحقاق',public_url:'رابط التواصل',management_reference:'مرجع الإدارة دون كلمات مرور',tenant_visible:'يظهر للمستأجر',year:'سنة التقييم'};
 const forms={preference:['tenant_id','preferred_channel'],account:['property_id','kind','name','masked_reference'],post_payment:['payment_id','account_id','reason'],reserve:['property_id','direction','amount','reason'],tenant_entry:['tenant_id','lease_id','direction','kind','amount','occurred_on','reason'],allocate_credit:['credit_entry_id','lease_id','period','amount','reason'],cancel_receipt:['payment_id','reason'],channel:['property_id','kind','public_url','management_reference','tenant_visible'],rate:['tenant_id','year']};
 const numeric=new Set(['amount','year']);
@@ -13,6 +13,7 @@ export function openFinalGapCenter(){
  for(const [value,text]of Object.entries(actions))action.append(option(value,text));action.value='preference';
  form.append(field('العملية',action),fields,saveButton);d.body.append(node('p','اختر السجلات المحفوظة وأدخل تفاصيل العملية. يحتفظ النظام بالسجل المالي وتاريخ التعديلات.'),form,result);
  const rpc=(a,p={})=>d.session.request(d.session.client.rpc('aqari_final_gap_register',{p_workspace_id:d.session.bound.workspace,p_action:a,p_data:p}));
+ const openingRpc=()=>d.session.request(d.session.client.rpc('aqari_opening_balance_statement',{p_workspace_id:d.session.bound.workspace,p_tenant_id:null}));
  const rows=name=>data?.[name]||[];
  function choices(key){
   if(key==='tenant_id')return rows('tenants').map(x=>[x.id,x.name]);
@@ -47,7 +48,8 @@ export function openFinalGapCenter(){
  async function load(){
   const x=await rpc('list');
   for(const key of ['tenants','properties','leases','payments','preferences','accounts','reserves','ledger','postings','credit_allocations','cancellations','channels','ratings','collector_performance'])if(!Array.isArray(x?.[key]))throw Error('تعذر استرجاع السجلات المالية كاملة.');
-  data=x;render();
+  let opening=null;try{opening=await openingRpc();}catch{opening=null;}
+  data={...x,opening};render();
  }
  function confirmed(a,p){
   if(a==='preference')return rows('preferences').some(x=>x.tenant_id===p.tenant_id&&x.preferred_channel===p.preferred_channel);
@@ -68,6 +70,11 @@ export function openFinalGapCenter(){
   if(action.value==='tenant_entry'){p.source_type='manual';p.source_id=draftId;}
   await save(action.value,p);
  });};
- function render(){result.replaceChildren(node('h3','السجلات المحفوظة'),node('p',`الحسابات: ${data.accounts.length} • حركات الذمم: ${data.ledger.length} • تخصيصات الرصيد: ${data.credit_allocations.length}`),node('h4','أداء المحصلين'));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));}
+ function render(){
+  const o=data.opening?.totals;
+  result.replaceChildren(node('h3','السجلات المحفوظة'),node('p',`الحسابات: ${data.accounts.length} • حركات الذمم: ${data.ledger.length} • تخصيصات الرصيد: ${data.credit_allocations.length}`),node('h4','الأرصدة الافتتاحية منفصلة عن التحصيل'));
+  result.append(node('p',o?`افتتاحي مدين: ${Number(o.opening_debit).toFixed(3)} د.ك • افتتاحي دائن: ${Number(o.opening_credit).toFixed(3)} د.ك • صافي الافتتاح: ${Number(o.opening_net).toFixed(3)} د.ك • التحصيل الفعلي: ${Number(o.actual_collections).toFixed(3)} د.ك`:'سجل فصل الأرصدة الافتتاحية غير متاح على قاعدة البيانات الحالية.'));
+  result.append(node('h4','أداء المحصلين'));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));
+ }
  build();d.onDispose(()=>{data=null;controls={};fields.replaceChildren();});d.run(async()=>{await load();build();});
 }
