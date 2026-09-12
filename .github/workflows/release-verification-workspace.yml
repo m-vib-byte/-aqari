@@ -73,11 +73,23 @@ jobs:
           EXPECTED_SHA: ${{ github.sha }}
         run: |
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          node --input-type=module <<'POLICY'
+          import fs from 'node:fs';
+          const path='docs/V267-REQUIREMENTS-155.md';const text=fs.readFileSync(path,'utf8');
+          const current="النطاق الملزم وفق أحدث توجيه صريح للمالك في 12 سبتمبر 2026: استكمال البنود الـ155، واختبار الاستخدام الحقيقي والصلاحيات على الآيفون والآيباد والكمبيوتر، والنسخ الاحتياطي الكامل لقاعدة البيانات والحسابات والمرفقات، والاستعادة المعزولة ونقطة رجوع V266 قبل النشر على `myaqari.com`. التفويض قائم ولا يحتاج تجديدًا. يلغي هذا التوجيه استثناء النشر التدريجي السابق؛ لا يكفي نجاح CI أو اكتمال بناء المعاينة. مرجع الشروط [بوابة القبول الكامل](V267-FULL-RELEASE-GATE-2026-09-12.md).";
+          if(!text.includes(current)){
+           const lines=text.split('\n'),indexes=lines.map((line,i)=>line.startsWith('النطاق الجاري وفق آخر توجيه')?i:-1).filter(i=>i>=0);
+           if(indexes.length!==1)throw Error('RELEASE_POLICY_SOURCE_CHANGED');
+           lines[indexes[0]]=current;fs.writeFileSync(path,lines.join('\n'));
+          }
+          const historical='docs/V267-INCREMENTAL-RELEASE-2026-09-12.md',notice="> **تاريخي — متجاوز بأحدث توجيه للمالك:** استثناء النشر قبل اكتمال البنود الـ155 لم يعد ساريًا. المرجع الملزم [بوابة القبول الكامل](V267-FULL-RELEASE-GATE-2026-09-12.md). تبقى الأدلة أدناه ضمن نطاقها التاريخي ولا تثبت جاهزية الإنتاج.";
+          const old=fs.readFileSync(historical,'utf8');if(!old.startsWith(notice))fs.writeFileSync(historical,notice+'\n\n'+old);
+          POLICY
           node scripts/audit-v267-evidence.mjs --write
           node --input-type=module <<'NODE'
           import fs from 'node:fs';import {createHash} from 'node:crypto';
           const p='FILE_INVENTORY.json',v=JSON.parse(fs.readFileSync(p,'utf8'));
-          for(const path of ['src/v267/components/dialog.js','tests/v267-dialog-progress.test.mjs','tests/v267-dialog-progress.browser.mjs','staging-database/sql/financial-close-cancellations.sql','staging-database/tests/financial_close_cancellations.sql','scripts/verify-financial-close-regression.mjs','.github/workflows/release-verification-workspace.yml','docs/V267-EVIDENCE-155.json']){
+          for(const path of ['src/v267/components/dialog.js','tests/v267-dialog-progress.test.mjs','tests/v267-dialog-progress.browser.mjs','staging-database/sql/financial-close-cancellations.sql','staging-database/tests/financial_close_cancellations.sql','scripts/verify-financial-close-regression.mjs','.github/workflows/release-verification-workspace.yml','docs/V267-EVIDENCE-155.json','staging-database/local-test/package.json','staging-database/local-test/fixtures/financial-close-cancellations-v1.sql','tests/v267-financial-close-gate.test.mjs','scripts/audit-v267-evidence.mjs','docs/V267-REQUIREMENTS-155.md','docs/V267-INCREMENTAL-RELEASE-2026-09-12.md','docs/V267-FULL-RELEASE-GATE-2026-09-12.md']){
            const bytes=fs.readFileSync(path),row={path,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};const i=v.files.findIndex(x=>x.path===path);if(i<0)v.files.push(row);else v.files[i]=row;
           }
           fs.writeFileSync(p,JSON.stringify(v,null,2)+'\n');
@@ -86,8 +98,8 @@ jobs:
           node scripts/verify-staging-runtime.mjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add FILE_INVENTORY.json docs/V267-EVIDENCE-155.json
+          git add FILE_INVENTORY.json docs/V267-EVIDENCE-155.json docs/V267-REQUIREMENTS-155.md docs/V267-INCREMENTAL-RELEASE-2026-09-12.md
           if ! git diff --cached --quiet; then
-            git commit -m 'Record verified dialog and financial-close repair checksums'
+            git commit -m 'Record verified cancellation repair and restore full 155-item release policy'
             git push origin HEAD:fix/v267-release-verification
           fi

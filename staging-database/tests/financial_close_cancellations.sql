@@ -11,7 +11,8 @@ insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,c
 insert into public.aqari_rent_payments(id,workspace_id,lease_id,reference,amount,period,paid_at,status,payment_method,record,receipt) values
  ('8f690000-0000-4000-8000-000000000014',current_setting('close.w')::uuid,'8f690000-0000-4000-8000-000000000013','CLOSE-CANCEL',100,'2026-01-01','2026-01-02','paid','bank','{}','{}'),
  ('8f690000-0000-4000-8000-000000000050',current_setting('close.w')::uuid,'8f690000-0000-4000-8000-000000000013','CLOSE-KEEP',50.125,'2026-01-01','2026-01-03','partial','bank','{}','{}'),
- ('8f690000-0000-4000-8000-000000000051',current_setting('close.w')::uuid,'8f690000-0000-4000-8000-000000000013','CLOSE-OTHER-MONTH',900,'2026-02-01','2026-02-03','paid','bank','{}','{}');
+ ('8f690000-0000-4000-8000-000000000051',current_setting('close.w')::uuid,'8f690000-0000-4000-8000-000000000013','CLOSE-OTHER-MONTH',900,'2026-02-01','2026-02-03','paid','bank','{}','{}'),
+ ('8f690000-0000-4000-8000-000000000052',current_setting('close.w')::uuid,'8f690000-0000-4000-8000-000000000013','CLOSE-NATIVE-CANCEL',75,'2026-01-01','2026-01-04','cancelled','bank','{}','{}');
 insert into private.aqari_financial_periods(workspace_id,month,closed_by,closed_by_name,reason,snapshot) values (current_setting('close.w')::uuid,'2025-12-01','8f690000-0000-4000-8000-000000000001','مدير اختبار','لقطة قديمة لا تعدل','{"rent_payments":777.777,"rent_payment_count":7,"historical":true}');
 set local role authenticated;
 do $$
@@ -35,7 +36,7 @@ begin
 end $$;
 reset role;
 do $$declare w uuid:=current_setting('close.w')::uuid;begin
- if (select count(*) from public.aqari_rent_payments where workspace_id=w)<>3 then raise exception 'PAYMENT_EVIDENCE_REMOVED';end if;
+ if (select count(*) from public.aqari_rent_payments where workspace_id=w)<>4 then raise exception 'PAYMENT_EVIDENCE_REMOVED';end if;
  if (select count(*) from private.aqari_receipt_cancellations where workspace_id=w)<>1 then raise exception 'CANCELLATION_EVIDENCE_REMOVED';end if;
 end $$;
 select set_config('request.jwt.claim.sub','8f690000-0000-4000-8000-000000000002',true);
@@ -43,4 +44,4 @@ set local role authenticated;
 do $$begin begin perform public.aqari_financial_register(current_setting('close.w')::uuid,'close_period','{"month":"2026-02","reason":"رفض غير مخول"}');raise exception 'NONMANAGER_CLOSED_MONTH';exception when insufficient_privilege then null;end;end $$;
 reset role;
 rollback;
-select 'PASS: cancelled excluded from close and KPIs; partial retained; other month excluded; immutable snapshots; audited close; role/period guards; source records preserved';
+select 'PASS: native and registered cancellations excluded from close and KPIs; partial retained; other month excluded; immutable snapshots; audited close; role/period guards; source records preserved';
