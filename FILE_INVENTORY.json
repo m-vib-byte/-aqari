@@ -2497,8 +2497,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "4a3c8736690f078e07b8f1ed5921d1866679f0d761dc2715f7afec191dfe6542",
-      "size": 19719
+      "sha256": "fb5453845bfda5cc17b837ada3fbb0f138b2170e8f361ef52674da9bae7a5d53",
+      "size": 19991
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
