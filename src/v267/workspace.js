@@ -21,6 +21,8 @@ function updateFeatureTools(){
  if(finance)finance.hidden=access?.features?.financial_register!==true||access?.permissions?.finance?.read!==true;
  if(deposits)deposits.hidden=access?.features?.deposit_register!==true||access?.permissions?.collections?.read!==true;
  if(vacatingReview)vacatingReview.hidden=access?.features?.vacating_review!==true||access?.role!=='general_manager';
+ const circulars=document.getElementById('aq267-staff-circulars');
+ if(circulars)circulars.hidden=access?.features?.staff_circulars!==true;
  const readiness=document.getElementById('aq267-unit-readiness');
  if(readiness)readiness.hidden=access?.features?.unit_readiness!==true||access?.permissions?.properties?.read!==true;
  const exit=document.getElementById('aq267-exit-review');
@@ -70,6 +72,7 @@ export function install(){
  const employees=node('button','الموظفون والرواتب / Employees and payroll');employees.onclick=()=>import('./pages/employees.js').then(m=>m.openEmployees()).catch(e=>notice.textContent=t(safeError(e)));
  const rentalContracts=node('button','إبرام عقود الإيجار / Rental contracts');rentalContracts.onclick=()=>import('./pages/rental-contracts.js').then(m=>m.openRentalContracts()).catch(e=>notice.textContent=t(safeError(e)));
  const propertyNotices=node('button','إعلانات العقارات وإرشادات المستأجرين');propertyNotices.hidden=currentScope().role!=='general_manager';propertyNotices.onclick=()=>import('./pages/property-notices.js').then(m=>m.openPropertyNotices()).catch(e=>notice.textContent=t(safeError(e)));
+ const staffCirculars=ui('button','تعاميم الموظفين وإثبات الاطلاع');staffCirculars.id='aq267-staff-circulars';staffCirculars.hidden=true;staffCirculars.onclick=()=>import('./pages/staff-circulars.js').then(m=>m.openStaffCirculars()).catch(e=>notice.textContent=t(safeError(e)));
  const staffAccess=node('button','صلاحيات الموظفين حسب العقار');staffAccess.id='aq267-staff-access';staffAccess.hidden=true;staffAccess.onclick=()=>import('./pages/staff-access.js').then(m=>m.openStaffAccess()).catch(e=>notice.textContent=t(safeError(e)));
  const financialRegister=node('button','سجل المصروفات وإقفال الفترة المالية');financialRegister.id='aq267-financial-register';financialRegister.hidden=true;financialRegister.onclick=()=>import('./pages/financial-register.js').then(m=>m.openFinancialRegister()).catch(e=>notice.textContent=t(safeError(e)));
  const deposits=ui('button','دفتر التأمين — القبض والرد');deposits.id='aq267-deposit-ledger';deposits.hidden=true;deposits.onclick=()=>import('./pages/deposit-ledger.js').then(m=>m.openDepositLedger()).catch(e=>notice.textContent=t(safeError(e)));
@@ -88,7 +91,7 @@ export function install(){
  const readinessButton=ui('button','جاهزية الوحدات قبل التأجير');readinessButton.id='aq267-unit-readiness';readinessButton.hidden=true;readinessButton.onclick=()=>import('./pages/unit-readiness.js').then(m=>m.openUnitReadiness()).catch(e=>notice.textContent=t(safeError(e)));
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
- tools.append(readinessButton,staffAccess,financialRegister,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
+ tools.append(staffCirculars,readinessButton,staffAccess,financialRegister,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
  const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.

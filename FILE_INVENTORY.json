@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "ee583b52d70cd9966a4210ad18d4783c57c10fbcb147fec6ce61cb48a943ecac",
-      "size": 6377
+      "sha256": "476e18643e607e56a2625149e6a1ccc30139b9c099e623cf4d5f17585e22e2a5",
+      "size": 6421
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -357,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "ec6a3aa0914d7e9087216ce4012273e27d3499bb97ff3a0069368a6a80c8ef34",
-      "size": 300894
+      "sha256": "98ccccf7310bd2d6999f04c8ca71b8cbf353c7083a82e705c3cc994fce38b81e",
+      "size": 303540
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -467,8 +467,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "aff23ba52e69a495655d8a4c8fcfc493c173b424ca2ce56f85ce0ea7fa50920e",
-      "size": 96282
+      "sha256": "dbb66f58ec97e0441e219ea0c5b355258ec817d36144b4aab6e8eedbee6928e8",
+      "size": 96940
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -479,6 +479,11 @@
       "path": "docs/V267-SERVER-ACCESS-REVOCATION.md",
       "sha256": "0157fb5c994ba8816e92ae6cd840980f641f4de7f1d2bb32b5fb86d1d674f878",
       "size": 3549
+    },
+    {
+      "path": "docs/V267-STAFF-CIRCULARS-2026-09-12.md",
+      "sha256": "152b7379a0131784e38d895f4060f22f7146400ae587882c538e3fef5ec5ea97",
+      "size": 4660
     },
     {
       "path": "docs/V267-UNIT-READINESS-2026-09-12.md",
@@ -1081,6 +1086,11 @@
       "size": 13190
     },
     {
+      "path": "src/v267/pages/staff-circulars.js",
+      "sha256": "b574fe00adecba51e6344fa7dc7c530262fd76b9da18b5e4314ffd69c57c9797",
+      "size": 11357
+    },
+    {
       "path": "src/v267/pages/unit-readiness.js",
       "sha256": "06f8a9f95c21a27c47f45ee62503413958b7f37a7b928c058b063f2ae5d23d54",
       "size": 6831
@@ -1117,8 +1127,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "8a6cf3ccbb0038f44b43383c7aa5dda1a69d2d4f21fa31d301868b8745fba9bf",
-      "size": 16955
+      "sha256": "a263bd6da779c4202c2bdd42322df5fc89476cc24e3021af5f6e23a7eacf9f5a",
+      "size": 17416
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1187,8 +1197,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "size": 3380,
-      "sha256": "9fcc0681370bf3de8dfc89804537973fdff6957c4cb6daaf356834ba1d3b9fc6"
+      "sha256": "7adcc720c60685ff98eb05a2664717a539bde52f61e98bf47519647192095553",
+      "size": 3475
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -1361,6 +1371,11 @@
       "size": 6786
     },
     {
+      "path": "staging-database/sql/staff-circulars.sql",
+      "sha256": "a177de0d320cd2aef4d3b7f50330cbb41c31ecbebd9bddf547b61d6d7f823f29",
+      "size": 15779
+    },
+    {
       "path": "staging-database/sql/staff-property-scope.sql",
       "sha256": "21e919a856f0189cccc781c7f8fe406da8cb904674ebd2221ecda7f00c4fc315",
       "size": 28550
@@ -1412,8 +1427,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "03f13d36e9966858d58df4ca4faed828ab7fc3b7780e9a722b3ba5e5e0a4a058",
-      "size": 4187
+      "sha256": "936cc57e529bbf9f7d163ee1ef5ce8c5ff74c22a58b3723cd427b06f7bb4e94f",
+      "size": 4286
     },
     {
       "path": "staging-database/supabase/migrations/20260907083736_v267_isolated_core.sql",
@@ -1556,6 +1571,11 @@
       "size": 15314
     },
     {
+      "path": "staging-database/supabase/migrations/20260912130724_v267_staff_circulars_acknowledgements.sql",
+      "sha256": "d63c26cd5e7766ed37b5ae676cbbfdfeb0fb599a5b2d288aefcaa9a064478269",
+      "size": 20128
+    },
+    {
       "path": "staging-database/tests/deposit_register.sql",
       "sha256": "03c34778919dfc751275c194cffea6b39e02c8230fbe7be07430f62295f0eec2",
       "size": 17579
@@ -1674,6 +1694,11 @@
       "path": "staging-database/tests/source_linked_receipt_transaction.sql",
       "sha256": "a3fa32db151cc0232b01edb6e7b0c5903b9688a5c6bc3d5976d3bf7cbb8a750b",
       "size": 5078
+    },
+    {
+      "path": "staging-database/tests/staff_circulars.sql",
+      "sha256": "4da8e62e71be1c0b1fb74ad52d18e723dd415a1fbae2cd9f753a5afc6433d004",
+      "size": 11147
     },
     {
       "path": "staging-database/tests/staff_contract_approval.sql",
@@ -2294,6 +2319,11 @@
       "path": "tests/v267-service-desk.test.cjs",
       "sha256": "706f9eb88a1337de5ab492a613572979c50d42e917c74db59d50505a117668b0",
       "size": 16276
+    },
+    {
+      "path": "tests/v267-staff-circulars-runtime.test.mjs",
+      "sha256": "4895be15b10c74e3b214b7e165792f14eb2212dc1a6dc991cc524197a4628247",
+      "size": 8116
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
