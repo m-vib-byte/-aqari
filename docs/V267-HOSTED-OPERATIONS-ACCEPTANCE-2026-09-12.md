@@ -28,6 +28,12 @@ Completion is intentionally still open. Current hosted workflow correctly requir
 
 This also does not prove delivery through an external Push/WhatsApp/SMS/email provider.
 
+## Financial expenses — G04-14 / G04-15 / G04-16
+
+Hosted acceptance passed for a 12.345 KWD property expense backed by an existing verified stored document. The isolated Staging test saved the expense as draft, re-read the saved value, approved it with a generated voucher reference, rejected an attempted edit after approval, and then cancelled it with a mandatory reason and recorded approver identity. The full test transaction was rolled back after verification.
+
+Evidence boundary: this proves hosted database/RPC behavior for expense save, approval immutability and documented cancellation. It does not by itself prove physical-device UI acceptance or month-end accounting review with real production data.
+
 ## Release impact
 
 These results strengthen hosted evidence for the listed requirements but do not close the full 155-item release gate. Physical iPhone/iPad/Desktop acceptance, complete Database/Auth/Storage backup, independent restore, transaction-preserving rollback rehearsal, provider integrations and the remaining partial/external requirements are still required before Production.
