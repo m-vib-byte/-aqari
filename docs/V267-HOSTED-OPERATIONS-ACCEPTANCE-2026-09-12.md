@@ -34,6 +34,12 @@ Hosted acceptance passed for a 12.345 KWD property expense backed by an existing
 
 Evidence boundary: this proves hosted database/RPC behavior for expense save, approval immutability and documented cancellation. It does not by itself prove physical-device UI acceptance or month-end accounting review with real production data.
 
+## Partner property isolation — G02-06 / G02-07
+
+Hosted acceptance passed for two synthetic partner identities mapped to two different properties. Each partner could list only the property explicitly granted to that identity, and an attempted read of the other partner's property was rejected. The setup and both identities were created only inside the acceptance transaction and rolled back afterwards.
+
+Evidence boundary: this proves hosted property-level isolation at the database/RPC boundary. It does not yet prove real partner browser sign-in, ownership-share display, or physical-device acceptance.
+
 ## Release impact
 
 These results strengthen hosted evidence for the listed requirements but do not close the full 155-item release gate. Physical iPhone/iPad/Desktop acceptance, complete Database/Auth/Storage backup, independent restore, transaction-preserving rollback rehearsal, provider integrations and the remaining partial/external requirements are still required before Production.
