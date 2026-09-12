@@ -85,7 +85,7 @@ jobs:
           node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs
           node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
-          npm test --prefix staging-database/local-test
+          npm run test:completion --prefix staging-database/local-test
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -94,3 +94,6 @@ jobs:
           python -m pip install -r requirements.txt pypdf==6.10.0
           python -m unittest discover -s tests -p rent_pdf_test.py -v
           python -m unittest discover -s tests -p property_statement_test.py -v
+          python -m unittest discover -s tests -p official_document_pdf_test.py -v
+          python -m unittest discover -s tests -p provider_webhook_test.py -v
+          python -m unittest discover -s tests -p outbound_adapters_test.py -v

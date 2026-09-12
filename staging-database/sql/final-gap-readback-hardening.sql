@@ -1,27 +1,7 @@
--- AQARI V267 final code-only gap register. Apply only to isolated Staging after operations-register.sql.
+-- Upgrade an existing final-gap register without changing or deleting stored data.
+-- Verify the isolated target and backup before hosted application.
 begin;
-create table private.aqari_tenant_preferences(
- workspace_id uuid not null,tenant_id uuid not null,preferred_channel text not null check(preferred_channel in ('email','whatsapp','sms','push')),consent_at timestamptz not null,revision integer not null default 1,updated_by uuid not null,updated_at timestamptz not null default now(),primary key(workspace_id,tenant_id),foreign key(workspace_id,tenant_id) references public.aqari_tenants(workspace_id,id));
-create table private.aqari_collection_accounts(
- id uuid primary key,workspace_id uuid not null,property_id uuid not null,kind text not null check(kind in ('bank','cashbox')),name text not null,masked_reference text not null,currency text not null default 'KWD' check(currency='KWD'),status text not null default 'active',created_by uuid not null,unique(workspace_id,id),foreign key(workspace_id,property_id) references public.aqari_properties(workspace_id,id),check(masked_reference !~ '[0-9]{8,}'));
-create table private.aqari_collection_postings(
- id uuid primary key,workspace_id uuid not null,payment_id uuid not null references public.aqari_rent_payments(id),account_id uuid not null,amount numeric(15,3) not null check(amount>0),posted_by uuid not null,posted_at timestamptz not null default now(),unique(workspace_id,payment_id),foreign key(workspace_id,account_id) references private.aqari_collection_accounts(workspace_id,id));
-create table private.aqari_reserve_entries(
- id uuid primary key,workspace_id uuid not null,property_id uuid not null,direction text not null check(direction in ('hold','release')),amount numeric(15,3) not null check(amount>0),reason text not null check(length(btrim(reason))>=3),source_id uuid,actor_id uuid not null,created_at timestamptz not null default now(),unique(workspace_id,id),foreign key(workspace_id,property_id) references public.aqari_properties(workspace_id,id));
-create table private.aqari_tenant_ledger_entries(
- id uuid primary key,workspace_id uuid not null,tenant_id uuid not null,lease_id uuid,direction text not null check(direction in ('debit','credit')),kind text not null,amount numeric(15,3) not null check(amount>0),occurred_on date not null,reason text not null check(length(btrim(reason))>=3),source_type text not null,source_id text not null,actor_id uuid not null,created_at timestamptz not null default now(),unique(workspace_id,id),unique(workspace_id,source_type,source_id),foreign key(workspace_id,tenant_id) references public.aqari_tenants(workspace_id,id));
-create table private.aqari_credit_allocations(
- id uuid primary key,workspace_id uuid not null,credit_entry_id uuid not null,lease_id uuid not null,period date not null,amount numeric(15,3) not null check(amount>0),actor_id uuid not null,created_at timestamptz not null default now(),unique(workspace_id,id),unique(workspace_id,credit_entry_id,lease_id,period),foreign key(workspace_id,credit_entry_id) references private.aqari_tenant_ledger_entries(workspace_id,id),foreign key(workspace_id,lease_id) references public.aqari_leases(workspace_id,id));
-create table private.aqari_receipt_cancellations(
- id uuid primary key,workspace_id uuid not null,payment_id uuid not null references public.aqari_rent_payments(id),reason text not null check(length(btrim(reason))>=3),approved_by uuid not null,approved_by_name text not null,cancelled_at timestamptz not null default now(),snapshot jsonb not null,unique(workspace_id,id),unique(workspace_id,payment_id));
-do $$declare n text;begin foreach n in array array['aqari_tenant_preferences','aqari_collection_accounts','aqari_collection_postings','aqari_reserve_entries','aqari_tenant_ledger_entries','aqari_credit_allocations','aqari_receipt_cancellations'] loop execute format('alter table private.%I enable row level security',n);execute format('revoke all on private.%I from public,anon,authenticated',n);end loop;end$$;
-create trigger aqari_postings_immutable before update or delete on private.aqari_collection_postings for each row execute function private.aqari_reject_immutable_change();
-create trigger aqari_reserves_immutable before update or delete on private.aqari_reserve_entries for each row execute function private.aqari_reject_immutable_change();
-create trigger aqari_tenant_ledger_immutable before update or delete on private.aqari_tenant_ledger_entries for each row execute function private.aqari_reject_immutable_change();
-create trigger aqari_credit_allocations_immutable before update or delete on private.aqari_credit_allocations for each row execute function private.aqari_reject_immutable_change();
-create trigger aqari_receipt_cancellations_immutable before update or delete on private.aqari_receipt_cancellations for each row execute function private.aqari_reject_immutable_change();
-
-create function public.aqari_final_gap_register(p_workspace_id uuid,p_action text,p_data jsonb default '{}')returns jsonb language plpgsql volatile security definer set search_path='' as $$
+create or replace function public.aqari_final_gap_register(p_workspace_id uuid,p_action text,p_data jsonb default '{}')returns jsonb language plpgsql volatile security definer set search_path='' as $$
 declare w uuid:=p_workspace_id;d jsonb:=p_data;actor text;pay public.aqari_rent_payments;credit private.aqari_tenant_ledger_entries;used numeric;amount_value numeric;tenant uuid;posting_date date;
 begin
  if auth.uid() is null or not private.aqari_manager(w) then raise insufficient_privilege using message='ACCESS_DENIED';end if;
@@ -76,16 +56,4 @@ begin
   on conflict(workspace_id,tenant_id,rating_year)do update set stars=excluded.stars,rating=excluded.rating,quarter_evidence=excluded.quarter_evidence,calculated_at=now(),source_revision=excluded.source_revision;end if;
  return public.aqari_final_gap_register(w,'list');
 end$$;
-revoke all on function public.aqari_final_gap_register(uuid,text,jsonb)from public,anon;grant execute on function public.aqari_final_gap_register(uuid,text,jsonb)to authenticated;
-
-create function public.aqari_tenant_engagement_feed()returns jsonb language sql stable security definer set search_path='' as $$
- select jsonb_build_object('preference',(select to_jsonb(p)-'updated_by' from private.aqari_tenant_preferences p where p.workspace_id=a.workspace_id and p.tenant_id=a.tenant_id),
- 'channels',coalesce((select jsonb_agg(jsonb_build_object('kind',c.kind,'public_url',c.public_url)order by c.kind)from public.aqari_leases l join public.aqari_units u on u.workspace_id=l.workspace_id and u.id=l.unit_id join private.aqari_property_channels c on c.workspace_id=u.workspace_id and c.property_id=u.property_id where l.workspace_id=a.workspace_id and l.tenant_id=a.tenant_id and l.status='signed' and c.tenant_visible and c.status='active'),'[]'),
- 'ratings',coalesce((select jsonb_agg(jsonb_build_object('year',r.rating_year,'stars',r.stars,'rating',r.rating,'evidence',r.quarter_evidence)order by r.rating_year desc)from private.aqari_tenant_year_ratings r where r.workspace_id=a.workspace_id and r.tenant_id=a.tenant_id),'[]'))
- from public.aqari_portal_accounts a where a.user_id=auth.uid() and a.is_active
-$$;
-revoke all on function public.aqari_tenant_engagement_feed()from public,anon;grant execute on function public.aqari_tenant_engagement_feed()to authenticated;
-
-create function private.aqari_returned_cheque_notice()returns trigger language plpgsql security definer set search_path='' as $$declare t uuid;begin if new.to_state='returned' then select l.tenant_id into t from private.aqari_cheques c join public.aqari_leases l on l.workspace_id=c.workspace_id and l.id=c.lease_id where c.workspace_id=new.workspace_id and c.id=new.cheque_id;insert into private.aqari_notification_deliveries(id,workspace_id,kind,aggregate_id,recipient_id,channel,scheduled_for,idempotency_key)select gen_random_uuid(),new.workspace_id,'cheque_returned',new.cheque_id::text,t,ch,now(),'cheque-returned:'||new.id||':'||ch from unnest(array['email','whatsapp'])ch on conflict(workspace_id,idempotency_key)do nothing;end if;return new;end$$;
-create trigger aqari_returned_cheque_notice after insert on private.aqari_cheque_events for each row execute function private.aqari_returned_cheque_notice();
 commit;

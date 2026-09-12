@@ -37,13 +37,13 @@
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "sha256": "982960f42ce45e3cd316c896baac029ab9e76db8b816362b1e8a5ef4aecaa2ec",
-      "size": 3616
+      "sha256": "c6b029d54f4e1d97ecd0dec27f722330462613b3929c0987c2a5840dd96422de",
+      "size": 3620
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "22dc570356ff9be6656e8bde3842c9a9b190bf747a544f05254a8bcf7afb8d78",
-      "size": 5126
+      "sha256": "576ee41348edaae34f68af77b41c88084f1f7ccae4248ead8a99e2421d2cb3a4",
+      "size": 5381
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -272,8 +272,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "7b95b76befbafc02ce95364f32662e2258e6f133542fca193d32a4afea074f67",
-      "size": 87790
+      "sha256": "75be257a3c6823b6e2fed212e828772b4cce2494e128f1a87e23a033512010ca",
+      "size": 88734
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -877,8 +877,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "22d1bedcecc31ead4e97219d3a99e76ffdebbae2ac9887ab09ed7707402a8910",
-      "size": 1186
+      "sha256": "835b11b39bb0b354c1fff79a70f2eb69a3dd87fe1c4011115e49e88e6ac7fcb5",
+      "size": 2638
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -2057,8 +2057,8 @@
     },
     {
       "path": "lib/provider_webhook.py",
-      "sha256": "93b512a84c5df228c398d9d5f64b4dc04e88319d1eaaacbe94d8cd8ef4319887",
-      "size": 2366
+      "sha256": "9dca10890018130a5813f5e9ec09a531d8b16646f631930215be4e7049c7e8a9",
+      "size": 3584
     },
     {
       "path": "src/v267/pages/financial-archive.js",
@@ -2072,8 +2072,8 @@
     },
     {
       "path": "src/v267/pages/official-document-center.js",
-      "sha256": "237c6c1b5158b9976c3768c7495b07d641cdb4549c697108b3f7912ad009bffd",
-      "size": 7994
+      "sha256": "51905664b2c820aebbae308701d41ae0a6cffd4eb2b43c83ef92782dfa1086c8",
+      "size": 7670
     },
     {
       "path": "staging-database/sql/external-integration-register.sql",
@@ -2102,8 +2102,8 @@
     },
     {
       "path": "tests/provider_webhook_test.py",
-      "sha256": "1264ea3a75ddbff0f523929e52bfb6e5486e53e5af18da4c1fdddfc029964aa2",
-      "size": 1885
+      "sha256": "5b13f8ec4fc1f87a48c8dd3ef75e481551bf3bb5f8735f25a83cebc67efc525a",
+      "size": 5214
     },
     {
       "path": "tests/v267-external-integrations.test.cjs",
@@ -2137,13 +2137,13 @@
     },
     {
       "path": "src/v267/pages/final-gap-center.js",
-      "sha256": "a634622bad5c81f4fd00801a5393324b84845bb8f8ab017816a34491ae42b9d2",
-      "size": 4125
+      "sha256": "92e58df3798d765d685bf9a10f2b20872ecee5f8be7d032dd0e937196efcdd22",
+      "size": 9150
     },
     {
       "path": "staging-database/sql/final-gap-register.sql",
-      "sha256": "9411e6be023baced69f5f777fef0d5fd14e5e266348ef8d53215170623fb7e2a",
-      "size": 16087
+      "sha256": "1ca1522e09136fe2c775dc1d9d47baac2f27a99a6e387397a018a04f342aa0ba",
+      "size": 18012
     },
     {
       "path": "tests/v267-final-gap-register.test.cjs",
@@ -2152,13 +2152,53 @@
     },
     {
       "path": "staging-database/tests/final_gap_register.sql",
-      "sha256": "c24ee6b87c52a55ce21568efba0c16e73bad48a9ae1de0a9997ec14074452584",
-      "size": 7110
+      "sha256": "31bc99a9d13c2e2484ab4934366fe2062f40495cff62be8db82f3d83664f2ba9",
+      "size": 10959
     },
     {
       "path": "staging-database/sql/v267-advisor-remediation.sql",
       "sha256": "27b4c4899119850d8afab7e86ae3965496147fd5e97cc36e799ea202ce564153",
       "size": 1266
+    },
+    {
+      "path": "docs/V267-EVIDENCE-155.json",
+      "sha256": "1d0b9b4fa238ba9d524909b9f8ca9c342c3d53c43e899570ef1f7374a6345a24",
+      "size": 254127
+    },
+    {
+      "path": "docs/V267-EXECUTION-2026-09-12.md",
+      "sha256": "893258e6684b08deeb4acff47248cdc2a225bfd07c99e11b362cdc16612f4144",
+      "size": 7684
+    },
+    {
+      "path": "docs/V267-WEBHOOK-SIGNATURE-V1.md",
+      "sha256": "7a52ddc20c59e581cd1d9b489252d22badeddef982da8409493970777bb4cd78",
+      "size": 2143
+    },
+    {
+      "path": "scripts/audit-v267-evidence.mjs",
+      "sha256": "012c12f9e05045f7b13be46ba6ec968ee1b62c5e02d01f64dac10c05b051d4e9",
+      "size": 5184
+    },
+    {
+      "path": "tests/v267-evidence-matrix.test.mjs",
+      "sha256": "a21633b855a1b34ad329c923f1f24a96ea009e774fb786c26dd5a88971f5d0cc",
+      "size": 1068
+    },
+    {
+      "path": "tests/v267-final-gap-runtime.test.mjs",
+      "sha256": "ee643ea1ba641be9419fa23a0ffd8b6f560b7df663938aac5bc369ec9a027555",
+      "size": 5906
+    },
+    {
+      "path": "tests/v267-official-document-runtime.test.mjs",
+      "sha256": "e10b756ea8d589817eff59f3dfe39137baaef55723c0da7d3a4b574e0b83d5d5",
+      "size": 4665
+    },
+    {
+      "path": "staging-database/sql/final-gap-readback-hardening.sql",
+      "sha256": "bececa43573960d61aa97f1f5be87d0c6facecc3f8b12912323eab07bd37c87a",
+      "size": 10933
     }
   ],
   "version": "V198"
