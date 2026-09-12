@@ -289,7 +289,7 @@ async function openRecord(module,index){
     cloud.audit=(cloud.audit||[]).concat([[bound.userId,existing?'تعديل سجل':'إضافة سجل',module,new Date().toISOString()]]);return {row:saved,index:existing?index:rows.length-1};
    },(cloud,saved)=>same(cloud[module]?.[saved.index],saved.row));
    modal.classList.remove('on');if(typeof render==='function')render();
-   if(propertyForm){propertyForm.dispose();root.dispatchEvent(new Event('aqari:property-saved'));}
+   if(propertyForm){propertyForm.dispose();root.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:row[0]}}));}
   }catch(e){status.textContent=e.message||'تعذر تأكيد الحفظ.'}finally{button.disabled=false;saving=false;}
  };
  modal.classList.add('on');propertyForm?.focus();return true;
