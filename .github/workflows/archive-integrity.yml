@@ -54,9 +54,9 @@ jobs:
           import hashlib, json
           from pathlib import Path
           verified = {
-              'src/v267/pages/financial-archive.js': 'ce47ed84b9e8adb63c2b23be46d27f805e769d3bbb9316ab790889053a5c6537',
+              'src/v267/pages/financial-archive.js': '7f72ed6d0c1bb19a6de5aca374fe2eaa66acc88999a46e1f53d456de31a8c130',
               'tests/v267-financial-archive.test.cjs': '3b4097cc4913a8617fdc0377ba9426caeae1e88a8f3ee09fbd9c59eb753aaee7',
-              'tests/v267-financial-archive.browser.mjs': 'ef747d878bfb041ecffb3c5a8b2efb0c068fb2bc89ee1f71c524b31c9126a600',
+              'tests/v267-financial-archive.browser.mjs': '97b27ca35a324a070abde1592f2dcf42af345eb41a4ee1af92d29aa8b2ecc234',
           }
           for name, expected in verified.items():
               assert hashlib.sha256(Path(name).read_bytes()).hexdigest() == expected, name
@@ -70,7 +70,7 @@ jobs:
           for name in paths:
               data = Path(name).read_bytes()
               desired[name] = {'path': name, 'sha256': hashlib.sha256(data).hexdigest(), 'size': len(data)}
-          if actual_blob != '8194754ebbbe812ee51b0678e583931a3e1bca29':
+          if actual_blob != 'ce97ec7d5b2fb4fcf5306bc455d1a4ded4c4c8ea':
               assert all(rows.get(name) == row for name, row in desired.items()), 'Inventory base changed; reconcile before writing'
               print('Verified repair inventory already matches; no rewrite.')
           else:
@@ -81,7 +81,7 @@ jobs:
                   else:
                       inventory['files'].append(row)
               Path('FILE_INVENTORY.json').write_text(json.dumps(inventory, ensure_ascii=False, indent=2) + '\n')
-              print('Updated only two existing repair entries and added the two verification entries.')
+              print('Refreshed only the four verified archive repair entries.')
       - name: Commit inventory on repair branch only
         shell: bash
         run: |

@@ -65,8 +65,9 @@ export function openFinancialArchive(){
   const search=node('input'),state=node('select'),resultCount=node('p'),table=node('table'),thead=node('thead'),tbody=node('tbody'),pager=node('div'),previous=node('button','السابق'),next=node('button','التالي'),pageText=node('span');
   search.type='search';search.placeholder='رقم السند أو المستفيد أو العقار';search.maxLength=200;
   for(const [value,label] of [['','كل الحالات'],...Object.entries(stateLabels)]){const option=node('option',label);option.value=value;state.append(option);}
+  table.style.minWidth='44rem';table.style.width='100%';table.style.borderCollapse='separate';table.style.borderSpacing='0.75rem 0.5rem';
   table.append(node('caption','مصروفات الشهر المسترجع'),thead,tbody);const header=node('tr');
-  for(const label of ['التاريخ','السند','العقار','المستفيد','المبلغ','الحالة']){const th=node('th',label);th.scope='col';header.append(th);}thead.append(header);
+  for(const label of ['التاريخ','السند','العقار','المستفيد','المبلغ','الحالة']){const th=node('th',label);th.scope='col';th.style.whiteSpace='nowrap';header.append(th);}thead.append(header);
   const wrap=node('div');wrap.style.overflowX='auto';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','جدول المصروفات؛ قابل للتمرير أفقياً');wrap.append(table);
   previous.type=next.type='button';pager.append(previous,pageText,next);resultCount.setAttribute('role','status');
   const properties=new Map((Array.isArray(data.properties)?data.properties:[]).filter(object).map(x=>[x.id,String(x.name??'')]));
@@ -76,7 +77,7 @@ export function openFinancialArchive(){
    const query=normalize(search.value),matching=rows.filter(x=>(!state.value||x.expense.state===state.value)&&(!query||x.terms.includes(query))),pages=Math.max(1,Math.ceil(matching.length/PAGE_SIZE));
    page=Math.max(0,Math.min(page,pages-1));tbody.replaceChildren();
    for(const {expense:x,property} of matching.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE)){
-    const tr=node('tr');for(const value of [x.expense_date,x.voucher_no||x.reference||'—',property,x.payee||'—',money(x.amount),stateLabels[x.state]||'غير معروفة'])tr.append(node('td',value));tbody.append(tr);
+    const tr=node('tr');for(const [index,value] of [x.expense_date,x.voucher_no||x.reference||'—',property,x.payee||'—',money(x.amount),stateLabels[x.state]||'غير معروفة'].entries()){const td=node('td',value);if([0,1,4].includes(index))td.style.whiteSpace='nowrap';tr.append(td);}tbody.append(tr);
    }
    if(!matching.length){const tr=node('tr'),td=node('td',rows.length?'لا توجد مصروفات تطابق البحث.':'لا توجد مصروفات محفوظة لهذا الشهر.');td.colSpan=6;tr.append(td);tbody.append(tr);}
    resultCount.textContent=`النتائج: ${matching.length} من ${rows.length} مصروفاً.`;pageText.textContent=`الصفحة ${page+1} من ${pages}`;previous.disabled=page===0;next.disabled=page>=pages-1;

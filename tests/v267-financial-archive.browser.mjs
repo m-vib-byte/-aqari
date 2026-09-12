@@ -12,7 +12,7 @@ fs.mkdirSync(out,{recursive:true});
 const archivePath='src/v267/pages/financial-archive.js';
 const base='741f39d92e14bef8f28599ac1943fb0a8d4c8780';
 const original=execFileSync('git',['show',`${base}:${archivePath}`],{encoding:'utf8'});
-const HTML=`<!doctype html><html lang="ar" dir="rtl" class="aqari-auth-unlocked"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>اختبار الأرشيف — بيانات اصطناعية</title><body><h1>اختبار الأرشيف المالي — بيانات اصطناعية</h1><button id="open" type="button">فتح الأرشيف</button><script type="module">
+const HTML=`<!doctype html><html lang="ar" dir="rtl" class="aqari-auth-unlocked"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>اختبار الأرشيف — بيانات اصطناعية</title><link rel="stylesheet" href="/src/v267/styles/workspace.css"><body><h1>اختبار الأرشيف المالي — بيانات اصطناعية</h1><button id="open" type="button">فتح الأرشيف</button><script type="module">
 import {openFinancialArchive} from '/src/v267/pages/financial-archive.js';
 window.fixture={count:2,error:false,requests:[],delay:0};
 window.AQARI_PUBLIC_CONFIG={supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
@@ -36,13 +36,14 @@ const server=createServer((req,res)=>{
  const allowed=new Map([
   ['/src/v267/pages/financial-archive.js',archivePath],
   ['/src/v267/components/dialog.js','src/v267/components/dialog.js'],
-  ['/src/v267/api/session.js','src/v267/api/session.js']
+  ['/src/v267/api/session.js','src/v267/api/session.js'],
+  ['/src/v267/styles/workspace.css','src/v267/styles/workspace.css']
  ]);
  if(file==='/src/v267/components/locale.js'){
   res.setHeader('Content-Type','text/javascript');res.end("export const t=x=>x,getLocale=()=>'ar',direction=()=>'rtl';");return;
  }
  if(!allowed.has(file)){res.writeHead(404);res.end();return;}
- res.setHeader('Content-Type','text/javascript; charset=utf-8');res.end(fs.readFileSync(path.resolve(root,allowed.get(file))));
+ res.setHeader('Content-Type',file.endsWith('.css')?'text/css; charset=utf-8':'text/javascript; charset=utf-8');res.end(fs.readFileSync(path.resolve(root,allowed.get(file))));
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const origin=`http://127.0.0.1:${server.address().port}`,results=[];
@@ -86,6 +87,10 @@ try{
    const month=await page.locator('input[type=month]').inputValue();
    assert.equal(await page.locator('tbody tr').count(),2);assert.match(await page.locator('tbody').innerText(),/120\.500 د\.ك/);
    pass(engine,viewport,'native dialog, rows and currency render');
+   const region=page.getByRole('region',{name:'جدول المصروفات؛ قابل للتمرير أفقياً',exact:true});
+   const box=await region.boundingBox();assert.ok(box&&box.x>=0&&box.x+box.width<=width+1);
+   if(width<704)assert.ok(await region.evaluate(el=>el.scrollWidth>el.clientWidth));
+   pass(engine,viewport,'production dialog styling contains wide table within viewport');
    await page.getByLabel('البحث في المصروفات',{exact:true}).fill('٤٠١');
    assert.equal(await page.locator('tbody tr').count(),1);assert.match(await page.locator('tbody').innerText(),/EXP-401/);
    pass(engine,viewport,'Arabic voucher search');
@@ -110,16 +115,16 @@ try{
    pass(engine,viewport,'pagination and recovery after reload error');
    await page.evaluate(()=>{fixture.count=5000;});const started=performance.now();await page.getByRole('button',{name:'استرجاع الشهر',exact:true}).click();await page.getByRole('button',{name:'تصدير نسخة JSON للتدقيق',exact:true}).waitFor();
    assert.equal(await page.locator('tbody tr').count(),50);pass(engine,viewport,'5000 synthetic rows bound to 50 visible rows',{elapsedMs:Math.round(performance.now()-started)});
-   await page.screenshot({path:path.join(out,`${engine}-${viewport}.png`),fullPage:true});
+   await region.scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,`${engine}-${viewport}.png`),fullPage:true});
    await page.evaluate(()=>{AQARI_SUPABASE.context.membership.is_active=false;window.dispatchEvent(new Event('aqari:auth-boundary'));});assert.equal(await page.locator('dialog').count(),0);assert.equal(await page.locator('table').count(),0);
    pass(engine,viewport,'real session boundary removes cached private records');assert.deepEqual(errors,[]);pass(engine,viewport,'no uncaught page errors');
    await context.close();
   }
   await activeBrowser.close();activeBrowser=null;
  }
- assert.equal(results.length,67);
- fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({scope:'Local UI integration with synthetic RPC responses; no live DB or physical devices',baselineReproductions:1,fixedUiChecks:66,passed:67,results},null,2)+'\n');
- console.log('Archive browser verification: 1 baseline reproduction + 66 fixed UI checks PASS.');
+ assert.equal(results.length,73);
+ fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({scope:'Local UI integration with synthetic RPC responses; no live DB or physical devices',baselineReproductions:1,fixedUiChecks:72,passed:73,results},null,2)+'\n');
+ console.log('Archive browser verification: 1 baseline reproduction + 72 fixed UI checks PASS.');
 }finally{
  if(activeBrowser)await activeBrowser.close();await new Promise(resolve=>server.close(resolve));
 }
