@@ -17,7 +17,7 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
+      "sha256": "2c95f07d5c26c05f4261a2d90914139515bb05437d4cbf4bb85fc6960c5b4385",
       "size": 1390
     },
     {
@@ -2407,8 +2407,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "5dbb7403e890154c2f4514fac63c2f420235b4d04318673af258126aee3092cb",
-      "size": 49897
+      "sha256": "5b11010cd6717d460c1068581931156c7a3cea87bf962d0fbf64f902102743b9",
+      "size": 50230
     },
     {
       "path": "tests/verified-upload.test.mjs",

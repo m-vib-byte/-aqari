@@ -280,7 +280,7 @@ try{
     await directory.waitFor({state:'visible'});
     const serviceSearch=directory.getByRole('searchbox',{name:'ابحث عن خدمة',exact:true});
     await serviceSearch.fill('راتب');
-    assert.equal(await directory.getByRole('button',{name:'الموظفون والرواتب / Employees and payroll',exact:true}).count(),1);
+    await directory.getByRole('button',{name:'الموظفون والرواتب / Employees and payroll',exact:true}).waitFor({state:'visible',timeout:3000});
     await serviceSearch.fill('مركز تحكم المدير');
     await directory.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByRole('dialog').getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
@@ -406,7 +406,7 @@ try{
     assert.equal(await page.locator('#financeSuitePage h3').count(),0,'logout clears cached financial values');
     assert.deepEqual(errors,[]);
     results.push({name,passed:true,ms:Date.now()-start,layout,languageLayouts,controlRevision:revision,documents:docs.length,scope:'synthetic component backend; no real account or physical device'});console.log('PASS',name);
-   }catch(e){failed=true;results.push({name,passed:false,error:e.stack,calls,errors});console.error('FAIL',name,e.stack);await page.screenshot({path:path.join(out,name+'-failure.png'),fullPage:true}).catch(()=>{});}
+   }catch(e){failed=true;results.push({name,passed:false,error:e.stack,calls,errors});console.error('FAIL',name,e.stack);console.error('COMPONENT_ERRORS',JSON.stringify(errors));console.error('DIRECTORY_STATE',await page.locator('#aq267-service-directory').evaluate(el=>({text:el.textContent,query:el.querySelector('input')?.value,groups:[...el.querySelectorAll('details')].map(g=>({key:g.dataset.group,open:g.open}))})).catch(()=>null));await page.screenshot({path:path.join(out,name+'-failure.png'),fullPage:true}).catch(()=>{});}
    finally{await context.close();}
   }}finally{await browser.close();}
  }
