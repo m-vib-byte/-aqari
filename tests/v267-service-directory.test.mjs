@@ -3,19 +3,19 @@ import assert from 'node:assert/strict';
 import {organizeServices,serviceSearch} from '../src/v267/components/service-directory.js';
 import {setLocale} from '../src/v267/components/locale.js';
 
-function fixture(){
+function fixture(nestedDetails=false){
  const previous=globalThis.document;let permitted=true,host;
  class Element{
   constructor(tag){this.tagName=tag;this.children=[];this.dataset={};this.attributes={};this.hidden=false;this.disabled=false;this.value='';this.textContent='';}
   append(...nodes){for(const n of nodes){if(n.parentNode)n.parentNode.children=n.parentNode.children.filter(x=>x!==n);this.children.push(n);n.parentNode=this;}}
   replaceChildren(...nodes){for(const n of this.children)n.parentNode=null;this.children=[];this.append(...nodes);}
   setAttribute(k,v){this.attributes[k]=v;}
-  insertBefore(n,before){this.append(n);if(before){this.children.pop();this.children.splice(this.children.indexOf(before),0,n);}}
-  querySelector(){return this.children.find(x=>x.tagName==='details')||null;}
+  insertBefore(n,before){if(before&&before.parentNode!==this)throw Error('NotFoundError: reference is not a direct child');this.append(n);if(before){this.children.pop();this.children.splice(this.children.indexOf(before),0,n);}}
+  querySelector(selector=''){if(selector.startsWith(':scope >'))return this.children.find(x=>x.tagName==='details')||null;const walk=n=>n.tagName==='details'?n:n.children.map(walk).find(Boolean);return this.children.map(walk).find(Boolean)||null;}
   click(){this.onclick?.();}focus(){this.focused=true;}
  }
  globalThis.document={createElement:t=>new Element(t)};setLocale('ar',null);
- const tools=new Element('section');host=new Element('section');const legacy=new Element('details');host.append(legacy);
+ const tools=new Element('section');host=new Element('section');if(nestedDetails){const daily=new Element('section');daily.append(new Element('details'));host.append(daily);}const legacy=new Element('details');host.append(legacy);
  const source=new Element('button'),hidden=new Element('button'),denied=new Element('button');let clicks=0;
  source.textContent='الأرشيف المالي التاريخي';source.onclick=()=>clicks++;hidden.textContent='رواتب سرية';hidden.hidden=true;denied.textContent='صلاحيات المدير';denied.blocked=true;
  tools.append(source,hidden,denied);
@@ -31,6 +31,9 @@ function fixture(){
 }
 test('groups preserve original controls and open the real handler once',()=>{
  const f=fixture();try{assert.equal(f.proxies().length,1);assert.equal(f.proxies()[0].attributes['aria-label'],f.source.textContent,'decorative arrows are excluded from the accessible name');assert.equal(f.source.parentNode.tagName,'details');f.proxies()[0].click();assert.equal(f.clicks(),1);assert.equal(f.host().children[0],f.root());}finally{f.cleanup();}
+});
+test('a nested daily-summary details cannot become a home insertion reference',()=>{
+ const previous=globalThis.document;let f;try{f=fixture(true);assert.equal(f.proxies().length,1);assert.equal(f.root().parentNode,f.host());assert.equal(f.host().children[1],f.root());}finally{f?.cleanup();globalThis.document=previous;}
 });
 test('Arabic search ignores hamza and diacritics without revealing hidden or denied services',()=>{
  const f=fixture();try{f.search('ارشيف مَالِي');assert.equal(f.proxies().length,1);f.search('رواتب');assert.equal(f.proxies().length,0);assert.equal(f.hidden.hidden,true);f.search('صلاحيات');assert.equal(f.proxies().length,0);assert.equal(f.denied.hidden,false,'search must not rewrite source availability');}finally{f.cleanup();}

@@ -462,8 +462,8 @@
     },
     {
       "path": "docs/V267-PROPERTY-EXPERIENCE-2026-09-12.md",
-      "size": 3467,
-      "sha256": "e7f34e6ce7c0c8b726a04a52f83bf0698d5f99de823028e6a90e4296ada11cca"
+      "size": 4407,
+      "sha256": "7c41b240d9ad604df1af20f2552c4a22b535c2826f41c3c2fb1d61ff6252d4d9"
     },
     {
       "path": "docs/V267-PROPERTY-NOTICES-GUIDE.md",
@@ -932,8 +932,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "fe659d4c0786f7c47f65cdabd530e3257d3d4a580d8b7b226f0b6e59b4250923",
-      "size": 9356
+      "sha256": "e5984532914049474f86435f7929fd3ef608df8e5275a4c8ac5b2eb4131a480e",
+      "size": 9374
     },
     {
       "path": "src/v267/components/service-label-translations.js",
@@ -2427,8 +2427,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "18a907b719e0836b088db5bd8f5833e39dc232f9637967f0d343d8c53e5025a1",
-      "size": 5754
+      "sha256": "5746318edf86c37e64722c379a3c6697d6f060cbaf122f8e881881b4d014017c",
+      "size": 6477
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",

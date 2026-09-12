@@ -34,7 +34,7 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
   searchBox.className='aq267-service-search';searchBox.append(label,search,clear);head.append(title,searchBox);
   status=node('p');status.className='aq267-service-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   grid=node('div');grid.className='aq267-service-groups';root.append(head,status,grid);
-  host.insertBefore(root,host.querySelector('details,.v205-home-footer'));return true;
+  host.insertBefore(root,host.querySelector(':scope > details,:scope > .v205-home-footer'));return true;
  }
  function render(){
   if(!root)return;const query=serviceSearch(search.value),words=query.split(' ').filter(Boolean);let total=0;
