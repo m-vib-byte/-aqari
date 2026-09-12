@@ -9,13 +9,13 @@ insert into public.aqari_units(id,workspace_id,property_id,unit_no) values ('8f6
 -- The regression also runs against newer schemas with unit readiness enforced.
 -- Satisfy the real readiness RPC with an explicit synthetic inspection; never
 -- disable the lease guard or let a setup failure masquerade as the close defect.
-do $begin
+do $$begin
  if to_regprocedure('public.aqari_unit_readiness_register(uuid,text,jsonb)') is not null then
   perform public.aqari_unit_readiness_register(current_setting('close.w')::uuid,'record',jsonb_build_object(
    'id','8f690000-0000-4000-8000-000000000015','property_id','8f690000-0000-4000-8000-000000000010','unit_no','CLOSE-1',
    'expected_revision',0,'state','ready','inspected_on',current_date::text,'source_ref','محضر جاهزية اصطناعي لاختبار الإقفال','reason','وحدة اختبار جاهزة لتكوين عقد الإقفال'));
  end if;
-end$;
+end$$;
 insert into public.aqari_tenants(id,workspace_id,external_ref,full_name,civil_id,phone,profile) values ('8f690000-0000-4000-8000-000000000012',current_setting('close.w')::uuid,'close-tenant','مستأجر اختبار','869000000001','86900001','{}');
 insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot) values ('8f690000-0000-4000-8000-000000000013',current_setting('close.w')::uuid,'close-lease','8f690000-0000-4000-8000-000000000012','8f690000-0000-4000-8000-000000000011','CLOSE-LEASE','2026-01-01','2026-12-31',100,0,'signed','{}');
 insert into public.aqari_rent_payments(id,workspace_id,lease_id,reference,amount,period,paid_at,status,payment_method,record,receipt) values
