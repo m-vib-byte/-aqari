@@ -61,13 +61,17 @@ begin
 end $$;
 reset role;
 
--- An unrelated authenticated subject receives neither attachment metadata nor object access.
+-- An unrelated authenticated subject receives no attachment metadata and no Storage table access.
 select set_config('request.jwt.claim.sub','f2678100-0000-4000-8000-000000000099',true);
 set local role authenticated;
 do $$
 begin
  if (select count(*) from public.aqari_maintenance_attachments)<>0 then raise exception 'MAINTENANCE_ATTACHMENT_METADATA_LEAK';end if;
- if (select count(*) from storage.objects where bucket_id='aqari-documents' and name=current_setting('maintenance.details.path'))<>0 then raise exception 'MAINTENANCE_ATTACHMENT_STORAGE_LEAK';end if;
+ begin
+  perform count(*) from storage.objects where bucket_id='aqari-documents' and name=current_setting('maintenance.details.path');
+  raise exception 'MAINTENANCE_ATTACHMENT_STORAGE_DIRECT_READ_ALLOWED';
+ exception when insufficient_privilege then null;
+ end;
 end $$;
 reset role;
 rollback;
