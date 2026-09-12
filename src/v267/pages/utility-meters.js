@@ -1,3 +1,4 @@
+import {mountUnitMeterReadings} from '../components/unit-meter-readings.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -6,6 +7,7 @@ const labels={unknown:'غير مؤكد',unpaid:'غير مسدد',partial:'مسد
 export function openUtilityMeters(){
  const d=createDialog(t('الإعدادات والخدمات — عدادات العقارات'),{localized:true});if(!d)return;
  d.body.append(node('p',t('تسجيل داخلي من المستندات فقط. لا يوجد اتصال بوزارة الكهرباء والماء أو دفع إلكتروني.')));
+ mountUnitMeterReadings(d);
  const urls=createPrivateUrls(d);
  const property=node('select'),meter=node('select'),reload=node('button',t('تحديث العدادات والفواتير')),details=node('div'),history=node('div'),form=node('form');let meters=[],properties=[];const saveProof=createPaymentProof(d.session);const payButton=node('button',t('دفع الفاتورة — بانتظار الربط الرسمي'));payButton.disabled=true;payButton.type='button';d.body.append(payButton);let requestId=crypto.randomUUID();
  const type=node('select');for(const [v,labelText]of [['reading',t('قراءة عداد')],['bill',t('فاتورة')]]){const o=node('option',t(labelText));o.value=v;type.append(o);}

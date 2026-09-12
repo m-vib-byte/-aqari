@@ -3,7 +3,7 @@ from lib.official_document_pdf import verified_version, render_official_document
 
 DOC='10000000-0000-4000-8000-000000000001'; WS='10000000-0000-4000-8000-000000000002'
 def fixture():
-    return {'series':{'id':DOC,'workspace_id':WS,'document_no':'TEST-001','status':'issued'},'versions':[{'id':'10000000-0000-4000-8000-000000000003','version':1,'title':'وصل اختبار','body':'هذا مستند عربي محفوظ للاختبار','payload':{'amount':'100.000'},'content_sha256':'a'*64,'issued_at':'2026-09-12T00:00:00Z','issued_by_name':'مدير الاختبار'}]}
+    return {'series':{'id':DOC,'workspace_id':WS,'document_no':'TEST-001','status':'issued'},'versions':[{'id':'10000000-0000-4000-8000-000000000003','version':1,'workspace_id':WS,'series_id':DOC,'title':'وصل اختبار','body':'هذا مستند عربي محفوظ للاختبار','payload':{'amount':'100.000'},'content_sha256':'a'*64,'issued_at':'2026-09-12T00:00:00Z','issued_by_name':'مدير الاختبار'}]}
 
 class OfficialDocumentPdfTest(unittest.TestCase):
     @unittest.skipUnless(FONT_PATH.exists(),'repository font fixture is required')
@@ -16,5 +16,12 @@ class OfficialDocumentPdfTest(unittest.TestCase):
     def test_missing_hash_is_rejected(self):
         data=fixture();data['versions'][0]['content_sha256']=''
         with self.assertRaises(ValueError): verified_version(data,DOC,1)
+
+    def test_invalid_scope_hash_and_boolean_version_are_rejected(self):
+        for key,value in [('workspace_id','other-workspace'),('series_id','other-series'),('content_sha256','z'*64),('payload',[]),('body',{})]:
+            with self.subTest(key=key):
+                data=fixture();data['versions'][0][key]=value
+                with self.assertRaises(ValueError): verified_version(data,DOC,1)
+        with self.assertRaises(ValueError): verified_version(fixture(),DOC,True)
 
 if __name__=='__main__': unittest.main()

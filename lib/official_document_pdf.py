@@ -1,5 +1,6 @@
 """Render only a verified, immutable official-document snapshot from the database."""
 from io import BytesIO
+import re
 from pathlib import Path
 import arabic_reshaper
 from bidi.algorithm import get_display
@@ -20,12 +21,20 @@ def verified_version(result, document_id, requested_version):
     series = result["series"]
     if series.get("id") != document_id or series.get("workspace_id") is None:
         raise ValueError("DOCUMENT_SCOPE_MISMATCH")
-    matches = [v for v in result["versions"] if isinstance(v, dict) and v.get("version") == requested_version]
+    if type(requested_version) is not int or not 1 <= requested_version <= 10000:
+        raise ValueError("INVALID_DOCUMENT_VERSION")
+    matches = [v for v in result["versions"] if isinstance(v, dict) and type(v.get("version")) is int and v.get("version") == requested_version]
     if len(matches) != 1:
         raise ValueError("DOCUMENT_VERSION_NOT_FOUND")
     version = matches[0]
     required = ("id", "title", "body", "payload", "content_sha256", "issued_at", "issued_by_name")
-    if any(not version.get(key) for key in required) or len(version["content_sha256"]) != 64:
+    if (any(not version.get(key) for key in required)
+        or not isinstance(version.get("payload"), dict)
+        or not isinstance(version.get("title"), str) or not isinstance(version.get("body"), str)
+        or not isinstance(version.get("content_sha256"), str)
+        or not re.fullmatch(r"[a-f0-9]{64}", version["content_sha256"])
+        or version.get("workspace_id") != series["workspace_id"]
+        or version.get("series_id") != document_id):
         raise ValueError("INVALID_DOCUMENT_SNAPSHOT")
     return series, version
 

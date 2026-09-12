@@ -31,7 +31,7 @@ def upstream(path, auth, body=None):
 def export_pdf(request_data, auth, read=upstream):
     if not isinstance(request_data,dict) or set(request_data)!={"workspaceId","documentId","version"}: raise ValueError("INVALID_REQUEST")
     workspace,document_id,version=request_data["workspaceId"],request_data["documentId"],request_data["version"]
-    if not UUID.fullmatch(str(workspace)) or not UUID.fullmatch(str(document_id)) or not isinstance(version,int) or not 1<=version<=10000: raise ValueError("INVALID_REQUEST")
+    if not UUID.fullmatch(str(workspace)) or not UUID.fullmatch(str(document_id)) or type(version) is not int or not 1<=version<=10000: raise ValueError("INVALID_REQUEST")
     if not isinstance(auth,str) or len(auth)>8192 or not re.fullmatch(r"Bearer [A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+",auth): raise PermissionError("AUTH_REQUIRED")
     user=read("/auth/v1/user",auth); uid=user.get("id") if isinstance(user,dict) else None
     if not UUID.fullmatch(str(uid)): raise PermissionError("AUTH_REQUIRED")

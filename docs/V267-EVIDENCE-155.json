@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceParentSHA": "741f39d92e14bef8f28599ac1943fb0a8d4c8780",
-  "matrixSha256": "75be257a3c6823b6e2fed212e828772b4cce2494e128f1a87e23a033512010ca",
+  "sourceParentSHA": "2c2d7ae506bd866c306f76adddcf50b9eb36b8bc",
+  "matrixSha256": "80cc9d004b75d17e0796ac97005fbd5e80dcd086715cef6725eaf3afc5dc26be",
   "releaseGate": "HOLD",
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "evidence": {
@@ -104,7 +104,12 @@
       "files": [
         "src/v267/pages/utility-meters.js",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
-        "staging-database/tests/utility_register.sql"
+        "staging-database/tests/utility_register.sql",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js",
+        "staging-database/sql/unit-meter-readings.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs"
       ]
     },
     "E16": {
@@ -247,7 +252,9 @@
         "api/official-document.py",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py"
       ]
     },
     "E36": {
@@ -265,7 +272,10 @@
       "files": [
         "src/v267/pages/financial-archive.js",
         "staging-database/sql/financial-register.sql",
-        "tests/v267-financial-archive.test.cjs"
+        "tests/v267-financial-archive.test.cjs",
+        "staging-database/sql/financial-archive.sql",
+        "staging-database/tests/financial_archive.sql",
+        "tests/v267-financial-archive-runtime.test.mjs"
       ]
     },
     "E38": {
@@ -700,8 +710,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "d8dfdfa0efe0a93fc6c1bbf1ef000ba9b32826572278e7a8d133bcd91de16ee7",
-      "bytes": 11598,
+      "sha256": "ed146ac2819169355f07e6a0eb1febe81ff92044f05064790d99b304e4a42ac6",
+      "bytes": 11703,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -727,6 +737,60 @@
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/components/unit-meter-readings.js",
+      "sha256": "a154c880b6c8a2071f7df4f943a693f6f83c41d9f2385b5c4ea8d7f27163b163",
+      "bytes": 7048,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_unit_meter_register"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/components/unit-meter-photo.js",
+      "sha256": "7173916f970d8429f4264b5b58c11aeebc122aed4678470b231baa0363451fc6",
+      "bytes": 2035,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_reserve_document",
+        "aqari_finalize_document"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/unit-meter-readings.sql",
+      "sha256": "5c81a864e065e02b910018b4136192de6c282793344d6a5fc3e8d21b2871dc55",
+      "bytes": 9908,
+      "declaredTables": [
+        "private.aqari_unit_meter_readings"
+      ],
+      "publicFunctions": [
+        "public.aqari_unit_meter_register"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/unit_meter_readings.sql",
+      "sha256": "4badb7334fd26a118aaeb6eadba48e3dfef3bc317cc008b96a164601bd57b593",
+      "bytes": 8825,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-unit-meter-runtime.test.mjs",
+      "sha256": "a38fa3c81e1a4b397a5998e0ce788ef857d31f65ffdebb580d2ba7f174fda454",
+      "bytes": 5797,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
     },
     {
       "path": "v267-service-desk.js",
@@ -1295,8 +1359,8 @@
     },
     {
       "path": "staging-database/sql/official-document-register.sql",
-      "sha256": "9dc8b85a6065e7cfbbc21ec553d1f64ed224f14c835b5b2c3b64d382d612986e",
-      "bytes": 10589,
+      "sha256": "ea64c00cb0284c77b5de3d12f9e75ee84bf82c6ef44767f6bc2e61157ae79883",
+      "bytes": 11022,
       "declaredTables": [
         "private.aqari_official_document_series",
         "private.aqari_official_document_versions",
@@ -1310,8 +1374,8 @@
     },
     {
       "path": "lib/official_document_pdf.py",
-      "sha256": "d79d0db8d78d32a4a763fa721b59244e8e739a39f1a72d7213bbc8569f176808",
-      "bytes": 3326,
+      "sha256": "58ec0f6cfbe100c705220cb473015c55469b35e3f46977c2251bbe01dba2f52f",
+      "bytes": 3870,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1319,8 +1383,8 @@
     },
     {
       "path": "api/official-document.py",
-      "sha256": "5019a33a7243b09ce7976279c8b478153b77ba165d313126c80fc748097d1db6",
-      "bytes": 4115,
+      "sha256": "86c8071263de9cb13057a64eed0ab69e59658589095089d5bdaa10bcf2ba12a2",
+      "bytes": 4112,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1346,12 +1410,32 @@
     },
     {
       "path": "staging-database/tests/official_document_register.sql",
-      "sha256": "f8926654b3a1573965d72ef88779c2d734dd1df546b99c40c30f4157451e024e",
-      "bytes": 4872,
+      "sha256": "13eb8583cde76adb2bed39aa4e067c3ae972022dd1c713d5ce7b04fa5f9441e5",
+      "bytes": 6043,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "database-suite"
+    },
+    {
+      "path": "staging-database/sql/official-document-retry-hardening.sql",
+      "sha256": "6d59729e6d92119f09f90470ed28291f530f4a6f5284c0844b84367e549ea14e",
+      "bytes": 7287,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_official_document_register"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/official_document_pdf_test.py",
+      "sha256": "a59b35a922a3e2438b605c0eee6f7bfc9f0168816e06360d286d7d493d6d66bd",
+      "bytes": 1968,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -1426,19 +1510,48 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "eb3b3ea9c9a11b525747539bed0e82f305e5742f467435ff3214de645c464f64",
-      "bytes": 2212,
+      "sha256": "a3965f6f6eb8ffc81a7390df010d59a55f65b4c2e63c73da4b06fb262fe2d1ab",
+      "bytes": 5235,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
-        "aqari_financial_register"
+        "aqari_financial_archive"
       ],
       "testKind": null
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "599cc59995af431b333aa6c83d56909249cadfdbaf218e257b23bbb9c306f1fa",
-      "bytes": 908,
+      "sha256": "e8363884e1298afa532c33b6e5311a1c0bda48a6b437744f9fc8592380479dcc",
+      "bytes": 1324,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "staging-database/sql/financial-archive.sql",
+      "sha256": "70d9f65401ac6b402cd35e03c9b2067bc4060fd800ce6d1926856e5d3da13f49",
+      "bytes": 5506,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_financial_archive"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/financial_archive.sql",
+      "sha256": "e7599d4530f13fe01ed4d441d37657644aaa8f8338f2987cb2b34337a9474490",
+      "bytes": 9826,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-financial-archive-runtime.test.mjs",
+      "sha256": "d9e8444621ab0b1dbbff152200e90b4a6cb81438bf0f43933e6a6e99b3b3140f",
+      "bytes": 4109,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1622,6 +1735,11 @@
         "src/v267/pages/utility-meters.js",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
         "staging-database/tests/utility_register.sql",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js",
+        "staging-database/sql/unit-meter-readings.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs",
         "v267-service-desk.js",
         "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql",
         "v267-tenant-portal.js",
@@ -1642,6 +1760,8 @@
         "src/v267/pages/employees.js",
         "src/v267/domain/salary-slip.js",
         "src/v267/pages/utility-meters.js",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js",
         "v267-service-desk.js",
         "v267-tenant-portal.js",
         "src/v267/pages/automation-status.js"
@@ -1656,6 +1776,7 @@
         "staging-database/supabase/migrations/20260907204823_v267_document_scanner.sql",
         "staging-database/sql/employees-payroll.sql",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
+        "staging-database/sql/unit-meter-readings.sql",
         "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql",
         "staging-database/supabase/migrations/20260907084949_v267_tenant_portal_identity.sql",
         "staging-database/sql/reminder-contract-balance.sql"
@@ -1666,6 +1787,8 @@
         "staging-database/tests/imported_tenant_edit.sql",
         "staging-database/tests/rental_transaction.sql",
         "staging-database/tests/utility_register.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs",
         "tests/v267-tenant-portal.test.cjs",
         "staging-database/tests/reminder_contract_balance.sql"
       ],
@@ -3573,18 +3696,22 @@
         "api/official-document.py",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "uiFiles": [
         "src/v267/pages/official-document-center.js"
       ],
       "sqlFiles": [
-        "staging-database/sql/official-document-register.sql"
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -3639,7 +3766,9 @@
         "api/official-document.py",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "uiFiles": [
         "src/v267/pages/compliance-center.js",
@@ -3647,14 +3776,16 @@
       ],
       "sqlFiles": [
         "staging-database/sql/compliance-register.sql",
-        "staging-database/sql/official-document-register.sql"
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-compliance-center.test.cjs",
         "tests/v267-compliance-register.test.cjs",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4004,7 +4135,9 @@
         "api/official-document.py",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "uiFiles": [
         "v202-property-os.js",
@@ -4014,13 +4147,15 @@
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
-        "staging-database/sql/official-document-register.sql"
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/rental_transaction.sql",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -5396,18 +5531,22 @@
         "api/official-document.py",
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "uiFiles": [
         "src/v267/pages/official-document-center.js"
       ],
       "sqlFiles": [
-        "staging-database/sql/official-document-register.sql"
+        "staging-database/sql/official-document-register.sql",
+        "staging-database/sql/official-document-retry-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-official-document-center.test.cjs",
         "tests/v267-official-document-runtime.test.mjs",
-        "staging-database/tests/official_document_register.sql"
+        "staging-database/tests/official_document_register.sql",
+        "tests/official_document_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -5551,6 +5690,11 @@
         "src/v267/pages/utility-meters.js",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
         "staging-database/tests/utility_register.sql",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js",
+        "staging-database/sql/unit-meter-readings.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs",
         "v267-service-desk.js",
         "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql",
         "v267-tenant-portal.js",
@@ -5571,6 +5715,8 @@
         "src/v267/pages/employees.js",
         "src/v267/domain/salary-slip.js",
         "src/v267/pages/utility-meters.js",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js",
         "v267-service-desk.js",
         "v267-tenant-portal.js",
         "src/v267/pages/automation-status.js"
@@ -5585,6 +5731,7 @@
         "staging-database/supabase/migrations/20260907204823_v267_document_scanner.sql",
         "staging-database/sql/employees-payroll.sql",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
+        "staging-database/sql/unit-meter-readings.sql",
         "staging-database/supabase/migrations/20260907091138_v267_staging_maintenance_audit.sql",
         "staging-database/supabase/migrations/20260907084949_v267_tenant_portal_identity.sql",
         "staging-database/sql/reminder-contract-balance.sql"
@@ -5595,6 +5742,8 @@
         "staging-database/tests/imported_tenant_edit.sql",
         "staging-database/tests/rental_transaction.sql",
         "staging-database/tests/utility_register.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs",
         "tests/v267-tenant-portal.test.cjs",
         "staging-database/tests/reminder_contract_balance.sql"
       ],
@@ -5802,27 +5951,38 @@
       "id": 134,
       "sourceId": "G12-05",
       "requirement": "قراءات كهرباء وماء لكل وحدة عند الدخول والإخلاء مع صورة العداد.",
-      "reportedImplementation": "جزئي — E15 سجل عقار وقراءات وفواتير؛ دورة وحدة/دخول/إخلاء وصورها غير مكتملة.",
-      "acceptanceRemaining": "ربط القراءة بالعداد والوحدة ومحضر الدخول/الخروج ومرفق الأصل دون خلط الفاتورة بالدفع.",
+      "reportedImplementation": "جزئي — E15 يضيف قراءة وحدة/عقد للدخول والدوري والإخلاء، وصورة خاصة وتصحيحاً يحفظ الأصل؛ نجحت اختبارات SQL والنموذج محلياً.",
+      "acceptanceRemaining": "إثبات الرفع والاسترجاع والصلاحيات على Staging وحسابات فعلية، وفحص صورة العداد على جهاز فعلي؛ الربط البرمجي لا يغني عن هذا الاختبار.",
       "evidenceIds": [
         "E15"
       ],
       "evidenceFiles": [
         "src/v267/pages/utility-meters.js",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
-        "staging-database/tests/utility_register.sql"
+        "staging-database/tests/utility_register.sql",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js",
+        "staging-database/sql/unit-meter-readings.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs"
       ],
       "uiFiles": [
-        "src/v267/pages/utility-meters.js"
+        "src/v267/pages/utility-meters.js",
+        "src/v267/components/unit-meter-readings.js",
+        "src/v267/components/unit-meter-photo.js"
       ],
       "sqlFiles": [
-        "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql"
+        "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
+        "staging-database/sql/unit-meter-readings.sql"
       ],
       "testFiles": [
-        "staging-database/tests/utility_register.sql"
+        "staging-database/tests/utility_register.sql",
+        "staging-database/tests/unit_meter_readings.sql",
+        "tests/v267-unit-meter-runtime.test.mjs"
       ],
       "requiredVerification": [
-        "hosted-database-acceptance"
+        "hosted-database-acceptance",
+        "physical-device-or-network-measurement"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "productionCompletion": "NOT_PROVEN"
@@ -6143,7 +6303,7 @@
       "id": 145,
       "sourceId": "G12-16",
       "requirement": "أرشيف مالي للسنوات السابقة يسترجع للتدقيق دون إبطاء الحاضر.",
-      "reportedImplementation": "جزئي — E37 يسترجع لقطة الشهر المقفل والمصروفات وسجل التدقيق من الدفتر القانوني ويصدر نسخة JSON؛ قياس سنوات كبيرة وترحيل السنوات القديمة غير منفذين.",
+      "reportedImplementation": "جزئي — E37 يعرض سبعة مسارات مالية شهرية ولقطة الإقفال الأصلية، ويفصل الافتتاحي وتخصيص الرصيد والإلغاءات؛ تصدير JSON وCSV مرتبط بالشهر المسترجع. نجحت اختبارات محلية للعرض وSQL؛ ترحيل السنوات وقياس البيانات الكبيرة غير منفذين.",
       "acceptanceRemaining": "تشغيل استعلامات سنوات كبيرة على Staging وقياسها ومطابقة الإجماليات بالمصدر مع اختبار الصلاحيات.",
       "evidenceIds": [
         "E37"
@@ -6151,16 +6311,22 @@
       "evidenceFiles": [
         "src/v267/pages/financial-archive.js",
         "staging-database/sql/financial-register.sql",
-        "tests/v267-financial-archive.test.cjs"
+        "tests/v267-financial-archive.test.cjs",
+        "staging-database/sql/financial-archive.sql",
+        "staging-database/tests/financial_archive.sql",
+        "tests/v267-financial-archive-runtime.test.mjs"
       ],
       "uiFiles": [
         "src/v267/pages/financial-archive.js"
       ],
       "sqlFiles": [
-        "staging-database/sql/financial-register.sql"
+        "staging-database/sql/financial-register.sql",
+        "staging-database/sql/financial-archive.sql"
       ],
       "testFiles": [
-        "tests/v267-financial-archive.test.cjs"
+        "tests/v267-financial-archive.test.cjs",
+        "staging-database/tests/financial_archive.sql",
+        "tests/v267-financial-archive-runtime.test.mjs"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
