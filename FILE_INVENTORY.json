@@ -462,8 +462,8 @@
     },
     {
       "path": "docs/V267-PROPERTY-EXPERIENCE-2026-09-12.md",
-      "sha256": "96e17f5da3ff1ef1113a6293c75dbf7c7b4593a61ba95b2b09cd8525a5e88788",
-      "size": 2964
+      "size": 3467,
+      "sha256": "e7f34e6ce7c0c8b726a04a52f83bf0698d5f99de823028e6a90e4296ada11cca"
     },
     {
       "path": "docs/V267-PROPERTY-NOTICES-GUIDE.md",
@@ -2384,6 +2384,11 @@
       "path": "tests/v267-property-presentation.test.mjs",
       "sha256": "1f315b30125c8844ee55e12aa936c274c9c7a3637ad4a90416d8f9df233f1690",
       "size": 4302
+    },
+    {
+      "path": "tests/v267-property-responsive.fixture.html",
+      "size": 2009,
+      "sha256": "32054116b3dcc5c354e31cce52219bc8f72d7a6154e7d29176a169b6d92b653c"
     },
     {
       "path": "tests/v267-recovery-boundary.test.cjs",
