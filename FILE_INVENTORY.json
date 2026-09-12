@@ -347,8 +347,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "abff33b56fdec1973f0886858c0ec763c400286bbe362b8501ab632ae4a0e190",
-      "size": 263471
+      "size": 263471,
+      "sha256": "abff33b56fdec1973f0886858c0ec763c400286bbe362b8501ab632ae4a0e190"
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -772,8 +772,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "a0f58a35388ddc57eeade7aec7201b8dae112c6751bbe765c77928e16a77ff98",
-      "size": 2862
+      "size": 3200,
+      "sha256": "91ab049948ebeeebba853a73ed327aeee55090e9c4c76276cde0e0492a174395"
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -2269,6 +2269,36 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
+    },
+    {
+      "path": "tests/v267-dialog-progress.test.mjs",
+      "size": 4339,
+      "sha256": "56676422b5738d8bcdc71407bf9bbd2c80c21d2ece06dd91026940e16d68c67e"
+    },
+    {
+      "path": "tests/v267-dialog-progress.browser.mjs",
+      "size": 7936,
+      "sha256": "c3aa2770a4c62c9f460adbd71ba7d43e7ef0e068a8826d86a98ed107f17b0461"
+    },
+    {
+      "path": "staging-database/sql/financial-close-cancellations.sql",
+      "size": 2403,
+      "sha256": "38719e27854de3bfede2d8c1ad0e95f318922f27601ec83a1497928b3ffa49a3"
+    },
+    {
+      "path": "staging-database/tests/financial_close_cancellations.sql",
+      "size": 6309,
+      "sha256": "a49670cf5c44daff11c0787188ae9eac6fc3a24c8c64787c76705cbd6d7d08a7"
+    },
+    {
+      "path": "scripts/verify-financial-close-regression.mjs",
+      "size": 1534,
+      "sha256": "126502b8e80bc1ca10b90b6f1f5d3c176021d57cfafda084e2e98fb9f276a785"
+    },
+    {
+      "path": ".github/workflows/release-verification-workspace.yml",
+      "size": 4606,
+      "sha256": "6579ea680b0f68b5a10d5ae75bb3105c40e5f84e67a62a34699843a1800b09fe"
     }
   ],
   "version": "V198"
