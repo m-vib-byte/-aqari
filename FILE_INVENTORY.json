@@ -752,8 +752,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "b739aa0f9102f84648e41e5a4204a0a715f15ec12f8de77163a6efaae8f2f2f5",
-      "size": 6202
+      "sha256": "3789a8033ed417d5ab0798bb874e8e5b329b92cb9cc745786fa02fb43d0ab7dc",
+      "size": 6800
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -2072,8 +2072,8 @@
     },
     {
       "path": "tests/v267-workspace-controls.test.cjs",
-      "sha256": "c1cf9f550357bd4df9f33f5b4326979c334466fb63fb066e74af30d4f3914dc2",
-      "size": 8793
+      "sha256": "42b52a84f0e10f476143f6d07f7fce9333695884b87ca931dd4ca0b725b93511",
+      "size": 13453
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",

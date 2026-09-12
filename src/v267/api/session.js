@@ -23,12 +23,26 @@ export function createSession(){
    const candidate=await Promise.race([work,stopped]);check();client=candidate;return client;
   }finally{clearTimeout(timer);controller.signal.removeEventListener('abort',aborted);jobs.delete(controller);}
  }
- async function request(query){check();const controller=new AbortController();jobs.add(controller);let timer;
-  try{const work=query.abortSignal(controller.signal);const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));},20000);});const r=await Promise.race([work,timeout]);check();if(r.error){const error=Object.assign(new Error(r.error.message||'REQUEST_FAILED'),r.error);if(Number.isInteger(r.status))error.status=r.status;throw error;}return r.data;}finally{clearTimeout(timer);jobs.delete(controller);}}
+ async function waitForRequest(work,controller,timeoutMessage){
+  let timer,aborted;
+  try{
+   // The provider may ignore abort while resolving auth or reading a body.
+   // Close must still settle the caller immediately and discard any late result.
+   const stopped=new Promise((_,reject)=>{
+    aborted=()=>reject(Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.'));
+    controller.signal.addEventListener('abort',aborted,{once:true});
+    if(controller.signal.aborted){aborted();return;}
+    timer=setTimeout(()=>{reject(Error(timeoutMessage));controller.abort();},20000);
+   });
+   return await Promise.race([work,stopped]);
+  }finally{clearTimeout(timer);controller.signal.removeEventListener('abort',aborted);}
+ }
+ async function request(query){check();const controller=new AbortController();jobs.add(controller);
+  try{const r=await waitForRequest(query.abortSignal(controller.signal),controller,'انتهت مهلة الاتصال. حدّث السجلات للتحقق.');check();if(r.error){const error=Object.assign(new Error(r.error.message||'REQUEST_FAILED'),r.error);if(Number.isInteger(r.status))error.status=r.status;throw error;}return r.data;}finally{jobs.delete(controller);}}
  function close(){closed=true;for(const job of jobs)job.abort();jobs.clear();}
  async function storage(method,path,body,bucket='aqari-documents'){
   check();if(!['aqari-documents','aqari-hr-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
-  const controller=new AbortController();jobs.add(controller);let timer;
+  const controller=new AbortController();jobs.add(controller);
   try{
    const work=(async()=>{const auth=await window.AQARI_SUPABASE.getSession();check();if(!auth?.access_token||auth.user?.id!==bound.user)throw Error('تغيرت جلسة الدخول.');
     const suffix=path.split('/').map(encodeURIComponent).join('/');
@@ -36,8 +50,10 @@ export function createSession(){
      method,body,headers:{apikey:window.AQARI_PUBLIC_CONFIG.supabasePublishableKey,Authorization:'Bearer '+auth.access_token,...(body?{'Content-Type':body.type,'x-upsert':'false'}:{})},
      signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
     check();if(!response.ok){const error=Error('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.');error.status=response.status;throw error;}return method==='GET'?response.blob():response.json();})();
-   return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة رفع أو قراءة المستند. حدّث السجلات للتحقق.'));},20000);})]);
-  }finally{clearTimeout(timer);jobs.delete(controller);}
+   const result=await waitForRequest(work,controller,'انتهت مهلة رفع أو قراءة المستند. حدّث السجلات للتحقق.');
+   // Revalidate after the complete body, not only after the response headers.
+   check();return result;
+  }finally{jobs.delete(controller);}
  }
  return {bound,connect,check,request,storage,close,get client(){return client;}};
 }
