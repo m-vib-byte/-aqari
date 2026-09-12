@@ -2467,8 +2467,8 @@
     },
     {
       "path": "tests/v267-service-desk.test.cjs",
-      "sha256": "706f9eb88a1337de5ab492a613572979c50d42e917c74db59d50505a117668b0",
-      "size": 16276
+      "sha256": "5d351b42ea25c1fd28bb54ee557f92bc5f21abd441eec5de428cea55e1998c60",
+      "size": 16512
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
@@ -2707,8 +2707,8 @@
     },
     {
       "path": "v267-service-desk.js",
-      "sha256": "5cb88cf04c5bad36d07c81f46671b2725e5180bc6c24a08c747f3240685ebe71",
-      "size": 11986
+      "sha256": "d8a0ffc128dae46cc21cad3759408cd6ce2fe6b7bcf151e245b76c4a8f68fdd7",
+      "size": 12201
     },
     {
       "path": "v267-signup.js",
