@@ -40,6 +40,12 @@ Hosted acceptance passed for two synthetic partner identities mapped to two diff
 
 Evidence boundary: this proves hosted property-level isolation at the database/RPC boundary. It does not yet prove real partner browser sign-in, ownership-share display, or physical-device acceptance.
 
+## Collector / accountant / maintenance scopes — G02-03 / G02-04 / G02-05 / G09-01 / G09-02
+
+Hosted acceptance passed for three synthetic staff identities with explicit property assignments. The collector was restricted to property A, retained collection write access there, and was denied finance visibility. The accountant was restricted to property A in the financial register and was denied contract-write authority. The maintenance role was restricted to property B in the maintenance RPC and was denied finance visibility. No role saw the other synthetic property through its scoped path. All identities, assignments and properties were rolled back.
+
+Evidence boundary: this proves hosted database/RPC role ceilings and property scoping. It does not replace practical real-account browser/device acceptance or prove every UI/export path for those roles.
+
 ## Release impact
 
 These results strengthen hosted evidence for the listed requirements but do not close the full 155-item release gate. Physical iPhone/iPad/Desktop acceptance, complete Database/Auth/Storage backup, independent restore, transaction-preserving rollback rehearsal, provider integrations and the remaining partial/external requirements are still required before Production.
