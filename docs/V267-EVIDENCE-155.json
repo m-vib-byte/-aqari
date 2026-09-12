@@ -333,6 +333,17 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ]
+    },
+    "E43": {
+      "files": [
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
+      ]
     }
   },
   "files": [
@@ -1772,14 +1783,14 @@
       "testKind": "database-suite"
     },
     {
-      "path": "staging-database/sql/final-gap-readback-hardening.sql",
-      "sha256": "0988abb2654d8b60a06c35a9ad7afdf9040045182cf5d760752244f9300676a4",
       "bytes": 11158,
+      "clientRpcCalls": [],
       "declaredTables": [],
+      "path": "staging-database/sql/final-gap-readback-hardening.sql",
       "publicFunctions": [
         "public.aqari_final_gap_register"
       ],
-      "clientRpcCalls": [],
+      "sha256": "0988abb2654d8b60a06c35a9ad7afdf9040045182cf5d760752244f9300676a4",
       "testKind": null
     },
     {
@@ -1912,43 +1923,110 @@
       "testKind": null
     },
     {
-      "path": "docs/V267-HOSTED-FINANCIAL-ACCEPTANCE-2026-09-12.md",
-      "sha256": "606cbbb37a50efb5235189e4838f4acae5c4145097c3fbdb851606533f2f68a8",
       "bytes": 5653,
-      "declaredTables": [],
-      "publicFunctions": [],
       "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "docs/V267-HOSTED-FINANCIAL-ACCEPTANCE-2026-09-12.md",
+      "publicFunctions": [],
+      "sha256": "606cbbb37a50efb5235189e4838f4acae5c4145097c3fbdb851606533f2f68a8",
       "testKind": null
     },
     {
-      "path": "staging-database/tests/financial_close_cancellations.sql",
-      "sha256": "60564bebeb4d583281adfdca0c7c91d359eaceeb02da0273ed142328c4c57e73",
       "bytes": 8976,
-      "declaredTables": [],
-      "publicFunctions": [],
       "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/tests/financial_close_cancellations.sql",
+      "publicFunctions": [],
+      "sha256": "60564bebeb4d583281adfdca0c7c91d359eaceeb02da0273ed142328c4c57e73",
       "testKind": "database-suite"
     },
     {
-      "path": "staging-database/hosted-test/financial_close_cancellations.sql",
-      "sha256": "f8a4be45aea5c0d6f75b50c684d5ef8eea5037a7ed7142a5942404c4e776a06c",
       "bytes": 9390,
-      "declaredTables": [],
-      "publicFunctions": [],
       "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/financial_close_cancellations.sql",
+      "publicFunctions": [],
+      "sha256": "f8a4be45aea5c0d6f75b50c684d5ef8eea5037a7ed7142a5942404c4e776a06c",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 11380,
+      "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/final_gap_register.sql",
+      "publicFunctions": [],
+      "sha256": "b84fa5565f8cd37546e79fb581082cf0d18fbd5e9549e1d498d680b410ee2457",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 6666,
+      "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+      "publicFunctions": [],
+      "sha256": "432fc59ae5bca4e4380ea97e40047e4e82f9f203adada224bc1b1362f3d462af",
       "testKind": null
     },
     {
-      "path": "staging-database/hosted-test/final_gap_register.sql",
-      "sha256": "b84fa5565f8cd37546e79fb581082cf0d18fbd5e9549e1d498d680b410ee2457",
-      "bytes": 11380,
-      "declaredTables": [],
-      "publicFunctions": [],
+      "bytes": 10903,
       "clientRpcCalls": [],
-      "testKind": null
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/financial_archive.sql",
+      "publicFunctions": [],
+      "sha256": "00d1177d409fc6fdabe03d2c5221bb3f8e53913b133bd24638bae26adbe69e51",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 9902,
+      "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/unit_meter_readings.sql",
+      "publicFunctions": [],
+      "sha256": "636352f1614ee355908e9ba095718d18a90d6b4b4129c6c3d98e70ec2a0d54af",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 20849,
+      "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/official_document_source_binding.sql",
+      "publicFunctions": [],
+      "sha256": "0665a5c6c35ab8282c06b81eb80813a40f309e36ac2aa81d0ea0c837024ec66c",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 12880,
+      "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/official_document_pdf_archive.sql",
+      "publicFunctions": [],
+      "sha256": "c85e373ccc239ce3dc34b23be89ff2cd2aecb6f074433f0901d3d983aaa97f51",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 3980,
+      "clientRpcCalls": [],
+      "declaredTables": [],
+      "path": "staging-database/hosted-test/workspace_feature_discovery.sql",
+      "publicFunctions": [],
+      "sha256": "6a41ff0d5ab0087d529ed71a75423c37b342ad436b19c6b7c026491a60e0bbb7",
+      "testKind": "database-suite"
+    },
+    {
+      "bytes": 26585,
+      "clientRpcCalls": [],
+      "declaredTables": [
+        "private.aqari_unit_readiness"
+      ],
+      "path": "staging-database/hosted-test/unit_readiness_activation.sql",
+      "publicFunctions": [
+        "public.aqari_unit_readiness_register"
+      ],
+      "sha256": "38954052463223df2b9f8c0d71490651b46667774600f6017a51b7a40869d5ba",
+      "testKind": "database-suite"
     }
   ],
-  "matrixSha256": "f55fb4352c18c102e9410722710da0a6b910b0bb770753ab5e4256adfd6e4a57",
+  "matrixSha256": "cf02fd1c4c8a9073822fca052a65b63f7dafea32a350e98b7c9e4ffeb84de7f4",
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "releaseGate": "HOLD",
   "releasePolicy": {
@@ -3046,7 +3124,7 @@
       "uiFiles": []
     },
     {
-      "acceptanceRemaining": "التطبيق والقبول المستضافان والتزامن الفعلي؛ المعاينات الحقيقية لا تفترض جاهزية الوحدات القديمة.",
+      "acceptanceRemaining": "الاستخدام بحساب فعلي والتزامن المتعدد؛ لا تفترض المعاينات جاهزية الوحدات القديمة.",
       "evidenceFiles": [
         "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
         "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
@@ -3055,16 +3133,24 @@
         "staging-database/tests/unit_readiness.sql",
         "staging-database/tests/unit_readiness_projection.sql",
         "tests/v267-unit-readiness-runtime.test.mjs",
-        "docs/V267-UNIT-READINESS-2026-09-12.md"
+        "docs/V267-UNIT-READINESS-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
         "E09",
-        "E41"
+        "E41",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 34,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E09 وE41؛ قيد خادم لجاهزية الوحدة وواجهة معاينة محفوظة مع رفض العقد غير الجاهز، والحفاظ على تحصيل العقود السابقة. نجح اختبار SQL والواجهة محلياً.",
+      "reportedImplementation": "جزئي — E09 وE41 وE43؛ فُعّل قيد جاهزية الوحدة على القاعدة المعزولة، ونجح اختبار مستضاف لرفض التأجير غير الجاهز والتعارض وحفظ التحصيل السابق وإعادة قراءته.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -3078,7 +3164,13 @@
       "testFiles": [
         "staging-database/tests/unit_readiness.sql",
         "staging-database/tests/unit_readiness_projection.sql",
-        "tests/v267-unit-readiness-runtime.test.mjs"
+        "tests/v267-unit-readiness-runtime.test.mjs",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/unit-readiness.js"
@@ -3282,7 +3374,7 @@
       "uiFiles": []
     },
     {
-      "acceptanceRemaining": "قبض ورد مؤكدان ووصل مستقل دون احتسابه إيجاراً، واختبار الأجهزة الفعلية.",
+      "acceptanceRemaining": "إعداد خادم PDF وقبول رحلة القبض والرد والتنزيل والطباعة بحسابات وأجهزة فعلية.",
       "evidenceFiles": [
         "docs/V267-DEPOSIT-LEDGER.md",
         "staging-database/sql/deposit-register.sql",
@@ -3304,16 +3396,24 @@
         "staging-database/sql/official-document-access-hardening.sql",
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
-        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
         "E27",
-        "E35"
+        "E35",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 41,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E27 وE35 يربطان PDF بحركة التأمين المستقلة المحفوظة مع قبول ورفض SQL محلي؛ لم يثبت الاستخدام والطباعة المستضافان.",
+      "reportedImplementation": "جزئي — E27 وE35 وE43؛ نجح إصدار وصل من حركة التأمين المحفوظة واختبار رفض المصدر غير الصحيح على القاعدة المستضافة المعزولة.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -3336,7 +3436,13 @@
         "staging-database/tests/official_document_register.sql",
         "tests/official_document_pdf_test.py",
         "staging-database/tests/official_document_source_binding.sql",
-        "tests/v267-official-document-source-runtime.test.mjs"
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/official-document-center.js",
@@ -3371,15 +3477,7 @@
       "uiFiles": []
     },
     {
-      "id": 43,
-      "sourceId": "G04-09",
-      "requirement": "تسجيل سبب الإلغاء ومن اعتمده.",
-      "reportedImplementation": "جزئي — E38 وE42؛ نجح اختبار مستضاف للإلغاء والاسترجاع والقيد العكسي، ورفض الإلغاء في شهر مقفل أو لوصل ملغى أصلاً؛ الاستخدام بحساب فعلي باقٍ.",
       "acceptanceRemaining": "سبب إلزامي، هوية معتمد مخول، وقت وسجل قبل/بعد لكل إلغاء.",
-      "evidenceIds": [
-        "E38",
-        "E42"
-      ],
       "evidenceFiles": [
         "src/v267/pages/final-gap-center.js",
         "staging-database/sql/final-gap-register.sql",
@@ -3393,30 +3491,38 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [
-        "src/v267/pages/final-gap-center.js",
-        "v267-tenant-portal.js"
+      "evidenceIds": [
+        "E38",
+        "E42"
       ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 43,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E38 وE42؛ نجح اختبار مستضاف للإلغاء والاسترجاع والقيد العكسي، ورفض الإلغاء في شهر مقفل أو لوصل ملغى أصلاً؛ الاستخدام بحساب فعلي باقٍ.",
+      "requiredVerification": [
+        "hosted-database-acceptance"
+      ],
+      "requirement": "تسجيل سبب الإلغاء ومن اعتمده.",
+      "sourceId": "G04-09",
       "sqlFiles": [
         "staging-database/sql/final-gap-register.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
+        "staging-database/sql/final-gap-readback-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-final-gap-register.test.cjs",
         "tests/v267-final-gap-runtime.test.mjs",
         "staging-database/tests/final_gap_register.sql",
-        "staging-database/tests/financial_close_cancellations.sql"
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "requiredVerification": [
-        "hosted-database-acceptance"
-      ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "uiFiles": [
+        "src/v267/pages/final-gap-center.js",
+        "v267-tenant-portal.js"
+      ]
     },
     {
-      "acceptanceRemaining": "اختبار إصدار متزامن وسياسة سلاسل الوصولات والتأمين المعتمدة.",
+      "acceptanceRemaining": "اختبار إصدار متزامن وسياسة سلاسل الوصولات والتأمين المعتمدة؛ لا تعني التسلسلات أرقاماً بلا فجوات.",
       "evidenceFiles": [
         "src/v267/pages/official-document-center.js",
         "staging-database/sql/official-document-register.sql",
@@ -3434,15 +3540,23 @@
         "staging-database/sql/official-document-access-hardening.sql",
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
-        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
-        "E35"
+        "E35",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 44,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E35 يحجز رقماً خادمياً ثابتاً للطلب ويفرض تفرد المصدر المالي ويختبر إعادة الطلب دون تكرار؛ لم يختبر التزامن المستضاف لكل نوع/عقار.",
+      "reportedImplementation": "جزئي — E35 وE43؛ حجز الرقم خادمياً وتفرد المصدر وإعادة الطلب نجحت في اختبار مستضاف؛ التزامن المتعدد وسياسة جميع السلاسل غير مثبتين.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -3462,7 +3576,13 @@
         "staging-database/tests/official_document_register.sql",
         "tests/official_document_pdf_test.py",
         "staging-database/tests/official_document_source_binding.sql",
-        "tests/v267-official-document-source-runtime.test.mjs"
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/official-document-center.js",
@@ -3470,15 +3590,7 @@
       ]
     },
     {
-      "id": 45,
-      "sourceId": "G04-11",
-      "requirement": "تسجيل حساب بنكي لكل عقار.",
-      "reportedImplementation": "جزئي — E05 وE42؛ نجح إنشاء حساب بنك لعقار وإعادة قراءته على القاعدة المعزولة؛ تعديل الحساب وتدقيقه والاستخدام الفعلي باقيان.",
       "acceptanceRemaining": "إنشاء وتعديل حساب العقار بصلاحية محددة وإعادة قراءته مع سجل التعديل.",
-      "evidenceIds": [
-        "E05",
-        "E42"
-      ],
       "evidenceFiles": [
         "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
         "staging-database/tests/workspace_controls.sql",
@@ -3488,33 +3600,33 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [],
-      "sqlFiles": [
-        "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
+      "evidenceIds": [
+        "E05",
+        "E42"
       ],
-      "testFiles": [
-        "staging-database/tests/workspace_controls.sql",
-        "staging-database/tests/financial_close_cancellations.sql"
-      ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 45,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E05 وE42؛ نجح إنشاء حساب بنك لعقار وإعادة قراءته على القاعدة المعزولة؛ تعديل الحساب وتدقيقه والاستخدام الفعلي باقيان.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "requirement": "تسجيل حساب بنكي لكل عقار.",
+      "sourceId": "G04-11",
+      "sqlFiles": [
+        "staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql",
+        "staging-database/sql/final-gap-readback-hardening.sql"
+      ],
+      "testFiles": [
+        "staging-database/tests/workspace_controls.sql",
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
+      ],
+      "uiFiles": []
     },
     {
-      "id": 46,
-      "sourceId": "G04-12",
-      "requirement": "ربط التحصيل بالحساب البنكي أو الصندوق بحسب طريقة الدفع.",
-      "reportedImplementation": "جزئي — E38 وE42؛ نجح ترحيل دفعة إلى حساب بنك وإعادة قراءتها، ورفض ترحيل الوصل الملغى؛ قبول الصندوق ومطابقة الكشف البنكي باقيان.",
       "acceptanceRemaining": "كل دفعة تولد حركة في الحساب الصحيح وتُطابق مع كشف البنك أو الصندوق.",
-      "evidenceIds": [
-        "E38",
-        "E42"
-      ],
       "evidenceFiles": [
         "src/v267/pages/final-gap-center.js",
         "staging-database/sql/final-gap-register.sql",
@@ -3528,27 +3640,35 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [
-        "src/v267/pages/final-gap-center.js",
-        "v267-tenant-portal.js"
+      "evidenceIds": [
+        "E38",
+        "E42"
       ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 46,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E38 وE42؛ نجح ترحيل دفعة إلى حساب بنك وإعادة قراءتها، ورفض ترحيل الوصل الملغى؛ قبول الصندوق ومطابقة الكشف البنكي باقيان.",
+      "requiredVerification": [
+        "hosted-database-acceptance"
+      ],
+      "requirement": "ربط التحصيل بالحساب البنكي أو الصندوق بحسب طريقة الدفع.",
+      "sourceId": "G04-12",
       "sqlFiles": [
         "staging-database/sql/final-gap-register.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
+        "staging-database/sql/final-gap-readback-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-final-gap-register.test.cjs",
         "tests/v267-final-gap-runtime.test.mjs",
         "staging-database/tests/final_gap_register.sql",
-        "staging-database/tests/financial_close_cancellations.sql"
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "requiredVerification": [
-        "hosted-database-acceptance"
-      ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "uiFiles": [
+        "src/v267/pages/final-gap-center.js",
+        "v267-tenant-portal.js"
+      ]
     },
     {
       "acceptanceRemaining": "رد جزئي/كامل يمنع تجاوز التأمين المقبوض ويحفظ السبب والتاريخ والاعتماد.",
@@ -3905,15 +4025,7 @@
       ]
     },
     {
-      "id": 58,
-      "sourceId": "G05-08",
-      "requirement": "دعم أرصدة المستأجر الدائنة وترحيلها بوضوح.",
-      "reportedImplementation": "جزئي — E38 وE42؛ نجح تخصيص الرصيد وإعادة قراءته ورفض التجاوز وعقد مستأجر آخر والفترة غير المعيارية على القاعدة المستضافة؛ الواجهة والحساب الفعلي باقيان.",
       "acceptanceRemaining": "ترحيل الرصيد واستهلاكه مرة واحدة مع عرض أصله وتاريخه.",
-      "evidenceIds": [
-        "E38",
-        "E42"
-      ],
       "evidenceFiles": [
         "src/v267/pages/final-gap-center.js",
         "staging-database/sql/final-gap-register.sql",
@@ -3927,27 +4039,35 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [
-        "src/v267/pages/final-gap-center.js",
-        "v267-tenant-portal.js"
+      "evidenceIds": [
+        "E38",
+        "E42"
       ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 58,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E38 وE42؛ نجح تخصيص الرصيد وإعادة قراءته ورفض التجاوز وعقد مستأجر آخر والفترة غير المعيارية على القاعدة المستضافة؛ الواجهة والحساب الفعلي باقيان.",
+      "requiredVerification": [
+        "hosted-database-acceptance"
+      ],
+      "requirement": "دعم أرصدة المستأجر الدائنة وترحيلها بوضوح.",
+      "sourceId": "G05-08",
       "sqlFiles": [
         "staging-database/sql/final-gap-register.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
+        "staging-database/sql/final-gap-readback-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-final-gap-register.test.cjs",
         "tests/v267-final-gap-runtime.test.mjs",
         "staging-database/tests/final_gap_register.sql",
-        "staging-database/tests/financial_close_cancellations.sql"
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "requiredVerification": [
-        "hosted-database-acceptance"
-      ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "uiFiles": [
+        "src/v267/pages/final-gap-center.js",
+        "v267-tenant-portal.js"
+      ]
     },
     {
       "acceptanceRemaining": "افتتاح مدين/دائن بتاريخ قطع ومرجع مصدر واعتماد.",
@@ -4141,7 +4261,7 @@
       ]
     },
     {
-      "acceptanceRemaining": "قبول مستضاف، واختبار عدم المديونية، وإكمال مطابقة الأرصدة المتقدمة دون تخمين.",
+      "acceptanceRemaining": "القبول بحساب فعلي وإكمال مطابقة الأرصدة المتقدمة دون تخمين.",
       "evidenceFiles": [
         "src/v267/pages/official-document-center.js",
         "staging-database/sql/official-document-register.sql",
@@ -4159,15 +4279,23 @@
         "staging-database/sql/official-document-access-hardening.sql",
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
-        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
-        "E35"
+        "E35",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 65,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E35 يربط المديونية برصيد العقد والدفعات والتسويات الفعلية وPDF محفوظ المحتوى؛ المطابقات الافتتاحية والتجارية غير المحسومة توقف الإصدار.",
+      "reportedImplementation": "جزئي — E35 وE43؛ فُعّل ربط المديونية برصيد العقد الفعلي ونجح الإصدار من مصدر محفوظ مستضافاً؛ الأرصدة الافتتاحية والتجارية غير المطابقة توقف الإصدار.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -4187,7 +4315,13 @@
         "staging-database/tests/official_document_register.sql",
         "tests/official_document_pdf_test.py",
         "staging-database/tests/official_document_source_binding.sql",
-        "tests/v267-official-document-source-runtime.test.mjs"
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/official-document-center.js",
@@ -4299,7 +4433,7 @@
       "uiFiles": []
     },
     {
-      "acceptanceRemaining": "الإعداد والقبول المستضافان وربط الأرشفة ذريًا بوقت الإصدار؛ الأرشفة الحالية عند أول تصدير ولا تستعيد ملفًا تاريخيًا لم يحفظ أصلًا.",
+      "acceptanceRemaining": "إعداد خادم PDF وتجربة التنزيل والطباعة وربط الأرشفة ذرياً بوقت الإصدار؛ الحالي عند أول تصدير ولا يعيد أصلاً تاريخياً لم يُحفظ.",
       "evidenceFiles": [
         "api/rent-receipt.py",
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
@@ -4330,19 +4464,27 @@
         "staging-database/sql/official-document-pdf-archive.sql",
         "staging-database/tests/official_document_pdf_archive.sql",
         "tests/official_document_archive_test.py",
-        "docs/V267-PDF-ARCHIVE-2026-09-12.md"
+        "docs/V267-PDF-ARCHIVE-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
         "E12",
         "E13",
         "E08",
         "E35",
-        "E39"
+        "E39",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 69,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E12، E13، E08 وE35 وE39؛ حفظ بايتات أول PDF لكل إصدار في جدول خاص ثابت مع RPC محكوم، وإعادة القراءة والتحقق من البصمة، و20 اختبار Python و23 مجموعة SQL محلية ناجحة.",
+      "reportedImplementation": "جزئي — E12، E13، E08 وE35 وE39 وE43؛ فُعّل حفظ أصل PDF على القاعدة المعزولة، ونجح حفظ واسترجاع بايتات اختبار ومنع التغيير والكتابة من المتصفح مع الإلغاء وسحب الصلاحية.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -4370,7 +4512,13 @@
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
         "staging-database/tests/official_document_pdf_archive.sql",
-        "tests/official_document_archive_test.py"
+        "tests/official_document_archive_test.py",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/document-scanner.js",
@@ -4719,15 +4867,7 @@
       ]
     },
     {
-      "id": 78,
-      "sourceId": "G07-09",
-      "requirement": "تقرير أداء موظف التحصيل حسب عدد العمليات والمبالغ.",
-      "reportedImplementation": "جزئي — E38 وE42؛ نجح استبعاد الإلغاء الأصلي والمسجل من مجموع المحصل على القاعدة المستضافة؛ مطابقة أسماء المحصلين القديمة والحساب الفعلي باقيان.",
       "acceptanceRemaining": "تجميع حسب الفاعل والفترة، واستبعاد الملغى وتمييز التسويات دون نسبة لغير منفذها.",
-      "evidenceIds": [
-        "E38",
-        "E42"
-      ],
       "evidenceFiles": [
         "src/v267/pages/final-gap-center.js",
         "staging-database/sql/final-gap-register.sql",
@@ -4741,27 +4881,35 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [
-        "src/v267/pages/final-gap-center.js",
-        "v267-tenant-portal.js"
+      "evidenceIds": [
+        "E38",
+        "E42"
       ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 78,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E38 وE42؛ نجح استبعاد الإلغاء الأصلي والمسجل من مجموع المحصل على القاعدة المستضافة؛ مطابقة أسماء المحصلين القديمة والحساب الفعلي باقيان.",
+      "requiredVerification": [
+        "hosted-database-acceptance"
+      ],
+      "requirement": "تقرير أداء موظف التحصيل حسب عدد العمليات والمبالغ.",
+      "sourceId": "G07-09",
       "sqlFiles": [
         "staging-database/sql/final-gap-register.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
+        "staging-database/sql/final-gap-readback-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-final-gap-register.test.cjs",
         "tests/v267-final-gap-runtime.test.mjs",
         "staging-database/tests/final_gap_register.sql",
-        "staging-database/tests/financial_close_cancellations.sql"
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "requiredVerification": [
-        "hosted-database-acceptance"
-      ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "uiFiles": [
+        "src/v267/pages/final-gap-center.js",
+        "v267-tenant-portal.js"
+      ]
     },
     {
       "acceptanceRemaining": "قوائم صحيحة بتاريخ الكويت مع فلاتر 30/60/90 يوماً وعدم احتساب مسودة كعقد نافذ.",
@@ -5242,15 +5390,7 @@
       "uiFiles": []
     },
     {
-      "id": 95,
-      "sourceId": "G09-05",
-      "requirement": "قفل الفترة المالية بعد الإقفال ومنع تعديلها.",
-      "reportedImplementation": "جزئي — E19 وE42؛ نجح إقفال مستضاف ورفض إلغاء وصل وإدخال دفتر في الفترة المقفلة مع ثبات اللقطات؛ بقية مسارات الرواتب والمصروفات والأجهزة تحتاج قبولاً.",
       "acceptanceRemaining": "تشغيل مجموعة SQL ورفض كل إدخال/تعديل/حذف في شهر مقفل مع بقاء اللقطة ثابتة.",
-      "evidenceIds": [
-        "E19",
-        "E42"
-      ],
       "evidenceFiles": [
         "src/v267/pages/financial-integrity.js",
         "staging-database/sql/financial-register.sql",
@@ -5262,25 +5402,33 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [
-        "src/v267/pages/financial-integrity.js",
-        "src/v267/components/financial-evidence.mjs"
+      "evidenceIds": [
+        "E19",
+        "E42"
       ],
-      "sqlFiles": [
-        "staging-database/sql/financial-register.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
-      ],
-      "testFiles": [
-        "staging-database/tests/financial_register.sql",
-        "staging-database/tests/financial_close_cancellations.sql"
-      ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 95,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E19 وE42؛ نجح إقفال مستضاف ورفض إلغاء وصل وإدخال دفتر في الفترة المقفلة مع ثبات اللقطات؛ بقية مسارات الرواتب والمصروفات والأجهزة تحتاج قبولاً.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "requirement": "قفل الفترة المالية بعد الإقفال ومنع تعديلها.",
+      "sourceId": "G09-05",
+      "sqlFiles": [
+        "staging-database/sql/financial-register.sql",
+        "staging-database/sql/final-gap-readback-hardening.sql"
+      ],
+      "testFiles": [
+        "staging-database/tests/financial_register.sql",
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
+      ],
+      "uiFiles": [
+        "src/v267/pages/financial-integrity.js",
+        "src/v267/components/financial-evidence.mjs"
+      ]
     },
     {
       "acceptanceRemaining": "نسخة مجدولة مع استعادة في بيئة معزولة ومطابقة السجلات والمرفقات.",
@@ -6089,7 +6237,7 @@
       ]
     },
     {
-      "acceptanceRemaining": "تطبيق وقبول مستضاف، إكمال التسوية والحقول المكملة وربط الصور والتوقيعات وتفعيل E39 لأرشفة بايتات PDF وقت التصدير وإكمالها وقت الإصدار واختبار الأجهزة.",
+      "acceptanceRemaining": "إكمال التسوية والحقول المكملة والصور والتوقيعات وإعداد خادم PDF والأرشفة وقت الإصدار وقبول الأجهزة.",
       "evidenceFiles": [
         "src/v267/pages/official-document-center.js",
         "staging-database/sql/official-document-register.sql",
@@ -6107,15 +6255,28 @@
         "staging-database/sql/official-document-access-hardening.sql",
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
-        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+        "staging-database/sql/official-document-pdf-archive.sql",
+        "staging-database/tests/official_document_pdf_archive.sql",
+        "tests/official_document_archive_test.py",
+        "docs/V267-PDF-ARCHIVE-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
-        "E35"
+        "E35",
+        "E39",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 122,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E35 يوفر حقولاً عربية لـ16 قالباً وربطاً بالمصدر وحفظاً وترقيماً وPDF؛ اختبر إصدار 12 نوعاً في SQL محلي. التسوية المكملة ومحاضر المعاينة وبقية الأنواع غير مكتملة.",
+      "reportedImplementation": "جزئي — E35 وE39 وE43؛ فُعّل ربط النماذج بالمصدر وترقيمها وحفظ أصل PDF، ونجح إصدار 12 نوعاً في SQL مستضاف. التسوية المكملة ومحاضر المعاينة وبقية الأنواع غير مكتملة.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -6127,7 +6288,8 @@
         "staging-database/sql/official-document-source-binding.sql",
         "staging-database/sql/official-document-account-statement.sql",
         "staging-database/sql/official-document-template-validation.sql",
-        "staging-database/sql/official-document-access-hardening.sql"
+        "staging-database/sql/official-document-access-hardening.sql",
+        "staging-database/sql/official-document-pdf-archive.sql"
       ],
       "testFiles": [
         "tests/v267-official-document-center.test.cjs",
@@ -6135,7 +6297,15 @@
         "staging-database/tests/official_document_register.sql",
         "tests/official_document_pdf_test.py",
         "staging-database/tests/official_document_source_binding.sql",
-        "tests/v267-official-document-source-runtime.test.mjs"
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "staging-database/tests/official_document_pdf_archive.sql",
+        "tests/official_document_archive_test.py",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/official-document-center.js",
@@ -6536,7 +6706,7 @@
       ]
     },
     {
-      "acceptanceRemaining": "إثبات الرفع والاسترجاع والصلاحيات على Staging وحسابات فعلية، وفحص صورة العداد على جهاز فعلي؛ الربط البرمجي لا يغني عن هذا الاختبار.",
+      "acceptanceRemaining": "رفع واسترجاع بايتات صورة العداد بحساب فعلي وفحصها على الجهاز؛ اختبار SQL لا يثبت رفع الملف.",
       "evidenceFiles": [
         "src/v267/pages/utility-meters.js",
         "staging-database/supabase/migrations/20260908095052_v267_isolated_utility_register.sql",
@@ -6545,15 +6715,23 @@
         "src/v267/components/unit-meter-photo.js",
         "staging-database/sql/unit-meter-readings.sql",
         "staging-database/tests/unit_meter_readings.sql",
-        "tests/v267-unit-meter-runtime.test.mjs"
+        "tests/v267-unit-meter-runtime.test.mjs",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
-        "E15"
+        "E15",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 134,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E15 يضيف قراءة وحدة/عقد للدخول والدوري والإخلاء، وصورة خاصة وتصحيحاً يحفظ الأصل؛ نجحت اختبارات SQL والنموذج محلياً.",
+      "reportedImplementation": "جزئي — E15 وE43؛ فُعّل سجل قراءة الوحدة/العقد ونجح حفظ الدخول والإخلاء والتصحيح والعزل ورفض الصورة غير المتحققة على القاعدة المستضافة.",
       "requiredVerification": [
         "hosted-database-acceptance",
         "physical-device-or-network-measurement"
@@ -6567,7 +6745,13 @@
       "testFiles": [
         "staging-database/tests/utility_register.sql",
         "staging-database/tests/unit_meter_readings.sql",
-        "tests/v267-unit-meter-runtime.test.mjs"
+        "tests/v267-unit-meter-runtime.test.mjs",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/utility-meters.js",
@@ -6888,7 +7072,7 @@
       ]
     },
     {
-      "acceptanceRemaining": "ترحيل السنوات وقياس السجلات الكبيرة على Staging ومطابقة الأرصدة بالمصدر واختبار الصلاحيات المستضافة.",
+      "acceptanceRemaining": "ترحيل السنوات وقياس السجلات الكبيرة ومطابقة الأرصدة بالمصدر وقبول التصدير بحسابات وأجهزة فعلية.",
       "evidenceFiles": [
         "src/v267/pages/financial-archive.js",
         "staging-database/sql/financial-register.sql",
@@ -6898,16 +7082,24 @@
         "tests/v267-financial-archive-runtime.test.mjs",
         "src/v267/reports/financial-archive-xlsx.js",
         "tests/financial_archive_xlsx_test.py",
-        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md"
+        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md",
+        "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "evidenceIds": [
         "E37",
-        "E40"
+        "E40",
+        "E43"
       ],
       "fullAcceptance": "NOT_PROVEN",
       "id": 145,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E37 وE40 يعرضان ثمانية أنواع حركات شهرية ولقطة الإقفال، ويفصلان الافتتاحي وتخصيص الرصيد والإلغاءات؛ JSON وCSV للشهر وExcel للنتائج المصفاة مع إعادة تحقق محكومة.",
+      "reportedImplementation": "جزئي — E37 وE40 وE43؛ فُعّل الأرشيف المالي ونجح اختبار مستضاف للأنواع الثمانية والفترات والإلغاءات وفصل الافتتاحي وتخصيص الرصيد وعزل العقار والدور.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -6921,7 +7113,13 @@
         "tests/v267-financial-archive.test.cjs",
         "staging-database/tests/financial_archive.sql",
         "tests/v267-financial-archive-runtime.test.mjs",
-        "tests/financial_archive_xlsx_test.py"
+        "tests/financial_archive_xlsx_test.py",
+        "staging-database/hosted-test/financial_archive.sql",
+        "staging-database/hosted-test/unit_meter_readings.sql",
+        "staging-database/hosted-test/official_document_source_binding.sql",
+        "staging-database/hosted-test/official_document_pdf_archive.sql",
+        "staging-database/hosted-test/workspace_feature_discovery.sql",
+        "staging-database/hosted-test/unit_readiness_activation.sql"
       ],
       "uiFiles": [
         "src/v267/pages/financial-archive.js",
@@ -7040,15 +7238,7 @@
       ]
     },
     {
-      "id": 150,
-      "sourceId": "G12-21",
-      "requirement": "لوحة KPIs: الشاغر ومتوسط فترة التحصيل والربح المتوقع مقابل الفعلي.",
-      "reportedImplementation": "جزئي — E32 وE42؛ طُبق حساب KPI على المعاينة وأصلح استبعاد الإلغاءات؛ نجح تطابق التحصيل والصافي مع الإقفال في اختبار مستضاف، وقياس الحجم والحساب الفعلي باقيان.",
       "acceptanceRemaining": "تطبيق RPC على Staging وقياسه على حجم بيانات القبول.",
-      "evidenceIds": [
-        "E32",
-        "E42"
-      ],
       "evidenceFiles": [
         "src/v267/pages/kpi-dashboard.js",
         "staging-database/sql/kpi-dashboard.sql",
@@ -7059,24 +7249,32 @@
         "staging-database/hosted-test/financial_close_cancellations.sql",
         "staging-database/hosted-test/final_gap_register.sql"
       ],
-      "uiFiles": [
-        "src/v267/pages/kpi-dashboard.js"
+      "evidenceIds": [
+        "E32",
+        "E42"
       ],
-      "sqlFiles": [
-        "staging-database/sql/kpi-dashboard.sql",
-        "staging-database/sql/final-gap-readback-hardening.sql",
-        "staging-database/hosted-test/financial_close_cancellations.sql",
-        "staging-database/hosted-test/final_gap_register.sql"
-      ],
-      "testFiles": [
-        "tests/v267-kpi-dashboard.test.cjs",
-        "staging-database/tests/financial_close_cancellations.sql"
-      ],
+      "fullAcceptance": "NOT_PROVEN",
+      "id": 150,
+      "productionCompletion": "NOT_PROVEN",
+      "reportedImplementation": "جزئي — E32 وE42؛ طُبق حساب KPI على المعاينة وأصلح استبعاد الإلغاءات؛ نجح تطابق التحصيل والصافي مع الإقفال في اختبار مستضاف، وقياس الحجم والحساب الفعلي باقيان.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
-      "fullAcceptance": "NOT_PROVEN",
-      "productionCompletion": "NOT_PROVEN"
+      "requirement": "لوحة KPIs: الشاغر ومتوسط فترة التحصيل والربح المتوقع مقابل الفعلي.",
+      "sourceId": "G12-21",
+      "sqlFiles": [
+        "staging-database/sql/kpi-dashboard.sql",
+        "staging-database/sql/final-gap-readback-hardening.sql"
+      ],
+      "testFiles": [
+        "tests/v267-kpi-dashboard.test.cjs",
+        "staging-database/tests/financial_close_cancellations.sql",
+        "staging-database/hosted-test/financial_close_cancellations.sql",
+        "staging-database/hosted-test/final_gap_register.sql"
+      ],
+      "uiFiles": [
+        "src/v267/pages/kpi-dashboard.js"
+      ]
     },
     {
       "acceptanceRemaining": "قبول مستضاف ودورة إقفال العهدة.",

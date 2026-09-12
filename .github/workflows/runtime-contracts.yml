@@ -82,6 +82,10 @@ jobs:
           node --test tests/v267-official-document-source-runtime.test.mjs tests/v267-official-document-center.test.cjs tests/v267-document-catalog-completion.test.cjs tests/v267-dialog-progress.test.mjs
       - name: Historical archive filters, exports and revoked access
         run: node --test tests/v267-financial-archive.test.cjs tests/v267-financial-archive-runtime.test.mjs
+      - name: Hosted acceptance SQL matches the tested source
+        run: |
+          node scripts/build-hosted-archive-tests.mjs --check
+          node scripts/build-hosted-readiness-test.mjs --check
       - name: V267 deployment target and partial production preparation
         run: node --test tests/v267-deployment-target.test.mjs tests/v267-production-preparation.test.mjs
       - name: Contract approval at print issuance and maintenance draft recovery

@@ -38,7 +38,7 @@ export function audit(root){
      declaredTables:[...new Set([...source.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?((?:public|private)\.[a-z_0-9]+)/gi)].map(x=>x[1]))],
      publicFunctions:[...new Set([...source.matchAll(/create\s+(?:or\s+replace\s+)?function\s+(public\.[a-z_0-9]+)/gi)].map(x=>x[1]))],
      clientRpcCalls:[...new Set([...source.matchAll(/\.rpc\(\s*['"]([^'"]+)/g)].map(x=>x[1]))],
-     testKind:/\/tests\/.+\.sql$/.test('/'+relative)?'database-suite':/^tests\/.*\.e2e\./.test(relative)?'browser-suite':/^tests\//.test(relative)?'local-test':null});
+     testKind:/\/(?:tests|hosted-test)\/.+\.sql$/.test('/'+relative)?'database-suite':/^tests\/.*\.e2e\./.test(relative)?'browser-suite':/^tests\//.test(relative)?'local-test':null});
    }
    files.push(relative);
   }
@@ -52,7 +52,7 @@ export function audit(root){
   if(/نسخ.*احتياط|استعاد|رجوع|جغراف|تعاف/.test(description))needs.push('backup-bytes-and-isolated-restore');
   if(/K-Net|WhatsApp|واتساب|Push|SMS|OAuth|Zoho|Xero|QuickBooks|مزود|تشفير/.test(description))needs.push('provider-configuration-or-evidence');
   if(/مراجعة مختص|اعتماد قانوني|مراجعة قانونية|محاسبي شامل/.test(description))needs.push('independent-professional-review');
-  return {...r,evidenceFiles:files,uiFiles:files.filter(p=>p.startsWith('src/')||/^v\d+.*\.js$/.test(p)),sqlFiles:files.filter(p=>p.endsWith('.sql')&&!p.includes('/tests/')),testFiles:files.filter(p=>fileCache.get(p).testKind),requiredVerification:needs,
+  return {...r,evidenceFiles:files,uiFiles:files.filter(p=>p.startsWith('src/')||/^v\d+.*\.js$/.test(p)),sqlFiles:files.filter(p=>p.endsWith('.sql')&&!/\/(?:tests|hosted-test)\//.test(p)),testFiles:files.filter(p=>fileCache.get(p).testKind),requiredVerification:needs,
    fullAcceptance:'NOT_PROVEN',productionCompletion:'NOT_PROVEN'};
  });
  return {schemaVersion:1,sourceParentSHA:'9a220170dacf2c59b5d18c8c71a3c682772a1dcb',matrixSha256:hash(matrix),releaseGate:'HOLD',releasePolicy:{all155RequiredBeforeRelease:true,required:['all-155-requirements-accepted','authenticated-live-acceptance','iphone-ipad-desktop-acceptance','data-integrity','tested-database-auth-and-attachment-backup','isolated-restore','tested-V266-rollback'],authorizationAlreadyGranted:true,evidenceReport:'docs/V267-FULL-RELEASE-GATE-2026-09-12.md'},method:'References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.',evidence,files:[...fileCache.values()],requirements};
