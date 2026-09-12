@@ -11,7 +11,7 @@ begin
  select coalesce(jsonb_agg(to_jsonb(x) order by x.on_date,x.stream,x.id),'[]') into entries from(
   select 'rent'::text stream,p.id,u.property_id,p.lease_id,p.paid_at on_date,p.amount::text amount,'received'::text direction,
    case when exists(select 1 from private.aqari_receipt_cancellations c where c.workspace_id=w and c.payment_id=p.id) then 'cancelled' else p.status end status,
-   p.reference,coalesce(p.receipt->>'collectorName','') description
+   p.reference,coalesce(nullif(p.receipt->>'collectorName',''),nullif(p.receipt->>'collector',''),nullif(p.receipt->>'accountant',''),'') description
   from public.aqari_rent_payments p join public.aqari_leases l on l.workspace_id=p.workspace_id and l.id=p.lease_id join public.aqari_units u on u.workspace_id=l.workspace_id and u.id=l.unit_id
   where p.workspace_id=w and p.paid_at>=first_day and p.paid_at<next_month and private.aqari_can_property(w,u.property_id,'finance','read')
   union all

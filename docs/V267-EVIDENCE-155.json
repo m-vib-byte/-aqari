@@ -1535,7 +1535,7 @@
       "testKind": null
     },
     {
-      "bytes": 22026,
+      "bytes": 22064,
       "clientRpcCalls": [],
       "declaredTables": [
         "private.aqari_official_number_reservations"
@@ -1545,7 +1545,7 @@
         "public.aqari_official_document_number",
         "public.aqari_official_document_context"
       ],
-      "sha256": "4770949ad9be6c836cfda51421671c3c1356fdcb6941f4e1b4f129a0e64fa643",
+      "sha256": "5a334e8c1fcbf8874b755cf32213e8e98fb675a2caf52fb1463ae867f8578ad6",
       "testKind": null
     },
     {
@@ -1578,12 +1578,12 @@
       "testKind": null
     },
     {
-      "bytes": 19792,
+      "bytes": 20020,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "staging-database/tests/official_document_source_binding.sql",
       "publicFunctions": [],
-      "sha256": "fc1bddfc298071b6b9327b6ef85b5f29082e0a2880ce903a4f638982d600a8f7",
+      "sha256": "488ee6793088356d07675e515e55496a7a8e26036af935cfa0d8f7067ff923d3",
       "testKind": "database-suite"
     },
     {
@@ -1676,43 +1676,43 @@
       "testKind": "local-test"
     },
     {
-      "bytes": 15337,
+      "bytes": 15645,
       "clientRpcCalls": [
         "aqari_financial_archive"
       ],
       "declaredTables": [],
       "path": "src/v267/pages/financial-archive.js",
       "publicFunctions": [],
-      "sha256": "6f2f72f351584f1837485377d8dc80b3d59b7c8110b6c23d70fe41f0339214b4",
+      "sha256": "3bc3e66fab6cce36743571771ddfad7ea9cbb00aae6cc94114ac8ea20e4d9443",
       "testKind": null
     },
     {
-      "bytes": 22633,
+      "bytes": 24408,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "tests/v267-financial-archive.test.cjs",
       "publicFunctions": [],
-      "sha256": "4ce04429acba9c6a51fb8e782024a30ddb14c449c4776ce1428e34406e80aebe",
+      "sha256": "6397430e33b20bdedbe0c7af4812f385f8bde04e1b42f0bb6b3408e953812cd0",
       "testKind": "local-test"
     },
     {
-      "bytes": 5506,
+      "bytes": 5588,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "staging-database/sql/financial-archive.sql",
       "publicFunctions": [
         "public.aqari_financial_archive"
       ],
-      "sha256": "70d9f65401ac6b402cd35e03c9b2067bc4060fd800ce6d1926856e5d3da13f49",
+      "sha256": "5b76c300560bc90518178ceab554491154d69a1a10dff2c25d18717f44b5155f",
       "testKind": null
     },
     {
-      "bytes": 9826,
+      "bytes": 10337,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "staging-database/tests/financial_archive.sql",
       "publicFunctions": [],
-      "sha256": "e7599d4530f13fe01ed4d441d37657644aaa8f8338f2987cb2b34337a9474490",
+      "sha256": "e9ed7fa6b5016940821edd89e58762b8cc037a76e7df961644bba4634d695883",
       "testKind": "database-suite"
     },
     {
@@ -1959,21 +1959,21 @@
       "testKind": "database-suite"
     },
     {
-      "bytes": 6666,
+      "bytes": 9653,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
       "publicFunctions": [],
-      "sha256": "432fc59ae5bca4e4380ea97e40047e4e82f9f203adada224bc1b1362f3d462af",
+      "sha256": "cb2edbce3f6db9e7c35ea05ec1cafd0948d1f8f4374084173d1d8a059916bed9",
       "testKind": null
     },
     {
-      "bytes": 10903,
+      "bytes": 11414,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "staging-database/hosted-test/financial_archive.sql",
       "publicFunctions": [],
-      "sha256": "00d1177d409fc6fdabe03d2c5221bb3f8e53913b133bd24638bae26adbe69e51",
+      "sha256": "e2c26c155cc29a3e14eaf629a2d9cbf85396ba618f25176941eb22c225f27eba",
       "testKind": "database-suite"
     },
     {
@@ -1986,12 +1986,12 @@
       "testKind": "database-suite"
     },
     {
-      "bytes": 20849,
+      "bytes": 21077,
       "clientRpcCalls": [],
       "declaredTables": [],
       "path": "staging-database/hosted-test/official_document_source_binding.sql",
       "publicFunctions": [],
-      "sha256": "0665a5c6c35ab8282c06b81eb80813a40f309e36ac2aa81d0ea0c837024ec66c",
+      "sha256": "26d0f234f16aeafcfccbfd02f9176100bdc5d11c214060e4642230ecebed42c3",
       "testKind": "database-suite"
     },
     {
@@ -2026,7 +2026,7 @@
       "testKind": "database-suite"
     }
   ],
-  "matrixSha256": "cf02fd1c4c8a9073822fca052a65b63f7dafea32a350e98b7c9e4ffeb84de7f4",
+  "matrixSha256": "8eba9976b6dc696a4ea872cd4e1553c52a75d946f98be6a3a0f56d933016e04f",
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "releaseGate": "HOLD",
   "releasePolicy": {
@@ -7099,7 +7099,7 @@
       "fullAcceptance": "NOT_PROVEN",
       "id": 145,
       "productionCompletion": "NOT_PROVEN",
-      "reportedImplementation": "جزئي — E37 وE40 وE43؛ فُعّل الأرشيف المالي ونجح اختبار مستضاف للأنواع الثمانية والفترات والإلغاءات وفصل الافتتاحي وتخصيص الرصيد وعزل العقار والدور.",
+      "reportedImplementation": "جزئي — E37 وE40 وE43؛ فُعّل الأرشيف المالي ونجح اختبار مستضاف للأنواع الثمانية والفترات والإلغاءات والعزل، ثم قراءة بحساب المدير وإصلاح استرجاع المحصل القديم ومرشح حالة السداد مع اختبارات التصدير المحلية.",
       "requiredVerification": [
         "hosted-database-acceptance"
       ],

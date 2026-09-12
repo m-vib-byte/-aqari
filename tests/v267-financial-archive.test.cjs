@@ -53,6 +53,22 @@ test('original close snapshot overrides live summary and is described accurately
 test('a closed period without snapshot permission is not mislabelled an original snapshot',async()=>{const h=await ready(record({period:{month:'2026-09-01',closed_at:'2026-10-02'}}));assert.match(h.root.textContent,/لقطة الإقفال غير متاحة لهذا الحساب/);assert.match(h.find('dl').textContent,/120\.500/);});
 test('search normalizes Arabic and Persian voucher digits',async()=>{const h=await ready();for(const query of ['٤٠١','۴۰۱','EXP-401','برج الاختبار','المصعد']){h.search.value=query;h.search.oninput();assert.match(h.find('tbody').textContent,/EXP-401/);}h.search.value='not-found';h.search.oninput();assert.match(h.find('tbody').textContent,/لا توجد حركات تطابق/);});
 test('status filter selects only the requested entry state',async()=>{const h=await ready(record({entries:[expense(),expense({id:'draft',reference:'DRAFT-2',status:'draft'})]}));const select=h.find('select');select.value='draft';select.onchange();assert.match(h.find('tbody').textContent,/DRAFT-2/);assert.doesNotMatch(h.find('tbody').textContent,/EXP-401/);});
+test('Arabic stored payment states remain readable and share the canonical status filters without changing source evidence',async()=>{
+ const statuses=['مدفوع','paid','جزئي','partial','ملغى','cancelled'];
+ const original=record({entries:statuses.map((status,i)=>expense({id:'legacy-'+i,stream:'rent',status,reference:'LEGACY-'+i}))});
+ const h=await ready(original);assert.doesNotMatch(h.find('tbody').textContent,/غير محددة/);
+ for(const [status,refs] of [['paid',['LEGACY-0','LEGACY-1']],['partial',['LEGACY-2','LEGACY-3']],['cancelled',['LEGACY-4','LEGACY-5']]]){
+  h.find('select').value=status;h.find('select').onchange();assert.equal(h.find('tbody').children.length,2);
+  for(const ref of refs)assert.ok(h.find('tbody').textContent.includes(ref));
+ }
+ h.find('button','تصدير السجل للتدقيق').click();assert.deepEqual(JSON.parse(await h.downloads[0].blob.text()).entries.map(x=>x.status),statuses);
+ h.find('button','تنزيل جدول CSV').click();const csv=await h.downloads[1].blob.text();assert.equal((csv.match(/"مسدد"/g)||[]).length,2);assert.equal((csv.match(/"جزئي"/g)||[]).length,2);h.dispose();
+});
+test('Excel includes both Arabic and canonical paid records in the selected paid filter',async()=>{
+ const h=await ready(record({entries:['مدفوع','paid','جزئي'].map((status,i)=>expense({id:'paid-'+i,stream:'rent',status,reference:'PAY-'+i}))}));
+ h.find('select').value='paid';h.find('select').onchange();h.find('button','تنزيل Excel للنتائج').click();await h.wait();
+ const xml=await xlsxPart(h.downloads[0],'xl/worksheets/sheet1.xml');assert.match(xml,/PAY-0/);assert.match(xml,/PAY-1/);assert.doesNotMatch(xml,/PAY-2/);assert.equal((xml.match(/>مسدد</g)||[]).length,2);h.dispose();
+});
 test('pagination bounds the rendered rows and resets after filtering',async()=>{const h=await ready(record({entries:Array.from({length:51},(_,i)=>expense({id:`x-${i}`,reference:`VOUCHER-${i}`}))}));assert.equal(h.find('tbody').children.length,50);assert.equal(h.find('button','السابق').disabled,true);h.find('button','التالي').click();assert.equal(h.find('tbody').children.length,1);assert.match(h.find('tbody').textContent,/VOUCHER-50/);assert.equal(h.find('button','التالي').disabled,true);h.search.value='VOUCHER-0';h.search.oninput();assert.match(h.find('span').textContent,/الصفحة 1 من 1/);});
 test('JSON export retains the loaded month and full returned evidence despite filtering',async()=>{const h=await ready();h.search.value='no-match';h.search.oninput();h.find('button','تصدير السجل للتدقيق').click();assert.equal(h.downloads.length,1);assert.equal(h.downloads[0].name,'AQARI-finance-2026-09.json');assert.equal(h.downloads[0].connected,true);const data=JSON.parse(await h.downloads[0].blob.text());assert.equal(data.month,'2026-09');assert.equal(data.entries.length,1);assert.equal(data.workspace_id,'workspace-a');assert.equal(data.audit_history_limit,100);assert.match(data.retrieved_at,/^2026-09-12T/);assert.equal(h.all('a').length,0);});
 test('mutating a returned object after rendering cannot alter audit export',async()=>{const original=record(),h=await ready(original);original.entries[0].amount='999.000';h.find('button','تصدير السجل للتدقيق').click();assert.equal(JSON.parse(await h.downloads[0].blob.text()).entries[0].amount,'120.500');});

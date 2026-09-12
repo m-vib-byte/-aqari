@@ -32,7 +32,7 @@ begin
 end $$;
 insert into public.aqari_app_state(workspace_id,payload) values('76520000-0000-4000-8000-000000000099','{}');
 insert into public.aqari_rent_payments(id,workspace_id,lease_id,reference,amount,period,paid_at,status,payment_method,record,receipt)
- select ('76520000-0000-4000-8000-00000000060'||n)::uuid,case when n=3 then '76520000-0000-4000-8000-000000000099'::uuid else current_setting('aqari.test.location.workspace')::uuid end,('76520000-0000-4000-8000-00000000040'||n)::uuid,'TEST-ARCHIVE-'||n,n*10,'2026-01-01','2026-01-15','paid','cash','{}','{}' from generate_series(1,3)n;
+ select ('76520000-0000-4000-8000-00000000060'||n)::uuid,case when n=3 then '76520000-0000-4000-8000-000000000099'::uuid else current_setting('aqari.test.location.workspace')::uuid end,('76520000-0000-4000-8000-00000000040'||n)::uuid,'TEST-ARCHIVE-'||n,n*10,'2026-01-01','2026-01-15','paid','cash','{}',case n when 1 then '{"accountant":"محصل محفوظ"}'::jsonb else '{"collectorName":"محصل أصلي","accountant":"اسم احتياطي"}'::jsonb end from generate_series(1,3)n;
 insert into private.aqari_receipt_cancellations(id,workspace_id,payment_id,reason,approved_by,approved_by_name,snapshot)
  values('76520000-0000-4000-8000-000000000701',current_setting('aqari.test.location.workspace')::uuid,'76520000-0000-4000-8000-000000000601','إلغاء اختبار','76520000-0000-4000-8000-000000000001','مدير اختبار','{}');
 insert into private.aqari_tenant_ledger_entries(id,workspace_id,tenant_id,lease_id,direction,kind,amount,occurred_on,reason,source_type,source_id,actor_id)
@@ -53,6 +53,7 @@ set local role authenticated;
 do $$declare w uuid:=current_setting('aqari.test.location.workspace')::uuid;r jsonb;begin
  r:=public.aqari_financial_archive(w,'2026-01');
  if r->>'month'<>'2026-01' or jsonb_array_length(r->'entries')<>8 then raise exception 'ARCHIVE_STREAM_COUNT_FAILED: %',r->'entries';end if;
+ if not exists(select 1 from jsonb_array_elements(r->'entries')x where x->>'reference'='TEST-ARCHIVE-1' and x->>'description'='محصل محفوظ') or not exists(select 1 from jsonb_array_elements(r->'entries')x where x->>'reference'='TEST-ARCHIVE-2' and x->>'description'='محصل أصلي') then raise exception 'SAVED_COLLECTOR_READBACK_FAILED';end if;
  if not exists(select 1 from jsonb_array_elements(r->'entries')x where x->>'stream'='opening' and (x->>'amount')::numeric=50) or not exists(select 1 from jsonb_array_elements(r->'entries')x where x->>'stream'='rent' and x->>'status'='cancelled') then raise exception 'OPENING_OR_CANCELLED_RECEIPT_MISCLASSIFIED';end if;
  if jsonb_array_length(public.aqari_financial_archive(w,'2026-02')->'entries')<>0 then raise exception 'OUTSIDE_MONTH_LEAK';end if;
  if public.aqari_financial_archive(w,'2025-12')#>>'{period,snapshot,rent_payments}'<>'77.125' then raise exception 'CLOSED_SNAPSHOT_NOT_PRESERVED';end if;

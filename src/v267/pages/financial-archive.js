@@ -7,6 +7,9 @@ const validMonth=value=>/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(value);
 const object=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const streams={rent:'تحصيل إيجار',expense:'مصروف',deposit:'تأمين',adjustment:'تسوية ذمة',opening:'رصيد افتتاحي',tenant_ledger:'قيد مستأجر',credit_allocation:'تخصيص رصيد سابق',petty_cash:'عهدة مالية'};
 const states={paid:'مسدد',partial:'جزئي',unpaid:'غير مسدد',confirmed:'مؤكد',approved:'معتمد',draft:'مسودة',cancelled:'ملغى',recorded:'مسجل'};
+const storedStateAliases=new Map([['مدفوع','paid'],['جزئي','partial'],['غير مدفوع','unpaid'],['ملغى','cancelled']]);
+const stateKey=value=>storedStateAliases.get(value)||value;
+const stateLabel=value=>Object.hasOwn(states,stateKey(value))?states[stateKey(value)]:null;
 const directions={received:'استلام',paid:'صرف',receipt:'قبض تأمين',refund:'رد تأمين',debit:'مدين',credit:'دائن',allocation:'تخصيص',fund:'تمويل عهدة',spend:'صرف عهدة',settle:'تسوية عهدة'};
 const columns=['التاريخ','نوع الحركة','العقار','الاتجاه','المبلغ بالدينار','الحالة','المرجع','البيان'];
 export function archiveCsvCell(value){let s=String(value??'');if(/^[\s]*[=+\-@]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';}
@@ -82,16 +85,16 @@ export function openFinancialArchive(){
   const properties=new Map(data.properties.filter(object).map(x=>[x.id,String(x.name??'')]));
   const property=id=>properties.get(id)||(id?'عقار ضمن السجل':'قيد عام دون توزيع على عقار');
   const rows=data.entries.map(entry=>({entry,property:property(entry.property_id),terms:normalize([entry.reference,entry.description,property(entry.property_id),streams[entry.stream]].join(' '))}));
-  const exportRow=({entry:e,property:p})=>[e.on_date,streams[e.stream]||e.stream||'حركة أخرى',p,directions[e.direction]||e.direction||'غير محدد',e.amount,states[e.status]||e.status||'غير محددة',e.reference,e.description];
+  const exportRow=({entry:e,property:p})=>[e.on_date,streams[e.stream]||e.stream||'حركة أخرى',p,directions[e.direction]||e.direction||'غير محدد',e.amount,stateLabel(e.status)||e.status||'غير محددة',e.reference,e.description];
   const csvRows=rows.map(exportRow);
   const filterValue=()=>({search:search.value,status:state.value,stream:stream.value});
-  const matchingRows=filters=>{const query=normalize(filters.search);return rows.filter(x=>(!filters.status||x.entry.status===filters.status)&&(!filters.stream||x.entry.stream===filters.stream)&&(!query||x.terms.includes(query)));};
+  const matchingRows=filters=>{const query=normalize(filters.search);return rows.filter(x=>(!filters.status||stateKey(x.entry.status)===filters.status)&&(!filters.stream||x.entry.stream===filters.stream)&&(!query||x.terms.includes(query)));};
   let page=0;
   function showRows(){
    const matching=matchingRows(filterValue()),pages=Math.max(1,Math.ceil(matching.length/PAGE_SIZE));
    page=Math.max(0,Math.min(page,pages-1));tbody.replaceChildren();
    for(const {entry:e,property:p} of matching.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE)){
-    const values=[e.on_date,streams[e.stream]||'حركة أخرى',p,directions[e.direction]||'غير محدد',money(e.amount),states[e.status]||'غير محددة',e.reference||'—',e.description||'—'];
+    const values=[e.on_date,streams[e.stream]||'حركة أخرى',p,directions[e.direction]||'غير محدد',money(e.amount),stateLabel(e.status)||'غير محددة',e.reference||'—',e.description||'—'];
     const tr=node('tr');for(const [index,value] of values.entries()){const td=node('td',value);if([0,4,6].includes(index))td.style.whiteSpace='nowrap';tr.append(td);}tbody.append(tr);
    }
    if(!matching.length){const tr=node('tr'),td=node('td',rows.length?'لا توجد حركات تطابق البحث.':'لا توجد حركات محفوظة لهذا الشهر.');td.colSpan=columns.length;tr.append(td);tbody.append(tr);}

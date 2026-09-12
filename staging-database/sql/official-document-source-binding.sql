@@ -81,7 +81,7 @@ begin
   defaults:=defaults||jsonb_build_object('sourceId',pay.id::text,'amount',pay.amount::text,'period',to_char(pay.period,'YYYY-MM'),
    'paymentMethod',case pay.payment_method when 'cash' then 'نقداً' when 'knet' then 'كي نت' when 'bank' then 'تحويل بنكي' when 'cheque' then 'شيك' else pay.payment_method end,
    'paymentReference',coalesce(nullif(pay.reference,''),'نقداً دون مرجع بنكي'),'reference',coalesce(nullif(pay.reference,''),'نقداً دون مرجع بنكي'),
-   'collectorName',coalesce(nullif(pay.receipt->>'collectorName',''),nullif(pay.receipt->>'collector','')),
+   'collectorName',coalesce(nullif(pay.receipt->>'collectorName',''),nullif(pay.receipt->>'collector',''),nullif(pay.receipt->>'accountant','')),
    'receivedFrom',defaults->>'tenantName','reason','إيجار الفترة '||to_char(pay.period,'YYYY-MM'));
  elsif k in ('deposit_receipt','deposit_refund') then
   select * into dep from private.aqari_deposit_entries e where e.workspace_id=w and e.lease_id=i and e.id=source_id

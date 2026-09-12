@@ -357,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "78280bf1c8dfc04350346d7f22efeaa3abbc0adc7375a2d341c37a7444df4b21",
-      "size": 299854
+      "sha256": "8b92e5380a44012d686224dedbb00be56063f640310979a3523aad7c50611adc",
+      "size": 299960
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -387,8 +387,8 @@
     },
     {
       "path": "docs/V267-HOSTED-ARCHIVES-AND-READINESS-2026-09-12.md",
-      "sha256": "432fc59ae5bca4e4380ea97e40047e4e82f9f203adada224bc1b1362f3d462af",
-      "size": 6666
+      "sha256": "cb2edbce3f6db9e7c35ea05ec1cafd0948d1f8f4374084173d1d8a059916bed9",
+      "size": 9653
     },
     {
       "path": "docs/V267-HOSTED-FINANCIAL-ACCEPTANCE-2026-09-12.md",
@@ -467,8 +467,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "cf02fd1c4c8a9073822fca052a65b63f7dafea32a350e98b7c9e4ffeb84de7f4",
-      "size": 96142
+      "sha256": "8eba9976b6dc696a4ea872cd4e1553c52a75d946f98be6a3a0f56d933016e04f",
+      "size": 96267
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -522,8 +522,8 @@
     },
     {
       "path": "index.html",
-      "sha256": "aef1e64cbae08c42a58089387a870d2024c208c095455fd4fbfb23464972a6a8",
-      "size": 1115447
+      "sha256": "76f9367da5d1d793591ccabc29d4169ff61068246d593dab23bcdcd798964588",
+      "size": 1115445
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -997,8 +997,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "size": 15337,
-      "sha256": "6f2f72f351584f1837485377d8dc80b3d59b7c8110b6c23d70fe41f0339214b4"
+      "sha256": "3bc3e66fab6cce36743571771ddfad7ea9cbb00aae6cc94114ac8ea20e4d9443",
+      "size": 15645
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
@@ -1142,8 +1142,8 @@
     },
     {
       "path": "staging-database/hosted-test/financial_archive.sql",
-      "sha256": "00d1177d409fc6fdabe03d2c5221bb3f8e53913b133bd24638bae26adbe69e51",
-      "size": 10903
+      "sha256": "e2c26c155cc29a3e14eaf629a2d9cbf85396ba618f25176941eb22c225f27eba",
+      "size": 11414
     },
     {
       "path": "staging-database/hosted-test/financial_close_cancellations.sql",
@@ -1157,8 +1157,8 @@
     },
     {
       "path": "staging-database/hosted-test/official_document_source_binding.sql",
-      "sha256": "0665a5c6c35ab8282c06b81eb80813a40f309e36ac2aa81d0ea0c837024ec66c",
-      "size": 20849
+      "sha256": "26d0f234f16aeafcfccbfd02f9176100bdc5d11c214060e4642230ecebed42c3",
+      "size": 21077
     },
     {
       "path": "staging-database/hosted-test/unit_meter_readings.sql",
@@ -1237,8 +1237,8 @@
     },
     {
       "path": "staging-database/sql/financial-archive.sql",
-      "sha256": "70d9f65401ac6b402cd35e03c9b2067bc4060fd800ce6d1926856e5d3da13f49",
-      "size": 5506
+      "sha256": "5b76c300560bc90518178ceab554491154d69a1a10dff2c25d18717f44b5155f",
+      "size": 5588
     },
     {
       "path": "staging-database/sql/financial-close-cancellations.sql",
@@ -1307,8 +1307,8 @@
     },
     {
       "path": "staging-database/sql/official-document-source-binding.sql",
-      "sha256": "4770949ad9be6c836cfda51421671c3c1356fdcb6941f4e1b4f129a0e64fa643",
-      "size": 22026
+      "sha256": "5a334e8c1fcbf8874b755cf32213e8e98fb675a2caf52fb1463ae867f8578ad6",
+      "size": 22064
     },
     {
       "path": "staging-database/sql/official-document-template-validation.sql",
@@ -1551,6 +1551,11 @@
       "size": 8105
     },
     {
+      "path": "staging-database/supabase/migrations/20260912130249_v267_saved_receipt_collector_readback.sql",
+      "sha256": "153073c02cd1b29592d477e425c7e271c17406f63e356747a446e2ef3a51f756",
+      "size": 15314
+    },
+    {
       "path": "staging-database/tests/deposit_register.sql",
       "sha256": "03c34778919dfc751275c194cffea6b39e02c8230fbe7be07430f62295f0eec2",
       "size": 17579
@@ -1587,8 +1592,8 @@
     },
     {
       "path": "staging-database/tests/financial_archive.sql",
-      "sha256": "e7599d4530f13fe01ed4d441d37657644aaa8f8338f2987cb2b34337a9474490",
-      "size": 9826
+      "sha256": "e9ed7fa6b5016940821edd89e58762b8cc037a76e7df961644bba4634d695883",
+      "size": 10337
     },
     {
       "path": "staging-database/tests/financial_close_cancellations.sql",
@@ -1622,8 +1627,8 @@
     },
     {
       "path": "staging-database/tests/official_document_source_binding.sql",
-      "sha256": "fc1bddfc298071b6b9327b6ef85b5f29082e0a2880ce903a4f638982d600a8f7",
-      "size": 19792
+      "sha256": "488ee6793088356d07675e515e55496a7a8e26036af935cfa0d8f7067ff923d3",
+      "size": 20020
     },
     {
       "path": "staging-database/tests/optional_tenant_email.sql",
@@ -2117,8 +2122,8 @@
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "size": 22633,
-      "sha256": "4ce04429acba9c6a51fb8e782024a30ddb14c449c4776ce1428e34406e80aebe"
+      "sha256": "6397430e33b20bdedbe0c7af4812f385f8bde04e1b42f0bb6b3408e953812cd0",
+      "size": 24408
     },
     {
       "path": "tests/v267-financial-close-gate.test.mjs",

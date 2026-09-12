@@ -33,7 +33,7 @@ do $$declare n integer;w uuid;p uuid;t uuid;u uuid;l uuid;begin
 insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot)
    values(l,w,'DOC-L-'||n,t,u,'DOC-L-'||n,'2026-01-01','2026-12-31',100,50,'signed','{}');
   insert into public.aqari_rent_payments(id,workspace_id,lease_id,reference,amount,period,paid_at,status,payment_method,record,receipt)
-   values(('7f680000-0000-4000-8000-00000000050'||n)::uuid,w,l,'DOC-PAY-'||n,12.345,'2026-09-01','2026-09-05','paid','cash','{}','{"collectorName":"محصل الاختبار"}');
+   values(('7f680000-0000-4000-8000-00000000050'||n)::uuid,w,l,'DOC-PAY-'||n,12.345,'2026-09-01','2026-09-05','paid','cash','{}',case n when 1 then '{"accountant":"محصل الاختبار"}'::jsonb else '{"collectorName":"محصل الاختبار"}'::jsonb end);
  end loop;
  insert into private.aqari_staff_assignments(workspace_id,user_id,operational_role,property_ids,is_active,updated_by)values
  (current_setting('aqari.test.official_source.workspace')::uuid,'7f680000-0000-4000-8000-000000000002','accountant',array['7f680000-0000-4000-8000-000000000101']::uuid[],true,'7f680000-0000-4000-8000-000000000001');
@@ -55,6 +55,7 @@ do $$declare w uuid:=current_setting('aqari.test.official_source.workspace')::uu
  r:=public.aqari_official_document_context(w,'rent_receipt');if jsonb_array_length(r->'entities')<>2 then raise exception 'ENTITY_OPTIONS_SCOPE_FAILED';end if;
  r:=public.aqari_official_document_context(w,'rent_receipt','7f680000-0000-4000-8000-000000000401','7f680000-0000-4000-8000-000000000501');
  if r#>>'{defaults,amount}'<>'12.345' or r#>>'{defaults,tenantName}'<>'مستأجر اختبار 1' then raise exception 'SOURCE_DEFAULTS_FAILED';end if;
+ if r#>>'{defaults,collectorName}' is distinct from 'محصل الاختبار' then raise exception 'SAVED_ACCOUNTANT_NAME_MISSING';end if;
  begin perform public.aqari_official_document_context(w,'rent_receipt','7f680000-0000-4000-8000-000000000403');raise exception 'FOREIGN_ENTITY_ALLOWED';exception when insufficient_privilege then null;end;
  begin perform public.aqari_official_document_context(w,'rent_receipt','7f680000-0000-4000-8000-000000000401','7f680000-0000-4000-8000-000000000502');raise exception 'WRONG_PAYMENT_ALLOWED';exception when check_violation then null;end;
  begin perform public.aqari_official_document_register(w,'issue',request||jsonb_build_object('entity_id','7f680000-0000-4000-8000-000000000499'));raise exception 'MISSING_ENTITY_ISSUED';exception when insufficient_privilege then null;end;
