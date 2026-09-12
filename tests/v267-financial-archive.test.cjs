@@ -4,6 +4,7 @@ const {readFileSync}=require('node:fs');
 const {resolve}=require('node:path');
 const vm=require('node:vm');
 const source=readFileSync(resolve(__dirname,'../src/v267/pages/financial-archive.js'),'utf8');
+const xlsxSource=readFileSync(resolve(__dirname,'../src/v267/reports/financial-archive-xlsx.js'),'utf8');
 
 class Element{
  constructor(tag,text){this.tag=tag;this.children=[];this.parent=null;this._text=text===undefined?'':String(text);this.value='';this.disabled=false;this.style={};this.attributes={};}
@@ -27,7 +28,8 @@ function harness(initial=record()){
  const node=(tag,text)=>{const el=new Element(tag,text);if(tag==='a')el.onclick=()=>{downloads.push({name:el.download,blob:blobs.get(el.href),connected:el.parent===root});};return el;};
  class Clock extends Date{constructor(...args){super(...(args.length?args:['2026-09-12T06:00:00Z']));}}
  const context={createDialog:()=>d,node,field:(label,control)=>{const group=node('div');group.append(node('label',label),control);return group;},document:{body:root},Date:Clock,Intl,Blob,URL:{createObjectURL(blob){const id=`blob:fixture-${++serial}`;blobs.set(id,blob);return id;},revokeObjectURL(url){revoked.push(url);blobs.delete(url);}},setTimeout(fn){const id=++serial;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}};
- vm.runInNewContext(source.replace(/^import[^\n]*\n/,'').replace(/^export /gm,'')+'\nglobalThis.api={openFinancialArchive,monthValue,money,archiveCsvCell};',context);
+ context.TextEncoder=TextEncoder;
+ vm.runInNewContext(xlsxSource.replace(/^export /gm,'')+'\n'+source.replace(/^import[^\n]*\n/gm,'').replace(/^export /gm,'')+'\nglobalThis.api={openFinancialArchive,monthValue,money,archiveCsvCell};',context);
  const find=(tag,text)=>all(root,x=>x.tag===tag&&(text===undefined||x.textContent===text))[0];
  return {api:context.api,open:()=>context.api.openFinancialArchive(),root,d,requests,downloads,revoked,timers,find,all:tag=>all(root,x=>x.tag===tag),setResponder:fn=>{responder=fn;},deny:()=>{denied=true;},dispose,async wait(){while(tasks.length)await tasks.shift();},get month(){return all(root,x=>x.tag==='input'&&x.type==='month')[0];},get search(){return all(root,x=>x.tag==='input'&&x.type==='search')[0];}};
 }
@@ -82,4 +84,55 @@ test('CSV download contains every returned row, correct month and escaped cells'
 test('server history and reconciliation warnings remain visible without new accounting totals',async()=>{
  const h=await ready(record({history_truncated:true,history:[{actor_name:'مدقق الاختبار',reason:'سبب التدقيق'}],period:{month:'2026-09-01',closed_at:'2026-10-02',snapshot:{approved_expenses:'10.000',approved_expense_count:1,legacy_finance_reconciled:false}}}));
  assert.match(h.root.textContent,/مطابقة السجلات المالية القديمة ما زالت غير معتمدة/);assert.match(h.root.textContent,/آخر ١٠٠ حدث/);assert.match(h.root.textContent,/مدقق الاختبار/);assert.match(h.root.textContent,/سبب التدقيق/);
+});
+
+async function xlsxPart(download,path){
+ const bytes=Buffer.from(await download.blob.arrayBuffer());let at=0;
+ while(bytes.readUInt32LE(at)===0x04034b50){const size=bytes.readUInt32LE(at+18),length=bytes.readUInt16LE(at+26),extra=bytes.readUInt16LE(at+28),name=bytes.subarray(at+30,at+30+length).toString();const start=at+30+length+extra;if(name===path)return bytes.subarray(start,start+size).toString();at=start+size;}
+ throw Error('Missing ZIP part: '+path);
+}
+test('Excel rechecks the scoped RPC and exports every filtered page as numeric money and dates',async()=>{
+ const h=await ready(record({entries:[...Array.from({length:53},(_,i)=>expense({id:`a-${i}`,reference:`KEEP-${i}`})),expense({id:'draft',reference:'OMIT',status:'draft'})]}));
+ h.find('select').value='approved';h.find('select').onchange();assert.equal(h.find('tbody').children.length,50);
+ h.find('button','تنزيل Excel للنتائج').click();await h.wait();assert.equal(h.requests.length,2);assert.deepEqual(h.requests[1],h.requests[0]);assert.equal(h.downloads.length,1);
+ const file=h.downloads[0];assert.equal(file.name,'AQARI-finance-2026-09.xlsx');assert.equal(file.blob.type,'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+ const xml=await xlsxPart(file,'xl/worksheets/sheet1.xml');assert.equal((xml.match(/<row /g)||[]).length,54);assert.match(xml,/KEEP-52/);assert.doesNotMatch(xml,/OMIT/);assert.match(xml,/<c r="E2" s="2"><v>120\.500<\/v>/);assert.match(xml,/rightToLeft="1"/);
+ const metadata=await xlsxPart(file,'xl/worksheets/sheet2.xml');assert.match(metadata,/معتمد/);assert.match(metadata,/workspace-a/);assert.match(metadata,/2026-09-12T/);h.dispose();
+});
+test('Excel captures combined Arabic search, status and stream filters, including zero matches',async()=>{
+ const h=await ready(record({entries:[expense(),expense({id:'second',stream:'opening',reference:'EXP-401'})]}));
+ h.search.value='٤٠١';h.search.oninput();h.all('select')[1].value='opening';h.all('select')[1].onchange();
+ h.find('button','تنزيل Excel للنتائج').click();await h.wait();let xml=await xlsxPart(h.downloads[0],'xl/worksheets/sheet1.xml');assert.equal((xml.match(/<row /g)||[]).length,2);assert.match(xml,/رصيد افتتاحي/);assert.doesNotMatch(xml,/>مصروف</);
+ h.search.value='لا توجد مطابقة';h.search.oninput();h.find('button','تنزيل Excel للنتائج').click();await h.wait();xml=await xlsxPart(h.downloads[1],'xl/worksheets/sheet1.xml');assert.equal((xml.match(/<row /g)||[]).length,1);h.dispose();
+});
+test('Excel preserves cancelled and opening entries separately with inert formula-like references',async()=>{
+ const h=await ready(record({entries:[expense({stream:'rent',status:'cancelled',reference:'=HYPERLINK("https://invalid")'}),expense({id:'opening',stream:'opening',direction:'credit',amount:'20.000',reference:'0012'})]}));
+ h.find('button','تنزيل Excel للنتائج').click();await h.wait();const xml=await xlsxPart(h.downloads[0],'xl/worksheets/sheet1.xml');assert.match(xml,/ملغى/);assert.match(xml,/رصيد افتتاحي/);assert.match(xml,/0012/);assert.match(xml,/t="inlineStr"/);assert.doesNotMatch(xml,/<f[ >]/);assert.match(xml,/20\.000/);h.dispose();
+});
+test('Excel rejects a server-side authorization revocation and clears private cached rows',async()=>{
+ const h=await ready();h.setResponder(()=>Promise.reject(Object.assign(Error('FORBIDDEN'),{status:403})));
+ h.find('button','تنزيل Excel للنتائج').click();await h.wait();assert.equal(h.downloads.length,0);assert.equal(h.d.closed,true);assert.equal(h.all('table').length,0);
+});
+test('Excel rejects changed records or narrower property scope instead of exporting the old snapshot',async()=>{
+ for(const next of [record({entries:[]}),record({properties:[]}),record({entries:[expense({amount:'1.000'})]})]){
+  const h=await ready();h.setResponder(()=>next);h.find('button','تنزيل Excel للنتائج').click();await h.wait();assert.equal(h.downloads.length,0);assert.equal(h.all('table').length,0);assert.match(h.d.status.textContent,/تغيّرت سجلات/);
+ }
+});
+test('Excel refuses a selection change during the authorization readback',async()=>{
+ const h=await ready(),pending=deferred();h.setResponder(()=>pending.promise);h.find('button','تنزيل Excel للنتائج').click();await Promise.resolve();h.month.value='2026-10';h.month.oninput();pending.resolve(record());await h.wait();assert.equal(h.downloads.length,0);assert.equal(h.all('table').length,0);
+});
+test('Excel refuses a filter change during the readback',async()=>{
+ const h=await ready(),pending=deferred();h.setResponder(()=>pending.promise);h.find('button','تنزيل Excel للنتائج').click();await Promise.resolve();h.search.value='new-filter';pending.resolve(record());await h.wait();assert.equal(h.downloads.length,0);assert.match(h.d.status.textContent,/تغيّرت المرشحات/);
+});
+test('closing the dialog during Excel readback prevents a late private download',async()=>{
+ const h=await ready(),pending=deferred();h.setResponder(()=>pending.promise);h.find('button','تنزيل Excel للنتائج').click();await Promise.resolve();h.dispose();pending.resolve(record());await h.wait();assert.equal(h.downloads.length,0);assert.equal(h.all('table').length,0);
+});
+test('Excel refuses malformed amounts, impossible dates and lost local permission',async()=>{
+ for(const change of [{amount:null},{amount:'100.0001'},{on_date:'2026-09-31'}]){
+  const h=await ready(record({entries:[expense(change)]}));h.find('button','تنزيل Excel للنتائج').click();await h.wait();assert.equal(h.downloads.length,0);assert.match(h.d.status.textContent,/تعذر/);
+ }
+ const h=await ready();h.deny();h.find('button','تنزيل Excel للنتائج').click();await h.wait();assert.equal(h.downloads.length,0);assert.equal(h.requests.length,1);
+});
+test('Excel readback failure does not turn cached data into an authorized download',async()=>{
+ const h=await ready();h.setResponder(()=>Promise.reject(Error('offline')));h.find('button','تنزيل Excel للنتائج').click();await h.wait();assert.equal(h.downloads.length,0);assert.equal(h.d.status.textContent,'offline');
 });

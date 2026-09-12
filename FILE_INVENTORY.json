@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "ca18f7a1f3cc783779fb4e17fd9a4d9fdeb337e36c8b77e408dc181b1657a730",
-      "size": 5913
+      "size": 6175,
+      "sha256": "9b34862fc54cf964adf17690fca666ef05ae5817cbbbafd639dfbef2f2f024fb"
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -321,6 +321,11 @@
       "size": 16865
     },
     {
+      "path": "docs/V267-ARCHIVE-EXCEL-2026-09-12.md",
+      "size": 7782,
+      "sha256": "041a66777dfdd88ffdbbcff98976a76c037968a4bd9d99d3f16667d18d282ef3"
+    },
+    {
       "path": "docs/V267-CI-MAINTENANCE-RECOVERY.md",
       "sha256": "1f6aec39c8b80916bcc9e396c09b72e53fd4acb364949fc23024caec17881ebf",
       "size": 3577
@@ -352,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "size": 278667,
-      "sha256": "cee1823ca69aa7653feaebed329a7c2048291d37634987953e676ceff303403a"
+      "size": 283613,
+      "sha256": "70811037ff94f6d86886e085d17ed2b7648c8fc6ae7d66a46ab387f485158451"
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -377,8 +382,8 @@
     },
     {
       "path": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md",
-      "size": 3371,
-      "sha256": "7639cf4f71b7cbc096d17f4cb204e0ff0fd48c21fa8eba5f3e2b9084f1ee939f"
+      "size": 3907,
+      "sha256": "7ec9fb5e8067d950eec05728e13bbe3d78b706a1f4782fa080b742ec8b617d74"
     },
     {
       "path": "docs/V267-HOSTED-ISOLATION-2026-09-09.md",
@@ -452,8 +457,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "size": 92979,
-      "sha256": "b613f1e986ad6ef4bda919d350dbf1f645028694bda53f8fbd7d9b77795d77fa"
+      "size": 94614,
+      "sha256": "2a2b8927a991222b662c891e26cea5e16de8f99e0b981aaa5cd29c15f3494b16"
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -668,7 +673,7 @@
     {
       "path": "scripts/audit-v267-evidence.mjs",
       "size": 5537,
-      "sha256": "fd0ff03b7ca42ae98c48727f3b3c397a168f81114ea2e7992ed6b236bf383d2f"
+      "sha256": "b76cce9878ac9083edcbbf931b580b1e5d7eb3e33b22896a068aedcd01a2c665"
     },
     {
       "path": "scripts/autosync-selftest.mjs",
@@ -967,8 +972,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "ffc66df90525f9e83d2a80ae863e4d023409a38782bf762941677a809dd305ea",
-      "size": 12937
+      "size": 15337,
+      "sha256": "6f2f72f351584f1837485377d8dc80b3d59b7c8110b6c23d70fe41f0339214b4"
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
@@ -1057,8 +1062,8 @@
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "aa8c02a58befde5c77f3d8312c2ba3404094e64cf3170c1912ec857c1aa3c3f1",
-      "size": 6672
+      "size": 7614,
+      "sha256": "b7e997b63f21f849b5ed3b9d865e14ecf79680ce2af0db769afcc544261e5c13"
     },
     {
       "path": "src/v267/pages/utility-meters.js",
@@ -1074,6 +1079,11 @@
       "path": "src/v267/pages/vacating-settlement.js",
       "sha256": "5d048a244606bfe0813d25b3b67a802e1b1fd8bb54c7383d5d91fa9755999a8e",
       "size": 13908
+    },
+    {
+      "path": "src/v267/reports/financial-archive-xlsx.js",
+      "size": 10668,
+      "sha256": "788fc96d0c3f01b624906c41b867d9762a4272b11133e33a230116db7497c09a"
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -1701,6 +1711,11 @@
       "size": 832
     },
     {
+      "path": "tests/financial_archive_xlsx_test.py",
+      "size": 8815,
+      "sha256": "0f81032fbf03979912ca1853cace020d50d189628f8a4edd3c8c26b630176b2a"
+    },
+    {
       "path": "tests/imported-tenant-editor.test.mjs",
       "sha256": "5ed588b3fe0a49e256dea0fa535694302da5529717f9d88355805cffe9e676f2",
       "size": 3527
@@ -1997,13 +2012,13 @@
     },
     {
       "path": "tests/v267-financial-archive.browser.mjs",
-      "sha256": "7dd27c2c9127162d7269e1ea681a1d29b39f0ab21ff9f33415e16aa6e342fbb1",
-      "size": 14108
+      "size": 14204,
+      "sha256": "49cbd5d0fe55f757418ea07b8d4ed31ee9cdb7d2e06e9225c3e528cfde886b2e"
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "80a55313e62515ebef0cd93ae94221aedbfa7533149f60b3d22b18a923b6f45c",
-      "size": 16222
+      "size": 22633,
+      "sha256": "4ce04429acba9c6a51fb8e782024a30ddb14c449c4776ce1428e34406e80aebe"
     },
     {
       "path": "tests/v267-financial-close-gate.test.mjs",

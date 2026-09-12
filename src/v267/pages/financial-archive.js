@@ -1,4 +1,5 @@
 import {createDialog,node,field} from '../components/dialog.js';
+import {createArchiveXlsx,ARCHIVE_XLSX_TYPE} from '../reports/financial-archive-xlsx.js';
 
 const PAGE_SIZE=50;
 const AUDIT_LIMIT=100;
@@ -81,10 +82,13 @@ export function openFinancialArchive(){
   const properties=new Map(data.properties.filter(object).map(x=>[x.id,String(x.name??'')]));
   const property=id=>properties.get(id)||(id?'عقار ضمن السجل':'قيد عام دون توزيع على عقار');
   const rows=data.entries.map(entry=>({entry,property:property(entry.property_id),terms:normalize([entry.reference,entry.description,property(entry.property_id),streams[entry.stream]].join(' '))}));
-  const csvRows=rows.map(({entry:e,property:p})=>[e.on_date,streams[e.stream]||'حركة أخرى',p,directions[e.direction]||'غير محدد',e.amount,states[e.status]||'غير محددة',e.reference,e.description]);
+  const exportRow=({entry:e,property:p})=>[e.on_date,streams[e.stream]||e.stream||'حركة أخرى',p,directions[e.direction]||e.direction||'غير محدد',e.amount,states[e.status]||e.status||'غير محددة',e.reference,e.description];
+  const csvRows=rows.map(exportRow);
+  const filterValue=()=>({search:search.value,status:state.value,stream:stream.value});
+  const matchingRows=filters=>{const query=normalize(filters.search);return rows.filter(x=>(!filters.status||x.entry.status===filters.status)&&(!filters.stream||x.entry.stream===filters.stream)&&(!query||x.terms.includes(query)));};
   let page=0;
   function showRows(){
-   const query=normalize(search.value),matching=rows.filter(x=>(!state.value||x.entry.status===state.value)&&(!stream.value||x.entry.stream===stream.value)&&(!query||x.terms.includes(query))),pages=Math.max(1,Math.ceil(matching.length/PAGE_SIZE));
+   const matching=matchingRows(filterValue()),pages=Math.max(1,Math.ceil(matching.length/PAGE_SIZE));
    page=Math.max(0,Math.min(page,pages-1));tbody.replaceChildren();
    for(const {entry:e,property:p} of matching.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE)){
     const values=[e.on_date,streams[e.stream]||'حركة أخرى',p,directions[e.direction]||'غير محدد',money(e.amount),states[e.status]||'غير محددة',e.reference||'—',e.description||'—'];
@@ -99,20 +103,43 @@ export function openFinancialArchive(){
   const audit=node('details');audit.append(node('summary','أحداث التدقيق المعادة'));
   for(const event of data.history)if(object(event))audit.append(node('p',[event.recorded_at,event.actor_name,event.reason].filter(Boolean).join(' — ')));
   output.append(audit);
-  function exportData(kind){
+  function download(kind,contents,type){
    if(d.closed)return;
    if(loaded!==identity||generation!==identity.epoch||month.value!==identity.month){invalidate();return;}
    try{
     d.session.check();
-    const value={...data,month:identity.month,workspace_id:d.session.bound.workspace,retrieved_at:identity.retrievedAt,audit_history_limit:AUDIT_LIMIT};
-    const contents=kind==='csv'?'\uFEFF'+[columns,...csvRows].map(row=>row.map(archiveCsvCell).join(',')).join('\r\n'):JSON.stringify(value,null,2);
-    const blob=new Blob([contents],{type:kind==='csv'?'text/csv;charset=utf-8':'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=node('a');
+    const blob=new Blob([contents],{type}),url=URL.createObjectURL(blob),a=node('a');
     downloads.set(url,setTimeout(()=>release(url),60_000));a.href=url;a.download=`AQARI-finance-${identity.month}.${kind}`;a.rel='noopener';a.hidden=true;
     document.body.append(a);try{a.click();}catch(error){release(url);throw error;}finally{a.remove();}
    }catch(error){d.run(()=>{throw error;});}
   }
+  function exportData(kind){
+   const value={...data,month:identity.month,workspace_id:d.session.bound.workspace,retrieved_at:identity.retrievedAt,audit_history_limit:AUDIT_LIMIT};
+   const contents=kind==='csv'?'\uFEFF'+[columns,...csvRows].map(row=>row.map(archiveCsvCell).join(',')).join('\r\n'):JSON.stringify(value,null,2);
+   download(kind,contents,kind==='csv'?'text/csv;charset=utf-8':'application/json;charset=utf-8');
+  }
+  async function exportExcel(){
+   if(d.closed)return;
+   if(loaded!==identity||generation!==identity.epoch||month.value!==identity.month){invalidate();return;}
+   const selection=filterValue();
+   await d.run(async()=>{
+    // Re-read through the same scoped RPC: cached session context alone cannot
+    // prove that a property/role has not been revoked since the table loaded.
+    const current=await d.session.request(d.session.client.rpc('aqari_financial_archive',{p_workspace_id:d.session.bound.workspace,p_month:identity.month}));
+    d.session.check();
+    if(d.closed||loaded!==identity||generation!==identity.epoch||month.value!==identity.month)return;
+    validate(current,identity.month);
+    const snapshot=value=>JSON.stringify([value.entries,value.properties,value.period]);
+    if(snapshot(current)!==snapshot(data)){clear();throw Error('تغيّرت سجلات الشهر أو صلاحياته؛ استرجع الشهر وراجع البيانات قبل تنزيل التقرير.');}
+    if(JSON.stringify(selection)!==JSON.stringify(filterValue()))throw Error('تغيّرت المرشحات؛ أعد تنزيل التقرير.');
+    const contents=createArchiveXlsx({month:identity.month,workspace:d.session.bound.workspace,retrievedAt:identity.retrievedAt,columns,rows:matchingRows(selection).map(exportRow),totalRows:rows.length,period:data.period,filters:{search:selection.search,status:states[selection.status]||selection.status,stream:streams[selection.stream]||selection.stream}});
+    download('xlsx',contents,ARCHIVE_XLSX_TYPE);
+   });
+  }
   const json=node('button','تصدير السجل للتدقيق'),csv=node('button','تنزيل جدول CSV');json.type=csv.type='button';json.onclick=()=>exportData('json');csv.onclick=()=>exportData('csv');
   output.append(node('p','التصدير يشمل كل الحركات المعادة للشهر، ولا يتأثر بمرشح البحث. سجل التدقيق محدود بالأحداث المعادة.'),json,csv);
+  const excel=node('button','تنزيل Excel للنتائج');excel.type='button';excel.onclick=exportExcel;
+  output.append(node('p','Excel يشمل جميع النتائج المطابقة للبحث والحالة والنوع، عبر كل الصفحات، مع بيان المرشحات ووقت استرجاع البيانات. يُعاد التحقق من السجلات والصلاحيات قبل التنزيل.'),excel);
  }
  loadButton.onclick=load;d.onDispose(()=>{generation++;clear();});load();
 }

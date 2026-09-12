@@ -9,6 +9,7 @@ const guides=Object.freeze({
  partner:{title:'المالك الشريك',steps:['يعرض حسابك العقارات والحصص المخولة لك فقط.','راجع الدخل والمصروف والتوزيع الفعلي ولا تعتبر الربح النظري مبلغاً موزعاً.','بلّغ الإدارة عن أي اختلاف دون تعديل بيانات شريك آخر.']}
 });
 const text=(tag,value)=>node(tag,String(value??''));
+const archiveSteps=['من الأرشيف المالي اختر الشهر ثم استرجع سجلاته. ملخص الإقفال محفوظ كما صدر، والافتتاحي والملغى ظاهران بنوعهما.','ابحث في الحركات وحدد الحالة والنوع ثم اختر «تنزيل Excel للنتائج» لتنزيل كل النتائج المطابقة عبر جميع الصفحات. يتضمن الملف بيانات المرشحات ووقت الاسترجاع، ولا يجمع الاتجاهات المختلفة كصافي ربح.','يعيد تنزيل Excel التحقق من السجلات والصلاحيات. إذا تغيّرت البيانات، استرجع الشهر وراجعها قبل التنزيل. يحفظ CSV والسجل الخام كل حركات الشهر المعادة دون تصفية البحث.'];
 const officialSteps=['عند توفر خدمة النماذج الرسمية، اختر نوع النموذج والسجل ثم الحركة المحفوظة؛ لا تدخل مبلغ الوصل يدوياً.','أكمل الحقول العربية وسبب الإصدار. الرقم يحجزه النظام، ولا يظهر تأكيد الحفظ إلا بعد إعادة قراءة النسخة.','إذا انقطع الرد استخدم «التحقق من الحفظ السابق» لاسترجاع النتيجة أو إعادة الطلب نفسه دون رقم جديد.','للتصحيح افتح المستند من الأرشيف واختر «إنشاء إصدار مصحح». تبقى النسخ السابقة متاحة للتنزيل.','نزّل PDF من النسخة المطلوبة؛ يتحقق النظام من حفظ بايتات الملف وبصمتها قبل التنزيل. افتحه ثم استخدم أمر الطباعة في عارض PDF على جهازك.','إذا ظهر اسم ملف ملغى فهو نسخة الأصل التاريخية لمستند ملغى، ولا يعني إلغاء حالته في السجل. إذا ظهرت مطالبة بمطابقة رصيد افتتاحي أو التزامات تسوية فلا تتجاوزها أو تستبدل الأرقام؛ راجع السجل المالي أولاً.'];
 export function openUserGuide(){
  const d=createDialog('دليل استخدام AQARI V267');if(!d)return;
@@ -17,7 +18,7 @@ export function openUserGuide(){
  let selected='general_manager';
  function render(){
   const query=search.value.trim();roles.replaceChildren();for(const [key,guide]of Object.entries(guides)){const button=node('button',guide.title);button.type='button';button.setAttribute('aria-pressed',String(key===selected));button.onclick=()=>{selected=key;render();};roles.append(button);}
-  const guide=guides[selected];content.replaceChildren(text('h2',guide.title));const list=node('ol');for(const step of [...guide.steps,...(selected==='general_manager'?officialSteps:[])]){if(!query||step.includes(query)||guide.title.includes(query))list.append(text('li',step));}if(!list.children.length)content.append(text('p','لا توجد نتيجة ضمن الصلاحية المختارة.'));else content.append(list);
+  const guide=guides[selected];content.replaceChildren(text('h2',guide.title));const list=node('ol');for(const step of [...guide.steps,...(selected==='general_manager'?officialSteps:[]),...(['general_manager','accountant'].includes(selected)?archiveSteps:[])]){if(!query||step.includes(query)||guide.title.includes(query))list.append(text('li',step));}if(!list.children.length)content.append(text('p','لا توجد نتيجة ضمن الصلاحية المختارة.'));else content.append(list);
  }
  search.oninput=render;d.onDispose(()=>{search.value='';roles.replaceChildren();content.replaceChildren();});render();
 }

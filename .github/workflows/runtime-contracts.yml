@@ -80,6 +80,8 @@ jobs:
         run: |
           node scripts/build-official-form-sql.mjs --check
           node --test tests/v267-official-document-source-runtime.test.mjs tests/v267-official-document-center.test.cjs tests/v267-document-catalog-completion.test.cjs tests/v267-dialog-progress.test.mjs
+      - name: Historical archive filters, exports and revoked access
+        run: node --test tests/v267-financial-archive.test.cjs tests/v267-financial-archive-runtime.test.mjs
       - name: V267 deployment target and partial production preparation
         run: node --test tests/v267-deployment-target.test.mjs tests/v267-production-preparation.test.mjs
       - name: Contract approval at print issuance and maintenance draft recovery
@@ -100,5 +102,6 @@ jobs:
           python -m unittest discover -s tests -p property_statement_test.py -v
           python -m unittest discover -s tests -p official_document_pdf_test.py -v
           python -m unittest discover -s tests -p official_document_archive_test.py -v
+          python -m unittest discover -s tests -p financial_archive_xlsx_test.py -v
           python -m unittest discover -s tests -p provider_webhook_test.py -v
           python -m unittest discover -s tests -p outbound_adapters_test.py -v

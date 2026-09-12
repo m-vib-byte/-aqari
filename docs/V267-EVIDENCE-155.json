@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceParentSHA": "b38d745630821aa57c39f291c4fa59bf1e5f20cd",
-  "matrixSha256": "b613f1e986ad6ef4bda919d350dbf1f645028694bda53f8fbd7d9b77795d77fa",
+  "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
+  "matrixSha256": "2a2b8927a991222b662c891e26cea5e16de8f99e0b981aaa5cd29c15f3494b16",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -324,6 +324,25 @@
         "tests/v267-official-document-runtime.test.mjs",
         "docs/V267-PDF-ARCHIVE-2026-09-12.md"
       ]
+    },
+    "E40": {
+      "files": [
+        "src/v267/reports/financial-archive-xlsx.js",
+        "src/v267/pages/financial-archive.js",
+        "tests/v267-financial-archive.test.cjs",
+        "tests/financial_archive_xlsx_test.py",
+        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md"
+      ]
+    },
+    "E41": {
+      "files": [
+        "src/v267/pages/unit-readiness.js",
+        "staging-database/sql/unit-readiness.sql",
+        "staging-database/tests/unit_readiness.sql",
+        "staging-database/tests/unit_readiness_projection.sql",
+        "tests/v267-unit-readiness-runtime.test.mjs",
+        "docs/V267-UNIT-READINESS-2026-09-12.md"
+      ]
     }
   },
   "files": [
@@ -347,8 +366,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "68cbc92e61297eaf936a810612dd55e3226a068756e86a9fa20634bf9687c730",
-      "bytes": 16456,
+      "sha256": "8a6cf3ccbb0038f44b43383c7aa5dda1a69d2d4f21fa31d301868b8745fba9bf",
+      "bytes": 16955,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -367,8 +386,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "b3aef2154dfceccb360631039f24736feba9d919b79206ec4fd8cdd3224d9e82",
-      "bytes": 4023,
+      "sha256": "03f13d36e9966858d58df4ca4faed828ab7fc3b7780e9a722b3ba5e5e0a4a058",
+      "bytes": 4187,
       "declaredTables": [],
       "publicFunctions": [
         "public.aqari_workspace_access"
@@ -378,8 +397,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "4a5c0d368523adc0ca9c185fe063d87e05ec4561702ca16eb0a39500663c76b1",
-      "bytes": 4001,
+      "sha256": "b6de25096719c3d831e782079e9b0ab3b5292de3e11c708669feb382bd0cbb76",
+      "bytes": 4220,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -423,8 +442,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "3cba8a3037e47fcea3e902487579cf1290ad8bf342f684995efc92ad9376c891",
-      "bytes": 10070,
+      "sha256": "2a253974b0353502085a628d6a6caa922cdca9d2c5bc9a0d6289f1cfaa6136b7",
+      "bytes": 10768,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1396,8 +1415,8 @@
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "aa8c02a58befde5c77f3d8312c2ba3404094e64cf3170c1912ec857c1aa3c3f1",
-      "bytes": 6672,
+      "sha256": "b7e997b63f21f849b5ed3b9d865e14ecf79680ce2af0db769afcc544261e5c13",
+      "bytes": 7614,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1657,8 +1676,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "ffc66df90525f9e83d2a80ae863e4d023409a38782bf762941677a809dd305ea",
-      "bytes": 12937,
+      "sha256": "6f2f72f351584f1837485377d8dc80b3d59b7c8110b6c23d70fe41f0339214b4",
+      "bytes": 15337,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1668,8 +1687,8 @@
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "80a55313e62515ebef0cd93ae94221aedbfa7533149f60b3d22b18a923b6f45c",
-      "bytes": 16222,
+      "sha256": "4ce04429acba9c6a51fb8e782024a30ddb14c449c4776ce1428e34406e80aebe",
+      "bytes": 22633,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1809,6 +1828,94 @@
       "path": "docs/V267-PDF-ARCHIVE-2026-09-12.md",
       "sha256": "016cd2c0ec4332690dcbeaf24bcb06f0b5775e2c559ec9435a06d1ef93576a05",
       "bytes": 6661,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/reports/financial-archive-xlsx.js",
+      "sha256": "788fc96d0c3f01b624906c41b867d9762a4272b11133e33a230116db7497c09a",
+      "bytes": 10668,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/financial_archive_xlsx_test.py",
+      "sha256": "0f81032fbf03979912ca1853cace020d50d189628f8a4edd3c8c26b630176b2a",
+      "bytes": 8815,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-ARCHIVE-EXCEL-2026-09-12.md",
+      "sha256": "041a66777dfdd88ffdbbcff98976a76c037968a4bd9d99d3f16667d18d282ef3",
+      "bytes": 7782,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/pages/unit-readiness.js",
+      "sha256": "06f8a9f95c21a27c47f45ee62503413958b7f37a7b928c058b063f2ae5d23d54",
+      "bytes": 6831,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_workspace_access",
+        "aqari_unit_readiness_register"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/unit-readiness.sql",
+      "sha256": "a884866c19e6893da6d114907193a10b9136007da780dca0a4a7e325b8f0825a",
+      "bytes": 8105,
+      "declaredTables": [
+        "private.aqari_unit_readiness"
+      ],
+      "publicFunctions": [
+        "public.aqari_unit_readiness_register"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/unit_readiness.sql",
+      "sha256": "bd1cffe889ddb47e7aae425a476ca30006e0d41328d2fb11328ec6ac3360292f",
+      "bytes": 8024,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "staging-database/tests/unit_readiness_projection.sql",
+      "sha256": "43e9aced331838d997e1225b4e074795411b3b02b5d8686da42ed84bcc3bef74",
+      "bytes": 3849,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-unit-readiness-runtime.test.mjs",
+      "sha256": "c4179659c3aa15dfa9e5393dba020e778cd828d0b7a1c36e8b35fe5a68008b4c",
+      "bytes": 7561,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-UNIT-READINESS-2026-09-12.md",
+      "sha256": "738d4f9e9e2acc61acf868c8b9ced1d77b713206de97d104c3ae7ef875e099ab",
+      "bytes": 4471,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2899,21 +3006,35 @@
       "id": 34,
       "sourceId": "G03-11",
       "requirement": "منع تأجير وحدة غير جاهزة أو عليها عقد فعال.",
-      "reportedImplementation": "جزئي — E09 يمنع التداخل؛ منع عدم الجاهزية كقيد خادم لم يثبت.",
-      "acceptanceRemaining": "رفض التأجير بسبب عدم الجاهزية أو التداخل قبل أي حفظ جزئي.",
+      "reportedImplementation": "جزئي — E09 وE41؛ قيد خادم لجاهزية الوحدة وواجهة معاينة محفوظة مع رفض العقد غير الجاهز، والحفاظ على تحصيل العقود السابقة. نجح اختبار SQL والواجهة محلياً.",
+      "acceptanceRemaining": "التطبيق والقبول المستضافان والتزامن الفعلي؛ المعاينات الحقيقية لا تفترض جاهزية الوحدات القديمة.",
       "evidenceIds": [
-        "E09"
+        "E09",
+        "E41"
       ],
       "evidenceFiles": [
         "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
-        "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql"
+        "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
+        "src/v267/pages/unit-readiness.js",
+        "staging-database/sql/unit-readiness.sql",
+        "staging-database/tests/unit_readiness.sql",
+        "staging-database/tests/unit_readiness_projection.sql",
+        "tests/v267-unit-readiness-runtime.test.mjs",
+        "docs/V267-UNIT-READINESS-2026-09-12.md"
       ],
-      "uiFiles": [],
+      "uiFiles": [
+        "src/v267/pages/unit-readiness.js"
+      ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
-        "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql"
+        "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
+        "staging-database/sql/unit-readiness.sql"
       ],
-      "testFiles": [],
+      "testFiles": [
+        "staging-database/tests/unit_readiness.sql",
+        "staging-database/tests/unit_readiness_projection.sql",
+        "tests/v267-unit-readiness-runtime.test.mjs"
+      ],
       "requiredVerification": [
         "hosted-database-acceptance"
       ],
@@ -4447,12 +4568,13 @@
       "id": 77,
       "sourceId": "G07-08",
       "requirement": "تصدير التقارير إلى PDF وExcel بتنسيق مرتب.",
-      "reportedImplementation": "جزئي — E11، E12 وE35 تثبت PDF للوصولات والنماذج الرسمية من لقطة قاعدة البيانات؛ كل التقارير وExcel غير مثبتة.",
-      "acceptanceRemaining": "تصدير كل تقرير مطلوب بنفس المجاميع والفلاتر والصلاحيات دون تسريب، واختبار الطباعة على الأجهزة.",
+      "reportedImplementation": "جزئي — E11، E12 وE35 تثبت PDF للوصولات والنماذج؛ E40 يصدّر الأرشيف إلى XLSX فعلي بمرشحات وأرقام وتواريخ وإعادة تحقق من الصلاحية، مع اختبار الملف المستقل.",
+      "acceptanceRemaining": "بقية التقارير، القبول المستضاف، العرض والطباعة في Excel وعلى الأجهزة الفعلية.",
       "evidenceIds": [
         "E11",
         "E12",
-        "E35"
+        "E35",
+        "E40"
       ],
       "evidenceFiles": [
         "v202-property-os.js",
@@ -4477,14 +4599,21 @@
         "staging-database/sql/official-document-access-hardening.sql",
         "staging-database/tests/official_document_source_binding.sql",
         "tests/v267-official-document-source-runtime.test.mjs",
-        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md"
+        "docs/V267-OFFICIAL-SOURCES-2026-09-12.md",
+        "src/v267/reports/financial-archive-xlsx.js",
+        "src/v267/pages/financial-archive.js",
+        "tests/v267-financial-archive.test.cjs",
+        "tests/financial_archive_xlsx_test.py",
+        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md"
       ],
       "uiFiles": [
         "v202-property-os.js",
         "v206-rent-ledger.js",
         "src/v267/pages/property-statements.js",
         "src/v267/pages/official-document-center.js",
-        "src/v267/components/official-form-fields.js"
+        "src/v267/components/official-form-fields.js",
+        "src/v267/reports/financial-archive-xlsx.js",
+        "src/v267/pages/financial-archive.js"
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
@@ -4502,7 +4631,9 @@
         "staging-database/tests/official_document_register.sql",
         "tests/official_document_pdf_test.py",
         "staging-database/tests/official_document_source_binding.sql",
-        "tests/v267-official-document-source-runtime.test.mjs"
+        "tests/v267-official-document-source-runtime.test.mjs",
+        "tests/v267-financial-archive.test.cjs",
+        "tests/financial_archive_xlsx_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -6665,10 +6796,11 @@
       "id": 145,
       "sourceId": "G12-16",
       "requirement": "أرشيف مالي للسنوات السابقة يسترجع للتدقيق دون إبطاء الحاضر.",
-      "reportedImplementation": "جزئي — E37 يعرض سبعة مسارات مالية شهرية ولقطة الإقفال الأصلية، ويفصل الافتتاحي وتخصيص الرصيد والإلغاءات؛ تصدير JSON وCSV مرتبط بالشهر المسترجع. نجحت اختبارات محلية للعرض وSQL؛ ترحيل السنوات وقياس البيانات الكبيرة غير منفذين.",
-      "acceptanceRemaining": "تشغيل استعلامات سنوات كبيرة على Staging وقياسها ومطابقة الإجماليات بالمصدر مع اختبار الصلاحيات.",
+      "reportedImplementation": "جزئي — E37 وE40 يعرضان ثمانية أنواع حركات شهرية ولقطة الإقفال، ويفصلان الافتتاحي وتخصيص الرصيد والإلغاءات؛ JSON وCSV للشهر وExcel للنتائج المصفاة مع إعادة تحقق محكومة.",
+      "acceptanceRemaining": "ترحيل السنوات وقياس السجلات الكبيرة على Staging ومطابقة الأرصدة بالمصدر واختبار الصلاحيات المستضافة.",
       "evidenceIds": [
-        "E37"
+        "E37",
+        "E40"
       ],
       "evidenceFiles": [
         "src/v267/pages/financial-archive.js",
@@ -6676,10 +6808,14 @@
         "tests/v267-financial-archive.test.cjs",
         "staging-database/sql/financial-archive.sql",
         "staging-database/tests/financial_archive.sql",
-        "tests/v267-financial-archive-runtime.test.mjs"
+        "tests/v267-financial-archive-runtime.test.mjs",
+        "src/v267/reports/financial-archive-xlsx.js",
+        "tests/financial_archive_xlsx_test.py",
+        "docs/V267-ARCHIVE-EXCEL-2026-09-12.md"
       ],
       "uiFiles": [
-        "src/v267/pages/financial-archive.js"
+        "src/v267/pages/financial-archive.js",
+        "src/v267/reports/financial-archive-xlsx.js"
       ],
       "sqlFiles": [
         "staging-database/sql/financial-register.sql",
@@ -6688,7 +6824,8 @@
       "testFiles": [
         "tests/v267-financial-archive.test.cjs",
         "staging-database/tests/financial_archive.sql",
-        "tests/v267-financial-archive-runtime.test.mjs"
+        "tests/v267-financial-archive-runtime.test.mjs",
+        "tests/financial_archive_xlsx_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"

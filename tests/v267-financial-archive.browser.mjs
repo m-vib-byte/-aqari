@@ -39,6 +39,7 @@ const server=createServer((req,res)=>{
  if(file==='/'){res.setHeader('Content-Type','text/html; charset=utf-8');res.end(HTML);return;}
  const allowed=new Map([
   ['/src/v267/pages/financial-archive.js',archivePath],
+  ['/src/v267/reports/financial-archive-xlsx.js','src/v267/reports/financial-archive-xlsx.js'],
   ['/src/v267/components/dialog.js','src/v267/components/dialog.js'],
   ['/src/v267/api/session.js','src/v267/api/session.js'],
   ['/src/v267/styles/workspace.css','src/v267/styles/workspace.css']
