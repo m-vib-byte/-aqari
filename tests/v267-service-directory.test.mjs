@@ -30,7 +30,7 @@ function fixture(){
   cleanup(){globalThis.document=previous;setLocale('ar',null);}};
 }
 test('groups preserve original controls and open the real handler once',()=>{
- const f=fixture();try{assert.equal(f.proxies().length,1);assert.equal(f.source.parentNode.tagName,'details');f.proxies()[0].click();assert.equal(f.clicks(),1);assert.equal(f.host().children[0],f.root());}finally{f.cleanup();}
+ const f=fixture();try{assert.equal(f.proxies().length,1);assert.equal(f.proxies()[0].attributes['aria-label'],f.source.textContent,'decorative arrows are excluded from the accessible name');assert.equal(f.source.parentNode.tagName,'details');f.proxies()[0].click();assert.equal(f.clicks(),1);assert.equal(f.host().children[0],f.root());}finally{f.cleanup();}
 });
 test('Arabic search ignores hamza and diacritics without revealing hidden or denied services',()=>{
  const f=fixture();try{f.search('ارشيف مَالِي');assert.equal(f.proxies().length,1);f.search('رواتب');assert.equal(f.proxies().length,0);assert.equal(f.hidden.hidden,true);f.search('صلاحيات');assert.equal(f.proxies().length,0);assert.equal(f.denied.hidden,false,'search must not rewrite source availability');}finally{f.cleanup();}

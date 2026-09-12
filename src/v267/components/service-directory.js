@@ -47,7 +47,7 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
    box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);count.className='aq267-service-count';caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
    box.ontoggle=()=>{if(!search.value){if(box.open)expanded.add(group.key);else expanded.delete(group.key);}};
    for(const item of items){
-    const button=node('button',titleOf(item));button.type='button';button.dataset.service=group.key;
+    const button=node('button',titleOf(item));button.type='button';button.dataset.service=group.key;button.setAttribute('aria-label',titleOf(item));
     button.onclick=()=>{if(!available(item)){render();status.textContent=text(5);status.hidden=false;return;}item.source.click();};list.append(button);
    }
    grid.append(box);

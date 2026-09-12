@@ -398,8 +398,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "1713b4812a5544724d9195a513348c3f14fc45ff6494ac050cfe2bfa3e5a0c0d",
-      "bytes": 9308,
+      "sha256": "fe659d4c0786f7c47f65cdabd530e3257d3d4a580d8b7b226f0b6e59b4250923",
+      "bytes": 9356,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -407,8 +407,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "b0375bd3a90c940ea336816064978084ccd881765ed0a759bd3aac09411ea044",
-      "bytes": 5621,
+      "sha256": "18a907b719e0836b088db5bd8f5833e39dc232f9637967f0d343d8c53e5025a1",
+      "bytes": 5754,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
