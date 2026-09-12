@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 // These checks belong to the verified synthetic workspace flow. A signed-out
 // Preview must not load the optional modules needed to render these controls.
-export async function checkV267AuthenticatedPresentation(page, { populated = false, artifactPath } = {}) {
+export async function checkV267AuthenticatedPresentation(page, { populated = false, artifactPath, setPropertyWrite } = {}) {
   const desktop = page.viewportSize();
   try {
     await page.setViewportSize({ width:390, height:844 });
@@ -188,6 +188,7 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
       return !blurred && focused.isConnected && document.activeElement === focused;
     });
     assert.ok(stableFocus, 'quick-create focus must survive repeated presentation refreshes');
+    await page.waitForFunction(() => window.AQARI_PROPERTY_EXPERIENCE?.canWrite() === true);
     await page.locator('#v201CreateMenu [data-v201-create="properties"]').click();
     await page.waitForSelector('#modal.on[role="dialog"][aria-modal="true"]', { state:'visible' });
     await page.waitForFunction(() => {
@@ -196,6 +197,16 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
     });
     await page.keyboard.press('Escape');
     await page.waitForSelector('#modal.on', { state:'hidden' });
+    if(setPropertyWrite){
+      setPropertyWrite(false);
+      await page.evaluate(() => window.dispatchEvent(new Event('aqari:v267-controls-changed')));
+      await page.waitForFunction(() => window.AQARI_PROPERTY_EXPERIENCE?.canWrite() === false);
+      assert.equal(await page.evaluate(() => window.AQARI_RENTAL_RECORDS.openRecord('properties')),false,'server-denied property write must not open the form');
+      assert.equal(await page.locator('#modal.on').count(),0);
+      setPropertyWrite(true);
+      await page.evaluate(() => window.dispatchEvent(new Event('aqari:v267-controls-changed')));
+      await page.waitForFunction(() => window.AQARI_PROPERTY_EXPERIENCE?.canWrite() === true);
+    }
     await page.evaluate(() => window.go('home'));
     for(const [route,target] of [['collectionProPage','collectionProPage'],['properties','list'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
       await page.locator('.mobilebar [data-v199-go="'+route+'"]').click();

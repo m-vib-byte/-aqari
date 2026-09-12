@@ -16,6 +16,8 @@ assert.ok(response.ok);
 const sdk=Buffer.from(await response.arrayBuffer());
 assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'),'0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi');
 const base='http://127.0.0.1:4173';
+const isolatedOrigin='https://ofgmcsmxmdswlovsckqs.supabase.co';
+const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
 const user={id:'11111111-1111-4111-8111-111111111111',email:'synthetic@example.invalid',aud:'authenticated',role:'authenticated',app_metadata:{provider:'email'},user_metadata:{}};
 const workspace={id:'22222222-2222-4222-8222-222222222222',name:'Synthetic workspace'};
 const membership={user_id:user.id,workspace_id:workspace.id,role:'general_manager',is_active:true};
@@ -31,7 +33,7 @@ for(let i=1;i<=110;i++){
   populated.tenantDirectoryV202.push({property,unit,tenant,contractNo:id,email:'',phone:'',civilId:'',source:'protected-rent-import-v202',verified:true});
   populated.rentLedgerV202.push({id:'PAY-'+i,contractId:id,contractNo:id,property,unit,tenant,period:'2026-08',due:250,paid:250,balance:0,receiptNo:'R-'+i,paidAt:'2026-08-05',method:'bank',status:'paid',source:'protected-rent-import-v202',note:''});
 }
-let fixture={},hangCloud=false,hangConfirmation=false,requests=[];
+let fixture={},hangCloud=false,hangConfirmation=false,propertyWritable=true,requests=[];
 const send=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,base);
@@ -51,6 +53,14 @@ const server=http.createServer((req,res)=>{
     if(url.pathname==='/auth/v1/token')return send(res,session);
     if(req.headers.authorization!=='Bearer '+token)return send(res,{message:'Synthetic fixture: unauthorized'},401);
     if(url.pathname==='/auth/v1/user')return send(res,user);
+    if(url.pathname==='/rest/v1/rpc/aqari_workspace_access'){
+      if(req.method!=='POST')return send(res,{message:'Method not allowed'},405);
+      let raw='';req.on('data',chunk=>{raw+=chunk});req.on('end',()=>{
+        let input;try{input=JSON.parse(raw)}catch{return send(res,{},400)}
+        if(input.p_workspace_id!==workspace.id)return send(res,{},403);
+        send(res,{user_id:user.id,workspace_id:workspace.id,role:membership.role,sections:{},labels:{},features:{},permissions:Object.fromEntries(sections.map(section=>[section,{read:true,write:section!=='properties'||propertyWritable}]))});
+      });return;
+    }
     if(url.pathname==='/rest/v1/rpc/aqari_startup_snapshot_v266'){
       if(req.method!=='POST')return send(res,{message:'Method not allowed'},405);
       let raw='';req.on('data',chunk=>{raw+=chunk});req.on('end',()=>{
@@ -68,7 +78,19 @@ const server=http.createServer((req,res)=>{
   }
   const name=url.pathname==='/app'?'index.html':url.pathname==='/login'?'login.html':url.pathname.slice(1)||'login.html';
   if(name==='public-config.js'){
-    res.writeHead(200,{'content-type':'text/javascript'});res.end('window.AQARI_PUBLIC_CONFIG='+JSON.stringify({supabaseUrl:base,supabasePublishableKey:'sb_publishable_synthetic',supabaseAuthStorageKey:'aqari-supabase-auth-v198'})+';');return;
+    // Keep the real isolated-project guard intact. Only this synthetic backend
+    // translates its exact API origin to local transport; all other network
+    // destinations are still blocked by the browser route below.
+    const localTransport=function(serviceOrigin,backendOrigin){
+      const nativeFetch=window.fetch.bind(window);
+      window.fetch=(input,options)=>{
+        const url=new URL(input instanceof Request?input.url:input,location.href);
+        if(url.origin!==serviceOrigin)return nativeFetch(input,options);
+        const target=backendOrigin+url.pathname+url.search;
+        return nativeFetch(input instanceof Request?new Request(target,input):target,options);
+      };
+    };
+    res.writeHead(200,{'content-type':'text/javascript'});res.end('window.AQARI_PUBLIC_CONFIG='+JSON.stringify({supabaseUrl:isolatedOrigin,supabasePublishableKey:'sb_publishable_synthetic',supabaseAuthStorageKey:'aqari-supabase-auth-v198'})+';('+localTransport.toString()+')('+JSON.stringify(isolatedOrigin)+','+JSON.stringify(base)+');');return;
   }
   if(name==='vendor/supabase-js-2.114.0.js'){res.writeHead(200,{'content-type':'text/javascript'});res.end(sdk);return;}
   const file=path.resolve(root,name);
@@ -83,7 +105,7 @@ try{
   for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
     for(const scenario of ['empty','populated','manual','timeout','confirmation-timeout']){
       const name=engineName+'-'+scenario;
-      fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';requests=[];
+      fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';propertyWritable=true;requests=[];
       const browser=await engine.launch({headless:true});
       const errors=[];
       try{
@@ -146,7 +168,7 @@ try{
             assert.ok(await page.locator('#'+target).isVisible(),'visible full-platform section: '+route);
           }
           assert.ok(await page.locator('#home').isVisible());
-          if(scenario==='empty'||scenario==='populated')await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated',artifactPath:path.join(out,name+'-iphone-layout.png')});
+          if(scenario==='empty'||scenario==='populated')await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated',artifactPath:path.join(out,name+'-iphone-layout.png'),setPropertyWrite:value=>{propertyWritable=value;}});
         }
         assert.deepEqual(await page.evaluate(()=>window.__earlyAuthenticatedScripts),[], 'authenticated UI must wait for verified membership and BOTH workspace data scopes');
         const state=await page.evaluate(()=>({phase:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-phase'),stage:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),heartbeat:window.__homeHeartbeats}));

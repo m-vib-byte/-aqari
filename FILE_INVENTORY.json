@@ -326,6 +326,11 @@
       "sha256": "041a66777dfdd88ffdbbcff98976a76c037968a4bd9d99d3f16667d18d282ef3"
     },
     {
+      "path": "docs/V267-AUTHENTICATED-FIXTURE-2026-09-12.md",
+      "size": 1874,
+      "sha256": "0ec536e6c34f769315bd766811315d6e3ba03c1c41537c79b6ee820bd823ab2f"
+    },
+    {
       "path": "docs/V267-CI-MAINTENANCE-RECOVERY.md",
       "sha256": "1f6aec39c8b80916bcc9e396c09b72e53fd4acb364949fc23024caec17881ebf",
       "size": 3577
@@ -357,8 +362,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "57f22a0ddd440ef26cedfb6f22671503349d680647383449c5571d968cc28421",
-      "size": 308467
+      "size": 308467,
+      "sha256": "d43a9812ed833407da91b70c4f4dd858bb3dbc4318480a96bf74a2198517feaf"
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -2107,8 +2112,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "7e7ab8164fe4e0053ff806494fefac6084d15997ea75c31197e2343df032b4c8",
-      "size": 13113
+      "size": 14864,
+      "sha256": "9d4401778b3dc610a47d32f7cacd29d1d8de68ca20ced183de01b1fe6c487dc5"
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -2357,8 +2362,8 @@
     },
     {
       "path": "tests/v267-presentation-checks.mjs",
-      "sha256": "cbc3f84075f1b4036f21fe474d8f2cbe6eb500932c2761598c3c883741f1365d",
-      "size": 15803
+      "size": 16616,
+      "sha256": "275b7d2cdb9c1796818c1f31e3f6e687e3f2584c44c6e828bb2cc51eb327aaeb"
     },
     {
       "path": "tests/v267-private-files.test.mjs",
