@@ -47,8 +47,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 7113,
-      "sha256": "4e5929b4730b88c14d431535da9d04527358bf1613aa4e6d0602afa1a01f3c24"
+      "size": 7577,
+      "sha256": "32ae8045a8dc1a051d98155e2c5ba922d975e3975da305596c38affbdad4ef78"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1122,8 +1122,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "9fcc0681370bf3de8dfc89804537973fdff6957c4cb6daaf356834ba1d3b9fc6",
-      "size": 3380
+      "size": 3380,
+      "sha256": "9fcc0681370bf3de8dfc89804537973fdff6957c4cb6daaf356834ba1d3b9fc6"
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -2434,6 +2434,16 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
+    },
+    {
+      "path": "scripts/verify-release-source.mjs",
+      "size": 1840,
+      "sha256": "b31a302497c678db1108bc2b33d35ea558c3ddc16839e4f385b3172dfa33c1a9"
+    },
+    {
+      "path": "tests/v267-release-source-identity.test.mjs",
+      "size": 3828,
+      "sha256": "acb26b0c1626b3f80106dfbda5542d3256563a0c58a5ebc5b14569ab56413bab"
     }
   ],
   "version": "V198"
