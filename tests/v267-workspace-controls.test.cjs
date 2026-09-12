@@ -116,3 +116,80 @@ test('a synchronous client setup error permits a successful retry',async()=>{
  window.AQARI_SUPABASE.getClient=()=>{throw Error('provider unavailable');};await assert.rejects(s.connect(),/provider unavailable/);
  const client={ready:true};window.AQARI_SUPABASE.getClient=async()=>client;assert.equal(await s.connect(),client);s.close();
 });
+
+// Delayed transports model a response already in progress when the user leaves
+// the record or changes identity. No hosted account or business data is used.
+const microtasks=async()=>{for(let n=0;n<12;n++)await Promise.resolve();};
+for(const method of ['GET','POST'])for(const change of ['account','workspace','role','close']){
+ test(`storage ${method} discards its completed body after ${change}`,async t=>{
+  context();const {createSession}=await moduleAt('api/session.js'),s=createSession();let finish;
+  window.AQARI_SUPABASE.getSession=async()=>({access_token:'synthetic-only',user:{id:'u'}});
+  const body=new Promise(resolve=>finish=resolve);
+  t.mock.method(global,'fetch',async()=>({ok:true,blob:()=>body,json:()=>body}));
+  try{
+   const pending=s.storage(method,'w/document.pdf',method==='POST'?new Blob(['synthetic']):undefined);
+   await microtasks();
+   if(change==='account'){
+    window.AQARI_SUPABASE.context.user.id='other-user';
+    window.AQARI_SUPABASE.context.membership.user_id='other-user';
+    window.AQARI_DATA_GATE.scope.userId='other-user';
+   }
+   if(change==='workspace'){
+    window.AQARI_SUPABASE.context.workspace.id='other-workspace';
+    window.AQARI_SUPABASE.context.membership.workspace_id='other-workspace';
+    window.AQARI_DATA_GATE.scope.workspaceId='other-workspace';
+   }
+   if(change==='role')window.AQARI_SUPABASE.context.membership.role='accountant';
+   const rejected=assert.rejects(pending,/جلسة/);
+   if(change==='close')s.close();
+   finish(method==='GET'?new Blob(['private fixture']):{saved:true});
+   await rejected;
+  }finally{finish({});s.close();}
+ });
+}
+
+test('closing settles an RPC even when its transport ignores abort',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+ const s=createSession();let signal,outcome='pending';
+ const pending=s.request({abortSignal(value){signal=value;return new Promise(()=>{});}});
+ pending.then(()=>outcome='resolved',()=>outcome='rejected');
+ try{
+  s.close();await microtasks();
+  assert.equal(signal.aborted,true);
+  assert.equal(outcome,'rejected','leaving the page must not wait for the 20-second deadline');
+  await assert.rejects(pending,/جلسة/);
+ }finally{t.mock.timers.tick(20000);await pending.catch(()=>{});s.close();}
+});
+
+for(const phase of ['session','GET body','POST body']){
+ test(`closing settles storage during a hanging ${phase}`,async t=>{
+  context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+  const s=createSession();let outcome='pending',calls=0;
+  window.AQARI_SUPABASE.getSession=phase==='session'?()=>new Promise(()=>{}):async()=>({access_token:'synthetic-only',user:{id:'u'}});
+  t.mock.method(global,'fetch',async()=>{calls++;return {ok:true,blob:()=>new Promise(()=>{}),json:()=>new Promise(()=>{})};});
+  const method=phase==='POST body'?'POST':'GET';
+  const pending=s.storage(method,'w/document.pdf',method==='POST'?new Blob(['synthetic']):undefined);
+  pending.then(()=>outcome='resolved',()=>outcome='rejected');
+  try{
+   await microtasks();s.close();await microtasks();
+   assert.equal(calls,phase==='session'?0:1);
+   assert.equal(outcome,'rejected','close must settle storage without provider cooperation');
+   await assert.rejects(pending,/جلسة/);
+  }finally{t.mock.timers.tick(20000);await pending.catch(()=>{});s.close();}
+ });
+}
+
+test('RPC and storage deadlines still abort and permit a fresh request',async t=>{
+ context();const {createSession}=await moduleAt('api/session.js');t.mock.timers.enable({apis:['setTimeout']});
+ const s=createSession();let rpcSignal,storageSignal,hang=true;
+ window.AQARI_SUPABASE.getSession=async()=>({access_token:'synthetic-only',user:{id:'u'}});
+ t.mock.method(global,'fetch',async(_url,options)=>{storageSignal=options.signal;return {ok:true,blob:()=>hang?new Promise(()=>{}):Promise.resolve(new Blob(['fresh']))};});
+ try{
+  const rpc=s.request({abortSignal(signal){rpcSignal=signal;return new Promise(()=>{});}}),rpcRejected=assert.rejects(rpc,/انتهت مهلة الاتصال/);
+  t.mock.timers.tick(20000);await rpcRejected;assert.equal(rpcSignal.aborted,true);
+  assert.equal(await s.request({abortSignal:async()=>({data:'fresh',status:200})}),'fresh');
+  const download=s.storage('GET','w/document.pdf'),storageRejected=assert.rejects(download,/انتهت مهلة رفع أو قراءة المستند/);
+  await microtasks();t.mock.timers.tick(20000);await storageRejected;assert.equal(storageSignal.aborted,true);
+  hang=false;assert.equal(await (await s.storage('GET','w/document.pdf')).text(),'fresh');
+ }finally{s.close();}
+});

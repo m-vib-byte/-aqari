@@ -76,9 +76,9 @@ jobs:
           node --input-type=module <<'POLICY'
           import fs from 'node:fs';
           const path='docs/V267-REQUIREMENTS-155.md';const text=fs.readFileSync(path,'utf8');
-          const current="النطاق الملزم وفق أحدث توجيه صريح للمالك في 12 سبتمبر 2026: استكمال البنود الـ155، واختبار الاستخدام الحقيقي والصلاحيات على الآيفون والآيباد والكمبيوتر، والنسخ الاحتياطي الكامل لقاعدة البيانات والحسابات والمرفقات، والاستعادة المعزولة ونقطة رجوع V266 قبل النشر على `myaqari.com`. التفويض قائم ولا يحتاج تجديدًا. يلغي هذا التوجيه استثناء النشر التدريجي السابق؛ لا يكفي نجاح CI أو اكتمال بناء المعاينة. مرجع الشروط [بوابة القبول الكامل](V267-FULL-RELEASE-GATE-2026-09-12.md).";
+          const current="النطاق الملزم وفق أحدث توجيه صريح للمالك في 12 سبتمبر 2026: استكمال البنود الـ155، واختبار الاستخدام الحقيقي والصلاحيات على الآيفون والآيباد والكمبيوتر، والنسخ الاحتياطي الكامل لقاعدة البيانات والحسابات والمرفقات، والاستعادة المعزولة ونقطة رجوع V266 قبل النشر على `myaqari.com`. التفويض قائم ولا يحتاج تجديدًا. يلغي هذا التوجيه استثناء النشر التدريجي السابق؛ لا يكفي نجاح CI أو اكتمال بناء المعاينة. مرجع الشروط [بوابة القبول الكامل](V267-FULL-RELEASE-GATE-2026-09-12.md)، مع الاحتفاظ بأدلة [ربط النماذج الرسمية](V267-OFFICIAL-SOURCES-2026-09-12.md).";
           if(!text.includes(current)){
-           const lines=text.split('\n'),indexes=lines.map((line,i)=>line.startsWith('النطاق الجاري وفق آخر توجيه')?i:-1).filter(i=>i>=0);
+           const lines=text.split('\n'),indexes=lines.map((line,i)=>line.startsWith('النطاق الجاري وفق آخر')?i:-1).filter(i=>i>=0);
            if(indexes.length!==1)throw Error('RELEASE_POLICY_SOURCE_CHANGED');
            lines[indexes[0]]=current;fs.writeFileSync(path,lines.join('\n'));
           }

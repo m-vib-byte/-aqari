@@ -5,7 +5,27 @@ export function currentScope() {
  return {user:c.user.id,workspace:c.workspace.id,role:c.membership.role};
 }
 const messages={PARTNER_STAFF_CONFLICT:'لا يمكن ربط حساب موظف عام بصلاحية شريك محدودة. استخدم بريداً مستقلاً للشريك.',INVALID_PARTNER_ACCESS:'راجع البريد والاسم والعقار وسبب التعديل.',SOURCE_FIELDS_PENDING:'الاسم أو تواريخ العقد أو بيانات المصدر ما زالت معلقة.',VERIFIED_LEASE_DOCUMENT_REQUIRED:'يلزم عقد موقّع محفوظ ومربوط بالعقد الصحيح.',DOCUMENTED_DEPOSIT_REQUIRED:'أدخل التأمين المثبت بالمستند دون قيمة افتراضية.',APPROVED_DOCUMENT_REQUIRED:'تأكيد التوقيع يتطلب نفس المستند والتأمين المعتمدين.',INVALID_REVIEW_TRANSITION:'تغيرت مرحلة العقد؛ حدّث السجلات.',REVIEW_DETAILS_REQUIRED:'وثّق مرجع المراجعة وسبب الاعتماد.',REVISION_CONFLICT:'تغيرت الإعدادات. حدّث السجلات قبل الحفظ.',ACCESS_DENIED:'لا تملك صلاحية هذه العملية.',SECTION_WRITE_DENIED:'القسم متوقف أو صلاحية الحفظ غير متاحة.',INVALID_LABEL:'راجع المسمى؛ النص يجب ألا يحتوي رموز HTML.',DOCUMENT_ENTITY_NOT_FOUND:'احفظ السجل الصحيح أولاً قبل رفع المستند.',STORED_FILE_NOT_CONFIRMED:'لم يتأكد الملف في التخزين. حدّث السجلات قبل إعادة الرفع.',DOCUMENT_IMMUTABLE:'النسخة الأصلية محفوظة ولا يمكن استبدالها.'};
-export function safeError(e){return messages[String(e?.message||'').split(':')[0]] || (/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.');}
+Object.assign(messages,{
+ DOCUMENT_SOURCE_MISMATCH:'تغيرت بيانات المصدر المالي. أعد اختيار الحركة المحفوظة قبل الإصدار.',
+ DOCUMENT_CONFIRMED_PAYMENT_REQUIRED:'اختر دفعة إيجار مؤكدة وغير ملغاة للعقد المحدد.',
+ DOCUMENT_CONFIRMED_DEPOSIT_REQUIRED:'اختر حركة تأمين مؤكدة من النوع المطلوب للعقد نفسه.',
+ DOCUMENT_APPROVED_EXPENSE_REQUIRED:'اختر مصروفاً معتمداً للعقار المحدد.',
+ DOCUMENT_APPROVED_SOURCE_REQUIRED:'أمر الشغل لم يعتمد بعد أو لم يعد صالحاً للإصدار.',
+ DOCUMENT_APPROVED_SETTLEMENT_REQUIRED:'أكمل اعتماد التسوية وبراءة الذمة في سجل الإخلاء أولاً.',
+ DOCUMENT_SUPPLEMENTAL_SETTLEMENT_REVIEW_REQUIRED:'التسوية تحتاج مطابقة التزامات الخدمات والقضايا والقيود الإضافية قبل إصدار المستند.',
+ DOCUMENT_OPENING_RECONCILIATION_REQUIRED:'يلزم اعتماد تاريخ بداية الرصيد الافتتاحي قبل إصدار كشف الحساب؛ لن يضاف الإيجار القديم مرتين.',
+ DOCUMENT_COMMERCIAL_RECONCILIATION_REQUIRED:'يلزم إقفال مستحقات السماح والمبيعات والخدمات التجارية قبل إصدار الكشف.',
+ DOCUMENT_UNALLOCATED_DEBT_REVIEW_REQUIRED:'توجد مديونية للمستأجر غير موزعة على عقد؛ يلزم تسويتها قبل الإصدار.',
+ DOCUMENT_CREDIT_TRANSFER_REVIEW_REQUIRED:'توجد تسوية رصيد بين عقود تحتاج مطابقة قبل إصدار الكشف.',
+ DOCUMENT_NO_ACTUAL_DEBT:'لا توجد مديونية فعلية تبرر إصدار الإشعار.',
+ DOCUMENT_SOURCE_CANNOT_CHANGE:'لا يمكن تغيير المصدر المرتبط بمستند محفوظ.',
+ DOCUMENT_IDEMPOTENCY_CONFLICT:'المعرف مستخدم بمحتوى مختلف؛ راجع الأرشيف قبل محاولة إصدار أخرى.',
+ STALE_DOCUMENT_VERSION:'صدر تعديل أحدث لهذا المستند. أعد فتح النسخة الحالية قبل التصحيح.',
+ INVALID_DOCUMENT_RANGE:'راجع ترتيب التواريخ وفترة الكشف والمبالغ المستحقة.',
+ INVALID_DOCUMENT_FIELD:'أكمل حقول النموذج بالقيم الصحيحة قبل الحفظ.',
+ DOCUMENT_OPTIONS_LIMIT:'تجاوز عدد السجلات حد العرض؛ يلزم تضييق نطاق السجلات قبل الإصدار.'
+});
+export function safeError(e){if(e?.code==='23505'&&String(e?.message||'').includes('aqari_official_unique_financial_source'))return 'سبق إصدار مستند لهذه الحركة. افتحه من الأرشيف لإنشاء إصدار مصحح.';return messages[String(e?.message||'').split(':')[0]] || (/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.');}
 export function createSession(){
  const bound=currentScope(),jobs=new Set();let closed=false,client;
  const check=()=>{if(closed||JSON.stringify(currentScope())!==JSON.stringify(bound))throw Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.');};
@@ -23,12 +43,26 @@ export function createSession(){
    const candidate=await Promise.race([work,stopped]);check();client=candidate;return client;
   }finally{clearTimeout(timer);controller.signal.removeEventListener('abort',aborted);jobs.delete(controller);}
  }
- async function request(query){check();const controller=new AbortController();jobs.add(controller);let timer;
-  try{const work=query.abortSignal(controller.signal);const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة الاتصال. حدّث السجلات للتحقق.'));},20000);});const r=await Promise.race([work,timeout]);check();if(r.error){const error=Object.assign(new Error(r.error.message||'REQUEST_FAILED'),r.error);if(Number.isInteger(r.status))error.status=r.status;throw error;}return r.data;}finally{clearTimeout(timer);jobs.delete(controller);}}
+ async function waitForRequest(work,controller,timeoutMessage){
+  let timer,aborted;
+  try{
+   // The provider may ignore abort while resolving auth or reading a body.
+   // Close must still settle the caller immediately and discard any late result.
+   const stopped=new Promise((_,reject)=>{
+    aborted=()=>reject(Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.'));
+    controller.signal.addEventListener('abort',aborted,{once:true});
+    if(controller.signal.aborted){aborted();return;}
+    timer=setTimeout(()=>{reject(Error(timeoutMessage));controller.abort();},20000);
+   });
+   return await Promise.race([work,stopped]);
+  }finally{clearTimeout(timer);controller.signal.removeEventListener('abort',aborted);}
+ }
+ async function request(query){check();const controller=new AbortController();jobs.add(controller);
+  try{const r=await waitForRequest(query.abortSignal(controller.signal),controller,'انتهت مهلة الاتصال. حدّث السجلات للتحقق.');check();if(r.error){const error=Object.assign(new Error(r.error.message||'REQUEST_FAILED'),r.error);if(Number.isInteger(r.status))error.status=r.status;throw error;}return r.data;}finally{jobs.delete(controller);}}
  function close(){closed=true;for(const job of jobs)job.abort();jobs.clear();}
  async function storage(method,path,body,bucket='aqari-documents'){
   check();if(!['aqari-documents','aqari-hr-private'].includes(bucket)||!path.startsWith(bound.workspace+'/')||path.includes('..')||!['POST','GET'].includes(method))throw Error('مسار المستند غير صالح.');
-  const controller=new AbortController();jobs.add(controller);let timer;
+  const controller=new AbortController();jobs.add(controller);
   try{
    const work=(async()=>{const auth=await window.AQARI_SUPABASE.getSession();check();if(!auth?.access_token||auth.user?.id!==bound.user)throw Error('تغيرت جلسة الدخول.');
     const suffix=path.split('/').map(encodeURIComponent).join('/');
@@ -36,8 +70,10 @@ export function createSession(){
      method,body,headers:{apikey:window.AQARI_PUBLIC_CONFIG.supabasePublishableKey,Authorization:'Bearer '+auth.access_token,...(body?{'Content-Type':body.type,'x-upsert':'false'}:{})},
      signal:controller.signal,cache:'no-store',credentials:'omit',redirect:'error'});
     check();if(!response.ok){const error=Error('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.');error.status=response.status;throw error;}return method==='GET'?response.blob():response.json();})();
-   return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(Error('انتهت مهلة رفع أو قراءة المستند. حدّث السجلات للتحقق.'));},20000);})]);
-  }finally{clearTimeout(timer);jobs.delete(controller);}
+   const result=await waitForRequest(work,controller,'انتهت مهلة رفع أو قراءة المستند. حدّث السجلات للتحقق.');
+   // Revalidate after the complete body, not only after the response headers.
+   check();return result;
+  }finally{jobs.delete(controller);}
  }
  return {bound,connect,check,request,storage,close,get client(){return client;}};
 }

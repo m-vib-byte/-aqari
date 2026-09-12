@@ -1,0 +1,582 @@
+{
+  "templates": {
+    "rent_receipt": {
+      "title": "وصل إيجار",
+      "prefix": "RENT",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "propertyName",
+        "unitNo",
+        "contractNo",
+        "period",
+        "amount",
+        "paymentMethod",
+        "paymentReference",
+        "collectorName"
+      ],
+      "body": "نشهد باستلام مبلغ {{amount}} د.ك من السيد/السيدة {{tenantName}} عن إيجار الوحدة {{unitNo}} في {{propertyName}} عن الفترة {{period}}، بموجب العقد رقم {{contractNo}} وطريقة السداد {{paymentMethod}} والمرجع {{paymentReference}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "deposit_receipt": {
+      "title": "وصل تأمين",
+      "prefix": "DEPOSIT",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "propertyName",
+        "unitNo",
+        "contractNo",
+        "amount",
+        "paymentMethod",
+        "collectorName"
+      ],
+      "body": "نشهد باستلام مبلغ {{amount}} د.ك كتأمين مستقل عن الأجرة للوحدة {{unitNo}} في {{propertyName}}، مرتبطاً بالعقد رقم {{contractNo}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "deposit_refund": {
+      "title": "سند رد تأمين",
+      "prefix": "DEP-REF",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "amount",
+        "reason",
+        "approvedBy"
+      ],
+      "body": "تم رد مبلغ التأمين وقدره {{amount}} د.ك إلى {{tenantName}} عن العقد رقم {{contractNo}}، بعد اعتماد التسوية، وسبب الحركة: {{reason}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "tenant_statement": {
+      "title": "كشف حساب مستأجر",
+      "prefix": "STMT",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "fromDate",
+        "toDate",
+        "openingBalance",
+        "charges",
+        "payments",
+        "credits",
+        "closingBalance"
+      ],
+      "body": "كشف حساب للفترة من {{fromDate}} إلى {{toDate}}. الرصيد الافتتاحي {{openingBalance}} د.ك، المطلوب {{charges}} د.ك، المدفوع {{payments}} د.ك، والتسويات الدائنة {{credits}} د.ك، والمتبقي {{closingBalance}} د.ك.",
+      "immutableAfterIssue": true,
+      "version": 2
+    },
+    "debt_notice": {
+      "title": "إشعار مديونية",
+      "prefix": "DEBT",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "dueAmount",
+        "dueDate",
+        "graceDeadline"
+      ],
+      "body": "يرجى سداد المبلغ المستحق وقدره {{dueAmount}} د.ك عن العقد رقم {{contractNo}}، المستحق بتاريخ {{dueDate}}، في موعد أقصاه {{graceDeadline}}. هذا الإشعار مبني على الرصيد الفعلي وقت الإصدار.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "renewal_notice": {
+      "title": "إشعار تجديد عقد",
+      "prefix": "RENEW",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "currentEndDate",
+        "responseDeadline"
+      ],
+      "body": "نفيدكم بقرب انتهاء العقد رقم {{contractNo}} بتاريخ {{currentEndDate}}. يرجى تسجيل قرار التجديد قبل {{responseDeadline}}، ولا يعد هذا الإشعار عقداً جديداً.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "nonrenewal_notice": {
+      "title": "إشعار عدم تجديد",
+      "prefix": "NONRENEW",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "currentEndDate",
+        "vacateDate"
+      ],
+      "body": "نفيدكم بعدم تجديد العقد رقم {{contractNo}} بعد انتهائه بتاريخ {{currentEndDate}}، ويرجى استكمال إجراءات التسليم والإخلاء في موعد {{vacateDate}} وفق التسوية النهائية.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "receipt_voucher": {
+      "title": "سند قبض",
+      "prefix": "RV",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "receivedFrom",
+        "amount",
+        "reason",
+        "paymentMethod",
+        "reference",
+        "collectorName"
+      ],
+      "body": "استلمنا من {{receivedFrom}} مبلغاً وقدره {{amount}} د.ك، وذلك عن {{reason}}، بطريقة {{paymentMethod}}، مرجع {{reference}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "payment_voucher": {
+      "title": "سند صرف",
+      "prefix": "PV",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "paidTo",
+        "amount",
+        "reason",
+        "expenseCategory",
+        "approvedBy"
+      ],
+      "body": "صُرف إلى {{paidTo}} مبلغ وقدره {{amount}} د.ك عن {{reason}}، تحت بند {{expenseCategory}}، بعد اعتماد {{approvedBy}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "work_order": {
+      "title": "أمر شغل",
+      "prefix": "WO",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "propertyName",
+        "vendorName",
+        "description",
+        "approvedAmount",
+        "approvedBy"
+      ],
+      "body": "يُكلف المقاول {{vendorName}} بتنفيذ الأعمال التالية في {{propertyName}}: {{description}}. الحد المالي المعتمد {{approvedAmount}} د.ك، ولا تعتمد الفاتورة قبل إثبات الإنجاز.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "expense_approval": {
+      "title": "اعتماد مصروف",
+      "prefix": "EXP",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "propertyName",
+        "expenseCategory",
+        "amount",
+        "invoiceReference",
+        "approvedBy"
+      ],
+      "body": "اعتمد المصروف بمبلغ {{amount}} د.ك على العقار {{propertyName}}، بند {{expenseCategory}}، فاتورة/مرجع {{invoiceReference}}، واعتماد {{approvedBy}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "key_handover": {
+      "title": "محضر تسليم واستلام مفاتيح",
+      "prefix": "KEYS",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "propertyName",
+        "unitNo",
+        "keyCount",
+        "deliveredBy",
+        "receivedBy"
+      ],
+      "body": "تم تسليم واستلام عدد {{keyCount}} مفتاحاً للوحدة {{unitNo}} في {{propertyName}} بين {{deliveredBy}} و{{receivedBy}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "damage_report": {
+      "title": "محضر أضرار",
+      "prefix": "DMG",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "propertyName",
+        "unitNo",
+        "inspectionReference",
+        "damageSummary",
+        "estimatedAmount"
+      ],
+      "body": "بناء على المعاينة رقم {{inspectionReference}}، سُجلت الأضرار التالية في الوحدة {{unitNo}}: {{damageSummary}}. التقدير الأولي {{estimatedAmount}} د.ك ولا يصبح ذمة نهائية قبل الاعتماد.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "final_settlement": {
+      "title": "التسوية النهائية",
+      "prefix": "SETTLE",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "rentBalance",
+        "damageBalance",
+        "utilityBalance",
+        "legalBalance",
+        "depositBalance",
+        "netBalance",
+        "approvedBy"
+      ],
+      "body": "التسوية النهائية للعقد رقم {{contractNo}}: إيجار {{rentBalance}} د.ك، أضرار {{damageBalance}} د.ك، خدمات {{utilityBalance}} د.ك، قضائي {{legalBalance}} د.ك، تأمين {{depositBalance}} د.ك، والصافي {{netBalance}} د.ك.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "clearance": {
+      "title": "براءة ذمة",
+      "prefix": "CLEAR",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "tenantName",
+        "contractNo",
+        "settlementReference",
+        "approvedBy"
+      ],
+      "body": "تشهد الإدارة بإقفال الالتزامات المعتمدة للعقد رقم {{contractNo}} وفق التسوية النهائية رقم {{settlementReference}}. لا تصدر هذه الوثيقة عند وجود التزام مفتوح إلا باستثناء رسمي محفوظ.",
+      "immutableAfterIssue": true,
+      "version": 1
+    },
+    "daily_collection": {
+      "title": "كشف التحصيل اليومي",
+      "prefix": "DAILY",
+      "required": [
+        "documentNo",
+        "issuedAt",
+        "collectionDate",
+        "propertyName",
+        "receiptCount",
+        "totalAmount",
+        "preparedBy"
+      ],
+      "body": "كشف تحصيل العقار {{propertyName}} ليوم {{collectionDate}}: عدد الوصولات {{receiptCount}}، وإجمالي التحصيل الفعلي {{totalAmount}} د.ك، أعده {{preparedBy}}.",
+      "immutableAfterIssue": true,
+      "version": 1
+    }
+  },
+  "fields": {
+    "documentNo": {
+      "label": "رقم المستند",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "issuedAt": {
+      "label": "تاريخ الإصدار",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "tenantName": {
+      "label": "اسم المستأجر",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "propertyName": {
+      "label": "اسم العقار",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "unitNo": {
+      "label": "رقم الوحدة",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "contractNo": {
+      "label": "رقم العقد",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "period": {
+      "label": "فترة الإيجار",
+      "type": "month",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "amount": {
+      "label": "المبلغ (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "paymentMethod": {
+      "label": "طريقة الدفع",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "paymentReference": {
+      "label": "مرجع الدفع",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "collectorName": {
+      "label": "اسم المحصل",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "reason": {
+      "label": "سبب الحركة",
+      "type": "text",
+      "multiline": true,
+      "maxLength": 5000
+    },
+    "approvedBy": {
+      "label": "اسم المعتمد",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "fromDate": {
+      "label": "من تاريخ",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "toDate": {
+      "label": "إلى تاريخ",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "openingBalance": {
+      "label": "الرصيد الافتتاحي (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "charges": {
+      "label": "المطلوب (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "payments": {
+      "label": "المدفوع (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "credits": {
+      "label": "التسويات الدائنة (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "closingBalance": {
+      "label": "الرصيد الختامي (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "dueAmount": {
+      "label": "المستحق الفعلي (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "dueDate": {
+      "label": "تاريخ الاستحقاق",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "graceDeadline": {
+      "label": "آخر مهلة للسداد",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "currentEndDate": {
+      "label": "تاريخ انتهاء العقد",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "responseDeadline": {
+      "label": "آخر موعد للرد",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "vacateDate": {
+      "label": "تاريخ الإخلاء",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "receivedFrom": {
+      "label": "استلمنا من",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "reference": {
+      "label": "المرجع",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "paidTo": {
+      "label": "المستفيد من الصرف",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "expenseCategory": {
+      "label": "بند المصروف",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "vendorName": {
+      "label": "اسم المقاول",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "description": {
+      "label": "وصف الأعمال",
+      "type": "text",
+      "multiline": true,
+      "maxLength": 5000
+    },
+    "approvedAmount": {
+      "label": "المبلغ المعتمد (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "invoiceReference": {
+      "label": "مرجع الفاتورة",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "keyCount": {
+      "label": "عدد المفاتيح",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "deliveredBy": {
+      "label": "اسم المسلّم",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "receivedBy": {
+      "label": "اسم المستلم",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "inspectionReference": {
+      "label": "مرجع المعاينة",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "damageSummary": {
+      "label": "وصف الأضرار",
+      "type": "text",
+      "multiline": true,
+      "maxLength": 5000
+    },
+    "estimatedAmount": {
+      "label": "التكلفة التقديرية (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "rentBalance": {
+      "label": "رصيد الإيجار (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "damageBalance": {
+      "label": "رصيد الأضرار (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "utilityBalance": {
+      "label": "رصيد الخدمات (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "legalBalance": {
+      "label": "رصيد القضايا (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "depositBalance": {
+      "label": "رصيد التأمين (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "netBalance": {
+      "label": "صافي التسوية (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "settlementReference": {
+      "label": "مرجع التسوية",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "collectionDate": {
+      "label": "تاريخ التحصيل",
+      "type": "date",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "receiptCount": {
+      "label": "عدد الوصولات",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "totalAmount": {
+      "label": "إجمالي التحصيل (د.ك)",
+      "type": "decimal",
+      "multiline": false,
+      "maxLength": 5000
+    },
+    "preparedBy": {
+      "label": "اسم معدّ الكشف",
+      "type": "text",
+      "multiline": false,
+      "maxLength": 5000
+    }
+  }
+}
