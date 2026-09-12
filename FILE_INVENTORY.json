@@ -1492,8 +1492,8 @@
     },
     {
       "path": "staging-database/tests/financial_close_cancellations.sql",
-      "size": 6530,
-      "sha256": "47c9a1750565edf2f4208dd02967378116af923e5cc4787449fddf6228636dac"
+      "size": 7359,
+      "sha256": "721a50e18e9b1b5bac1bd62d28e774d57f602f6384e32f730b913b807fbcf145"
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
