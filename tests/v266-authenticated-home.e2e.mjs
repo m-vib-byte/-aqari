@@ -159,7 +159,7 @@ try{
         }else{
           await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-auth-unlocked'),{},{timeout:18000});
           await page.waitForFunction(versions=>versions.every(version=>Boolean(window['AQARI_V'+version])),presentationVersions,{timeout:18000});
-          await page.waitForSelector('#aqari-v267-automation-status',{timeout:18000});
+          await page.waitForSelector('#aqari-v267-automation-status',{state:'attached',timeout:18000});
           assert.equal(await page.locator('#aqari-v266-scheduler-control-js').count(),0,'isolated V267 must not load the production scheduler');
           const loadedVersions=await page.evaluate(()=>window.__authenticatedScriptLoads.map(item=>item.id.match(/^aqari-v(\d+)-/)[1]));
           for(const version of [...presentationVersions,'267'])assert.ok(loadedVersions.includes(version),'authenticated script boundary was not observed: V'+version);

@@ -2127,8 +2127,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "size": 15179,
-      "sha256": "cc1f4a811a1a49d3816bfd3108c667dea23c1ff320ae60960f0365d009b5e415"
+      "size": 15196,
+      "sha256": "2f05194e045771de58bcac50b7b35bdac7549a20264de45de109a54f699776f3"
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
