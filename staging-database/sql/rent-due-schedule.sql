@@ -141,9 +141,9 @@ set search_path=''
 as $$
 declare p public.aqari_rent_payments;
 begin
-  select * into p from public.aqari_rent_payments where id=coalesce(new.payment_id,old.payment_id);
+  select * into p from public.aqari_rent_payments where id=case when tg_op='DELETE' then old.payment_id else new.payment_id end;
   if found then perform private.aqari_refresh_rent_due_schedule(p.workspace_id,p.lease_id); end if;
-  return coalesce(new,old);
+  if tg_op='DELETE' then return old; else return new; end if;
 end $$;
 revoke all on function private.aqari_refresh_rent_due_after_cancellation() from public,anon,authenticated;
 
