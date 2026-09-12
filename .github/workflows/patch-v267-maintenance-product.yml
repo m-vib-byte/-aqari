@@ -1,0 +1,83 @@
+name: Patch V267 maintenance product files
+
+on:
+  push:
+    branches:
+      - fix/v267-maintenance-request-attachments
+    paths:
+      - .github/workflows/patch-v267-maintenance-product.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/v267-maintenance-request-attachments
+      - name: Patch tenant and staff maintenance flows
+        shell: python
+        run: |
+          import hashlib,json,pathlib
+          def replace_once(path,old,new):
+              p=pathlib.Path(path);text=p.read_text(encoding='utf-8')
+              if text.count(old)!=1: raise SystemExit(f'ANCHOR_CHANGED:{path}:{old[:80]}')
+              p.write_text(text.replace(old,new),encoding='utf-8')
+
+          replace_once('tenant.html',
+            '<form id="maintenanceForm"><label><span data-aq267-text="العقد والوحدة">العقد والوحدة</span><select id="maintenanceLease" required></select></label><label><span data-aq267-text="وصف الطلب">وصف الطلب</span><textarea id="maintenanceDescription" minlength="5" maxlength="3000" required></textarea></label><button id="maintenanceSave" data-aq267-text="إرسال الطلب">إرسال الطلب</button></form>',
+            '<form id="maintenanceForm"><label><span data-aq267-text="العقد والوحدة">العقد والوحدة</span><select id="maintenanceLease" required></select></label><label><span data-aq267-text="نوع الصيانة">نوع الصيانة</span><select id="maintenanceType" required></select></label><label><span data-aq267-text="وصف الطلب">وصف الطلب</span><textarea id="maintenanceDescription" minlength="5" maxlength="3000" required></textarea></label><label><span data-aq267-text="صور الطلب">صور الطلب</span><input id="maintenancePhotos" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple></label><p data-aq267-text="يمكن إرفاق حتى أربع صور، وبحد أقصى ١٠ ميجابايت للصورة.">يمكن إرفاق حتى أربع صور، وبحد أقصى ١٠ ميجابايت للصورة.</p><button id="maintenanceSave" data-aq267-text="إرسال الطلب">إرسال الطلب</button></form>')
+
+          p=pathlib.Path('v267-tenant-portal.js');text=p.read_text(encoding='utf-8')
+          def sub1(old,new):
+              global text
+              if text.count(old)!=1: raise SystemExit('TENANT_PORTAL_ANCHOR_CHANGED:'+old[:100])
+              text=text.replace(old,new)
+          sub1("import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';", "import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';\nimport {MAINTENANCE_TYPES,maintenanceTypeLabel,validateMaintenanceFiles,uploadMaintenanceFiles} from './src/v267/components/maintenance-request.js';")
+          sub1("for(const [code,label] of Object.entries(LANGUAGES)){const option=document.createElement('option');option.value=code;option.textContent=label;$('tenantLanguage').append(option);}", "for(const [code,label] of Object.entries(LANGUAGES)){const option=document.createElement('option');option.value=code;option.textContent=label;$('tenantLanguage').append(option);}\nfor(const [value,label] of MAINTENANCE_TYPES){const option=document.createElement('option');option.value=value;option.textContent=t(label);$('maintenanceType').append(option);}")
+          sub1("$('maintenanceDescription').value='';$('tenantPassword').value='';", "$('maintenanceDescription').value='';$('maintenanceType').value='general';$('maintenancePhotos').value='';$('tenantPassword').value='';")
+          sub1("!['leases','payments','maintenance'].every(k=>Array.isArray(data[k]))", "!['leases','payments','maintenance','maintenance_attachments'].every(k=>Array.isArray(data[k]))")
+          sub1("items('tenantRequests',data.maintenance,m=>{const description=document.createElement('span');description.textContent='\\n'+m.description;return [uiText('span','طلب {number} • ',{number:m.request_no}),uiText('span',states[m.status]||'غير معروف'),description];});",
+            "const maintenanceFiles=new Map();for(const attachment of data.maintenance_attachments){const list=maintenanceFiles.get(attachment.request_id)||[];list.push(attachment);maintenanceFiles.set(attachment.request_id,list);}\n items('tenantRequests',data.maintenance,m=>{const description=document.createElement('span');description.textContent='\\n'+m.description;const files=maintenanceFiles.get(m.id)||[];return [uiText('span','طلب {number} • ',{number:m.request_no}),uiText('span',states[m.status]||'غير معروف'),document.createTextNode(' • '+maintenanceTypeLabel(m.request_type)),uiText('span',' • الصور: {count}',{count:files.length}),description];});\n for(const [i,requestRow] of data.maintenance.entries()){for(const attachment of maintenanceFiles.get(requestRow.id)||[]){const button=uiText('button','فتح صورة الصيانة');button.type='button';button.className='secondary';button.onclick=()=>maintenancePhoto(attachment,button);$('tenantRequests').children[i]?.append(button);}}")
+          sub1("const id=crypto.randomUUID(),lease=snapshot.leases.find(l=>l.id===$('maintenanceLease').value),description=$('maintenanceDescription').value.trim(),today=new Date(Date.now()+10800000).toISOString().slice(0,10);", "const id=crypto.randomUUID(),lease=snapshot.leases.find(l=>l.id===$('maintenanceLease').value),description=$('maintenanceDescription').value.trim(),requestType=$('maintenanceType').value,files=validateMaintenanceFiles($('maintenancePhotos').files),today=new Date(Date.now()+10800000).toISOString().slice(0,10);")
+          sub1("if(!lease||lease.status!=='signed'||lease.start_date>today||lease.end_date<today)throw Error('اختر عقداً فعالاً.');if(description.length<5||description.length>3000)throw Error('أدخل وصفاً من ٥ إلى ٣٠٠٠ حرف.');", "if(!lease||lease.status!=='signed'||lease.start_date>today||lease.end_date<today)throw Error('اختر عقداً فعالاً.');if(description.length<5||description.length>3000)throw Error('أدخل وصفاً من ٥ إلى ٣٠٠٠ حرف.');if(!MAINTENANCE_TYPES.some(([value])=>value===requestType))throw Error('اختر نوع صيانة صحيحاً.');")
+          sub1("sent=true;const {error}=await request(signal=>client.from('aqari_maintenance_requests').insert({id,workspace_id:account.workspace_id,tenant_id:account.tenant_id,lease_id:lease.id,description}).abortSignal(signal));if(!current(e))return;if(error)throw error;", "sent=true;const {error}=await request(signal=>client.from('aqari_maintenance_requests').insert({id,workspace_id:account.workspace_id,tenant_id:account.tenant_id,lease_id:lease.id,description,request_type:requestType}).abortSignal(signal));if(!current(e))return;if(error)throw error;\n  await uploadMaintenanceFiles({client,workspaceId:account.workspace_id,requestId:id,files,run:bounded,check:()=>{if(!current(e))throw Error('تغيرت الجلسة.');}});if(!current(e))return;")
+          sub1("const data=await refresh();if(!current(e))return;if(!data?.maintenance.some(m=>m.id===id))throw Error('READBACK_REQUIRED');", "const data=await refresh();if(!current(e))return;if(!data?.maintenance.some(m=>m.id===id&&m.request_type===requestType))throw Error('READBACK_REQUIRED');if(data.maintenance_attachments.filter(a=>a.request_id===id&&a.status==='uploaded').length!==files.length)throw Error('ATTACHMENT_READBACK_REQUIRED');")
+          sub1("confirmed=true;$('maintenanceDescription').value='';notice('تم حفظ طلب الصيانة وظهوره في سجلك.');", "confirmed=true;$('maintenanceDescription').value='';$('maintenanceType').value='general';$('maintenancePhotos').value='';notice('تم حفظ طلب الصيانة ومرفقاته وظهورها في سجلك.');")
+          anchor="async function receipt(payment,button){"
+          photo="async function maintenancePhoto(attachment,button){\n if(busy||!snapshot)return;const token=start(),e=epoch,account=snapshot.account;\n try{const auth=await session();if(!current(e))return;if(auth?.user.id!==account.user_id){invalidate();return;}\n  const {data,error}=await bounded(client.storage.from(attachment.storage_bucket).download(attachment.storage_path));if(error||!data)throw Error('تعذر استرجاع صورة الصيانة.');\n  const verified=await session();if(!current(e))return;if(verified?.user.id!==account.user_id){invalidate();return;}\n  const url=URL.createObjectURL(data);receiptUrls.add(url);const view=document.createElement('a');view.href=url;view.target='_blank';view.rel='noopener';setText(view,'عرض الصورة المحفوظة');view.style.display='block';button.after(view);button.remove();\n }catch(error){if(current(e))notice(safeError(error));}finally{finish(token);}\n}\n"
+          if text.count(anchor)!=1: raise SystemExit('TENANT_PHOTO_FUNCTION_ANCHOR_CHANGED')
+          p.write_text(text.replace(anchor,photo+anchor),encoding='utf-8')
+
+          replace_once('v267-service-desk.js',"import {currentScope} from './src/v267/api/session.js';","import {currentScope} from './src/v267/api/session.js';\nimport {maintenanceTypeLabel} from './src/v267/components/maintenance-request.js';")
+          replace_once('v267-service-desk.js',"'id,request_no,workspace_id,description,status,cost,revision,tenant:aqari_tenants(full_name)'","'id,request_no,workspace_id,description,request_type,status,cost,revision,tenant:aqari_tenants(full_name)'")
+          replace_once('v267-service-desk.js',"card.append(node('p',row.tenant?.full_name||''),node('p',row.description||''));","card.append(node('p',row.tenant?.full_name||''),node('p',t('نوع الصيانة')+': '+maintenanceTypeLabel(row.request_type)),node('p',row.description||''));")
+
+          inventory=pathlib.Path('FILE_INVENTORY.json');data=json.loads(inventory.read_text(encoding='utf-8'));entries={e['path']:e for e in data['files']}
+          targets=['tenant.html','v267-tenant-portal.js','v267-service-desk.js','src/v267/components/maintenance-request.js','tests/v267-maintenance-request.test.mjs','staging-database/sql/maintenance-request-details.sql','staging-database/tests/maintenance_request_details.sql','staging-database/local-test/package.json']
+          for target in targets:
+              payload=pathlib.Path(target).read_bytes();entry=entries.get(target)
+              if entry is None: entry={'path':target};data['files'].append(entry);entries[target]=entry
+              entry['size']=len(payload);entry['sha256']=hashlib.sha256(payload).hexdigest();print(target,entry['size'],entry['sha256'])
+          data['files'].sort(key=lambda e:e['path']);inventory.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run maintenance regression and isolated SQL acceptance
+        run: |
+          node --test tests/v267-maintenance-request.test.mjs
+          npm ci --prefix staging-database/local-test --ignore-scripts
+          npm run test:completion --prefix staging-database/local-test
+      - name: Commit integrated maintenance request flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tenant.html v267-tenant-portal.js v267-service-desk.js src/v267/components/maintenance-request.js tests/v267-maintenance-request.test.mjs staging-database/sql/maintenance-request-details.sql staging-database/tests/maintenance_request_details.sql staging-database/local-test/package.json FILE_INVENTORY.json
+          git diff --cached --check
+          git commit -m 'feat(v267): integrate typed maintenance requests with private photos'
+          git push origin HEAD:fix/v267-maintenance-request-attachments
