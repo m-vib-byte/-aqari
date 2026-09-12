@@ -42,6 +42,7 @@ $$;
 revoke all on function private.aqari_maintenance_attachment_access(uuid,uuid,text) from public,anon,authenticated;
 grant execute on function private.aqari_maintenance_attachment_access(uuid,uuid,text) to authenticated;
 
+drop policy if exists maintenance_attachment_read on public.aqari_maintenance_attachments;
 create policy maintenance_attachment_read on public.aqari_maintenance_attachments
  for select to authenticated
  using(status='uploaded' and private.aqari_maintenance_attachment_access(workspace_id,request_id,'read'));
@@ -83,6 +84,7 @@ end $$;
 revoke all on function public.aqari_maintenance_attachment_finalize(uuid,bigint,text) from public,anon;
 grant execute on function public.aqari_maintenance_attachment_finalize(uuid,bigint,text) to authenticated;
 
+drop policy if exists v267_maintenance_attachment_upload on storage.objects;
 create policy v267_maintenance_attachment_upload on storage.objects
  for insert to authenticated
  with check(bucket_id='aqari-documents' and exists(
@@ -90,6 +92,7 @@ create policy v267_maintenance_attachment_upload on storage.objects
   where a.storage_bucket=bucket_id and a.storage_path=name and a.status='draft' and a.created_by=auth.uid()
    and private.aqari_maintenance_attachment_access(a.workspace_id,a.request_id,'write')
  ));
+drop policy if exists v267_maintenance_attachment_read on storage.objects;
 create policy v267_maintenance_attachment_read on storage.objects
  for select to authenticated
  using(bucket_id='aqari-documents' and exists(

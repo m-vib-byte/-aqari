@@ -1377,8 +1377,8 @@
     },
     {
       "path": "staging-database/sql/maintenance-request-details.sql",
-      "size": 8235,
-      "sha256": "880d7d99adeb5e36b40a58ba6c8db5dc7d64e19e976777d732758ab3e9cd7a59"
+      "size": 8478,
+      "sha256": "e17dd5421642d2e66680728f50dba00c174c033882e36e29bce56f838e93c587"
     },
     {
       "path": "staging-database/sql/mfa-enforcement.sql",
