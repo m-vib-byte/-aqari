@@ -2142,8 +2142,8 @@
     },
     {
       "path": "staging-database/sql/final-gap-register.sql",
-      "sha256": "59bbce6903fce36b3b0e045b21b42da3ae8b9bb5fac858f58b88950a272c2f00",
-      "size": 16187
+      "sha256": "9411e6be023baced69f5f777fef0d5fd14e5e266348ef8d53215170623fb7e2a",
+      "size": 16087
     },
     {
       "path": "tests/v267-final-gap-register.test.cjs",
