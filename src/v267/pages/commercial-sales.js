@@ -95,8 +95,10 @@ export function mountCommercialSales(d,container){
    if(!row.reversal){const reversal=node('form'),date=input('date'),reason=input();date.value=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kuwait'});reason.required=true;reason.minLength=5;reason.maxLength=500;reversal.append(field('تاريخ القيد العكسي',date),field('سبب العكس',reason),node('button','عكس الاستحقاق بقيد دائن'));reversal.onsubmit=e=>{e.preventDefault();return d.run(async()=>{if(pending)return submit();if(reason.value.trim().length<5)throw Error('أدخل سبب العكس بخمسة أحرف على الأقل.');proposal('reverse',{sale_id:row.id,month:state.month,occurred_on:date.value,reason:reason.value.trim()});await submit();});};card.append(reversal);}
    content.append(card);
   }
-  const paymentDesk=node('section');paymentDesk.className='aq267-commercial-payment-desk';content.append(paymentDesk);
-  paymentDeskDispose=mountCommercialPaymentAllocations(d,paymentDesk,{leases:state.leases}).dispose;
+  if(typeof mountCommercialPaymentAllocations==='function'){
+   const paymentDesk=node('section');paymentDesk.className='aq267-commercial-payment-desk';content.append(paymentDesk);
+   paymentDeskDispose=mountCommercialPaymentAllocations(d,paymentDesk,{leases:state.leases}).dispose;
+  }
  }
  loadButton.onclick=()=>d.run(async()=>{try{await load();}catch(error){if(error?.code==='PGRST202')throw Error('استحقاقات المبيعات تحتاج تفعيل تحديث قاعدة البيانات. بقية مركز المطابقة متاحة.');throw error;}});
  retry.onclick=()=>d.run(submit);
