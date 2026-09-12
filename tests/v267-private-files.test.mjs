@@ -40,3 +40,13 @@ test('silent account change after PDF retrieval discards the file',async()=>{
 test('HTML response and denied response never become a downloadable PDF',async()=>{
  for(const response of [{ok:false},{ok:true,blob:async()=>new Blob(['html'],{type:'text/html'})}]){const f=fixture();await assert.rejects(readProtectedPDF(f.d,{getSession:auth,fetcher:async()=>response}));}
 });
+
+for(const status of [401,403,503])test(`PDF rejection preserves HTTP ${status} for the dialog boundary`,async()=>{
+ const f=fixture();let readBody=false;
+ await assert.rejects(readProtectedPDF(f.d,{getSession:auth,fetcher:async()=>({ok:false,status,blob(){readBody=true;throw Error('denied body must not be read');}})}),error=>{
+  assert.equal(error.status,status);
+  assert.equal(error.message,'تعذر تصدير الكشف.');
+  return true;
+ });
+ assert.equal(readBody,false);
+});
