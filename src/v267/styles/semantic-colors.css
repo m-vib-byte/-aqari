@@ -1,0 +1,81 @@
+/* AQARI V267 semantic colour layer. Presentation only; no auth/visibility changes. */
+@media screen {
+ body.aq-v267 {
+  --aq-sem-primary:#806027;
+  --aq-sem-primary-soft:#f7f0e2;
+  --aq-sem-success:#2f7650;
+  --aq-sem-success-soft:#edf6f0;
+  --aq-sem-warning:#a66d18;
+  --aq-sem-warning-soft:#fff5df;
+  --aq-sem-danger:#b42318;
+  --aq-sem-danger-soft:#fff1f0;
+  --aq-sem-info:#486786;
+  --aq-sem-info-soft:#eef4fa;
+ }
+
+ /* Destructive actions are consistently red; normal primary actions remain gold. */
+ body.aq-v267 :is(button.danger,button.destructive,button[data-variant='danger'],button[data-tone='danger'],button[data-action='delete'],button[data-action='remove']) {
+  background:var(--aq-sem-danger)!important;
+  border-color:var(--aq-sem-danger)!important;
+  color:#fff!important;
+  box-shadow:none!important;
+ }
+ body.aq-v267 :is(button.danger,button.destructive,button[data-variant='danger'],button[data-tone='danger'],button[data-action='delete'],button[data-action='remove']):hover {
+  background:#982018!important;
+  border-color:#982018!important;
+ }
+
+ /* Any close/X control is intentionally red and visually consistent. */
+ body.aq-v267 .aq267-dialog {position:relative}
+ body.aq-v267 :is(.aq267-close,button.close,button.close-btn,button.modal-close,button.dialog-close,button[aria-label='إغلاق'],button[aria-label='Close'],button[title='إغلاق'],button[title='Close'],button[data-action='close'],button[data-v199-action='close']) {
+  width:44px!important;
+  min-width:44px!important;
+  height:44px!important;
+  min-height:44px!important;
+  padding:0!important;
+  border:1px solid #efc4c1!important;
+  border-radius:12px!important;
+  background:var(--aq-sem-danger-soft)!important;
+  color:var(--aq-sem-danger)!important;
+  box-shadow:none!important;
+ }
+ body.aq-v267 .aq267-close {
+  position:absolute;
+  inset-block-start:16px;
+  inset-inline-end:16px;
+  z-index:2;
+  margin:0!important;
+  font-size:0!important;
+ }
+ body.aq-v267 .aq267-close::before {
+  content:'×';
+  display:grid;
+  place-items:center;
+  width:100%;
+  height:100%;
+  font:600 28px/1 system-ui,-apple-system,sans-serif;
+  color:var(--aq-sem-danger);
+ }
+ body.aq-v267 :is(.aq267-close,button.close,button.close-btn,button.modal-close,button.dialog-close,button[aria-label='إغلاق'],button[aria-label='Close'],button[title='إغلاق'],button[title='Close'],button[data-action='close'],button[data-v199-action='close']):hover {
+  background:#ffe6e3!important;
+  border-color:#db948f!important;
+  color:#982018!important;
+ }
+ body.aq-v267 :is(.aq267-close,button.close,button.close-btn,button.modal-close,button.dialog-close):focus-visible {
+  outline:3px solid #d85f57!important;
+  outline-offset:3px!important;
+ }
+
+ /* Shared semantic states: restrained tints, one meaning per colour. */
+ body.aq-v267 :is(.success,[data-state='success'],[data-tone='success']) {--aq-state:var(--aq-sem-success);--aq-state-soft:var(--aq-sem-success-soft)}
+ body.aq-v267 :is(.warning,[data-state='warning'],[data-tone='warning']) {--aq-state:var(--aq-sem-warning);--aq-state-soft:var(--aq-sem-warning-soft)}
+ body.aq-v267 :is(.error,.danger,[data-state='error'],[data-state='danger'],[data-tone='danger']) {--aq-state:var(--aq-sem-danger);--aq-state-soft:var(--aq-sem-danger-soft)}
+ body.aq-v267 :is(.info,[data-state='info'],[data-tone='info']) {--aq-state:var(--aq-sem-info);--aq-state-soft:var(--aq-sem-info-soft)}
+ body.aq-v267 :is(.success,.warning,.error,.danger,.info,[data-state='success'],[data-state='warning'],[data-state='error'],[data-state='danger'],[data-state='info']) {
+  border-color:color-mix(in srgb,var(--aq-state) 28%,white)!important;
+ }
+
+ @media (max-width:600px) {
+  body.aq-v267 .aq267-close {inset-block-start:12px;inset-inline-end:12px}
+ }
+}
