@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "dbb66f58ec97e0441e219ea0c5b355258ec817d36144b4aab6e8eedbee6928e8",
+  "matrixSha256": "991f37f9c061a4dde377f928bb62d02a039a3a2370813eca694a5a6fd39f486c",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -27,6 +27,8 @@
     },
     "E02": {
       "files": [
+        "src/v267/components/service-directory.js",
+        "tests/v267-service-directory.test.mjs",
         "src/v267/workspace.js",
         "docs/V267-WORKSPACE-ARCHITECTURE.md",
         "staging-database/sql/workspace-feature-discovery.sql",
@@ -36,6 +38,7 @@
     },
     "E03": {
       "files": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs"
@@ -394,9 +397,27 @@
       "testKind": null
     },
     {
+      "path": "src/v267/components/service-directory.js",
+      "sha256": "1713b4812a5544724d9195a513348c3f14fc45ff6494ac050cfe2bfa3e5a0c0d",
+      "bytes": 9308,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/v267-service-directory.test.mjs",
+      "sha256": "b0375bd3a90c940ea336816064978084ccd881765ed0a759bd3aac09411ea044",
+      "bytes": 5621,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
       "path": "src/v267/workspace.js",
-      "sha256": "a263bd6da779c4202c2bdd42322df5fc89476cc24e3021af5f6e23a7eacf9f5a",
-      "bytes": 17416,
+      "sha256": "811f5082024052a1672d4daab0e7d63d4b8d16167ad570b95f69edeefacf6900",
+      "bytes": 19957,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -441,6 +462,15 @@
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/styles/service-directory.css",
+      "sha256": "c2d3fe17cbe18efac71529ba35e439abbcc279a16a4e909e80fffc854d75de65",
+      "bytes": 6720,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -2123,6 +2153,8 @@
       "evidenceFiles": [
         "staging-database/RELEASE_GATE_SPEC_2026_09_09.md",
         "staging-database/RELEASE_GATE_2026_09_09.md",
+        "src/v267/components/service-directory.js",
+        "tests/v267-service-directory.test.mjs",
         "src/v267/workspace.js",
         "docs/V267-WORKSPACE-ARCHITECTURE.md",
         "staging-database/sql/workspace-feature-discovery.sql",
@@ -2130,12 +2162,14 @@
         "staging-database/tests/workspace_feature_discovery.sql"
       ],
       "uiFiles": [
+        "src/v267/components/service-directory.js",
         "src/v267/workspace.js"
       ],
       "sqlFiles": [
         "staging-database/sql/workspace-feature-discovery.sql"
       ],
       "testFiles": [
+        "tests/v267-service-directory.test.mjs",
         "tests/v267-workspace-features.test.cjs",
         "staging-database/tests/workspace_feature_discovery.sql"
       ],
@@ -2301,23 +2335,29 @@
         "E03"
       ],
       "evidenceFiles": [
+        "src/v267/components/service-directory.js",
+        "tests/v267-service-directory.test.mjs",
         "src/v267/workspace.js",
         "docs/V267-WORKSPACE-ARCHITECTURE.md",
         "staging-database/sql/workspace-feature-discovery.sql",
         "tests/v267-workspace-features.test.cjs",
         "staging-database/tests/workspace_feature_discovery.sql",
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs"
       ],
       "uiFiles": [
+        "src/v267/components/service-directory.js",
         "src/v267/workspace.js",
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css"
       ],
       "sqlFiles": [
         "staging-database/sql/workspace-feature-discovery.sql"
       ],
       "testFiles": [
+        "tests/v267-service-directory.test.mjs",
         "tests/v267-workspace-features.test.cjs",
         "staging-database/tests/workspace_feature_discovery.sql",
         "tests/v267-navigation-work.test.cjs"
@@ -2338,11 +2378,13 @@
         "E03"
       ],
       "evidenceFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs"
       ],
       "uiFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css"
       ],
       "sqlFiles": [],
@@ -2364,6 +2406,7 @@
         "E04"
       ],
       "evidenceFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs",
@@ -2372,6 +2415,7 @@
         "docs/V267-PASSWORD-RECOVERY.md"
       ],
       "uiFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "src/v267/api/session.js"
       ],
@@ -2438,11 +2482,13 @@
         "E03"
       ],
       "evidenceFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs"
       ],
       "uiFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css"
       ],
       "sqlFiles": [],
@@ -2466,6 +2512,7 @@
         "E01"
       ],
       "evidenceFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs",
@@ -2473,6 +2520,7 @@
         "staging-database/RELEASE_GATE_2026_09_09.md"
       ],
       "uiFiles": [
+        "src/v267/styles/service-directory.css",
         "src/v267/styles/workspace.css"
       ],
       "sqlFiles": [],

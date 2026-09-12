@@ -36,8 +36,8 @@
 | الرمز | التنفيذ أو الدليل المراجع |
 |---|---|
 | E01 | [Release Gate الحالي](../staging-database/RELEASE_GATE_SPEC_2026_09_09.md)، [أدلة المدير والرواتب السابقة](../staging-database/RELEASE_GATE_2026_09_09.md) |
-| E02 | [تجميع صفحات V267](../src/v267/workspace.js)، [بنية مساحة العمل](V267-WORKSPACE-ARCHITECTURE.md)، [جاهزية الخدمات وصلاحياتها](../staging-database/sql/workspace-feature-discovery.sql)، [اختبار ظهور الأدوات عند توفر الخدمة](../tests/v267-workspace-features.test.cjs) و[اختبار SQL للجاهزية والعزل](../staging-database/tests/workspace_feature_discovery.sql) |
-| E03 | [التصميم](../src/v267/styles/workspace.css)، [غلاف الواجهات](../v267-unified.css)، [اختبارات التنقل](../tests/v267-navigation-work.test.cjs) |
+| E02 | [دليل الخدمات والبحث في الصفحة الرئيسية](../src/v267/components/service-directory.js)، [اختبار البحث والصلاحيات](../tests/v267-service-directory.test.mjs)، [تجميع صفحات V267](../src/v267/workspace.js)، [بنية مساحة العمل](V267-WORKSPACE-ARCHITECTURE.md)، [جاهزية الخدمات وصلاحياتها](../staging-database/sql/workspace-feature-discovery.sql)، [اختبار ظهور الأدوات عند توفر الخدمة](../tests/v267-workspace-features.test.cjs) و[اختبار SQL للجاهزية والعزل](../staging-database/tests/workspace_feature_discovery.sql) |
+| E03 | [تنسيق الخدمات للجوال والآيباد](../src/v267/styles/service-directory.css)، [التصميم](../src/v267/styles/workspace.css)، [غلاف الواجهات](../v267-unified.css)، [اختبارات التنقل](../tests/v267-navigation-work.test.cjs) |
 | E04 | [حدود الجلسة](../src/v267/api/session.js)، [اختبارات الدخول](../tests/v267-auth-repair.test.cjs)، [إعادة كلمة المرور](V267-PASSWORD-RECOVERY.md) |
 | E05 | [صلاحيات الأقسام والخادم](../staging-database/supabase/migrations/20260907203456_v267_workspace_controls.sql)، [اختبار الصلاحيات](../staging-database/tests/workspace_controls.sql) |
 | E06 | [عزل الشريك](../staging-database/sql/partner-property-access.sql)، [اختباره](../staging-database/tests/partner_property_access.sql)، [حدود بوابة الشريك](V267-PARTNER-ACCESS.md) |

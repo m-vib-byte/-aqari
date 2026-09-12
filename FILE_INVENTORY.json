@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "476e18643e607e56a2625149e6a1ccc30139b9c099e623cf4d5f17585e22e2a5",
-      "size": 6421
+      "sha256": "82a969b7af76f5919bd2e48647389eca716ef8f447b1df243b5959be12912ac2",
+      "size": 6459
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -357,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "f7bd2c7c001c88ea6742075935f4fbb669b201644cf1493538f63fc8882cbe59",
-      "size": 303540
+      "sha256": "c1f4cb869dc541aa51320e0e43f83c08475db7fca5e8d83b0c645e624ec44856",
+      "size": 305438
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -467,8 +467,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "dbb66f58ec97e0441e219ea0c5b355258ec817d36144b4aab6e8eedbee6928e8",
-      "size": 96940
+      "sha256": "991f37f9c061a4dde377f928bb62d02a039a3a2370813eca694a5a6fd39f486c",
+      "size": 97254
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -479,6 +479,11 @@
       "path": "docs/V267-SERVER-ACCESS-REVOCATION.md",
       "sha256": "0157fb5c994ba8816e92ae6cd840980f641f4de7f1d2bb32b5fb86d1d674f878",
       "size": 3549
+    },
+    {
+      "path": "docs/V267-SIMPLE-SERVICE-DIRECTORY-2026-09-12.md",
+      "sha256": "ad83873ae19ecf014d595f12e2dcca4deeeb3ca23ce921af8b88f63cb712a2a8",
+      "size": 3351
     },
     {
       "path": "docs/V267-STAFF-CIRCULARS-2026-09-12.md",
@@ -901,6 +906,11 @@
       "size": 2592
     },
     {
+      "path": "src/v267/components/service-directory.js",
+      "sha256": "1713b4812a5544724d9195a513348c3f14fc45ff6494ac050cfe2bfa3e5a0c0d",
+      "size": 9308
+    },
+    {
       "path": "src/v267/components/tenant-attachment-upload.js",
       "sha256": "c4c71ec2bbff94fc97bc8a2a46a67155ed6dcb5ae83acb0a4dca65d183786574",
       "size": 3246
@@ -1121,14 +1131,19 @@
       "sha256": "788fc96d0c3f01b624906c41b867d9762a4272b11133e33a230116db7497c09a"
     },
     {
+      "path": "src/v267/styles/service-directory.css",
+      "sha256": "c2d3fe17cbe18efac71529ba35e439abbcc279a16a4e909e80fffc854d75de65",
+      "size": 6720
+    },
+    {
       "path": "src/v267/styles/workspace.css",
       "sha256": "618cde58bfd0bb85e654c6e2d61a537f3b0e6e5f070df27baa4c114be8bff7d6",
       "size": 2029
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "a263bd6da779c4202c2bdd42322df5fc89476cc24e3021af5f6e23a7eacf9f5a",
-      "size": 17416
+      "sha256": "811f5082024052a1672d4daab0e7d63d4b8d16167ad570b95f69edeefacf6900",
+      "size": 19957
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -2321,6 +2336,11 @@
       "size": 16276
     },
     {
+      "path": "tests/v267-service-directory.test.mjs",
+      "sha256": "b0375bd3a90c940ea336816064978084ccd881765ed0a759bd3aac09411ea044",
+      "size": 5621
+    },
+    {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
       "sha256": "4895be15b10c74e3b214b7e165792f14eb2212dc1a6dc991cc524197a4628247",
       "size": 8116
@@ -2387,8 +2407,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "3050a8fd20b5396d0b91207b9b7d33b3bf8310ec5b1e803e0828f3d48dd5dc4b",
-      "size": 48298
+      "sha256": "5dbb7403e890154c2f4514fac63c2f420235b4d04318673af258126aee3092cb",
+      "size": 49897
     },
     {
       "path": "tests/verified-upload.test.mjs",

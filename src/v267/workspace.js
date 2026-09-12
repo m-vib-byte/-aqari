@@ -4,7 +4,15 @@ import {installFinancialIntegrity} from './pages/financial-integrity.js';
 import {createSession,currentScope,safeError} from './api/session.js';
 import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
-let installed=false,access=null,loading=null,session,notice;
+import {organizeServices} from './components/service-directory.js';
+let installed=false,access=null,loading=null,session,notice,serviceDirectory;
+function directoryScope(){
+ try{const s=currentScope();return access&&s.user===access.user_id&&s.workspace===access.workspace_id&&s.role===access.role?JSON.stringify([s.workspace,s.user,s.role]):null;}catch{return null;}
+}
+function directoryAllowed(item){
+ if(!directoryScope()||item.manager&&access.role!=='general_manager')return false;
+ return !item.section||(access.sections?.[item.section]!==false&&access.permissions?.[item.section]?.read===true);
+}
 function updateFeatureTools(){
  const finalGaps=document.getElementById('aq267-final-gap-center'),officialDocuments=document.getElementById('aq267-official-document-center'),integrations=document.getElementById('aq267-integration-center'),financialArchive=document.getElementById('aq267-financial-archive'),guide=document.getElementById('aq267-user-guide'),compliance=document.getElementById('aq267-compliance-center'),kpis=document.getElementById('aq267-kpi-dashboard'),maintenancePlans=document.getElementById('aq267-maintenance-plans'),security=document.getElementById('aq267-security-center'),operations=document.getElementById('aq267-operations-center'),staff=document.getElementById('aq267-staff-access'),finance=document.getElementById('aq267-financial-register'),deposits=document.getElementById('aq267-deposit-ledger'),vacating=document.getElementById('aq267-vacating-settlement'),vacatingReview=document.getElementById('aq267-vacating-review');
  if(finalGaps)finalGaps.hidden=access?.features?.final_gap_register!==true||access?.role!=='general_manager';
@@ -28,6 +36,7 @@ function updateFeatureTools(){
  const exit=document.getElementById('aq267-exit-review');
  if(exit)exit.hidden=access?.features?.exit_review!==true||access?.role!=='general_manager';
  if(vacating)vacating.hidden=access?.features?.vacating_settlement!==true||access?.permissions?.contracts?.read!==true||access?.permissions?.collections?.read!==true;
+ serviceDirectory?.refresh(directoryScope());
 }
 const ui=uiText;
 function updateLabels(){
@@ -46,6 +55,7 @@ function updateLabels(){
   else{const texts=[...el.childNodes].filter(n=>n.nodeType===3);if(texts.length)texts.at(-1).textContent=' '+text;}
   el.setAttribute('aria-label',text);el.lang=locale;
  }
+ serviceDirectory?.refresh(directoryScope());
 }
 async function refresh(){
  if(loading)return loading;
@@ -56,6 +66,7 @@ async function refresh(){
 export function install(){
  if(installed)return;bindLocale(currentScope());installed=true;installFinancialIntegrity();
  if(!document.getElementById('aq267-workspace-css')){const css=node('link');css.id='aq267-workspace-css';css.rel='stylesheet';css.href='/src/v267/styles/workspace.css?release=V267';document.head.append(css);}
+ if(!document.getElementById('aq267-service-directory-css')){const css=node('link');css.id='aq267-service-directory-css';css.rel='stylesheet';css.href='/src/v267/styles/service-directory.css?release=V267';document.head.append(css);}
  const menu=document.getElementById('v199MoreMenu');if(!menu){installed=false;return;}
  const tools=node('section'),control=node('button',label('control_center')),scan=node('button',label('scan_document')),language=node('select');tools.className='aq267-tools';tools.id='aq267-workspace-tools';notice=node('p');notice.setAttribute('role','status');
  for(const [value,text]of Object.entries(LANGUAGES)){const option=node('option',text);option.value=value;language.append(option);}
@@ -92,7 +103,18 @@ export function install(){
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
  tools.append(staffCirculars,readinessButton,staffAccess,financialRegister,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
- const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);updateLabels();
+ const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);
+ const entry=(source,section,manager=false,keywords='')=>({source,section,manager,keywords});
+ const route=(name,section)=>({...entry(document.querySelector('#aqariV199Topbar [data-v199-go="'+name+'"]'),section),menu:false});
+ serviceDirectory=organizeServices({tools,allowed:directoryAllowed,groups:[
+  {key:'finance',items:[route('collectionProPage','collections'),entry(deposits,'collections',false,'تأمين تامين قبض رد'),entry(financialRegister,'finance'),entry(financialArchiveButton,'finance'),entry(finalGapButton,null,true)]},
+  {key:'contracts',items:[entry(rentalContracts,'contracts'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
+  {key:'properties',items:[route('properties','properties'),route('tenants','tenants'),entry(readinessButton,'properties'),entry(statements,null,true),entry(quality,null,true),entry(review,null,true)]},
+  {key:'maintenance',items:[route('maintenanceProPage','maintenance'),entry(utilities),entry(maintenancePlansButton,'maintenance'),entry(complianceButton,null,true),entry(operationsCenter,null,true)]},
+  {key:'staff',items:[entry(employees,'employees',false,'راتب رواتب موظف'),entry(staffAccess,null,true),entry(partners,null,true),entry(propertyNotices,null,true),entry(staffCirculars)]},
+  {key:'account',items:[entry(kpiButton,null,true),entry(control,null,true),entry(securityCenter),entry(integrationsButton,null,true),entry(guideButton)]}
+ ].map(group=>({...group,items:group.items.filter(item=>item.source)}))});
+ tools.append(languageField,notice);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
  // No polling or page observers. Refresh only on explicit navigation/menu actions.
  document.addEventListener('click',event=>{

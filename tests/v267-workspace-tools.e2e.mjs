@@ -16,7 +16,7 @@ const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sh
 const secondStatement=structuredClone(statement);secondStatement.property_id='p2';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
 const lease={id:'lease1',external_ref:'source1',contract_no:'C-101',start_date:'2026-08-01',end_date:'2027-07-31',monthly_rent:'125.750',deposit:null,status:'draft',snapshot:{property:propertyName,unit:'101',tenant:tenantName,pending:[]}};
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
-const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><button id="fixtureMaintenance">Open maintenance fixture</button><div id="home"></div><section id="collectionProPage"></section><section id="financeSuitePage"></section><section id="reports"></section><section id="documentsHub"></section><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
+const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body class="aq-v267"><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><button id="fixtureMaintenance">Open maintenance fixture</button><div id="home"><section id="v205SimpleHome"></section></div><section id="collectionProPage"></section><section id="financeSuitePage"></section><section id="reports"></section><section id="documentsHub"></section><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
  'const uid='+JSON.stringify(uid)+',wid='+JSON.stringify(wid)+';'+
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://ofgmcsmxmdswlovsckqs.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
@@ -276,6 +276,22 @@ try{
    const name=engineName+'-'+device;const start=Date.now();
    try{
     await page.goto('http://127.0.0.1:4175/');
+    const directory=page.locator('#aq267-service-directory');
+    await directory.waitFor({state:'visible'});
+    const serviceSearch=directory.getByRole('searchbox',{name:'ابحث عن خدمة',exact:true});
+    await serviceSearch.fill('راتب');
+    assert.equal(await directory.getByRole('button',{name:'الموظفون والرواتب / Employees and payroll',exact:true}).count(),1);
+    await serviceSearch.fill('مركز تحكم المدير');
+    await directory.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
+    await page.getByRole('dialog').getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
+    await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
+    assert.equal(revision,0,'opening a service must not write settings');
+    const serviceLayout=await directory.evaluate(el=>({width:el.getBoundingClientRect().width,scroll:el.scrollWidth,client:el.clientWidth,buttons:[...el.querySelectorAll('button')].filter(b=>b.getBoundingClientRect().height>0).every(b=>b.getBoundingClientRect().height>=44)}));
+    assert.ok(serviceLayout.width<=viewport.width&&serviceLayout.scroll<=serviceLayout.client+1&&serviceLayout.buttons,'service directory fits each viewport with touch targets');
+    await page.screenshot({path:path.join(out,name+'-service-directory.png'),fullPage:true});
+    await serviceSearch.press('Escape');
+    assert.equal(await serviceSearch.inputValue(),'');
+
     await page.getByRole('button',{name:'مركز تحكم المدير',exact:true}).click();
     await page.getByText('تمت قراءة الإعدادات وسجل التدقيق من قاعدة البيانات.',{exact:true}).waitFor();
     const dialog=page.getByRole('dialog');
