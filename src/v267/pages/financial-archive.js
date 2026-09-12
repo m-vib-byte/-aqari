@@ -1,0 +1,9 @@
+import {createDialog,node,field} from '../components/dialog.js';
+const monthValue=()=>new Date().toISOString().slice(0,7);
+function downloadJson(value,name){const blob=new Blob([JSON.stringify(value,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download=name;a.rel='noopener';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function openFinancialArchive(){
+ const d=createDialog('الأرشيف المالي التاريخي');if(!d)return;const month=node('input'),loadButton=node('button','استرجاع الشهر'),output=node('section');month.type='month';month.value=monthValue();loadButton.type='button';d.body.append(node('p','يعرض هذا القسم السجلات المحفوظة دون تعديلها. الشهر المقفل يظهر مع لقطة الإقفال الأصلية.'),field('الشهر',month),loadButton,output);
+ async function load(){if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value))throw Error('اختر شهراً صحيحاً.');const result=await d.session.request(d.session.client.rpc('aqari_financial_register',{p_workspace_id:d.session.bound.workspace,p_action:'list',p_data:{month:month.value}}));if(!result||!result.summary||!Array.isArray(result.expenses)||!Array.isArray(result.history))throw Error('تعذر استرجاع الأرشيف المالي.');render(result);}
+ function render(data){output.replaceChildren(node('h3',`شهر ${month.value}`));const s=data.period?.snapshot||data.summary;output.append(node('p',data.period?`الفترة مقفلة منذ ${data.period.closed_at}`:'الفترة غير مقفلة؛ المعروض قراءة حالية.'),node('pre',JSON.stringify(s,null,2)),node('p',`المصروفات: ${data.expenses.length} • أحداث التدقيق: ${data.history.length}`));const exportButton=node('button','تصدير نسخة JSON للتدقيق');exportButton.type='button';exportButton.onclick=()=>downloadJson({month:month.value,period:data.period,summary:s,expenses:data.expenses,history:data.history},`AQARI-finance-${month.value}.json`);output.append(exportButton);}
+ loadButton.onclick=()=>d.run(load);d.onDispose(()=>output.replaceChildren());d.run(load);
+}

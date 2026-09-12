@@ -1,0 +1,4 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {readFileSync}=require('node:fs');const {resolve}=require('node:path');const ui=readFileSync(resolve(__dirname,'../src/v267/pages/financial-archive.js'),'utf8');
+test('archive reads the canonical financial register by selected month',()=>{assert.match(ui,/aqari_financial_register/);assert.match(ui,/p_action:'list'/);assert.match(ui,/month:month\.value/);});
+test('closed period snapshot and audit history are shown from RPC readback',()=>{assert.match(ui,/data\.period\?\.snapshot\|\|data\.summary/);assert.match(ui,/data\.history\.length/);assert.match(ui,/الفترة مقفلة/);});
+test('archive UI exports retrieved evidence without write action',()=>{assert.match(ui,/period:data\.period,summary:s,expenses:data\.expenses,history:data\.history/);assert.doesNotMatch(ui,/p_action:'(?:save|close|cancel|approve)'/);});

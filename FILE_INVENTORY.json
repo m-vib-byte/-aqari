@@ -272,8 +272,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "size": 81776,
-      "sha256": "ed189c8c1d3b5c5c76f3bb321f6866da5233526af03d92e2a57def0dcbbc291f"
+      "sha256": "fe4997c0e8a8fcce3dfe113701e49950b1bcf66ac365bd3b3f368d290247a296",
+      "size": 84230
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -872,8 +872,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "6686ad2110a6c8f0f2a2df096e1509536470ab1de805357c39abfce6d2a9ea27",
-      "size": 14115
+      "sha256": "286bee8f39b825e291c22db788166dac6eb5f3e53830ff0a8a342a31f4d8d6ba",
+      "size": 15644
     },
     {
       "path": "staging-database/local-test/package.json",
@@ -2039,6 +2039,91 @@
       "path": "tests/v267-compliance-center.test.cjs",
       "sha256": "3e8a999a6839fd314fadc5c11d7725da125f70e57f79924d0986079fd46f31ee",
       "size": 1173
+    },
+    {
+      "path": "api/official-document.py",
+      "sha256": "5019a33a7243b09ce7976279c8b478153b77ba165d313126c80fc748097d1db6",
+      "size": 4115
+    },
+    {
+      "path": "api/provider-webhook.py",
+      "sha256": "2c4472910a6481ca2d71cf9b30a3348e8a662d799bcd68bb5c33ecba5e1fb7d4",
+      "size": 2130
+    },
+    {
+      "path": "lib/official_document_pdf.py",
+      "sha256": "d79d0db8d78d32a4a763fa721b59244e8e739a39f1a72d7213bbc8569f176808",
+      "size": 3326
+    },
+    {
+      "path": "lib/provider_webhook.py",
+      "sha256": "93b512a84c5df228c398d9d5f64b4dc04e88319d1eaaacbe94d8cd8ef4319887",
+      "size": 2366
+    },
+    {
+      "path": "src/v267/pages/financial-archive.js",
+      "sha256": "eb3b3ea9c9a11b525747539bed0e82f305e5742f467435ff3214de645c464f64",
+      "size": 2212
+    },
+    {
+      "path": "src/v267/pages/integration-center.js",
+      "sha256": "b95ecf69594ae84e8ef00e65b3a3994f629b92dec0dd29db94290725e375492c",
+      "size": 4139
+    },
+    {
+      "path": "src/v267/pages/official-document-center.js",
+      "sha256": "237c6c1b5158b9976c3768c7495b07d641cdb4549c697108b3f7912ad009bffd",
+      "size": 7994
+    },
+    {
+      "path": "staging-database/sql/external-integration-register.sql",
+      "sha256": "ad8d8272950975872917e134afad423535b2bfd6f33756a8fe716c30ab8268bd",
+      "size": 7999
+    },
+    {
+      "path": "staging-database/sql/official-document-register.sql",
+      "sha256": "7fceca63679010dc6198571cbbc066d5c811e1fe322ae664cb383565b4885f34",
+      "size": 10003
+    },
+    {
+      "path": "staging-database/tests/external_integration_register.sql",
+      "sha256": "98020af8ddb5442470ee94528b931e57c39984ea5cf679891132469e752fd726",
+      "size": 3471
+    },
+    {
+      "path": "staging-database/tests/official_document_register.sql",
+      "sha256": "a5394d6cdcb4055a1e118cb8f71b245b580142ed39aa008e3c7bbca3369f5e73",
+      "size": 4865
+    },
+    {
+      "path": "tests/official_document_pdf_test.py",
+      "sha256": "f95e9e751c58ffdad269bf6da03c897e47f9bedb980caa18a6290a42973bc93a",
+      "size": 1452
+    },
+    {
+      "path": "tests/provider_webhook_test.py",
+      "sha256": "1264ea3a75ddbff0f523929e52bfb6e5486e53e5af18da4c1fdddfc029964aa2",
+      "size": 1885
+    },
+    {
+      "path": "tests/v267-external-integrations.test.cjs",
+      "sha256": "56b32c45c23aa13d581549bebedd9ce27e203ef1f485710188e070c4d95eb71b",
+      "size": 1633
+    },
+    {
+      "path": "tests/v267-financial-archive.test.cjs",
+      "sha256": "599cc59995af431b333aa6c83d56909249cadfdbaf218e257b23bbb9c306f1fa",
+      "size": 908
+    },
+    {
+      "path": "tests/v267-official-document-center.test.cjs",
+      "sha256": "c746976d8afcc745e33e835d915be816f034825bb2a7c34240fea9d8dbf0f9c3",
+      "size": 1166
+    },
+    {
+      "path": "tests/v267-official-document-register.test.cjs",
+      "sha256": "40515fc8d177b945759b81bb125c575f91d74c305c585dfcddfc8bd3528f0f37",
+      "size": 1430
     }
   ],
   "version": "V198"
