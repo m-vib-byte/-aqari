@@ -18,6 +18,19 @@ A second rollback-only acceptance transaction verified automatic state changes o
 
 All synthetic payment/cancellation rows were rolled back. The derived schedule remained consistent with the authoritative lease/payment data.
 
+## G04-03 / G05-08 — forward allocation of an advance credit
+
+`staging-database/sql/rent-due-credit-allocation.sql` integrates the existing tenant-credit ledger with the due schedule. The schedule now reports actual paid amount and allocated credit separately, while status/balance use their combined authoritative application. A manager-only AAL2 RPC allocates a saved tenant credit forward across unpaid periods in chronological order, never exceeding either the remaining credit or a period's outstanding balance. Closed financial periods remain protected by the existing period guard.
+
+Hosted rollback acceptance created a synthetic 150.000 KWD tenant credit on the existing test lease and allocated it from November 2026 forward:
+
+- November: 100.000 credit allocated → balance 0.000, status `paid`;
+- December: remaining 50.000 credit allocated → balance 50.000, status `partial`;
+- allocation ledger public readback totaled exactly 150.000 KWD;
+- no credit remained unallocated.
+
+The transaction rolled back completely after verification.
+
 ## Acceptance boundary
 
-This materially strengthens G04-02 and the period-state foundation used by G04-03. It does not yet add a non-monthly payment-cycle model or automatically split one unallocated advance payment across several future periods. Those remain separate implementation/acceptance work, as do real-account/device tests.
+This materially strengthens G04-02, G04-03 and G05-08 for monthly leases, partial/full payments, documented cancellation and forward tenant-credit allocation. A general non-monthly payment-cycle model is still separate work, as are real-account/device tests and external payment-provider acceptance.
