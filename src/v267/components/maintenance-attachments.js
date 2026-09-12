@@ -20,7 +20,22 @@ export function createMaintenanceAttachments({workspaceId,requestId,userId,check
   if(!doc?.id||doc.workspace_id!==workspaceId||doc.request_id!==requestId||doc.storage_bucket!==MAINTENANCE_BUCKET||doc.storage_path!==workspaceId+'/'+requestId+'/'+doc.id||!['reserved','uploaded'].includes(doc.status)||!['image/jpeg','image/png','image/webp','application/pdf'].includes(doc.mime_type)||!Number.isInteger(doc.size_bytes)||doc.size_bytes<=0||doc.size_bytes>MAINTENANCE_FILE_LIMIT||!/^[a-f0-9]{64}$/.test(doc.checksum_sha256)||typeof doc.filename!=='string')throw Error('لم يتأكد ارتباط المرفق بهذا البلاغ.');
   return doc;
  }
- async function list(){const result=await call('list');if(!result||!Array.isArray(result.attachments)||typeof result.can_upload!=='boolean'||result.attachments.length>MAINTENANCE_ATTACHMENT_LIMIT)throw Error('تعذر تأكيد قائمة مرفقات البلاغ.');const ids=new Set();for(const doc of result.attachments){match(doc);if(doc.status!=='uploaded'||ids.has(doc.id))throw Error('تعذر تأكيد قائمة مرفقات البلاغ.');ids.add(doc.id);}return result;}
+ async function list(){
+  const result=await call('list'),pendingReservations=Array.isArray(result?.pending_reservations)?result.pending_reservations:[];
+  if(!result||!Array.isArray(result.attachments)||typeof result.can_upload!=='boolean'||result.attachments.length+pendingReservations.length>MAINTENANCE_ATTACHMENT_LIMIT)throw Error('تعذر تأكيد قائمة مرفقات البلاغ.');
+  const ids=new Set();
+  for(const doc of result.attachments){match(doc);if(doc.status!=='uploaded'||ids.has(doc.id))throw Error('تعذر تأكيد قائمة مرفقات البلاغ.');ids.add(doc.id);}
+  for(const doc of pendingReservations){match(doc);if(doc.status!=='reserved'||doc.created_by!==userId||ids.has(doc.id))throw Error('تعذر تأكيد الحجوزات غير المكتملة.');ids.add(doc.id);}
+  return {...result,pending_reservations:pendingReservations};
+ }
+ async function cancel(id){
+  if(typeof id!=='string'||!id)throw Error('تعذر تحديد الحجز غير المكتمل.');
+  const before=(await list()).pending_reservations.find(doc=>doc.id===id);if(!before)throw Error('الحجز غير المكتمل غير متاح للإلغاء.');
+  const result=await call('cancel',{id});
+  if(result?.id!==id||result?.status!=='cancelled')throw Error('لم يتأكد إلغاء الحجز غير المكتمل.');
+  const after=await list();if(after.pending_reservations.some(doc=>doc.id===id)||after.attachments.some(doc=>doc.id===id))throw Error('لم يتأكد تحرير مساحة المرفقات.');
+  return result;
+ }
  async function upload(file){
   check();await validateMaintenanceAttachment(file);check();
   let entry=pending.get(file);
@@ -43,5 +58,5 @@ export function createMaintenanceAttachments({workspaceId,requestId,userId,check
   if(blob?.size!==doc.size_bytes||await checksum(blob)!==doc.checksum_sha256)throw Error('لم تتطابق بصمة الملف المسترجع.');
   check();return {doc,blob};
  }
- return {list,upload,download};
+ return {list,cancel,upload,download};
 }
