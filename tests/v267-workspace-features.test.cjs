@@ -20,13 +20,15 @@ test('unfinished database tools remain hidden on older backends, failed access r
  context.update(null);assert.equal(vacating.hidden,true);
 });
 test('incremental release never offers a new RPC tool just because the user is a manager',()=>{
- const ids=['final-gap-center','official-document-center','integration-center','financial-archive','compliance-center','kpi-dashboard','maintenance-plans','operations-center','unit-readiness'];
+ const ids=['final-gap-center','official-document-center','integration-center','financial-archive','compliance-center','kpi-dashboard','maintenance-plans','maintenance-report','operations-center','unit-readiness'];
  const elements=Object.fromEntries(ids.map(id=>['aq267-'+id,{hidden:true}]));
  const context={document:{getElementById:id=>elements[id]||null},uiText(){}};vm.createContext(context);vm.runInContext(source+'\nthis.update=function(data){access=data;updateFeatureTools();};',context);
- const manager={role:'general_manager',permissions:{finance:{read:true},maintenance:{read:true},properties:{read:true}}};
+ const manager={role:'general_manager',permissions:{finance:{read:true},maintenance:{read:true},reports:{read:true},properties:{read:true}}};
  context.update(manager);assert.ok(Object.values(elements).every(x=>x.hidden),'missing backend capabilities must keep all new tools hidden');
- context.update({...manager,features:{final_gap_register:true,official_documents:true,external_integrations:true,financial_archive:true,compliance_register:true,kpi_dashboard:true,maintenance_plans:true,operations_register:true,unit_readiness:true}});assert.ok(Object.values(elements).every(x=>!x.hidden));
- context.update({...manager,features:{financial_archive:true},permissions:{finance:{read:false}}});assert.equal(elements['aq267-financial-archive'].hidden,true);
- context.update({...manager,features:{unit_readiness:true},permissions:{properties:{read:false}}});assert.equal(elements['aq267-unit-readiness'].hidden,true);
+ context.update({...manager,features:{final_gap_register:true,official_documents:true,external_integrations:true,financial_archive:true,compliance_register:true,kpi_dashboard:true,maintenance_plans:true,maintenance_report:true,operations_register:true,unit_readiness:true}});assert.ok(Object.values(elements).every(x=>!x.hidden));
+ context.update({...manager,features:{financial_archive:true},permissions:{...manager.permissions,finance:{read:false}}});assert.equal(elements['aq267-financial-archive'].hidden,true);
+ context.update({...manager,features:{unit_readiness:true},permissions:{...manager.permissions,properties:{read:false}}});assert.equal(elements['aq267-unit-readiness'].hidden,true);
+ context.update({...manager,features:{maintenance_report:true},permissions:{...manager.permissions,reports:{read:false}}});assert.equal(elements['aq267-maintenance-report'].hidden,true);
+ context.update({...manager,features:{maintenance_report:true},permissions:{...manager.permissions,maintenance:{read:false}}});assert.equal(elements['aq267-maintenance-report'].hidden,true);
  context.update(null);assert.ok(Object.values(elements).every(x=>x.hidden),'revocation must hide previously available tools');
 });
