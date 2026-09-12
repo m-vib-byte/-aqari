@@ -2062,8 +2062,8 @@
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "eb3b3ea9c9a11b525747539bed0e82f305e5742f467435ff3214de645c464f64",
-      "size": 2212
+      "sha256": "ce47ed84b9e8adb63c2b23be46d27f805e769d3bbb9316ab790889053a5c6537",
+      "size": 10106
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -2112,8 +2112,8 @@
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "599cc59995af431b333aa6c83d56909249cadfdbaf218e257b23bbb9c306f1fa",
-      "size": 908
+      "sha256": "3b4097cc4913a8617fdc0377ba9426caeae1e88a8f3ee09fbd9c59eb753aaee7",
+      "size": 13534
     },
     {
       "path": "tests/v267-official-document-center.test.cjs",
@@ -2159,6 +2159,16 @@
       "path": "staging-database/sql/v267-advisor-remediation.sql",
       "sha256": "27b4c4899119850d8afab7e86ae3965496147fd5e97cc36e799ea202ce564153",
       "size": 1266
+    },
+    {
+      "path": "tests/v267-financial-archive.browser.mjs",
+      "sha256": "ef747d878bfb041ecffb3c5a8b2efb0c068fb2bc89ee1f71c524b31c9126a600",
+      "size": 11659
+    },
+    {
+      "path": ".github/workflows/archive-integrity.yml",
+      "sha256": "16aa907980f74b651bf3078a4bb86341a8b633ae2d228d823716b2735cb3373e",
+      "size": 4024
     }
   ],
   "version": "V198"
