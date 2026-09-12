@@ -4,6 +4,13 @@ import {createUnitMeterPhoto} from './unit-meter-photo.js';
 import {createPrivateUrls} from './private-urls.js';
 const phases={entry:'عند دخول المستأجر',periodic:'قراءة دورية',exit:'عند الإخلاء'};
 const option=(value,label)=>Object.assign(node('option',label),{value});
+export async function mountAvailableUnitMeterReadings(d){
+ const {session}=d;
+ const access=await session.request(session.client.rpc('aqari_workspace_access',{p_workspace_id:session.bound.workspace}));
+ if(access?.workspace_id!==session.bound.workspace||access?.user_id!==session.bound.user||access?.role!==session.bound.role)throw Error('تغيرت صلاحية الحساب. حدّث الصفحة.');
+ if(access?.features?.unit_meter_readings!==true||access?.permissions?.maintenance?.read!==true)return null;
+ return mountUnitMeterReadings(d);
+}
 export function mountUnitMeterReadings(d){
  const section=node('section'),loadButton=node('button',t('تحميل قراءات دخول وإخلاء الوحدات')),form=node('form'),history=node('section');
  const lease=node('select'),meter=node('select'),phase=node('select'),correction=node('select'),reading=node('input'),date=node('input'),source=node('input'),reason=node('input'),photo=node('input'),save=node('button',t('حفظ قراءة الوحدة والتحقق منها'));
