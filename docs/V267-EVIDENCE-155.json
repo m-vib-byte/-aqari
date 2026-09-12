@@ -1,8 +1,19 @@
 {
   "schemaVersion": 1,
-  "sourceParentSHA": "2c2d7ae506bd866c306f76adddcf50b9eb36b8bc",
-  "matrixSha256": "80cc9d004b75d17e0796ac97005fbd5e80dcd086715cef6725eaf3afc5dc26be",
+  "sourceParentSHA": "03e4582902cbbf2eaa9900c92d23abefd95f0d32",
+  "matrixSha256": "066f74ba0e667a93232e98d397a957f3f40e5806cc21a70808212e1b29175c69",
   "releaseGate": "HOLD",
+  "releasePolicy": {
+    "all155RequiredBeforeRelease": false,
+    "required": [
+      "practical-core-acceptance",
+      "data-integrity",
+      "tested-data-and-attachment-backup",
+      "tested-rollback"
+    ],
+    "authorizationAlreadyGranted": true,
+    "evidenceReport": "docs/V267-INCREMENTAL-RELEASE-2026-09-12.md"
+  },
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "evidence": {
     "E01": {
@@ -14,7 +25,10 @@
     "E02": {
       "files": [
         "src/v267/workspace.js",
-        "docs/V267-WORKSPACE-ARCHITECTURE.md"
+        "docs/V267-WORKSPACE-ARCHITECTURE.md",
+        "staging-database/sql/workspace-feature-discovery.sql",
+        "tests/v267-workspace-features.test.cjs",
+        "staging-database/tests/workspace_feature_discovery.sql"
       ]
     },
     "E03": {
@@ -311,8 +325,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "919e5d10799de43c9d75a75d53a9dd46a936fdda8b2a7a4364d33f39ce091ab1",
-      "bytes": 16098,
+      "sha256": "68cbc92e61297eaf936a810612dd55e3226a068756e86a9fa20634bf9687c730",
+      "bytes": 16456,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -328,6 +342,35 @@
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": null
+    },
+    {
+      "path": "staging-database/sql/workspace-feature-discovery.sql",
+      "sha256": "498f0aa7a250ad262d8f7c70ca6590c8b6984c7b7fa8325c4bcd6eb96858ef75",
+      "bytes": 3922,
+      "declaredTables": [],
+      "publicFunctions": [
+        "public.aqari_workspace_access"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/v267-workspace-features.test.cjs",
+      "sha256": "4a5c0d368523adc0ca9c185fe063d87e05ec4561702ca16eb0a39500663c76b1",
+      "bytes": 4001,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "staging-database/tests/workspace_feature_discovery.sql",
+      "sha256": "aa52d95c5159d2d83903034f09d1faf155a7816620e4959ad9ad54401a3db7d3",
+      "bytes": 3386,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -710,8 +753,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "ed146ac2819169355f07e6a0eb1febe81ff92044f05064790d99b304e4a42ac6",
-      "bytes": 11703,
+      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
+      "bytes": 11725,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -740,11 +783,12 @@
     },
     {
       "path": "src/v267/components/unit-meter-readings.js",
-      "sha256": "a154c880b6c8a2071f7df4f943a693f6f83c41d9f2385b5c4ea8d7f27163b163",
-      "bytes": 7048,
+      "sha256": "22077132b719742503f52f1fcefe2df2967f75f5973e55997f6f28b29a434dc8",
+      "bytes": 7597,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
+        "aqari_workspace_access",
         "aqari_unit_meter_register"
       ],
       "testKind": null
@@ -785,8 +829,8 @@
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
-      "sha256": "a38fa3c81e1a4b397a5998e0ce788ef857d31f65ffdebb580d2ba7f174fda454",
-      "bytes": 5797,
+      "sha256": "e407cab3d55854492d199b39b3e01f39e6c85d53fc1c2541b576302c82afe041",
+      "bytes": 7191,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1642,14 +1686,24 @@
         "staging-database/RELEASE_GATE_SPEC_2026_09_09.md",
         "staging-database/RELEASE_GATE_2026_09_09.md",
         "src/v267/workspace.js",
-        "docs/V267-WORKSPACE-ARCHITECTURE.md"
+        "docs/V267-WORKSPACE-ARCHITECTURE.md",
+        "staging-database/sql/workspace-feature-discovery.sql",
+        "tests/v267-workspace-features.test.cjs",
+        "staging-database/tests/workspace_feature_discovery.sql"
       ],
       "uiFiles": [
         "src/v267/workspace.js"
       ],
-      "sqlFiles": [],
-      "testFiles": [],
-      "requiredVerification": [],
+      "sqlFiles": [
+        "staging-database/sql/workspace-feature-discovery.sql"
+      ],
+      "testFiles": [
+        "tests/v267-workspace-features.test.cjs",
+        "staging-database/tests/workspace_feature_discovery.sql"
+      ],
+      "requiredVerification": [
+        "hosted-database-acceptance"
+      ],
       "fullAcceptance": "NOT_PROVEN",
       "productionCompletion": "NOT_PROVEN"
     },
@@ -1811,6 +1865,9 @@
       "evidenceFiles": [
         "src/v267/workspace.js",
         "docs/V267-WORKSPACE-ARCHITECTURE.md",
+        "staging-database/sql/workspace-feature-discovery.sql",
+        "tests/v267-workspace-features.test.cjs",
+        "staging-database/tests/workspace_feature_discovery.sql",
         "src/v267/styles/workspace.css",
         "v267-unified.css",
         "tests/v267-navigation-work.test.cjs"
@@ -1819,11 +1876,17 @@
         "src/v267/workspace.js",
         "src/v267/styles/workspace.css"
       ],
-      "sqlFiles": [],
+      "sqlFiles": [
+        "staging-database/sql/workspace-feature-discovery.sql"
+      ],
       "testFiles": [
+        "tests/v267-workspace-features.test.cjs",
+        "staging-database/tests/workspace_feature_discovery.sql",
         "tests/v267-navigation-work.test.cjs"
       ],
-      "requiredVerification": [],
+      "requiredVerification": [
+        "hosted-database-acceptance"
+      ],
       "fullAcceptance": "NOT_PROVEN",
       "productionCompletion": "NOT_PROVEN"
     },

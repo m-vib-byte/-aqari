@@ -1,4 +1,4 @@
-import {mountUnitMeterReadings} from '../components/unit-meter-readings.js';
+import {mountAvailableUnitMeterReadings} from '../components/unit-meter-readings.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -7,7 +7,6 @@ const labels={unknown:'غير مؤكد',unpaid:'غير مسدد',partial:'مسد
 export function openUtilityMeters(){
  const d=createDialog(t('الإعدادات والخدمات — عدادات العقارات'),{localized:true});if(!d)return;
  d.body.append(node('p',t('تسجيل داخلي من المستندات فقط. لا يوجد اتصال بوزارة الكهرباء والماء أو دفع إلكتروني.')));
- mountUnitMeterReadings(d);
  const urls=createPrivateUrls(d);
  const property=node('select'),meter=node('select'),reload=node('button',t('تحديث العدادات والفواتير')),details=node('div'),history=node('div'),form=node('form');let meters=[],properties=[];const saveProof=createPaymentProof(d.session);const payButton=node('button',t('دفع الفاتورة — بانتظار الربط الرسمي'));payButton.disabled=true;payButton.type='button';d.body.append(payButton);let requestId=crypto.randomUUID();
  const type=node('select');for(const [v,labelText]of [['reading',t('قراءة عداد')],['bill',t('فاتورة')]]){const o=node('option',t(labelText));o.value=v;type.append(o);}
@@ -46,5 +45,5 @@ export function openUtilityMeters(){
   if(Object.entries(row).some(([k,v])=>(['amount_due','amount_paid'].includes(k)&&v!==null?Number(verified[k])!==Number(v):String(verified[k]??'')!==String(v??''))))throw Error('لم تتأكد مطابقة السجل. حدّث السجلات.');
   requestId=crypto.randomUUID();form.reset();mode();await show();d.status.textContent=t('تم حفظ السجل والتحقق منه بإعادة القراءة. الأصل محفوظ دون حذف أو استبدال.');
  });};
- d.run(async()=>{properties=await d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).order('name').limit(200));for(const p of properties){const o=node('option',p.name);o.value=p.id;property.append(o);}if(!properties.some(p=>p.name.includes('ضحاوي'))){const o=node('option',t('برج ضحاوي — تجهيز العدادات لاحقاً'));o.value='';property.append(o);}await load();});
+ d.run(async()=>{await mountAvailableUnitMeterReadings(d);properties=await d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).order('name').limit(200));for(const p of properties){const o=node('option',p.name);o.value=p.id;property.append(o);}if(!properties.some(p=>p.name.includes('ضحاوي'))){const o=node('option',t('برج ضحاوي — تجهيز العدادات لاحقاً'));o.value='';property.append(o);}await load();});
 }

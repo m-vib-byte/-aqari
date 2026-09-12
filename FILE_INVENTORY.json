@@ -11,6 +11,11 @@
       "size": 746
     },
     {
+      "path": ".github/workflows/archive-integrity.yml",
+      "sha256": "7be7231f8cf6e897b2900b6914beb2992926d3b5c430c4f51eb73be5b963c6b8",
+      "size": 5534
+    },
+    {
       "path": ".github/workflows/authenticated-home.yml",
       "sha256": "ae02e893eccedea5b774a7d5f3a1d2641060730d1e9ea73b8b3f10e2be83928b",
       "size": 1390
@@ -42,8 +47,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "576ee41348edaae34f68af77b41c88084f1f7ccae4248ead8a99e2421d2cb3a4",
-      "size": 5381
+      "sha256": "7b8e7e23a45d801d15dc25ec6e135b9919fb3d5ada4d49662e34667375ca5983",
+      "size": 5420
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -342,8 +347,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "7ed56508a833622b61351ea3e9966168a6d7b1caf7bb662200274669ad2cfe1a",
-      "size": 261160
+      "sha256": "abff33b56fdec1973f0886858c0ec763c400286bbe362b8501ab632ae4a0e190",
+      "size": 263471
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -374,6 +379,11 @@
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
       "sha256": "38e338aa441c21d556f02be0bd972810576c8eb98d3140c46d1a28eb48ea8729",
       "size": 3519
+    },
+    {
+      "path": "docs/V267-INCREMENTAL-RELEASE-2026-09-12.md",
+      "sha256": "1adcf6f1c0eddf8a9b7e473ef7969fa28cbec2eee9ad09799458855d5faff090",
+      "size": 8512
     },
     {
       "path": "docs/V267-INSPECTION-STATUS-2026-09-09.md",
@@ -422,8 +432,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "80cc9d004b75d17e0796ac97005fbd5e80dcd086715cef6725eaf3afc5dc26be",
-      "size": 89986
+      "sha256": "066f74ba0e667a93232e98d397a957f3f40e5806cc21a70808212e1b29175c69",
+      "size": 90593
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -627,8 +637,8 @@
     },
     {
       "path": "scripts/audit-v267-evidence.mjs",
-      "sha256": "586a9cd15c46b3cacc0a5cfd255e232192a50c6a4b7c5f09ea3d817b9d53fd77",
-      "size": 5184
+      "sha256": "586f37a095b5dbc457dba62cdbe07aa676b562f6eb42f1efd0a3550b88d37980",
+      "size": 5438
     },
     {
       "path": "scripts/autosync-selftest.mjs",
@@ -832,8 +842,8 @@
     },
     {
       "path": "src/v267/components/unit-meter-readings.js",
-      "sha256": "a154c880b6c8a2071f7df4f943a693f6f83c41d9f2385b5c4ea8d7f27163b163",
-      "size": 7048
+      "sha256": "22077132b719742503f52f1fcefe2df2967f75f5973e55997f6f28b29a434dc8",
+      "size": 7597
     },
     {
       "path": "src/v267/components/verified-upload.js",
@@ -1002,8 +1012,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "ed146ac2819169355f07e6a0eb1febe81ff92044f05064790d99b304e4a42ac6",
-      "size": 11703
+      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
+      "size": 11725
     },
     {
       "path": "src/v267/pages/vacating-review.js",
@@ -1022,8 +1032,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "919e5d10799de43c9d75a75d53a9dd46a936fdda8b2a7a4364d33f39ce091ab1",
-      "size": 16098
+      "sha256": "68cbc92e61297eaf936a810612dd55e3226a068756e86a9fa20634bf9687c730",
+      "size": 16456
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -1042,8 +1052,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "07e32beb05bf8a6b1754bddf2aa4b497221a43a0d154c115c20d8f3c79b33549",
-      "size": 2807
+      "sha256": "410d6f42b94c886e0c58acce6e1e8e24c260bed6ed8436f6717cd9b936201f2a",
+      "size": 2848
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -1232,8 +1242,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "d86401595d6bfaa6e07497da2047b3c8bdcc4dd776d12cf5c9ea4c958dfeab1d",
-      "size": 2596
+      "sha256": "498f0aa7a250ad262d8f7c70ca6590c8b6984c7b7fa8325c4bcd6eb96858ef75",
+      "size": 3922
     },
     {
       "path": "staging-database/supabase/migrations/20260907083736_v267_isolated_core.sql",
@@ -1494,6 +1504,11 @@
       "path": "staging-database/tests/workspace_controls.sql",
       "sha256": "7133498c7c4eb716962be673ed150e2905833aa932bec17d7012043e4026fe0c",
       "size": 5161
+    },
+    {
+      "path": "staging-database/tests/workspace_feature_discovery.sql",
+      "sha256": "aa52d95c5159d2d83903034f09d1faf155a7816620e4959ad9ad54401a3db7d3",
+      "size": 3386
     },
     {
       "path": "startup-trace-worker.js",
@@ -1846,6 +1861,11 @@
       "size": 4235
     },
     {
+      "path": "tests/v267-financial-archive.browser.mjs",
+      "sha256": "7dd27c2c9127162d7269e1ea681a1d29b39f0ab21ff9f33415e16aa6e342fbb1",
+      "size": 14108
+    },
+    {
       "path": "tests/v267-financial-archive.test.cjs",
       "sha256": "80a55313e62515ebef0cd93ae94221aedbfa7533149f60b3d22b18a923b6f45c",
       "size": 16222
@@ -2027,8 +2047,8 @@
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
-      "sha256": "a38fa3c81e1a4b397a5998e0ce788ef857d31f65ffdebb580d2ba7f174fda454",
-      "size": 5797
+      "sha256": "e407cab3d55854492d199b39b3e01f39e6c85d53fc1c2541b576302c82afe041",
+      "size": 7191
     },
     {
       "path": "tests/v267-user-guide.test.cjs",
@@ -2057,8 +2077,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "15c7fcd9452fd66552e61f97759e2491a76f4c4de2abfb52a53c8165942e7a50",
-      "size": 2626
+      "sha256": "4a5c0d368523adc0ca9c185fe063d87e05ec4561702ca16eb0a39500663c76b1",
+      "size": 4001
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
@@ -2249,16 +2269,6 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
-    },
-    {
-      "path": "tests/v267-financial-archive.browser.mjs",
-      "sha256": "7dd27c2c9127162d7269e1ea681a1d29b39f0ab21ff9f33415e16aa6e342fbb1",
-      "size": 14108
-    },
-    {
-      "path": ".github/workflows/archive-integrity.yml",
-      "sha256": "7be7231f8cf6e897b2900b6914beb2992926d3b5c430c4f51eb73be5b963c6b8",
-      "size": 5534
     }
   ],
   "version": "V198"
