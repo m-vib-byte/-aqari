@@ -272,8 +272,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "sha256": "fe4997c0e8a8fcce3dfe113701e49950b1bcf66ac365bd3b3f368d290247a296",
-      "size": 84230
+      "sha256": "46a0727e9df9cb6832b5a588c98a73e8bf646448a8a749b0887667f17bb13ad5",
+      "size": 84560
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -2124,6 +2124,16 @@
       "path": "tests/v267-official-document-register.test.cjs",
       "sha256": "833fafdfe83c2d3a8205e1edca3d4fec25f5c24a7304f55c1b1fb6d0a1c9e983",
       "size": 1664
+    },
+    {
+      "path": "lib/outbound_adapters.py",
+      "sha256": "b9388f265c455ffc56cdf1a6720e891034afd47bcc08ecff357b8bf3fdb9df1c",
+      "size": 3187
+    },
+    {
+      "path": "tests/outbound_adapters_test.py",
+      "sha256": "08e83a2b264768e671bb00764ff20070514464238b160e58069faaf071356235",
+      "size": 2176
     }
   ],
   "version": "V198"
