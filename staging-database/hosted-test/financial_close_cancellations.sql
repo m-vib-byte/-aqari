@@ -1,6 +1,10 @@
 -- All identities and records are synthetic; every business write rolls back.
 begin;
-insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values ('close-manager@example.invalid','مدير اختبار الإقفال','general_manager','aqari-v267-staging'),('close-accountant@example.invalid','محاسب اختبار','accountant','aqari-v267-staging');
+set local statement_timeout='20s';
+set local lock_timeout='3s';
+insert into public.aqari_workspaces(id,slug,name) values('8f690000-0000-4000-8000-000000000099','aqari-v267-close-acceptance-20260912','اختبار إقفال مؤقت — يتراجع بالكامل');
+insert into public.aqari_app_state(workspace_id,payload) values('8f690000-0000-4000-8000-000000000099','{}');
+insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values ('close-manager@example.invalid','مدير اختبار الإقفال','general_manager','aqari-v267-close-acceptance-20260912'),('close-accountant@example.invalid','محاسب اختبار','accountant','aqari-v267-close-acceptance-20260912');
 insert into auth.users(id,email,email_confirmed_at) values ('8f690000-0000-4000-8000-000000000001','close-manager@example.invalid',now()),('8f690000-0000-4000-8000-000000000002','close-accountant@example.invalid',now());
 select set_config('request.jwt.claim.sub','8f690000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims','{"aal":"aal2"}',true);
 select set_config('close.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);

@@ -357,8 +357,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "size": 283613,
-      "sha256": "70811037ff94f6d86886e085d17ed2b7648c8fc6ae7d66a46ab387f485158451"
+      "sha256": "d679fc01aaa5948fcb4f2a0907257c08333528a777c85507b69bc5dff94d29a9",
+      "size": 289408
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -384,6 +384,11 @@
       "path": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md",
       "size": 3907,
       "sha256": "7ec9fb5e8067d950eec05728e13bbe3d78b706a1f4782fa080b742ec8b617d74"
+    },
+    {
+      "path": "docs/V267-HOSTED-FINANCIAL-ACCEPTANCE-2026-09-12.md",
+      "sha256": "606cbbb37a50efb5235189e4838f4acae5c4145097c3fbdb851606533f2f68a8",
+      "size": 5653
     },
     {
       "path": "docs/V267-HOSTED-ISOLATION-2026-09-09.md",
@@ -457,8 +462,8 @@
     },
     {
       "path": "docs/V267-REQUIREMENTS-155.md",
-      "size": 94614,
-      "sha256": "2a2b8927a991222b662c891e26cea5e16de8f99e0b981aaa5cd29c15f3494b16"
+      "sha256": "f55fb4352c18c102e9410722710da0a6b910b0bb770753ab5e4256adfd6e4a57",
+      "size": 95553
     },
     {
       "path": "docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md",
@@ -1116,6 +1121,16 @@
       "size": 2481
     },
     {
+      "path": "staging-database/hosted-test/final_gap_register.sql",
+      "sha256": "b84fa5565f8cd37546e79fb581082cf0d18fbd5e9549e1d498d680b410ee2457",
+      "size": 11380
+    },
+    {
+      "path": "staging-database/hosted-test/financial_close_cancellations.sql",
+      "sha256": "f8a4be45aea5c0d6f75b50c684d5ef8eea5037a7ed7142a5942404c4e776a06c",
+      "size": 9390
+    },
+    {
       "path": "staging-database/local-test/fixtures/financial-close-cancellations-v1.sql",
       "size": 2403,
       "sha256": "38719e27854de3bfede2d8c1ad0e95f318922f27601ec83a1497928b3ffa49a3"
@@ -1167,8 +1182,8 @@
     },
     {
       "path": "staging-database/sql/final-gap-readback-hardening.sql",
-      "sha256": "bececa43573960d61aa97f1f5be87d0c6facecc3f8b12912323eab07bd37c87a",
-      "size": 10933
+      "sha256": "0988abb2654d8b60a06c35a9ad7afdf9040045182cf5d760752244f9300676a4",
+      "size": 11158
     },
     {
       "path": "staging-database/sql/final-gap-register.sql",
@@ -1466,6 +1481,21 @@
       "size": 4912
     },
     {
+      "path": "staging-database/supabase/migrations/20260912121436_v267_hosted_financial_close_cancellations.sql",
+      "sha256": "7b787ece454d3a8aaed83141ef8868b048e657727d0235f668cc5eb7683978a0",
+      "size": 3157
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912121543_v267_hosted_final_gap_readback_hardening.sql",
+      "sha256": "bececa43573960d61aa97f1f5be87d0c6facecc3f8b12912323eab07bd37c87a",
+      "size": 10933
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912121938_v267_native_cancelled_receipt_guards.sql",
+      "sha256": "0988abb2654d8b60a06c35a9ad7afdf9040045182cf5d760752244f9300676a4",
+      "size": 11158
+    },
+    {
       "path": "staging-database/tests/deposit_register.sql",
       "sha256": "03c34778919dfc751275c194cffea6b39e02c8230fbe7be07430f62295f0eec2",
       "size": 17579
@@ -1507,8 +1537,8 @@
     },
     {
       "path": "staging-database/tests/financial_close_cancellations.sql",
-      "size": 7361,
-      "sha256": "68b7df6ab81e4bce2dade3279a65a96b710245307d7edb945734d572edf76a52"
+      "sha256": "60564bebeb4d583281adfdca0c7c91d359eaceeb02da0273ed142328c4c57e73",
+      "size": 8976
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
