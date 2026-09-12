@@ -23,14 +23,27 @@ jobs:
         run: |
           import hashlib,json,pathlib
           p=pathlib.Path('tests/v267-tenant-portal.test.cjs');text=p.read_text(encoding='utf-8')
-          old="'+moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('v267-tenant-portal.js');"
-          new="'+moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('src/v267/components/maintenance-request.js')+'\\n'+moduleSource('v267-tenant-portal.js');"
-          if text.count(old)!=1: raise SystemExit('TENANT_COMPONENT_FIXTURE_ANCHOR_CHANGED')
-          text=text.replace(old,new)
-          old="payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[]};"
-          new="payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[],maintenance_attachments:[]};"
-          if text.count(old)!=1: raise SystemExit('TENANT_SNAPSHOT_FIXTURE_ANCHOR_CHANGED')
-          text=text.replace(old,new)
+          replacements=[
+            (
+              "'+moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('v267-tenant-portal.js');",
+              "'+moduleSource('src/v267/components/ui-text.js')+'\\n'+moduleSource('src/v267/components/maintenance-request.js')+'\\n'+moduleSource('v267-tenant-portal.js');"
+            ),
+            (
+              "for(const id of ['notice','content','auth','tenantName','tenantLeases','tenantPayments','tenantRequests','maintenanceLease','maintenanceForm','maintenanceDescription','maintenanceSave','tenantEmail','tenantPassword','tenantLogin','tenantSignup','tenantLogout','tenantLanguage'])$(id);",
+              "for(const id of ['notice','content','auth','tenantName','tenantLeases','tenantPayments','tenantRequests','maintenanceLease','maintenanceType','maintenancePhotos','maintenanceForm','maintenanceDescription','maintenanceSave','tenantEmail','tenantPassword','tenantLogin','tenantSignup','tenantLogout','tenantLanguage'])$(id);$('maintenanceType').value='general';$('maintenancePhotos').files=[];"
+            ),
+            (
+              "payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[]};",
+              "payments:[{reference:'R-A',amount:'125.750',paid_at:'2026-09-01'}],maintenance:[],maintenance_attachments:[]};"
+            ),
+            (
+              "document:{documentElement:{},getElementById:$,createElement:()=>new Element(),querySelectorAll:selector=>selector==='button'?[$('tenantSignup'),$('tenantLogout'),$('maintenanceSave')]:all.filter(el=>el.dataset.aq267Text)}",
+              "document:{documentElement:{},getElementById:$,createElement:()=>new Element(),createTextNode:text=>{const n=new Element();n.textContent=text;return n;},querySelectorAll:selector=>selector==='button'?[$('tenantSignup'),$('tenantLogout'),$('maintenanceSave')]:all.filter(el=>el.dataset.aq267Text)}"
+            )
+          ]
+          for old,new in replacements:
+              if text.count(old)!=1: raise SystemExit('TENANT_FIXTURE_ANCHOR_CHANGED:'+old[:100])
+              text=text.replace(old,new)
           p.write_text(text,encoding='utf-8')
           inventory=pathlib.Path('FILE_INVENTORY.json');data=json.loads(inventory.read_text(encoding='utf-8'));entries={e['path']:e for e in data['files']}
           payload=p.read_bytes();entry=entries.get(str(p))
