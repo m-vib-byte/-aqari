@@ -722,8 +722,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "4e7b157e730d7dddac34c1d832865f4e99ee4e7aacfdea1f7c828b451131bf59",
-      "size": 7390
+      "sha256": "10bd380a7d218d84a021f2e39005492cb0e9a6c80d669287aa8af2c01d4f8ed9",
+      "size": 7422
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
