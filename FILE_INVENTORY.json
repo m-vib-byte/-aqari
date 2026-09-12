@@ -567,8 +567,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "5fcad8bf93a6a434f47d87fa13cb27686bb21a9d85df2e9443e806db7dc56613",
-      "size": 7228
+      "sha256": "4e7b157e730d7dddac34c1d832865f4e99ee4e7aacfdea1f7c828b451131bf59",
+      "size": 7390
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -1712,8 +1712,8 @@
     },
     {
       "path": "tests/v267-security-center.test.cjs",
-      "sha256": "e8c7c0207550dd459043708bb7094449fbc4088a8e49bf81d553103275ff2af4",
-      "size": 1259
+      "sha256": "1159f0dd81c1c636e58c4027a475281b9510784762c1680e4adb15d658e5f105",
+      "size": 1257
     },
     {
       "path": "tests/v267-service-desk.test.cjs",
