@@ -65,7 +65,7 @@ export function productionPatch(read,{projectRef,publishableKey}){
   editor=replaceExact(editor,'patch.preferredContact=preferredContact.value;','',1,editorPath);
   patch.set(editorPath,editor);
   const workspacePath='src/v267/workspace.js';
-  patch.set(workspacePath,replaceExact(read(workspacePath),'tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);','originals.hidden=true;originals.disabled=true;\n tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);',1,workspacePath));
+  patch.set(workspacePath,replaceExact(read(workspacePath),'tools.append(staffAccess,financialRegister,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);','originals.hidden=true;originals.disabled=true;\n tools.append(staffAccess,financialRegister,deposits,guideButton,complianceButton,kpiButton,maintenancePlansButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);',1,workspacePath));
   const documentsPath='src/v267/pages/original-documents.js';
   patch.set(documentsPath,replaceExact(read(documentsPath),'export function openOriginalDocuments(){',"export function openOriginalDocuments(){\n throw Error('هذه الخدمة قيد التجهيز لهذه النسخة.');",1,documentsPath));
   const inventory=JSON.parse(read('FILE_INVENTORY.json'));
