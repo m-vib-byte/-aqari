@@ -10,12 +10,21 @@ create table if not exists private.aqari_maintenance_attachments(
  checksum_sha256 text not null check(checksum_sha256~'^[a-f0-9]{64}$'),
  storage_bucket text not null default 'aqari-maintenance-private' check(storage_bucket='aqari-maintenance-private'),
  storage_path text not null unique,status text not null default 'reserved' check(status in('reserved','uploaded','cancelled')),
- created_by uuid not null,created_at timestamptz not null default now(),uploaded_at timestamptz,cancelled_at timestamptz,
+ created_by uuid not null,created_at timestamptz not null default now(),uploaded_at timestamptz,
+ cancelled_at timestamptz,cancelled_by uuid,cancel_reason text,
  check(storage_path=workspace_id::text||'/'||request_id::text||'/'||id::text)
 );
-alter table private.aqari_maintenance_attachments add column if not exists cancelled_at timestamptz;
+alter table private.aqari_maintenance_attachments
+ add column if not exists cancelled_at timestamptz,
+ add column if not exists cancelled_by uuid,
+ add column if not exists cancel_reason text;
 alter table private.aqari_maintenance_attachments drop constraint if exists aqari_maintenance_attachments_status_check;
 alter table private.aqari_maintenance_attachments add constraint aqari_maintenance_attachments_status_check check(status in('reserved','uploaded','cancelled'));
+alter table private.aqari_maintenance_attachments drop constraint if exists aqari_maintenance_attachments_cancellation_check;
+alter table private.aqari_maintenance_attachments add constraint aqari_maintenance_attachments_cancellation_check check(
+ (status='cancelled' and cancelled_at is not null and cancelled_by is not null and length(btrim(cancel_reason)) between 6 and 240)
+ or (status in('reserved','uploaded') and cancelled_at is null and cancelled_by is null and cancel_reason is null)
+);
 create index if not exists aqari_maintenance_attachments_request on private.aqari_maintenance_attachments(workspace_id,request_id,created_at,id);
 alter table private.aqari_maintenance_attachments enable row level security;
 revoke all on private.aqari_maintenance_attachments from public,anon,authenticated;
@@ -30,7 +39,7 @@ returns boolean language sql stable security definer set search_path='' as $$
 $$;
 create or replace function private.aqari_maintenance_attachments(w uuid,r uuid,action text,d jsonb)
 returns jsonb language plpgsql security definer set search_path='' as $$
-declare doc private.aqari_maintenance_attachments;ident uuid;can_write boolean;
+declare doc private.aqari_maintenance_attachments;ident uuid;can_write boolean;reason text;
 begin
  if auth.uid() is null or not private.aqari_maintenance_attachment_access(w,r,false) then raise insufficient_privilege using message='ACCESS_DENIED';end if;
  can_write:=private.aqari_maintenance_attachment_access(w,r,true);
@@ -52,14 +61,17 @@ begin
  if action='cancel' then
   if doc.id is null then raise invalid_parameter_value using message='ATTACHMENT_NOT_CONFIRMED';end if;
   if doc.status='uploaded' then raise invalid_parameter_value using message='ATTACHMENT_ALREADY_FINALIZED';end if;
-  if doc.status='cancelled' then return to_jsonb(doc);end if;
-  -- Only a still-reserved original owned by the current caller can be released.
-  -- Remove any partially uploaded object server-side before freeing the slot;
-  -- uploaded/finalized originals can never reach this branch.
-  delete from storage.objects where bucket_id=doc.storage_bucket and name=doc.storage_path;
-  update private.aqari_maintenance_attachments set status='cancelled',cancelled_at=now() where id=ident and status='reserved' returning * into doc;
+  if doc.status='cancelled' then return to_jsonb(doc)||jsonb_build_object('cancellation_reused',true);end if;
+  reason:=btrim(coalesce(nullif(d->>'reason',''),'user_cancelled_incomplete_upload'));
+  if length(reason) not between 6 and 240 then raise invalid_parameter_value using message='INVALID_CANCEL_REASON';end if;
+  -- Never delete bytes from Storage during cancellation. If an object exists,
+  -- it may be a complete original awaiting finalization after a lost response.
+  if exists(select 1 from storage.objects o where o.bucket_id=doc.storage_bucket and o.name=doc.storage_path) then raise invalid_parameter_value using message='ATTACHMENT_OBJECT_PRESENT';end if;
+  update private.aqari_maintenance_attachments
+   set status='cancelled',cancelled_at=now(),cancelled_by=auth.uid(),cancel_reason=reason
+   where id=ident and status='reserved' returning * into doc;
   if doc.id is null then raise invalid_parameter_value using message='ATTACHMENT_NOT_CONFIRMED';end if;
-  return to_jsonb(doc);
+  return to_jsonb(doc)||jsonb_build_object('cancellation_reused',false);
  end if;
  if action='reserve' then
   if coalesce(d->>'mime_type','') not in ('image/jpeg','image/png','image/webp','application/pdf')
@@ -114,7 +126,7 @@ create policy aqari_maintenance_attachment_read on storage.objects for select to
 create policy aqari_maintenance_attachment_insert on storage.objects for insert to authenticated
  with check(bucket_id='aqari-maintenance-private' and private.aqari_maintenance_attachment_storage(name,true));
 -- No UPDATE or DELETE policy: neither tenant nor staff can replace/delete an original.
--- Draft cancellation is only through the guarded SECURITY DEFINER RPC above.
+-- Draft cancellation never deletes Storage bytes and is only through the guarded RPC.
 revoke all on function private.aqari_maintenance_attachment_access(uuid,uuid,boolean),private.aqari_maintenance_attachments(uuid,uuid,text,jsonb),private.aqari_maintenance_attachment_storage(text,boolean),public.aqari_maintenance_attachments(uuid,uuid,text,jsonb) from public,anon,authenticated;
 grant execute on function private.aqari_maintenance_attachments(uuid,uuid,text,jsonb),private.aqari_maintenance_attachment_storage(text,boolean),public.aqari_maintenance_attachments(uuid,uuid,text,jsonb) to authenticated;
 commit;
