@@ -57,6 +57,9 @@ execFileSync(process.execPath,['--test','tests/v267-server-mutation-audit.test.m
 // settlements from ordinary collection operations.
 execFileSync(process.execPath,['--test','tests/v267-collector-performance-report.test.mjs','tests/v267-collector-performance-ui.test.mjs'],{stdio:'inherit'});
 
+// Reuse the hardened XLSX encoder for server-verified operational snapshots.
+execFileSync(process.execPath,['--test','tests/v267-operational-report-xlsx.test.mjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
@@ -69,7 +72,7 @@ execFileSync(process.execPath,[
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
 try{
   execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});
-  execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test'],{
+  execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test'],{
     stdio:'inherit',
     env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}
   });
