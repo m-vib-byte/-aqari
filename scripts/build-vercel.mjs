@@ -51,6 +51,12 @@ execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.te
 // hashes without duplicating raw sensitive row contents.
 execFileSync(process.execPath,['--test','tests/v267-server-mutation-audit.test.mjs'],{stdio:'inherit'});
 
+// Collector performance uses authenticated actor attribution for new payments,
+// preserves legacy names as unmatched until a manager performs a recent-MFA alias
+// mapping, excludes cancelled receipts, and separates explicitly classified
+// settlements from ordinary collection operations.
+execFileSync(process.execPath,['--test','tests/v267-collector-performance-report.test.mjs','tests/v267-collector-performance-ui.test.mjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
