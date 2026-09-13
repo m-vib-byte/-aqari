@@ -28,6 +28,14 @@ execFileSync(process.execPath,[
   'tests/v267-unit-handover-renderer-contract.test.mjs'
 ],{stdio:'inherit'});
 
+// Reconcile the security/release-policy support stack onto the unified Preview
+// without treating a build pass as release acceptance. These checks are pure or
+// source-contract tests; they do not mutate hosted Staging/Production data.
+execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-partner-access-mfa-guard.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
+execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
+
 // Vercel's function dependency collector may prepare binary wheels with a
 // different interpreter than the build-command Python. Install a throwaway,
 // interpreter-matched copy outside the deployment output, execute the real
