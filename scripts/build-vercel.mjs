@@ -22,6 +22,11 @@ execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','test
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'],{stdio:'inherit'});
 
+// Owner governance dated 13 Sep 2026 is fail-closed and must travel with the
+// exact Preview candidate. Passing this policy suite does not approve Production;
+// it only proves the candidate refuses older automatic-authorization semantics.
+execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
+
 // The current PR #75 candidate already carries the Preview/Staging handover archive
 // migration. Keep the runtime/export side fail-closed on the same Preview artifact:
 // signed source bundle, immutable PDF archive contract, hosted API boundary, evidence
