@@ -15,7 +15,7 @@ for(const path of paths){
 // Do not rewrite the candidate's historical inventory as though it had already
 // contained these bytes; fail closed on missing/invalid JavaScript and use the
 // focused exact-build suites for behavioral proof.
-const supportOverlays=['src/v267/pages/staff-access.js','src/v267/pages/employees.js','src/v267/pages/staff-circulars.js','src/v267/pages/financial-register.js'];
+const supportOverlays=['src/v267/pages/staff-access.js','src/v267/pages/employees.js','src/v267/pages/staff-circulars.js','src/v267/pages/financial-register.js','src/v267/pages/property-statements.js'];
 for(const path of supportOverlays){
  const url=new URL('../'+path,import.meta.url),bytes=readFileSync(url);
  if(!bytes.length)throw Error('Missing support overlay: '+path);
