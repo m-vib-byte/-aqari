@@ -4,12 +4,18 @@ on:
   pull_request:
     paths:
       - 'scripts/v267-owner-production-approval.mjs'
+      - 'scripts/v267-release-gate-manifest.mjs'
       - 'tests/v267-owner-production-approval.test.mjs'
       - '.github/workflows/v267-owner-production-approval.yml'
+      - 'docs/release-gates/**'
   workflow_dispatch:
     inputs:
       candidate_sha:
         description: 'Exact 40-character V267 candidate SHA'
+        required: true
+        type: string
+      release_gate_manifest_path:
+        description: 'Repository-relative JSON manifest under docs/release-gates/ proving the full technical gate on this exact SHA'
         required: true
         type: string
       final_tested_sha:
@@ -54,6 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     env:
+      V267_RELEASE_GATE_MANIFEST_PATH: ${{ inputs.release_gate_manifest_path }}
       V267_OWNER_FINAL_TESTED_SHA: ${{ inputs.final_tested_sha }}
       V267_OWNER_PRODUCTION_APPROVAL_SHA: ${{ inputs.owner_approved_sha }}
       V267_OWNER_PRODUCTION_APPROVAL_DECISION: ${{ inputs.approval_decision }}
@@ -62,11 +69,14 @@ jobs:
       V267_OWNER_APPROVAL_ACTOR: ${{ github.actor }}
       V267_REPOSITORY_OWNER: ${{ github.repository_owner }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the exact candidate being approved
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate exact candidate, owner identity, and approval ordering
+      - name: Validate full technical gate, exact candidate, owner identity, and approval ordering
         run: node scripts/v267-owner-production-approval.mjs --candidate-sha '${{ inputs.candidate_sha }}'
       - name: Confirm this workflow cannot deploy or merge
         run: |
