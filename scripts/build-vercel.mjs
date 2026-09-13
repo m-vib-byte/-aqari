@@ -36,6 +36,11 @@ execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.t
 // contract, payment, document, expense or official-document series.
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
 
+// Every cancellation/void must preserve a reason, actor and timestamp in the
+// immutable cancellation audit; direct document cancellation without the reason-
+// backed RPC is rejected.
+execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.test.mjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
