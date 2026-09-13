@@ -4,8 +4,8 @@ import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 export function openPropertyStatements(options={}){
  const d=createDialog(t('كشوف العقارات المحفوظة'),{localized:true});if(!d)return;
- const select=node('select'),month=node('input'),refresh=node('button',t('عرض الكشف')),pdf=node('button',t('تحميل PDF / طباعة')),link=node('button',t('ربط الكشف بملفات المستأجرين والعقود')),result=node('div');month.type='month';month.value='2026-08';pdf.disabled=true;link.disabled=true;
- d.body.append(field(t('العقار'),select),field(t('الشهر'),month),refresh,pdf,link,result);
+ const select=node('select'),month=node('input'),refresh=node('button',t('عرض الكشف')),pdf=node('button',t('تحميل PDF / طباعة')),link=node('button',t('ربط الكشف بملفات المستأجرين والعقود')),result=node('div'),collection=node('button',t('كشف التحصيل الفعلي')),collectionResult=node('div');month.type='month';month.value='2026-08';pdf.disabled=true;link.disabled=true;collection.disabled=true;
+ d.body.append(field(t('العقار'),select),field(t('الشهر'),month),refresh,pdf,link,result,collection,collectionResult);
  let selected;let links=[];const urls=createPrivateUrls(d);
  function show(content){
   result.replaceChildren();result.append(node('h3',content.property_name+' — '+content.period),node('p',t('كشف المصدر المحفوظ. مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.')));
@@ -17,14 +17,28 @@ export function openPropertyStatements(options={}){
    }result.append(card);
   }
  }
- function syncActions(){pdf.disabled=link.disabled=!selected;}
+ function showCollection(report){
+  collectionResult.replaceChildren();const summaries=Array.isArray(report?.properties)?report.properties:[],lines=Array.isArray(report?.lines)?report.lines:[],summary=summaries.find(x=>String(x.property_id)===String(select.value))||summaries[0];
+  collectionResult.append(node('h3',t('كشف التحصيل الفعلي')+' — '+month.value));
+  if(!summary){collectionResult.append(node('p',t('لا توجد استحقاقات عقود موقعة لهذا العقار في الشهر المحدد.')));return;}
+  const rate=summary.collection_rate_pct==null?t('غير منطبق'):summary.collection_rate_pct+'%';
+  collectionResult.append(
+   node('p',message('إيجار العقد: {gross} د.ك • الخصومات: {discount} د.ك • المطلوب: {due} د.ك',{gross:summary.gross_contract_rent,discount:summary.discounts,due:summary.due})),
+   node('p',message('المدفوع: {paid} د.ك • المحتسب في النسبة: {allocated} د.ك • المتبقي: {remaining} د.ك',{paid:summary.paid_total,allocated:summary.allocated_paid,remaining:summary.remaining})),
+   node('p',message('نسبة التحصيل: {rate} • مقام النسبة: {denominator} د.ك • زيادة غير محتسبة في النسبة: {over} د.ك',{rate,denominator:summary.rate_denominator,over:summary.overpayment})),
+   node('p',t('النسبة تعتمد المقبوض المخصص للاستحقاق فقط؛ الوصولات الملغاة مستبعدة، والدفعات الزائدة تظهر منفصلة ولا ترفع النسبة.'))
+  );
+  for(const row of lines.filter(x=>String(x.property_id)===String(summary.property_id))){const card=node('details'),head=node('summary',message('الوحدة {unit} — العقد {contract}',{unit:row.unit_no,contract:row.contract_no}));card.append(head,node('p',message('المطلوب: {due} د.ك • المدفوع: {paid} د.ك • المتبقي: {remaining} د.ك',{due:row.due,paid:row.allocated_paid,remaining:row.remaining})),node('p',message('الخصم: {discount} د.ك • الزيادة: {over} د.ك',{discount:row.discount,over:row.overpayment})),node('p',t('الحالة')+': '+row.status));collectionResult.append(card);}
+ }
+ function syncActions(){pdf.disabled=link.disabled=!selected;collection.disabled=!select.value||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value);}
  async function reload(){await d.run(load);syncActions();}
- async function load(){urls.clear();pdf.disabled=link.disabled=true;selected=null;links=[];result.replaceChildren();if(!select.value||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value)){d.status.textContent=t('اختر العقار والشهر أولاً.');return;}const rows=await d.session.request(d.session.client.from('aqari_property_statements').select('workspace_id,property_id,period,source_sha256,content').eq('workspace_id',d.session.bound.workspace).eq('property_id',select.value).eq('period',month.value+'-01'));
-  if(rows.length!==1){d.status.textContent=t('لا يوجد كشف محفوظ لهذا الشهر.');return;}const candidate=rows[0];links=await d.session.request(d.session.client.from('aqari_statement_links').select('unit_no,tenant_id,lease_id').eq('workspace_id',d.session.bound.workspace).eq('property_id',candidate.property_id).eq('period',candidate.period));show(candidate.content);selected=candidate;result.prepend(node('p',message('الروابط المحفوظة: {linked} من {rows}. العقود المستوردة للمراجعة؛ لا يصدر وصل من دون عقد فعال ومبلغ دفع مثبت.',{linked:links.length,rows:selected.content.rows.length})));pdf.disabled=false;d.status.textContent=t('تم استرجاع الكشف المحفوظ من قاعدة البيانات.');
+ async function load(){urls.clear();pdf.disabled=link.disabled=true;selected=null;links=[];result.replaceChildren();collectionResult.replaceChildren();if(!select.value||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value)){d.status.textContent=t('اختر العقار والشهر أولاً.');return;}const rows=await d.session.request(d.session.client.from('aqari_property_statements').select('workspace_id,property_id,period,source_sha256,content').eq('workspace_id',d.session.bound.workspace).eq('property_id',select.value).eq('period',month.value+'-01'));
+  if(rows.length!==1){d.status.textContent=t('لا يوجد كشف مصدر محفوظ لهذا الشهر. يمكنك عرض كشف التحصيل الفعلي من العقود والدفعات المحفوظة.');return;}const candidate=rows[0];links=await d.session.request(d.session.client.from('aqari_statement_links').select('unit_no,tenant_id,lease_id').eq('workspace_id',d.session.bound.workspace).eq('property_id',candidate.property_id).eq('period',candidate.period));show(candidate.content);selected=candidate;result.prepend(node('p',message('الروابط المحفوظة: {linked} من {rows}. العقود المستوردة للمراجعة؛ لا يصدر وصل من دون عقد فعال ومبلغ دفع مثبت.',{linked:links.length,rows:selected.content.rows.length})));pdf.disabled=false;d.status.textContent=t('تم استرجاع الكشف المحفوظ من قاعدة البيانات.');
  }
  link.onclick=()=>d.run(async()=>{if(!selected)throw Error('اعرض الكشف أولاً.');const r=await d.session.request(d.session.client.rpc('aqari_link_property_statement',{p_workspace_id:d.session.bound.workspace,p_property_id:selected.property_id,p_period:selected.period,p_source_sha256:selected.source_sha256}));await load();if(links.length!==r.linked_rows)throw Error('لم تؤكد إعادة القراءة اكتمال الربط.');d.status.textContent=message('تم حفظ واسترجاع {linked} رابطاً؛ ملفات مستأجرين جديدة: {tenants}، عقود جديدة: {leases}. حدّث الصفحة لعرضها في الأقسام.',{linked:r.linked_rows,tenants:r.new_tenants,leases:r.new_leases});}).then(syncActions);
  refresh.onclick=reload;
  select.onchange=month.onchange=reload;
+ collection.onclick=()=>d.run(async()=>{if(!select.value||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value))throw Error('اختر العقار والشهر أولاً.');const report=await d.session.request(d.session.client.rpc('aqari_monthly_collection_report',{p_workspace_id:d.session.bound.workspace,p_period:month.value+'-01',p_property_id:select.value}));showCollection(report);d.status.textContent=t('تم احتساب كشف التحصيل من الاستحقاقات والدفعات المحفوظة.');});
  pdf.onclick=()=>d.run(async()=>{
   if(!selected)throw Error('اعرض الكشف أولاً.');const bound=selected;
   const blob=await readProtectedPDF(d,{getSession:()=>window.AQARI_SUPABASE.getSession(),fetcher:fetch,body:{workspaceId:d.session.bound.workspace,propertyId:bound.property_id,period:bound.period.slice(0,7)}});
