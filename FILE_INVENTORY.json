@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "f9eb9ebca3c9896c99a86eb03bae01775b0708e614b9dc0ddfd2f7967e079b47",
-      "size": 8122
+      "sha256": "152af0a488bf7270c28a0b0e7bd6153199733bdf649ae464fea6f83569fa87c7",
+      "size": 8169
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "0d5177964ee0a05747c02e8d3c75ced655d66b926eb6a4be2a4581b8215c0b02",
+      "sha256": "53d1642798a95b1371ceacae9e4b8d909c94f822c9c0c0cd2475de7b9ab0abb8",
       "size": 590217
     },
     {
@@ -1172,8 +1172,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "a7ae7eb1d4beac08571a61789f8f43c992d1d4bb8732cc5b33ff7347f3dde5d4",
-      "size": 24612
+      "sha256": "6e796ed39123b1df74bff3e6d705daac2ab792c37e82ead97d0f61f0c60ead8d",
+      "size": 25387
     },
     {
       "path": "src/v267/pages/exit-review.js",
@@ -1277,8 +1277,8 @@
     },
     {
       "path": "src/v267/pages/staff-access.js",
-      "sha256": "4ba3cd1224e59b433488dde81b45ffe76d9fbdb55aad57a92902eac2508a043f",
-      "size": 13190
+      "sha256": "45cfcc2052b2819937a4064b9430f04d1df65b0ce6140c316159d094be16ad7c",
+      "size": 14365
     },
     {
       "path": "src/v267/pages/staff-circulars.js",
@@ -3329,6 +3329,21 @@
       "path": "docs/V267-EXPENSE-WORKSPACE-2026-09-13.md",
       "sha256": "b3fdb2291d704f73c46ef3e5e9201a322aef0fe32ecfb12fa961f1974715fbe5",
       "size": 3068
+    },
+    {
+      "path": "tests/v267-staff-access.test.cjs",
+      "sha256": "2025dc09289632bc070ea0141ed287c8a4f4443ce1af9037e62c6e7b419e5888",
+      "size": 20076
+    },
+    {
+      "path": "tests/v267-employee-directory-runtime.test.cjs",
+      "sha256": "c3596004ce63071b6f3912b3236f0f9943bc05eb6ae2ea9e381c046c78ee95aa",
+      "size": 3440
+    },
+    {
+      "path": "docs/V267-STAFF-ACCESS-DIRECTORY-2026-09-13.md",
+      "sha256": "f9d341f248b8211bd9ef9a9a4c69f4904ce33ab34368624ac020094fa484a581",
+      "size": 3199
     }
   ],
   "version": "V198"

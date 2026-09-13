@@ -700,8 +700,8 @@
     },
     {
       "path": "src/v267/pages/staff-access.js",
-      "sha256": "4ba3cd1224e59b433488dde81b45ffe76d9fbdb55aad57a92902eac2508a043f",
-      "bytes": 13190,
+      "sha256": "45cfcc2052b2819937a4064b9430f04d1df65b0ce6140c316159d094be16ad7c",
+      "bytes": 14365,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -989,8 +989,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "a7ae7eb1d4beac08571a61789f8f43c992d1d4bb8732cc5b33ff7347f3dde5d4",
-      "bytes": 24612,
+      "sha256": "6e796ed39123b1df74bff3e6d705daac2ab792c37e82ead97d0f61f0c60ead8d",
+      "bytes": 25387,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
