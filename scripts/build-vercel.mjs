@@ -26,6 +26,11 @@ execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.te
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs'],{stdio:'inherit'});
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
 
+// Lock the authoritative monthly rent-due ledger contract into the exact Preview
+// build. This proves source/runtime structure only; hosted real-account acceptance
+// and database migration evidence remain separate release-gate requirements.
+execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
