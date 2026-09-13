@@ -31,6 +31,7 @@ export function openOperationsCenter(initial={}){
  const summary=el('section'),cheques=section('الشيكات الآجلة والمرتجعة','تسجيل الشيك ثم توثيق انتقالاته البنكية وإعادة الدين عند الارتجاع.'),vendors=section('الموردون والمقاولون','ملف المورد أساس أوامر الشغل والعقود السنوية.'),orders=section('أوامر الشغل','أمر مرقم، اعتماد، تنفيذ، إنجاز ثم فاتورة مرتبطة بالمصروف.'),legal=section('القضايا والمصاريف القضائية','القضية والجلسات والتكاليف والذمة المرتبطة بالعقد.'),petty=section('العهدة المالية','سقف ورصيد وحركات موثقة؛ الصرف يحتاج فاتورة واعتماداً.');
  if(initial.requestId)d.body.append(notice,refresh,orders);else d.body.append(notice,refresh,summary,cheques,vendors,orders,legal,petty);
  const rpc=(domain,action,payload={})=>d.session.request(d.session.client.rpc('aqari_operations_register',{p_workspace_id:d.session.bound.workspace,p_domain:domain,p_action:action,p_data:payload}));
+ const closePettyCashRpc=(fund,reason)=>d.session.request(d.session.client.rpc('aqari_petty_cash_close',{p_workspace_id:d.session.bound.workspace,p_fund_id:fund.id,p_revision:fund.revision,p_reason:reason}));
 
  async function load(proof=null){
   const [overview,chequeData,vendorData,orderData,legalData,pettyData]=await Promise.all([
@@ -45,6 +46,14 @@ export function openOperationsCenter(initial={}){
   if(pending)throw Error('توجد عملية قيد التحقق. انتظر نتيجة إعادة القراءة.');pending=true;render();
   try{await rpc(domain,action,payload);await load(proof);d.status.textContent='تم الحفظ والتحقق بإعادة القراءة من قاعدة البيانات.';}
   finally{pending=false;if(loaded)render();}
+ }
+ async function closePettyCash(fund,reason){
+  if(pending)throw Error('توجد عملية قيد التحقق. انتظر نتيجة إعادة القراءة.');pending=true;render();
+  try{
+   await closePettyCashRpc(fund,reason);
+   await load(x=>x.pettyData.funds.some(row=>row.id===fund.id&&row.status==='closed'&&row.revision===fund.revision+1&&Number(row.balance)===0));
+   d.status.textContent='تم إقفال العهدة والتحقق بإعادة القراءة من قاعدة البيانات.';
+  } finally{pending=false;if(loaded)render();}
  }
  function runWrite(domain,action,payload,proof){d.run(()=>write(domain,action,payload,proof));}
  function titleFor(id,list,key='name'){return list.find(x=>x.id===id)?.[key]||'غير متاح';}
@@ -106,7 +115,18 @@ export function openOperationsCenter(initial={}){
   const f=el('form'),name=input(),custodian=input(),ceiling=input();name.required=custodian.required=ceiling.required=true;ceiling.inputMode='decimal';
   f.append(field('اسم العهدة',name),field('معرف أمين العهدة',custodian),field('السقف د.ك',ceiling),formButton('فتح عهدة'));
   f.onsubmit=e=>{e.preventDefault();const id=uuid();runWrite('petty_cash','create',{id,name:required(name.value,'اسم العهدة',2),custodian_id:required(custodian.value,'معرف أمين العهدة'),ceiling:money(ceiling.value)},x=>x.pettyData.funds.some(row=>row.id===id));};petty.append(f);
-  for(const fund of data.pettyData.funds){const card=el('article');card.append(el('h3',fund.name),el('p',`الرصيد ${Number(fund.balance).toFixed(3)} د.ك من سقف ${Number(fund.ceiling).toFixed(3)} د.ك • ${fund.status}`));if(fund.status==='open'&&!pending){const f=el('form'),kind=el('select'),amount=input(),property=selectFrom(data.overview.properties,'العقار عند الصرف'),doc=selectFrom(data.overview.documents,'فاتورة الصرف المحفوظة'),invoice=input(),category=input(),reference=input(),reason=input();kind.append(option('fund','تمويل'),option('spend','صرف'),option('settle','تسوية'));amount.required=reason.required=true;amount.inputMode='decimal';f.append(field('نوع الحركة',kind),field('المبلغ',amount),field('العقار',property),field('المستند',doc),field('رقم الفاتورة',invoice),field('البند',category),field('المرجع',reference),field('سبب الحركة',reason),formButton('حفظ حركة العهدة'));f.onsubmit=e=>{e.preventDefault();const entryId=uuid(),isSpend=kind.value==='spend';runWrite('petty_cash','entry',{id:fund.id,entry_id:entryId,kind:kind.value,amount:money(amount.value),property_id:isSpend?property.value:null,document_id:isSpend?doc.value:null,expense_id:isSpend?uuid():null,invoice_id:isSpend?required(invoice.value,'رقم الفاتورة',2):null,category:isSpend?required(category.value,'البند',2):null,reference:isSpend?required(reference.value,'المرجع',3):null,reason:required(reason.value,'سبب الحركة',3)},x=>x.pettyData.entries.some(row=>row.id===entryId)&&x.pettyData.funds.some(row=>row.id===fund.id&&row.revision===fund.revision+1));};card.append(f);}petty.append(card);}
+  for(const fund of data.pettyData.funds){
+   const card=el('article');card.append(el('h3',fund.name),el('p',`الرصيد ${Number(fund.balance).toFixed(3)} د.ك من سقف ${Number(fund.ceiling).toFixed(3)} د.ك • ${fund.status}`));
+   if(fund.status==='open'&&!pending){
+    const f=el('form'),kind=el('select'),amount=input(),property=selectFrom(data.overview.properties,'العقار عند الصرف'),doc=selectFrom(data.overview.documents,'فاتورة الصرف المحفوظة'),invoice=input(),category=input(),reference=input(),reason=input();kind.append(option('fund','تمويل'),option('spend','صرف'),option('settle','تسوية'));amount.required=reason.required=true;amount.inputMode='decimal';f.append(field('نوع الحركة',kind),field('المبلغ',amount),field('العقار',property),field('المستند',doc),field('رقم الفاتورة',invoice),field('البند',category),field('المرجع',reference),field('سبب الحركة',reason),formButton('حفظ حركة العهدة'));f.onsubmit=e=>{e.preventDefault();const entryId=uuid(),isSpend=kind.value==='spend';runWrite('petty_cash','entry',{id:fund.id,entry_id:entryId,kind:kind.value,amount:money(amount.value),property_id:isSpend?property.value:null,document_id:isSpend?doc.value:null,expense_id:isSpend?uuid():null,invoice_id:isSpend?required(invoice.value,'رقم الفاتورة',2):null,category:isSpend?required(category.value,'البند',2):null,reference:isSpend?required(reference.value,'المرجع',3):null,reason:required(reason.value,'سبب الحركة',3)},x=>x.pettyData.entries.some(row=>row.id===entryId)&&x.pettyData.funds.some(row=>row.id===fund.id&&row.revision===fund.revision+1));};card.append(f);
+    if(Number(fund.balance)===0){
+     const closeForm=el('form'),closeReason=input(),closeButton=formButton('إقفال العهدة ذات الرصيد الصفري');closeReason.required=true;closeReason.minLength=3;closeReason.maxLength=500;
+     closeForm.append(el('h4','إقفال العهدة'),field('سبب الإقفال',closeReason),closeButton);
+     closeForm.onsubmit=e=>{e.preventDefault();d.run(()=>closePettyCash(fund,required(closeReason.value,'سبب الإقفال',3)));};card.append(closeForm);
+    }
+   }
+   petty.append(card);
+  }
  }
  function render(){if(!loaded)return;renderSummary();renderCheques();renderVendors();renderOrders();renderLegal();renderPetty();refresh.disabled=pending;}
  refresh.onclick=()=>d.run(async()=>{await load();d.status.textContent='تم استرجاع جميع السجلات التشغيلية.';});
