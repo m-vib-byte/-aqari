@@ -1,5 +1,7 @@
 import {createPrivateUrls} from '../components/private-urls.js';
 import {readProtectedPDF} from '../api/protected-pdf.js';
+import {readOperationalReport} from '../api/operational-report.js';
+import {createOperationalReportXlsx,ARCHIVE_XLSX_TYPE} from '../reports/operational-report-xlsx.js';
 import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 export function openPropertyStatements(options={}){
@@ -9,6 +11,8 @@ export function openPropertyStatements(options={}){
  let selected;let links=[];const urls=createPrivateUrls(d);
  const validMonth=()=>/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value);
  const monthRange=()=>{const [y,m]=month.value.split('-').map(Number),last=new Date(Date.UTC(y,m,0)).getUTCDate();return {from:`${month.value}-01`,to:`${month.value}-${String(last).padStart(2,'0')}`};};
+ function operationalDownload(kind,format){return d.run(async()=>{if(!select.value||!validMonth())throw Error('اختر العقار والشهر أولاً.');const verified=await readOperationalReport(d,{kind,format,propertyId:select.value,month:month.value});let blob,name;if(format==='pdf'){blob=verified;name=`aqari-${kind}-${month.value}.pdf`;}else{const bytes=createOperationalReportXlsx(verified);blob=new Blob([bytes],{type:ARCHIVE_XLSX_TYPE});name=`aqari-${kind}-${month.value}.xlsx`;}const u=urls.create(blob),a=node('a',format==='pdf'?t('فتح PDF'):t('تنزيل Excel'));a.href=u;a.download=name;if(format==='pdf'){a.target='_blank';a.rel='noopener';}a.click();d.status.textContent=t('تم إنشاء الملف من إعادة قراءة خادمية حديثة.');});}
+ function attachOperationalExports(container,kind){const actions=node('div'),excel=node('button',t('تنزيل Excel للنتائج')),reportPdf=node('button',t('تحميل PDF للنتائج'));excel.type=reportPdf.type='button';excel.onclick=()=>operationalDownload(kind,'json');reportPdf.onclick=()=>operationalDownload(kind,'pdf');actions.append(excel,reportPdf);container.append(actions,node('p',t('التصدير يعيد قراءة جميع نتائج التقرير من الخادم؛ لا يعتمد على الصفحة المعروضة أو صفوف مخزنة في المتصفح.')));}
  function show(content){
   result.replaceChildren();result.append(node('h3',content.property_name+' — '+content.period),node('p',t('كشف المصدر المحفوظ. مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.')));
   const s=content.summary.printed_totals;result.append(node('p',message('الإيجار الحالي: {rent} د.ك • العربون: {advance} د.ك • النظافة: {cleaning} د.ك',{rent:s.rent_kd,advance:s.advance_kd,cleaning:s.cleaning_kd})),node('p',t('تُعرض ملاحظات كل وحدة من سجل مصدرها؛ لا تُعتمد القيم المعلقة تلقائياً.')));
@@ -22,7 +26,7 @@ export function openPropertyStatements(options={}){
  function showCollection(report){
   collectionResult.replaceChildren();const summaries=Array.isArray(report?.properties)?report.properties:[],lines=Array.isArray(report?.lines)?report.lines:[],summary=summaries.find(x=>String(x.property_id)===String(select.value))||summaries[0];
   collectionResult.append(node('h3',t('كشف التحصيل الفعلي')+' — '+month.value));
-  if(!summary){collectionResult.append(node('p',t('لا توجد استحقاقات عقود موقعة لهذا العقار في الشهر المحدد.')));return;}
+  if(!summary){collectionResult.append(node('p',t('لا توجد استحقاقات عقود موقعة لهذا العقار في الشهر المحدد.')));attachOperationalExports(collectionResult,'collection');return;}
   const rate=summary.collection_rate_pct==null?t('غير منطبق'):summary.collection_rate_pct+'%';
   collectionResult.append(
    node('p',message('إيجار العقد: {gross} د.ك • الخصومات: {discount} د.ك • المطلوب: {due} د.ك',{gross:summary.gross_contract_rent,discount:summary.discounts,due:summary.due})),
@@ -30,7 +34,7 @@ export function openPropertyStatements(options={}){
    node('p',message('نسبة التحصيل: {rate} • مقام النسبة: {denominator} د.ك • زيادة غير محتسبة في النسبة: {over} د.ك',{rate,denominator:summary.rate_denominator,over:summary.overpayment})),
    node('p',t('النسبة تعتمد المقبوض المخصص للاستحقاق فقط؛ الوصولات الملغاة مستبعدة، والدفعات الزائدة تظهر منفصلة ولا ترفع النسبة.'))
   );
-  for(const row of lines.filter(x=>String(x.property_id)===String(summary.property_id))){const card=node('details'),head=node('summary',message('الوحدة {unit} — العقد {contract}',{unit:row.unit_no,contract:row.contract_no}));card.append(head,node('p',message('المطلوب: {due} د.ك • المدفوع: {paid} د.ك • المتبقي: {remaining} د.ك',{due:row.due,paid:row.allocated_paid,remaining:row.remaining})),node('p',message('الخصم: {discount} د.ك • الزيادة: {over} د.ك',{discount:row.discount,over:row.overpayment})),node('p',t('الحالة')+': '+row.status));collectionResult.append(card);}
+  for(const row of lines.filter(x=>String(x.property_id)===String(summary.property_id))){const card=node('details'),head=node('summary',message('الوحدة {unit} — العقد {contract}',{unit:row.unit_no,contract:row.contract_no}));card.append(head,node('p',message('المطلوب: {due} د.ك • المدفوع: {paid} د.ك • المتبقي: {remaining} د.ك',{due:row.due,paid:row.allocated_paid,remaining:row.remaining})),node('p',message('الخصم: {discount} د.ك • الزيادة: {over} د.ك',{discount:row.discount,over:row.overpayment})),node('p',t('الحالة')+': '+row.status));collectionResult.append(card);}attachOperationalExports(collectionResult,'collection');
  }
  async function addAliasControls(card,sourceName){
   const candidates=await d.session.request(d.session.client.rpc('aqari_collector_alias_candidates',{p_workspace_id:d.session.bound.workspace}));if(!Array.isArray(candidates)||!candidates.length)throw Error('لا توجد حسابات موظفين نشطة متاحة للمطابقة.');
@@ -38,11 +42,11 @@ export function openPropertyStatements(options={}){
  }
  function showCollectors(report){
   collectorResult.replaceChildren();const rows=Array.isArray(report?.summary)?report.summary:[],lines=Array.isArray(report?.lines)?report.lines:[];collectorResult.append(node('h3',t('تقرير أداء موظفي التحصيل')+' — '+month.value),node('p',t('يعتمد التقرير تاريخ القبض الفعلي، ويستبعد الوصولات الملغاة. التسويات لا تُحسب إلا عند وجود تصنيف صريح محفوظ.')));
-  if(!rows.length){collectorResult.append(node('p',t('لا توجد عمليات تحصيل غير ملغاة للعقار في هذا الشهر.')));return;}
+  if(!rows.length){collectorResult.append(node('p',t('لا توجد عمليات تحصيل غير ملغاة للعقار في هذا الشهر.')));attachOperationalExports(collectorResult,'collectors');return;}
   for(const r of rows){const card=node('article'),mapped=r.mapping_status==='authenticated'||r.mapping_status==='legacy_mapped';card.append(node('h4',r.collector_name||t('غير محدد')),node('p',message('العمليات: {count} • المبلغ: {amount} د.ك • العقود: {contracts}',{count:r.operation_count,amount:r.amount,contracts:r.contract_count})),node('p',message('تحصيل عادي: {regularCount} / {regularAmount} د.ك • تسويات: {settlementCount} / {settlementAmount} د.ك',{regularCount:r.regular_count,regularAmount:r.regular_amount,settlementCount:r.settlement_count,settlementAmount:r.settlement_amount})),node('p',mapped?t('هوية الموظف مرتبطة بحساب محفوظ.'):r.mapping_status==='legacy_unmatched'?t('اسم قديم غير مطابق بحساب؛ لن تنسب المنصة هذه العمليات لموظف تلقائياً.'):t('العملية بلا هوية محصل محفوظة.')));
    const related=lines.filter(x=>x.collector_name===r.collector_name&&x.mapping_status===r.mapping_status);for(const x of related){const detail=node('details'),head=node('summary',`${x.paid_at} — ${x.receipt_no||t('بدون رقم')} — ${x.amount} د.ك`);detail.append(head,node('p',message('الوحدة {unit} • العقد {contract} • {kind}',{unit:x.unit_no,contract:x.contract_no,kind:x.is_settlement?t('تسوية'):t('تحصيل عادي')})));card.append(detail);}
    if(r.mapping_status==='legacy_unmatched'){const map=node('button',t('مطابقة الاسم القديم بحساب موظف'));map.type='button';map.onclick=()=>d.run(async()=>{map.disabled=true;await addAliasControls(card,r.collector_name);});card.append(map);}collectorResult.append(card);
-  }
+  }attachOperationalExports(collectorResult,'collectors');
  }
  function syncActions(){const invalid=!select.value||!validMonth();pdf.disabled=link.disabled=!selected;collection.disabled=invalid;collector.disabled=invalid;}
  async function reload(){await d.run(load);syncActions();}
