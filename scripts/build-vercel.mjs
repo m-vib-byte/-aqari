@@ -26,4 +26,8 @@ execFileSync(process.execPath,[
   'tests/v267-unit-handover-renderer-contract.test.mjs'
 ],{stdio:'inherit'});
 
+// Exercise the real ReportLab/Arabic shaping renderer in the exact Vercel
+// build, not only its static source contract. This produces no hosted writes.
+execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test'],{stdio:'inherit'});
+
 await import('./check.mjs');
