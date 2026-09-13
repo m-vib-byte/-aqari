@@ -1,6 +1,3 @@
--- Align isolated V267 attachment reservation cleanup with the repository's
--- `cancelled` state while preserving any bytes that already reached Storage.
--- A cancellation is audited and only frees a reservation when no object exists.
 alter table private.aqari_maintenance_attachments
  add column if not exists cancelled_at timestamptz,
  add column if not exists cancelled_by uuid,
@@ -42,9 +39,7 @@ begin
   reason:=btrim(coalesce(nullif(d->>'reason',''),'user_cancelled_incomplete_upload'));
   if length(reason) not between 6 and 240 then raise invalid_parameter_value using message='INVALID_CANCEL_REASON';end if;
   if exists(select 1 from storage.objects o where o.bucket_id=doc.storage_bucket and o.name=doc.storage_path) then raise invalid_parameter_value using message='ATTACHMENT_OBJECT_PRESENT';end if;
-  update private.aqari_maintenance_attachments
-   set status='cancelled',cancelled_at=now(),cancelled_by=auth.uid(),cancel_reason=reason
-   where id=ident and status='reserved' returning * into doc;
+  update private.aqari_maintenance_attachments set status='cancelled',cancelled_at=now(),cancelled_by=auth.uid(),cancel_reason=reason where id=ident and status='reserved' returning * into doc;
   if doc.id is null then raise invalid_parameter_value using message='ATTACHMENT_NOT_CONFIRMED';end if;
   return to_jsonb(doc)||jsonb_build_object('cancellation_reused',false);
  end if;

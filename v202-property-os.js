@@ -2458,8 +2458,8 @@
         '<label><span>المبلغ (د.ك)</span><input id="v202PaymentAmount" inputmode="decimal" autocomplete="off" placeholder="0.000" required></label>'+ 
         '<label><span>شهر الإيجار</span><input id="v202PaymentPeriod" type="month" value="'+selectedPeriod+'" required></label>'+ 
         '<label><span>تاريخ السداد</span><input id="v202PaymentDate" type="date" value="'+todayValue()+'" required></label>'+ 
-        '<label><span>طريقة السداد</span><select id="v202PaymentMethod"><option>كي نت</option><option>تحويل بنكي</option><option>نقدي</option><option>أخرى</option></select></label>'+ 
-        '<label><span>رقم العملية — إلزامي لغير الكاش</span><input id="v267PaymentTransaction" maxlength="150"></label>'+
+        '<label><span>طريقة السداد</span><select id="v202PaymentMethod" required><option value="">اختر طريقة الدفع</option><option>كي نت</option><option>تحويل بنكي</option><option>نقدي</option><option>شيك</option><option>أخرى</option></select></label>'+
+        '<label><span>مرجع الحركة — مطلوب لجميع طرق الدفع</span><input id="v267PaymentTransaction" maxlength="150" required placeholder="رقم العملية أو سند القبض النقدي"></label>'+
         '<label><span>حالة السداد</span><select id="v202PaymentStatus"><option>مدفوع</option><option>جزئي</option><option>قيد المراجعة</option></select></label>'+ 
         '<label class="v202-form-wide"><span>ملاحظة اختيارية</span><input id="v202PaymentNote" placeholder="مثال: إيجار شهر سبتمبر"></label>'+ 
         '<div class="v202-payment-balance v202-form-wide" id="v202PaymentBalance" aria-live="polite">اختر العقد والوحدة لحساب المتبقي.</div>'+ 
@@ -2533,6 +2533,13 @@
     return {contract,due,paid,remaining};
   }
 
+  function paymentMethodReferenceError(method,transactionNo){
+    // Preserve known stored aliases; a new form always starts without a selection.
+    if(!['كي نت','KNET','knet','تحويل بنكي','bank','نقدي','cash','شيك','cheque','أخرى','other'].includes(method))return 'اختر طريقة دفع صحيحة قبل إصدار الوصل.';
+    if(typeof transactionNo!=='string'||!referenceText(transactionNo)||transactionNo.length>150)return 'أدخل مرجع الحركة من 1 إلى 150 حرفاً، بما فيه سند القبض النقدي.';
+    return '';
+  }
+
   function savePayment(event){
     event.preventDefault();
     if(paymentSaving||paymentNeedsReload)return false;
@@ -2552,10 +2559,11 @@
     const status=document.getElementById('v202PaymentStatus')?.value||'مدفوع';
     const period=document.getElementById('v202PaymentPeriod')?.value||currentPeriod();
     const date=document.getElementById('v202PaymentDate')?.value||todayValue();
-    const method=document.getElementById('v202PaymentMethod')?.value||'غير محدد';
+    const method=document.getElementById('v202PaymentMethod')?.value||'';
     const note=document.getElementById('v202PaymentNote')?.value.trim()||'';
     const transactionNo=referenceText(document.getElementById('v267PaymentTransaction')?.value);
-    if(method!=='نقدي'&&!transactionNo){if(error)error.textContent='أدخل رقم العملية لهذه الدفعة.';return false;}
+    const paymentError=paymentMethodReferenceError(method,transactionNo);
+    if(paymentError){if(error)error.textContent=paymentError;return false;}
     if(!contract||!tenant||!contract.unit){
       if(error)error.textContent='اختر عقداً موقّعاً سارياً مربوطاً بمستأجر ووحدة.';
       return false;
@@ -2702,7 +2710,7 @@
     const e=escapeHtml,amount=strictCollectionMoney(record[2]);if(!Number.isFinite(amount)||amount<=0)return '';
     const fils=Math.round(amount*1000),line=(ar,en,value)=>'<div class="v267-voucher-line"><span>'+e(ar)+'</span><strong>'+e(value)+'</strong><small lang="en">'+e(en)+'</small></div>';
     return '<article class="v202-document v267-voucher" data-v267-voucher data-receipt-no="'+e(saved.id)+'"><h1>'+e(brand.ar)+'</h1><header><div><b>وصل إيجار</b><br><span lang="en">Rent Voucher</span></div><div>رقم الوصل / No.<strong>'+e(saved.id)+'</strong><br>التاريخ / Date: '+e(record[5])+'</div><div class="v267-voucher-money"><span>دينار K.D<br><b>'+Math.floor(fils/1000)+'</b></span><span>فلس Fils<br><b>'+String(fils%1000).padStart(3,'0')+'</b></span></div></header>'+
-      line('وصلني من السيد / السادة','Received From',c.tenant+(saved.tenantNameEn?' / '+saved.tenantNameEn:''))+line('مبلغ وقدره','Sum Of KD',amount.toFixed(3)+' د.ك')+line('طريقة الدفع / المرجع','Cash / Cheque / K-net No.',record[9]+' / '+record[0])+line('وذلك من إيجار شهر','Rent of Month',record[8])+line('وحدة رقم','Room No.',c.unit)+line('العقار / رقم العقد','Property / Contract No.',c.property+' / '+c.contract_no)+
+      line('وصلني من السيد / السادة','Received From',c.tenant+(saved.tenantNameEn?' / '+saved.tenantNameEn:''))+line('مبلغ وقدره','Sum Of KD',amount.toFixed(3)+' د.ك')+line('طريقة الدفع / المرجع','Cash / Cheque / K-net No.',record[9]+' / '+(saved.transactionNo||'غير مدون'))+line('وذلك من إيجار شهر','Rent of Month',record[8])+line('وحدة رقم','Room No.',c.unit)+line('العقار / رقم العقد','Property / Contract No.',c.property+' / '+c.contract_no)+
       (saved.detailsVersion===2?line('الدور','Floor',c.floor)+line('البريد الإلكتروني','Email',c.tenantProfile?.email)+line('الهاتف','Phone',c.tenantProfile?.phone)+line('الرقم المدني','Civil ID',c.tenantProfile?.civilId)+line('رقم الجواز','Passport',c.tenantProfile?.passportNo)+line('الجنسية','Nationality',c.tenantProfile?.nationality)+line('بداية ونهاية العقد','Contract term',c.start_date+' — '+c.end_date)+line('إيجار العقد / بعد الخصم','Original / Current rent',c.contractRent+' / '+c.rent)+(c.rentalTermsVersion===1?line('تاريخ استلام التأمين','Deposit received',c.depositReceivedOn||'لم يستلم')+line('الشهر المجاني المعتمد','Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'')+line('التأمين / العربون / النظافة','Deposit / Advance / Cleaning',c.deposit+' / '+c.advance+' / '+c.cleaningFee)+line('رقم العملية','Transaction',saved.transactionNo||'كاش')+line('حالة ووقت استلام العقد — الكويت','Contract received',c.contractReceived+' '+c.receivedAt)+line('تبليغ الإخلاء','Eviction notice',c.evictionNotice)+line('المحاسب المسؤول','Accountant',saved.accountant):'')+
       '<section class="v267-voucher-terms"><p>في حالة عدم توقيع العقد وعدم تسلم كامل قيمة الإيجار خلال يومين من تاريخ هذا الإيصال تعتبر الحجز ملغية ويعتبر الحجز لاغياً.</p><p lang="en">If the contract is not signed or full payment is not received within two days of receiving this receipt, this reservation is considered void and the customer shall have no right in potential claim.</p><p>هذا الإيصال لإثبات المبلغ المدفوع فقط، ولا يعكس السعر المتفق عليه للإيجار.</p><p lang="en">This receipt is proof of payment and does not reflect the actual agreed upon rental price.</p><p>يعتبر هذا الإيصال لاغياً في حال عدم تحصيل الشيك.</p><p lang="en">This receipt is considered void in case of failure of processing the cheque.</p></section><p class="v267-voucher-band">تسديد الإيجارات بحد أقصاها الخامس من كل شهر (التأمين لا يرد)</p><div class="v267-voucher-signatures"><p>اسم المستلم / Receiver Name<br>________________<br>توقيع المستلم / Receiver Signature<br>________________</p><p>اسم المحاسب / Accountant Name<br>________________<br>توقيع المحاسب / Accountant Signature<br>________________</p></div><footer>'+e(brand.addressAr)+' • '+e(record[9])+'</footer></article>';
   }

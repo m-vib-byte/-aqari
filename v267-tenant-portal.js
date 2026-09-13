@@ -1,12 +1,16 @@
+import {mountPortalAccountRecovery,portalRecoveryCallback} from './src/v267/components/portal-account-recovery.js';
 import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/components/locale.js';
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
 if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
-const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
+const recoveryCallback=portalRecoveryCallback(window.location);
+if(recoveryCallback)window.location.replace(recoveryCallback);
+let accountRecovery;
+const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,engagementVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set(),attachmentDisposers=new Set();
 const safeError=e=>/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
-function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
+function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);accountRecovery?.refresh();}
 bindLocale(null);
 for(const [code,label] of Object.entries(LANGUAGES)){const option=document.createElement('option');option.value=code;option.textContent=label;$('tenantLanguage').append(option);}
 $('tenantLanguage').addEventListener('change',()=>{setLocale($('tenantLanguage').value);updateLanguage();});
@@ -20,15 +24,16 @@ async function request(work){
  try{return await Promise.race([Promise.resolve().then(()=>{if(controller.signal.aborted)throw Error('تغيرت الجلسة.');return work(controller.signal);}),aborted]);}
  finally{clearTimeout(timer);controller.signal.removeEventListener('abort',rejectAbort);jobs.delete(controller);}
 }
-function lock(value){busy=value;for(const b of document.querySelectorAll('button'))b.disabled=b.id==='tenantLogout'?false:value;if(saveUncertain)$('maintenanceSave').disabled=true;}
+function lock(value){busy=value;for(const b of document.querySelectorAll('button'))b.disabled=b.id==='tenantLogout'?false:value;if(saveUncertain)$('maintenanceSave').disabled=true;accountRecovery?.refresh();}
 function start(){const token=++operation;lock(true);return token;}
 function finish(token){if(token===operation)lock(false);}
-function clear(){snapshot=null;noticeVersion++;releaseReceipts();for(const dispose of attachmentDisposers)dispose();attachmentDisposers.clear();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=false;$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease','tenantNotices'])$(id).replaceChildren();setText($('tenantNoticesStatus'),'');$('maintenanceForm').hidden=true;}
+function clear(){snapshot=null;noticeVersion++;releaseReceipts();for(const dispose of attachmentDisposers)dispose();attachmentDisposers.clear();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=Boolean(accountRecovery?.active);$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease','tenantNotices'])$(id).replaceChildren();setText($('tenantNoticesStatus'),'');$('maintenanceForm').hidden=true;}
 function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();bindLocale(null);updateLanguage();saveUncertain=false;operation++;lock(false);}
 const current=e=>e===epoch;
 function items(target,rows,format){$(target).replaceChildren();if(!rows.length)$(target).append(uiText('p','لا توجد سجلات محفوظة.'));for(const r of rows){const p=document.createElement('p');p.className='item';p.append(...format(r));$(target).append(p);}}
 async function session(){const {data,error}=await bounded(client.auth.getSession());if(error)throw Error('تعذر التحقق من جلسة الدخول.');return data.session;}
 async function refresh(){
+ if(recoveryCallback||accountRecovery?.active)return null;
  const e=epoch,version=++readVersion;clear();const auth=await session();if(!current(e)||version!==readVersion)return null;
  if(!auth){clear();return null;}if(userId&&userId!==auth.user.id){invalidate();return null;}userId=auth.user.id;
  const {data,error}=await request(signal=>client.rpc('aqari_tenant_portal_snapshot').abortSignal(signal));if(!current(e)||version!==readVersion)return null;
@@ -150,11 +155,14 @@ $('maintenanceForm').addEventListener('submit',async event=>{
  }catch(error){if(current(e))notice(sent?'لم يتأكد الحفظ. أعد تحميل الصفحة وتحقق من الطلب قبل إرساله مرة أخرى.':safeError(error));}
  finally{if(current(e)&&sent&&!confirmed)saveUncertain=true;finish(token);}
 });
+accountRecovery=mountPortalAccountRecovery({container:$('tenantRecovery'),button:$('tenantForgotPassword'),config:cfg,portal:'tenant',location:window.location,createClient:window.supabase.createClient,fetcher:(...args)=>window.fetch(...args),getLocale,getEmail:()=>$('tenantEmail').value,onEnter(){const locale=getLocale();invalidate();setLocale(locale);updateLanguage();$('auth').hidden=true;notice('');},async onExit({verified}){if(verified){const result=await bounded(client.auth.signOut({scope:'local'}));if(result.error)throw result.error;}},onClosed(){invalidate();}});
 // Supabase callbacks must stay synchronous; reads happen after the auth callback returns.
 client.auth.onAuthStateChange((event,auth)=>{
+ if(recoveryCallback)return;
+ if(event==='PASSWORD_RECOVERY'){userId=null;invalidate();window.location.replace('/reset-password.html'+String(window.location.hash||''));return;}
  const next=auth?.user.id||null;
  if(event==='SIGNED_OUT'||next!==userId){userId=next;invalidate();if(!next)notice('تم تسجيل الخروج.');else{const e=epoch;setTimeout(()=>{if(current(e))reload();},0);}}
 });
-window.addEventListener('pagehide',()=>{invalidate();client.auth.stopAutoRefresh();});
+window.addEventListener('pagehide',()=>{accountRecovery.close();invalidate();client.auth.stopAutoRefresh();});
 window.addEventListener('pageshow',event=>{if(event.persisted){client.auth.startAutoRefresh();reload();}});
 reload();

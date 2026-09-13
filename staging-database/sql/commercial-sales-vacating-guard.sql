@@ -1,8 +1,12 @@
 -- Additive, repeatable guard after commercial-sales.sql and vacating-release.sql.
--- No payment allocation proves settlement of percentage rent yet. Only the
--- original charge plus its exact archived reversal can close that obligation.
+-- Before the separate collection ledger is installed, only an exact charge
+-- reversal closes its obligation. Afterwards verified allocations also count.
 begin;
-create or replace function private.aqari_require_commercial_clearance(w uuid,lid uuid) returns void
+-- Keep a concurrent installed payment-allocation guard intact. Its compatible
+-- dispatcher is installed by commercial-collections.sql after preserving it.
+do $install_guard$ begin
+ if to_regclass('private.aqari_commercial_payment_allocations') is null then
+  execute $definition$create or replace function private.aqari_require_commercial_clearance(w uuid,lid uuid) returns void
 language plpgsql volatile security definer set search_path='' as $$
 begin
  -- Reject incomplete or unrelated financial source links instead of allowing a
@@ -24,12 +28,23 @@ begin
  ) then
   raise check_violation using message='قيود نسبة المبيعات تحتاج مطابقة مصادرها قبل اعتماد التسوية أو براءة الذمة أو إنهاء العقد.',detail='COMMERCIAL_SALES_LEDGER_REVIEW_REQUIRED';
  end if;
+ if to_regprocedure('private.aqari_commercial_balance(uuid,uuid,date)') is not null then
+  if (private.aqari_commercial_balance(w,lid,(now() at time zone 'Asia/Kuwait')::date)->>'balance')::numeric<>0 then
+   raise check_violation using message='توجد مستحقات نسبة مبيعات غير محسومة. راجع تسجيل التحصيل الموثق وتخصيصه قبل اعتماد التسوية أو براءة الذمة أو إنهاء العقد.',detail='VACATING_COMMERCIAL_BALANCE_REVIEW_REQUIRED';
+  end if;
+  if exists(select 1 from private.aqari_vacating_settlements v where v.workspace_id=w and v.lease_id=lid and (private.aqari_commercial_balance(w,lid,v.vacate_date)->>'balance')::numeric<>0) then
+   raise check_violation using message='COMMERCIAL_COLLECTION_CUTOFF_REVIEW_REQUIRED';
+  end if;
+  return;
+ end if;
  if exists(select 1 from private.aqari_commercial_sales s where s.workspace_id=w and s.lease_id=lid and s.amount>0
   and not exists(select 1 from private.aqari_commercial_sales_reversals r where r.workspace_id=w and r.sale_id=s.id)) then
   raise check_violation using message='توجد مستحقات نسبة مبيعات غير محسومة. راجعها قبل اعتماد التسوية أو براءة الذمة أو إنهاء العقد؛ دفعة الإيجار وحدها لا تسدد هذا الاستحقاق.',detail='VACATING_COMMERCIAL_BALANCE_REVIEW_REQUIRED';
  end if;
 end $$;
-revoke all on function private.aqari_require_commercial_clearance(uuid,uuid) from public,anon,authenticated;
+revoke all on function private.aqari_require_commercial_clearance(uuid,uuid) from public,anon,authenticated;$definition$;
+ end if;
+end $install_guard$;
 
 create or replace function private.aqari_commercial_vacating_guard() returns trigger
 language plpgsql volatile security definer set search_path='' as $$

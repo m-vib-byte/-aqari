@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "17b23cdc1da5ee13f39b952b234694880b8ae825028917b08a65ebb76be38862",
+  "matrixSha256": "0e64569690db63007199d6688463ad56be42a6d3aabd05569bae3dec1273440b",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
@@ -501,6 +501,45 @@
         "tests/v267-contract-scanner-entry.test.cjs",
         "tests/v267-maintenance-cancel-runtime.test.mjs"
       ]
+    },
+    "E51": {
+      "files": [
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
+      ]
+    },
+    "E52": {
+      "files": [
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
+      ]
     }
   },
   "files": [
@@ -524,8 +563,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "e5984532914049474f86435f7929fd3ef608df8e5275a4c8ac5b2eb4131a480e",
-      "bytes": 9374,
+      "sha256": "214e6c606c80e996e546397846e54b9ec615a01f318e885e6676ac38d90e0575",
+      "bytes": 15338,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -533,8 +572,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "5746318edf86c37e64722c379a3c6697d6f060cbaf122f8e881881b4d014017c",
-      "bytes": 6477,
+      "sha256": "76719d24b7cc2e93f330d9e6a045ccc429505a90a2096016a717009130ce5641",
+      "bytes": 8810,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -542,8 +581,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "bac7fe3570ef3cc46de08aa258b2e9ab1c642f850d3657557a687004e8ed98c9",
-      "bytes": 22115,
+      "sha256": "23aa66993b0234e63b3aa6a16a2446e147484b2d4dc9662b62e073218025ff05",
+      "bytes": 24280,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -562,8 +601,8 @@
     },
     {
       "path": "staging-database/sql/workspace-feature-discovery.sql",
-      "sha256": "90cdb4e939102fd3de98f2fe87945267865d96f4e0db9f8e98f522a9cd4cd529",
-      "bytes": 4750,
+      "sha256": "b6cb892b3eaed6e45e93d2c709b218fa69a9f4cd750c3bef6ba4083dc07d7943",
+      "bytes": 5583,
       "declaredTables": [],
       "publicFunctions": [
         "public.aqari_workspace_access"
@@ -573,8 +612,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "b90cd18230830fe6fc362627d396d1bc33b78cc011224b081aa8e34a84f6158f",
-      "bytes": 4709,
+      "sha256": "3a817e75f1a00468b25cc4aa5dcc7b005b7e6c17591c7bc3743d7128381337f9",
+      "bytes": 6327,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -591,8 +630,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
-      "bytes": 6716,
+      "sha256": "da87853901e2fbd89c6e7f4b06ea81f400f68bf6830d581bef91d670b3212f04",
+      "bytes": 8985,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -600,8 +639,8 @@
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "b99de6d2b828039eda19bce4602a7f83e4e11a04f759049cdca48f1f3b21c049",
-      "bytes": 3629,
+      "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
+      "bytes": 3662,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -627,8 +666,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "39bd12bdbe03949c55f93f15de1767b05836e893d8795ad6425e744887fef482",
-      "bytes": 11683,
+      "sha256": "fa6accacfbe35c2440e0e40522d0ccb67d88682826965fb15416612ee3db729e",
+      "bytes": 17857,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -753,8 +792,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "273e98a8a923877fd53e4ffd45ea1c9a400a78fa6ce7ce82c2185e3f70dc87c7",
-      "bytes": 42596,
+      "sha256": "3871498160ed3d750259c1442eecac13de6140849456455f427805701567fac0",
+      "bytes": 41315,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -780,8 +819,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "c8eebaea13abf93b18d941fbbfaf3442020ea4dee2336f341f2c8c6a652d0634",
-      "bytes": 17674,
+      "sha256": "93932308c53b9cb50e0c53af23fe876d815ed4e45e270ef3e5b8ac683a5776b5",
+      "bytes": 19763,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -897,8 +936,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "bde7df547cdf60994fce6c89664751064090a9605b730cacab604eb5b8003c3c",
-      "bytes": 269911,
+      "sha256": "f350a2f297eabafa4b08e96318c75a0c661dc29c4236350a7fbba3859f276a57",
+      "bytes": 270705,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1142,8 +1181,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "291b77c282c84bd7711239e1f2aa6229a06ff8eb9dad3920a5bfa086cbf3f708",
-      "bytes": 20983,
+      "sha256": "00c9336e829f34e865bce80cea42be0dbbf58ff5401d5e6c94ebd47c9075a480",
+      "bytes": 22201,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1168,8 +1207,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "8fcd52bb1425a8dc5661a43d2cb332f07c17525d2b6ced34d26cd032f9dc5a3c",
-      "bytes": 21731,
+      "sha256": "d6964103b753421b99e5d90ccf35f77752246c29d0e52b2e0d482f1fa4c115b0",
+      "bytes": 23004,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1179,8 +1218,8 @@
     },
     {
       "path": "staging-database/sql/maintenance-attachments.sql",
-      "sha256": "feddacd03535ec3128df5394403e8b75713c6adda5fc4ce6c9bdd5ed316de144",
-      "bytes": 12173,
+      "sha256": "23cdcab4b4ffc3a4d9236451d330ce2af26a21e566fa424d60b3dc5046ce84b9",
+      "bytes": 10850,
       "declaredTables": [
         "private.aqari_maintenance_attachments"
       ],
@@ -1192,8 +1231,8 @@
     },
     {
       "path": "src/v267/components/maintenance-attachments.js",
-      "sha256": "77fe3eeb474156895c0e953797ca235b479534f4f77c468d963d4c7b64ea18cc",
-      "bytes": 6152,
+      "sha256": "d9885637e978f3cc08f25019ef35545d470f0e2fd57e7e3d83e328b844fa4d9e",
+      "bytes": 8998,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1201,8 +1240,8 @@
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
-      "sha256": "7ec6ee9ab50c1a5f851346f2c23a27e6642c711a527cfb37aa2ca291a9e2f0e7",
-      "bytes": 6565,
+      "sha256": "4b319d7ec5eedf10fcad8a222c2f86287414511926db1321be55f4cebd1d6036",
+      "bytes": 8317,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1219,8 +1258,8 @@
     },
     {
       "path": "tests/v267-maintenance-attachments.test.mjs",
-      "sha256": "e0551b817fce3ef9724c985732e6d10e276dc882a201cc824173dea4b7b54803",
-      "bytes": 9982,
+      "sha256": "7a8ce68e713cf3803bd68ee0f4f1f42d8fafd949c2bd4a4bc9bc8a3ab9b2b491",
+      "bytes": 16311,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1228,8 +1267,8 @@
     },
     {
       "path": "tests/v267-maintenance-attachment-panel.test.mjs",
-      "sha256": "a4886f202ab5498e2c21a2ac15730b41acaeb443f9e94b518527382ecf172ed2",
-      "bytes": 7414,
+      "sha256": "ac84a65597e8477a1d5b3d2030aec55d1761aa789369747dd23adaf520e08cf3",
+      "bytes": 13696,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1494,8 +1533,8 @@
     },
     {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "c9f5bf0f6e1138818260ec39c0561b7ee54bfa24e6e2b2656ae584e8e0338a9d",
-      "bytes": 9836,
+      "sha256": "2c5a3aa56dd9a2986c49960096c3fa9865007158c683676ffe72c5ab8fe557f5",
+      "bytes": 11688,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1863,8 +1902,8 @@
     },
     {
       "path": "src/v267/pages/commercial-sales.js",
-      "sha256": "6f03e7119fad62151871d63346c5a57679f5a49abe894b59bac833e3a8d00b01",
-      "bytes": 12300,
+      "sha256": "311b30d6e23fce6072787442cbc2f8a7815e187ab85dc0259b1bd4419a195005",
+      "bytes": 13055,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1888,8 +1927,8 @@
     },
     {
       "path": "staging-database/sql/commercial-sales-vacating-guard.sql",
-      "sha256": "f207ea5c07ce1ddc140646b7773d6189501411fe6485c01599177541f4ea6e1b",
-      "bytes": 6045,
+      "sha256": "4ee30961286f03db055bd6f6172efadb4b12084b95f1f03631086ce95f1af568",
+      "bytes": 7211,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1924,8 +1963,8 @@
     },
     {
       "path": "tests/v267-commercial-sales-workflow.test.mjs",
-      "sha256": "04cd53486008c5063c24c63447aea1ef6063202986c14ab036f768839c4181c4",
-      "bytes": 9207,
+      "sha256": "7c226d101d3ccba28f2ccb078304947d4dd5e3b4e624b2687812f3d3c4cc5a6a",
+      "bytes": 11219,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -2748,8 +2787,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "8a872c61930ce6064700162970529a5daa119cb141a204db2467b877c495c8a3",
-      "bytes": 57766,
+      "sha256": "5fcf6b83f149d072afa23914a142dcd68ea0f82c2b72e95b1a4b3a0535b73d09",
+      "bytes": 58371,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -3000,8 +3039,8 @@
     },
     {
       "path": "staging-database/sql/opening-balance-statement.sql",
-      "sha256": "360431665c952cd1f41ca0606adcafca64929712f64aff3a6544e075d60780ef",
-      "bytes": 5176,
+      "sha256": "ed6df00fa7b6467b13d34eb316e913d75eb2d77a3b2c64827071f95ee84635f3",
+      "bytes": 5277,
       "declaredTables": [],
       "publicFunctions": [
         "public.aqari_opening_balance_statement"
@@ -3230,12 +3269,304 @@
     },
     {
       "path": "tests/v267-maintenance-cancel-runtime.test.mjs",
-      "sha256": "0a9606ee773dca47f319f189eff6a2abd1ea699a7ec54a4177a1c2958692eb19",
-      "bytes": 4098,
+      "sha256": "a63d8cf0f6b619af543049dd2fabb27ce2fc211b3c557a11bf89d58c68846e5b",
+      "bytes": 4386,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": "local-test"
+    },
+    {
+      "path": "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+      "sha256": "3d2707735981037533845df94bfbb816060d42f9e3ffc72ae26c3cce01cc6e0f",
+      "bytes": 10098,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/maintenance-attachments-cancellation.sql",
+      "sha256": "c89b86d243ede78732c8dfca22d3743598bc4adeb156f6f0390780dbca29fd78",
+      "bytes": 12781,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/maintenance_attachment_cancellation.sql",
+      "sha256": "aa427698c553931fe12dc792b2920daad40b12b477e7bbddd0bf424f54d8da72",
+      "bytes": 23246,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "staging-database/sql/commercial-collections.sql",
+      "sha256": "89abb293b97e6c80029e3e738efe4385c209c72c27f224a1b74329a7d6959a91",
+      "bytes": 48503,
+      "declaredTables": [
+        "private.aqari_commercial_collections",
+        "private.aqari_commercial_collection_allocations",
+        "private.aqari_commercial_collection_reversals"
+      ],
+      "publicFunctions": [
+        "public.aqari_commercial_collections"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/commercial_collections.sql",
+      "sha256": "b968b41fa72c9a5fda1de31f51b0cbf0c5dad5ad37eeea9ae21734a6769414f2",
+      "bytes": 35435,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "staging-database/tests/commercial_collections_legacy_compat.sql",
+      "sha256": "b09e09a99ed8603ca9bf6c6a60a251fbadcf1ae598565db839d010b7f26d0e38",
+      "bytes": 15278,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/components/commercial-collections.js",
+      "sha256": "3dd3e548e2b898062f7bea7bbcf525350ad9bd7a23a268362c0e628360f71358",
+      "bytes": 21954,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_workspace_access",
+        "aqari_commercial_collections"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/opening-balance-reconciliation.sql",
+      "sha256": "e4dd29af5b58c71889c55d16660a17141d47480085d49f0ced4d915bfce4fefb",
+      "bytes": 16854,
+      "declaredTables": [
+        "private.aqari_opening_balance_reviews"
+      ],
+      "publicFunctions": [
+        "public.aqari_opening_balance_reconciliation"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/opening_balance_reconciliation.sql",
+      "sha256": "6377456828fbe65feed118afc9064b1f4e31e4012f321e9e6e0e0ee187bd8fec",
+      "bytes": 20193,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/pages/opening-balances.js",
+      "sha256": "141b15213ae6f85d8690da30214bb5563a0a99183e0d77d8516221463dbf90b6",
+      "bytes": 16968,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_opening_balance_reconciliation",
+        "aqari_workspace_access"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/partner-distribution-register.sql",
+      "sha256": "743214bda6ffab4b4eae0cd04c6a6f24ca8fd90be79fd7f5ac51c43ee93f8574",
+      "bytes": 34801,
+      "declaredTables": [
+        "private.aqari_partner_period_sources",
+        "private.aqari_partner_source_approvals",
+        "private.aqari_partner_distributions"
+      ],
+      "publicFunctions": [
+        "public.aqari_partner_distribution_register",
+        "public.aqari_partner_distribution_statement"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/partner_distribution_register.sql",
+      "sha256": "e5f24f682dcc5ae5b24d959359f3276ab78a99ef6db26be6075cebbe60b6dab3",
+      "bytes": 46215,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/pages/partner-distributions.js",
+      "sha256": "ad26103b681052df8463a654d6f6bfd99daa349c7d0422882935c2369caf8091",
+      "bytes": 16265,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_partner_distribution_register"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/api/partner-session.js",
+      "sha256": "bec599c19f2dcc2390d5cada1755322075258ca03be486929c8e2471522fc9df",
+      "bytes": 3663,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/components/partner-distribution-view.js",
+      "sha256": "c7d6bca70cd37e7ea6bbab164f1555ec0c50c53c45ec9b80fa246890b422ebd8",
+      "bytes": 2008,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/vacating-supplemental-source-hardening.sql",
+      "sha256": "8ba6e6cd8f37424a0d9ceec30862920e61427cee6060a7dc79198a146cb4ece7",
+      "bytes": 6849,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/vacating_supplemental_source_hardening.sql",
+      "sha256": "9203f599f21356949301c894ea5d35c57a789c1c2484b5ea67535903a205534f",
+      "bytes": 15719,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+      "sha256": "ed5d3f0ed037d3d23494769489ce08aa59b56d1bce77864070f938243a5324e1",
+      "bytes": 10954,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/rental-contract-templates.sql",
+      "sha256": "a7a6c73aa283ea65510d6e6f7b810512f5c3ee32809b3f7df5cbf4bc47ae64d2",
+      "bytes": 12351,
+      "declaredTables": [
+        "private.aqari_rental_template_versions"
+      ],
+      "publicFunctions": [
+        "public.aqari_rental_templates"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/rental_contract_templates.sql",
+      "sha256": "6b59a64b318985f75a721ace1cd181fc1a4ace3b5a44bb8c185de76c36fc9402",
+      "bytes": 15703,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/components/rental-templates.js",
+      "sha256": "4987c626f83f7910d4c717193e3a18317398524456aa38aab74f7d54df6fba47",
+      "bytes": 11134,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_rental_templates"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "src/v267/domain/lease-dates.js",
+      "sha256": "7dafd3d86e11d13b5cc005938f11921cf2d30bd5e2692739888e54ca09b2cb92",
+      "bytes": 1267,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/v267-lease-dates.test.mjs",
+      "sha256": "bd43e7cdd0621b956f59b974d4c6c1ac1aef88e59c5a560fc512cc30e92b5bfd",
+      "bytes": 1196,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "staging-database/sql/payment-method-reference-guard.sql",
+      "sha256": "ce978e2f4c575ed3ca625cafcb263c767dd88ea69a60e17b2b8e129e6d8c02fb",
+      "bytes": 2472,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/payment_method_reference_hosted.sql",
+      "sha256": "c9fba2a824d4cc5814d8df1c530f712e20e46e5567a14b6fa8fb65361c1f5aae",
+      "bytes": 9400,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "staging-database/sql/reminder-rent-balance-convergence.sql",
+      "sha256": "e1d78cdcc3989d2bcec736e00733a449a589855f0c6c665b6c1389e786a7ac14",
+      "bytes": 4900,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/reminder_rent_balance_convergence.sql",
+      "sha256": "c9ccdbc60b632c269b9be0dbc08f70943c2887485fa70845200db6396175e6dd",
+      "bytes": 15873,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+      "sha256": "0c66057480d3efc60d9c617a386c9b2bde7bee31ed0d9329a41a7c2f2d5e107b",
+      "bytes": 7195,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "docs/V267-PREVIEW-EXECUTION-2026-09-13.json",
+      "sha256": "8d5494069298dbd4eacbfb5208d996c92ee7782d845dc0fafe85262b152dc2ff",
+      "bytes": 4573,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
     }
   ],
   "requirements": [
@@ -3724,8 +4055,8 @@
       "id": 11,
       "sourceId": "G01-11",
       "requirement": "عدم ربط V267 بالدومين الرئيسي قبل موافقة صريحة بعد الاختبار النهائي.",
-      "reportedImplementation": "مطبق بدليل — ضابط E01؛ تفويض المالك بالنشر قائم ومشروط.",
-      "acceptanceRemaining": "إكمال الاختبارات والنسخة الاحتياطية واستعادتها ونقطة الرجوع قبل النشر؛ لا طلب موافقة مكررة.",
+      "reportedImplementation": "مطبق بدليل — ضابط E01؛ توجيه المالك الأحدث يحصر العمل في التجريبي حتى اعتماده الصريح للنتيجة.",
+      "acceptanceRemaining": "إكمال الاختبارات والنسخة الاحتياطية واستعادتها ونقطة الرجوع، ثم اعتماد المالك قبل أي نشر للإنتاج.",
       "evidenceIds": [
         "E01"
       ],
@@ -4165,22 +4496,59 @@
       "id": 22,
       "sourceId": "G02-06",
       "requirement": "صلاحية عرض للمالك الشريك على عقاراته وحصته.",
-      "reportedImplementation": "جزئي — E06 يثبت عزل العقار؛ الحصة والأرباح الفعلية ليست ضمن ملخص البوابة.",
-      "acceptanceRemaining": "عرض الحصة المصرح بها واختبار شريكين فعليين مع منع الوصول المتبادل.",
+      "reportedImplementation": "جزئي — E06 يثبت عزل العقار؛ ملخصه لا يثبت الربح الشامل. E51؛ أضيف عرض الحصة والمستحقات المعتمدة وعكسها من RPC خاص بالحساب والعقار والشهر، مع إخفاء حصص الآخرين.",
+      "acceptanceRemaining": "قبول حسابي شريكين فعليين، المطابقة مع مصادر الملكية، والأجهزة والتصدير المخول.",
       "evidenceIds": [
-        "E06"
+        "E06",
+        "E51"
       ],
       "evidenceFiles": [
         "staging-database/sql/partner-property-access.sql",
         "staging-database/tests/partner_property_access.sql",
-        "docs/V267-PARTNER-ACCESS.md"
+        "docs/V267-PARTNER-ACCESS.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
-      "uiFiles": [],
+      "uiFiles": [
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
+      ],
       "sqlFiles": [
-        "staging-database/sql/partner-property-access.sql"
+        "staging-database/sql/partner-property-access.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
-        "staging-database/tests/partner_property_access.sql"
+        "staging-database/tests/partner_property_access.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4192,22 +4560,59 @@
       "id": 23,
       "sourceId": "G02-07",
       "requirement": "منع عرض أرباح أو بيانات ملاك آخرين لأي طرف.",
-      "reportedImplementation": "جزئي — E06 يثبت عزل الشريك في SQL؛ فحص كل أدوار الموظفين والتقارير ما زال مطلوباً.",
-      "acceptanceRemaining": "رفض القراءة والتنزيل والتصدير لعقار أو مالك غير مصرح به عبر الواجهة والخادم.",
+      "reportedImplementation": "جزئي — E06 يثبت عزل الشريك في SQL؛ فحص كل أدوار الموظفين والتقارير ما زال مطلوباً. E51؛ أضيف مسار توزيعات يعيد صف صاحب الحساب فقط ويعيد فحص العقار والبريد والصلاحية عند القراءة.",
+      "acceptanceRemaining": "قبول الأدوار والحسابات والتنزيل والتصدير فعليًا، مع رفض الوصول المتبادل.",
       "evidenceIds": [
-        "E06"
+        "E06",
+        "E51"
       ],
       "evidenceFiles": [
         "staging-database/sql/partner-property-access.sql",
         "staging-database/tests/partner_property_access.sql",
-        "docs/V267-PARTNER-ACCESS.md"
+        "docs/V267-PARTNER-ACCESS.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
-      "uiFiles": [],
+      "uiFiles": [
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
+      ],
       "sqlFiles": [
-        "staging-database/sql/partner-property-access.sql"
+        "staging-database/sql/partner-property-access.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
-        "staging-database/tests/partner_property_access.sql"
+        "staging-database/tests/partner_property_access.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4349,12 +4754,13 @@
       "id": 27,
       "sourceId": "G03-04",
       "requirement": "تسجيل البريد الإلكتروني إن وجد.",
-      "reportedImplementation": "مطبق بدليل — E07، E09، E10؛ [تحقق خادمي وواجهة](../staging-database/sql/optional-tenant-email.sql) و[اختبار حفظ واسترجاع](../staging-database/tests/optional_tenant_email.sql) للملف والعقد مع بقاء حارس البوابة.",
+      "reportedImplementation": "مطبق بدليل — E07، E09، E10؛ [تحقق خادمي وواجهة](../staging-database/sql/optional-tenant-email.sql) و[اختبار حفظ واسترجاع](../staging-database/tests/optional_tenant_email.sql) للملف والعقد مع بقاء حارس البوابة. E52؛ توجيه13سبتمبر يلزم البريد عند الإبرام الجديد، مع حفظ اختيارية ملف المصدر/المسودة وعدم تعديل التاريخ.",
       "acceptanceRemaining": "حفظ البريد الاختياري والتحقق منه عند إدخاله؛ تفعيل الحساب يحتاج بريداً صالحاً مؤكداً ومتطابقاً.",
       "evidenceIds": [
         "E07",
         "E09",
-        "E10"
+        "E10",
+        "E52"
       ],
       "evidenceFiles": [
         "v267-rental-records.js",
@@ -4366,23 +4772,46 @@
         "staging-database/sql/imported-tenant-edit.sql",
         "staging-database/tests/imported_tenant_edit.sql",
         "staging-database/sql/tenant-contact-unification.sql",
-        "staging-database/tests/tenant_contact_unification.sql"
+        "staging-database/tests/tenant_contact_unification.sql",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
       ],
       "uiFiles": [
         "v267-rental-records.js",
-        "src/v267/pages/imported-tenant.js"
+        "src/v267/pages/imported-tenant.js",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js"
       ],
       "sqlFiles": [
         "staging-database/sql/linked-rental-details.sql",
         "staging-database/supabase/migrations/20260907083907_v267_rental_projection.sql",
         "staging-database/supabase/migrations/20260908091435_v267_link_approved_source_records.sql",
         "staging-database/sql/imported-tenant-edit.sql",
-        "staging-database/sql/tenant-contact-unification.sql"
+        "staging-database/sql/tenant-contact-unification.sql",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql"
       ],
       "testFiles": [
         "staging-database/tests/linked_rental_details.sql",
         "staging-database/tests/imported_tenant_edit.sql",
-        "staging-database/tests/tenant_contact_unification.sql"
+        "staging-database/tests/tenant_contact_unification.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4740,11 +5169,12 @@
       "id": 35,
       "sourceId": "G04-01",
       "requirement": "تسجيل بيانات العقد: البداية والنهاية وقيمة الإيجار ودورة السداد.",
-      "reportedImplementation": "جزئي — E07، E08؛ التواريخ والقيمة محفوظة، دورة غير شهرية شاملة غير مثبتة.",
+      "reportedImplementation": "جزئي — E07، E08؛ التواريخ والقيمة محفوظة، دورة غير شهرية شاملة غير مثبتة. E52؛ أضيف اختيار قالب منشور من أربعة أنواع ونهاية مقترحة من مدة الأشهر؛ بداية استحقاق مستقلة والتجديد الشامل غير مثبتين.",
       "acceptanceRemaining": "حفظ التفاصيل ودورة السداد وتوليد الفترات التابعة لها دون تغيير الأصل.",
       "evidenceIds": [
         "E07",
-        "E08"
+        "E08",
+        "E52"
       ],
       "evidenceFiles": [
         "v267-rental-records.js",
@@ -4752,19 +5182,40 @@
         "staging-database/tests/linked_rental_details.sql",
         "src/v267/pages/rental-contracts.js",
         "staging-database/sql/rental-contract-provisions.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/rental_contract_provisions.sql",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "src/v267/components/rental-templates.js",
+        "src/v267/domain/lease-dates.js",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
       ],
       "uiFiles": [
         "v267-rental-records.js",
-        "src/v267/pages/rental-contracts.js"
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/components/rental-templates.js",
+        "src/v267/domain/lease-dates.js"
       ],
       "sqlFiles": [
         "staging-database/sql/linked-rental-details.sql",
-        "staging-database/sql/rental-contract-provisions.sql"
+        "staging-database/sql/rental-contract-provisions.sql",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql"
       ],
       "testFiles": [
         "staging-database/tests/linked_rental_details.sql",
-        "staging-database/tests/rental_contract_provisions.sql"
+        "staging-database/tests/rental_contract_provisions.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4840,11 +5291,12 @@
       "id": 38,
       "sourceId": "G04-04",
       "requirement": "تسجيل طريقة الدفع: كاش، كي نت، بنك، شيك.",
-      "reportedImplementation": "جزئي — E07، E12؛ تسجيل الطريقة قائم، دورة الشيك والبوابة ليست منفذة بذلك.",
+      "reportedImplementation": "جزئي — E07، E12؛ تسجيل الطريقة قائم، دورة الشيك والبوابة ليست منفذة بذلك. E52؛ اختيار صريح وقائمة طرق معتمدة ومرجع لكل حركة، بما فيها النقدية، وحارس خادم للجديد ورفض Unicode الفارغ بصريًا.",
       "acceptanceRemaining": "حفظ الطرق الأربع وربط كل طريقة بإثباتها ومسار التسوية الصحيح.",
       "evidenceIds": [
         "E07",
-        "E12"
+        "E12",
+        "E52"
       ],
       "evidenceFiles": [
         "v267-rental-records.js",
@@ -4852,18 +5304,41 @@
         "staging-database/tests/linked_rental_details.sql",
         "api/rent-receipt.py",
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
-        "staging-database/tests/rental_transaction.sql"
+        "staging-database/tests/rental_transaction.sql",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
       ],
       "uiFiles": [
-        "v267-rental-records.js"
+        "v267-rental-records.js",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js"
       ],
       "sqlFiles": [
         "staging-database/sql/linked-rental-details.sql",
-        "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql"
+        "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql"
       ],
       "testFiles": [
         "staging-database/tests/linked_rental_details.sql",
-        "staging-database/tests/rental_transaction.sql"
+        "staging-database/tests/rental_transaction.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -4875,11 +5350,12 @@
       "id": 39,
       "sourceId": "G04-05",
       "requirement": "تسجيل رقم العملية وتاريخها واسم الموظف.",
-      "reportedImplementation": "مطبق بدليل — E07، E12؛ تفاصيل التحصيل ونسخة الوصل محفوظة.",
+      "reportedImplementation": "مطبق بدليل — E07، E12؛ تفاصيل التحصيل ونسخة الوصل محفوظة. E52؛ فُرض تطابق المرجع والطريقة في نسخ الوصل الجديد مع بقاء القديم كما هو.",
       "acceptanceRemaining": "إعادة فتح الدفعة والوصل بنفس المرجع والتاريخ والمستخدم المخول.",
       "evidenceIds": [
         "E07",
-        "E12"
+        "E12",
+        "E52"
       ],
       "evidenceFiles": [
         "v267-rental-records.js",
@@ -4887,18 +5363,41 @@
         "staging-database/tests/linked_rental_details.sql",
         "api/rent-receipt.py",
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
-        "staging-database/tests/rental_transaction.sql"
+        "staging-database/tests/rental_transaction.sql",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
       ],
       "uiFiles": [
-        "v267-rental-records.js"
+        "v267-rental-records.js",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js"
       ],
       "sqlFiles": [
         "staging-database/sql/linked-rental-details.sql",
-        "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql"
+        "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql"
       ],
       "testFiles": [
         "staging-database/tests/linked_rental_details.sql",
-        "staging-database/tests/rental_transaction.sql"
+        "staging-database/tests/rental_transaction.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -6178,12 +6677,13 @@
       "id": 59,
       "sourceId": "G05-09",
       "requirement": "تسجيل رصيد افتتاحي عند إدخال البيانات القديمة.",
-      "reportedImplementation": "جزئي — E38، E42، E47؛ إدخال الافتتاح واسترجاعه موجودان في دفتر المستأجر؛ نقطة القطع المعتمدة وربط الرصيد بالمصدر والعقد لم تُحسم.",
+      "reportedImplementation": "جزئي — E38، E42، E47؛ إدخال الافتتاح واسترجاعه موجودان في دفتر المستأجر؛ نقطة القطع المعتمدة وربط الرصيد بالمصدر والعقد لم تُحسم. E51؛ أضيفت مطابقة مستقلة لقيود افتتاحية محددة بمصدر محفوظ ونهاية يوم قطع صريح ومراجعات مؤرخة؛ لا تفتح التقرير الرسمي الشامل تلقائيًا.",
       "acceptanceRemaining": "افتتاح مدين أو دائن بتاريخ قطع ومرجع واعتماد يمنع تكرار الاستحقاق التاريخي؛ لا تعديل للمصدر بالتخمين.",
       "evidenceIds": [
         "E38",
         "E42",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "src/v267/pages/final-gap-center.js",
@@ -6231,13 +6731,37 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
         "src/v267/pages/final-gap-center.js",
         "v267-tenant-portal.js",
         "src/v267/components/financial-record-browser.js",
-        "src/v267/components/collection-account-manager.js"
+        "src/v267/components/collection-account-manager.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/sql/final-gap-register.sql",
@@ -6249,7 +6773,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "tests/v267-final-gap-register.test.cjs",
@@ -6265,7 +6794,13 @@
         "staging-database/hosted-test/final_gap_register.sql",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -6277,13 +6812,14 @@
       "id": 60,
       "sourceId": "G05-10",
       "requirement": "تصنيف الرصيد الافتتاحي لمنع احتسابه كتحصيل جديد.",
-      "reportedImplementation": "جزئي — E19، E37، E38، E47؛ الافتتاح مصنف مستقلًا عن الدفعة والترحيل، ولا يحوله الاستعراض الجديد إلى تحصيل؛ دورة المطابقة النهائية باقية.",
+      "reportedImplementation": "جزئي — E19، E37، E38، E47؛ الافتتاح مصنف مستقلًا عن الدفعة والترحيل، ولا يحوله الاستعراض الجديد إلى تحصيل؛ دورة المطابقة النهائية باقية. E51؛ أضيفت مطابقة مستقلة لقيود افتتاحية محددة بمصدر محفوظ ونهاية يوم قطع صريح ومراجعات مؤرخة؛ لا تفتح التقرير الرسمي الشامل تلقائيًا.",
       "acceptanceRemaining": "إثبات أن إدخال الافتتاح لا يزيد التحصيل أو يولد وصلًا، مع سياسة قطع معتمدة واختبار المستهلكين الماليين.",
       "evidenceIds": [
         "E19",
         "E37",
         "E38",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "src/v267/pages/financial-integrity.js",
@@ -6337,7 +6873,25 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
         "src/v267/pages/financial-integrity.js",
@@ -6347,7 +6901,13 @@
         "src/v267/pages/final-gap-center.js",
         "v267-tenant-portal.js",
         "src/v267/components/financial-record-browser.js",
-        "src/v267/components/collection-account-manager.js"
+        "src/v267/components/collection-account-manager.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/sql/financial-register.sql",
@@ -6361,7 +6921,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/financial_register.sql",
@@ -6378,7 +6943,13 @@
         "staging-database/tests/tenant_rating_quarters.sql",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -6390,13 +6961,14 @@
       "id": 61,
       "sourceId": "G05-11",
       "requirement": "تمييز الرصيد الافتتاحي عن التحصيل الفعلي في التقارير.",
-      "reportedImplementation": "جزئي — E19، E37، E38، E47؛ الأرشيف والسجل يعرضان الافتتاح والحركات منفصلة؛ كشف افتتاح وحركات وختام موحد ما زال محجوبًا عند غياب المطابقة.",
+      "reportedImplementation": "جزئي — E19، E37، E38، E47؛ الأرشيف والسجل يعرضان الافتتاح والحركات منفصلة؛ كشف افتتاح وحركات وختام موحد ما زال محجوبًا عند غياب المطابقة. E51؛ أضيفت مطابقة مستقلة لقيود افتتاحية محددة بمصدر محفوظ ونهاية يوم قطع صريح ومراجعات مؤرخة؛ لا تفتح التقرير الرسمي الشامل تلقائيًا.",
       "acceptanceRemaining": "اعتماد نقطة القطع ثم تقرير متطابق يفصل الافتتاح والحركات والتحصيل والختام.",
       "evidenceIds": [
         "E19",
         "E37",
         "E38",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "src/v267/pages/financial-integrity.js",
@@ -6450,7 +7022,25 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
         "src/v267/pages/financial-integrity.js",
@@ -6460,7 +7050,13 @@
         "src/v267/pages/final-gap-center.js",
         "v267-tenant-portal.js",
         "src/v267/components/financial-record-browser.js",
-        "src/v267/components/collection-account-manager.js"
+        "src/v267/components/collection-account-manager.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/sql/financial-register.sql",
@@ -6474,7 +7070,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/financial_register.sql",
@@ -6491,7 +7092,13 @@
         "staging-database/tests/tenant_rating_quarters.sql",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -7283,14 +7890,15 @@
       "id": 73,
       "sourceId": "G07-04",
       "requirement": "حفظ مرفقات المستندات مع العقود والتحصيل والصيانة.",
-      "reportedImplementation": "جزئي — E12، E13، E17، E46، E47؛ أضيف رفع صور وPDF البلاغ الخاص واسترجاعه من بوابتي المستأجر والإدارة مع مطابقة البايتات والبصمة محليًا.",
-      "acceptanceRemaining": "رفع وتنزيل فعليان عبر Storage مستضاف لكل نوع وبالحسابات المخولة، وقبول الاستئناف وإدارة الحجوزات غير المرفوعة.",
+      "reportedImplementation": "جزئي — E12، E13، E17، E46، E47؛ أضيف رفع صور وPDF البلاغ الخاص واسترجاعه من بوابتي المستأجر والإدارة مع مطابقة البايتات والبصمة محليًا. E51؛ أضيفت أرشفة حجوزات المرفقات غير المكتملة بسبب وفاعل ووقت دون حذف الأصل، والاستئناف وإعادة قراءة النتيجة.",
+      "acceptanceRemaining": "رفع وتنزيل فعليان عبر Storage لكل نوع والحسابات المخولة وقبول الأجهزة وانقطاع الشبكة.",
       "evidenceIds": [
         "E12",
         "E13",
         "E17",
         "E46",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "api/rent-receipt.py",
@@ -7337,7 +7945,25 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
         "src/v267/pages/document-scanner.js",
@@ -7345,7 +7971,13 @@
         "src/v267/components/maintenance-attachments.js",
         "src/v267/components/maintenance-attachment-panel.js",
         "src/v267/components/scan-pdf.js",
-        "src/v267/components/document-target.js"
+        "src/v267/components/document-target.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/supabase/migrations/20260907091746_v267_staging_receipt_integrity.sql",
@@ -7356,7 +7988,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/rental_transaction.sql",
@@ -7368,7 +8005,13 @@
         "tests/v267-scanner-workflow.test.mjs",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -8936,12 +9579,13 @@
       "id": 102,
       "sourceId": "G10-01",
       "requirement": "تثبيت الشركاء والحصص ضمن العقارات المشتركة والورثة.",
-      "reportedImplementation": "جزئي — E06، E20، E47؛ عزل العرض قائم، وأضيف تحقق خادمي من نسب الحصص وتاريخها وهوية المعدل؛ أدلة الملكية والدفتر المالي الكامل باقية.",
-      "acceptanceRemaining": "شركاء وورثة بعقار وحصص وأدلة ملكية وتغييرات مؤرخة، مع قبول الحفظ والعرض بالحسابات الفعلية.",
+      "reportedImplementation": "جزئي — E06، E20، E47؛ عزل العرض قائم، وأضيف تحقق خادمي من نسب الحصص وتاريخها وهوية المعدل؛ أدلة الملكية والدفتر المالي الكامل باقية. E51؛ أضيف اعتماد مصادر توزيع العقار ونسخة الحصص وربط المستفيدين ودفتر توزيع وعكس مستقلان، بدقة الفلس.",
+      "acceptanceRemaining": "أدلة الملكية والورثة والمطابقة الشاملة، قبول الحسابات الفعلية، وربط الصرف الخارجي إن طُلب.",
       "evidenceIds": [
         "E06",
         "E20",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "staging-database/sql/partner-property-access.sql",
@@ -8975,10 +9619,34 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
-        "v267-partners.js"
+        "v267-partners.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/sql/partner-property-access.sql",
@@ -8987,7 +9655,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/partner_property_access.sql",
@@ -8995,7 +9668,13 @@
         "staging-database/tests/partner_shares_integrity.sql",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -10369,12 +11048,13 @@
       "id": 123,
       "sourceId": "G11-02",
       "requirement": "إخلاء وتسوية نهائية مرتبطة بالحساب والتأمين والمفاتيح والأضرار.",
-      "reportedImplementation": "جزئي — E28، E33، E47؛ إنهاء العقد وتحرير الوحدة مع التاريخ منفذان. اختُبر حارس دين المبيعات حتى لبراءة قديمة، لكن الرصيد الموحد وشمول الالتزامات وPDF التسوية باقية.",
-      "acceptanceRemaining": "ربط جميع مصادر الالتزام والتأمين والفحص والمفاتيح وتسوية متطابقة ثم إنهاء العقد؛ لا تجاوز للحواجز التجارية.",
+      "reportedImplementation": "جزئي — E28، E33، E47؛ إنهاء العقد وتحرير الوحدة مع التاريخ منفذان. اختُبر حارس دين المبيعات حتى لبراءة قديمة، لكن الرصيد الموحد وشمول الالتزامات وPDF التسوية باقية. E51؛ أُحكم منع صفر الخدمات وإصدار التسوية مع فاتورة عقار غير محسومة أو رصيد دائن غير ممثل.",
+      "acceptanceRemaining": "ربط جميع مصادر الالتزامات والتأمين والفحص والمفاتيح وPDF متطابق وقبول الأجهزة الفعلية.",
       "evidenceIds": [
         "E28",
         "E33",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "docs/V267-VACATING-REVIEW-AND-GUARDS.md",
@@ -10419,12 +11099,36 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
         "src/v267/pages/vacating-settlement.js",
         "src/v267/pages/compliance-center.js",
-        "src/v267/pages/commercial-sales.js"
+        "src/v267/pages/commercial-sales.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/sql/vacating-release.sql",
@@ -10435,7 +11139,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/vacating_review.sql",
@@ -10450,7 +11159,13 @@
         "tests/v267-compliance-behavior.test.mjs",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -10462,12 +11177,13 @@
       "id": 124,
       "sourceId": "G11-03",
       "requirement": "براءة ذمة فقط بعد إغلاق كامل أو استثناء موثق.",
-      "reportedImplementation": "جزئي — E28، E33، E47؛ الحراس ترفض البراءة بالرصيد غير المحسوم، وأضيف رفض دين المبيعات أو قيد العكس غير المطابق ومنع دين تجاري جديد بعد البراءة.",
-      "acceptanceRemaining": "مطابقة جميع الالتزامات وقبول الاستثناء المخول المدقق؛ إصدار PDF يظل محجوبًا عند قيود إضافية غير محسومة.",
+      "reportedImplementation": "جزئي — E28، E33، E47؛ الحراس ترفض البراءة بالرصيد غير المحسوم، وأضيف رفض دين المبيعات أو قيد العكس غير المطابق ومنع دين تجاري جديد بعد البراءة. E51؛ أضيف فحص مباشر لمصدر PDF التسوية النهائية دون تغيير استثناء براءة الذمة أو التاريخ المحفوظ.",
+      "acceptanceRemaining": "مطابقة جميع الالتزامات وقبول الاستثناء المخول المدقق والحسابات الفعلية.",
       "evidenceIds": [
         "E28",
         "E33",
-        "E47"
+        "E47",
+        "E51"
       ],
       "evidenceFiles": [
         "docs/V267-VACATING-REVIEW-AND-GUARDS.md",
@@ -10512,12 +11228,36 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/tests/opening_balance_statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
-        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md"
+        "docs/V267-HOSTED-OPERATIONS-ACCEPTANCE-2026-09-12.md",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js"
       ],
       "uiFiles": [
         "src/v267/pages/vacating-settlement.js",
         "src/v267/pages/compliance-center.js",
-        "src/v267/pages/commercial-sales.js"
+        "src/v267/pages/commercial-sales.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js"
       ],
       "sqlFiles": [
         "staging-database/sql/vacating-release.sql",
@@ -10528,7 +11268,12 @@
         "staging-database/supabase/migrations/20260912170859_v267_compliance_revision_and_signed_lease_repair.sql",
         "staging-database/supabase/migrations/20260912172619_v267_vacating_release_legacy_guard_compatibility.sql",
         "staging-database/sql/opening-balance-statement.sql",
-        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql"
+        "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql"
       ],
       "testFiles": [
         "staging-database/tests/vacating_review.sql",
@@ -10543,7 +11288,13 @@
         "tests/v267-compliance-behavior.test.mjs",
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
-        "staging-database/tests/opening_balance_statement.sql"
+        "staging-database/tests/opening_balance_statement.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -11461,12 +12212,14 @@
       "id": 140,
       "sourceId": "G12-11",
       "requirement": "العقود التجارية: فترات سماح، نسبة مبيعات، ومصروفات خدمات مشتركة CAM.",
-      "reportedImplementation": "جزئي — E33، E47، E49؛ أُصلح قيد رفض طريقة الأكبر من الإيجار أو نسبة المبيعات، ونجح الحفظ المستضاف وحساب الفرق50 والصفر عند انخفاض النسبة، ورفض تغيير الطريقة المعتمدة، مع تراجع البيانات الاصطناعية.",
+      "reportedImplementation": "جزئي — E33، E47، E49؛ أُصلح قيد رفض طريقة الأكبر من الإيجار أو نسبة المبيعات، ونجح الحفظ المستضاف وحساب الفرق50 والصفر عند انخفاض النسبة، ورفض تغيير الطريقة المعتمدة، مع تراجع البيانات الاصطناعية. E51؛ أضيف تحصيل تجاري مستقل وتخصيص وعكس موثقان بحسب التاريخ مع منع خلطه بمسار وصول الإيجار القائم. E52؛ صُححت تذكيرات الرصيد والتفضيل؛ مدد السماح العابرة للشهر (>27 يومًا) ليست مثبتة بهذا الإصلاح.",
       "acceptanceRemaining": "قبول رحلة العقد التجاري والسماح وCAM والتخصيص والكشف والطباعة بحسابات المشروع وأجهزته الفعلية؛ لا يكفي اختبار طريقة المبيعات وحدها لإغلاق البند.",
       "evidenceIds": [
         "E33",
         "E47",
-        "E49"
+        "E49",
+        "E51",
+        "E52"
       ],
       "evidenceFiles": [
         "src/v267/pages/compliance-center.js",
@@ -11509,11 +12262,51 @@
         "docs/V267-COMMERCIAL-BASIS-REPAIR-2026-09-12.md",
         "staging-database/sql/commercial-sales-basis-constraint.sql",
         "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql",
-        "staging-database/hosted-test/completion/06-commercial_sales.sql"
+        "staging-database/hosted-test/completion/06-commercial_sales.sql",
+        "docs/V267-FINANCIAL-COMPLETION-2026-09-12.md",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "src/v267/components/commercial-collections.js",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "src/v267/pages/opening-balances.js",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "src/v267/components/service-directory.js",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
       ],
       "uiFiles": [
         "src/v267/pages/compliance-center.js",
-        "src/v267/pages/commercial-sales.js"
+        "src/v267/pages/commercial-sales.js",
+        "src/v267/components/commercial-collections.js",
+        "src/v267/pages/opening-balances.js",
+        "src/v267/pages/partner-distributions.js",
+        "src/v267/api/partner-session.js",
+        "src/v267/components/partner-distribution-view.js",
+        "src/v267/components/service-directory.js",
+        "src/v267/components/rental-templates.js",
+        "src/v267/pages/rental-contracts.js",
+        "src/v267/domain/lease-dates.js"
       ],
       "sqlFiles": [
         "staging-database/sql/compliance-register.sql",
@@ -11525,7 +12318,15 @@
         "staging-database/sql/opening-balance-statement.sql",
         "staging-database/supabase/migrations/20260912174335_v267_opening_statement_scope_and_confirmed_payments.sql",
         "staging-database/sql/commercial-sales-basis-constraint.sql",
-        "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql"
+        "staging-database/supabase/migrations/20260912202500_v267_commercial_sales_basis_constraint.sql",
+        "staging-database/sql/maintenance-attachments-cancellation.sql",
+        "staging-database/sql/commercial-collections.sql",
+        "staging-database/sql/opening-balance-reconciliation.sql",
+        "staging-database/sql/partner-distribution-register.sql",
+        "staging-database/sql/vacating-supplemental-source-hardening.sql",
+        "staging-database/sql/rental-contract-templates.sql",
+        "staging-database/sql/payment-method-reference-guard.sql",
+        "staging-database/sql/reminder-rent-balance-convergence.sql"
       ],
       "testFiles": [
         "tests/v267-compliance-center.test.cjs",
@@ -11538,7 +12339,17 @@
         "tests/v267-completion.fixture.mjs",
         "staging-database/tests/vacating_release_legacy_compat.sql",
         "staging-database/tests/opening_balance_statement.sql",
-        "staging-database/hosted-test/completion/06-commercial_sales.sql"
+        "staging-database/hosted-test/completion/06-commercial_sales.sql",
+        "staging-database/tests/maintenance_attachment_cancellation.sql",
+        "staging-database/tests/commercial_collections.sql",
+        "staging-database/tests/commercial_collections_legacy_compat.sql",
+        "staging-database/tests/opening_balance_reconciliation.sql",
+        "staging-database/tests/partner_distribution_register.sql",
+        "staging-database/tests/vacating_supplemental_source_hardening.sql",
+        "staging-database/tests/rental_contract_templates.sql",
+        "tests/v267-lease-dates.test.mjs",
+        "staging-database/tests/payment_method_reference_hosted.sql",
+        "staging-database/tests/reminder_rent_balance_convergence.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"

@@ -32,3 +32,15 @@ test('incremental release never offers a new RPC tool just because the user is a
  context.update({...manager,features:{maintenance_report:true},permissions:{...manager.permissions,maintenance:{read:false}}});assert.equal(elements['aq267-maintenance-report'].hidden,true);
  context.update(null);assert.ok(Object.values(elements).every(x=>x.hidden),'revocation must hide previously available tools');
 });
+test('financial completion tools require installed services, manager and document access',()=>{
+ const mapping={'aq267-opening-balances':'opening_balance_reconciliation','aq267-partner-distributions':'partner_distribution_register','aq267-commercial-collections':'commercial_collections'};
+ const elements=Object.fromEntries(Object.keys(mapping).map(id=>[id,{hidden:true}]));
+ const context={document:{getElementById:id=>elements[id]||null},uiText(){}};vm.createContext(context);vm.runInContext(source+'\nthis.update=function(data){access=data;updateFeatureTools();};',context);
+ const granted={role:'general_manager',features:Object.fromEntries(Object.values(mapping).map(key=>[key,true])),permissions:{finance:{read:true},documents:{read:true},partners:{read:true}}};
+ context.update(granted);assert.ok(Object.values(elements).every(x=>!x.hidden));
+ for(const role of ['accountant','collector','property_manager','partner']){context.update({...granted,role});assert.ok(Object.values(elements).every(x=>x.hidden),role);}
+ for(const section of ['finance','documents']){context.update({...granted,permissions:{...granted.permissions,[section]:{read:false}}});assert.ok(Object.values(elements).every(x=>x.hidden),section);}
+ context.update({...granted,permissions:{...granted.permissions,partners:{read:false}}});assert.equal(elements['aq267-partner-distributions'].hidden,true);assert.equal(elements['aq267-opening-balances'].hidden,false);
+ context.update({...granted,features:{}});assert.ok(Object.values(elements).every(x=>x.hidden));
+ context.update(null);assert.ok(Object.values(elements).every(x=>x.hidden));
+});

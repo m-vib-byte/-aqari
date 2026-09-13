@@ -120,15 +120,16 @@ const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.a
 const draftNotice='<p class="v267-draft-notice" style="border:2px solid currentColor;padding:12px;font-weight:700;text-align:center">مسودة للمراجعة — غير صالحة للتوقيع<br>DRAFT — NOT FOR SIGNATURE</p>';
 function contractMarkup(c,count){return renderContract(c,count,false);}
 function renderContract(c,count,official,firstCopy=1,total=count){
+ // Contract copies show original terms; collection discounts remain in the receipt and audit records.
  if(![1,2].includes(count))fail('اختر نسخة واحدة أو نسختين.');
  const p=c.tenantProfile||{};
- const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['الخصم',c.discount],['الإيجار الحالي بعد الخصم',effectiveRent(c,kuwaitDate().slice(0,7),false)],['التأمين',c.deposit],['تاريخ استلام التأمين',c.depositReceivedOn||'لم يستلم / غير مدون'],['شهر مجاني معتمد',c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'غير مدون'],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
+ const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['التأمين',c.deposit],['تاريخ استلام التأمين',c.depositReceivedOn||'لم يستلم / غير مدون'],['شهر مجاني معتمد',c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'غير مدون'],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
  return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<p>حُرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+firstCopy)+' من '+total+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+(official?'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p>':draftNotice)+'</article>').join('');
 }
 function contractAnnexMarkup(c){return renderAnnex(c,false);}
 function renderAnnex(c,official){
  const p=c.tenantProfile||{};const rows=[['رقم العقد / Contract',c.contract_no],['اسم المستأجر بالعربي',p.nameAr||c.tenant],['Tenant full name in English',p.nameEn],['العقار / Property',c.property],['الوحدة / Unit',c.unit],['الدور / Floor',c.floor],['الإيجار الأصلي / Original rent',c.contractRent??c.rent],['الشهر المجاني المعتمد / Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا']];
- return '<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<h2>ملحق بيانات عقد الإيجار / Rental contract annex</h2>'+rows.map(([k,v])=>'<p><b>'+esc(k)+':</b> <bdi>'+esc(v??'غير مدون')+'</bdi></p>').join('')+'<h3>تعديلات الخصم المؤرخة / Dated rent adjustments</h3>'+(c.rentAdjustments||[]).map(a=>'<p><bdi dir="ltr">'+esc(a.effectiveMonth)+'</bdi> — الخصم / Discount: '+esc(a.discount)+' — الإيجار / Rent: '+esc(a.rent)+' د.ك<br>'+esc(a.reason)+'</p>').join('')+(official?'<p>توقيع المؤجر / Lessor: ____________________</p><p>توقيع المستأجر / Tenant: ____________________</p>':draftNotice)+'</article>';
+ return '<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<h2>ملحق بيانات عقد الإيجار / Rental contract annex</h2>'+rows.map(([k,v])=>'<p><b>'+esc(k)+':</b> <bdi>'+esc(v??'غير مدون')+'</bdi></p>').join('')+(official?'<p>توقيع المؤجر / Lessor: ____________________</p><p>توقيع المستأجر / Tenant: ____________________</p>':draftNotice)+'</article>';
 }
 async function prepareContractPrint(id,count=1,mode='official'){
  if(![1,2].includes(count)||!['official','draft'].includes(mode)||!text(id))fail('طلب طباعة غير صالح.');
@@ -312,14 +313,14 @@ async function saveLease(input){
 }
 async function generate(){
  const notice=byId('contractNotesV55');try{
-  const tenant=data().tenants?.[Number(byId('contractTenantV55').value)],property=data().properties?.[Number(byId('contractPropertyV55').value)];
-  if(!tenant||!property)fail('اختر المستأجر والعقار.');
-  const id=Date.now()*1024+crypto.getRandomValues(new Uint16Array(1))[0]%1024;
-  notice.textContent='جاري حفظ العقد والتحقق منه…';
-  const c=await saveLease({id,contract_no:byId('contractNumberV267').value,tenantId:profileRef(tenant),property:property[0],unit:byId('contractUnitV55').value,rent:byId('contractRentV55').value,deposit:byId('contractDepositV55').value,floor:byId('contractFloorV267').value,advance:byId('contractAdvanceV267').value,cleaningFee:byId('contractCleaningV267').value,discount:byId('contractDiscountV267').value,receivedAt:byId('contractReceivedV267').value,writtenOn:kuwaitDate(),accountant:byId('contractAccountantV267').value,evictionNotice:byId('contractEvictionV267').value,start_date:byId('contractStartV55').value,end_date:byId('contractEndV55').value,language:byId('contractLangV55').value,status:'draft',clauses:typeof defaultClausesV55!=='undefined'?copy(defaultClausesV55):[]});
-  notice.textContent='تم حفظ المسودة والتحقق من وجودها في السحابة. أكمل دورة التوقيع قبل التحصيل.';root.previewContractV55(c);
- }catch(e){notice.textContent=e.message||'تعذر حفظ العقد.'}
+  if(!scope())fail('صلاحية إنشاء العقد غير متاحة.');
+  const page=await import('./src/v267/pages/rental-contracts.js');
+  if(!scope())fail('تغيّرت جلسة الدخول.');
+  page.openRentalContracts({create:true});
+  if(notice)notice.textContent='اختر نوع العقد ونسخة قالب منشورة في نموذج العقد.';
+ }catch(e){if(notice)notice.textContent=e.message;else root.alert?.(e.message);}
 }
+
 async function status(id,next){
  const notice=byId('contractNotesV55');try{
   const c=(data().contractsV202||[]).find(x=>String(x.id)===String(id));if(!c||c.source!=='v267-cloud')fail('هذا العقد ليس من مسار V267 المحفوظ. يلزم مراجعته قبل تغيير حالته.');

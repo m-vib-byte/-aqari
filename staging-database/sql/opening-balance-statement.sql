@@ -79,6 +79,8 @@ begin
         'kind',e.kind,
         'amount',e.amount,
         'cutoff_date',e.occurred_on,
+        'occurred_on',e.occurred_on,
+        'date_meaning','ledger_entry_date_not_reviewed_cutoff',
         'reason',e.reason,
         'source_type',e.source_type,
         'source_id',e.source_id,

@@ -9,6 +9,17 @@ const copy={
  ml:['AQARI സേവനങ്ങൾ','സേവനം തിരയുക','ഉദാ: കരാർ, നിക്ഷേപം, ശമ്പളം','തിരച്ചിൽ മായ്ക്കുക','സേവനം കണ്ടെത്തിയില്ല. മറ്റൊരു വാക്ക് പരീക്ഷിക്കുക.','ഈ സേവനം ഇപ്പോൾ നിങ്ങളുടെ അക്കൗണ്ടിൽ ലഭ്യമല്ല.','തിരച്ചിൽ ഫലങ്ങൾ','വസൂലും അക്കൗണ്ടുകളും','കരാറുകളും രേഖകളും','വസ്തുക്കളും വാടകക്കാരും','അറ്റകുറ്റപ്പണിയും സേവനങ്ങളും','ജീവനക്കാരും നടത്തിപ്പും','അക്കൗണ്ടും സഹായവും','നിക്ഷേപം, ചെലവുകൾ, ആർക്കൈവ്','തയ്യാറാക്കൽ, അച്ചടി, ഒഴിയൽ','യൂണിറ്റുകൾ, സജ്ജത, വസ്തു രേഖകൾ','മീറ്ററുകൾ, അപേക്ഷകൾ, തുടർനടപടി','ശമ്പളം, അനുമതികൾ, സർക്കുലറുകൾ','സുരക്ഷ, ക്രമീകരണങ്ങൾ, സഹായം','പുരോഗതിയിൽ','പൂർണ്ണ പ്രിവ്യൂ: എല്ലാ V267 സേവനങ്ങളും കാണിക്കും. തയ്യാറാകാത്ത സേവനങ്ങൾ പുരോഗതിയിൽ എന്ന് അടയാളപ്പെടുത്തും; അവ പ്രവർത്തനങ്ങൾ നടത്തില്ല.','V267 പൂർണ്ണ പ്രിവ്യൂ','V267 ആവശ്യങ്ങൾ — 155']
 };
 const text=i=>(copy[getLocale()]||copy.ar)[i];
+const documentCopy={
+ ar:['رفع وثيقة أو مسح ورق','صورة أو PDF أو DOCX، مرتبط بالعقار أو المستأجر أو العقد.'],
+ en:['Upload or scan a document','Image, PDF or DOCX, linked to a property, tenant or contract.'],
+ hi:['दस्तावेज़ अपलोड या स्कैन करें','चित्र, PDF या DOCX को संपत्ति, किरायेदार या अनुबंध से जोड़ें।'],
+ ur:['دستاویز اپ لوڈ یا اسکین کریں','تصویر، PDF یا DOCX کو جائیداد، کرایہ دار یا معاہدے سے جوڑیں۔'],
+ ml:['രേഖ അപ്‌ലോഡ് ചെയ്യുക അല്ലെങ്കിൽ സ്കാൻ ചെയ്യുക','ചിത്രം, PDF അല്ലെങ്കിൽ DOCX വസ്തു, വാടകക്കാരൻ അല്ലെങ്കിൽ കരാറുമായി ബന്ധിപ്പിക്കുക.']
+};
+const documentTerms='رفع تحميل وثيقة وثائق وثايق مستند مستندات ورق ورقة اوراق تصوير كاميرا مسح عقد عقود PDF DOCX upload scan document paper camera contract दस्तावेज़ अपलोड स्कैन चित्र अनुबंध دستاویز اپ لوڈ اسکین تصویر معاہدہ രേഖ അപ്‌ലോഡ് സ്കാൻ ചിത്രം കരാർ';
+const isDocumentEntry=item=>item.source.dataset?.aq267Label==='scan_document';
+const termsOf=item=>(item.keywords||'')+(isDocumentEntry(item)?' '+documentTerms:'');
+
 export const serviceSearch=value=>String(value||'').normalize('NFKC').toLocaleLowerCase().replace(/[\u064b-\u065f\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim();
 
 function fullPreview(){
@@ -23,7 +34,7 @@ function fullPreview(){
 // unavailable entries never bypass source visibility, feature discovery or
 // authorization and never invoke their original handlers.
 export function organizeServices({tools,groups,allowed,home=()=>document.getElementById('v205SimpleHome')}){
- const menuGroups=[];let root=null,search,grid,status,clear,title,label,lastScope=null;
+ const menuGroups=[];let root=null,search,grid,status,clear,title,label,documentShortcut,documentButton,documentHint,lastScope=null;
  const expanded=new Set(),reviewAll=fullPreview();
  for(const [index,group] of groups.entries()){
   const box=node('details'),summary=node('summary'),name=node('span');box.className='aq267-menu-group';box.open=true;
@@ -44,16 +55,24 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
   search.oninput=render;search.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();search.value='';render();}};
   searchBox.className='aq267-service-search';searchBox.append(label,search,clear);head.append(title,searchBox);
   status=node('p');status.className='aq267-service-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-  grid=node('div');grid.className='aq267-service-groups';root.append(head,status,grid);
+  documentShortcut=node('div');documentShortcut.className='aq267-document-shortcut';documentShortcut.id='aq267-document-shortcut';
+  documentButton=node('button');documentButton.type='button';documentButton.id='aq267-document-upload-action';
+  documentHint=node('p');documentHint.id='aq267-document-upload-hint';documentButton.setAttribute('aria-describedby',documentHint.id);
+  documentButton.onclick=()=>{const item=groups.flatMap(group=>group.items).find(isDocumentEntry);if(!lastScope||!item||!available(item)){render();status.textContent=text(5);status.hidden=false;return;}item.source.click();};
+  documentShortcut.append(documentButton,documentHint);
+  grid=node('div');grid.className='aq267-service-groups';root.append(head,documentShortcut,status,grid);
   host.insertBefore(root,host.querySelector(':scope > details,:scope > .v205-home-footer'));return true;
  }
  function render(){
   if(!root)return;const query=serviceSearch(search.value),words=query.split(' ').filter(Boolean);let total=0;
   root.lang=getLocale();root.dir=direction();title.textContent=text(0);label.textContent=text(1);search.placeholder=text(2);clear.textContent=text(3);clear.hidden=!query;
+  const documentItem=groups.flatMap(group=>group.items).find(isDocumentEntry),documentText=documentCopy[getLocale()]||documentCopy.ar;
+  documentButton.textContent=documentText[0];documentHint.textContent=documentText[1];
+  documentShortcut.hidden=!lastScope||!documentItem||!available(documentItem)||!words.every(word=>serviceSearch(titleOf(documentItem)+' '+termsOf(documentItem)).includes(word));
   const banner=root.querySelector?.('.aq267-preview-banner');if(banner&&reviewAll){const copyBox=banner.children[0],link=banner.children[1];copyBox.children[0].textContent=text(21);copyBox.children[1].textContent=text(20);link.textContent=text(22);}
   grid.replaceChildren();
   for(const [index,group] of groups.entries()){
-   const items=group.items.filter(listed).filter(item=>{const haystack=serviceSearch(titleOf(item)+' '+text(7+index)+' '+(item.keywords||''));return words.every(word=>haystack.includes(word));});
+   const items=group.items.filter(listed).filter(item=>{const haystack=serviceSearch(titleOf(item)+' '+text(7+index)+' '+termsOf(item));return words.every(word=>haystack.includes(word));});
    if(!items.length)continue;total+=items.length;
    const box=node('details'),summary=node('summary'),caption=node('span'),name=node('strong',text(7+index)),hint=node('small',text(13+index)),count=node('span',String(items.length)),list=node('div');
    box.className='aq267-service-group';box.dataset.group=group.key;box.open=reviewAll||!!query||expanded.has(group.key);count.className='aq267-service-count';caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
@@ -61,7 +80,7 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
    for(const item of items){
     const ready=available(item),button=node('button',titleOf(item)+(reviewAll&&!ready?' — '+text(19):''));button.type='button';button.dataset.service=group.key;button.setAttribute('aria-label',titleOf(item));
     if(!ready){button.dataset.state='pending';button.setAttribute('aria-disabled','true');button.title=text(5);}
-    button.onclick=()=>{if(!available(item)){status.textContent=text(5);status.hidden=false;return;}item.source.click();};list.append(button);
+    button.onclick=()=>{if(!available(item)){render();status.textContent=text(5);status.hidden=false;return;}item.source.click();};list.append(button);
    }
    grid.append(box);
   }
@@ -72,6 +91,6 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
  return {refresh(scope){
   if(scope!==lastScope){lastScope=scope;expanded.clear();if(search)search.value='';}
   for(const {box,name,index} of menuGroups){name.textContent=text(7+index);box.hidden=!groups[index].items.some(listed);}
-  if(mount()){root.hidden=!scope;if(scope)render();else{grid.replaceChildren();search.value='';status.textContent='';}}
+  if(mount()){root.hidden=!scope;if(scope)render();else{grid.replaceChildren();documentShortcut.hidden=true;search.value='';status.textContent='';}}
  }};
 }

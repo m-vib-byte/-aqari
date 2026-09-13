@@ -20,9 +20,10 @@ const errors={
  INVALID_COMMERCIAL_ALLOCATION:'راجع الدفعة والمبلغ المطلوب تخصيصه.',
  INVALID_COMMERCIAL_ALLOCATION_REVERSAL:'راجع تاريخ وسبب عكس التخصيص.',
  INVALID_COMMERCIAL_ALLOCATION_REVERSAL_DATE:'لا يمكن أن يسبق العكس تاريخ التخصيص.',
+ COMMERCIAL_COLLECTION_INDEPENDENT_MODE_REQUIRED:'هذا العقد يستخدم التحصيل التجاري المستقل، بما فيه القيود المعكوسة. راجع قسم التحصيل التجاري الموثق؛ لا يمكن تخصيص وصل إيجار للعقد نفسه.',
  ACCESS_DENIED:'ليست لديك صلاحية لقراءة أو تعديل تسوية نسبة المبيعات.'
 };
-const errorText=error=>errors[error?.message]||error?.message||'تعذر التحقق من تسوية نسبة المبيعات.';
+const errorText=error=>error?.code==='PGRST202'?'تحتاج تسوية العقد تفعيل تحديث قاعدة البيانات قبل تسجيل أي تخصيص.':errors[error?.message]||error?.message||'تعذر التحقق من تسوية نسبة المبيعات.';
 
 export function mountCommercialPaymentAllocations(d,container,{leases=[]}={}){
  let disposed=false,pending=null,state=null;
@@ -32,8 +33,24 @@ export function mountCommercialPaymentAllocations(d,container,{leases=[]}={}){
  container.append(node('h3','تسوية نسبة المبيعات'),node('p','خصّص جزءًا من دفعة مؤكدة لاستحقاق نسبة المبيعات. الجزء المخصص لا يُحتسب مرة ثانية كسداد إيجار، والوصل الملغى لا يُعتد به.'),field('العقد المراد تسويته',lease),load,retry,status,body);
  const check=()=>{d.session.check();if(disposed)throw Error('تم إغلاق تسوية نسبة المبيعات.');};
  const rpc=async(name,args)=>{check();const value=await d.session.request(d.session.client.rpc(name,args));check();return value;};
+ async function collectionMode(id){
+  const asOf=todayKuwait(),value=await rpc('aqari_commercial_collections',{p_workspace_id:d.session.bound.workspace,p_action:'list',p_data:{lease_id:id,as_of:asOf}});
+  if(value?.as_of!==asOf||typeof value.can_manage!=='boolean'||['leases','accounts','documents','sales','collections'].some(key=>!Array.isArray(value[key])))throw Error('تعذر التحقق من مسار تحصيل العقد.');
+  const selected=value.leases.find(row=>row.id===id);
+  if(value.mode==='legacy_payment_allocation'){
+   if(selected?.collection_mode!==value.mode||value.unavailable_reason!=='COMMERCIAL_COLLECTION_LEGACY_MODE_REQUIRED'||value.can_manage!==false||value.statement!==null||['accounts','documents','sales','collections'].some(key=>value[key].length))throw Error('تعذر التحقق من مسار تحصيل العقد.');
+   return 'legacy_payment_allocation';
+  }
+  if(value.mode!=='independent_collection'||value.unavailable_reason!==null||value.statement?.lease_id!==id||value.statement?.as_of!==asOf||!Array.isArray(value.statement.lines)||(selected&&selected.collection_mode!==value.mode)||value.collections.some(row=>!row.collection?.id||row.collection.lease_id!==id))throw Error('تعذر التحقق من مسار تحصيل العقد.');
+  // A reversal preserves the chosen route. An unused contract can start either
+  // route; the database workspace lock prevents two concurrent first writes.
+  return value.collections.length?'independent_collection':'uncommitted';
+ }
  async function read(){
   if(!lease.value)throw Error('اختر العقد التجاري أولًا.');
+  const id=lease.value,mode=await collectionMode(id);
+  if(id!==lease.value)throw Error('تغير العقد أثناء قراءة التسوية. أعد العرض.');
+  if(mode==='independent_collection')return {lease_id:id,mode};
   const value=await rpc('aqari_commercial_payment_context',{p_workspace_id:d.session.bound.workspace,p_lease_id:lease.value});
   if(!value||value.lease_id!==lease.value||!value.statement||value.statement.lease_id!==lease.value||!Array.isArray(value.statement.sales)||!Array.isArray(value.payments))throw Error('لم تتطابق إعادة قراءة تسوية العقد.');
   const paymentIds=new Set();for(const p of value.payments){
@@ -47,10 +64,10 @@ export function mountCommercialPaymentAllocations(d,container,{leases=[]}={}){
  }
  function lock(value){lease.disabled=load.disabled=value;}
  function clearPending(){pending=null;retry.hidden=true;lock(false);}
- function propose(action,payload){if(pending)throw Error('أكمل التحقق من محاولة التخصيص السابقة أولًا.');pending={action,payload:{...payload,id:crypto.randomUUID()}};retry.hidden=false;lock(true);}
+ function propose(action,payload){if(!state?.statement||state.lease_id!==lease.value)throw Error('أعد عرض تسوية العقد قبل تسجيل أي تخصيص.');if(pending)throw Error('أكمل التحقق من محاولة التخصيص السابقة أولًا.');pending={action,payload:{...payload,id:crypto.randomUUID()}};retry.hidden=false;lock(true);}
  async function submit(){
   if(!pending||disposed)return;const {action,payload}=pending;let saved;
-  try{saved=await rpc('aqari_commercial_payment_allocations',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload});}
+  try{if(await collectionMode(lease.value)==='independent_collection')throw Object.assign(Error('COMMERCIAL_COLLECTION_INDEPENDENT_MODE_REQUIRED'),{code:'23514'});saved=await rpc('aqari_commercial_payment_allocations',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload});}
   catch(error){if(/^(22|23|40)/.test(error?.code||''))clearPending();throw Error(errorText(error));}
   if(saved?.id!==payload.id)throw Error('لم تتطابق هوية عملية التخصيص. أعد محاولة التحقق.');
   const fresh=await read(),sale=fresh.statement.sales.find(row=>row.id===(action==='allocate'?payload.sale_id:undefined));
@@ -65,6 +82,7 @@ export function mountCommercialPaymentAllocations(d,container,{leases=[]}={}){
  }
  function render(){
   body.replaceChildren();if(!state)return;
+  if(state.mode==='independent_collection'){body.append(node('p',errors.COMMERCIAL_COLLECTION_INDEPENDENT_MODE_REQUIRED));return;}
   const summary=state.statement;body.append(node('p','إجمالي استحقاق المبيعات: '+summary.commercial_due_total+' د.ك — المسدد: '+summary.commercial_paid_total+' د.ك — المتبقي: '+summary.commercial_balance+' د.ك'));
   if(!summary.sales.length){body.append(node('p','لا توجد استحقاقات نسبة مبيعات محفوظة لهذا العقد.'));return;}
   for(const sale of summary.sales){
@@ -87,7 +105,7 @@ export function mountCommercialPaymentAllocations(d,container,{leases=[]}={}){
    body.append(card);
   }
  }
- async function loadState(){if(pending)throw Error('أكمل التحقق من محاولة التخصيص السابقة أولًا.');state=await read();render();status.textContent='تمت إعادة قراءة كشف العقد والدفعات المتاحة.';}
+ async function loadState(){if(pending)throw Error('أكمل التحقق من محاولة التخصيص السابقة أولًا.');state=null;body.replaceChildren();status.textContent='';try{state=await read();render();status.textContent=state.mode==='independent_collection'?'تم تحديد مسار التحصيل لهذا العقد.':'تمت إعادة قراءة كشف العقد والدفعات المتاحة.';}catch(error){throw Error(errorText(error));}}
  load.onclick=()=>d.run(loadState);retry.onclick=()=>d.run(submit);lease.onchange=()=>{if(pending){return;}state=null;body.replaceChildren();status.textContent='';};
  const dispose=()=>{disposed=true;pending=state=null;container.replaceChildren();};return {dispose,refresh:()=>d.run(loadState)};
 }

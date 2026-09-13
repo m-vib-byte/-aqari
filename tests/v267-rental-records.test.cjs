@@ -136,5 +136,6 @@ test('contract and annex retain both tenant names and escape inserted content',(
  const contract=browserModule.module.exports.contractMarkup(c,1),annex=browserModule.module.exports.contractAnnexMarkup(c);
  assert.match(contract,/حُرر هذا العقد في دولة الكويت بتاريخ 2026-09-09/);
  for(const html of [contract,annex]){assert.match(html,/مستأجر اختبار/);assert.match(html,/Synthetic &lt;Tenant&gt;/);assert.doesNotMatch(html,/<Tenant>/);}
- assert.match(annex,/2026-10/);assert.match(annex,/2026-11/);assert.match(annex,/Approved test/);
+ assert.match(annex,/2026-10/);assert.doesNotMatch(annex,/2026-11|Approved test|تعديلات الخصم المؤرخة/);
+ assert.deepEqual(c.rentAdjustments,[{effectiveMonth:'2026-11',discount:20,rent:80,reason:'Approved test'}]);
 });

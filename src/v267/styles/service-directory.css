@@ -15,6 +15,9 @@
  body.aq-v267 .aq267-service-search label{grid-column:1/-1;font-size:.875rem;font-weight:600;color:#655d4f}
  body.aq-v267 .aq267-service-search input{width:100%;min-height:50px;border:1px solid #c8b99b;border-radius:12px;padding:12px 14px;background:#fff;color:#292820;font:inherit;text-align:start}
  body.aq-v267 .aq267-service-search button{min-height:50px;padding:10px 14px;border:1px solid #e1d6c2;border-radius:12px;background:#fff;color:#715423;font:inherit;cursor:pointer}
+ body.aq-v267 .aq267-document-shortcut{display:flex;align-items:center;gap:18px;margin:0 0 16px;padding:14px 16px;border:1px solid #e3d8c1;border-radius:14px;background:#fcf9f1}
+ body.aq-v267 .aq267-document-shortcut button{flex:0 0 auto;min-height:52px;max-width:100%;padding:12px 20px;border:1px solid #806127;border-radius:12px;background:#8a6a32;color:#fff;font:600 1rem/1.65 system-ui;text-align:start;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+ body.aq-v267 .aq267-document-shortcut p{margin:0;max-width:60ch;color:#655d4f;font-size:.9375rem;line-height:1.7}
  body.aq-v267 .aq267-service-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:14px}
  body.aq-v267 .aq267-service-group{margin:0;border:1px solid #e1d9ca;border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 3px 12px #4d392805}
  body.aq-v267 .aq267-service-group>summary{display:flex;align-items:center;gap:12px;min-height:112px;padding:20px;cursor:pointer;list-style:none;user-select:none}
@@ -60,6 +63,9 @@
  body.aq-v267 .aq267-preview-banner strong{display:inline-block;margin-bottom:8px}
  body.aq-v267 .aq267-preview-requirements{width:100%;margin-top:12px}
  body.aq-v267 .aq267-service-directory>header{display:block}
+ body.aq-v267 .aq267-document-shortcut{display:block;padding:12px}
+ body.aq-v267 .aq267-document-shortcut button{width:100%;text-align:center}
+ body.aq-v267 .aq267-document-shortcut p{margin-top:8px}
  body.aq-v267 .aq267-service-directory h2{margin-bottom:12px;font-size:1.25rem}
  body.aq-v267 .aq267-service-group>summary{min-height:126px;padding:14px;gap:8px;flex-wrap:wrap}
  body.aq-v267 .aq267-service-group>summary>span:first-child{flex-basis:100%}

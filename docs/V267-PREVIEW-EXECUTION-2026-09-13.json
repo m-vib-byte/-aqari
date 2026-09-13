@@ -1,0 +1,108 @@
+{
+  "date": "2026-09-13",
+  "target": "ofgmcsmxmdswlovsckqs",
+  "branch": "fix/v267-jsonb-readback",
+  "source_parent": "861cfac1fea37f38d878526fea9422b63d216852",
+  "production": "HOLD: latest owner instruction requires acceptance before production",
+  "local_verification": {
+    "javascript_pass": 1224,
+    "javascript_fail": 0,
+    "sql_steps_pass": 185,
+    "python_pass": 73,
+    "hosted_generator_tests_pass": 6
+  },
+  "hosted_tests_in_migration_order": [
+    {
+      "name": "maintenance_attachment_cancellation",
+      "source": "staging-database/tests/maintenance_attachment_cancellation.sql",
+      "sha256": "aa427698c553931fe12dc792b2920daad40b12b477e7bbddd0bf424f54d8da72",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "commercial_collections",
+      "source": "staging-database/tests/commercial_collections.sql",
+      "sha256": "b968b41fa72c9a5fda1de31f51b0cbf0c5dad5ad37eeea9ae21734a6769414f2",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "commercial_collections_legacy_compat",
+      "source": "staging-database/tests/commercial_collections_legacy_compat.sql",
+      "sha256": "b09e09a99ed8603ca9bf6c6a60a251fbadcf1ae598565db839d010b7f26d0e38",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "opening_balance_reconciliation",
+      "source": "staging-database/tests/opening_balance_reconciliation.sql",
+      "sha256": "6377456828fbe65feed118afc9064b1f4e31e4012f321e9e6e0e0ee187bd8fec",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "partner_distribution_register",
+      "source": "staging-database/tests/partner_distribution_register.sql",
+      "sha256": "e5f24f682dcc5ae5b24d959359f3276ab78a99ef6db26be6075cebbe60b6dab3",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "vacating_supplemental_source_hardening",
+      "source": "staging-database/tests/vacating_supplemental_source_hardening.sql",
+      "sha256": "9203f599f21356949301c894ea5d35c57a789c1c2484b5ea67535903a205534f",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "reminder_rent_balance_convergence",
+      "source": "staging-database/tests/reminder_rent_balance_convergence.sql",
+      "sha256": "c9ccdbc60b632c269b9be0dbc08f70943c2887485fa70845200db6396175e6dd",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "payment_method_reference_hosted",
+      "source": "staging-database/tests/payment_method_reference_hosted.sql",
+      "sha256": "c9fba2a824d4cc5814d8df1c530f712e20e46e5567a14b6fa8fb65361c1f5aae",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "rental_contract_templates",
+      "source": "staging-database/tests/rental_contract_templates.sql",
+      "sha256": "6b59a64b318985f75a721ace1cd181fc1a4ace3b5a44bb8c185de76c36fc9402",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    }
+  ],
+  "applied_migrations": [
+    "20260912185345",
+    "20260913171247",
+    "20260913171459",
+    "20260913172121"
+  ],
+  "cleanup": {
+    "auth_users": 1,
+    "storage_objects": 2,
+    "workspaces": 1,
+    "public_buckets": 0,
+    "synthetic_allowed_users": 0,
+    "published_template_versions": 0,
+    "commercial_collections": 0,
+    "opening_reviews": 0,
+    "partner_distributions": 0
+  },
+  "business_integrity_note": "Six source-table digests match the earlier comparison. Properties and app-state changed before this day: revision14 updated2026-09-12T19:39:08.226863Z is preserved; see report. No claim that all8 old digests remained equal across separate user activity.",
+  "actual_accounts_devices_email_storage_bytes": "NOT_PROVEN",
+  "github_vercel_status": "Read checks and deployment for the published commit; local results do not establish hosted browser acceptance."
+}

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createPartnerSession} from '../src/v267/api/partner-session.js';
-function fixture({response,authDelay=false,timeout=1000}={}){
+function fixture({response,authDelay=false,timeout=1000,rpcName='aqari_partner_summary'}={}){
  let notify,id='a',resolveRequest,aborted=false,clears=0,reads=0;
  const client={auth:{onAuthStateChange(fn){notify=fn;return {data:{subscription:{unsubscribe(){}}}};},getSession(){reads++;return authDelay?new Promise(()=>{}):Promise.resolve({data:{session:id?{user:{id}}:null}});}},
- rpc(name,args){assert.equal(name,'aqari_partner_summary');return {abortSignal(signal){signal.addEventListener('abort',()=>aborted=true);if(response)return Promise.resolve(response(args));return new Promise(resolve=>resolveRequest=resolve);}};}};
+ rpc(name,args){assert.equal(name,rpcName);return {abortSignal(signal){signal.addEventListener('abort',()=>aborted=true);if(response)return Promise.resolve(response(args));return new Promise(resolve=>resolveRequest=resolve);}};}};
  const session=createPartnerSession(client,()=>clears++,timeout);
  return {session,emit(event,next){id=next;notify(event,next?{user:{id:next}}:null);},resolve(data){resolveRequest({data});},setUser(next){id=next;},get clears(){return clears;},get aborted(){return aborted;},get reads(){return reads;}};
 }
@@ -40,4 +40,32 @@ test('the deadline includes a hung SDK session read',async()=>{
 });
 test('an expired or revoked grant response cannot become a successful read',async()=>{
  const f=fixture({response:()=>({error:{message:'private provider detail'}})});await assert.rejects(f.session.read(),/ACCESS_DENIED/);f.session.close();
+});
+const distributionSelection={propertyId:'p-a',workspaceId:'w',month:'2026-09-01',kind:'distributions'};
+const allocation={id:'allocation-1',kind:'distribution',owner_id:'owner-1',name:'صاحب الحصة',bps:3333,amount_fils:'333',occurred_on:'2026-09-01'};
+const distribution={user_id:'a',property_id:'p-a',workspace_id:'w',month:'2026-09-01',currency:'KWD',entries:[allocation],balance_fils:'333'};
+test('partner allocations use the dedicated endpoint and verify exact fils without loading staff sources',async()=>{
+ const f=fixture({rpcName:'aqari_partner_distribution_statement',response:()=>({data:distribution})});
+ assert.deepEqual(await f.session.read(distributionSelection),distribution);f.session.close();
+});
+for(const key of ['user_id','property_id','workspace_id','month'])test('partner allocations reject a foreign '+key,async()=>{
+ const f=fixture({rpcName:'aqari_partner_distribution_statement',response:()=>({data:{...distribution,[key]:'foreign'}})});
+ await assert.rejects(f.session.read(distributionSelection),/SCOPE_MISMATCH/);f.session.close();
+});
+test('partner allocations reject unsupported currency, duplicate records and incorrect money totals',async()=>{
+ for(const data of [{...distribution,currency:'USD'},{...distribution,balance_fils:'0'},{...distribution,entries:[allocation,allocation],balance_fils:'666'},{...distribution,entries:[{...allocation,amount_fils:'0.333'}]},{...distribution,entries:[{...allocation,bps:'3333'}]}]){
+  const f=fixture({rpcName:'aqari_partner_distribution_statement',response:()=>({data})});await assert.rejects(f.session.read(distributionSelection),/DISTRIBUTION_INVALID/);f.session.close();
+ }
+});
+test('a recorded reversal reduces the partner allocation balance exactly',async()=>{
+ const data={...distribution,entries:[allocation,{...allocation,id:'reversal-1',kind:'reversal',reverses_id:allocation.id,amount_fils:'-333'}],balance_fils:'0'};
+ const f=fixture({rpcName:'aqari_partner_distribution_statement',response:()=>({data})});assert.deepEqual(await f.session.read(distributionSelection),data);f.session.close();
+});
+test('only a missing distribution endpoint is distinguished from revoked access',async()=>{
+ for(const [code,message] of [['PGRST202','PARTNER_DISTRIBUTIONS_UNAVAILABLE'],['42501','PARTNER_ACCESS_DENIED']]){
+  const f=fixture({rpcName:'aqari_partner_distribution_statement',response:()=>({error:{code}})});await assert.rejects(f.session.read(distributionSelection),new RegExp(message));f.session.close();
+ }
+});
+test('a sign-out clears and aborts an allocation read before any response is exposed',async()=>{
+ const f=fixture({rpcName:'aqari_partner_distribution_statement'}),pending=f.session.read(distributionSelection);await tick();f.emit('SIGNED_OUT',null);assert.equal(f.clears,1);assert.equal(f.aborted,true);await assert.rejects(pending,/ABORTED|CHANGED/);f.resolve(distribution);f.session.close();
 });

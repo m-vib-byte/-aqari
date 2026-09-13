@@ -368,8 +368,15 @@ try{
     failingWrite=true;await page.getByLabel('سبب التعديل',{exact:true}).fill('حفظ مرفوض');
     await page.getByRole('button',{name:'حفظ الإعدادات والتحقق',exact:true}).click();
     await page.getByRole('dialog').waitFor({state:'detached'});assert.equal(revision,1);failingWrite=false;
-    await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
-    await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
+    const uploadShortcut=page.locator('#aq267-document-upload-action');
+    await uploadShortcut.waitFor({state:'visible'});
+    assert.equal(await uploadShortcut.textContent(),'رفع وثيقة أو مسح ورق','home exposes the direct document shortcut');
+    assert.equal(await uploadShortcut.isEnabled(),true,'authorized document shortcut is actionable');
+    await uploadShortcut.click();
+    const scannerDialog=page.getByRole('dialog',{name:'مسح المستندات ورفع الوثائق',exact:true});
+    await scannerDialog.waitFor({state:'visible'});
+    assert.equal(await page.getByRole('dialog').count(),1,'home shortcut opens the original scanner once');
+    await scannerDialog.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
     await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');
     await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     await page.getByLabel('تصنيف المستند',{exact:true}).selectOption('ownership_deed');

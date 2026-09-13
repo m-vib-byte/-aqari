@@ -1,4 +1,5 @@
--- AQARI V267: enforce recent AAL2 for all vacating-settlement writes.
+-- AQARI V267: enforce AAL2 for sensitive actors on vacating-settlement writes.
+-- An AAL2 claim alone does not establish when the actor last authenticated.
 -- This protects save/finalize/clearance even if a caller bypasses the UI RPC path.
 begin;
 

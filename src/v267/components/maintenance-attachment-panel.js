@@ -1,4 +1,4 @@
-import {createMaintenanceAttachments,MAINTENANCE_ATTACHMENT_LIMIT} from './maintenance-attachments.js';
+import {createMaintenanceAttachments,maintenanceCancellationAudit,MAINTENANCE_ATTACHMENT_LIMIT} from './maintenance-attachments.js';
 
 // Shared by the isolated tenant account and the staff desk. Text is inserted
 // literally, and every private blob URL is revoked when the owning view closes.
@@ -10,8 +10,8 @@ export async function mountMaintenanceAttachments(container,options){
  message.setAttribute('role','status');message.setAttribute('aria-live','polite');files.type=camera.type='file';files.accept='image/jpeg,image/png,image/webp,application/pdf';files.multiple=true;camera.accept='image/jpeg';camera.setAttribute('capture','environment');upload.type=refresh.type='button';label.append(files);cameraLabel.append(camera);
  container.replaceChildren(title,hint,label,cameraLabel,upload,refresh,message,list);
  const clearUrls=()=>{for(const url of urls)URL.revokeObjectURL(url);urls.clear();};
- const errors={ATTACHMENT_LIMIT_REACHED:'بلغ البلاغ الحد الأقصى: ٨ مرفقات. ألغِ الحجز غير المكتمل إذا فُقد الملف الأصلي، أو أعد اختيار الملف نفسه لإكماله.',INVALID_ATTACHMENT:'راجع نوع الملف واسمه وحجمه. المسموح صور JPEG أو PNG أو WebP أو PDF حتى ١٠ ميجابايت.',ATTACHMENT_RESERVATION_CONFLICT:'تغير الملف عن النسخة التي حُجزت له. اختر النسخة الأصلية وأعد المحاولة.',STORED_FILE_NOT_CONFIRMED:'لم يتأكد اكتمال الملف في التخزين. احتُفظ بالاختيار لإعادة المحاولة والتحقق.',ATTACHMENT_ALREADY_FINALIZED:'المرفق محفوظ نهائيًا ولا يمكن إلغاء أصله.',ATTACHMENT_OBJECT_PRESENT:'وصلت بيانات هذا الملف إلى التخزين بالفعل، لذلك لن يتم حذفها. أعد اختيار الملف نفسه لإكمال التحقق والحفظ.',INVALID_CANCEL_REASON:'تعذر توثيق سبب إلغاء الحجز غير المكتمل.'};
- function dispose(){closed=true;selection=[];files.value=camera.value='';clearUrls();container.replaceChildren();}
+ const errors={ATTACHMENT_LIMIT_REACHED:'بلغ البلاغ الحد الأقصى: ٨ مرفقات وحجوزات نشطة. حدّث القائمة لاستئناف حجوزاتك غير المكتملة أو إلغائها مع توثيق السبب.',INVALID_ATTACHMENT:'راجع نوع الملف واسمه وحجمه. المسموح صور JPEG أو PNG أو WebP أو PDF حتى ١٠ ميجابايت.',ATTACHMENT_RESERVATION_CONFLICT:'تغير الملف عن النسخة التي حُجزت له. اختر النسخة الأصلية وأعد المحاولة.',STORED_FILE_NOT_CONFIRMED:'لم يتأكد اكتمال الملف في التخزين. احتُفظ بالاختيار لإعادة المحاولة والتحقق.',ATTACHMENT_CANCELLED:'أُلغي هذا الحجز. حدّث القائمة واختر ملفًا لحجز جديد عند الحاجة.',UPLOADED_ATTACHMENT_IMMUTABLE:'اكتمل حفظ هذا المرفق ولا يمكن إلغاء حجزه. حدّث القائمة لاسترجاع الأصل.',CANCELLATION_CONFLICT:'سُجل الإلغاء مسبقًا بسبب مختلف. حدّث القائمة لمراجعة السجل.',INVALID_CANCELLATION_REASON:'اكتب سبب إلغاء الحجز من ٦ إلى ٢٤٠ حرف.'};
+ function dispose(){closed=true;selection=[];for(const input of container.querySelectorAll('input'))input.value='';clearUrls();container.replaceChildren();}
  options.onDispose(dispose);
  function lock(value){busy=value;for(const control of container.querySelectorAll('button,input'))control.disabled=value;if(!value)upload.disabled=!allowed||!selection.length;}
  async function run(work){if(busy||closed)return;lock(true);try{check();await work();check();}catch(error){if(!closed){if([401,403].includes(error.status)||error.code==='42501'||error.message==='ACCESS_DENIED'){dispose();return;}try{check();message.textContent=errors[error.message]||(/^[\u0600-\u06ff]/.test(error.message||'')?error.message:'تعذر تأكيد العملية. حدّث المرفقات قبل المحاولة مجدداً.');}catch{dispose();}}}finally{if(!closed)lock(false);}}
@@ -19,9 +19,20 @@ export async function mountMaintenanceAttachments(container,options){
   const result=await api.list();check();allowed=result.can_upload;label.hidden=cameraLabel.hidden=upload.hidden=!allowed;clearUrls();list.replaceChildren();
   if(!result.attachments.length)list.append(node('p','لا توجد مرفقات محفوظة لهذا البلاغ.'));
   for(const doc of result.attachments){const row=node('div'),name=node('p',doc.filename),open=node('button','استرجاع المرفق');open.type='button';row.append(name,open);list.append(row);open.onclick=()=>run(async()=>{const saved=await api.download(doc.id);check();const url=URL.createObjectURL(saved.blob);urls.add(url);const link=node('a','فتح / تحميل الملف المحفوظ');link.href=url;link.download=saved.doc.filename;link.target='_blank';link.rel='noopener';open.replaceWith(link);message.textContent='تم استرجاع المرفق والتحقق من بصمته.';});}
-  if(result.pending_reservations.length){
-   const heading=node('h5','حجوزات رفع غير مكتملة');list.append(heading);
-   for(const doc of result.pending_reservations){const row=node('div'),name=node('p',doc.filename),cancel=node('button','إلغاء الحجز غير المكتمل');cancel.type='button';row.append(name,cancel);list.append(row);cancel.onclick=()=>run(async()=>{await api.cancel(doc.id);check();await load();message.textContent='تم إلغاء الحجز غير المكتمل وتحرير مساحة المرفقات، من دون حذف أي بيانات من التخزين.';});}
+  if(result.pending.length){
+   list.append(node('h5','حجوزاتك غير المكتملة'),node('p','استأنف بالملف الأصلي نفسه، أو ألغِ الحجز مع ذكر السبب لتحرير مكانه. يُحفظ سجل الإلغاء وأي ملف وصل إلى التخزين دون حذف.'));
+   for(const doc of result.pending){
+    const row=node('div');row.append(node('p',doc.filename));list.append(row);
+    if(!allowed){row.append(node('p','البلاغ مغلق؛ هذا الحجز محفوظ للقراءة فقط.'));continue;}
+    const resumeLabel=node('label','استئناف رفع '+doc.filename+' — اختر الملف الأصلي'),original=node('input'),reasonLabel=node('label','سبب إلغاء حجز '+doc.filename),reason=node('input'),cancel=node('button','إلغاء الحجز وتوثيق السبب');
+    original.type='file';original.accept=files.accept;reason.type='text';reason.maxLength=240;cancel.type='button';resumeLabel.append(original);reasonLabel.append(reason);row.append(resumeLabel,reasonLabel,cancel);
+    original.onchange=()=>run(async()=>{const file=original.files?.[0];if(!file)return;await api.resume(doc.id,file);check();original.value='';await load();message.textContent='اكتمل استئناف المرفق والتحقق من الملف المحفوظ.';});
+    cancel.onclick=()=>run(async()=>{const saved=await api.cancel(doc.id,reason.value);check();selection=[];files.value=camera.value='';await load();message.textContent='تم إلغاء الحجز وتوثيق السبب وإعادة قراءة السجل. لم يُحذف أي ملف. وقت الإلغاء: '+maintenanceCancellationAudit(saved).at;});
+   }
+  }
+  if(result.cancelled.length){
+   list.append(node('h5','سجل حجوزاتك الملغاة — أحدث ٥٠ حجزًا'));
+   for(const doc of result.cancelled){const audit=maintenanceCancellationAudit(doc);list.append(node('p',audit.incomplete?doc.filename+' — حجز قديم ملغى؛ السبب والفاعل غير مسجلين. الوقت: '+audit.at:doc.filename+' — السبب: '+audit.reason+' — الفاعل: '+audit.by+' — الوقت: '+audit.at));}
   }
   message.textContent=allowed?'المرفقات خاصة بهذا البلاغ ومتاحة للحسابات المخولة فقط.':'يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.';
  }

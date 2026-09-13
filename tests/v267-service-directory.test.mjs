@@ -57,3 +57,31 @@ test('five interface languages have searchable controls and the correct reading 
 test('Escape resets search without changing source state or opening an action',()=>{
  const f=fixture();try{f.search('لا توجد');const input=f.find('aq267-service-search');input.onkeydown({key:'Escape',preventDefault(){}});assert.equal(input.value,'');assert.equal(f.proxies().length,1);assert.equal(f.clicks(),0);}finally{f.cleanup();}
 });
+
+test('the document action opens the existing scanner once without expanding the services group',()=>{
+ const f=fixture();try{
+  f.source.dataset.aq267Label='scan_document';f.source.textContent='مسح مستند';f.view.refresh('user-workspace');
+  const shortcut=f.find('aq267-document-shortcut'),button=f.find('aq267-document-upload-action');
+  assert.equal(shortcut.hidden,false);assert.equal(shortcut.parentNode,f.root());assert.equal(f.proxies()[0].parentNode.parentNode.open,false);
+  button.click();assert.equal(f.clicks(),1);assert.equal(f.source.parentNode.tagName,'details','original handler and menu control remain intact');
+  for(const term of ['وثايق','مسح عقد','upload document','PDF','स्कैन','دستاویز','സ്കാൻ']){f.search(term);assert.equal(shortcut.hidden,false,term);assert.equal(f.proxies().length,1,term);}
+  f.search('رواتب');assert.equal(shortcut.hidden,true);
+ }finally{f.cleanup();}
+});
+test('a captured document action refuses hidden, disabled, revoked and signed-out sources',()=>{
+ const f=fixture();try{
+  f.source.dataset.aq267Label='scan_document';f.view.refresh('user-workspace');const button=f.find('aq267-document-upload-action');
+  f.source.hidden=true;button.click();assert.equal(f.clicks(),0);assert.equal(f.find('aq267-document-shortcut').hidden,true);
+  f.source.hidden=false;f.source.disabled=true;f.view.refresh('user-workspace');button.click();assert.equal(f.clicks(),0);
+  f.source.disabled=false;f.view.refresh(null);button.click();assert.equal(f.clicks(),0);assert.equal(f.find('aq267-document-shortcut').hidden,true);
+  f.view.refresh('user-workspace');f.deny();button.click();assert.equal(f.clicks(),0);assert.equal(f.find('aq267-document-shortcut').hidden,true);
+ }finally{f.cleanup();}
+});
+test('the document action and file guidance follow all five interface languages',()=>{
+ const f=fixture();try{
+  f.source.dataset.aq267Label='scan_document';
+  for(const [locale,word]of [['ar','رفع'],['en','Upload'],['hi','अपलोड'],['ur','اپ لوڈ'],['ml','അപ്‌ലോഡ്']]){
+   setLocale(locale,null);f.view.refresh('user-workspace');assert.ok(f.find('aq267-document-upload-action').textContent.includes(word),locale);assert.match(f.find('aq267-document-upload-hint').textContent,/PDF.*DOCX/);
+  }
+ }finally{f.cleanup();}
+});

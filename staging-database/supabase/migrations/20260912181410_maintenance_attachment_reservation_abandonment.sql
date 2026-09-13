@@ -1,25 +1,15 @@
--- Isolated V267 preview: allow an authenticated uploader or assigned maintenance
--- manager to archive an unuploaded reservation without deleting/replacing any
--- stored original. Abandoned reservations no longer consume the eight-file limit.
 alter table private.aqari_maintenance_attachments
  add column if not exists abandoned_at timestamptz,
  add column if not exists abandoned_by uuid,
  add column if not exists abandon_reason text;
 
+alter table private.aqari_maintenance_attachments drop constraint if exists aqari_maintenance_attachments_status_check;
 alter table private.aqari_maintenance_attachments
- drop constraint if exists aqari_maintenance_attachments_status_check;
-alter table private.aqari_maintenance_attachments
- add constraint aqari_maintenance_attachments_status_check
- check(status in('reserved','uploaded','abandoned'));
-
-alter table private.aqari_maintenance_attachments
- drop constraint if exists aqari_maintenance_attachments_abandonment_check;
+ add constraint aqari_maintenance_attachments_status_check check(status in('reserved','uploaded','abandoned'));
 alter table private.aqari_maintenance_attachments
  add constraint aqari_maintenance_attachments_abandonment_check check(
-  (status='abandoned' and abandoned_at is not null and abandoned_by is not null
-   and length(btrim(abandon_reason)) between 6 and 240)
-  or (status in('reserved','uploaded') and abandoned_at is null
-   and abandoned_by is null and abandon_reason is null)
+  (status='abandoned' and abandoned_at is not null and abandoned_by is not null and length(btrim(abandon_reason)) between 6 and 240)
+  or (status in('reserved','uploaded') and abandoned_at is null and abandoned_by is null and abandon_reason is null)
  );
 
 create or replace function private.aqari_maintenance_attachments(w uuid,r uuid,action text,d jsonb)

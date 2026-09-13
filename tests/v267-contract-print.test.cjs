@@ -40,6 +40,23 @@ test('two issued sets each include an identical contract and annex from one save
  assert.equal(sets.length,2);assert.equal(sets[0].replace('نسخة 1 من 2','نسخة N من 2'),sets[1].replace('نسخة 2 من 2','نسخة N من 2'));
  assert.doesNotMatch(file.html,/نسخة 1 من 1|<Tenant>/);assert.match(file.html,/Synthetic &lt;Tenant&gt;/);
 });
+test('contract copies retain original rent and keep collection discounts out of the contract and annex',async()=>{
+ for(const mode of ['draft','official'])for(const count of [1,2]){
+  const f=fixture();Object.assign(f.state.record,{rentalTermsVersion:1,deposit:250.375,advance:35.875,cleaningFee:7.625,freeMonthApproved:true,freeMonthPeriod:'2026-10',rentAdjustments:[{effectiveMonth:'2026-11',discount:20,rent:80.125,reason:'Saved collection-only adjustment'}]});
+  const before=clone(f.state.record),file=await f.api.prepareContractPrint(123,count,mode);
+  assert.equal(file.revision,7);assert.equal(f.state.reads,1);assert.deepEqual(f.state.record,before);
+  assert.equal((file.html.match(/الإيجار عند كتابة العقد:<\/b> <bdi dir="auto">100\.125<\/bdi>/g)||[]).length,count);
+  assert.equal((file.html.match(/الإيجار الأصلي \/ Original rent:<\/b> <bdi>100\.125<\/bdi>/g)||[]).length,count);
+  assert.doesNotMatch(file.html,/الخصم|Discount|Dated rent adjustments|90\.125|80\.125|Saved collection-only adjustment/);
+  for(const value of ['250.375','35.875','7.625','2026-10'])assert.ok(file.html.includes(value));
+ }
+});
+test('hiding calculated collection fields does not alter saved contractual clauses',async()=>{
+ const f=fixture();f.state.record.clauses=[{title:'بند محفوظ',text:'صياغة أصلية محفوظة عن الخصم لا يعيد العارض تحريرها <source>'}];
+ const before=clone(f.state.record),file=await f.api.prepareContractPrint(123,2);
+ assert.equal((file.html.match(/صياغة أصلية محفوظة عن الخصم لا يعيد العارض تحريرها &lt;source&gt;/g)||[]).length,2);
+ assert.deepEqual(f.state.record,before);assert.doesNotMatch(file.html,/<source>|الإيجار الحالي بعد الخصم|تعديلات الخصم المؤرخة/);
+});
 test('all supported server payload formats use the same printing gate',async()=>{
  for(const format of ['direct','envelope','snapshot']){const f=fixture();f.state.format=format;assert.equal((await f.api.prepareContractPrint('123')).contractId,'123');}
 });

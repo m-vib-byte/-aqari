@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const moduleSource=path=>fs.readFileSync(path,'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
-const source='const LEASE_EXPIRY_MESSAGES=(()=>{'+moduleSource('src/v267/components/lease-expiry-translations.js')+';return LEASE_EXPIRY_MESSAGES;})();\nconst SERVICE_LABEL_MESSAGES=(()=>{'+moduleSource('src/v267/components/service-label-translations.js')+';return SERVICE_LABEL_MESSAGES;})();\n'+'const EXIT_MESSAGES=(()=>{'+moduleSource('src/v267/components/exit-translations.js')+';return EXIT_MESSAGES;})();\n'+moduleSource('src/v267/components/deposit-translations.js')+'\n'+moduleSource('src/v267/components/partner-translations.js')+'\n'+moduleSource('src/v267/components/translations.js')+'\n'+moduleSource('src/v267/components/locale.js')+'\nconst node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};\n'+moduleSource('src/v267/components/ui-text.js')+'\n'+moduleSource('v267-tenant-portal.js').replace("import('./src/v267/components/maintenance-attachment-panel.js')",'Promise.resolve(maintenancePanelModule)');
+const source='const {createPasswordRecovery,createRecoveryTransport}=(()=>{'+moduleSource('src/v267/api/password-recovery.js')+';return {createPasswordRecovery,createRecoveryTransport};})();\nconst {mountPortalAccountRecovery,portalRecoveryCallback}=(()=>{'+moduleSource('src/v267/components/portal-account-recovery.js')+';return {mountPortalAccountRecovery,portalRecoveryCallback};})();\nconst LEASE_EXPIRY_MESSAGES=(()=>{'+moduleSource('src/v267/components/lease-expiry-translations.js')+';return LEASE_EXPIRY_MESSAGES;})();\nconst SERVICE_LABEL_MESSAGES=(()=>{'+moduleSource('src/v267/components/service-label-translations.js')+';return SERVICE_LABEL_MESSAGES;})();\n'+'const EXIT_MESSAGES=(()=>{'+moduleSource('src/v267/components/exit-translations.js')+';return EXIT_MESSAGES;})();\n'+moduleSource('src/v267/components/deposit-translations.js')+'\n'+moduleSource('src/v267/components/partner-translations.js')+'\n'+moduleSource('src/v267/components/translations.js')+'\n'+moduleSource('src/v267/components/locale.js')+'\nconst node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};\n'+moduleSource('src/v267/components/ui-text.js')+'\n'+moduleSource('v267-tenant-portal.js').replace("import('./src/v267/components/maintenance-attachment-panel.js')",'Promise.resolve(maintenancePanelModule)');
 const tick=()=>new Promise(r=>setTimeout(r,2));
 function fixture(){
  const elements=new Map(),events=new Map(),revoked=[],created=[],all=[],storage=new Map();
@@ -13,6 +13,7 @@ function fixture(){
   replaceChildren(...nodes){this.children=[];this.append(...nodes);}
   replaceWith(...nodes){if(this.parent){const i=this.parent.children.indexOf(this);this.parent.children.splice(i,1,...nodes);}}
   addEventListener(type,fn){this.events[type]=fn;}
+  setAttribute(name,value){this[name]=value;}
  }
  const $=id=>{if(!elements.has(id))elements.set(id,new Element(id));return elements.get(id);};
  for(const id of ['notice','content','auth','tenantName','tenantLeases','tenantPayments','tenantRequests','maintenanceLease','maintenanceForm','maintenanceDescription','maintenanceSave','tenantEmail','tenantPassword','tenantLogin','tenantSignup','tenantLogout','tenantLanguage'])$(id);
@@ -149,4 +150,12 @@ test('tenant opens only its saved maintenance request with exact account binding
 test('a retained old maintenance button cannot mount attachments after a different snapshot replaces it',async()=>{
  const f=fixture();await tick();f.payload.maintenance=[{id:'old-request',request_no:5,status:'received',description:'تسرب مياه للاختبار'}];await f.api.reload();const old=f.$('tenantRequests').children[0].children.at(-1);
  f.payload.maintenance=[];await f.api.reload();await old.onclick();assert.equal(f.state.attachmentOptions,undefined);assert.match(f.$('notice').textContent,/البلاغ غير متاح/);
+});
+
+test('opening account recovery clears tenant data and blocks reloads until returning to sign in',async()=>{
+ const f=fixture();await tick();f.$('tenantLanguage').value='en';f.$('tenantLanguage').events.change();const before=f.state.reads;
+ f.$('tenantForgotPassword').onclick();assert.equal(f.$('content').hidden,true);assert.equal(f.$('tenantName').textContent,'');assert.equal(f.$('auth').hidden,true);assert.equal(f.$('tenantRecovery').hidden,false);
+ assert.equal(f.$('tenantForgotPassword').textContent,'Forgot password');await f.api.reload();assert.equal(f.state.reads,before);
+ f.emit('SIGNED_OUT',null);await tick();assert.equal(f.$('auth').hidden,true);assert.equal(f.$('content').hidden,true);
+ await f.$('tenantRecovery').children.at(-1).onclick();assert.equal(f.$('tenantRecovery').hidden,true);assert.equal(f.$('auth').hidden,false);
 });

@@ -1,13 +1,18 @@
+import {mountPortalAccountRecovery,portalRecoveryCallback} from './src/v267/components/portal-account-recovery.js';
 import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/components/locale.js';
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 import {createPartnerSession} from './src/v267/api/partner-session.js';
+import {partnerDistributionView} from './src/v267/components/partner-distribution-view.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
 if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
-const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,storageKey:cfg.supabaseAuthStorageKey+'-partner'}});
+const recoveryCallback=portalRecoveryCallback(window.location);
+if(recoveryCallback)window.location.replace(recoveryCallback);
+let accountRecovery;
+const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-partner'}});
 let properties=[],operation=0,busy=false;
-function language(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب الشريك')+' | AQARI V267';$('partnerLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);}
-function controls(value){busy=value;for(const el of document.querySelectorAll('button,input,select'))el.disabled=el.id==='partnerLogout'||el.id==='partnerLanguage'?false:value;}
-function clear(){properties=[];$('partnerProperty').replaceChildren();$('partnerSummary').replaceChildren();$('partnerContent').hidden=true;$('partnerAuth').hidden=false;$('partnerPassword').value='';$('partnerLogout').hidden=true;}
+function language(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب الشريك')+' | AQARI V267';$('partnerLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);accountRecovery?.refresh();}
+function controls(value){busy=value;for(const el of document.querySelectorAll('button,input,select'))el.disabled=el.id==='partnerLogout'||el.id==='partnerLanguage'?false:value;accountRecovery?.refresh();}
+function clear(){properties=[];$('partnerProperty').replaceChildren();$('partnerSummary').replaceChildren();$('partnerContent').hidden=true;$('partnerAuth').hidden=Boolean(accountRecovery?.active);$('partnerPassword').value='';$('partnerLogout').hidden=true;}
 const session=createPartnerSession(client,()=>{operation++;clear();controls(false);bindLocale(null);language();notice('تغيرت الجلسة. سجّل الدخول أو حدّث البيانات.');});
 bindLocale(null);for(const [value,label]of Object.entries(LANGUAGES)){const o=document.createElement('option');o.value=value;o.textContent=label;$('partnerLanguage').append(o);}
 $('partnerLanguage').onchange=()=>{setLocale($('partnerLanguage').value);language();};language();
@@ -18,12 +23,17 @@ async function detail(ticket){
  $('partnerSummary').replaceChildren();const property=properties.find(p=>p.id===$('partnerProperty').value),month=$('partnerMonth').value;
  if(!property||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('INVALID_SELECTION');
  const data=await session.read({propertyId:property.id,workspaceId:property.workspace_id,month:month+'-01'});if(ticket!==operation)return;
+ let distributions=null;
+ try{distributions=await session.read({propertyId:property.id,workspaceId:property.workspace_id,month:month+'-01',kind:'distributions'});}
+ catch(error){if(error?.message!=='PARTNER_DISTRIBUTIONS_UNAVAILABLE')throw error;}
+ if(ticket!==operation)return;
  bindLocale({user:data.user_id,workspace:data.workspace_id});language();
  const heading=document.createElement('h2');heading.textContent=data.name;const list=document.createElement('dl');
  for(const [label,value]of [['عدد الوحدات',data.unit_count],['عقود مسودة',data.draft_leases],['عدد الوصول المسجلة',data.receipt_count],['المقبوضات المسجلة — د.ك',Number(data.recorded_receipts).toFixed(3)]]){const dd=document.createElement('dd');dd.textContent=String(value);list.append(uiText('dt',label),dd);}
- $('partnerSummary').append(heading,list);notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');
+ $('partnerSummary').append(heading,list,partnerDistributionView(distributions));notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');
 }
 async function load(ticket){
+ if(recoveryCallback||accountRecovery?.active)return;
  const selected=$('partnerProperty').value;clear();const data=await session.read();if(ticket!==operation)return;properties=data.properties;$('partnerLogout').hidden=false;
  if(!properties.length){notice('لا توجد عقارات مصرح بها لهذا الحساب. راجع الإدارة.');return;}
  for(const p of properties){const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('partnerProperty').append(o);}
@@ -37,6 +47,7 @@ $('partnerSignup').onclick=()=>{if(!$('partnerLogin').reportValidity()||busy)ret
 });};
 $('partnerProperty').onchange=()=>run(detail);$('partnerMonth').onchange=()=>run(detail);$('partnerRefresh').onclick=()=>run(load);
 $('partnerLogout').onclick=()=>{session.invalidate();$('partnerLogout').hidden=false;run(async ticket=>{const r=await bounded(client.auth.signOut({scope:'local'}));if(r.error)throw r.error;if(ticket===operation)notice('تم تسجيل الخروج.');});};
-window.addEventListener('pagehide',()=>session.invalidate());window.addEventListener('pageshow',event=>{if(event.persisted)run(load);});
+accountRecovery=mountPortalAccountRecovery({container:$('partnerRecovery'),button:$('partnerForgotPassword'),config:cfg,portal:'partner',location:window.location,createClient:window.supabase.createClient,fetcher:(...args)=>window.fetch(...args),getLocale,getEmail:()=>$('partnerEmail').value,onEnter(){const locale=getLocale();session.invalidate();setLocale(locale);language();$('partnerAuth').hidden=true;notice('');},async onExit({verified}){if(verified){const result=await bounded(client.auth.signOut({scope:'local'}));if(result.error)throw result.error;}},onClosed(){session.invalidate();}});
+window.addEventListener('pagehide',()=>{accountRecovery.close();session.invalidate();});window.addEventListener('pageshow',event=>{if(event.persisted)run(load);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)session.invalidate();else run(load);});
 window.AQARI_PARTNER_READY=true;run(load);
