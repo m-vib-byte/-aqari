@@ -32,7 +32,10 @@ test('lease-level rows show due paid remaining discount and overpayment',()=>{
   has(/row\.status/);
 });
 
-test('collection report remains available even when legacy source statement is absent',()=>{
-  has(/لا يوجد كشف مصدر محفوظ لهذا الشهر\. يمكنك عرض كشف التحصيل الفعلي من العقود والدفعات المحفوظة/);
-  has(/collection\.disabled=!select\.value/);
+test('operational reports remain available even when legacy source statement is absent',()=>{
+  has(/لا يوجد كشف مصدر محفوظ لهذا الشهر\./);
+  has(/يمكنك عرض كشف التحصيل الفعلي أو تقرير موظفي التحصيل/);
+  has(/collection\.disabled=invalid/);
+  has(/collector\.disabled=invalid/);
+  has(/from\('aqari_properties'\)/);
 });
