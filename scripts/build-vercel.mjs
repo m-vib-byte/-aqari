@@ -27,6 +27,7 @@ execFileSync(process.execPath,[
   'tests/v267-unit-handover-pdf-archive.test.mjs',
   'tests/v267-unit-handover-renderer-contract.test.mjs'
 ],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-unit-handover-hosted-contract.test.mjs'],{stdio:'inherit'});
 
 // Reconcile the security/release-policy support stack onto the unified Preview
 // without treating a build pass as release acceptance. These checks are pure or
@@ -48,12 +49,12 @@ execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{s
 // Vercel's function dependency collector may prepare binary wheels with a
 // different interpreter than the build-command Python. Install a throwaway,
 // interpreter-matched copy outside the deployment output, execute the real
-// ReportLab/Arabic renderer, then remove it. This is build-only and writes no
-// application or hosted data.
+// ReportLab/Arabic renderer and the hosted export/readback contract, then remove
+// it. This is build-only and writes no application or hosted data.
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-python-'));
 try{
   execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});
-  execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test'],{
+  execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test'],{
     stdio:'inherit',
     env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}
   });
