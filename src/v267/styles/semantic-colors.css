@@ -26,7 +26,14 @@
  }
 
  /* Any close/X control is intentionally red and visually consistent. */
- body.aq-v267 .aq267-dialog {position:relative}
+ /* Native modal positioning must not follow the underlying page scroll. */
+ body.aq-v267 .aq267-dialog {position:fixed!important;inset:0;margin:auto}
+ /* Only the form body scrolls: close and request feedback remain reachable. */
+ body.aq-v267 .aq267-dialog[open] {display:grid;grid-template-columns:minmax(0,1fr) 44px;grid-template-rows:auto auto minmax(0,1fr);gap:12px 16px;overflow:hidden}
+ body.aq-v267 .aq267-dialog>.aq267-dialog-title {grid-area:1/1/2/2;min-width:0;min-height:44px;margin:0;padding:0;border:0;align-self:center}
+ body.aq-v267 .aq267-dialog>p[role='status'] {grid-area:2/1/3/-1;min-width:0;margin:0;padding:10px 14px;border:1px solid #e9dfcc;border-radius:12px;background:#faf7ef;font-size:.9375rem;line-height:1.65;max-height:24dvh;overflow-y:auto}
+ body.aq-v267 .aq267-dialog>p[role='status']:empty {display:none}
+ body.aq-v267 .aq267-dialog>.aq267-dialog-body {grid-area:3/1/4/-1;min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding-block-start:12px;padding-inline-end:4px;border-top:1px solid #e9dfcc}
  body.aq-v267 :is(.aq267-close,button.close,button.close-btn,button.modal-close,button.dialog-close,button[aria-label='إغلاق'],button[aria-label='Close'],button[title='إغلاق'],button[title='Close'],button[data-action='close'],button[data-v199-action='close']) {
   width:44px!important;
   min-width:44px!important;
@@ -40,9 +47,9 @@
   box-shadow:none!important;
  }
  body.aq-v267 .aq267-close {
-  position:absolute;
-  inset-block-start:16px;
-  inset-inline-end:16px;
+  position:static;
+  grid-area:1/2/2/3;
+  align-self:start;
   z-index:2;
   margin:0!important;
   font-size:0!important;
@@ -75,7 +82,17 @@
   border-color:color-mix(in srgb,var(--aq-state) 28%,white)!important;
  }
 
+ body.aq-v267 .aq267-financial-filters:not([hidden]) {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:16px;margin-block:16px;border:1px solid #e9dfcc;border-radius:16px;background:#faf7ef}
+ body.aq-v267 .aq267-financial-filters>.aq267-field {min-width:0;margin:0}
+ body.aq-v267 .aq267-financial-filters>.aq267-field:first-child {grid-column:1/-1}
+ body.aq-v267 .aq267-financial-filters>button {grid-column:1/-1}
+ body.aq-v267 .aq267-financial-pager:not([hidden]) {display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:12px;margin-block:16px}
+ body.aq-v267 .aq267-financial-pager>span {text-align:center;font-size:.875rem}
  @media (max-width:600px) {
-  body.aq-v267 .aq267-close {inset-block-start:12px;inset-inline-end:12px}
+  body.aq-v267 .aq267-financial-filters:not([hidden]) {grid-template-columns:minmax(0,1fr);padding:12px}
+  body.aq-v267 .aq267-financial-pager:not([hidden]) {gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.aq-v267 .aq267-financial-pager>span {grid-column:1/-1;grid-row:1}
+  body.aq-v267 .aq267-dialog[open] {gap:10px 12px}
+  body.aq-v267 .aq267-dialog>p[role='status'] {padding:8px 10px}
  }
 }
