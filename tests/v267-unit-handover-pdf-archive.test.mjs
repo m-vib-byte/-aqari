@@ -13,17 +13,20 @@ function pdf(extra='AQARI handover'){
 }
 function storage(){
   const rows=new Map();
-  return {
+  const api={
     rows,
+    getCalls:0,
     async put(key,{bytes,contentType,metadata,ifNoneMatch}){
       if(ifNoneMatch==='*'&&rows.has(key))throw new Error('PRECONDITION_FAILED');
       rows.set(key,{bytes:new Uint8Array(bytes),contentType,metadata:{...metadata}});
     },
     async get(key){
+      api.getCalls+=1;
       const value=rows.get(key);
       return value?{bytes:new Uint8Array(value.bytes),contentType:value.contentType,metadata:{...value.metadata}}:null;
     }
   };
+  return api;
 }
 
 test('archives actual PDF bytes with immutable source identity and verified reopen',async()=>{
@@ -76,5 +79,6 @@ test('detects archive identity tampering before reading storage',async()=>{
   const target=storage();
   const archived=await archiveUnitHandoverPdf({bundle:bundle(),pdfBytes:pdf(),storage:target});
   const tampered={...archived,source:{...archived.source,unit_id:'unit-9'}};
-  await assert.rejects(()=>reopenUnitHandoverPdf({archive:tampered,storage:target}),/KEY_MISMATCH/);
+  await assert.rejects(()=>reopenUnitHandoverPdf({archive:tampered,storage:target}),/MANIFEST_MISMATCH/);
+  assert.equal(target.getCalls,0);
 });
