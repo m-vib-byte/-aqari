@@ -6,6 +6,10 @@ function runNode(args,label){
   const result=spawnSync(process.execPath,args,{stdio:'inherit'});
   if(result.status!==0)throw new Error(`${label} failed with exit ${result.status??'unknown'}`);
 }
+function runCommand(command,args,label){
+  const result=spawnSync(command,args,{stdio:'inherit'});
+  if(result.status!==0)throw new Error(`${label} failed with exit ${result.status??'unknown'}`);
+}
 
 // Vercel starts from a fresh source checkout. Prepare the production artifact
 // inside that build only; Git and every preview retain isolated configuration.
@@ -17,14 +21,15 @@ if(process.env.VERCEL_ENV==='production'){
 }
 
 // Keep audited finance guards, recent-MFA enforcement, permission-grant
-// reauthentication, and the fail-closed owner approval policy executable on the
-// exact hosted artifact. These are code/static contracts only; they do not
-// replace real-account, physical-device, backup/restore, rollback, 155/155, or
-// final owner acceptance gates.
+// reauthentication, accounting-provider payload maps, and the fail-closed owner
+// approval policy executable on the exact hosted artifact. These are code/static
+// contracts only; they do not replace real-account, physical-device,
+// backup/restore, rollback, 155/155, or final owner acceptance gates.
 runNode(['--check','src/v267/pages/operations-center.js'],'operations-center syntax check');
 runNode(['--test','tests/v267-petty-cash-close.test.cjs'],'petty-cash close contract test');
 runNode(['--test','tests/v267-petty-cash-invoice-guard.test.cjs'],'petty-cash invoice guard contract test');
 runNode(['--test','tests/v267-mfa-enforcement.test.cjs'],'recent MFA contract test');
 runNode(['--test','tests/v267-partner-access-mfa-guard.test.cjs'],'partner access MFA contract test');
 runNode(['--test','tests/v267-owner-production-approval.test.mjs'],'owner production approval policy test');
+runCommand('python3',['-m','unittest','tests.accounting_provider_maps_test'],'accounting provider journal map test');
 await import('./check.mjs');
