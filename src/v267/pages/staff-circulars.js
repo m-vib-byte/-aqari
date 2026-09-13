@@ -7,7 +7,7 @@ const sameContent=(a,b)=>a.title===b.title&&a.body===b.body&&sameTargets(a.recip
 const errors={INVALID_CIRCULAR_RECIPIENTS:'راجع الموظفين المحددين؛ يجب أن تكون حساباتهم فعالة في مساحة العمل.',REVISION_CONFLICT:'تغيرت النسخة. حدّث السجلات وافتح المسودة الأحدث.',PUBLISHED_CIRCULAR_IMMUTABLE:'النسخة المنشورة محفوظة. أنشئ مسودة جديدة للتعديل.',CIRCULAR_EXPIRED:'انتهى تاريخ العرض؛ عدّل المسودة قبل النشر.',ARCHIVE_REASON_REQUIRED:'أدخل سبب الأرشفة.',MFA_REQUIRED:'أكمل التحقق الثنائي قبل إجراء هذه العملية.'};
 
 export function mountStaffCirculars(d){
- let records=[],staff=[],manager=false,editing=null,draftId=null,pending=null;
+ let records=[],staff=[],manager=false,editing=null,draftId=null,pending=null,baseline='';
  const reload=node('button','تحديث التعاميم'),add=node('button','إعداد تعميم جديد'),list=node('div'),history=node('div'),editor=node('form');
  const title=node('input'),body=node('textarea'),expiry=node('input'),targets=node('fieldset'),save=node('button','حفظ المسودة والتحقق منها'),cancel=node('button','إغلاق المسودة');
  reload.type=add.type=cancel.type='button';save.type='submit';title.required=body.required=true;title.maxLength=200;body.maxLength=10000;body.rows=8;expiry.type='date';editor.hidden=add.hidden=true;
@@ -18,30 +18,51 @@ export function mountStaffCirculars(d){
   catch(e){if(errors[e?.message]){const translated=new Error(errors[e.message],{cause:e});translated.code=e.code;translated.status=e.status;throw translated;}throw e;}
  };
  function locked(){if(pending)throw Error('هناك عملية لم تتأكد نتيجتها. حدّث التعاميم أو أعد العملية نفسها أولًا.');}
- function targetChoices(selected=[]){targets.replaceChildren(node('legend','الموظفون المقصودون بالتعميم'));for(const p of staff){const box=node('input');box.type='checkbox';box.value=p.user_id;box.checked=selected.includes(p.user_id);targets.append(field(p.name||'موظف',box));}}
- function closeEditor(){editing=null;draftId=null;title.value=body.value=expiry.value='';targetChoices();editor.hidden=true;}
+ const selectedTargets=()=>[...targets.querySelectorAll('input')].filter(x=>x.checked).map(x=>x.value);
+ const snapshot=()=>JSON.stringify([title.value,body.value,expiry.value,selectedTargets().sort()]);
+ const dirty=()=>!editor.hidden&&snapshot()!==baseline;
+ function targetChoices(selected=[]){
+  targets.replaceChildren(node('legend','الموظفون المقصودون بالتعميم'));
+  for(const p of staff){const box=node('input');box.type='checkbox';box.value=p.user_id;box.checked=selected.includes(p.user_id);targets.append(field(p.name||'موظف',box));}
+  for(const id of selected.filter(id=>!staff.some(p=>p.user_id===id))){
+   const box=node('input'),remove=node('button','إزالة الموظف غير المتاح');box.type='checkbox';box.value=id;box.checked=box.disabled=true;remove.type='button';
+   remove.onclick=()=>{box.checked=false;targetChoices(selectedTargets());};
+   const group=field('موظف لم يعد متاحًا — أزله من المستلمين قبل الحفظ',box);group.append(remove);targets.append(group);
+  }
+ }
+ function closeEditor(){editing=null;draftId=null;baseline='';title.value=body.value=expiry.value='';targetChoices();editor.hidden=true;}
  function openEditor(record=null,copy=false){
-  locked();if(!manager)throw Error('إعداد التعاميم متاح للإدارة المخولة.');editing=copy?null:record;draftId=editing?.id||crypto.randomUUID();
+  locked();if(!manager)throw Error('إعداد التعاميم متاح للإدارة المخولة.');if(dirty())throw Error('احفظ المسودة الحالية أو أغلقها قبل فتح تعميم آخر.');editing=copy?null:record;draftId=editing?.id||crypto.randomUUID();
   title.value=record?.title||'';body.value=record?.body||'';expiry.value=record?.expires_at?new Date(new Date(record.expires_at).getTime()+10800000).toISOString().slice(0,10):'';
-  targetChoices(record?.recipient_ids||[]);editor.hidden=false;history.replaceChildren();title.focus?.();
+  targetChoices(record?.recipient_ids||[]);editor.hidden=false;baseline=snapshot();history.replaceChildren();title.focus?.();
  }
  function verified(op){
   const r=records.find(x=>x.id===op.data.id);if(!r)return false;
   if(op.action==='ack')return r.revision===op.data.revision&&!!r.acknowledged_at;
   if(r.revision!==op.data.revision+1||r.status!==({save:'draft',publish:'published',archive:'archived'}[op.action]))return false;
-  return sameContent(r,op.content);
+  return sameContent(r,op.content)&&(op.action!=='publish'||Boolean(r.published_at)&&r.published_revision===r.revision);
  }
- function confirmPending(){
+ async function confirmPending(){
   if(!pending)return;
   if(!verified(pending))throw Error('لم تتأكد مطابقة العملية المحفوظة. حدّث التعاميم أو أعد العملية نفسها؛ لن تُنشأ عملية بديلة.');
-  const action=pending.action;pending=null;if(action!=='ack')closeEditor();
+  const operation=pending,action=operation.action,record=records.find(x=>x.id===operation.data.id);
+  if(action==='archive'){
+   const audit=await rpc('history',{id:record.id}),version=audit?.versions?.find(v=>v.circular_id===record.id&&v.revision===record.revision&&v.action==='archive');
+   if(version?.reason!==operation.data.reason||version.after_snapshot?.id!==record.id||version.after_snapshot?.status!=='archived'||version.after_snapshot?.revision!==record.revision||!sameContent(version.after_snapshot,operation.content))throw Error('لم تتأكد مطابقة سبب الأرشفة وسجلها. حدّث التعاميم للتحقق من العملية السابقة.');
+  }
+  pending=null;
+  if(action==='save'){
+   if(snapshot()===operation.draftSnapshot)closeEditor();
+   else{editing=record;draftId=record.id;baseline=operation.draftSnapshot;d.status.textContent='تم التحقق من الحفظ السابق. احتُفظ بتعديلاتك الجديدة؛ احفظ المسودة عندما تنتهي.';return;}
+  }else if(action!=='ack'&&editing?.id===record.id&&!dirty())closeEditor();
   d.status.textContent=({save:'تم حفظ المسودة والتحقق منها بإعادة القراءة.',publish:'تم نشر النسخة المحفوظة للموظفين المحددين والتحقق منها.',archive:'تمت الأرشفة مع بقاء النص وسجل الاطلاع.',ack:'تم تسجيل إقرار اطلاعك والتحقق منه بإعادة القراءة.'})[action];
  }
  async function mutate(action,data,content){
   if(pending&&(pending.action!==action||pending.data.id!==data.id))locked();
-  pending||={action,data:structuredClone(data),content:content?structuredClone(content):null};
+  if(!pending&&['publish','archive'].includes(action)&&dirty())throw Error('احفظ تعديلات المسودة أو أغلقها قبل النشر أو الأرشفة.');
+  pending||={action,data:structuredClone(data),content:content?structuredClone(content):null,draftSnapshot:snapshot()};
   try{await rpc(pending.action,pending.data);}catch(e){if(['23514','22023','22P02','40001','23505'].includes(e?.code))pending=null;throw e;}
-  await load();confirmPending();
+  await load();await confirmPending();
  }
  function render(){
   list.replaceChildren();if(!records.length)list.append(node('p','لا توجد تعاميم متاحة لك.'));
@@ -60,6 +81,7 @@ export function mountStaffCirculars(d){
      form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{const why=reason.value.trim();if(why.length<3||why.length>500)throw Error('أدخل سبب الأرشفة من ٣ إلى ٥٠٠ حرف.');await mutate('archive',{id:r.id,revision:r.revision,reason:why},r);});};card.append(form);
     }
     const audit=node('button','النسخ وسجل اطلاع الموظفين');audit.type='button';audit.onclick=()=>d.run(async()=>{
+     history.replaceChildren();
      const result=await rpc('history',{id:r.id});if(!Array.isArray(result?.versions)||!Array.isArray(result?.recipients))throw Error('تعذر قراءة سجل التعميم.');
      history.replaceChildren(node('h3','سجل: '+r.title));
      for(const v of result.versions){const section=node('details'),snapshot=v.after_snapshot||{};section.append(node('summary','النسخة '+v.revision+' • '+when(v.recorded_at)),node('p','بواسطة: '+v.actor_name),node('p',v.reason||''),node('h4',snapshot.title));const original=node('p',snapshot.body);original.style.whiteSpace='pre-wrap';section.append(original);history.append(section);}
@@ -72,19 +94,20 @@ export function mountStaffCirculars(d){
   }
  }
  async function load(){
+  records=[];list.replaceChildren();history.replaceChildren();
   const result=await rpc('list');if(!Array.isArray(result?.notices)||!Array.isArray(result?.staff)||typeof result.manager!=='boolean')throw Error('تعذر قراءة التعاميم المحفوظة.');
-  records=result.notices;staff=result.staff;manager=result.manager;add.hidden=!manager;if(!manager)closeEditor();render();d.status.textContent='تم استرجاع التعاميم المحفوظة.';
+  records=result.notices;staff=result.staff;manager=result.manager;add.hidden=!manager;if(!manager)closeEditor();else if(!editor.hidden)targetChoices(selectedTargets());render();d.status.textContent='تم استرجاع التعاميم المحفوظة.';
  }
- reload.onclick=()=>d.run(async()=>{await load();confirmPending();});add.onclick=()=>d.run(async()=>openEditor());cancel.onclick=()=>d.run(async()=>{locked();closeEditor();});
+ reload.onclick=()=>d.run(async()=>{await load();await confirmPending();});add.onclick=()=>d.run(async()=>openEditor());cancel.onclick=()=>d.run(async()=>{locked();closeEditor();});
  editor.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
   if(!manager)throw Error('إعداد التعاميم متاح للإدارة المخولة.');
   if(pending){if(pending.action!=='save')locked();await mutate('save',pending.data,pending.content);return;}
-  const ids=[...targets.querySelectorAll('input')].filter(x=>x.checked).map(x=>x.value);
+  const ids=selectedTargets();
   if(!draftId||!title.value.trim()||!body.value.trim()||ids.length===0||ids.some(id=>!staff.some(x=>x.user_id===id)))throw Error('أكمل العنوان والنص وحدد الموظفين المقصودين.');
   const data={id:draftId,revision:editing?.revision||0,title:title.value.trim(),body:body.value.trim(),recipient_ids:ids,expires_at:expiry.value?new Date(expiry.value+'T23:59:59+03:00').toISOString():null};
   await mutate('save',data,data);
  });};
- d.onDispose(()=>{records=[];staff=[];editing=null;pending=null;draftId=null;title.value=body.value=expiry.value='';targets.replaceChildren();list.replaceChildren();history.replaceChildren();});
+ d.onDispose(()=>{records=[];staff=[];editing=null;pending=null;draftId=null;baseline='';title.value=body.value=expiry.value='';targets.replaceChildren();list.replaceChildren();history.replaceChildren();});
  return {load};
 }
 
