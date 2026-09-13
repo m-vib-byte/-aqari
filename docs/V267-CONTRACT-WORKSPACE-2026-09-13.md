@@ -21,6 +21,9 @@ parent `735e9ad02f842f67d1f5059c11ecd503c0251a58` (draft PR 116).
   the existing authoritative approval check. Draft review remains available.
   The long contract text is collapsed under a labeled review section, keeping
   the print actions visible above it.
+- Pins the contract dialog to the viewport after browser inspection exposed
+  the legacy absolute positioning moving the dialog partly above the screen
+  when the underlying page was scrolled. Other dialog styles are unchanged.
 - Keeps the existing scanner, verified original upload, state transitions,
   immutable history and linked tenant/property/unit workflow. Describes the paper
   signing path and labels electronic signing as awaiting integration. No electronic

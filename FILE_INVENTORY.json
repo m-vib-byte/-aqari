@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "b8fa18e3466cfa7a0134c323adeeb149d002eaccd9676a969133e21890c51f68",
+      "sha256": "cabd2082c183a3f64a47f47a5eefb58f1e344b9853458b3f3a938af51aa621ae",
       "size": 590213
     },
     {
@@ -1267,8 +1267,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "fbdadcadc00fdf3df5cf6f6d4d2b960210afa8ed53af96489def8247216dcab7",
-      "size": 17994
+      "sha256": "aef3047b63c25146bb0af4bce32e82073807d3c6f74227c2ab4873aa28bc511e",
+      "size": 18037
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3287,8 +3287,8 @@
     },
     {
       "path": "src/v267/styles/contract-workspace.css",
-      "sha256": "219db2455f13e22b0339f8dacf02be8c5b6baa85cce3dc96bfb381604cb7310a",
-      "size": 3147
+      "sha256": "882521787cd159e342819f1b450a9a111a7026440c5a1c1926b5e5e141793f05",
+      "size": 3229
     },
     {
       "path": "tests/v267-contract-workspace.test.mjs",
@@ -3302,8 +3302,8 @@
     },
     {
       "path": "docs/V267-CONTRACT-WORKSPACE-2026-09-13.md",
-      "sha256": "f2269d7abc19dba38c92adadb8a0ab04117b88b1c0043b79e1d71b2a33d20f2b",
-      "size": 4237
+      "sha256": "995312dd5fbfe6337347669b38250f05528fbb52fda5cdbdaae521205f233b7f",
+      "size": 4465
     }
   ],
   "version": "V198"

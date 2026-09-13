@@ -28,6 +28,7 @@ export function openContractPrint(id,count=1,mode='official'){
 export function openRentalContracts(initial={}){
  if(!document.getElementById('aq267-contract-workspace-css')){const css=node('link');css.id='aq267-contract-workspace-css';css.rel='stylesheet';css.href='/src/v267/styles/contract-workspace.css?release=V267';document.head.append(css);}
  const d=createDialog('إبرام عقود الإيجار / Rental contracts');if(!d)return;
+ d.el.className+=' aq267-contract-dialog';
  const view=mountRentalContracts(d,initial);d.run(view.start);
 }
 export function mountRentalContracts(d,initial={}){

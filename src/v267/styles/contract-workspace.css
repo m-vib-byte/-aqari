@@ -1,3 +1,4 @@
+.aq267-dialog.aq267-contract-dialog{position:fixed!important;inset:0;margin:auto}
 .aq267-contract-workspace,.aq267-contract-journey{color:#342d23;line-height:1.7;overflow-wrap:anywhere}
 .aq267-contract-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 20px}
 .aq267-contract-overview>div{border:1px solid #e3d6ba;border-radius:14px;padding:14px;background:#fffdf8;min-width:0}
