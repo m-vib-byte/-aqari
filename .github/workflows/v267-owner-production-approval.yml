@@ -59,12 +59,14 @@ jobs:
       V267_OWNER_PRODUCTION_APPROVAL_DECISION: ${{ inputs.approval_decision }}
       V267_OWNER_FINAL_TEST_COMPLETED_AT: ${{ inputs.final_test_completed_at }}
       V267_OWNER_PRODUCTION_APPROVAL_AT: ${{ inputs.owner_approved_at }}
+      V267_OWNER_APPROVAL_ACTOR: ${{ github.actor }}
+      V267_REPOSITORY_OWNER: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Validate exact candidate and approval ordering
+      - name: Validate exact candidate, owner identity, and approval ordering
         run: node scripts/v267-owner-production-approval.mjs --candidate-sha '${{ inputs.candidate_sha }}'
       - name: Confirm this workflow cannot deploy or merge
         run: |
