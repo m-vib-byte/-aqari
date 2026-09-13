@@ -16,12 +16,13 @@ if(process.env.VERCEL_ENV==='production'){
   console.log('Prepared V267 production configuration for the preserved domain data source.');
 }
 
-// Keep audited finance guards and recent-MFA enforcement executable on the
-// exact hosted artifact. These checks are code/static contracts only; they do
-// not replace real-account, physical-device, backup/restore, rollback, or final
-// owner acceptance gates.
+// Keep audited finance guards, recent-MFA enforcement and permission-grant
+// reauthentication executable on the exact hosted artifact. These checks are
+// code/static contracts only; they do not replace real-account, physical-device,
+// backup/restore, rollback, or final owner acceptance gates.
 runNode(['--check','src/v267/pages/operations-center.js'],'operations-center syntax check');
 runNode(['--test','tests/v267-petty-cash-close.test.cjs'],'petty-cash close contract test');
 runNode(['--test','tests/v267-petty-cash-invoice-guard.test.cjs'],'petty-cash invoice guard contract test');
 runNode(['--test','tests/v267-mfa-enforcement.test.cjs'],'recent MFA contract test');
+runNode(['--test','tests/v267-partner-access-mfa-guard.test.cjs'],'partner access MFA contract test');
 await import('./check.mjs');
