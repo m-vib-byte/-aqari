@@ -1,4 +1,6 @@
+import base64
 import copy
+import hashlib
 import unittest
 
 from lib.unit_handover_pdf import (
@@ -6,7 +8,22 @@ from lib.unit_handover_pdf import (
     render_unit_handover_pdf,
     unit_handover_snapshot_sha256,
     verified_unit_handover_bundle,
+    verified_unit_handover_evidence,
 )
+
+PNG_BYTES = base64.b64decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII='
+)
+
+
+def attachment(document_id, role, raw=PNG_BYTES, mime_type='image/png'):
+    return {
+        'id': document_id,
+        'role': role,
+        'checksum_sha256': hashlib.sha256(raw).hexdigest(),
+        'size_bytes': len(raw),
+        'mime_type': mime_type,
+    }
 
 
 def fixture():
@@ -33,11 +50,16 @@ def fixture():
             {'item': 'المياه', 'result': 'ملاحظة', 'note': 'تسريب بسيط'},
         ],
         'attachments': [
-            {'id': 'photo-1', 'role': 'PHOTO_1', 'checksum_sha256': '1' * 64, 'size_bytes': 101, 'mime_type': 'image/jpeg'},
-            {'id': 'tenant-signature', 'role': 'TENANT_SIGNATURE', 'checksum_sha256': '2' * 64, 'size_bytes': 102, 'mime_type': 'image/png'},
-            {'id': 'inspector-signature', 'role': 'INSPECTOR_SIGNATURE', 'checksum_sha256': '3' * 64, 'size_bytes': 103, 'mime_type': 'application/pdf'},
+            attachment('photo-1', 'PHOTO_1'),
+            attachment('tenant-signature', 'TENANT_SIGNATURE'),
+            attachment('inspector-signature', 'INSPECTOR_SIGNATURE'),
         ],
     }
+
+
+def evidence_bytes(value=None):
+    value = value or fixture()
+    return {row['id']: PNG_BYTES for row in value['attachments']}
 
 
 class UnitHandoverPdfTest(unittest.TestCase):
@@ -75,11 +97,38 @@ class UnitHandoverPdfTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'IDENTITY_CONFLICT'):
             verified_unit_handover_bundle(value)
 
+    def test_evidence_bytes_are_required_and_reverified(self):
+        value = fixture()
+        with self.assertRaisesRegex(ValueError, 'EVIDENCE_BYTES_REQUIRED'):
+            verified_unit_handover_evidence(value, None)
+
+        missing = evidence_bytes(value)
+        missing.pop('photo-1')
+        with self.assertRaisesRegex(ValueError, 'EVIDENCE_BYTES_REQUIRED'):
+            verified_unit_handover_evidence(value, missing)
+
+        wrong_size = evidence_bytes(value)
+        wrong_size['photo-1'] = PNG_BYTES + b'x'
+        with self.assertRaisesRegex(ValueError, 'EVIDENCE_SIZE_MISMATCH'):
+            verified_unit_handover_evidence(value, wrong_size)
+
+        wrong_sha = evidence_bytes(value)
+        wrong_sha['photo-1'] = bytes([PNG_BYTES[0] ^ 1]) + PNG_BYTES[1:]
+        with self.assertRaisesRegex(ValueError, 'EVIDENCE_SHA256_MISMATCH'):
+            verified_unit_handover_evidence(value, wrong_sha)
+
+        mime_mismatch = fixture()
+        mime_mismatch['attachments'][0]['mime_type'] = 'image/jpeg'
+        with self.assertRaisesRegex(ValueError, 'EVIDENCE_MIME_MISMATCH'):
+            verified_unit_handover_evidence(mime_mismatch, evidence_bytes(mime_mismatch))
+
     @unittest.skipUnless(FONT_PATH.exists(), 'repository font fixture is required')
-    def test_verified_handover_renders_real_pdf_bytes(self):
-        data = render_unit_handover_pdf(fixture())
+    def test_verified_handover_renders_real_pdf_with_visual_evidence(self):
+        value = fixture()
+        data = render_unit_handover_pdf(value, evidence_bytes(value))
         self.assertTrue(data.startswith(b'%PDF-'))
         self.assertGreater(len(data), 1000)
+        self.assertIn(b'/Subtype /Image', data)
 
 
 if __name__ == '__main__':

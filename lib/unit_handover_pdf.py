@@ -5,6 +5,7 @@ import json
 import re
 
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -13,6 +14,7 @@ from lib.official_document_pdf import FONT, FONT_PATH, shaped, issued_date
 
 SHA256 = re.compile(r"^[a-f0-9]{64}$")
 ALLOWED_MIME = re.compile(r"^(?:image/[a-z0-9.+-]+|application/pdf)$")
+VISUAL_IMAGE_MIME = {"image/png", "image/jpeg", "image/jpg"}
 
 
 def _text(value, code):
@@ -117,8 +119,51 @@ def unit_handover_snapshot_sha256(bundle):
     return hashlib.sha256(canonical).hexdigest()
 
 
-def render_unit_handover_pdf(bundle):
+def _evidence_bytes(attachment_bytes, attachment):
+    if not isinstance(attachment_bytes, dict):
+        raise ValueError("UNIT_HANDOVER_PDF_EVIDENCE_BYTES_REQUIRED")
+    raw = attachment_bytes.get(attachment["id"])
+    if isinstance(raw, memoryview):
+        raw = raw.tobytes()
+    elif isinstance(raw, bytearray):
+        raw = bytes(raw)
+    if not isinstance(raw, bytes) or not raw:
+        raise ValueError(f"UNIT_HANDOVER_PDF_EVIDENCE_BYTES_REQUIRED:{attachment['id']}")
+    if len(raw) != attachment["size_bytes"]:
+        raise ValueError(f"UNIT_HANDOVER_PDF_EVIDENCE_SIZE_MISMATCH:{attachment['id']}")
+    if hashlib.sha256(raw).hexdigest() != attachment["checksum_sha256"]:
+        raise ValueError(f"UNIT_HANDOVER_PDF_EVIDENCE_SHA256_MISMATCH:{attachment['id']}")
+    mime = attachment["mime_type"]
+    if mime == "application/pdf":
+        if not raw.startswith(b"%PDF-"):
+            raise ValueError(f"UNIT_HANDOVER_PDF_EVIDENCE_MIME_MISMATCH:{attachment['id']}")
+    elif mime in VISUAL_IMAGE_MIME:
+        if mime == "image/png" and not raw.startswith(b"\x89PNG\r\n\x1a\n"):
+            raise ValueError(f"UNIT_HANDOVER_PDF_EVIDENCE_MIME_MISMATCH:{attachment['id']}")
+        if mime in {"image/jpeg", "image/jpg"} and not raw.startswith(b"\xff\xd8"):
+            raise ValueError(f"UNIT_HANDOVER_PDF_EVIDENCE_MIME_MISMATCH:{attachment['id']}")
+    else:
+        raise ValueError(f"UNIT_HANDOVER_PDF_IMAGE_MIME_UNSUPPORTED:{attachment['id']}")
+    return raw
+
+
+def verified_unit_handover_evidence(bundle, attachment_bytes):
     value = verified_unit_handover_bundle(bundle)
+    evidence = {}
+    for attachment in value["attachments"]:
+        raw = _evidence_bytes(attachment_bytes, attachment)
+        if attachment["mime_type"].startswith("image/"):
+            try:
+                image = ImageReader(BytesIO(raw))
+                image.getSize()
+            except Exception as exc:
+                raise ValueError(f"UNIT_HANDOVER_PDF_IMAGE_INVALID:{attachment['id']}") from exc
+        evidence[attachment["id"]] = raw
+    return value, evidence
+
+
+def render_unit_handover_pdf(bundle, attachment_bytes):
+    value, evidence = verified_unit_handover_evidence(bundle, attachment_bytes)
     snapshot_hash = unit_handover_snapshot_sha256(value)
     if FONT not in pdfmetrics.getRegisteredFontNames():
         if not FONT_PATH.exists():
@@ -146,10 +191,13 @@ def render_unit_handover_pdf(bundle):
         pdf.showPage()
         y = height - 52
 
+    def ensure_space(required):
+        if y - required < 70:
+            new_page()
+
     def emit(text, size=10, gap=17):
         nonlocal y
-        if y < 70:
-            new_page()
+        ensure_space(gap)
         pdf.setFont(FONT, size)
         pdf.drawRightString(right, y, shaped(text))
         y -= gap
@@ -171,6 +219,32 @@ def render_unit_handover_pdf(bundle):
                 current += char
         if current:
             emit(current, size, gap)
+
+    def image_evidence(attachment):
+        nonlocal y
+        raw = evidence[attachment["id"]]
+        if not attachment["mime_type"].startswith("image/"):
+            line("المرفق PDF محفوظ ومتحقق من البايتات والبصمة؛ لا يتم تحويله إلى صورة داخل هذا الإصدار.", 8, 14)
+            return
+        image = ImageReader(BytesIO(raw))
+        image_width, image_height = image.getSize()
+        max_width = width - margin * 2
+        max_height = 170 if attachment["role"].startswith("PHOTO_") else 90
+        scale = min(max_width / image_width, max_height / image_height, 1.0)
+        draw_width = max(1, image_width * scale)
+        draw_height = max(1, image_height * scale)
+        ensure_space(draw_height + 18)
+        pdf.drawImage(
+            image,
+            right - draw_width,
+            y - draw_height,
+            width=draw_width,
+            height=draw_height,
+            preserveAspectRatio=True,
+            anchor="n",
+            mask="auto",
+        )
+        y -= draw_height + 12
 
     line("AQARI V267", 16, 24)
     line(value["title"], 20, 30)
@@ -200,10 +274,11 @@ def render_unit_handover_pdf(bundle):
         line(f"الدور: {attachment['role']} • الملف: {attachment['id']}", 9, 15)
         line(f"النوع: {attachment['mime_type']} • الحجم: {attachment['size_bytes']} بايت", 8, 14)
         line(f"SHA-256: {attachment['checksum_sha256']}", 7, 13)
+        image_evidence(attachment)
 
     y -= 10
     line(f"بصمة محضر التسليم: {snapshot_hash}", 8, 14)
-    line("هذا المحضر أُنشئ من فحص خروج محفوظ وموقّع، وتُثبت بصمات المرفقات هويتها عند الأرشفة وإعادة الفتح.", 9, 16)
+    line("هذا المحضر أُنشئ من فحص خروج محفوظ وموقّع، وتحققت بايتات كل مرفق من الحجم وSHA-256 قبل تضمين الصور المرئية في PDF.", 9, 16)
     footer()
     pdf.save()
     data = stream.getvalue()
