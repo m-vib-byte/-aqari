@@ -31,6 +31,11 @@ execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{s
 // and database migration evidence remain separate release-gate requirements.
 execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs'],{stdio:'inherit'});
 
+// Sensitive business rows are cancellation/reversal-only. The exact Preview build
+// must fail if the database source stops rejecting direct DELETE for any protected
+// contract, payment, document, expense or official-document series.
+execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
