@@ -35,6 +35,14 @@ execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs'],{
 execFileSync(process.execPath,['--test','tests/v267-partner-access-mfa-guard.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-integration-public-metadata-guard.test.mjs'],{stdio:'inherit'});
+
+// Reconciled latest concurrent PR #116 staff-circular recovery must execute in
+// the exact Preview build as well. Verify the inventoried runtime sources first,
+// then exercise dirty-draft preservation, interrupted-response reconciliation,
+// archive-history verification and recipient refresh behavior.
+execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
+
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
 
 // Vercel's function dependency collector may prepare binary wheels with a
