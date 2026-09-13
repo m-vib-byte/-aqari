@@ -989,8 +989,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "6e796ed39123b1df74bff3e6d705daac2ab792c37e82ead97d0f61f0c60ead8d",
-      "bytes": 25387,
+      "sha256": "d5ca13117c6fd584d53b53c0595f446394a29d20fc00ba9800c1f60a9996875e",
+      "bytes": 26964,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
