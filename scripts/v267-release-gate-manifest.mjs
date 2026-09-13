@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+export const OWNER_GOVERNANCE_POLICY_ID = 'owner-governance-2026-09-13-kuwait';
 export const REQUIRED_DEVICE_FLOWS = [
   'login',
   'session',
@@ -22,6 +23,10 @@ function evidencePresent(value) {
 
 function requireTrue(errors, value, message) {
   if (value !== true) errors.push(message);
+}
+
+function requireFalse(errors, value, message) {
+  if (value !== false) errors.push(message);
 }
 
 function requireSameSha(errors, value, candidateSha, label) {
@@ -46,6 +51,35 @@ function validateDevice(errors, device, candidateSha, label, { physical = false 
   if (!evidencePresent(value.evidence)) errors.push(`${label} acceptance evidence is required`);
 }
 
+function validateOwnerGovernance(errors, governance, candidateSha) {
+  const value = governance && typeof governance === 'object' ? governance : {};
+  if (value.policyId !== OWNER_GOVERNANCE_POLICY_ID) {
+    errors.push(`owner governance policyId must be exactly ${OWNER_GOVERNANCE_POLICY_ID}`);
+  }
+  requireSameSha(errors, value.candidateSha, candidateSha, 'owner governance');
+  requireFalse(
+    errors,
+    value.automaticProductionAuthorization,
+    'automatic Production authorization must be explicitly revoked',
+  );
+  requireFalse(
+    errors,
+    value.previewApprovalCountsAsProductionApproval,
+    'Preview/design/luxury approval must not count as Production approval',
+  );
+  requireTrue(
+    errors,
+    value.finalOwnerPracticalTestRequired,
+    'final owner practical testing must remain required',
+  );
+  requireTrue(
+    errors,
+    value.laterExactShaProductionApprovalRequired,
+    'later explicit owner Production approval for the exact candidate SHA must remain required',
+  );
+  if (!evidencePresent(value.evidence)) errors.push('owner governance supersession evidence is required');
+}
+
 export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha = '') {
   const errors = [];
   const candidateSha = normalizedSha(expectedCandidateSha);
@@ -60,6 +94,8 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
   if (manifest.schemaVersion !== 1) errors.push('release gate manifest schemaVersion must be 1');
   requireSameSha(errors, manifest.candidateSha, candidateSha, 'release gate manifest');
   if (manifest.status !== 'accepted') errors.push('release gate manifest status must be exactly accepted');
+
+  validateOwnerGovernance(errors, manifest.ownerGovernance, candidateSha);
 
   const requirements = manifest.requirements155 || {};
   requireTrue(errors, requirements.accepted, 'all 155 requirements must be explicitly accepted');
