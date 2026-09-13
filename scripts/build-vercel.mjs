@@ -41,6 +41,11 @@ execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.
 // backed RPC is rejected.
 execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.test.mjs'],{stdio:'inherit'});
 
+// Monthly property collection statements use the persisted due schedule as the
+// denominator, cap the percentage numerator at due and expose discounts,
+// remaining balance and overpayment separately in the user-facing report.
+execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.test.mjs','tests/v267-monthly-collection-ui.test.mjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
