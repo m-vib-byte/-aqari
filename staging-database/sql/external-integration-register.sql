@@ -1,17 +1,63 @@
 -- AQARI V267 provider-neutral integration control plane.
 -- No credentials are stored here. secret_reference points to managed server-side secret storage.
 begin;
+
+create or replace function private.aqari_integration_public_metadata_safe(p_value jsonb)
+returns boolean
+language plpgsql immutable strict
+set search_path=''
+as $$
+declare
+  stack jsonb[] := array[p_value];
+  current_value jsonb;
+  child_value jsonb;
+  key_name text;
+  normalized_key text;
+  last_index integer;
+  visited integer := 0;
+begin
+  if pg_catalog.jsonb_typeof(p_value) <> 'object' then return false; end if;
+  while coalesce(pg_catalog.array_length(stack,1),0) > 0 loop
+    last_index := pg_catalog.array_upper(stack,1);
+    current_value := stack[last_index];
+    if last_index = 1 then stack := '{}'::jsonb[]; else stack := stack[1:last_index-1]; end if;
+    visited := visited + 1;
+    if visited > 4096 then return false; end if;
+    if pg_catalog.jsonb_typeof(current_value) = 'object' then
+      for key_name,child_value in select key,value from pg_catalog.jsonb_each(current_value) loop
+        normalized_key := pg_catalog.regexp_replace(pg_catalog.lower(key_name),'[_[:space:]-]','','g');
+        if normalized_key = any(array['password','secret','token','apikey','civilid','accesstoken','refreshtoken','authorization','servicerolekey']) then return false; end if;
+        if pg_catalog.jsonb_typeof(child_value) in ('object','array') then
+          if coalesce(pg_catalog.array_length(stack,1),0) >= 4096 then return false; end if;
+          stack := pg_catalog.array_append(stack,child_value);
+        end if;
+      end loop;
+    elsif pg_catalog.jsonb_typeof(current_value) = 'array' then
+      for child_value in select value from pg_catalog.jsonb_array_elements(current_value) loop
+        if pg_catalog.jsonb_typeof(child_value) in ('object','array') then
+          if coalesce(pg_catalog.array_length(stack,1),0) >= 4096 then return false; end if;
+          stack := pg_catalog.array_append(stack,child_value);
+        end if;
+      end loop;
+    end if;
+  end loop;
+  return true;
+end $$;
+revoke all on function private.aqari_integration_public_metadata_safe(jsonb) from public,anon,authenticated;
+
 create table private.aqari_integration_configs(
  id uuid primary key, workspace_id uuid not null references public.aqari_workspaces(id),
  provider text not null check(provider in ('knet','email','whatsapp','sms','push','quickbooks','zoho_books','xero','generic_webhook')),
  purpose text not null, mode text not null default 'disabled' check(mode in ('disabled','sandbox','live')),
- endpoint_origin text, secret_reference text, public_metadata jsonb not null default '{}',
+ endpoint_origin text, secret_reference text,
+ public_metadata jsonb not null default '{}' constraint aqari_integration_public_metadata_safe_check check(
+  pg_catalog.jsonb_typeof(public_metadata)='object' and private.aqari_integration_public_metadata_safe(public_metadata)
+ ),
  revision integer not null default 1, created_by uuid not null, updated_by uuid not null,
  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
  unique(workspace_id,id), unique(workspace_id,provider,purpose),
  check(endpoint_origin is null or endpoint_origin ~ '^https://[A-Za-z0-9.-]+(?::[0-9]+)?$'),
- check(secret_reference is null or secret_reference ~ '^[A-Za-z0-9_./:-]{3,200}$'),
- check(not(public_metadata ?| array['password','secret','token','api_key','civil_id','civilId']))
+ check(secret_reference is null or secret_reference ~ '^[A-Za-z0-9_./:-]{3,200}$')
 );
 create table private.aqari_webhook_receipts(
  id uuid primary key, workspace_id uuid not null references public.aqari_workspaces(id),
@@ -41,6 +87,7 @@ begin
  perform private.aqari_require_sensitive_aal2(w);
  if p_action='save' then
   ident:=(d->>'id')::uuid;expected:=coalesce((d->>'revision')::integer,0);
+  if pg_catalog.jsonb_typeof(coalesce(d->'public_metadata','{}'::jsonb))<>'object' or not private.aqari_integration_public_metadata_safe(coalesce(d->'public_metadata','{}'::jsonb)) then raise exception 'PUBLIC_METADATA_SECRET_FORBIDDEN' using errcode='23514';end if;
   if d->>'mode'='live' and nullif(d->>'secret_reference','') is null then raise exception 'LIVE_SECRET_REFERENCE_REQUIRED' using errcode='23514';end if;
   if coalesce(d->>'endpoint_origin','')<>'' and d->>'endpoint_origin'!~'^https://[A-Za-z0-9.-]+(?::[0-9]+)?$' then raise exception 'HTTPS_ORIGIN_REQUIRED' using errcode='23514';end if;
   select * into row from private.aqari_integration_configs where workspace_id=w and id=ident for update;

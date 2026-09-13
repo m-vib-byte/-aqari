@@ -4,8 +4,6 @@ import {tmpdir} from 'node:os';
 import {join,delimiter} from 'node:path';
 import {productionPatch} from './prepare-v267-production.mjs';
 
-// Vercel starts from a fresh source checkout. Prepare the production artifact
-// inside that build only; Git and every preview retain isolated configuration.
 if(process.env.VERCEL_ENV==='production'){
   const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
   const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);
@@ -13,24 +11,22 @@ if(process.env.VERCEL_ENV==='production'){
   console.log('Prepared V267 production configuration for the preserved domain data source.');
 }
 
-// Candidate-local support reconciliation: verify the unchanged inventoried
-// runtime, syntax-check reconciled overlays, then execute their focused suites
-// in this exact Preview build. These are build safeguards only; they do not
-// establish hosted, physical-device or Production acceptance.
+// Candidate-local operational recovery from the latest PR #75-based support line.
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'],{stdio:'inherit'});
 
-// Owner governance dated 13 Sep 2026 is fail-closed and must travel with the
-// exact Preview candidate. Passing this policy suite does not approve Production;
-// it only proves the candidate refuses older automatic-authorization semantics.
+// Owner governance dated 13 Sep 2026 remains fail-closed.
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 
-// The current PR #75 candidate already carries the Preview/Staging handover archive
-// migration. Keep the runtime/export side fail-closed on the same Preview artifact:
-// signed source bundle, immutable PDF archive contract, hosted API boundary, evidence
-// byte verification and Storage-object anti-reuse must all pass before packaging.
+// Security/integration reconciliation: recent MFA, partner grants, nested-secret
+// protection and provider-neutral accounting journal maps. Passing these is code
+// evidence only and does not constitute hosted/provider or Production acceptance.
+execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs'],{stdio:'inherit'});
+execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
+
+// Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
   'tests/v267-unit-handover-bundle.test.mjs',
@@ -39,9 +35,6 @@ execFileSync(process.execPath,[
   'tests/v267-unit-handover-hosted-contract.test.mjs'
 ],{stdio:'inherit'});
 
-// Vercel may prepare function wheels under a different interpreter than the build
-// command. Install a throwaway interpreter-matched dependency set outside the
-// deployment output, run the real Arabic renderer/export tests, then delete it.
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
 try{
   execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});
