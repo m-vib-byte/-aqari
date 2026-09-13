@@ -1,0 +1,27 @@
+name: V267 contract template drafts
+
+on:
+  pull_request:
+    paths:
+      - 'src/v267/domain/contract-template-drafts.js'
+      - 'src/v267/pages/contract-template-drafts.js'
+      - 'src/v267/components/contract-workspace.js'
+      - 'staging-database/supabase/migrations/20260913095018_v267_contract_template_drafts.sql'
+      - 'tests/contract-template-drafts.test.mjs'
+      - '.github/workflows/v267-contract-template-drafts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  template-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Contract template draft tests
+        run: node --test tests/contract-template-drafts.test.mjs
