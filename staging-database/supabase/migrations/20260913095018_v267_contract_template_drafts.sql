@@ -1,4 +1,5 @@
 -- Additive, isolated draft wording. Never used by the official issuing path.
+-- Applied to the verified v267-isolated-test branch (ofgmcsmxmdswlovsckqs).
 create table public.aqari_contract_template_drafts (
  id uuid primary key,
  workspace_id uuid not null references public.aqari_workspaces(id),
