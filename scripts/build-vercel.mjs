@@ -46,6 +46,11 @@ execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.te
 // remaining balance and overpayment separately in the user-facing report.
 execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.test.mjs','tests/v267-monthly-collection-ui.test.mjs'],{stdio:'inherit'});
 
+// Core business writes, approvals and permission mutations must leave immutable
+// server-side metadata with actor, operation, changed field names and before/after
+// hashes without duplicating raw sensitive row contents.
+execFileSync(process.execPath,['--test','tests/v267-server-mutation-audit.test.mjs'],{stdio:'inherit'});
+
 // Signed unit-handover runtime and archive boundary.
 execFileSync(process.execPath,[
   '--test',
