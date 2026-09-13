@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "00b3aff8793fe909da36f085eb9a2d1b8b4918e9440dbbcda6e7c96c31ec31ed",
+      "sha256": "d9953c2872202d1a745216456dbb05a0f182e30a70b9fcfe6ea6a445ee5cbf71",
       "size": 590214
     },
     {
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "53b9de3d5a9c97858ce8d291db27f4124cbaa0ad19f1c381c23435a24ea4b7ab",
-      "size": 15671
+      "sha256": "277b6ffa8715ca75e756af9d95007be3e368f0cc2173c2a8dee8ea379f306881",
+      "size": 15684
     },
     {
       "path": "src/v267/components/service-label-translations.js",
@@ -3307,8 +3307,8 @@
     },
     {
       "path": "docs/V267-SERVICE-DIRECTORY-POLISH-2026-09-13.md",
-      "sha256": "becda748f67946cb4c2fa362c6a773e2076da445b7807e2523baaed45387812e",
-      "size": 2727
+      "sha256": "fcd01b25f1760a84e41e9ec2df67d208b6801180e1f29d8c4c9ef4e74d5c99e6",
+      "size": 3955
     },
     {
       "path": "src/v267/styles/semantic-colors.css",

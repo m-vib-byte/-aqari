@@ -524,8 +524,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "53b9de3d5a9c97858ce8d291db27f4124cbaa0ad19f1c381c23435a24ea4b7ab",
-      "bytes": 15671,
+      "sha256": "277b6ffa8715ca75e756af9d95007be3e368f0cc2173c2a8dee8ea379f306881",
+      "bytes": 15684,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

@@ -48,3 +48,25 @@ to zero. No hosted records were created or modified during this inspection.
 Publishing remains restricted to the existing support branch and Preview.
 Full 155-requirement acceptance, device checks and Production promotion remain
 subject to the existing release gates; no readiness status is upgraded here.
+
+## Authenticated Preview verification
+
+Implementation `96b9663ac9a42e0959a04a3cd712ef1309b52f2e` deployed READY as
+`dpl_EAaqz4nADp2op9TNLM41u2NkqvR6`. On the stable support-branch alias, the
+signed-in UI displayed 32 service entries in six initially collapsed sections.
+Opening/collapsing all six worked. Searching for meters opened its single
+matching section; an unmatched search showed the empty state, and clearing
+search restored all six collapsed cards. The desktop viewport had no horizontal
+overflow. Screenshots of the new workspace, utility dialog and KPI dialog were
+visually reviewed.
+
+Both dialogs used fixed positioning with bounds 12–924 in a 936-pixel-high
+viewport; the close control remained visible at opening. KPI readback reported
+successful loading of saved indicators and counters. The utility page truthfully
+reported no confirmed meters for the selected property. No test records were
+created or modified. Physical phones/tablets and internal-dialog scrolling are
+not claimed as verified by these checks.
+
+A final wording refinement places translated labels before numeric totals,
+avoiding awkward singular/plural phrasing on one-result searches. It changes
+no service behavior or permission checks.
