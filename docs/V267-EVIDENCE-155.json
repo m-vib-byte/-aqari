@@ -2652,8 +2652,8 @@
     },
     {
       "path": "src/v267/pages/staff-circulars.js",
-      "sha256": "b574fe00adecba51e6344fa7dc7c530262fd76b9da18b5e4314ffd69c57c9797",
-      "bytes": 11357,
+      "sha256": "7962f4ca5e7ef7eaebe211f5761f2b3aec7539849bf3ce743a5fbe94ec8133e4",
+      "bytes": 13723,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -2689,8 +2689,8 @@
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
-      "sha256": "4895be15b10c74e3b214b7e165792f14eb2212dc1a6dc991cc524197a4628247",
-      "bytes": 8116,
+      "sha256": "733077f6fc12a1f843186d2246d0c26afa5751af0841b3890db12a155b0c65ca",
+      "bytes": 12118,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

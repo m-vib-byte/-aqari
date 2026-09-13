@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "1ffa510b548c3d796cc301eb8642b00d3713d3c612c310994a679b0ad843446c",
-      "size": 590216
+      "sha256": "37affefea40533b733b01ac5812050e27256ac2bfb5ada0045a8ef56869b962d",
+      "size": 590217
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -917,8 +917,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "c47b20fbf02d8a26fd2a82839af35f0da9c51a926a61e1ac0e643b5ef28ab80d",
-      "size": 2010
+      "sha256": "8a9fe1013c952befe6c77c12bef0c93f668df1aab1d0088b0309c4935a23d384",
+      "size": 2046
     },
     {
       "path": "secure-auth-bridge.js",
@@ -1282,8 +1282,8 @@
     },
     {
       "path": "src/v267/pages/staff-circulars.js",
-      "sha256": "b574fe00adecba51e6344fa7dc7c530262fd76b9da18b5e4314ffd69c57c9797",
-      "size": 11357
+      "sha256": "7962f4ca5e7ef7eaebe211f5761f2b3aec7539849bf3ce743a5fbe94ec8133e4",
+      "size": 13723
     },
     {
       "path": "src/v267/pages/unit-readiness.js",
@@ -2982,8 +2982,8 @@
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
-      "sha256": "4895be15b10c74e3b214b7e165792f14eb2212dc1a6dc991cc524197a4628247",
-      "size": 8116
+      "sha256": "733077f6fc12a1f843186d2246d0c26afa5751af0841b3890db12a155b0c65ca",
+      "size": 12118
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -3319,6 +3319,11 @@
       "path": "docs/V267-DIALOG-NOTICE-RECOVERY-2026-09-13.md",
       "sha256": "6e920342441c329641fc299720ab5cca656c24be960e97c5b07e3a73f3084a32",
       "size": 3471
+    },
+    {
+      "path": "docs/V267-STAFF-CIRCULAR-RECOVERY-2026-09-13.md",
+      "sha256": "2a36fd6fe9938ca1ba227107cd8376153c6cd7d7d6b9caba626f77314bfc3d1e",
+      "size": 2980
     }
   ],
   "version": "V198"
