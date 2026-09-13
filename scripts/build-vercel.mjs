@@ -12,10 +12,12 @@ if(process.env.VERCEL_ENV==='production'){
 }
 
 // Candidate-local support reconciliation: verify the unchanged inventoried
-// runtime, syntax-check the two reconciled overlays, then execute their focused
-// recovery/search suites in the exact Preview build. This is build evidence only
-// and does not establish hosted, physical-device or Production acceptance.
+// runtime, syntax-check reconciled overlays, then execute their focused suites
+// in this exact Preview build. These are build safeguards only; they do not
+// establish hosted, physical-device or Production acceptance.
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'],{stdio:'inherit'});
 
 await import('./check.mjs');
