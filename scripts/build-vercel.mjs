@@ -16,9 +16,11 @@ if(process.env.VERCEL_ENV==='production'){
   console.log('Prepared V267 production configuration for the preserved domain data source.');
 }
 
-// Keep the audited petty-cash close path executable on the exact hosted artifact.
-// These checks are code/static contracts only; they do not replace real-account,
-// physical-device, backup/restore, rollback, or owner acceptance gates.
+// Keep the audited petty-cash close and pre-spend invoice guards executable on
+// the exact hosted artifact. These checks are code/static contracts only; they
+// do not replace real-account, physical-device, backup/restore, rollback, or
+// final owner acceptance gates.
 runNode(['--check','src/v267/pages/operations-center.js'],'operations-center syntax check');
 runNode(['--test','tests/v267-petty-cash-close.test.cjs'],'petty-cash close contract test');
+runNode(['--test','tests/v267-petty-cash-invoice-guard.test.cjs'],'petty-cash invoice guard contract test');
 await import('./check.mjs');
