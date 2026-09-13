@@ -51,7 +51,9 @@ export async function openDesk(mode='maintenance'){
     card.append(node('p',message('العقار: {property} • الوحدة: {unit}',{property:location.property_name,unit:location.unit_no})),node('p','نوع العطل: '+(maintenanceCategories[row.category_code]||'غير معروف')));
     if(executor?.work_order_id){
      card.append(node('p','الجهة المنفذة: '+executor.vendor_name+' • أمر الشغل: '+executor.order_no+' • الحالة: '+(names[executor.work_order_status]||executor.work_order_status)));
-     if(executor.approved_amount!==null&&executor.approved_amount!==undefined)card.append(node('p','المبلغ المعتمد لأمر الشغل: '+Number(executor.approved_amount).toFixed(3)+' د.ك'+(executor.invoice_amount!==null&&executor.invoice_amount!==undefined?' • الفاتورة: '+Number(executor.invoice_amount).toFixed(3)+' د.ك':'')));
+     if(executor.approved_amount!==null&&executor.approved_amount!==undefined)card.append(node('p','المبلغ المعتمد لأمر الشغل: '+Number(executor.approved_amount).toFixed(3)+' د.ك'));
+     if(executor.invoice_id)card.append(node('p','فاتورة المورد: '+executor.invoice_id+' • المبلغ: '+Number(executor.invoice_amount).toFixed(3)+' د.ك • المصروف المالي: '+(executor.expense_linked?'مرتبط ومسجل':'غير مرتبط')));
+     else card.append(node('p','الفاتورة والمصروف المالي: لم يسجلا بعد.'));
     }else card.append(node('p','الجهة المنفذة: لم تُسند بعد.'));
    }else card.append(node('p',message('العقد {contract} • {property} • الوحدة {unit}',{contract:row.lease?.contract_no||'',property:row.lease?.snapshot?.property||'',unit:row.lease?.snapshot?.unit||''})));
    if(mode==='notifications'){
