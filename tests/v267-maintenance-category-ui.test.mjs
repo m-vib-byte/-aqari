@@ -31,6 +31,12 @@ test('existing maintenance rows remain visibly distinguishable from newly classi
 test('database source rejects unclassified new requests while preserving legacy rows',()=>{
  assert.match(sql,/update public\.aqari_maintenance_requests set category_code='legacy_unclassified'/);
  assert.match(sql,/MAINTENANCE_CATEGORY_REQUIRED/);
- assert.match(sql,/before insert on public\.aqari_maintenance_requests/);
+ assert.match(sql,/before insert or update of category_code on public\.aqari_maintenance_requests/);
+ assert.match(sql,/tg_op='INSERT'/);
+});
+
+test('classified requests cannot be downgraded to the legacy sentinel',()=>{
+ assert.match(sql,/old\.category_code is distinct from new\.category_code/);
  assert.match(sql,/new\.category_code='legacy_unclassified'/);
+ assert.match(sql,/Ordinary status\/cost edits on untouched legacy rows/);
 });
