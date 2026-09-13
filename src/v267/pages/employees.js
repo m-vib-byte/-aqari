@@ -3,6 +3,7 @@ import {createPrivateUrls} from '../components/private-urls.js';
 import {createVerifiedUpload} from '../components/verified-upload.js';
 import {PROFILE_FIELDS,ADDITIONS,DEDUCTIONS,PERMISSIONS,STATES,METHODS,money,netPay,kuwaitTime,currentMonth,voucherHTML,validateDocument} from '../domain/payroll.js';
 const statusLabels={active:'نشط / Active',leave:'في إجازة / On leave',inactive:'غير نشط / Inactive'};
+const employeeSearchKey=value=>String(value??'').normalize('NFKC').toLowerCase().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[\u064b-\u065f\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/\s+/g,' ').trim();
 function input(type='text',value=''){const x=node('input');x.type=type;x.value=value??'';return x;}
 function select(options,value){const x=node('select');for(const [v,label]of Object.entries(options)){const o=node('option',label);o.value=v;x.append(o);}if(value!==undefined)x.value=value;return x;}
 export function openEmployees(){
@@ -19,7 +20,16 @@ export function openEmployees(){
   d.body.append(button('تحديث من قاعدة البيانات / Refresh',home),button('إضافة موظف / Add employee',async()=>editEmployee(null)));
   if(directory.manager)d.body.append(button('صلاحيات حسابات الموظفين / Account permissions',access));
   const search=input('search'),list=node('div');d.body.append(field('البحث بالاسم أو الهاتف / Search',search),list);
-  function draw(){list.replaceChildren();const q=search.value.trim().toLowerCase();for(const e of directory.employees.filter(e=>[e.profile.name_ar,e.profile.name_en,e.profile.phone].some(v=>v.toLowerCase().includes(q)))){const card=node('article');card.append(node('h4',e.profile.name_ar+' / '+e.profile.name_en),node('p',e.profile.job_ar+' · '+statusLabels[e.status]),button('فتح ملف '+e.profile.name_ar,()=>showEmployee(e.id)));list.append(card);}if(!list.children.length)list.append(node('p','لا توجد ملفات موظفين مطابقة ضمن صلاحيتك.'));}search.oninput=draw;draw();d.status.textContent='تمت قراءة دليل الموظفين من قاعدة البيانات.';
+  function draw(){
+   if(d.closed)return;list.replaceChildren();const q=employeeSearchKey(search.value),phoneQuery=/^[+\d\s().-]+$/.test(q)?q.replace(/\D/g,''):'';
+   for(const e of directory.employees){
+    const p=e.profile||{},phone=employeeSearchKey(p.phone);
+    if(![p.name_ar,p.name_en,p.phone].some(v=>employeeSearchKey(v).includes(q))&&!(phoneQuery&&phone.replace(/\D/g,'').includes(phoneQuery)))continue;
+    const name=[p.name_ar,p.name_en].filter(Boolean).join(' / ')||'ملف موظف / Employee record',card=node('article');
+    card.append(node('h4',name),node('p',(p.job_ar||p.job_en||'الوظيفة غير مسجلة / Job not recorded')+' · '+(statusLabels[e.status]||'الحالة غير مسجلة / Status not recorded')),button('فتح ملف '+(p.name_ar||p.name_en||'الموظف'),()=>showEmployee(e.id)));list.append(card);
+   }
+   if(!list.children.length)list.append(node('p','لا توجد ملفات موظفين مطابقة ضمن صلاحيتك.'));
+  }search.oninput=draw;draw();d.status.textContent='تمت قراءة دليل الموظفين من قاعدة البيانات.';
  }
  async function editEmployee(record){const e=record?.employee,id=e?.id||crypto.randomUUID();clear(e?'تعديل بيانات الموظف / Edit employee':'موظف جديد / New employee');d.body.append(button('الرجوع للدليل / Back',home));const form=node('form'),g=grid(),controls={};
   for(const [key,label]of PROFILE_FIELDS){const c=input(key==='phone'?'tel':'text',e?.profile[key]);c.required=true;c.maxLength=200;controls[key]=c;g.append(field(label,c));}
@@ -72,5 +82,5 @@ export function openEmployees(){
   if(p.state==='issued'&&r.permissions.edit)d.body.append(button('إثبات صرف الراتب بعد التوقيع والاعتماد / Record paid salary',async()=>{await rpc('paid',{employee_id:id,payroll_id:p.id,revision:p.revision});await showPayroll(id,p.id);d.status.textContent='حُفظ الصرف وخصم قسط السلفة مرة واحدة من رصيدها.';}));if(p.paid_at)d.body.append(node('p','تاريخ إثبات الصرف / Paid: '+kuwaitTime(p.paid_at)));d.status.textContent='تمت إعادة قراءة الراتب المحفوظ.';
  }
  async function access(){const data=await rpc('access');clear('صلاحيات حسابات الموظفين / Account permissions');d.body.append(button('الرجوع للدليل / Back',home),node('p','الصلاحيات تخص الحسابات النشطة. تُطبق أيضاً قيود القسم والدور من مركز تحكم المدير. الوصول لملف مرتبط بعدة عقارات يتطلب التصريح بجميع عقاراته. الاعتمادان يحتاجان حسابين مختلفين.'));const f=node('form'),user=select(Object.fromEntries(data.members.map(m=>[m.user_id,m.name+' · '+m.role]))),props=propertyChoices(),checks={};for(const [key,label]of Object.entries(PERMISSIONS)){checks[key]=input('checkbox');f.append(field(label,checks[key]));}const save=node('button','حفظ الصلاحيات / Save permissions');f.prepend(field('الحساب / Account',user),props.el);f.append(save);d.body.append(f);audit(data.audit||[]);let revision=0;function fill(){const grant=data.grants.find(g=>g.user_id===user.value);revision=grant?.revision||0;for(const [key,c]of Object.entries(checks))c.checked=grant?.permissions[key]===true;for(const c of props.el.querySelectorAll('input'))c.checked=grant?.property_ids.includes(c.value)||false;}user.onchange=fill;fill();d.status.textContent='اختر الحساب والعقارات وحدد صلاحياته.';f.onsubmit=event=>{event.preventDefault();const payload={user_id:user.value,property_ids:props.values(),permissions:Object.fromEntries(Object.entries(checks).map(([k,c])=>[k,c.checked])),revision};d.run(async()=>{await rpc('grant',payload);await access();d.status.textContent='حُفظت الصلاحيات مع سجل التعديل. إلغاء العرض يمنع الوصول فوراً.';});};}
- d.run(home);
+ d.onDispose(()=>{directory={employees:[],properties:[]};d.body.replaceChildren();});d.run(home);
 }
