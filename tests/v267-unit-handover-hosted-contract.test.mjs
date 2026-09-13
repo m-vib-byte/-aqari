@@ -45,3 +45,13 @@ test('trusted archive configuration is server-only and pinned to the preview tar
   assert.doesNotMatch(api,/request_data\[["'](?:service|secret|token|key)/i);
   assert.match(api,/class NoRedirect\(HTTPRedirectHandler\)/);
 });
+
+test('evidence storage paths are structural and one object cannot satisfy multiple roles',()=>{
+  assert.match(api,/def verified_evidence_storage\(row, seen_storage\):/);
+  assert.match(api,/bucket != "aqari-documents"/);
+  assert.match(api,/piece in \("\.", "\.\."\)/);
+  assert.match(api,/UNIT_HANDOVER_EVIDENCE_STORAGE_REUSED/);
+  assert.match(api,/seen_storage = set\(\)/);
+  assert.match(api,/verified_evidence_storage\(row, seen_storage\)/);
+  assert.doesNotMatch(api,/inspection_id\]\)\[:0\]/);
+});
