@@ -4,7 +4,10 @@ import {
   REQUIRED_DECISION,
   validateOwnerProductionApproval,
 } from '../scripts/v267-owner-production-approval.mjs';
-import { validateReleaseGateManifest } from '../scripts/v267-release-gate-manifest.mjs';
+import {
+  OWNER_GOVERNANCE_POLICY_ID,
+  validateReleaseGateManifest,
+} from '../scripts/v267-release-gate-manifest.mjs';
 
 const SHA = '861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA = '13a219e7930db89ebf2f9b44d30007499efa6ccf';
@@ -33,6 +36,15 @@ function fullGateManifest() {
     schemaVersion: 1,
     candidateSha: SHA,
     status: 'accepted',
+    ownerGovernance: {
+      policyId: OWNER_GOVERNANCE_POLICY_ID,
+      candidateSha: SHA,
+      automaticProductionAuthorization: false,
+      previewApprovalCountsAsProductionApproval: false,
+      finalOwnerPracticalTestRequired: true,
+      laterExactShaProductionApprovalRequired: true,
+      evidence: ['docs/V267-OWNER-GOVERNANCE-2026-09-13.json'],
+    },
     requirements155: {
       accepted: true,
       acceptedCount: 155,
@@ -126,9 +138,30 @@ test('release gate validator fails closed across every owner-mandated technical 
   }
 });
 
+test('release gate validator rejects superseded automatic-production authorization semantics', () => {
+  const mutations = [
+    (m) => { delete m.ownerGovernance; },
+    (m) => { m.ownerGovernance.policyId = 'owner-governance-2026-09-12'; },
+    (m) => { m.ownerGovernance.candidateSha = OTHER_SHA; },
+    (m) => { m.ownerGovernance.automaticProductionAuthorization = true; },
+    (m) => { m.ownerGovernance.previewApprovalCountsAsProductionApproval = true; },
+    (m) => { m.ownerGovernance.finalOwnerPracticalTestRequired = false; },
+    (m) => { m.ownerGovernance.laterExactShaProductionApprovalRequired = false; },
+    (m) => { m.ownerGovernance.evidence = []; },
+  ];
+
+  for (const mutate of mutations) {
+    const manifest = fullGateManifest();
+    mutate(manifest);
+    const result = validateReleaseGateManifest(manifest, SHA);
+    assert.equal(result.ok, false, JSON.stringify(result.errors));
+  }
+});
+
 test('release gate validator rejects evidence attached to any different candidate SHA', () => {
   for (const patch of [
     (m) => { m.candidateSha = OTHER_SHA; },
+    (m) => { m.ownerGovernance.candidateSha = OTHER_SHA; },
     (m) => { m.ci.commitSha = OTHER_SHA; },
     (m) => { m.hostedPreview.commitSha = OTHER_SHA; },
     (m) => { m.devices.iphone.commitSha = OTHER_SHA; },
@@ -144,6 +177,7 @@ test('release gate validator rejects evidence attached to any different candidat
 
 test('release gate validator requires concrete evidence references, not boolean assertions alone', () => {
   const manifest = fullGateManifest();
+  manifest.ownerGovernance.evidence = [];
   manifest.requirements155.evidence = [];
   manifest.ci.evidence = [];
   manifest.hostedPreview.evidence = [];
@@ -154,7 +188,7 @@ test('release gate validator requires concrete evidence references, not boolean 
   manifest.productionConfig.evidence = [];
   const result = validateReleaseGateManifest(manifest, SHA);
   assert.equal(result.ok, false);
-  assert.ok(result.errors.length >= 8);
+  assert.ok(result.errors.length >= 9);
 });
 
 test('rejects design or preview approval as production approval', () => {

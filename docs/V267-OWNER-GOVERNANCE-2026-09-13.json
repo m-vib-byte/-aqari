@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "policyId": "owner-governance-2026-09-13-kuwait",
+  "effectiveDate": "2026-09-13",
+  "timezone": "Asia/Kuwait",
+  "automaticProductionAuthorization": false,
+  "previewApprovalCountsAsProductionApproval": false,
+  "finalOwnerPracticalTestRequired": true,
+  "laterExactShaProductionApprovalRequired": true,
+  "productionActionsBlockedUntilLaterApproval": [
+    "merge-to-main",
+    "production-deploy",
+    "myaqari.com-change"
+  ],
+  "historicalV266MustRemainUntouched": true,
+  "notes": "Supersedes earlier automatic-production authorization language. Preview, design, luxury, READY build, simulated tests, or technical gate completion do not authorize Production. After every technical gate passes on one unchanged candidate SHA, the owner must complete the final practical test and then later explicitly approve that exact SHA for Production."
+}

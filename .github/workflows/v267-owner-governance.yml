@@ -1,0 +1,25 @@
+name: V267 owner governance supersession
+
+on:
+  pull_request:
+    paths:
+      - 'docs/V267-OWNER-GOVERNANCE-2026-09-13.json'
+      - 'scripts/v267-owner-production-approval.mjs'
+      - 'scripts/v267-release-gate-manifest.mjs'
+      - 'tests/v267-owner-production-approval.test.mjs'
+      - '.github/workflows/v267-owner-governance.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  policy-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify 13 Sep owner governance supersedes automatic Production authorization
+        run: node --test tests/v267-owner-production-approval.test.mjs
