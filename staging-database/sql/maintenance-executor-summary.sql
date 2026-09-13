@@ -1,4 +1,4 @@
--- AQARI V267 Preview/Staging only. G08-04 executor visibility for maintenance desk.
+-- AQARI V267 Preview/Staging only. G08-03/G08-04 maintenance executor and expense visibility.
 begin;
 create or replace function public.aqari_maintenance_executor_summary(
  p_workspace_id uuid,
@@ -39,7 +39,9 @@ begin
    'approved_at',o.approved_at,
    'completed_at',o.completed_at,
    'approved_amount',o.approved_amount,
-   'invoice_amount',o.invoice_amount
+   'invoice_id',o.invoice_id,
+   'invoice_amount',o.invoice_amount,
+   'expense_linked',(o.expense_key is not null)
   ) order by r.request_no),'[]'::jsonb)
   from public.aqari_maintenance_requests r
   join public.aqari_leases l on l.workspace_id=r.workspace_id and l.id=r.lease_id
