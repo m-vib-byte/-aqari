@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "2a8bfc37a7174372177e8132df8cf5fce8644021c25005b5b63038e1087cf8a6",
-      "size": 7207
+      "sha256": "eca4716628a552b5b8ce3c65ddde1fa3fd0f3de5ebec81e4bb4b3d2db132298a",
+      "size": 7501
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "0379014d660fe999c9bc1184a8f61c19babbb0cc4583ca9e79857bc389939586",
-      "size": 590212
+      "sha256": "aeec57d07a5e1cd3f59743531d412fde4f9232ad517ef2d06aa7c43546a04940",
+      "size": 590213
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "867663e93e2f3bdd3c4992e22e47b8c5231b56390fdc46cc6cb1d70426728ae6",
-      "size": 3218
+      "sha256": "d2a98a7d2291f9d25529d7305baa0c327676888cddab478d955b56c360e59b52",
+      "size": 3651
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "e5984532914049474f86435f7929fd3ef608df8e5275a4c8ac5b2eb4131a480e",
-      "size": 9374
+      "sha256": "f2b5e819b10b5d6300f5bf56958f51a6c40cc43896acd21bbcb4a6e498d5ad0e",
+      "size": 12538
     },
     {
       "path": "src/v267/components/service-label-translations.js",
@@ -1212,8 +1212,8 @@
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
-      "sha256": "94e25ff6d780159b8d4941677abd41dd28d3980cb975e7b7fe5ac1e5a2347e7e",
-      "size": 2541
+      "sha256": "fb397ba144c08319f5d0856d2211c31ed7c27343f0ef8c0f7c7e7beb76b0540a",
+      "size": 3536
     },
     {
       "path": "src/v267/pages/lease-expiry-report.js",
@@ -1322,13 +1322,13 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
-      "size": 6716
+      "sha256": "5ae03484c3967d1f4581e4ced0887dc5f93ce18a250dd435567a0221b4edaffd",
+      "size": 8205
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "b99de6d2b828039eda19bce4602a7f83e4e11a04f759049cdca48f1f3b21c049",
-      "size": 3629
+      "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
+      "size": 3662
     },
     {
       "path": "src/v267/workspace.js",
@@ -3239,6 +3239,36 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
+    },
+    {
+      "path": "src/v267/components/management-counters.js",
+      "size": 6000,
+      "sha256": "5a81bd806af01f3db264e85c7aae16009d311ba13e975316e1cd61acd9db7279"
+    },
+    {
+      "path": "src/v267/styles/management-counters.css",
+      "size": 880,
+      "sha256": "f7b84d57de22b82d367a03a9017c7a74e92107386400b98f9b847a5efba24e2f"
+    },
+    {
+      "path": "tests/v267-management-counters.test.mjs",
+      "size": 6057,
+      "sha256": "39aee37a153eb98f645e2ea251edc909d62e254985210e5e1acfec4517d73e17"
+    },
+    {
+      "path": "tests/v267-management-counters.browser.mjs",
+      "size": 7293,
+      "sha256": "87a68bdbddf567419bb31390acb2295a1b1bfc5681cfe839344cc5c3a5a0784b"
+    },
+    {
+      "path": "tests/v267-management-counters-runtime.test.mjs",
+      "size": 4548,
+      "sha256": "9f43121b562cd9777a1fd1a01bf34d209aaaca145061e78132770dadb866262d"
+    },
+    {
+      "path": "docs/V267-MANAGEMENT-COUNTERS-2026-09-13.md",
+      "size": 4915,
+      "sha256": "27dcc06877777f6daa7f84ba1744489c9ae97b98d4b8769628b4f5ee4fa4f46d"
     }
   ],
   "version": "V198"

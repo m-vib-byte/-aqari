@@ -524,8 +524,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "e5984532914049474f86435f7929fd3ef608df8e5275a4c8ac5b2eb4131a480e",
-      "bytes": 9374,
+      "sha256": "f2b5e819b10b5d6300f5bf56958f51a6c40cc43896acd21bbcb4a6e498d5ad0e",
+      "bytes": 12538,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -591,8 +591,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
-      "bytes": 6716,
+      "sha256": "5ae03484c3967d1f4581e4ced0887dc5f93ce18a250dd435567a0221b4edaffd",
+      "bytes": 8205,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -600,8 +600,8 @@
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "b99de6d2b828039eda19bce4602a7f83e4e11a04f759049cdca48f1f3b21c049",
-      "bytes": 3629,
+      "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
+      "bytes": 3662,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1792,8 +1792,8 @@
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
-      "sha256": "94e25ff6d780159b8d4941677abd41dd28d3980cb975e7b7fe5ac1e5a2347e7e",
-      "bytes": 2541,
+      "sha256": "fb397ba144c08319f5d0856d2211c31ed7c27343f0ef8c0f7c7e7beb76b0540a",
+      "bytes": 3536,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
