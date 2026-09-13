@@ -1,4 +1,8 @@
 import { pathToFileURL } from 'node:url';
+import {
+  readReleaseGateManifest,
+  validateReleaseGateManifest,
+} from './v267-release-gate-manifest.mjs';
 
 export const REQUIRED_DECISION = 'approved_for_production';
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
@@ -48,6 +52,13 @@ export function validateOwnerProductionApproval(input = {}) {
     errors.push('owner production approval must occur after final owner testing');
   }
 
+  if (!input.releaseGateManifest) {
+    errors.push('full release gate manifest is required before owner Production approval can pass');
+  } else if (FULL_SHA_RE.test(candidateSha)) {
+    const gate = validateReleaseGateManifest(input.releaseGateManifest, candidateSha);
+    for (const error of gate.errors) errors.push(`release gate: ${error}`);
+  }
+
   return {
     ok: errors.length === 0,
     candidateSha,
@@ -79,6 +90,7 @@ export function inputFromProcess(argv = process.argv.slice(2), env = process.env
   const args = readArgs(argv);
   return {
     candidateSha: args['candidate-sha'] || env.V267_CANDIDATE_SHA,
+    releaseGateManifestPath: args['release-gate-manifest'] || env.V267_RELEASE_GATE_MANIFEST_PATH,
     finalTestedSha: env.V267_OWNER_FINAL_TESTED_SHA,
     approvedSha: env.V267_OWNER_PRODUCTION_APPROVAL_SHA,
     decision: env.V267_OWNER_PRODUCTION_APPROVAL_DECISION,
@@ -90,7 +102,17 @@ export function inputFromProcess(argv = process.argv.slice(2), env = process.env
 }
 
 function main() {
-  const result = validateOwnerProductionApproval(inputFromProcess());
+  const input = inputFromProcess();
+  try {
+    input.releaseGateManifest = readReleaseGateManifest(input.releaseGateManifestPath);
+  } catch (error) {
+    console.error('V267 OWNER PRODUCTION GATE: HOLD');
+    console.error(`- unable to load full release gate manifest: ${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const result = validateOwnerProductionApproval(input);
   if (!result.ok) {
     console.error('V267 OWNER PRODUCTION GATE: HOLD');
     for (const error of result.errors) console.error(`- ${error}`);
