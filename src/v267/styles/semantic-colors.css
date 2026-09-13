@@ -26,7 +26,9 @@
  }
 
  /* Any close/X control is intentionally red and visually consistent. */
- body.aq-v267 .aq267-dialog {position:relative}
+ /* Native modal positioning must not follow the underlying page scroll. */
+ body.aq-v267 .aq267-dialog {position:fixed!important;inset:0;margin:auto}
+ body.aq-v267 .aq267-dialog>h2 {padding-inline-end:56px;min-height:44px}
  body.aq-v267 :is(.aq267-close,button.close,button.close-btn,button.modal-close,button.dialog-close,button[aria-label='إغلاق'],button[aria-label='Close'],button[title='إغلاق'],button[title='Close'],button[data-action='close'],button[data-v199-action='close']) {
   width:44px!important;
   min-width:44px!important;

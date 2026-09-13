@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "cabd2082c183a3f64a47f47a5eefb58f1e344b9853458b3f3a938af51aa621ae",
-      "size": 590213
+      "sha256": "d9953c2872202d1a745216456dbb05a0f182e30a70b9fcfe6ea6a445ee5cbf71",
+      "size": 590214
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -917,8 +917,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "c8fd70b9a332e2f095a26cccc08871538a6f0a1b4644103506bf0462eec38b1f",
-      "size": 1935
+      "sha256": "3dd2048e960a75aff3990c00b5d497012059536c2892d331abddbc465915f639",
+      "size": 1978
     },
     {
       "path": "secure-auth-bridge.js",
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "f2b5e819b10b5d6300f5bf56958f51a6c40cc43896acd21bbcb4a6e498d5ad0e",
-      "size": 12538
+      "sha256": "277b6ffa8715ca75e756af9d95007be3e368f0cc2173c2a8dee8ea379f306881",
+      "size": 15684
     },
     {
       "path": "src/v267/components/service-label-translations.js",
@@ -1322,8 +1322,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "5ae03484c3967d1f4581e4ced0887dc5f93ce18a250dd435567a0221b4edaffd",
-      "size": 8205
+      "sha256": "63e286709c9aea2b7c5dc95901a4dece5fec2c981e39a42220a2d7c0e1110151",
+      "size": 9466
     },
     {
       "path": "src/v267/styles/workspace.css",
@@ -2977,8 +2977,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "5746318edf86c37e64722c379a3c6697d6f060cbaf122f8e881881b4d014017c",
-      "size": 6477
+      "sha256": "c73d34d2142713cefe9cfed081973e927cbe2453b4a1c0b91ac8e7f61aaafd8b",
+      "size": 10726
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
@@ -3304,6 +3304,16 @@
       "path": "docs/V267-CONTRACT-WORKSPACE-2026-09-13.md",
       "sha256": "995312dd5fbfe6337347669b38250f05528fbb52fda5cdbdaae521205f233b7f",
       "size": 4465
+    },
+    {
+      "path": "docs/V267-SERVICE-DIRECTORY-POLISH-2026-09-13.md",
+      "sha256": "fcd01b25f1760a84e41e9ec2df67d208b6801180e1f29d8c4c9ef4e74d5c99e6",
+      "size": 3955
+    },
+    {
+      "path": "src/v267/styles/semantic-colors.css",
+      "sha256": "838e89b86710dc23273972650150fdc595a1b63b5a95d4d7a866688350e64f35",
+      "size": 3931
     }
   ],
   "version": "V198"

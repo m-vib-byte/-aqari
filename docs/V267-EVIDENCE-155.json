@@ -524,8 +524,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "f2b5e819b10b5d6300f5bf56958f51a6c40cc43896acd21bbcb4a6e498d5ad0e",
-      "bytes": 12538,
+      "sha256": "277b6ffa8715ca75e756af9d95007be3e368f0cc2173c2a8dee8ea379f306881",
+      "bytes": 15684,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -533,8 +533,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "5746318edf86c37e64722c379a3c6697d6f060cbaf122f8e881881b4d014017c",
-      "bytes": 6477,
+      "sha256": "c73d34d2142713cefe9cfed081973e927cbe2453b4a1c0b91ac8e7f61aaafd8b",
+      "bytes": 10726,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -591,8 +591,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "5ae03484c3967d1f4581e4ced0887dc5f93ce18a250dd435567a0221b4edaffd",
-      "bytes": 8205,
+      "sha256": "63e286709c9aea2b7c5dc95901a4dece5fec2c981e39a42220a2d7c0e1110151",
+      "bytes": 9466,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
