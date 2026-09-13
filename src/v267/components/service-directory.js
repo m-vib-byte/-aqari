@@ -9,6 +9,14 @@ const copy={
  ml:['AQARI സേവനങ്ങൾ','സേവനം തിരയുക','ഉദാ: കരാർ, നിക്ഷേപം, ശമ്പളം','തിരച്ചിൽ മായ്ക്കുക','സേവനം കണ്ടെത്തിയില്ല. മറ്റൊരു വാക്ക് പരീക്ഷിക്കുക.','ഈ സേവനം ഇപ്പോൾ നിങ്ങളുടെ അക്കൗണ്ടിൽ ലഭ്യമല്ല.','തിരച്ചിൽ ഫലങ്ങൾ','വസൂലും അക്കൗണ്ടുകളും','കരാറുകളും രേഖകളും','വസ്തുക്കളും വാടകക്കാരും','അറ്റകുറ്റപ്പണിയും സേവനങ്ങളും','ജീവനക്കാരും നടത്തിപ്പും','അക്കൗണ്ടും സഹായവും','നിക്ഷേപം, ചെലവുകൾ, ആർക്കൈവ്','തയ്യാറാക്കൽ, അച്ചടി, ഒഴിയൽ','യൂണിറ്റുകൾ, സജ്ജത, വസ്തു രേഖകൾ','മീറ്ററുകൾ, അപേക്ഷകൾ, തുടർനടപടി','ശമ്പളം, അനുമതികൾ, സർക്കുലറുകൾ','സുരക്ഷ, ക്രമീകരണങ്ങൾ, സഹായം','പുരോഗതിയിൽ','പൂർണ്ണ പ്രിവ്യൂ: എല്ലാ V267 സേവനങ്ങളും കാണിക്കും. തയ്യാറാകാത്ത സേവനങ്ങൾ പുരോഗതിയിൽ എന്ന് അടയാളപ്പെടുത്തും; അവ പ്രവർത്തനങ്ങൾ നടത്തില്ല.','V267 പൂർണ്ണ പ്രിവ്യൂ','V267 ആവശ്യങ്ങൾ — 155']
 };
 const text=i=>(copy[getLocale()]||copy.ar)[i];
+const directoryCopy={
+ ar:['عرض جميع الخدمات','طي الأقسام','خدمة','أقسام','افتح القسم للوصول إلى خدماته.','الخدمات غير المتاحة تظهر بعلامة «قيد الاستكمال».'],
+ en:['Show all services','Collapse sections','services','sections','Open a section to access its services.','Unavailable services are marked “In progress”.'],
+ hi:['सभी सेवाएँ दिखाएँ','अनुभाग समेटें','सेवाएँ','अनुभाग','सेवाएँ देखने के लिए अनुभाग खोलें।','अनुपलब्ध सेवाएँ “कार्य प्रगति पर” के रूप में चिह्नित हैं।'],
+ ur:['تمام خدمات دکھائیں','حصے سمیٹیں','خدمات','حصے','خدمات تک رسائی کے لیے حصہ کھولیں۔','غیر دستیاب خدمات پر «زیر تکمیل» لکھا ہے۔'],
+ ml:['എല്ലാ സേവനങ്ങളും കാണിക്കുക','വിഭാഗങ്ങൾ ചുരുക്കുക','സേവനങ്ങൾ','വിഭാഗങ്ങൾ','സേവനങ്ങൾ കാണാൻ ഒരു വിഭാഗം തുറക്കുക.','ലഭ്യമല്ലാത്ത സേവനങ്ങൾ “പുരോഗതിയിൽ” എന്ന് അടയാളപ്പെടുത്തിയിരിക്കുന്നു.']
+};
+const directoryText=i=>(directoryCopy[getLocale()]||directoryCopy.ar)[i];
 export const serviceSearch=value=>String(value||'').normalize('NFKC').toLocaleLowerCase().replace(/[\u064b-\u065f\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/\s+/g,' ').trim();
 
 function fullPreview(){
@@ -23,7 +31,7 @@ function fullPreview(){
 // unavailable entries never bypass source visibility, feature discovery or
 // authorization and never invoke their original handlers.
 export function organizeServices({tools,groups,allowed,home=()=>document.getElementById('v205SimpleHome')}){
- const menuGroups=[];let root=null,search,grid,status,clear,title,label,lastScope=null;
+ const menuGroups=[];let root=null,search,grid,status,clear,title,label,overview,expandAll,guide,lastScope=null;
  const expanded=new Set(),reviewAll=fullPreview();
  for(const [index,group] of groups.entries()){
   const box=node('details'),summary=node('summary'),name=node('span');box.className='aq267-menu-group';box.open=true;
@@ -37,36 +45,45 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
  function mount(){
   const host=home();if(!host)return false;if(root?.parentNode===host)return true;
   root=node('section');root.id='aq267-service-directory';root.className='aq267-service-directory';if(reviewAll)root.dataset.preview='full';
-  if(reviewAll){const banner=node('div'),copyBox=node('span'),badge=node('strong',text(21)),desc=node('span',text(20)),link=node('a',text(22));banner.className='aq267-preview-banner';copyBox.className='aq267-preview-copy';link.className='aq267-preview-requirements';link.href='/v267-requirements.html';copyBox.append(badge,desc);banner.append(copyBox,link);root.append(banner);}
-  const head=node('header'),searchBox=node('div');title=node('h2');title.id='aq267-services-title';root.setAttribute('aria-labelledby',title.id);
+  if(reviewAll){const banner=node('div'),copyBox=node('span'),badge=node('strong',text(21)),desc=node('span',directoryText(5)),link=node('a',text(22));banner.className='aq267-preview-banner';copyBox.className='aq267-preview-copy';link.className='aq267-preview-requirements';link.href='/v267-requirements.html';copyBox.append(badge,desc);banner.append(copyBox,link);root.append(banner);}
+  const head=node('header'),heading=node('div'),searchBox=node('div');title=node('h2');title.id='aq267-services-title';root.setAttribute('aria-labelledby',title.id);
+  overview=node('p');overview.className='aq267-service-overview';heading.append(title,overview);
   label=node('label');label.htmlFor='aq267-service-search';search=node('input');search.id=label.htmlFor;search.type='search';search.autocomplete='off';search.maxLength=100;
   clear=node('button');clear.type='button';clear.onclick=()=>{search.value='';render();search.focus();};
   search.oninput=render;search.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();search.value='';render();}};
-  searchBox.className='aq267-service-search';searchBox.append(label,search,clear);head.append(title,searchBox);
+  searchBox.className='aq267-service-search';searchBox.append(label,search,clear);head.append(heading,searchBox);
+  const toolbar=node('div');toolbar.className='aq267-service-toolbar';guide=node('p');expandAll=node('button');expandAll.type='button';expandAll.id='aq267-service-expand';expandAll.setAttribute('aria-controls','aq267-service-groups');
+  expandAll.onclick=()=>{if(!lastScope||serviceSearch(search.value))return;const boxes=[...grid.children],collapse=boxes.length>0&&boxes.every(box=>box.open);for(const box of boxes){if(collapse)expanded.delete(box.dataset.group);else expanded.add(box.dataset.group);}render();};toolbar.append(guide,expandAll);
   status=node('p');status.className='aq267-service-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-  grid=node('div');grid.className='aq267-service-groups';root.append(head,status,grid);
+  grid=node('div');grid.id='aq267-service-groups';grid.className='aq267-service-groups';root.append(head,toolbar,status,grid);
   host.insertBefore(root,host.querySelector(':scope > details,:scope > .v205-home-footer'));return true;
  }
+ function updateExpansion(){
+  const boxes=[...grid.children],allOpen=boxes.length>0&&boxes.every(box=>box.open);
+  expandAll.textContent=directoryText(allOpen?1:0);expandAll.setAttribute('aria-expanded',String(allOpen));expandAll.hidden=!!serviceSearch(search.value)||!boxes.length;
+ }
  function render(){
-  if(!root)return;const query=serviceSearch(search.value),words=query.split(' ').filter(Boolean);let total=0;
+  if(!root)return;if(!lastScope){grid.replaceChildren();return;}
+  const query=serviceSearch(search.value),words=query.split(' ').filter(Boolean),renderScope=lastScope,renderRoot=root;let total=0,sectionCount=0;
   root.lang=getLocale();root.dir=direction();title.textContent=text(0);label.textContent=text(1);search.placeholder=text(2);clear.textContent=text(3);clear.hidden=!query;
-  const banner=root.querySelector?.('.aq267-preview-banner');if(banner&&reviewAll){const copyBox=banner.children[0],link=banner.children[1];copyBox.children[0].textContent=text(21);copyBox.children[1].textContent=text(20);link.textContent=text(22);}
+  const banner=root.querySelector?.('.aq267-preview-banner');if(banner&&reviewAll){const copyBox=banner.children[0],link=banner.children[1];copyBox.children[0].textContent=text(21);copyBox.children[1].textContent=directoryText(5);link.textContent=text(22);}
   grid.replaceChildren();
   for(const [index,group] of groups.entries()){
    const items=group.items.filter(listed).filter(item=>{const haystack=serviceSearch(titleOf(item)+' '+text(7+index)+' '+(item.keywords||''));return words.every(word=>haystack.includes(word));});
-   if(!items.length)continue;total+=items.length;
+   if(!items.length)continue;total+=items.length;sectionCount++;
    const box=node('details'),summary=node('summary'),caption=node('span'),name=node('strong',text(7+index)),hint=node('small',text(13+index)),count=node('span',String(items.length)),list=node('div');
-   box.className='aq267-service-group';box.dataset.group=group.key;box.open=reviewAll||!!query||expanded.has(group.key);count.className='aq267-service-count';caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
-   box.ontoggle=()=>{if(!search.value&&!reviewAll){if(box.open)expanded.add(group.key);else expanded.delete(group.key);}};
+   box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);count.className='aq267-service-count';count.setAttribute('aria-label',items.length+' '+directoryText(2));caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
+   box.ontoggle=()=>{if(box.parentNode!==grid||renderScope!==lastScope)return;if(!serviceSearch(search.value)){if(box.open)expanded.add(group.key);else expanded.delete(group.key);}updateExpansion();};
    for(const item of items){
     const ready=available(item),button=node('button',titleOf(item)+(reviewAll&&!ready?' — '+text(19):''));button.type='button';button.dataset.service=group.key;button.setAttribute('aria-label',titleOf(item));
     if(!ready){button.dataset.state='pending';button.setAttribute('aria-disabled','true');button.title=text(5);}
-    button.onclick=()=>{if(!available(item)){status.textContent=text(5);status.hidden=false;return;}item.source.click();};list.append(button);
+    button.onclick=()=>{if(!lastScope||renderScope!==lastScope||renderRoot!==root)return;if(!available(item)){render();status.textContent=text(5);status.hidden=false;return;}item.source.click();};list.append(button);
    }
    grid.append(box);
   }
+  overview.textContent=total+' '+directoryText(2)+' · '+sectionCount+' '+directoryText(3);guide.textContent=directoryText(4);guide.hidden=!!query||!total;updateExpansion();
   if(query){status.textContent=total?text(6)+': '+total:text(4);status.hidden=false;}
-  else if(reviewAll){status.textContent=text(20);status.hidden=false;}
+  else if(!total){status.textContent=text(5);status.hidden=false;}
   else{status.textContent='';status.hidden=true;}
  }
  return {refresh(scope){
