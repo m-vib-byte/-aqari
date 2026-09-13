@@ -80,6 +80,8 @@ jobs:
         run: node scripts/verify-staging-runtime.mjs
       - name: Property search, presentation and verified save readback
         run: node --test tests/v267-property-presentation.test.mjs
+      - name: Property notice retries and immutable publication readback
+        run: node --test tests/v267-property-notices.test.cjs
       - name: Commercial sales and payment reconciliation readback
         run: node --test tests/v267-commercial-sales-workflow.test.mjs tests/v267-commercial-payment-allocations.test.mjs
       - name: Official document sources, immutable readback and shared PDF catalogue
