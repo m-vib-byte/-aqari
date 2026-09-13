@@ -1441,8 +1441,8 @@
     },
     {
       "path": "src/v267/pages/property-notices.js",
-      "sha256": "8425069349701123c59e1c6e5fa99910c1b9a52b29c9f4093a5d933ed1859ecf",
-      "bytes": 9975,
+      "sha256": "2035ed96de996c6240819eaf6054f80d85276b5b126fdfcbe9c6e167acf67015",
+      "bytes": 13409,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1476,8 +1476,8 @@
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
-      "sha256": "50e5083770aac3e033658ace893d9f63d8f75587be0f1c08661141623f7c5354",
-      "bytes": 7318,
+      "sha256": "6adbe75aec043289ce54be9f0e801df04667726cda663842a30ab6a9ef3f8c7a",
+      "bytes": 12839,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

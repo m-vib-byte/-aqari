@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "bb5a2e22ca67bb518dae4d2057050b3fc13a8fd810d9c52a5bedcfd805e00eda",
-      "size": 7987
+      "sha256": "f9eb9ebca3c9896c99a86eb03bae01775b0708e614b9dc0ddfd2f7967e079b47",
+      "size": 8122
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "d9953c2872202d1a745216456dbb05a0f182e30a70b9fcfe6ea6a445ee5cbf71",
-      "size": 590214
+      "sha256": "1ffa510b548c3d796cc301eb8642b00d3713d3c612c310994a679b0ad843446c",
+      "size": 590216
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -917,8 +917,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "3dd2048e960a75aff3990c00b5d497012059536c2892d331abddbc465915f639",
-      "size": 1978
+      "sha256": "c47b20fbf02d8a26fd2a82839af35f0da9c51a926a61e1ac0e643b5ef28ab80d",
+      "size": 2010
     },
     {
       "path": "secure-auth-bridge.js",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "d2a98a7d2291f9d25529d7305baa0c327676888cddab478d955b56c360e59b52",
-      "size": 3651
+      "sha256": "91d12f7746106116930efc532b4750a7020576db25db15bc3bbffcabd8974143",
+      "size": 3763
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1257,8 +1257,8 @@
     },
     {
       "path": "src/v267/pages/property-notices.js",
-      "sha256": "8425069349701123c59e1c6e5fa99910c1b9a52b29c9f4093a5d933ed1859ecf",
-      "size": 9975
+      "sha256": "2035ed96de996c6240819eaf6054f80d85276b5b126fdfcbe9c6e167acf67015",
+      "size": 13409
     },
     {
       "path": "src/v267/pages/property-statements.js",
@@ -2662,8 +2662,8 @@
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
-      "sha256": "56676422b5738d8bcdc71407bf9bbd2c80c21d2ece06dd91026940e16d68c67e",
-      "size": 4339
+      "sha256": "5cbff84ee6f8527c27cbf97a19ea49845048c5366cc15aa2c2d01da2f6393d95",
+      "size": 4814
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
@@ -2922,8 +2922,8 @@
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
-      "sha256": "50e5083770aac3e033658ace893d9f63d8f75587be0f1c08661141623f7c5354",
-      "size": 7318
+      "sha256": "6adbe75aec043289ce54be9f0e801df04667726cda663842a30ab6a9ef3f8c7a",
+      "size": 12839
     },
     {
       "path": "tests/v267-property-presentation.test.mjs",
@@ -3312,8 +3312,13 @@
     },
     {
       "path": "src/v267/styles/semantic-colors.css",
-      "sha256": "838e89b86710dc23273972650150fdc595a1b63b5a95d4d7a866688350e64f35",
-      "size": 3931
+      "sha256": "89212c50298f21501d8fdc2e400855ef6241695c1280cf94643d41c63cdfa15a",
+      "size": 4811
+    },
+    {
+      "path": "docs/V267-DIALOG-NOTICE-RECOVERY-2026-09-13.md",
+      "sha256": "6e920342441c329641fc299720ab5cca656c24be960e97c5b07e3a73f3084a32",
+      "size": 3471
     }
   ],
   "version": "V198"
