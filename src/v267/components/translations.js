@@ -5,6 +5,12 @@ import {PARTNER_MESSAGES} from './partner-translations.js';
 import {DEPOSIT_MESSAGES} from './deposit-translations.js';
 import {EXIT_MESSAGES} from './exit-translations.js';
 export const MESSAGES = {
+ 'السجلات الأحدث': {en:'Newer records',hi:'नए रिकॉर्ड',ur:'نئے ریکارڈ',ml:'പുതിയ രേഖകൾ'},
+ 'السجلات الأقدم': {en:'Older records',hi:'पुराने रिकॉर्ड',ur:'پرانے ریکارڈ',ml:'പഴയ രേഖകൾ'},
+ 'تصفح سجل القراءات والفواتير': {en:'Browse reading and bill history',hi:'रीडिंग और बिल का इतिहास देखें',ur:'ریڈنگ اور بلوں کی تاریخ دیکھیں',ml:'റീഡിങ്ങുകളുടെയും ബില്ലുകളുടെയും ചരിത്രം കാണുക'},
+ 'الصفحة {page} • {count} سجل': {en:'Page {page} • {count} records',hi:'पृष्ठ {page} • {count} रिकॉर्ड',ur:'صفحہ {page} • {count} ریکارڈ',ml:'പേജ് {page} • {count} രേഖകൾ'},
+ 'تعذر تأكيد اكتمال السجلات. أعد التحديث.': {en:'Could not confirm complete records. Refresh again.',hi:'सभी रिकॉर्ड की पुष्टि नहीं हो सकी। फिर से रीफ़्रेश करें।',ur:'تمام ریکارڈ کی تصدیق نہیں ہو سکی۔ دوبارہ تازہ کریں۔',ml:'എല്ലാ രേഖകളും ലഭിച്ചതായി സ്ഥിരീകരിക്കാനായില്ല. വീണ്ടും പുതുക്കുക.'},
+ 'لا توجد سجلات في هذه الصفحة. ارجع للسجلات الأحدث أو حدّث السجل.': {en:'No records on this page. Go to newer records or refresh.',hi:'इस पृष्ठ पर कोई रिकॉर्ड नहीं है। नए रिकॉर्ड पर जाएँ या रीफ़्रेश करें।',ur:'اس صفحے پر کوئی ریکارڈ نہیں ہے۔ نئے ریکارڈ پر جائیں یا تازہ کریں۔',ml:'ഈ പേജിൽ രേഖകളില്ല. പുതിയ രേഖകളിലേക്ക് പോകുക അല്ലെങ്കിൽ പുതുക്കുക.'},
  ...LEASE_EXPIRY_MESSAGES,
  ...SERVICE_LABEL_MESSAGES,
  ...DEPOSIT_MESSAGES,

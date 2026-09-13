@@ -1036,8 +1036,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
-      "bytes": 11725,
+      "sha256": "62d1f36c86b476ed2941a7f1e839751151976ace44e90d8a0454fab9e4349b4e",
+      "bytes": 14250,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1423,8 +1423,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "3f30170a643ffb4a471b90c4fe0668b827a29954439e627c003b77919960d859",
-      "bytes": 167651,
+      "sha256": "12b570892f35509cc30ea6d9e07673777b55dd94590b8f7f4217c4d090b9edd2",
+      "bytes": 169831,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

@@ -90,6 +90,8 @@ jobs:
         run: node --test tests/v267-financial-archive.test.cjs tests/v267-financial-archive-runtime.test.mjs
       - name: Management counters, exact totals and expiry date boundaries
         run: node --test tests/v267-management-counters.test.mjs tests/v267-management-counters-runtime.test.mjs tests/v267-kpi-dashboard.test.cjs tests/v267-dialog-boundary.test.mjs tests/v267-dialog-progress.test.mjs
+      - name: Complete utility history, latest readings and property isolation
+        run: node --test tests/v267-utility-history-runtime.test.mjs tests/v267-unit-meter-runtime.test.mjs tests/payment-proof.test.mjs
       - name: Hosted acceptance SQL matches the tested source
         run: |
           node scripts/build-hosted-archive-tests.mjs --check

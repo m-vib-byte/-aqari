@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "eca4716628a552b5b8ce3c65ddde1fa3fd0f3de5ebec81e4bb4b3d2db132298a",
-      "size": 7501
+      "sha256": "bb32ed93d9886711de9f4906cbf6174b4b9a19865d28f2dd60940b68a51474ca",
+      "size": 7717
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "aeec57d07a5e1cd3f59743531d412fde4f9232ad517ef2d06aa7c43546a04940",
+      "sha256": "715b8e05380c4bfefbfbb054bdd9827f6f5762c6c6b2b4ce13ba4cffac326053",
       "size": 590213
     },
     {
@@ -1082,8 +1082,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "3f30170a643ffb4a471b90c4fe0668b827a29954439e627c003b77919960d859",
-      "size": 167651
+      "sha256": "12b570892f35509cc30ea6d9e07673777b55dd94590b8f7f4217c4d090b9edd2",
+      "size": 169831
     },
     {
       "path": "src/v267/components/ui-text.js",
@@ -1297,8 +1297,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
-      "size": 11725
+      "sha256": "62d1f36c86b476ed2941a7f1e839751151976ace44e90d8a0454fab9e4349b4e",
+      "size": 14250
     },
     {
       "path": "src/v267/pages/vacating-review.js",
@@ -3269,6 +3269,16 @@
       "path": "docs/V267-MANAGEMENT-COUNTERS-2026-09-13.md",
       "size": 4915,
       "sha256": "27dcc06877777f6daa7f84ba1744489c9ae97b98d4b8769628b4f5ee4fa4f46d"
+    },
+    {
+      "path": "tests/v267-utility-history-runtime.test.mjs",
+      "sha256": "90e8c50c503ad35b68c0f8117304e159a4073d1d722030b507db34ea801a7da7",
+      "size": 8727
+    },
+    {
+      "path": "docs/V267-UTILITY-HISTORY-2026-09-13.md",
+      "sha256": "631cd9a4f79b5e981a59e4f57797310da7af69447ae9311c15992ecf403afc5f",
+      "size": 3198
     }
   ],
   "version": "V198"
