@@ -12,10 +12,14 @@ import {
 const SHA = '861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA = '13a219e7930db89ebf2f9b44d30007499efa6ccf';
 
-function deviceEvidence({ physical = false } = {}) {
+function deviceEvidence({ physical = false, device = 'Desktop workstation', browser = 'Chrome' } = {}) {
   return {
     accepted: true,
     realAccount: true,
+    simulated: false,
+    emulated: false,
+    browser,
+    device,
     ...(physical ? { physical: true } : {}),
     commitSha: SHA,
     flows: {
@@ -57,14 +61,18 @@ function fullGateManifest() {
     },
     hostedPreview: {
       accepted: true,
+      applicationRuntimeReached: true,
+      realAccountTested: true,
+      buildReadyOnly: false,
+      simulated: false,
       commitSha: SHA,
       url: 'https://example-preview.vercel.app/app?release=V267',
       evidence: ['evidence/preview-smoke.json'],
     },
     devices: {
       desktop: deviceEvidence(),
-      iphone: deviceEvidence({ physical: true }),
-      ipad: deviceEvidence({ physical: true }),
+      iphone: deviceEvidence({ physical: true, device: 'Physical iPhone', browser: 'Mobile Safari' }),
+      ipad: deviceEvidence({ physical: true, device: 'Physical iPad', browser: 'Mobile Safari' }),
     },
     backup: {
       current: true,
@@ -128,6 +136,42 @@ test('release gate validator fails closed across every owner-mandated technical 
     (m) => { m.restore.independent = false; },
     (m) => { m.rollback.preservesNewTransactions = false; },
     (m) => { m.productionConfig.correct = false; },
+  ];
+
+  for (const mutate of mutations) {
+    const manifest = fullGateManifest();
+    mutate(manifest);
+    const result = validateReleaseGateManifest(manifest, SHA);
+    assert.equal(result.ok, false, JSON.stringify(result.errors));
+  }
+});
+
+test('hosted Preview acceptance rejects READY-only, simulated, or pre-runtime evidence', () => {
+  const mutations = [
+    (m) => { m.hostedPreview.applicationRuntimeReached = false; },
+    (m) => { m.hostedPreview.realAccountTested = false; },
+    (m) => { m.hostedPreview.buildReadyOnly = true; },
+    (m) => { m.hostedPreview.simulated = true; },
+    (m) => { delete m.hostedPreview.applicationRuntimeReached; },
+    (m) => { delete m.hostedPreview.buildReadyOnly; },
+  ];
+
+  for (const mutate of mutations) {
+    const manifest = fullGateManifest();
+    mutate(manifest);
+    const result = validateReleaseGateManifest(manifest, SHA);
+    assert.equal(result.ok, false, JSON.stringify(result.errors));
+  }
+});
+
+test('device acceptance rejects emulation, simulation, and unidentified browser or device evidence', () => {
+  const mutations = [
+    (m) => { m.devices.desktop.simulated = true; },
+    (m) => { m.devices.iphone.emulated = true; },
+    (m) => { delete m.devices.ipad.simulated; },
+    (m) => { delete m.devices.iphone.emulated; },
+    (m) => { m.devices.desktop.browser = ''; },
+    (m) => { m.devices.ipad.device = '   '; },
   ];
 
   for (const mutate of mutations) {
