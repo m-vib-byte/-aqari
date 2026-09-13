@@ -30,7 +30,7 @@ test('tenant history distinguishes old unclassified requests',()=>{
  assert.match(ui,/النوع:/);
 });
 
-test('admin maintenance desk reads and displays category plus assigned executor',()=>{
+test('admin maintenance desk reads category executor invoice and expense state',()=>{
  assert.match(desk,/workspace_id,category_code,description,status,cost,revision/);
  assert.match(desk,/const maintenanceCategories=/);
  for(const code of categories)assert.match(desk,new RegExp(`${code}:`));
@@ -40,13 +40,18 @@ test('admin maintenance desk reads and displays category plus assigned executor'
  assert.match(desk,/الجهة المنفذة: /);
  assert.match(desk,/أمر الشغل: /);
  assert.match(desk,/المبلغ المعتمد لأمر الشغل:/);
+ assert.match(desk,/فاتورة المورد:/);
+ assert.match(desk,/المصروف المالي:/);
+ assert.match(desk,/expense_linked/);
 });
 
-test('executor summary is narrow, property scoped and does not expose vendor internals',()=>{
+test('executor summary is narrow and property scoped with accounting link state only',()=>{
  assert.match(executorSql,/private\.aqari_can\(w,'maintenance','read'\)/);
  assert.match(executorSql,/private\.aqari_can_property\(w,u\.property_id,'maintenance','read'\)/);
  assert.match(executorSql,/left join private\.aqari_work_orders/);
  assert.match(executorSql,/left join private\.aqari_vendors/);
+ assert.match(executorSql,/'invoice_id',o\.invoice_id/);
+ assert.match(executorSql,/'expense_linked',\(o\.expense_key is not null\)/);
  assert.doesNotMatch(executorSql,/civil_or_license_no|phone|email|rating_basis/);
  assert.match(executorSql,/requested_count>50/);
 });
