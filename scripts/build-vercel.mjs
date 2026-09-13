@@ -37,13 +37,14 @@ execFileSync(process.execPath,['--test','tests/v267-partner-access-mfa-guard.tes
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-integration-public-metadata-guard.test.mjs'],{stdio:'inherit'});
 
-// Reconciled latest concurrent PR #116 support must execute in the exact
-// Preview build as well. Verify inventoried runtime sources first, then run the
-// staff-circular and expense recovery/search suites. These remain Preview-only
-// checks and do not establish hosted write or physical-device acceptance.
+// Reconciled concurrent PR #116 support must execute in the exact Preview build
+// as well. Verify historical inventoried runtime sources, syntax-check the later
+// support overlays, then exercise their focused recovery/search behavior. These
+// remain Preview-only checks and do not establish hosted write/device acceptance.
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
 
