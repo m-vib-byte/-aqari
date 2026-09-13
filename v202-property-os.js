@@ -866,6 +866,7 @@
     return {
       id,contract_no:contractNo,tenant,property,unit,rent:rentValue==null?'':rentValue,
       contractRent:faceRent==null?'':faceRent,deposit:depositAlias.value,
+      ...(hasRentEntitlement(entry)?{rentEntitlement:entry.rentEntitlement===undefined?null:JSON.parse(JSON.stringify(entry.rentEntitlement))}:{}),
       rentalTermsVersion:entry.rentalTermsVersion,freeMonthApproved:entry.freeMonthApproved===true,freeMonthPeriod:scalarText(entry.freeMonthPeriod),rentAdjustments:Array.isArray(entry.rentAdjustments)?entry.rentAdjustments.map(a=>({...a})):[],depositReceivedOn:scalarText(entry.depositReceivedOn),floor:scalarText(entry.floor),receivedAt:scalarText(entry.receivedAt),accountant:scalarText(entry.accountant),evictionNotice:scalarText(entry.evictionNotice),contractReceived:scalarText(entry.contractReceived),
       status:contractStatus(statusAlias.value),start_date:startAlias.value,
       end_date:endAlias.value,source:sourceAlias.value||String(source||''),_explicitId:Boolean(explicitId),
@@ -883,7 +884,7 @@
     if(!previous)return next;
     const result={...previous};
     Object.keys(next).forEach(function(key){
-      if(next[key]!=null&&String(next[key]).trim()!=='')result[key]=next[key];
+      if(key==='rentEntitlement'||next[key]!=null&&String(next[key]).trim()!=='')result[key]=next[key];
     });
     return result;
   }
@@ -900,6 +901,7 @@
       normalizedIdentity(left.id)===normalizedIdentity(right.id)
     );
     if(!sameExplicitId)return false;
+    if(hasRentEntitlement(left)&&hasRentEntitlement(right)&&!sameStoredJson(left.rentEntitlement,right.rentEntitlement))return true;
     return [
       ['rent','_rentRecorded',function(value){const amount=strictMoney(value);return Number.isFinite(amount)?String(amount):'!invalid'}],
       ['contractRent','_contractRentRecorded',function(value){const amount=strictMoney(value);return Number.isFinite(amount)?String(amount):'!invalid'}],
@@ -969,7 +971,7 @@
     if(!validContractDateRange(contract,true))return false;
     const current=contract?.rent;
     const rent=strictMoney(current!=null&&String(current).trim()!==''?current:contract?.contractRent);
-    return Number.isFinite(rent)&&rent>0;
+    return Number.isFinite(rent)&&rent>0&&(!hasRentEntitlement(contract)||Number.isFinite(contractRent(contract,contract.start_date.slice(0,7))));
   }
 
   function contractCoversPeriod(contract,period){
@@ -1571,7 +1573,7 @@
       const settledLedger=ledger.filter(function(entry){return settledPayment(entry?.status)});
       const paid=statementItem?strictMoney(statementItem.paid):exactMoneySum(settledLedger.map(function(entry){return entry?.paid}));
       const pending=statementItem?strictMoney(statementItem.pending):exactMoneySum(ledger.filter(function(entry){return pendingPayment(entry?.status)}).map(function(entry){return entry?.paid}));
-      const due=statementItem?numberFrom(statementItem.due):(contract&&statementIncludesContract(contract,period)?contractRent(contract,period):0);
+      const due=statementItem?strictMoney(statementItem.due):(contract&&statementIncludesContract(contract,period)?contractRent(contract,period):0);
       const contractFaceRent=contract&&contract.contractRent!=null&&String(contract.contractRent).trim()!==''?numberFrom(contract.contractRent):due;
       const faceRentAmount=strictMoney(contract?.contractRent);
       const directoryCurrentRentAmount=strictMoney(directoryRecord.currentRent);
@@ -1591,7 +1593,7 @@
       const paymentNotes=Array.from(new Set(datedSettledLedger.map(function(entry){return scalarText(entry?.note)}).filter(Boolean)));
       const contractReceived=String(directoryRecord.contractReceived||directoryRecord.contractReceipt||datedSettledLedger.map(function(entry){return entry?.contractReceived}).find(Boolean)||'');
       const hasInvalidSettledDate=settledLedger.some(function(entry){return !validRecordedDate(entry?.paidAt)});
-      const paymentStatus=!contract||hasInvalidSettledDate?'يحتاج مراجعة':!billable?'غير قابل للفوترة':contract?.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===period?'شهر مجاني':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة';
+      const paymentStatus=!contract||hasInvalidSettledDate?'يحتاج مراجعة':!billable?'غير قابل للفوترة':rentEntitlementPaymentStatus(contract,period,due,paid,pending,balance)||(contract?.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===period?'شهر مجاني':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':due>0?'مستحق':'يحتاج مراجعة');
       return {
         key:unitRecordKey({property,contractId:contractId(contract),unit:base.unit,contractNo:base.contractNo,tenant:base.tenant||directoryRecord.tenant}),
         property,period,unit:String(base.unit||'—'),tenant:String(base.tenant||directoryRecord.tenant||''),
@@ -1599,6 +1601,7 @@
         directorySource:String(directoryRecord.source||''),contractSource:String(contract?.source||''),
         contractStatus:contract?contractDisplayStatus(contract,base.directory):'غير مربوط',startDate:String(contract?.start_date||directoryRecord.contractStartRaw||''),
         endDate:String(contract?.end_date||directoryRecord.contractEndRaw||''),legalStartDate:String(contract?.start_date||''),legalEndDate:String(contract?.end_date||''),contractRent:contractFaceRent,currentRent,rent:due,paid,pending,balance,paymentStatus,
+        ...(hasRentEntitlement(contract)?{dueOn:contractEntitlementDueOn(contract,period)}:{}),
         receipts,paidAt:paymentDates[0]||(validRecordedDate(directoryRecord.paymentDateRaw)?String(directoryRecord.paymentDateRaw).trim():''),methods,
         phone:String(directoryRecord.phone||''),nationality:String(directoryRecord.nationality||''),
         nameAr:String(directoryRecord.nameAr||''),nameEn:String(directoryRecord.nameEn||''),passportNo:String(directoryRecord.passportNo||''),floor:String(directoryRecord.floor||contract?.floor||''),receivedAt:String(directoryRecord.receivedAt||contract?.receivedAt||''),
@@ -2277,7 +2280,14 @@
     return Array.from(receiptNumbers()).some(function(value){return normalizedReference(value)===key});
   }
 
+  function hasRentEntitlement(contract){return Boolean(contract&&Object.prototype.hasOwnProperty.call(contract,'rentEntitlement'))}
+
   function contractRent(contract,period=currentPeriod(),includeFree=true){
+    if(hasRentEntitlement(contract)){
+      const runtime=window.AQARI_RENTAL_RECORDS;
+      if(typeof runtime?.effectiveRent!=='function'||typeof runtime?.entitlement!=='function')return Number.NaN;
+      try{runtime.entitlement(contract);return strictMoney(runtime.effectiveRent(contract,period,includeFree));}catch(_){return Number.NaN;}
+    }
     if(contract?.rentalTermsVersion===1){
       if(includeFree&&contract.freeMonthApproved&&contract.freeMonthPeriod===period)return 0;
       const change=(contract.rentAdjustments||[]).filter(a=>a.effectiveMonth<=period).at(-1);if(change){const value=strictMoney(change.rent);if(Number.isFinite(value)&&value>0)return value;}
@@ -2285,6 +2295,42 @@
     const current=contract?.rent;
     const amount=strictMoney(current!=null&&String(current).trim()!==''?current:contract?.contractRent);
     return Number.isFinite(amount)?amount:0;
+  }
+
+  function contractEntitlementDueOn(contract,period){
+    if(!hasRentEntitlement(contract))return null;
+    const runtime=window.AQARI_RENTAL_RECORDS;
+    if(typeof runtime?.entitlementDueOn!=='function'||typeof runtime?.entitlement!=='function')return undefined;
+    try{runtime.entitlement(contract);const dueOn=runtime.entitlementDueOn(contract,period);return dueOn===null?null:validDate(dueOn)&&dueOn.slice(0,7)===period?dueOn:undefined;}catch(_){return undefined;}
+  }
+
+  function rentEntitlementPaymentStatus(contract,period,due,paid,pending,balance,asOf=new Date(Date.now()+10800000).toISOString().slice(0,10)){
+    if(!hasRentEntitlement(contract))return null;
+    const dueOn=contractEntitlementDueOn(contract,period);
+    if(!Number.isFinite(due)||dueOn===undefined)return 'يحتاج مراجعة';
+    if(contract.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===period)return 'شهر مجاني';
+    if(due===0)return 'لا إيجار للفترة';
+    if(balance===0)return 'مسدد';
+    if(dueOn>asOf)return 'لم يحن الاستحقاق';
+    return paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق';
+  }
+
+  function validRentPeriodBreakdown(value,contract,period,due){
+    if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==1||value.period!==period||!validPeriod(period))return false;
+    if(!validDate(value.dueOn)||value.dueOn.slice(0,7)!==period||value.dueOn<contract.start_date||value.dueOn>contract.end_date)return false;
+    if(!['full_month','daily_prorated','manual_first_period'].includes(value.policy)||typeof value.manual!=='boolean'||typeof value.freeMonth!=='boolean')return false;
+    if(typeof value.net!=='number'||!Number.isFinite(strictMoney(value.net))||value.net!==strictMoney(due))return false;
+    if(value.manual)return value.policy==='manual_first_period'&&value.gross===null&&value.discount===null;
+    if(typeof value.gross!=='number'||typeof value.discount!=='number'||!Number.isFinite(strictMoney(value.gross))||!Number.isFinite(strictMoney(value.discount)))return false;
+    return Math.round(value.gross*1000)-Math.round(value.discount*1000)===Math.round(value.net*1000);
+  }
+
+  function receiptRentPeriodBreakdown(contract,period,due){
+    const runtime=window.AQARI_RENTAL_RECORDS;
+    if(typeof runtime?.entitlementBreakdown!=='function')throw new Error('تعذر التحقق من تفاصيل استحقاق الفترة. حدّث الصفحة قبل إصدار الوصل.');
+    const breakdown={...runtime.entitlementBreakdown(contract,period),version:1,period,dueOn:contractEntitlementDueOn(contract,period)};
+    if(!validRentPeriodBreakdown(breakdown,contract,period,due))throw new Error('تفاصيل استحقاق الفترة لا تطابق مبلغ الوصل؛ راجع العقد والتحصيل.');
+    return breakdown;
   }
 
   function paymentKey(property,contractOrId,unit,period){
@@ -2440,6 +2486,7 @@
 
   function remainingForPeriod(property,contract,period){
     const due=contractRent(contract,period);
+    if(!Number.isFinite(due))return Number.NaN;
     return due>0?exactMoneyDifference(due,paidForPeriod(property,contract,period)):0;
   }
 
@@ -2518,7 +2565,8 @@
     if(details)details.textContent=contract?'المستأجر: '+contract.tenant+' • العقار: '+activeProperty+' • الشقة: '+contract.unit+' • العقد: '+(contract.contract_no||contractId(contract)):(document.getElementById('v267PaymentSearch')?.value?'لا يوجد عقد فعال لهذه الوحدة أو لا توجد نتيجة محددة. اختر عقداً من النتائج عند تعددها.':'اختر عقداً فعالاً قبل إصدار الإيصال.');
     const due=contractRent(contract,period);
     const paid=contract?paidForPeriod(activeProperty,contract,period):0;
-    const remaining=due>0?exactMoneyDifference(due,paid):0;
+    const remaining=Number.isFinite(due)?due>0?exactMoneyDifference(due,paid):0:Number.NaN;
+    const dueOn=contractEntitlementDueOn(contract,period);
     const amount=document.getElementById('v202PaymentAmount');
     const balance=document.getElementById('v202PaymentBalance');
     const covered=Boolean(contract&&contractCoversPeriod(contract,period));
@@ -2526,8 +2574,8 @@
     else if(amount&&contract&&!amount.value&&remaining>0)amount.value=String(remaining);
     if(balance){
       balance.textContent=!contract?'اختر العقد والوحدة لحساب المتبقي.':due>0?
-        (covered?'المستحق '+money(due)+' • المدفوع '+money(paid)+' • المتبقي '+money(remaining):'الشهر المحدد خارج مدة هذا العقد.'):
-        'قيمة الإيجار غير محددة في العقد؛ لا يمكن إصدار وصل قبل تصحيحها.';
+        (covered?(hasRentEntitlement(contract)?'صافي الفترة ':'المستحق ')+money(due)+' • المدفوع '+money(paid)+' • المتبقي '+money(remaining)+(dueOn?' • تاريخ الاستحقاق '+dueOn:''):'الشهر المحدد خارج مدة هذا العقد.'):
+        hasRentEntitlement(contract)&&Number.isFinite(due)&&due===0?'لا يوجد إيجار للتحصيل عن الفترة المحددة.':'تعذر التحقق من قيمة الإيجار أو بداية الاستحقاق؛ لا يمكن إصدار وصل قبل تصحيحها.';
       balance.classList.toggle('is-settled',Boolean(contract&&covered&&due>0&&remaining===0));
     }
     return {contract,due,paid,remaining};
@@ -2585,8 +2633,8 @@
       return false;
     }
     const due=contractRent(contract,period);
-    if(due<=0){
-      if(error)error.textContent=contract.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===period?'الشهر المحدد مجاني ومعتمد؛ لا يوجد إيجار للتحصيل.':'قيمة الإيجار غير محددة في العقد. صحح العقد أولاً.';
+    if(!Number.isFinite(due)||due<=0){
+      if(error)error.textContent=Number.isFinite(due)&&hasRentEntitlement(contract)&&due===0?'لا يوجد إيجار للتحصيل عن الفترة المحددة.':contract.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===period?'الشهر المحدد مجاني ومعتمد؛ لا يوجد إيجار للتحصيل.':'تعذر التحقق من قيمة الإيجار أو بداية الاستحقاق. راجع العقد وحدّث الصفحة.';
       return false;
     }
     const balance=remainingForPeriod(activeProperty,contract,period);
@@ -2652,6 +2700,7 @@
       if((primary.collections||[]).some(row=>normalizedReference(row[0])===normalizedReference(record[0]))||(primary.rentLedgerV202||[]).some(row=>normalizedReference(ledgerReference(row))===normalizedReference(record[0])))throw new Error('رقم الوصل مسجل مسبقاً.');
       const sourceContract=(primary.contractsV202||[]).find(c=>String(c.id)===ledgerEntry.contractId);
       const receiptSnapshot={id:record[0],template:'rent-voucher-v267-1',record:JSON.parse(JSON.stringify(record)),contract:JSON.parse(JSON.stringify({...cloudContract,...sourceContract,id:cloudContract.id})),tenantId:sourceContract?.tenantId||null,tenantNameEn:sourceContract?.tenantProfile?.nameEn||'',brand:statementBrand(name),detailsVersion:sourceContract?.detailsVersion||1,accountant:sourceContract?.accountant||ledgerEntry.accountant||'',transactionNo:ledgerEntry.transactionNo||''};
+      if(hasRentEntitlement(receiptSnapshot.contract))receiptSnapshot.rentPeriodBreakdown=receiptRentPeriodBreakdown(receiptSnapshot.contract,ledgerEntry.period,ledgerEntry.due);
       primary.collections=(primary.collections||[]).concat([record]);
       primary.rentLedgerV202=(primary.rentLedgerV202||[]).concat([ledgerEntry]);
       primary.rentReceiptsV267=(primary.rentReceiptsV267||[]).concat([receiptSnapshot]);
@@ -2707,12 +2756,17 @@
     if(!c?.id||!c.contract_no||!c.unit||!c.tenant||!brand)return '';
     const ledger=rawLedgerRecords().filter(x=>normalizedReference(ledgerReference(x))===normalizedReference(saved.id));
     if(ledger.length!==1||String(ledger[0].contractId)!==String(c.id)||!exactIdentityMatch(ledger[0].property,c.property)||!exactIdentityMatch(ledger[0].unit,c.unit)||!exactIdentityMatch(ledger[0].tenant,c.tenant)||strictMoney(ledger[0].paid)!==strictCollectionMoney(record[2]))return '';
+    const hasBreakdown=Object.prototype.hasOwnProperty.call(saved,'rentPeriodBreakdown'),breakdown=saved.rentPeriodBreakdown;
+    if(hasBreakdown&&!validRentPeriodBreakdown(breakdown,c,record[8],ledger[0].due))return '';
+    if(hasRentEntitlement(c)&&!hasBreakdown)return '';
     const e=escapeHtml,amount=strictCollectionMoney(record[2]);if(!Number.isFinite(amount)||amount<=0)return '';
     const fils=Math.round(amount*1000),line=(ar,en,value)=>'<div class="v267-voucher-line"><span>'+e(ar)+'</span><strong>'+e(value)+'</strong><small lang="en">'+e(en)+'</small></div>';
+    const rentLines=hasBreakdown?line('إيجار العقد الأصلي','Original contract rent',c.contractRent)+(breakdown.manual?line('صافي أول فترة — مبلغ يدوي، دون خصم إضافي','Manual first-period net; no additional discount',breakdown.net.toFixed(3)):line('إجمالي إيجار الفترة','Period gross rent',breakdown.gross.toFixed(3))+line('خصم الفترة','Period discount',breakdown.discount.toFixed(3))+line('صافي الفترة','Period net due',breakdown.net.toFixed(3)))+line('تاريخ استحقاق الفترة','Period due date',breakdown.dueOn):line('إيجار العقد / بعد الخصم','Original / Current rent',c.contractRent+' / '+c.rent);
+    const voucherBand=hasBreakdown?'تاريخ استحقاق إيجار هذه الفترة: '+breakdown.dueOn:'تسديد الإيجارات بحد أقصاها الخامس من كل شهر (التأمين لا يرد)';
     return '<article class="v202-document v267-voucher" data-v267-voucher data-receipt-no="'+e(saved.id)+'"><h1>'+e(brand.ar)+'</h1><header><div><b>وصل إيجار</b><br><span lang="en">Rent Voucher</span></div><div>رقم الوصل / No.<strong>'+e(saved.id)+'</strong><br>التاريخ / Date: '+e(record[5])+'</div><div class="v267-voucher-money"><span>دينار K.D<br><b>'+Math.floor(fils/1000)+'</b></span><span>فلس Fils<br><b>'+String(fils%1000).padStart(3,'0')+'</b></span></div></header>'+
       line('وصلني من السيد / السادة','Received From',c.tenant+(saved.tenantNameEn?' / '+saved.tenantNameEn:''))+line('مبلغ وقدره','Sum Of KD',amount.toFixed(3)+' د.ك')+line('طريقة الدفع / المرجع','Cash / Cheque / K-net No.',record[9]+' / '+(saved.transactionNo||'غير مدون'))+line('وذلك من إيجار شهر','Rent of Month',record[8])+line('وحدة رقم','Room No.',c.unit)+line('العقار / رقم العقد','Property / Contract No.',c.property+' / '+c.contract_no)+
-      (saved.detailsVersion===2?line('الدور','Floor',c.floor)+line('البريد الإلكتروني','Email',c.tenantProfile?.email)+line('الهاتف','Phone',c.tenantProfile?.phone)+line('الرقم المدني','Civil ID',c.tenantProfile?.civilId)+line('رقم الجواز','Passport',c.tenantProfile?.passportNo)+line('الجنسية','Nationality',c.tenantProfile?.nationality)+line('بداية ونهاية العقد','Contract term',c.start_date+' — '+c.end_date)+line('إيجار العقد / بعد الخصم','Original / Current rent',c.contractRent+' / '+c.rent)+(c.rentalTermsVersion===1?line('تاريخ استلام التأمين','Deposit received',c.depositReceivedOn||'لم يستلم')+line('الشهر المجاني المعتمد','Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'')+line('التأمين / العربون / النظافة','Deposit / Advance / Cleaning',c.deposit+' / '+c.advance+' / '+c.cleaningFee)+line('رقم العملية','Transaction',saved.transactionNo||'كاش')+line('حالة ووقت استلام العقد — الكويت','Contract received',c.contractReceived+' '+c.receivedAt)+line('تبليغ الإخلاء','Eviction notice',c.evictionNotice)+line('المحاسب المسؤول','Accountant',saved.accountant):'')+
-      '<section class="v267-voucher-terms"><p>في حالة عدم توقيع العقد وعدم تسلم كامل قيمة الإيجار خلال يومين من تاريخ هذا الإيصال تعتبر الحجز ملغية ويعتبر الحجز لاغياً.</p><p lang="en">If the contract is not signed or full payment is not received within two days of receiving this receipt, this reservation is considered void and the customer shall have no right in potential claim.</p><p>هذا الإيصال لإثبات المبلغ المدفوع فقط، ولا يعكس السعر المتفق عليه للإيجار.</p><p lang="en">This receipt is proof of payment and does not reflect the actual agreed upon rental price.</p><p>يعتبر هذا الإيصال لاغياً في حال عدم تحصيل الشيك.</p><p lang="en">This receipt is considered void in case of failure of processing the cheque.</p></section><p class="v267-voucher-band">تسديد الإيجارات بحد أقصاها الخامس من كل شهر (التأمين لا يرد)</p><div class="v267-voucher-signatures"><p>اسم المستلم / Receiver Name<br>________________<br>توقيع المستلم / Receiver Signature<br>________________</p><p>اسم المحاسب / Accountant Name<br>________________<br>توقيع المحاسب / Accountant Signature<br>________________</p></div><footer>'+e(brand.addressAr)+' • '+e(record[9])+'</footer></article>';
+      (saved.detailsVersion===2?line('الدور','Floor',c.floor)+line('البريد الإلكتروني','Email',c.tenantProfile?.email)+line('الهاتف','Phone',c.tenantProfile?.phone)+line('الرقم المدني','Civil ID',c.tenantProfile?.civilId)+line('رقم الجواز','Passport',c.tenantProfile?.passportNo)+line('الجنسية','Nationality',c.tenantProfile?.nationality)+line('بداية ونهاية العقد','Contract term',c.start_date+' — '+c.end_date)+rentLines+(c.rentalTermsVersion===1?line('تاريخ استلام التأمين','Deposit received',c.depositReceivedOn||'لم يستلم')+line('الشهر المجاني المعتمد','Approved free month',c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'')+line('التأمين / العربون / النظافة','Deposit / Advance / Cleaning',c.deposit+' / '+c.advance+' / '+c.cleaningFee)+line('رقم العملية','Transaction',saved.transactionNo||'كاش')+line('حالة ووقت استلام العقد — الكويت','Contract received',c.contractReceived+' '+c.receivedAt)+line('تبليغ الإخلاء','Eviction notice',c.evictionNotice)+line('المحاسب المسؤول','Accountant',saved.accountant):hasBreakdown?rentLines:'')+
+      '<section class="v267-voucher-terms"><p>في حالة عدم توقيع العقد وعدم تسلم كامل قيمة الإيجار خلال يومين من تاريخ هذا الإيصال تعتبر الحجز ملغية ويعتبر الحجز لاغياً.</p><p lang="en">If the contract is not signed or full payment is not received within two days of receiving this receipt, this reservation is considered void and the customer shall have no right in potential claim.</p><p>هذا الإيصال لإثبات المبلغ المدفوع فقط، ولا يعكس السعر المتفق عليه للإيجار.</p><p lang="en">This receipt is proof of payment and does not reflect the actual agreed upon rental price.</p><p>يعتبر هذا الإيصال لاغياً في حال عدم تحصيل الشيك.</p><p lang="en">This receipt is considered void in case of failure of processing the cheque.</p></section><p class="v267-voucher-band">'+e(voucherBand)+'</p><div class="v267-voucher-signatures"><p>اسم المستلم / Receiver Name<br>________________<br>توقيع المستلم / Receiver Signature<br>________________</p><p>اسم المحاسب / Accountant Name<br>________________<br>توقيع المحاسب / Accountant Signature<br>________________</p></div><footer>'+e(brand.addressAr)+' • '+e(record[9])+'</footer></article>';
   }
 
   function rowOrEmpty(cells,colspan){return cells||'<tr><td colspan="'+colspan+'">لا توجد بيانات مرتبطة</td></tr>'}
@@ -2757,7 +2811,7 @@
   }
 
   function statusEnglish(value){
-    return ({'مسدد':'Paid','مدفوع':'Paid','مستلم':'Received','جزئي':'Partially paid','مستحق':'Due','قيد المراجعة':'Under review','يحتاج مراجعة':'Needs review','يحتاج تحقق':'Needs verification','غير قابل للفوترة':'Not billable','موقّع':'Signed','منتهي':'Expired','ملغي':'Cancelled','غير مربوط':'Not linked','مسودة':'Draft','جاهز للاعتماد':'Ready for approval','معتمد':'Approved','بانتظار التوقيع':'Awaiting signature'})[String(value||'')]||String(value||'Not recorded');
+    return ({'مسدد':'Paid','مدفوع':'Paid','مستلم':'Received','جزئي':'Partially paid','مستحق':'Due','لم يحن الاستحقاق':'Not yet due','لا إيجار للفترة':'No rent for this period','شهر مجاني':'Approved free month','قيد المراجعة':'Under review','يحتاج مراجعة':'Needs review','يحتاج تحقق':'Needs verification','غير قابل للفوترة':'Not billable','موقّع':'Signed','منتهي':'Expired','ملغي':'Cancelled','غير مربوط':'Not linked','مسودة':'Draft','جاهز للاعتماد':'Ready for approval','معتمد':'Approved','بانتظار التوقيع':'Awaiting signature'})[String(value||'')]||String(value||'Not recorded');
   }
 
   function tenantMailto(record,period){
@@ -2931,7 +2985,7 @@
       const fallback=JSON.stringify([normalizedIdentity(contract?.tenant),normalizedIdentity(contract?.unit)]);
       const key=id?'id:'+normalizedIdentity(id):'party:'+fallback;
       if(!id&&!fallback.replace('|',''))return;
-      items.set(key,{contractId:id,tenant:contract?.tenant||'—',unit:contract?.unit||'—',due:contractRent(contract,period),paid:0,pending:0,receipts:[],status:statusLabel(contract?.status),_recordedDues:[]});
+      items.set(key,{contractId:id,tenant:contract?.tenant||'—',unit:contract?.unit||'—',due:contractRent(contract,period),paid:0,pending:0,receipts:[],status:statusLabel(contract?.status),_recordedDues:[],_contract:contract,...(hasRentEntitlement(contract)?{dueOn:contractEntitlementDueOn(contract,period)}:{})});
     });
     context.propertyLedger.filter(function(entry){return String(entry?.period||'')===period}).forEach(function(entry){
       const contract=ledgerContractForEntry(context.property?.[0],entry);
@@ -2955,7 +3009,8 @@
       if(item._recordedDues.length===1)item.due=item._recordedDues[0];
       delete item._recordedDues;
       item.balance=exactMoneyDifference(item.due,item.paid);
-      item.paymentStatus=item.due>0&&item.balance===0?'مسدد':item.paid>0?'جزئي':item.pending>0?'قيد المراجعة':'مستحق';
+      item.paymentStatus=rentEntitlementPaymentStatus(item._contract,period,item.due,item.paid,item.pending,item.balance)||(item.due>0&&item.balance===0?'مسدد':item.paid>0?'جزئي':item.pending>0?'قيد المراجعة':'مستحق');
+      delete item._contract;
       return item;
     });
   }
@@ -3056,7 +3111,7 @@
       const pending=exactMoneySum(scopedEntries.filter(function(entry){return pendingPayment(entry?.status)}).map(function(entry){return entry?.paid}));
       const due=strictMoney(item.due);
       const balance=exactMoneyDifference(due,paid);
-      const paymentStatus=entries.some(function(entry){return !validRecordedDate(entry?.paidAt)})?'يحتاج مراجعة':contract?.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===selectedPeriod?'شهر مجاني':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق';
+      const paymentStatus=entries.some(function(entry){return !validRecordedDate(entry?.paidAt)})?'يحتاج مراجعة':rentEntitlementPaymentStatus(contract,selectedPeriod,due,paid,pending,balance)||(contract?.rentalTermsVersion===1&&contract.freeMonthApproved&&contract.freeMonthPeriod===selectedPeriod?'شهر مجاني':due>0&&balance===0?'مسدد':paid>0?'جزئي':pending>0?'قيد المراجعة':'مستحق');
       return {
         property:String(context.property?.[0]||''),period:selectedPeriod,
         unit:String(item.unit||record?.unit||'—'),tenant:String(item.tenant||record?.tenant||'—'),

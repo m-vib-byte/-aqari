@@ -54,6 +54,10 @@ function lease(input,existing,profiles,properties){
  c.writtenOn=date(c.writtenOn);c.detailsVersion=2;
  if(!c.floor||!c.accountant||c.floor.length>100||c.accountant.length>300||!['لم يُبلّغ','تم التبليغ','غير محدد'].includes(c.evictionNotice))fail('أكمل الدور واسم المحاسب وحالة تبليغ الإخلاء.');
  const prior=existing.find(x=>String(x.id)===String(c.id));
+ if(c.rentalTermsVersion===1&&!prior&&!Object.prototype.hasOwnProperty.call(c,'rentEntitlement'))fail('حدد بداية الاستحقاق وسياسة أول فترة صراحة قبل حفظ العقد.');
+ if(Object.prototype.hasOwnProperty.call(c,'rentEntitlement'))c.rentEntitlement=entitlement(c);
+ if(prior?.rentEntitlement&&!Object.prototype.hasOwnProperty.call(c,'rentEntitlement'))fail('لا يمكن إزالة شروط الاستحقاق المحفوظة.');
+ if(prior?.rentEntitlement&&(!same(prior.rentEntitlement,c.rentEntitlement)||prior.start_date!==c.start_date||prior.end_date!==c.end_date)&&(!['draft','ready'].includes(prior.status)||!['draft','ready'].includes(c.status)))fail('بداية الاستحقاق وسياسة أول فترة وتواريخ العقد ثابتة بعد اعتماد العقد.');
  if(prior?.detailsVersion===2&&(Number(prior.contractRent)!==c.contractRent||prior.writtenOn!==c.writtenOn))fail('إيجار العقد عند الكتابة وتاريخ تحريره محفوظان ولا يتغيران بتغيير الخصم.');
  if(!c.id||!c.contract_no||!c.unit||!properties.some(p=>key(p[0])===key(c.property))||c.rent<=0||c.end_date<c.start_date)fail('راجع العقار والوحدة ورقم العقد والإيجار وفترة العقد.');
  if(!['draft','ready','approved','signing','signed','cancelled','expired'].includes(c.status))fail('حالة عقد غير صالحة.');
@@ -74,7 +78,38 @@ function receivedAt(value){
  if(Date.parse(result)>Date.now())fail('وقت استلام العقد لا يمكن أن يكون في المستقبل.');return result;
 }
 function kuwaitDate(now=new Date()){return new Date(now.getTime()+3*60*60*1000).toISOString().slice(0,10)}
-function effectiveRent(c,period,includeFree=true){if(c.rentalTermsVersion===1){if(includeFree&&c.freeMonthApproved&&c.freeMonthPeriod===period)return 0;const a=(c.rentAdjustments||[]).filter(a=>a.effectiveMonth<=period).at(-1);if(a)return amount(a.rent);}return amount(c.rent);}
+function entitlement(c){
+ const e=c.rentEntitlement;
+ if(!e||typeof e!=='object'||Array.isArray(e)||Object.keys(e).sort().join(',')!=='firstPeriodPolicy,manualFirstPeriodAmount,startDate,version'||e.version!==1||!['full_month','daily_prorated','manual_first_period'].includes(e.firstPeriodPolicy))fail('حدد بداية الاستحقاق وسياسة أول فترة صراحة قبل حفظ العقد.');
+ const start=date(e.startDate);if(start<c.start_date||start>c.end_date)fail('بداية الاستحقاق يجب أن تقع ضمن مدة العقد.');
+ const manual=e.firstPeriodPolicy==='manual_first_period'?amount(e.manualFirstPeriodAmount):null;
+ if(e.firstPeriodPolicy!=='manual_first_period'&&e.manualFirstPeriodAmount!==null||manual>999999999.999)fail('راجع صافي أول فترة؛ المبلغ اليدوي يخص السياسة اليدوية فقط.');
+ return {version:1,startDate:start,firstPeriodPolicy:e.firstPeriodPolicy,manualFirstPeriodAmount:manual};
+}
+function entitlementDueOn(c,period){
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period))fail('حدد شهر الاستحقاق.');
+ const start=c.rentEntitlement?entitlement(c).startDate:c.start_date;
+ if(c.rentEntitlement&&(period<start.slice(0,7)||period>c.end_date.slice(0,7)))return null;
+ return start>period+'-01'?start:period+'-01';
+}
+function effectiveRent(c,period,includeFree=true){
+ let due=amount(c.rent);if(c.rentalTermsVersion===1){if(includeFree&&c.freeMonthApproved&&c.freeMonthPeriod===period)return 0;const a=(c.rentAdjustments||[]).filter(a=>a.effectiveMonth<=period).at(-1);if(a)due=amount(a.rent);}
+ if(!includeFree||!Object.prototype.hasOwnProperty.call(c,'rentEntitlement'))return due;
+ const e=entitlement(c);if(!entitlementDueOn(c,period))return 0;if(period!==e.startDate.slice(0,7))return due;
+ if(e.firstPeriodPolicy==='manual_first_period')return e.manualFirstPeriodAmount;
+ if(e.firstPeriodPolicy==='daily_prorated'){
+  const [year,month]=period.split('-').map(Number),last=new Date(Date.UTC(year,month,0)),end=c.end_date<last.toISOString().slice(0,10)?new Date(c.end_date+'T00:00:00Z'):last;
+  const days=BigInt(Math.round((end-new Date(e.startDate+'T00:00:00Z'))/86400000)+1),divisor=BigInt(last.getUTCDate()),fils=BigInt(Math.round(due*1000));
+  return Number((fils*days*2n+divisor)/(divisor*2n))/1000;
+ }
+ return due;
+}
+function entitlementBreakdown(c,period){
+ const e=c.rentEntitlement?entitlement(c):null,net=effectiveRent(c,period),manual=!!e&&e.firstPeriodPolicy==='manual_first_period'&&period===e.startDate.slice(0,7),freeMonth=c.rentalTermsVersion===1&&c.freeMonthApproved&&c.freeMonthPeriod===period;
+ if(manual)return {gross:null,discount:null,net,manual:true,freeMonth,policy:e.firstPeriodPolicy};
+ const gross=effectiveRent({...c,rent:c.contractRent??c.rent,freeMonthApproved:false,rentAdjustments:[]},period);
+ return {gross,discount:(Math.round(gross*1000)-Math.round(net*1000))/1000,net,manual:false,freeMonth,policy:e?(period===e.startDate.slice(0,7)?e.firstPeriodPolicy:'full_month'):null};
+}
 function directoryFields(c,p){return {tenant:p.nameAr,nameAr:p.nameAr,nameEn:p.nameEn,phone:p.phone,nationality:p.nationality,civilId:p.civilId,passportNo:p.passportNo,email:p.email,floor:c.floor,contractStartRaw:c.start_date,contractEndRaw:c.end_date,insurance:c.deposit,insuranceDateRaw:c.depositReceivedOn||'',freeMonth:c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'',advance:c.advance,cleaningFee:c.cleaningFee,currentRent:effectiveRent(c,kuwaitDate().slice(0,7),false),contractReceived:c.contractReceived,receivedAt:c.receivedAt,accountant:c.accountant,evictionNotice:c.evictionNotice};}
 function primary(payload){
  const p=payload?.format==='aqari-cloud-state-v1'?payload.snapshot?.values?.aqari_v30:payload?.schema==='aqari-local-snapshot-v1'?payload.values?.aqari_v30:payload;
@@ -100,7 +135,7 @@ function createStore(options){
   finally{busy=false}
  },get busy(){return busy}};
 }
-const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields,effectiveRent};
+const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields,effectiveRent,entitlement,entitlementDueOn,entitlementBreakdown};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.AQARI_RENTAL_RECORDS=api;
 if(!root.document)return;
@@ -124,6 +159,7 @@ function renderContract(c,count,official,firstCopy=1,total=count){
  if(![1,2].includes(count))fail('اختر نسخة واحدة أو نسختين.');
  const p=c.tenantProfile||{};
  const rows=[['حالة العقد',c.status],['العقار',c.property],['رقم الوحدة',c.unit],['الدور',c.floor],['الاسم بالعربي',p.nameAr||c.tenant],['الاسم بالإنجليزي',p.nameEn],['البريد الإلكتروني',p.email],['الجنسية',p.nationality],['الرقم المدني',p.civilId],['رقم الجواز',p.passportNo],['الهاتف',p.phone],['بداية العقد',c.start_date],['نهاية العقد',c.end_date],['الإيجار عند كتابة العقد',c.contractRent??c.rent],['التأمين',c.deposit],['تاريخ استلام التأمين',c.depositReceivedOn||'لم يستلم / غير مدون'],['شهر مجاني معتمد',c.rentalTermsVersion===1?(c.freeMonthApproved?'نعم — '+c.freeMonthPeriod:'لا'):'غير مدون'],['العربون',c.advance],['رسوم النظافة',c.cleaningFee],['حالة استلام العقد',c.contractReceived],['تاريخ ووقت استلام العقد — الكويت',c.receivedAt],['حالة تبليغ الإخلاء',c.evictionNotice],['المحاسب المسؤول',c.accountant]];
+ if(c.rentEntitlement)rows.push(['بداية استحقاق الإيجار',c.rentEntitlement.startDate]);
  return Array.from({length:count},(_,i)=>'<article class="v267-contract-copy" data-contract-print="'+(official?'approved':'draft')+'">'+(official?'':draftNotice)+'<p>حُرر هذا العقد في دولة الكويت بتاريخ '+esc(c.writtenOn||'غير مدون')+'</p><p>AQARI V267 • نسخة '+(i+firstCopy)+' من '+total+'</p><h2>عقد إيجار '+esc(c.contract_no)+'</h2>'+rows.map(([label,value])=>'<p><b>'+esc(label)+':</b> <bdi dir="'+(label.includes('تاريخ ووقت')?'ltr':'auto')+'">'+esc(value??'غير مدون')+'</bdi></p>').join('')+(c.clauses||[]).map((x,n)=>'<p><b>'+(n+1)+'. '+esc(x.title)+'</b><br>'+esc(x.text)+'</p>').join('')+(official?'<p>توقيع المؤجر: ____________________</p><p>توقيع المستأجر: ____________________</p>':draftNotice)+'</article>').join('');
 }
 function contractAnnexMarkup(c){return renderAnnex(c,false);}

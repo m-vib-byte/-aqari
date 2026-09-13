@@ -83,13 +83,49 @@
       "result": "PASS",
       "transaction": "BEGIN/ROLLBACK",
       "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "reminder_grace_cross_month",
+      "source": "staging-database/tests/reminder_grace_cross_month.sql",
+      "sha256": "d2b21117b8f7531592bcfb36909a729d5157dc75c58e1db56f61d1b21ca6a22b",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims; not actual Auth acceptance"
+    },
+    {
+      "name": "lease_renewal_freeze_guard",
+      "source": "staging-database/tests/lease_renewal_freeze_guard.sql",
+      "sha256": "3ec04c11efea97725fb790146855e8ba2f37a84593d15fd48a18cecf946e5714",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims with current TOTP timestamp; not actual Auth acceptance"
+    },
+    {
+      "name": "rent_entitlement_start",
+      "source": "staging-database/tests/rent_entitlement_start.sql",
+      "sha256": "2cec96c4b63150b4d769de781d7d870038b6c5d52c7a1aa6b15861148321799b",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims with current TOTP timestamp; not actual Auth acceptance"
+    },
+    {
+      "name": "linked_lease_renewals",
+      "source": "staging-database/tests/linked_lease_renewals.sql",
+      "sha256": "3c25c910d6f9519e6b362166c67c3b31b8bb7dc6b521e46c461bd93f25f398d0",
+      "result": "PASS",
+      "transaction": "BEGIN/ROLLBACK",
+      "identities": "synthetic SQL claims with current TOTP timestamp; not actual Auth acceptance"
     }
   ],
   "applied_migrations": [
     "20260912185345",
     "20260913171247",
     "20260913171459",
-    "20260913172121"
+    "20260913172121",
+    "20260913174911",
+    "20260913183205",
+    "20260913183222",
+    "20260913183232"
   ],
   "cleanup": {
     "auth_users": 1,
@@ -104,5 +140,91 @@
   },
   "business_integrity_note": "Six source-table digests match the earlier comparison. Properties and app-state changed before this day: revision14 updated2026-09-12T19:39:08.226863Z is preserved; see report. No claim that all8 old digests remained equal across separate user activity.",
   "actual_accounts_devices_email_storage_bytes": "NOT_PROVEN",
-  "github_vercel_status": "Read checks and deployment for the published commit; local results do not establish hosted browser acceptance."
+  "github_vercel_status": {
+    "vercel": {
+      "deployment_id": "dpl_7RUD8mubbSof8TJqHn3uKkDKE8v6",
+      "ready_state": "READY",
+      "production_target": null,
+      "alias": "aqari-git-fix-v267-jsonb-readback-m-vib-5421.vercel.app",
+      "source_sha": "2c5165c6831927e0d2a9e1fbc59cf6801f065b30"
+    },
+    "github": {
+      "failed_actions_checks": 9,
+      "release_run_id": 34771721485,
+      "preview_e2e_run_id": 34771721473,
+      "release_job_id": 103762403789,
+      "preview_e2e_job_id": 103762403740,
+      "steps": null,
+      "logs_url": null,
+      "official_logs_response": "404 BlobNotFound",
+      "detailed_startup_reason": "UNAVAILABLE: annotation endpoint is not supported by connector; no billing/authentication attribution"
+    },
+    "browser": {
+      "result": "NOT_PROVEN",
+      "reason": "CDP refresh tabs timed out; no successful interaction with published application"
+    },
+    "vercel_app_fetch": {
+      "status": 302,
+      "result": "Authentication redirect; not application acceptance"
+    },
+    "production": "HOLD: owner acceptance required; no production publish"
+  },
+  "published_source_sha": "2c5165c6831927e0d2a9e1fbc59cf6801f065b30",
+  "followup_verification": {
+    "source_base": "2c5165c6831927e0d2a9e1fbc59cf6801f065b30",
+    "python_pass": 78,
+    "python_fail": 0,
+    "pdf_visual_review": "Synthetic first-period receipt: original100, periodgross36.667, perioddiscount3.667, net33; two pages inspected",
+    "generated_hosted_test_files_match": 6,
+    "javascript_pass": 1246,
+    "javascript_fail": 0,
+    "sql_steps_pass": 201,
+    "sql_steps_fail": 0,
+    "source_check": "PASS",
+    "current_security_migrations_included": [
+      "20260913182820",
+      "20260913182835",
+      "20260913182850"
+    ]
+  },
+  "concurrent_security_migrations_preserved": [
+    "20260913182820",
+    "20260913182835",
+    "20260913182850"
+  ],
+  "followup_integrity": {
+    "all_eight_business_digests_unchanged": true,
+    "method": "md5(coalesce(string_agg(to_jsonb(t)::text, '' order by to_jsonb(t)::text),''))",
+    "rows": {
+      "aqari_properties": 3,
+      "aqari_units": 1,
+      "aqari_tenants": 1,
+      "aqari_leases": 1,
+      "aqari_rent_payments": 2,
+      "aqari_documents": 2,
+      "aqari_maintenance_requests": 0,
+      "aqari_app_state": 1
+    },
+    "auth_users": 1,
+    "storage_objects": 2,
+    "workspaces": 1,
+    "public_buckets": 0,
+    "renewal_links": 0,
+    "synthetic_workspaces": 0,
+    "renewal_rpc_security_definer": false
+  },
+  "followup_security_advisors": {
+    "rls_enabled_no_policy": {
+      "level": "INFO",
+      "count": 86
+    },
+    "authenticated_security_definer_function_executable": {
+      "level": "WARN",
+      "count": 38
+    },
+    "auth_leaked_password_protection": {
+      "level": "WARN",
+      "count": 1
+    }
+  }
 }

@@ -2,7 +2,7 @@
 -- The fixture existed before readiness and template guards; no guard is disabled here.
 begin;
 select set_config('request.jwt.claim.sub','76620000-0000-4000-8000-000000000004',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$
 <<verify>>

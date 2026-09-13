@@ -25,7 +25,10 @@ test('regression proves both prior defects and in-place upgrade retry safety',()
 test('full 155-item owner gate remains blocking until actual acceptance',()=>{
  const result=audit(new URL('../',import.meta.url).pathname);
  assert.equal(result.releasePolicy.all155RequiredBeforeRelease,true);
- assert.equal(result.releasePolicy.authorizationAlreadyGranted,true);
+ assert.equal(result.releasePolicy.authorizationAlreadyGranted,false);
+ assert.equal(result.releasePolicy.previewDevelopmentAuthorized,true);
+ assert.equal(result.releasePolicy.ownerAcceptanceRequiredBeforeProduction,true);
+ assert.ok(result.releasePolicy.required.includes('explicit-owner-acceptance-before-production'));
  assert.equal(result.releaseGate,'HOLD');assert.equal(result.requirements.length,155);
  assert.ok(result.releasePolicy.required.includes('isolated-restore'));
  assert.ok(result.releasePolicy.required.includes('tested-V266-rollback'));

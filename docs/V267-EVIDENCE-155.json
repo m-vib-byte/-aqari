@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
   "sourceParentSHA": "9a220170dacf2c59b5d18c8c71a3c682772a1dcb",
-  "matrixSha256": "0e64569690db63007199d6688463ad56be42a6d3aabd05569bae3dec1273440b",
+  "matrixSha256": "5c1df8061e00ac5ab07e58070679909a17cbd503d77674482a2107a815a11a7e",
   "releaseGate": "HOLD",
   "releasePolicy": {
     "all155RequiredBeforeRelease": true,
     "required": [
+      "explicit-owner-acceptance-before-production",
       "all-155-requirements-accepted",
       "authenticated-live-acceptance",
       "iphone-ipad-desktop-acceptance",
@@ -14,8 +15,10 @@
       "isolated-restore",
       "tested-V266-rollback"
     ],
-    "authorizationAlreadyGranted": true,
-    "evidenceReport": "docs/V267-FULL-RELEASE-GATE-2026-09-12.md"
+    "authorizationAlreadyGranted": false,
+    "previewDevelopmentAuthorized": true,
+    "ownerAcceptanceRequiredBeforeProduction": true,
+    "evidenceReport": "docs/V267-CONTRACT-CYCLE-2026-09-13.md"
   },
   "method": "References and declarations extracted from the 155-row source matrix; association is not proof of complete implementation or database execution. See the execution report for tests actually run.",
   "evidence": {
@@ -540,6 +543,33 @@
         "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
         "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
       ]
+    },
+    "E53": {
+      "files": [
+        "docs/V267-REMINDER-GRACE-CROSS-MONTH-2026-09-13.md",
+        "staging-database/sql/reminder-grace-cross-month.sql",
+        "staging-database/tests/reminder_grace_cross_month.sql"
+      ]
+    },
+    "E54": {
+      "files": [
+        "docs/V267-LINKED-RENEWALS-2026-09-13.md",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "src/v267/components/lease-renewal.js",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/sql/rent-entitlement-start.sql",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "v267-rental-records.js",
+        "tests/v267-rent-entitlement.test.cjs",
+        "v202-property-os.js",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "lib/rent_pdf.py",
+        "tests/rent_pdf_test.py",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md"
+      ]
     }
   },
   "files": [
@@ -792,8 +822,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "3871498160ed3d750259c1442eecac13de6140849456455f427805701567fac0",
-      "bytes": 41315,
+      "sha256": "ad25fff3ea8baa8fc02ddcf07bd4f3b501664b130ae589ffbf1e645dad237add",
+      "bytes": 45051,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -819,8 +849,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "93932308c53b9cb50e0c53af23fe876d815ed4e45e270ef3e5b8ac683a5776b5",
-      "bytes": 19763,
+      "sha256": "f94eb94671f65d90d43e25ad0e528c35794d2702bb3a10415deedf317ab46795",
+      "bytes": 26950,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -936,8 +966,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "f350a2f297eabafa4b08e96318c75a0c661dc29c4236350a7fbba3859f276a57",
-      "bytes": 270705,
+      "sha256": "4015538f38d97c6ebf78505342cadc8387898510444f92c957c1efbb4eb1dd2a",
+      "bytes": 276952,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -3456,8 +3486,8 @@
     },
     {
       "path": "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
-      "sha256": "ed5d3f0ed037d3d23494769489ce08aa59b56d1bce77864070f938243a5324e1",
-      "bytes": 10954,
+      "sha256": "87c39a8a578d7514a3ac72ebf8a65f39ed03fe50d72d4793dbbc67d3121b37e9",
+      "bytes": 19115,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -3561,12 +3591,162 @@
     },
     {
       "path": "docs/V267-PREVIEW-EXECUTION-2026-09-13.json",
-      "sha256": "8d5494069298dbd4eacbfb5208d996c92ee7782d845dc0fafe85262b152dc2ff",
-      "bytes": 4573,
+      "sha256": "2ea9b8c4c038c9f200192edb88ffbf1c379551f5566b2f4b1e899c2c1e769c1e",
+      "bytes": 8798,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
       "testKind": null
+    },
+    {
+      "path": "docs/V267-REMINDER-GRACE-CROSS-MONTH-2026-09-13.md",
+      "sha256": "e759c8abd7a3f940a95100efad50b47bdde9d26336b14be81944517056176e0f",
+      "bytes": 4163,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/reminder-grace-cross-month.sql",
+      "sha256": "beb5349dcfdf9f3e41a076f0c9f751745f71cdcec0e7f2f0d9f1fb48cefe5f05",
+      "bytes": 3572,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/reminder_grace_cross_month.sql",
+      "sha256": "d2b21117b8f7531592bcfb36909a729d5157dc75c58e1db56f61d1b21ca6a22b",
+      "bytes": 13124,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "docs/V267-LINKED-RENEWALS-2026-09-13.md",
+      "sha256": "213b0f16c76382a6abe84e93568f5766e7363fc4ed3355e7773a55b12fe21685",
+      "bytes": 5514,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/sql/lease-renewal-freeze-guard.sql",
+      "sha256": "d4c0644cf881790745516a43c1f2d503f19ba1cf2f2f134297d8166c222f8e36",
+      "bytes": 5239,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/lease_renewal_freeze_guard.sql",
+      "sha256": "3ec04c11efea97725fb790146855e8ba2f37a84593d15fd48a18cecf946e5714",
+      "bytes": 11113,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "staging-database/sql/linked-lease-renewals.sql",
+      "sha256": "93f97f55a60861d2f9ae10a1181f42a4c95ae9e8228146145ccbf7c8fbbba02f",
+      "bytes": 19362,
+      "declaredTables": [
+        "private.aqari_lease_renewals"
+      ],
+      "publicFunctions": [
+        "public.aqari_lease_renewal_context"
+      ],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/linked_lease_renewals.sql",
+      "sha256": "3c25c910d6f9519e6b362166c67c3b31b8bb7dc6b521e46c461bd93f25f398d0",
+      "bytes": 23912,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "src/v267/components/lease-renewal.js",
+      "sha256": "43ccf66bee73c56322b809038464e8b7cd54e417d83d14ebd4d5b0ae369c20a0",
+      "bytes": 2077,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [
+        "aqari_lease_renewal_context"
+      ],
+      "testKind": null
+    },
+    {
+      "path": "tests/v267-lease-renewal.test.mjs",
+      "sha256": "86808e0fc7121de50e628765744b0c4689a559f48da160c38a7f6921cc7be5bc",
+      "bytes": 2568,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "staging-database/sql/rent-entitlement-start.sql",
+      "sha256": "65724e24c4eda8ee65fabb990051ae4cb5b45c3d644617d8b1f52b69218f8dd9",
+      "bytes": 17173,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "staging-database/tests/rent_entitlement_start.sql",
+      "sha256": "2cec96c4b63150b4d769de781d7d870038b6c5d52c7a1aa6b15861148321799b",
+      "bytes": 17021,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "database-suite"
+    },
+    {
+      "path": "tests/v267-rent-entitlement.test.cjs",
+      "sha256": "aa4ca2690391f96167777642976b6b647ecd2ec890e57cf40113767ce4af2b78",
+      "bytes": 6062,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "tests/v267-rent-entitlement-payments.test.cjs",
+      "sha256": "45d38dc6becdb4e421c74e7b20aedec8f4197af43722e28980fb1b7b7ff118e5",
+      "bytes": 15279,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
+    },
+    {
+      "path": "lib/rent_pdf.py",
+      "sha256": "51f85dca752761e4a13323a9551edefb51355c7184a81f0b179750fa48af0e13",
+      "bytes": 14327,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": null
+    },
+    {
+      "path": "tests/rent_pdf_test.py",
+      "sha256": "1bc675ac1df2c74ebd3a9201f99c8fd341a08b41b46eee30e007fc8994452753",
+      "bytes": 17677,
+      "declaredTables": [],
+      "publicFunctions": [],
+      "clientRpcCalls": [],
+      "testKind": "local-test"
     }
   ],
   "requirements": [
@@ -5169,12 +5349,13 @@
       "id": 35,
       "sourceId": "G04-01",
       "requirement": "تسجيل بيانات العقد: البداية والنهاية وقيمة الإيجار ودورة السداد.",
-      "reportedImplementation": "جزئي — E07، E08؛ التواريخ والقيمة محفوظة، دورة غير شهرية شاملة غير مثبتة. E52؛ أضيف اختيار قالب منشور من أربعة أنواع ونهاية مقترحة من مدة الأشهر؛ بداية استحقاق مستقلة والتجديد الشامل غير مثبتين.",
+      "reportedImplementation": "جزئي — E07، E08؛ التواريخ والقيمة محفوظة، دورة غير شهرية شاملة غير مثبتة. E52؛ أضيف اختيار قالب منشور من أربعة أنواع ونهاية مقترحة من مدة الأشهر؛ E54؛ أضيفت بداية استحقاق مستقلة وسياسة أول فترة صريحة وتجديد مترابط مع مراجعة المصدر ومنع التداخل؛ قبول الرحلة بحسابات وأجهزة فعلية باقٍ.",
       "acceptanceRemaining": "حفظ التفاصيل ودورة السداد وتوليد الفترات التابعة لها دون تغيير الأصل.",
       "evidenceIds": [
         "E07",
         "E08",
-        "E52"
+        "E52",
+        "E54"
       ],
       "evidenceFiles": [
         "v267-rental-records.js",
@@ -5194,20 +5375,39 @@
         "staging-database/sql/reminder-rent-balance-convergence.sql",
         "staging-database/tests/reminder_rent_balance_convergence.sql",
         "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
-        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json",
+        "docs/V267-LINKED-RENEWALS-2026-09-13.md",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "src/v267/components/lease-renewal.js",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/sql/rent-entitlement-start.sql",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "tests/v267-rent-entitlement.test.cjs",
+        "v202-property-os.js",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "lib/rent_pdf.py",
+        "tests/rent_pdf_test.py"
       ],
       "uiFiles": [
         "v267-rental-records.js",
         "src/v267/pages/rental-contracts.js",
         "src/v267/components/rental-templates.js",
-        "src/v267/domain/lease-dates.js"
+        "src/v267/domain/lease-dates.js",
+        "src/v267/components/lease-renewal.js",
+        "v202-property-os.js"
       ],
       "sqlFiles": [
         "staging-database/sql/linked-rental-details.sql",
         "staging-database/sql/rental-contract-provisions.sql",
         "staging-database/sql/rental-contract-templates.sql",
         "staging-database/sql/payment-method-reference-guard.sql",
-        "staging-database/sql/reminder-rent-balance-convergence.sql"
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/sql/rent-entitlement-start.sql"
       ],
       "testFiles": [
         "staging-database/tests/linked_rental_details.sql",
@@ -5215,7 +5415,14 @@
         "staging-database/tests/rental_contract_templates.sql",
         "tests/v267-lease-dates.test.mjs",
         "staging-database/tests/payment_method_reference_hosted.sql",
-        "staging-database/tests/reminder_rent_balance_convergence.sql"
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "tests/v267-rent-entitlement.test.cjs",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "tests/rent_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -5227,24 +5434,54 @@
       "id": 36,
       "sourceId": "G04-02",
       "requirement": "توليد الاستحقاق الشهري تلقائياً حسب دورة السداد مع حالة كل شهر.",
-      "reportedImplementation": "جزئي — E18 يحسب مستحق الفترة؛ لا دفتر استحقاقات شامل ومجدول مثبت.",
+      "reportedImplementation": "جزئي — E18 يحسب مستحق الفترة. E54؛ الجدول الشهري يعرض تاريخ الاستحقاق والمبلغ والمدفوع والرصيد؛ سياسة أول شهر كامل أو أيام فعلية أو مبلغ يدوي صافي، مع حفظ القديم ومطابقة الوصل والكشف. لا يثبت ذلك دورة سداد غير شهرية أو الجدولة التشغيلية الشاملة.",
       "acceptanceRemaining": "إنشاء استحقاق فريد لكل فترة مع الخصم والشهر المجاني وتحديث الحالة من الدفعات.",
       "evidenceIds": [
-        "E18"
+        "E18",
+        "E54"
       ],
       "evidenceFiles": [
         "staging-database/sql/reminder-contract-balance.sql",
         "staging-database/tests/reminder_contract_balance.sql",
-        "src/v267/pages/automation-status.js"
+        "src/v267/pages/automation-status.js",
+        "docs/V267-LINKED-RENEWALS-2026-09-13.md",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "src/v267/components/lease-renewal.js",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/sql/rent-entitlement-start.sql",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "v267-rental-records.js",
+        "tests/v267-rent-entitlement.test.cjs",
+        "v202-property-os.js",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "lib/rent_pdf.py",
+        "tests/rent_pdf_test.py",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md"
       ],
       "uiFiles": [
-        "src/v267/pages/automation-status.js"
+        "src/v267/pages/automation-status.js",
+        "src/v267/components/lease-renewal.js",
+        "v267-rental-records.js",
+        "v202-property-os.js"
       ],
       "sqlFiles": [
-        "staging-database/sql/reminder-contract-balance.sql"
+        "staging-database/sql/reminder-contract-balance.sql",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/sql/rent-entitlement-start.sql"
       ],
       "testFiles": [
-        "staging-database/tests/reminder_contract_balance.sql"
+        "staging-database/tests/reminder_contract_balance.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "tests/v267-rent-entitlement.test.cjs",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "tests/rent_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -11720,10 +11957,11 @@
       "id": 131,
       "sourceId": "G12-02",
       "requirement": "الشيك المرتجع يعيد المبلغ آلياً كدين على المستأجر ويجمد التجديد تلقائياً.",
-      "reportedImplementation": "جزئي — E29 ينشئ قيد دين غير قابل للتكرار ويجمد التجديد عند حالة مرتجع.",
+      "reportedImplementation": "جزئي — E29 ينشئ قيد دين غير قابل للتكرار. E54؛ حارس خادمي يستخدم علم التجميد المحفوظ ويمنع التمديد والعقد البديل وترقية مسودة لاحقة، ويبقى حتى معالجة كل الشيكات المجمدة.",
       "acceptanceRemaining": "اختبار قبول ورفض مستضاف بعقد حقيقي معزول.",
       "evidenceIds": [
-        "E29"
+        "E29",
+        "E54"
       ],
       "evidenceFiles": [
         "src/v267/pages/operations-center.js",
@@ -11734,22 +11972,51 @@
         "staging-database/tests/work_order_request_link.sql",
         "tests/v267-work-order-request-link.test.cjs",
         "staging-database/sql/vendor-optional-identity.sql",
-        "staging-database/tests/vendor_optional_identity.sql"
+        "staging-database/tests/vendor_optional_identity.sql",
+        "docs/V267-LINKED-RENEWALS-2026-09-13.md",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "src/v267/components/lease-renewal.js",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/sql/rent-entitlement-start.sql",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "v267-rental-records.js",
+        "tests/v267-rent-entitlement.test.cjs",
+        "v202-property-os.js",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "lib/rent_pdf.py",
+        "tests/rent_pdf_test.py",
+        "docs/V267-CONTRACT-CYCLE-2026-09-13.md"
       ],
       "uiFiles": [
-        "src/v267/pages/operations-center.js"
+        "src/v267/pages/operations-center.js",
+        "src/v267/components/lease-renewal.js",
+        "v267-rental-records.js",
+        "v202-property-os.js"
       ],
       "sqlFiles": [
         "staging-database/sql/operations-register.sql",
         "staging-database/sql/work-order-request-link.sql",
-        "staging-database/sql/vendor-optional-identity.sql"
+        "staging-database/sql/vendor-optional-identity.sql",
+        "staging-database/sql/lease-renewal-freeze-guard.sql",
+        "staging-database/sql/linked-lease-renewals.sql",
+        "staging-database/sql/rent-entitlement-start.sql"
       ],
       "testFiles": [
         "tests/v267-operations-center.test.cjs",
         "tests/v267-operations-rpc.test.cjs",
         "staging-database/tests/work_order_request_link.sql",
         "tests/v267-work-order-request-link.test.cjs",
-        "staging-database/tests/vendor_optional_identity.sql"
+        "staging-database/tests/vendor_optional_identity.sql",
+        "staging-database/tests/lease_renewal_freeze_guard.sql",
+        "staging-database/tests/linked_lease_renewals.sql",
+        "tests/v267-lease-renewal.test.mjs",
+        "staging-database/tests/rent_entitlement_start.sql",
+        "tests/v267-rent-entitlement.test.cjs",
+        "tests/v267-rent-entitlement-payments.test.cjs",
+        "tests/rent_pdf_test.py"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"
@@ -12212,14 +12479,15 @@
       "id": 140,
       "sourceId": "G12-11",
       "requirement": "العقود التجارية: فترات سماح، نسبة مبيعات، ومصروفات خدمات مشتركة CAM.",
-      "reportedImplementation": "جزئي — E33، E47، E49؛ أُصلح قيد رفض طريقة الأكبر من الإيجار أو نسبة المبيعات، ونجح الحفظ المستضاف وحساب الفرق50 والصفر عند انخفاض النسبة، ورفض تغيير الطريقة المعتمدة، مع تراجع البيانات الاصطناعية. E51؛ أضيف تحصيل تجاري مستقل وتخصيص وعكس موثقان بحسب التاريخ مع منع خلطه بمسار وصول الإيجار القائم. E52؛ صُححت تذكيرات الرصيد والتفضيل؛ مدد السماح العابرة للشهر (>27 يومًا) ليست مثبتة بهذا الإصلاح.",
+      "reportedImplementation": "جزئي — E33، E47، E49؛ أُصلح قيد رفض طريقة الأكبر من الإيجار أو نسبة المبيعات، ونجح الحفظ المستضاف وحساب الفرق50 والصفر عند انخفاض النسبة، ورفض تغيير الطريقة المعتمدة، مع تراجع البيانات الاصطناعية. E51؛ أضيف تحصيل تجاري مستقل وتخصيص وعكس موثقان بحسب التاريخ مع منع خلطه بمسار وصول الإيجار القائم. E52؛ صُححت تذكيرات الرصيد والتفضيل. E53؛ نجح اختبار مستضاف للسماح 28 و45 و366 يومًا وعبور الشهر والسنة، دون إرسال خارجي.",
       "acceptanceRemaining": "قبول رحلة العقد التجاري والسماح وCAM والتخصيص والكشف والطباعة بحسابات المشروع وأجهزته الفعلية؛ لا يكفي اختبار طريقة المبيعات وحدها لإغلاق البند.",
       "evidenceIds": [
         "E33",
         "E47",
         "E49",
         "E51",
-        "E52"
+        "E52",
+        "E53"
       ],
       "evidenceFiles": [
         "src/v267/pages/compliance-center.js",
@@ -12293,7 +12561,10 @@
         "staging-database/sql/reminder-rent-balance-convergence.sql",
         "staging-database/tests/reminder_rent_balance_convergence.sql",
         "docs/V267-PORTAL-ACCOUNT-RECOVERY-2026-09-13.md",
-        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json"
+        "docs/V267-PREVIEW-EXECUTION-2026-09-13.json",
+        "docs/V267-REMINDER-GRACE-CROSS-MONTH-2026-09-13.md",
+        "staging-database/sql/reminder-grace-cross-month.sql",
+        "staging-database/tests/reminder_grace_cross_month.sql"
       ],
       "uiFiles": [
         "src/v267/pages/compliance-center.js",
@@ -12326,7 +12597,8 @@
         "staging-database/sql/vacating-supplemental-source-hardening.sql",
         "staging-database/sql/rental-contract-templates.sql",
         "staging-database/sql/payment-method-reference-guard.sql",
-        "staging-database/sql/reminder-rent-balance-convergence.sql"
+        "staging-database/sql/reminder-rent-balance-convergence.sql",
+        "staging-database/sql/reminder-grace-cross-month.sql"
       ],
       "testFiles": [
         "tests/v267-compliance-center.test.cjs",
@@ -12349,7 +12621,8 @@
         "staging-database/tests/rental_contract_templates.sql",
         "tests/v267-lease-dates.test.mjs",
         "staging-database/tests/payment_method_reference_hosted.sql",
-        "staging-database/tests/reminder_rent_balance_convergence.sql"
+        "staging-database/tests/reminder_rent_balance_convergence.sql",
+        "staging-database/tests/reminder_grace_cross_month.sql"
       ],
       "requiredVerification": [
         "hosted-database-acceptance"

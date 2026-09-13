@@ -29,7 +29,94 @@ def staff_payment():
                 record=state['rentLedgerV202'][0], receipt=state['rentReceiptsV267'][0],
                 lease=dict(id=lease_id, workspace_id=W, external_ref='123', contract_no='TEST-L-001'))
 
+def entitlement_fixture(manual=False):
+    state = fixture()
+    row = state['collections'][0]
+    row[2], row[5] = 33, '2026-09-21'
+    contract = state['contractsV202'][0]
+    policy = 'manual_first_period' if manual else 'daily_prorated'
+    contract.update(contractRent=100, rent=90, discount=10, rentalTermsVersion=1,
+                    rentEntitlement=dict(version=1, startDate='2026-09-20', firstPeriodPolicy=policy,
+                                         manualFirstPeriodAmount=33 if manual else None))
+    entry = state['rentLedgerV202'][0]
+    entry.update(paid=33, paidAt=row[5], due=33)
+    state['rentReceiptsV267'][0].update(
+        detailsVersion=2, record=copy.deepcopy(row), contract=copy.deepcopy(contract),
+        rentPeriodBreakdown=dict(version=1, period='2026-09', dueOn='2026-09-20', policy=policy,
+                                 gross=None if manual else 36.667, discount=None if manual else 3.667,
+                                 net=33, manual=manual, freeMonth=False))
+    return state
+
 class ReceiptTests(unittest.TestCase):
+    def test_entitlement_pdf_uses_saved_period_due_not_current_monthly_rent(self):
+        from lib import rent_pdf
+        state = entitlement_fixture()
+        state['contractsV202'][0].update(contractRent=999, rent=888)
+        saved = verified_receipt(state, 'TEST-001')
+        with patch.object(rent_pdf, 'shaped', wraps=rent_pdf.shaped) as rendered:
+            pdf = render_receipt(saved)
+        calls = ' '.join(str(c.args[0]) for c in rendered.call_args_list)
+        for value in ['2026-09-20', '36.667', '3.667', '33.000', 'قيمة الفترة قبل الخصم', 'خصم الفترة']:
+            self.assertIn(value, calls)
+        self.assertNotIn('الإيجار الحالي بعد الخصم', calls)
+        self.assertNotIn('888', calls)
+        self.assertTrue(pdf.startswith(b'%PDF-'))
+
+    def test_manual_period_pdf_does_not_invent_gross_or_another_discount(self):
+        from lib import rent_pdf
+        saved = verified_receipt(entitlement_fixture(manual=True), 'TEST-001')
+        with patch.object(rent_pdf, 'shaped', wraps=rent_pdf.shaped) as rendered:
+            render_receipt(saved)
+        calls = ' '.join(str(c.args[0]) for c in rendered.call_args_list)
+        self.assertIn('دون خصم إضافي', calls)
+        self.assertNotIn('قيمة الفترة قبل الخصم', calls)
+        self.assertNotIn('خصم الفترة:', calls)
+
+    def test_entitlement_receipt_rejects_inconsistent_or_missing_breakdown(self):
+        changes = [
+            lambda r: r.pop('rentPeriodBreakdown'),
+            lambda r: r['rentPeriodBreakdown'].update(net=34),
+            lambda r: r['rentPeriodBreakdown'].update(discount=3),
+            lambda r: r['rentPeriodBreakdown'].update(net=True),
+            lambda r: r['rentPeriodBreakdown'].update(net=float('nan')),
+            lambda r: r['rentPeriodBreakdown'].update(gross=-1),
+            lambda r: r['rentPeriodBreakdown'].update(net=33.0001),
+            lambda r: r['rentPeriodBreakdown'].update(version=True),
+            lambda r: r['rentPeriodBreakdown'].update(freeMonth=True),
+            lambda r: r['rentPeriodBreakdown'].update(dueOn='2026-09-19'),
+            lambda r: r['rentPeriodBreakdown'].update(period='2026-10'),
+            lambda r: r['rentPeriodBreakdown'].update(policy='manual_first_period', manual=True),
+            lambda r: r['contract'].pop('rentEntitlement'),
+        ]
+        for change in changes:
+            with self.subTest(change=change):
+                state = entitlement_fixture()
+                change(state['rentReceiptsV267'][0])
+                with self.assertRaises(ValueError):
+                    verified_receipt(state, 'TEST-001')
+
+    def test_period_breakdown_must_match_saved_ledger_due_for_partial_payment(self):
+        state = entitlement_fixture()
+        state['collections'][0][2] = state['rentReceiptsV267'][0]['record'][2] = 10
+        state['rentLedgerV202'][0]['paid'] = 10
+        verified_receipt(state, 'TEST-001')
+        for due in [10, 34, None, True]:
+            state['rentLedgerV202'][0]['due'] = due
+            with self.subTest(due=due), self.assertRaises(ValueError):
+                verified_receipt(state, 'TEST-001')
+
+    def test_later_manual_policy_month_uses_saved_full_month_breakdown(self):
+        state = entitlement_fixture(manual=True)
+        row = state['collections'][0]
+        row[2], row[5], row[8] = 90, '2026-10-02', '2026-10'
+        state['rentLedgerV202'][0].update(paid=90, paidAt=row[5], period=row[8], due=90)
+        receipt = state['rentReceiptsV267'][0]
+        receipt['record'] = copy.deepcopy(row)
+        receipt['rentPeriodBreakdown'].update(period=row[8], dueOn='2026-10-01', policy='full_month',
+                                            gross=100, discount=10, net=90, manual=False)
+        verified_receipt(state, 'TEST-001')
+        self.assertTrue(render_receipt(receipt).startswith(b'%PDF-'))
+
     def test_linked_details_are_rendered_from_saved_snapshot_across_pages(self):
         from unittest.mock import patch
         from lib import rent_pdf
