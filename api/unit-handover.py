@@ -25,6 +25,7 @@ SHA256 = re.compile(r"^[a-f0-9]{64}$")
 PDF_LIMIT = 8 * 1024 * 1024
 EVIDENCE_FILE_LIMIT = 25 * 1024 * 1024
 EVIDENCE_TOTAL_LIMIT = 64 * 1024 * 1024
+EVIDENCE_PATH_LIMIT = 1024
 RENDERER_VERSION = "v267-unit-handover-hosted-1"
 
 
@@ -56,6 +57,28 @@ def upstream(path, auth, body=None):
         return json.loads(data)
 
 
+def verified_evidence_storage(row, seen_storage):
+    if not isinstance(row, dict) or not isinstance(seen_storage, set):
+        raise ValueError("UNIT_HANDOVER_EVIDENCE_MANIFEST_INVALID")
+    bucket = row.get("storage_bucket")
+    path = row.get("storage_path")
+    if bucket != "aqari-documents" or not isinstance(path, str) or not path or len(path) > EVIDENCE_PATH_LIMIT:
+        raise ValueError("UNIT_HANDOVER_EVIDENCE_PATH_INVALID")
+    parts = path.split("/")
+    if (
+        path.startswith("/")
+        or "\\" in path
+        or any(not piece or piece in (".", "..") for piece in parts)
+        or any(ord(char) < 32 or ord(char) == 127 for char in path)
+    ):
+        raise ValueError("UNIT_HANDOVER_EVIDENCE_PATH_INVALID")
+    identity = (bucket, path)
+    if identity in seen_storage:
+        raise ValueError("UNIT_HANDOVER_EVIDENCE_STORAGE_REUSED")
+    seen_storage.add(identity)
+    return bucket, path
+
+
 def evidence_bytes(source, auth):
     url, key = config()
     rows = source.get("evidence") if isinstance(source, dict) else None
@@ -65,6 +88,7 @@ def evidence_bytes(source, auth):
         raise ValueError("UNIT_HANDOVER_EVIDENCE_MANIFEST_INVALID")
     expected = {row["id"]: row for row in verified["attachments"]}
     seen = set()
+    seen_storage = set()
     total = 0
     result = {}
     for row in rows:
@@ -78,21 +102,13 @@ def evidence_bytes(source, auth):
             row.get("checksum_sha256") != attachment["checksum_sha256"]
             or row.get("size_bytes") != attachment["size_bytes"]
             or row.get("mime_type") != attachment["mime_type"]
-            or row.get("storage_bucket") != "aqari-documents"
         ):
             raise ValueError("UNIT_HANDOVER_EVIDENCE_MANIFEST_INVALID")
-        path = str(row.get("storage_path", ""))
-        if not path or ".." in path or not path.startswith(str(source["bundle"]["source"]["inspection_id"])[:0]):
-            # The zero-length prefix deliberately avoids trusting a client-derived
-            # path scope; the database source function already binds every object.
-            # Structural path validation below remains authoritative here.
-            pass
-        if not path or path.startswith("/") or ".." in path or "\\" in path:
-            raise ValueError("UNIT_HANDOVER_EVIDENCE_PATH_INVALID")
+        bucket_name, path = verified_evidence_storage(row, seen_storage)
         size = attachment["size_bytes"]
         if size > EVIDENCE_FILE_LIMIT or total + size > EVIDENCE_TOTAL_LIMIT:
             raise ValueError("UNIT_HANDOVER_EVIDENCE_TOO_LARGE")
-        bucket = quote(row["storage_bucket"], safe="")
+        bucket = quote(bucket_name, safe="")
         object_path = "/".join(quote(piece, safe="") for piece in path.split("/"))
         request = Request(
             f"{url}/storage/v1/object/authenticated/{bucket}/{object_path}",
