@@ -25,6 +25,11 @@ export function mountContractWorkspace(d,rows,{open,create,refresh}){
  for(const [label,count]of [['العقود المحفوظة',rows.length],['قيد التجهيز',rows.filter(c=>contractGroup(c)==='preparing').length],['للطباعة والتوقيع',rows.filter(c=>contractGroup(c)==='signing').length],['موقّعة',rows.filter(c=>contractGroup(c)==='signed').length]]){const item=node('div');item.append(node('dt',label),node('dd',count.toLocaleString('ar-KW')));overview.append(item);}
  const actions=node('div');actions.className='aq267-contract-actions';
  for(const [label,task]of [['إبرام عقد جديد / New rental contract',create],['تحديث العقود / Refresh',refresh]]){const b=node('button',label);b.type='button';b.onclick=()=>d.run(task);actions.append(b);}
+
+ if(d.session?.bound?.role==='general_manager'){
+  const templates=node('button','قوالب العقود والإقرارات — تعديل المسودات');templates.type='button';
+  templates.onclick=()=>d.run(async()=>{const [editor,rental]=await Promise.all([import('../pages/contract-template-drafts.js'),import('../pages/rental-contracts.js')]);d.session.check();d.close();editor.openContractTemplateDrafts({onBack:()=>rental.openRentalContracts()});});actions.append(templates);
+ }
  const search=node('input');search.type='search';search.maxLength=300;search.placeholder='اسم، رقم عقد، عقار أو وحدة';
  const property=node('select'),stage=node('select'),filters=node('div');filters.className='aq267-contract-filters';
  const option=(value,label)=>Object.assign(node('option',label),{value});
