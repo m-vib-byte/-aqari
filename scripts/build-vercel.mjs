@@ -14,4 +14,16 @@ if(process.env.VERCEL_ENV==='production'){
 // Keep the editable-contract support artifact fail-closed: the exact source
 // Vercel is packaging must pass its focused domain/RLS contract tests.
 execFileSync(process.execPath,['--test','tests/contract-template-drafts.test.mjs'],{stdio:'inherit'});
+
+// The same Preview artifact must also preserve the signed move-out handover
+// bundle, PDF archive integrity rules and Arabic renderer contract. These are
+// focused build-time safeguards only; hosted authenticated/device acceptance
+// remains a separate owner gate.
+execFileSync(process.execPath,[
+  '--test',
+  'tests/v267-unit-handover-bundle.test.mjs',
+  'tests/v267-unit-handover-pdf-archive.test.mjs',
+  'tests/v267-unit-handover-renderer-contract.test.mjs'
+],{stdio:'inherit'});
+
 await import('./check.mjs');
