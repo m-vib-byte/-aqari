@@ -12,6 +12,7 @@ function positiveRevision(value){
   return revision;
 }
 function immutable(value){
+  if(ArrayBuffer.isView(value)||value instanceof ArrayBuffer)return value;
   if(value&&typeof value==='object'&&!Object.isFrozen(value)){
     Object.freeze(value);
     for(const child of Object.values(value))immutable(child);
@@ -127,6 +128,8 @@ export async function reopenUnitHandoverPdf({archive,storage}){
   const expectedSize=Number(archive.size_bytes);
   if(!Number.isSafeInteger(expectedSize)||expectedSize<=0)throw new Error('UNIT_HANDOVER_ARCHIVE_SIZE_INVALID');
   if(String(archive.content_type??'').toLowerCase()!==PDF_MIME)throw new Error('UNIT_HANDOVER_ARCHIVE_MIME_INVALID');
+  const derivedManifest=await sha256Text(canonicalManifest(source,expectedSha,expectedSize));
+  if(derivedManifest!==expectedManifest)throw new Error('UNIT_HANDOVER_ARCHIVE_MANIFEST_MISMATCH');
   const expectedKey=storageKey(source,expectedSha,expectedManifest);
   if(text(archive.storage_key,'STORAGE_KEY')!==expectedKey)throw new Error('UNIT_HANDOVER_ARCHIVE_KEY_MISMATCH');
 
