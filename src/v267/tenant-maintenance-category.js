@@ -19,7 +19,7 @@ const CATEGORY_LABELS={
 
 if(!cfg||cfg.releaseStage!=='preview'||!form||!category||!leaseSelect||!description||!requestList)throw Error('MAINTENANCE_CATEGORY_UI_REQUIRED');
 
-const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
+const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let submitting=false,decorating=false,timer=null;
 
 function status(text){if(notice)notice.textContent=text;}
