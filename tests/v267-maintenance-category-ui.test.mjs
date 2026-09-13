@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const html=readFileSync(new URL('../tenant.html',import.meta.url),'utf8');
 const ui=readFileSync(new URL('../src/v267/tenant-maintenance-category.js',import.meta.url),'utf8');
+const desk=readFileSync(new URL('../v267-service-desk.js',import.meta.url),'utf8');
 const sql=readFileSync(new URL('../staging-database/sql/maintenance-request-category.sql',import.meta.url),'utf8');
 
 const categories=['electrical','plumbing','air_conditioning','elevator','doors_windows','cleaning','other'];
@@ -22,10 +23,18 @@ test('category layer intercepts the old submit path and writes the selected cate
  assert.match(ui,/detectSessionInUrl:false/);
 });
 
-test('existing maintenance rows remain visibly distinguishable from newly classified requests',()=>{
+test('tenant history distinguishes old unclassified requests',()=>{
  assert.match(ui,/legacy_unclassified:'قديم — غير مصنف'/);
  assert.match(ui,/maintenance-category-label/);
  assert.match(ui,/النوع:/);
+});
+
+test('admin maintenance desk reads and displays the saved category',()=>{
+ assert.match(desk,/workspace_id,category_code,description,status,cost,revision/);
+ assert.match(desk,/const maintenanceCategories=/);
+ for(const code of categories)assert.match(desk,new RegExp(`${code}:`));
+ assert.match(desk,/نوع العطل: /);
+ assert.match(desk,/maintenanceCategories\[row\.category_code\]/);
 });
 
 test('database source rejects unclassified new requests while preserving legacy rows',()=>{
