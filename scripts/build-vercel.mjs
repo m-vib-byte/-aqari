@@ -1,5 +1,7 @@
-import {readFileSync,writeFileSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join,delimiter} from 'node:path';
 import {productionPatch} from './prepare-v267-production.mjs';
 
 // Vercel starts from a fresh source checkout. Prepare the production artifact
@@ -26,8 +28,20 @@ execFileSync(process.execPath,[
   'tests/v267-unit-handover-renderer-contract.test.mjs'
 ],{stdio:'inherit'});
 
-// Exercise the real ReportLab/Arabic shaping renderer in the exact Vercel
-// build, not only its static source contract. This produces no hosted writes.
-execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test'],{stdio:'inherit'});
+// Vercel's function dependency collector may prepare binary wheels with a
+// different interpreter than the build-command Python. Install a throwaway,
+// interpreter-matched copy outside the deployment output, execute the real
+// ReportLab/Arabic renderer, then remove it. This is build-only and writes no
+// application or hosted data.
+const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-python-'));
+try{
+  execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});
+  execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test'],{
+    stdio:'inherit',
+    env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}
+  });
+}finally{
+  rmSync(previewPython,{recursive:true,force:true});
+}
 
 await import('./check.mjs');
