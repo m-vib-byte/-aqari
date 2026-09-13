@@ -1,0 +1,32 @@
+name: V267 latest operations recovery
+
+on:
+  pull_request:
+    paths:
+      - 'src/v267/pages/financial-register.js'
+      - 'src/v267/pages/staff-access.js'
+      - 'src/v267/pages/employees.js'
+      - 'src/v267/styles/semantic-colors.css'
+      - 'tests/v267-financial-register.test.cjs'
+      - 'tests/v267-staff-access.test.cjs'
+      - 'tests/v267-employee-directory-runtime.test.cjs'
+      - 'scripts/verify-staging-runtime.mjs'
+      - 'scripts/build-vercel.mjs'
+      - 'docs/V267-R17-LATEST-OPS-OVERLAY.json'
+      - '.github/workflows/v267-latest-operations-recovery.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  exact-overlay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify historical inventory plus exact operational overlay
+        run: node scripts/verify-staging-runtime.mjs
+      - name: Expense, staff access and employee-directory recovery
+        run: node --test tests/v267-financial-register.test.cjs tests/v267-staff-access.test.cjs tests/v267-employee-directory-runtime.test.cjs

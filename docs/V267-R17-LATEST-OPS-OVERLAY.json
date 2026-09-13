@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Exact-byte overlay for PR #116 operational recovery reconciled onto the unified Preview support line without rewriting the historical FILE_INVENTORY snapshot.",
+  "sourceCommit": "a84eb607d0dc4d280b652897feabf377afc8e12d",
+  "files": [
+    {"path":"src/v267/pages/financial-register.js","sha256":"cdacaa9c6cdc3a9d0a5de17d6c38e5523a73b112138848f33c30106d8baaf388","size":25563,"syntax":"javascript"},
+    {"path":"src/v267/pages/staff-access.js","sha256":"45cfcc2052b2819937a4064b9430f04d1df65b0ce6140c316159d094be16ad7c","size":14365,"syntax":"javascript"},
+    {"path":"src/v267/pages/employees.js","sha256":"6e796ed39123b1df74bff3e6d705daac2ab792c37e82ead97d0f61f0c60ead8d","size":25387,"syntax":"javascript"},
+    {"path":"src/v267/styles/semantic-colors.css","sha256":"f496a0e0fd35f7bbb3b0e320cfabe3ee5587ec94950f3be8d26bbb5370504595","size":5784,"syntax":"text"}
+  ]
+}

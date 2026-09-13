@@ -14,6 +14,7 @@ function fixture(initial=[],options={}){
   set value(value){this._value=value;}
   reset(){const walk=element=>{if(['input','select','textarea'].includes(element.tag))element._value='';for(const child of element.children)walk(child);};walk(this);}
   focus(){}
+  setAttribute(name,value){(this.attributes||={})[name]=value;}
   addEventListener(name,handler){(this.listeners[name]||=[]).push(handler);}
   querySelector(tag){return descendants(this).find(element=>element.tag===tag);}
  }
@@ -189,4 +190,41 @@ test('temporary 503 write failures retain the draft and block repetition until s
  f.state.writeError=null;await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.match(f.d.status.textContent,/لا يطابق/);
  await f.submit(f.editor());const saves=f.calls.filter(call=>call.p_action==='save');assert.equal(saves.length,2);assert.equal(saves[1].p_data.id,first.p_data.id);
  assert.equal(f.records.length,1);assert.equal(f.editor().hidden,true);
+});
+
+test('reconciling an interrupted expense save retains later edits and saves them against the verified revision',async()=>{
+ const f=fixture([],{saveErrorAfterPersist:true});await f.d.pending;f.newDraft();await f.submit(f.editor());
+ f.control('المستفيد').value='مستفيد مصحح بعد الانقطاع';f.control('المبلغ بالدينار الكويتي').value='١٣٠٫١٢٥';
+ f.state.saveErrorAfterPersist=false;await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+ assert.equal(f.editor().hidden,false);assert.equal(f.control('المستفيد').value,'مستفيد مصحح بعد الانقطاع');assert.equal(f.control('المبلغ بالدينار الكويتي').value,'١٣٠٫١٢٥');
+ await f.submit(f.editor());const writes=f.calls.filter(c=>c.p_action==='save');assert.equal(writes.length,2);assert.equal(writes[1].p_data.id,writes[0].p_data.id);assert.equal(writes[1].p_data.revision,1);assert.equal(f.records.length,1);assert.equal(f.records[0].amount,'130.125');assert.equal(f.editor().hidden,true);
+});
+test('a later matching revision cannot be mistaken for confirmation of an earlier expense save',async()=>{
+ const f=fixture([],{saveErrorAfterPersist:true});await f.d.pending;f.newDraft();await f.submit(f.editor());f.records[0].revision=3;
+ await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.equal(f.editor().hidden,false);assert.doesNotMatch(f.d.status.textContent,/تم التحقق/);assert.match(f.d.status.textContent,/لا يطابق/);
+});
+test('an uncertain expense save cannot lose its editor through the inner discard action',async()=>{
+ const f=fixture([],{saveErrorAfterPersist:true});await f.d.pending;f.newDraft();await f.submit(f.editor());f.button('إغلاق المسودة').onclick();assert.equal(f.editor().hidden,false);assert.equal(f.control('المبلغ بالدينار الكويتي').value,'١٢٠٫٠٠٥');
+});
+
+test('expense filters combine Arabic search, property and status without changing authoritative totals',async()=>{
+ const f=fixture([expense({id:'one',payee:'أحْمَد سالم',reference:'TR-١٢۳',state:'approved'}),expense({id:'two',property_id:'property-two',payee:'احمد سالم',reference:'TR-123',state:'draft'}),expense({id:'three',payee:'مورد آخر',state:'cancelled'})]);await f.d.pending;
+ const originalCalls=f.calls.length;f.control('البحث في مصروفات الفترة').value='احمد tr-123';f.control('البحث في مصروفات الفترة').oninput();
+ assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,2);
+ f.control('تصفية المصروفات حسب العقار').value='property-one';f.control('تصفية المصروفات حسب العقار').onchange();f.control('حالة المصروف').value='approved';f.control('حالة المصروف').onchange();
+ assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,1);assert.match(f.d.body.textContent,/12\.005 د\.ك • عددها: 1/);assert.match(f.d.body.textContent,/نتائج التصفية: 1 من 3/);
+ f.control('حالة المصروف').value='draft';f.control('حالة المصروف').onchange();assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,0);assert.match(f.d.body.textContent,/لا توجد مصروفات تطابق/);assert.match(f.d.body.textContent,/12\.005 د\.ك • عددها: 1/);
+ f.button('مسح البحث والتصفية').onclick();assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,3);assert.equal(f.calls.length,originalCalls,'local filtering must not write or reread');
+});
+test('expense pages cover every saved row and search resets the page while preserving a dirty editor',async()=>{
+ const f=fixture(Array.from({length:45},(_,i)=>expense({id:'row-'+i,category:'صيانة '+i,voucher_no:'EX-'+(i+1)})));await f.d.pending;
+ const cards=()=>f.descendants(f.d.body).filter(x=>x.tag==='article');assert.equal(cards().length,20);assert.equal(f.button('الصفحة السابقة').disabled,true);
+ const seen=new Set(cards().map(x=>x.children[0].textContent));f.button('الصفحة التالية').onclick();assert.equal(cards().length,20);cards().forEach(x=>seen.add(x.children[0].textContent));f.button('الصفحة التالية').onclick();assert.equal(cards().length,5);cards().forEach(x=>seen.add(x.children[0].textContent));assert.equal(seen.size,45);assert.equal(f.button('الصفحة التالية').disabled,true);
+ f.newDraft();f.control('البحث في مصروفات الفترة').value='ex-٤٥';f.control('البحث في مصروفات الفترة').oninput();assert.equal(cards().length,1);assert.match(cards()[0].textContent,/EX-45/);assert.equal(f.control('المستفيد').value,'مقاول <محفوظ>');assert.equal(f.editor().hidden,false);
+ f.control('البحث في مصروفات الفترة').value='';f.control('البحث في مصروفات الفترة').oninput();assert.equal(cards().length,20);assert.equal(f.button('الصفحة السابقة').disabled,true);assert.equal(f.confirmations.length,0);
+});
+test('refresh clamps a shortened result page and denied reads cannot revive filtered data through old controls',async()=>{
+ const f=fixture(Array.from({length:21},(_,i)=>expense({id:'row-'+i})));await f.d.pending;f.button('الصفحة التالية').onclick();f.records.splice(1);await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,1);assert.equal(f.button('الصفحة التالية').disabled,true);assert.match(f.d.body.textContent,/الصفحة 1 من 1/);
+ f.control('البحث في مصروفات الفترة').value='المستفيد';f.control('البحث في مصروفات الفترة').oninput();const oldNext=f.button('الصفحة التالية'),oldReset=f.button('مسح البحث والتصفية');f.state.listError=Object.assign(Error('ACCESS_DENIED'),{status:403});await f.button('تحديث السجل والتحقق من الحفظ').onclick();oldNext.onclick();oldReset.onclick();f.control('البحث في مصروفات الفترة').oninput();
+ assert.equal(f.control('البحث في مصروفات الفترة').value,'');assert.equal(f.control('تصفية المصروفات حسب العقار').children.length,0);assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,0);assert.doesNotMatch(f.d.body.textContent,/المستفيد الأصلي|نتائج التصفية:/);
 });

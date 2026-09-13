@@ -37,12 +37,16 @@ execFileSync(process.execPath,['--test','tests/v267-partner-access-mfa-guard.tes
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-integration-public-metadata-guard.test.mjs'],{stdio:'inherit'});
 
-// Reconciled latest concurrent PR #116 staff-circular recovery must execute in
-// the exact Preview build as well. Verify the inventoried runtime sources first,
-// then exercise dirty-draft preservation, interrupted-response reconciliation,
-// archive-history verification and recipient refresh behavior.
+// Verify both the historical inventory and the exact-byte latest-operations
+// overlay before executing any UI/runtime regression imported from PR #116.
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,[
+  '--test',
+  'tests/v267-financial-register.test.cjs',
+  'tests/v267-staff-access.test.cjs',
+  'tests/v267-employee-directory-runtime.test.cjs'
+],{stdio:'inherit'});
 
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
 
