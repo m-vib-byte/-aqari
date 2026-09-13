@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "2a8bfc37a7174372177e8132df8cf5fce8644021c25005b5b63038e1087cf8a6",
-      "size": 7207
+      "sha256": "f9eb9ebca3c9896c99a86eb03bae01775b0708e614b9dc0ddfd2f7967e079b47",
+      "size": 8122
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "0379014d660fe999c9bc1184a8f61c19babbb0cc4583ca9e79857bc389939586",
-      "size": 590212
+      "sha256": "1ffa510b548c3d796cc301eb8642b00d3713d3c612c310994a679b0ad843446c",
+      "size": 590216
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -917,8 +917,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "9e5324625abc4cffc1ca8b055b7e638738a47527a608981618a8d5e151b90d62",
-      "size": 1878
+      "sha256": "c47b20fbf02d8a26fd2a82839af35f0da9c51a926a61e1ac0e643b5ef28ab80d",
+      "size": 2010
     },
     {
       "path": "secure-auth-bridge.js",
@@ -967,8 +967,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "867663e93e2f3bdd3c4992e22e47b8c5231b56390fdc46cc6cb1d70426728ae6",
-      "size": 3218
+      "sha256": "91d12f7746106116930efc532b4750a7020576db25db15bc3bbffcabd8974143",
+      "size": 3763
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1067,8 +1067,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "e5984532914049474f86435f7929fd3ef608df8e5275a4c8ac5b2eb4131a480e",
-      "size": 9374
+      "sha256": "277b6ffa8715ca75e756af9d95007be3e368f0cc2173c2a8dee8ea379f306881",
+      "size": 15684
     },
     {
       "path": "src/v267/components/service-label-translations.js",
@@ -1082,8 +1082,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "3f30170a643ffb4a471b90c4fe0668b827a29954439e627c003b77919960d859",
-      "size": 167651
+      "sha256": "12b570892f35509cc30ea6d9e07673777b55dd94590b8f7f4217c4d090b9edd2",
+      "size": 169831
     },
     {
       "path": "src/v267/components/ui-text.js",
@@ -1212,8 +1212,8 @@
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
-      "sha256": "94e25ff6d780159b8d4941677abd41dd28d3980cb975e7b7fe5ac1e5a2347e7e",
-      "size": 2541
+      "sha256": "fb397ba144c08319f5d0856d2211c31ed7c27343f0ef8c0f7c7e7beb76b0540a",
+      "size": 3536
     },
     {
       "path": "src/v267/pages/lease-expiry-report.js",
@@ -1257,8 +1257,8 @@
     },
     {
       "path": "src/v267/pages/property-notices.js",
-      "sha256": "8425069349701123c59e1c6e5fa99910c1b9a52b29c9f4093a5d933ed1859ecf",
-      "size": 9975
+      "sha256": "2035ed96de996c6240819eaf6054f80d85276b5b126fdfcbe9c6e167acf67015",
+      "size": 13409
     },
     {
       "path": "src/v267/pages/property-statements.js",
@@ -1267,8 +1267,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "c8eebaea13abf93b18d941fbbfaf3442020ea4dee2336f341f2c8c6a652d0634",
-      "size": 17674
+      "sha256": "aef3047b63c25146bb0af4bce32e82073807d3c6f74227c2ab4873aa28bc511e",
+      "size": 18037
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -1297,8 +1297,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
-      "size": 11725
+      "sha256": "62d1f36c86b476ed2941a7f1e839751151976ace44e90d8a0454fab9e4349b4e",
+      "size": 14250
     },
     {
       "path": "src/v267/pages/vacating-review.js",
@@ -1322,13 +1322,13 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
-      "size": 6716
+      "sha256": "63e286709c9aea2b7c5dc95901a4dece5fec2c981e39a42220a2d7c0e1110151",
+      "size": 9466
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "b99de6d2b828039eda19bce4602a7f83e4e11a04f759049cdca48f1f3b21c049",
-      "size": 3629
+      "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
+      "size": 3662
     },
     {
       "path": "src/v267/workspace.js",
@@ -2662,8 +2662,8 @@
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
-      "sha256": "56676422b5738d8bcdc71407bf9bbd2c80c21d2ece06dd91026940e16d68c67e",
-      "size": 4339
+      "sha256": "5cbff84ee6f8527c27cbf97a19ea49845048c5366cc15aa2c2d01da2f6393d95",
+      "size": 4814
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
@@ -2922,8 +2922,8 @@
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
-      "sha256": "50e5083770aac3e033658ace893d9f63d8f75587be0f1c08661141623f7c5354",
-      "size": 7318
+      "sha256": "6adbe75aec043289ce54be9f0e801df04667726cda663842a30ab6a9ef3f8c7a",
+      "size": 12839
     },
     {
       "path": "tests/v267-property-presentation.test.mjs",
@@ -2977,8 +2977,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "5746318edf86c37e64722c379a3c6697d6f060cbaf122f8e881881b4d014017c",
-      "size": 6477
+      "sha256": "c73d34d2142713cefe9cfed081973e927cbe2453b4a1c0b91ac8e7f61aaafd8b",
+      "size": 10726
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
@@ -3239,6 +3239,86 @@
       "path": "vercel.json",
       "sha256": "8623d946927a81da7d43de62b8d3ec3b7809b7f5710d84de74bd135e78030854",
       "size": 4252
+    },
+    {
+      "path": "src/v267/components/management-counters.js",
+      "size": 6000,
+      "sha256": "5a81bd806af01f3db264e85c7aae16009d311ba13e975316e1cd61acd9db7279"
+    },
+    {
+      "path": "src/v267/styles/management-counters.css",
+      "size": 880,
+      "sha256": "f7b84d57de22b82d367a03a9017c7a74e92107386400b98f9b847a5efba24e2f"
+    },
+    {
+      "path": "tests/v267-management-counters.test.mjs",
+      "size": 6057,
+      "sha256": "39aee37a153eb98f645e2ea251edc909d62e254985210e5e1acfec4517d73e17"
+    },
+    {
+      "path": "tests/v267-management-counters.browser.mjs",
+      "size": 7293,
+      "sha256": "87a68bdbddf567419bb31390acb2295a1b1bfc5681cfe839344cc5c3a5a0784b"
+    },
+    {
+      "path": "tests/v267-management-counters-runtime.test.mjs",
+      "size": 4548,
+      "sha256": "9f43121b562cd9777a1fd1a01bf34d209aaaca145061e78132770dadb866262d"
+    },
+    {
+      "path": "docs/V267-MANAGEMENT-COUNTERS-2026-09-13.md",
+      "size": 4915,
+      "sha256": "27dcc06877777f6daa7f84ba1744489c9ae97b98d4b8769628b4f5ee4fa4f46d"
+    },
+    {
+      "path": "tests/v267-utility-history-runtime.test.mjs",
+      "sha256": "90e8c50c503ad35b68c0f8117304e159a4073d1d722030b507db34ea801a7da7",
+      "size": 8727
+    },
+    {
+      "path": "docs/V267-UTILITY-HISTORY-2026-09-13.md",
+      "sha256": "bdba2d0cc35a434de5dd5006cd2dd35853da987a4849e0cdc2922f3b0606d7cb",
+      "size": 4312
+    },
+    {
+      "path": "src/v267/components/contract-workspace.js",
+      "sha256": "624b1ffc8136144d9a8e319ae68da6f7c056c329c052cf2a7aa5ad0a5f4ab3b1",
+      "size": 8812
+    },
+    {
+      "path": "src/v267/styles/contract-workspace.css",
+      "sha256": "882521787cd159e342819f1b450a9a111a7026440c5a1c1926b5e5e141793f05",
+      "size": 3229
+    },
+    {
+      "path": "tests/v267-contract-workspace.test.mjs",
+      "sha256": "9b869333612e8717f8ad2043685a0e8139b9c64dd0a9231a252209a16082cb79",
+      "size": 3065
+    },
+    {
+      "path": "tests/v267-contract-workspace-runtime.test.mjs",
+      "sha256": "442ca442b6abe01c1f60539673c1d76f04631dd264aa4cc0b530be90163b28fc",
+      "size": 6148
+    },
+    {
+      "path": "docs/V267-CONTRACT-WORKSPACE-2026-09-13.md",
+      "sha256": "995312dd5fbfe6337347669b38250f05528fbb52fda5cdbdaae521205f233b7f",
+      "size": 4465
+    },
+    {
+      "path": "docs/V267-SERVICE-DIRECTORY-POLISH-2026-09-13.md",
+      "sha256": "fcd01b25f1760a84e41e9ec2df67d208b6801180e1f29d8c4c9ef4e74d5c99e6",
+      "size": 3955
+    },
+    {
+      "path": "src/v267/styles/semantic-colors.css",
+      "sha256": "89212c50298f21501d8fdc2e400855ef6241695c1280cf94643d41c63cdfa15a",
+      "size": 4811
+    },
+    {
+      "path": "docs/V267-DIALOG-NOTICE-RECOVERY-2026-09-13.md",
+      "sha256": "6e920342441c329641fc299720ab5cca656c24be960e97c5b07e3a73f3084a32",
+      "size": 3471
     }
   ],
   "version": "V198"

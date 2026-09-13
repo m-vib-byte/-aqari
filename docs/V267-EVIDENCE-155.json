@@ -524,8 +524,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "e5984532914049474f86435f7929fd3ef608df8e5275a4c8ac5b2eb4131a480e",
-      "bytes": 9374,
+      "sha256": "277b6ffa8715ca75e756af9d95007be3e368f0cc2173c2a8dee8ea379f306881",
+      "bytes": 15684,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -533,8 +533,8 @@
     },
     {
       "path": "tests/v267-service-directory.test.mjs",
-      "sha256": "5746318edf86c37e64722c379a3c6697d6f060cbaf122f8e881881b4d014017c",
-      "bytes": 6477,
+      "sha256": "c73d34d2142713cefe9cfed081973e927cbe2453b4a1c0b91ac8e7f61aaafd8b",
+      "bytes": 10726,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -591,8 +591,8 @@
     },
     {
       "path": "src/v267/styles/service-directory.css",
-      "sha256": "8c95a7f2dd53e953e8b99c5b70eefa8288daba344e2425dc8a21503ab7508131",
-      "bytes": 6716,
+      "sha256": "63e286709c9aea2b7c5dc95901a4dece5fec2c981e39a42220a2d7c0e1110151",
+      "bytes": 9466,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -600,8 +600,8 @@
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "b99de6d2b828039eda19bce4602a7f83e4e11a04f759049cdca48f1f3b21c049",
-      "bytes": 3629,
+      "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
+      "bytes": 3662,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -780,8 +780,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "c8eebaea13abf93b18d941fbbfaf3442020ea4dee2336f341f2c8c6a652d0634",
-      "bytes": 17674,
+      "sha256": "aef3047b63c25146bb0af4bce32e82073807d3c6f74227c2ab4873aa28bc511e",
+      "bytes": 18037,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1036,8 +1036,8 @@
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
-      "bytes": 11725,
+      "sha256": "62d1f36c86b476ed2941a7f1e839751151976ace44e90d8a0454fab9e4349b4e",
+      "bytes": 14250,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1423,8 +1423,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "3f30170a643ffb4a471b90c4fe0668b827a29954439e627c003b77919960d859",
-      "bytes": 167651,
+      "sha256": "12b570892f35509cc30ea6d9e07673777b55dd94590b8f7f4217c4d090b9edd2",
+      "bytes": 169831,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1441,8 +1441,8 @@
     },
     {
       "path": "src/v267/pages/property-notices.js",
-      "sha256": "8425069349701123c59e1c6e5fa99910c1b9a52b29c9f4093a5d933ed1859ecf",
-      "bytes": 9975,
+      "sha256": "2035ed96de996c6240819eaf6054f80d85276b5b126fdfcbe9c6e167acf67015",
+      "bytes": 13409,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -1476,8 +1476,8 @@
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
-      "sha256": "50e5083770aac3e033658ace893d9f63d8f75587be0f1c08661141623f7c5354",
-      "bytes": 7318,
+      "sha256": "6adbe75aec043289ce54be9f0e801df04667726cda663842a30ab6a9ef3f8c7a",
+      "bytes": 12839,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1792,8 +1792,8 @@
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
-      "sha256": "94e25ff6d780159b8d4941677abd41dd28d3980cb975e7b7fe5ac1e5a2347e7e",
-      "bytes": 2541,
+      "sha256": "fb397ba144c08319f5d0856d2211c31ed7c27343f0ef8c0f7c7e7beb76b0540a",
+      "bytes": 3536,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
