@@ -46,8 +46,29 @@ properties and meters, failed page/latest/meter requests, retry and closing
 during an outstanding load. Reads use a deterministic fake query transport;
 these tests do not prove hosted RLS or authenticated browser behavior.
 
-The previous Preview was opened in the cloud browser and displayed the AQARI
-V267 login screen. Authenticated utility/KPI screens and real iPhone/iPad flows
-still need their practical acceptance. All 155 release requirements remain
-subject to their recorded gates. This continuation does not claim full release
-acceptance or authorize a merge.
+## Authenticated Preview verification
+
+The exact code commit `d9f7e01ce40566807197e81e17ce24be151614d7` reached READY in
+deployment `dpl_2KCiv1cv18DnYqMyvWE5rbKv3Rm5`:
+https://aqari-4oskk3vir-m-vib-5421.vercel.app/app?release=V267
+
+Secure browser authentication succeeded. The signed-in V267 home and utility
+page loaded. Selecting each of the three saved properties returned the explicit
+no-confirmed-meters state. No hosted data was added or changed. Populated utility
+history pagination therefore remains verified by the local fixture, not by live
+records.
+
+The KPI dialog successfully loaded all eleven counters. Its desktop rendering
+was visually inspected. Setting the start date later than the end date removed
+the old report and showed the validation message. Correcting the date and
+refreshing restored all eleven counters and the success status.
+
+GitHub Runtime contracts run `34748480364` failed before execution: its job had
+zero steps and runner ID 0. Hosted CI success is not claimed. The 80 passing local
+tests and READY Preview are separate evidence.
+
+These are limited read-only browser checks. Populated utility-history and real
+iPhone/iPad acceptance remain unproven. All 155 release requirements remain
+subject to their recorded gates. This evidence does not claim full release
+acceptance or authorize a merge. The subsequent evidence-only commit changes
+this document and its inventory hash; application code is the tested commit above.
