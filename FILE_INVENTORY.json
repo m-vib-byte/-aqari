@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "bb32ed93d9886711de9f4906cbf6174b4b9a19865d28f2dd60940b68a51474ca",
-      "size": 7717
+      "sha256": "bb5a2e22ca67bb518dae4d2057050b3fc13a8fd810d9c52a5bedcfd805e00eda",
+      "size": 7987
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "715b8e05380c4bfefbfbb054bdd9827f6f5762c6c6b2b4ce13ba4cffac326053",
+      "sha256": "b51a9ff1a09c0dd58a319632ef8e688d8f9a85b338ede2e901c2e89d23e30ecc",
       "size": 590213
     },
     {
@@ -917,8 +917,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "9e5324625abc4cffc1ca8b055b7e638738a47527a608981618a8d5e151b90d62",
-      "size": 1878
+      "sha256": "c8fd70b9a332e2f095a26cccc08871538a6f0a1b4644103506bf0462eec38b1f",
+      "size": 1935
     },
     {
       "path": "secure-auth-bridge.js",
@@ -1267,8 +1267,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "c8eebaea13abf93b18d941fbbfaf3442020ea4dee2336f341f2c8c6a652d0634",
-      "size": 17674
+      "sha256": "1a720ac646bcde079e6c87caf74076c16f1481fdd5ec0df8904853e22751769e",
+      "size": 17862
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3279,6 +3279,31 @@
       "path": "docs/V267-UTILITY-HISTORY-2026-09-13.md",
       "sha256": "bdba2d0cc35a434de5dd5006cd2dd35853da987a4849e0cdc2922f3b0606d7cb",
       "size": 4312
+    },
+    {
+      "path": "src/v267/components/contract-workspace.js",
+      "sha256": "624b1ffc8136144d9a8e319ae68da6f7c056c329c052cf2a7aa5ad0a5f4ab3b1",
+      "size": 8812
+    },
+    {
+      "path": "src/v267/styles/contract-workspace.css",
+      "sha256": "219db2455f13e22b0339f8dacf02be8c5b6baa85cce3dc96bfb381604cb7310a",
+      "size": 3147
+    },
+    {
+      "path": "tests/v267-contract-workspace.test.mjs",
+      "sha256": "9b869333612e8717f8ad2043685a0e8139b9c64dd0a9231a252209a16082cb79",
+      "size": 3065
+    },
+    {
+      "path": "tests/v267-contract-workspace-runtime.test.mjs",
+      "sha256": "442ca442b6abe01c1f60539673c1d76f04631dd264aa4cc0b530be90163b28fc",
+      "size": 6148
+    },
+    {
+      "path": "docs/V267-CONTRACT-WORKSPACE-2026-09-13.md",
+      "sha256": "c6452650509c6d6b17e04e1240104d19849a6c70fca62f9af129a99d824256fc",
+      "size": 2637
     }
   ],
   "version": "V198"

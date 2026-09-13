@@ -92,6 +92,8 @@ jobs:
         run: node --test tests/v267-management-counters.test.mjs tests/v267-management-counters-runtime.test.mjs tests/v267-kpi-dashboard.test.cjs tests/v267-dialog-boundary.test.mjs tests/v267-dialog-progress.test.mjs
       - name: Complete utility history, latest readings and property isolation
         run: node --test tests/v267-utility-history-runtime.test.mjs tests/v267-unit-meter-runtime.test.mjs tests/payment-proof.test.mjs
+      - name: Contract workspace filters, journey and approved two-copy printing
+        run: node --test tests/v267-contract-workspace.test.mjs tests/v267-contract-workspace-runtime.test.mjs tests/v267-contract-print.test.cjs tests/v267-contract-scanner-entry.test.cjs
       - name: Hosted acceptance SQL matches the tested source
         run: |
           node scripts/build-hosted-archive-tests.mjs --check
