@@ -780,8 +780,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "1a720ac646bcde079e6c87caf74076c16f1481fdd5ec0df8904853e22751769e",
-      "bytes": 17862,
+      "sha256": "fbdadcadc00fdf3df5cf6f6d4d2b960210afa8ed53af96489def8247216dcab7",
+      "bytes": 17994,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

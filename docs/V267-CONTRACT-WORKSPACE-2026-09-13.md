@@ -19,6 +19,8 @@ parent `735e9ad02f842f67d1f5059c11ecd503c0251a58` (draft PR 116).
   a signed state with no visible document prompts verification.
 - The main official print action prepares two identical contract/annex sets from
   the existing authoritative approval check. Draft review remains available.
+  The long contract text is collapsed under a labeled review section, keeping
+  the print actions visible above it.
 - Keeps the existing scanner, verified original upload, state transitions,
   immutable history and linked tenant/property/unit workflow. Describes the paper
   signing path and labels electronic signing as awaiting integration. No electronic
@@ -41,3 +43,28 @@ node --test tests/v267-contract-workspace.test.mjs tests/v267-contract-workspace
 These runtime tests use synthetic transport and DOM fixtures. They do not prove
 hosted data writes, physical iPhone/iPad use, legal-template approval or full
 acceptance of all 155 requirements. Release remains subject to the recorded gates.
+
+## Authenticated browser check
+
+Code `9aa57dd52dbf373342ad3cbc1f0a1a7cfa837dec` deployed READY as
+`dpl_EVPua6RK4yarahJfpWms7gMv2pd8`. The stable Preview alias is:
+https://aqari-git-support-v267-management-counters-20260913-m-vib-5421.vercel.app/app?release=V267
+
+After secure login, the new workspace displayed the existing signed test
+contract. Searching its contract number using Arabic digits, combining property
+and signed-stage filters, showing an unmatched search, and restoring the match
+worked in the live UI. The saved contract opened with its five-stage journey and
+the explicit presence of an uploaded signed original. The two-set print action
+returned the authoritative approval success message and an approved-document
+link. No hosted records or statuses were changed, and no physical printing or
+new signed upload is claimed. Desktop screenshots were visually inspected.
+
+Cloud Browser blocked inspection of the generated `blob:` print tab under its
+URL policy. No workaround was attempted; the exact two-set content remains
+covered by the local authoritative-print tests rather than live document inspection.
+Runtime contracts run `34749220306` failed before any test steps (zero steps,
+runner ID 0). No hosted CI pass is claimed.
+
+The collapsed-contract-text refinement followed that browser check and passed
+the same 31 local tests. Physical iPhone/iPad acceptance and separate house,
+apartment and commercial legal templates remain outside this completed UI slice.
