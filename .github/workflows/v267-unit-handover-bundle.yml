@@ -1,0 +1,19 @@
+name: V267 signed unit handover bundle
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify signed move-out handover bundle
+        run: node --test tests/v267-unit-handover-bundle.test.mjs
