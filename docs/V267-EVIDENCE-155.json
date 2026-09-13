@@ -1315,8 +1315,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "sha256": "5cf6f070bd86fdd9543d68500e2ea6a9fab830deba28943e5db21ac710e702a8",
-      "bytes": 20893,
+      "sha256": "cdacaa9c6cdc3a9d0a5de17d6c38e5523a73b112138848f33c30106d8baaf388",
+      "bytes": 25563,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [

@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "37affefea40533b733b01ac5812050e27256ac2bfb5ada0045a8ef56869b962d",
+      "sha256": "0d5177964ee0a05747c02e8d3c75ced655d66b926eb6a4be2a4581b8215c0b02",
       "size": 590217
     },
     {
@@ -1197,8 +1197,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "sha256": "5cf6f070bd86fdd9543d68500e2ea6a9fab830deba28943e5db21ac710e702a8",
-      "size": 20893
+      "sha256": "cdacaa9c6cdc3a9d0a5de17d6c38e5523a73b112138848f33c30106d8baaf388",
+      "size": 25563
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -2747,8 +2747,8 @@
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
-      "sha256": "b63913599090b179abd93d3742bea161f9801d6dd57d99d15260a0b46b236594",
-      "size": 25185
+      "sha256": "58a2e097f7ec10e596604198fafceed08245f1e31bd8717576d57ac4c479e229",
+      "size": 31834
     },
     {
       "path": "tests/v267-integration-center-workflow.test.cjs",
@@ -3312,8 +3312,8 @@
     },
     {
       "path": "src/v267/styles/semantic-colors.css",
-      "sha256": "89212c50298f21501d8fdc2e400855ef6241695c1280cf94643d41c63cdfa15a",
-      "size": 4811
+      "sha256": "f496a0e0fd35f7bbb3b0e320cfabe3ee5587ec94950f3be8d26bbb5370504595",
+      "size": 5784
     },
     {
       "path": "docs/V267-DIALOG-NOTICE-RECOVERY-2026-09-13.md",
@@ -3324,6 +3324,11 @@
       "path": "docs/V267-STAFF-CIRCULAR-RECOVERY-2026-09-13.md",
       "sha256": "2a36fd6fe9938ca1ba227107cd8376153c6cd7d7d6b9caba626f77314bfc3d1e",
       "size": 2980
+    },
+    {
+      "path": "docs/V267-EXPENSE-WORKSPACE-2026-09-13.md",
+      "sha256": "b3fdb2291d704f73c46ef3e5e9201a322aef0fe32ecfb12fa961f1974715fbe5",
+      "size": 3068
     }
   ],
   "version": "V198"
