@@ -21,6 +21,10 @@ function evidencePresent(value) {
   return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === 'string' && item.trim());
 }
 
+function nonEmptyText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
 function requireTrue(errors, value, message) {
   if (value !== true) errors.push(message);
 }
@@ -42,7 +46,11 @@ function validateDevice(errors, device, candidateSha, label, { physical = false 
   const value = device && typeof device === 'object' ? device : {};
   requireTrue(errors, value.accepted, `${label} acceptance must be explicitly true`);
   requireTrue(errors, value.realAccount, `${label} must use a real authenticated account`);
+  requireFalse(errors, value.simulated, `${label} acceptance must explicitly state simulated=false`);
+  requireFalse(errors, value.emulated, `${label} acceptance must explicitly state emulated=false`);
   if (physical) requireTrue(errors, value.physical, `${label} must be performed on the physical device`);
+  if (!nonEmptyText(value.browser)) errors.push(`${label} acceptance must identify the browser used`);
+  if (!nonEmptyText(value.device)) errors.push(`${label} acceptance must identify the tested device`);
   requireSameSha(errors, value.commitSha, candidateSha, label);
   const flows = value.flows && typeof value.flows === 'object' ? value.flows : {};
   for (const flow of REQUIRED_DEVICE_FLOWS) {
@@ -109,6 +117,10 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
 
   const preview = manifest.hostedPreview || {};
   requireTrue(errors, preview.accepted, 'hosted Preview must be accepted');
+  requireTrue(errors, preview.applicationRuntimeReached, 'hosted Preview acceptance must reach the AQARI application runtime');
+  requireTrue(errors, preview.realAccountTested, 'hosted Preview acceptance must include a real authenticated account');
+  requireFalse(errors, preview.buildReadyOnly, 'Vercel READY/build success alone must not count as hosted Preview acceptance');
+  requireFalse(errors, preview.simulated, 'hosted Preview acceptance must explicitly state simulated=false');
   requireSameSha(errors, preview.commitSha, candidateSha, 'hosted Preview');
   if (typeof preview.url !== 'string' || !/^https:\/\//.test(preview.url)) errors.push('hosted Preview URL is required');
   if (!evidencePresent(preview.evidence)) errors.push('hosted Preview acceptance evidence is required');
