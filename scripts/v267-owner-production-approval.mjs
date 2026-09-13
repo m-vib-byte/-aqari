@@ -16,6 +16,8 @@ export function validateOwnerProductionApproval(input = {}) {
   const decision = String(input.decision || '').trim();
   const finalTestCompletedAt = String(input.finalTestCompletedAt || '').trim();
   const approvedAt = String(input.approvedAt || '').trim();
+  const approvalActor = String(input.approvalActor || '').trim().toLowerCase();
+  const repositoryOwner = String(input.repositoryOwner || '').trim().toLowerCase();
 
   const errors = [];
   if (!FULL_SHA_RE.test(candidateSha)) errors.push('candidate SHA must be a full 40-character hexadecimal commit SHA');
@@ -32,6 +34,12 @@ export function validateOwnerProductionApproval(input = {}) {
     errors.push(`owner decision must be exactly ${REQUIRED_DECISION}; preview/design approval is not production approval`);
   }
 
+  if (!approvalActor) errors.push('approval actor is required');
+  if (!repositoryOwner) errors.push('repository owner is required');
+  if (approvalActor && repositoryOwner && approvalActor !== repositoryOwner) {
+    errors.push('explicit production approval must be dispatched by the repository owner');
+  }
+
   const finalTestMs = parseIsoDate(finalTestCompletedAt);
   const approvedMs = parseIsoDate(approvedAt);
   if (finalTestMs === null) errors.push('final-test completion timestamp must be a valid ISO-8601 date/time');
@@ -44,6 +52,8 @@ export function validateOwnerProductionApproval(input = {}) {
     ok: errors.length === 0,
     candidateSha,
     decision,
+    approvalActor,
+    repositoryOwner,
     errors,
   };
 }
@@ -74,6 +84,8 @@ export function inputFromProcess(argv = process.argv.slice(2), env = process.env
     decision: env.V267_OWNER_PRODUCTION_APPROVAL_DECISION,
     finalTestCompletedAt: env.V267_OWNER_FINAL_TEST_COMPLETED_AT,
     approvedAt: env.V267_OWNER_PRODUCTION_APPROVAL_AT,
+    approvalActor: env.V267_OWNER_APPROVAL_ACTOR,
+    repositoryOwner: env.V267_REPOSITORY_OWNER,
   };
 }
 
@@ -85,7 +97,7 @@ function main() {
     process.exitCode = 1;
     return;
   }
-  console.log(`V267 OWNER PRODUCTION GATE: PASS for ${result.candidateSha}`);
+  console.log(`V267 OWNER PRODUCTION GATE: PASS for ${result.candidateSha} by ${result.approvalActor}`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
