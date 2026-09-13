@@ -202,6 +202,28 @@ class UnitHandoverExportTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             api.export_archive({"workspaceId": WORKSPACE, "inspectionId": INSPECTION}, "Bearer bad", read=forbidden)
 
+    def test_evidence_storage_object_cannot_be_reused_across_roles(self):
+        row = {"storage_bucket": "aqari-documents", "storage_path": f"{WORKSPACE}/shared-evidence.bin"}
+        seen = set()
+        self.assertEqual(api.verified_evidence_storage(row, seen), ("aqari-documents", row["storage_path"]))
+        with self.assertRaisesRegex(ValueError, "UNIT_HANDOVER_EVIDENCE_STORAGE_REUSED"):
+            api.verified_evidence_storage(row, seen)
+
+    def test_evidence_storage_path_is_fail_closed(self):
+        invalid = [
+            {"storage_bucket": "other", "storage_path": f"{WORKSPACE}/evidence.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "../evidence.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "/absolute/evidence.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "folder//evidence.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "folder\\evidence.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "folder/./evidence.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "folder/evidence\n.bin"},
+            {"storage_bucket": "aqari-documents", "storage_path": "x" * (api.EVIDENCE_PATH_LIMIT + 1)},
+        ]
+        for row in invalid:
+            with self.subTest(row=row), self.assertRaisesRegex(ValueError, "UNIT_HANDOVER_EVIDENCE_PATH_INVALID"):
+                api.verified_evidence_storage(row, set())
+
 
 if __name__ == "__main__":
     unittest.main()
