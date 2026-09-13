@@ -1,0 +1,19 @@
+name: V267 unit handover archive integrity
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify signed handover bundle and PDF archive integrity
+        run: node --test tests/v267-unit-handover-bundle.test.mjs tests/v267-unit-handover-pdf-archive.test.mjs
