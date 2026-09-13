@@ -4,9 +4,84 @@ import {
   REQUIRED_DECISION,
   validateOwnerProductionApproval,
 } from '../scripts/v267-owner-production-approval.mjs';
+import { validateReleaseGateManifest } from '../scripts/v267-release-gate-manifest.mjs';
 
 const SHA = '861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA = '13a219e7930db89ebf2f9b44d30007499efa6ccf';
+
+function deviceEvidence({ physical = false } = {}) {
+  return {
+    accepted: true,
+    realAccount: true,
+    ...(physical ? { physical: true } : {}),
+    commitSha: SHA,
+    flows: {
+      login: true,
+      session: true,
+      save: true,
+      reopen: true,
+      permissions: true,
+      contracts: true,
+      printing: true,
+    },
+    evidence: ['evidence/device-run.json'],
+  };
+}
+
+function fullGateManifest() {
+  return {
+    schemaVersion: 1,
+    candidateSha: SHA,
+    status: 'accepted',
+    requirements155: {
+      accepted: true,
+      acceptedCount: 155,
+      evidence: ['docs/V267-REQUIREMENTS-155.md'],
+    },
+    ci: {
+      allRequiredPassed: true,
+      commitSha: SHA,
+      evidence: ['https://github.com/m-vib-byte/-aqari/actions/runs/123'],
+    },
+    hostedPreview: {
+      accepted: true,
+      commitSha: SHA,
+      url: 'https://example-preview.vercel.app/app?release=V267',
+      evidence: ['evidence/preview-smoke.json'],
+    },
+    devices: {
+      desktop: deviceEvidence(),
+      iphone: deviceEvidence({ physical: true }),
+      ipad: deviceEvidence({ physical: true }),
+    },
+    backup: {
+      current: true,
+      database: true,
+      auth: true,
+      storage: true,
+      attachmentBytesIncluded: true,
+      evidence: ['evidence/backup-manifest.json'],
+    },
+    restore: {
+      independent: true,
+      passed: true,
+      attachmentBytesVerified: true,
+      evidence: ['evidence/restore-report.json'],
+    },
+    rollback: {
+      tested: true,
+      preservesCurrentTransactions: true,
+      preservesNewTransactions: true,
+      evidence: ['evidence/rollback-report.json'],
+    },
+    productionConfig: {
+      correct: true,
+      candidateSha: SHA,
+      evidence: ['evidence/production-config.json'],
+    },
+  };
+}
+
 const BASE = {
   candidateSha: SHA,
   finalTestedSha: SHA,
@@ -16,10 +91,70 @@ const BASE = {
   approvedAt: '2026-09-13T00:05:00+03:00',
   approvalActor: 'm-vib-byte',
   repositoryOwner: 'm-vib-byte',
+  releaseGateManifest: fullGateManifest(),
 };
 
-test('passes only when final testing and later production approval target the exact candidate', () => {
+test('passes only when the full technical gate, final testing, and later production approval target the exact candidate', () => {
   assert.equal(validateOwnerProductionApproval(BASE).ok, true);
+});
+
+test('rejects owner production approval when the full release gate manifest is missing', () => {
+  const result = validateOwnerProductionApproval({ ...BASE, releaseGateManifest: undefined });
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /full release gate manifest is required/);
+});
+
+test('release gate validator fails closed across every owner-mandated technical gate', () => {
+  const mutations = [
+    (m) => { m.requirements155.acceptedCount = 154; },
+    (m) => { m.ci.allRequiredPassed = false; },
+    (m) => { m.hostedPreview.accepted = false; },
+    (m) => { m.devices.desktop.flows.reopen = false; },
+    (m) => { m.devices.iphone.physical = false; },
+    (m) => { m.devices.ipad.realAccount = false; },
+    (m) => { m.backup.attachmentBytesIncluded = false; },
+    (m) => { m.restore.independent = false; },
+    (m) => { m.rollback.preservesNewTransactions = false; },
+    (m) => { m.productionConfig.correct = false; },
+  ];
+
+  for (const mutate of mutations) {
+    const manifest = fullGateManifest();
+    mutate(manifest);
+    const result = validateReleaseGateManifest(manifest, SHA);
+    assert.equal(result.ok, false, JSON.stringify(result.errors));
+  }
+});
+
+test('release gate validator rejects evidence attached to any different candidate SHA', () => {
+  for (const patch of [
+    (m) => { m.candidateSha = OTHER_SHA; },
+    (m) => { m.ci.commitSha = OTHER_SHA; },
+    (m) => { m.hostedPreview.commitSha = OTHER_SHA; },
+    (m) => { m.devices.iphone.commitSha = OTHER_SHA; },
+    (m) => { m.productionConfig.candidateSha = OTHER_SHA; },
+  ]) {
+    const manifest = fullGateManifest();
+    patch(manifest);
+    const result = validateReleaseGateManifest(manifest, SHA);
+    assert.equal(result.ok, false);
+    assert.match(result.errors.join('\n'), /exact candidate SHA/);
+  }
+});
+
+test('release gate validator requires concrete evidence references, not boolean assertions alone', () => {
+  const manifest = fullGateManifest();
+  manifest.requirements155.evidence = [];
+  manifest.ci.evidence = [];
+  manifest.hostedPreview.evidence = [];
+  manifest.devices.desktop.evidence = [];
+  manifest.backup.evidence = [];
+  manifest.restore.evidence = [];
+  manifest.rollback.evidence = [];
+  manifest.productionConfig.evidence = [];
+  const result = validateReleaseGateManifest(manifest, SHA);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.length >= 8);
 });
 
 test('rejects design or preview approval as production approval', () => {
