@@ -3,7 +3,11 @@ import {createVerifiedUpload} from './verified-upload.js';
 import {documentCategory} from './document-catalog.js';
 const PROPERTY_ASSETS=Object.freeze({
  property_logo:{documentType:'supporting_document',label:'شعار العقار'},
+ property_main_photo:{documentType:'supporting_document',label:'الصورة الرئيسية للعقار'},
  property_photo:{documentType:'supporting_document',label:'صورة العقار'},
+ property_license:{documentType:'supporting_document',label:'رخصة العقار'},
+ property_certificate:{documentType:'supporting_document',label:'شهادة العقار'},
+ property_insurance:{documentType:'supporting_document',label:'تأمين العقار'},
  property_other:{documentType:'supporting_document',label:'مستند عام للعقار'}
 });
 function uploadCategory(category,entity){
@@ -23,7 +27,7 @@ export function createOriginalDocumentUpload(session){
  return async(file,target)=>{
   const spec=uploadCategory(target.category,target.type);if(!target.ref||!target.title?.trim()||target.title.length>180)throw Error('حدد السجل وعنوان المستند.');
   const blob=await originalDocument(file),hash=await checksum(blob);session.check();
-  if(target.category==='property_logo'||target.category==='property_photo'){
+  if(['property_logo','property_main_photo','property_photo'].includes(target.category)){
    if(!['image/jpeg','image/png','image/webp'].includes(blob.type))throw Error('شعار وصور العقار يجب أن تكون صور JPEG أو PNG أو WebP.');
   }
   const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash]);
