@@ -1,0 +1,76 @@
+import {createDialog,node,field} from '../components/dialog.js';
+import {withPresentation,contactPhone} from '../domain/property-presentation.js';
+import {decodeImage} from '../components/scan-image.js';
+import {createOriginalDocumentUpload} from '../components/original-document-upload.js';
+
+const clone=value=>JSON.parse(JSON.stringify(value));
+const input=(type='text',value='')=>{const el=node('input');el.type=type;el.value=value??'';return el;};
+const clean=value=>String(value??'').normalize('NFKC').trim();
+function button(label,fn){const el=node('button',label);el.type='button';el.onclick=fn;return el;}
+function normalizePhone(value,label,required=false){const raw=clean(value);if(!raw&&!required)return '';const normalized=contactPhone(raw);if(!normalized)throw Error(`راجع ${label}؛ استخدم ٨ أرقام كويتية أو رقماً دولياً يبدأ بـ +.`);return normalized;}
+function normalizeEmail(value,label,required=false){const email=clean(value).toLowerCase();if(!email&&!required)return '';if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error(`راجع ${label}.`);return email;}
+function ownerRows(target){
+ const rows=[];
+ const draw=(initial={})=>{const wrap=node('fieldset'),name=input('text',initial.name),share=input('number',initial.share??''),role=input('text',initial.role||'مالك'),email=input('email',initial.email),phone=input('tel',initial.phone),whatsapp=input('tel',initial.whatsapp),remove=button('إزالة المالك',()=>{const at=rows.findIndex(x=>x.wrap===wrap);if(at>=0)rows.splice(at,1);wrap.remove();});name.required=share.required=true;share.min='0.01';share.max='100';share.step='0.01';wrap.append(field('اسم المالك / الشريك *',name),field('النسبة % *',share),field('الصفة',role),field('البريد',email),field('الهاتف',phone),field('واتساب',whatsapp),remove);target.append(wrap);rows.push({wrap,name,share,role,email,phone,whatsapp});};
+ draw();target.append(button('+ إضافة مالك / شريك',()=>draw()));
+ return ()=>rows.map(row=>({name:clean(row.name.value),bps:Math.round(Number(row.share.value)*100),role:clean(row.role.value)||'مالك',email:normalizeEmail(row.email.value,'بريد المالك'),phone:normalizePhone(row.phone.value,'هاتف المالك'),whatsapp:normalizePhone(row.whatsapp.value,'واتساب المالك')}));
+}
+async function compressedPreview(file){
+ const img=await decodeImage(file),scale=Math.min(1,960/Math.max(img.naturalWidth,img.naturalHeight)),canvas=node('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('تعذر تجهيز صورة العرض.');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);let encoded='';for(const quality of [.72,.58,.44]){encoded=canvas.toDataURL('image/jpeg',quality);if(encoded.length<=240000)break;}canvas.width=canvas.height=1;if(encoded.length>240000)throw Error('إحدى صور العقار كبيرة جداً لإنشاء معاينة خفيفة.');return encoded;
+}
+
+export function openPropertyOnboarding(){
+ const d=createDialog('إضافة عقار — ملف متكامل');if(!d)return false;
+ const api=window.AQARI_RENTAL_RECORDS;if(!api)throw Error('تعذر تحميل محرك بيانات العقار.');
+ const bridge=window.AQARI_SUPABASE;if(!bridge?.loadAppState||!bridge?.saveAppState)throw Error('تعذر تحميل جسر السحابة.');
+ const bound=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
+ const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
+ let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null;
+ const form=node('form'),grid=node('div');grid.className='aq267-grid';
+ const name=input('text'),address=node('textarea'),type=input('text'),status=input('text','active'),income=input('text'),email=input('email'),phone=input('tel'),whatsapp=input('tel');
+ name.required=address.required=type.required=status.required=email.required=phone.required=whatsapp.required=true;income.inputMode='decimal';address.maxLength=1000;for(const control of [name,type,status,email,phone,whatsapp])control.maxLength=320;
+ for(const [label,control]of [['اسم العقار *',name],['العنوان *',address],['نوع العقار *',type],['حالة العقار *',status],['الدخل المعلن — اختياري ولا يحل محل التحصيل الفعلي',income],['البريد الرسمي للعقار *',email],['الهاتف *',phone],['واتساب *',whatsapp]])grid.append(field(label,control));
+ const ownersBox=node('section');ownersBox.append(node('h3','الملاك والحصص — المجموع 100%'));const readOwners=ownerRows(ownersBox);
+ const files=node('section');files.append(node('h3','الشعار والصور والوثائق والمخططات'));
+ const logo=input('file'),photos=input('file'),deed=input('file'),plans=input('file'),attachments=input('file');
+ logo.accept=photos.accept='image/jpeg,image/png,image/webp';photos.multiple=plans.multiple=attachments.multiple=true;deed.accept=plans.accept=attachments.accept='application/pdf,image/jpeg,image/png,image/webp';
+ files.append(field('شعار العقار — صورة واحدة',logo),field('صور العقار — حتى 10 صور',photos),field('وثيقة الملكية',deed),field('المخططات والكروكيات',plans),field('مستندات أخرى',attachments),node('p','يُرفع الأصل إلى الأرشيف الخاص، ويُثبت checksum ثم يعاد قراءة سجل المستند قبل تأكيد الحفظ.'));
+ const reason=node('textarea');reason.value='إنشاء ملف عقار متكامل';reason.required=true;reason.minLength=3;reason.maxLength=1000;
+ const save=node('button','حفظ العقار والملف الكامل');save.type='submit';form.append(grid,ownersBox,files,field('سبب إنشاء الملف',reason),save);d.body.append(form);
+
+ function freezeDraft(){
+  const owners=readOwners();if(!owners.length)throw Error('أضف مالكاً واحداً على الأقل.');if(owners.some(o=>!o.name||o.bps<1||o.bps>10000)||owners.reduce((sum,o)=>sum+o.bps,0)!==10000)throw Error('مجموع حصص الملاك يجب أن يساوي 100%.');
+  const stated=clean(income.value);if(stated&&!/^\d{1,12}(\.\d{1,3})?$/.test(stated))throw Error('راجع الدخل المعلن؛ حتى ثلاث منازل عشرية.');
+  const draft={name:clean(name.value),address:clean(address.value),type:clean(type.value),status:clean(status.value),statedIncome:stated||null,owners,email:normalizeEmail(email.value,'بريد العقار',true),phone:normalizePhone(phone.value,'هاتف العقار',true),whatsapp:normalizePhone(whatsapp.value,'واتساب العقار',true),reason:clean(reason.value)};
+  if(!draft.name||!draft.address||!draft.type||!draft.status||draft.reason.length<3)throw Error('أكمل بيانات العقار الأساسية وسبب الإنشاء.');
+  const photoFiles=[...photos.files];if(photoFiles.length>10)throw Error('الحد الأعلى عشر صور للعقار.');if(plans.files.length>20||attachments.files.length>20)throw Error('قسّم المرفقات إلى دفعات أصغر من 20 ملفاً لكل مجموعة.');
+  const entries=[];if(logo.files[0])entries.push({key:'logo',file:logo.files[0],category:'property_logo',title:'شعار العقار — '+draft.name,asset:'logo'});photoFiles.forEach((file,index)=>entries.push({key:'photo:'+index,file,category:'property_photo',title:`صورة العقار ${index+1} — ${draft.name}`,asset:'photos'}));if(deed.files[0])entries.push({key:'deed',file:deed.files[0],category:'title_deed',title:'وثيقة الملكية — '+draft.name,asset:'titleDeed'});[...plans.files].forEach((file,index)=>entries.push({key:'plan:'+index,file,category:'site_plan',title:`مخطط / كروكي ${index+1} — ${draft.name}`,asset:'plans'}));[...attachments.files].forEach((file,index)=>entries.push({key:'document:'+index,file,category:'property_other',title:`مستند عقار ${index+1} — ${draft.name}`,asset:'documents'}));
+  if(entries.length&&!access?.permissions?.documents?.write)throw Error('حسابك لا يملك صلاحية رفع مستندات. أزل الملفات أو اطلب صلاحية المستندات.');
+  return {draft,entries};
+ }
+ async function saveLegacyProperty(previews){
+  const current=bound(),cloud=await bridge.loadAppState(current);d.session.check();const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[];if(rows.some(row=>String(row?.[0]||'').normalize('NFKC').trim().toLowerCase()===lockedDraft.name.toLowerCase()))throw Error('اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.');
+  const primaryOwner=lockedDraft.owners[0]?.name||'',row=withPresentation([lockedDraft.name,primaryOwner,'',lockedDraft.statedIncome??''],{location:lockedDraft.address,price:'',purpose:'rent',phone:lockedDraft.phone,photos:previews});rows.push(row);state.properties=rows;state.audit=(state.audit||[]).concat([[d.session.bound.user,'إنشاء عقار من شاشة الملف المتكامل',lockedDraft.name,new Date().toISOString()]]);
+  await bridge.saveAppState(payload,Number(cloud.revision),current);d.session.check();const confirmed=await bridge.loadAppState(current);d.session.check();if(!api.primary(confirmed.payload).properties?.some(saved=>saved?.[0]===lockedDraft.name))throw Error('لم تؤكد إعادة القراءة إنشاء العقار في السحابة.');
+  const result=await d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).eq('name',lockedDraft.name).limit(2));if(!Array.isArray(result)||result.length!==1)throw Error('تعذر تأكيد السجل الخادمي للعقار بعد الحفظ.');return result[0];
+ }
+ async function createPreviewImages(){const sources=[];if(manifest.entries.find(x=>x.key==='logo'))sources.push(manifest.entries.find(x=>x.key==='logo').file);for(const entry of manifest.entries.filter(x=>x.asset==='photos')){if(sources.length>=4)break;sources.push(entry.file);}const result=[];for(const file of sources){result.push(await compressedPreview(file));d.session.check();}return result;}
+ async function uploadDocuments(){
+  const upload=createOriginalDocumentUpload(d.session);for(const entry of manifest.entries){if(uploaded.has(entry.key))continue;d.status.textContent='جارٍ أرشفة '+entry.title+'…';const row=await upload(entry.file,{type:'property',ref:created.external_ref,category:entry.category,title:entry.title});d.session.check();uploaded.set(entry.key,row);}
+ }
+ function assets(){const out={logo:null,photos:[],titleDeed:null,plans:[],documents:[]};for(const entry of manifest.entries){const doc=uploaded.get(entry.key);if(!doc)continue;if(entry.asset==='logo')out.logo=doc.id;else if(entry.asset==='titleDeed')out.titleDeed=doc.id;else out[entry.asset].push(doc.id);}return out;}
+ async function saveMaster(){
+  const full=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)}),revision=Number(full?.property?.revision||0);if(full?.property?.id!==created.id)throw Error('تعذر إعادة قراءة ملف العقار قبل حفظ البيانات الرئيسية.');
+  const data={name:lockedDraft.name,address:lockedDraft.address,type:lockedDraft.type,status:lockedDraft.status,statedIncome:lockedDraft.statedIncome,owners:lockedDraft.owners,email:lockedDraft.email,phone:lockedDraft.phone,whatsapp:lockedDraft.whatsapp,assets:assets()};
+  const saved=await rpc('aqari_property_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_expected_revision:revision,p_data:data,p_reason:lockedDraft.reason});if(saved?.property?.id!==created.id||Number(saved.property.revision)!==revision+1)throw Error('لم تتأكد إعادة قراءة بيانات العقار الرئيسية.');
+  const verify=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)});const ids=new Set((verify.documents||[]).map(x=>x.id));for(const row of uploaded.values())if(!ids.has(row.id))throw Error('مستند مرفوع لم يظهر في الملف الكامل بعد إعادة القراءة.');if(verify.property?.name!==lockedDraft.name||verify.property?.address!==lockedDraft.address)throw Error('ملف العقار المعاد قراءته لا يطابق البيانات المحفوظة.');return verify;
+ }
+ async function execute(){
+  if(!access){access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');}
+  if(!manifest){if(!form.reportValidity())throw Error('أكمل الحقول المطلوبة.');manifest=freezeDraft();lockedDraft=manifest.draft;const previews=await createPreviewImages();d.status.textContent='جارٍ إنشاء سجل العقار…';created=await saveLegacyProperty(previews);for(const control of form.querySelectorAll('input,textarea,select'))control.disabled=true;save.disabled=false;}
+  if(!created)throw Error('تعذر تثبيت هوية العقار.');await uploadDocuments();d.status.textContent='جارٍ حفظ Master Data وربط الأرشيف…';const verified=await saveMaster();window.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:lockedDraft.name,propertyId:created.id}}));d.status.textContent=`تم إنشاء ${lockedDraft.name} وأرشفة ${uploaded.size} ملف/صورة وإعادة قراءة الملف الكامل.`;d.close();const module=await import('./property-master-file.js');return module.openPropertyMasterFile(created.id);
+ }
+ form.onsubmit=event=>{event.preventDefault();d.run(execute).catch(()=>{});};
+ d.run(async()=>{access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');if(access?.permissions?.documents?.write!==true)files.append(node('p','ملاحظة: رفع الملفات غير متاح لهذه الصلاحية؛ يمكن إنشاء العقار بدون مرفقات.'));d.status.textContent='أكمل الملف في شاشة واحدة ثم اضغط حفظ.';name.focus();});
+ return true;
+}
