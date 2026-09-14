@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const sql=readFileSync(new URL('../staging-database/sql/property-master-file.sql',import.meta.url),'utf8');
 const scoped=readFileSync(new URL('../staging-database/sql/property-master-file-permissions.sql',import.meta.url),'utf8');
+const tenantLedgerSql=readFileSync(new URL('../staging-database/sql/property-tenant-ledger.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/property-master-file.js',import.meta.url),'utf8');
 const foundation=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
 const propertyExperience=readFileSync(new URL('../src/v267/components/property-experience.js',import.meta.url),'utf8');
@@ -126,6 +127,25 @@ test('complete property file exposes staff and maintenance detail through permis
  assert.match(page,/\.in\('lease_id',leaseIds\)/);
  assert.match(page,/الموظفون والرواتب المرتبطة/);
  assert.match(page,/الصيانة/);
+});
+
+test('complete property file exposes permission-scoped tenants and authoritative rent dues',()=>{
+ assert.match(tenantLedgerSql,/private\.aqari_can_property\(p_workspace_id,p_property_id,'properties','read'\)/);
+ assert.match(tenantLedgerSql,/can_tenants:=private\.aqari_can\(p_workspace_id,'tenants','read'\)/);
+ assert.match(tenantLedgerSql,/can_contracts:=private\.aqari_can\(p_workspace_id,'contracts','read'\)/);
+ assert.match(tenantLedgerSql,/can_collections:=private\.aqari_can\(p_workspace_id,'collections','read'\)/);
+ assert.match(tenantLedgerSql,/public\.aqari_tenants/);
+ assert.match(tenantLedgerSql,/private\.aqari_rent_due_periods/);
+ assert.match(tenantLedgerSql,/join public\.aqari_units/);
+ assert.match(tenantLedgerSql,/'rentDues',due_rows/);
+ assert.match(page,/aqari_property_tenant_ledger/);
+ assert.match(page,/المستأجرون المرتبطون/);
+ assert.match(page,/استحقاقات الإيجار والرصيد/);
+ assert.match(page,/tenantLedger\.permissions\?\.tenants===false/);
+ assert.match(page,/tenantLedger\.permissions\?\.collections===false/);
+ assert.match(page,/مستحق \$\{money\(r\.dueAmount\)\}/);
+ assert.match(page,/مدفوع \$\{money\(r\.paidAmount\)\}/);
+ assert.match(page,/رصيد \$\{money\(r\.balance\)\}/);
 });
 
 test('allocated finance is preferred only when its server RPC exists and validates scope',()=>{
