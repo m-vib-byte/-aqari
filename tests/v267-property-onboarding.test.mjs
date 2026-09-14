@@ -17,6 +17,15 @@ test('every property add entry is intercepted into the unified onboarding instea
  assert.doesNotMatch(experience,/openRecord\('properties'\)/);
 });
 
+test('legacy property profile and rent-statement actions are intercepted into authoritative flows',()=>{
+ assert.match(experience,/data-v201-property-action="profile"/);
+ assert.match(experience,/data-v201-property-action="statement"/);
+ assert.match(experience,/property-statements\.js/);
+ assert.match(experience,/openPropertyStatements\(\{propertyName:name\}\)/);
+ assert.match(experience,/openCompleteFileByName\(name\)/);
+ assert.match(experience,/addEventListener\('click',onLegacyPropertyAction,true\)/);
+});
+
 test('one onboarding screen captures master data owners contacts and every requested asset group',()=>{
  for(const label of ['اسم العقار','العنوان','نوع العقار','حالة العقار','الدخل المعلن','البريد الرسمي للعقار','الهاتف','واتساب','الملاك والحصص','شعار العقار','صور العقار','وثيقة الملكية','المخططات والكروكيات','مستندات أخرى'])assert.match(page,new RegExp(label));
  assert.match(page,/reduce\(\(sum,o\)=>sum\+o\.bps,0\)!==10000/);
