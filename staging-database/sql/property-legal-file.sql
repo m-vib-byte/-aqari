@@ -1,5 +1,5 @@
 -- AQARI V267 Preview/Staging only: property-centered legal file.
--- Additive, permission-scoped, no physical deletion, immutable event history.
+-- Additive and fail-closed. Legal history is append-only; case edits retain before/after snapshots.
 begin;
 
 create table if not exists private.aqari_property_legal_cases(
@@ -41,11 +41,15 @@ create table if not exists private.aqari_property_legal_events(
  details text not null default '' check(length(details)<=8000),
  amount numeric(18,3) check(amount is null or amount>=0),
  document_id uuid,
+ before_value jsonb,
+ after_value jsonb,
  actor_id uuid not null references auth.users(id),
  actor_name text not null,
  created_at timestamptz not null default now(),
  foreign key(workspace_id,property_id) references public.aqari_properties(workspace_id,id)
 );
+alter table private.aqari_property_legal_events add column if not exists before_value jsonb;
+alter table private.aqari_property_legal_events add column if not exists after_value jsonb;
 create index if not exists aqari_property_legal_events_scope on private.aqari_property_legal_events(workspace_id,property_id,case_id,happened_on desc,id desc);
 
 alter table private.aqari_property_legal_cases enable row level security;
@@ -92,7 +96,7 @@ begin
     ) order by c.updated_at desc,c.id) from private.aqari_property_legal_cases c where c.workspace_id=w and c.property_id=p),'[]'::jsonb),
    'events',coalesce((select jsonb_agg(jsonb_build_object(
      'id',e.id,'caseId',e.case_id,'kind',e.kind,'happenedOn',e.happened_on,'title',e.title,'details',e.details,'amount',e.amount,'documentId',e.document_id,
-     'actor',e.actor_name,'createdAt',e.created_at
+     'beforeValue',e.before_value,'afterValue',e.after_value,'actor',e.actor_name,'createdAt',e.created_at
     ) order by e.happened_on desc,e.id desc) from private.aqari_property_legal_events e where e.workspace_id=w and e.property_id=p),'[]'::jsonb),
    'contracts',coalesce((select jsonb_agg(jsonb_build_object('id',l.id,'contractNo',l.contract_no,'tenantId',l.tenant_id,'unitId',l.unit_id,'status',l.status) order by l.start_date desc,l.contract_no)
      from public.aqari_leases l join public.aqari_units u on u.workspace_id=l.workspace_id and u.id=l.unit_id
@@ -123,7 +127,8 @@ begin
    update private.aqari_property_legal_cases set lease_id=lease_value,tenant_id=tenant_value,case_no=btrim(coalesce(d->>'caseNo','')),title=btrim(d->>'title'),category=category_value,lawyer_name=btrim(coalesce(d->>'lawyerName','')),lawyer_phone=btrim(coalesce(d->>'lawyerPhone','')),court=btrim(coalesce(d->>'court','')),status=status_value,filed_on=nullif(d->>'filedOn','')::date,next_hearing_on=nullif(d->>'nextHearingOn','')::date,judgment_on=nullif(d->>'judgmentOn','')::date,amount=nullif(d->>'amount','')::numeric,notes=btrim(coalesce(d->>'notes','')),revision=next_revision,updated_by=auth.uid(),updated_at=now() where workspace_id=w and property_id=p and id=ident;
   end if;
   select to_jsonb(c) into after_row from private.aqari_property_legal_cases c where c.workspace_id=w and c.property_id=p and c.id=ident;
-  insert into private.aqari_property_legal_events(workspace_id,property_id,case_id,kind,happened_on,title,details,actor_id,actor_name) values(w,p,ident,'change',current_date,case when before_row is null then 'إنشاء ملف قانوني' else 'تحديث ملف قانوني' end,why,auth.uid(),actor);
+  insert into private.aqari_property_legal_events(workspace_id,property_id,case_id,kind,happened_on,title,details,before_value,after_value,actor_id,actor_name)
+  values(w,p,ident,'change',current_date,case when before_row is null then 'إنشاء ملف قانوني' else 'تحديث ملف قانوني' end,why,before_row,after_row,auth.uid(),actor);
   return jsonb_build_object('workspace_id',w,'propertyId',p,'user_id',auth.uid(),'record',after_row);
  end if;
 
@@ -131,7 +136,12 @@ begin
   event_case:=(d->>'caseId')::uuid;event_kind:=d->>'kind';document_value:=nullif(d->>'documentId','')::uuid;
   if event_kind not in('notice','hearing','action','judgment','cost','closure','cancellation','document') or length(btrim(coalesce(d->>'title',''))) not between 1 and 300 then raise invalid_parameter_value using message='INVALID_LEGAL_EVENT';end if;
   if not exists(select 1 from private.aqari_property_legal_cases c where c.workspace_id=w and c.property_id=p and c.id=event_case) then raise insufficient_privilege using message='LEGAL_EVENT_SCOPE_MISMATCH';end if;
-  if document_value is not null and not exists(select 1 from public.aqari_documents x where x.workspace_id=w and x.id=document_value and x.status<>'cancelled') then raise invalid_parameter_value using message='LEGAL_DOCUMENT_NOT_FOUND';end if;
+  if document_value is not null and not exists(
+   select 1 from public.aqari_documents x join public.aqari_properties q on q.workspace_id=x.workspace_id and q.id=p
+   join private.aqari_property_legal_cases c on c.workspace_id=x.workspace_id and c.property_id=q.id and c.id=event_case
+   where x.workspace_id=w and x.id=document_value and x.status<>'cancelled'
+   and x.entity_ref in(q.id::text,q.external_ref,coalesce(c.lease_id::text,''),coalesce(c.tenant_id::text,''))
+  ) then raise invalid_parameter_value using message='LEGAL_DOCUMENT_SCOPE_MISMATCH';end if;
   insert into private.aqari_property_legal_events(workspace_id,property_id,case_id,kind,happened_on,title,details,amount,document_id,actor_id,actor_name)
   values(w,p,event_case,event_kind,coalesce(nullif(d->>'happenedOn','')::date,current_date),btrim(d->>'title'),btrim(coalesce(d->>'details','')),nullif(d->>'amount','')::numeric,document_value,auth.uid(),actor);
   return jsonb_build_object('workspace_id',w,'propertyId',p,'user_id',auth.uid(),'caseId',event_case,'ok',true);
