@@ -21,6 +21,12 @@ function replaceExact(source,from,to,count,path){
   if(source.split(from).length-1!==count)throw Error('PRODUCTION_SOURCE_CHANGED: '+path);
   return source.split(from).join(to);
 }
+function replaceTrialExact(source,from,to,path){
+  const sourceCount=source.split(from).length-1,targetCount=source.split(to).length-1;
+  if(sourceCount===1&&targetCount===0)return source.split(from).join(to);
+  if(sourceCount===0&&targetCount===1)return source;
+  throw Error('DOMAIN_TRIAL_SOURCE_CHANGED: '+path);
+}
 
 function browserConfig(read){
   const context={window:{}};
@@ -55,9 +61,9 @@ export function domainTrialPatch(read,{enabled,hostname,projectRef,publishableKe
     supabaseUrl:`https://${PREVIEW_PROJECT}.supabase.co`,supabasePublishableKey:publishableKey,
     supabaseAuthStorageKey:`sb-${PREVIEW_PROJECT}-auth-token`};
   patch.set('public-config.js','window.AQARI_PUBLIC_CONFIG = Object.freeze('+JSON.stringify(browser,null,2)+');\n');
-  const adapter=replaceExact(read('supabase-adapter.js'),"target.hostname !== '"+previewHost+"'","target.hostname !== 'myaqari.com'",1,'supabase-adapter.js');
+  const adapter=replaceTrialExact(read('supabase-adapter.js'),"target.hostname !== '"+previewHost+"'","target.hostname !== 'myaqari.com'",'supabase-adapter.js');
   patch.set('supabase-adapter.js',adapter);
-  const partner=replaceExact(read('v267-partner-portal.js'),'https://'+previewHost+'/login.html?release=V267',DOMAIN_TRIAL_REDIRECT,1,'v267-partner-portal.js');
+  const partner=replaceTrialExact(read('v267-partner-portal.js'),'https://'+previewHost+'/login.html?release=V267',DOMAIN_TRIAL_REDIRECT,'v267-partner-portal.js');
   patch.set('v267-partner-portal.js',partner);
   return patchInventory(read,patch);
 }
