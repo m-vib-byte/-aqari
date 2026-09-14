@@ -12,7 +12,7 @@ if(process.env.VERCEL_ENV==='production'){
     console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');
   }else{
     const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
-    const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),target);
+    const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);
     for(const [path,content] of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
     console.log('Prepared V267 production configuration for the preserved domain data source.');
   }
