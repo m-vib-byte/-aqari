@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
 const periodGuard=readFileSync(new URL('../staging-database/sql/property-cost-allocation-period-guard.sql',import.meta.url),'utf8');
+const salary=readFileSync(new URL('../staging-database/sql/salary-slip-dhahawi.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
 
 test('allocation revisions are append-only and keep actor reason and exact property amount',()=>{
@@ -26,6 +27,13 @@ test('only finalized authoritative sources can enter property cost allocation',(
  assert.match(sql,/payroll[\s\S]*p\.state='paid'/);
  assert.match(sql,/utility[\s\S]*u\.entry_type='bill'[\s\S]*u\.amount_paid>0[\s\S]*u\.payment_document_id is not null/);
  assert.match(sql,/COST_SOURCE_NOT_FINALIZED/);
+});
+
+test('paid payroll has one generated official net that includes the detailed salary slip components',()=>{
+ assert.match(salary,/add column net numeric\(12,3\) generated always as \(basic\+allowances\+overtime\+loan_payment\+reward\+housing\+indemnity\+holidays-deductions-late-absence-advance_repayment\) stored/);
+ assert.match(salary,/update private\.aqari_hr_payroll set state='paid',paid_at=now\(\)/);
+ assert.match(sql,/coalesce\(p\.net,p\.basic/);
+ assert.match(sql,/coalesce\(pay\.net,pay\.basic/);
 });
 
 test('a manual allocation must equal the authoritative source total exactly and cannot target unknown properties',()=>{
