@@ -28,7 +28,7 @@ begin
  if actor is null or btrim(coalesce(p_receipt_no,''))='' or length(p_receipt_no)>150 or p_receipt_no ~ '[[:cntrl:]]' then
   raise insufficient_privilege using message='ACCESS_DENIED';
  end if;
- select rp.*,l.tenant_id into p,lease_tenant
+ select rp,l.tenant_id into p,lease_tenant
  from public.aqari_rent_payments rp
  join public.aqari_leases l on l.workspace_id=rp.workspace_id and l.id=rp.lease_id
  where rp.workspace_id=p_workspace_id and rp.reference=p_receipt_no;
@@ -36,7 +36,7 @@ begin
  if not (private.aqari_can_lease(p_workspace_id,p.lease_id,'collections','read') or private.aqari_owns_tenant(p_workspace_id,lease_tenant)) then
   raise insufficient_privilege using message='ACCESS_DENIED';
  end if;
- if not jsonb_typeof(p.receipt)='object' or p.receipt->>'id' is distinct from p_receipt_no then
+ if jsonb_typeof(p.receipt) is distinct from 'object' or p.receipt->>'id' is distinct from p_receipt_no then
   raise exception 'RECEIPT_SNAPSHOT_MISMATCH' using errcode='23514';
  end if;
  source_hash:=encode(sha256(convert_to(p.receipt::text,'UTF8')),'hex');
