@@ -2,20 +2,20 @@ import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {join,delimiter} from 'node:path';
-import {productionPatch,domainTrialPatch} from './prepare-v267-production.mjs';
+import {productionPatch} from './prepare-v267-production.mjs';
 
 if(process.env.VERCEL_ENV==='production'){
+  const candidate=String(process.env.VERCEL_GIT_COMMIT_SHA||'').trim().toLowerCase();
+  if(!/^[0-9a-f]{40}$/.test(candidate))throw Error('EXACT_PRODUCTION_CANDIDATE_SHA_REQUIRED');
+  execFileSync(process.execPath,['scripts/v267-owner-production-approval.mjs','--candidate-sha',candidate],{
+    stdio:'inherit',env:{...process.env,V267_CANDIDATE_SHA:candidate}
+  });
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
-  if(trial?.enabled===true){
-    const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);
-    for(const [path,content] of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
-    console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');
-  }else{
-    const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
-    const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);
-    for(const [path,content] of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
-    console.log('Prepared V267 production configuration for the preserved domain data source.');
-  }
+  if(trial?.enabled===true)throw Error('DOMAIN_TRIAL_DISABLED_BY_OWNER_GOVERNANCE');
+  const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
+  const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);
+  for(const [path,content] of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
+  console.log('Prepared V267 Production only after exact-SHA owner approval validation.');
 }
 
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
