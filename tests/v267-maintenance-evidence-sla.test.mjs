@@ -7,6 +7,7 @@ const hotfix=readFileSync(new URL('../staging-database/sql/maintenance-evidence-
 const hosted=readFileSync(new URL('../staging-database/tests/maintenance_evidence_hosted_acceptance.sql',import.meta.url),'utf8');
 const slaPrerequisite=readFileSync(new URL('../staging-database/sql/maintenance-sla-escalation-prerequisite.sql',import.meta.url),'utf8');
 const slaSql=readFileSync(new URL('../staging-database/sql/maintenance-sla-escalation.sql',import.meta.url),'utf8');
+const slaLifecycleHotfix=readFileSync(new URL('../staging-database/sql/maintenance-sla-lifecycle-hotfix.sql',import.meta.url),'utf8');
 const slaHosted=readFileSync(new URL('../staging-database/tests/maintenance_sla_escalation_hosted_acceptance.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/maintenance-evidence.js',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
@@ -101,12 +102,23 @@ test('automatic SLA engine escalates response and resolution breaches idempotent
  assert.match(slaSql,/cron\.schedule\('aqari_v267_maintenance_sla_escalation','\*\/15 \* \* \* \*'/);
 });
 
-test('rollback-only hosted SLA probe proves save, two-stage escalation, idempotency, immutability and cleanup',()=>{
+test('lifecycle hotfix preserves breaches that occurred before start or completion and deduplicates by task stage',()=>{
+ assert.match(slaLifecycleHotfix,/aqari_maintenance_sla_escalations_workspace_id_task_id_stage_task_revision_key/);
+ assert.match(slaLifecycleHotfix,/aqari_maintenance_sla_escalations_task_stage_uq/);
+ assert.match(slaLifecycleHotfix,/t\.started_at is not null and t\.started_at>=t\.assigned_at\+make_interval\(mins=>s\.response_minutes\)/);
+ assert.match(slaLifecycleHotfix,/t\.completed_at is not null and t\.completed_at>=t\.started_at\+make_interval\(mins=>s\.resolution_minutes\)/);
+ assert.match(slaLifecycleHotfix,/key:='maintenance-sla:'\|\|r\.id\|\|':'\|\|r\.stage/);
+ assert.match(slaLifecycleHotfix,/on conflict\(workspace_id,task_id,stage\) do nothing/);
+ assert.match(slaLifecycleHotfix,/'revisionAtDetection'/);
+});
+
+test('rollback-only hosted SLA probe proves save, late-lifecycle breach, idempotency, immutability and cleanup',()=>{
  assert.match(slaHosted,/^begin;/m);
  assert.match(slaHosted,/public\.aqari_maintenance_sla/);
  assert.match(slaHosted,/SLA_POLICY_READBACK_INVALID/);
  assert.match(slaHosted,/SLA_FIRST_RUN_INVALID/);
  assert.match(slaHosted,/SLA_SECOND_RUN_NOT_IDEMPOTENT/);
+ assert.match(slaHosted,/LATE_RESPONSE_BREACH_NOT_PRESERVED/);
  assert.match(slaHosted,/SLA_NOTIFICATION_COUNT_INVALID/);
  assert.match(slaHosted,/EXPECTED_SLA_ESCALATION_IMMUTABILITY_GUARD_DID_NOT_FIRE/);
  assert.match(slaHosted,/EXPECTED_SLA_POLICY_DELETE_GUARD_DID_NOT_FIRE/);
