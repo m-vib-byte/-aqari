@@ -4,10 +4,16 @@ import {readFileSync} from 'node:fs';
 const page=readFileSync(new URL('../src/v267/pages/property-onboarding.js',import.meta.url),'utf8');
 const experience=readFileSync(new URL('../src/v267/components/property-experience.js',import.meta.url),'utf8');
 const upload=readFileSync(new URL('../src/v267/components/original-document-upload.js',import.meta.url),'utf8');
+const legacyQuickCreate=readFileSync(new URL('../v201-experience.js',import.meta.url),'utf8');
 
-test('property add action opens the unified onboarding instead of the legacy property form',()=>{
+test('every property add entry is intercepted into the unified onboarding instead of the legacy property form',()=>{
  assert.match(experience,/property-onboarding\.js/);
  assert.match(experience,/openPropertyOnboarding/);
+ assert.match(experience,/openOnboarding/);
+ assert.match(experience,/\[data-v201-create="properties"\]/);
+ assert.match(experience,/stopImmediatePropagation/);
+ assert.match(experience,/addEventListener\('click',onLegacyQuickCreate,true\)/);
+ assert.match(legacyQuickCreate,/properties:\{title:'إضافة عقار'/);
  assert.doesNotMatch(experience,/openRecord\('properties'\)/);
 });
 
