@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const base=readFileSync(new URL('../staging-database/sql/property-owner-controls.sql',import.meta.url),'utf8');
+const fix=readFileSync(new URL('../staging-database/sql/property-owner-controls-feature-settings-fix.sql',import.meta.url),'utf8');
+assert.match(base,/set settings=settings,revision=next_rev/,'base anchor changed; reconcile the follow-up fix');
+assert.match(fix,/feature_settings jsonb/);
+assert.match(fix,/set settings=feature_settings,revision=next_rev/);
+assert.match(fix,/select s\.settings into feature_settings/);
+assert.match(fix,/PROPERTY_CONTROL_FEATURE_SETTINGS_PATCH_INCOMPLETE/);
+assert.ok(fix.indexOf('pg_get_functiondef')<fix.indexOf('execute s'));
+console.log('V267 property controls feature-settings SQL fix: PASS');
