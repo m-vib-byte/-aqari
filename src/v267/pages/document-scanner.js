@@ -3,6 +3,7 @@ import {t,dateLocale} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {decodeImage,renderScan,scanGeometry,checksum,MAX_SOURCE_BYTES} from '../components/scan-image.js';
 import {createVerifiedUpload} from '../components/verified-upload.js';
+import {createStoredVisualReview} from '../components/stored-visual-review.js';
 import {scanPdf,MAX_SCAN_PAGES,MAX_SCAN_BYTES} from '../components/scan-pdf.js';
 import {documentTarget} from '../components/document-target.js';
 
@@ -62,6 +63,7 @@ export async function openDocumentScanner(initial={}){
  captureBox.append(node('h3',t('٢. تصوير الورق أو اختيار ملف')),node('p',t('صوّر كل صفحة، ثم أضف الصفحة التالية. تجمع الصور في PDF واحد بترتيبها. يمكنك أيضاً اختيار PDF أو DOCX جاهز حتى ٢٥ ميجابايت.')),field(t('تصوير ورقة بالكاميرا'),camera),field(t('اختيار ملف أو صور من الجهاز'),file),selection,rotate,cropBox,preview,addPage,pagesList,reviewField,save);
  archiveBox.append(node('h3',t('٣. المستندات المحفوظة')),reload,list,previous,next);
  body.append(targetBox,captureBox,archiveBox);preview.hidden=true;
+ const visualReview=createStoredVisualReview(dialog,{parent:captureBox,controls:[type,category,query,search,records,title,file,camera,rotate,...cropBox.querySelectorAll('input'),addPage,reviewed,save]});
  if(initial.ref){type.disabled=query.disabled=search.disabled=records.disabled=true;queryField.hidden=query.hidden=search.hidden=true;}
 
  function refreshCategories(){
@@ -134,10 +136,11 @@ export async function openDocumentScanner(initial={}){
    pending={doc,hash,target,upload:createVerifiedUpload(session,{path:doc.storage_path,blob:sentBlob})};
   }
   const {doc}=pending;await pending.upload();
+  await visualReview.review({doc,target,expectedHash:hash,expectedSize:sentBlob.size});session.check();
   await session.request(session.client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:sentBlob.size,p_mime_type:target.mime,p_checksum:hash}));
   const verified=await session.request(session.client.from('aqari_documents').select('id,status,entity_type,entity_ref,created_by,checksum_sha256,metadata,mime_type').eq('workspace_id',session.bound.workspace).eq('id',doc.document_id).single());
   if(verified?.id!==doc.document_id||verified.status!=='uploaded'||verified.entity_type!==target.type||verified.entity_ref!==target.ref||verified.created_by!==session.bound.user||verified.checksum_sha256!==hash||verified.mime_type!==target.mime||verified.metadata?.document_category!==target.category)throw Error('لم تتأكد إعادة قراءة سجل المستند.');
-  blob=null;img=null;pending=null;reviewed.checked=false;pages.length=0;drawPages();uploadMime='';uploadName='';file.value=camera.value='';preview.hidden=true;rotate.disabled=true;cropBox.hidden=true;page=0;await loadDocuments();status.textContent=t('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتصنيفه وارتباطه بالسجل.');
+  blob=null;img=null;pending=null;reviewed.checked=false;pages.length=0;drawPages();uploadMime='';uploadName='';file.value=camera.value='';preview.hidden=true;rotate.disabled=true;cropBox.hidden=true;page=0;await loadDocuments();status.textContent=t('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.');
  });
  next.onclick=()=>run(async()=>{page++;await loadDocuments();status.textContent=t('المستندات الأقدم.');});previous.onclick=()=>run(async()=>{if(page>0)page--;await loadDocuments();status.textContent=t('المستندات الأحدث.');});
  dialog.onDispose(()=>{renderId++;img=null;blob=null;pending=null;pages.length=0;file.value=camera.value='';pagesList.replaceChildren();preview.removeAttribute('src');previewUrl=null;});
