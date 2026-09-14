@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const sql=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3.sql',import.meta.url),'utf8');
+const allocation=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
+const owners=readFileSync(new URL('../src/v267/pages/property-owner-statement.js',import.meta.url),'utf8');
+const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
+
+assert.match(sql,/allocation_method text not null default 'amount'/);
+for(const method of ['amount','percentage','unit_count','area','custom'])assert.match(sql,new RegExp(`'${method}'`));
+for(const frequency of ['one_time','monthly','annual','invoice'])assert.match(sql,new RegExp(`'${frequency}'`));
+assert.match(sql,/ALLOCATION_PERCENTAGE_MUST_TOTAL_100/);
+assert.match(sql,/ALLOCATION_COMPLETE_AREA_REQUIRED/);
+assert.match(sql,/PAYROLL_ALLOCATION_OUTSIDE_EMPLOYEE_PROPERTIES/);
+assert.match(sql,/basis_snapshot/);
+assert.match(sql,/current_revision/);
+assert.match(sql,/aqari_cost_allocation_no_change/);
+assert.match(sql,/analysis_frequency/);
+assert.match(sql,/s\.amount\/12/);
+assert.match(sql,/annual costs remain one original movement and monthly analytical impact is calculated only/);
+assert.match(sql,/expectedIncome/);
+assert.match(sql,/collectionVariance/);
+assert.match(sql,/distributionStatus','calculated_only'/);
+assert.match(sql,/'autoPayment',false/);
+assert.match(sql,/aqari_property_owners_normalize/);
+assert.match(sql,/octet_length\(v::text\)<=500000/);
+assert.doesNotMatch(sql,/jsonb_array_length\(v\)<=50/);
+assert.doesNotMatch(sql,/jsonb_array_length\(rows\) not between 1 and 100/);
+
+assert.match(allocation,/حسب عدد الوحدات/);assert.match(allocation,/حسب المساحة/);assert.match(allocation,/قاعدة\/وزن مخصص/);assert.match(allocation,/سنوي — تأثير تحليلي ÷ 12/);
+assert.match(allocation,/Readback/);assert.match(allocation,/property-owner-statement\.js/);
+assert.match(owners,/محسوب فقط/);assert.match(owners,/لا يوجد تحويل أو صرف أرباح تلقائي/);
+assert.match(hub,/مركز تكلفة العقار والتوزيع/);assert.match(hub,/كشف الملاك المحسوب/);assert.match(hub,/analyticalExpenses/);assert.match(hub,/expectedIncome/);
+console.log('V267 finance/owners B3 contract: PASS');
