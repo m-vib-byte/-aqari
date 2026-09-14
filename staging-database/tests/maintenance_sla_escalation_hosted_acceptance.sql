@@ -41,8 +41,9 @@ select response_task_id,workspace_id,plan_id,property_id,(now() at time zone 'As
        'QA-SLA-RESPONSE','in_progress','rollback-only late-start response SLA probe',user_id,statement_timestamp()-interval '2 hours',statement_timestamp()-interval '1 hour'
 from v267_sla_probe_ctx
 union all
+-- Resolution fixture started within the 30-minute response target, then exceeded the 90-minute resolution target.
 select resolution_task_id,workspace_id,plan_id,property_id,((now() at time zone 'Asia/Kuwait')::date-1),
-       'QA-SLA-RESOLUTION','in_progress','rollback-only resolution SLA probe',user_id,statement_timestamp()-interval '4 hours',statement_timestamp()-interval '3 hours'
+       'QA-SLA-RESOLUTION','in_progress','rollback-only resolution SLA probe',user_id,statement_timestamp()-interval '3 hours 15 minutes',statement_timestamp()-interval '3 hours'
 from v267_sla_probe_ctx;
 
 do $$ declare r jsonb;
