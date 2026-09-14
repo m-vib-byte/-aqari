@@ -39,14 +39,14 @@ create trigger aqari_cost_allocation_head_no_delete before delete on private.aqa
 
 create or replace function private.aqari_cost_source(w uuid,k text,i uuid)
 returns jsonb language plpgsql stable security definer set search_path='' as $$
-declare result jsonb;total numeric;source_date date;props uuid[];label text;
+declare total numeric;source_date date;props uuid[];label text;
 begin
  if k='financial_expense' then
   select e.amount,e.expense_date,array[e.property_id],coalesce(nullif(e.category,''),'مصروف')||' — '||coalesce(nullif(e.payee,''),e.id::text)
    into total,source_date,props,label from private.aqari_financial_expenses e where e.workspace_id=w and e.id=i and e.state='approved';
  elsif k='payroll' then
   select coalesce(p.net,p.basic+p.allowances+p.overtime-p.deductions-p.advance_repayment),coalesce(p.paid_at::date,p.month),
-   coalesce((select array_agg(distinct x::uuid order by x::uuid) from jsonb_array_elements_text(coalesce(p.snapshot->'property_ids',to_jsonb(h.property_ids)))x),h.property_ids),
+   coalesce((select array_agg(distinct j.value::uuid order by j.value::uuid) from jsonb_array_elements_text(coalesce(p.snapshot->'property_ids',to_jsonb(h.property_ids))) as j(value)),h.property_ids),
    'راتب — '||coalesce(nullif(h.profile->>'name_ar',''),nullif(h.profile->>'name_en',''),h.id::text)||' — '||to_char(p.month,'YYYY-MM')
    into total,source_date,props,label from private.aqari_hr_payroll p join private.aqari_hr_employees h on h.workspace_id=p.workspace_id and h.id=p.employee_id
    where p.workspace_id=w and p.id=i and p.state='paid';
@@ -115,7 +115,10 @@ begin
  select coalesce(array_agg((r->>'propertyId')::uuid order by (r->>'propertyId')::uuid),'{}'::uuid[]),coalesce(sum((r->>'amount')::numeric),0) into property_ids,sum_amount from jsonb_array_elements(rows)r;
  if sum_amount is distinct from (source->>'total')::numeric then raise check_violation using message='ALLOCATION_TOTAL_MISMATCH';end if;
  if exists(select 1 from unnest(property_ids)p where not exists(select 1 from public.aqari_properties x where x.workspace_id=w and x.id=p)) then raise insufficient_privilege using message='ALLOCATION_PROPERTY_NOT_FOUND';end if;
- if kind='payroll' and exists(select 1 from unnest(property_ids)p where not (to_jsonb(p)::text::jsonb <@ coalesce(source->'propertyIds','[]'::jsonb))) then raise insufficient_privilege using message='PAYROLL_ALLOCATION_OUTSIDE_EMPLOYEE_PROPERTIES';end if;
+ if kind='payroll' and exists(
+  select 1 from unnest(property_ids) allocated_property
+  where not exists(select 1 from jsonb_array_elements_text(coalesce(source->'propertyIds','[]'::jsonb)) as allowed(value) where allowed.value=allocated_property::text)
+ ) then raise insufficient_privilege using message='PAYROLL_ALLOCATION_OUTSIDE_EMPLOYEE_PROPERTIES';end if;
  select * into head from private.aqari_property_cost_allocation_heads where workspace_id=w and source_kind=kind and source_id=ident for update;
  if coalesce(head.current_revision,0) is distinct from expected then raise serialization_failure using message='ALLOCATION_REVISION_CONFLICT';end if;
  next_rev:=expected+1;select coalesce(nullif(display_name,''),auth.uid()::text) into actor from public.aqari_profiles where user_id=auth.uid();actor:=coalesce(actor,auth.uid()::text);
@@ -141,7 +144,7 @@ begin
  from public.aqari_rent_payments r join public.aqari_leases l on l.workspace_id=r.workspace_id and l.id=r.lease_id join public.aqari_units u on u.workspace_id=l.workspace_id and u.id=l.unit_id
  where r.workspace_id=w and u.property_id=p and r.status not in('cancelled','ملغى') and not exists(select 1 from private.aqari_receipt_cancellations c where c.workspace_id=r.workspace_id and c.payment_id=r.id);
  select coalesce(sum(private.aqari_cost_amount(w,'financial_expense',e.id,p,e.amount,array[e.property_id])) filter(where e.expense_date between month_start and p_as_of),0),coalesce(sum(private.aqari_cost_amount(w,'financial_expense',e.id,p,e.amount,array[e.property_id])) filter(where e.expense_date between year_start and p_as_of),0) into finance_month,finance_year from private.aqari_financial_expenses e where e.workspace_id=w and e.state='approved';
- select coalesce(sum(private.aqari_cost_amount(w,'payroll',pay.id,p,coalesce(pay.net,pay.basic+pay.allowances+pay.overtime-pay.deductions-pay.advance_repayment),coalesce((select array_agg(distinct x::uuid) from jsonb_array_elements_text(coalesce(pay.snapshot->'property_ids',to_jsonb(h.property_ids)))x),h.property_ids))) filter(where coalesce(pay.paid_at::date,pay.month) between month_start and p_as_of),0),coalesce(sum(private.aqari_cost_amount(w,'payroll',pay.id,p,coalesce(pay.net,pay.basic+pay.allowances+pay.overtime-pay.deductions-pay.advance_repayment),coalesce((select array_agg(distinct x::uuid) from jsonb_array_elements_text(coalesce(pay.snapshot->'property_ids',to_jsonb(h.property_ids)))x),h.property_ids))) filter(where coalesce(pay.paid_at::date,pay.month) between year_start and p_as_of),0) into payroll_month,payroll_year from private.aqari_hr_payroll pay join private.aqari_hr_employees h on h.workspace_id=pay.workspace_id and h.id=pay.employee_id where pay.workspace_id=w and pay.state='paid';
+ select coalesce(sum(private.aqari_cost_amount(w,'payroll',pay.id,p,coalesce(pay.net,pay.basic+pay.allowances+pay.overtime-pay.deductions-pay.advance_repayment),coalesce((select array_agg(distinct j.value::uuid) from jsonb_array_elements_text(coalesce(pay.snapshot->'property_ids',to_jsonb(h.property_ids))) as j(value)),h.property_ids))) filter(where coalesce(pay.paid_at::date,pay.month) between month_start and p_as_of),0),coalesce(sum(private.aqari_cost_amount(w,'payroll',pay.id,p,coalesce(pay.net,pay.basic+pay.allowances+pay.overtime-pay.deductions-pay.advance_repayment),coalesce((select array_agg(distinct j.value::uuid) from jsonb_array_elements_text(coalesce(pay.snapshot->'property_ids',to_jsonb(h.property_ids))) as j(value)),h.property_ids))) filter(where coalesce(pay.paid_at::date,pay.month) between year_start and p_as_of),0) into payroll_month,payroll_year from private.aqari_hr_payroll pay join private.aqari_hr_employees h on h.workspace_id=pay.workspace_id and h.id=pay.employee_id where pay.workspace_id=w and pay.state='paid';
  select coalesce(sum(private.aqari_cost_amount(w,'utility',u.id,p,u.amount_paid,array[u.property_id])) filter(where u.payment_date between month_start and p_as_of),0),coalesce(sum(private.aqari_cost_amount(w,'utility',u.id,p,u.amount_paid,array[u.property_id])) filter(where u.payment_date between year_start and p_as_of),0) into utility_month,utility_year from public.aqari_utility_entries u where u.workspace_id=w and u.entry_type='bill' and u.amount_paid>0 and u.payment_date is not null and u.payment_document_id is not null;
  select coalesce(sum(coalesce(pay.net,pay.basic+pay.allowances+pay.overtime-pay.deductions-pay.advance_repayment)),0) into unallocated_payroll from private.aqari_hr_payroll pay join private.aqari_hr_employees h on h.workspace_id=pay.workspace_id and h.id=pay.employee_id where pay.workspace_id=w and pay.state='paid' and coalesce(pay.paid_at::date,pay.month) between year_start and p_as_of and p=any(h.property_ids) and cardinality(h.property_ids)>1 and not exists(select 1 from private.aqari_property_cost_allocation_heads a where a.workspace_id=w and a.source_kind='payroll' and a.source_id=pay.id and a.current_revision>0);
  expense_month:=finance_month+payroll_month+utility_month;expense_year:=finance_year+payroll_year+utility_year;
