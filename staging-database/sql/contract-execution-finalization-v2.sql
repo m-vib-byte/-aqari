@@ -43,26 +43,27 @@ create table if not exists private.aqari_rent_receipt_serial_reservations(
 alter table private.aqari_rent_receipt_serial_reservations enable row level security;
 revoke all on private.aqari_rent_receipt_serial_reservations from public,anon,authenticated;
 
--- Existing trial rows are checked before this migration is applied. These indexes
--- make both identifiers unique across the database, not merely per workspace.
+-- Existing trial rows were checked before this migration. These indexes make
+-- identifiers unique across the database, not merely per workspace.
 create unique index if not exists aqari_leases_contract_no_platform_unique
  on public.aqari_leases(lower(contract_no));
 create unique index if not exists aqari_rent_payments_reference_platform_unique
  on public.aqari_rent_payments(lower(reference));
 
--- Seed server counters above any already issued AQARI serials so a newly reserved
--- number can never collide with an existing persisted contract or receipt.
+-- Seed server counters only from values that actually match the AQARI serial
+-- format. regexp_matches is set-returning, so nonmatching historical rows do
+-- not produce a null seed row.
 insert into private.aqari_global_serial_counters(kind,year,last_value)
 select 'contract', (m)[1]::integer, max((m)[2]::bigint)
 from public.aqari_leases l
-cross join lateral regexp_match(l.contract_no,'^AQ-C-([0-9]{4})-([0-9]+)$','i') m
+cross join lateral regexp_matches(l.contract_no,'^AQ-C-([0-9]{4})-([0-9]+)$','i') m
 group by (m)[1]::integer
 on conflict(kind,year) do update set last_value=greatest(private.aqari_global_serial_counters.last_value,excluded.last_value);
 
 insert into private.aqari_global_serial_counters(kind,year,last_value)
 select 'rent_receipt', (m)[1]::integer, max((m)[2]::bigint)
 from public.aqari_rent_payments p
-cross join lateral regexp_match(p.reference,'^AQ-R-([0-9]{4})-([0-9]+)$','i') m
+cross join lateral regexp_matches(p.reference,'^AQ-R-([0-9]{4})-([0-9]+)$','i') m
 group by (m)[1]::integer
 on conflict(kind,year) do update set last_value=greatest(private.aqari_global_serial_counters.last_value,excluded.last_value);
 
@@ -197,9 +198,6 @@ begin
   select * into strict lease from public.aqari_leases l where l.workspace_id=new.workspace_id and l.id=settlement.lease_id;
   select value into strict c from jsonb_array_elements(coalesce(new_d->'contractsV202','[]'::jsonb)) x where x->>'id'=settlement.contract_ref;
 
-  -- The lease table now enforces platform-wide uniqueness. New contracts also
-  -- use the server reservation RPC; older trial drafts are accepted only if
-  -- their already-persisted number is still globally unique.
   if settlement.contract_no is distinct from lease.contract_no or c->>'contract_no' is distinct from settlement.contract_no then
    raise exception 'CONTRACT_SERIAL_MISMATCH' using errcode='23514';
   end if;
