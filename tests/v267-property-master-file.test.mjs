@@ -82,7 +82,9 @@ test('property card and name helper use the secure Supabase client with session 
  assert.match(propertyExperience,/ملف كامل/);
  assert.match(propertyExperience,/getClient/);
  assert.doesNotMatch(propertyExperience,/AQARI_SUPABASE\?\.client/);
- assert.match(propertyExperience,/property-master-file\.js/);
+ assert.match(propertyExperience,/property-hub\.js/);
+ assert.match(propertyExperience,/workspace=bridge\?\.context\?\.workspace\?\.id/);
+ assert.match(propertyExperience,/\.eq\('workspace_id',workspace\)/);
  assert.match(page,/getClient/);
  assert.doesNotMatch(page,/AQARI_SUPABASE\?\.client/);
  assert.match(page,/initialUser/);
