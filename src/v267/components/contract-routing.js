@@ -2,7 +2,7 @@
 export function installContractRoutes(target,open){
  const previous=target.go;
  async function route(initial={}){
-  if(initial?.create){
+  if(initial?.create&&typeof window!=='undefined'&&target===window){
    const module=await import('../pages/contract-foundation.js');
    return module.openContractFoundation({...initial,openContracts:open});
   }
