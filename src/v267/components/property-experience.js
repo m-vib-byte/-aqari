@@ -27,7 +27,7 @@ export function installPropertyExperience({readable,writable}){
   if(!readable())return false;const bridge=window.AQARI_SUPABASE,workspace=bridge?.context?.workspace?.id;if(!workspace||typeof bridge?.getClient!=='function')throw Error('الجلسة غير جاهزة.');
   const client=await bridge.getClient(),{data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).eq('name',String(name||'').trim()).limit(2);if(error)throw error;
   if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد. افتح السجل باستخدام معرفه.':'لم يتم ربط هذا العقار بالسجل الخادمي بعد.');
-  const m=await import('../pages/property-master-file.js');return m.openPropertyMasterFile(data[0].id);
+  const m=await import('../pages/property-hub.js');return m.openPropertyHub(data[0].id);
  }
  async function openAuthoritativeStatement(name){
   if(!readable())throw Error('كشف الإيجار غير متاح لصلاحية حسابك.');
