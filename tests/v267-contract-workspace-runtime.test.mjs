@@ -1,9 +1,10 @@
+import {installContractRoutes} from '../src/v267/components/contract-routing.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountRentalContracts} from '../src/v267/pages/rental-contracts.js';
 
-async function fixture({count=45,initial={}}={}){
+async function fixture({count=45,initial={},propertyRows=[]}={}){
  const original={window:globalThis.window,document:globalThis.document};let failed=false;const prints=[],tenantSaves=[];
  class Element{
   constructor(tag){this.tagName=tag;this.children=[];this.attributes={};this.dataset={};this.value='';this.disabled=false;this.hidden=false;this.style={};}
@@ -15,7 +16,7 @@ async function fixture({count=45,initial={}}={}){
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(x=>x!==this);this.parent=null;}
  }
  const records=Array.from({length:count},(_,i)=>({id:i+1,contract_no:'AQ-'+(401+i),tenant:i===0?'أَحمد':'مستأجر '+i,property:i%2?'برج مرزوق':'برج شيخة',unit:String(401+i),start_date:'2026-09-01',end_date:'2027-08-31',status:i%2?'signed':'approved',source:'v267-cloud',tenantProfile:{nameEn:i===0?'Ahmed':'Tenant '+i}}));
- class Query{constructor(table){this.table=table;}select(){return this;}eq(){return this;}order(){return this;}async abortSignal(){return {data:[]};}}
+ class Query{constructor(table){this.table=table;}select(){return this;}eq(){return this;}order(){return this;}async abortSignal(){return {data:this.table==='aqari_properties'?propertyRows:[]};}}
  const client={from:table=>new Query(table),rpc(name){return {abortSignal:async()=>failed?{error:{message:'تعذر تحميل العقود'}}:{data:name==='aqari_read_state_v267'?{payload:{contractsV202:structuredClone(records)}}:[]}};}};
  const body=new Element('body');body.connected=true;globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),documentElement:{classList:{contains:()=>true}}};
  globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_RENTAL_RECORDS:{primary:p=>p,kuwaitDate:()=> '2026-09-14',defaultClauses:()=>[],saveTenantProfile:async p=>{tenantSaves.push(structuredClone(p));return structuredClone(p);},contractMarkup:()=>'<p>synthetic review draft</p>',prepareContractPrint:async(...args)=>{prints.push(args);return {html:'<p>synthetic approved sets</p>'};},saveLease(){throw Error('read-only test must never write');}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
@@ -54,4 +55,17 @@ test('new contract saves inline tenant details without clearing contract draft a
   f.control('الاسم الكامل بالعربي').value='تعديل غير محفوظ';const chosen=f.control('المستأجر — سحب البيانات من ملفه / Tenant');chosen.value='';chosen.onchange();assert.equal(chosen.value,f.tenantSaves[0].id);assert.equal(f.control('الاسم الكامل بالعربي').value,'تعديل غير محفوظ');
   const form=f.elements().find(e=>e.tagName==='form');form.onsubmit({preventDefault(){}});await new Promise(resolve=>setTimeout(resolve,0));assert.match(f.d.status.textContent,/احفظ بيانات المستأجر أولاً/);
  }finally{f.cleanup();}
+});
+
+test('legacy go and property shortcuts route to the same contract entry without changing unrelated navigation',async()=>{
+ const opened=[],legacy=[];const target={go:function(...args){legacy.push([this,...args]);return 'legacy';}};installContractRoutes(target,async initial=>{opened.push(initial||{});return 'modern';});
+ assert.equal(await target.go('smartContractsPage'),'modern');assert.equal(await target.go('leases'),'modern');await target.AQARI_V267_OPEN_CONTRACTS({create:true,property:'برج مرزوق'});
+ assert.deepEqual(opened,[{create:true},{},{create:true,property:'برج مرزوق'}]);assert.equal(legacy.length,0);assert.equal(target.go('home','x'),'legacy');assert.equal(legacy[0][0],target);assert.deepEqual(legacy[0].slice(1),['home','x']);
+});
+test('legacy create entry opens the inline tenant form directly after loading authoritative directory',async()=>{
+ const f=await fixture({count:0,initial:{create:true,property:'غير موجود'}});try{assert.ok(f.control('الجنسية بالإنجليزي'));assert.ok(f.button('حفظ بيانات المستأجر واختياره للعقد'));assert.equal(f.control('العقار / Property').value,'');assert.doesNotMatch(f.text(),/مصنع العقود الذكي/);}finally{f.cleanup();}
+});
+
+test('property shortcut preselects only an available property in the new contract form',async()=>{
+ const f=await fixture({count:0,initial:{create:true,property:'برج مرزوق'},propertyRows:[{id:'p',name:'برج مرزوق'}]});try{assert.equal(f.control('العقار / Property').value,'برج مرزوق');assert.ok(f.control('الاسم الكامل بالعربي'));}finally{f.cleanup();}
 });

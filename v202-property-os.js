@@ -2094,8 +2094,10 @@
     }
     if(action==='payment')return openPayment(trigger,undefined,activePropertyPeriod);
     if(action==='statement')return openStatementDocument(activePropertyPeriod||undefined,trigger);
+    const contractProperty=activeProperty;
     closeWorkspace(false);
     if(action==='contract'){
+      if(typeof window.AQARI_V267_OPEN_CONTRACTS==='function')return window.AQARI_V267_OPEN_CONTRACTS({create:true,property:contractProperty});
       window.go?.('smartContractsPage');
       return selectPropertyOnPage('contractPropertyV55','loadContractsV55');
     }

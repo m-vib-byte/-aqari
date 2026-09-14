@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "f40cb9da73d30a26fd7adfbb2d0ea8e0f0204317b4c3cb73befb371aa5f247b4",
+      "sha256": "797f4b86c25114e50fe6278cf3223641577f857a313f1054926c69e257de8021",
       "size": 590218
     },
     {
@@ -917,8 +917,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "8a9fe1013c952befe6c77c12bef0c93f668df1aab1d0088b0309c4935a23d384",
-      "size": 2046
+      "sha256": "7f627c0747eaa96590b7ca94071aa45efa04560154a118a38b768817dc029fe5",
+      "size": 2088
     },
     {
       "path": "secure-auth-bridge.js",
@@ -1267,8 +1267,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "0e0ec5cca858854c3e845065b60a6a0c7e8733a540306963b65dfaab3809ffe6",
-      "size": 20936
+      "sha256": "7718f55ae09b57e269c28787a5a0553a1511f6e34cea15387ea1255e723469c1",
+      "size": 21065
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -1332,8 +1332,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "bac7fe3570ef3cc46de08aa258b2e9ab1c642f850d3657557a687004e8ed98c9",
-      "size": 22115
+      "sha256": "80e206d7a0c8502ac78cf5835df22d605c0e1375ee642313bf9e0fa92b0fc5c3",
+      "size": 22688
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -3097,8 +3097,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "bde7df547cdf60994fce6c89664751064090a9605b730cacab604eb5b8003c3c",
-      "size": 269911
+      "sha256": "fe43ed11c404241da3fe83025e53e230ed32701f1cafa8379f8b42edf500c9a7",
+      "size": 270098
     },
     {
       "path": "v205-simple.css",
@@ -3297,8 +3297,8 @@
     },
     {
       "path": "tests/v267-contract-workspace-runtime.test.mjs",
-      "sha256": "61e4720e5de0133a92ee17e9b6657179ae4b80a1805d7de1b2ca6b0e987ede1b",
-      "size": 7885
+      "sha256": "bb963f887ace39a2bc7505ae723750287bc587ea5d7569050b23e14071837a57",
+      "size": 9705
     },
     {
       "path": "docs/V267-CONTRACT-WORKSPACE-2026-09-13.md",
@@ -3369,6 +3369,16 @@
       "path": "docs/V267-TENANT-CONTRACT-CORRECTIONS-2026-09-14.md",
       "sha256": "4c07fb447815f863be2bfb2e320b15cb38a0370cda83b4dbbfde38dfe5ac20b2",
       "size": 3332
+    },
+    {
+      "path": "src/v267/components/contract-routing.js",
+      "sha256": "27eb246c3cb0ceafc94192cedfed5821b256dd691a7751a1845177cbc4b7a63b",
+      "size": 386
+    },
+    {
+      "path": "docs/V267-CONTRACT-ENTRY-ROUTING-2026-09-14.md",
+      "sha256": "3bc743a4bbed50cfbb2278ccf7d2b04e58a445b91ccdcb0e03a27e055a48a957",
+      "size": 1510
     }
   ],
   "version": "V198"

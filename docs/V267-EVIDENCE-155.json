@@ -542,8 +542,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "bac7fe3570ef3cc46de08aa258b2e9ab1c642f850d3657557a687004e8ed98c9",
-      "bytes": 22115,
+      "sha256": "80e206d7a0c8502ac78cf5835df22d605c0e1375ee642313bf9e0fa92b0fc5c3",
+      "bytes": 22688,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [
@@ -780,8 +780,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "0e0ec5cca858854c3e845065b60a6a0c7e8733a540306963b65dfaab3809ffe6",
-      "bytes": 20936,
+      "sha256": "7718f55ae09b57e269c28787a5a0553a1511f6e34cea15387ea1255e723469c1",
+      "bytes": 21065,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -897,8 +897,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "bde7df547cdf60994fce6c89664751064090a9605b730cacab604eb5b8003c3c",
-      "bytes": 269911,
+      "sha256": "fe43ed11c404241da3fe83025e53e230ed32701f1cafa8379f8b42edf500c9a7",
+      "bytes": 270098,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
