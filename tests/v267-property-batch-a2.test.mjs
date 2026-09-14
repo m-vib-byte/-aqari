@@ -3,6 +3,7 @@ import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/property-batch-a2-core.sql',import.meta.url),'utf8');
 const ownerFix=readFileSync(new URL('../staging-database/sql/property-batch-a2-owner-normalization.sql',import.meta.url),'utf8');
 const unitFix=readFileSync(new URL('../staging-database/sql/property-batch-a2-unit-preservation.sql',import.meta.url),'utf8');
+const visibilityFix=readFileSync(new URL('../staging-database/sql/property-batch-a2-visibility-key-fix.sql',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
 const unitCreate=readFileSync(new URL('../src/v267/pages/property-unit-create.js',import.meta.url),'utf8');
 const onboarding=readFileSync(new URL('../src/v267/pages/property-onboarding.js',import.meta.url),'utf8');
@@ -16,6 +17,7 @@ assert.match(sql,/aqari_property_completeness/);assert.match(sql,/aqari_property
 assert.match(sql,/PROPERTY_AUTOMATIC_REF_ALREADY_EXISTS/);assert.match(sql,/LEASED_ASSET_AUTOMATIC_REF_ALREADY_EXISTS/);assert.match(sql,/UNIT_INTERNAL_SERIAL_ALREADY_EXISTS/);
 assert.match(sql,/property_main_photo/);assert.match(sql,/property_license/);assert.match(sql,/property_certificate/);assert.match(sql,/property_insurance/);
 assert.match(ownerFix,/jsonb_agg\(x\.value-''share''\)/);assert.match(unitFix,/area:=old_row\.area_sqm/);assert.match(unitFix,/UNIT_AREA_PRESERVATION_ANCHOR_MISMATCH/);
+assert.match(visibilityFix,/office_hours/);assert.match(visibilityFix,/officeHours/);assert.match(visibilityFix,/PROPERTY_TENANT_VISIBILITY_CONFLICT/);assert.match(visibilityFix,/PROPERTY_TENANT_PROFILE_OFFICE_HOURS_ANCHOR_MISMATCH/);
 assert.match(onboarding,/الصورة الرئيسية/);assert.match(onboarding,/الرخص/);assert.match(onboarding,/التأمينات/);assert.match(onboarding,/tenantVisibility/);assert.match(onboarding,/propertyAutomaticRef/);
 assert.match(upload,/property_main_photo/);assert.match(upload,/property_license/);assert.match(upload,/property_certificate/);assert.match(upload,/property_insurance/);
 assert.match(hub,/اكتمال الملف/);assert.match(hub,/المؤجر/);assert.match(hub,/الشاغر/);assert.match(hub,/إبرام عقد من هذه الوحدة/);assert.match(hub,/leasedAssetAutomaticRef/);assert.match(hub,/التواصل والسوشال ميديا/);
