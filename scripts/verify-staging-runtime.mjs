@@ -15,7 +15,7 @@ for(const path of paths){
 // Do not rewrite the candidate's historical inventory as though it had already
 // contained these bytes; fail closed on missing/invalid JavaScript and use the
 // focused exact-build suites for behavioral proof.
-const supportOverlays=['src/v267/pages/staff-access.js','src/v267/pages/employees.js','src/v267/pages/staff-circulars.js','src/v267/pages/financial-register.js','src/v267/pages/property-statements.js','v267-service-desk.js','src/v267/pages/document-scanner.js','src/v267/components/stored-visual-review.js','src/v267/components/dialog.js','src/v267/components/management-counters.js','src/v267/pages/kpi-dashboard.js','src/v267/pages/utility-meters.js'];
+const supportOverlays=['src/v267/pages/staff-access.js','src/v267/pages/employees.js','src/v267/pages/staff-circulars.js','src/v267/pages/financial-register.js','src/v267/pages/property-statements.js','v267-service-desk.js','src/v267/pages/document-scanner.js','src/v267/components/stored-visual-review.js','src/v267/components/dialog.js','src/v267/components/management-counters.js','src/v267/pages/kpi-dashboard.js','src/v267/pages/utility-meters.js','src/v267/components/service-directory.js'];
 for(const path of supportOverlays){
  const url=new URL('../'+path,import.meta.url),bytes=readFileSync(url);
  if(!bytes.length)throw Error('Missing support overlay: '+path);
