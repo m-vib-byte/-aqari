@@ -753,8 +753,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "273e98a8a923877fd53e4ffd45ea1c9a400a78fa6ce7ce82c2185e3f70dc87c7",
-      "bytes": 42596,
+      "sha256": "46cb144b935f53af7d72abc6325a86889864c720bb7a50db1daee10e96e3a3d7",
+      "bytes": 43811,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],

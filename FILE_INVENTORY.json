@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "180cbfedb498ec145baca0fbfaacd00e827fd4f07bcb7301f510aa0a70424fc8",
+      "sha256": "b08a252999fc985b6983b7781fca16b466775bece3d3003eabcf9f7f8ae64990",
       "size": 590217
     },
     {
@@ -3207,8 +3207,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "273e98a8a923877fd53e4ffd45ea1c9a400a78fa6ce7ce82c2185e3f70dc87c7",
-      "size": 42596
+      "sha256": "46cb144b935f53af7d72abc6325a86889864c720bb7a50db1daee10e96e3a3d7",
+      "size": 43811
     },
     {
       "path": "v267-reset-password.js",
@@ -3359,6 +3359,11 @@
       "path": "docs/V267-EMPLOYEE-DIRECTORY-PAGING-2026-09-14.md",
       "sha256": "d8cbbf4e3c204082304a788c81895fd62528444ecd35769b4f956ecfe02e25fe",
       "size": 1363
+    },
+    {
+      "path": "docs/V267-CONTRACT-LOGO-2026-09-14.md",
+      "sha256": "274996218b2072b3effcdb1b6c51d8ce3a3c409ef00adec77c518bebf200850a",
+      "size": 716
     }
   ],
   "version": "V198"
