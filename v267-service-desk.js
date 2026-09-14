@@ -2,11 +2,12 @@ import {createDialog,node,field} from './src/v267/components/dialog.js';
 import {t,message} from './src/v267/components/locale.js';
 import {currentScope} from './src/v267/api/session.js';
 
-const names={received:'تم الاستلام',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى',awaiting_configuration:'بانتظار إعداد الإرسال',queued:'في الانتظار',sending:'جارٍ الإرسال',sent:'تم الإرسال',failed:'تعذر الإرسال'};
+const names={draft:'مسودة',approved:'معتمد',received:'تم الاستلام',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى',awaiting_configuration:'بانتظار إعداد الإرسال',queued:'في الانتظار',sending:'جارٍ الإرسال',sent:'تم الإرسال',failed:'تعذر الإرسال'};
 const maintenanceCategories={legacy_unclassified:'قديم — غير مصنف',electrical:'كهرباء',plumbing:'سباكة',air_conditioning:'تكييف',elevator:'مصعد',doors_windows:'أبواب ونوافذ',cleaning:'نظافة',other:'أخرى'};
 const transitions={received:['received','assigned','in_progress','cancelled'],assigned:['assigned','in_progress','cancelled'],in_progress:['in_progress','completed','cancelled'],completed:['completed'],cancelled:['cancelled']};
 const loadedText=mode=>mode==='maintenance'?'تمت قراءة طلبات الصيانة المحفوظة.':'الإرسال غير مفعّل. هذه سجلات تجهيز وإلغاء، وليست رسائل مرسلة.';
 const uncertainSave='لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.';
+const maintenanceTime=value=>value?new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'غير موثق';
 
 export async function openDesk(mode='maintenance'){
  if(!['maintenance','notifications'].includes(mode))return;
@@ -22,21 +23,23 @@ export async function openDesk(mode='maintenance'){
  function clearPrivate(){clearAttachments();drafts.clear();editors.clear();list.replaceChildren();previous.hidden=next.hidden=true;}
  d.onDispose(clearPrivate);
  function checkReadAccess(){try{session.check();}catch(error){clearPrivate();throw error;}}
- async function read(query){
-  try{const rows=await session.request(query);checkReadAccess();return rows;}
-  catch(error){checkReadAccess();if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED')clearPrivate();throw error;}
- }
+ async function read(query){try{const rows=await session.request(query);checkReadAccess();return rows;}catch(error){checkReadAccess();if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED')clearPrivate();throw error;}}
  function remember(){for(const [id,editor]of editors){const prior=drafts.get(id),{row,state,cost}=editor;if(prior?.uncertain||state.value!==row.status||cost.value!==String(row.cost??''))drafts.set(id,{row,status:state.value,cost:cost.value,uncertain:prior?.uncertain===true});else drafts.delete(id);}}
  previous.hidden=true;next.hidden=true;
  async function load(wanted=page){
   checkReadAccess();remember();
   const table=mode==='maintenance'?'aqari_maintenance_requests':'aqari_notification_outbox';
   const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,category_code,description,status,cost,revision,tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
-  const locations=new Map();
+  const locations=new Map(),executors=new Map();
   if(mode==='maintenance'&&rows.length){
-   const savedLocations=await read(session.client.rpc('aqari_maintenance_locations',{p_workspace_id:session.bound.workspace,p_request_ids:rows.map(row=>row.id)}));
-   if(!Array.isArray(savedLocations)||savedLocations.length!==rows.length)throw Error('لم تتأكد إعادة القراءة.');
+   const ids=rows.map(row=>row.id);
+   const [savedLocations,savedExecutors]=await Promise.all([
+    read(session.client.rpc('aqari_maintenance_locations',{p_workspace_id:session.bound.workspace,p_request_ids:ids})),
+    read(session.client.rpc('aqari_maintenance_executor_summary',{p_workspace_id:session.bound.workspace,p_request_ids:ids}))
+   ]);
+   if(!Array.isArray(savedLocations)||savedLocations.length!==rows.length||!Array.isArray(savedExecutors)||savedExecutors.length!==rows.length)throw Error('لم تتأكد إعادة القراءة.');
    for(const location of savedLocations){if(!rows.some(row=>row.id===location.request_id)||locations.has(location.request_id)||typeof location.property_name!=='string'||typeof location.unit_no!=='string')throw Error('لم تتأكد إعادة القراءة.');locations.set(location.request_id,location);}
+   for(const executor of savedExecutors){if(!rows.some(row=>row.id===executor.request_id)||executors.has(executor.request_id))throw Error('لم تتأكد إعادة القراءة.');if(executor.work_order_id&&(typeof executor.order_no!=='string'||typeof executor.vendor_name!=='string'||typeof executor.work_order_status!=='string'))throw Error('لم تتأكد إعادة القراءة.');executors.set(executor.request_id,executor);}
   }
   const cards=[],nextEditors=new Map();
   if(!rows.length)cards.push(node('p',t('لا توجد سجلات محفوظة في هذه الصفحة.')));
@@ -45,51 +48,31 @@ export async function openDesk(mode='maintenance'){
    const card=node('article');
    card.append(node('h3',mode==='maintenance'?message('طلب {number}',{number:row.request_no}):t(row.kind==='rent_reminder'?'تذكير الإيجار':row.kind==='payment_thanks'?'شكر على السداد':'غير معروف')));
    if(mode==='maintenance'){
-    const location=locations.get(fresh.id);
+    const location=locations.get(fresh.id),executor=executors.get(fresh.id);
     card.append(node('p',message('العقار: {property} • الوحدة: {unit}',{property:location.property_name,unit:location.unit_no})),node('p','نوع العطل: '+(maintenanceCategories[row.category_code]||'غير معروف')));
+    if(executor?.work_order_id){
+     card.append(node('p','الجهة المنفذة: '+executor.vendor_name+' • أمر الشغل: '+executor.order_no+' • الحالة: '+(names[executor.work_order_status]||executor.work_order_status)));
+     card.append(node('p','اعتماد أمر الشغل: '+maintenanceTime(executor.approved_at)+'\nوقت التكليف: '+maintenanceTime(executor.assigned_at)+'\nبدء العمل: '+maintenanceTime(executor.started_at)+'\nالإنجاز: '+maintenanceTime(executor.completed_at)));
+     if(executor.approved_amount!==null&&executor.approved_amount!==undefined)card.append(node('p','المبلغ المعتمد لأمر الشغل: '+Number(executor.approved_amount).toFixed(3)+' د.ك'));
+     if(executor.invoice_id)card.append(node('p','فاتورة المورد: '+executor.invoice_id+' • المبلغ: '+Number(executor.invoice_amount).toFixed(3)+' د.ك • المصروف المالي: '+(executor.expense_linked?'مرتبط ومسجل':'غير مرتبط')));
+     else card.append(node('p','الفاتورة والمصروف المالي: لم يسجلا بعد.'));
+    }else card.append(node('p','الجهة المنفذة: لم تُسند بعد.'));
    }else card.append(node('p',message('العقد {contract} • {property} • الوحدة {unit}',{contract:row.lease?.contract_no||'',property:row.lease?.snapshot?.property||'',unit:row.lease?.snapshot?.unit||''})));
    if(mode==='notifications'){
     card.append(node('p',message('{channel} • {status}\nالفترة {period} • {date}',{channel:t(row.channel==='email'?'البريد الإلكتروني':row.channel==='whatsapp'?'واتساب':'غير معروف'),status:t(names[row.status]||'غير معروف'),period:row.period??'',date:String(row.scheduled_at??'').slice(0,10)})));
    }else{
     card.append(node('p',row.tenant?.full_name||''),node('p',row.description||''));
     const attachmentButton=node('button',t('صور البلاغ ومرفقاته'));attachmentButton.type='button';card.append(attachmentButton);
-    attachmentButton.onclick=()=>d.run(async()=>{
-     const {mountMaintenanceAttachments}=await import('./src/v267/components/maintenance-attachment-panel.js');checkReadAccess();
-     if(!card.isConnected)return;const container=node('div');attachmentButton.replaceWith(container);
-     await mountMaintenanceAttachments(container,{workspaceId:session.bound.workspace,requestId:row.id,userId:session.bound.user,check:()=>{checkReadAccess();if(!card.isConnected)throw Error('تم إغلاق البلاغ.');},onDispose:fn=>attachmentDisposers.add(fn),rpc:(name,args)=>read(session.client.rpc(name,args)),storage:(...args)=>session.storage(...args)});
-    });
-    if(session.bound.role==='general_manager'){
-     const workOrder=node('button',t('أمر الشغل المرتبط بالبلاغ'));workOrder.type='button';card.append(workOrder);
-     workOrder.onclick=()=>d.run(async()=>{const {openOperationsCenter}=await import('./src/v267/pages/operations-center.js');checkReadAccess();if(!card.isConnected)return;d.close();await openOperationsCenter({requestId:row.id});});
-    }
+    attachmentButton.onclick=()=>d.run(async()=>{const {mountMaintenanceAttachments}=await import('./src/v267/components/maintenance-attachment-panel.js');checkReadAccess();if(!card.isConnected)return;const container=node('div');attachmentButton.replaceWith(container);await mountMaintenanceAttachments(container,{workspaceId:session.bound.workspace,requestId:row.id,userId:session.bound.user,check:()=>{checkReadAccess();if(!card.isConnected)throw Error('تم إغلاق البلاغ.');},onDispose:fn=>attachmentDisposers.add(fn),rpc:(name,args)=>read(session.client.rpc(name,args)),storage:(...args)=>session.storage(...args)});});
+    if(session.bound.role==='general_manager'){const workOrder=node('button',t('أمر الشغل المرتبط بالبلاغ'));workOrder.type='button';card.append(workOrder);workOrder.onclick=()=>d.run(async()=>{const {openOperationsCenter}=await import('./src/v267/pages/operations-center.js');checkReadAccess();if(!card.isConnected)return;d.close();await openOperationsCenter({requestId:row.id});});}
     const state=node('select'),cost=node('input'),save=node('button',t('حفظ الحالة والتكلفة')),allowed=transitions[row.status]||[];
-    for(const value of allowed){const option=node('option',t(names[value]));option.value=value;state.append(option);}
-    if(!allowed.length){const option=node('option',t('غير معروف'));option.value=row.status;state.append(option);}
+    for(const value of allowed){const option=node('option',t(names[value]));option.value=value;state.append(option);}if(!allowed.length){const option=node('option',t('غير معروف'));option.value=row.status;state.append(option);}
     state.value=draft?.status??row.status;cost.type='text';cost.inputMode='decimal';cost.value=draft?.cost??String(row.cost??'');
-    const editable=allowed.length>1;state.disabled=!editable;cost.disabled=!editable;
-    nextEditors.set(row.id,{row,state,cost});
-    card.append(field(t('حالة الطلب'),state),field(t('التكلفة — د.ك'),cost));
+    const editable=allowed.length>1;state.disabled=!editable;cost.disabled=!editable;nextEditors.set(row.id,{row,state,cost});card.append(field(t('حالة الطلب'),state),field(t('التكلفة — د.ك'),cost));
     const stale=!!draft&&fresh.revision!==row.revision;
     if(draft){card.append(node('p',t(draft.uncertain?uncertainSave:stale?'تغير الطلب لدى مستخدم آخر.':'تم الاحتفاظ بالتغييرات غير المحفوظة.')));const discard=node('button',t('تجاهل التعديل المحلي واسترجاع المحفوظ'));discard.type='button';discard.onclick=()=>{editors.delete(row.id);drafts.delete(row.id);return refresh();};card.append(discard);}
     if(editable){
-     card.append(save);save.onclick=async()=>{
-      if(save.disabled||drafts.get(row.id)?.uncertain||stale)return;
-      let sent=false,confirmed=false;
-      await d.run(async()=>{
-       const value=cost.value.trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace('٫','.');
-       if(!/^\d{1,12}(\.\d{1,3})?$/.test(value))throw Error('أدخل تكلفة صحيحة بدقة ثلاثة منازل.');
-       const newStatus=state.value;if(!allowed.includes(newStatus))throw Error('تغير الطلب لدى مستخدم آخر.');sent=true;
-       try{
-        const saved=await session.request(session.client.from('aqari_maintenance_requests').update({status:newStatus,cost:value}).eq('workspace_id',session.bound.workspace).eq('id',row.id).eq('revision',row.revision).select('id,revision,status,cost').maybeSingle());
-        if(!saved||saved.id!==row.id)throw Error('تغير الطلب لدى مستخدم آخر.');
-        const verified=await read(session.client.from('aqari_maintenance_requests').select('id,revision,status,cost').eq('workspace_id',session.bound.workspace).eq('id',row.id).single());
-        if(verified.id!==row.id||verified.revision!==saved.revision||verified.status!==newStatus||Number(verified.cost)!==Number(value))throw Error('لم تتأكد إعادة القراءة.');
-        editors.delete(row.id);drafts.delete(row.id);await load();confirmed=true;status.textContent=t('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.');
-       }catch(error){if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED'){clearPrivate();throw error;}checkReadAccess();throw Error(uncertainSave);}
-      });
-      if(sent&&!confirmed&&!d.closed&&card.isConnected){drafts.set(row.id,{row,status:state.value,cost:cost.value,uncertain:true});save.disabled=true;}
-     };
-     save.disabled=stale||draft?.uncertain===true;
+     card.append(save);save.onclick=async()=>{if(save.disabled||drafts.get(row.id)?.uncertain||stale)return;let sent=false,confirmed=false;await d.run(async()=>{const value=cost.value.trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace('٫','.');if(!/^\d{1,12}(\.\d{1,3})?$/.test(value))throw Error('أدخل تكلفة صحيحة بدقة ثلاثة منازل.');const newStatus=state.value;if(!allowed.includes(newStatus))throw Error('تغير الطلب لدى مستخدم آخر.');sent=true;try{const saved=await session.request(session.client.from('aqari_maintenance_requests').update({status:newStatus,cost:value}).eq('workspace_id',session.bound.workspace).eq('id',row.id).eq('revision',row.revision).select('id,revision,status,cost').maybeSingle());if(!saved||saved.id!==row.id)throw Error('تغير الطلب لدى مستخدم آخر.');const verified=await read(session.client.from('aqari_maintenance_requests').select('id,revision,status,cost').eq('workspace_id',session.bound.workspace).eq('id',row.id).single());if(verified.id!==row.id||verified.revision!==saved.revision||verified.status!==newStatus||Number(verified.cost)!==Number(value))throw Error('لم تتأكد إعادة القراءة.');editors.delete(row.id);drafts.delete(row.id);await load();confirmed=true;status.textContent=t('تم حفظ الطلب وإعادة قراءته من قاعدة البيانات.');}catch(error){if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED'){clearPrivate();throw error;}checkReadAccess();throw Error(uncertainSave);}});if(sent&&!confirmed&&!d.closed&&card.isConnected){drafts.set(row.id,{row,status:state.value,cost:cost.value,uncertain:true});save.disabled=true;}};save.disabled=stale||draft?.uncertain===true;
     }
    }
    cards.push(card);
@@ -98,14 +81,8 @@ export async function openDesk(mode='maintenance'){
  }
  async function refresh(wanted=page){let loaded=false;await d.run(async()=>{await load(wanted);loaded=true;status.textContent=t(loadedText(mode));});if(loaded&&prepare&&!d.closed)prepare.disabled=false;}
  if(mode==='notifications'){
-  const grace=node('input');prepare=node('button',t('تجهيز تنبيهات اليوم'));grace.type='number';grace.min='1';grace.max='27';grace.value='5';
-  d.body.append(node('p',t('التجهيز يحفظ التنبيهات المستحقة فقط. تفعيل الإرسال يحتاج إعداد المزود والجدولة وموافقة التكلفة أولاً.')),field(t('آخر يوم في مهلة السداد من الشهر'),grace),prepare);
-  prepare.onclick=async()=>{
-   let sent=false,confirmed=false;
-   await d.run(async()=>{const day=Number(grace.value);if(!Number.isInteger(day)||day<1||day>27)throw Error('حدد آخر يوم بين ١ و٢٧.');sent=true;try{const count=await session.request(session.client.rpc('aqari_prepare_rent_reminders',{p_workspace_id:session.bound.workspace,p_as_of:new Date(Date.now()+10800000).toISOString().slice(0,10),p_grace_day:day}));await load(0);confirmed=true;status.textContent=message('تم تجهيز {count} تنبيه مستحق. لم تُرسل رسائل. إذا كان العدد صفراً فلا توجد تنبيهات جديدة مستحقة اليوم.',{count});}catch{throw Error('تعذر تأكيد التجهيز. حدّث السجلات.');}});
-   if(sent&&!confirmed&&!d.closed)prepare.disabled=true;
-  };
+  const grace=node('input');prepare=node('button',t('تجهيز تنبيهات اليوم'));grace.type='number';grace.min='1';grace.max='27';grace.value='5';d.body.append(node('p',t('التجهيز يحفظ التنبيهات المستحقة فقط. تفعيل الإرسال يحتاج إعداد المزود والجدولة وموافقة التكلفة أولاً.')),field(t('آخر يوم في مهلة السداد من الشهر'),grace),prepare);
+  prepare.onclick=async()=>{let sent=false,confirmed=false;await d.run(async()=>{const day=Number(grace.value);if(!Number.isInteger(day)||day<1||day>27)throw Error('حدد آخر يوم بين ١ و٢٧.');sent=true;try{const count=await session.request(session.client.rpc('aqari_prepare_rent_reminders',{p_workspace_id:session.bound.workspace,p_as_of:new Date(Date.now()+10800000).toISOString().slice(0,10),p_grace_day:day}));await load(0);confirmed=true;status.textContent=message('تم تجهيز {count} تنبيه مستحق. لم تُرسل رسائل. إذا كان العدد صفراً فلا توجد تنبيهات جديدة مستحقة اليوم.',{count});}catch{throw Error('تعذر تأكيد التجهيز. حدّث السجلات.');}});if(sent&&!confirmed&&!d.closed)prepare.disabled=true;};
  }
- reload.onclick=()=>refresh();previous.onclick=()=>{if(page>0)return refresh(page-1);};next.onclick=()=>refresh(page+1);
- d.body.append(reload,list,previous,next);await refresh();
+ reload.onclick=()=>refresh();previous.onclick=()=>{if(page>0)return refresh(page-1);};next.onclick=()=>refresh(page+1);d.body.append(reload,list,previous,next);await refresh();
 }
