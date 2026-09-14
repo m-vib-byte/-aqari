@@ -42,9 +42,12 @@ test('logo photos and general property files use explicit supporting-document as
  assert.match(page,/category:'property_other'/);
 });
 
-test('archive retry keeps successful document ids and does not delete or overwrite originals',()=>{
+test('archive retry keeps successful document ids and never asks storage or database to delete an archived original',()=>{
  assert.match(page,/uploaded=new Map\(\)/);
  assert.match(page,/if\(uploaded\.has\(entry\.key\)\)continue/);
- assert.match(upload,/upsert:false|createVerifiedUpload/);
- assert.doesNotMatch(page,/\.remove\(|\.delete\(/);
+ assert.match(upload,/createVerifiedUpload/);
+ assert.doesNotMatch(page,/\.storage\.from\([^)]*\)\.remove\(/);
+ assert.doesNotMatch(page,/\.from\([^)]*\)\.delete\(/);
+ assert.doesNotMatch(upload,/\.storage\.from\([^)]*\)\.remove\(/);
+ assert.doesNotMatch(upload,/\.from\([^)]*\)\.delete\(/);
 });
