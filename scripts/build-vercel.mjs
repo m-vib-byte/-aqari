@@ -18,9 +18,10 @@ if(process.env.VERCEL_ENV==='production'){
   console.log('Prepared V267 Production only after exact-SHA owner approval validation.');
 }
 
-// Preview-only support integration: inject the bounded entry without rewriting
-// the large financial-register source that is being developed concurrently.
+// Preview-only support integration: inject bounded entries without rewriting
+// large concurrently-developed source files in Git history.
 execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
