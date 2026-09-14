@@ -4,7 +4,12 @@ import {rentalTemplateKinds,validTemplate,templateForContract} from '../componen
 import {nextContractSerial,executionAmount,activeUnitConflict,completeTenantIdentity} from '../domain/contract-foundation.js';
 
 const copy=value=>JSON.parse(JSON.stringify(value));
-const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+function same(a,b){
+ if(a===b)return true;
+ if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;
+ if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((value,index)=>same(value,b[index]));
+ const keys=Object.keys(a);return keys.length===Object.keys(b).length&&keys.every(key=>Object.prototype.hasOwnProperty.call(b,key)&&same(a[key],b[key]));
+}
 const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value??'';return el;};
 function select(rows,value=''){const el=node('select');for(const [key,label]of rows){const option=node('option',label);option.value=key;el.append(option);}el.value=value??'';return el;}
 function profileRef(row){if(!Array.isArray(row))return null;return row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]||null;}
@@ -43,8 +48,8 @@ export function openContractFoundation(options={}){
   const id=crypto.randomUUID(),now=new Date().toISOString();
   preparation=await changeState(data=>{
    const drafts=data.contractPreparationDraftsV267||[],existing=drafts.find(row=>row.id===id);if(existing)return existing;
-   const contractNo=nextContractSerial(api.kuwaitDate().slice(0,4),data.contractsV202||[],drafts);
-   const record={id,contractNo,kind,status:'preparation',tenantId:null,property:options.property||'',unit:'',createdAt:now,updatedAt:now,createdBy:d.session.bound.user};
+   const contractNo=nextContractSerial(api.kuwaitDate().slice(0,4),data.contractsV202||[],drafts),initialProperty=properties.some(row=>row.name===options.property)?options.property:'';
+   const record={id,contractNo,kind,status:'preparation',tenantId:null,property:initialProperty,unit:'',createdAt:now,updatedAt:now,createdBy:d.session.bound.user};
    data.contractPreparationDraftsV267=drafts.concat([record]);
    data.audit=(data.audit||[]).concat([[d.session.bound.user,'إنشاء مسودة تأسيس عقد',contractNo,now]]);
    return record;
@@ -84,7 +89,7 @@ export function openContractFoundation(options={}){
    const conflict=activeUnitConflict(data.contractsV202||[],base);if(conflict)throw Error('يوجد عقد متعارض لهذه الوحدة: '+String(conflict.contract_no||conflict.contractNo||'راجع العقد الحالي'));
    const contract=api.lease(base,data.contractsV202||[],profiles,data.properties||[]),old=data.contractsV202||[],index=old.findIndex(row=>String(row.id)===String(contract.id));
    if(index<0)old.push(contract);else old[index]=contract;data.contractsV202=old;
-   const directory=(data.tenantDirectoryV202||[]).filter(row=>row.contractNo!==contract.contract_no);directory.push({property:contract.property,unit:contract.unit,...api.directoryFields(contract,tenantProfile),contractNo:contract.contract_no,source:'v267-cloud',verified:false,tenantProfileId:tenantProfile.id});data.tenantDirectoryV202=directory;
+   const directory=(data.tenantDirectoryV202||[]).filter(row=>row.contractNo!==contract.contract_no);directory.push({property:contract.property,unit:contract.unit,...api.directoryFields(contract,tenantProfile),nationalityEn:tenantProfile.nationalityEn||'',contractNo:contract.contract_no,source:'v267-cloud',verified:false,tenantProfileId:tenantProfile.id});data.tenantDirectoryV202=directory;
    const leases=(data.leases||[]).filter(row=>row[4]!==contract.id);leases.push([contract.tenant,contract.unit,contract.rent,contract.end_date,contract.id]);data.leases=leases;
    const drafts=data.contractPreparationDraftsV267||[],draftIndex=drafts.findIndex(row=>row.id===id);if(draftIndex>=0)drafts[draftIndex]={...drafts[draftIndex],status:'promoted',contractId:contract.id,promotedAt:now,updatedAt:now};data.contractPreparationDraftsV267=drafts;
    data.audit=(data.audit||[]).concat([[d.session.bound.user,'تأسيس عقد مسودة وربطه',contract.contract_no,now]]);return contract;
@@ -109,7 +114,7 @@ export function openContractFoundation(options={}){
   let tenantId=tenantChoice.value||crypto.randomUUID();
   function fillTenant(){const profile=profiles.find(p=>p.id===tenantChoice.value);tenantId=profile?.id||crypto.randomUUID();for(const [key,control]of Object.entries(tenantFields))control.value=profile?.[key]||'';}
   tenantChoice.onchange=fillTenant;fillTenant();
-  const saveTenantButton=button('حفظ المستأجر وربطه بالعقد',async()=>{const values=Object.fromEntries(Object.entries(tenantFields).map(([key,control])=>[key,control.value]));const saved=await saveTenant(values,tenantId);const existing=profiles.findIndex(p=>p.id===saved.id);if(existing<0)profiles.push(saved);else profiles[existing]=saved;preparation.tenantId=saved.id;d.status.textContent='تم حفظ المستأجر وربطه بمسودة العقد.';});
+  const saveTenantButton=button('حفظ المستأجر وربطه بالعقد',async()=>{const values=Object.fromEntries(Object.entries(tenantFields).map(([key,control])=>[key,control.value]));const saved=await saveTenant(values,tenantId);const existing=profiles.findIndex(p=>p.id===saved.id);if(existing<0)profiles.push(saved);else profiles[existing]=saved;if(![...tenantChoice.options].some(option=>option.value===saved.id)){const option=node('option',(saved.nameAr||saved.nameEn)+' / '+(saved.nameEn||''));option.value=saved.id;tenantChoice.append(option);}tenantChoice.value=saved.id;tenantId=saved.id;preparation.tenantId=saved.id;d.status.textContent='تم حفظ المستأجر وربطه بمسودة العقد.';});
   d.body.append(field('اختر مستأجرًا محفوظًا أو أضف جديدًا',tenantChoice),tenantBox,saveTenantButton);
 
   const property=select([['','اختر العقار'],...properties.map(p=>[p.name,p.name])],preparation.property||''),unit=select([['','اختر الوحدة']],preparation.unit||'');property.required=unit.required=true;
@@ -119,10 +124,11 @@ export function openContractFoundation(options={}){
   d.body.append(field('العقار',property),field('الوحدة',unit),linkButton);
 
   const form=node('form'),grid=node('div');grid.className='aq267-grid';
-  const startDate=input('date',preparation.start_date||''),duration=input('number',preparation.durationMonths||'12'),endDate=input('date',preparation.end_date||''),entitlementStart=input('date',preparation.entitlementStart||''),firstPolicy=select([['full_month','شهر كامل'],['daily_prorated','احتساب أول فترة بالأيام'],['manual_first_period','مبلغ أول فترة يدوي']],preparation.firstPeriodPolicy||'full_month'),manualFirst=input('text',preparation.manualFirstPeriodAmount??'');
-  duration.min='1';duration.max='600';duration.step='1';startDate.required=duration.required=endDate.required=entitlementStart.required=firstPolicy.required=true;
+  const floor=input('text',preparation.floor||''),startDate=input('date',preparation.start_date||''),duration=input('number',preparation.durationMonths||'12'),endDate=input('date',preparation.end_date||''),entitlementStart=input('date',preparation.entitlementStart||''),firstPolicy=select([['full_month','شهر كامل'],['daily_prorated','احتساب أول فترة بالأيام'],['manual_first_period','مبلغ أول فترة يدوي']],preparation.firstPeriodPolicy||'full_month'),manualFirst=input('text',preparation.manualFirstPeriodAmount??'');
+  floor.required=true;floor.maxLength=100;duration.min='1';duration.max='600';duration.step='1';startDate.required=duration.required=endDate.required=entitlementStart.required=firstPolicy.required=true;
+  const directoryRows=(state.tenantDirectoryV202||[]).filter(row=>row.property===preparation.property&&String(row.unit)===String(preparation.unit)),knownFloors=[...new Set(directoryRows.map(row=>String(row.floor||'').trim()).filter(Boolean))];if(!floor.value&&knownFloors.length===1)floor.value=knownFloors[0];
   const recalcEnd=()=>{if(startDate.value&&duration.value){endDate.value=leaseEndFromMonths(startDate.value,Number(duration.value));if(!entitlementStart.value)entitlementStart.value=startDate.value;}};startDate.onchange=duration.oninput=recalcEnd;
-  for(const [label,control]of [['بداية العقد',startDate],['مدة العقد بالأشهر',duration],['نهاية العقد المحتسبة',endDate],['بداية الاستحقاق',entitlementStart],['سياسة أول فترة',firstPolicy],['صافي أول فترة اليدوي عند اختياره',manualFirst]])grid.append(field(label,control));
+  for(const [label,control]of [['الدور',floor],['بداية العقد',startDate],['مدة العقد بالأشهر',duration],['نهاية العقد المحتسبة',endDate],['بداية الاستحقاق',entitlementStart],['سياسة أول فترة',firstPolicy],['صافي أول فترة اليدوي عند اختياره',manualFirst]])grid.append(field(label,control));
   const rent=input('text',preparation.contractRent??''),discount=input('text',preparation.discount??'0'),deposit=input('text',preparation.deposit??'0'),advance=input('text',preparation.advance??'0'),fees=input('text',preparation.fees??'0'),accountant=input('text',preparation.accountant??''),free=input('checkbox'),freePeriod=input('month',preparation.freeMonthPeriod||'');
   for(const control of [rent,discount,deposit,advance,fees,manualFirst])control.inputMode='decimal';rent.required=discount.required=deposit.required=advance.required=fees.required=accountant.required=true;accountant.maxLength=300;free.checked=preparation.freeMonthApproved===true;free.disabled=d.session.bound.role!=='general_manager';freePeriod.disabled=free.disabled;free.onchange=()=>{freePeriod.required=free.checked;if(!free.checked)freePeriod.value='';};free.onchange();
   for(const [label,control]of [['الإيجار الأصلي',rent],['الخصم',discount],['التأمين',deposit],['العربون',advance],['الرسوم عند الإبرام',fees],['المحاسب المسؤول',accountant],['اعتماد فترة مجانية',free],['الشهر المجاني',freePeriod]])grid.append(field(label,control));
@@ -135,7 +141,7 @@ export function openContractFoundation(options={}){
    const conflict=activeUnitConflict(state.contractsV202||[],candidate);if(conflict)throw Error('يوجد عقد متعارض على هذه الوحدة: '+String(conflict.contract_no||conflict.contractNo||'راجع العقود'));
    const firstRent=api.effectiveRent(candidate,entitlementStart.value.slice(0,7)),due=executionAmount({firstRent,deposit:deposit.value,advance:advance.value,fees:fees.value});
    review.replaceChildren(node('h4','المستحق عند الإبرام'),node('p','إيجار أول فترة: '+formatMoney(due.firstRent)),node('p','التأمين: '+formatMoney(due.deposit)),node('p','العربون: '+formatMoney(due.advance)),node('p','الرسوم: '+formatMoney(due.fees)),node('strong','الإجمالي: '+formatMoney(due.total)),node('p',due.total===0?'لا توجد دفعة مستحقة. سيبقى ذلك موثقًا دون إنشاء دفعة أو وصل وهمي.':'الدفعة الفعلية لا تُسجل إلا بطريقة دفع ومرجع حركة فعليين.'));
-   await patchPreparation({start_date:startDate.value,end_date:endDate.value,durationMonths:Number(duration.value),entitlementStart:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,fees:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',dueAtExecution:due.total},'مراجعة وحفظ شروط تأسيس العقد');
+   await patchPreparation({floor:floor.value,start_date:startDate.value,end_date:endDate.value,durationMonths:Number(duration.value),entitlementStart:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,fees:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',dueAtExecution:due.total},'مراجعة وحفظ شروط تأسيس العقد');
    d.status.textContent='تم حفظ الشروط واحتساب المستحق عند الإبرام.';
   });
   form.append(reviewButton,review);
@@ -144,7 +150,7 @@ export function openContractFoundation(options={}){
    if(!preparation.tenantId||!preparation.property||!preparation.unit)throw Error('أكمل ربط المستأجر والعقار والوحدة أولاً.');
    const selectedTemplate=templates.find(t=>t.id===templateSelect.value&&t.kind===preparation.kind);if(!selectedTemplate)throw Error('اختر نسخة قالب منشورة لنوع العقد.');
    const contractRent=api.amount(rent.value),initialDiscount=api.amount(discount.value);if(initialDiscount>=contractRent)throw Error('الخصم الشهري يجب أن يكون أقل من الإيجار الأصلي.');
-   const values={floor:'غير مدون',start_date:startDate.value,end_date:endDate.value,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,cleaningFee:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',rentEntitlement:{version:1,startDate:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null}};
+   const values={floor:floor.value,start_date:startDate.value,end_date:endDate.value,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,cleaningFee:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',rentEntitlement:{version:1,startDate:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null}};
    const previewCandidate={...values,id:preparation.id,property:preparation.property,unit:preparation.unit,rent:Number(((Math.round(contractRent*1000)-Math.round(initialDiscount*1000))/1000).toFixed(3)),rentalTermsVersion:1,rentAdjustments:[]};
    const conflict=activeUnitConflict(state.contractsV202||[],previewCandidate);if(conflict)throw Error('يوجد عقد متعارض على هذه الوحدة.');
    const firstRent=api.effectiveRent(previewCandidate,entitlementStart.value.slice(0,7)),due=executionAmount({firstRent,deposit:deposit.value,advance:advance.value,fees:fees.value});values.executionSummary={firstRent:due.firstRent,deposit:due.deposit,advance:due.advance,fees:due.fees,total:due.total,requiresPayment:due.total>0,zeroPaymentReason:due.total===0?(free.checked?'فترة مجانية/صافي مستحق صفر':'صافي المستحق عند الإبرام صفر'):null};
