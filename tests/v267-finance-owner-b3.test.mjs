@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3.sql',import.meta.url),'utf8');
+const hardening=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3-hardening.sql',import.meta.url),'utf8');
 const presentationSql=readFileSync(new URL('../staging-database/sql/presentation-custom-fields-b3.sql',import.meta.url),'utf8');
 const baseSql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
 const allocation=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
@@ -29,9 +30,11 @@ assert.match(sql,/aqari_property_owners_normalize/);
 assert.match(sql,/octet_length\(v::text\)<=500000/);
 assert.doesNotMatch(sql,/jsonb_array_length\(v\)<=50/);
 assert.doesNotMatch(sql,/jsonb_array_length\(rows\) not between 1 and 100/);
+assert.match(hardening,/aqari_property_custom_value_guard/);assert.match(hardening,/CUSTOM_FIELD_DOCUMENT_INVALID/);assert.match(hardening,/d\.entity_ref in\(new\.property_id::text,p\.external_ref\)/);
+assert.match(hardening,/im\.amount-em\.amount/);assert.match(hardening,/iy\.amount-ey\.amount/);assert.match(hardening,/'autoPayment',false/);
 
 assert.match(allocation,/حسب عدد الوحدات/);assert.match(allocation,/حسب المساحة/);assert.match(allocation,/قاعدة\/وزن مخصص/);assert.match(allocation,/سنوي — تأثير تحليلي ÷ 12/);
-assert.match(allocation,/Readback/);assert.match(allocation,/property-owner-statement\.js/);
+assert.match(allocation,/Readback/);assert.match(allocation,/property-owner-statement\.js/);assert.match(allocation,/sum!==expected/);assert.match(allocation,/إجمالي المصدر الثابت/);
 assert.match(owners,/محسوب فقط/);assert.match(owners,/لا يوجد تحويل أو صرف أرباح تلقائي/);
 assert.match(hub,/مركز تكلفة العقار والتوزيع/);assert.match(hub,/كشف الملاك المحسوب/);assert.match(hub,/analyticalExpenses/);assert.match(hub,/expectedIncome/);
 
