@@ -8,6 +8,12 @@ export function installPropertyExperience({readable,writable}){
  region.id='aq267-property-finder';region.className='aq267-property-finder';region.setAttribute('aria-labelledby','aq267-property-search-title');title.id='aq267-property-search-title';search.type='search';search.placeholder='اسم العقار، المنطقة أو المالك';search.setAttribute('aria-label','البحث عن عقار بالاسم أو المنطقة أو المالك');search.setAttribute('aria-controls','aq267-property-results');search.autocomplete='off';clear.type=add.type=more.type='button';clear.setAttribute('aria-label','مسح البحث');add.className='aq267-property-add';bar.className='aq267-property-search-bar';results.id='aq267-property-results';results.className='aq267-property-results';status.setAttribute('role','status');status.setAttribute('aria-live','polite');more.className='aq267-property-more';bar.append(search,clear,add);region.append(title,bar,status,results,more);
  let limit=6,viewScope='';
  const rows=()=>readable()?window.AQARI_V202?.propertyRecords?.()||[]:[];
+ async function openCompleteFile(row){
+  if(!readable()||!rows().some(x=>x[0]===row[0]))return refresh();
+  status.textContent='جاري فتح الملف الكامل…';
+  try{const m=await import('../pages/property-master-file.js');await m.openPropertyMasterFileByName(row[0]);status.textContent='';}
+  catch(error){status.textContent=String(error?.message||'تعذر فتح الملف الكامل.');if(!String(error?.message||'').includes('السجل الخادمي'))return;window.AQARI_V202?.openProperty(row[0]);}
+ }
  function refresh(){
   const home=document.getElementById('v205SimpleHome')||document.getElementById('home');if(home&&home.firstChild!==region)home.prepend(region);
   const allowed=readable();region.hidden=!allowed;add.hidden=!writable();results.replaceChildren();
@@ -16,9 +22,9 @@ export function installPropertyExperience({readable,writable}){
   const all=rows(),matches=searchProperties(all,search.value);clear.hidden=!search.value;more.hidden=matches.length<=limit;
   status.textContent=all.length?(matches.length?matches.length+' عقار':'لا توجد نتائج. جرّب اسم العقار أو المنطقة.'):'لا توجد عقارات مسجلة في مساحة العمل.';
   matches.slice(0,limit).forEach(row=>{
-   const card=node('button'),meta=presentation(row),text=node('span'),name=node('strong',row[0]),location=node('span',meta.location||'الموقع غير مضاف'),price=node('b',priceLabel(row));card.type='button';card.className='aq267-property-card';card.setAttribute('aria-label','فتح عقار '+row[0]);
+   const card=node('button'),meta=presentation(row),text=node('span'),name=node('strong',row[0]),location=node('span',meta.location||'الموقع غير مضاف'),price=node('b',priceLabel(row)),complete=node('span','ملف كامل');card.type='button';card.className='aq267-property-card';card.setAttribute('aria-label','فتح الملف الكامل للعقار '+row[0]);complete.className='aq267-property-complete-label';
    if(meta.photos[0]){const image=node('img');image.src=meta.photos[0];image.alt='';image.loading='lazy';image.width=160;image.height=120;card.append(image);}else{const mark=node('span','⌂');mark.className='aq267-property-card-mark';mark.setAttribute('aria-hidden','true');card.append(mark);}
-   text.append(name,location,price);card.append(text);card.onclick=()=>{if(readable()&&rows().some(x=>x[0]===row[0]))window.AQARI_V202?.openProperty(row[0]);else refresh();};results.append(card);
+   text.append(name,location,price,complete);card.append(text);card.onclick=()=>openCompleteFile(row);results.append(card);
   });
  }
  search.oninput=()=>{limit=6;refresh();};search.onkeydown=e=>{if(e.key==='Escape'){search.value='';limit=6;refresh();}else if(e.key==='Enter'){e.preventDefault();results.querySelector('button')?.click();}};clear.onclick=()=>{search.value='';limit=6;refresh();search.focus();};more.onclick=()=>{limit+=6;refresh();};
@@ -26,5 +32,5 @@ export function installPropertyExperience({readable,writable}){
  const onBoundary=()=>{viewScope='';search.value='';limit=6;refresh();};window.addEventListener('aqari:auth-boundary',onBoundary);window.addEventListener('aqari:property-saved',event=>{const name=event.detail?.name;search.value=typeof name==='string'&&rows().some(row=>row[0]===name)?name:'';limit=6;refresh();if(search.value)status.textContent='تم حفظ العقار — '+name;});
  const render=window.render;if(typeof render==='function')window.render=function(...args){const result=render.apply(this,args);refresh();return result;};
  document.addEventListener('click',e=>{if(e.target.closest?.('[data-v199-go="home"],[data-v205-route="home"]'))queueMicrotask(refresh);});
- window.AQARI_PROPERTY_EXPERIENCE=Object.freeze({summaryMarkup,canWrite:writable});installed={refresh};refresh();return installed;
+ window.AQARI_PROPERTY_EXPERIENCE=Object.freeze({summaryMarkup,canWrite:writable,openCompleteFileByName:name=>import('../pages/property-master-file.js').then(m=>m.openPropertyMasterFileByName(name))});installed={refresh};refresh();return installed;
 }
