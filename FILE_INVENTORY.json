@@ -392,7 +392,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "001ae7211679d0fc8e09829ee48a2434ebfa7a45bf267226e02524f30ab5ad8c",
+      "sha256": "76fb8eb0b34a18f0356d035eff62e46339633439ffce39060c279879115febf1",
       "size": 590217
     },
     {
@@ -1172,8 +1172,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "d5ca13117c6fd584d53b53c0595f446394a29d20fc00ba9800c1f60a9996875e",
-      "size": 26964
+      "sha256": "b5a6381dbad8471e5bcc1f8883ebfd30f514d9ef27b5c8d9a05f34f72bbe67c0",
+      "size": 28416
     },
     {
       "path": "src/v267/pages/exit-review.js",
@@ -3337,8 +3337,8 @@
     },
     {
       "path": "tests/v267-employee-directory-runtime.test.cjs",
-      "sha256": "2acc8a2af1a163fb3ae4de323fdaab3115b0b6e01fc658c580e0ff2d825c49e6",
-      "size": 6673
+      "sha256": "ec5fb557a72cdf0cc3a1b8d22715aa3e16826b4b8c1ffc8e1fd3c6f61408b61f",
+      "size": 8232
     },
     {
       "path": "docs/V267-STAFF-ACCESS-DIRECTORY-2026-09-13.md",
@@ -3349,6 +3349,11 @@
       "path": "docs/V267-EMPLOYEE-EDITOR-DRAFT-2026-09-13.md",
       "sha256": "bd1c2e42ff8e12d6deb55a45b510eb79d01a1db53ff55372f315771fdc5c42fc",
       "size": 1915
+    },
+    {
+      "path": "docs/V267-EMPLOYEE-DIRECTORY-FILTERS-2026-09-14.md",
+      "sha256": "ea380d7a873c25d9a15eaadd9e4556732d498776d3e5af889bfefb0dbb188324",
+      "size": 1357
     }
   ],
   "version": "V198"

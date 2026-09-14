@@ -4,6 +4,7 @@ function fixture(employees,options={}){
  const callbacks=[],calls=[];
  class Element{
   constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.value='';this.style={};}
+  setAttribute(name,value){this[name]=value;}
   append(...nodes){this.children.push(...nodes);}
   querySelectorAll(selector){const all=this.children.flatMap(x=>[x,...x.querySelectorAll('*')]);return selector==='*'?all:all.filter(x=>x.tag==='input'&&(!selector.includes(':checked')||x.checked));}
   replaceChildren(...nodes){this.children=[];this.append(...nodes);}
@@ -49,4 +50,16 @@ test('unavailable saved properties remain selected and block employee saving unt
  const missing=f.find('عقار غير متاح حالياً — ألغِ اختياره قبل الحفظ');assert.ok(missing);assert.equal(missing.checked,true);
  const form=f.all().find(x=>x.tag==='form');form.onsubmit({preventDefault(){}});await f.d.pending;assert.equal(f.calls.filter(x=>x.p_action==='save_employee').length,0);assert.match(f.d.status.textContent,/غير متاح/);
  missing.checked=false;missing.onchange();assert.equal(missing.disabled,true);form.onsubmit({preventDefault(){}});await f.d.pending;assert.deepEqual(Array.from(f.calls.find(x=>x.p_action==='save_employee').p_data.property_ids),['available']);
+});
+
+test('employee directory combines property, status and Arabic search with accurate scoped counts',async()=>{
+ const rows=[employee({id:'a',property_ids:['p1'],status:'active'}),employee({id:'b',property_ids:['p1','p2'],status:'leave'}),employee({id:'c',property_ids:['p2'],status:'inactive'})];
+ const f=fixture(rows,{rpc:()=>({employees:rows,properties:[{id:'p1',name:'العقار الأول'},{id:'p2',name:'العقار الثاني'}]})});await f.d.pending;
+ assert.match(f.d.body.textContent,/الملفات المتاحة لك: 3 · نشط: 1 · في إجازة: 1 · غير نشط: 1/);
+ const status=f.find('تصفية حسب الحالة / Filter by status'),property=f.find('تصفية حسب العقار / Filter by property');
+ property.value='p1';property.onchange();assert.equal(f.cards().length,2);status.value='leave';status.onchange();assert.equal(f.cards().length,1);
+ f.search().value='احمد';f.search().oninput();assert.equal(f.cards().length,1);assert.match(f.d.body.textContent,/نتائج البحث: 1 من 3/);
+ f.search().value='غير موجود';f.search().oninput();assert.equal(f.cards().length,0);assert.match(f.d.body.textContent,/نتائج البحث: 0 من 3/);
+ f.button('مسح البحث والفلاتر / Clear filters').onclick();assert.equal(f.cards().length,3);assert.equal(f.calls.length,1);
+ const reset=f.button('مسح البحث والفلاتر / Clear filters');f.dispose();property.onchange();reset.onclick();assert.equal(f.d.body.children.length,0);
 });

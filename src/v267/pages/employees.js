@@ -19,17 +19,25 @@ export function openEmployees(){
  async function home(){await loadDirectory();clear('دليل الموظفين / Employee directory');d.body.append(node('p','تُجهز مسودات الرواتب تلقائياً يوم 28 الساعة 9 صباحاً بتوقيت الكويت. تتم المراجعة والإصدار والاعتماد والصرف بشكل منفصل.'));
   d.body.append(button('تحديث من قاعدة البيانات / Refresh',home),button('إضافة موظف / Add employee',async()=>editEmployee(null)));
   if(directory.manager)d.body.append(button('صلاحيات حسابات الموظفين / Account permissions',access));
-  const search=input('search'),list=node('div');d.body.append(field('البحث بالاسم أو الهاتف / Search',search),list);
+  const search=input('search'),stateFilter=select({'':'جميع الحالات / All statuses',...statusLabels},''),propertyFilter=select({'':'جميع العقارات / All properties',...Object.fromEntries(directory.properties.map(p=>[p.id,p.name]))},''),filters=grid(),summary=node('p'),results=node('p'),list=node('div');
+  summary.className='aq267-note';summary.textContent=`الملفات المتاحة لك: ${directory.employees.length} · نشط: ${directory.employees.filter(e=>e.status==='active').length} · في إجازة: ${directory.employees.filter(e=>e.status==='leave').length} · غير نشط: ${directory.employees.filter(e=>e.status==='inactive').length}`;
+  results.setAttribute('role','status');results.setAttribute('aria-live','polite');
+  filters.append(field('البحث بالاسم أو الهاتف / Search',search),field('تصفية حسب الحالة / Filter by status',stateFilter),field('تصفية حسب العقار / Filter by property',propertyFilter));
+  const reset=node('button','مسح البحث والفلاتر / Clear filters');reset.type='button';reset.onclick=()=>{if(d.closed)return;search.value=stateFilter.value=propertyFilter.value='';draw();};
+  d.body.append(summary,filters,reset,results,list);
   function draw(){
    if(d.closed)return;list.replaceChildren();const q=employeeSearchKey(search.value),phoneQuery=/^[+\d\s().-]+$/.test(q)?q.replace(/\D/g,''):'';
    for(const e of directory.employees){
+    if(stateFilter.value&&e.status!==stateFilter.value)continue;
+    if(propertyFilter.value&&!(e.property_ids||[]).includes(propertyFilter.value))continue;
     const p=e.profile||{},phone=employeeSearchKey(p.phone);
     if(![p.name_ar,p.name_en,p.phone].some(v=>employeeSearchKey(v).includes(q))&&!(phoneQuery&&phone.replace(/\D/g,'').includes(phoneQuery)))continue;
     const name=[p.name_ar,p.name_en].filter(Boolean).join(' / ')||'ملف موظف / Employee record',card=node('article');
     card.append(node('h4',name),node('p',(p.job_ar||p.job_en||'الوظيفة غير مسجلة / Job not recorded')+' · '+(statusLabels[e.status]||'الحالة غير مسجلة / Status not recorded')),button('فتح ملف '+(p.name_ar||p.name_en||'الموظف'),()=>showEmployee(e.id)));list.append(card);
    }
+   results.textContent=`نتائج البحث: ${list.children.length} من ${directory.employees.length} ملف متاح لك`;
    if(!list.children.length)list.append(node('p','لا توجد ملفات موظفين مطابقة ضمن صلاحيتك.'));
-  }search.oninput=draw;draw();d.status.textContent='تمت قراءة دليل الموظفين من قاعدة البيانات.';
+  }search.oninput=stateFilter.onchange=propertyFilter.onchange=draw;draw();d.status.textContent='تمت قراءة دليل الموظفين من قاعدة البيانات.';
  }
  async function editEmployee(record){const e=record?.employee,id=e?.id||crypto.randomUUID();clear(e?'تعديل بيانات الموظف / Edit employee':'موظف جديد / New employee');d.body.append(button('الرجوع للدليل / Back',async()=>{if(draft()!==baseline)throw Error('توجد تعديلات غير محفوظة. احفظها أو اختر تجاهل التعديلات والرجوع للدليل.');await home();}));const form=node('form'),g=grid(),controls={};
   for(const [key,label]of PROFILE_FIELDS){const c=input(key==='phone'?'tel':'text',e?.profile?.[key]);c.required=true;c.maxLength=200;controls[key]=c;g.append(field(label,c));}
