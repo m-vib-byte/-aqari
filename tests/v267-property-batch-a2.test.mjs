@@ -22,7 +22,7 @@ assert.match(sql,/PROPERTY_AUTOMATIC_REF_ALREADY_EXISTS/);
 assert.match(sql,/LEASED_ASSET_AUTOMATIC_REF_ALREADY_EXISTS/);
 assert.match(sql,/UNIT_INTERNAL_SERIAL_ALREADY_EXISTS/);
 assert.match(sql,/property_main_photo/);assert.match(sql,/property_license/);assert.match(sql,/property_certificate/);assert.match(sql,/property_insurance/);
-assert.match(ownerFix,/jsonb_agg\(x\.value-'share'\)/);
+assert.match(ownerFix,/jsonb_agg\(x\.value-''share''\)/);
 assert.match(onboarding,/الصورة الرئيسية/);assert.match(onboarding,/الرخص/);assert.match(onboarding,/التأمينات/);assert.match(onboarding,/tenantVisibility/);assert.match(onboarding,/propertyAutomaticRef/);
 assert.match(upload,/property_main_photo/);assert.match(upload,/property_license/);assert.match(upload,/property_certificate/);assert.match(upload,/property_insurance/);
 assert.match(hub,/اكتمال الملف/);assert.match(hub,/المؤجر/);assert.match(hub,/الشاغر/);assert.match(hub,/إبرام عقد من هذه الوحدة/);assert.match(hub,/leasedAssetAutomaticRef/);assert.match(hub,/التواصل والسوشال ميديا/);
