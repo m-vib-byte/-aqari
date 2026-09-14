@@ -57,7 +57,8 @@ begin
  r:=public.aqari_petty_cash_close(w,fund_id,3,'إقفال العهدة بعد تصفير الرصيد والتسوية');
  if r->>'status'<>'closed' or (r->>'balance')::numeric<>0 or (r->>'revision')::int<>4 then raise exception 'PETTY_CLOSE_READBACK'; end if;
  if r->>'closed_by'<>auth.uid()::text or nullif(r->>'closed_at','') is null or r->>'close_reason'<>'إقفال العهدة بعد تصفير الرصيد والتسوية' then raise exception 'PETTY_CLOSE_METADATA'; end if;
- if not exists(select 1 from private.aqari_operations_audit a where a.workspace_id=w and a.domain='petty_cash' and a.entity_id=fund_id and a.action='close' and a.reason='إقفال العهدة بعد تصفير الرصيد والتسوية') then raise exception 'PETTY_CLOSE_AUDIT_MISSING'; end if;
+ r:=public.aqari_operations_register(w,'overview','list','{}');
+ if not exists(select 1 from jsonb_array_elements(r->'audit') a where a->>'domain'='petty_cash' and a->>'entity_id'=fund_id::text and a->>'action'='close' and a->>'reason'='إقفال العهدة بعد تصفير الرصيد والتسوية') then raise exception 'PETTY_CLOSE_AUDIT_MISSING'; end if;
 
  begin
   perform public.aqari_operations_register(w,'petty_cash','entry',jsonb_build_object(
@@ -92,4 +93,4 @@ rollback;
 select count(*)::int as fixture_workspaces_remaining
 from public.aqari_workspaces
 where id='76770000-0000-4000-8000-000000000099';
-select 'PASS: ceiling-funded cash settled to zero; nonzero close rejected; audited immutable closure metadata persisted; post-close entries rejected; incomplete spend evidence blocks closure; transaction rolled back';
+select 'PASS: ceiling-funded cash settled to zero; nonzero close rejected; audited closure metadata persisted; post-close entries rejected; incomplete spend evidence blocks closure; transaction rolled back';
