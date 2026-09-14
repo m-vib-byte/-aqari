@@ -9,10 +9,11 @@ export function installContractRoutes(target,open){
   records.saveLease=async function(input,...args){
    if(input?.status==='signed'&&input?.source==='v267-cloud'&&typeof window!=='undefined'&&target===window){
     const module=await import('../pages/contract-execution.js');
-    return await new Promise((resolve,reject)=>{
-     const opened=module.openContractExecution(input.id,{onDone:resolve,onCancel:reject});
-     if(opened===false)reject(Error('تعذر فتح اعتماد تسوية الإبرام.'));
-    });
+    const opened=module.openContractExecution(input.id,{onDone:()=>route({id:input.id})});
+    if(opened===false)throw Error('تعذر فتح اعتماد تسوية الإبرام.');
+    // The signing transition is deliberately not sent here. The execution
+    // dialog performs signing + settlement + receipt in one cloud transaction.
+    return input;
    }
    return original(input,...args);
   };
