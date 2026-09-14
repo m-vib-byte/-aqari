@@ -33,7 +33,7 @@ test('owners use basis points and must total 100 percent when present',()=>{
  assert.match(page,/مجموع حصص الملاك يجب أن يساوي 100%/);
 });
 
-test('complete property file derives finance from authoritative sources without payroll guessing',()=>{
+test('legacy complete-property finance remains conservative until official allocation RPC is available',()=>{
  assert.match(sql,/public\.aqari_rent_payments/);
  assert.match(sql,/private\.aqari_receipt_cancellations/);
  assert.match(sql,/private\.aqari_financial_expenses/);
@@ -43,7 +43,8 @@ test('complete property file derives finance from authoritative sources without 
  assert.match(sql,/private\.aqari_hr_payroll/);
  assert.match(sql,/'payrollIncludedInNet',false/);
  assert.match(sql,/prevents double counting employees linked to multiple properties/);
- assert.match(page,/لا يتم توزيع رواتب موظف مرتبط بأكثر من عقار بالتخمين/);
+ assert.match(page,/توزيع الرواتب والخدمات الرسمي غير مفعّل/);
+ assert.match(page,/لا تُخصم هذه البنود بالتخمين/);
 });
 
 test('Complete Property File enforces each sensitive section permission independently',()=>{
@@ -59,6 +60,10 @@ test('Complete Property File enforces each sensitive section permission independ
  assert.match(scoped,/if can_notifications then[\s\S]*private\.aqari_property_channels/);
  assert.match(scoped,/'finance',case when can_collections and can_finance/);
  assert.match(scoped,/'permissions',jsonb_build_object/);
+ assert.match(page,/propertyWritable\(\)/);
+ assert.match(page,/documentsWritable\(\)/);
+ assert.match(page,/contractWritable\(\)/);
+ assert.match(page,/financeWritable\(\)/);
 });
 
 test('permission-hidden property sections are distinct from genuinely empty datasets',()=>{
@@ -86,6 +91,50 @@ test('property card and name helper use the secure Supabase client with session 
  assert.match(page,/إبرام عقد من هذه الوحدة/);
  assert.match(page,/propertyId,unitId:unit\.id/);
  assert.match(page,/aqari_property_contract_context/);
+});
+
+test('complete property file can add a new unit then persist floor and independent master fields',()=>{
+ assert.match(page,/\+ إضافة وحدة وربط الدور/);
+ assert.match(page,/aqari_unit_readiness_register/);
+ assert.match(page,/expected_revision:0/);
+ assert.match(page,/aqari_unit_master_save/);
+ assert.match(page,/p_unit_id:readinessRow\.unit_id/);
+ assert.match(page,/floor:floorInput\.value\.trim\(\)/);
+ assert.match(page,/automaticRef:automaticRef\.value\.trim\(\)/);
+ assert.match(page,/saved\.unit\.floor!==floorInput\.value\.trim\(\)/);
+});
+
+test('complete property file can archive later property assets without deleting prior evidence',()=>{
+ assert.match(page,/createOriginalDocumentUpload/);
+ assert.match(page,/\+ رفع وأرشفة مرفق/);
+ assert.match(page,/property_logo/);
+ assert.match(page,/property_photo/);
+ assert.match(page,/title_deed/);
+ assert.match(page,/site_plan/);
+ assert.match(page,/property_other/);
+ assert.match(page,/aqari_property_master_save/);
+ assert.match(page,/المرفق مؤرشف لكنه لم يظهر في الملف الكامل/);
+ assert.doesNotMatch(page,/\.storage\.from\([^)]*\)\.remove\(/);
+ assert.doesNotMatch(page,/\.from\([^)]*\)\.delete\(/);
+});
+
+test('complete property file exposes staff and maintenance detail through permission-scoped server paths',()=>{
+ assert.match(page,/p_action:'list'/);
+ assert.match(page,/aqari_hr/);
+ assert.match(page,/row\.property_ids\.includes\(propertyId\)/);
+ assert.match(page,/aqari_maintenance_requests/);
+ assert.match(page,/\.in\('lease_id',leaseIds\)/);
+ assert.match(page,/الموظفون والرواتب المرتبطة/);
+ assert.match(page,/الصيانة/);
+});
+
+test('allocated finance is preferred only when its server RPC exists and validates scope',()=>{
+ assert.match(page,/aqari_property_financial_summary/);
+ assert.match(page,/financialSummary\?\.available\?financialSummary:legacyFinance/);
+ assert.match(page,/missingRpc\(error\)/);
+ assert.match(page,/unallocatedSharedPayroll/);
+ assert.match(page,/توزيع الرواتب والمصاريف على العقارات/);
+ assert.match(page,/property-cost-allocation\.js/);
 });
 
 test('contract foundation stores stable ids and rereads unit-property-floor binding before save',()=>{
