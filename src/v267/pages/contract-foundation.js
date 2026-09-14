@@ -1,7 +1,7 @@
 import {createDialog,node,field} from '../components/dialog.js';
 import {leaseEndFromMonths} from '../domain/lease-dates.js';
 import {rentalTemplateKinds,validTemplate,templateForContract} from '../components/rental-templates.js';
-import {nextContractSerial,executionAmount,activeUnitConflict,completeTenantIdentity} from '../domain/contract-foundation.js';
+import {executionAmount,activeUnitConflict,completeTenantIdentity} from '../domain/contract-foundation.js';
 
 const copy=value=>JSON.parse(JSON.stringify(value));
 function same(a,b){
@@ -45,13 +45,15 @@ export function openContractFoundation(options={}){
  }
 
  async function createPreparation(kind){
-  const id=crypto.randomUUID(),now=new Date().toISOString();
+  const id=crypto.randomUUID(),now=new Date().toISOString(),year=Number(api.kuwaitDate().slice(0,4));
+  const contractNo=await rpc('aqari_reserve_contract_serial',{p_workspace_id:d.session.bound.workspace,p_contract_ref:id,p_year:year});d.session.check();
+  if(typeof contractNo!=='string'||!new RegExp(`^AQ-C-${year}-\\d{6,}$`).test(contractNo))throw Error('تعذر تأكيد الرقم المتسلسل للعقد من الخادم.');
   preparation=await changeState(data=>{
-   const drafts=data.contractPreparationDraftsV267||[],existing=drafts.find(row=>row.id===id);if(existing)return existing;
-   const contractNo=nextContractSerial(api.kuwaitDate().slice(0,4),data.contractsV202||[],drafts),initialProperty=properties.some(row=>row.name===options.property)?options.property:'';
-   const record={id,contractNo,kind,status:'preparation',tenantId:null,property:initialProperty,unit:'',createdAt:now,updatedAt:now,createdBy:d.session.bound.user};
+   const drafts=data.contractPreparationDraftsV267||[],existing=drafts.find(row=>row.id===id);if(existing){if(existing.contractNo!==contractNo)throw Error('تعارض رقم العقد المحجوز.');return existing;}
+   const initialProperty=properties.some(row=>row.name===options.property)?options.property:'';
+   const record={id,contractNo,kind,status:'preparation',tenantId:null,property:initialProperty,unit:'',createdAt:now,updatedAt:now,createdBy:d.session.bound.user,serialSource:'server-reservation-v1'};
    data.contractPreparationDraftsV267=drafts.concat([record]);
-   data.audit=(data.audit||[]).concat([[d.session.bound.user,'إنشاء مسودة تأسيس عقد',contractNo,now]]);
+   data.audit=(data.audit||[]).concat([[d.session.bound.user,'إنشاء مسودة تأسيس عقد برقم محجوز من الخادم',contractNo,now]]);
    return record;
   },(data,record)=>(data.contractPreparationDraftsV267||[]).some(row=>same(row,record)));
   await editPreparation();
@@ -98,7 +100,7 @@ export function openContractFoundation(options={}){
 
  async function start(){
   await load();clear('ابدأ عقدًا جديدًا');
-  d.body.append(node('p','اختر نوع العقد أولاً. عند الاختيار يُنشأ رقم عقد ومسودة تأسيس محفوظة فورًا؛ لا يتم إنشاء دفعة أو وصل وهمي.'));
+  d.body.append(node('p','اختر نوع العقد أولاً. عند الاختيار يحجز الخادم رقم عقد فريدًا على مستوى المنصة وينشئ مسودة تأسيس محفوظة فورًا؛ لا يتم إنشاء دفعة أو وصل وهمي.'));
   const openDrafts=(state.contractPreparationDraftsV267||[]).filter(row=>row.status==='preparation');
   if(openDrafts.length){const section=node('section');section.append(node('h4','مسودات تأسيس محفوظة'));for(const row of openDrafts)section.append(button(`${row.contractNo} · ${rentalTemplateKinds.find(x=>x[0]===row.kind)?.[1]||row.kind}`,async()=>{preparation=row;await editPreparation();}));d.body.append(section);}
   const choices=node('div');choices.className='aq267-grid';for(const [kind,label]of rentalTemplateKinds)choices.append(button(label,()=>createPreparation(kind)));d.body.append(choices);d.status.textContent='لم يتم تسجيل أي حركة مالية.';
