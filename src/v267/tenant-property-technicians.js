@@ -4,6 +4,8 @@ const section=document.getElementById('tenantTechniciansSection');
 const list=document.getElementById('tenantTechnicians');
 const status=document.getElementById('tenantTechniciansStatus');
 const cfg=window.AQARI_PUBLIC_CONFIG;
+const previewReady=Boolean(section&&list&&status&&window.supabase&&cfg?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co'&&cfg?.releaseStage==='preview'&&cfg?.supabasePublishableKey&&cfg?.supabaseAuthStorageKey);
+const client=previewReady?window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}}):null;
 let generation=0;
 
 function clear(){
@@ -54,9 +56,8 @@ function render(payload){
 }
 
 async function refresh(){
- if(!section||!list||!status||cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg?.releaseStage!=='preview')return clear();
+ if(!client)return clear();
  const current=++generation;
- const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
  try{
   const first=await client.auth.getSession();
   const userId=first?.data?.session?.user?.id;
@@ -72,9 +73,8 @@ async function refresh(){
  }
 }
 
-if(section&&list&&status&&window.supabase){
- const watcher=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
- watcher.auth.onAuthStateChange(()=>queueMicrotask(refresh));
+if(client){
+ client.auth.onAuthStateChange(()=>queueMicrotask(refresh));
  window.addEventListener('pageshow',refresh);
  refresh();
 }else clear();
