@@ -33,7 +33,7 @@ export function installPropertyExperience({readable,writable}){
   });
  }
  search.oninput=()=>{limit=6;refresh();};search.onkeydown=e=>{if(e.key==='Escape'){search.value='';limit=6;refresh();}else if(e.key==='Enter'){e.preventDefault();results.querySelector('button')?.click();}};clear.onclick=()=>{search.value='';limit=6;refresh();search.focus();};more.onclick=()=>{limit+=6;refresh();};
- add.onclick=async()=>{if(!writable())return;add.disabled=true;try{if(!window.AQARI_RENTAL_RECORDS)await import('/v267-rental-records.js');if(writable())await window.AQARI_RENTAL_RECORDS.openRecord('properties');}catch{status.textContent='تعذر فتح إضافة العقار. أعد المحاولة.';}finally{add.disabled=false;}};
+ add.onclick=async()=>{if(!writable())return;add.disabled=true;try{if(!window.AQARI_RENTAL_RECORDS)await import('/v267-rental-records.js');const m=await import('../pages/property-onboarding.js');if(writable())m.openPropertyOnboarding();}catch(error){status.textContent=String(error?.message||'تعذر فتح إضافة العقار. أعد المحاولة.');}finally{add.disabled=false;}};
  const onBoundary=()=>{viewScope='';search.value='';limit=6;refresh();};window.addEventListener('aqari:auth-boundary',onBoundary);window.addEventListener('aqari:property-saved',event=>{const name=event.detail?.name;search.value=typeof name==='string'&&rows().some(row=>row[0]===name)?name:'';limit=6;refresh();if(search.value)status.textContent='تم حفظ العقار — '+name;});
  const render=window.render;if(typeof render==='function')window.render=function(...args){const result=render.apply(this,args);refresh();return result;};
  document.addEventListener('click',e=>{if(e.target.closest?.('[data-v199-go="home"],[data-v205-route="home"]'))queueMicrotask(refresh);});
