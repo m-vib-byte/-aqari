@@ -26,8 +26,16 @@ test('legal RPC fails closed and audits mutable case changes through immutable e
  assert.match(sql,/LEGAL_CASE_SCOPE_MISMATCH/);
  assert.match(sql,/LEGAL_TENANT_SCOPE_MISMATCH/);
  assert.match(sql,/LEGAL_CASE_REVISION_CONFLICT/);
+ assert.match(sql,/before_value jsonb/);
+ assert.match(sql,/after_value jsonb/);
+ assert.match(sql,/before_row,after_row,auth\.uid\(\),actor/);
  assert.match(sql,/insert into private\.aqari_property_legal_events/);
  assert.match(sql,/grant execute on function public\.aqari_property_legal_file\(uuid,uuid,text,jsonb\) to authenticated/);
+});
+
+test('archived legal evidence must remain inside the same property contract or tenant scope',()=>{
+ assert.match(sql,/LEGAL_DOCUMENT_SCOPE_MISMATCH/);
+ assert.match(sql,/x\.entity_ref in\(q\.id::text,q\.external_ref,coalesce\(c\.lease_id::text,''\),coalesce\(c\.tenant_id::text,''\)\)/);
 });
 
 test('legal UI verifies scope and exposes case plus immutable history workflows',()=>{
