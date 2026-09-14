@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3.sql',import.meta.url),'utf8');
+const baseSql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
 const allocation=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
 const owners=readFileSync(new URL('../src/v267/pages/property-owner-statement.js',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
@@ -13,7 +14,8 @@ assert.match(sql,/ALLOCATION_COMPLETE_AREA_REQUIRED/);
 assert.match(sql,/PAYROLL_ALLOCATION_OUTSIDE_EMPLOYEE_PROPERTIES/);
 assert.match(sql,/basis_snapshot/);
 assert.match(sql,/current_revision/);
-assert.match(sql,/aqari_cost_allocation_no_change/);
+assert.match(baseSql,/aqari_cost_allocation_no_change[\s\S]*aqari_reject_immutable_change/);
+assert.match(baseSql,/aqari_cost_allocation_head_no_delete[\s\S]*aqari_reject_immutable_change/);
 assert.match(sql,/analysis_frequency/);
 assert.match(sql,/s\.amount\/12/);
 assert.match(sql,/annual costs remain one original movement and monthly analytical impact is calculated only/);
