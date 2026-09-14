@@ -7,6 +7,7 @@ const maintenanceCategories={legacy_unclassified:'قديم — غير مصنف',
 const transitions={received:['received','assigned','in_progress','cancelled'],assigned:['assigned','in_progress','cancelled'],in_progress:['in_progress','completed','cancelled'],completed:['completed'],cancelled:['cancelled']};
 const loadedText=mode=>mode==='maintenance'?'تمت قراءة طلبات الصيانة المحفوظة.':'الإرسال غير مفعّل. هذه سجلات تجهيز وإلغاء، وليست رسائل مرسلة.';
 const uncertainSave='لم يتأكد الحفظ. حدّث السجلات وتحقق قبل إعادة الحفظ.';
+const maintenanceTime=value=>value?new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'غير موثق';
 
 export async function openDesk(mode='maintenance'){
  if(!['maintenance','notifications'].includes(mode))return;
@@ -51,6 +52,7 @@ export async function openDesk(mode='maintenance'){
     card.append(node('p',message('العقار: {property} • الوحدة: {unit}',{property:location.property_name,unit:location.unit_no})),node('p','نوع العطل: '+(maintenanceCategories[row.category_code]||'غير معروف')));
     if(executor?.work_order_id){
      card.append(node('p','الجهة المنفذة: '+executor.vendor_name+' • أمر الشغل: '+executor.order_no+' • الحالة: '+(names[executor.work_order_status]||executor.work_order_status)));
+     card.append(node('p','اعتماد أمر الشغل: '+maintenanceTime(executor.approved_at)+'\nوقت التكليف: '+maintenanceTime(executor.assigned_at)+'\nبدء العمل: '+maintenanceTime(executor.started_at)+'\nالإنجاز: '+maintenanceTime(executor.completed_at)));
      if(executor.approved_amount!==null&&executor.approved_amount!==undefined)card.append(node('p','المبلغ المعتمد لأمر الشغل: '+Number(executor.approved_amount).toFixed(3)+' د.ك'));
      if(executor.invoice_id)card.append(node('p','فاتورة المورد: '+executor.invoice_id+' • المبلغ: '+Number(executor.invoice_amount).toFixed(3)+' د.ك • المصروف المالي: '+(executor.expense_linked?'مرتبط ومسجل':'غير مرتبط')));
      else card.append(node('p','الفاتورة والمصروف المالي: لم يسجلا بعد.'));
