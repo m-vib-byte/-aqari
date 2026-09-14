@@ -8,10 +8,10 @@ function input(type='text',value=''){const x=node('input');x.type=type;x.value=v
 function select(options,value){const x=node('select');for(const [v,label]of Object.entries(options)){const o=node('option',label);o.value=v;x.append(o);}if(value!==undefined)x.value=value;return x;}
 export function openEmployees(){
  const d=createDialog('الموظفون والرواتب / Employees and payroll');if(!d)return;
- const urls=createPrivateUrls(d);let directory={employees:[],properties:[]};
+ const urls=createPrivateUrls(d);let directory={employees:[],properties:[]},directoryView=null;const directoryFilters={query:'',state:'',property:'',page:1};
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_hr',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
  const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=()=>d.run(fn);return b;};
- function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
+ function clear(title){directoryView=null;urls.clear();d.body.replaceChildren(node('h3',title));}
  function grid(){const el=node('div');el.className='aq267-grid';return el;}
  function propertyChoices(values=[]){const wrap=node('fieldset'),available=new Set(directory.properties.map(p=>p.id));wrap.append(node('legend','العقارات المصرح بها / Assigned properties'));for(const p of [...directory.properties,...values.filter(id=>!available.has(id)).map(id=>({id,name:'عقار غير متاح حالياً — ألغِ اختياره قبل الحفظ'}))]){const c=input('checkbox');c.value=p.id;c.checked=values.includes(p.id);if(!available.has(p.id))c.onchange=()=>{if(!c.checked)c.disabled=true;};wrap.append(field(p.name,c));}const selected=()=>[...wrap.querySelectorAll('input:checked')].map(x=>x.value);return {el:wrap,values:selected,validate:()=>{if(selected().some(id=>!available.has(id)))throw Error('يوجد عقار مرتبط غير متاح حالياً. ألغِ اختياره صراحة قبل الحفظ أو ارجع بعد استعادة إتاحته.');}};}
  function audit(rows){const box=node('details');box.append(node('summary','سجل التعديلات — آخر 100 / Audit log'));for(const r of rows){const item=node('details');item.append(node('summary',`${r.actor_name} · ${kuwaitTime(r.at)} · ${r.operation} · ${r.entity}`),node('pre',JSON.stringify({before:r.before_value,after:r.after_value},null,2)));box.append(item);}d.body.append(box);}
@@ -19,25 +19,36 @@ export function openEmployees(){
  async function home(){await loadDirectory();clear('دليل الموظفين / Employee directory');d.body.append(node('p','تُجهز مسودات الرواتب تلقائياً يوم 28 الساعة 9 صباحاً بتوقيت الكويت. تتم المراجعة والإصدار والاعتماد والصرف بشكل منفصل.'));
   d.body.append(button('تحديث من قاعدة البيانات / Refresh',home),button('إضافة موظف / Add employee',async()=>editEmployee(null)));
   if(directory.manager)d.body.append(button('صلاحيات حسابات الموظفين / Account permissions',access));
-  const search=input('search'),stateFilter=select({'':'جميع الحالات / All statuses',...statusLabels},''),propertyFilter=select({'':'جميع العقارات / All properties',...Object.fromEntries(directory.properties.map(p=>[p.id,p.name]))},''),filters=grid(),summary=node('p'),results=node('p'),list=node('div');
+  const view={};directoryView=view;
+  const propertyOptions={'':'جميع العقارات / All properties',...Object.fromEntries(directory.properties.map(p=>[p.id,p.name]))};
+  if(directoryFilters.property&&!Object.hasOwn(propertyOptions,directoryFilters.property))propertyOptions[directoryFilters.property]='العقار المحدد غير متاح حالياً / Selected property unavailable';
+  const search=input('search',directoryFilters.query),stateFilter=select({'':'جميع الحالات / All statuses',...statusLabels},directoryFilters.state),propertyFilter=select(propertyOptions,directoryFilters.property),filters=grid(),summary=node('p'),results=node('p'),list=node('div'),pager=grid(),previous=node('button','السابق / Previous'),next=node('button','التالي / Next'),pageLabel=node('p');
+  previous.type=next.type='button';pager.append(previous,next);
   summary.className='aq267-note';summary.textContent=`الملفات المتاحة لك: ${directory.employees.length} · نشط: ${directory.employees.filter(e=>e.status==='active').length} · في إجازة: ${directory.employees.filter(e=>e.status==='leave').length} · غير نشط: ${directory.employees.filter(e=>e.status==='inactive').length}`;
   results.setAttribute('role','status');results.setAttribute('aria-live','polite');
   filters.append(field('البحث بالاسم أو الهاتف / Search',search),field('تصفية حسب الحالة / Filter by status',stateFilter),field('تصفية حسب العقار / Filter by property',propertyFilter));
-  const reset=node('button','مسح البحث والفلاتر / Clear filters');reset.type='button';reset.onclick=()=>{if(d.closed)return;search.value=stateFilter.value=propertyFilter.value='';draw();};
-  d.body.append(summary,filters,reset,results,list);
+  const reset=node('button','مسح البحث والفلاتر / Clear filters');reset.type='button';reset.onclick=()=>{if(d.closed||directoryView!==view)return;search.value=stateFilter.value=propertyFilter.value='';updateFilters();};
+  d.body.append(summary,filters,reset,results,list,pageLabel,pager);
+  function updateFilters(){if(d.closed||directoryView!==view)return;Object.assign(directoryFilters,{query:search.value,state:stateFilter.value,property:propertyFilter.value,page:1});draw();}
+  previous.onclick=()=>{if(d.closed||directoryView!==view||previous.disabled)return;directoryFilters.page--;draw();};next.onclick=()=>{if(d.closed||directoryView!==view||next.disabled)return;directoryFilters.page++;draw();};
   function draw(){
-   if(d.closed)return;list.replaceChildren();const q=employeeSearchKey(search.value),phoneQuery=/^[+\d\s().-]+$/.test(q)?q.replace(/\D/g,''):'';
+   if(d.closed||directoryView!==view)return;list.replaceChildren();const matches=[],q=employeeSearchKey(search.value),phoneQuery=/^[+\d\s().-]+$/.test(q)?q.replace(/\D/g,''):'';
    for(const e of directory.employees){
     if(stateFilter.value&&e.status!==stateFilter.value)continue;
     if(propertyFilter.value&&!(e.property_ids||[]).includes(propertyFilter.value))continue;
     const p=e.profile||{},phone=employeeSearchKey(p.phone);
     if(![p.name_ar,p.name_en,p.phone].some(v=>employeeSearchKey(v).includes(q))&&!(phoneQuery&&phone.replace(/\D/g,'').includes(phoneQuery)))continue;
+    matches.push(e);
+   }
+   const pages=Math.max(1,Math.ceil(matches.length/20));directoryFilters.page=Math.max(1,Math.min(directoryFilters.page,pages));const start=(directoryFilters.page-1)*20;
+   for(const e of matches.slice(start,start+20)){const p=e.profile||{};
     const name=[p.name_ar,p.name_en].filter(Boolean).join(' / ')||'ملف موظف / Employee record',card=node('article');
     card.append(node('h4',name),node('p',(p.job_ar||p.job_en||'الوظيفة غير مسجلة / Job not recorded')+' · '+(statusLabels[e.status]||'الحالة غير مسجلة / Status not recorded')),button('فتح ملف '+(p.name_ar||p.name_en||'الموظف'),()=>showEmployee(e.id)));list.append(card);
    }
-   results.textContent=`نتائج البحث: ${list.children.length} من ${directory.employees.length} ملف متاح لك`;
+   results.textContent=`نتائج البحث: ${matches.length} من ${directory.employees.length} ملف متاح لك`;
+   pageLabel.textContent=matches.length?`عرض ${start+1}–${Math.min(start+20,matches.length)} · الصفحة ${directoryFilters.page} من ${pages}`:'';pager.hidden=pages<=1;pager.style.display=pages<=1?'none':'';previous.disabled=directoryFilters.page<=1;next.disabled=directoryFilters.page>=pages;
    if(!list.children.length)list.append(node('p','لا توجد ملفات موظفين مطابقة ضمن صلاحيتك.'));
-  }search.oninput=stateFilter.onchange=propertyFilter.onchange=draw;draw();d.status.textContent='تمت قراءة دليل الموظفين من قاعدة البيانات.';
+  }search.oninput=stateFilter.onchange=propertyFilter.onchange=updateFilters;draw();d.status.textContent='تمت قراءة دليل الموظفين من قاعدة البيانات.';
  }
  async function editEmployee(record){const e=record?.employee,id=e?.id||crypto.randomUUID();clear(e?'تعديل بيانات الموظف / Edit employee':'موظف جديد / New employee');d.body.append(button('الرجوع للدليل / Back',async()=>{if(draft()!==baseline)throw Error('توجد تعديلات غير محفوظة. احفظها أو اختر تجاهل التعديلات والرجوع للدليل.');await home();}));const form=node('form'),g=grid(),controls={};
   for(const [key,label]of PROFILE_FIELDS){const c=input(key==='phone'?'tel':'text',e?.profile?.[key]);c.required=true;c.maxLength=200;controls[key]=c;g.append(field(label,c));}
@@ -91,5 +102,5 @@ export function openEmployees(){
   if(p.state==='issued'&&r.permissions.edit)d.body.append(button('إثبات صرف الراتب بعد التوقيع والاعتماد / Record paid salary',async()=>{await rpc('paid',{employee_id:id,payroll_id:p.id,revision:p.revision});await showPayroll(id,p.id);d.status.textContent='حُفظ الصرف وخصم قسط السلفة مرة واحدة من رصيدها.';}));if(p.paid_at)d.body.append(node('p','تاريخ إثبات الصرف / Paid: '+kuwaitTime(p.paid_at)));d.status.textContent='تمت إعادة قراءة الراتب المحفوظ.';
  }
  async function access(){const data=await rpc('access');clear('صلاحيات حسابات الموظفين / Account permissions');d.body.append(button('الرجوع للدليل / Back',home),node('p','الصلاحيات تخص الحسابات النشطة. تُطبق أيضاً قيود القسم والدور من مركز تحكم المدير. الوصول لملف مرتبط بعدة عقارات يتطلب التصريح بجميع عقاراته. الاعتمادان يحتاجان حسابين مختلفين.'));const f=node('form'),user=select(Object.fromEntries(data.members.map(m=>[m.user_id,m.name+' · '+m.role]))),props=propertyChoices(),checks={};for(const [key,label]of Object.entries(PERMISSIONS)){checks[key]=input('checkbox');f.append(field(label,checks[key]));}const save=node('button','حفظ الصلاحيات / Save permissions');f.prepend(field('الحساب / Account',user),props.el);f.append(save);d.body.append(f);audit(data.audit||[]);let revision=0;function fill(){const grant=data.grants.find(g=>g.user_id===user.value);revision=grant?.revision||0;for(const [key,c]of Object.entries(checks))c.checked=grant?.permissions[key]===true;for(const c of props.el.querySelectorAll('input'))c.checked=grant?.property_ids.includes(c.value)||false;}user.onchange=fill;fill();d.status.textContent='اختر الحساب والعقارات وحدد صلاحياته.';f.onsubmit=event=>{event.preventDefault();const payload={user_id:user.value,property_ids:props.values(),permissions:Object.fromEntries(Object.entries(checks).map(([k,c])=>[k,c.checked])),revision};d.run(async()=>{await rpc('grant',payload);await access();d.status.textContent='حُفظت الصلاحيات مع سجل التعديل. إلغاء العرض يمنع الوصول فوراً.';});};}
- d.onDispose(()=>{directory={employees:[],properties:[]};d.body.replaceChildren();});d.run(home);
+ d.onDispose(()=>{directoryView=null;Object.assign(directoryFilters,{query:'',state:'',property:'',page:1});directory={employees:[],properties:[]};d.body.replaceChildren();});d.run(home);
 }

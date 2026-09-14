@@ -63,3 +63,22 @@ test('employee directory combines property, status and Arabic search with accura
  f.button('مسح البحث والفلاتر / Clear filters').onclick();assert.equal(f.cards().length,3);assert.equal(f.calls.length,1);
  const reset=f.button('مسح البحث والفلاتر / Clear filters');f.dispose();property.onchange();reset.onclick();assert.equal(f.d.body.children.length,0);
 });
+
+test('employee paging preserves filters and page on return, clamps after refresh, and ignores detached controls',async()=>{
+ let rows=Array.from({length:45},(_,i)=>employee({id:'employee-'+i,property_ids:['p'],profile:{name_ar:'موظف '+i}}));
+ const f=fixture(rows,{rpc:args=>args.p_action==='list'?{employees:rows,properties:[{id:'p',name:'العقار'}]}:{employee:rows.find(e=>e.id===args.p_data.employee_id),permissions:{},payroll:[],events:[],documents:[],audit:[]}});await f.d.pending;
+ assert.equal(f.cards().length,20);assert.equal(f.button('السابق / Previous').disabled,true);
+ const property=f.find('تصفية حسب العقار / Filter by property');property.value='p';property.onchange();f.search().value='موظف';f.search().oninput();
+ f.button('التالي / Next').onclick();assert.equal(f.cards().length,20);assert.match(f.d.body.textContent,/عرض 21–40 · الصفحة 2 من 3/);assert.equal(f.calls.length,1);
+ const staleNext=f.button('التالي / Next'),staleSearch=f.search();await f.button('فتح ملف موظف 20').onclick();await f.button('الرجوع للدليل / Back').onclick();
+ assert.equal(f.search().value,'موظف');assert.equal(f.find('تصفية حسب العقار / Filter by property').value,'p');assert.match(f.d.body.textContent,/الصفحة 2 من 3/);
+ staleNext.onclick();staleSearch.value='old';staleSearch.oninput();await f.button('تحديث من قاعدة البيانات / Refresh').onclick();assert.equal(f.search().value,'موظف');assert.match(f.d.body.textContent,/الصفحة 2 من 3/);
+ f.button('التالي / Next').onclick();assert.equal(f.cards().length,5);assert.equal(f.button('التالي / Next').disabled,true);
+ rows=rows.slice(0,3);await f.button('تحديث من قاعدة البيانات / Refresh').onclick();assert.equal(f.cards().length,3);assert.match(f.d.body.textContent,/عرض 1–3 · الصفحة 1 من 1/);assert.equal(f.button('التالي / Next').disabled,true);
+});
+test('refresh retains an unavailable property filter without broadening the employee list',async()=>{
+ let properties=[{id:'p1',name:'الأول'},{id:'p2',name:'الثاني'}];const rows=[employee({property_ids:['p1']})];
+ const f=fixture(rows,{rpc:()=>({employees:rows,properties})});await f.d.pending;const property=f.find('تصفية حسب العقار / Filter by property');property.value='p2';property.onchange();assert.equal(f.cards().length,0);
+ properties=[properties[0]];await f.button('تحديث من قاعدة البيانات / Refresh').onclick();assert.equal(f.find('تصفية حسب العقار / Filter by property').value,'p2');assert.match(f.d.body.textContent,/العقار المحدد غير متاح حالياً/);assert.equal(f.cards().length,0);
+ f.button('مسح البحث والفلاتر / Clear filters').onclick();assert.equal(f.cards().length,1);
+});
