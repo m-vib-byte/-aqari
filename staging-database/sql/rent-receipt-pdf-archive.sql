@@ -23,24 +23,27 @@ create trigger aqari_rent_receipt_pdf_immutable
 
 create or replace function private.aqari_rent_receipt_pdf_source(p_workspace_id uuid,p_receipt_no text)
 returns jsonb language plpgsql stable security definer set search_path='' as $$
-declare actor uuid:=auth.uid(); p public.aqari_rent_payments%rowtype; lease_tenant uuid; source_hash text;
+declare
+ actor uuid:=auth.uid();
+ payment_id uuid; lease_id uuid; lease_tenant uuid; payment_status text; receipt_snapshot jsonb; source_hash text;
 begin
  if actor is null or btrim(coalesce(p_receipt_no,''))='' or length(p_receipt_no)>150 or p_receipt_no ~ '[[:cntrl:]]' then
   raise insufficient_privilege using message='ACCESS_DENIED';
  end if;
- select rp,l.tenant_id into p,lease_tenant
+ select rp.id,rp.lease_id,rp.status,rp.receipt,l.tenant_id
+ into payment_id,lease_id,payment_status,receipt_snapshot,lease_tenant
  from public.aqari_rent_payments rp
  join public.aqari_leases l on l.workspace_id=rp.workspace_id and l.id=rp.lease_id
  where rp.workspace_id=p_workspace_id and rp.reference=p_receipt_no;
  if not found then raise exception 'RECEIPT_NOT_FOUND' using errcode='P0002';end if;
- if not (private.aqari_can_lease(p_workspace_id,p.lease_id,'collections','read') or private.aqari_owns_tenant(p_workspace_id,lease_tenant)) then
+ if not (private.aqari_can_lease(p_workspace_id,lease_id,'collections','read') or private.aqari_owns_tenant(p_workspace_id,lease_tenant)) then
   raise insufficient_privilege using message='ACCESS_DENIED';
  end if;
- if jsonb_typeof(p.receipt) is distinct from 'object' or p.receipt->>'id' is distinct from p_receipt_no then
+ if jsonb_typeof(receipt_snapshot) is distinct from 'object' or receipt_snapshot->>'id' is distinct from p_receipt_no then
   raise exception 'RECEIPT_SNAPSHOT_MISMATCH' using errcode='23514';
  end if;
- source_hash:=encode(sha256(convert_to(p.receipt::text,'UTF8')),'hex');
- return jsonb_build_object('workspace_id',p_workspace_id,'receipt_no',p.reference,'payment_id',p.id,'lease_id',p.lease_id,'payment_status',p.status,'snapshot_sha256',source_hash);
+ source_hash:=encode(sha256(convert_to(receipt_snapshot::text,'UTF8')),'hex');
+ return jsonb_build_object('workspace_id',p_workspace_id,'receipt_no',p_receipt_no,'payment_id',payment_id,'lease_id',lease_id,'payment_status',payment_status,'snapshot_sha256',source_hash);
 end $$;
 revoke all on function private.aqari_rent_receipt_pdf_source(uuid,text) from public,anon,authenticated,service_role;
 
