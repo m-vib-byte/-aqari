@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const sql=readFileSync(new URL('../staging-database/sql/property-master-file.sql',import.meta.url),'utf8');
+const scoped=readFileSync(new URL('../staging-database/sql/property-master-file-permissions.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/property-master-file.js',import.meta.url),'utf8');
 const foundation=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
 const propertyExperience=readFileSync(new URL('../src/v267/components/property-experience.js',import.meta.url),'utf8');
@@ -45,8 +46,25 @@ test('complete property file derives finance from authoritative sources without 
  assert.match(page,/لا يتم توزيع رواتب موظف مرتبط بأكثر من عقار بالتخمين/);
 });
 
-test('property card opens Complete Property File and unit launches authoritative contract context',()=>{
+test('Complete Property File enforces each sensitive section permission independently',()=>{
+ for(const [flag,section] of [
+  ['can_contracts','contracts'],['can_collections','collections'],['can_finance','finance'],
+  ['can_employees','employees'],['can_maintenance','maintenance'],['can_documents','documents'],['can_notifications','notifications']
+ ]) assert.match(scoped,new RegExp(`${flag}:=private\\.aqari_can\\(p_workspace_id,'${section}','read'\\)`));
+ assert.match(scoped,/if can_contracts then[\s\S]*public\.aqari_leases/);
+ assert.match(scoped,/if can_collections then[\s\S]*public\.aqari_rent_payments/);
+ assert.match(scoped,/if can_finance then[\s\S]*private\.aqari_financial_expenses/);
+ assert.match(scoped,/if can_employees then[\s\S]*private\.aqari_hr_payroll/);
+ assert.match(scoped,/if can_documents then[\s\S]*public\.aqari_documents/);
+ assert.match(scoped,/if can_notifications then[\s\S]*private\.aqari_property_channels/);
+ assert.match(scoped,/'finance',case when can_collections and can_finance/);
+ assert.match(scoped,/'permissions',jsonb_build_object/);
+});
+
+test('property card opens Complete Property File through the secure Supabase client and unit launches authoritative contract context',()=>{
  assert.match(propertyExperience,/ملف كامل/);
+ assert.match(propertyExperience,/getClient/);
+ assert.doesNotMatch(propertyExperience,/AQARI_SUPABASE\?\.client/);
  assert.match(propertyExperience,/property-master-file\.js/);
  assert.match(page,/aqari_property_full_file/);
  assert.match(page,/إبرام عقد من هذه الوحدة/);
