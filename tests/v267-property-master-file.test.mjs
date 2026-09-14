@@ -61,11 +61,27 @@ test('Complete Property File enforces each sensitive section permission independ
  assert.match(scoped,/'permissions',jsonb_build_object/);
 });
 
-test('property card opens Complete Property File through the secure Supabase client and unit launches authoritative contract context',()=>{
+test('permission-hidden property sections are distinct from genuinely empty datasets',()=>{
+ assert.match(page,/غير متاح حسب الصلاحية/);
+ assert.match(page,/const count=value=>value==null\?'غير متاح'/);
+ assert.match(page,/renderPermissionRows\(contracts,permissions\.contracts/);
+ assert.match(page,/renderPermissionRows\(collections,permissions\.collections/);
+ assert.match(page,/renderPermissionRows\(expenses,permissions\.finance/);
+ assert.match(page,/renderPermissionRows\(docs,permissions\.documents/);
+ assert.match(page,/permissions\.notifications===false/);
+ assert.match(page,/permissions\.collections===false\|\|permissions\.finance===false/);
+});
+
+test('property card and name helper use the secure Supabase client with session scope recheck',()=>{
  assert.match(propertyExperience,/ملف كامل/);
  assert.match(propertyExperience,/getClient/);
  assert.doesNotMatch(propertyExperience,/AQARI_SUPABASE\?\.client/);
  assert.match(propertyExperience,/property-master-file\.js/);
+ assert.match(page,/getClient/);
+ assert.doesNotMatch(page,/AQARI_SUPABASE\?\.client/);
+ assert.match(page,/initialUser/);
+ assert.match(page,/initialWorkspace/);
+ assert.match(page,/assertSameScope/);
  assert.match(page,/aqari_property_full_file/);
  assert.match(page,/إبرام عقد من هذه الوحدة/);
  assert.match(page,/propertyId,unitId:unit\.id/);
