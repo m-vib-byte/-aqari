@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const sql=readFileSync(new URL('../staging-database/sql/maintenance-evidence-sla.sql',import.meta.url),'utf8');
+const hotfix=readFileSync(new URL('../staging-database/sql/maintenance-evidence-returning-fix.sql',import.meta.url),'utf8');
+const hosted=readFileSync(new URL('../staging-database/tests/maintenance_evidence_hosted_acceptance.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/maintenance-evidence.js',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
 const build=readFileSync(new URL('../scripts/build-vercel.mjs',import.meta.url),'utf8');
@@ -40,6 +42,27 @@ test('evidence write is property scoped, image only, MFA protected and audited',
  assert.match(sql,/MAINTENANCE_EVIDENCE_IMAGE_NOT_VERIFIED/);
  assert.match(sql,/insert into private\.aqari_operations_audit/);
  assert.match(sql,/evidence_'\|\|stage_value/);
+});
+
+test('hosted write return is table-qualified so PL/pgSQL variables cannot shadow columns',()=>{
+ assert.match(hotfix,/insert into private\.aqari_maintenance_evidence as evidence_row/);
+ assert.match(hotfix,/'task_id',evidence_row\.task_id/);
+ assert.match(hotfix,/'document_id',evidence_row\.document_id/);
+ assert.match(hotfix,/'captured_at',evidence_row\.captured_at/);
+ assert.match(hotfix,/grant execute on function public\.aqari_maintenance_evidence\(uuid,uuid,text,jsonb\) to authenticated/);
+});
+
+test('rollback-only hosted probe covers guards, real RPC, audit, timing and cleanup',()=>{
+ assert.match(hosted,/^begin;/m);
+ assert.match(hosted,/public\.aqari_maintenance_evidence/);
+ assert.match(hosted,/EXPECTED_BEFORE_EVIDENCE_GUARD_DID_NOT_FIRE/);
+ assert.match(hosted,/EXPECTED_AFTER_EVIDENCE_GUARD_DID_NOT_FIRE/);
+ assert.match(hosted,/EVIDENCE_AUDIT_INVALID/);
+ assert.match(hosted,/CONTEXT_TIMING_READBACK_INVALID/);
+ assert.match(hosted,/EXPECTED_IMMUTABILITY_GUARD_DID_NOT_FIRE/);
+ assert.match(hosted,/^rollback;/m);
+ assert.match(hosted,/fixture_tasks_remaining/);
+ assert.match(hosted,/fixture_documents_remaining/);
 });
 
 test('context exposes measured aging without inventing an SLA target',()=>{
