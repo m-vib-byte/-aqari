@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
+const periodGuard=readFileSync(new URL('../staging-database/sql/property-cost-allocation-period-guard.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
 
 test('allocation revisions are append-only and keep actor reason and exact property amount',()=>{
@@ -12,6 +13,12 @@ test('allocation revisions are append-only and keep actor reason and exact prope
  assert.match(sql,/actor_name text not null/);
  assert.match(sql,/reason text not null/);
  assert.match(sql,/amount numeric\(15,3\)/);
+});
+
+test('allocation revision is blocked when its authoritative source period is closed',()=>{
+ assert.match(periodGuard,/before insert or update on private\.aqari_property_cost_allocation_heads/);
+ assert.match(periodGuard,/private\.aqari_financial_open\(new\.workspace_id,new\.source_date\)/);
+ assert.match(periodGuard,/aqari_cost_allocation_period_guard/);
 });
 
 test('only finalized authoritative sources can enter property cost allocation',()=>{
