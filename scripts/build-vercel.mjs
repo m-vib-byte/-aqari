@@ -12,6 +12,7 @@ if(process.env.VERCEL_ENV==='production'){
 }
 
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'],{stdio:'inherit'});
