@@ -5,6 +5,9 @@ import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/maintenance-evidence-sla.sql',import.meta.url),'utf8');
 const hotfix=readFileSync(new URL('../staging-database/sql/maintenance-evidence-returning-fix.sql',import.meta.url),'utf8');
 const hosted=readFileSync(new URL('../staging-database/tests/maintenance_evidence_hosted_acceptance.sql',import.meta.url),'utf8');
+const slaPrerequisite=readFileSync(new URL('../staging-database/sql/maintenance-sla-escalation-prerequisite.sql',import.meta.url),'utf8');
+const slaSql=readFileSync(new URL('../staging-database/sql/maintenance-sla-escalation.sql',import.meta.url),'utf8');
+const slaHosted=readFileSync(new URL('../staging-database/tests/maintenance_sla_escalation_hosted_acceptance.sql',import.meta.url),'utf8');
 const page=readFileSync(new URL('../src/v267/pages/maintenance-evidence.js',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
 const build=readFileSync(new URL('../scripts/build-vercel.mjs',import.meta.url),'utf8');
@@ -52,7 +55,7 @@ test('hosted write return is table-qualified so PL/pgSQL variables cannot shadow
  assert.match(hotfix,/grant execute on function public\.aqari_maintenance_evidence\(uuid,uuid,text,jsonb\) to authenticated/);
 });
 
-test('rollback-only hosted probe covers guards, real RPC, audit, timing and cleanup',()=>{
+test('rollback-only hosted evidence probe covers guards, real RPC, audit, timing and cleanup',()=>{
  assert.match(hosted,/^begin;/m);
  assert.match(hosted,/public\.aqari_maintenance_evidence/);
  assert.match(hosted,/EXPECTED_BEFORE_EVIDENCE_GUARD_DID_NOT_FIRE/);
@@ -65,15 +68,68 @@ test('rollback-only hosted probe covers guards, real RPC, audit, timing and clea
  assert.match(hosted,/fixture_documents_remaining/);
 });
 
-test('context exposes measured aging without inventing an SLA target',()=>{
+test('context exposes measured aging without inventing an SLA target before configuration',()=>{
  assert.match(sql,/'overdueDays'/);
  assert.match(sql,/'needsEscalation'/);
  assert.match(sql,/'responseMinutes'/);
  assert.match(sql,/'resolutionMinutes'/);
- assert.match(page,/لا تُفترض أهداف SLA غير مهيأة/);
+ assert.match(page,/لا تُفترض أهداف SLA قبل ضبطها/);
 });
 
-test('UI rechecks bound session and never uses HTML injection',()=>{
+test('property SLA policy is private, revisioned, non-deletable and manager/MFA guarded',()=>{
+ assert.match(slaPrerequisite,/to_regprocedure\('private\.aqari_property_control_reject_delete\(\)'\)/);
+ assert.match(slaSql,/private\.aqari_property_maintenance_sla/);
+ assert.match(slaSql,/response_minutes integer not null default 60 check\(response_minutes between 5 and 10080\)/);
+ assert.match(slaSql,/resolution_minutes integer not null default 1440 check\(resolution_minutes between 5 and 43200\)/);
+ assert.match(slaSql,/enable row level security/);
+ assert.match(slaSql,/revoke all on private\.aqari_property_maintenance_sla,private\.aqari_maintenance_sla_escalations from public,anon,authenticated,service_role/);
+ assert.match(slaSql,/aqari_maintenance_sla_no_delete/);
+ assert.match(slaSql,/private\.aqari_manager\(w\)/);
+ assert.match(slaSql,/private\.aqari_require_sensitive_aal2\(w\)/);
+ assert.match(slaSql,/MAINTENANCE_SLA_REVISION_CONFLICT/);
+ assert.match(slaSql,/sla_policy_save/);
+});
+
+test('automatic SLA engine escalates response and resolution breaches idempotently',()=>{
+ assert.match(slaSql,/private\.aqari_run_maintenance_sla_escalations/);
+ assert.match(slaSql,/t\.status='assigned'.*t\.assigned_at.*response_minutes/s);
+ assert.match(slaSql,/t\.status='in_progress'.*t\.started_at.*resolution_minutes/s);
+ assert.match(slaSql,/maintenance_sla_escalation/);
+ assert.match(slaSql,/maintenance-sla:'\|\|r\.id\|\|':'\|\|stage_value\|\|':'\|\|r\.revision/);
+ assert.match(slaSql,/unique\(workspace_id,task_id,stage,task_revision\)/);
+ assert.match(slaSql,/aqari_maintenance_sla_escalations_immutable/);
+ assert.match(slaSql,/cron\.schedule\('aqari_v267_maintenance_sla_escalation','\*\/15 \* \* \* \*'/);
+});
+
+test('rollback-only hosted SLA probe proves save, two-stage escalation, idempotency, immutability and cleanup',()=>{
+ assert.match(slaHosted,/^begin;/m);
+ assert.match(slaHosted,/public\.aqari_maintenance_sla/);
+ assert.match(slaHosted,/SLA_POLICY_READBACK_INVALID/);
+ assert.match(slaHosted,/SLA_FIRST_RUN_INVALID/);
+ assert.match(slaHosted,/SLA_SECOND_RUN_NOT_IDEMPOTENT/);
+ assert.match(slaHosted,/SLA_NOTIFICATION_COUNT_INVALID/);
+ assert.match(slaHosted,/EXPECTED_SLA_ESCALATION_IMMUTABILITY_GUARD_DID_NOT_FIRE/);
+ assert.match(slaHosted,/EXPECTED_SLA_POLICY_DELETE_GUARD_DID_NOT_FIRE/);
+ assert.match(slaHosted,/^rollback;/m);
+ assert.match(slaHosted,/fixture_tasks_remaining/);
+ assert.match(slaHosted,/qa_notifications_remaining/);
+});
+
+test('maintenance UI binds SLA to the same session and exposes manager controls safely',()=>{
+ assert.match(page,/aqari_maintenance_sla/);
+ assert.match(page,/slaCtx\?\.workspace_id!==d\.session\.bound\.workspace/);
+ assert.match(page,/slaCtx\?\.propertyId!==propertyId/);
+ assert.match(page,/slaCtx\?\.user_id!==d\.session\.bound\.user/);
+ assert.match(page,/p_action:'save'/);
+ assert.match(page,/p_action:'prepare'/);
+ assert.match(page,/إعداد سياسة SLA/);
+ assert.match(page,/الفحص الآلي: كل 15 دقيقة/);
+ assert.match(page,/responseBreached/);
+ assert.match(page,/resolutionBreached/);
+ assert.doesNotMatch(page,/innerHTML/);
+});
+
+test('evidence UI rechecks bound session and never uses HTML injection',()=>{
  assert.match(page,/aqari_maintenance_evidence/);
  assert.match(page,/ctx\?\.workspace_id!==d\.session\.bound\.workspace/);
  assert.match(page,/ctx\?\.propertyId!==propertyId/);
