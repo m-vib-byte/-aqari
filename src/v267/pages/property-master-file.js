@@ -2,17 +2,21 @@ import {createDialog,node,field} from '../components/dialog.js';
 
 const input=(type,value='')=>{const x=node('input');x.type=type;x.value=value??'';return x;};
 const money=value=>value==null?'غير متاح':Number(value).toFixed(3)+' د.ك';
+const count=value=>value==null?'غير متاح':String(value);
 const text=value=>String(value??'').trim();
 function section(title){const x=node('section');x.className='aq267-property-master-section';x.append(node('h3',title));return x;}
 function metric(label,value){const x=node('article');x.className='aq267-property-master-metric';x.append(node('span',label),node('strong',value));return x;}
 function statusLine(label,value){const p=node('p');p.append(node('strong',label+': '),document.createTextNode(value||'—'));return p;}
 function action(label,fn){const b=node('button',label);b.type='button';b.onclick=fn;return b;}
 function percent(value){return (Number(value||0)/100).toFixed(2)+'%';}
+function permissionNotice(target){target.append(node('p','غير متاح حسب الصلاحية.'));}
 
 export async function openPropertyMasterFileByName(name){
- const session=window.AQARI_SUPABASE?.context;if(!session?.workspace?.id)throw Error('الجلسة غير جاهزة.');
- const client=window.AQARI_SUPABASE?.client;if(!client)throw Error('الاتصال غير جاهز.');
- const {data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',session.workspace.id).eq('name',String(name||'').trim()).limit(2);
+ const bridge=window.AQARI_SUPABASE,initialUser=bridge?.context?.user?.id,initialWorkspace=bridge?.context?.workspace?.id;
+ if(!initialUser||!initialWorkspace||typeof bridge?.getClient!=='function')throw Error('الجلسة غير جاهزة.');
+ const assertSameScope=()=>{if(bridge?.context?.user?.id!==initialUser||bridge?.context?.workspace?.id!==initialWorkspace)throw Error('تغيرت الجلسة أو مساحة العمل أثناء فتح ملف العقار. أعد المحاولة.');};
+ const client=await bridge.getClient();assertSameScope();
+ const {data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',initialWorkspace).eq('name',String(name||'').trim()).limit(2);assertSameScope();
  if(error)throw error;if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد. افتح السجل باستخدام معرفه.':'لم يتم ربط هذا العقار بالسجل الخادمي بعد.');
  return openPropertyMasterFile(data[0].id);
 }
@@ -52,18 +56,19 @@ export function openPropertyMasterFile(propertyId){
   d.close();const m=await import('./contract-foundation.js');return m.openContractFoundation({propertyId,unitId:unit.id,property:fresh.property.name,unit:fresh.unit.unitNo,floor:fresh.unit.floor,address:fresh.property.address,propertyRevision:fresh.binding?.propertyRevision,unitRevision:fresh.binding?.unitRevision});
  }
  function renderRows(target,rows,empty,mapper){if(!Array.isArray(rows)||!rows.length){target.append(node('p',empty));return;}for(const row of rows.slice(0,100))target.append(mapper(row));}
+ function renderPermissionRows(target,permission,rows,empty,mapper){if(permission===false){permissionNotice(target);return;}renderRows(target,rows,empty,mapper);}
  async function render(){
-  await read();const p=file.property,finance=file.finance||{},summary=file.summary||{};d.body.replaceChildren();
+  await read();const p=file.property,finance=file.finance||{},summary=file.summary||{},permissions=file.permissions||{};d.body.replaceChildren();
   const head=section(p.name||'العقار');head.append(statusLine('العنوان',p.address),statusLine('النوع',p.type),statusLine('الحالة',p.status),statusLine('الدخل المعلن',money(p.statedIncome)),action('تعديل بيانات العقار',editProperty));d.body.append(head);
   const contacts=section('التواصل والملاك');contacts.append(statusLine('البريد',p.email),statusLine('الهاتف',p.phone),statusLine('واتساب',p.whatsapp));if(Array.isArray(p.owners)&&p.owners.length)for(const o of p.owners)contacts.append(statusLine(o.role||'مالك',(o.name||'')+' — '+percent(o.bps)));else contacts.append(node('p','لم تُحفظ حصص ملاك بعد.'));d.body.append(contacts);
-  const metrics=section('الملخص التشغيلي');const grid=node('div');grid.className='aq267-property-master-metrics';for(const [label,value]of [['الوحدات',summary.units??0],['العقود',summary.contracts??0],['المتأخرات',money(summary.arrearsAmount)],['الموظفون المرتبطون',summary.employees??0],['أعمال الصيانة',summary.maintenance??0]])grid.append(metric(label,String(value)));metrics.append(grid);d.body.append(metrics);
-  const financial=section('الربط المالي الفعلي');const fgrid=node('div');fgrid.className='aq267-property-master-metrics';for(const [label,value]of [['دخل الشهر',money(finance.month?.income)],['مصروف الشهر',money(finance.month?.expenses)],['صافي الشهر',money(finance.month?.net)],['دخل السنة',money(finance.year?.income)],['مصروف السنة',money(finance.year?.expenses)],['صافي السنة',money(finance.year?.net)]])fgrid.append(metric(label,value));financial.append(fgrid,node('p','أساس الصافي: '+(finance.basis||'غير متاح')),node('p','الرواتب المرتبطة: '+money(finance.linkedPayrollPaid)+' — لا تدخل في الصافي حتى توجد حصة عقارية موثقة. لا يتم توزيع رواتب موظف مرتبط بأكثر من عقار بالتخمين.'),node('p','الكهرباء/الماء المدفوع هذا الشهر: '+money(finance.utilityPaidMonth)+' — معروضة تشغيليًا ولا تخصم مرة ثانية من الصافي.'));d.body.append(financial);
+  const metrics=section('الملخص التشغيلي');const grid=node('div');grid.className='aq267-property-master-metrics';for(const [label,value]of [['الوحدات',count(summary.units)],['العقود',count(summary.contracts)],['المتأخرات',money(summary.arrearsAmount)],['الموظفون المرتبطون',count(summary.employees)],['أعمال الصيانة',count(summary.maintenance)]])grid.append(metric(label,value));metrics.append(grid);d.body.append(metrics);
+  const financial=section('الربط المالي الفعلي');if(permissions.collections===false||permissions.finance===false){permissionNotice(financial);}else{const fgrid=node('div');fgrid.className='aq267-property-master-metrics';for(const [label,value]of [['دخل الشهر',money(finance.month?.income)],['مصروف الشهر',money(finance.month?.expenses)],['صافي الشهر',money(finance.month?.net)],['دخل السنة',money(finance.year?.income)],['مصروف السنة',money(finance.year?.expenses)],['صافي السنة',money(finance.year?.net)]])fgrid.append(metric(label,value));financial.append(fgrid,node('p','أساس الصافي: '+(finance.basis||'غير متاح')),node('p','الرواتب المرتبطة: '+money(finance.linkedPayrollPaid)+' — '+(permissions.employees===false?'غير متاح حسب الصلاحية.':'لا تدخل في الصافي حتى توجد حصة عقارية موثقة. لا يتم توزيع رواتب موظف مرتبط بأكثر من عقار بالتخمين.')),node('p','الكهرباء/الماء المدفوع هذا الشهر: '+money(finance.utilityPaidMonth)+' — معروضة تشغيليًا ولا تخصم مرة ثانية من الصافي.'));}d.body.append(financial);
   const units=section('الوحدات');renderRows(units,file.units,'لا توجد وحدات مرتبطة بهذا العقار.',u=>{const box=node('article');box.className='aq267-property-unit-card';box.append(node('strong','الوحدة '+u.unitNo),node('span','الدور: '+(u.floor||'غير محدد')+' · النوع: '+(u.type||'غير محدد')+' · الحالة: '+(u.status||'—')),node('span','الإيجار المعلن: '+money(u.statedRent)),node('span','الرقم الآلي: '+(u.automaticRef||'غير محفوظ')),action('إبرام عقد من هذه الوحدة',()=>d.run(()=>newContract(u))),action('تعديل بيانات الوحدة',()=>d.run(()=>editUnit(u))));return box;});d.body.append(units);
-  const contracts=section('العقود');renderRows(contracts,file.contracts,'لا توجد عقود مرتبطة.',r=>node('p',`${r.contractNo} · وحدة ${file.units?.find(u=>u.id===r.unitId)?.unitNo||r.unitId} · ${r.status} · ${money(r.monthlyRent)}`));d.body.append(contracts);
-  const collections=section('التحصيلات وكشف الإيجارات');renderRows(collections,file.collections,'لا توجد تحصيلات مسجلة.',r=>node('p',`${r.paidAt} · ${r.reference} · ${money(r.amount)} · ${r.method} · ${r.status}`));d.body.append(collections);
-  const expenses=section('المصاريف');renderRows(expenses,file.expenses,'لا توجد مصروفات مرتبطة.',r=>node('p',`${r.date} · ${r.category} · ${r.payee} · ${money(r.amount)} · ${r.state}`));d.body.append(expenses);
-  const docs=section('المستندات والمرفقات');renderRows(docs,file.documents,'لا توجد مستندات مرتبطة في كتالوج المستندات.',r=>node('p',`${r.no} · ${r.type} · ${r.title} · ${r.status}`));d.body.append(docs);
-  const notices=section('التنبيهات والقنوات');renderRows(notices,file.channels,'لا توجد قنوات تواصل مرتبطة بالعقار.',r=>node('p',`${r.kind} · ${r.publicUrl||r.managementReference||'غير مضبوط'} · ${r.status}`));renderRows(notices,file.notices,'لا توجد إعلانات/تنبيهات عقارية محفوظة.',r=>node('p',`${r.kind} · ${r.title} · ${r.status}`));d.body.append(notices);
+  const contracts=section('العقود');renderPermissionRows(contracts,permissions.contracts,file.contracts,'لا توجد عقود مرتبطة.',r=>node('p',`${r.contractNo} · وحدة ${file.units?.find(u=>u.id===r.unitId)?.unitNo||r.unitId} · ${r.status} · ${money(r.monthlyRent)}`));d.body.append(contracts);
+  const collections=section('التحصيلات وكشف الإيجارات');renderPermissionRows(collections,permissions.collections,file.collections,'لا توجد تحصيلات مسجلة.',r=>node('p',`${r.paidAt} · ${r.reference} · ${money(r.amount)} · ${r.method} · ${r.status}`));d.body.append(collections);
+  const expenses=section('المصاريف');renderPermissionRows(expenses,permissions.finance,file.expenses,'لا توجد مصروفات مرتبطة.',r=>node('p',`${r.date} · ${r.category} · ${r.payee} · ${money(r.amount)} · ${r.state}`));d.body.append(expenses);
+  const docs=section('المستندات والمرفقات');renderPermissionRows(docs,permissions.documents,file.documents,'لا توجد مستندات مرتبطة في كتالوج المستندات.',r=>node('p',`${r.no} · ${r.type} · ${r.title} · ${r.status}`));d.body.append(docs);
+  const notices=section('التنبيهات والقنوات');if(permissions.notifications===false)permissionNotice(notices);else{renderRows(notices,file.channels,'لا توجد قنوات تواصل مرتبطة بالعقار.',r=>node('p',`${r.kind} · ${r.publicUrl||r.managementReference||'غير مضبوط'} · ${r.status}`));renderRows(notices,file.notices,'لا توجد إعلانات/تنبيهات عقارية محفوظة.',r=>node('p',`${r.kind} · ${r.title} · ${r.status}`));}d.body.append(notices);
   const audit=section('سجل التعديلات');renderRows(audit,file.audit,'لا توجد تعديلات Master Data بعد.',r=>node('p',`${r.at} · ${r.actor} · ${r.action} · ${r.reason}`));d.body.append(audit);
   d.status.textContent='هذا الملف يعرض المصادر الخادمة الفعلية. القيم غير المتاحة لا تتحول إلى أصفار مفترضة.';
  }
