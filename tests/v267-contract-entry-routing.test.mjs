@@ -1,23 +1,49 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {installContractRoutes} from '../src/v267/components/contract-routing.js';
+import {installContractRoutes,normalizeContractIntent} from '../src/v267/components/contract-routing.js';
 
-test('legacy contract routes use one guarded entry and preserve unrelated navigation',async()=>{
+test('contract route intents are canonical and reject conflicting or unsafe hints',()=>{
+ assert.deepEqual(normalizeContractIntent(),{});
+ assert.deepEqual(normalizeContractIntent({create:true,property:'  برج مرزوق  ',ignored:'drop'}),{create:true,property:'برج مرزوق'});
+ assert.deepEqual(normalizeContractIntent({id:42,ignored:'drop'}),{id:'42'});
+ assert.deepEqual(normalizeContractIntent({renewalFrom:'  renewal-1  '}),{renewalFrom:'renewal-1'});
+ assert.throws(()=>normalizeContractIntent([]),/طلب فتح العقود غير صالح/);
+ assert.throws(()=>normalizeContractIntent({create:true,id:'x'}),/إجراءات متعارضة/);
+ assert.throws(()=>normalizeContractIntent({id:'x',renewalFrom:'y'}),/إجراءات متعارضة/);
+ assert.throws(()=>normalizeContractIntent({property:'برج'}),/مسموح فقط عند إنشاء عقد جديد/);
+ assert.throws(()=>normalizeContractIntent({id:{unsafe:true}}),/مرجع العقد غير صالح/);
+ assert.throws(()=>normalizeContractIntent({renewalFrom:'x\ny'}),/مرجع التجديد غير صالح/);
+ assert.throws(()=>normalizeContractIntent({id:'x'.repeat(301)}),/مرجع العقد غير صالح/);
+});
+
+test('saved-contract legacy route uses guarded opener and preserves unrelated navigation',async()=>{
  const opened=[],legacy=[];
  const target={go:function(...args){legacy.push([this,...args]);return 'legacy';}};
  installContractRoutes(target,async initial=>{opened.push(initial||{});return 'modern';});
- assert.equal(await target.go('smartContractsPage'),'modern');
  assert.equal(await target.go('leases'),'modern');
- await target.AQARI_V267_OPEN_CONTRACTS({create:true,property:'برج مرزوق'});
- assert.deepEqual(opened,[{create:true},{},{create:true,property:'برج مرزوق'}]);
+ assert.equal(await target.AQARI_V267_OPEN_CONTRACTS({id:' 42 ',ignored:'drop'}),'modern');
+ assert.deepEqual(opened,[{},{id:'42'}]);
  assert.equal(legacy.length,0);
  assert.equal(target.go('home','x'),'legacy');
  assert.equal(legacy[0][0],target);
  assert.deepEqual(legacy[0].slice(1),['home','x']);
 });
 
-test('workspace re-checks session scope and contract read permission around lazy loading',()=>{
+test('create intent is forced through a separate live access guard before foundation load',()=>{
+ const routing=readFileSync(new URL('../src/v267/components/contract-routing.js',import.meta.url),'utf8');
+ const guard=readFileSync(new URL('../src/v267/components/contract-entry-guard.js',import.meta.url),'utf8');
+ assert.match(routing,/const intent=normalizeContractIntent\(initial\)/);
+ assert.match(routing,/if\(intent\.create\)[\s\S]*import\('\.\/contract-entry-guard\.js'\)/);
+ assert.match(routing,/openGuardedContractFoundation\(intent,open\)/);
+ assert.match(guard,/permissions\?\.contracts\?\.read===true&&access\?\.permissions\?\.contracts\?\.write===true/);
+ assert.equal((guard.match(/await readAccess\(\)/g)||[]).length,2);
+ assert.match(guard,/session\.check\(\)[\s\S]*import\('\.\.\/pages\/contract-foundation\.js'\)[\s\S]*session\.check\(\)/);
+ assert.match(guard,/return module\.openContractFoundation\(\{\.\.\.intent,openContracts\}\)/);
+ assert.match(guard,/finally\{[\s\S]*session\.close\(\)/);
+});
+
+test('workspace re-checks session scope and contract read permission around saved-contract lazy loading',()=>{
  const source=readFileSync(new URL('../src/v267/workspace.js',import.meta.url),'utf8');
  assert.match(source,/directoryAllowed\(\{section:'contracts'\}\)/);
  assert.match(source,/const bound=directoryScope\(\),m=await import\('\.\/pages\/rental-contracts\.js'\)/);
