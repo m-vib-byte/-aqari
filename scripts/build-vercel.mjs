@@ -8,12 +8,12 @@ if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
   if(trial?.enabled===true){
     const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);
-    for(const [path,content] of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
+    for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
     console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');
   }else{
     const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
     const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);
-    for(const [path,content] of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
+    for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
     console.log('Prepared V267 production configuration for the preserved domain data source.');
   }
 }
@@ -37,7 +37,7 @@ execFileSync(process.execPath,['--test','tests/v267-operational-report-xlsx.test
 execFileSync(process.execPath,['--test','tests/v267-maintenance-category-ui.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-periodic-maintenance-lifecycle-guard.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-service-directory.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-foundation.test.mjs','tests/v267-contract-finalization.test.mjs','tests/v267-domain-trial-target.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-foundation.test.mjs','tests/v267-contract-finalization.test.mjs','tests/v267-system-rental-template-source.test.mjs','tests/v267-domain-trial-target.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-dialog-progress.test.mjs','tests/v267-management-counters.test.mjs','tests/v267-management-counters-runtime.test.mjs','tests/v267-kpi-dashboard.test.cjs','tests/v267-utility-history-runtime.test.mjs','tests/v267-unit-meter-runtime.test.mjs','tests/payment-proof.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,[
   '--test','tests/v267-unit-handover-bundle.test.mjs','tests/v267-unit-handover-pdf-archive.test.mjs','tests/v267-unit-handover-renderer-contract.test.mjs','tests/v267-unit-handover-hosted-contract.test.mjs'
