@@ -392,8 +392,8 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "b08a252999fc985b6983b7781fca16b466775bece3d3003eabcf9f7f8ae64990",
-      "size": 590217
+      "sha256": "43c75396b714fe8b368bec6257f5273f894fb9c958986850591f0d1351f46dbe",
+      "size": 590218
     },
     {
       "path": "docs/V267-EXECUTION-2026-09-12.md",
@@ -1267,8 +1267,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "aef3047b63c25146bb0af4bce32e82073807d3c6f74227c2ab4873aa28bc511e",
-      "size": 18037
+      "sha256": "df2f98fe1dffac5f1559811edae52e2ceb806e98897a9cf939e50b1e013fe1d2",
+      "size": 20813
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -2627,8 +2627,8 @@
     },
     {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "c9f5bf0f6e1138818260ec39c0561b7ee54bfa24e6e2b2656ae584e8e0338a9d",
-      "size": 9836
+      "sha256": "6b14ceaad20161124d1018efcb1948cc373258b63c4bf71c103fa54aebba5022",
+      "size": 11970
     },
     {
       "path": "tests/v267-contract-scanner-entry.test.cjs",
@@ -2947,8 +2947,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "ee06468aa63bd1c755b4c4c00e40d95bc9f3ad6b816a8077a1ec1cbe6b781a4f",
-      "size": 13027
+      "sha256": "9036847622bd133220d20b9dd00b0afbe91a322a078995d0f1d772e7906e9862",
+      "size": 12954
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -3207,8 +3207,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "46cb144b935f53af7d72abc6325a86889864c720bb7a50db1daee10e96e3a3d7",
-      "size": 43811
+      "sha256": "2c7585c8d8e1ea492bc3b01a75cfd5ee3d6169fcd72f46a4c89331f2babf28fb",
+      "size": 46572
     },
     {
       "path": "v267-reset-password.js",
@@ -3297,8 +3297,8 @@
     },
     {
       "path": "tests/v267-contract-workspace-runtime.test.mjs",
-      "sha256": "442ca442b6abe01c1f60539673c1d76f04631dd264aa4cc0b530be90163b28fc",
-      "size": 6148
+      "sha256": "61e4720e5de0133a92ee17e9b6657179ae4b80a1805d7de1b2ca6b0e987ede1b",
+      "size": 7885
     },
     {
       "path": "docs/V267-CONTRACT-WORKSPACE-2026-09-13.md",
@@ -3364,6 +3364,11 @@
       "path": "docs/V267-CONTRACT-LOGO-2026-09-14.md",
       "sha256": "274996218b2072b3effcdb1b6c51d8ce3a3c409ef00adec77c518bebf200850a",
       "size": 716
+    },
+    {
+      "path": "docs/V267-TENANT-CONTRACT-CORRECTIONS-2026-09-14.md",
+      "sha256": "4c07fb447815f863be2bfb2e320b15cb38a0370cda83b4dbbfde38dfe5ac20b2",
+      "size": 3332
     }
   ],
   "version": "V198"

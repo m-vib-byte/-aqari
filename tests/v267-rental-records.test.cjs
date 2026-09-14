@@ -7,7 +7,7 @@ const sandbox={module:{exports:{}},structuredClone};
 vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../v267-rental-records.js'),'utf8'),sandbox);
 const api=sandbox.module.exports;
 const clone=x=>JSON.parse(JSON.stringify(x));
-const tenant={id:'synthetic-tenant',nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',email:'tenant@example.invalid',passportNo:'TEST-P123',address:'',attachments:[]};
+const tenant={id:'synthetic-tenant',nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',nationalityEn:'Test',email:'tenant@example.invalid',passportNo:'TEST-P123',address:'',attachments:[]};
 const contract={id:123,contract_no:'TEST-123',tenantId:tenant.id,property:'عقار اختبار',unit:'٤',rent:'100.125',deposit:'50',start_date:'2026-09-01',end_date:'2027-08-31',status:'draft',floor:'1',advance:'0',cleaningFee:'5',discount:'10',accountant:'محاسب اختبار',receivedAt:'2026-09-01T10:30',writtenOn:'2026-09-09',evictionNotice:'لم يُبلّغ'};
 test('contract delivery may be pending; optional charges and an approved free month are explicit',()=>{
  const c=api.lease({...contract,rentalTermsVersion:1,deposit:'',advance:'',cleaningFee:'',contractReceived:'لم يستلم',receivedAt:'',depositReceivedOn:'',freeMonthApproved:true,freeMonthPeriod:'2026-10',rentAdjustments:[]},[],[tenant],[['عقار اختبار']]);
@@ -104,15 +104,8 @@ test('contract requires every new field and keeps original rent separate from di
  const adjusted=valid({...original,discount:20},[original]);assert.equal(adjusted.contractRent,100.125);assert.equal(adjusted.rent,80.125);
  const linked=api.directoryFields(adjusted,tenant);assert.equal(linked.currentRent,80.125);assert.equal(linked.advance,0);assert.equal(linked.passportNo,tenant.passportNo);assert.equal(linked.accountant,contract.accountant);
 });
-test('a new contract accepts an absent tenant email without inventing contact data',()=>{
- for(const email of [undefined,null,'','   ']){
-  const input={...tenant,email};if(email===undefined)delete input.email;
-  const savedProfile=api.profile(input);assert.equal(savedProfile.email,'');
-  const savedContract=api.lease(contract,[],[savedProfile],[['عقار اختبار']]);
-  assert.equal(savedContract.tenantProfile.email,'');
-  assert.equal(savedContract.tenantProfile.passportNo,tenant.passportNo);
-  assert.equal(api.directoryFields(savedContract,savedProfile).email,'');
- }
+test('new tenant profiles and contracts require email, passport and English nationality',()=>{
+ for(const field of ['email','passportNo','nationalityEn']){assert.throws(()=>api.profile({...tenant,[field]:''}),/أكمل/);assert.throws(()=>api.lease(contract,[],[{...tenant,[field]:''}],[['عقار اختبار']]),/أكمل/);}
 });
 test('optional tenant email is still validated when supplied to contract creation',()=>{
  for(const email of ['wrong','missing@host','two@@example.invalid','name @example.invalid']){
@@ -130,11 +123,12 @@ test('Kuwait contract dates are independent of browser timezone; delivery reject
  assert.throws(()=>api.receivedAt('2099-09-01T10:00'));
 });
 
-test('contract and annex retain both tenant names and escape inserted content',()=>{
+test('Arabic contract uses original rent while bilingual annex retains English details',()=>{
  const browserModule={module:{exports:{}},document:{},structuredClone};vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../v267-rental-records.js'),'utf8'),browserModule);
  const c={...valid(),tenantProfile:{...tenant,nameEn:'Synthetic <Tenant>'},rentalTermsVersion:1,freeMonthApproved:true,freeMonthPeriod:'2026-10',rentAdjustments:[{effectiveMonth:'2026-11',discount:20,rent:80,reason:'Approved test'}]};
  const contract=browserModule.module.exports.contractMarkup(c,1),annex=browserModule.module.exports.contractAnnexMarkup(c);
- assert.match(contract,/حُرر هذا العقد في دولة الكويت بتاريخ 2026-09-09/);
- for(const html of [contract,annex]){assert.match(html,/مستأجر اختبار/);assert.match(html,/Synthetic &lt;Tenant&gt;/);assert.doesNotMatch(html,/<Tenant>/);}
+ assert.match(contract,/حُرّر هذا العقد بدولة الكويت يوم .* الموافق 2026-09-09/);
+ for(const html of [contract,annex]){assert.match(html,/مستأجر اختبار/);assert.doesNotMatch(html,/<Tenant>/);}
+ assert.doesNotMatch(contract,/Synthetic|الإيجار الحالي بعد الخصم|<b>الخصم:/);assert.match(contract,/100.125/);assert.match(annex,/Synthetic &lt;Tenant&gt;/);
  assert.match(annex,/2026-10/);assert.match(annex,/2026-11/);assert.match(annex,/Approved test/);
 });

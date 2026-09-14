@@ -4,7 +4,7 @@ import {createDialog} from '../src/v267/components/dialog.js';
 import {mountRentalContracts} from '../src/v267/pages/rental-contracts.js';
 
 async function fixture({count=45,initial={}}={}){
- const original={window:globalThis.window,document:globalThis.document};let failed=false;const prints=[];
+ const original={window:globalThis.window,document:globalThis.document};let failed=false;const prints=[],tenantSaves=[];
  class Element{
   constructor(tag){this.tagName=tag;this.children=[];this.attributes={};this.dataset={};this.value='';this.disabled=false;this.hidden=false;this.style={};}
   get isConnected(){return this.parent?this.parent.isConnected:this.connected===true;}
@@ -18,10 +18,10 @@ async function fixture({count=45,initial={}}={}){
  class Query{constructor(table){this.table=table;}select(){return this;}eq(){return this;}order(){return this;}async abortSignal(){return {data:[]};}}
  const client={from:table=>new Query(table),rpc(name){return {abortSignal:async()=>failed?{error:{message:'تعذر تحميل العقود'}}:{data:name==='aqari_read_state_v267'?{payload:{contractsV202:structuredClone(records)}}:[]}};}};
  const body=new Element('body');body.connected=true;globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_RENTAL_RECORDS:{primary:p=>p,contractMarkup:()=>'<p>synthetic review draft</p>',prepareContractPrint:async(...args)=>{prints.push(args);return {html:'<p>synthetic approved sets</p>'};},saveLease(){throw Error('read-only test must never write');}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_RENTAL_RECORDS:{primary:p=>p,kuwaitDate:()=> '2026-09-14',defaultClauses:()=>[],saveTenantProfile:async p=>{tenantSaves.push(structuredClone(p));return structuredClone(p);},contractMarkup:()=>'<p>synthetic review draft</p>',prepareContractPrint:async(...args)=>{prints.push(args);return {html:'<p>synthetic approved sets</p>'};},saveLease(){throw Error('read-only test must never write');}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
  const d=createDialog('العقود'),view=mountRentalContracts(d,initial);await d.run(view.start);
  const elements=()=>d.el.querySelectorAll(),control=label=>elements().find(x=>x.children[0]?.tagName==='label'&&x.children[0].textContent===label).children[1];
- return {d,records,prints,elements,control,cards:()=>elements().filter(x=>x.className==='aq267-contract-card'),button:text=>elements().find(x=>x.tagName==='button'&&x.textContent===text),text:()=>elements().map(x=>x.textContent||'').join('\n'),fail(value=true){failed=value;},cleanup(){d.close();Object.assign(globalThis,original);}};
+ return {d,records,prints,tenantSaves,elements,control,cards:()=>elements().filter(x=>x.className==='aq267-contract-card'),button:text=>elements().find(x=>x.tagName==='button'&&x.textContent===text),text:()=>elements().map(x=>x.textContent||'').join('\n'),fail(value=true){failed=value;},cleanup(){d.close();Object.assign(globalThis,original);}};
 }
 test('actual page exposes all 45 contracts through pages and resets the page when filtering',async()=>{
  const f=await fixture();try{assert.equal(f.cards().length,20);f.button('التالي').onclick();assert.equal(f.cards().length,20);f.button('التالي').onclick();assert.equal(f.cards().length,5);assert.equal(f.button('التالي').hidden,true);
@@ -44,4 +44,14 @@ test('closing clears rendered contracts and a stale search handler cannot repopu
 test('empty state is distinct from a query without matches and record markup stays literal text',async()=>{
  let f=await fixture({count:0});try{assert.match(f.text(),/لا توجد عقود محفوظة/);}finally{f.cleanup();}
  f=await fixture({count:1});try{f.records[0].tenant='<img src=x onerror=alert(1)>';await f.button('تحديث العقود / Refresh').onclick();assert.ok(f.elements().some(x=>x.textContent==='<img src=x onerror=alert(1)>'));assert.equal(f.elements().some(x=>x.tagName==='img'),false);}finally{f.cleanup();}
+});
+
+test('new contract saves inline tenant details without clearing contract draft and blocks unsaved profile changes',async()=>{
+ const f=await fixture({count:0});try{
+  await f.button('إبرام عقد جديد / New rental contract').onclick();assert.ok(f.control('الجنسية بالإنجليزي'));assert.doesNotMatch(f.text(),/العنوان — اختياري/);
+  f.control('رقم العقد / Contract number').value='DRAFT-KEEP';f.control('الاسم الكامل بالعربي').value='مستأجر جديد';f.control('الاسم الكامل بالإنجليزي').value='New Tenant';
+  await f.button('حفظ بيانات المستأجر واختياره للعقد').onclick();assert.equal(f.tenantSaves.length,1);assert.equal(f.control('رقم العقد / Contract number').value,'DRAFT-KEEP');assert.equal(f.control('المستأجر — سحب البيانات من ملفه / Tenant').value,f.tenantSaves[0].id);
+  f.control('الاسم الكامل بالعربي').value='تعديل غير محفوظ';const chosen=f.control('المستأجر — سحب البيانات من ملفه / Tenant');chosen.value='';chosen.onchange();assert.equal(chosen.value,f.tenantSaves[0].id);assert.equal(f.control('الاسم الكامل بالعربي').value,'تعديل غير محفوظ');
+  const form=f.elements().find(e=>e.tagName==='form');form.onsubmit({preventDefault(){}});await new Promise(resolve=>setTimeout(resolve,0));assert.match(f.d.status.textContent,/احفظ بيانات المستأجر أولاً/);
+ }finally{f.cleanup();}
 });

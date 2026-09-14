@@ -20,7 +20,7 @@ function fixture(status='approved'){
 test('official issuance uses fresh saved approval and never the local signed copy',async()=>{
  const f=fixture('draft');await assert.rejects(f.api.prepareContractPrint(123),/اعتماد المدير العام/);assert.equal(f.state.reads,1);
  f.state.record.status='approved';const file=await f.api.prepareContractPrint(123);assert.equal(f.state.reads,2);assert.equal(file.revision,7);
- assert.match(file.html,/SYNTHETIC-123/);assert.doesNotMatch(file.html,/UNTRUSTED-LOCAL|NOT FOR SIGNATURE/);assert.match(file.html,/توقيع المستأجر/);
+ assert.match(file.html,/SYNTHETIC-123/);assert.doesNotMatch(file.html,/UNTRUSTED-LOCAL|مسودة غير معتمدة/);assert.match(file.html,/توقيع الطرف الثاني/);
  f.state.record.status='cancelled';await assert.rejects(f.api.prepareContractPrint(123),/اعتماد المدير العام/);
 });
 test('every non-approved or unknown saved state rejects official issuance',async()=>{
@@ -29,7 +29,7 @@ test('every non-approved or unknown saved state rejects official issuance',async
 });
 test('each draft contract and annex is marked and omits signature fields, even with an approved input',async()=>{
  const f=fixture();for(const html of [f.api.contractMarkup(f.state.record,2),f.api.contractAnnexMarkup(f.state.record),(await f.api.prepareContractPrint(123,2,'draft')).html]){
-  assert.match(html,/DRAFT — NOT FOR SIGNATURE/);assert.doesNotMatch(html,/________________|data-contract-print="approved"/);
+  assert.match(html,/مسودة غير معتمدة/);assert.doesNotMatch(html,/________________|data-contract-print="approved"/);
   assert.equal((html.match(/class="v267-draft-notice"/g)||[]).length,(html.match(/class="v267-contract-copy"/g)||[]).length*2);
  }
 });
@@ -106,4 +106,17 @@ test('rental page initializes its runtime on a direct first visit and shares leg
   const result=spawnSync(process.execPath,['--input-type=module','-e',script],{cwd:require('node:path').join(__dirname,'..'),encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);
  }
+});
+test('inline tenant save verifies profile and directory linkage and never rewrites saved contracts',async()=>{
+ const f=fixture();let cloud={tenants:[],tenantProfilesV267:[],tenantDirectoryV202:[],audit:[],contractsV202:[clone(f.state.record)]},revision=1;
+ f.context.db=clone(cloud);f.context.AQARI_SUPABASE.loadAppState=async()=>({payload:clone(cloud),revision});f.context.AQARI_SUPABASE.saveAppState=async(payload,expected)=>{assert.equal(expected,revision);cloud=clone(payload);revision++;};
+ const p={id:'tenant-new',nameAr:'مستأجر اختبار',nameEn:'Test Tenant',nationality:'هندي',nationalityEn:'Indian',civilId:'123456789012',phone:'55555555',email:'test@example.invalid',passportNo:'P123'};
+ const saved=await f.api.saveTenantProfile(p);assert.equal(saved.nationalityEn,'Indian');assert.equal(cloud.tenants[0][4],p.id);assert.equal(f.context.db.tenantProfilesV267[0].id,p.id);assert.deepEqual(cloud.contractsV202,[f.state.record]);
+ const changed=await f.api.saveTenantProfile({...p,nameAr:'اسم مصحح'});assert.equal(changed.nameAr,'اسم مصحح');assert.equal(cloud.tenants.length,1);assert.equal(cloud.tenants[0][0],'اسم مصحح');
+});
+test('a lost inline tenant save acknowledgement blocks replay and publishes no local success',async()=>{
+ const f=fixture();let cloud={tenants:[],tenantProfilesV267:[],tenantDirectoryV202:[],audit:[]},writes=0;f.context.db=clone(cloud);
+ f.context.AQARI_SUPABASE.loadAppState=async()=>({payload:clone(cloud),revision:1});f.context.AQARI_SUPABASE.saveAppState=async payload=>{writes++;cloud=clone(payload);throw Error('lost reply');};
+ const p={id:'tenant-new',nameAr:'اختبار',nameEn:'Test',nationality:'هندي',nationalityEn:'Indian',civilId:'123456789012',phone:'55555555',email:'test@example.invalid',passportNo:'P123'};
+ await assert.rejects(f.api.saveTenantProfile(p),/لم يكتمل تأكيد الحفظ/);assert.equal(f.context.db.tenantProfilesV267.length,0);assert.equal(cloud.tenantProfilesV267.length,1);await assert.rejects(f.api.saveTenantProfile(p),/تحديث الصفحة مطلوب/);assert.equal(writes,1);
 });

@@ -753,8 +753,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "46cb144b935f53af7d72abc6325a86889864c720bb7a50db1daee10e96e3a3d7",
-      "bytes": 43811,
+      "sha256": "2c7585c8d8e1ea492bc3b01a75cfd5ee3d6169fcd72f46a4c89331f2babf28fb",
+      "bytes": 46572,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -780,8 +780,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "aef3047b63c25146bb0af4bce32e82073807d3c6f74227c2ab4873aa28bc511e",
-      "bytes": 18037,
+      "sha256": "df2f98fe1dffac5f1559811edae52e2ceb806e98897a9cf939e50b1e013fe1d2",
+      "bytes": 20813,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
@@ -1494,8 +1494,8 @@
     },
     {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "c9f5bf0f6e1138818260ec39c0561b7ee54bfa24e6e2b2656ae584e8e0338a9d",
-      "bytes": 9836,
+      "sha256": "6b14ceaad20161124d1018efcb1948cc373258b63c4bf71c103fa54aebba5022",
+      "bytes": 11970,
       "declaredTables": [],
       "publicFunctions": [],
       "clientRpcCalls": [],
