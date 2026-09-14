@@ -18,9 +18,10 @@ if(process.env.VERCEL_ENV==='production'){
   console.log('Prepared V267 Production only after exact-SHA owner approval validation.');
 }
 
-// Preview-only support integration: inject the bounded entry without rewriting
-// the large financial-register source that is being developed concurrently.
+// Preview-only support integration: inject bounded entries without rewriting
+// large concurrently-developed source files in Git history.
 execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
@@ -38,7 +39,7 @@ execFileSync(process.execPath,['--test','tests/v267-server-mutation-audit.test.m
 execFileSync(process.execPath,['--test','tests/v267-collector-performance-report.test.mjs','tests/v267-collector-performance-ui.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-operational-report-xlsx.test.mjs','tests/v267-operational-export-ui.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-maintenance-category-ui.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-periodic-maintenance-lifecycle-guard.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-periodic-maintenance-lifecycle-guard.test.mjs','tests/v267-maintenance-evidence-sla.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-service-directory.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-foundation.test.mjs','tests/v267-contract-finalization.test.mjs','tests/v267-system-rental-template-source.test.mjs','tests/v267-property-master-file.test.mjs','tests/v267-property-onboarding.test.mjs','tests/v267-property-cost-allocation.test.mjs','tests/v267-property-asset-categories.test.mjs','tests/v267-property-controls.test.mjs','tests/v267-property-controls-sql-fix.test.mjs','tests/v267-property-batch-a2.test.mjs','tests/v267-property-legal.test.mjs','tests/v267-domain-trial-target.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-dialog-progress.test.mjs','tests/v267-management-counters.test.mjs','tests/v267-management-counters-runtime.test.mjs','tests/v267-kpi-dashboard.test.cjs','tests/v267-utility-history-runtime.test.mjs','tests/v267-unit-meter-runtime.test.mjs','tests/payment-proof.test.mjs'],{stdio:'inherit'});
