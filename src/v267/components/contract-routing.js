@@ -30,8 +30,8 @@ export function installContractRoutes(target,open){
  async function route(initial={}){
   const intent=normalizeContractIntent(initial);
   if(intent.create){
-   const module=await import('../pages/contract-foundation.js');
-   return module.openContractFoundation({...intent,openContracts:open});
+   const module=await import('./contract-entry-guard.js');
+   return module.openGuardedContractFoundation(intent,open);
   }
   return open(intent);
  }
