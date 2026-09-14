@@ -2,6 +2,8 @@
 begin;
 
 alter table private.aqari_maintenance_sla_escalations
+ drop constraint if exists aqari_maintenance_sla_escalations_workspace_id_task_id_stage_task_revision_key;
+alter table private.aqari_maintenance_sla_escalations
  drop constraint if exists aqari_maintenance_sla_escalations_workspace_id_task_id_stage_key;
 create unique index if not exists aqari_maintenance_sla_escalations_task_stage_uq
  on private.aqari_maintenance_sla_escalations(workspace_id,task_id,stage);
