@@ -6,18 +6,9 @@ import {productionPatch,domainTrialPatch} from './prepare-v267-production.mjs';
 
 if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
-  if(trial?.enabled===true){
-    const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);
-    for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
-    console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');
-  }else{
-    const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
-    const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url), 'utf8'),target);
-    for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
-    console.log('Prepared V267 production configuration for the preserved domain data source.');
-  }
+  if(trial?.enabled===true){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
+  else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
-
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
@@ -37,17 +28,9 @@ execFileSync(process.execPath,['--test','tests/v267-operational-report-xlsx.test
 execFileSync(process.execPath,['--test','tests/v267-maintenance-category-ui.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-periodic-maintenance-lifecycle-guard.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-service-directory.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-foundation.test.mjs','tests/v267-contract-finalization.test.mjs','tests/v267-system-rental-template-source.test.mjs','tests/v267-property-master-file.test.mjs','tests/v267-property-onboarding.test.mjs','tests/v267-property-cost-allocation.test.mjs','tests/v267-property-asset-categories.test.mjs','tests/v267-property-controls.test.mjs','tests/v267-property-controls-sql-fix.test.mjs','tests/v267-property-batch-a2.test.mjs','tests/v267-finance-owner-b3.test.mjs','tests/v267-domain-trial-target.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-foundation.test.mjs','tests/v267-contract-finalization.test.mjs','tests/v267-system-rental-template-source.test.mjs','tests/v267-property-master-file.test.mjs','tests/v267-property-onboarding.test.mjs','tests/v267-property-cost-allocation.test.mjs','tests/v267-property-asset-categories.test.mjs','tests/v267-property-controls.test.mjs','tests/v267-property-controls-sql-fix.test.mjs','tests/v267-property-batch-a2.test.mjs','tests/v267-finance-owner-b3.test.mjs','tests/v267-tenant-property-technicians.test.mjs','tests/v267-domain-trial-target.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-dialog-progress.test.mjs','tests/v267-management-counters.test.mjs','tests/v267-management-counters-runtime.test.mjs','tests/v267-kpi-dashboard.test.cjs','tests/v267-utility-history-runtime.test.mjs','tests/v267-unit-meter-runtime.test.mjs','tests/payment-proof.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,[
-  '--test','tests/v267-unit-handover-bundle.test.mjs','tests/v267-unit-handover-pdf-archive.test.mjs','tests/v267-unit-handover-renderer-contract.test.mjs','tests/v267-unit-handover-hosted-contract.test.mjs'
-],{stdio:'inherit'});
-
+execFileSync(process.execPath,['--test','tests/v267-unit-handover-bundle.test.mjs','tests/v267-unit-handover-pdf-archive.test.mjs','tests/v267-unit-handover-renderer-contract.test.mjs','tests/v267-unit-handover-hosted-contract.test.mjs'],{stdio:'inherit'});
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
-try{
-  execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});
-  execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test'],{
-    stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}
-  });
-}finally{rmSync(previewPython,{recursive:true,force:true});}
+try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
 await import('./check.mjs');
