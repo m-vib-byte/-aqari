@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3.sql',import.meta.url),'utf8');
+const presentationSql=readFileSync(new URL('../staging-database/sql/presentation-custom-fields-b3.sql',import.meta.url),'utf8');
 const baseSql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
 const allocation=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
 const owners=readFileSync(new URL('../src/v267/pages/property-owner-statement.js',import.meta.url),'utf8');
+const admin=readFileSync(new URL('../src/v267/pages/property-admin-settings.js',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
 
 assert.match(sql,/allocation_method text not null default 'amount'/);
@@ -32,4 +34,11 @@ assert.match(allocation,/حسب عدد الوحدات/);assert.match(allocation,
 assert.match(allocation,/Readback/);assert.match(allocation,/property-owner-statement\.js/);
 assert.match(owners,/محسوب فقط/);assert.match(owners,/لا يوجد تحويل أو صرف أرباح تلقائي/);
 assert.match(hub,/مركز تكلفة العقار والتوزيع/);assert.match(hub,/كشف الملاك المحسوب/);assert.match(hub,/analyticalExpenses/);assert.match(hub,/expectedIncome/);
-console.log('V267 finance/owners B3 contract: PASS');
+
+assert.match(presentationSql,/aqari_ui_presentations/);assert.match(presentationSql,/PRESENTATION_MANAGER_ONLY/);assert.match(presentationSql,/private\.aqari_require_sensitive_aal2/);
+assert.match(presentationSql,/field_type in\('boolean','percentage','money','text','date','select','document'\)/);
+assert.match(presentationSql,/visibility in\('internal','owner','both','tenant','owner_tenant'\)/);
+assert.match(presentationSql,/aqari_property_tenant_custom_fields/);assert.match(presentationSql,/tenant','owner_tenant/);
+assert.match(admin,/تخصيص المسميات والأيقونات والترتيب/);assert.match(admin,/مفاتيح قاعدة البيانات أو الحسابات أو التكاملات/);assert.match(admin,/تاريخ/);assert.match(admin,/اختيار/);assert.match(admin,/يظهر للمستأجر/);
+assert.match(hub,/aqari_ui_presentation_settings/);assert.match(hub,/data-presentation-key|presentationKey/);assert.match(hub,/تخصيص المسميات والأيقونات والحقول/);
+console.log('V267 finance/owners/GM B3 contract: PASS');
