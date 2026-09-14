@@ -90,7 +90,8 @@ begin
  if stage_value='after' and task.status<>'in_progress' then raise check_violation using message='MAINTENANCE_AFTER_EVIDENCE_REQUIRES_IN_PROGRESS';end if;
  if not private.aqari_operations_document(w,p,document_id) or not exists(select 1 from public.aqari_documents x where x.workspace_id=w and x.id=document_id and x.status='uploaded' and x.mime_type in('image/jpeg','image/png','image/webp','image/heic','image/heif') and private.aqari_document_entity(w,x.entity_type,x.entity_ref,'read')) then raise check_violation using message='MAINTENANCE_EVIDENCE_IMAGE_NOT_VERIFIED';end if;
  insert into private.aqari_maintenance_evidence(workspace_id,property_id,task_id,document_id,stage,note,captured_by)
- values(w,p,task_id,document_id,stage_value,why,auth.uid()) returning to_jsonb(private.aqari_maintenance_evidence.*) into record_json;
+ values(w,p,task_id,document_id,stage_value,why,auth.uid())
+ returning jsonb_build_object('id',id,'workspace_id',workspace_id,'property_id',property_id,'task_id',task_id,'document_id',document_id,'stage',stage,'note',note,'captured_by',captured_by,'captured_at',captured_at) into record_json;
  select coalesce(nullif(display_name,''),auth.uid()::text) into actor from public.aqari_profiles where user_id=auth.uid();actor:=coalesce(actor,auth.uid()::text);
  insert into private.aqari_operations_audit(workspace_id,domain,entity_id,action,actor_id,actor_name,reason,before_value,after_value)
  values(w,'maintenance',task_id,'evidence_'||stage_value,auth.uid(),actor,why,null,record_json);
