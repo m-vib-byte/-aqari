@@ -1,0 +1,9 @@
+.aq267-management-counters{margin-block:24px;padding-block-start:20px;border-block-start:1px solid #ddcfae}
+.aq267-management-counters>p{line-height:1.8;color:#605747;font-size:.9rem}
+.aq267-management-counters h3{margin-block:22px 12px;font-size:1rem}
+.aq267-counter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0}
+.aq267-counter-card{min-width:0;padding:16px;border:1px solid #e0d6c1;border-radius:14px;background:#fffdf8}
+.aq267-counter-card dt{font-size:.9rem;line-height:1.7;color:#554b3d;overflow-wrap:anywhere}
+.aq267-counter-card dd{margin:8px 0 0;font-size:1.8rem;font-weight:750;color:#382d1f;font-variant-numeric:tabular-nums}
+@media(max-width:600px){.aq267-counter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.aq267-counter-card{padding:12px}}
+@media(max-width:350px){.aq267-counter-grid{grid-template-columns:minmax(0,1fr)}}
