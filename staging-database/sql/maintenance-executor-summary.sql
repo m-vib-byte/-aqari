@@ -1,4 +1,4 @@
--- AQARI V267 Preview/Staging only. G08-03/G08-04 maintenance executor and expense visibility.
+-- AQARI V267 Preview/Staging only. G08-03/G08-04 maintenance executor, expense and execution-time visibility.
 begin;
 create or replace function public.aqari_maintenance_executor_summary(
  p_workspace_id uuid,
@@ -37,6 +37,8 @@ begin
    'vendor_id',v.id,
    'vendor_name',v.name,
    'approved_at',o.approved_at,
+   'assigned_at',o.assigned_at,
+   'started_at',o.started_at,
    'completed_at',o.completed_at,
    'approved_amount',o.approved_amount,
    'invoice_id',o.invoice_id,
