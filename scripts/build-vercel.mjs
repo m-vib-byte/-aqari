@@ -24,6 +24,7 @@ execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-partner-property-finance.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-today-payments.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-today-knet-details.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
@@ -37,7 +38,7 @@ execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.t
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-receipt-pdf-archive.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.test.mjs','tests/v267-monthly-collection-ui.test.mjs','tests/v267-today-payments.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.test.mjs','tests/v267-monthly-collection-ui.test.mjs','tests/v267-today-payments.test.mjs','tests/v267-today-knet-details.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-server-mutation-audit.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-collector-performance-report.test.mjs','tests/v267-collector-performance-ui.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-operational-report-xlsx.test.mjs','tests/v267-operational-export-ui.test.mjs'],{stdio:'inherit'});
