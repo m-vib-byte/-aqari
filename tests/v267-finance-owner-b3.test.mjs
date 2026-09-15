@@ -3,9 +3,11 @@ import {readFileSync} from 'node:fs';
 const sql=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3.sql',import.meta.url),'utf8');
 const hardening=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3-hardening.sql',import.meta.url),'utf8');
 const presentationSql=readFileSync(new URL('../staging-database/sql/presentation-custom-fields-b3.sql',import.meta.url),'utf8');
+const ownershipSql=readFileSync(new URL('../staging-database/sql/property-owner-area-evidence-20260915.sql',import.meta.url),'utf8');
 const baseSql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
 const allocation=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
 const owners=readFileSync(new URL('../src/v267/pages/property-owner-statement.js',import.meta.url),'utf8');
+const ownership=readFileSync(new URL('../src/v267/pages/property-ownership-profile.js',import.meta.url),'utf8');
 const admin=readFileSync(new URL('../src/v267/pages/property-admin-settings.js',import.meta.url),'utf8');
 const hub=readFileSync(new URL('../src/v267/pages/property-hub.js',import.meta.url),'utf8');
 
@@ -44,4 +46,17 @@ assert.match(presentationSql,/visibility in\('internal','owner','both','tenant',
 assert.match(presentationSql,/aqari_property_tenant_custom_fields/);assert.match(presentationSql,/tenant','owner_tenant/);
 assert.match(admin,/تخصيص المسميات والأيقونات والترتيب/);assert.match(admin,/مفاتيح قاعدة البيانات أو الحسابات أو التكاملات/);assert.match(admin,/تاريخ/);assert.match(admin,/اختيار/);assert.match(admin,/يظهر للمستأجر/);
 assert.match(hub,/aqari_ui_presentation_settings/);assert.match(hub,/data-presentation-key|presentationKey/);assert.match(hub,/تخصيص المسميات والأيقونات والحقول/);
+
+assert.match(ownershipSql,/aqari_property_ownership_revisions/);
+assert.match(ownershipSql,/official_area_sqm/);
+assert.match(ownershipSql,/PROPERTY_OWNERSHIP_OWNER_SCOPE_MISMATCH/);
+assert.match(ownershipSql,/PROPERTY_OWNERSHIP_DOCUMENT_INVALID/);
+assert.match(ownershipSql,/PROPERTY_OWNERSHIP_AREA_TOTAL_MISMATCH/);
+assert.match(ownershipSql,/base_milli\+case when rn<=remainder then 1 else 0 end milli/);
+assert.match(ownershipSql,/aqari_property_ownership_revision_immutable/);
+assert.match(ownership,/إجمالي المساحة الرسمية/);
+assert.match(ownership,/المساحة المقابلة لكل حصة تُحسب خادميًا/);
+assert.match(ownership,/المستند المؤيد/);
+assert.match(ownership,/Revision الملكية/);
+assert.match(admin,/ملكية العقار ومساحات الملاك \/ الورثة/);
 console.log('V267 finance/owners/GM B3 contract: PASS');
