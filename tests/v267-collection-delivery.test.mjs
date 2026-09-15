@@ -10,6 +10,8 @@ const page=read('src/v267/pages/collection-delivery-settings.js');
 const operationsSchema=read('staging-database/sql/operations-completion.sql');
 const operationsRpc=read('staging-database/sql/operations-register.sql');
 const operationsPage=read('src/v267/pages/operations-center.js');
+const financeCore=read('staging-database/sql/final-gap-finance-core-20260915.sql');
+const financeRpc=read('staging-database/sql/final-gap-finance-live-20260915.sql');
 
 test('collection delivery settings are property scoped, revisioned and manager MFA guarded',()=>{
  assert.match(settings,/aqari_collection_delivery_settings/);
@@ -67,4 +69,21 @@ test('operations center exposes real persisted domains with readback instead of 
  for(const domain of ['cheques','vendors','work_orders','legal_cases','petty_cash'])assert.match(operationsPage,new RegExp(`rpc\\('${domain}','list'\\)`));
  assert.match(operationsPage,/await rpc\(domain,action,payload\);await load\(proof\)/);
  assert.doesNotMatch(operationsPage,/service_role|SUPABASE_SERVICE|example\.com|TEST-/);
+});
+
+test('finance gap core persists bank/cash posting, reserve and tenant credit ledgers immutably',()=>{
+ for(const table of ['aqari_tenant_preferences','aqari_collection_accounts','aqari_collection_postings','aqari_reserve_entries','aqari_tenant_ledger_entries','aqari_credit_allocations'])assert.match(financeCore,new RegExp(table));
+ for(const trigger of ['aqari_postings_immutable','aqari_reserves_immutable','aqari_tenant_ledger_immutable','aqari_credit_allocations_immutable'])assert.match(financeCore,new RegExp(trigger));
+ assert.match(financeCore,/masked_reference !~ '\[0-9\]\{8,\}'/);
+});
+
+test('finance gap RPC protects receipt cancellation and credit allocation with manager MFA and readback',()=>{
+ assert.match(financeRpc,/not private\.aqari_manager\(w\)/);
+ assert.match(financeRpc,/private\.aqari_require_sensitive_aal2\(w\)/);
+ assert.match(financeRpc,/'cancel_receipt'/);
+ assert.match(financeRpc,/approved_by_name/);
+ assert.match(financeRpc,/receipt_cancellation/);
+ assert.match(financeRpc,/CREDIT_OVERALLOCATION/);
+ assert.match(financeRpc,/private\.aqari_financial_open\(w,posting_date\)/);
+ assert.match(financeRpc,/return public\.aqari_final_gap_register\(w,'list'/);
 });
