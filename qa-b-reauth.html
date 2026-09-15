@@ -17,7 +17,7 @@
 <p>أدخل الرمز الحالي من تطبيق المصادقة. بعد نجاحه سيتم فتح اختبار B تلقائيًا.</p>
 <form id="form">
 <label for="code">رمز التحقق المكوّن من 6 أرقام</label>
-<input id="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus>
+<input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" required autofocus>
 <button id="submit" type="submit">تحقق وابدأ اختبار B</button>
 </form>
 <div id="status" class="status" role="status" aria-live="polite">جاهز لإعادة التحقق.</div>
@@ -31,9 +31,17 @@ const cfg=window.AQARI_PUBLIC_CONFIG||{};
 const form=document.getElementById('form'),code=document.getElementById('code'),submit=document.getElementById('submit'),status=document.getElementById('status');
 function setStatus(text,kind=''){status.textContent=text;status.className='status '+kind}
 function fail(message){throw new Error(message)}
+function normalizeOtp(value){
+ const arabic='٠١٢٣٤٥٦٧٨٩',persian='۰۱۲۳۴۵۶۷۸۹';
+ return String(value??'').trim()
+  .replace(/[٠-٩]/g,ch=>String(arabic.indexOf(ch)))
+  .replace(/[۰-۹]/g,ch=>String(persian.indexOf(ch)))
+  .replace(/[\s\u00a0\u200e\u200f-]/g,'');
+}
 async function main(event){
  event.preventDefault();
- if(!/^\d{6}$/.test(code.value)){setStatus('أدخل رمزًا صحيحًا من 6 أرقام.','bad');return;}
+ const normalized=normalizeOtp(code.value);
+ if(!/^\d{6}$/.test(normalized)){setStatus('أدخل رمزًا صحيحًا من 6 أرقام.','bad');return;}
  submit.disabled=true;code.disabled=true;setStatus('جاري إعادة التحقق…');
  try{
   if(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL)fail('PREVIEW_REQUIRED');
@@ -48,9 +56,7 @@ async function main(event){
   if(!verified.length&&unverified.length)fail('MFA_ENROLLMENT_INCOMPLETE');
   if(!verified.length)fail('MFA_FACTOR_REQUIRED');
   const factor=verified[0];
-  const {data:challenge,error:challengeError}=await client.auth.mfa.challenge({factorId:factor.id});if(challengeError)throw challengeError;
-  if(!challenge?.id)fail('MFA_CHALLENGE_FAILED');
-  const {error:verifyError}=await client.auth.mfa.verify({factorId:factor.id,challengeId:challenge.id,code:code.value});if(verifyError)throw verifyError;
+  const {error:verifyError}=await client.auth.mfa.challengeAndVerify({factorId:factor.id,code:normalized});if(verifyError)throw verifyError;
   const {data:aal,error:aalError}=await client.auth.mfa.getAuthenticatorAssuranceLevel();if(aalError)throw aalError;
   if(aal?.currentLevel!=='aal2')fail('MFA_AAL2_REQUIRED');
   setStatus('تم التحقق. فتح اختبار B الآن…','ok');
@@ -61,8 +67,8 @@ async function main(event){
    ?'عامل المصادقة الحالي غير مكتمل الربط. لا تكرر إدخال الرمز الآن؛ أكمل ربط تطبيق المصادقة من صفحة الأمان أولًا، ثم ارجع إلى هذا الاختبار.'
    :raw.includes('MFA_FACTOR_REQUIRED')
     ?'لا يوجد عامل مصادقة موثق لهذا الحساب. أكمل إضافة تطبيق المصادقة من صفحة الأمان أولًا.'
-    :raw.includes('Invalid TOTP')||raw.includes('Token has expired')
-     ?'الرمز لا يطابق عامل المصادقة الموثق أو انتهت صلاحيته. استخدم الرمز الحالي من العامل الموثق فقط.'
+    :/Invalid TOTP|Token has expired|invalid.*code|otp/i.test(raw)
+     ?'الرمز لا يطابق عامل المصادقة الموثق أو انتهت صلاحيته. استخدم الرمز الحالي فقط، وتأكد أن ضبط الوقت في الجهاز تلقائي.'
      :'تعذر إعادة التحقق. حدّث الصفحة وتأكد أنك مسجل الدخول ثم حاول مرة أخرى.';
   setStatus(text,'bad');
   submit.disabled=false;code.disabled=false;code.value='';code.focus();
