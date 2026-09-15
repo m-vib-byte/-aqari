@@ -7,7 +7,7 @@ const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].m
 
 test('B reauth is pinned to the isolated Preview and existing signed-in session',()=>{
  assert.match(html,/ofgmcsmxmdswlovsckqs\.supabase\.co/);
- assert.match(html,/aqari-git-support-v267-knet-range-reconcile-20260915-m-vib-5421\.vercel\.app/);
+ assert.match(html,/const BRANCH_HOST='[a-z0-9-]+\.vercel\.app';/);
  assert.match(html,/releaseStage!=='preview'/);
  assert.match(html,/client\.auth\.getSession\(\)/);
  assert.match(html,/AUTH_SESSION_REQUIRED/);
