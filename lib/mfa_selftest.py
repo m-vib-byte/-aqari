@@ -82,6 +82,10 @@ def totp_code(secret,at=None,digits=6,period=30):
  value=(struct.unpack('>I',digest[offset:offset+4])[0]&0x7fffffff)%(10**digits)
  return str(value).zfill(digits)
 
+def _totp_candidates(secret,at=None,period=30):
+ base=time.time() if at is None else at
+ return [(offset,totp_code(secret,base+offset,period=period)) for offset in (0,-period,period)]
+
 def _jwt_claims(token):
  try:
   parts=str(token).split('.');return json.loads(base64.urlsafe_b64decode(parts[1]+'='*(-len(parts[1])%4))) if len(parts)==3 else {}
@@ -89,7 +93,7 @@ def _jwt_claims(token):
 
 def run_selftest(env=os.environ,open_url=None,now=None):
  url,publishable,service,sha=_config(env);admin=_service_headers(service);public={'apikey':publishable};user_id=None;stage='START'
- report={'ok':False,'candidateSha':sha,'created':False,'aal1':False,'enrolled':False,'qrReturned':False,'challenged':False,'verified':False,'aal2':False,'cleanup':False}
+ report={'ok':False,'candidateSha':sha,'created':False,'aal1':False,'enrolled':False,'qrReturned':False,'challenged':False,'verified':False,'aal2':False,'cleanup':False,'totpWindowsTried':0}
  email='qa-mfa-selftest-'+secrets.token_hex(10)+'@example.invalid';password=secrets.token_urlsafe(36)
  try:
   stage='CREATE_USER';s,d=_request(url+'/auth/v1/admin/users','POST',admin,{'email':email,'password':password,'email_confirm':True,'user_metadata':{'aqari_mfa_selftest':True}},open_url);d=_expect(stage,s,d);user_id=str(d.get('id') or '');
@@ -103,15 +107,22 @@ def run_selftest(env=os.environ,open_url=None,now=None):
   report['enrolled']=True
   if not qr or not uri.startswith('otpauth://'):raise RuntimeError(stage+':QR_OR_URI_MISSING')
   report['qrReturned']=True
-  stage='CHALLENGE';s,d=_request(url+'/auth/v1/factors/'+factor_id+'/challenge','POST',user_headers,{},open_url);d=_expect(stage,s,d);challenge_id=str(d.get('id') or '')
-  if not challenge_id:raise RuntimeError(stage+':CHALLENGE_ID_MISSING')
-  report['challenged']=True
-  stage='VERIFY';code=totp_code(secret,now);s,d=_request(url+'/auth/v1/factors/'+factor_id+'/verify','POST',user_headers,{'challenge_id':challenge_id,'code':code},open_url);d=_expect(stage,s,d);aal_token=str(d.get('access_token') or '');aal_claims=_jwt_claims(aal_token)
-  report['verified']=True
-  if aal_claims.get('sub')!=user_id or aal_claims.get('aal')!='aal2':raise RuntimeError(stage+':AAL2_NOT_CONFIRMED')
-  methods=[x.get('method') for x in (aal_claims.get('amr') or []) if isinstance(x,dict)]
-  if 'totp' not in methods:raise RuntimeError(stage+':TOTP_AMR_MISSING')
-  report['aal2']=True;report['ok']=True;stage='COMPLETE'
+  last_error='UPSTREAM_REJECTED'
+  for window,code in _totp_candidates(secret,now):
+   stage='CHALLENGE';s,d=_request(url+'/auth/v1/factors/'+factor_id+'/challenge','POST',user_headers,{},open_url);d=_expect(stage,s,d);challenge_id=str(d.get('id') or '')
+   if not challenge_id:raise RuntimeError(stage+':CHALLENGE_ID_MISSING')
+   report['challenged']=True;report['totpWindowsTried']+=1
+   stage='VERIFY';s,d=_request(url+'/auth/v1/factors/'+factor_id+'/verify','POST',user_headers,{'challenge_id':challenge_id,'code':code},open_url)
+   if s not in (200,201):
+    last_error=_error_code(d)
+    if s in (400,422):continue
+    raise RuntimeError(stage+':'+last_error)
+   d=_expect(stage,s,d);aal_token=str(d.get('access_token') or '');aal_claims=_jwt_claims(aal_token)
+   if aal_claims.get('sub')!=user_id or aal_claims.get('aal')!='aal2':raise RuntimeError(stage+':AAL2_NOT_CONFIRMED')
+   methods=[x.get('method') for x in (aal_claims.get('amr') or []) if isinstance(x,dict)]
+   if 'totp' not in methods:raise RuntimeError(stage+':TOTP_AMR_MISSING')
+   report['verified']=True;report['verifiedWindowSeconds']=window;report['aal2']=True;report['ok']=True;stage='COMPLETE';break
+  if not report['verified']:raise RuntimeError('VERIFY:'+last_error)
  except RuntimeError as exc:
   text=str(exc);report['stage']=stage;report['error']=text if SAFE_CODE.fullmatch(text) else stage+':SELFTEST_FAILED'
  except Exception:
