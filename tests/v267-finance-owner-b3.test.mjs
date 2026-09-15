@@ -4,6 +4,7 @@ const sql=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b
 const hardening=readFileSync(new URL('../staging-database/sql/finance-owner-controls-b3-hardening.sql',import.meta.url),'utf8');
 const presentationSql=readFileSync(new URL('../staging-database/sql/presentation-custom-fields-b3.sql',import.meta.url),'utf8');
 const ownershipSql=readFileSync(new URL('../staging-database/sql/property-owner-area-evidence-20260915.sql',import.meta.url),'utf8');
+const ownershipFix=readFileSync(new URL('../staging-database/sql/property-owner-area-evidence-revision-fix-20260915.sql',import.meta.url),'utf8');
 const baseSql=readFileSync(new URL('../staging-database/sql/property-cost-allocation.sql',import.meta.url),'utf8');
 const allocation=readFileSync(new URL('../src/v267/pages/property-cost-allocation.js',import.meta.url),'utf8');
 const owners=readFileSync(new URL('../src/v267/pages/property-owner-statement.js',import.meta.url),'utf8');
@@ -54,6 +55,8 @@ assert.match(ownershipSql,/PROPERTY_OWNERSHIP_DOCUMENT_INVALID/);
 assert.match(ownershipSql,/PROPERTY_OWNERSHIP_AREA_TOTAL_MISMATCH/);
 assert.match(ownershipSql,/base_milli\+case when rn<=remainder then 1 else 0 end milli/);
 assert.match(ownershipSql,/aqari_property_ownership_revision_immutable/);
+assert.match(ownershipFix,/current_rev:=coalesce\(current_rev,0\)/);
+assert.match(ownershipFix,/PROPERTY_OWNERSHIP_REVISION_FIX_ANCHOR_MISMATCH/);
 assert.match(ownership,/إجمالي المساحة الرسمية/);
 assert.match(ownership,/المساحة المقابلة لكل حصة تُحسب خادميًا/);
 assert.match(ownership,/المستند المؤيد/);
