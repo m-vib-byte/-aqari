@@ -3,15 +3,15 @@
   "release": "V267",
   "stage": "preview",
   "providers": [
-    {"provider":"knet","kind":"payment","outboundPath":"/payments","endpointRequired":true,"secretReference":"AQARI_KNET_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_KNET"},
-    {"provider":"email","kind":"notification","outboundPath":"/messages/email","endpointRequired":true,"secretReference":"AQARI_EMAIL_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_EMAIL"},
-    {"provider":"whatsapp","kind":"notification","outboundPath":"/messages/whatsapp","endpointRequired":true,"secretReference":"AQARI_WHATSAPP_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_WHATSAPP"},
-    {"provider":"sms","kind":"notification","outboundPath":"/messages/sms","endpointRequired":true,"secretReference":"AQARI_SMS_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_SMS"},
-    {"provider":"push","kind":"notification","outboundPath":"/messages/push","endpointRequired":true,"secretReference":"AQARI_PUSH_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_PUSH"},
-    {"provider":"quickbooks","kind":"accounting","outboundPath":"/accounting/v1/journal-exports","endpointRequired":true,"secretReference":"AQARI_QUICKBOOKS_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_QUICKBOOKS"},
-    {"provider":"zoho_books","kind":"accounting","outboundPath":"/accounting/v1/journal-exports","endpointRequired":true,"secretReference":"AQARI_ZOHO_BOOKS_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_ZOHO_BOOKS"},
-    {"provider":"xero","kind":"accounting","outboundPath":"/accounting/v1/journal-exports","endpointRequired":true,"secretReference":"AQARI_XERO_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_XERO"},
-    {"provider":"generic_webhook","kind":"webhook","outboundPath":null,"endpointRequired":true,"secretReference":"AQARI_GENERIC_WEBHOOK_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_GENERIC_WEBHOOK"}
+    {"provider":"knet","kind":"payment","outboundPath":"/payments","endpointRequired":true,"endpointReference":"AQARI_KNET_PROVIDER_ORIGIN","secretReference":"AQARI_KNET_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_KNET"},
+    {"provider":"email","kind":"notification","outboundPath":"/messages/email","endpointRequired":true,"endpointReference":"AQARI_EMAIL_PROVIDER_ORIGIN","secretReference":"AQARI_EMAIL_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_EMAIL"},
+    {"provider":"whatsapp","kind":"notification","outboundPath":"/messages/whatsapp","endpointRequired":true,"endpointReference":"AQARI_WHATSAPP_PROVIDER_ORIGIN","secretReference":"AQARI_WHATSAPP_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_WHATSAPP"},
+    {"provider":"sms","kind":"notification","outboundPath":"/messages/sms","endpointRequired":true,"endpointReference":"AQARI_SMS_PROVIDER_ORIGIN","secretReference":"AQARI_SMS_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_SMS"},
+    {"provider":"push","kind":"notification","outboundPath":"/messages/push","endpointRequired":true,"endpointReference":"AQARI_PUSH_PROVIDER_ORIGIN","secretReference":"AQARI_PUSH_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_PUSH"},
+    {"provider":"quickbooks","kind":"accounting","outboundPath":"/accounting/v1/journal-exports","endpointRequired":true,"endpointReference":"AQARI_QUICKBOOKS_PROVIDER_ORIGIN","secretReference":"AQARI_QUICKBOOKS_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_QUICKBOOKS"},
+    {"provider":"zoho_books","kind":"accounting","outboundPath":"/accounting/v1/journal-exports","endpointRequired":true,"endpointReference":"AQARI_ZOHO_BOOKS_PROVIDER_ORIGIN","secretReference":"AQARI_ZOHO_BOOKS_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_ZOHO_BOOKS"},
+    {"provider":"xero","kind":"accounting","outboundPath":"/accounting/v1/journal-exports","endpointRequired":true,"endpointReference":"AQARI_XERO_PROVIDER_ORIGIN","secretReference":"AQARI_XERO_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_XERO"},
+    {"provider":"generic_webhook","kind":"webhook","outboundPath":null,"endpointRequired":true,"endpointReference":"AQARI_GENERIC_WEBHOOK_PROVIDER_ORIGIN","secretReference":"AQARI_GENERIC_WEBHOOK_PROVIDER_SECRET","webhookSecretPattern":"AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_GENERIC_WEBHOOK"}
   ],
   "rules": {
     "runtimeStartsDisabled": true,
