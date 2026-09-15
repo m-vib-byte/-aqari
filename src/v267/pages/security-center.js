@@ -29,12 +29,44 @@ export function openSecurityCenter(){
   if(!data||!['aal1','aal2'].includes(data.currentLevel)||!['aal1','aal2'].includes(data.nextLevel))throw Error('تعذر التحقق من مستوى أمان الجلسة.');
   return data;
  }
- async function verifyCode(id,rawCode){
+ async function confirmAal2(){
+  let level=await assurance();
+  if(level.currentLevel!=='aal2'){
+   const refreshed=await d.session.client.auth.refreshSession();
+   if(refreshed?.error){
+    const error=Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');error.cause=refreshed.error;throw error;
+   }
+   level=await assurance();
+  }
+  const session=result(await d.session.client.auth.getSession())?.session;
+  if(level.currentLevel!=='aal2'||!session?.user?.id){
+   throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+  }
+  return level;
+ }
+ async function verifyCode(id,rawCode,{enrolling=false}={}){
   const code=normalizeOtp(rawCode);
   if(!/^\d{6}$/.test(code))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');
-  try{return result(await auth().challengeAndVerify({factorId:id,code}));}
-  catch(error){
+  try{
+   result(await auth().challengeAndVerify({factorId:id,code}));
+   await confirmAal2();
+   return true;
+  }catch(error){
+   // A successful server-side TOTP verification can be followed by a browser
+   // session-refresh failure. Never mislabel that state as an invalid TOTP.
+   try{
+    const level=await assurance();
+    if(level.currentLevel==='aal2')return true;
+    if(enrolling){
+     const listed=result(await auth().listFactors());
+     const enrolled=factorList(listed).find(item=>item.id===id);
+     if(enrolled?.status==='verified')throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+    }
+   }catch(recoveryError){
+    if(recoveryError?.message==='MFA_VERIFIED_SESSION_REFRESH_REQUIRED')throw recoveryError;
+   }
    const raw=String(error?.message||'');
+   if(raw==='MFA_VERIFIED_SESSION_REFRESH_REQUIRED')throw error;
    if(/invalid totp|token has expired|invalid.*code|otp/i.test(raw))throw Error('رمز المصادقة غير مطابق أو انتهت صلاحيته. استخدم الرمز الحالي الظاهر في تطبيق المصادقة، وتأكد أن ضبط الوقت في الجهاز تلقائي.');
    throw error;
   }
@@ -78,7 +110,7 @@ export function openSecurityCenter(){
   const form=node('form'),code=codeInput(),cancel=node('button','إلغاء التسجيل');cancel.type='button';
   form.append(text('h2','إضافة تطبيق مصادقة'),removed?text('p','تم إلغاء التسجيل غير المكتمل السابق وبدء ربط جديد.'):text('p','بدأ ربط جديد وآمن لتطبيق المصادقة.'),text('p','امسح الرمز بتطبيق المصادقة، أو أدخل المفتاح يدوياً ثم اكتب الرمز المؤقت.'),qr,text('p','المفتاح اليدوي: '+secret),field('رمز التحقق',code),Object.assign(node('button','تفعيل التوثيق الثنائي'),{type:'submit'}),cancel);
   cancel.onclick=()=>d.run(async()=>{if(factorId)result(await auth().unenroll({factorId}));clearEnrollment();actions.replaceChildren();await list();});
-  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{await verifyCode(factorId,code.value);clearEnrollment();actions.replaceChildren();await list();d.status.textContent='تم تفعيل التوثيق الثنائي للحساب.';});};actions.replaceChildren(form);code.focus();
+  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{await verifyCode(factorId,code.value,{enrolling:true});clearEnrollment();actions.replaceChildren();await list();d.status.textContent='تم تفعيل التوثيق الثنائي للحساب.';});};actions.replaceChildren(form);code.focus();
  }
  const add=node('button','إضافة تطبيق مصادقة');add.type='button';add.onclick=()=>d.run(enroll);actions.append(add);
  d.onDispose(()=>{disposed=true;clearEnrollment();state.replaceChildren();actions.replaceChildren();factors.replaceChildren();});
