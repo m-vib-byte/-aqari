@@ -4,7 +4,7 @@ const registry=read('staging-database/supabase/migrations/20260915115500_v267_qa
 const manager=read('staging-database/supabase/migrations/20260915115600_v267_qa_account_manager_rpc.sql');
 const binding=read('staging-database/supabase/migrations/20260915115700_v267_qa_account_auth_binding.sql');
 const dbExpiry=read('staging-database/supabase/migrations/20260915115800_v267_qa_account_db_expiry.sql');
-const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),expiry=read('api/qa-expire.py'),vercel=JSON.parse(read('vercel.json'));
+const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),edge=read('staging-database/supabase/functions/qa-account-admin/index.ts'),expiry=read('api/qa-expire.py'),vercel=JSON.parse(read('vercel.json'));
 
 test('temporary QA registry is private audited expiring and excludes temporary general-manager',()=>{
  assert.match(registry,/private\.aqari_qa_accounts/);assert.match(registry,/private\.aqari_qa_account_events/);assert.match(registry,/expires_at/);assert.match(registry,/aqari_qa_events_immutable/);
@@ -28,8 +28,10 @@ test('expired QA application access is revoked by Staging pg_cron, never by a Ve
  assert.equal(vercel.crons.some(row=>row.path==='/api/qa-expire'),false);assert.equal(vercel.crons.some(row=>row.path==='/api/integration-dispatch'),true);
 });
 
-test('server worker uses official Auth Admin create and ban with exact preview/staging fail-closed guards',()=>{
+test('Auth Admin is confined to Staging Edge Function while Vercel is a manager-JWT proxy',()=>{
  for(const marker of ["EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co'","VERCEL_ENV')!='preview'","EXPECTED_BRANCH='support/v267-knet-range-reconcile-20260915'","/auth/v1/admin/users","email_confirm':True","ban_duration':'876000h'","secrets.token_urlsafe"]){assert.match(worker,new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));}
  assert.doesNotMatch(worker,/print\(/);assert.doesNotMatch(worker,/password.*service_call/);
- assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/provision_automation_account/);assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
+ assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/functions\/v1\/qa-account-admin/);assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);
+ assert.match(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.match(edge,/admin\.auth\.admin\.createUser/);assert.match(edge,/admin\.auth\.admin\.updateUserById/);assert.match(edge,/aqari_qa_account_server_result/);assert.doesNotMatch(edge,/insert into auth\.users/i);
+ assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
 });
