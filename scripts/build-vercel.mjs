@@ -12,12 +12,14 @@ if(process.env.VERCEL_ENV==='production'){
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/property-ownership.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/maintenance-evidence.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--check','src/v267/pages/bank-reconciliation.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs','tests/v267-bank-reconciliation-current.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
