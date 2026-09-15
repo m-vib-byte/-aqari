@@ -1,8 +1,9 @@
 """Server-only delivery worker for AQARI integration outbox.
 
-The database owns claiming/idempotency state. This module builds normalized provider
-requests, auto-renders and archives a verified official receipt when required,
-resolves server-only secrets, sends without redirects, and records the result.
+The database owns claiming/idempotency state. This module bridges payment-aware rent
+reminders, builds normalized provider requests, auto-renders and archives a verified
+official receipt when required, resolves server-only secrets, sends without redirects,
+and records the result.
 """
 from urllib.request import Request,build_opener,HTTPRedirectHandler
 from urllib.error import HTTPError,URLError
@@ -94,9 +95,11 @@ def _send(item,env=os.environ,open_url=None):
 
 def dispatch_once(limit=5,env=os.environ,db_rpc=rpc,send=_send):
     if not isinstance(limit,int) or not 1<=limit<=20:raise ValueError('INVALID_DISPATCH_LIMIT')
+    bridge=db_rpc('aqari_notification_dispatch_bridge',{'p_limit':min(200,limit*10)},env)
+    if not isinstance(bridge,dict):raise RuntimeError('INVALID_NOTIFICATION_BRIDGE_RESPONSE')
     claimed=db_rpc('aqari_integration_dispatch_claim',{'p_limit':limit},env)
     if not isinstance(claimed,list):raise RuntimeError('INVALID_DISPATCH_CLAIM_RESPONSE')
-    result={'claimed':len(claimed),'sent':0,'failed':0,'deadLetter':0}
+    result={'bridged':int(bridge.get('bridged') or 0),'cancelledReminders':int(bridge.get('cancelled') or 0),'awaitingConfiguration':int(bridge.get('awaitingConfiguration') or 0),'claimed':len(claimed),'sent':0,'failed':0,'deadLetter':0}
     for item in claimed:
         event=str(item.get('eventId') if isinstance(item,dict) else '')
         try:
