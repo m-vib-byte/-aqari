@@ -1,9 +1,9 @@
 """Server-only delivery worker for AQARI integration outbox.
 
 The database owns claiming/idempotency state. This module bridges payment-aware rent
-reminders, builds normalized provider requests, auto-renders and archives a verified
-official receipt when required, resolves server-only secrets, sends without redirects,
-and records the result.
+reminders, payment-thanks and operational alerts, builds normalized provider requests,
+auto-renders and archives a verified official receipt when required, resolves server-only
+secrets, sends without redirects, and records the result.
 """
 from urllib.request import Request,build_opener,HTTPRedirectHandler
 from urllib.error import HTTPError,URLError
@@ -15,6 +15,7 @@ SHA256=re.compile(r'^[a-f0-9]{64}$')
 ENV_SECRET=re.compile(r'^[A-Z][A-Z0-9_]{2,127}$')
 SUPABASE_URL=re.compile(r'^https://[a-z0-9]+\.supabase\.co$')
 AUTO_RENDERER_VERSION='v267-rent-receipt-auto-dispatch-1'
+COMPLETION_EVENTS={'notification.payment_thanks','notification.operational'}
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):raise ValueError('PROVIDER_REDIRECT_REJECTED')
@@ -95,19 +96,36 @@ def _send(item,env=os.environ,open_url=None):
 
 def dispatch_once(limit=5,env=os.environ,db_rpc=rpc,send=_send):
     if not isinstance(limit,int) or not 1<=limit<=20:raise ValueError('INVALID_DISPATCH_LIMIT')
-    bridge=db_rpc('aqari_notification_dispatch_bridge',{'p_limit':min(200,limit*10)},env)
-    if not isinstance(bridge,dict):raise RuntimeError('INVALID_NOTIFICATION_BRIDGE_RESPONSE')
-    claimed=db_rpc('aqari_integration_dispatch_claim',{'p_limit':limit},env)
-    if not isinstance(claimed,list):raise RuntimeError('INVALID_DISPATCH_CLAIM_RESPONSE')
-    result={'bridged':int(bridge.get('bridged') or 0),'cancelledReminders':int(bridge.get('cancelled') or 0),'awaitingConfiguration':int(bridge.get('awaitingConfiguration') or 0),'claimed':len(claimed),'sent':0,'failed':0,'deadLetter':0}
+    rent_bridge=db_rpc('aqari_notification_dispatch_bridge',{'p_limit':min(200,limit*10)},env)
+    if not isinstance(rent_bridge,dict):raise RuntimeError('INVALID_NOTIFICATION_BRIDGE_RESPONSE')
+    completion_bridge=db_rpc('aqari_notification_dispatch_completion_bridge',{'p_limit':min(500,limit*20)},env)
+    if not isinstance(completion_bridge,dict):raise RuntimeError('INVALID_COMPLETION_BRIDGE_RESPONSE')
+    completion_claimed=db_rpc('aqari_integration_dispatch_completion_claim',{'p_limit':limit},env)
+    if not isinstance(completion_claimed,list):raise RuntimeError('INVALID_COMPLETION_CLAIM_RESPONSE')
+    remaining=max(0,limit-len(completion_claimed));regular_claimed=[]
+    if remaining:
+        regular_claimed=db_rpc('aqari_integration_dispatch_claim',{'p_limit':remaining},env)
+        if not isinstance(regular_claimed,list):raise RuntimeError('INVALID_DISPATCH_CLAIM_RESPONSE')
+    claimed=completion_claimed+regular_claimed
+    result={
+        'bridged':int(rent_bridge.get('bridged') or 0),
+        'cancelledReminders':int(rent_bridge.get('cancelled') or 0),
+        'paymentThanksBridged':int(completion_bridge.get('paymentThanks') or 0),
+        'operationalBridged':int(completion_bridge.get('operational') or 0),
+        'completionCancelled':int(completion_bridge.get('cancelled') or 0),
+        'awaitingConfiguration':int(rent_bridge.get('awaitingConfiguration') or 0)+int(completion_bridge.get('awaitingConfiguration') or 0),
+        'claimed':len(claimed),'sent':0,'failed':0,'deadLetter':0
+    }
     for item in claimed:
         event=str(item.get('eventId') if isinstance(item,dict) else '')
+        event_type=str(item.get('eventType') if isinstance(item,dict) else '')
         try:
             prepared=_ensure_receipt_attachment(item,env,db_rpc);ok,retryable,provider_ref,error=send(prepared,env)
         except ValueError as exc:ok,retryable,provider_ref,error=False,False,'',str(exc)[:200]
         except RuntimeError as exc:ok,retryable,provider_ref,error=False,True,'',str(exc)[:200]
         except Exception:ok,retryable,provider_ref,error=False,False,'','DISPATCH_WORKER_ERROR'
-        final=db_rpc('aqari_integration_dispatch_result',{'p_event_id':event,'p_ok':bool(ok),'p_retryable':bool(retryable),'p_provider_reference':provider_ref or None,'p_error':error or None},env)
+        result_rpc='aqari_integration_dispatch_completion_result' if event_type in COMPLETION_EVENTS else 'aqari_integration_dispatch_result'
+        final=db_rpc(result_rpc,{'p_event_id':event,'p_ok':bool(ok),'p_retryable':bool(retryable),'p_provider_reference':provider_ref or None,'p_error':error or None},env)
         status=final.get('status') if isinstance(final,dict) else None
         if status=='sent':result['sent']+=1
         elif status=='dead_letter':result['deadLetter']+=1
