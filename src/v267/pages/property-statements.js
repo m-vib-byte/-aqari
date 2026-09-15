@@ -4,6 +4,7 @@ import {readOperationalReport} from '../api/operational-report.js';
 import {createOperationalReportXlsx,ARCHIVE_XLSX_TYPE} from '../reports/operational-report-xlsx.js';
 import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
+import {statementPaymentReference} from '../domain/payment-reference.js';
 export function openPropertyStatements(options={}){
  const d=createDialog(t('كشوف العقارات المحفوظة'),{localized:true});if(!d)return;
  const select=node('select'),month=node('input'),refresh=node('button',t('عرض الكشف')),pdf=node('button',t('تحميل PDF / طباعة')),link=node('button',t('ربط الكشف بملفات المستأجرين والعقود')),result=node('div'),collection=node('button',t('كشف التحصيل الفعلي')),collectionResult=node('div'),collector=node('button',t('تقرير أداء موظفي التحصيل')),collectorResult=node('div');month.type='month';month.value=new Date().toISOString().slice(0,7);pdf.disabled=true;link.disabled=true;collection.disabled=true;collector.disabled=true;
@@ -18,8 +19,9 @@ export function openPropertyStatements(options={}){
   const s=content.summary.printed_totals;result.append(node('p',message('الإيجار الحالي: {rent} د.ك • العربون: {advance} د.ك • النظافة: {cleaning} د.ك',{rent:s.rent_kd,advance:s.advance_kd,cleaning:s.cleaning_kd})),node('p',t('تُعرض ملاحظات كل وحدة من سجل مصدرها؛ لا تُعتمد القيم المعلقة تلقائياً.')));
   for(const row of content.rows){
    const card=node('details'),head=node('summary',message('الوحدة {unit} — {tenant} — {rent} د.ك',{unit:row.unit,tenant:row.name_en_raw||t('الاسم غير مكتمل بالمصدر'),rent:row.current_rent_kd}));card.append(head);const savedLink=links.find(x=>x.unit_no===row.unit);card.append(node('p',savedLink?t('مرتبط بملف مستأجر وعقد محفوظ — لم يُرحّل كتحصيل'):t('لم يُربط بالملفات التشغيلية بعد')));
-   for(const [title,key]of [[t('رقم العقد'),'contract_no_raw'],[t('بداية العقد'),'contract_start_raw'],[t('نهاية العقد'),'contract_end_raw'],[t('إيجار العقد'),'contract_rent_kd'],[t('الإيجار الحالي'),'current_rent_kd'],[t('العربون'),'advance_kd'],[t('التأمين'),'insurance_kd'],[t('طريقة السداد'),'payment_method_raw'],[t('تاريخ الدفع'),'payment_date_raw'],[t('رقم العملية'),'payment_operation_raw'],[t('رقم الوصل بالمصدر'),'receipt_no_raw'],[t('المحاسب'),'accountant_raw'],[t('الهاتف بالمصدر'),'phone_raw'],[t('المدني بالمصدر'),'civil_id_raw']]){
-    let v=row[key]??t('غير مدون');if(key==='insurance_kd'&&row.insurance_status==='pending_reconciliation')v+=t(' — معلق');if((key.includes('contract_')&&key.endsWith('_raw')&&key!=='contract_no_raw'&&(row.pending||[]).includes('contract_dates'))||(key==='payment_date_raw'&&(row.pending||[]).includes('payment_date')))v+=t(' — معلق');card.append(node('p',title+': '+v));
+   const paymentReference=statementPaymentReference(row);
+   for(const [title,key]of [[t('رقم العقد'),'contract_no_raw'],[t('بداية العقد'),'contract_start_raw'],[t('نهاية العقد'),'contract_end_raw'],[t('إيجار العقد'),'contract_rent_kd'],[t('الإيجار الحالي'),'current_rent_kd'],[t('العربون'),'advance_kd'],[t('التأمين'),'insurance_kd'],[t('طريقة السداد'),'payment_method_raw'],[t('تاريخ الدفع'),'payment_date_raw'],[t(paymentReference.label),'__payment_reference'],[t('رقم الوصل بالمصدر'),'receipt_no_raw'],[t('المحاسب'),'accountant_raw'],[t('الهاتف بالمصدر'),'phone_raw'],[t('المدني بالمصدر'),'civil_id_raw']]){
+    let v=key==='__payment_reference'?(paymentReference.value??t('غير مدون')):(row[key]??t('غير مدون'));if(key==='insurance_kd'&&row.insurance_status==='pending_reconciliation')v+=t(' — معلق');if((key.includes('contract_')&&key.endsWith('_raw')&&key!=='contract_no_raw'&&(row.pending||[]).includes('contract_dates'))||(key==='payment_date_raw'&&(row.pending||[]).includes('payment_date')))v+=t(' — معلق');card.append(node('p',title+': '+v));
    }result.append(card);
   }
  }
