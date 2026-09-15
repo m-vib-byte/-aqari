@@ -7,7 +7,7 @@ test('KNET intent is property scoped, balance bounded and provider neutral',()=>
 });
 
 test('system receipt reservation is explicit and does not impersonate an authenticated user',()=>{
- assert.match(sql,/reservation_actor_kind text not null default 'user'/);assert.match(sql,/reservation_actor_kind='system'/);assert.match(sql,/reserved_by null/);assert.match(sql,/aqari_system_rent_receipt_serial/);assert.doesNotMatch(sql,/'system'::uuid/);
+ assert.match(sql,/reservation_actor_kind text not null default 'user'/);assert.match(sql,/reservation_actor_kind='system'/);assert.match(sql,/values\(result_no,w,contract_ref,operation_ref,p_year,seq,within_contract,null,'system'\)/);assert.match(sql,/aqari_system_rent_receipt_serial/);assert.doesNotMatch(sql,/'system'::uuid/);
 });
 
 test('canonical KNET webhook requires exact intent, KWD, amount and provider reference before financial posting',()=>{
