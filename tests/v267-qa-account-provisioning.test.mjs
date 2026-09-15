@@ -32,6 +32,16 @@ test('Auth Admin is confined to Staging Edge Function while Vercel is a manager-
  for(const marker of ["EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co'","VERCEL_ENV')!='preview'","EXPECTED_BRANCH='support/v267-knet-range-reconcile-20260915'","/auth/v1/admin/users","email_confirm':True","ban_duration':'876000h'","secrets.token_urlsafe"]){assert.match(worker,new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));}
  assert.doesNotMatch(worker,/print\(/);assert.doesNotMatch(worker,/password.*service_call/);
  assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/functions\/v1\/qa-account-admin/);assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);
- assert.match(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.match(edge,/admin\.auth\.admin\.createUser/);assert.match(edge,/admin\.auth\.admin\.updateUserById/);assert.match(edge,/aqari_qa_account_server_result/);assert.doesNotMatch(edge,/insert into auth\.users/i);
+ assert.match(edge,/SUPABASE_SECRET_KEYS/);assert.match(edge,/SUPABASE_PUBLISHABLE_KEYS/);assert.match(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.match(edge,/SUPABASE_ANON_KEY/);
+ assert.match(edge,/secret\.startsWith\('sb_secret_'\)/);assert.match(edge,/headers\.Authorization='Bearer '\+secret/);assert.match(edge,/if\(!secret\.startsWith\('sb_secret_'\)\)/);
+ assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users','POST'/);assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users\/'\+userId,'PUT'/);assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users\/'\+createdUserId,'DELETE'/);
+ assert.match(edge,/serverRpc\(url,secret,'aqari_qa_account_server_result'/);assert.doesNotMatch(edge,/admin\.auth\.admin\./);assert.doesNotMatch(edge,/createClient\(url,secret/);assert.doesNotMatch(edge,/insert into auth\.users/i);
  assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
+});
+
+test('opaque Supabase secret keys are never sent as bearer JWTs',()=>{
+ const guard=edge.indexOf("if(!secret.startsWith('sb_secret_'))headers.Authorization='Bearer '+secret");
+ assert.ok(guard>=0);
+ assert.equal(edge.includes("headers.Authorization='Bearer '+secret\n  return headers"),true);
+ assert.doesNotMatch(edge,/Authorization['"]?\s*:\s*['"]Bearer ['"]\s*\+\s*secret/);
 });
