@@ -12,6 +12,8 @@ const operationsRpc=read('staging-database/sql/operations-register.sql');
 const operationsPage=read('src/v267/pages/operations-center.js');
 const financeCore=read('staging-database/sql/final-gap-finance-core-20260915.sql');
 const financeRpc=read('staging-database/sql/final-gap-finance-live-20260915.sql');
+const engagement=read('staging-database/sql/tenant-engagement-feed-live-20260915.sql');
+const tenantPortal=read('v267-tenant-portal.js');
 
 test('collection delivery settings are property scoped, revisioned and manager MFA guarded',()=>{
  assert.match(settings,/aqari_collection_delivery_settings/);
@@ -86,4 +88,18 @@ test('finance gap RPC protects receipt cancellation and credit allocation with m
  assert.match(financeRpc,/CREDIT_OVERALLOCATION/);
  assert.match(financeRpc,/private\.aqari_financial_open\(w,posting_date\)/);
  assert.match(financeRpc,/return public\.aqari_final_gap_register\(w,'list'/);
+});
+
+test('tenant engagement feed is auth-bound and exposes only active tenant-visible links for current signed properties',()=>{
+ assert.match(engagement,/user_id=auth\.uid\(\)/);
+ assert.match(engagement,/c\.tenant_visible=true/);
+ assert.match(engagement,/c\.status='active'/);
+ assert.match(engagement,/l\.status='signed'/);
+ assert.match(engagement,/l\.start_date<=current_date/);
+ assert.match(engagement,/l\.end_date>=current_date/);
+ assert.doesNotMatch(engagement,/management_reference/);
+ assert.match(engagement,/revoke all on function public\.aqari_tenant_engagement_feed\(\) from public,anon/);
+ assert.match(tenantPortal,/client\.rpc\('aqari_tenant_engagement_feed'\)/);
+ assert.match(tenantPortal,/data\.channels/);
+ assert.match(tenantPortal,/data\.ratings/);
 });
