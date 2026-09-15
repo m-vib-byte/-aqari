@@ -12,12 +12,19 @@ test('sensitive verified factor removal requires an aal2 session',()=>{
  assert.match(source,/current\.currentLevel!=='aal2'/);
  assert.match(source,/ترقية الجلسة/);
 });
-test('stale unverified TOTP enrollment is visible and cleaned before a fresh enroll',()=>{
+test('stale unverified TOTP enrollment is visible and cleaned when the client exposes it',()=>{
  assert.match(source,/status==='unverified'/);
  assert.match(source,/removePendingTotp/);
  assert.match(source,/await removePendingTotp\(\)/);
  assert.match(source,/auth\(\)\.unenroll\(\{factorId:factor\.id\}\)/);
- assert.match(source,/تم إلغاء التسجيل غير المكتمل السابق وبدء ربط جديد/);
+});
+test('fresh TOTP enrollment never reuses the fixed friendly name that can collide with hidden stale factors',()=>{
+ assert.match(source,/function newEnrollmentName\(\)/);
+ assert.match(source,/randomUUID/);
+ assert.match(source,/const enrollmentName=newEnrollmentName\(\)/);
+ assert.match(source,/friendlyName:enrollmentName/);
+ assert.doesNotMatch(source,/friendlyName:'AQARI V267'/);
+ assert.match(source,/factorDisplayName/);
 });
 test('verified factor re-authentication runs through the dialog session guard',()=>{
  assert.match(source,/verify\.onclick=\(\)=>d\.run\(\(\)=>challenge\(factor\.id\)\)/);
