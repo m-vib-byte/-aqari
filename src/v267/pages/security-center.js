@@ -26,7 +26,7 @@ export function openSecurityCenter(){
   for(const factor of verified){
    const card=node('article'),verify=node('button','التحقق بهذا الجهاز'),remove=node('button','إزالة الجهاز');
    verify.type=remove.type='button';card.append(text('h3',factor.friendly_name||'تطبيق المصادقة'),text('p',factor.factor_type==='totp'?'رمز من تطبيق المصادقة':'رمز الهاتف'),verify,remove);
-   verify.onclick=()=>challenge(factor.id);remove.onclick=()=>d.run(async()=>{const current=await assurance();if(current.currentLevel!=='aal2')throw Error('يجب ترقية الجلسة إلى عاملين قبل إزالة جهاز مصادقة.');if(!window.confirm('هل تؤكد إزالة جهاز المصادقة المحدد؟'))return;result(await auth().unenroll({factorId:factor.id}));await list();d.status.textContent='تمت إزالة جهاز المصادقة.';});factors.append(card);
+   verify.onclick=()=>d.run(()=>challenge(factor.id));remove.onclick=()=>d.run(async()=>{const current=await assurance();if(current.currentLevel!=='aal2')throw Error('يجب ترقية الجلسة إلى عاملين قبل إزالة جهاز مصادقة.');if(!window.confirm('هل تؤكد إزالة جهاز المصادقة المحدد؟'))return;result(await auth().unenroll({factorId:factor.id}));await list();d.status.textContent='تمت إزالة جهاز المصادقة.';});factors.append(card);
   }
  }
  async function challenge(id){
