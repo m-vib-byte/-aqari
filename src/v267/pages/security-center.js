@@ -3,6 +3,11 @@ import {createDialog,node,field} from '../components/dialog.js';
 const text=(tag,value)=>node(tag,String(value??''));
 function codeInput(){const input=node('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.pattern='[0-9]{6}';input.maxLength=6;input.required=true;return input;}
 function result(value){if(value?.error)throw value.error;return value?.data;}
+function factorDisplayName(factor){const name=String(factor?.friendly_name||'').trim();return name.startsWith('AQARI V267')?'AQARI V267':(name||'تطبيق المصادقة');}
+function newEnrollmentName(){
+ const random=globalThis.crypto?.randomUUID?.().replace(/-/g,'').slice(0,12)||String(Date.now());
+ return 'AQARI V267 '+random;
+}
 
 export function openSecurityCenter(){
  const d=createDialog('الأمان والتوثيق الثنائي');if(!d)return;
@@ -27,7 +32,7 @@ export function openSecurityCenter(){
   if(pending.length)factors.append(text('p','يوجد تسجيل تطبيق مصادقة غير مكتمل. عند إضافة تطبيق جديد سيُلغى التسجيل غير المكتمل تلقائياً ويبدأ ربط جديد.'));
   for(const factor of verified){
    const card=node('article'),verify=node('button','التحقق بهذا الجهاز'),remove=node('button','إزالة الجهاز');
-   verify.type=remove.type='button';card.append(text('h3',factor.friendly_name||'تطبيق المصادقة'),text('p',factor.factor_type==='totp'?'رمز من تطبيق المصادقة':'رمز الهاتف'),verify,remove);
+   verify.type=remove.type='button';card.append(text('h3',factorDisplayName(factor)),text('p',factor.factor_type==='totp'?'رمز من تطبيق المصادقة':'رمز الهاتف'),verify,remove);
    verify.onclick=()=>d.run(()=>challenge(factor.id));remove.onclick=()=>d.run(async()=>{const current=await assurance();if(current.currentLevel!=='aal2')throw Error('يجب ترقية الجلسة إلى عاملين قبل إزالة جهاز مصادقة.');if(!window.confirm('هل تؤكد إزالة جهاز المصادقة المحدد؟'))return;result(await auth().unenroll({factorId:factor.id}));await list();d.status.textContent='تمت إزالة جهاز المصادقة.';});factors.append(card);
   }
  }
@@ -48,7 +53,8 @@ export function openSecurityCenter(){
  async function enroll(){
   clearEnrollment();
   const removed=await removePendingTotp();
-  const enrolled=result(await auth().enroll({factorType:'totp',friendlyName:'AQARI V267'}));
+  const enrollmentName=newEnrollmentName();
+  const enrolled=result(await auth().enroll({factorType:'totp',friendlyName:enrollmentName}));
   factorId=enrolled?.id;secret=enrolled?.totp?.secret;const qrCode=enrolled?.totp?.qr_code;
   if(!factorId||!qrCode)throw Error('تعذر بدء تسجيل تطبيق المصادقة.');
   qr=node('img');qr.alt='رمز QR لإضافة AQARI V267 إلى تطبيق المصادقة';qr.src=qrCode;qr.width=220;qr.height=220;
