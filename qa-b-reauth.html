@@ -14,7 +14,7 @@
 <body>
 <main><section class="card">
 <h1>إعادة التحقق قبل اختبار B</h1>
-<p>أدخل الرمز الحالي من تطبيق المصادقة. بعد نجاحه سيتم فتح اختبار B تلقائيًا.</p>
+<p>أدخل الرمز الحالي من تطبيق المصادقة. لا يبدأ اختبار B إلا بعد تأكيد أن الجلسة نفسها أصبحت AAL2.</p>
 <form id="form">
 <label for="code">رمز التحقق المكوّن من 6 أرقام</label>
 <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" required autofocus>
@@ -38,6 +38,21 @@ function normalizeOtp(value){
   .replace(/[۰-۹]/g,ch=>String(persian.indexOf(ch)))
   .replace(/[\s\u00a0\u200e\u200f-]/g,'');
 }
+async function assurance(client){
+ const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel();if(error)throw error;
+ return data;
+}
+async function confirmAal2(client){
+ let aal=await assurance(client);
+ if(aal?.currentLevel!=='aal2'){
+  const refreshed=await client.auth.refreshSession();
+  if(refreshed.error)fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+  aal=await assurance(client);
+ }
+ const session=await client.auth.getSession();if(session.error)throw session.error;
+ if(aal?.currentLevel!=='aal2'||!session.data?.session?.user?.id)fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+ return session.data.session;
+}
 async function main(event){
  event.preventDefault();
  const normalized=normalizeOtp(code.value);
@@ -56,20 +71,27 @@ async function main(event){
   if(!verified.length&&unverified.length)fail('MFA_ENROLLMENT_INCOMPLETE');
   if(!verified.length)fail('MFA_FACTOR_REQUIRED');
   const factor=verified[0];
-  const {error:verifyError}=await client.auth.mfa.challengeAndVerify({factorId:factor.id,code:normalized});if(verifyError)throw verifyError;
-  const {data:aal,error:aalError}=await client.auth.mfa.getAuthenticatorAssuranceLevel();if(aalError)throw aalError;
-  if(aal?.currentLevel!=='aal2')fail('MFA_AAL2_REQUIRED');
-  setStatus('تم التحقق. فتح اختبار B الآن…','ok');
+  const result=await client.auth.mfa.challengeAndVerify({factorId:factor.id,code:normalized});
+  if(result.error){
+   // Do not label a server-accepted factor as a bad code merely because the
+   // browser failed to persist the promoted session.
+   const now=await assurance(client).catch(()=>null);
+   if(now?.currentLevel!=='aal2')throw result.error;
+  }
+  await confirmAal2(client);
+  setStatus('تم التحقق وتأكيد جلسة AAL2. فتح اختبار B الآن…','ok');
   location.replace('/qa-b.html?run=1');
  }catch(error){
   const raw=String(error?.message||'MFA_REAUTH_FAILED');
   const text=raw.includes('MFA_ENROLLMENT_INCOMPLETE')
-   ?'عامل المصادقة الحالي غير مكتمل الربط. لا تكرر إدخال الرمز الآن؛ أكمل ربط تطبيق المصادقة من صفحة الأمان أولًا، ثم ارجع إلى هذا الاختبار.'
+   ?'عامل المصادقة الحالي غير مكتمل الربط. لا تكرر إدخال الرمز الآن؛ أكمل ربط تطبيق المصادقة من صفحة الأمان أولًا.'
    :raw.includes('MFA_FACTOR_REQUIRED')
-    ?'لا يوجد عامل مصادقة موثق لهذا الحساب. أكمل إضافة تطبيق المصادقة من صفحة الأمان أولًا.'
-    :/Invalid TOTP|Token has expired|invalid.*code|otp/i.test(raw)
-     ?'الرمز لا يطابق عامل المصادقة الموثق أو انتهت صلاحيته. استخدم الرمز الحالي فقط، وتأكد أن ضبط الوقت في الجهاز تلقائي.'
-     :'تعذر إعادة التحقق. حدّث الصفحة وتأكد أنك مسجل الدخول ثم حاول مرة أخرى.';
+    ?'لا يوجد عامل مصادقة موثق لهذا الحساب.'
+    :raw.includes('MFA_VERIFIED_SESSION_REFRESH_REQUIRED')
+     ?'عامل المصادقة موثق، لكن جلسة المتصفح لم تُرقَّ إلى AAL2. لم يُرفض الرمز؛ يلزم تجديد جلسة الدخول قبل اختبار B.'
+     :/Invalid TOTP|Token has expired|invalid.*code|otp/i.test(raw)
+      ?'الرمز لا يطابق العامل الموثق أو انتهت صلاحيته. استخدم الرمز الحالي فقط وتأكد أن ضبط الوقت تلقائي.'
+      :'تعذر إعادة التحقق. حدّث الصفحة وتأكد أنك مسجل الدخول ثم حاول مرة أخرى.';
   setStatus(text,'bad');
   submit.disabled=false;code.disabled=false;code.value='';code.focus();
  }
