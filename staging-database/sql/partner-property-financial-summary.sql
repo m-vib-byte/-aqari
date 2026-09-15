@@ -41,7 +41,7 @@ begin
   return jsonb_build_object('user_id',auth.uid(),'workspace_id',w,'property_id',p_property_id,
    'period',month_start,'currency','KWD','available',false,'reason','FUTURE_MONTH');
  end if;
- month_end:=(month_start+interval '1 month-1 day')::date;
+ month_end:=(month_start+interval '1 month' - interval '1 day')::date;
  as_of:=least(month_end,today_kw);
  year_start:=date_trunc('year',month_start)::date;
 
