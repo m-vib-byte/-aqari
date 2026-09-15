@@ -11,7 +11,8 @@ test('protected daily source exposes only bounded payment display details',()=>{
  const current=read('v202-property-os.js');
  const patched=patchDailyPaymentDetails(current);
  assert.ok(patched.includes(PAYMENT_DETAIL_MARKER));
- for(const field of ['receiptNo','method','transactionNo','knetTransactionNo','paymentProvider','reference','paidAt','status','amount'])assert.match(patched,new RegExp(field));
+ for(const field of ['receiptNo','unit','tenant','contract','method','transactionNo','knetTransactionNo','paymentProvider','reference','paidAt','status','amount'])assert.match(patched,new RegExp(field));
+ assert.match(patched,/contractNo\)\|\|referenceText\(entry\.contract_no\)\|\|referenceText\(entry\.contractId\)\|\|referenceText\(entry\.contract_id\)/);
  assert.match(patched,/knetTransactionNo\|\|transactionNo\|\|receiptNo/);
  assert.doesNotMatch(read('src/v267/support/payment-detail-patch.js'),/password|access_token|refresh_token/i);
  new Function(patched);
@@ -51,7 +52,10 @@ test('collection UI clearly distinguishes KNET cash cheque and other electronic 
  assert.match(patched,/دفع إلكتروني — تحويل بنكي/);
  assert.match(patched,/دفع إلكتروني — '\+raw/);
  assert.match(patched,/paymentMethodView\(payment\.method,payment\.paymentProvider\)/);
- for(const label of ['المرجع: ','البنك/المزوّد: ','التاريخ: ','الوقت: ','الحالة: ','رقم الوصل: '])assert.ok(patched.includes(label),label);
+ for(const label of ['الوحدة: ','المستأجر: ','العقد: ','المرجع: ','البنك/المزوّد: ','التاريخ: ','الوقت: ','الحالة: ','رقم الوصل: '])assert.ok(patched.includes(label),label);
+ assert.match(patched,/esc\(payment\.unit\|\|'غير مسجل'\)/);
+ assert.match(patched,/esc\(payment\.tenant\|\|'غير مسجل'\)/);
+ assert.match(patched,/esc\(payment\.contract\|\|'غير مسجل'\)/);
  assert.match(patched,/payment\.status\|\|'غير مسجل'/);
  assert.match(patched,/return 'غير مسجل'/);
 });
