@@ -24,36 +24,37 @@ export function openSecurityCenter(){
  const auth=()=>d.session.client.auth.mfa;
  function clearEnrollment(){factorId=null;secret=null;if(qr){qr.removeAttribute('src');qr.remove();qr=null;}}
  function factorList(listed){return [...(listed?.totp||[]),...(listed?.phone||[])];}
- async function assurance(){
-  const data=result(await auth().getAuthenticatorAssuranceLevel());
+ async function assurance(jwt){
+  const data=result(await auth().getAuthenticatorAssuranceLevel(jwt));
   if(!data||!['aal1','aal2'].includes(data.currentLevel)||!['aal1','aal2'].includes(data.nextLevel))throw Error('تعذر التحقق من مستوى أمان الجلسة.');
   return data;
  }
- async function confirmAal2(){
-  let level=await assurance();
-  if(level.currentLevel!=='aal2'){
-   const refreshed=await d.session.client.auth.refreshSession();
-   if(refreshed?.error){
-    const error=Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');error.cause=refreshed.error;throw error;
-   }
-   level=await assurance();
-  }
+ async function confirmAal2(verified){
+  // Supabase persists the session returned by MFA verify before challengeAndVerify resolves.
+  // Validate both that exact promoted JWT and the browser-persisted session instead of
+  // immediately rotating the refresh token again with refreshSession().
+  const verifiedToken=String(verified?.access_token||'');
+  const verifiedUser=String(verified?.user?.id||'');
+  if(!verifiedToken||!verifiedUser)throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+  const verifiedLevel=await assurance(verifiedToken);
+  if(verifiedLevel.currentLevel!=='aal2')throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
   const session=result(await d.session.client.auth.getSession())?.session;
-  if(level.currentLevel!=='aal2'||!session?.user?.id){
-   throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
-  }
-  return level;
+  const sessionToken=String(session?.access_token||'');
+  if(!sessionToken||String(session?.user?.id||'')!==verifiedUser)throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+  const storedLevel=await assurance(sessionToken);
+  if(storedLevel.currentLevel!=='aal2')throw Error('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+  return storedLevel;
  }
  async function verifyCode(id,rawCode,{enrolling=false}={}){
   const code=normalizeOtp(rawCode);
   if(!/^\d{6}$/.test(code))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');
   try{
-   result(await auth().challengeAndVerify({factorId:id,code}));
-   await confirmAal2();
+   const verified=result(await auth().challengeAndVerify({factorId:id,code}));
+   await confirmAal2(verified);
    return true;
   }catch(error){
    // A successful server-side TOTP verification can be followed by a browser
-   // session-refresh failure. Never mislabel that state as an invalid TOTP.
+   // session-persistence failure. Never mislabel that state as an invalid TOTP.
    try{
     const level=await assurance();
     if(level.currentLevel==='aal2')return true;
