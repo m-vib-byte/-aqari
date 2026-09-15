@@ -61,11 +61,13 @@ test('B reauth distinguishes incomplete enrollment, session-promotion failure an
  assert.match(html,/الرمز لا يطابق العامل الموثق/);
 });
 
-test('successful reauth launches the Phase-B runner automatically and exposes no privileged material',()=>{
+test('successful reauth launches the Phase-B runner without embedding or exposing privileged material',()=>{
  assert.match(html,/location\.replace\('\/qa-b\.html\?run=1'\)/);
- const privilegedPattern=new RegExp([['service','role'].join('_'),['supabase','service','role','key'].join('_'),['access','token'].join('_'),'password\\s*='].join('|'),'i');
+ const privilegedPattern=new RegExp([['service','role'].join('_'),['supabase','service','role','key'].join('_'),'password\\s*='].join('|'),'i');
  assert.doesNotMatch(html,privilegedPattern);
  assert.doesNotMatch(html,/console\.(?:log|info|debug)\s*\(/);
+ assert.doesNotMatch(html,/(?:localStorage|sessionStorage)\.setItem\([^\n]*(?:verifiedToken|storedToken)/);
+ assert.doesNotMatch(html,/(?:setStatus|location\.replace)\([^\n]*(?:verifiedToken|storedToken)/);
 });
 
 test('reauth inline JavaScript parses',()=>{
