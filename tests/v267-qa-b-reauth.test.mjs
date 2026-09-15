@@ -23,6 +23,15 @@ test('B reauth requires a verified MFA factor and current six-digit challenge',(
  assert.match(html,/MFA_AAL2_REQUIRED/);
 });
 
+test('B reauth distinguishes incomplete enrollment from an invalid code',()=>{
+ assert.match(html,/item\.status==='unverified'/);
+ assert.match(html,/MFA_ENROLLMENT_INCOMPLETE/);
+ assert.match(html,/عامل المصادقة الحالي غير مكتمل الربط/);
+ assert.match(html,/لا تكرر إدخال الرمز الآن/);
+ assert.match(html,/MFA_FACTOR_REQUIRED/);
+ assert.match(html,/الرمز لا يطابق عامل المصادقة الموثق/);
+});
+
 test('successful reauth launches the Phase-B runner automatically and exposes no secrets',()=>{
  assert.match(html,/location\.replace\('\/qa-b\.html\?run=1'\)/);
  assert.doesNotMatch(html,/service_role|SUPABASE_SERVICE_ROLE_KEY|password\s*=|access_token\s*=/i);
