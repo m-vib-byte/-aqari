@@ -14,7 +14,9 @@ const requiredFiles = [
   '.env.example',
   'staging-database/sql/official-commercial-statement-20260915.sql',
   'src/v267/components/official-extra-forms.js',
-  'src/v267/support/official-exit-notice-patch.js'
+  'src/v267/support/official-exit-notice-patch.js',
+  'staging-database/supabase/migrations/20260915094500_v267_official_exit_notice_source.sql',
+  'staging-database/supabase/migrations/20260915094600_v267_official_exit_notice_context.sql'
 ];
 
 let failed = false;
@@ -46,6 +48,14 @@ if (commercialStatement.includes('DOCUMENT_COMMERCIAL_RECONCILIATION_REQUIRED'))
 const officialCenter=fs.readFileSync('src/v267/pages/official-document-center.js','utf8');
 for(const marker of ['AQARI_V267_EXIT_NOTICE_FORM','EXTRA_OFFICIAL_FORM_TEMPLATES','renderExtraOfficialForm']){
   if(!officialCenter.includes(marker)){console.error(`Official exit notice overlay missing: ${marker}`);failed=true;}
+}
+const exitSource=fs.readFileSync('staging-database/supabase/migrations/20260915094500_v267_official_exit_notice_source.sql','utf8');
+const exitContext=fs.readFileSync('staging-database/supabase/migrations/20260915094600_v267_official_exit_notice_context.sql','utf8');
+for(const marker of ["k='exit_notice'",'DOCUMENT_VACATING_RECORD_REQUIRED','aqari_vacating_settlements','vacateDate']){
+  if(!exitSource.includes(marker)){console.error(`Official exit notice source missing: ${marker}`);failed=true;}
+}
+for(const marker of ["p_kind<>'exit_notice'",'source_required',"'entity_type','lease'",'aqari_official_source']){
+  if(!exitContext.includes(marker)){console.error(`Official exit notice context missing: ${marker}`);failed=true;}
 }
 
 if (failed) process.exit(1);
