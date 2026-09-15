@@ -11,11 +11,22 @@ test('protected daily source exposes only bounded payment display details',()=>{
  const current=read('v202-property-os.js');
  const patched=patchDailyPaymentDetails(current);
  assert.ok(patched.includes(PAYMENT_DETAIL_MARKER));
- for(const field of ['receiptNo','method','transactionNo','knetTransactionNo','reference','paidAt','status','amount'])assert.match(patched,new RegExp(field));
+ for(const field of ['receiptNo','method','transactionNo','knetTransactionNo','paymentProvider','reference','paidAt','status','amount'])assert.match(patched,new RegExp(field));
  assert.match(patched,/knetTransactionNo\|\|transactionNo\|\|receiptNo/);
  assert.doesNotMatch(read('src/v267/support/payment-detail-patch.js'),/password|access_token|refresh_token/i);
  new Function(patched);
  assert.equal(patchDailyPaymentDetails(patched),patched);
+});
+
+test('collection entry captures bank or provider when the method requires it',()=>{
+ const patched=patchDailyPaymentDetails(read('v202-property-os.js'));
+ assert.match(patched,/id="v267PaymentProvider"/);
+ assert.match(patched,/providerRequired=method==='تحويل بنكي'\|\|method==='شيك'\|\|method==='أخرى'/);
+ assert.match(patched,/if\(isKnet&&!paymentProvider\)paymentProvider='KNET'/);
+ assert.match(patched,/if\(isCash\)paymentProvider=''/);
+ assert.match(patched,/أدخل اسم البنك أو مزوّد الدفع لهذه الوسيلة/);
+ assert.match(patched,/method,transactionNo,paymentProvider,accountant/);
+ assert.match(patched,/rentLedgerV202:\[[^\]]*'paymentProvider'/);
 });
 
 test('today payments patch extends the current protected daily command center',()=>{
@@ -34,11 +45,12 @@ test('today payments patch extends the current protected daily command center',(
 
 test('collection UI clearly distinguishes KNET cash cheque and other electronic payment methods',()=>{
  const patched=patchTodayPayments(read('v210-daily-command-center.js'));
- assert.match(patched,/label:'KNET',provider:'KNET'/);
+ assert.match(patched,/label:'KNET',provider:provider\|\|'KNET'/);
  assert.match(patched,/label:'كاش',provider:'لا ينطبق'/);
- assert.match(patched,/label:'شيك',provider:'البنك غير مسجل'/);
+ assert.match(patched,/label:'شيك',provider:provider\|\|'البنك غير مسجل'/);
  assert.match(patched,/دفع إلكتروني — تحويل بنكي/);
  assert.match(patched,/دفع إلكتروني — '\+raw/);
+ assert.match(patched,/paymentMethodView\(payment\.method,payment\.paymentProvider\)/);
  for(const label of ['المرجع: ','البنك/المزوّد: ','التاريخ: ','الوقت: ','الحالة: ','رقم الوصل: '])assert.ok(patched.includes(label),label);
  assert.match(patched,/payment\.status\|\|'غير مسجل'/);
  assert.match(patched,/return 'غير مسجل'/);
