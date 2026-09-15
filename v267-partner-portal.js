@@ -19,6 +19,20 @@ $('partnerLanguage').onchange=()=>{setLocale($('partnerLanguage').value);languag
 const now=new Date();$('partnerMonth').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 async function bounded(work){let timer;try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('AUTH_TIMEOUT')),20000);})]);}finally{clearTimeout(timer);}}
 async function run(task){if(busy)return;const ticket=++operation;controls(true);notice('جارٍ الاتصال…');try{await task(ticket);}catch(error){if(ticket===operation){$('partnerSummary').replaceChildren();const anonymous=error?.message==='PARTNER_SIGN_IN_REQUIRED';$('partnerLogout').hidden=anonymous;notice(anonymous?'أدخل البريد وكلمة المرور للدخول إلى حساب الشريك.':'تعذر إكمال العملية. تحقق من تأكيد بريدك وصلاحية العقار ثم أعد المحاولة.');}}finally{if(ticket===operation)controls(false);}}
+function ownerFieldValue(row){
+ const empty='—',value=row?.value;if(value===null||value===undefined||value==='')return empty;
+ if(row.type==='boolean')return value?'نعم':'لا';
+ if(row.type==='document')return value?'مستند مؤرشف مرتبط':empty;
+ if(row.type==='money')return Number(value).toFixed(3)+' د.ك';
+ if(row.type==='percentage')return Number(value).toFixed(3).replace(/\.0+$/,'').replace(/(\.\d*?)0+$/,'$1')+'%';
+ return String(value);
+}
+function ownerFieldsView(data){
+ const items=Array.isArray(data?.items)?data.items:[];if(!items.length)return null;
+ const section=document.createElement('section'),heading=document.createElement('h3'),list=document.createElement('dl');heading.textContent='بيانات العقار المخصصة';section.append(heading);
+ for(const row of items){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=[row.label_ar,row.label_en].filter(Boolean).join(' / ');dd.textContent=ownerFieldValue(row);list.append(dt,dd);}
+ section.append(list);return section;
+}
 async function detail(ticket){
  $('partnerSummary').replaceChildren();const property=properties.find(p=>p.id===$('partnerProperty').value),month=$('partnerMonth').value;
  if(!property||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('INVALID_SELECTION');
@@ -27,10 +41,11 @@ async function detail(ticket){
  try{distributions=await session.read({propertyId:property.id,workspaceId:property.workspace_id,month:month+'-01',kind:'distributions'});}
  catch(error){if(error?.message!=='PARTNER_DISTRIBUTIONS_UNAVAILABLE')throw error;}
  if(ticket!==operation)return;
+ const ownerFields=await session.read({propertyId:property.id,workspaceId:property.workspace_id,kind:'owner_fields'});if(ticket!==operation)return;
  bindLocale({user:data.user_id,workspace:data.workspace_id});language();
  const heading=document.createElement('h2');heading.textContent=data.name;const list=document.createElement('dl');
  for(const [label,value]of [['عدد الوحدات',data.unit_count],['عقود مسودة',data.draft_leases],['عدد الوصول المسجلة',data.receipt_count],['المقبوضات المسجلة — د.ك',Number(data.recorded_receipts).toFixed(3)]]){const dd=document.createElement('dd');dd.textContent=String(value);list.append(uiText('dt',label),dd);}
- $('partnerSummary').append(heading,list,partnerDistributionView(distributions));notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');
+ const ownerView=ownerFieldsView(ownerFields);$('partnerSummary').append(heading,list,partnerDistributionView(distributions));if(ownerView)$('partnerSummary').append(ownerView);notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');
 }
 async function load(ticket){
  if(recoveryCallback||accountRecovery?.active)return;

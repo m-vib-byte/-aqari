@@ -26,6 +26,7 @@ execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inh
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-owner-visible-property-fields.test.mjs','tests/v267-partner-session.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs','tests/v267-bank-reconciliation.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
