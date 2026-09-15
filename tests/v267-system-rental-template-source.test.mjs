@@ -48,9 +48,12 @@ test('trial contract creation exposes exactly apartment house and shop while pre
  assert.match(ui,/يمكن تعديل صياغة كل نوع من داخل المنصة/);
 });
 
-test('database guards reject new fourth-kind templates and contracts without rewriting historical rows',()=>{
+test('database guards reject new fourth-kind templates, drafts and contracts without rewriting historical rows',()=>{
  assert.match(threeKindGuard,/new\.kind not in \('apartment','house','shop'\)/);
  assert.match(threeKindGuard,/NEW_TRIAL_TEMPLATE_KIND_MUST_BE_APARTMENT_HOUSE_OR_SHOP/);
+ assert.match(threeKindGuard,/new\.template_key='commercial_investment'/);
+ assert.match(threeKindGuard,/COMMERCIAL_INVESTMENT_RENTAL_DRAFT_HISTORICAL_READ_ONLY/);
+ assert.match(threeKindGuard,/before insert or update on public\.aqari_contract_template_drafts/);
  assert.match(threeKindGuard,/coalesce\(c->>'contractKind',''\) not in \('apartment','house','shop'\)/);
  assert.match(threeKindGuard,/coalesce\(c#>>'\{contractTemplate,kind\}',''\) not in \('apartment','house','shop'\)/);
  assert.match(threeKindGuard,/NEW_TRIAL_CONTRACT_KIND_MUST_BE_APARTMENT_HOUSE_OR_SHOP/);
