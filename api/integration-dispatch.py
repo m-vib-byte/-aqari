@@ -4,6 +4,7 @@ from pathlib import Path
 import hmac,json,os,sys
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from lib.integration_dispatch import dispatch_once
+from lib.knet_dispatch import dispatch_knet_once
 
 class handler(BaseHTTPRequestHandler):
     def log_message(self,*args):pass
@@ -15,8 +16,8 @@ class handler(BaseHTTPRequestHandler):
         if not secret or len(secret)>8192 or not hmac.compare_digest(auth,'Bearer '+secret):
             self._reply(401,{'ok':False});return
         try:
-            result=dispatch_once(5)
-            self._reply(200,{'ok':True,**result})
+            result=dispatch_once(5);knet=dispatch_knet_once(1)
+            self._reply(200,{'ok':True,**result,**knet})
         except RuntimeError as exc:
             self._reply(503,{'ok':False,'error':str(exc)[:120]})
         except Exception:
