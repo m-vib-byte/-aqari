@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {partnerPropertyFinanceCsv} from '../src/v267/components/partner-property-finance-view.js';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const sql=read('staging-database/sql/partner-property-financial-summary.sql');
@@ -44,6 +45,26 @@ test('partner portal renders aggregate finance through safe text nodes',()=>{
  assert.doesNotMatch(view,/innerHTML|insertAdjacentHTML|document\.write/);
  assert.match(view,/الملخص المالي للعقار/);
  assert.match(view,/لا يُعتمد الصافي كقيمة نهائية/);
+});
+
+test('authorized partner finance CSV exports only the visible aggregate scope',()=>{
+ const data={
+  available:true,currency:'KWD',complete:true,period:'2026-09-01',arrears_fils:'1500',warning:'',
+  month:{income_fils:'100000',expected_income_fils:'120000',expenses_fils:'25000',net_fils:'75000',collection_variance_fils:'-20000'},
+  year:{income_fils:'800000',expected_income_fils:'900000',expenses_fils:'200000',net_fils:'600000',collection_variance_fils:'-100000'}
+ };
+ const csv=partnerPropertyFinanceCsv(data,{propertyName:'=HYPERLINK("bad")',period:'2026-09'});
+ assert.match(csv,/AQARI|العقار|الفترة|تحصيل الشهر|صافي السنة حتى الفترة/);
+ assert.match(csv,/"'=HYPERLINK\(""bad""\)"/);
+ assert.doesNotMatch(csv,/tenant|receipt_id|partner_email|payroll|utility|user_id/i);
+ assert.throws(()=>partnerPropertyFinanceCsv(data,{propertyName:'X',period:'2026-08'}),/PARTNER_FINANCE_EXPORT_SCOPE_MISMATCH/);
+});
+
+test('partner finance export is surfaced only from authorized finance data',()=>{
+ assert.match(view,/dataset\.aqariPartnerFinanceExport/);
+ assert.match(view,/partnerPropertyFinanceCsv\(data,context\)/);
+ assert.match(view,/التصدير يحتوي هذه المجاميع فقط/);
+ assert.match(read('scripts/install-v267-partner-property-finance.mjs'),/propertyName:property\.name,period:month/);
 });
 
 test('partner finance support JavaScript parses',()=>{
