@@ -20,8 +20,27 @@ test('B reauth requires a verified MFA factor and uses atomic current-code verif
  assert.doesNotMatch(html,/client\.auth\.mfa\.challenge\(/);
  assert.doesNotMatch(html,/client\.auth\.mfa\.verify\(/);
  assert.match(html,/currentLevel!=='aal2'/);
- assert.match(html,/client\.auth\.refreshSession\(\)/);
  assert.match(html,/MFA_VERIFIED_SESSION_REFRESH_REQUIRED/);
+});
+
+test('B reauth validates the exact promoted JWT and persisted AAL2 session without refresh-token rotation',()=>{
+ assert.match(html,/async function assurance\(client,jwt\)/);
+ assert.match(html,/getAuthenticatorAssuranceLevel\(jwt\)/);
+ assert.match(html,/async function confirmAal2\(client,verified\)/);
+ assert.match(html,/const verifiedToken=String\(verified\?\.access_token\|\|''\)/);
+ assert.match(html,/const verifiedUser=String\(verified\?\.user\?\.id\|\|''\)/);
+ assert.match(html,/assurance\(client,verifiedToken\)/);
+ assert.match(html,/String\(stored\?\.user\?\.id\|\|''\)!==verifiedUser/);
+ assert.match(html,/assurance\(client,storedToken\)/);
+ assert.match(html,/confirmAal2\(client,verification\.data\)/);
+ assert.doesNotMatch(html,/\.refreshSession\(\)/);
+});
+
+test('B reauth recovers only from an already persisted AAL2 session after a client-side verification error',()=>{
+ assert.match(html,/if\(verification\.error\)/);
+ assert.match(html,/const now=await assurance\(client\)\.catch\(\(\)=>null\)/);
+ assert.match(html,/if\(now\?\.currentLevel!=='aal2'\)throw verification\.error/);
+ assert.match(html,/await confirmAal2\(client,recovered\.data\?\.session\)/);
 });
 
 test('B reauth normalizes Arabic and Persian digits before sending the OTP',()=>{
