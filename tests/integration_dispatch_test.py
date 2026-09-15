@@ -52,7 +52,7 @@ class IntegrationDispatchTest(unittest.TestCase):
    self.assertEqual(payload['p_workspace_id'],source['workspaceId']);self.assertEqual(payload['p_payment_id'],source['paymentId'])
    raw=base64.b64decode(payload['p_pdf_base64']);self.assertTrue(raw.startswith(b'%PDF-'));self.assertEqual(hashlib.sha256(raw).hexdigest(),payload['p_pdf_sha256'])
    return {'archived':True,'receiptNo':'AQ-R-1','pdfSha256':payload['p_pdf_sha256'],'snapshotSha256':source['snapshotSha256']}
-  prepared=_ensure_receipt_attachment(item,{},db)
+  prepared=_ensure_receipt_attachment(item,{},db,lambda saved:PDF)
   self.assertNotIn('receiptSource',prepared);self.assertEqual(prepared['attachment']['content_type'],'application/pdf');self.assertEqual(len(calls),1)
 
  def test_dispatch_records_success_with_same_claim_identity(self):
