@@ -18,9 +18,9 @@ test('new payment provider guard preserves history and remains insert-only',()=>
   assert.match(sql,/أدخل اسم البنك أو مزوّد الدفع من 2 إلى 120 حرفاً/);
   assert.match(sql,/provider !~ U&/);
   assert.match(sql,/lower\(btrim\(provider\)\) in \('—','-','–','n\/a','na','none','null','undefined','غير مسجل','لا يوجد'\)/);
+  assert.match(sql,/create trigger aqari_payment_method_reference_guard\s+after insert on public\.aqari_rent_payments/);
+  assert.doesNotMatch(sql,/after insert or update|before insert or update/i);
  }
- assert.doesNotMatch(migration,/after insert or update|before insert or update/i);
- assert.match(mirror,/create trigger aqari_payment_method_reference_guard after insert on public\.aqari_rent_payments/);
 });
 
 test('collection overlay persists provider inside the protected ledger payload',()=>{
