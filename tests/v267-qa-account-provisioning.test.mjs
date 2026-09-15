@@ -3,7 +3,8 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const registry=read('staging-database/supabase/migrations/20260915115500_v267_qa_account_registry.sql');
 const manager=read('staging-database/supabase/migrations/20260915115600_v267_qa_account_manager_rpc.sql');
 const binding=read('staging-database/supabase/migrations/20260915115700_v267_qa_account_auth_binding.sql');
-const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),expiry=read('api/qa-expire.py');
+const dbExpiry=read('staging-database/supabase/migrations/20260915115800_v267_qa_account_db_expiry.sql');
+const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),expiry=read('api/qa-expire.py'),vercel=JSON.parse(read('vercel.json'));
 
 test('temporary QA registry is private audited expiring and excludes temporary general-manager',()=>{
  assert.match(registry,/private\.aqari_qa_accounts/);assert.match(registry,/private\.aqari_qa_account_events/);assert.match(registry,/expires_at/);assert.match(registry,/aqari_qa_events_immutable/);
@@ -17,9 +18,14 @@ test('manager preparation is staging-only MFA guarded and limited to named QA pr
  assert.match(manager,/QA_AUTH_EMAIL_ALREADY_EXISTS/);assert.match(manager,/QA_TENANT_IDENTITY_MISMATCH/);assert.doesNotMatch(manager,/insert into auth\.users/i);
 });
 
-test('Auth binding reuses existing staff partner and tenant identity paths then revokes app access before ban',()=>{
+test('Auth binding reuses existing staff partner and tenant identity paths without direct auth inserts',()=>{
  assert.match(binding,/zzz_aqari_qa_auth_bound/);assert.match(binding,/QA_MEMBERSHIP_BIND_FAILED/);assert.match(binding,/QA_PARTNER_BIND_FAILED/);assert.match(binding,/QA_TENANT_BIND_FAILED/);
- assert.match(binding,/current_setting\('role',true\) is distinct from 'service_role'/);assert.match(binding,/aqari_qa_expire_accounts/);assert.match(binding,/status='expired'/);assert.doesNotMatch(binding,/insert into auth\.users/i);
+ assert.match(binding,/current_setting\('role',true\) is distinct from 'service_role'/);assert.match(binding,/aqari_qa_expire_accounts/);assert.doesNotMatch(binding,/insert into auth\.users/i);
+});
+
+test('expired QA application access is revoked by Staging pg_cron, never by a Vercel production cron',()=>{
+ assert.match(dbExpiry,/private\.aqari_qa_revoke_expired/);assert.match(dbExpiry,/cron\.schedule\('aqari-v267-qa-expiry','\*\/5 \* \* \* \*'/);assert.match(dbExpiry,/update public\.aqari_memberships set is_active=false/);assert.match(dbExpiry,/update public\.aqari_portal_accounts set is_active=false/);
+ assert.equal(vercel.crons.some(row=>row.path==='/api/qa-expire'),false);assert.equal(vercel.crons.some(row=>row.path==='/api/integration-dispatch'),true);
 });
 
 test('server worker uses official Auth Admin create and ban with exact preview/staging fail-closed guards',()=>{
