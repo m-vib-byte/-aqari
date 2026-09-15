@@ -1,3 +1,4 @@
+import './install-v267-property-master-name-resolver.mjs';
 import {readFileSync,writeFileSync} from 'node:fs';
 
 const path=new URL('../src/v267/pages/property-hub.js',import.meta.url);
