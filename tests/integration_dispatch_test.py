@@ -1,7 +1,7 @@
 import base64,hashlib,json,unittest
 from pathlib import Path
 from lib.outbound_adapters import notification_request,encoded_body
-from lib.integration_dispatch import dispatch_once,_provider_request
+from lib.integration_dispatch import dispatch_once,_provider_request,_ensure_receipt_attachment
 
 ROOT=Path(__file__).resolve().parents[1]
 PDF=b'%PDF-1.4\n% synthetic integration receipt\n%%EOF\n'
@@ -11,6 +11,12 @@ EVENT={
  'eventType':'collection.receipt','idempotencyKey':'collection:receipt:11111111-1111-4111-8111-111111111111','attempt':1,
  'provider':'email','mode':'sandbox','endpointOrigin':'https://provider.example.invalid','secretReference':'AQARI_TEST_PROVIDER_SECRET',
  'channel':'email','recipientReference':'tenant@example.invalid','template':'collection_receipt','variables':{'amount':'10.000','receiptReference':'AQ-R-1'},'locale':'ar','attachment':ATTACHMENT
+}
+RECEIPT={
+ 'id':'AQ-R-1','template':'rent-voucher-v267-1','brand':{'ar':'عقار اختبار'},
+ 'record':['AQ-R-1','مستأجر اختبار',10,'مدفوع','عقار اختبار','2026-09-15','1','دفعة اختبار','2026-09','نقدي'],
+ 'contract':{'id':'lease-external-1','contract_no':'AQ-C-2026-000001','status':'signed','tenant':'مستأجر اختبار','property':'عقار اختبار','unit':'1','start_date':'2026-09-01','end_date':'2027-08-31'},
+ 'accountant':'اختبار'
 }
 
 class IntegrationDispatchTest(unittest.TestCase):
@@ -36,6 +42,19 @@ class IntegrationDispatchTest(unittest.TestCase):
   self.assertEqual(spec['headers']['Idempotency-Key'],EVENT['idempotencyKey'])
   with self.assertRaisesRegex(RuntimeError,'PROVIDER_SECRET_NOT_CONFIGURED'):_provider_request(EVENT,{})
 
+ def test_missing_receipt_pdf_is_rendered_archived_and_attached_before_send(self):
+  source={'workspaceId':EVENT['workspaceId'],'paymentId':'33333333-3333-4333-8333-333333333333','receiptNo':'AQ-R-1','snapshotSha256':'1'*64,'receipt':RECEIPT}
+  item={**EVENT,'attachment':None,'receiptSource':source}
+  calls=[]
+  def db(name,payload,env):
+   calls.append((name,payload))
+   self.assertEqual(name,'aqari_rent_receipt_pdf_auto_commit')
+   self.assertEqual(payload['p_workspace_id'],source['workspaceId']);self.assertEqual(payload['p_payment_id'],source['paymentId'])
+   raw=base64.b64decode(payload['p_pdf_base64']);self.assertTrue(raw.startswith(b'%PDF-'));self.assertEqual(hashlib.sha256(raw).hexdigest(),payload['p_pdf_sha256'])
+   return {'archived':True,'receiptNo':'AQ-R-1','pdfSha256':payload['p_pdf_sha256'],'snapshotSha256':source['snapshotSha256']}
+  prepared=_ensure_receipt_attachment(item,{},db)
+  self.assertNotIn('receiptSource',prepared);self.assertEqual(prepared['attachment']['content_type'],'application/pdf');self.assertEqual(len(calls),1)
+
  def test_dispatch_records_success_with_same_claim_identity(self):
   calls=[]
   def db(name,payload,env):
@@ -56,22 +75,20 @@ class IntegrationDispatchTest(unittest.TestCase):
     result=dispatch_once(1,{},db,lambda item,env:(False,retryable,'','PROVIDER_HTTP_503' if retryable else 'PROVIDER_HTTP_400'))
     self.assertEqual(result['failed'],1 if retryable else 0);self.assertEqual(result['deadLetter'],0 if retryable else 1)
 
- def test_database_contract_is_service_only_crash_safe_and_immutable(self):
+ def test_database_contract_is_service_only_crash_safe_immutable_and_auto_archives_receipt(self):
   sql=(ROOT/'staging-database/sql/integration-outbox-dispatch-20260915.sql').read_text()
+  auto=(ROOT/'staging-database/sql/integration-receipt-auto-archive-20260915.sql').read_text()
   self.assertIn("current_setting('role',true) is distinct from 'service_role'",sql)
-  self.assertIn('for update skip locked',sql)
-  self.assertIn("status='sending'",sql)
-  self.assertIn('DELIVERY_LEASE_EXPIRED',sql)
-  self.assertIn('aqari_integration_delivery_events_immutable',sql)
-  self.assertIn('aqari_rent_receipt_pdf_artifacts',sql)
-  self.assertIn("when 'collection.receipt' then 'collection_receipt'",sql)
-  self.assertIn("r.event_type in('collection.receipt','collection.owner_whatsapp_summary')",sql)
+  self.assertIn('for update skip locked',sql);self.assertIn("status='sending'",sql);self.assertIn('DELIVERY_LEASE_EXPIRED',sql)
+  self.assertIn('aqari_integration_delivery_events_immutable',sql);self.assertIn("when 'collection.receipt' then 'collection_receipt'",sql)
+  self.assertIn('aqari_rent_receipt_pdf_system_source',auto);self.assertIn('aqari_rent_receipt_pdf_auto_commit',auto)
+  self.assertIn("archive_actor_kind='system'",auto);self.assertIn('aqari_rent_receipt_pdf_automation_immutable',auto);self.assertIn("'receiptSource'",auto)
+  self.assertNotIn("'system'::uuid",auto)
 
  def test_cron_route_is_declared_and_requires_cron_secret(self):
   config=json.loads((ROOT/'vercel.json').read_text())
   self.assertIn({'path':'/api/integration-dispatch','schedule':'*/5 * * * *'},config['crons'])
   api=(ROOT/'api/integration-dispatch.py').read_text()
-  self.assertIn("os.environ.get('CRON_SECRET'",api)
-  self.assertIn("hmac.compare_digest(auth,'Bearer '+secret)",api)
+  self.assertIn("os.environ.get('CRON_SECRET'",api);self.assertIn("hmac.compare_digest(auth,'Bearer '+secret)",api)
 
 if __name__=='__main__':unittest.main()
