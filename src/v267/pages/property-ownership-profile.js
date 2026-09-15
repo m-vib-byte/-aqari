@@ -11,6 +11,7 @@ export function openPropertyOwnershipProfile(propertyId){
  async function render(){
   await load();d.body.replaceChildren();
   d.body.append(node('p','النسب والصفات تأتي من Property Master كمصدر واحد. هذه الشاشة تحفظ المساحة الرسمية والمستند المؤيد لكل مالك أو وارث، والمساحة المقابلة لكل حصة تُحسب خادميًا من النسبة.'));
+  d.body.append(node('p',`Revision الملكية: ${Number(state.revision||0)}`));
   const form=node('form'),official=input('text',state.officialAreaSqm??''),reason=node('textarea');official.inputMode='decimal';official.required=true;reason.required=true;reason.minLength=3;reason.value=Number(state.revision||0)?'تحديث مساحة وملكية العقار':'تسجيل المساحة الرسمية وملكية العقار';form.append(field('إجمالي المساحة الرسمية م²',official));
   const rows=[];for(const owner of state.owners||[]){const box=node('fieldset'),doc=select([['','اختر مستندًا مؤيدًا'],...(state.documents||[]).map(x=>[x.id,`${x.documentNo} · ${x.title}`])],owner.documentId||'');doc.required=true;box.append(node('strong',`${owner.role||'مالك'} · ${owner.name}`),node('p',`النسبة ${(Number(owner.bps||0)/100).toFixed(2)}% · المساحة الحالية ${owner.areaSqm==null?'غير محفوظة':money(owner.areaSqm)+' م²'}`),field('المستند المؤيد — إلزامي',doc));form.append(box);rows.push({owner,doc});}
   if(!rows.length)form.append(node('p','لا توجد حصص ملاك محفوظة في ملف العقار. أضف الملاك ونسبهم أولًا.'));
