@@ -7,15 +7,9 @@ import {productionPatch} from './prepare-v267-production.mjs';
 if(process.env.VERCEL_ENV==='production'){
   const candidate=String(process.env.VERCEL_GIT_COMMIT_SHA||'').trim().toLowerCase();
   if(!/^[0-9a-f]{40}$/.test(candidate))throw Error('EXACT_PRODUCTION_CANDIDATE_SHA_REQUIRED');
-  execFileSync(process.execPath,['scripts/v267-owner-production-approval.mjs','--candidate-sha',candidate],{
-    stdio:'inherit',env:{...process.env,V267_CANDIDATE_SHA:candidate}
-  });
-  const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
-  if(trial?.enabled===true)throw Error('DOMAIN_TRIAL_DISABLED_BY_OWNER_GOVERNANCE');
-  const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));
-  const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);
-  for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);
-  console.log('Prepared V267 Production only after exact-SHA owner approval validation.');
+  execFileSync(process.execPath,['scripts/v267-owner-production-approval.mjs','--candidate-sha',candidate],{stdio:'inherit',env:{...process.env,V267_CANDIDATE_SHA:candidate}});
+  const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));if(trial?.enabled===true)throw Error('DOMAIN_TRIAL_DISABLED_BY_OWNER_GOVERNANCE');
+  const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 Production only after exact-SHA owner approval validation.');
 }
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
@@ -43,7 +37,7 @@ execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'
 execFileSync(process.execPath,['--test','tests/v267-partner-current-authorization.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
-execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test','tests.integration_dispatch_test','tests.knet_dispatch_test'],{stdio:'inherit'});
+execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test','tests.integration_dispatch_test','tests.knet_dispatch_test','tests.provider_webhook_test'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs','tests/v267-payment-cycle-prepaid.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-collection-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
