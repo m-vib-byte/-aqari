@@ -5,7 +5,9 @@
 begin;
 create or replace function private.aqari_payment_method_reference_guard()
 returns trigger language plpgsql security invoker set search_path='' as $$
-declare ref text:=new.record->>'transactionNo';
+declare
+ ref text:=new.record->>'transactionNo';
+ provider text:=new.record->>'paymentProvider';
 begin
  if new.payment_method is null or new.payment_method not in
   ('كي نت','KNET','knet','تحويل بنكي','bank','نقدي','cash','شيك','cheque','أخرى','other') then
@@ -26,6 +28,26 @@ begin
   or new.receipt->>'transactionNo' is distinct from ref
   or new.receipt#>>'{record,9}' is distinct from new.payment_method then
   raise check_violation using message='طريقة الدفع ومرجع الحركة لا يتطابقان مع الوصل المحفوظ.';
+ end if;
+
+ -- Bank/provider rules are enforced only on new rows. Historical rows remain unchanged.
+ if new.payment_method in ('كي نت','KNET','knet') then
+  if jsonb_typeof(new.record->'paymentProvider') is distinct from 'string'
+   or provider is distinct from 'KNET' then
+   raise check_violation using message='يجب حفظ مزود KNET باسم KNET.';
+  end if;
+ elsif new.payment_method in ('نقدي','cash') then
+  if new.record ? 'paymentProvider' and coalesce(btrim(provider),'')<>'' then
+   raise check_violation using message='الدفع النقدي لا يستخدم بنكاً أو مزود دفع.';
+  end if;
+ else
+  if jsonb_typeof(new.record->'paymentProvider') is distinct from 'string'
+   or length(btrim(provider)) not between 2 and 120 or length(provider)>120
+   or provider !~ U&'[^\0020\00A0\1680\2000-\200A\2028\2029\202F\205F\3000]'
+   or provider ~ '[[:cntrl:]]' or provider ~ U&'[\00AD\061C\180E\200B-\200F\2028-\202E\2060-\206F\FEFF]'
+   or lower(btrim(provider)) in ('—','-','–','n/a','na','none','null','undefined','غير مسجل','لا يوجد') then
+   raise check_violation using message='أدخل اسم البنك أو مزوّد الدفع من 2 إلى 120 حرفاً.';
+  end if;
  end if;
  return new;
 end $$;
