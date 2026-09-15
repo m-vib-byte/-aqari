@@ -5,8 +5,10 @@ const {resolve}=require('node:path');
 const source=readFileSync(resolve(__dirname,'../src/v267/pages/security-center.js'),'utf8');
 
 test('security center implements current Supabase TOTP enrollment flow',()=>{
- for(const method of ['enroll','challenge','verify','listFactors','getAuthenticatorAssuranceLevel','unenroll'])assert.match(source,new RegExp(`\\.${method}\\(`));
+ for(const method of ['enroll','challengeAndVerify','listFactors','getAuthenticatorAssuranceLevel','unenroll'])assert.match(source,new RegExp(`\\.${method}\\(`));
  assert.match(source,/factorType:'totp'/);
+ assert.doesNotMatch(source,/auth\(\)\.challenge\(/);
+ assert.doesNotMatch(source,/auth\(\)\.verify\(/);
 });
 test('sensitive verified factor removal requires an aal2 session',()=>{
  assert.match(source,/current\.currentLevel!=='aal2'/);
@@ -26,11 +28,18 @@ test('fresh TOTP enrollment never reuses the fixed friendly name that can collid
  assert.doesNotMatch(source,/friendlyName:'AQARI V267'/);
  assert.match(source,/factorDisplayName/);
 });
+test('TOTP verification normalizes Arabic and Persian digits and uses atomic challengeAndVerify',()=>{
+ assert.match(source,/function normalizeOtp\(value\)/);
+ assert.match(source,/٠١٢٣٤٥٦٧٨٩/);
+ assert.match(source,/۰۱۲۳۴۵۶۷۸۹/);
+ assert.match(source,/challengeAndVerify\(\{factorId:id,code\}\)/);
+ assert.match(source,/ضبط الوقت في الجهاز تلقائي/);
+});
 test('verified factor re-authentication runs through the dialog session guard',()=>{
  assert.match(source,/verify\.onclick=\(\)=>d\.run\(\(\)=>challenge\(factor\.id\)\)/);
 });
-test('TOTP code is constrained and enrollment secrets are cleared on disposal',()=>{
- assert.ok(source.includes("input.pattern='[0-9]{6}'"));
+test('TOTP input is bounded and enrollment secrets are cleared on disposal',()=>{
+ assert.match(source,/input\.maxLength=12/);
  assert.match(source,/secret=null/);
  assert.match(source,/d\.onDispose/);
  assert.doesNotMatch(source,/localStorage|sessionStorage/);
