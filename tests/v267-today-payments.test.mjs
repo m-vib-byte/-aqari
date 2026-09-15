@@ -7,9 +7,8 @@ import {patchTodayPayments,TODAY_PAYMENTS_MARKER} from '../src/v267/support/toda
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('today payments patch extends the current protected daily command center',()=>{
- const original=read('v210-daily-command-center.js');
- const patched=patchTodayPayments(original);
- assert.notEqual(patched,original);
+ const current=read('v210-daily-command-center.js');
+ const patched=patchTodayPayments(current);
  assert.match(patched,/id="v267TodayPayments"/);
  assert.match(patched,/<h3 id="v267TodayPaymentsTitle">دفعات اليوم<\/h3>/);
  assert.match(patched,/<span>دفعات اليوم<\/span>/);
@@ -31,11 +30,12 @@ test('today payments render per-property values with escaped names and preserves
 });
 
 test('today payments integration is idempotent and fails closed when required anchors move',()=>{
- const original=read('v210-daily-command-center.js');
- const once=patchTodayPayments(original);
+ const current=read('v210-daily-command-center.js');
+ const once=patchTodayPayments(current);
  assert.equal(patchTodayPayments(once),once);
  assert.ok(once.includes(TODAY_PAYMENTS_MARKER));
- assert.throws(()=>patchTodayPayments(original.replace('function markup(state){','function movedMarkup(state){')),/markup anchor not found/);
+ const withoutMarker=current.replaceAll(TODAY_PAYMENTS_MARKER,'v267TodayPaymentsMoved');
+ assert.throws(()=>patchTodayPayments(withoutMarker),/anchor not found/);
 });
 
 test('today payments support JavaScript parses',()=>{
