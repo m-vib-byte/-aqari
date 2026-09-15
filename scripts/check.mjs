@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {verifyDeploymentTarget} from './verify-deployment-target.mjs';
+import './install-v267-official-exit-notice.mjs';
 
 // Run before a Vercel build can publish an artifact with the wrong data source.
 verifyDeploymentTarget();
@@ -11,7 +12,9 @@ const requiredFiles = [
   'api/release.js',
   'api/config-status.js',
   '.env.example',
-  'staging-database/sql/official-commercial-statement-20260915.sql'
+  'staging-database/sql/official-commercial-statement-20260915.sql',
+  'src/v267/components/official-extra-forms.js',
+  'src/v267/support/official-exit-notice-patch.js'
 ];
 
 let failed = false;
@@ -38,6 +41,11 @@ for (const marker of ['aqari_commercial_collections','aqari_commercial_collectio
 if (commercialStatement.includes('DOCUMENT_COMMERCIAL_RECONCILIATION_REQUIRED')) {
   console.error('Unified commercial statement regressed to blanket commercial rejection');
   failed = true;
+}
+
+const officialCenter=fs.readFileSync('src/v267/pages/official-document-center.js','utf8');
+for(const marker of ['AQARI_V267_EXIT_NOTICE_FORM','EXTRA_OFFICIAL_FORM_TEMPLATES','renderExtraOfficialForm']){
+  if(!officialCenter.includes(marker)){console.error(`Official exit notice overlay missing: ${marker}`);failed=true;}
 }
 
 if (failed) process.exit(1);
