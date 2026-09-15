@@ -1,0 +1,73 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {paymentCycleMonths,paymentCycleLabel} from '../src/v267/domain/payment-cycle.js';
+import {allocatePrepaidAmount,prepaidBatchManifest} from '../src/v267/domain/prepaid-rent.js';
+import {patchContractFoundation,patchRentalContracts,FOUNDATION_MARKER,CONTRACTS_MARKER} from '../src/v267/support/payment-cycle-patch.js';
+
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const sql=read('staging-database/sql/rent-payment-cycle-prepaid-20260915.sql');
+const grandfather=read('staging-database/sql/rent-payment-cycle-grandfather-fix-20260915.sql');
+
+test('payment cycle is explicit and limited to monthly quarterly semiannual annual',()=>{
+ for(const n of [1,3,6,12])assert.equal(paymentCycleMonths(n),n);
+ assert.equal(paymentCycleMonths(undefined,{historical:true}),1);
+ assert.match(paymentCycleLabel(3),/3 أشهر/);
+ assert.throws(()=>paymentCycleMonths(2),/دورة سداد/);
+});
+
+test('prepaid amount allocates FIFO across positive balances and supports a partial final month',()=>{
+ const periods=[
+  {period:'2026-10-01',due_amount:100,balance:40,due_on:'2026-10-01'},
+  {period:'2026-11-01',due_amount:100,balance:100,due_on:'2026-11-01'},
+  {period:'2026-12-01',due_amount:100,balance:100,due_on:'2026-12-01'}
+ ];
+ assert.deepEqual(allocatePrepaidAmount(periods,190,{maxPeriods:3}).map(x=>[x.period,x.amount]),[['2026-10-01',40],['2026-11-01',100],['2026-12-01',50]]);
+ assert.throws(()=>allocatePrepaidAmount(periods,250,{maxPeriods:2}),/أكبر من رصيد/);
+});
+
+test('prepaid batch manifest requires exact sum and one transaction reference',()=>{
+ const contract={id:'c1',contract_no:'AQ-C-2026-000001'};
+ const allocations=[{period:'2026-10-01',amount:100,receiptNo:'AQ-R-2026-00000001'}];
+ const row=prepaidBatchManifest({id:'11111111-1111-4111-8111-111111111111',contract,leaseId:'22222222-2222-4222-8222-222222222222',method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:100,allocations});
+ assert.equal(row.total,100);assert.equal(row.transactionNo,'BANK-100');assert.equal(row.allocations.length,1);
+ assert.throws(()=>prepaidBatchManifest({id:'x',contract,leaseId:'l',method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:99,allocations}),/مجموع توزيع/);
+});
+
+test('database keeps monthly entitlement ledger and exposes grouped installment cycle',()=>{
+ assert.match(sql,/private\.aqari_payment_cycle_months/);
+ assert.match(sql,/not in\(1,3,6,12\)/);
+ assert.match(sql,/public\.aqari_rent_installment_schedule/);
+ assert.match(sql,/private\.aqari_refresh_rent_due_schedule\(w,lid\)/);
+ assert.match(sql,/sum\(due_amount\)/);
+ assert.match(sql,/sum\(paid_amount\)/);
+ assert.match(sql,/sum\(credit_amount\)/);
+ assert.match(sql,/floor\(month_offset::numeric\/cycle\)/);
+});
+
+test('new contracts require cycle while historical approved contracts are grandfathered without retroactive mutation',()=>{
+ assert.match(sql,/PAYMENT_CYCLE_REQUIRED/);
+ assert.match(sql,/PAYMENT_CYCLE_LOCKED_AFTER_APPROVAL/);
+ assert.match(grandfather,/old_raw='' and raw=''/);
+ assert.match(grandfather,/PAYMENT_CYCLE_REQUIRED_BEFORE_APPROVAL/);
+ assert.match(grandfather,/PAYMENT_CYCLE_LOCKED_AFTER_APPROVAL/);
+});
+
+test('prepaid batch is manager MFA guarded, bounded, reservation-backed and append-only',()=>{
+ assert.match(sql,/private\.aqari_validate_prepaid_rent_batches/);
+ assert.match(sql,/PREPAID_BATCH_IMMUTABLE/);
+ assert.match(sql,/private\.aqari_require_sensitive_aal2/);
+ assert.match(sql,/private\.aqari_rent_receipt_serial_reservations/);
+ assert.match(sql,/PREPAID_ALLOCATION_EXCEEDS_BALANCE/);
+ assert.match(sql,/PREPAID_RECEIPT_RESERVATION_MISMATCH/);
+ assert.match(sql,/update private\.aqari_rent_receipt_serial_reservations set consumed_at=now\(\)/);
+ assert.match(sql,/prepaid_rent_batch/);
+});
+
+test('build patch adds cycle fields to both contract entries and prepaid action only for signed contracts',()=>{
+ const foundation=patchContractFoundation(read('src/v267/pages/contract-foundation.js'));
+ const contracts=patchRentalContracts(read('src/v267/pages/rental-contracts.js'));
+ assert.match(foundation,new RegExp(FOUNDATION_MARKER));assert.match(foundation,/دورة السداد/);assert.match(foundation,/paymentCycleMonths:paymentCycleMonths/);
+ assert.match(contracts,new RegExp(CONTRACTS_MARKER));assert.match(contracts,/aqari_rent_installment_schedule/);assert.match(contracts,/دفعة إيجار مقدمة/);assert.match(contracts,/c\.status==='signed'/);
+ assert.equal(patchContractFoundation(foundation),foundation);assert.equal(patchRentalContracts(contracts),contracts);
+});
