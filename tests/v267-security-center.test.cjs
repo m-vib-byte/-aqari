@@ -35,9 +35,14 @@ test('TOTP verification normalizes Arabic and Persian digits and uses atomic cha
  assert.match(source,/challengeAndVerify\(\{factorId:id,code\}\)/);
  assert.match(source,/ضبط الوقت في الجهاز تلقائي/);
 });
-test('server-verified TOTP is never mislabeled as invalid when only browser AAL2 session propagation fails',()=>{
- assert.match(source,/async function confirmAal2\(\)/);
- assert.match(source,/d\.session\.client\.auth\.refreshSession\(\)/);
+test('server-verified TOTP validates the promoted JWT and persisted AAL2 session without redundant refresh rotation',()=>{
+ assert.match(source,/async function confirmAal2\(verified\)/);
+ assert.match(source,/const verified=result\(await auth\(\)\.challengeAndVerify\(\{factorId:id,code\}\)\)/);
+ assert.match(source,/await confirmAal2\(verified\)/);
+ assert.match(source,/assurance\(verifiedToken\)/);
+ assert.match(source,/d\.session\.client\.auth\.getSession\(\)/);
+ assert.match(source,/assurance\(sessionToken\)/);
+ assert.doesNotMatch(source,/\.refreshSession\(\)/);
  assert.match(source,/MFA_VERIFIED_SESSION_REFRESH_REQUIRED/);
  assert.match(source,/enrolled\?\.status==='verified'/);
  assert.match(source,/if\(level\.currentLevel==='aal2'\)return true/);
