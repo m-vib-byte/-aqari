@@ -35,6 +35,14 @@ test('TOTP verification normalizes Arabic and Persian digits and uses atomic cha
  assert.match(source,/challengeAndVerify\(\{factorId:id,code\}\)/);
  assert.match(source,/ضبط الوقت في الجهاز تلقائي/);
 });
+test('server-verified TOTP is never mislabeled as invalid when only browser AAL2 session propagation fails',()=>{
+ assert.match(source,/async function confirmAal2\(\)/);
+ assert.match(source,/d\.session\.client\.auth\.refreshSession\(\)/);
+ assert.match(source,/MFA_VERIFIED_SESSION_REFRESH_REQUIRED/);
+ assert.match(source,/enrolled\?\.status==='verified'/);
+ assert.match(source,/if\(level\.currentLevel==='aal2'\)return true/);
+ assert.match(source,/if\(raw==='MFA_VERIFIED_SESSION_REFRESH_REQUIRED'\)throw error/);
+});
 test('verified factor re-authentication runs through the dialog session guard',()=>{
  assert.match(source,/verify\.onclick=\(\)=>d\.run\(\(\)=>challenge\(factor\.id\)\)/);
 });
