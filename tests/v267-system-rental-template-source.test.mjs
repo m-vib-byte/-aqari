@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const sql=readFileSync(new URL('../staging-database/sql/system-rental-template-source.sql',import.meta.url),'utf8');
+const ui=readFileSync(new URL('../src/v267/components/rental-templates.js',import.meta.url),'utf8');
+const threeKindGuard=readFileSync(new URL('../staging-database/sql/three-contract-types-20260915.sql',import.meta.url),'utf8');
 
 test('system-source rental templates are immutable and do not impersonate manager approval',()=>{
  assert.match(sql,/create table if not exists private\.aqari_system_rental_template_versions/);
@@ -36,4 +38,22 @@ test('isolated apartment trial seed is traceable to the owner-provided source PD
  assert.match(sql,/e2bf1fd709c2f3850462c870099171216a414ff705dd6858c5886679424dbc29/);
  const clauses=[...sql.matchAll(/\{"title":"\d+\./g)];
  assert.equal(clauses.length,10);
+});
+
+test('trial contract creation exposes exactly apartment house and shop while preserving historical fourth-kind snapshots',()=>{
+ assert.match(ui,/export const rentalTemplateKinds=\[\['apartment','عقد شقة'\],\['house','عقد بيت'\],\['shop','عقد محل'\]\]/);
+ assert.match(ui,/commercial_investment','عقد تجاري أو استثماري \(تاريخي\)'/);
+ assert.match(ui,/templateForContract\(r\)[\s\S]*!activeKind\(r\.kind\)/);
+ assert.match(ui,/قوالب تاريخية للقراءة فقط/);
+ assert.match(ui,/يمكن تعديل صياغة كل نوع من داخل المنصة/);
+});
+
+test('database guards reject new fourth-kind templates and contracts without rewriting historical rows',()=>{
+ assert.match(threeKindGuard,/new\.kind not in \('apartment','house','shop'\)/);
+ assert.match(threeKindGuard,/NEW_TRIAL_TEMPLATE_KIND_MUST_BE_APARTMENT_HOUSE_OR_SHOP/);
+ assert.match(threeKindGuard,/coalesce\(c->>'contractKind',''\) not in \('apartment','house','shop'\)/);
+ assert.match(threeKindGuard,/coalesce\(c#>>'\{contractTemplate,kind\}',''\) not in \('apartment','house','shop'\)/);
+ assert.match(threeKindGuard,/NEW_TRIAL_CONTRACT_KIND_MUST_BE_APARTMENT_HOUSE_OR_SHOP/);
+ assert.match(threeKindGuard,/if previous is not null then continue;end if/);
+ assert.doesNotMatch(threeKindGuard,/\bdelete\b/i);
 });
