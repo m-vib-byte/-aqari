@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>AQARI V267 — قبول المرحلة B</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;color-scheme:light}body{margin:0;background:#f7f5ef;color:#171717}main{max-width:760px;margin:0 auto;padding:24px 16px 48px}.card{background:white;border:1px solid #e5dfcf;border-radius:18px;padding:18px;box-shadow:0 8px 30px rgba(0,0,0,.05)}h1{font-size:1.35rem;margin:.2rem 0 .6rem}p{line-height:1.7}.status{padding:12px;border-radius:12px;background:#f3f1e9;white-space:pre-wrap}.ok{color:#116b36}.bad{color:#9f1e1e}.steps{margin-top:16px;display:grid;gap:8px}.step{padding:10px 12px;border:1px solid #ece7db;border-radius:12px;background:#fff}button{font:inherit;border:0;border-radius:12px;padding:12px 18px;background:#171717;color:#fff;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}small{display:block;color:#666;margin-top:12px;line-height:1.6}
+</style>
+<script src="/public-config.js"></script>
+<script src="/vendor/supabase-js-2.114.0.js"></script>
+</head>
+<body>
+<main><section class="card">
+<h1>اختبار القبول المصادق — المرحلة B</h1>
+<p>هذا الاختبار يعمل فقط على Preview/Staging المحدد. ينشئ حسابات QA مؤقتة، لا يعرض كلمات المرور أو الرموز، ويعطل الحساب بعد اختبار دوره.</p>
+<button id="run" type="button">تشغيل اختبار B</button>
+<div id="status" class="status" role="status" aria-live="polite">جاهز.</div>
+<div id="steps" class="steps"></div>
+<small>لا يُعد نجاح هذه الصفحة اعتمادًا نهائيًا. الاعتماد النهائي يبقى بعد المرحلة C وتجربة المالك وموافقته الصريحة.</small>
+</section></main>
+<script>
+(()=>{
+'use strict';
+const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';
+const WORKSPACE='47a4a884-eb5c-4551-8754-2f51dee518f8';
+const PROPERTY='1dd9b02d-067a-9a8e-3fed-8d9c071ce418';
+const OTHER_PROPERTY='1b54d6f5-26e4-5262-129e-b857893bcd00';
+const TENANT_ID='2ea20dd0-5a19-e8d2-4251-a8928be41e34';
+const TENANT_EMAIL='v267-acceptance@example.test';
+const BRANCH_HOST='aqari-git-support-v267-knet-range-reconcile-20260915-m-vib-5421.vercel.app';
+const cfg=window.AQARI_PUBLIC_CONFIG||{};
+const runButton=document.getElementById('run'),status=document.getElementById('status'),steps=document.getElementById('steps');
+let running=false;
+function fail(message){throw new Error(message)}
+function assert(value,message){if(!value)fail(message)}
+function setStatus(text,kind=''){status.textContent=text;status.className='status '+kind}
+function step(text,kind=''){const n=document.createElement('div');n.className='step '+kind;n.textContent=text;steps.append(n)}
+function safeCode(error){const text=String(error?.message||error?.error||'FAILED');const match=text.match(/[A-Z][A-Z0-9_]{2,79}/);return match?.[0]||'FAILED'}
+function roleExpected(role){
+ const p=(section,action,value=true)=>({section,action,value});
+ const map={
+  collector:[p('collections','read'),p('collections','write'),p('finance','write',false),p('contracts','write',false),p('maintenance','write',false),p('partners','read',false)],
+  accountant:[p('collections','write'),p('finance','read'),p('finance','write'),p('employees','write'),p('contracts','write',false),p('partners','write',false)],
+  maintenance:[p('properties','read'),p('maintenance','read'),p('maintenance','write'),p('collections','write',false),p('finance','read',false),p('contracts','write',false)],
+  property_manager:[p('properties','read'),p('properties','write'),p('tenants','write'),p('contracts','write'),p('maintenance','write'),p('finance','read',false),p('collections','write',false)],
+  viewer:[p('properties','read'),p('properties','write',false),p('finance','read',false),p('collections','write',false),p('maintenance','write',false)]
+ };
+ return map[role]||[];
+}
+function verifyPermissions(role,access){
+ for(const rule of roleExpected(role)){
+  const actual=access?.permissions?.[rule.section]?.[rule.action];
+  assert(actual===rule.value,`${role}:PERMISSION_${rule.section}_${rule.action}`);
+ }
+}
+function newClient(persist=false){
+ assert(window.supabase?.createClient,'SUPABASE_LIBRARY_MISSING');
+ return window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:persist,autoRefreshToken:persist,detectSessionInUrl:false,storageKey:persist?cfg.supabaseAuthStorageKey:undefined}});
+}
+async function sessionOf(client){const {data,error}=await client.auth.getSession();if(error)throw error;assert(data?.session?.access_token,'AUTH_SESSION_REQUIRED');return data.session}
+async function qaApi(token,payload){
+ const response=await fetch('/api/qa-account',{method:'POST',credentials:'same-origin',redirect:'error',cache:'no-store',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(payload)});
+ let body={};try{body=await response.json()}catch{}
+ return {status:response.status,body};
+}
+async function evidenceApi(token,results){
+ const response=await fetch('/api/qa-evidence',{method:'POST',credentials:'same-origin',redirect:'error',cache:'no-store',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({workspaceId:WORKSPACE,results})});
+ let body={};try{body=await response.json()}catch{}
+ if(!response.ok)fail(body?.error||'EVIDENCE_SAVE_FAILED');return body;
+}
+async function managerToken(manager){return (await sessionOf(manager)).access_token}
+async function provision(manager,role,extra={}){
+ const token=await managerToken(manager);const expires=new Date(Date.now()+20*60*1000).toISOString();
+ const data={display_name:`AQARI B QA ${role}`,qa_role:role,property_ids:[PROPERTY],expires_at:expires,reason:'Phase B authenticated Preview acceptance',...extra};
+ const response=await qaApi(token,{workspaceId:WORKSPACE,action:'provision',data});
+ if(response.status!==201)fail(response.body?.error||`PROVISION_${role}_${response.status}`);
+ const record=response.body;assert(record?.id&&record?.email&&record?.password,`PROVISION_${role}_INVALID`);
+ return record;
+}
+async function disable(manager,id){
+ const token=await managerToken(manager);const response=await qaApi(token,{workspaceId:WORKSPACE,action:'disable',accountId:id,reason:'Phase B role acceptance cleanup'});
+ if(response.status!==200)fail(response.body?.error||`DISABLE_${response.status}`);assert(response.body?.status==='disabled','DISABLE_NOT_CONFIRMED');
+}
+async function signInTemporary(record){
+ const client=newClient(false);const email=record.email,password=record.password;delete record.email;delete record.password;
+ const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;assert(data?.session?.user?.id,'QA_SIGNIN_FAILED');return {client,session:data.session};
+}
+async function expectAdminDenied(token){
+ const response=await qaApi(token,{workspaceId:WORKSPACE,action:'provision',data:{display_name:'Denied role probe',qa_role:'viewer',property_ids:[PROPERTY],expires_at:new Date(Date.now()+20*60*1000).toISOString(),reason:'Phase B deny probe'}});
+ assert(response.status===403,'NON_MANAGER_ADMIN_NOT_DENIED');assert(response.body?.error==='ACCESS_DENIED','NON_MANAGER_DENY_CODE');
+}
+async function runStaff(manager,role,expectedBase){
+ let record=null,qa=null,cleanup=false;
+ try{
+  record=await provision(manager,role);qa=await signInTemporary(record);
+  const {data:access,error}=await qa.client.rpc('aqari_workspace_access',{p_workspace_id:WORKSPACE});if(error)throw error;
+  assert(access?.workspace_id===WORKSPACE&&access?.user_id===qa.session.user.id,'WORKSPACE_SCOPE_MISMATCH');
+  assert(access?.role===expectedBase,`${role}:BASE_ROLE_MISMATCH`);verifyPermissions(role,access);
+  await expectAdminDenied(qa.session.access_token);
+  return {role,signed_in:true,scope_ok:true,permissions_ok:true,admin_denied:true,cleanup:false};
+ }finally{
+  try{await qa?.client?.auth?.signOut()}catch{}
+  if(record?.id){await disable(manager,record.id);cleanup=true;}
+  if(record){record.password=null;record.email=null;}
+  if(arguments.length){/* keep no credentials */}
+ }
+}
+async function runPartner(manager){
+ let record=null,qa=null;
+ try{
+  record=await provision(manager,'partner');qa=await signInTemporary(record);
+  const month=new Date().toISOString().slice(0,7)+'-01';
+  const {data:allowed,error:allowedError}=await qa.client.rpc('aqari_partner_property_finance',{p_property_id:PROPERTY,p_month:month});if(allowedError)throw allowedError;
+  assert(allowed?.property_id===PROPERTY&&allowed?.available===true,'PARTNER_ALLOWED_SCOPE_FAILED');
+  const denied=await qa.client.rpc('aqari_partner_property_finance',{p_property_id:OTHER_PROPERTY,p_month:month});
+  assert(denied.error&&safeCode(denied.error)==='ACCESS_DENIED','PARTNER_OTHER_PROPERTY_NOT_DENIED');
+  await expectAdminDenied(qa.session.access_token);
+  return {role:'partner',signed_in:true,allowed_property:true,denied_other_property:true,admin_denied:true};
+ }finally{try{await qa?.client?.auth?.signOut()}catch{}if(record?.id)await disable(manager,record.id);if(record){record.password=null;record.email=null;}}
+}
+async function runTenant(manager){
+ let record=null,qa=null;
+ try{
+  record=await provision(manager,'tenant',{email:TENANT_EMAIL,tenant_id:TENANT_ID});qa=await signInTemporary(record);
+  const {data:snapshot,error}=await qa.client.rpc('aqari_tenant_portal_snapshot');if(error)throw error;
+  assert(snapshot?.account?.tenant_id===TENANT_ID,'TENANT_SCOPE_MISMATCH');
+  assert(Array.isArray(snapshot?.leases)&&snapshot.leases.length>=1,'TENANT_LEASE_NOT_VISIBLE');
+  await expectAdminDenied(qa.session.access_token);
+  return {role:'tenant',signed_in:true,own_snapshot:true,own_lease:true,admin_denied:true};
+ }finally{try{await qa?.client?.auth?.signOut()}catch{}if(record?.id)await disable(manager,record.id);if(record){record.password=null;record.email=null;}}
+}
+async function run(){
+ if(running)return;running=true;runButton.disabled=true;steps.replaceChildren();setStatus('بدء التحقق من الجلسة المصادق عليها…');
+ const results={passed:false,manager:{session:true,aal2:false,role:false},roles:[],partner:null,tenant:null,cleanup:true};
+ try{
+  assert(cfg.releaseStage==='preview'&&cfg.supabaseUrl===EXPECTED_URL,'PREVIEW_CONFIG_REQUIRED');
+  assert(location.hostname===BRANCH_HOST,'EXACT_BRANCH_PREVIEW_REQUIRED');
+  const manager=newClient(true);const managerSession=await sessionOf(manager);
+  const {data:aal,error:aalError}=await manager.auth.mfa.getAuthenticatorAssuranceLevel();if(aalError)throw aalError;
+  assert(aal?.currentLevel==='aal2','MFA_RECENT_REAUTH_REQUIRED');results.manager.aal2=true;
+  const {data:managerAccess,error:managerError}=await manager.rpc('aqari_workspace_access',{p_workspace_id:WORKSPACE});if(managerError)throw managerError;
+  assert(managerAccess?.role==='general_manager'&&managerAccess?.user_id===managerSession.user.id,'GENERAL_MANAGER_REQUIRED');results.manager.role=true;
+  step('✓ جلسة المدير العام AAL2 حقيقية ومربوطة بالـStaging','ok');
+  const staff=[['collector','accountant'],['accountant','accountant'],['maintenance','property_manager'],['property_manager','property_manager'],['viewer','viewer']];
+  for(const [role,base] of staff){setStatus(`اختبار دور ${role}…`);const item=await runStaff(manager,role,base);item.cleanup=true;results.roles.push(item);step(`✓ ${role}: دخول + نطاق + صلاحيات + رفض الإدارة + تنظيف`,'ok');}
+  setStatus('اختبار بوابة الشريك…');results.partner=await runPartner(manager);step('✓ partner: دخول + عقار مصرح + رفض عقار آخر + تنظيف','ok');
+  setStatus('اختبار بوابة المستأجر…');results.tenant=await runTenant(manager);step('✓ tenant: دخول + ملفه وعقده فقط + رفض الإدارة + تنظيف','ok');
+  results.passed=true;
+  const token=await managerToken(manager);const saved=await evidenceApi(token,results);assert(saved?.ok===true&&saved?.id,'EVIDENCE_NOT_CONFIRMED');
+  step('✓ تم حفظ دليل B المنزوع من الأسرار على SHA الـPreview الفعلي','ok');setStatus('نجحت المرحلة B المصادق عليها. يمكن الانتقال إلى C بعد التحقق من سجل الدليل.','ok');
+ }catch(error){
+  const code=safeCode(error);results.passed=false;step(`✗ ${code}`,'bad');setStatus(code==='MFA_RECENT_REAUTH_REQUIRED'?'انتهت نافذة MFA الحديثة. افتح الأمان والتوثيق الثنائي وأعد التحقق بهذا الجهاز ثم أعد تشغيل الصفحة.':`توقف اختبار B: ${code}`,'bad');
+ }finally{running=false;runButton.disabled=false;}
+}
+runButton.addEventListener('click',run);
+if(new URLSearchParams(location.search).get('run')==='1')setTimeout(run,250);
+})();
+</script>
+</body>
+</html>
