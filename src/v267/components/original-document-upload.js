@@ -1,6 +1,20 @@
 import {checksum} from './scan-image.js';
 import {createVerifiedUpload} from './verified-upload.js';
 import {documentCategory} from './document-catalog.js';
+const PROPERTY_ASSETS=Object.freeze({
+ property_logo:{documentType:'supporting_document',label:'شعار العقار'},
+ property_main_photo:{documentType:'supporting_document',label:'الصورة الرئيسية للعقار'},
+ property_photo:{documentType:'supporting_document',label:'صورة العقار'},
+ property_license:{documentType:'supporting_document',label:'رخصة العقار'},
+ property_certificate:{documentType:'supporting_document',label:'شهادة العقار'},
+ property_insurance:{documentType:'supporting_document',label:'تأمين العقار'},
+ property_other:{documentType:'supporting_document',label:'مستند عام للعقار'}
+});
+function uploadCategory(category,entity){
+ const asset=PROPERTY_ASSETS[category];
+ if(asset){if(entity!=='property')throw Error('فئة مرفق العقار لا تستخدم مع سجل آخر.');return asset;}
+ return documentCategory(category,entity);
+}
 export async function originalDocument(file){
  if(!file||file.size<1||file.size>10*1024*1024)throw Error('اختر صورة أو PDF بحجم لا يتجاوز ١٠ ميجابايت.');
  const b=new Uint8Array(await file.slice(0,12).arrayBuffer());
@@ -11,11 +25,14 @@ export async function originalDocument(file){
 export function createOriginalDocumentUpload(session){
  let pending=null;
  return async(file,target)=>{
-  const spec=documentCategory(target.category,target.type);if(!target.ref||!target.title?.trim()||target.title.length>180)throw Error('حدد السجل وعنوان المستند.');
+  const spec=uploadCategory(target.category,target.type);if(!target.ref||!target.title?.trim()||target.title.length>180)throw Error('حدد السجل وعنوان المستند.');
   const blob=await originalDocument(file),hash=await checksum(blob);session.check();
+  if(['property_logo','property_main_photo','property_photo'].includes(target.category)){
+   if(!['image/jpeg','image/png','image/webp'].includes(blob.type))throw Error('شعار وصور العقار يجب أن تكون صور JPEG أو PNG أو WebP.');
+  }
   const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash]);
   if(!pending||pending.key!==key){
-   const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:spec.documentType,p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title.trim(),p_original_filename:file.name,p_mime_type:blob.type,p_metadata:{category:target.category,original_bytes:true,release:'V267'}}));
+   const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:spec.documentType,p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title.trim(),p_original_filename:file.name,p_mime_type:blob.type,p_metadata:{category:target.category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267'}}));
    const doc=Array.isArray(rows)?rows[0]:rows;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path?.startsWith(session.bound.workspace+'/'))throw Error('تعذر حجز نسخة المستند.');
    pending={key,doc,upload:createVerifiedUpload(session,{path:doc.storage_path,blob})};
   }

@@ -4,6 +4,7 @@ import {installFinancialIntegrity} from './pages/financial-integrity.js';
 import {createSession,currentScope,safeError} from './api/session.js';
 import {node,field} from './components/dialog.js';
 import {LANGUAGES,ROUTES,label} from './components/catalog.js';
+import {installContractRoutes} from './components/contract-routing.js';
 import {organizeServices} from './components/service-directory.js';
 import {installPropertyExperience} from './components/property-experience.js';
 let installed=false,access=null,loading=null,session,notice,serviceDirectory,propertyExperience;
@@ -91,7 +92,8 @@ export function install(){
  const review=ui('button','اعتماد عقود المصدر');review.hidden=currentScope().role!=='general_manager';review.onclick=()=>import('./pages/lease-review.js').then(m=>m.openLeaseReview()).catch(e=>notice.textContent=t(safeError(e)));
  const partners=ui('button','صلاحيات الشركاء حسب العقار');partners.hidden=currentScope().role!=='general_manager';partners.onclick=()=>import('./pages/partner-access.js').then(m=>m.openPartnerAccess()).catch(e=>notice.textContent=t(safeError(e)));
  const employees=ui('button','الموظفون والرواتب');employees.onclick=()=>import('./pages/employees.js').then(m=>m.openEmployees()).catch(e=>notice.textContent=t(safeError(e)));
- const rentalContracts=ui('button','عقود الإيجار');rentalContracts.onclick=()=>import('./pages/rental-contracts.js').then(m=>m.openRentalContracts()).catch(e=>notice.textContent=t(safeError(e)));
+ const openContracts=async(initial={})=>{try{currentScope();if(!directoryScope())await refresh();if(!directoryAllowed({section:'contracts'}))throw Error('العقود غير متاحة لصلاحية حسابك.');const bound=directoryScope(),m=await import('./pages/rental-contracts.js');if(bound!==directoryScope()||!directoryAllowed({section:'contracts'}))throw Error('تغيّرت الجلسة أو صلاحية العقود. أعد المحاولة.');return m.openRentalContracts(initial);}catch(e){notice.textContent=t(safeError(e));return false;}};
+ const rentalContracts=ui('button','عقود الإيجار');rentalContracts.onclick=()=>openContracts();installContractRoutes(window,openContracts);
  const propertyNotices=node('button','إعلانات العقارات وإرشادات المستأجرين');propertyNotices.hidden=currentScope().role!=='general_manager';propertyNotices.onclick=()=>import('./pages/property-notices.js').then(m=>m.openPropertyNotices()).catch(e=>notice.textContent=t(safeError(e)));
  const staffCirculars=ui('button','تعاميم الموظفين وإثبات الاطلاع');staffCirculars.id='aq267-staff-circulars';staffCirculars.hidden=true;staffCirculars.onclick=()=>import('./pages/staff-circulars.js').then(m=>m.openStaffCirculars()).catch(e=>notice.textContent=t(safeError(e)));
  const staffAccess=node('button','صلاحيات الموظفين حسب العقار');staffAccess.id='aq267-staff-access';staffAccess.hidden=true;staffAccess.onclick=()=>import('./pages/staff-access.js').then(m=>m.openStaffAccess()).catch(e=>notice.textContent=t(safeError(e)));
