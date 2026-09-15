@@ -20,12 +20,24 @@ Scope: Draft PR #192 / isolated Staging. No Production or `myaqari.com` change.
 ## External values required before a real provider can be enabled
 
 For each provider actually selected:
-1. The provider HTTPS API origin/endpoint.
+1. The provider HTTPS API origin/endpoint, stored server-side under the manifest `endpointReference` name.
 2. A server-side outbound API credential/token stored in Vercel under the manifest `secretReference` name. Never paste the value into AQARI business tables or source code.
 3. For inbound callbacks, a strong webhook HMAC secret under `AQARI_WEBHOOK_SECRET_<WORKSPACE_UUID>_<PROVIDER>` and the provider callback configured to `/api/provider-webhook?workspace=<WORKSPACE_UUID>&provider=<provider>`.
 4. Native provider-specific signing/field mapping must be verified before switching from sandbox to live. The existing canonical adapter is not permission to guess a bank/payment vendor protocol.
 
-Canonical outbound secret slots are defined in `config/v267-integration-readiness.json`. They contain names only, never values.
+Canonical environment slots are defined in `config/v267-integration-readiness.json`. They contain names only, never values. The endpoint slots are:
+
+- KNET: `AQARI_KNET_PROVIDER_ORIGIN`
+- Email: `AQARI_EMAIL_PROVIDER_ORIGIN`
+- WhatsApp: `AQARI_WHATSAPP_PROVIDER_ORIGIN`
+- SMS: `AQARI_SMS_PROVIDER_ORIGIN`
+- Push: `AQARI_PUSH_PROVIDER_ORIGIN`
+- QuickBooks: `AQARI_QUICKBOOKS_PROVIDER_ORIGIN`
+- Zoho Books: `AQARI_ZOHO_BOOKS_PROVIDER_ORIGIN`
+- Xero: `AQARI_XERO_PROVIDER_ORIGIN`
+- Generic webhook: `AQARI_GENERIC_WEBHOOK_PROVIDER_ORIGIN`
+
+Each has a matching `AQARI_<PROVIDER>_PROVIDER_SECRET` slot and workspace-scoped webhook-secret pattern in the manifest. Runtime code remains fail-closed when any required value is absent.
 
 ## Additional provider-specific requirements
 
