@@ -38,20 +38,26 @@ function normalizeOtp(value){
   .replace(/[۰-۹]/g,ch=>String(persian.indexOf(ch)))
   .replace(/[\s\u00a0\u200e\u200f-]/g,'');
 }
-async function assurance(client){
- const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel();if(error)throw error;
+async function assurance(client,jwt){
+ const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel(jwt);if(error)throw error;
  return data;
 }
-async function confirmAal2(client){
- let aal=await assurance(client);
- if(aal?.currentLevel!=='aal2'){
-  const refreshed=await client.auth.refreshSession();
-  if(refreshed.error)fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
-  aal=await assurance(client);
- }
- const session=await client.auth.getSession();if(session.error)throw session.error;
- if(aal?.currentLevel!=='aal2'||!session.data?.session?.user?.id)fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
- return session.data.session;
+async function confirmAal2(client,verified){
+ // Supabase JS 2.114.0 saves the promoted MFA session before challengeAndVerify resolves.
+ // Validate that exact returned JWT and the browser-persisted session; do not rotate
+ // the one-time refresh token again with refreshSession() immediately after MFA.
+ const verifiedToken=String(verified?.access_token||'');
+ const verifiedUser=String(verified?.user?.id||'');
+ if(!verifiedToken||!verifiedUser)fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+ const promoted=await assurance(client,verifiedToken);
+ if(promoted?.currentLevel!=='aal2')fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+ const sessionResult=await client.auth.getSession();if(sessionResult.error)throw sessionResult.error;
+ const stored=sessionResult.data?.session;
+ const storedToken=String(stored?.access_token||'');
+ if(!storedToken||String(stored?.user?.id||'')!==verifiedUser)fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+ const storedAal=await assurance(client,storedToken);
+ if(storedAal?.currentLevel!=='aal2')fail('MFA_VERIFIED_SESSION_REFRESH_REQUIRED');
+ return stored;
 }
 async function main(event){
  event.preventDefault();
@@ -71,14 +77,17 @@ async function main(event){
   if(!verified.length&&unverified.length)fail('MFA_ENROLLMENT_INCOMPLETE');
   if(!verified.length)fail('MFA_FACTOR_REQUIRED');
   const factor=verified[0];
-  const result=await client.auth.mfa.challengeAndVerify({factorId:factor.id,code:normalized});
-  if(result.error){
-   // Do not label a server-accepted factor as a bad code merely because the
-   // browser failed to persist the promoted session.
+  const verification=await client.auth.mfa.challengeAndVerify({factorId:factor.id,code:normalized});
+  if(verification.error){
+   // If Auth already promoted this browser despite a client-side response failure,
+   // accept only a fully persisted AAL2 session; never relabel it as a bad TOTP.
    const now=await assurance(client).catch(()=>null);
-   if(now?.currentLevel!=='aal2')throw result.error;
+   if(now?.currentLevel!=='aal2')throw verification.error;
+   const recovered=await client.auth.getSession();if(recovered.error)throw recovered.error;
+   await confirmAal2(client,recovered.data?.session);
+  }else{
+   await confirmAal2(client,verification.data);
   }
-  await confirmAal2(client);
   setStatus('تم التحقق وتأكيد جلسة AAL2. فتح اختبار B الآن…','ok');
   location.replace('/qa-b.html?run=1');
  }catch(error){
