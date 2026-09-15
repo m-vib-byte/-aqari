@@ -73,6 +73,24 @@ class IntegrationDispatchTest(unittest.TestCase):
   self.assertEqual(result,{'bridged':2,'cancelledReminders':1,'paymentThanksBridged':1,'operationalBridged':2,'completionCancelled':1,'awaitingConfiguration':7,'claimed':2,'sent':2,'failed':0,'deadLetter':0})
   self.assertEqual([x[0] for x in calls],['aqari_notification_dispatch_bridge','aqari_notification_dispatch_completion_bridge','aqari_integration_dispatch_completion_claim','aqari_integration_dispatch_claim','aqari_integration_dispatch_completion_result','aqari_integration_dispatch_result'])
 
+ def test_completion_priority_reserves_regular_slot_and_refills_when_idle(self):
+  completions=[{**COMPLETION_EVENT,'eventId':f'44444444-4444-4444-8444-44444444444{i}'} for i in range(5)]
+  for regular_available,expected_completion_limits in ((True,[4]),(False,[4,1])):
+   with self.subTest(regular_available=regular_available):
+    completion_calls=[];regular_calls=[]
+    def db(name,payload,env):
+     if name=='aqari_notification_dispatch_bridge':return {'bridged':0,'cancelled':0,'awaitingConfiguration':0}
+     if name=='aqari_notification_dispatch_completion_bridge':return {'paymentThanks':5,'operational':0,'cancelled':0,'awaitingConfiguration':0}
+     if name=='aqari_integration_dispatch_completion_claim':
+      completion_calls.append(payload['p_limit'])
+      return completions[:4] if len(completion_calls)==1 else completions[4:5]
+     if name=='aqari_integration_dispatch_claim':regular_calls.append(payload['p_limit']);return [dict(EVENT)] if regular_available else []
+     if name in ('aqari_integration_dispatch_completion_result','aqari_integration_dispatch_result'):return {'status':'sent'}
+     self.fail('unexpected rpc '+name)
+    result=dispatch_once(5,{},db,lambda item,env:(True,False,'provider-001',None))
+    self.assertEqual(completion_calls,expected_completion_limits);self.assertEqual(regular_calls,[1])
+    self.assertEqual(result['claimed'],5);self.assertEqual(result['sent'],5)
+
  def test_completion_claims_use_completion_result_for_retry_and_dead_letter(self):
   for retryable,status in ((True,'failed'),(False,'dead_letter')):
    with self.subTest(retryable=retryable):
