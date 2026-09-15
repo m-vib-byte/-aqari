@@ -1,0 +1,48 @@
+export const KNET_API_MARKER='v267DailyKnetPayments';
+export const KNET_UI_MARKER='v267TodayKnetDetails';
+
+export function patchProtectedKnetApi(source){
+  let next=String(source||'');
+  if(next.includes(KNET_API_MARKER))return next;
+
+  const anchor=`  function secureRentOfficeData(name,period){`;
+  if(!next.includes(anchor))throw Error('V267 KNET protected API anchor not found.');
+
+  const insertion=`  function v267KnetLedgerEntry(entry){\n    const explicit=referenceText(entry?.knetTransactionNo);\n    const hint=String(entry?.method||'')+' '+String(entry?.note||'');\n    return Boolean(explicit||/(?:k\\s*net|knet|كي\\s*نت)/i.test(hint));\n  }\n\n  function dailyKnetPayments(name,day){\n    if(!protectedAccessReady()||!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(day))||!validRecordedDate(day))return null;\n    const context=contextFor(name);\n    if(!context)return null;\n    const dayKey=ledgerPaymentDateKey(day);\n    const candidates=context.propertyLedger.filter(function(entry){\n      return settledPayment(entry?.status)&&validLedgerPaymentAmount(entry)&&validRecordedDate(entry?.paidAt)&&ledgerPaymentDateKey(entry.paidAt)===dayKey&&v267KnetLedgerEntry(entry);\n    }).map(function(entry){\n      const transactionNo=ledgerTransactionNo(entry);\n      const internalReceiptNo=referenceText(entry?.receiptNo);\n      const externalReceiptNo=referenceText(entry?.voucherNo);\n      const receiptNo=ledgerReference(entry);\n      const amount=strictMoney(entry?.paid);\n      const tokens=[transactionNo&&'transaction:'+normalizedReference(transactionNo),internalReceiptNo&&'receipt:'+normalizedReference(internalReceiptNo),externalReceiptNo&&'voucher:'+normalizedReference(externalReceiptNo)].filter(Boolean);\n      const signature=JSON.stringify([normalizedReference(transactionNo),normalizedReference(internalReceiptNo),normalizedReference(externalReceiptNo),identitySignature(entry?.unit),identitySignature(entry?.tenant),String(amount),signatureScalar(entry?.paidAt),signatureScalar(entry?.period),signatureScalar(entry?.accountant)]);\n      return {entry,transactionNo,internalReceiptNo,externalReceiptNo,receiptNo,amount,tokens,signature};\n    });\n    const parent=candidates.map(function(_,index){return index});\n    function root(index){while(parent[index]!==index){parent[index]=parent[parent[index]];index=parent[index]}return index}\n    function join(left,right){const a=root(left),b=root(right);if(a!==b)parent[b]=a}\n    const owner=new Map();\n    candidates.forEach(function(item,index){item.tokens.forEach(function(token){const previous=owner.get(token);if(previous==null)owner.set(token,index);else join(index,previous)})});\n    const groups=new Map();\n    candidates.forEach(function(item,index){const key=root(index);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item)});\n    const records=[];\n    let reviewCount=0;\n    groups.forEach(function(group){\n      if(group.some(function(item){return item.tokens.length===0})){reviewCount+=group.length;return}\n      const signatures=new Set(group.map(function(item){return item.signature}));\n      if(signatures.size!==1){reviewCount+=group.length;return}\n      const item=group[0],entry=item.entry;\n      records.push(Object.freeze({\n        property:String(context.property?.[0]||''),unit:String(entry?.unit||''),tenant:String(entry?.tenant||''),contractId:String(entry?.contractId||entry?.contract_id||''),contractNo:String(entry?.contractNo||entry?.contract_no||''),\n        amount:item.amount,paidAt:String(entry?.paidAt||''),period:String(entry?.period||''),method:String(entry?.method||''),transactionNo:String(item.transactionNo||''),receiptNo:String(item.receiptNo||''),internalReceiptNo:String(item.internalReceiptNo||''),externalReceiptNo:String(item.externalReceiptNo||''),accountant:String(entry?.accountant||'')\n      }));\n    });\n    records.sort(function(left,right){const a=ledgerPaymentDateKey(left.paidAt),b=ledgerPaymentDateKey(right.paidAt);if(a!==b)return b-a;return String(right.paidAt).localeCompare(String(left.paidAt))});\n    const receiptCount=new Set(records.map(function(row){return normalizedReference(row.receiptNo)}).filter(Boolean)).size;\n    return Object.freeze({property:String(context.property?.[0]||''),day:String(day),knetTotal:exactMoneySum(records.map(function(row){return row.amount})),count:records.length,receiptCount:receiptCount,reviewCount:reviewCount,records:Object.freeze(records)});\n  }\n\n`;
+  next=next.replace(anchor,insertion+anchor);
+
+  const exportAnchor=`      dailyCollectionSummary:dailyCollectionSummary,\n`;
+  if(!next.includes(exportAnchor))throw Error('V267 KNET protected API export anchor not found.');
+  next=next.replace(exportAnchor,exportAnchor+`      dailyKnetPayments:dailyKnetPayments,\n`);
+  return next;
+}
+
+export function patchTodayKnetUi(source){
+  let next=String(source||'');
+  if(next.includes(KNET_UI_MARKER))return next;
+  if(!next.includes("const daily=dailyRows.length&&dailyRows.every(Boolean)?dailyRows.reduce(function(out,row){"))throw Error('V267 KNET UI requires the today-payments overlay first.');
+
+  const dailyAnchor=`    const daily=dailyRows.length&&dailyRows.every(Boolean)?dailyRows.reduce(function(out,row){\n      out.paid+=Math.round(row.paid*1000);out.count+=row.count;out.undated+=row.undated;out.rows.push(row);return out;\n    },{paid:0,count:0,undated:0,rows:[]}):null;`;
+  const dailyReplacement=dailyAnchor+`\n    const knetRows=propertyNames(scope).map(function(name){\n      const row=window.AQARI_V202?.dailyKnetPayments?.(name,day);\n      return row&&row.day===day&&norm(row.property)===norm(name)?row:null;\n    });\n    const knet=knetRows.length&&knetRows.every(Boolean)?knetRows.reduce(function(out,row){\n      out.total+=Math.round(number(row.knetTotal)*1000);out.count+=Math.max(0,Math.trunc(number(row.count)));out.receiptCount+=Math.max(0,Math.trunc(number(row.receiptCount)));out.reviewCount+=Math.max(0,Math.trunc(number(row.reviewCount)));\n      (Array.isArray(row.records)?row.records:[]).forEach(function(record){out.records.push(record)});return out;\n    },{total:0,count:0,receiptCount:0,reviewCount:0,records:[]}):null;`;
+  if(!next.includes(dailyAnchor))throw Error('V267 KNET UI daily anchor not found.');
+  next=next.replace(dailyAnchor,dailyReplacement);
+
+  const returnAnchor=`    return {scope:scope,period:period,summary:aggregate(items),daily:daily,day:day};`;
+  if(!next.includes(returnAnchor))throw Error('V267 KNET UI snapshot anchor not found.');
+  next=next.replace(returnAnchor,`    return {scope:scope,period:period,summary:aggregate(items),daily:daily,knet:knet,day:day};`);
+
+  const markupAnchor=`\n  function markup(state){`;
+  const markup=`\n  function todayKnetMarkup(knet){\n    if(!knet)return '<section id="v267TodayKnetDetails" class="v267-today-knet" aria-label="تفاصيل KNET اليوم"><div class="v210-clear"><strong>KNET اليوم</strong><span>لا يتوفر سجل KNET محمي يمكن اعتماده.</span></div></section>';\n    const rows=Array.isArray(knet.records)?knet.records:[];\n    const detail=rows.length?rows.map(function(row){\n      const receipts=[row.internalReceiptNo&&'داخلي '+row.internalReceiptNo,row.externalReceiptNo&&'خارجي/يدوي '+row.externalReceiptNo].filter(Boolean).join(' • ');\n      const meta=[row.unit&&'الوحدة '+row.unit,row.tenant,row.period&&'عن '+row.period,row.paidAt,row.transactionNo&&'KNET '+row.transactionNo,row.receiptNo&&'وصل '+row.receiptNo,row.accountant&&'المحاسب '+row.accountant,receipts].filter(Boolean).join(' • ');\n      return '<button type="button" class="v267-today-payment-row" data-v210-property="'+esc(row.property)+'"><span dir="auto">'+esc(row.property)+'</span><strong>'+esc(money(row.amount))+'</strong><small>'+esc(meta)+'</small></button>';\n    }).join(''):'<div class="v210-clear"><strong>لا توجد عمليات KNET اليوم</strong><span>لا توجد عملية KNET مؤرخة ومربوطة بمرجع صالح ضمن العقارات المخولة.</span></div>';\n    const difference=Math.max(0,knet.count-knet.receiptCount);\n    const warning=knet.reviewCount||difference?' • يحتاج مراجعة: '+(knet.reviewCount+difference):'';\n    return '<section id="v267TodayKnetDetails" class="v267-today-knet" aria-labelledby="v267TodayKnetTitle"><div class="v210-title"><div><span>إقفال اليوم</span><h3 id="v267TodayKnetTitle">KNET اليوم</h3></div><strong>'+knet.count+' عملية • '+esc(money(knet.total/1000))+'</strong></div><div class="v210-clear"><strong>'+knet.receiptCount+' وصل مرتبط</strong><span>فرق العمليات/الوصولات '+difference+warning+'</span></div><div class="v267-today-payment-list">'+detail+'</div></section>';\n  }\n`;
+  if(!next.includes(markupAnchor))throw Error('V267 KNET UI markup anchor not found.');
+  next=next.replace(markupAnchor,markup+markupAnchor);
+
+  const detailAnchor=`      '</div>'+todayPaymentsMarkup(state.daily)+'<details class="v267-financial-detail"><summary>المستحقات وحالة المحفظة</summary><div class="v210-kpis v267-secondary-kpis">'+`;
+  const detailReplacement=`      '</div>'+todayPaymentsMarkup(state.daily)+todayKnetMarkup(state.knet)+'<details class="v267-financial-detail"><summary>المستحقات وحالة المحفظة</summary><div class="v210-kpis v267-secondary-kpis">'+`;
+  if(!next.includes(detailAnchor))throw Error('V267 KNET UI detail anchor not found.');
+  next=next.replace(detailAnchor,detailReplacement);
+
+  const signatureAnchor=`    const signature=JSON.stringify([state.scope,state.period,state.summary,state.day,state.daily]);`;
+  if(!next.includes(signatureAnchor))throw Error('V267 KNET UI signature anchor not found.');
+  next=next.replace(signatureAnchor,`    const signature=JSON.stringify([state.scope,state.period,state.summary,state.day,state.daily,state.knet]);`);
+  return next;
+}
