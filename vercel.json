@@ -6,6 +6,10 @@
     {
       "path": "/api/integration-dispatch",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/qa-expire",
+      "schedule": "0 * * * *"
     }
   ],
   "rewrites": [
