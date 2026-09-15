@@ -8,9 +8,16 @@ test('security center implements current Supabase TOTP enrollment flow',()=>{
  for(const method of ['enroll','challenge','verify','listFactors','getAuthenticatorAssuranceLevel','unenroll'])assert.match(source,new RegExp(`\\.${method}\\(`));
  assert.match(source,/factorType:'totp'/);
 });
-test('sensitive factor removal requires an aal2 session',()=>{
+test('sensitive verified factor removal requires an aal2 session',()=>{
  assert.match(source,/current\.currentLevel!=='aal2'/);
  assert.match(source,/ترقية الجلسة/);
+});
+test('stale unverified TOTP enrollment is visible and cleaned before a fresh enroll',()=>{
+ assert.match(source,/status==='unverified'/);
+ assert.match(source,/removePendingTotp/);
+ assert.match(source,/await removePendingTotp\(\)/);
+ assert.match(source,/auth\(\)\.unenroll\(\{factorId:factor\.id\}\)/);
+ assert.match(source,/تم إلغاء التسجيل غير المكتمل السابق وبدء ربط جديد/);
 });
 test('verified factor re-authentication runs through the dialog session guard',()=>{
  assert.match(source,/verify\.onclick=\(\)=>d\.run\(\(\)=>challenge\(factor\.id\)\)/);
