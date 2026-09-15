@@ -1,5 +1,6 @@
 -- Preview/Staging only. Preserve all historical payments; validate only newly inserted rows
--- through the existing AFTER INSERT guard.
+-- through the AFTER INSERT guard. Recreate the trigger here because some isolated Staging
+-- databases do not contain the earlier 20260913 guard migration.
 create or replace function private.aqari_payment_method_reference_guard()
 returns trigger language plpgsql security invoker set search_path='' as $$
 declare
@@ -47,3 +48,8 @@ begin
  return new;
 end $$;
 revoke all on function private.aqari_payment_method_reference_guard() from public,anon,authenticated;
+
+drop trigger if exists aqari_payment_method_reference_guard on public.aqari_rent_payments;
+create trigger aqari_payment_method_reference_guard
+after insert on public.aqari_rent_payments
+for each row execute function private.aqari_payment_method_reference_guard();
