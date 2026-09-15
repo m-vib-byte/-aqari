@@ -39,7 +39,7 @@ execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'
 execFileSync(process.execPath,['--test','tests/v267-partner-current-authorization.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
-execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
+execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test','tests.integration_dispatch_test'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-collection-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
