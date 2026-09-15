@@ -1,17 +1,20 @@
 """Server-only delivery worker for AQARI integration outbox.
 
-The database owns claiming/idempotency state. This module only builds the normalized
-provider request, resolves the referenced server secret, sends without redirects,
-and records the authoritative result back through service-only RPCs.
+The database owns claiming/idempotency state. This module builds normalized provider
+requests, auto-renders and archives a verified official receipt when required,
+resolves server-only secrets, sends without redirects, and records the result.
 """
 from urllib.request import Request,build_opener,HTTPRedirectHandler
 from urllib.error import HTTPError,URLError
-import json,os,re
+import base64,hashlib,json,os,re
 from lib.outbound_adapters import notification_request,encoded_body
+from lib.rent_pdf import render_receipt
 
 UUID=re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',re.I)
+SHA256=re.compile(r'^[a-f0-9]{64}$')
 ENV_SECRET=re.compile(r'^[A-Z][A-Z0-9_]{2,127}$')
 SUPABASE_URL=re.compile(r'^https://[a-z0-9]+\.supabase\.co$')
+AUTO_RENDERER_VERSION='v267-rent-receipt-auto-dispatch-1'
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):raise ValueError('PROVIDER_REDIRECT_REJECTED')
@@ -61,6 +64,25 @@ def _provider_request(item,env):
     request['headers']['Accept']='application/json'
     return request
 
+def _ensure_receipt_attachment(item,env,db_rpc):
+    if not isinstance(item,dict) or item.get('eventType')!='collection.receipt' or item.get('attachment') is not None:return item
+    source=item.get('receiptSource')
+    if not isinstance(source,dict) or set(source)!={'workspaceId','paymentId','receiptNo','snapshotSha256','receipt'}:raise ValueError('INVALID_RECEIPT_SOURCE')
+    workspace=str(source['workspaceId']);payment=str(source['paymentId']);reference=str(source['receiptNo']);snapshot=str(source['snapshotSha256'])
+    if workspace!=str(item.get('workspaceId')) or not UUID.fullmatch(workspace) or not UUID.fullmatch(payment) or not 1<=len(reference)<=150 or not SHA256.fullmatch(snapshot) or not isinstance(source['receipt'],dict):raise ValueError('INVALID_RECEIPT_SOURCE')
+    if str((item.get('variables') or {}).get('receiptReference') or '')!=reference:raise ValueError('RECEIPT_REFERENCE_MISMATCH')
+    pdf=render_receipt(source['receipt'])
+    if not isinstance(pdf,(bytes,bytearray)) or not 8<=len(pdf)<=2*1024*1024 or not bytes(pdf).startswith(b'%PDF-'):raise ValueError('INVALID_RENDERED_RECEIPT')
+    pdf=bytes(pdf);digest=hashlib.sha256(pdf).hexdigest()
+    archived=db_rpc('aqari_rent_receipt_pdf_auto_commit',{
+      'p_workspace_id':workspace,'p_payment_id':payment,'p_snapshot_sha256':snapshot,
+      'p_pdf_base64':base64.b64encode(pdf).decode(),'p_pdf_sha256':digest,'p_renderer_version':AUTO_RENDERER_VERSION
+    },env)
+    if not isinstance(archived,dict) or archived.get('archived') is not True or archived.get('pdfSha256')!=digest or archived.get('snapshotSha256')!=snapshot or archived.get('receiptNo')!=reference:raise RuntimeError('AUTO_RECEIPT_ARCHIVE_NOT_CONFIRMED')
+    result={k:v for k,v in item.items() if k!='receiptSource'}
+    result['attachment']={'filename':'rent-receipt.pdf','content_type':'application/pdf','base64':base64.b64encode(pdf).decode(),'sha256':digest}
+    return result
+
 def _send(item,env=os.environ,open_url=None):
     open_url=open_url or build_opener(NoRedirect).open
     spec=_provider_request(item,env);url=spec['origin']+spec['path']
@@ -76,7 +98,7 @@ def _send(item,env=os.environ,open_url=None):
     except HTTPError as exc:
         retryable=exc.code in (408,425,429) or 500<=exc.code<=599
         return False,retryable,'','PROVIDER_HTTP_'+str(exc.code)
-    except (URLError,TimeoutError,OSError) as exc:
+    except (URLError,TimeoutError,OSError):
         return False,True,'','PROVIDER_NETWORK_ERROR'
     except ValueError as exc:
         return False,False,'',str(exc)[:200]
@@ -89,7 +111,10 @@ def dispatch_once(limit=5,env=os.environ,db_rpc=rpc,send=_send):
     for item in claimed:
         event=str(item.get('eventId') if isinstance(item,dict) else '')
         try:
-            ok,retryable,provider_ref,error=send(item,env)
+            prepared=_ensure_receipt_attachment(item,env,db_rpc)
+            ok,retryable,provider_ref,error=send(prepared,env)
+        except ValueError as exc:
+            ok,retryable,provider_ref,error=False,False,'',str(exc)[:200]
         except RuntimeError as exc:
             ok,retryable,provider_ref,error=False,True,'',str(exc)[:200]
         except Exception:
