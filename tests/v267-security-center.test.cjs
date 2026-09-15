@@ -12,6 +12,9 @@ test('sensitive factor removal requires an aal2 session',()=>{
  assert.match(source,/current\.currentLevel!=='aal2'/);
  assert.match(source,/ترقية الجلسة/);
 });
+test('verified factor re-authentication runs through the dialog session guard',()=>{
+ assert.match(source,/verify\.onclick=\(\)=>d\.run\(\(\)=>challenge\(factor\.id\)\)/);
+});
 test('TOTP code is constrained and enrollment secrets are cleared on disposal',()=>{
  assert.ok(source.includes("input.pattern='[0-9]{6}'"));
  assert.match(source,/secret=null/);
