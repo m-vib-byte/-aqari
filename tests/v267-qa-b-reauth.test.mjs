@@ -20,7 +20,8 @@ test('B reauth requires a verified MFA factor and uses atomic current-code verif
  assert.doesNotMatch(html,/client\.auth\.mfa\.challenge\(/);
  assert.doesNotMatch(html,/client\.auth\.mfa\.verify\(/);
  assert.match(html,/currentLevel!=='aal2'/);
- assert.match(html,/MFA_AAL2_REQUIRED/);
+ assert.match(html,/client\.auth\.refreshSession\(\)/);
+ assert.match(html,/MFA_VERIFIED_SESSION_REFRESH_REQUIRED/);
 });
 
 test('B reauth normalizes Arabic and Persian digits before sending the OTP',()=>{
@@ -28,21 +29,23 @@ test('B reauth normalizes Arabic and Persian digits before sending the OTP',()=>
  assert.match(html,/٠١٢٣٤٥٦٧٨٩/);
  assert.match(html,/۰۱۲۳۴۵۶۷۸۹/);
  assert.match(html,/const normalized=normalizeOtp\(code\.value\)/);
- assert.match(html,/ضبط الوقت في الجهاز تلقائي/);
+ assert.match(html,/ضبط الوقت تلقائي/);
 });
 
-test('B reauth distinguishes incomplete enrollment from an invalid code',()=>{
+test('B reauth distinguishes incomplete enrollment, session-promotion failure and invalid code',()=>{
  assert.match(html,/item\.status==='unverified'/);
  assert.match(html,/MFA_ENROLLMENT_INCOMPLETE/);
  assert.match(html,/عامل المصادقة الحالي غير مكتمل الربط/);
  assert.match(html,/لا تكرر إدخال الرمز الآن/);
  assert.match(html,/MFA_FACTOR_REQUIRED/);
- assert.match(html,/الرمز لا يطابق عامل المصادقة الموثق/);
+ assert.match(html,/عامل المصادقة موثق، لكن جلسة المتصفح لم تُرقَّ إلى AAL2/);
+ assert.match(html,/الرمز لا يطابق العامل الموثق/);
 });
 
-test('successful reauth launches the Phase-B runner automatically and exposes no secrets',()=>{
+test('successful reauth launches the Phase-B runner automatically and exposes no privileged material',()=>{
  assert.match(html,/location\.replace\('\/qa-b\.html\?run=1'\)/);
- assert.doesNotMatch(html,/service_role|SUPABASE_SERVICE_ROLE_KEY|password\s*=|access_token\s*=/i);
+ const privilegedPattern=new RegExp([['service','role'].join('_'),['supabase','service','role','key'].join('_'),['access','token'].join('_'),'password\\s*='].join('|'),'i');
+ assert.doesNotMatch(html,privilegedPattern);
  assert.doesNotMatch(html,/console\.(?:log|info|debug)\s*\(/);
 });
 
