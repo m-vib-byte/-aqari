@@ -8,7 +8,6 @@ from urllib.request import Request,build_opener,HTTPRedirectHandler
 from urllib.error import HTTPError,URLError
 import base64,hashlib,json,os,re
 from lib.outbound_adapters import notification_request,encoded_body
-from lib.rent_pdf import render_receipt
 
 UUID=re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',re.I)
 SHA256=re.compile(r'^[a-f0-9]{64}$')
@@ -49,35 +48,28 @@ def _provider_request(item,env):
     if not ENV_SECRET.fullmatch(secret_ref):raise RuntimeError('PROVIDER_SECRET_REFERENCE_INVALID')
     secret=env.get(secret_ref,'')
     if not isinstance(secret,str) or not 8<=len(secret)<=8192:raise RuntimeError('PROVIDER_SECRET_NOT_CONFIGURED')
-    data={
-      'idempotency_key':str(item.get('idempotencyKey') or ''),
-      'recipient_reference':str(item.get('recipientReference') or ''),
-      'template':str(item.get('template') or ''),
-      'variables':item.get('variables') or {},
-      'locale':str(item.get('locale') or 'ar')
-    }
+    data={'idempotency_key':str(item.get('idempotencyKey') or ''),'recipient_reference':str(item.get('recipientReference') or ''),'template':str(item.get('template') or ''),'variables':item.get('variables') or {},'locale':str(item.get('locale') or 'ar')}
     attachment=item.get('attachment')
     if attachment is not None:data['attachments']=[attachment]
     request=notification_request(str(item.get('channel') or ''),data,str(item.get('endpointOrigin') or ''))
     request['headers']['Authorization']='Bearer '+secret
-    request['headers']['Content-Type']='application/json'
-    request['headers']['Accept']='application/json'
+    request['headers']['Content-Type']='application/json';request['headers']['Accept']='application/json'
     return request
 
-def _ensure_receipt_attachment(item,env,db_rpc):
+def _ensure_receipt_attachment(item,env,db_rpc,renderer=None):
     if not isinstance(item,dict) or item.get('eventType')!='collection.receipt' or item.get('attachment') is not None:return item
     source=item.get('receiptSource')
     if not isinstance(source,dict) or set(source)!={'workspaceId','paymentId','receiptNo','snapshotSha256','receipt'}:raise ValueError('INVALID_RECEIPT_SOURCE')
     workspace=str(source['workspaceId']);payment=str(source['paymentId']);reference=str(source['receiptNo']);snapshot=str(source['snapshotSha256'])
     if workspace!=str(item.get('workspaceId')) or not UUID.fullmatch(workspace) or not UUID.fullmatch(payment) or not 1<=len(reference)<=150 or not SHA256.fullmatch(snapshot) or not isinstance(source['receipt'],dict):raise ValueError('INVALID_RECEIPT_SOURCE')
     if str((item.get('variables') or {}).get('receiptReference') or '')!=reference:raise ValueError('RECEIPT_REFERENCE_MISMATCH')
-    pdf=render_receipt(source['receipt'])
+    if renderer is None:
+        from lib.rent_pdf import render_receipt
+        renderer=render_receipt
+    pdf=renderer(source['receipt'])
     if not isinstance(pdf,(bytes,bytearray)) or not 8<=len(pdf)<=2*1024*1024 or not bytes(pdf).startswith(b'%PDF-'):raise ValueError('INVALID_RENDERED_RECEIPT')
     pdf=bytes(pdf);digest=hashlib.sha256(pdf).hexdigest()
-    archived=db_rpc('aqari_rent_receipt_pdf_auto_commit',{
-      'p_workspace_id':workspace,'p_payment_id':payment,'p_snapshot_sha256':snapshot,
-      'p_pdf_base64':base64.b64encode(pdf).decode(),'p_pdf_sha256':digest,'p_renderer_version':AUTO_RENDERER_VERSION
-    },env)
+    archived=db_rpc('aqari_rent_receipt_pdf_auto_commit',{'p_workspace_id':workspace,'p_payment_id':payment,'p_snapshot_sha256':snapshot,'p_pdf_base64':base64.b64encode(pdf).decode(),'p_pdf_sha256':digest,'p_renderer_version':AUTO_RENDERER_VERSION},env)
     if not isinstance(archived,dict) or archived.get('archived') is not True or archived.get('pdfSha256')!=digest or archived.get('snapshotSha256')!=snapshot or archived.get('receiptNo')!=reference:raise RuntimeError('AUTO_RECEIPT_ARCHIVE_NOT_CONFIRMED')
     result={k:v for k,v in item.items() if k!='receiptSource'}
     result['attachment']={'filename':'rent-receipt.pdf','content_type':'application/pdf','base64':base64.b64encode(pdf).decode(),'sha256':digest}
@@ -85,8 +77,7 @@ def _ensure_receipt_attachment(item,env,db_rpc):
 
 def _send(item,env=os.environ,open_url=None):
     open_url=open_url or build_opener(NoRedirect).open
-    spec=_provider_request(item,env);url=spec['origin']+spec['path']
-    req=Request(url,data=encoded_body(spec),method='POST',headers=spec['headers'])
+    spec=_provider_request(item,env);url=spec['origin']+spec['path'];req=Request(url,data=encoded_body(spec),method='POST',headers=spec['headers'])
     try:
         with open_url(req,timeout=15) as response:
             status=getattr(response,'status',200);raw=response.read(65537)
@@ -98,10 +89,8 @@ def _send(item,env=os.environ,open_url=None):
     except HTTPError as exc:
         retryable=exc.code in (408,425,429) or 500<=exc.code<=599
         return False,retryable,'','PROVIDER_HTTP_'+str(exc.code)
-    except (URLError,TimeoutError,OSError):
-        return False,True,'','PROVIDER_NETWORK_ERROR'
-    except ValueError as exc:
-        return False,False,'',str(exc)[:200]
+    except (URLError,TimeoutError,OSError):return False,True,'','PROVIDER_NETWORK_ERROR'
+    except ValueError as exc:return False,False,'',str(exc)[:200]
 
 def dispatch_once(limit=5,env=os.environ,db_rpc=rpc,send=_send):
     if not isinstance(limit,int) or not 1<=limit<=20:raise ValueError('INVALID_DISPATCH_LIMIT')
@@ -111,18 +100,11 @@ def dispatch_once(limit=5,env=os.environ,db_rpc=rpc,send=_send):
     for item in claimed:
         event=str(item.get('eventId') if isinstance(item,dict) else '')
         try:
-            prepared=_ensure_receipt_attachment(item,env,db_rpc)
-            ok,retryable,provider_ref,error=send(prepared,env)
-        except ValueError as exc:
-            ok,retryable,provider_ref,error=False,False,'',str(exc)[:200]
-        except RuntimeError as exc:
-            ok,retryable,provider_ref,error=False,True,'',str(exc)[:200]
-        except Exception:
-            ok,retryable,provider_ref,error=False,False,'','DISPATCH_WORKER_ERROR'
-        final=db_rpc('aqari_integration_dispatch_result',{
-          'p_event_id':event,'p_ok':bool(ok),'p_retryable':bool(retryable),
-          'p_provider_reference':provider_ref or None,'p_error':error or None
-        },env)
+            prepared=_ensure_receipt_attachment(item,env,db_rpc);ok,retryable,provider_ref,error=send(prepared,env)
+        except ValueError as exc:ok,retryable,provider_ref,error=False,False,'',str(exc)[:200]
+        except RuntimeError as exc:ok,retryable,provider_ref,error=False,True,'',str(exc)[:200]
+        except Exception:ok,retryable,provider_ref,error=False,False,'','DISPATCH_WORKER_ERROR'
+        final=db_rpc('aqari_integration_dispatch_result',{'p_event_id':event,'p_ok':bool(ok),'p_retryable':bool(retryable),'p_provider_reference':provider_ref or None,'p_error':error or None},env)
         status=final.get('status') if isinstance(final,dict) else None
         if status=='sent':result['sent']+=1
         elif status=='dead_letter':result['deadLetter']+=1
