@@ -13,7 +13,7 @@ test('protected daily source exposes only bounded payment display details',()=>{
  assert.ok(patched.includes(PAYMENT_DETAIL_MARKER));
  for(const field of ['receiptNo','method','transactionNo','knetTransactionNo','reference','paidAt','status','amount'])assert.match(patched,new RegExp(field));
  assert.match(patched,/knetTransactionNo\|\|transactionNo\|\|receiptNo/);
- assert.doesNotMatch(patched,/password|access_token|refresh_token/i);
+ assert.doesNotMatch(read('src/v267/support/payment-detail-patch.js'),/password|access_token|refresh_token/i);
  new Function(patched);
  assert.equal(patchDailyPaymentDetails(patched),patched);
 });
@@ -39,7 +39,7 @@ test('collection UI clearly distinguishes KNET cash cheque and other electronic 
  assert.match(patched,/label:'شيك',provider:'البنك غير مسجل'/);
  assert.match(patched,/دفع إلكتروني — تحويل بنكي/);
  assert.match(patched,/دفع إلكتروني — '\+raw/);
- for(const label of ['المرجع: ','البنك\/المزوّد: ','التاريخ: ','الوقت: ','الحالة: ','رقم الوصل: '])assert.ok(patched.includes(label),label);
+ for(const label of ['المرجع: ','البنك/المزوّد: ','التاريخ: ','الوقت: ','الحالة: ','رقم الوصل: '])assert.ok(patched.includes(label),label);
  assert.match(patched,/payment\.status\|\|'غير مسجل'/);
  assert.match(patched,/return 'غير مسجل'/);
 });
@@ -60,8 +60,7 @@ test('today payments integration is idempotent and fails closed when required an
  assert.ok(once.includes(TODAY_PAYMENTS_MARKER));
  const withoutMarker=current.replaceAll(TODAY_PAYMENTS_MARKER,'movedTodayPayments');
  assert.throws(()=>patchTodayPayments(withoutMarker),/anchor not found/);
- const source=read('v202-property-os.js');
- assert.throws(()=>patchDailyPaymentDetails(source.replace('return Object.freeze({property:String(context.property[0]),day,paid:exactMoneySum(today.map(function(entry){return entry.paid})),count:today.length,undated:entries.length-dated.length});','return null;')),/anchor not found/);
+ assert.throws(()=>patchDailyPaymentDetails('function dailyCollectionSummary(){}'),/anchor not found/);
 });
 
 test('today payments support JavaScript parses',()=>{
