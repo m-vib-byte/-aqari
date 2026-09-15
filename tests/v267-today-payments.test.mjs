@@ -34,7 +34,7 @@ test('today payments integration is idempotent and fails closed when required an
  const once=patchTodayPayments(current);
  assert.equal(patchTodayPayments(once),once);
  assert.ok(once.includes(TODAY_PAYMENTS_MARKER));
- const withoutMarker=current.replaceAll(TODAY_PAYMENTS_MARKER,'v267TodayPaymentsMoved');
+ const withoutMarker=current.replaceAll(TODAY_PAYMENTS_MARKER,'movedTodayPayments');
  assert.throws(()=>patchTodayPayments(withoutMarker),/anchor not found/);
 });
 
