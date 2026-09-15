@@ -2,12 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {paymentCycleMonths,paymentCycleLabel} from '../src/v267/domain/payment-cycle.js';
-import {allocatePrepaidAmount,prepaidBatchManifest} from '../src/v267/domain/prepaid-rent.js';
+import {allocatePrepaidAmount,prepaidBatchManifest,prepaidReceiptArtifacts} from '../src/v267/domain/prepaid-rent.js';
 import {patchContractFoundation,patchRentalContracts,FOUNDATION_MARKER,CONTRACTS_MARKER} from '../src/v267/support/payment-cycle-patch.js';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const sql=read('staging-database/sql/rent-payment-cycle-prepaid-20260915.sql');
 const grandfather=read('staging-database/sql/rent-payment-cycle-grandfather-fix-20260915.sql');
+const batchId='11111111-1111-4111-8111-111111111111';
+const leaseId='22222222-2222-4222-8222-222222222222';
+const operationRef='33333333-3333-4333-8333-333333333333';
 
 test('payment cycle is explicit and limited to monthly quarterly semiannual annual',()=>{
  for(const n of [1,3,6,12])assert.equal(paymentCycleMonths(n),n);
@@ -26,12 +29,27 @@ test('prepaid amount allocates FIFO across positive balances and supports a part
  assert.throws(()=>allocatePrepaidAmount(periods,250,{maxPeriods:2}),/أكبر من رصيد/);
 });
 
-test('prepaid batch manifest requires exact sum and one transaction reference',()=>{
+test('prepaid batch manifest requires exact sum and server reservation identities',()=>{
  const contract={id:'c1',contract_no:'AQ-C-2026-000001'};
- const allocations=[{period:'2026-10-01',amount:100,receiptNo:'AQ-R-2026-00000001'}];
- const row=prepaidBatchManifest({id:'11111111-1111-4111-8111-111111111111',contract,leaseId:'22222222-2222-4222-8222-222222222222',method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:100,allocations});
+ const allocations=[{operationRef,period:'2026-10-01',amount:100,receiptNo:'AQ-R-2026-00000001',contractReceiptSequence:1}];
+ const row=prepaidBatchManifest({id:batchId,contract,leaseId,method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:100,allocations});
  assert.equal(row.total,100);assert.equal(row.transactionNo,'BANK-100');assert.equal(row.allocations.length,1);
- assert.throws(()=>prepaidBatchManifest({id:'x',contract,leaseId:'l',method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:99,allocations}),/مجموع توزيع/);
+ assert.throws(()=>prepaidBatchManifest({id:batchId,contract,leaseId,method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:99,allocations}),/مجموع توزيع/);
+ assert.throws(()=>prepaidBatchManifest({id:batchId,contract,leaseId,method:'bank',transactionNo:'BANK-100',paidAt:'2026-02-30',total:100,allocations}),/غير مكتملة/);
+ assert.throws(()=>prepaidBatchManifest({id:batchId,contract,leaseId,method:'bank',transactionNo:'BANK-100',paidAt:'2026-09-15',total:200,allocations:[...allocations,{...allocations[0],amount:100}]}),/مكرر/);
+});
+
+test('prepaid receipt artifacts bind allocation to the freshly verified server period and balance',()=>{
+ const api={entitlementBreakdown:()=>({net:100}),entitlementDueOn:()=> '2026-10-01'};
+ const contract={id:'c1',contract_no:'AQ-C-2026-000001',status:'signed',tenant:'مستأجر',property:'عقار',unit:'1'};
+ const profile={id:'t1',nameEn:'Tenant'};
+ const periodRow={period:'2026-10-01',due_amount:100,balance:100};
+ const allocation={period:'2026-10-01',amount:50,balanceBefore:100};
+ const args={api,contract,profile,periodRow,allocation,receiptNo:'AQ-R-2026-00000001',contractReceiptSequence:1,paidAt:'2026-09-15',method:'knet',transactionNo:'KNET-1',batchId};
+ const artifacts=prepaidReceiptArtifacts(args);
+ assert.equal(artifacts.ledger.period,'2026-10');assert.equal(artifacts.ledger.balance,50);assert.equal(artifacts.ledger.prepaymentBatchId,batchId);
+ assert.throws(()=>prepaidReceiptArtifacts({...args,allocation:{...allocation,period:'2026-11-01'}}),/الفترة غير مكتملة/);
+ assert.throws(()=>prepaidReceiptArtifacts({...args,allocation:{...allocation,balanceBefore:90}}),/تغير رصيد الفترة/);
 });
 
 test('database keeps monthly entitlement ledger and exposes grouped installment cycle',()=>{
