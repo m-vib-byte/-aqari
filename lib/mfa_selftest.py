@@ -70,6 +70,21 @@ def _expect(stage,status,data,allowed=(200,201)):
  if not isinstance(data,dict):raise RuntimeError(stage+':INVALID_RESPONSE')
  return data
 
+def _expect_factors(stage,status,data):
+ if status not in (200,201):raise RuntimeError(stage+':'+_error_code(data))
+ if not isinstance(data,(dict,list)):raise RuntimeError(stage+':INVALID_RESPONSE')
+ return data
+
+def _factor_status(data,factor_id):
+ factors=data.get('factors') if isinstance(data,dict) else data
+ if not isinstance(factors,list):return None
+ for factor in factors:
+  if not isinstance(factor,dict) or str(factor.get('id') or '')!=factor_id:continue
+  if factor.get('factor_type')!='totp':return None
+  status=factor.get('status')
+  return status if status in ('unverified','verified') else None
+ return None
+
 def _b32(secret):
  raw=''.join(str(secret or '').split()).upper();raw+=('='*((8-len(raw)%8)%8))
  try:return base64.b32decode(raw,casefold=True)
@@ -93,7 +108,7 @@ def _jwt_claims(token):
 
 def run_selftest(env=os.environ,open_url=None,now=None):
  url,publishable,service,sha=_config(env);admin=_service_headers(service);public={'apikey':publishable};user_id=None;stage='START'
- report={'ok':False,'candidateSha':sha,'created':False,'aal1':False,'enrolled':False,'qrReturned':False,'challenged':False,'verified':False,'aal2':False,'cleanup':False,'totpWindowsTried':0}
+ report={'ok':False,'candidateSha':sha,'created':False,'aal1':False,'enrolled':False,'factorUnverified':False,'qrReturned':False,'challenged':False,'verified':False,'factorVerified':False,'aal2':False,'cleanup':False,'totpWindowsTried':0}
  email='qa-mfa-selftest-'+secrets.token_hex(10)+'@example.invalid';password=secrets.token_urlsafe(36)
  try:
   stage='CREATE_USER';s,d=_request(url+'/auth/v1/admin/users','POST',admin,{'email':email,'password':password,'email_confirm':True,'user_metadata':{'aqari_mfa_selftest':True}},open_url);d=_expect(stage,s,d);user_id=str(d.get('id') or '');
@@ -105,6 +120,9 @@ def run_selftest(env=os.environ,open_url=None,now=None):
   stage='ENROLL';s,d=_request(url+'/auth/v1/factors','POST',user_headers,{'factor_type':'totp','friendly_name':'AQARI V267 selftest '+secrets.token_hex(6)},open_url);d=_expect(stage,s,d);factor_id=str(d.get('id') or '');totp=d.get('totp') if isinstance(d.get('totp'),dict) else {};secret=str(totp.get('secret') or '');qr=str(totp.get('qr_code') or '');uri=str(totp.get('uri') or '')
   if not factor_id or not secret:raise RuntimeError(stage+':ENROLLMENT_DATA_MISSING')
   report['enrolled']=True
+  stage='FACTOR_UNVERIFIED';s,d=_request(url+'/auth/v1/admin/users/'+user_id+'/factors','GET',admin,None,open_url);d=_expect_factors(stage,s,d)
+  if _factor_status(d,factor_id)!='unverified':raise RuntimeError(stage+':STATUS_NOT_UNVERIFIED')
+  report['factorUnverified']=True
   if not qr or not uri.startswith('otpauth://'):raise RuntimeError(stage+':QR_OR_URI_MISSING')
   report['qrReturned']=True
   last_error='UPSTREAM_REJECTED'
@@ -121,7 +139,10 @@ def run_selftest(env=os.environ,open_url=None,now=None):
    if aal_claims.get('sub')!=user_id or aal_claims.get('aal')!='aal2':raise RuntimeError(stage+':AAL2_NOT_CONFIRMED')
    methods=[x.get('method') for x in (aal_claims.get('amr') or []) if isinstance(x,dict)]
    if 'totp' not in methods:raise RuntimeError(stage+':TOTP_AMR_MISSING')
-   report['verified']=True;report['verifiedWindowSeconds']=window;report['aal2']=True;report['ok']=True;stage='COMPLETE';break
+   report['verified']=True;report['verifiedWindowSeconds']=window;report['aal2']=True
+   stage='FACTOR_VERIFIED';s,d=_request(url+'/auth/v1/admin/users/'+user_id+'/factors','GET',admin,None,open_url);d=_expect_factors(stage,s,d)
+   if _factor_status(d,factor_id)!='verified':raise RuntimeError(stage+':STATUS_NOT_VERIFIED')
+   report['factorVerified']=True;report['ok']=True;stage='COMPLETE';break
   if not report['verified']:raise RuntimeError('VERIFY:'+last_error)
  except RuntimeError as exc:
   text=str(exc);report['stage']=stage;report['error']=text if SAFE_CODE.fullmatch(text) else stage+':SELFTEST_FAILED'
