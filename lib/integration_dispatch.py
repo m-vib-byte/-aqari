@@ -100,12 +100,24 @@ def dispatch_once(limit=5,env=os.environ,db_rpc=rpc,send=_send):
     if not isinstance(rent_bridge,dict):raise RuntimeError('INVALID_NOTIFICATION_BRIDGE_RESPONSE')
     completion_bridge=db_rpc('aqari_notification_dispatch_completion_bridge',{'p_limit':min(500,limit*20)},env)
     if not isinstance(completion_bridge,dict):raise RuntimeError('INVALID_COMPLETION_BRIDGE_RESPONSE')
-    completion_claimed=db_rpc('aqari_integration_dispatch_completion_claim',{'p_limit':limit},env)
-    if not isinstance(completion_claimed,list):raise RuntimeError('INVALID_COMPLETION_CLAIM_RESPONSE')
+
+    # Completion notices stay first, but a full completion backlog must not starve
+    # existing receipt/reminder work forever. Production dispatch uses limit=5, so
+    # reserve one slot for the regular outbox and refill it with completion work
+    # only when no regular row was available.
+    completion_budget=limit if limit==1 else limit-1
+    completion_claimed=db_rpc('aqari_integration_dispatch_completion_claim',{'p_limit':completion_budget},env)
+    if not isinstance(completion_claimed,list) or len(completion_claimed)>completion_budget:raise RuntimeError('INVALID_COMPLETION_CLAIM_RESPONSE')
     remaining=max(0,limit-len(completion_claimed));regular_claimed=[]
     if remaining:
         regular_claimed=db_rpc('aqari_integration_dispatch_claim',{'p_limit':remaining},env)
-        if not isinstance(regular_claimed,list):raise RuntimeError('INVALID_DISPATCH_CLAIM_RESPONSE')
+        if not isinstance(regular_claimed,list) or len(regular_claimed)>remaining:raise RuntimeError('INVALID_DISPATCH_CLAIM_RESPONSE')
+    if limit>1 and len(completion_claimed)==completion_budget:
+        topup_limit=max(0,remaining-len(regular_claimed))
+        if topup_limit:
+            completion_topup=db_rpc('aqari_integration_dispatch_completion_claim',{'p_limit':topup_limit},env)
+            if not isinstance(completion_topup,list) or len(completion_topup)>topup_limit:raise RuntimeError('INVALID_COMPLETION_CLAIM_RESPONSE')
+            completion_claimed+=completion_topup
     claimed=completion_claimed+regular_claimed
     result={
         'bridged':int(rent_bridge.get('bridged') or 0),
