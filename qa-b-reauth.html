@@ -42,7 +42,10 @@ async function main(event){
   const {data:sessionData,error:sessionError}=await client.auth.getSession();if(sessionError)throw sessionError;
   if(!sessionData?.session?.user?.id)fail('AUTH_SESSION_REQUIRED');
   const {data:factors,error:factorsError}=await client.auth.mfa.listFactors();if(factorsError)throw factorsError;
-  const verified=[...(factors?.totp||[]),...(factors?.phone||[])].filter(item=>item.status==='verified');
+  const all=[...(factors?.totp||[]),...(factors?.phone||[])];
+  const verified=all.filter(item=>item.status==='verified');
+  const unverified=all.filter(item=>item.status==='unverified');
+  if(!verified.length&&unverified.length)fail('MFA_ENROLLMENT_INCOMPLETE');
   if(!verified.length)fail('MFA_FACTOR_REQUIRED');
   const factor=verified[0];
   const {data:challenge,error:challengeError}=await client.auth.mfa.challenge({factorId:factor.id});if(challengeError)throw challengeError;
@@ -54,7 +57,14 @@ async function main(event){
   location.replace('/qa-b.html?run=1');
  }catch(error){
   const raw=String(error?.message||'MFA_REAUTH_FAILED');
-  setStatus(raw.includes('Invalid TOTP')||raw.includes('Token has expired')?'الرمز غير صحيح أو انتهت صلاحيته. أدخل الرمز الحالي من التطبيق وحاول مرة أخرى.':'تعذر إعادة التحقق. حدّث الصفحة وتأكد أنك مسجل الدخول ثم أدخل الرمز الحالي.','bad');
+  const text=raw.includes('MFA_ENROLLMENT_INCOMPLETE')
+   ?'عامل المصادقة الحالي غير مكتمل الربط. لا تكرر إدخال الرمز الآن؛ أكمل ربط تطبيق المصادقة من صفحة الأمان أولًا، ثم ارجع إلى هذا الاختبار.'
+   :raw.includes('MFA_FACTOR_REQUIRED')
+    ?'لا يوجد عامل مصادقة موثق لهذا الحساب. أكمل إضافة تطبيق المصادقة من صفحة الأمان أولًا.'
+    :raw.includes('Invalid TOTP')||raw.includes('Token has expired')
+     ?'الرمز لا يطابق عامل المصادقة الموثق أو انتهت صلاحيته. استخدم الرمز الحالي من العامل الموثق فقط.'
+     :'تعذر إعادة التحقق. حدّث الصفحة وتأكد أنك مسجل الدخول ثم حاول مرة أخرى.';
+  setStatus(text,'bad');
   submit.disabled=false;code.disabled=false;code.value='';code.focus();
  }
 }
