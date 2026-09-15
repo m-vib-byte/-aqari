@@ -1,12 +1,12 @@
 -- AQARI V267 Preview/Staging: manager-controlled preparation/revocation of temporary QA identities.
--- This function never creates auth.users rows.
+-- This function never creates auth.users rows. The existing general-manager account is used for manager-role B testing.
 
 create or replace function public.aqari_qa_account(p_workspace_id uuid,p_action text,p_data jsonb default '{}'::jsonb)
 returns jsonb language plpgsql volatile security definer set search_path='' as $$
 declare
  d jsonb:=coalesce(p_data,'{}'::jsonb); q private.aqari_qa_accounts%rowtype; wslug text;
  target_email text; target_name text; target_role text; base public.aqari_role; op text; props uuid[]:='{}'; tenant uuid;
- expiry timestamptz; why text; actor_name text; target_user uuid; old_assignment private.aqari_staff_assignments%rowtype;
+ expiry timestamptz; why text; actor_name text; old_assignment private.aqari_staff_assignments%rowtype;
 begin
  if auth.uid() is null or not private.aqari_manager(p_workspace_id) then raise insufficient_privilege using message='ACCESS_DENIED';end if;
  if p_action='list' then
@@ -26,13 +26,11 @@ begin
   target_email:=lower(btrim(coalesce(d->>'email','')));target_name:=btrim(coalesce(d->>'display_name',''));target_role:=d->>'qa_role';why:=btrim(coalesce(d->>'reason',''));
   begin expiry:=(d->>'expires_at')::timestamptz;exception when others then raise invalid_parameter_value using message='INVALID_QA_EXPIRY';end;
   if target_email!~'^[^[:space:]@]+@[^[:space:]@]+[.][^[:space:]@]+$' or length(target_email)>254 or length(target_name) not between 1 and 120
-   or target_role not in('general_manager','collector','accountant','maintenance','property_manager','viewer','partner','tenant')
+   or target_role not in('collector','accountant','maintenance','property_manager','viewer','partner','tenant')
    or expiry<now()+interval '15 minutes' or expiry>now()+interval '48 hours' or length(why) not between 3 and 500 then raise invalid_parameter_value using message='INVALID_QA_REQUEST';end if;
   if jsonb_typeof(coalesce(d->'property_ids','[]'::jsonb))<>'array' then raise invalid_parameter_value using message='INVALID_QA_PROPERTIES';end if;
   begin select coalesce(array_agg(distinct x::uuid order by x::uuid),'{}'::uuid[]) into props from jsonb_array_elements_text(coalesce(d->'property_ids','[]'::jsonb)) x;exception when others then raise invalid_parameter_value using message='INVALID_QA_PROPERTIES';end;
-  if exists(select 1 from unnest(props) pid where not exists(select 1 from public.aqari_properties p where p.workspace_id=p_workspace_id and p.id=pid and (p.name like 'اختبار %' or lower(p.name) like 'qa %' or lower(p.name) like 'test %'))) then raise insufficient_privilege using message='QA_TEST_PROPERTY_REQUIRED';end if;
-  if target_role='general_manager' and cardinality(props)<>0 then raise invalid_parameter_value using message='QA_MANAGER_PROPERTY_SCOPE_FORBIDDEN';end if;
-  if target_role in('collector','accountant','maintenance','property_manager','viewer','partner') and cardinality(props)<1 then raise invalid_parameter_value using message='QA_TEST_PROPERTY_REQUIRED';end if;
+  if cardinality(props)<1 or exists(select 1 from unnest(props) pid where not exists(select 1 from public.aqari_properties p where p.workspace_id=p_workspace_id and p.id=pid and (p.name like 'اختبار %' or lower(p.name) like 'qa %' or lower(p.name) like 'test %'))) then raise insufficient_privilege using message='QA_TEST_PROPERTY_REQUIRED';end if;
   if target_role='tenant' then
    if cardinality(props)<>1 then raise invalid_parameter_value using message='QA_TENANT_PROPERTY_REQUIRED';end if;
    begin tenant:=(d->>'tenant_id')::uuid;exception when others then tenant:=null;end;
