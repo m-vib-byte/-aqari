@@ -10,7 +10,8 @@ const requiredFiles = [
   'api/health.js',
   'api/release.js',
   'api/config-status.js',
-  '.env.example'
+  '.env.example',
+  'staging-database/sql/official-commercial-statement-20260915.sql'
 ];
 
 let failed = false;
@@ -24,6 +25,18 @@ for (const file of requiredFiles) {
 const html = fs.readFileSync('index.html', 'utf8');
 if (!html.includes('V198')) {
   console.error('index.html does not contain V198 release marker');
+  failed = true;
+}
+
+const commercialStatement = fs.readFileSync('staging-database/sql/official-commercial-statement-20260915.sql','utf8');
+for (const marker of ['aqari_commercial_collections','aqari_commercial_collection_reversals','aqari_assert_commercial_collections','commercialCollectionsIncluded','camIncluded']) {
+  if (!commercialStatement.includes(marker)) {
+    console.error(`Unified commercial statement missing: ${marker}`);
+    failed = true;
+  }
+}
+if (commercialStatement.includes('DOCUMENT_COMMERCIAL_RECONCILIATION_REQUIRED')) {
+  console.error('Unified commercial statement regressed to blanket commercial rejection');
   failed = true;
 }
 
