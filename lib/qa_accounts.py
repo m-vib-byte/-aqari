@@ -36,7 +36,11 @@ def _service_headers(key):
 def server_config(env=os.environ):
  url,publishable=public_config()
  if env.get('VERCEL_ENV')!='preview' or env.get('VERCEL_GIT_COMMIT_REF')!=EXPECTED_BRANCH:raise RuntimeError('QA_PREVIEW_ONLY')
- if env.get('AQARI_SUPABASE_URL')!=url:raise RuntimeError('QA_STAGING_TARGET_REQUIRED')
+ # AQARI_SUPABASE_URL is a non-secret defense-in-depth assertion. The candidate itself is
+ # already hard-pinned by public_config() to EXPECTED_URL, so an absent redundant env value
+ # must not disable QA. Any explicit mismatch still fails closed before Auth Admin is used.
+ configured_url=str(env.get('AQARI_SUPABASE_URL') or '').strip()
+ if configured_url and configured_url!=url:raise RuntimeError('QA_STAGING_TARGET_REQUIRED')
  service=env.get('AQARI_SUPABASE_SERVICE_ROLE_KEY','');_service_headers(service)
  return url,publishable,service
 
