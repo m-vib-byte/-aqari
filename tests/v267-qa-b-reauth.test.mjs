@@ -13,14 +13,22 @@ test('B reauth is pinned to the isolated Preview and existing signed-in session'
  assert.match(html,/AUTH_SESSION_REQUIRED/);
 });
 
-test('B reauth requires a verified MFA factor and current six-digit challenge',()=>{
- assert.match(html,/pattern="\[0-9\]\{6\}"/);
+test('B reauth requires a verified MFA factor and uses atomic current-code verification',()=>{
  assert.match(html,/client\.auth\.mfa\.listFactors\(\)/);
  assert.match(html,/item\.status==='verified'/);
- assert.match(html,/client\.auth\.mfa\.challenge\(/);
- assert.match(html,/client\.auth\.mfa\.verify\(/);
+ assert.match(html,/challengeAndVerify\(\{factorId:factor\.id,code:normalized\}\)/);
+ assert.doesNotMatch(html,/client\.auth\.mfa\.challenge\(/);
+ assert.doesNotMatch(html,/client\.auth\.mfa\.verify\(/);
  assert.match(html,/currentLevel!=='aal2'/);
  assert.match(html,/MFA_AAL2_REQUIRED/);
+});
+
+test('B reauth normalizes Arabic and Persian digits before sending the OTP',()=>{
+ assert.match(html,/function normalizeOtp\(value\)/);
+ assert.match(html,/٠١٢٣٤٥٦٧٨٩/);
+ assert.match(html,/۰۱۲۳۴۵۶۷۸۹/);
+ assert.match(html,/const normalized=normalizeOtp\(code\.value\)/);
+ assert.match(html,/ضبط الوقت في الجهاز تلقائي/);
 });
 
 test('B reauth distinguishes incomplete enrollment from an invalid code',()=>{
