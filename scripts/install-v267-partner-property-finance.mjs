@@ -27,7 +27,7 @@ if(!portal.includes('partnerPropertyFinanceView')){
  if(!portal.includes(importAnchor)||!portal.includes(ownerRead)||!portal.includes(append))throw Error('V267 partner finance portal anchor not found.');
  portal=portal.replace(importAnchor,importAnchor+"\nimport {partnerPropertyFinanceView} from './src/v267/components/partner-property-finance-view.js';");
  portal=portal.replace(ownerRead,"const finance=await session.read({propertyId:property.id,workspaceId:property.workspace_id,month:month+'-01',kind:'finance'});if(ticket!==operation)return;\n "+ownerRead);
- portal=portal.replace(append,"const ownerView=ownerFieldsView(ownerFields);$('partnerSummary').append(heading,list,partnerPropertyFinanceView(finance),partnerDistributionView(distributions));if(ownerView)$('partnerSummary').append(ownerView);notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');");
+ portal=portal.replace(append,"const ownerView=ownerFieldsView(ownerFields);$('partnerSummary').append(heading,list,partnerPropertyFinanceView(finance,{propertyName:property.name,period:month}),partnerDistributionView(distributions));if(ownerView)$('partnerSummary').append(ownerView);notice('تمت قراءة البيانات المصرح بها من قاعدة البيانات.');");
  writeFileSync(portalUrl,portal);
  console.log('Installed bounded V267 partner finance portal integration for this build.');
 }else console.log('V267 partner finance portal integration already present.');
