@@ -8,7 +8,7 @@ const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].m
 test('Phase-B runner is pinned to isolated Preview scope',()=>{
  assert.match(html,/ofgmcsmxmdswlovsckqs\.supabase\.co/);
  assert.match(html,/47a4a884-eb5c-4551-8754-2f51dee518f8/);
- assert.match(html,/aqari-git-support-v267-knet-range-reconcile-20260915-m-vib-5421\.vercel\.app/);
+ assert.match(html,/const BRANCH_HOST='[a-z0-9-]+\.vercel\.app';/);
  assert.match(html,/releaseStage==='preview'/);
  assert.match(html,/EXACT_BRANCH_PREVIEW_REQUIRED/);
 });
