@@ -44,51 +44,50 @@ class IntegrationDispatchTest(unittest.TestCase):
 
  def test_missing_receipt_pdf_is_rendered_archived_and_attached_before_send(self):
   source={'workspaceId':EVENT['workspaceId'],'paymentId':'33333333-3333-4333-8333-333333333333','receiptNo':'AQ-R-1','snapshotSha256':'1'*64,'receipt':RECEIPT}
-  item={**EVENT,'attachment':None,'receiptSource':source}
-  calls=[]
+  item={**EVENT,'attachment':None,'receiptSource':source};calls=[]
   def db(name,payload,env):
-   calls.append((name,payload))
-   self.assertEqual(name,'aqari_rent_receipt_pdf_auto_commit')
+   calls.append((name,payload));self.assertEqual(name,'aqari_rent_receipt_pdf_auto_commit')
    self.assertEqual(payload['p_workspace_id'],source['workspaceId']);self.assertEqual(payload['p_payment_id'],source['paymentId'])
    raw=base64.b64decode(payload['p_pdf_base64']);self.assertTrue(raw.startswith(b'%PDF-'));self.assertEqual(hashlib.sha256(raw).hexdigest(),payload['p_pdf_sha256'])
    return {'archived':True,'receiptNo':'AQ-R-1','pdfSha256':payload['p_pdf_sha256'],'snapshotSha256':source['snapshotSha256']}
   prepared=_ensure_receipt_attachment(item,{},db,lambda saved:PDF)
   self.assertNotIn('receiptSource',prepared);self.assertEqual(prepared['attachment']['content_type'],'application/pdf');self.assertEqual(len(calls),1)
 
- def test_dispatch_records_success_with_same_claim_identity(self):
+ def test_dispatch_bridges_reminders_before_claim_and_records_success(self):
   calls=[]
   def db(name,payload,env):
    calls.append((name,payload))
+   if name=='aqari_notification_dispatch_bridge':return {'bridged':2,'cancelled':1,'awaitingConfiguration':3}
    if name=='aqari_integration_dispatch_claim':return [dict(EVENT)]
-   self.assertEqual(payload['p_event_id'],EVENT['eventId']);self.assertTrue(payload['p_ok']);return {'status':'sent'}
-  def send(item,env):return True,False,'provider-001',None
-  result=dispatch_once(5,{'AQARI_TEST_PROVIDER_SECRET':'synthetic-server-secret'},db,send)
-  self.assertEqual(result,{'claimed':1,'sent':1,'failed':0,'deadLetter':0})
-  self.assertEqual([x[0] for x in calls],['aqari_integration_dispatch_claim','aqari_integration_dispatch_result'])
+   self.assertEqual(name,'aqari_integration_dispatch_result');self.assertEqual(payload['p_event_id'],EVENT['eventId']);self.assertTrue(payload['p_ok']);return {'status':'sent'}
+  result=dispatch_once(5,{'AQARI_TEST_PROVIDER_SECRET':'synthetic-server-secret'},db,lambda item,env:(True,False,'provider-001',None))
+  self.assertEqual(result,{'bridged':2,'cancelledReminders':1,'awaitingConfiguration':3,'claimed':1,'sent':1,'failed':0,'deadLetter':0})
+  self.assertEqual([x[0] for x in calls],['aqari_notification_dispatch_bridge','aqari_integration_dispatch_claim','aqari_integration_dispatch_result'])
 
  def test_dispatch_records_retryable_and_permanent_failures(self):
   for retryable,status in ((True,'failed'),(False,'dead_letter')):
    with self.subTest(retryable=retryable):
     def db(name,payload,env):
+     if name=='aqari_notification_dispatch_bridge':return {'bridged':0,'cancelled':0,'awaitingConfiguration':0}
      if name=='aqari_integration_dispatch_claim':return [dict(EVENT)]
      self.assertFalse(payload['p_ok']);self.assertEqual(payload['p_retryable'],retryable);return {'status':status}
     result=dispatch_once(1,{},db,lambda item,env:(False,retryable,'','PROVIDER_HTTP_503' if retryable else 'PROVIDER_HTTP_400'))
     self.assertEqual(result['failed'],1 if retryable else 0);self.assertEqual(result['deadLetter'],0 if retryable else 1)
 
  def test_database_contract_is_service_only_crash_safe_immutable_and_auto_archives_receipt(self):
-  sql=(ROOT/'staging-database/sql/integration-outbox-dispatch-20260915.sql').read_text()
-  auto=(ROOT/'staging-database/sql/integration-receipt-auto-archive-20260915.sql').read_text()
-  self.assertIn("current_setting('role',true) is distinct from 'service_role'",sql)
-  self.assertIn('for update skip locked',sql);self.assertIn("status='sending'",sql);self.assertIn('DELIVERY_LEASE_EXPIRED',sql)
+  sql=(ROOT/'staging-database/sql/integration-outbox-dispatch-20260915.sql').read_text();auto=(ROOT/'staging-database/sql/integration-receipt-auto-archive-20260915.sql').read_text()
+  self.assertIn("current_setting('role',true) is distinct from 'service_role'",sql);self.assertIn('for update skip locked',sql);self.assertIn("status='sending'",sql);self.assertIn('DELIVERY_LEASE_EXPIRED',sql)
   self.assertIn('aqari_integration_delivery_events_immutable',sql);self.assertIn("when 'collection.receipt' then 'collection_receipt'",sql)
-  self.assertIn('aqari_rent_receipt_pdf_system_source',auto);self.assertIn('aqari_rent_receipt_pdf_auto_commit',auto)
-  self.assertIn("archive_actor_kind='system'",auto);self.assertIn('aqari_rent_receipt_pdf_automation_immutable',auto);self.assertIn("'receiptSource'",auto)
-  self.assertNotIn("'system'::uuid",auto)
+  self.assertIn('aqari_rent_receipt_pdf_system_source',auto);self.assertIn('aqari_rent_receipt_pdf_auto_commit',auto);self.assertIn("archive_actor_kind='system'",auto);self.assertIn('aqari_rent_receipt_pdf_automation_immutable',auto);self.assertIn("'receiptSource'",auto);self.assertNotIn("'system'::uuid",auto)
+
+ def test_rent_reminder_bridge_rechecks_balance_contact_and_delivery_state(self):
+  sql=(ROOT/'staging-database/sql/notification-dispatch-bridge-20260915.sql').read_text()
+  self.assertIn('aqari_notification_dispatch_bridge',sql);self.assertIn('private.aqari_refresh_rent_due_schedule',sql);self.assertIn('due.balance<=0',sql)
+  self.assertIn('private.aqari_contact_channel_allowed',sql);self.assertIn("'notification.rent_reminder'",sql);self.assertIn('REMINDER_SETTLED_BEFORE_DELIVERY',sql)
+  self.assertIn("remainingBalance',due.balance",sql);self.assertIn("status='cancelled'",sql);self.assertIn("status='sending'",sql)
 
  def test_cron_route_is_declared_and_requires_cron_secret(self):
-  config=json.loads((ROOT/'vercel.json').read_text())
-  self.assertIn({'path':'/api/integration-dispatch','schedule':'*/5 * * * *'},config['crons'])
-  api=(ROOT/'api/integration-dispatch.py').read_text()
-  self.assertIn("os.environ.get('CRON_SECRET'",api);self.assertIn("hmac.compare_digest(auth,'Bearer '+secret)",api)
+  config=json.loads((ROOT/'vercel.json').read_text());self.assertIn({'path':'/api/integration-dispatch','schedule':'*/5 * * * *'},config['crons'])
+  api=(ROOT/'api/integration-dispatch.py').read_text();self.assertIn("os.environ.get('CRON_SECRET'",api);self.assertIn("hmac.compare_digest(auth,'Bearer '+secret)",api)
 
 if __name__=='__main__':unittest.main()
