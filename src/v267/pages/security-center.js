@@ -1,8 +1,15 @@
 import {createDialog,node,field} from '../components/dialog.js';
 
 const text=(tag,value)=>node(tag,String(value??''));
-function codeInput(){const input=node('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.pattern='[0-9]{6}';input.maxLength=6;input.required=true;return input;}
+function codeInput(){const input=node('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.maxLength=12;input.required=true;return input;}
 function result(value){if(value?.error)throw value.error;return value?.data;}
+function normalizeOtp(value){
+ const arabic='٠١٢٣٤٥٦٧٨٩',persian='۰۱۲۳۴۵۶۷۸۹';
+ return String(value??'').trim()
+  .replace(/[٠-٩]/g,ch=>String(arabic.indexOf(ch)))
+  .replace(/[۰-۹]/g,ch=>String(persian.indexOf(ch)))
+  .replace(/[\s\u00a0\u200e\u200f-]/g,'');
+}
 function factorDisplayName(factor){const name=String(factor?.friendly_name||'').trim();return name.startsWith('AQARI V267')?'AQARI V267':(name||'تطبيق المصادقة');}
 function newEnrollmentName(){
  const random=globalThis.crypto?.randomUUID?.().replace(/-/g,'').slice(0,12)||String(Date.now());
@@ -11,16 +18,26 @@ function newEnrollmentName(){
 
 export function openSecurityCenter(){
  const d=createDialog('الأمان والتوثيق الثنائي');if(!d)return;
- let factorId=null,challengeId=null,qr=null,secret=null,disposed=false;
+ let factorId=null,qr=null,secret=null,disposed=false;
  const state=text('section',''),actions=node('section'),factors=node('section');
  d.body.append(text('p','التوثيق الثنائي مطلوب للمالك والمدير العام والمحاسب قبل العمليات الحساسة. لا تحفظ المنصة سر المصادقة داخل قاعدة بيانات الأعمال.'),state,actions,factors);
  const auth=()=>d.session.client.auth.mfa;
- function clearEnrollment(){factorId=null;challengeId=null;secret=null;if(qr){qr.removeAttribute('src');qr.remove();qr=null;}}
+ function clearEnrollment(){factorId=null;secret=null;if(qr){qr.removeAttribute('src');qr.remove();qr=null;}}
  function factorList(listed){return [...(listed?.totp||[]),...(listed?.phone||[])];}
  async function assurance(){
   const data=result(await auth().getAuthenticatorAssuranceLevel());
   if(!data||!['aal1','aal2'].includes(data.currentLevel)||!['aal1','aal2'].includes(data.nextLevel))throw Error('تعذر التحقق من مستوى أمان الجلسة.');
   return data;
+ }
+ async function verifyCode(id,rawCode){
+  const code=normalizeOtp(rawCode);
+  if(!/^\d{6}$/.test(code))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');
+  try{return result(await auth().challengeAndVerify({factorId:id,code}));}
+  catch(error){
+   const raw=String(error?.message||'');
+   if(/invalid totp|token has expired|invalid.*code|otp/i.test(raw))throw Error('رمز المصادقة غير مطابق أو انتهت صلاحيته. استخدم الرمز الحالي الظاهر في تطبيق المصادقة، وتأكد أن ضبط الوقت في الجهاز تلقائي.');
+   throw error;
+  }
  }
  async function list(){
   const [level,listed]=await Promise.all([assurance(),auth().listFactors().then(result)]);
@@ -37,9 +54,9 @@ export function openSecurityCenter(){
   }
  }
  async function challenge(id){
-  clearEnrollment();factorId=id;const challenged=result(await auth().challenge({factorId:id}));challengeId=challenged?.id;if(!challengeId)throw Error('تعذر إنشاء تحدي التوثيق.');
+  clearEnrollment();factorId=id;
   const form=node('form'),code=codeInput();form.append(field('رمز التحقق المكون من 6 أرقام',code),Object.assign(node('button','تحقق من الرمز'),{type:'submit'}));
-  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');result(await auth().verify({factorId,challengeId,code:code.value}));clearEnrollment();await list();d.status.textContent='تم توثيق العامل الثاني وترقية الجلسة.';});};actions.replaceChildren(text('h2','التحقق من الجلسة'),form);code.focus();
+  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{await verifyCode(factorId,code.value);clearEnrollment();await list();d.status.textContent='تم توثيق العامل الثاني وترقية الجلسة.';});};actions.replaceChildren(text('h2','التحقق من الجلسة'),form);code.focus();
  }
  async function removePendingTotp(){
   const listed=result(await auth().listFactors());
@@ -61,7 +78,7 @@ export function openSecurityCenter(){
   const form=node('form'),code=codeInput(),cancel=node('button','إلغاء التسجيل');cancel.type='button';
   form.append(text('h2','إضافة تطبيق مصادقة'),removed?text('p','تم إلغاء التسجيل غير المكتمل السابق وبدء ربط جديد.'):text('p','بدأ ربط جديد وآمن لتطبيق المصادقة.'),text('p','امسح الرمز بتطبيق المصادقة، أو أدخل المفتاح يدوياً ثم اكتب الرمز المؤقت.'),qr,text('p','المفتاح اليدوي: '+secret),field('رمز التحقق',code),Object.assign(node('button','تفعيل التوثيق الثنائي'),{type:'submit'}),cancel);
   cancel.onclick=()=>d.run(async()=>{if(factorId)result(await auth().unenroll({factorId}));clearEnrollment();actions.replaceChildren();await list();});
-  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');const challenged=result(await auth().challenge({factorId}));result(await auth().verify({factorId,challengeId:challenged.id,code:code.value}));clearEnrollment();actions.replaceChildren();await list();d.status.textContent='تم تفعيل التوثيق الثنائي للحساب.';});};actions.replaceChildren(form);code.focus();
+  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{await verifyCode(factorId,code.value);clearEnrollment();actions.replaceChildren();await list();d.status.textContent='تم تفعيل التوثيق الثنائي للحساب.';});};actions.replaceChildren(form);code.focus();
  }
  const add=node('button','إضافة تطبيق مصادقة');add.type='button';add.onclick=()=>d.run(enroll);actions.append(add);
  d.onDispose(()=>{disposed=true;clearEnrollment();state.replaceChildren();actions.replaceChildren();factors.replaceChildren();});
