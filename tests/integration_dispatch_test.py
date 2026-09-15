@@ -12,6 +12,12 @@ EVENT={
  'provider':'email','mode':'sandbox','endpointOrigin':'https://provider.example.invalid','secretReference':'AQARI_TEST_PROVIDER_SECRET',
  'channel':'email','recipientReference':'tenant@example.invalid','template':'collection_receipt','variables':{'amount':'10.000','receiptReference':'AQ-R-1'},'locale':'ar','attachment':ATTACHMENT
 }
+COMPLETION_EVENT={
+ 'eventId':'44444444-4444-4444-8444-444444444444','workspaceId':EVENT['workspaceId'],'eventType':'notification.payment_thanks',
+ 'idempotencyKey':'notification:55555555-5555-4555-8555-555555555555','attempt':1,'provider':'email','mode':'sandbox',
+ 'endpointOrigin':'https://provider.example.invalid','secretReference':'AQARI_TEST_PROVIDER_SECRET','channel':'email',
+ 'recipientReference':'tenant@example.invalid','template':'payment_thanks','variables':{'paidAmount':'10.000','remainingBalance':'0.000'},'locale':'ar'
+}
 RECEIPT={
  'id':'AQ-R-1','template':'rent-voucher-v267-1','brand':{'ar':'عقار اختبار'},
  'record':['AQ-R-1','مستأجر اختبار',10,'مدفوع','عقار اختبار','2026-09-15','1','دفعة اختبار','2026-09','نقدي'],
@@ -53,24 +59,40 @@ class IntegrationDispatchTest(unittest.TestCase):
   prepared=_ensure_receipt_attachment(item,{},db,lambda saved:PDF)
   self.assertNotIn('receiptSource',prepared);self.assertEqual(prepared['attachment']['content_type'],'application/pdf');self.assertEqual(len(calls),1)
 
- def test_dispatch_bridges_reminders_before_claim_and_records_success(self):
+ def test_dispatch_bridges_rent_thanks_and_operational_then_records_success(self):
   calls=[]
   def db(name,payload,env):
    calls.append((name,payload))
    if name=='aqari_notification_dispatch_bridge':return {'bridged':2,'cancelled':1,'awaitingConfiguration':3}
+   if name=='aqari_notification_dispatch_completion_bridge':return {'paymentThanks':1,'operational':2,'cancelled':1,'awaitingConfiguration':4}
+   if name=='aqari_integration_dispatch_completion_claim':return [dict(COMPLETION_EVENT)]
    if name=='aqari_integration_dispatch_claim':return [dict(EVENT)]
+   if name=='aqari_integration_dispatch_completion_result':self.assertEqual(payload['p_event_id'],COMPLETION_EVENT['eventId']);self.assertTrue(payload['p_ok']);return {'status':'sent'}
    self.assertEqual(name,'aqari_integration_dispatch_result');self.assertEqual(payload['p_event_id'],EVENT['eventId']);self.assertTrue(payload['p_ok']);return {'status':'sent'}
   result=dispatch_once(5,{'AQARI_TEST_PROVIDER_SECRET':'synthetic-server-secret'},db,lambda item,env:(True,False,'provider-001',None))
-  self.assertEqual(result,{'bridged':2,'cancelledReminders':1,'awaitingConfiguration':3,'claimed':1,'sent':1,'failed':0,'deadLetter':0})
-  self.assertEqual([x[0] for x in calls],['aqari_notification_dispatch_bridge','aqari_integration_dispatch_claim','aqari_integration_dispatch_result'])
+  self.assertEqual(result,{'bridged':2,'cancelledReminders':1,'paymentThanksBridged':1,'operationalBridged':2,'completionCancelled':1,'awaitingConfiguration':7,'claimed':2,'sent':2,'failed':0,'deadLetter':0})
+  self.assertEqual([x[0] for x in calls],['aqari_notification_dispatch_bridge','aqari_notification_dispatch_completion_bridge','aqari_integration_dispatch_completion_claim','aqari_integration_dispatch_claim','aqari_integration_dispatch_completion_result','aqari_integration_dispatch_result'])
 
- def test_dispatch_records_retryable_and_permanent_failures(self):
+ def test_completion_claims_use_completion_result_for_retry_and_dead_letter(self):
   for retryable,status in ((True,'failed'),(False,'dead_letter')):
    with self.subTest(retryable=retryable):
     def db(name,payload,env):
      if name=='aqari_notification_dispatch_bridge':return {'bridged':0,'cancelled':0,'awaitingConfiguration':0}
+     if name=='aqari_notification_dispatch_completion_bridge':return {'paymentThanks':1,'operational':0,'cancelled':0,'awaitingConfiguration':0}
+     if name=='aqari_integration_dispatch_completion_claim':return [dict(COMPLETION_EVENT)]
+     self.assertEqual(name,'aqari_integration_dispatch_completion_result');self.assertFalse(payload['p_ok']);self.assertEqual(payload['p_retryable'],retryable);return {'status':status}
+    result=dispatch_once(1,{},db,lambda item,env:(False,retryable,'','PROVIDER_HTTP_503' if retryable else 'PROVIDER_HTTP_400'))
+    self.assertEqual(result['failed'],1 if retryable else 0);self.assertEqual(result['deadLetter'],0 if retryable else 1)
+
+ def test_regular_dispatch_records_retryable_and_permanent_failures(self):
+  for retryable,status in ((True,'failed'),(False,'dead_letter')):
+   with self.subTest(retryable=retryable):
+    def db(name,payload,env):
+     if name=='aqari_notification_dispatch_bridge':return {'bridged':0,'cancelled':0,'awaitingConfiguration':0}
+     if name=='aqari_notification_dispatch_completion_bridge':return {'paymentThanks':0,'operational':0,'cancelled':0,'awaitingConfiguration':0}
+     if name=='aqari_integration_dispatch_completion_claim':return []
      if name=='aqari_integration_dispatch_claim':return [dict(EVENT)]
-     self.assertFalse(payload['p_ok']);self.assertEqual(payload['p_retryable'],retryable);return {'status':status}
+     self.assertEqual(name,'aqari_integration_dispatch_result');self.assertFalse(payload['p_ok']);self.assertEqual(payload['p_retryable'],retryable);return {'status':status}
     result=dispatch_once(1,{},db,lambda item,env:(False,retryable,'','PROVIDER_HTTP_503' if retryable else 'PROVIDER_HTTP_400'))
     self.assertEqual(result['failed'],1 if retryable else 0);self.assertEqual(result['deadLetter'],0 if retryable else 1)
 
@@ -85,6 +107,15 @@ class IntegrationDispatchTest(unittest.TestCase):
   self.assertIn('aqari_notification_dispatch_bridge',sql);self.assertIn('private.aqari_refresh_rent_due_schedule',sql);self.assertIn('due.balance<=0',sql)
   self.assertIn('private.aqari_contact_channel_allowed',sql);self.assertIn("'notification.rent_reminder'",sql);self.assertIn('REMINDER_SETTLED_BEFORE_DELIVERY',sql)
   self.assertIn("remainingBalance',due.balance",sql);self.assertIn("status='cancelled'",sql);self.assertIn("status='sending'",sql)
+
+ def test_completion_bridge_covers_payment_thanks_and_all_current_operational_alerts(self):
+  sql=(ROOT/'staging-database/sql/notification-dispatch-completion-20260915.sql').read_text()
+  self.assertIn('aqari_payment_thanks_dispatch_payload',sql);self.assertIn('private.aqari_refresh_rent_due_schedule',sql);self.assertIn("d.balance>0",sql);self.assertIn('private.aqari_contact_channel_allowed',sql)
+  for kind in ['maintenance_due','maintenance_sla_escalation','lease_expiry','vendor_contract_expiry','cheque_returned']:
+   self.assertIn("'"+kind+"'",sql)
+  self.assertIn("'notification.payment_thanks'",sql);self.assertIn("'notification.operational'",sql)
+  self.assertIn('aqari_integration_dispatch_completion_claim',sql);self.assertIn('aqari_integration_dispatch_completion_result',sql);self.assertIn('for update skip locked',sql)
+  self.assertIn("status='delivered'",sql);self.assertIn('provider_reference',sql);self.assertIn('PROVIDER_CONFIGURATION_MISSING',sql)
 
  def test_cron_route_is_declared_and_requires_cron_secret(self):
   config=json.loads((ROOT/'vercel.json').read_text());self.assertIn({'path':'/api/integration-dispatch','schedule':'*/5 * * * *'},config['crons'])
