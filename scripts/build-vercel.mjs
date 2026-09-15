@@ -43,13 +43,13 @@ execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs'
 execFileSync(process.execPath,['--test','tests/v267-partner-current-authorization.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
-execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test','tests.integration_dispatch_test'],{stdio:'inherit'});
+execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test','tests.integration_dispatch_test','tests.knet_dispatch_test'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs','tests/v267-payment-cycle-prepaid.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-collection-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-receipt-pdf-archive.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.test.mjs','tests/v267-monthly-collection-ui.test.mjs','tests/v267-today-payments.test.mjs','tests/v267-knet-range.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-monthly-collection-report.test.mjs','tests/v267-monthly-collection-ui.test.mjs','tests/v267-today-payments.test.mjs','tests/v267-knet-range.test.mjs','tests/v267-knet-settlement.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-server-mutation-audit.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-collector-performance-report.test.mjs','tests/v267-collector-performance-ui.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-operational-report-xlsx.test.mjs','tests/v267-operational-export-ui.test.mjs'],{stdio:'inherit'});
