@@ -2,30 +2,10 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const sql=read('staging-database/sql/knet-payment-intent-settlement-20260915.sql'),fix=read('staging-database/sql/knet-payment-intent-settlement-runtime-fix-20260915.sql'),webhook=read('api/provider-webhook.py'),dispatch=read('lib/knet_dispatch.py');
 
-test('KNET intent is property scoped, balance bounded and provider neutral',()=>{
- assert.match(sql,/create table if not exists private\.aqari_knet_payment_intents/);assert.match(sql,/KNET_AMOUNT_EXCEEDS_CURRENT_BALANCE/);assert.match(sql,/private\.aqari_can_property/);assert.match(sql,/provider='knet'/);assert.match(sql,/purpose in\('rent_payment','payments','default'\)/);assert.match(sql,/'knet\.payment_link'/);assert.match(sql,/KNET_PROVIDER_CONFIGURATION_MISSING/);
-});
-
-test('system receipt reservation is explicit and does not impersonate an authenticated user',()=>{
- assert.match(sql,/reservation_actor_kind text not null default 'user'/);assert.match(sql,/reservation_actor_kind='system'/);assert.match(sql,/values\(result_no,w,contract_ref,operation_ref,p_year,seq,within_contract,null,'system'\)/);assert.match(sql,/aqari_system_rent_receipt_serial/);assert.doesNotMatch(sql,/'system'::uuid/);
-});
-
-test('canonical KNET webhook requires exact intent, KWD, amount and provider reference before financial posting',()=>{
- assert.match(sql,/event_value<>'payment\.succeeded'/);assert.match(sql,/status_value<>'succeeded'/);assert.match(sql,/currency_value<>'KWD'/);assert.match(sql,/i\.provider_reference is distinct from provider_ref/);assert.match(sql,/i\.amount<>amount_value/);assert.match(sql,/KNET_INTENT_WEBHOOK_MISMATCH/);assert.match(sql,/KNET_BALANCE_CHANGED_BEFORE_SETTLEMENT/);
-});
-
-test('successful KNET webhook posts one official payment and receipt then queues ordinary delivery paths',()=>{
- assert.match(sql,/insert into public\.aqari_rent_payments/);assert.match(sql,/rent-voucher-v267-1/);assert.match(sql,/private\.aqari_rent_period_breakdown/);assert.match(sql,/'knetTransactionNo'/);assert.match(sql,/'payment_thanks'/);assert.match(sql,/aqari_knet_payment_events/);assert.match(sql,/aqari_webhook_processing_events/);assert.match(sql,/KNET_PAYMENT_ALREADY_POSTED/);
-});
-
-test('runtime fix qualifies reservation columns and resolves PLpgSQL variable conflicts',()=>{
- assert.match(fix,/r\.receipt_no=receipt_no/);assert.match(fix,/#variable_conflict use_variable/);
-});
-
-test('verified KNET webhook calls settlement and generic providers remain record-only',()=>{
- assert.match(webhook,/if provider=='knet'/);assert.match(webhook,/aqari_process_knet_webhook/);assert.match(webhook,/WEBHOOK_RECORD_NOT_CONFIRMED/);assert.match(webhook,/200 if provider=='knet' else 202/);
-});
-
-test('KNET dispatcher uses existing bounded adapter and requires HTTPS provider result',()=>{
- assert.match(dispatch,/knet_payment_request/);assert.match(dispatch,/NoRedirect/);assert.match(dispatch,/PROVIDER_SECRET_NOT_CONFIGURED/);assert.match(dispatch,/payment_url/);assert.match(dispatch,/startswith\('https:\/\/'\)/);assert.match(dispatch,/aqari_knet_payment_link_result/);
-});
+test('KNET intent is property scoped, balance bounded and provider neutral',()=>{assert.match(sql,/create table if not exists private\.aqari_knet_payment_intents/);assert.match(sql,/KNET_AMOUNT_EXCEEDS_CURRENT_BALANCE/);assert.match(sql,/private\.aqari_can_property/);assert.match(sql,/provider='knet'/);assert.match(sql,/purpose in\('rent_payment','payments','default'\)/);assert.match(sql,/'knet\.payment_link'/);assert.match(sql,/KNET_PROVIDER_CONFIGURATION_MISSING/);});
+test('system receipt reservation is explicit and does not impersonate an authenticated user',()=>{assert.match(sql,/reservation_actor_kind text not null default 'user'/);assert.match(sql,/reservation_actor_kind='system'/);assert.match(sql,/values\(result_no,w,contract_ref,operation_ref,p_year,seq,within_contract,null,'system'\)/);assert.match(sql,/aqari_system_rent_receipt_serial/);assert.doesNotMatch(sql,/'system'::uuid/);});
+test('canonical KNET webhook requires exact intent, KWD, amount and provider reference before financial posting',()=>{assert.match(sql,/event_value<>'payment\.succeeded'/);assert.match(sql,/status_value<>'succeeded'/);assert.match(sql,/currency_value<>'KWD'/);assert.match(sql,/i\.provider_reference is distinct from provider_ref/);assert.match(sql,/i\.amount<>amount_value/);assert.match(sql,/KNET_INTENT_WEBHOOK_MISMATCH/);assert.match(sql,/KNET_BALANCE_CHANGED_BEFORE_SETTLEMENT/);});
+test('successful KNET webhook posts one official payment and receipt then queues ordinary delivery paths',()=>{assert.match(sql,/insert into public\.aqari_rent_payments/);assert.match(sql,/rent-voucher-v267-1/);assert.match(sql,/private\.aqari_rent_period_breakdown/);assert.match(sql,/'knetTransactionNo'/);assert.match(sql,/'payment_thanks'/);assert.match(sql,/aqari_knet_payment_events/);assert.match(sql,/aqari_webhook_processing_events/);assert.match(sql,/KNET_PAYMENT_ALREADY_POSTED/);});
+test('runtime fix qualifies reservation columns and resolves PLpgSQL variable conflicts',()=>{assert.match(fix,/r\.receipt_no=receipt_no/);assert.match(fix,/#variable_conflict use_variable/);});
+test('verified KNET webhook still calls atomic settlement while handled events return 200',()=>{assert.match(webhook,/if provider=='knet'/);assert.match(webhook,/aqari_process_knet_webhook/);assert.match(webhook,/WEBHOOK_RECORD_NOT_CONFIRMED/);assert.match(webhook,/result\['settlement'\]=settlement;handled=True/);assert.match(webhook,/self\.send_response\(200 if handled else 202\)/);});
+test('KNET dispatcher uses existing bounded adapter and requires HTTPS provider result',()=>{assert.match(dispatch,/knet_payment_request/);assert.match(dispatch,/NoRedirect/);assert.match(dispatch,/PROVIDER_SECRET_NOT_CONFIGURED/);assert.match(dispatch,/payment_url/);assert.match(dispatch,/startswith\('https:\/\/'\)/);assert.match(dispatch,/aqari_knet_payment_link_result/);});
