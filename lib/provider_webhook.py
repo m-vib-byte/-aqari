@@ -2,7 +2,7 @@
 from hashlib import sha256
 import hmac, json, math, os, re, time, uuid
 
-UUID=re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',re.I)
+UUID=re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',re.I)
 # Keep the canonical envelope provider-neutral. Native provider signatures/field maps
 # still require their own verified server adapter before entering this contract.
 PROVIDERS={'knet','email','whatsapp','sms','push','quickbooks','zoho_books','xero','generic_webhook'}
