@@ -24,8 +24,11 @@ execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-partner-property-finance.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-today-payments.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['scripts/install-v267-today-knet-details.mjs'],{stdio:'inherit'});
+// Verify the historically pinned runtime before the KNET support installer mutates
+// v202-property-os.js in the ephemeral build workspace. The focused KNET suite
+// then verifies the bounded post-baseline transformation itself.
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-today-knet-details.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
