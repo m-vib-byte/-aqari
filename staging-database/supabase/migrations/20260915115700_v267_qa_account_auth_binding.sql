@@ -1,4 +1,4 @@
--- AQARI V267 Preview/Staging: bind official Supabase Auth invites to prepared QA scope and expire them safely.
+-- AQARI V267 Preview/Staging: bind official Supabase Auth Admin-created QA users to prepared scope and expire them safely.
 
 create or replace function private.aqari_qa_bind_after_auth() returns trigger
 language plpgsql security definer set search_path='' as $$
@@ -22,7 +22,7 @@ begin
  else raise exception 'QA_ROLE_BIND_FAILED';end if;
  update private.aqari_qa_accounts set auth_user_id=new.id,status='active',updated_at=now(),last_error=null where id=q.id;
  insert into private.aqari_qa_account_events(workspace_id,qa_account_id,action,actor_kind,reason,details)
-  values(q.workspace_id,q.id,'auth_bound','system','Supabase Auth invite bound to prepared QA scope',jsonb_build_object('user_id',new.id,'qa_role',q.qa_role));
+  values(q.workspace_id,q.id,'auth_bound','system','Supabase Auth Admin user bound to prepared QA scope',jsonb_build_object('user_id',new.id,'qa_role',q.qa_role));
  return new;
 end $$;
 revoke all on function private.aqari_qa_bind_after_auth() from public,anon,authenticated,service_role;
@@ -35,12 +35,12 @@ declare q private.aqari_qa_accounts%rowtype; err text:=nullif(left(regexp_replac
 begin
  if current_setting('role',true) is distinct from 'service_role' then raise insufficient_privilege using message='SERVER_ONLY';end if;
  select * into q from private.aqari_qa_accounts where id=p_account_id for update;if not found then raise no_data_found using message='QA_ACCOUNT_NOT_FOUND';end if;
- if p_action='invite' then
+ if p_action='provision' then
   if err is not null then
-   if q.status<>'active' then update private.aqari_qa_accounts set status='invite_failed',last_error=err,updated_at=now() where id=q.id;end if;
-   insert into private.aqari_qa_account_events(workspace_id,qa_account_id,action,actor_kind,reason,details) values(q.workspace_id,q.id,'invite_failed','system',err,'{}');
+   if q.status<>'active' then update private.aqari_qa_accounts set status='provision_failed',last_error=err,updated_at=now() where id=q.id;end if;
+   insert into private.aqari_qa_account_events(workspace_id,qa_account_id,action,actor_kind,reason,details) values(q.workspace_id,q.id,'provision_failed','system',err,'{}');
   else
-   if p_user_id is null or not exists(select 1 from auth.users u where u.id=p_user_id and lower(u.email)=q.email) then raise check_violation using message='QA_AUTH_INVITE_NOT_CONFIRMED';end if;
+   if p_user_id is null or not exists(select 1 from auth.users u where u.id=p_user_id and lower(u.email)=q.email) then raise check_violation using message='QA_AUTH_PROVISION_NOT_CONFIRMED';end if;
    select * into q from private.aqari_qa_accounts where id=q.id;
    if q.status<>'active' or q.auth_user_id is distinct from p_user_id then raise check_violation using message='QA_AUTH_BIND_NOT_CONFIRMED';end if;
   end if;
@@ -64,7 +64,7 @@ returns jsonb language plpgsql volatile security definer set search_path='' as $
 declare q private.aqari_qa_accounts%rowtype; result jsonb:='[]'::jsonb; wslug text;
 begin
  if current_setting('role',true) is distinct from 'service_role' then raise insufficient_privilege using message='SERVER_ONLY';end if;
- for q in select * from private.aqari_qa_accounts x where x.status in('prepared','active','invite_failed','disable_pending') and x.expires_at<=now() order by x.expires_at,x.id for update skip locked loop
+ for q in select * from private.aqari_qa_accounts x where x.status in('prepared','active','provision_failed','disable_pending') and x.expires_at<=now() order by x.expires_at,x.id for update skip locked loop
   select slug into wslug from public.aqari_workspaces where id=q.workspace_id;
   if q.base_role is not null then
    update private.aqari_allowed_users set is_active=false where email=q.email and workspace_slug=wslug;
