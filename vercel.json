@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/check-v267-integration-readiness.mjs && python -m unittest tests.mfa_selftest_test && node scripts/build-vercel.mjs",
+  "buildCommand": "node --test tests/v267-exact-preview-target.test.mjs && node scripts/install-v267-exact-preview-target.mjs && node scripts/check-v267-integration-readiness.mjs && python -m unittest tests.mfa_selftest_test && node scripts/build-vercel.mjs",
   "outputDirectory": ".",
   "crons": [
     {
