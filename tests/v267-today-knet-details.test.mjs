@@ -36,7 +36,7 @@ test('KNET API deduplicates by operation or either receipt and fails closed on c
   assert.match(patched,/const signatures=new Set/);
   assert.match(patched,/if\(signatures\.size!==1\)\{reviewCount\+=group\.length;return\}/);
   assert.match(patched,/if\(group\.some\(function\(item\)\{return item\.tokens\.length===0\}\)\)\{reviewCount\+=group\.length;return\}/);
-  assert.match(patched,/receiptCount:new Set|const receiptCount=new Set/);
+  assert.match(patched,/const receiptCount=new Set/);
 });
 
 test('today command center shows exact KNET totals, receipts, review delta and protected detail rows',()=>{
@@ -59,18 +59,24 @@ test('today command center shows exact KNET totals, receipts, review delta and p
   new Function(patched);
 });
 
-test('KNET overlays are idempotent and refuse stale anchors',()=>{
+test('KNET overlays are idempotent and refuse stale anchors before or after build installation',()=>{
   const protectedBase=read('v202-property-os.js');
   const protectedOnce=patchProtectedKnetApi(protectedBase);
   assert.equal(patchProtectedKnetApi(protectedOnce),protectedOnce);
   assert.ok(protectedOnce.includes(KNET_API_MARKER));
-  assert.throws(()=>patchProtectedKnetApi(protectedBase.replace('  function secureRentOfficeData(name,period){','  function movedSecureRentOfficeData(name,period){')),/anchor not found/);
+  const protectedStale=protectedOnce
+    .replaceAll(KNET_API_MARKER,'movedDailyKnetPayments')
+    .replace('  function secureRentOfficeData(name,period){','  function movedSecureRentOfficeData(name,period){');
+  assert.throws(()=>patchProtectedKnetApi(protectedStale),/anchor not found/);
 
   const todayBase=patchTodayPayments(read('v210-daily-command-center.js'));
   const uiOnce=patchTodayKnetUi(todayBase);
   assert.equal(patchTodayKnetUi(uiOnce),uiOnce);
   assert.ok(uiOnce.includes(KNET_UI_MARKER));
-  assert.throws(()=>patchTodayKnetUi(read('v210-daily-command-center.js')),/requires the today-payments overlay first/);
+  const uiStale=uiOnce
+    .replaceAll(KNET_UI_MARKER,'movedTodayKnetDetails')
+    .replace('    const signature=JSON.stringify([state.scope,state.period,state.summary,state.day,state.daily,state.knet]);','    const movedSignature=JSON.stringify([state.scope,state.period,state.summary,state.day,state.daily,state.knet]);');
+  assert.throws(()=>patchTodayKnetUi(uiStale),/anchor not found/);
 });
 
 test('KNET installer and support source parse as JavaScript',()=>{
