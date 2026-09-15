@@ -30,6 +30,23 @@ test('collection entry captures bank or provider when the method requires it',()
  assert.match(patched,/rentLedgerV202:\[[^\]]*'paymentProvider'/);
 });
 
+test('database guard enforces provider rules only for new payment rows',()=>{
+ for(const sql of [
+  read('staging-database/supabase/migrations/20260915162000_v267_payment_provider_guard.sql'),
+  read('staging-database/sql/payment-method-reference-guard.sql')
+ ]){
+  assert.match(sql,/security invoker/);
+  assert.match(sql,/new\.payment_method in \('كي نت','KNET','knet'\)/);
+  assert.match(sql,/provider is distinct from 'KNET'/);
+  assert.match(sql,/new\.payment_method in \('نقدي','cash'\)/);
+  assert.match(sql,/الدفع النقدي لا يستخدم بنكاً أو مزود دفع/);
+  assert.match(sql,/أدخل اسم البنك أو مزوّد الدفع من 2 إلى 120 حرفاً/);
+  assert.match(sql,/lower\(btrim\(provider\)\) in \('—','-','–','n\/a','na','none','null','undefined','غير مسجل','لا يوجد'\)/);
+  assert.doesNotMatch(sql,/after insert or update|before insert or update/i);
+ }
+ assert.match(read('staging-database/sql/payment-method-reference-guard.sql'),/create trigger aqari_payment_method_reference_guard after insert on public\.aqari_rent_payments/);
+});
+
 test('today payments patch extends the current protected daily command center',()=>{
  const current=read('v210-daily-command-center.js');
  const patched=patchTodayPayments(current);
