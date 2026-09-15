@@ -61,7 +61,7 @@ test('authorized partner finance CSV exports only the visible aggregate scope',(
 });
 
 test('partner finance export is surfaced only from authorized finance data',()=>{
- assert.match(view,/data\.aqariPartnerFinanceExport/);
+ assert.match(view,/dataset\.aqariPartnerFinanceExport/);
  assert.match(view,/partnerPropertyFinanceCsv\(data,context\)/);
  assert.match(view,/التصدير يحتوي هذه المجاميع فقط/);
  assert.match(read('scripts/install-v267-partner-property-finance.mjs'),/propertyName:property\.name,period:month/);
