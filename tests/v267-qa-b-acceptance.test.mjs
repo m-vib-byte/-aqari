@@ -17,7 +17,10 @@ test('Phase-B runner uses real Auth sessions and in-memory temporary QA clients'
  assert.match(html,/getAuthenticatorAssuranceLevel/);
  assert.match(html,/currentLevel==='aal2'/);
  assert.match(html,/signInWithPassword/);
- assert.match(html,/persistSession:false/);
+ assert.match(html,/function newClient\(persist=false\)/);
+ assert.match(html,/persistSession:persist/);
+ assert.match(html,/autoRefreshToken:persist/);
+ assert.match(html,/const client=newClient\(false\)/);
  assert.match(html,/delete record\.password/);
  assert.doesNotMatch(html,/console\.(?:log|info|debug)\s*\(/);
 });
