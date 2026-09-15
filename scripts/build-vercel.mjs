@@ -7,7 +7,7 @@ import {productionPatch,domainTrialPatch} from './prepare-v267-production.mjs';
 if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
   if(trial?.enabled===true){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
-  else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
+  else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,content),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
@@ -18,6 +18,7 @@ execFileSync(process.execPath,['scripts/install-v267-partner-property-finance.mj
 execFileSync(process.execPath,['--check','src/v267/pages/property-ownership.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/maintenance-evidence.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/bank-reconciliation.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--check','src/v267/pages/collection-delivery-settings.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/api/partner-session.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','v267-partner-portal.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/components/partner-property-finance-view.js'],{stdio:'inherit'});
@@ -30,6 +31,7 @@ execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.te
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-collection-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rent-receipt-pdf-archive.test.mjs'],{stdio:'inherit'});
