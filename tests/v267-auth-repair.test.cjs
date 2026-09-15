@@ -9,9 +9,10 @@ function runtime({hash='',search='',url=config.supabaseAuthRedirectUrl}={}){
  vm.runInNewContext(adapter,{window,document:{},URL,location:window.location,console,setTimeout,clearTimeout});
  return {api:window.AQARI_SUPABASE,current};
 }
-test('auth return uses only the stable V267 staging entry, independent of Visit deployment origin',()=>{
- const r=runtime();assert.equal(r.api.authRedirectUrl(),'https://aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app/login.html?release=V267');
- for(const url of ['http://localhost:3000','https://myaqari.com/login.html?release=V267','https://attacker.invalid/login.html?release=V267','https://aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app/login.html?next=https://attacker.invalid'])assert.throws(()=>runtime({url}).api.authRedirectUrl(),/AQARI_STAGING_REDIRECT_INVALID/);
+test('auth return uses only the configured exact V267 Preview entry, independent of Visit deployment origin',()=>{
+ const expected=new URL(config.supabaseAuthRedirectUrl);
+ const r=runtime();assert.equal(r.api.authRedirectUrl(),expected.href);
+ for(const url of ['http://localhost:3000','https://myaqari.com/login.html?release=V267','https://attacker.invalid/login.html?release=V267',`https://${expected.hostname}/login.html?next=https://attacker.invalid`,'https://different-preview.vercel.app/login.html?release=V267'])assert.throws(()=>runtime({url}).api.authRedirectUrl(),/AQARI_STAGING_REDIRECT_INVALID/);
 });
 test('callback error never restores an older session or displays provider query contents',async()=>{
  const r=runtime({hash:'#error=access_denied&error_description=private-provider-text'});
