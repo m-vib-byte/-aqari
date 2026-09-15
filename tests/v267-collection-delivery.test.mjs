@@ -7,6 +7,9 @@ const settings=read('staging-database/sql/collection-delivery-settings-rpc-20260
 const stop=read('staging-database/sql/collection-reminder-stop-after-payment-20260915.sql');
 const queue=read('staging-database/sql/collection-payment-delivery-queue-20260915.sql');
 const page=read('src/v267/pages/collection-delivery-settings.js');
+const operationsSchema=read('staging-database/sql/operations-completion.sql');
+const operationsRpc=read('staging-database/sql/operations-register.sql');
+const operationsPage=read('src/v267/pages/operations-center.js');
 
 test('collection delivery settings are property scoped, revisioned and manager MFA guarded',()=>{
  assert.match(settings,/aqari_collection_delivery_settings/);
@@ -42,4 +45,26 @@ test('collection delivery UI uses server context and exact revision readback',()
  assert.match(page,/expectedRevision:Number\(state\.revision\|\|0\)/);
  assert.match(page,/Number\(saved\?\.revision\)!==Number\(state\.revision\|\|0\)\+1/);
  assert.match(page,/حدد مالكًا واحدًا على الأقل لديه رقم واتساب/);
+});
+
+test('operations domains are persisted with protected ledgers and immutable money evidence',()=>{
+ for(const table of ['aqari_cheques','aqari_vendors','aqari_vendor_contracts','aqari_work_orders','aqari_legal_cases','aqari_legal_costs','aqari_petty_cash_funds','aqari_petty_cash_entries','aqari_unit_inspections'])assert.match(operationsSchema,new RegExp(table));
+ for(const trigger of ['aqari_cheque_events_immutable','aqari_legal_costs_immutable','aqari_petty_cash_entries_immutable'])assert.match(operationsSchema,new RegExp(`create trigger ${trigger} before update or delete`));
+ assert.match(operationsSchema,/enable row level security/);
+ assert.match(operationsSchema,/revoke all on private\.%I from public,anon,authenticated/);
+});
+
+test('operations RPC requires manager and recent MFA for writes, and work-order invoice creates an authoritative expense link',()=>{
+ assert.match(operationsRpc,/auth\.uid\(\) is null or not private\.aqari_manager\(w\)/);
+ assert.match(operationsRpc,/if p_action<>'list' then perform private\.aqari_require_sensitive_aal2\(w\)/);
+ assert.match(operationsRpc,/private\.aqari_operations_expense/);
+ assert.match(operationsRpc,/work_order\.invoice_id is not null/);
+ assert.match(operationsRpc,/expense_id:=nullif\(d->>'expense_id',''\)::uuid/);
+ assert.match(operationsRpc,/WORK_ORDER_ALREADY_INVOICED/);
+});
+
+test('operations center exposes real persisted domains with readback instead of sample records',()=>{
+ for(const domain of ['cheques','vendors','work_orders','legal_cases','petty_cash'])assert.match(operationsPage,new RegExp(`rpc\\('${domain}','list'\\)`));
+ assert.match(operationsPage,/await rpc\(domain,action,payload\);await load\(proof\)/);
+ assert.doesNotMatch(operationsPage,/service_role|SUPABASE_SERVICE|example\.com|TEST-/);
 });
