@@ -25,10 +25,14 @@ execFileSync(process.execPath,['scripts/install-v267-partner-owner-fields.mjs'],
 execFileSync(process.execPath,['scripts/install-v267-partner-property-finance.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-today-payments.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-knet-range.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-payment-cycle.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/property-ownership.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/maintenance-evidence.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/bank-reconciliation.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/collection-delivery-settings.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--check','src/v267/pages/prepaid-rent.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--check','src/v267/domain/payment-cycle.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--check','src/v267/domain/prepaid-rent.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/api/partner-session.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','v267-partner-portal.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/components/partner-property-finance-view.js'],{stdio:'inherit'});
@@ -40,7 +44,7 @@ execFileSync(process.execPath,['--test','tests/v267-partner-current-authorizatio
 execFileSync(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-mfa-enforcement.test.cjs','tests/v267-partner-access-mfa-guard.test.cjs','tests/v267-integration-public-metadata-guard.test.mjs','tests/v267-recent-mfa-hosted-evidence.test.mjs'],{stdio:'inherit'});
 execFileSync('python',['-m','unittest','tests.accounting_provider_maps_test','tests.integration_dispatch_test'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-rent-due-schedule-contract.test.cjs','tests/v267-payment-cycle-prepaid.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-collection-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-sensitive-delete-guard.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-cancellation-reason-audit.test.mjs'],{stdio:'inherit'});
