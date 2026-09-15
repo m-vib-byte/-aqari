@@ -61,14 +61,18 @@ test('KNET range overlays are idempotent and fail closed when anchors move',()=>
   const protectedOnce=patchProtectedKnetRangeApi(protectedBase);
   assert.equal(patchProtectedKnetRangeApi(protectedOnce),protectedOnce);
   assert.ok(protectedOnce.includes(KNET_RANGE_API_MARKER));
-  const protectedStale=protectedBase.replace('  function secureRentOfficeData(name,period){','  function movedSecureRentOfficeData(name,period){');
+  const protectedStale=protectedOnce
+    .replaceAll(KNET_RANGE_API_MARKER,'movedKnetRangePayments')
+    .replace('  function secureRentOfficeData(name,period){','  function movedSecureRentOfficeData(name,period){');
   assert.throws(()=>patchProtectedKnetRangeApi(protectedStale),/anchor not found/);
 
   const uiBase=patchTodayPayments(read('v210-daily-command-center.js'));
   const uiOnce=patchKnetRangeUi(uiBase);
   assert.equal(patchKnetRangeUi(uiOnce),uiOnce);
   assert.ok(uiOnce.includes(KNET_RANGE_UI_MARKER));
-  const uiStale=uiBase.replace("  let lastSignature='';","  let movedSignature='';");
+  const uiStale=uiOnce
+    .replaceAll(KNET_RANGE_UI_MARKER,'movedKnetRangeReport')
+    .replace("  let lastSignature='';","  let movedSignature='';");
   assert.throws(()=>patchKnetRangeUi(uiStale),/anchor not found/);
 });
 
