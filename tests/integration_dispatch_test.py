@@ -64,7 +64,8 @@ class IntegrationDispatchTest(unittest.TestCase):
   self.assertIn('DELIVERY_LEASE_EXPIRED',sql)
   self.assertIn('aqari_integration_delivery_events_immutable',sql)
   self.assertIn('aqari_rent_receipt_pdf_artifacts',sql)
-  self.assertIn("purpose_value:='collection_receipt'",sql)
+  self.assertIn("when 'collection.receipt' then 'collection_receipt'",sql)
+  self.assertIn("r.event_type in('collection.receipt','collection.owner_whatsapp_summary')",sql)
 
  def test_cron_route_is_declared_and_requires_cron_secret(self):
   config=json.loads((ROOT/'vercel.json').read_text())
