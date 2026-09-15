@@ -1,4 +1,5 @@
 import {readFileSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 
 const url=new URL('../src/v267/pages/property-master-file.js',import.meta.url);
 let source=readFileSync(url,'utf8');
@@ -29,3 +30,6 @@ if(!source.includes(rpcName)){
  writeFileSync(url,source);
  console.log('Installed permission-scoped property name resolver for this V267 build.');
 }else console.log('V267 property name resolver already installed.');
+
+execFileSync(process.execPath,['--check','src/v267/pages/property-master-file.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-property-master-name-resolver.test.mjs'],{stdio:'inherit'});
