@@ -1,0 +1,28 @@
+export const PROPERTY_STATEMENT_DISCOUNT_MARKER='v267StatementOwnerDiscount';
+
+export function patchPropertyStatementDiscountUi(source){
+  let next=String(source||'');
+  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER))return next;
+
+  const showAnchor=` function show(content){`;
+  const helper=` // ${PROPERTY_STATEMENT_DISCOUNT_MARKER}\n function v267StatementMoney(value){\n  if(value===null||value===undefined||value==='')return null;\n  const amount=Number(value);\n  return Number.isFinite(amount)&&amount>=0?Math.round(amount*1000)/1000:null;\n }\n function v267OwnerApprovedDiscount(row){\n  const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n  if(contract===null||current===null)return null;\n  return Math.max(0,Math.round((contract-current)*1000)/1000);\n }\n`;
+  if(!next.includes(showAnchor))throw Error('V267 property statement discount show anchor not found.');
+  next=next.replace(showAnchor,helper+showAnchor);
+
+  const fieldsAnchor=`[t('إيجار العقد'),'contract_rent_kd'],[t('الإيجار الحالي'),'current_rent_kd'],[t('العربون'),'advance_kd']`;
+  const fieldsReplacement=`[t('إيجار العقد'),'contract_rent_kd'],[t('خصم معتمد من المالك'),'__owner_discount'],[t('الإيجار الحالي'),'current_rent_kd'],[t('العربون'),'advance_kd']`;
+  if(!next.includes(fieldsAnchor))throw Error('V267 property statement discount fields anchor not found.');
+  next=next.replace(fieldsAnchor,fieldsReplacement);
+
+  const valueAnchor=`let v=key==='__payment_reference'?(paymentReference.value??t('غير مدون')):(row[key]??t('غير مدون'));`;
+  const valueReplacement=`let v=key==='__payment_reference'?(paymentReference.value??t('غير مدون')):key==='__owner_discount'?(v267OwnerApprovedDiscount(row)??t('غير مدون')):(row[key]??t('غير مدون'));`;
+  if(!next.includes(valueAnchor))throw Error('V267 property statement discount value anchor not found.');
+  next=next.replace(valueAnchor,valueReplacement);
+
+  const sourceNote=`كشف المصدر المحفوظ. مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+  const sourceReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+  if(!next.includes(sourceNote))throw Error('V267 property statement discount source note anchor not found.');
+  next=next.replace(sourceNote,sourceReplacement);
+
+  return next;
+}
