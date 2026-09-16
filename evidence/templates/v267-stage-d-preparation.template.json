@@ -1,0 +1,18 @@
+{
+  "schema":"AQARI-V267-STAGE-D-PREPARATION-1",
+  "candidateSha":"<exact-40-char-candidate-sha>",
+  "status":"prepared-not-accepted",
+  "phaseBClosed":false,
+  "phaseCAccepted":false,
+  "productionChangeAllowed":false,
+  "ownerPracticalTestRequired":true,
+  "explicitOwnerApprovalRequired":true,
+  "requirements155":{"plannedCount":155,"evidence":["docs/V267-REQUIREMENTS-155.md","docs/V267-EVIDENCE-155.json"]},
+  "devices":{
+    "desktop":{"required":true,"physical":false,"flows":["login","session","refresh","navigate","logoutLogin"]},
+    "iphone":{"required":true,"physical":true,"flows":["login","session","refresh","navigate","logoutLogin"]},
+    "ipad":{"required":true,"physical":true,"flows":["login","session","refresh","navigate","logoutLogin"]}
+  },
+  "releaseGateValidator":"scripts/v267-release-gate-manifest.mjs",
+  "ownerApprovalValidator":"scripts/v267-owner-production-approval.mjs"
+}
