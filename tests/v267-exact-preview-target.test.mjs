@@ -11,7 +11,7 @@ function fixture(){
   ['supabase-adapter.js',"if(target.hostname !== 'old-branch.vercel.app')throw Error('AQARI_STAGING_REDIRECT_INVALID');\n"],
   ['qa-b.html',`const BRANCH_HOST='old-branch.vercel.app';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nconst a={${authHeader};\nconst b={${authHeader};\nassert(cfg.releaseStage==='preview'&&cfg.supabaseUrl===EXPECTED_URL,'PREVIEW_CONFIG_REQUIRED');\nassert(saved?.ok===true&&saved?.id,'EVIDENCE_NOT_CONFIRMED');\n`],
   ['qa-b-reauth.html',`const BRANCH_HOST='old-branch.vercel.app';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nif(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL)fail('PREVIEW_REQUIRED');\nlocation.replace('/qa-b.html?run=1');\n`],
-  ['qa-b-reauth-v2.html',`const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nasync function preflight(){const sha=String(cfg.previewCandidateSha||'').toLowerCase();if(cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==location.hostname||!/^[0-9a-f]{40}$/.test(sha))fail('PREVIEW_CANDIDATE_REQUIRED');}\nlocation.replace('/qa-b.html?run=1&candidate='+encodeURIComponent(sha));\n`]
+  ['qa-b-reauth-v2.html',`const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nasync function preflight(){const sha=String(cfg.previewCandidateSha||'').toLowerCase();if(cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==location.hostname||!/^[0-9a-f]{40}$/.test(sha))fail('PREVIEW_CANDIDATE_REQUIRED');}\nlocation.replace('/qa-b.html?run=1');\n`]
  ]);
 }
 
