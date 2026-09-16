@@ -143,5 +143,5 @@ console.log('Installed V267 verified primary-section navigation hotfix for myaqa
 
 execFileSync(process.execPath,['--check','v199-ui.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/control-center.js'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v205-click-routing.test.cjs','tests/v267-manager-control-design.test.mjs'],{stdio:'inherit'});
-console.log('Verified V267 navigation plus manager-control presentation contracts.');
+execFileSync(process.execPath,['--test','tests/v205-click-routing.test.cjs','tests/v267-manager-control-design.test.mjs','tests/v267-navigation-matrix.test.mjs'],{stdio:'inherit'});
+console.log('Verified V267 navigation matrix plus manager-control presentation contracts.');
