@@ -1,7 +1,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 
-const FILES=['public-config.js','supabase-adapter.js','qa-b.html','qa-b-reauth.html'];
+const FILES=['public-config.js','supabase-adapter.js','qa-b.html','qa-b-reauth.html','qa-b-reauth-v2.html'];
 const HOST_RE=/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.vercel\.app$/;
 const SHA_RE=/^[0-9a-f]{40}$/;
 const FALLBACK_BRANCH_HOST='aqari-git-support-v267-knet-range-reconcile-20260915-m-vib-5421.vercel.app';
@@ -56,6 +56,21 @@ export function exactPreviewTarget({vercelEnv,vercelUrl,vercelBranchUrl,candidat
     'PREVIEW_REAUTH_CANDIDATE_GUARD_LAYOUT_CHANGED');
   reauth=replaceRequired(reauth,"location.replace('/qa-b.html?run=1');","location.replace('/qa-b.html?run=1&candidate='+encodeURIComponent(CANDIDATE_SHA));",'PREVIEW_REAUTH_RUNNER_TARGET_LAYOUT_CHANGED');
   output.set('qa-b-reauth.html',reauth);
+
+  let reauthV2=String(source.get('qa-b-reauth-v2.html')||'');
+  reauthV2=replaceRequired(reauthV2,
+    "const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';",
+    `const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';\nconst BRANCH_HOST='${branchHost}';\nconst CANDIDATE_SHA='${sha}';`,
+    'PREVIEW_REAUTH_V2_HEADER_LAYOUT_CHANGED');
+  reauthV2=replaceRequired(reauthV2,
+    "if(cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==location.hostname||!/^[0-9a-f]{40}$/.test(sha))fail('PREVIEW_CANDIDATE_REQUIRED');",
+    "if(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==BRANCH_HOST||sha!==CANDIDATE_SHA)fail('PREVIEW_CANDIDATE_REQUIRED');",
+    'PREVIEW_REAUTH_V2_CANDIDATE_GUARD_LAYOUT_CHANGED');
+  reauthV2=replaceRequired(reauthV2,
+    "location.replace('/qa-b.html?run=1&candidate='+encodeURIComponent(sha));",
+    "location.replace('/qa-b.html?run=1&candidate='+encodeURIComponent(CANDIDATE_SHA));",
+    'PREVIEW_REAUTH_V2_RUNNER_TARGET_LAYOUT_CHANGED');
+  output.set('qa-b-reauth-v2.html',reauthV2);
   return output;
 }
 
