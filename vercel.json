@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/prebuild-v267.mjs && node scripts/build-vercel.mjs && node scripts/install-v267-exact-preview-target.mjs",
+  "buildCommand": "node scripts/prebuild-v267.mjs && node scripts/build-vercel.mjs && node scripts/install-v267-exact-preview-target.mjs && node --test tests/v267-preview-final-output.test.mjs",
   "outputDirectory": ".",
   "crons": [
     {
