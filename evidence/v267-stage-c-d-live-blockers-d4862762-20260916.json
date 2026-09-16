@@ -1,6 +1,7 @@
 {
-  "schema": "AQARI-V267-STAGE-C-D-LIVE-BLOCKERS-1",
+  "schema": "AQARI-V267-STAGE-C-D-LIVE-BLOCKERS-2",
   "recordedAt": "2026-09-16T12:20:00Z",
+  "updatedAt": "2026-09-16T12:37:00Z",
   "candidate": {
     "pr": 192,
     "sha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
@@ -28,12 +29,37 @@
       "bytesReported": 156509,
       "metadataSha256": "c942f111f68f57289027d142c077512cddf6cb114e3bcdc1f90d027584346f12",
       "private": true,
+      "byteHashBaselineComplete": true,
+      "objectsSha256": [
+        {"id": "058ddee9", "bytes": 105975, "sha256": "3b32f38d2d187e7a6faef4ecccd9909ec9e9f15fc6a71315c6eabab616187969", "type": "application/pdf"},
+        {"id": "550a69cb", "bytes": 50534, "sha256": "0634bf11f5564b01d89cc5412a899aeaa7755631c241657b9bfdddadbad09d3f", "type": "image/png"}
+      ],
       "byteBackupComplete": false
+    },
+    "postProbeCleanup": {
+      "properties": 4,
+      "units": 1,
+      "tenants": 3,
+      "leases": 1,
+      "authUsers": 1,
+      "mfaFactors": 1,
+      "storageObjects": 2,
+      "storageBytes": 156509,
+      "storageMetadataSha256": "c942f111f68f57289027d142c077512cddf6cb114e3bcdc1f90d027584346f12",
+      "temporaryTablesRemaining": 0,
+      "temporaryEdgeFunction": {
+        "name": "c-storage-export-once",
+        "state": "locked",
+        "verifyJwt": true,
+        "response": 410,
+        "exportCapabilityPresent": false
+      }
     }
   },
   "phaseC": {
     "databaseBackupArtifact": false,
     "authBackupArtifact": false,
+    "storageByteHashBaseline": true,
     "storageByteBackupArtifact": false,
     "independentRestoreComplete": false,
     "storageByteHashMatch": false,
@@ -41,11 +67,17 @@
     "remainingBlockers": [
       "Create actual private database backup artifact and record its SHA-256/bytes",
       "Create actual Auth backup artifact and record its SHA-256/bytes",
-      "Export both original private Storage object bytes and record SHA-256/bytes",
+      "Persist both original private Storage object bytes outside the source project using the recorded SHA-256 baseline",
       "Restore DB/Auth/Storage bytes into an independent isolated target with external side effects disabled",
       "Compare restored data-safety fingerprints and Storage byte hashes",
       "Rehearse application-source rollback while preserving post-checkpoint writes, audit and documents"
     ]
+  },
+  "restoreTarget": {
+    "required": true,
+    "newSupabaseBranchCostUsdPerHour": 0.01344,
+    "costConfirmationRequiredByConnector": true,
+    "created": false
   },
   "ci": {
     "exactSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
@@ -60,10 +92,11 @@
     "applicationTestFailureProven": false
   },
   "toolingConstraintsObserved": {
-    "privateStorageBinaryDownloadActionAvailable": false,
+    "directPrivateStorageBinaryDownloadActionAvailable": false,
     "s3ActionAvailable": false,
     "backupActionAvailable": false,
-    "temporaryServerSideCredentialFlowsBlockedBeforeExecution": true,
+    "guardedOneTimeServerSideByteHashProbeSucceeded": true,
+    "externalRuntimeSignedUrlDownloadBlockedByToolPolicy": true,
     "newManagedRestoreBranchWouldRequireCostConfirmation": true
   },
   "governance": {
