@@ -18,7 +18,7 @@ class StatementTests(unittest.TestCase):
   out=api.export_statement(dict(workspaceId=W,propertyId=P,period='2026-08'),'Bearer a.b.c',lambda path,auth:dict(id=U) if path.startswith('/auth') else [row])
   self.assertTrue(out.startswith(b'%PDF-'));self.assertEqual(len(PdfReader(BytesIO(out)).pages),1)
  def test_owner_approved_discount_is_derived_without_rewriting_rent(self):
-  from lib.property_statement_pdf import owner_approved_discount
+  from lib.property_statement_values import owner_approved_discount
   self.assertEqual(owner_approved_discount(dict(contract_rent_kd=250,current_rent_kd=195)),55)
   self.assertEqual(owner_approved_discount(dict(contract_rent_kd='250.125',current_rent_kd='145')),105.125)
   self.assertEqual(owner_approved_discount(dict(contract_rent_kd=195,current_rent_kd=195)),0)
