@@ -1,7 +1,7 @@
 import {readFileSync,writeFileSync} from 'node:fs';
 import {pathToFileURL} from 'node:url';
 
-const FILES=['public-config.js','supabase-adapter.js','qa-b.html','qa-b-reauth.html','qa-b-reauth-v2.html'];
+const FILES=['public-config.js','supabase-adapter.js','login.html','qa-b.html','qa-b-reauth.html','qa-b-reauth-v2.html'];
 const HOST_RE=/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.vercel\.app$/;
 const SHA_RE=/^[0-9a-f]{40}$/;
 const FALLBACK_BRANCH_HOST='aqari-git-support-v267-knet-range-reconcile-20260915-m-vib-5421.vercel.app';
@@ -9,6 +9,11 @@ const FALLBACK_BRANCH_HOST='aqari-git-support-v267-knet-range-reconcile-20260915
 function replaceRequired(source,needle,replacement,code){
   if(!source.includes(needle))throw Error(code);
   return source.replace(needle,replacement);
+}
+function replaceAllRequired(source,needle,replacement,expected,code){
+  const count=source.split(needle).length-1;
+  if(count!==expected)throw Error(code);
+  return source.split(needle).join(replacement);
 }
 
 export function exactPreviewTarget({vercelEnv,vercelUrl,vercelBranchUrl,candidateSha},source){
@@ -32,6 +37,18 @@ export function exactPreviewTarget({vercelEnv,vercelUrl,vercelBranchUrl,candidat
   const adapterMatch=adapter.match(/target\.hostname !== '[^']+\.vercel\.app'/);
   if(!adapterMatch) throw Error('PREVIEW_ADAPTER_REDIRECT_LAYOUT_CHANGED');
   output.set('supabase-adapter.js',adapter.replace(adapterMatch[0],`target.hostname !== '${branchHost}'`));
+
+  let loginPage=String(source.get('login.html')||'');
+  loginPage=replaceRequired(loginPage,
+    "var form = document.getElementById('loginForm');",
+    "function aqariReturnTarget(){try{var raw=new URLSearchParams(window.location.search).get('returnTo')||'';var match=raw.match(/^\\/qa-b-reauth-v2\\.html\\?candidate=([0-9a-f]{40})$/);var expected=String(window.AQARI_PUBLIC_CONFIG&&window.AQARI_PUBLIC_CONFIG.previewCandidateSha||'').toLowerCase();if(match&&expected&&match[1].toLowerCase()===expected)return raw;}catch(_error){}return '/app?release='+encodeURIComponent(RELEASE);}var form = document.getElementById('loginForm');",
+    'PREVIEW_LOGIN_RETURN_HELPER_LAYOUT_CHANGED');
+  loginPage=replaceAllRequired(loginPage,
+    "window.location.replace('/app?release=' + encodeURIComponent(RELEASE));",
+    "window.location.replace(aqariReturnTarget());",
+    2,
+    'PREVIEW_LOGIN_RETURN_TARGET_LAYOUT_CHANGED');
+  output.set('login.html',loginPage);
 
   let runner=String(source.get('qa-b.html')||'');
   const runnerHost=runner.match(/const BRANCH_HOST='[^']+\.vercel\.app';/);
