@@ -21,28 +21,37 @@ def statement_notes(content):
         if 'payment_date' in pending:notes.append(prefix+'تاريخ الدفع معلق للمراجعة.')
     return notes
 
+def owner_approved_discount(row):
+    """Derive the approved discount only from the saved contract/current rent values."""
+    contract=row.get('contract_rent_kd');current=row.get('current_rent_kd')
+    if contract in (None,'') or current in (None,''):return None
+    try:contract=float(contract);current=float(current)
+    except (TypeError,ValueError):return None
+    if contract<0 or current<0:return None
+    return round(max(0,contract-current),3)
+
 def render_statement(content):
     if FONT not in pdfmetrics.getRegisteredFontNames():pdfmetrics.registerFont(TTFont(FONT,str(FONT_PATH)))
     out=BytesIO();doc=SimpleDocTemplate(out,pagesize=landscape(A3),rightMargin=24,leftMargin=24,topMargin=24,bottomMargin=24,title='كشف إيجار '+content['property_name'],author='AQARI V267')
     style=ParagraphStyle('ar',fontName=FONT,fontSize=8,leading=12,alignment=2)
     def p(v):return Paragraph(escape(shaped('غير مدون' if v is None else str(v))),style)
-    fields=[('المحاسب','accountant_raw'),('الوصل','receipt_no_raw'),('رقم العملية','payment_operation_raw'),('طريقة السداد','payment_method_raw'),('تاريخ الدفع','payment_date_raw'),('الإيجار الحالي','current_rent_kd'),('العربون','advance_kd'),('التأمين','insurance_kd'),('إيجار العقد','contract_rent_kd'),('رقم العقد','contract_no_raw'),('اسم المستأجر بالمصدر','name_en_raw'),('الوحدة','unit')]
+    fields=[('المحاسب','accountant_raw'),('الوصل','receipt_no_raw'),('رقم العملية','payment_operation_raw'),('طريقة السداد','payment_method_raw'),('تاريخ الدفع','payment_date_raw'),('الإيجار الحالي','current_rent_kd'),('خصم معتمد من المالك','__owner_discount'),('إيجار العقد','contract_rent_kd'),('العربون','advance_kd'),('التأمين','insurance_kd'),('رقم العقد','contract_no_raw'),('اسم المستأجر بالمصدر','name_en_raw'),('الوحدة','unit')]
     data=[[p(title) for title,_ in fields]]
     for r in content['rows']:
         values=[]
         for _,key in fields:
-            value=r.get(key)
+            value=owner_approved_discount(r) if key=='__owner_discount' else r.get(key)
             if value is None:value='غير مدون'
             if key=='insurance_kd' and r.get('insurance_status')=='pending_reconciliation':value=str(value) + ' • معلق'
             if key=='payment_date_raw' and 'payment_date' in (r.get('pending') or []):value='معلق — '+str(value)
             if key=='contract_no_raw' and 'contract_dates' in (r.get('pending') or []):value=str(value)+' • التواريخ معلقة'
             values.append(p(value))
         data.append(values)
-    widths=[66,50,72,60,96,62,60,72,60,62,220,52]
+    widths=[60,46,66,58,88,58,66,58,56,66,58,205,48]
     table=Table(data,colWidths=widths,repeatRows=1,hAlign='RIGHT')
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E8DDBD')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
     summary=content['summary']['printed_totals']
-    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. الإيجار الحالي وإيجار العقد محفوظان منفصلين؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('الإيجار الحالي: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك')]
+    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('الإيجار الحالي: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك')]
     for note in statement_notes(content):story.append(p(note))
     doc.build(story);return out.getvalue()
 
