@@ -5,11 +5,12 @@ import vm from 'node:vm';
 
 const source=readFileSync(new URL('../v199-ui.js',import.meta.url),'utf8');
 
-function runtime(width,{stableOpens=true,currentOpens=true}={}){
+function runtime(width,{currentOpens=true,stableOpens=true,shellSync=true,withV205=true}={}){
  const start=source.indexOf('  function routeNode(target){');
  const end=source.indexOf('  function quickAdd(target){',start);
  assert.ok(start>=0&&end>start,'transformed V199 navigation block must exist');
  const calls=[];
+ const bodyState={route:'home'};
  const pages=new Map();
  for(const id of ['home','list','collectionProPage','maintenanceProPage','documentsHub']){
   const page={
@@ -25,57 +26,87 @@ function runtime(width,{stableOpens=true,currentOpens=true}={}){
   const id=['properties','tenants'].includes(route)?'list':route;
   if(pages.has(id))pages.get(id).visible=true;
  };
+ const windowObject={
+  innerWidth:width,scrollY:900,
+  AQARI_V199_BASE_GO(route){calls.push('stable:'+route);if(stableOpens)open(route);},
+  go(route){calls.push('current:'+route);if(currentOpens)open(route);},
+  getComputedStyle(page){return {display:page.visible?'block':'none',visibility:'visible'};},
+  scrollTo(options){calls.push('window-scroll:'+options.top+':'+options.behavior);}
+ };
+ if(withV205)windowObject.AQARI_V205={navigate(route){
+  calls.push('shell:'+route);
+  if(shellSync)bodyState.route=route;
+  return windowObject.go(route);
+ }};
  const context={
-  Promise,
-  document:{getElementById:id=>pages.get(id)||null},
+  Promise,Number,Math,
+  document:{
+   body:{getAttribute(name){return name==='data-v205-route'?bodyState.route:null;}},
+   getElementById:id=>pages.get(id)||null
+  },
   markActive:target=>calls.push('active:'+target),
   closeLayers:()=>calls.push('close'),
   requestAnimationFrame:fn=>fn(),
-  Number,Math,
-  window:{
-   innerWidth:width,scrollY:900,
-   AQARI_V199_BASE_GO(route){calls.push('stable:'+route);if(stableOpens)open(route);},
-   go(route){calls.push('current:'+route);if(currentOpens)open(route);},
-   getComputedStyle(page){return {display:page.visible?'block':'none',visibility:'visible'};},
-   scrollTo(options){calls.push('window-scroll:'+options.top+':'+options.behavior);}
-  }
+  window:windowObject
  };
  vm.runInNewContext(source.slice(start,end)+';this.navigateV267=navigate;',context);
- return {calls,navigate:context.navigateV267};
+ return {calls,navigate:context.navigateV267,bodyState};
 }
 
 for(const [device,width] of [['iPhone',390],['iPad',820],['Desktop',1440]]){
- test(`${device} main sections align the viewport to the opened section`,()=>{
+ test(`${device} main section updates shell context and aligns to the opened destination`,()=>{
   const r=runtime(width);
   for(const [route,id] of [['properties','list'],['tenants','list'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
    r.calls.length=0;
    r.navigate(route);
    assert.equal(r.calls[0],'close');
-   assert.ok(r.calls.includes('stable:'+route),route+' must open through the stable router');
-   assert.ok(r.calls.includes(`section:${id}:start:auto`),route+' must align to its actual section');
-   assert.equal(r.calls.some(value=>value.startsWith('window-scroll:0:')),false,route+' must not jump to page top');
+   assert.deepEqual(r.calls.filter(v=>/^(shell|current|stable|section|window-scroll):/.test(v)),[
+    'shell:'+route,'current:'+route,`section:${id}:start:auto`
+   ]);
+   assert.equal(r.bodyState.route,route);
   }
  });
 }
 
-test('failed stable transition retries current router and then aligns to the destination',()=>{
- const r=runtime(820,{stableOpens:false,currentOpens:true});
+test('failed current primary transition falls back to the preserved base router and keeps shell context',()=>{
+ const r=runtime(820,{currentOpens:false,stableOpens:true});
  r.navigate('properties');
- assert.deepEqual(r.calls.filter(v=>/^(stable|current|section|window-scroll):/.test(v)),['stable:properties','current:properties','section:list:start:auto']);
+ assert.deepEqual(r.calls.filter(v=>/^(shell|current|stable|section|window-scroll):/.test(v)),[
+  'shell:properties','current:properties','stable:properties','section:list:start:auto'
+ ]);
+ assert.equal(r.bodyState.route,'properties');
 });
 
-test('a destination that never opens never scrolls anywhere',()=>{
- const r=runtime(390,{stableOpens:false,currentOpens:false});
+test('visible destination with stale home shell is not treated as a successful section transition',()=>{
+ const r=runtime(390,{currentOpens:true,stableOpens:true,shellSync:false});
  r.navigate('properties');
- assert.ok(r.calls.includes('stable:properties'));
+ assert.ok(r.calls.includes('shell:properties'));
  assert.ok(r.calls.includes('current:properties'));
+ assert.ok(r.calls.includes('stable:properties'));
+ assert.equal(r.bodyState.route,'home');
  assert.equal(r.calls.some(v=>v.startsWith('section:')||v.startsWith('window-scroll:')),false);
 });
 
-test('internal section keeps current router and aligns to its own page',()=>{
+test('a destination that never opens never scrolls anywhere',()=>{
+ const r=runtime(390,{currentOpens:false,stableOpens:false});
+ r.navigate('maintenanceProPage');
+ assert.ok(r.calls.includes('shell:maintenanceProPage'));
+ assert.ok(r.calls.includes('stable:maintenanceProPage'));
+ assert.equal(r.calls.some(v=>v.startsWith('section:')||v.startsWith('window-scroll:')),false);
+});
+
+test('internal section keeps the current router chain and aligns to its own page',()=>{
  const r=runtime(1440);
  r.navigate('documentsHub');
- assert.ok(r.calls.includes('current:documentsHub'));
- assert.equal(r.calls.includes('stable:documentsHub'),false);
- assert.ok(r.calls.includes('section:documentsHub:start:auto'));
+ assert.deepEqual(r.calls.filter(v=>/^(shell|current|stable|section|window-scroll):/.test(v)),[
+  'current:documentsHub','section:documentsHub:start:auto'
+ ]);
+});
+
+test('primary navigation remains usable before V205 boot by using the current router',()=>{
+ const r=runtime(820,{withV205:false});
+ r.navigate('collectionProPage');
+ assert.deepEqual(r.calls.filter(v=>/^(shell|current|stable|section|window-scroll):/.test(v)),[
+  'current:collectionProPage','section:collectionProPage:start:auto'
+ ]);
 });
