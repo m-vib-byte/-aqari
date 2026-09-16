@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "status": "pre_backup_integrity_captured_backup_not_completed",
+  "candidateSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+  "stagingProjectRef": "ofgmcsmxmdswlovsckqs",
+  "generatedAt": "2026-09-16T11:16:50.345825Z",
+  "phaseB": {
+    "closed": true,
+    "acceptanceEvidenceId": "222b5a43-eb3d-4cbe-ab61-122a9a1bcf6f"
+  },
+  "dataSafety": {
+    "aqariTableCount": 158,
+    "aqariTotalRows": 294,
+    "businessFingerprintSha256": "44cb4ad23f5f529bdb48320df20c0d0b6e04b3fb5a0ec15034bbd7a47f63dd6d",
+    "authUsers": 1,
+    "authIdentities": 1,
+    "authMfaFactors": 1,
+    "storageBuckets": 3,
+    "storageObjects": 2,
+    "storageReportedBytes": 156509,
+    "storageMetadataFingerprintSha256": "b092d329ee7ea475afa0b0f444c75869c39d893291cafdac1bfd290b904a142a",
+    "uploadedDocuments": 2,
+    "rentPaymentCount": 2,
+    "rentPaymentAmountKwd": 200,
+    "activeQaAccounts": 0
+  },
+  "integrityChecks": {
+    "duplicatePropertyExternalRef": 0,
+    "duplicateUnitNumberPerProperty": 0,
+    "duplicateTenantCivilId": 0,
+    "duplicateContractNo": 0,
+    "leaseBadDates": 0,
+    "leaseUnitOrphan": 0,
+    "leaseTenantOrphan": 0,
+    "overlappingNonterminalLeasesSameUnit": 0,
+    "paymentLeaseOrphan": 0,
+    "paymentNonpositiveAmount": 0,
+    "duplicatePaymentReference": 0,
+    "duplicateContractSerial": 0,
+    "duplicateContractSerialSequence": 0,
+    "duplicateReceiptNo": 0,
+    "duplicateReceiptGlobalSerial": 0,
+    "documentMissingStorageObject": 0,
+    "documentSizeMismatch": 0,
+    "activeOrPreparedQaAccounts": 0,
+    "qaAuthUsersRemaining": 0,
+    "membershipWithoutAuthUser": 0,
+    "ownershipHeadRevisionMissing": 0,
+    "ownershipRevisionBadTotalBps": 0,
+    "ownershipRevisionBadAreaSum": 0,
+    "bAcceptanceExactShaPassed": 1,
+    "notValidatedConstraints": 1,
+    "notValidatedConstraintViolatingRows": 0
+  },
+  "notValidatedConstraint": {
+    "schema": "private",
+    "table": "aqari_tenant_ledger_entries",
+    "name": "aqari_opening_entry_direction",
+    "violatingRows": 0
+  },
+  "backup": {
+    "database": false,
+    "auth": false,
+    "storageMetadataOnly": true,
+    "storageOriginalBytes": false,
+    "complete": false
+  },
+  "restore": {
+    "independent": false,
+    "passed": false,
+    "storageBytesVerified": false
+  },
+  "rollback": {
+    "currentProductionDeployment": "dpl_5dTK9q34xn86GdHNTzKMvEp8PS37",
+    "currentProductionSha": "02d22d41090eddc77df945d285ac1df515044d4f",
+    "candidatePreviewDeployment": "dpl_2CyyF4iLE2csCEVu27wWoZFkx5ky",
+    "candidatePreviewSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "pointIdentified": true,
+    "rehearsed": false,
+    "databaseRollbackAutomatic": false
+  },
+  "accepted": false
+}
