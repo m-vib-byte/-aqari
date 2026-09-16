@@ -1,5 +1,6 @@
 export const PROPERTY_STATEMENT_DISCOUNT_MARKER='v267StatementOwnerDiscount';
 export const PROPERTY_STATEMENT_COLLECTION_MARKER='v267StatementCollectionReadback';
+export const PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER='v267StatementSourceDetail';
 
 function statementMoney(value){
   if(value===null||value===undefined||value==='')return null;
@@ -30,7 +31,7 @@ export function statementRentTotals(rows){
 
 export function patchPropertyStatementDiscountUi(source){
   let next=String(source||'');
-  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)&&next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER))return next;
+  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)&&next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER))return next;
 
   if(!next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)){
     const showAnchor=` function show(content){`;
@@ -57,6 +58,28 @@ export function patchPropertyStatementDiscountUi(source){
     const summaryReplacement=`const s=content.summary.printed_totals,rentTotals=v267StatementRentTotals(content.rows);result.append(node('p',rentTotals?message('إجمالي إيجار العقود: {contract} د.ك • إجمالي خصم المالك: {discount} د.ك • إجمالي الإيجار الحالي: {current} د.ك',{contract:rentTotals.contractRent,discount:rentTotals.ownerDiscount,current:rentTotals.currentRent}):t('مجاميع إيجار العقد والخصم المعتمد والإيجار الحالي غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة.')),node('p',message('الإيجار الحالي المطبوع بالمصدر: {rent} د.ك • العربون: {advance} د.ك • النظافة: {cleaning} د.ك',{rent:s.rent_kd,advance:s.advance_kd,cleaning:s.cleaning_kd})),node('p',t('تُعرض ملاحظات كل وحدة من سجل مصدرها؛ لا تُعتمد القيم المعلقة تلقائياً.')));`;
     if(!next.includes(summaryAnchor))throw Error('V267 property statement rent totals anchor not found.');
     next=next.replace(summaryAnchor,summaryReplacement);
+  }
+
+  if(!next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER)){
+    const sourceDetailAnchor=`const paymentReference=statementPaymentReference(row);\n   for(const [title,key]of [`;
+    const sourceDetailReplacement=`const paymentReference=statementPaymentReference(row);\n   // ${PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER}\n   for(const [title,key]of [`;
+    if(!next.includes(sourceDetailAnchor))throw Error('V267 property statement source-detail marker anchor not found.');
+    next=next.replace(sourceDetailAnchor,sourceDetailReplacement);
+
+    const paidAnchor=`[t('الإيجار الحالي'),'current_rent_kd'],[t('العربون'),'advance_kd']`;
+    const paidReplacement=`[t('الإيجار الحالي'),'current_rent_kd'],[t('المدفوع بالمصدر'),'paid_amount_kd'],[t('العربون'),'advance_kd']`;
+    if(!next.includes(paidAnchor))throw Error('V267 property statement paid-source anchor not found.');
+    next=next.replace(paidAnchor,paidReplacement);
+
+    const nationalityAnchor=`[t('الهاتف بالمصدر'),'phone_raw'],[t('المدني بالمصدر'),'civil_id_raw']`;
+    const nationalityReplacement=`[t('الهاتف بالمصدر'),'phone_raw'],[t('الجنسية بالمصدر'),'nationality_raw'],[t('المدني بالمصدر'),'civil_id_raw']`;
+    if(!next.includes(nationalityAnchor))throw Error('V267 property statement nationality anchor not found.');
+    next=next.replace(nationalityAnchor,nationalityReplacement);
+
+    const detailNoteAnchor=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+    const detailNoteReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+    if(!next.includes(detailNoteAnchor))throw Error('V267 property statement source-detail note anchor not found.');
+    next=next.replace(detailNoteAnchor,detailNoteReplacement);
   }
 
   if(!next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)){
