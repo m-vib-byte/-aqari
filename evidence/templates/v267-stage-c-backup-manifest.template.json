@@ -1,0 +1,13 @@
+{
+  "schema": "AQARI-V267-STAGE-C-BACKUP-1",
+  "candidateSha": "<exact-40-char-candidate-sha>",
+  "target": "<isolated-staging-source-label>",
+  "createdAt": "<ISO-8601>",
+  "artifacts": [
+    {"kind":"database","name":"<private-db-dump>","bytes":0,"sha256":"<sha256>"},
+    {"kind":"auth","name":"<private-auth-export>","bytes":0,"sha256":"<sha256>"},
+    {"kind":"storage_bytes","name":"<private-storage-byte-archive>","bytes":0,"sha256":"<sha256>"}
+  ],
+  "includes": {"database":true,"auth":true,"storageBytes":true},
+  "manifestSha256": "<sha256-of-canonical-manifest-body>"
+}
