@@ -1,0 +1,81 @@
+{
+  "schema": "AQARI-V267-STAGE-D-EXECUTION-1",
+  "recordedAt": "2026-09-16T14:58:00Z",
+  "candidateSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+  "phaseBClosed": true,
+  "phaseCClosed": true,
+  "productionChangeAllowed": false,
+  "ownerPracticalTestRequired": true,
+  "explicitOwnerApprovalRequired": true,
+  "ownerPracticalTestCompleted": false,
+  "requirements155": {
+    "mappedCount": 155,
+    "evidence": [
+      "docs/V267-EVIDENCE-155.json",
+      "docs/V267-PHASE-A-CLOSURE-2026-09-15.md"
+    ]
+  },
+  "hostedPreview": {
+    "phaseBAccepted": true,
+    "commitSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "deploymentId": "dpl_2CyyF4iLE2csCEVu27wWoZFkx5ky",
+    "immutableHost": "aqari-1p165cmpl-m-vib-5421.vercel.app"
+  },
+  "phaseC": {
+    "backupTestPassed": true,
+    "independentRestorePassed": true,
+    "storageByteHashMatch": true,
+    "rollbackRehearsed": true,
+    "temporaryRestoreBranchDeleted": true,
+    "restoreCostStopped": true,
+    "evidence": ["evidence/v267-stage-c-closure-d4862762-20260916.json"]
+  },
+  "ci": {
+    "commitSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "allRequiredPassed": false,
+    "classification": "pre-runner-infrastructure-blocker",
+    "latestRuntimeJobId": 104847154824,
+    "latestRuntimeSteps": null,
+    "latestRuntimeLogsUrl": null,
+    "issue": 194
+  },
+  "productionConfig": {
+    "readOnlyAuditComplete": true,
+    "changeApplied": false,
+    "trialMode": "domainTrialPatch",
+    "trialHostname": "myaqari.com",
+    "trialSupabaseProjectRef": "ofgmcsmxmdswlovsckqs",
+    "productionDataMutationAllowed": false,
+    "evidence": ["evidence/v267-stage-d-production-config-audit-d4862762-20260916.json"]
+  },
+  "devices": {
+    "desktop": {
+      "required": true,
+      "physicalRequired": false,
+      "accepted": false,
+      "flows": ["login","session","save","reopen","permissions","contracts","printing"]
+    },
+    "iphone": {
+      "required": true,
+      "physicalRequired": true,
+      "accepted": false,
+      "flows": ["login","session","save","reopen","permissions","contracts","printing"]
+    },
+    "ipad": {
+      "required": true,
+      "physicalRequired": true,
+      "accepted": false,
+      "flows": ["login","session","save","reopen","permissions","contracts","printing"]
+    }
+  },
+  "currentBlockers": [
+    "SAME_SHA_CI_NOT_GREEN",
+    "DESKTOP_ACCEPTANCE_PENDING",
+    "IPHONE_ACCEPTANCE_PENDING",
+    "IPAD_ACCEPTANCE_PENDING",
+    "OWNER_PRACTICAL_TEST_PENDING"
+  ],
+  "releaseGatePassed": false,
+  "myaqariCandidateDeploymentPerformed": false,
+  "finalOwnerApprovalInferred": false
+}
