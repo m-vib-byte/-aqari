@@ -23,7 +23,12 @@ test('statement navigation isolates months and disables actions after missing da
  globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
  try{
   const source=(await readFile(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8')).replace("import {t,message} from '../components/locale.js';","const {t,message}=globalThis.__statementFixture;").replace("import {createDialog,node,field} from '../components/dialog.js';","const {createDialog,node,field}=globalThis.__statementFixture;");
-  const linked=source.replace("'../components/private-urls.js'",JSON.stringify(new URL('../src/v267/components/private-urls.js',import.meta.url).href)).replace("'../api/protected-pdf.js'",JSON.stringify(new URL('../src/v267/api/protected-pdf.js',import.meta.url).href));
+  const linked=source
+   .replace("'../components/private-urls.js'",JSON.stringify(new URL('../src/v267/components/private-urls.js',import.meta.url).href))
+   .replace("'../api/protected-pdf.js'",JSON.stringify(new URL('../src/v267/api/protected-pdf.js',import.meta.url).href))
+   .replace("'../api/operational-report.js'",JSON.stringify(new URL('../src/v267/api/operational-report.js',import.meta.url).href))
+   .replace("'../reports/operational-report-xlsx.js'",JSON.stringify(new URL('../src/v267/reports/operational-report-xlsx.js',import.meta.url).href))
+   .replace("'../domain/payment-reference.js'",JSON.stringify(new URL('../src/v267/domain/payment-reference.js',import.meta.url).href));
   const mod=await import('data:text/javascript;base64,'+Buffer.from(linked).toString('base64'));
   mod.openPropertyStatements();await tasks[0];await Promise.resolve();
   const [property,month,refresh,pdf,link,result,collection,collectionResult]=dialog.body.children;
