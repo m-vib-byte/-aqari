@@ -2,6 +2,7 @@ export const PROPERTY_STATEMENT_DISCOUNT_MARKER='v267StatementOwnerDiscount';
 export const PROPERTY_STATEMENT_COLLECTION_MARKER='v267StatementCollectionReadback';
 export const PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER='v267StatementSourceDetail';
 export const PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER='v267StatementSourceBalance';
+export const PROPERTY_STATEMENT_SOURCE_PROFILE_MARKER='v267StatementSourceProfile';
 
 function statementMoney(value){
   if(value===null||value===undefined||value==='')return null;
@@ -38,7 +39,7 @@ export function statementRentTotals(rows){
 
 export function patchPropertyStatementDiscountUi(source){
   let next=String(source||'');
-  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)&&next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER))return next;
+  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)&&next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_PROFILE_MARKER))return next;
 
   if(!next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)){
     const showAnchor=` function show(content){`;
@@ -87,6 +88,23 @@ export function patchPropertyStatementDiscountUi(source){
     const detailNoteReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ المدفوع بالمصدر والمتبقي بالمصدر قراءة من الكشف المحفوظ، والمتبقي مشتق فقط من الإيجار الحالي ناقص المدفوع بالمصدر ولا يحسب فرق الخصم كمتأخرات؛ هذه القيم لا تستبدل التحصيل الفعلي المحمي؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
     if(!next.includes(detailNoteAnchor))throw Error('V267 property statement source-detail note anchor not found.');
     next=next.replace(detailNoteAnchor,detailNoteReplacement);
+  }
+
+  if(!next.includes(PROPERTY_STATEMENT_SOURCE_PROFILE_MARKER)){
+    const markerAnchor=`// ${PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER}\n   for(const [title,key]of [`;
+    const markerReplacement=`// ${PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER}\n   // ${PROPERTY_STATEMENT_SOURCE_PROFILE_MARKER}\n   for(const [title,key]of [`;
+    if(!next.includes(markerAnchor))throw Error('V267 property statement source-profile marker anchor not found.');
+    next=next.replace(markerAnchor,markerReplacement);
+
+    const profileAnchor=`[t('الهاتف بالمصدر'),'phone_raw'],[t('الجنسية بالمصدر'),'nationality_raw'],[t('المدني بالمصدر'),'civil_id_raw']`;
+    const profileReplacement=`[t('رسوم النظافة بالمصدر'),'cleaning_kd'],[t('استلام العقد بالمصدر'),'contract_received_raw'],[t('الهاتف بالمصدر'),'phone_raw'],[t('البريد الإلكتروني بالمصدر'),'email_raw'],[t('الجنسية بالمصدر'),'nationality_raw'],[t('المدني بالمصدر'),'civil_id_raw'],[t('رقم الجواز بالمصدر'),'passport_no_raw'],[t('الشهر المجاني بالمصدر'),'free_month_raw'],[t('تنبيه الإخلاء بالمصدر'),'eviction_notice_raw'],[t('ملاحظات المصدر'),'notes_raw']`;
+    if(!next.includes(profileAnchor))throw Error('V267 property statement source-profile fields anchor not found.');
+    next=next.replace(profileAnchor,profileReplacement);
+
+    const profileNoteAnchor=`هذه القيم لا تستبدل التحصيل الفعلي المحمي؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+    const profileNoteReplacement=`هذه القيم لا تستبدل التحصيل الفعلي المحمي؛ بيانات التواصل والجواز واستلام العقد والشهر المجاني وتنبيه الإخلاء والملاحظات تعرض فقط إذا كانت محفوظة في صف المصدر نفسه، وأي قيمة مفقودة تبقى غير مدونة دون افتراض بديل؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+    if(!next.includes(profileNoteAnchor))throw Error('V267 property statement source-profile note anchor not found.');
+    next=next.replace(profileNoteAnchor,profileNoteReplacement);
   }
 
   if(!next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)){
