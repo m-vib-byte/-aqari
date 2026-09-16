@@ -16,6 +16,24 @@ test('fresh B MFA page is exact-candidate and same-origin gated before accepting
  assert.match(html,/code\.disabled=false;submit\.disabled=false/);
 });
 
+test('lost authenticator recovery is owner-session scoped and never deletes AQARI data in the browser',()=>{
+ assert.match(html,/owner-mfa-recovery/);
+ assert.match(html,/RECENT_PASSWORD_REQUIRED/);
+ assert.match(html,/sessionStorage\.setItem\('aqari_mfa_recovery','1'\)/);
+ assert.match(html,/signOut\(\{scope:'local'\}\)/);
+ assert.match(html,/فقدت رمز Authenticator/);
+ assert.doesNotMatch(html,/delete\s*\(|from\(['"](?:aqari_|public\.|private\.)/i);
+});
+
+test('fresh B MFA page can enroll a replacement TOTP without exposing privileged server material',()=>{
+ assert.match(html,/mfa\.enroll\(\{factorType:'totp',friendlyName:friendly\}\)/);
+ assert.match(html,/mfa\.unenroll\(\{factorId:item\.id\}\)/);
+ assert.match(html,/totp\?\.qr_code/);
+ assert.match(html,/totp\?\.secret/);
+ assert.match(html,/qr\.src=e\.data\.totp\.qr_code/);
+ assert.match(html,/secret\.textContent=e\.data\.totp\.secret/);
+});
+
 test('fresh B MFA page creates a challenge before verify and never uses challengeAndVerify',()=>{
  assert.match(html,/mfa\.challenge\(\{factorId:factor\.id\}\)/);
  assert.match(html,/const challengeId=String\(c\.data\?\.id\|\|''\)/);
