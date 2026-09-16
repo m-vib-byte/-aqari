@@ -64,7 +64,7 @@ export function exactPreviewTarget({vercelEnv,vercelUrl,vercelBranchUrl,candidat
     'PREVIEW_REAUTH_V2_HEADER_LAYOUT_CHANGED');
   reauthV2=replaceRequired(reauthV2,
     "if(cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==location.hostname||!/^[0-9a-f]{40}$/.test(sha))fail('PREVIEW_CANDIDATE_REQUIRED');",
-    "if(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==BRANCH_HOST||sha!==CANDIDATE_SHA)fail('PREVIEW_CANDIDATE_REQUIRED');",
+    "const requestedCandidate=new URLSearchParams(location.search).get('candidate');if(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==BRANCH_HOST||sha!==CANDIDATE_SHA||requestedCandidate!==CANDIDATE_SHA)fail('PREVIEW_CANDIDATE_REQUIRED');",
     'PREVIEW_REAUTH_V2_CANDIDATE_GUARD_LAYOUT_CHANGED');
   reauthV2=replaceRequired(reauthV2,
     "location.replace('/qa-b.html?run=1');",
