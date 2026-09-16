@@ -8,6 +8,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from lib.rent_pdf import FONT,FONT_PATH,shaped
+from lib.property_statement_values import owner_approved_discount
 
 def statement_notes(content):
     """Only annotate evidence stored on this statement; never borrow another property's notes."""
@@ -20,15 +21,6 @@ def statement_notes(content):
         if 'contract_dates' in pending:notes.append(prefix+'تواريخ العقد معلقة للمراجعة.')
         if 'payment_date' in pending:notes.append(prefix+'تاريخ الدفع معلق للمراجعة.')
     return notes
-
-def owner_approved_discount(row):
-    """Derive the approved discount only from the saved contract/current rent values."""
-    contract=row.get('contract_rent_kd');current=row.get('current_rent_kd')
-    if contract in (None,'') or current in (None,''):return None
-    try:contract=float(contract);current=float(current)
-    except (TypeError,ValueError):return None
-    if contract<0 or current<0:return None
-    return round(max(0,contract-current),3)
 
 def render_statement(content):
     if FONT not in pdfmetrics.getRegisteredFontNames():pdfmetrics.registerFont(TTFont(FONT,str(FONT_PATH)))
