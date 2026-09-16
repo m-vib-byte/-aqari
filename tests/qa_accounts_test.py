@@ -1,5 +1,5 @@
 import unittest
-from lib.qa_accounts import automation_request,provision_automation_account,disable_account,expire_accounts,server_config
+from lib.qa_accounts import automation_request,provision_automation_account,disable_account,expire_accounts,server_config,_service_headers
 
 W='11111111-1111-4111-8111-111111111111';A='22222222-2222-4222-8222-222222222222';U='33333333-3333-4333-8333-333333333333'
 ENV={'VERCEL_ENV':'preview','VERCEL_GIT_COMMIT_REF':'support/v267-knet-range-reconcile-20260915','AQARI_SUPABASE_URL':'https://ofgmcsmxmdswlovsckqs.supabase.co','AQARI_SUPABASE_SERVICE_ROLE_KEY':'sb_secret_'+'x'*32}
@@ -13,6 +13,11 @@ class QaAccountsTest(unittest.TestCase):
   self.assertEqual(server_config(no_url)[0],expected)
   for changed,error in (({'VERCEL_ENV':'production'},'QA_PREVIEW_ONLY'),({'VERCEL_GIT_COMMIT_REF':'main'},'QA_PREVIEW_ONLY'),({'AQARI_SUPABASE_URL':'https://wrong.supabase.co'},'QA_STAGING_TARGET_REQUIRED'),({'AQARI_SUPABASE_SERVICE_ROLE_KEY':''},'QA_AUTH_ADMIN_NOT_CONFIGURED')):
    with self.subTest(changed=changed),self.assertRaisesRegex(RuntimeError,error):server_config({**ENV,**changed})
+
+ def test_opaque_secret_key_is_apikey_only_and_never_bearer(self):
+  headers=_service_headers(ENV['AQARI_SUPABASE_SERVICE_ROLE_KEY'])
+  self.assertEqual(headers,{'apikey':ENV['AQARI_SUPABASE_SERVICE_ROLE_KEY']})
+  self.assertNotIn('Authorization',headers)
 
  def test_automation_roles_get_synthetic_email_and_general_manager_is_forbidden(self):
   value=automation_request({'qa_role':'collector','display_name':'QA Collector','property_ids':['p'],'expires_at':'x','reason':'qa'})
