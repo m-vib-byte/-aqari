@@ -1,0 +1,77 @@
+{
+  "schema": "AQARI-V267-STAGE-C-D-LIVE-BLOCKERS-1",
+  "recordedAt": "2026-09-16T12:20:00Z",
+  "candidate": {
+    "pr": 192,
+    "sha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "phaseBClosed": true,
+    "phaseCAccepted": false,
+    "phaseDAccepted": false
+  },
+  "source": {
+    "supabaseProjectRef": "ofgmcsmxmdswlovsckqs",
+    "environment": "isolated-candidate-branch",
+    "production": false,
+    "mainStaging": false
+  },
+  "dataSafety": {
+    "manifestFormat": "AQARI-V267-DATA-SAFETY-MANIFEST-1",
+    "generatedAt": "2026-09-16T12:00:05.390337+00:00",
+    "auth": {
+      "users": 1,
+      "identities": 1,
+      "mfaFactors": 1
+    },
+    "storage": {
+      "buckets": 3,
+      "objects": 2,
+      "bytesReported": 156509,
+      "metadataSha256": "c942f111f68f57289027d142c077512cddf6cb114e3bcdc1f90d027584346f12",
+      "private": true,
+      "byteBackupComplete": false
+    }
+  },
+  "phaseC": {
+    "databaseBackupArtifact": false,
+    "authBackupArtifact": false,
+    "storageByteBackupArtifact": false,
+    "independentRestoreComplete": false,
+    "storageByteHashMatch": false,
+    "rollbackRehearsed": false,
+    "remainingBlockers": [
+      "Create actual private database backup artifact and record its SHA-256/bytes",
+      "Create actual Auth backup artifact and record its SHA-256/bytes",
+      "Export both original private Storage object bytes and record SHA-256/bytes",
+      "Restore DB/Auth/Storage bytes into an independent isolated target with external side effects disabled",
+      "Compare restored data-safety fingerprints and Storage byte hashes",
+      "Rehearse application-source rollback while preserving post-checkpoint writes, audit and documents"
+    ]
+  },
+  "ci": {
+    "exactSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "runs": [
+      {"id": 35083508253, "name": "Runtime contracts", "conclusion": "failure"},
+      {"id": 35083508224, "name": "V267 security integration accounting", "conclusion": "failure"},
+      {"id": 35083508201, "name": "App first paint", "conclusion": "failure"},
+      {"id": 35083508271, "name": "Authenticated UI startup order", "conclusion": "failure", "runAttempt": 5, "latestJobId": 104783428289, "runnerId": 0, "steps": 0}
+    ],
+    "artifactsOnSampledExactShaRuns": 0,
+    "classification": "pre-runner-infrastructure-blocker",
+    "applicationTestFailureProven": false
+  },
+  "toolingConstraintsObserved": {
+    "privateStorageBinaryDownloadActionAvailable": false,
+    "s3ActionAvailable": false,
+    "backupActionAvailable": false,
+    "temporaryServerSideCredentialFlowsBlockedBeforeExecution": true,
+    "newManagedRestoreBranchWouldRequireCostConfirmation": true
+  },
+  "governance": {
+    "mainChanged": false,
+    "productionChanged": false,
+    "myaqariChanged": false,
+    "helperBranchOnly": true,
+    "primaryPrRemains": 192,
+    "readyForOwnerPracticalTest": false
+  }
+}
