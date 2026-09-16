@@ -29,7 +29,9 @@ const fetch = withSupabase({auth:'user'},async(req:any,ctx:any)=>{
  const workspaceId=String(body?.workspaceId||''),action=String(body?.action||'')
  if(!UUID.test(workspaceId)||!['provision','disable'].includes(action))return reply(400,{ok:false,error:'INVALID_REQUEST'})
  const user=ctx.supabase,admin=ctx.supabaseAdmin
- if(!user||!admin||!ctx.userClaims?.sub)return reply(403,{ok:false,error:'ACCESS_DENIED'})
+ const userClaimsId=String(ctx.userClaims?.id||''),jwtSubject=String(ctx.jwtClaims?.sub||'')
+ const callerId=userClaimsId||jwtSubject
+ if(!user||!admin||!UUID.test(callerId)||(userClaimsId&&jwtSubject&&userClaimsId!==jwtSubject))return reply(403,{ok:false,error:'ACCESS_DENIED'})
 
  if(action==='provision'){
   const source=body?.data;if(!source||typeof source!=='object'||Array.isArray(source))return reply(400,{ok:false,error:'INVALID_REQUEST'})
