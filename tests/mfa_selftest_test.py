@@ -1,11 +1,10 @@
 import unittest
-from lib.mfa_selftest import totp_code,_totp_candidates,_config,_error_code,_factor_status,_expect_factors
+from lib.mfa_selftest import totp_code,_totp_candidates,_config,_error_code,_factor_status,_expect_factors,_tenant_payload,_service_headers,WORKSPACE_ID
 
 ENV={'VERCEL_ENV':'preview','VERCEL_GIT_COMMIT_REF':'support/v267-knet-range-reconcile-20260915','VERCEL_GIT_COMMIT_SHA':'a'*40,'AQARI_SUPABASE_URL':'https://ofgmcsmxmdswlovsckqs.supabase.co','AQARI_SUPABASE_SERVICE_ROLE_KEY':'sb_secret_'+'x'*32}
 
 class MfaSelftestTest(unittest.TestCase):
  def test_rfc_totp_vector_is_compatible(self):
-  # RFC 6238 SHA1 vector truncated to six digits.
   self.assertEqual(totp_code('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',59), '287082')
  def test_selftest_tries_current_then_adjacent_totp_windows(self):
   candidates=_totp_candidates('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ',59)
@@ -16,6 +15,13 @@ class MfaSelftestTest(unittest.TestCase):
   self.assertEqual(_config(ENV)[0],'https://ofgmcsmxmdswlovsckqs.supabase.co')
   for changed,error in (({'VERCEL_ENV':'production'},'MFA_SELFTEST_PREVIEW_ONLY'),({'VERCEL_GIT_COMMIT_REF':'main'},'MFA_SELFTEST_PREVIEW_ONLY'),({'VERCEL_GIT_COMMIT_SHA':'bad'},'MFA_SELFTEST_SHA_REQUIRED'),({'AQARI_SUPABASE_URL':'https://wrong.supabase.co'},'MFA_SELFTEST_STAGING_TARGET_REQUIRED'),({'AQARI_SUPABASE_SERVICE_ROLE_KEY':''},'MFA_SELFTEST_AUTH_ADMIN_NOT_CONFIGURED')):
    with self.subTest(changed=changed),self.assertRaisesRegex(RuntimeError,error):_config({**ENV,**changed})
+ def test_opaque_secret_key_is_apikey_only(self):
+  key=ENV['AQARI_SUPABASE_SERVICE_ROLE_KEY'];self.assertEqual(_service_headers(key),{'apikey':key})
+ def test_disposable_tenant_is_isolated_authorization_only(self):
+  tid='11111111-2222-4333-8444-555555555555';email='qa-mfa@example.com';row=_tenant_payload(email,tid)
+  self.assertEqual(row['id'],tid);self.assertEqual(row['workspace_id'],WORKSPACE_ID);self.assertEqual(row['email'],email);self.assertTrue(row['is_active'])
+  self.assertEqual(row['profile']['purpose'],'mfa_selftest');self.assertEqual(row['import_source']['kind'],'mfa_selftest')
+  self.assertNotIn('password',row);self.assertNotIn('secret',row)
  def test_upstream_error_is_sanitized(self):
   self.assertEqual(_error_code({'code':'mfa_verification_failed'}),'mfa_verification_failed')
   self.assertEqual(_error_code({'message':'contains spaces or sensitive detail'}),'UPSTREAM_REJECTED')
