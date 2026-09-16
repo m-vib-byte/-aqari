@@ -13,11 +13,21 @@
     "buildPackageCheckPassed": true,
     "realPhaseBAcceptancePassed": true
   },
+  "ci": {
+    "sameShaGreen": false,
+    "rerunRequestedForAllFourRequiredWorkflows": true,
+    "representativeRunId": 35083508253,
+    "representativeAttempt": 4,
+    "representativeJobId": 104772554032,
+    "representativeSteps": 0,
+    "representativeRunnerId": 0,
+    "failureBoundary": "before_runner_allocation"
+  },
   "gaps": [
     "complete Database/Auth/original Storage-byte backup not completed",
     "independent full restore and Storage byte verification not completed",
     "data-preserving rollback rehearsal not completed",
-    "same-SHA GitHub Actions are not green; representative job has steps=[] and runner_id=0",
+    "same-SHA GitHub Actions are not green after explicit rerun; representative attempt 4 still has steps=[] and runner_id=0",
     "physical Desktop/iPhone/iPad release acceptance evidence not present",
     "Production configuration for the exact candidate is not verified; source remains releaseStage=preview",
     "Supabase Auth leaked-password protection is disabled",
