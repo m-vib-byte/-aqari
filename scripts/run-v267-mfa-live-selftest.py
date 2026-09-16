@@ -1,5 +1,7 @@
 """One-shot Preview build proof for Issue #193. Never prints credentials or MFA secrets."""
+from pathlib import Path
 import json,os,sys
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from lib.mfa_selftest import run_selftest
 
 if os.environ.get('VERCEL_ENV')!='preview':
