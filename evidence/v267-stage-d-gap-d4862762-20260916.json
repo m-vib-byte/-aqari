@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "status": "hold",
+  "candidateSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+  "phaseBClosed": true,
+  "phaseCAccepted": false,
+  "phaseDAccepted": false,
+  "releaseGatePassed": false,
+  "hostedPreview": {
+    "deploymentId": "dpl_2CyyF4iLE2csCEVu27wWoZFkx5ky",
+    "ready": true,
+    "exactSha": true,
+    "buildPackageCheckPassed": true,
+    "realPhaseBAcceptancePassed": true
+  },
+  "gaps": [
+    "complete Database/Auth/original Storage-byte backup not completed",
+    "independent full restore and Storage byte verification not completed",
+    "data-preserving rollback rehearsal not completed",
+    "same-SHA GitHub Actions are not green; representative job has steps=[] and runner_id=0",
+    "physical Desktop/iPhone/iPad release acceptance evidence not present",
+    "Production configuration for the exact candidate is not verified; source remains releaseStage=preview",
+    "Supabase Auth leaked-password protection is disabled",
+    "final owner practical test and later explicit approval are pending"
+  ],
+  "currentProduction": {
+    "deploymentId": "dpl_5dTK9q34xn86GdHNTzKMvEp8PS37",
+    "sha": "02d22d41090eddc77df945d285ac1df515044d4f",
+    "unchanged": true
+  },
+  "productionDeploymentPerformed": false,
+  "ownerFinalApprovalInferred": false
+}
