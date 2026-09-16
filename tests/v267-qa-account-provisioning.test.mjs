@@ -35,6 +35,7 @@ test('Vercel QA endpoint is exact-SHA proxy only and holds no Supabase admin sec
 
 test('active Supabase Edge QA admin uses official server context and user-scoped DB MFA guard',()=>{
  assert.match(edge,/from 'npm:@supabase\/server'/);assert.match(edge,/withSupabase\(\{auth:'user'\}/);assert.match(edge,/ctx\.supabase/);assert.match(edge,/ctx\.supabaseAdmin/);
+ assert.match(edge,/ctx\.userClaims\?\.id/);assert.match(edge,/ctx\.jwtClaims\?\.sub/);assert.match(edge,/userClaimsId&&jwtSubject&&userClaimsId!==jwtSubject/);assert.doesNotMatch(edge,/ctx\.userClaims\?\.sub/);
  assert.match(edge,/user\.rpc\('aqari_qa_account'/);assert.match(edge,/admin\.auth\.admin\.createUser/);assert.match(edge,/admin\.auth\.admin\.deleteUser/);assert.match(edge,/admin\.auth\.admin\.updateUserById/);assert.match(edge,/admin\.rpc\('aqari_qa_account_server_result'/);
  assert.doesNotMatch(edge,/SUPABASE_SECRET_KEYS/);assert.doesNotMatch(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(edge,/insert into auth\.users/i);
  assert.match(edge,/@example\.com/);assert.doesNotMatch(edge,/@example\.invalid/);
