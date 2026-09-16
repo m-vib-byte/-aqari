@@ -23,10 +23,16 @@ def public_key():
  if not url or not key or url.group(1)!=EXPECTED_URL or not key.group(1).startswith('sb_publishable_'):raise RuntimeError('QA_STAGING_CONFIG_INVALID')
  return key.group(1)
 
-def rpc(payload,auth):
+def exact_candidate(requested):
+ deployed=str(os.environ.get('VERCEL_GIT_COMMIT_SHA') or '').strip().lower()
+ candidate=str(requested or '').strip().lower()
+ if not SHA.fullmatch(deployed):raise RuntimeError('QA_PREVIEW_SHA_INVALID')
+ if not SHA.fullmatch(candidate) or candidate!=deployed:raise ValueError('QA_CANDIDATE_SHA_MISMATCH')
+ return candidate
+
+def rpc(payload,auth,candidate):
  if os.environ.get('VERCEL_ENV')!='preview' or os.environ.get('VERCEL_GIT_COMMIT_REF')!=EXPECTED_BRANCH:raise RuntimeError('QA_PREVIEW_ONLY')
- sha=str(os.environ.get('VERCEL_GIT_COMMIT_SHA') or '').lower();host=str(os.environ.get('VERCEL_URL') or '').lower()
- if not SHA.fullmatch(sha):raise RuntimeError('QA_PREVIEW_SHA_INVALID')
+ sha=exact_candidate(candidate);host=str(os.environ.get('VERCEL_URL') or '').lower()
  if not HOST.fullmatch(host):raise RuntimeError('QA_PREVIEW_HOST_INVALID')
  if not isinstance(auth,str) or len(auth)>8192 or not JWT.fullmatch(auth):raise PermissionError('AUTH_REQUIRED')
  body={
@@ -60,6 +66,9 @@ class handler(BaseHTTPRequestHandler):
   self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Cache-Control','no-store, max-age=0');self.send_header('Pragma','no-cache');self.send_header('X-Content-Type-Options','nosniff');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
  def do_POST(self):
   try:
+   candidate=self.headers.get('X-AQARI-Candidate-Sha')
+   try:exact_candidate(candidate)
+   except ValueError:self._reply(409,{'ok':False,'error':'QA_CANDIDATE_SHA_MISMATCH'});return
    length=int(self.headers.get('Content-Length','0'))
    if length<=0 or length>32768:raise ValueError('INVALID_REQUEST')
    data=json.loads(self.rfile.read(length))
@@ -68,7 +77,7 @@ class handler(BaseHTTPRequestHandler):
    if not UUID.fullmatch(workspace) or not isinstance(results,dict):raise ValueError('INVALID_REQUEST')
    encoded=json.dumps(results,separators=(',',':'),ensure_ascii=False)
    if len(encoded.encode())>16384:raise ValueError('INVALID_REQUEST')
-   status,result=rpc({'workspaceId':workspace,'results':results},self.headers.get('Authorization',''));self._reply(status,result)
+   status,result=rpc({'workspaceId':workspace,'results':results},self.headers.get('Authorization',''),candidate);self._reply(status,result)
   except PermissionError:self._reply(403,{'ok':False,'error':'ACCESS_DENIED'})
   except RuntimeError as exc:
    code=str(exc)
