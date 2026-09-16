@@ -38,6 +38,7 @@ test('Preview build preserves one branch auth origin and records exact immutable
  assert.match(reauthV2,new RegExp(`CANDIDATE_SHA='${SHA}'`));
  assert.match(reauthV2,/sha!==CANDIDATE_SHA/);
  assert.match(reauthV2,/location\.hostname!==BRANCH_HOST/);
+ assert.match(reauthV2,/requestedCandidate!==CANDIDATE_SHA/);
  assert.match(reauthV2,/qa-b\.html\?run=1&candidate=/);
 });
 
