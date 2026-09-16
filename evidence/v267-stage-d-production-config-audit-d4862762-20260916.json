@@ -1,0 +1,52 @@
+{
+  "schema": "AQARI-V267-STAGE-D-PRODUCTION-CONFIG-AUDIT-1",
+  "observedAt": "2026-09-16T14:56:33Z",
+  "candidateSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+  "readOnlyAuditComplete": true,
+  "changeApplied": false,
+  "ownerIntent": "myaqari.com practical test only; deployment is not final owner acceptance",
+  "candidateSource": {
+    "releaseStage": "preview",
+    "supabaseProjectRef": "ofgmcsmxmdswlovsckqs",
+    "supabaseAuthRedirectUrl": "https://aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app/login.html?release=V267",
+    "publicSecretExposureObserved": false
+  },
+  "trialTarget": {
+    "hostname": "myaqari.com",
+    "mode": "domainTrialPatch",
+    "releaseStageRemains": "preview",
+    "supabaseProjectRefRemains": "ofgmcsmxmdswlovsckqs",
+    "supabaseAuthRedirectUrl": "https://myaqari.com/login.html?release=V267",
+    "productionDataProjectUsed": false,
+    "productionDataMutationAllowed": false
+  },
+  "liveReadOnlyObservation": {
+    "deploymentId": "dpl_5dTK9q34xn86GdHNTzKMvEp8PS37",
+    "deploymentSha": "02d22d41090eddc77df945d285ac1df515044d4f",
+    "target": "production",
+    "state": "READY",
+    "publicConfigHttpStatus": 200,
+    "releaseStage": "preview",
+    "supabaseProjectRef": "ofgmcsmxmdswlovsckqs",
+    "supabaseAuthRedirectUrl": "https://myaqari.com/login.html?release=V267",
+    "candidateCurrentlyDeployed": false
+  },
+  "sourceGuard": {
+    "script": "scripts/prepare-v267-production.mjs",
+    "trialFunction": "domainTrialPatch",
+    "requiresExactHostname": "myaqari.com",
+    "requiresIsolatedTrialProject": "ofgmcsmxmdswlovsckqs",
+    "keepsProductionDataUntouched": true,
+    "fullProductionDataPatchReservedForLaterExplicitProductionApproval": true
+  },
+  "conclusion": {
+    "productionConfigReadOnlyAuditPassed": true,
+    "safeTrialConfigurationShapeVerified": true,
+    "deploymentAuthorizedByThisEvidence": false,
+    "remainingStageDBlockers": [
+      "same-SHA GitHub Actions runner allocation",
+      "Desktop/iPhone/iPad acceptance evidence",
+      "Release Gate closure"
+    ]
+  }
+}
