@@ -4,7 +4,7 @@ const registry=read('staging-database/supabase/migrations/20260915115500_v267_qa
 const manager=read('staging-database/supabase/migrations/20260915115600_v267_qa_account_manager_rpc.sql');
 const binding=read('staging-database/supabase/migrations/20260915115700_v267_qa_account_auth_binding.sql');
 const dbExpiry=read('staging-database/supabase/migrations/20260915115800_v267_qa_account_db_expiry.sql');
-const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),edge=read('staging-database/supabase/functions/qa-account-admin/index.ts'),expiry=read('api/qa-expire.py'),vercel=JSON.parse(read('vercel.json'));
+const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),evidence=read('api/qa-evidence.py'),edge=read('staging-database/supabase/functions/qa-account-admin/index.ts'),expiry=read('api/qa-expire.py'),vercel=JSON.parse(read('vercel.json'));
 
 test('temporary QA registry is private audited expiring and excludes temporary general-manager',()=>{
  assert.match(registry,/private\.aqari_qa_accounts/);assert.match(registry,/private\.aqari_qa_account_events/);assert.match(registry,/expires_at/);assert.match(registry,/aqari_qa_events_immutable/);
@@ -37,6 +37,17 @@ test('Auth Admin is confined to Staging Edge Function while Vercel is a manager-
  assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users','POST'/);assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users\/'\+userId,'PUT'/);assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users\/'\+createdUserId,'DELETE'/);
  assert.match(edge,/serverRpc\(url,secret,'aqari_qa_account_server_result'/);assert.doesNotMatch(edge,/admin\.auth\.admin\./);assert.doesNotMatch(edge,/createClient\(url,secret/);assert.doesNotMatch(edge,/insert into auth\.users/i);
  assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
+});
+
+test('QA mutation and evidence APIs reject stale branch-alias pages by exact candidate SHA',()=>{
+ for(const source of [api,evidence]){
+  assert.match(source,/X-AQARI-Candidate-Sha/);
+  assert.match(source,/VERCEL_GIT_COMMIT_SHA/);
+  assert.match(source,/QA_CANDIDATE_SHA_MISMATCH/);
+  assert.match(source,/\^\[0-9a-f\]\{40\}\$/);
+ }
+ assert.match(evidence,/p_candidate_sha/);
+ assert.match(evidence,/candidate_sha/);
 });
 
 test('opaque Supabase secret keys are never sent as bearer JWTs',()=>{
