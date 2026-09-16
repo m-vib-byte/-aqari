@@ -54,11 +54,11 @@ test('statement navigation isolates months and disables actions after missing da
   dialog.body.replaceChildren();let next=tasks.length;
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-09'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[1].value,'2026-09');assert.equal(dialog.body.children[3].disabled,true);
-  assert.match(dialog.status.textContent,/لا يوجد كشف محفوظ لهذا الشهر/);
+  assert.match(dialog.status.textContent,/لا يوجد كشف مصدر محفوظ لهذا الشهر/);
   dialog.body.replaceChildren();next=tasks.length;
   mod.openPropertyStatements({propertyName:'عقار آخر',period:'2026-08'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[0].value,'');assert.equal(dialog.body.children[3].disabled,true);
-  assert.match(dialog.status.textContent,/لا يوجد كشف مصدر محفوظ لهذا العقار/);
+  assert.match(dialog.status.textContent,/لا يوجد عقار مطابق ضمن صلاحيتك/);
   dialog.body.replaceChildren();next=tasks.length;
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[0].value,'p');assert.equal(dialog.body.children[3].disabled,false);
