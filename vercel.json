@@ -27,6 +27,7 @@
     {"source":"/public-config.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
     {"source":"/supabase-adapter.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
     {"source":"/qa-b-reauth.html","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
+    {"source":"/qa-b-reauth-v2.html","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
     {"source":"/qa-b.html","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
     {"source":"/sw.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"},{"key":"Service-Worker-Allowed","value":"/"}]},
     {"source":"/final-release-ui.js","headers":[{"key":"Cache-Control","value":"no-store, max-age=0, must-revalidate"}]},
