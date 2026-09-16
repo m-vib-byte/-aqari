@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from lib.property_statement_values import owner_approved_discount
 
 class PropertyStatementDiscountTests(unittest.TestCase):
@@ -10,6 +11,13 @@ class PropertyStatementDiscountTests(unittest.TestCase):
         self.assertIsNone(owner_approved_discount({'contract_rent_kd':'','current_rent_kd':195}))
         self.assertIsNone(owner_approved_discount({'contract_rent_kd':'bad','current_rent_kd':195}))
         self.assertIsNone(owner_approved_discount({'contract_rent_kd':-1,'current_rent_kd':0}))
+
+    def test_statement_pdf_keeps_saved_paid_and_nationality_source_fields_explicit(self):
+        source=Path('lib/property_statement_pdf.py').read_text(encoding='utf-8')
+        self.assertIn("('المدفوع بالمصدر','paid_amount_kd')",source)
+        self.assertIn("('الجنسية بالمصدر','nationality_raw')",source)
+        self.assertIn('المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي',source)
+        self.assertNotIn("paid_amount_kd') if",source)
 
 if __name__=='__main__':
     unittest.main()
