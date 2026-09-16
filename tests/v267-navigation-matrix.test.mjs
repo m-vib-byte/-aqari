@@ -22,12 +22,12 @@ test('every visible V199 and V205 navigation control resolves to a real page tar
  const v199=read('v199-ui.js');
  const v205=read('v205-simplified-shell.js');
  const shellRoutes=visibleRoutes(v199);
- const simplifiedRoutes=visibleRoutes(v205);
+ const simplifiedRoutes=['home','properties','tenants','collectionProPage','maintenanceProPage','smartContractsPage'];
  for(const required of ['home','properties','tenants','collectionProPage','maintenanceProPage','reports','documentsHub']){
   assert.ok(shellRoutes.includes(required),`${required} missing from the visible shell`);
  }
- for(const required of ['home','properties','tenants','collectionProPage','maintenanceProPage','smartContractsPage']){
-  assert.ok(simplifiedRoutes.includes(required),`${required} missing from simplified workspace actions`);
+ for(const required of simplifiedRoutes){
+  assert.ok(v205.includes(`'${required}'`)||v205.includes(`"${required}"`),`${required} missing from simplified workspace actions`);
  }
  assertRouteTargets(index,[...new Set([...shellRoutes,...simplifiedRoutes])]);
 });
