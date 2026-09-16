@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/build-vercel.mjs",
+  "buildCommand": "node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs",
   "outputDirectory": ".",
   "rewrites": [
     {
