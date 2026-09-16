@@ -33,7 +33,7 @@ test('Vercel runtime performs Auth Admin only through the server-only QA library
  assert.doesNotMatch(worker,/print\(/);assert.doesNotMatch(worker,/password.*service_call/);
  assert.match(api,/provision_automation_account/);assert.match(api,/disable_account/);assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/VERCEL_ENV/);assert.match(api,/VERCEL_GIT_COMMIT_REF/);
  assert.doesNotMatch(api,/functions\/v1\/qa-account-admin/);assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(api,/\/auth\/v1\/admin\/users/);
- assert.match(worker,/user_rpc\(workspace,'prepare'/);assert.match(worker,/service_rpc\('aqari_qa_account_server_result'/);assert.match(worker,/_create_auth/);assert.match(worker,/_ban_auth/);
+ assert.match(worker,/user_call\(workspace,'prepare'/);assert.match(worker,/service_call\('aqari_qa_account_server_result'/);assert.match(worker,/_create_auth/);assert.match(worker,/_ban_auth/);
  assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
 });
 
