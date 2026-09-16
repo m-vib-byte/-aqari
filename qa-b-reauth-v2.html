@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>AQARI V267 — إعادة تحقق B</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif}body{margin:0;background:#f7f5ef;color:#171717}main{max-width:560px;margin:auto;padding:28px 16px}.card{background:#fff;border:1px solid #e5dfcf;border-radius:18px;padding:20px}h1{font-size:1.3rem}p{line-height:1.7}label{display:block;margin:16px 0 6px}input,button{width:100%;box-sizing:border-box;font:inherit;padding:13px;border-radius:12px}input{border:1px solid #cfc8b8;text-align:center;font-size:1.25rem;letter-spacing:.22em}button{margin-top:12px;border:0;background:#171717;color:#fff}button:disabled,input:disabled{opacity:.5}.status{margin-top:14px;padding:12px;border-radius:12px;background:#f3f1e9;white-space:pre-wrap}.bad{color:#9f1e1e}.ok{color:#116b36}.meta{margin-top:10px;font-size:.78rem;color:#777;direction:ltr;text-align:center}
+</style>
+<script src="/public-config.js"></script>
+<script src="/vendor/supabase-js-2.114.0.js"></script>
+</head>
+<body><main><section class="card">
+<h1>إعادة التحقق قبل اختبار B</h1>
+<p>هذه الصفحة لا تختبر الرمز إلا بعد نجاح فحص الجلسة وإنشاء MFA Challenge لدى Supabase.</p>
+<form id="form">
+<label for="code">رمز Authenticator المكوّن من 6 أرقام</label>
+<input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="12" disabled required>
+<button id="submit" type="submit" disabled>تحقق وابدأ اختبار B</button>
+</form>
+<div id="status" class="status">جاري فحص الجلسة…</div>
+<div id="candidate" class="meta">candidate: checking…</div>
+</section></main>
+<script>
+(()=>{
+'use strict';
+const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';
+const cfg=window.AQARI_PUBLIC_CONFIG||{};
+const form=document.getElementById('form'),code=document.getElementById('code'),submit=document.getElementById('submit'),status=document.getElementById('status'),candidate=document.getElementById('candidate');
+let client=null,factor=null,stage='BOOT';
+const setStatus=(text,kind='')=>{status.textContent=text;status.className='status '+kind};
+const fail=(message)=>{const e=new Error(message);e.stage=stage;throw e};
+function normalize(value){const a='٠١٢٣٤٥٦٧٨٩',p='۰۱۲۳۴۵۶۷۸۹';return String(value||'').replace(/[٠-٩]/g,x=>String(a.indexOf(x))).replace(/[۰-۹]/g,x=>String(p.indexOf(x))).replace(/[^0-9]/g,'')}
+async function assurance(jwt){const r=await client.auth.mfa.getAuthenticatorAssuranceLevel(jwt);if(r.error)throw r.error;return r.data}
+async function confirmAal2(data){stage='SESSION_PROMOTION';const token=String(data?.access_token||''),user=String(data?.user?.id||'');if(!token||!user)fail('AAL2_SESSION_MISSING');const direct=await assurance(token);if(direct?.currentLevel!=='aal2')fail('AAL2_DIRECT_MISSING');const stored=await client.auth.getSession();if(stored.error)throw stored.error;const s=stored.data?.session;if(!s?.access_token||String(s.user?.id||'')!==user)fail('AAL2_PERSIST_MISSING');const persisted=await assurance(s.access_token);if(persisted?.currentLevel!=='aal2')fail('AAL2_PERSIST_MISSING');}
+async function preflight(){stage='CONFIG';const sha=String(cfg.previewCandidateSha||'').toLowerCase();candidate.textContent='candidate: '+(/^[0-9a-f]{40}$/.test(sha)?sha.slice(0,12):'invalid');if(cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==location.hostname||!/^[0-9a-f]{40}$/.test(sha))fail('PREVIEW_CANDIDATE_REQUIRED');if(!window.supabase?.createClient)fail('LIBRARY_MISSING');client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey}});stage='SESSION';const s=await client.auth.getSession();if(s.error)throw s.error;if(!s.data?.session?.user?.id)fail('AUTH_SESSION_REQUIRED');stage='FACTORS';const f=await client.auth.mfa.listFactors();if(f.error)throw f.error;const verified=[...(f.data?.totp||[])].filter(x=>x.status==='verified');if(!verified.length)fail('MFA_FACTOR_REQUIRED');factor=verified[0];stage='READY';code.disabled=false;submit.disabled=false;setStatus('الجلسة وعامل TOTP الموثق جاهزان. لم يُرسل أي رمز بعد.','ok');}
+form.addEventListener('submit',async(event)=>{event.preventDefault();const otp=normalize(code.value);if(!/^\d{6}$/.test(otp)){setStatus('لم يُرسل الرمز: الإدخال ليس 6 أرقام بعد التطبيع.','bad');return}if(!client||!factor){setStatus('فحص الجلسة لم يكتمل؛ لم يُرسل الرمز.','bad');return}submit.disabled=true;code.disabled=true;try{stage='CHALLENGE';setStatus('جاري إنشاء Challenge لدى Supabase…');const c=await client.auth.mfa.challenge({factorId:factor.id});if(c.error)throw c.error;const challengeId=String(c.data?.id||'');if(!challengeId)fail('CHALLENGE_NOT_CREATED');stage='VERIFY';setStatus('تم إنشاء Challenge. جاري التحقق من الرمز…');const v=await client.auth.mfa.verify({factorId:factor.id,challengeId,code:otp});if(v.error)throw v.error;await confirmAal2(v.data);stage='NAVIGATE';setStatus('تم تأكيد AAL2. فتح اختبار B…','ok');location.replace('/qa-b.html?run=1');}catch(error){const where=String(error?.stage||stage);const raw=String(error?.message||'FAILED');let text;if(where==='VERIFY'&&/Invalid TOTP|invalid.*code|otp/i.test(raw))text='وصل الرمز إلى Supabase بعد إنشاء Challenge، لكن Auth رفضه. لا تكرر المحاولة.';else if(where==='CHALLENGE')text='تعذر إنشاء Challenge لدى Supabase؛ لم يتم اختبار صحة الرمز.';else if(where==='SESSION_PROMOTION')text='تمت خطوة التحقق لكن جلسة المتصفح لم تُثبت كـAAL2؛ لا تكرر الرمز.';else text='تعذر الإكمال في مرحلة '+where+'؛ لم يتم تصنيف الرمز كخاطئ.';setStatus(text,'bad');code.value='';code.disabled=false;submit.disabled=false;}});
+preflight().catch(error=>{const where=String(error?.stage||stage);setStatus('فشل الفحص قبل إرسال أي رمز في مرحلة '+where+'.','bad');code.disabled=true;submit.disabled=true;});
+})();
+</script>
+</body></html>
