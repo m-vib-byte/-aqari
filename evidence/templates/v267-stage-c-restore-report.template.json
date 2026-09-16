@@ -1,0 +1,17 @@
+{
+  "schema":"AQARI-V267-STAGE-C-RESTORE-1",
+  "candidateSha":"<exact-40-char-candidate-sha>",
+  "target":"<new-independent-restore-target>",
+  "independent":true,
+  "externalSideEffectsDisabled":true,
+  "databaseRestored":false,
+  "authRestored":false,
+  "storageBytesRestored":false,
+  "dataSafetyMatch":false,
+  "storageByteHashMatch":false,
+  "backupManifestSha256":"<backup-manifest-sha256>",
+  "startedAt":"<ISO-8601>",
+  "completedAt":"<ISO-8601>",
+  "rtoSeconds":null,
+  "notes":"PREPARATION ONLY — must remain false until an actual independent restore is executed after B closes."
+}
