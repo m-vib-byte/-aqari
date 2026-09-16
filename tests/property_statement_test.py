@@ -49,4 +49,13 @@ class StatementTests(unittest.TestCase):
   pdf=render_statement(content)
   text=' '.join(page.extract_text() for page in PdfReader(BytesIO(pdf)).pages)
   self.assertIn('101',text);self.assertNotIn('None',text);self.assertNotIn('2450',text);self.assertNotIn('2200',text);self.assertNotIn('703',text)
+ def test_pdf_carries_saved_source_profile_fields_without_borrowing_defaults(self):
+  from lib.property_statement_pdf import render_statement
+  content=dict(property_name='Dhahawi source profile',period='2026-08',rows=[dict(unit='401',cleaning_kd='7.500',contract_received_raw='received-source',email_raw='tenant401@example.test',nationality_raw='Indian',passport_no_raw='P401SOURCE',free_month_raw='free-source-month',eviction_notice_raw='notice-source-401',notes_raw='source-note-401',pending=None)],summary=dict(printed_totals=dict(rent_kd=195,advance_kd=0,cleaning_kd=7.5)))
+  pdf=render_statement(content)
+  text=' '.join(page.extract_text() for page in PdfReader(BytesIO(pdf)).pages)
+  for value in ['401','7.500','received-source','tenant401@example.test','Indian','P401SOURCE','free-source-month','notice-source-401','source-note-401']:
+   self.assertIn(value,text)
+  for foreign in ['tenant403@example.test','P403SOURCE','source-note-403']:
+   self.assertNotIn(foreign,text)
 if __name__=='__main__':unittest.main()
