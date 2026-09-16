@@ -28,15 +28,19 @@ test('expired QA application access is revoked by Staging pg_cron, never by a Ve
  assert.equal(vercel.crons.some(row=>row.path==='/api/qa-expire'),false);assert.equal(vercel.crons.some(row=>row.path==='/api/integration-dispatch'),true);
 });
 
-test('Auth Admin is confined to Staging Edge Function while Vercel is a manager-JWT proxy',()=>{
+test('Vercel runtime performs Auth Admin only through the server-only QA library after user-RPC MFA guard',()=>{
  for(const marker of ["EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co'","VERCEL_ENV')!='preview'","EXPECTED_BRANCH='support/v267-knet-range-reconcile-20260915'","/auth/v1/admin/users","email_confirm':True","ban_duration':'876000h'","secrets.token_urlsafe"]){assert.match(worker,new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));}
  assert.doesNotMatch(worker,/print\(/);assert.doesNotMatch(worker,/password.*service_call/);
- assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/functions\/v1\/qa-account-admin/);assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);
- assert.match(edge,/SUPABASE_SECRET_KEYS/);assert.match(edge,/SUPABASE_PUBLISHABLE_KEYS/);assert.match(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.match(edge,/SUPABASE_ANON_KEY/);
- assert.match(edge,/secret\.startsWith\('sb_secret_'\)/);assert.match(edge,/headers\.Authorization='Bearer '\+secret/);assert.match(edge,/if\(!secret\.startsWith\('sb_secret_'\)\)/);
- assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users','POST'/);assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users\/'\+userId,'PUT'/);assert.match(edge,/serverRequest\(url,secret,'\/auth\/v1\/admin\/users\/'\+createdUserId,'DELETE'/);
- assert.match(edge,/serverRpc\(url,secret,'aqari_qa_account_server_result'/);assert.doesNotMatch(edge,/admin\.auth\.admin\./);assert.doesNotMatch(edge,/createClient\(url,secret/);assert.doesNotMatch(edge,/insert into auth\.users/i);
+ assert.match(api,/provision_automation_account/);assert.match(api,/disable_account/);assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/VERCEL_ENV/);assert.match(api,/VERCEL_GIT_COMMIT_REF/);
+ assert.doesNotMatch(api,/functions\/v1\/qa-account-admin/);assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(api,/\/auth\/v1\/admin\/users/);
+ assert.match(worker,/user_rpc\(workspace,'prepare'/);assert.match(worker,/service_rpc\('aqari_qa_account_server_result'/);assert.match(worker,/_create_auth/);assert.match(worker,/_ban_auth/);
  assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
+});
+
+test('legacy Edge QA admin remains fail-closed if retained but is not on the active Vercel path',()=>{
+ assert.match(edge,/SUPABASE_SECRET_KEYS/);assert.match(edge,/SUPABASE_PUBLISHABLE_KEYS/);assert.match(edge,/secret\.startsWith\('sb_secret_'\)/);
+ assert.match(edge,/if\(!secret\.startsWith\('sb_secret_'\)\)headers\.Authorization='Bearer '\+secret/);
+ assert.match(edge,/serverRpc\(url,secret,'aqari_qa_account_server_result'/);assert.doesNotMatch(edge,/insert into auth\.users/i);
 });
 
 test('QA mutation and evidence APIs reject stale branch-alias pages by exact candidate SHA',()=>{
@@ -50,9 +54,10 @@ test('QA mutation and evidence APIs reject stale branch-alias pages by exact can
  assert.match(evidence,/candidate_sha/);
 });
 
-test('opaque Supabase secret keys are never sent as bearer JWTs',()=>{
+test('opaque Supabase secret keys are never sent as bearer JWTs in either server implementation',()=>{
+ assert.match(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key\}/);
+ assert.doesNotMatch(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key,'Authorization'/);
  const guard=edge.indexOf("if(!secret.startsWith('sb_secret_'))headers.Authorization='Bearer '+secret");
  assert.ok(guard>=0);
- assert.equal(edge.includes("headers.Authorization='Bearer '+secret\n  return headers"),true);
  assert.doesNotMatch(edge,/Authorization['"]?\s*:\s*['"]Bearer ['"]\s*\+\s*secret/);
 });
