@@ -1,4 +1,5 @@
 import {readFileSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 
 const path=new URL('../src/v267/pages/property-hub.js',import.meta.url);
 let source=readFileSync(path,'utf8');
@@ -16,9 +17,6 @@ if(!source.includes(marker)){
  console.log('Installed V267 property ownership/area entry into Property Hub.');
 }else console.log('V267 property ownership/area entry already installed.');
 
-// Trial-site section reliability hotfix. Keep myaqari.com in the same full-preview
-// behavior as Vercel Preview, and toggle service sections explicitly instead of
-// relying on the browser's native <details>/<summary> click behavior on iPad/Safari.
 const directoryPath=new URL('../src/v267/components/service-directory.js',import.meta.url);
 let directorySource=readFileSync(directoryPath,'utf8');
 const previewAnchor="return String(current.hostname||'').endsWith('.vercel.app');";
@@ -29,12 +27,13 @@ const sectionAnchor="box.className='aq267-service-group';box.dataset.group=group
 const sectionReplacement="box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};count.className='aq267-service-count';";
 if(directorySource.includes(sectionAnchor))directorySource=directorySource.replace(sectionAnchor,sectionReplacement);
 else if(!directorySource.includes(sectionReplacement))throw Error('V267_SERVICE_DIRECTORY_SECTION_ANCHOR_MISSING');
+const serviceIconAnchor="button.dataset.service=group.key;";
+const serviceIconReplacement="button.dataset.service=item.source?.dataset?.aq267Label||group.key;";
+if(directorySource.includes(serviceIconAnchor))directorySource=directorySource.replace(serviceIconAnchor,serviceIconReplacement);
+else if(!directorySource.includes(serviceIconReplacement))throw Error('V267_SERVICE_DIRECTORY_ICON_KEY_ANCHOR_MISSING');
 writeFileSync(directoryPath,directorySource);
-console.log('Installed V267 fixed-site service-section hotfix for myaqari.com/iPad Safari.');
+console.log('Installed V267 fixed-site service-section hotfix and semantic service icon keys for myaqari.com/iPad Safari.');
 
-// Keep internal routing/permissions stable while letting the general manager edit
-// the visible names of the major service pages. The display key is attached to
-// the existing button only; click handlers and backend keys are untouched.
 const workspacePath=new URL('../src/v267/workspace.js',import.meta.url);
 let workspaceSource=readFileSync(workspacePath,'utf8');
 const entryAnchor=" const entry=(source,section,manager=false,keywords='')=>({source,section,manager,keywords});";
@@ -50,3 +49,16 @@ if(workspaceSource.includes(groupAnchor))workspaceSource=workspaceSource.replace
 else if(!workspaceSource.includes(groupReplacement))throw Error('V267_EDITABLE_GROUP_LABELS_ANCHOR_MISSING');
 writeFileSync(workspacePath,workspaceSource);
 console.log('Installed V267 editable service/group display labels without changing internal routing keys.');
+
+const staffAccessPath=new URL('../src/v267/pages/staff-access.js',import.meta.url);
+let staffAccessSource=readFileSync(staffAccessPath,'utf8');
+const staffAccessAnchor="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;";
+const staffAccessReplacement="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;d.el.classList.add('aq267-staff-access');";
+if(staffAccessSource.includes(staffAccessAnchor))staffAccessSource=staffAccessSource.replace(staffAccessAnchor,staffAccessReplacement);
+else if(!staffAccessSource.includes(staffAccessReplacement))throw Error('V267_STAFF_ACCESS_VISUAL_SCOPE_ANCHOR_MISSING');
+writeFileSync(staffAccessPath,staffAccessSource);
+console.log('Installed V267 visual scope for the audited staff-permission editor.');
+
+execFileSync(process.execPath,['--check','src/v267/pages/control-center.js'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-manager-control-design.test.mjs'],{stdio:'inherit'});
+console.log('Verified V267 manager-control and ultra-luxury presentation contract.');
