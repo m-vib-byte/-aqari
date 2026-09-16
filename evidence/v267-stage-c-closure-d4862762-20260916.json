@@ -1,0 +1,114 @@
+{
+  "schema": "AQARI-V267-STAGE-C-CLOSURE-1",
+  "recordedAt": "2026-09-16T13:04:30Z",
+  "candidateSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+  "phaseBClosed": true,
+  "technicalPhaseCClosed": true,
+  "finalReleaseApproved": false,
+  "source": {
+    "projectRef": "ofgmcsmxmdswlovsckqs",
+    "environment": "v267-isolated-test",
+    "production": false
+  },
+  "backupTest": {
+    "database": {
+      "aqariTables": 158,
+      "rows": 294,
+      "serializedBytes": 634454,
+      "sha256": "994f461db77d130737d277e199c2f4ba87e09b19f36d54c1bba89677b05cb718"
+    },
+    "authDurable": {
+      "rows": 88,
+      "serializedBytes": 7408,
+      "sha256": "bfe64d94fa883b0a874b0c37cb84cae5886f9518d92a76ac4d0f5d4d585b6317",
+      "ephemeralSessionTablesExcludedFromStableComparison": ["sessions", "refresh_tokens", "mfa_amr_claims"]
+    },
+    "storageOriginalBytes": {
+      "objects": 2,
+      "totalBytes": 156509,
+      "objectFingerprints": [
+        {"bytes": 105975, "sha256": "3b32f38d2d187e7a6faef4ecccd9909ec9e9f15fc6a71315c6eabab616187969"},
+        {"bytes": 50534, "sha256": "0634bf11f5564b01d89cc5412a899aeaa7755631c241657b9bfdddadbad09d3f"}
+      ],
+      "restoredObjectSetManifestSha256": "c600410e5cd2a475259d9c87d2ade59515bc136e969fa6d4e2c9f38aa645a37d"
+    },
+    "testCopyRetention": "destroyed-with-temporary-restore-branch-per-owner-condition",
+    "freshPersistentBackupRequiredAgainBeforeAnyFutureProductionRelease": true
+  },
+  "independentRestore": {
+    "targetProjectRef": "rxbcuvsgagbytryttfuk",
+    "targetBranchId": "a9d6f736-fffe-432f-b87c-00daf98cbc95",
+    "targetBranchName": "v267-c-restore-20260916",
+    "independent": true,
+    "production": false,
+    "externalSideEffectsDisabled": true,
+    "status": "complete",
+    "startedAt": "2026-09-16T12:42:39.141649Z",
+    "completedAt": "2026-09-16T12:54:31.501270Z",
+    "catalogTables": 185,
+    "stableNonemptyTables": 34,
+    "dbAuthRows": 382,
+    "dbAuthExactSha256": "ff32e4703454d2fdb324069bc2e81e71183c9f33439937fae795e693d8bbd510",
+    "dbAuthSourceTargetHashMatch": true,
+    "storageObjectsRestored": 2,
+    "storageBytesRestored": 156509,
+    "storageByteHashMatch": true
+  },
+  "dataSafety": {
+    "aqariTablesBeforeAfter": 158,
+    "aqariRowsBeforeAfter": 294,
+    "storageObjectsBeforeAfter": 2,
+    "storageBytesBeforeAfter": 156509,
+    "normalizedBeforeSha256": "cd273e304dd23023c727a99a495b7feb2e5633b979a9f31d94ad030172e23c23",
+    "normalizedAfterSha256": "cd273e304dd23023c727a99a495b7feb2e5633b979a9f31d94ad030172e23c23",
+    "match": true,
+    "legacyPreBackupAggregateComparable": false,
+    "legacyAggregateNote": "The earlier summary evidence used a different aggregate construction; closure uses same-algorithm before/after normalization plus exact source-target DB/Auth and Storage byte hashes."
+  },
+  "rollbackRehearsal": {
+    "strategy": "application-source-rollback-with-data-preservation",
+    "candidateApplicationSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "candidateDeploymentId": "dpl_2CyyF4iLE2csCEVu27wWoZFkx5ky",
+    "candidateDeploymentReady": true,
+    "previousApplicationSha": "f1db3f9b31e917f0f3d7c3f025ba6854838476ef",
+    "previousDeploymentId": "dpl_2CfKNafsDZ7s638a4gzz6euZdamn",
+    "previousUniquePreviewHttp200Observed": true,
+    "databaseRollback": false,
+    "capturePostCheckpointTransactions": true,
+    "preserveAuditAndDocuments": true,
+    "postCheckpointEvidence": {
+      "exactCandidateAcceptanceRuns": 1,
+      "documents": 2,
+      "rentPayments": 2,
+      "rentAmountKwd": "200.000",
+      "operationAuditRows": 29,
+      "serverMutationAuditRows": 61,
+      "storageObjects": 2,
+      "storageBytes": 156509
+    },
+    "rehearsed": true
+  },
+  "cleanup": {
+    "sourceBridgeGuardRemoved": true,
+    "sourceBridgeFunctionsRemoved": true,
+    "sourceStoragePushFunctionLocked": true,
+    "sourceStoragePushVerifyJwt": true,
+    "sourceStoragePushResponse": 410,
+    "sourceStorageExportFunctionLocked": true,
+    "temporaryRestoreBranchDeleted": true,
+    "temporaryRestoreCostStopped": true
+  },
+  "governance": {
+    "mainChanged": false,
+    "productionChanged": false,
+    "myaqariChanged": false,
+    "helperEvidenceBranchOnly": true,
+    "ownerPracticalAcceptanceStillRequiredLater": true,
+    "explicitFinalOwnerApprovalStillRequiredLater": true
+  },
+  "next": {
+    "phase": "D",
+    "ciSameShaGreenRequired": true,
+    "physicalDesktopIphoneIpadEvidenceRequired": true
+  }
+}
