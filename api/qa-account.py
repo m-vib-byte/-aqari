@@ -35,7 +35,7 @@ def edge_request(payload,auth):
  req=Request(EXPECTED_URL+'/functions/v1/qa-account-admin',data=raw,method='POST',headers={'apikey':public_key(),'Authorization':auth,'Content-Type':'application/json','Accept':'application/json'})
  status=0;body=b''
  try:
-  with build_opener(NoRedirect).open(req,timeout=15) as response:
+  with build_opener(NoRedirect).open(req,timeout=30) as response:
    status=int(getattr(response,'status',200));body=response.read(131073)
  except HTTPError as exc:
   status=int(exc.code);body=exc.read(131073)
@@ -61,10 +61,10 @@ class handler(BaseHTTPRequestHandler):
    length=int(self.headers.get('Content-Length','0'))
    if length<=0 or length>32768:raise ValueError('INVALID_REQUEST')
    data=json.loads(self.rfile.read(length));workspace=str(data.get('workspaceId','')) if isinstance(data,dict) else '';action=data.get('action') if isinstance(data,dict) else None
-   if not UUID.fullmatch(workspace) or action not in('provision','disable'):raise ValueError('INVALID_REQUEST')
+   if not UUID.fullmatch(workspace) or action not in('provision','disable','cleanup'):raise ValueError('INVALID_REQUEST')
    payload={'workspaceId':workspace,'action':action}
    if action=='provision':payload['data']=data.get('data')
-   else:payload.update({'accountId':str(data.get('accountId','')),'reason':data.get('reason')})
+   elif action=='disable':payload.update({'accountId':str(data.get('accountId','')),'reason':data.get('reason')})
    status,result=edge_request(payload,self.headers.get('Authorization',''));self._reply(status,result)
   except PermissionError:self._reply(403,{'ok':False,'error':'ACCESS_DENIED'})
   except RuntimeError as exc:
