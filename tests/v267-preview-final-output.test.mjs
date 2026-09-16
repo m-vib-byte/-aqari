@@ -21,6 +21,12 @@ test('deployed Preview files are pinned after the final build-time rewrite', {sk
   assert.match(config,new RegExp(`"previewImmutableHost": "${escapeRegExp(immutableHost)}"`));
   assert.match(config,new RegExp(`https://${escapeRegExp(branchHost)}/login\\.html\\?release=V267`));
 
+  const login=source('login.html');
+  assert.match(login,/function aqariReturnTarget\(\)/);
+  assert.match(login,/qa-b-reauth-v2\\\.html/);
+  assert.match(login,/previewCandidateSha/);
+  assert.equal((login.match(/window\.location\.replace\(aqariReturnTarget\(\)\);/g)||[]).length,2);
+
   const runner=source('qa-b.html');
   assert.match(runner,new RegExp(`const CANDIDATE_SHA='${escapeRegExp(sha)}';`));
   assert.match(runner,new RegExp(`const BRANCH_HOST='${escapeRegExp(branchHost)}';`));
@@ -32,6 +38,8 @@ test('deployed Preview files are pinned after the final build-time rewrite', {sk
   assert.match(reauth,new RegExp(`const CANDIDATE_SHA='${escapeRegExp(sha)}';`));
   assert.match(reauth,new RegExp(`const BRANCH_HOST='${escapeRegExp(branchHost)}';`));
   assert.match(reauth,/requestedCandidate!==CANDIDATE_SHA/);
+  assert.match(reauth,/SESSION_LOGIN_REDIRECT/);
+  assert.match(reauth,/returnTo=/);
   assert.match(reauth,/qa-b\.html\?run=1&candidate=/);
 });
 
