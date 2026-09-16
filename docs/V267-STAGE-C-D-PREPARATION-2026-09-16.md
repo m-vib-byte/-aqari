@@ -4,6 +4,20 @@ Status: **PREPARATION ONLY / NOT ACCEPTED**.
 
 This lane is isolated from Phase B PR #192 and Issue #193. It may fast-forward to read the current B candidate, but it must not write to the PR/issue, merge to `main`, deploy Production, change DNS, or change `myaqari.com`. Official order remains **B close → C acceptance → D → owner practical test → explicit owner approval**.
 
+## Owner freeze directive — 16 Sep 2026
+
+Current state is formally frozen as follows:
+
+- Phase B remains open.
+- Phase C is prepared only and is not accepted.
+- Phase D is prepared only and is not accepted.
+- Do not restart, duplicate, or re-scope the C/D preparation work.
+- Do not deploy or mutate Production, `main`, DNS, V266, or `myaqari.com`.
+- Do not begin formal C execution until Phase B is closed and the exact final B candidate SHA is fixed.
+- After B closes, execute formal C directly from the prepared plan on that exact SHA, then proceed to D in the approved order.
+- Owner practical testing and later explicit approval remain mandatory and cannot be inferred from preparation, CI, Preview readiness, or synthetic tests.
+- No owner action is currently required.
+
 ## C — prepared artifacts
 
 Existing repository evidence is reused rather than duplicated: `staging-database/verification/v267-data-safety-manifest.sql` produces read-only business/Auth/Storage metadata fingerprints; `docs/V267-ROLLBACK-VERIFICATION-2026-09-09.md` documents historical source-only rollback drills and explicitly says they do not satisfy the full Database/Auth/Storage restore gate.
