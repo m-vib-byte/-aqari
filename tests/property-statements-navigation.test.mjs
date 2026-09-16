@@ -9,7 +9,7 @@ test('statement navigation isolates months and disables actions after missing da
   constructor(tag,text){this.tag=tag;this.textContent=text||'';this.children=[];this.value='';this.disabled=false;}
   append(...items){this.children.push(...items);if(this.tag==='select'&&!this.value)this.value=items[0].value;}
   prepend(...items){this.children.unshift(...items);}
-  replaceChildren(){this.children=[];}
+  replaceChildren(...items){this.children=[...items];}
   addEventListener(){}
  }
  const content={property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',contract_no_raw:'C-101',contract_rent_kd:250,current_rent_kd:195,insurance_kd:50},{unit:'102',contract_no_raw:'C-102',contract_rent_kd:195,current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
