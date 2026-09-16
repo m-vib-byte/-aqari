@@ -1,5 +1,5 @@
 import unittest
-from lib.property_statement_pdf import owner_approved_discount
+from lib.property_statement_values import owner_approved_discount
 
 class PropertyStatementDiscountTests(unittest.TestCase):
     def test_discount_is_derived_from_saved_contract_and_current_rent_only(self):
