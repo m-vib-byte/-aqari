@@ -59,6 +59,89 @@ else if(!staffAccessSource.includes(staffAccessReplacement))throw Error('V267_ST
 writeFileSync(staffAccessPath,staffAccessSource);
 console.log('Installed V267 visual scope for the audited staff-permission editor.');
 
+// Fixed-domain Safari/iPad navigation reliability: route first, verify the target
+// became visible, and only then reset the viewport. This removes the old behavior
+// where every click scrolled to the top even when the section transition failed.
+const navigationPath=new URL('../v199-ui.js',import.meta.url);
+let navigationSource=readFileSync(navigationPath,'utf8');
+const navigationAnchor=`  function installNavigationHook(){
+    const original=window.go;
+    if(typeof original!=='function'||original.__v199Presentation)return;
+    const wrapped=function(target){
+      const result=original.apply(this,arguments);
+      markActive(target);
+      return result;
+    };
+    wrapped.__v199Presentation=true;
+    window.go=wrapped;
+  }
+
+  function navigate(target){
+    closeLayers(false);
+    if(typeof window.go==='function')window.go(target);
+    markActive(target);
+    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
+  }`;
+const navigationReplacement=`  function routeNode(target){
+    const id=target==='properties'||target==='tenants'?'list':target;
+    return document.getElementById(id);
+  }
+
+  function routeVisible(target){
+    const page=routeNode(target);
+    if(!page)return null;
+    if(page.hidden||page.getAttribute('aria-hidden')==='true')return false;
+    const style=window.getComputedStyle?.(page);
+    return !style||(style.display!=='none'&&style.visibility!=='hidden');
+  }
+
+  function installNavigationHook(){
+    const original=window.go;
+    if(typeof original!=='function'||original.__v199Presentation)return;
+    if(typeof window.AQARI_V199_BASE_GO!=='function')window.AQARI_V199_BASE_GO=original;
+    const wrapped=function(target){
+      const result=original.apply(this,arguments);
+      markActive(target);
+      return result;
+    };
+    wrapped.__v199Presentation=true;
+    window.go=wrapped;
+  }
+
+  function navigate(target){
+    closeLayers(false);
+    const stableTargets=['home','properties','tenants','collectionProPage','maintenanceProPage'];
+    const current=window.go;
+    const stable=window.AQARI_V199_BASE_GO;
+    const runner=stableTargets.includes(target)&&typeof stable==='function'?stable:current;
+    let result;
+    try{if(typeof runner==='function')result=runner.call(window,target);}
+    catch(error){
+      if(typeof current==='function'&&current!==runner)result=current.call(window,target);
+      else throw error;
+    }
+    markActive(target);
+    const verify=function(){
+      if(routeVisible(target)===false&&typeof current==='function'&&current!==runner){
+        try{current.call(window,target)}catch(_error){}
+      }
+      requestAnimationFrame(function(){
+        if(routeVisible(target)===true)window.scrollTo({top:0,behavior:'auto'});
+      });
+    };
+    if(result&&typeof result.then==='function')Promise.resolve(result).finally(function(){requestAnimationFrame(verify)});
+    else requestAnimationFrame(verify);
+    return result;
+  }`;
+if(navigationSource.includes(navigationAnchor))navigationSource=navigationSource.replace(navigationAnchor,navigationReplacement);
+else if(!navigationSource.includes("window.AQARI_V199_BASE_GO=original"))throw Error('V267_PRIMARY_NAVIGATION_ANCHOR_MISSING');
+if(navigationSource.includes("window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});"))throw Error('V267_PRIMARY_NAVIGATION_UNCONDITIONAL_SCROLL_REMAINS');
+if(!navigationSource.includes("if(routeVisible(target)===true)window.scrollTo({top:0,behavior:'auto'});"))throw Error('V267_PRIMARY_NAVIGATION_VERIFICATION_MISSING');
+writeFileSync(navigationPath,navigationSource);
+console.log('Installed V267 verified primary-section navigation hotfix for myaqari.com/Safari.');
+
+execFileSync(process.execPath,['--check','v199-ui.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/control-center.js'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-manager-control-design.test.mjs'],{stdio:'inherit'});
-console.log('Verified V267 manager-control and ultra-luxury presentation contract.');
+execFileSync(process.execPath,['--test','tests/v205-click-routing.test.cjs','tests/v267-manager-control-design.test.mjs'],{stdio:'inherit'});
+console.log('Verified V267 navigation plus manager-control presentation contracts.');
