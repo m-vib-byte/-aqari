@@ -40,3 +40,4 @@ if(statementAfter!==statementBefore){
 }
 
 execFileSync(process.execPath,['--test','tests/v267-property-statement-discount.test.mjs'],{stdio:'inherit'});
+execFileSync('python',['-m','unittest','tests.property_statement_discount_test'],{stdio:'inherit'});
