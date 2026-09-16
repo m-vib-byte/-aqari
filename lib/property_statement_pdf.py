@@ -8,7 +8,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from lib.rent_pdf import FONT,FONT_PATH,shaped
-from lib.property_statement_values import owner_approved_discount
+from lib.property_statement_values import owner_approved_discount,statement_rent_totals
 
 def statement_notes(content):
     """Only annotate evidence stored on this statement; never borrow another property's notes."""
@@ -42,8 +42,13 @@ def render_statement(content):
     widths=[60,46,66,58,88,58,66,58,56,66,58,205,48]
     table=Table(data,colWidths=widths,repeatRows=1,hAlign='RIGHT')
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E8DDBD')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
-    summary=content['summary']['printed_totals']
-    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('الإيجار الحالي: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك')]
+    summary=content['summary']['printed_totals'];rent_totals=statement_rent_totals(content.get('rows',[]))
+    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12)]
+    if rent_totals is None:
+        story.append(p('مجاميع إيجار العقد والخصم المعتمد والإيجار الحالي غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة.'))
+    else:
+        story.append(p('إجمالي إيجار العقود: '+str(rent_totals['contract_rent_kd'])+' د.ك • إجمالي خصم المالك: '+str(rent_totals['owner_discount_kd'])+' د.ك • إجمالي الإيجار الحالي: '+str(rent_totals['current_rent_kd'])+' د.ك'))
+    story.append(p('الإيجار الحالي المطبوع بالمصدر: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك'))
     for note in statement_notes(content):story.append(p(note))
     doc.build(story);return out.getvalue()
 

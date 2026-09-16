@@ -1,11 +1,31 @@
 export const PROPERTY_STATEMENT_DISCOUNT_MARKER='v267StatementOwnerDiscount';
 export const PROPERTY_STATEMENT_COLLECTION_MARKER='v267StatementCollectionReadback';
 
+function statementMoney(value){
+  if(value===null||value===undefined||value==='')return null;
+  const amount=Number(value);
+  return Number.isFinite(amount)&&amount>=0?Math.round(amount*1000)/1000:null;
+}
+
 export function statementOwnerApprovedDiscount(contractValue,currentValue){
-  if(contractValue===null||contractValue===undefined||contractValue===''||currentValue===null||currentValue===undefined||currentValue==='')return null;
-  const contract=Number(contractValue),current=Number(currentValue);
-  if(!Number.isFinite(contract)||!Number.isFinite(current)||contract<0||current<0)return null;
+  const contract=statementMoney(contractValue),current=statementMoney(currentValue);
+  if(contract===null||current===null)return null;
   return Math.max(0,Math.round((contract-current)*1000)/1000);
+}
+
+export function statementRentTotals(rows){
+  if(!Array.isArray(rows)||!rows.length)return null;
+  let contractRent=0,currentRent=0,ownerDiscount=0;
+  for(const row of rows){
+    const contract=statementMoney(row?.contract_rent_kd),current=statementMoney(row?.current_rent_kd);
+    if(contract===null||current===null)return null;
+    contractRent+=contract;currentRent+=current;ownerDiscount+=Math.max(0,contract-current);
+  }
+  return {
+    contractRent:Math.round(contractRent*1000)/1000,
+    ownerDiscount:Math.round(ownerDiscount*1000)/1000,
+    currentRent:Math.round(currentRent*1000)/1000
+  };
 }
 
 export function patchPropertyStatementDiscountUi(source){
@@ -14,7 +34,7 @@ export function patchPropertyStatementDiscountUi(source){
 
   if(!next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)){
     const showAnchor=` function show(content){`;
-    const helper=` // ${PROPERTY_STATEMENT_DISCOUNT_MARKER}\n function v267StatementMoney(value){\n  if(value===null||value===undefined||value==='')return null;\n  const amount=Number(value);\n  return Number.isFinite(amount)&&amount>=0?Math.round(amount*1000)/1000:null;\n }\n function v267OwnerApprovedDiscount(row){\n  const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n  if(contract===null||current===null)return null;\n  return Math.max(0,Math.round((contract-current)*1000)/1000);\n }\n`;
+    const helper=` // ${PROPERTY_STATEMENT_DISCOUNT_MARKER}\n function v267StatementMoney(value){\n  if(value===null||value===undefined||value==='')return null;\n  const amount=Number(value);\n  return Number.isFinite(amount)&&amount>=0?Math.round(amount*1000)/1000:null;\n }\n function v267OwnerApprovedDiscount(row){\n  const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n  if(contract===null||current===null)return null;\n  return Math.max(0,Math.round((contract-current)*1000)/1000);\n }\n function v267StatementRentTotals(rows){\n  if(!Array.isArray(rows)||!rows.length)return null;\n  let contractRent=0,currentRent=0,ownerDiscount=0;\n  for(const row of rows){\n   const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n   if(contract===null||current===null)return null;\n   contractRent+=contract;currentRent+=current;ownerDiscount+=Math.max(0,contract-current);\n  }\n  return {contractRent:Math.round(contractRent*1000)/1000,ownerDiscount:Math.round(ownerDiscount*1000)/1000,currentRent:Math.round(currentRent*1000)/1000};\n }\n`;
     if(!next.includes(showAnchor))throw Error('V267 property statement discount show anchor not found.');
     next=next.replace(showAnchor,helper+showAnchor);
 
@@ -29,9 +49,14 @@ export function patchPropertyStatementDiscountUi(source){
     next=next.replace(valueAnchor,valueReplacement);
 
     const sourceNote=`كشف المصدر المحفوظ. مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
-    const sourceReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+    const sourceReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
     if(!next.includes(sourceNote))throw Error('V267 property statement discount source note anchor not found.');
     next=next.replace(sourceNote,sourceReplacement);
+
+    const summaryAnchor=`const s=content.summary.printed_totals;result.append(node('p',message('الإيجار الحالي: {rent} د.ك • العربون: {advance} د.ك • النظافة: {cleaning} د.ك',{rent:s.rent_kd,advance:s.advance_kd,cleaning:s.cleaning_kd})),node('p',t('تُعرض ملاحظات كل وحدة من سجل مصدرها؛ لا تُعتمد القيم المعلقة تلقائياً.')));`;
+    const summaryReplacement=`const s=content.summary.printed_totals,rentTotals=v267StatementRentTotals(content.rows);result.append(node('p',rentTotals?message('إجمالي إيجار العقود: {contract} د.ك • إجمالي خصم المالك: {discount} د.ك • إجمالي الإيجار الحالي: {current} د.ك',{contract:rentTotals.contractRent,discount:rentTotals.ownerDiscount,current:rentTotals.currentRent}):t('مجاميع إيجار العقد والخصم المعتمد والإيجار الحالي غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة.')),node('p',message('الإيجار الحالي المطبوع بالمصدر: {rent} د.ك • العربون: {advance} د.ك • النظافة: {cleaning} د.ك',{rent:s.rent_kd,advance:s.advance_kd,cleaning:s.cleaning_kd})),node('p',t('تُعرض ملاحظات كل وحدة من سجل مصدرها؛ لا تُعتمد القيم المعلقة تلقائياً.')));`;
+    if(!next.includes(summaryAnchor))throw Error('V267 property statement rent totals anchor not found.');
+    next=next.replace(summaryAnchor,summaryReplacement);
   }
 
   if(!next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)){

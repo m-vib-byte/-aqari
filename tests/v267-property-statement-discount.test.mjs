@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {patchPropertyStatementDiscountUi,statementOwnerApprovedDiscount,PROPERTY_STATEMENT_DISCOUNT_MARKER,PROPERTY_STATEMENT_COLLECTION_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
+import {patchPropertyStatementDiscountUi,statementOwnerApprovedDiscount,statementRentTotals,PROPERTY_STATEMENT_DISCOUNT_MARKER,PROPERTY_STATEMENT_COLLECTION_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
 
 test('owner-approved statement discount is derived only from saved contract/current rent values',()=>{
   assert.equal(statementOwnerApprovedDiscount(250,195),55);
@@ -14,6 +14,16 @@ test('owner-approved statement discount is derived only from saved contract/curr
   assert.equal(statementOwnerApprovedDiscount(-1,0),null);
 });
 
+test('statement rent totals separate contract rent, owner discount and current due and fail closed on incomplete source rows',()=>{
+  assert.deepEqual(statementRentTotals([
+    {contract_rent_kd:'250',current_rent_kd:'195'},
+    {contract_rent_kd:'250.125',current_rent_kd:'145'}
+  ]),{contractRent:500.125,ownerDiscount:160.125,currentRent:340});
+  assert.deepEqual(statementRentTotals([{contract_rent_kd:195,current_rent_kd:260}]),{contractRent:195,ownerDiscount:0,currentRent:260});
+  assert.equal(statementRentTotals([{contract_rent_kd:250,current_rent_kd:''}]),null);
+  assert.equal(statementRentTotals([]),null);
+});
+
 test('property statement overlay displays contract rent, owner-approved discount and current rent separately',()=>{
   const original=readFileSync(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8');
   const patched=patchPropertyStatementDiscountUi(original);
@@ -21,6 +31,11 @@ test('property statement overlay displays contract rent, owner-approved discount
   assert.match(patched,/خصم معتمد من المالك/);
   assert.match(patched,/__owner_discount/);
   assert.match(patched,/إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة/);
+  assert.match(patched,/الخصم خاص بصف المستأجر وفترة هذا الكشف/);
+  assert.match(patched,/إجمالي إيجار العقود/);
+  assert.match(patched,/إجمالي خصم المالك/);
+  assert.match(patched,/إجمالي الإيجار الحالي/);
+  assert.match(patched,/غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة/);
   assert.equal(patchPropertyStatementDiscountUi(patched),patched);
 });
 
