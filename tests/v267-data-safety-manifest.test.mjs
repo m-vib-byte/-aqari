@@ -11,7 +11,7 @@ test('Stage C manifest is transaction-local verification and never claims to be 
   assert.match(sql,/^begin;/m);
   has('create temp table v267_manifest_rows');
   assert.match(sql,/rollback;\s*$/);
-  has('AQARI-V267-DATA-SAFETY-MANIFEST-2');
+  has('AQARI-V267-DATA-SAFETY-MANIFEST-3');
   has('It is not a backup');
   has('byte-for-byte restore hashes');
   assert.equal((sql.match(/\binsert into\b/gi)||[]).length,1);
@@ -38,7 +38,23 @@ test('restore comparison fingerprints AQARI schema structure as well as rows',()
     'from pg_indexes',
     'pg_get_functiondef(p.oid)',
     'pg_get_triggerdef(t.oid,true)',
+    'from pg_views',
+    'from pg_matviews',
+    'from pg_sequences',
     "'schema_safe'"
+  ]) has(marker);
+});
+
+test('restore comparison includes RLS policy state and table/function privilege grants',()=>{
+  for(const marker of [
+    'c.relrowsecurity',
+    'c.relforcerowsecurity',
+    'from pg_policies',
+    "aclexplode(coalesce(c.relacl,acldefault('r',c.relowner)))",
+    "aclexplode(coalesce(p.proacl,acldefault('f',p.proowner)))",
+    "'table_grants'",
+    "'function_grants'",
+    "'rls'"
   ]) has(marker);
 });
 

@@ -1,7 +1,7 @@
 -- AQARI V267 data-safety verification manifest.
 -- Read-only except for transaction-local TEMP tables. It does NOT create a backup.
 -- Run immediately before a backup and after an independent restore. Business-row,
--- database-structure and safe Auth/Storage metadata fingerprints must match.
+-- database-structure/security and safe Auth/Storage metadata fingerprints must match.
 -- Storage metadata/config fingerprints do NOT replace byte-for-byte object backup and hash comparison.
 begin;
 create temp table v267_manifest_rows(
@@ -115,15 +115,104 @@ schema_triggers as (
     where not t.tgisinternal and n.nspname in('public','private') and c.relname like 'aqari\_%' escape '\'
   ) q
 ),
+schema_views as (
+  select count(*)::bigint rows,
+         encode(digest(coalesce(string_agg(h,'' order by h),''),'sha256'),'hex') sha256
+  from (
+    select encode(digest(jsonb_build_object(
+      'schema',schemaname,'name',viewname,'kind','view','definition',definition
+    )::text,'sha256'),'hex') h
+    from pg_views
+    where schemaname in('public','private') and viewname like 'aqari\_%' escape '\'
+    union all
+    select encode(digest(jsonb_build_object(
+      'schema',schemaname,'name',matviewname,'kind','materialized_view','definition',definition,
+      'populated',ispopulated
+    )::text,'sha256'),'hex') h
+    from pg_matviews
+    where schemaname in('public','private') and matviewname like 'aqari\_%' escape '\'
+  ) q
+),
+schema_sequences as (
+  select count(*)::bigint rows,
+         encode(digest(coalesce(string_agg(h,'' order by h),''),'sha256'),'hex') sha256
+  from (
+    select encode(digest(jsonb_build_object(
+      'schema',schemaname,'name',sequencename,'data_type',data_type,
+      'start_value',start_value,'min_value',min_value,'max_value',max_value,
+      'increment_by',increment_by,'cycle',cycle,'cache_size',cache_size,'last_value',last_value
+    )::text,'sha256'),'hex') h
+    from pg_sequences
+    where schemaname in('public','private') and sequencename like 'aqari\_%' escape '\'
+  ) q
+),
+schema_rls as (
+  select count(*)::bigint rows,
+         encode(digest(coalesce(string_agg(h,'' order by h),''),'sha256'),'hex') sha256
+  from (
+    select encode(digest(jsonb_build_object(
+      'kind','table_flags','schema',n.nspname,'table',c.relname,
+      'rls',c.relrowsecurity,'force_rls',c.relforcerowsecurity
+    )::text,'sha256'),'hex') h
+    from pg_class c
+    join pg_namespace n on n.oid=c.relnamespace
+    where c.relkind in('r','p') and n.nspname in('public','private') and c.relname like 'aqari\_%' escape '\'
+    union all
+    select encode(digest(jsonb_build_object(
+      'kind','policy','schema',schemaname,'table',tablename,'name',policyname,
+      'permissive',permissive,'roles',roles,'cmd',cmd,'qual',qual,'with_check',with_check
+    )::text,'sha256'),'hex') h
+    from pg_policies
+    where schemaname in('public','private') and tablename like 'aqari\_%' escape '\'
+  ) q
+),
+schema_table_grants as (
+  select count(*)::bigint rows,
+         encode(digest(coalesce(string_agg(h,'' order by h),''),'sha256'),'hex') sha256
+  from (
+    select encode(digest(jsonb_build_object(
+      'schema',n.nspname,'table',c.relname,
+      'grantor',pg_get_userbyid(a.grantor),
+      'grantee',case when a.grantee=0 then 'PUBLIC' else pg_get_userbyid(a.grantee) end,
+      'privilege',a.privilege_type,'grantable',a.is_grantable
+    )::text,'sha256'),'hex') h
+    from pg_class c
+    join pg_namespace n on n.oid=c.relnamespace
+    cross join lateral aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
+    where c.relkind in('r','p','v','m') and n.nspname in('public','private') and c.relname like 'aqari\_%' escape '\'
+  ) q
+),
+schema_function_grants as (
+  select count(*)::bigint rows,
+         encode(digest(coalesce(string_agg(h,'' order by h),''),'sha256'),'hex') sha256
+  from (
+    select encode(digest(jsonb_build_object(
+      'schema',n.nspname,'name',p.proname,'identity_args',pg_get_function_identity_arguments(p.oid),
+      'grantor',pg_get_userbyid(a.grantor),
+      'grantee',case when a.grantee=0 then 'PUBLIC' else pg_get_userbyid(a.grantee) end,
+      'privilege',a.privilege_type,'grantable',a.is_grantable
+    )::text,'sha256'),'hex') h
+    from pg_proc p
+    join pg_namespace n on n.oid=p.pronamespace
+    cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+    where n.nspname in('public','private') and p.proname like 'aqari\_%' escape '\'
+  ) q
+),
 schema_safe as (
   select jsonb_build_object(
     'columns',jsonb_build_object('rows',schema_columns.rows,'sha256',schema_columns.sha256),
     'constraints',jsonb_build_object('rows',schema_constraints.rows,'sha256',schema_constraints.sha256),
     'indexes',jsonb_build_object('rows',schema_indexes.rows,'sha256',schema_indexes.sha256),
     'functions',jsonb_build_object('rows',schema_functions.rows,'sha256',schema_functions.sha256),
-    'triggers',jsonb_build_object('rows',schema_triggers.rows,'sha256',schema_triggers.sha256)
+    'triggers',jsonb_build_object('rows',schema_triggers.rows,'sha256',schema_triggers.sha256),
+    'views',jsonb_build_object('rows',schema_views.rows,'sha256',schema_views.sha256),
+    'sequences',jsonb_build_object('rows',schema_sequences.rows,'sha256',schema_sequences.sha256),
+    'rls',jsonb_build_object('rows',schema_rls.rows,'sha256',schema_rls.sha256),
+    'table_grants',jsonb_build_object('rows',schema_table_grants.rows,'sha256',schema_table_grants.sha256),
+    'function_grants',jsonb_build_object('rows',schema_function_grants.rows,'sha256',schema_function_grants.sha256)
   ) value
-  from schema_columns,schema_constraints,schema_indexes,schema_functions,schema_triggers
+  from schema_columns,schema_constraints,schema_indexes,schema_functions,schema_triggers,
+       schema_views,schema_sequences,schema_rls,schema_table_grants,schema_function_grants
 ),
 auth_safe as (
   select jsonb_build_object(
@@ -178,13 +267,13 @@ storage_safe as (
   ) value
 )
 select jsonb_pretty(jsonb_build_object(
-  'format','AQARI-V267-DATA-SAFETY-MANIFEST-2',
+  'format','AQARI-V267-DATA-SAFETY-MANIFEST-3',
   'generated_at',statement_timestamp(),
   'business',business.value,
   'schema_safe',schema_safe.value,
   'auth_safe',auth_safe.value,
   'storage_safe',storage_safe.value,
-  'warning','This manifest verifies canonical business data, database structure and safe Auth/Storage metadata only. It is not a backup and Storage acceptance still requires original object bytes plus byte-for-byte restore hashes.'
+  'warning','This manifest verifies canonical business data, database structure/security and safe Auth/Storage metadata only. It is not a backup and Storage acceptance still requires original object bytes plus byte-for-byte restore hashes.'
 )) as v267_data_safety_manifest
 from business,schema_safe,auth_safe,storage_safe;
 rollback;
