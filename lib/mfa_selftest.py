@@ -96,6 +96,25 @@ def _tenant_payload(email,tenant_id):
   'import_source':{'kind':'mfa_selftest'}
  }
 
+def _cleanup_disposable(url,admin,user_id,tenant_id,tenant_prepared,open_url=None,request_fn=None):
+ """Remove rows in FK-safe order and attempt every cleanup stage even after a failure."""
+ request_fn=request_fn or _request
+ result={'portalCleanup':not bool(user_id),'authCleanup':not bool(user_id),'tenantCleanup':not bool(tenant_prepared)}
+ if user_id:
+  try:
+   portal_url=url+'/rest/v1/aqari_portal_accounts?user_id=eq.'+user_id+'&tenant_id=eq.'+tenant_id
+   s,_=request_fn(portal_url,'DELETE',{**admin,'Prefer':'return=minimal'},None,open_url);result['portalCleanup']=s in (200,204)
+  except Exception:result['portalCleanup']=False
+  try:
+   s,_=request_fn(url+'/auth/v1/admin/users/'+user_id,'DELETE',admin,None,open_url);result['authCleanup']=s in (200,204)
+  except Exception:result['authCleanup']=False
+ if tenant_prepared:
+  try:
+   s,_=request_fn(url+'/rest/v1/aqari_tenants?id=eq.'+tenant_id,'DELETE',{**admin,'Prefer':'return=minimal'},None,open_url);result['tenantCleanup']=s in (200,204)
+  except Exception:result['tenantCleanup']=False
+ result['cleanup']=all(result.values())
+ return result
+
 def _b32(secret):
  raw=''.join(str(secret or '').split()).upper();raw+=('='*((8-len(raw)%8)%8))
  try:return base64.b32decode(raw,casefold=True)
@@ -119,7 +138,7 @@ def _jwt_claims(token):
 
 def run_selftest(env=os.environ,open_url=None,now=None):
  url,publishable,service,sha=_config(env);admin=_service_headers(service);public={'apikey':publishable};user_id=None;tenant_id=str(uuid.uuid4());stage='START'
- report={'ok':False,'candidateSha':sha,'tenantPrepared':False,'created':False,'aal1':False,'enrolled':False,'factorUnverified':False,'qrReturned':False,'challenged':False,'verified':False,'factorVerified':False,'aal2':False,'cleanup':False,'tenantCleanup':False,'totpWindowsTried':0}
+ report={'ok':False,'candidateSha':sha,'tenantPrepared':False,'created':False,'aal1':False,'enrolled':False,'factorUnverified':False,'qrReturned':False,'challenged':False,'verified':False,'factorVerified':False,'aal2':False,'portalCleanup':False,'authCleanup':False,'cleanup':False,'tenantCleanup':False,'totpWindowsTried':0}
  email='qa-mfa-selftest-'+secrets.token_hex(10)+'@example.com';password=secrets.token_urlsafe(36)
  try:
   stage='PREPARE_TENANT';s,d=_request(url+'/rest/v1/aqari_tenants','POST',{**admin,'Prefer':'return=minimal'},_tenant_payload(email,tenant_id),open_url);_expect(stage,s,d,allowed=(200,201));report['tenantPrepared']=True
@@ -161,17 +180,7 @@ def run_selftest(env=os.environ,open_url=None,now=None):
  except Exception:
   report['stage']=stage;report['error']=stage+':SELFTEST_FAILED'
  finally:
-  auth_cleanup=not bool(user_id)
-  if user_id:
-   try:
-    s,_=_request(url+'/auth/v1/admin/users/'+user_id,'DELETE',admin,None,open_url);auth_cleanup=s in (200,204)
-   except Exception:auth_cleanup=False
-  if report['tenantPrepared']:
-   try:
-    s,_=_request(url+'/rest/v1/aqari_tenants?id=eq.'+tenant_id,'DELETE',{**admin,'Prefer':'return=minimal'},None,open_url);report['tenantCleanup']=s in (200,204)
-   except Exception:report['tenantCleanup']=False
-  else:report['tenantCleanup']=True
-  report['cleanup']=auth_cleanup and report['tenantCleanup']
+  report.update(_cleanup_disposable(url,admin,user_id,tenant_id,report['tenantPrepared'],open_url))
   if not report['cleanup']:
    report['ok']=False;report.setdefault('stage','CLEANUP');report.setdefault('error','CLEANUP:FAILED')
  for forbidden in ('email','password','secret','token','factorId','challengeId','code','tenantId','userId'):
