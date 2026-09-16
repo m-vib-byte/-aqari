@@ -28,36 +28,26 @@ test('expired QA application access is revoked by Staging pg_cron, never by a Ve
  assert.equal(vercel.crons.some(row=>row.path==='/api/qa-expire'),false);assert.equal(vercel.crons.some(row=>row.path==='/api/integration-dispatch'),true);
 });
 
-test('Vercel runtime performs Auth Admin only through the server-only QA library after user-RPC MFA guard',()=>{
- for(const marker of ["EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co'","VERCEL_ENV')!='preview'","EXPECTED_BRANCH='support/v267-knet-range-reconcile-20260915'","/auth/v1/admin/users","email_confirm':True","ban_duration':'876000h'","secrets.token_urlsafe"]){assert.match(worker,new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));}
- assert.doesNotMatch(worker,/print\(/);assert.doesNotMatch(worker,/password.*service_call/);
- assert.match(api,/provision_automation_account/);assert.match(api,/disable_account/);assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/VERCEL_ENV/);assert.match(api,/VERCEL_GIT_COMMIT_REF/);
- assert.doesNotMatch(api,/functions\/v1\/qa-account-admin/);assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(api,/\/auth\/v1\/admin\/users/);
- assert.match(worker,/user_call\(workspace,'prepare'/);assert.match(worker,/service_call\('aqari_qa_account_server_result'/);assert.match(worker,/_create_auth/);assert.match(worker,/_ban_auth/);
- assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
+test('Vercel QA endpoint is exact-SHA proxy only and holds no Supabase admin secret',()=>{
+ assert.match(api,/functions\/v1\/qa-account-admin/);assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/VERCEL_ENV/);assert.match(api,/VERCEL_GIT_COMMIT_REF/);
+ assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(api,/SUPABASE_SECRET_KEYS/);assert.doesNotMatch(api,/\/auth\/v1\/admin\/users/);assert.doesNotMatch(api,/provision_automation_account/);
 });
 
-test('legacy Edge QA admin remains fail-closed if retained but is not on the active Vercel path',()=>{
- assert.match(edge,/SUPABASE_SECRET_KEYS/);assert.match(edge,/SUPABASE_PUBLISHABLE_KEYS/);assert.match(edge,/secret\.startsWith\('sb_secret_'\)/);
- assert.match(edge,/if\(!secret\.startsWith\('sb_secret_'\)\)headers\.Authorization='Bearer '\+secret/);
- assert.match(edge,/serverRpc\(url,secret,'aqari_qa_account_server_result'/);assert.doesNotMatch(edge,/insert into auth\.users/i);
+test('active Supabase Edge QA admin uses official server context and user-scoped DB MFA guard',()=>{
+ assert.match(edge,/from 'npm:@supabase\/server'/);assert.match(edge,/withSupabase\(\{auth:'user'\}/);assert.match(edge,/ctx\.supabase/);assert.match(edge,/ctx\.supabaseAdmin/);
+ assert.match(edge,/user\.rpc\('aqari_qa_account'/);assert.match(edge,/admin\.auth\.admin\.createUser/);assert.match(edge,/admin\.auth\.admin\.deleteUser/);assert.match(edge,/admin\.auth\.admin\.updateUserById/);assert.match(edge,/admin\.rpc\('aqari_qa_account_server_result'/);
+ assert.doesNotMatch(edge,/SUPABASE_SECRET_KEYS/);assert.doesNotMatch(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(edge,/insert into auth\.users/i);
+ assert.match(edge,/@example\.com/);assert.doesNotMatch(edge,/@example\.invalid/);
 });
 
 test('QA mutation and evidence APIs reject stale branch-alias pages by exact candidate SHA',()=>{
  for(const source of [api,evidence]){
-  assert.match(source,/X-AQARI-Candidate-Sha/);
-  assert.match(source,/VERCEL_GIT_COMMIT_SHA/);
-  assert.match(source,/QA_CANDIDATE_SHA_MISMATCH/);
-  assert.match(source,/\^\[0-9a-f\]\{40\}\$/);
+  assert.match(source,/X-AQARI-Candidate-Sha/);assert.match(source,/VERCEL_GIT_COMMIT_SHA/);assert.match(source,/QA_CANDIDATE_SHA_MISMATCH/);assert.match(source,/\^\[0-9a-f\]\{40\}\$/);
  }
- assert.match(evidence,/p_candidate_sha/);
- assert.match(evidence,/candidate_sha/);
+ assert.match(evidence,/p_candidate_sha/);assert.match(evidence,/candidate_sha/);
 });
 
-test('opaque Supabase secret keys are never sent as bearer JWTs in either server implementation',()=>{
- assert.match(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key\}/);
- assert.doesNotMatch(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key,'Authorization'/);
- const guard=edge.indexOf("if(!secret.startsWith('sb_secret_'))headers.Authorization='Bearer '+secret");
- assert.ok(guard>=0);
- assert.doesNotMatch(edge,/Authorization['"]?\s*:\s*['"]Bearer ['"]\s*\+\s*secret/);
+test('legacy Python QA helper treats opaque Supabase secret keys as apikey-only',()=>{
+ assert.match(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key\}/);assert.doesNotMatch(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key,'Authorization'/);
+ assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
 });
