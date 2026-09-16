@@ -15,3 +15,19 @@ if(!source.includes(marker)){
  writeFileSync(path,source);
  console.log('Installed V267 property ownership/area entry into Property Hub.');
 }else console.log('V267 property ownership/area entry already installed.');
+
+// Trial-site section reliability hotfix. Keep myaqari.com in the same full-preview
+// behavior as Vercel Preview, and toggle service sections explicitly instead of
+// relying on the browser's native <details>/<summary> click behavior on iPad/Safari.
+const directoryPath=new URL('../src/v267/components/service-directory.js',import.meta.url);
+let directorySource=readFileSync(directoryPath,'utf8');
+const previewAnchor="return String(current.hostname||'').endsWith('.vercel.app');";
+const previewReplacement="const hostname=String(current.hostname||'');return hostname==='myaqari.com'||hostname.endsWith('.vercel.app');";
+if(directorySource.includes(previewAnchor))directorySource=directorySource.replace(previewAnchor,previewReplacement);
+else if(!directorySource.includes(previewReplacement))throw Error('V267_SERVICE_DIRECTORY_PREVIEW_ANCHOR_MISSING');
+const sectionAnchor="box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);count.className='aq267-service-count';";
+const sectionReplacement="box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};count.className='aq267-service-count';";
+if(directorySource.includes(sectionAnchor))directorySource=directorySource.replace(sectionAnchor,sectionReplacement);
+else if(!directorySource.includes(sectionReplacement))throw Error('V267_SERVICE_DIRECTORY_SECTION_ANCHOR_MISSING');
+writeFileSync(directoryPath,directorySource);
+console.log('Installed V267 fixed-site service-section hotfix for myaqari.com/iPad Safari.');
