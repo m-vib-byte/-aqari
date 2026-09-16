@@ -1,0 +1,119 @@
+{
+  "schema": "AQARI-V267-STAGE-D-LIVE-TRIAL-1",
+  "recordedAt": "2026-09-16T16:47:00Z",
+  "scope": "Stage D current live trial evidence only; not final owner acceptance",
+  "liveTrial": {
+    "domain": "myaqari.com",
+    "gitSha": "22571db43f01ec466fd7eb28752bc347b0bb17c4",
+    "branch": "main",
+    "vercelDeploymentId": "dpl_C5kSXg4Q2gvphPUE7StJFbyZ1G5S",
+    "vercelHost": "aqari-2y1bg46b4-m-vib-5421.vercel.app",
+    "deploymentState": "READY",
+    "vercelTarget": "production",
+    "productVersion": "V267",
+    "productReleaseStage": "preview",
+    "dataSource": "isolated V267 staging/trial project",
+    "productionReleaseApprovalInferred": false
+  },
+  "navigation": {
+    "fixedDomainSafariHotfixInstalled": true,
+    "behavior": "route first, verify visible target, scroll only after successful section transition",
+    "unconditionalScrollRemoved": true,
+    "buildContractTests": {
+      "passed": 12,
+      "failed": 0,
+      "includes": [
+        "primary-section navigation is not replaced by body home state",
+        "explicit button route remains functional",
+        "explicit anchor route remains functional",
+        "legacy navigation bubbles and synchronizes selection afterward",
+        "general manager control center exposes safe label, section and staff-permission controls",
+        "service-directory display labels do not replace click handlers"
+      ]
+    },
+    "authenticatedBrowserTestSource": {
+      "engines": ["chromium", "webkit"],
+      "routes": ["properties", "tenants", "smartContractsPage", "collectionProPage", "maintenanceProPage", "home"],
+      "iphoneClassViewport": "390x844",
+      "mobileRoutesVerifiedByTestSource": ["collectionProPage", "properties", "maintenanceProPage", "home"],
+      "moreMenuTenantDestinationAsserted": true,
+      "physicalDeviceAcceptanceClaimed": false
+    }
+  },
+  "generalManagerControlCenter": {
+    "uiControlsPresent": [
+      "section enable/disable",
+      "role and account read/write controls",
+      "Arabic/English/Hindi/Urdu/Malayalam display labels",
+      "staff/property assignment editor",
+      "audit history",
+      "reason-required save",
+      "revision conflict protection",
+      "database readback before success"
+    ],
+    "internalRoutingKeysRemainStable": true,
+    "immutableRoleCeilingsRemainEnforced": true,
+    "backendTransactionVerification": {
+      "projectRef": "ofgmcsmxmdswlovsckqs",
+      "authenticatedGeneralManager": true,
+      "saveSucceeded": true,
+      "readbackRevision": 1,
+      "effectiveRole": "general_manager",
+      "maintenanceWrite": true,
+      "rolledBack": true,
+      "postRollbackControlRows": 0,
+      "postRollbackAuditRowsUnchanged": 4,
+      "testResidue": false
+    },
+    "staffAccessBuildTests": {
+      "passed": 25,
+      "failed": 0
+    }
+  },
+  "runtime": {
+    "productionDeploymentErrorOrFatalLogsLast24h": 0,
+    "healthMetadataHttp200": true
+  },
+  "securityAdvisor": {
+    "projectRef": "ofgmcsmxmdswlovsckqs",
+    "leakedPasswordProtection": "disabled-warning-open",
+    "privateSchemaRlsNoPolicy": "informational-private-schema-review-not-bulk-fixed",
+    "authenticatedSecurityDefinerWarnings": "requires-function-by-function-intent-review; no unsafe bulk revocation applied"
+  },
+  "ci": {
+    "status": "BLOCKED_BEFORE_RUNNER",
+    "issue": 194,
+    "runtimeContractsRun": 35122388600,
+    "runtimeContractsJob": 104883093395,
+    "runnerId": 0,
+    "steps": [],
+    "applicationTestFailureObserved": false,
+    "classification": "pre-runner-infrastructure-blocker"
+  },
+  "phaseCLineage": {
+    "technicallyClosedCandidate": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "currentLiveTrialSha": "22571db43f01ec466fd7eb28752bc347b0bb17c4",
+    "currentLiveTrialAutomaticallyInheritsStageCClosure": false,
+    "requiredBeforeFinalRelease": "targeted delta/release-candidate reconciliation; do not redo completed C work from scratch"
+  },
+  "deviceAcceptance": {
+    "iphonePhysical": "pending-owner-test",
+    "ipadPhysical": "pending-owner-test",
+    "desktopPractical": "pending-final-owner-test",
+    "emulationDoesNotCountAsPhysicalAcceptance": true
+  },
+  "finalGate": {
+    "stageDComplete": false,
+    "releaseGatePassed": false,
+    "ownerPracticalTestCompleted": false,
+    "ownerExplicitApproval": false,
+    "remainingBlockers": [
+      "GITHUB_ACTIONS_PRE_RUNNER_BLOCKER",
+      "IPHONE_PHYSICAL_ACCEPTANCE_PENDING",
+      "IPAD_PHYSICAL_ACCEPTANCE_PENDING",
+      "OWNER_PRACTICAL_TEST_PENDING",
+      "CURRENT_SHA_STAGE_C_LINEAGE_RECONCILIATION_PENDING",
+      "LEAKED_PASSWORD_PROTECTION_WARNING_OPEN"
+    ]
+  }
+}
