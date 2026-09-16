@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {patchPropertyStatementDiscountUi,statementOwnerApprovedDiscount,statementRentTotals,PROPERTY_STATEMENT_DISCOUNT_MARKER,PROPERTY_STATEMENT_COLLECTION_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
+import {patchPropertyStatementDiscountUi,statementOwnerApprovedDiscount,statementRentTotals,PROPERTY_STATEMENT_DISCOUNT_MARKER,PROPERTY_STATEMENT_COLLECTION_MARKER,PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
 
 test('owner-approved statement discount is derived only from saved contract/current rent values',()=>{
   assert.equal(statementOwnerApprovedDiscount(250,195),55);
@@ -36,6 +36,20 @@ test('property statement overlay displays contract rent, owner-approved discount
   assert.match(patched,/إجمالي خصم المالك/);
   assert.match(patched,/إجمالي الإيجار الحالي/);
   assert.match(patched,/غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة/);
+  assert.equal(patchPropertyStatementDiscountUi(patched),patched);
+});
+
+test('property statement exposes only saved source paid amount and nationality without replacing protected collection truth',()=>{
+  const original=readFileSync(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8');
+  const patched=patchPropertyStatementDiscountUi(original);
+  assert.match(patched,new RegExp(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER));
+  assert.match(patched,/المدفوع بالمصدر/);
+  assert.match(patched,/paid_amount_kd/);
+  assert.match(patched,/الجنسية بالمصدر/);
+  assert.match(patched,/nationality_raw/);
+  assert.match(patched,/المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي/);
+  assert.equal((patched.match(/paid_amount_kd/g)||[]).length,1);
+  assert.equal((patched.match(/nationality_raw/g)||[]).length,1);
   assert.equal(patchPropertyStatementDiscountUi(patched),patched);
 });
 
