@@ -53,7 +53,7 @@ console.log('Installed V267 editable service/group display labels without changi
 const staffAccessPath=new URL('../src/v267/pages/staff-access.js',import.meta.url);
 let staffAccessSource=readFileSync(staffAccessPath,'utf8');
 const staffAccessAnchor="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;";
-const staffAccessReplacement="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;d.el.classList.add('aq267-staff-access');";
+const staffAccessReplacement="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;d.el?.classList?.add('aq267-staff-access');";
 if(staffAccessSource.includes(staffAccessAnchor))staffAccessSource=staffAccessSource.replace(staffAccessAnchor,staffAccessReplacement);
 else if(!staffAccessSource.includes(staffAccessReplacement))throw Error('V267_STAFF_ACCESS_VISUAL_SCOPE_ANCHOR_MISSING');
 writeFileSync(staffAccessPath,staffAccessSource);
