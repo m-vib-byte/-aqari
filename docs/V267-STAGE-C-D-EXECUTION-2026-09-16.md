@@ -63,7 +63,7 @@ The rollback *point* is identified (current production deployment/SHA above), bu
 ### D / Release Gate blockers
 
 1. C has not passed the full Database/Auth/Storage-byte backup + independent restore + rollback rehearsal described above.
-2. Same-SHA GitHub Actions are not green. On exact `d4862762...`, the representative Runtime Contracts run `35083508253` attempt 3 ended before runner allocation: `steps=[]`, `runner_id=0`, runner name empty. This is not relabelled as an application-test failure; Vercel's same-SHA build tests pass, but the required CI gate is still false.
+2. Same-SHA GitHub Actions are not green. All four failed required workflows were explicitly re-run again on exact `d4862762...`; the reruns again ended before runner allocation. Representative Runtime Contracts run `35083508253` attempt 4 / job `104772554032` has `steps=[]`, `runner_id=0`, and an empty runner name. This is not relabelled as an application-test failure; Vercel's same-SHA build tests pass, but the required CI gate is still false.
 3. Physical Desktop/iPhone/iPad acceptance evidence required by the release validator is not present for D; no simulation is substituted.
 4. Production configuration on the exact candidate is not yet verified. The frozen source still contains Preview Supabase/redirect configuration.
 5. Supabase Auth leaked-password protection remains disabled and is retained as a pre-production security gap.
