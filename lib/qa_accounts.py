@@ -26,7 +26,9 @@ def public_config():
 
 def _service_headers(key):
  if not isinstance(key,str) or not 20<=len(key)<=8192:raise RuntimeError('QA_AUTH_ADMIN_NOT_CONFIGURED')
- if key.startswith('sb_secret_'):return {'apikey':key,'Authorization':'Bearer '+key}
+ # New Supabase sb_secret_ keys are opaque API keys, not JWTs. Sending them as
+ # Bearer values can be rejected by Auth. Legacy service_role JWTs retain Bearer.
+ if key.startswith('sb_secret_'):return {'apikey':key}
  try:
   parts=key.split('.');claims=json.loads(base64.urlsafe_b64decode(parts[1]+'='*(-len(parts[1])%4)))
   if len(parts)!=3 or claims.get('role')!='service_role' or claims.get('ref')!='ofgmcsmxmdswlovsckqs':raise ValueError()
@@ -36,9 +38,6 @@ def _service_headers(key):
 def server_config(env=os.environ):
  url,publishable=public_config()
  if env.get('VERCEL_ENV')!='preview' or env.get('VERCEL_GIT_COMMIT_REF')!=EXPECTED_BRANCH:raise RuntimeError('QA_PREVIEW_ONLY')
- # AQARI_SUPABASE_URL is a non-secret defense-in-depth assertion. The candidate itself is
- # already hard-pinned by public_config() to EXPECTED_URL, so an absent redundant env value
- # must not disable QA. Any explicit mismatch still fails closed before Auth Admin is used.
  configured_url=str(env.get('AQARI_SUPABASE_URL') or '').strip()
  if configured_url and configured_url!=url:raise RuntimeError('QA_STAGING_TARGET_REQUIRED')
  service=env.get('AQARI_SUPABASE_SERVICE_ROLE_KEY','');_service_headers(service)
