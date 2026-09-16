@@ -42,8 +42,21 @@ def render_statement(content):
     widths=[60,46,66,58,88,58,58,66,58,56,66,58,60,205,48]
     table=Table(data,colWidths=widths,repeatRows=1,hAlign='RIGHT')
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E8DDBD')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
+    source_fields=[('الرقم المدني بالمصدر','civil_id_raw'),('الهاتف بالمصدر','phone_raw'),('نهاية العقد بالمصدر','contract_end_raw'),('بداية العقد بالمصدر','contract_start_raw'),('الوحدة','unit')]
+    source_data=[[p(title) for title,_ in source_fields]]
+    for r in content['rows']:
+        values=[]
+        pending=r.get('pending') or []
+        for _,key in source_fields:
+            value=r.get(key)
+            if value is None or value=='':value='غير مدون'
+            if key in ('contract_start_raw','contract_end_raw') and 'contract_dates' in pending:value='معلق — '+str(value)
+            values.append(p(value))
+        source_data.append(values)
+    source_table=Table(source_data,colWidths=[125,105,105,105,55],repeatRows=1,hAlign='RIGHT')
+    source_table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#F3EEDF')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
     summary=content['summary']['printed_totals'];rent_totals=statement_rent_totals(content.get('rows',[]))
-    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12)]
+    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('بيانات المصدر التكميلية — تواريخ العقد والهاتف والرقم المدني أدناه قراءة فقط من نفس صفوف الكشف المحفوظ ولا تُستكمل بقيم افتراضية.'),Spacer(1,6),source_table,Spacer(1,12)]
     if rent_totals is None:
         story.append(p('مجاميع إيجار العقد والخصم المعتمد والإيجار الحالي غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة.'))
     else:
