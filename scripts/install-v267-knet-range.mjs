@@ -1,4 +1,5 @@
 import {readFileSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {patchProtectedKnetRangeApi,patchKnetRangeUi,KNET_RANGE_API_MARKER,KNET_RANGE_UI_MARKER} from '../src/v267/support/knet-range-patch.js';
 import {patchPropertyStatementDiscountUi,PROPERTY_STATEMENT_DISCOUNT_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
 
@@ -37,3 +38,5 @@ if(statementAfter!==statementBefore){
 }else{
   throw Error('V267 owner-approved statement discount UI produced no change.');
 }
+
+execFileSync(process.execPath,['--test','tests/v267-property-statement-discount.test.mjs'],{stdio:'inherit'});
