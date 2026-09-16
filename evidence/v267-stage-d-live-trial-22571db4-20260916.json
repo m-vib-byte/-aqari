@@ -1,6 +1,6 @@
 {
-  "schema": "AQARI-V267-STAGE-D-LIVE-TRIAL-1",
-  "recordedAt": "2026-09-16T16:47:00Z",
+  "schema": "AQARI-V267-STAGE-D-LIVE-TRIAL-2",
+  "recordedAt": "2026-09-16T16:50:00Z",
   "scope": "Stage D current live trial evidence only; not final owner acceptance",
   "liveTrial": {
     "domain": "myaqari.com",
@@ -88,11 +88,30 @@
     "runnerId": 0,
     "steps": [],
     "applicationTestFailureObserved": false,
-    "classification": "pre-runner-infrastructure-blocker"
+    "classification": "pre-runner-infrastructure-blocker",
+    "issueEvidenceCommentId": 5701147005
   },
   "phaseCLineage": {
     "technicallyClosedCandidate": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
     "currentLiveTrialSha": "22571db43f01ec466fd7eb28752bc347b0bb17c4",
+    "compareStatus": "diverged",
+    "aheadBy": 14,
+    "behindBy": 332,
+    "mergeBase": "b24cb81b98bfc0d3dadc6f017b10baefd06ec50c",
+    "trackedDiffFiles": [
+      "scripts/install-v267-property-ownership.mjs",
+      "src/v267/components/catalog.js",
+      "src/v267/components/contract-routing.js",
+      "src/v267/components/dialog.js",
+      "src/v267/components/experimental-investment-apartment-contract.js",
+      "src/v267/components/service-directory.js",
+      "src/v267/pages/control-center.js",
+      "src/v267/styles/service-directory.css",
+      "src/v267/styles/ultra-luxury.css",
+      "tests/v267-manager-control-design.test.mjs"
+    ],
+    "trackedDatabaseOrMigrationFilesChangedInCompare": false,
+    "interpretation": "The live trial does not automatically inherit exact-SHA Stage C closure, but the observed tracked delta is application/UI/test code only. Final reconciliation can therefore be targeted rather than redoing the completed restore investigation from scratch.",
     "currentLiveTrialAutomaticallyInheritsStageCClosure": false,
     "requiredBeforeFinalRelease": "targeted delta/release-candidate reconciliation; do not redo completed C work from scratch"
   },
