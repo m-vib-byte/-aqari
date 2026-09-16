@@ -15,7 +15,7 @@
 <body>
 <main><section class="card">
 <h1>اختبار القبول المصادق — المرحلة B</h1>
-<p>هذا الاختبار يعمل فقط على Preview/Staging المحدد. ينشئ حسابات QA مؤقتة، لا يعرض كلمات المرور أو الرموز، ويعطل الحساب بعد اختبار دوره.</p>
+<p>هذا الاختبار يعمل فقط على Preview/Staging المحدد. ينشئ حسابات QA مؤقتة، لا يعرض كلمات المرور أو الرموز، ويحذف حساب Auth المؤقت بعد اختبار دوره مع إبقاء سجل التدقيق.</p>
 <button id="run" type="button">تشغيل اختبار B</button>
 <div id="status" class="status" role="status" aria-live="polite">جاهز.</div>
 <div id="steps" class="steps"></div>
@@ -72,6 +72,12 @@ async function evidenceApi(token,results){
  if(!response.ok)fail(body?.error||'EVIDENCE_SAVE_FAILED');return body;
 }
 async function managerToken(manager){return (await sessionOf(manager)).access_token}
+async function cleanupStale(manager){
+ const token=await managerToken(manager);const response=await qaApi(token,{workspaceId:WORKSPACE,action:'cleanup'});
+ if(response.status!==200)fail(response.body?.error||`CLEANUP_${response.status}`);
+ assert(response.body?.ok===true&&Number.isInteger(response.body?.deletedCount),'CLEANUP_NOT_CONFIRMED');
+ return response.body.deletedCount;
+}
 async function provision(manager,role,extra={}){
  const token=await managerToken(manager);const expires=new Date(Date.now()+20*60*1000).toISOString();
  const data={display_name:`AQARI B QA ${role}`,qa_role:role,property_ids:[PROPERTY],expires_at:expires,reason:'Phase B authenticated Preview acceptance',...extra};
@@ -82,7 +88,8 @@ async function provision(manager,role,extra={}){
 }
 async function disable(manager,id){
  const token=await managerToken(manager);const response=await qaApi(token,{workspaceId:WORKSPACE,action:'disable',accountId:id,reason:'Phase B role acceptance cleanup'});
- if(response.status!==200)fail(response.body?.error||`DISABLE_${response.status}`);assert(response.body?.status==='disabled','DISABLE_NOT_CONFIRMED');
+ if(response.status!==200)fail(response.body?.error||`DISABLE_${response.status}`);
+ assert(response.body?.status==='disabled'&&response.body?.deleted===true,'DISABLE_NOT_CONFIRMED');
 }
 async function signInTemporary(record){
  const client=newClient(false);const email=record.email,password=record.password;delete record.email;delete record.password;
@@ -93,19 +100,18 @@ async function expectAdminDenied(token){
  assert(response.status===403,'NON_MANAGER_ADMIN_NOT_DENIED');assert(response.body?.error==='ACCESS_DENIED','NON_MANAGER_DENY_CODE');
 }
 async function runStaff(manager,role,expectedBase){
- let record=null,qa=null,cleanup=false;
+ let record=null,qa=null;
  try{
   record=await provision(manager,role);qa=await signInTemporary(record);
   const {data:access,error}=await qa.client.rpc('aqari_workspace_access',{p_workspace_id:WORKSPACE});if(error)throw error;
   assert(access?.workspace_id===WORKSPACE&&access?.user_id===qa.session.user.id,'WORKSPACE_SCOPE_MISMATCH');
   assert(access?.role===expectedBase,`${role}:BASE_ROLE_MISMATCH`);verifyPermissions(role,access);
   await expectAdminDenied(qa.session.access_token);
-  return {role,signed_in:true,scope_ok:true,permissions_ok:true,admin_denied:true,cleanup:false};
+  return {role,signed_in:true,scope_ok:true,permissions_ok:true,admin_denied:true,cleanup:true};
  }finally{
   try{await qa?.client?.auth?.signOut()}catch{}
-  if(record?.id){await disable(manager,record.id);cleanup=true;}
+  if(record?.id)await disable(manager,record.id);
   if(record){record.password=null;record.email=null;}
-  if(arguments.length){/* keep no credentials */}
  }
 }
 async function runPartner(manager){
@@ -118,7 +124,7 @@ async function runPartner(manager){
   const denied=await qa.client.rpc('aqari_partner_property_finance',{p_property_id:OTHER_PROPERTY,p_month:month});
   assert(denied.error&&safeCode(denied.error)==='ACCESS_DENIED','PARTNER_OTHER_PROPERTY_NOT_DENIED');
   await expectAdminDenied(qa.session.access_token);
-  return {role:'partner',signed_in:true,allowed_property:true,denied_other_property:true,admin_denied:true};
+  return {role:'partner',signed_in:true,allowed_property:true,denied_other_property:true,admin_denied:true,cleanup:true};
  }finally{try{await qa?.client?.auth?.signOut()}catch{}if(record?.id)await disable(manager,record.id);if(record){record.password=null;record.email=null;}}
 }
 async function runTenant(manager){
@@ -129,7 +135,7 @@ async function runTenant(manager){
   assert(snapshot?.account?.tenant_id===TENANT_ID,'TENANT_SCOPE_MISMATCH');
   assert(Array.isArray(snapshot?.leases)&&snapshot.leases.length>=1,'TENANT_LEASE_NOT_VISIBLE');
   await expectAdminDenied(qa.session.access_token);
-  return {role:'tenant',signed_in:true,own_snapshot:true,own_lease:true,admin_denied:true};
+  return {role:'tenant',signed_in:true,own_snapshot:true,own_lease:true,admin_denied:true,cleanup:true};
  }finally{try{await qa?.client?.auth?.signOut()}catch{}if(record?.id)await disable(manager,record.id);if(record){record.password=null;record.email=null;}}
 }
 async function run(){
@@ -144,10 +150,11 @@ async function run(){
   const {data:managerAccess,error:managerError}=await manager.rpc('aqari_workspace_access',{p_workspace_id:WORKSPACE});if(managerError)throw managerError;
   assert(managerAccess?.role==='general_manager'&&managerAccess?.user_id===managerSession.user.id,'GENERAL_MANAGER_REQUIRED');results.manager.role=true;
   step('✓ جلسة المدير العام AAL2 حقيقية ومربوطة بالـStaging','ok');
+  setStatus('تنظيف أي حسابات QA من جولة سابقة…');const removed=await cleanupStale(manager);step(`✓ تنظيف Auth QA السابقة: ${removed}`,'ok');
   const staff=[['collector','accountant'],['accountant','accountant'],['maintenance','property_manager'],['property_manager','property_manager'],['viewer','viewer']];
-  for(const [role,base] of staff){setStatus(`اختبار دور ${role}…`);const item=await runStaff(manager,role,base);item.cleanup=true;results.roles.push(item);step(`✓ ${role}: دخول + نطاق + صلاحيات + رفض الإدارة + تنظيف`,'ok');}
-  setStatus('اختبار بوابة الشريك…');results.partner=await runPartner(manager);step('✓ partner: دخول + عقار مصرح + رفض عقار آخر + تنظيف','ok');
-  setStatus('اختبار بوابة المستأجر…');results.tenant=await runTenant(manager);step('✓ tenant: دخول + ملفه وعقده فقط + رفض الإدارة + تنظيف','ok');
+  for(const [role,base] of staff){setStatus(`اختبار دور ${role}…`);const item=await runStaff(manager,role,base);results.roles.push(item);step(`✓ ${role}: دخول + نطاق + صلاحيات + رفض الإدارة + حذف Auth`,'ok');}
+  setStatus('اختبار بوابة الشريك…');results.partner=await runPartner(manager);step('✓ partner: دخول + عقار مصرح + رفض عقار آخر + حذف Auth','ok');
+  setStatus('اختبار بوابة المستأجر…');results.tenant=await runTenant(manager);step('✓ tenant: دخول + ملفه وعقده فقط + رفض الإدارة + حذف Auth','ok');
   results.passed=true;
   const token=await managerToken(manager);const saved=await evidenceApi(token,results);assert(saved?.ok===true&&saved?.id,'EVIDENCE_NOT_CONFIRMED');
   step('✓ تم حفظ دليل B المنزوع من الأسرار على SHA الـPreview الفعلي','ok');setStatus('نجحت المرحلة B المصادق عليها. يمكن الانتقال إلى C بعد التحقق من سجل الدليل.','ok');
