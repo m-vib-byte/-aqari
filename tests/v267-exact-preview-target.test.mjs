@@ -9,6 +9,7 @@ function fixture(){
  return new Map([
   ['public-config.js','window.AQARI_PUBLIC_CONFIG={"supabaseAuthRedirectUrl": "https://old-branch.vercel.app/login.html?release=V267","supabaseUrl":"https://example.supabase.co"};\n'],
   ['supabase-adapter.js',"if(target.hostname !== 'old-branch.vercel.app')throw Error('AQARI_STAGING_REDIRECT_INVALID');\n"],
+  ['login.html',"var form = document.getElementById('loginForm');\nwindow.location.replace('/app?release=' + encodeURIComponent(RELEASE));\nwindow.location.replace('/app?release=' + encodeURIComponent(RELEASE));\n"],
   ['qa-b.html',`const BRANCH_HOST='old-branch.vercel.app';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nconst a={${authHeader};\nconst b={${authHeader};\nassert(cfg.releaseStage==='preview'&&cfg.supabaseUrl===EXPECTED_URL,'PREVIEW_CONFIG_REQUIRED');\nassert(saved?.ok===true&&saved?.id,'EVIDENCE_NOT_CONFIRMED');\n`],
   ['qa-b-reauth.html',`const BRANCH_HOST='old-branch.vercel.app';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nif(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL)fail('PREVIEW_REQUIRED');\nlocation.replace('/qa-b.html?run=1');\n`],
   ['qa-b-reauth-v2.html',`const EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co';\nconst cfg=window.AQARI_PUBLIC_CONFIG||{};\nasync function preflight(){const sha=String(cfg.previewCandidateSha||'').toLowerCase();if(cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewBranchHost!==location.hostname||!/^[0-9a-f]{40}$/.test(sha))fail('PREVIEW_CANDIDATE_REQUIRED');}\nlocation.replace('/qa-b.html?run=1');\n`]
@@ -18,12 +19,16 @@ function fixture(){
 test('Preview build preserves one branch auth origin and records exact immutable candidate identity',()=>{
  const immutable='aqari-abc123-m-vib-5421.vercel.app';
  const out=exactPreviewTarget({vercelEnv:'preview',vercelUrl:immutable,vercelBranchUrl:BRANCH,candidateSha:SHA},fixture());
- const config=out.get('public-config.js'),runner=out.get('qa-b.html'),reauth=out.get('qa-b-reauth.html'),reauthV2=out.get('qa-b-reauth-v2.html');
+ const config=out.get('public-config.js'),login=out.get('login.html'),runner=out.get('qa-b.html'),reauth=out.get('qa-b-reauth.html'),reauthV2=out.get('qa-b-reauth-v2.html');
  assert.match(config,new RegExp(`https://${BRANCH.replaceAll('.','\\.')}/login\\.html\\?release=V267`));
  assert.match(config,new RegExp(`"previewBranchHost": "${BRANCH.replaceAll('.','\\.')}"`));
  assert.match(config,new RegExp(`"previewImmutableHost": "${immutable.replaceAll('.','\\.')}"`));
  assert.match(config,new RegExp(`"previewCandidateSha": "${SHA}"`));
  assert.match(out.get('supabase-adapter.js'),new RegExp(`target\\.hostname !== '${BRANCH.replaceAll('.','\\.')}'`));
+ assert.match(login,/function aqariReturnTarget\(\)/);
+ assert.match(login,/^|[^:]\/qa-b-reauth-v2\\?\.html|qa-b-reauth-v2/);
+ assert.equal((login.match(/window\.location\.replace\(aqariReturnTarget\(\)\);/g)||[]).length,2);
+ assert.doesNotMatch(login,/window\.location\.replace\('\/app\?release='/);
  assert.match(runner,new RegExp(`BRANCH_HOST='${BRANCH.replaceAll('.','\\.')}'`));
  assert.match(reauth,new RegExp(`BRANCH_HOST='${BRANCH.replaceAll('.','\\.')}'`));
  assert.match(reauthV2,new RegExp(`BRANCH_HOST='${BRANCH.replaceAll('.','\\.')}'`));
@@ -65,6 +70,8 @@ test('Preview pin fails closed when protected source anchors change',()=>{
  assert.throws(()=>exactPreviewTarget(args,missingConfig),/PREVIEW_PUBLIC_REDIRECT_LAYOUT_CHANGED/);
  const missingAdapter=fixture();missingAdapter.set('supabase-adapter.js','const untouched=true;');
  assert.throws(()=>exactPreviewTarget(args,missingAdapter),/PREVIEW_ADAPTER_REDIRECT_LAYOUT_CHANGED/);
+ const missingLogin=fixture();missingLogin.set('login.html','const untouched=true;');
+ assert.throws(()=>exactPreviewTarget(args,missingLogin),/PREVIEW_LOGIN_RETURN_HELPER_LAYOUT_CHANGED/);
  const missingApi=fixture();missingApi.set('qa-b.html',"const BRANCH_HOST='old-branch.vercel.app';");
  assert.throws(()=>exactPreviewTarget(args,missingApi),/PREVIEW_QA_API_HEADER_LAYOUT_CHANGED/);
  const missingV2=fixture();missingV2.set('qa-b-reauth-v2.html','const untouched=true;');
