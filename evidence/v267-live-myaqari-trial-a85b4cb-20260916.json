@@ -1,0 +1,63 @@
+{
+  "schema": "AQARI-V267-LIVE-MYAQARI-TRIAL-1",
+  "recordedAt": "2026-09-16T16:16:30Z",
+  "trialHostname": "myaqari.com",
+  "trialOnly": true,
+  "finalOwnerAcceptance": false,
+  "liveDeployment": {
+    "deploymentId": "dpl_F9xfRrYLouWZVRdcMtM7Ak9tSmnC",
+    "gitSha": "a85b4cb005a435da3279e53de248be90c17ba428",
+    "gitBranch": "main",
+    "vercelState": "READY",
+    "vercelTarget": "production",
+    "logicalReleaseStage": "preview",
+    "trialMode": "domainTrialPatch"
+  },
+  "routing": {
+    "rootStatus": 200,
+    "loginStatus": 200,
+    "appStatus": 200,
+    "healthStatus": 200,
+    "productionReadinessStatus": 200
+  },
+  "dataSource": {
+    "supabaseProjectRef": "ofgmcsmxmdswlovsckqs",
+    "projectClass": "staging-isolated",
+    "productionDatabaseSelected": false,
+    "productionDataMutationAllowed": false
+  },
+  "buildVerification": {
+    "packageCheck": "PASS",
+    "pythonSuite": "20/20 PASS",
+    "deploymentCompleted": true,
+    "recentRuntimeErrorFatalCount": 0
+  },
+  "securityReview": {
+    "advisorExecuted": true,
+    "privateSchemaRlsNoPolicyFindings": "INFO; private schema is intentionally non-exposed and functions are the controlled access layer",
+    "authenticatedSecurityDefinerFindings": "WARN; existing public RPC surface requires function-by-function authorization semantics and must not be revoked in bulk",
+    "leakedPasswordProtection": "DISABLED",
+    "leakedPasswordProtectionRemediation": "Enable in Supabase Auth settings / Management API; current connected Supabase tool does not expose Auth config mutation",
+    "performanceAdvisor": "INFO-only optimization findings; no schema optimization applied during trial freeze"
+  },
+  "qaResidue": {
+    "qaAccountsStatus": "disabled only",
+    "disabledRows": 23,
+    "activeQaAccountClaimed": false
+  },
+  "formalReleaseGate": {
+    "passed": false,
+    "githubActionsSameShaGreen": false,
+    "githubActionsBlocker": "pre-runner account/runner allocation; no application steps execute",
+    "physicalIphoneAcceptance": false,
+    "physicalIpadAcceptance": false,
+    "ownerPracticalTestCompleted": false,
+    "explicitOwnerApproval": false
+  },
+  "disposition": "STABLE_TRIAL_READY_FOR_OWNER_RETEST",
+  "notes": [
+    "No additional deployment was created by this evidence step.",
+    "The live trial SHA is newer than the earlier d4862762 Stage-C closure SHA, so prior C closure is not silently inherited by this live SHA.",
+    "The current custom-domain deployment is suitable for owner practical retesting as a trial, not final release acceptance."
+  ]
+}
