@@ -8,7 +8,9 @@ const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].m
 test('fresh B MFA page is exact-candidate and same-origin gated before accepting a code',()=>{
  assert.match(html,/previewCandidateSha/);
  assert.match(html,/previewBranchHost!==location\.hostname/);
- assert.match(html,/AUTH_SESSION_REQUIRED/);
+ assert.match(html,/SESSION_LOGIN_REDIRECT/);
+ assert.match(html,/\/login\.html\?release=V267&manual=1&returnTo=/);
+ assert.match(html,/\/qa-b-reauth-v2\.html\?candidate=/);
  assert.match(html,/listFactors\(\)/);
  assert.match(html,/status==='verified'/);
  assert.match(html,/code\.disabled=false;submit\.disabled=false/);
