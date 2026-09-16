@@ -12,8 +12,24 @@ if(!release.includes(marker)){
  console.log('Installed additive V267 owner-reference runtime loader.');
 }else console.log('V267 owner-reference runtime loader already installed.');
 
+const loginPath=new URL('../login.html',import.meta.url);
+let login=readFileSync(loginPath,'utf8');
+const loginCss='<link id="aqari-v267-owner-login-css" rel="stylesheet" href="/src/v267/styles/owner-reference-login.css?release=V267">';
+const loginJs='<script id="aqari-v267-owner-login-js" defer src="/src/v267/login-owner-reference.js?release=V267"></script>';
+if(!login.includes('aqari-v267-owner-login-css')){
+ if(!login.includes('</head>'))throw Error('V267_OWNER_LOGIN_HEAD_ANCHOR_MISSING');
+ login=login.replace('</head>',loginCss+'\n</head>');
+}
+if(!login.includes('aqari-v267-owner-login-js')){
+ if(!login.includes('</body>'))throw Error('V267_OWNER_LOGIN_BODY_ANCHOR_MISSING');
+ login=login.replace('</body>',loginJs+'\n</body>');
+}
+writeFileSync(loginPath,login);
+console.log('Installed owner-approved black/gold login and no-data guest preview.');
+
 for(const path of [
  'src/v267/owner-reference-runtime.js',
+ 'src/v267/login-owner-reference.js',
  'src/v267/pages/owner-task-center.js',
  'src/v267/pages/owner-report.js',
  'src/v267/pages/approval-center.js',
