@@ -1,6 +1,7 @@
 export const PROPERTY_STATEMENT_DISCOUNT_MARKER='v267StatementOwnerDiscount';
 export const PROPERTY_STATEMENT_COLLECTION_MARKER='v267StatementCollectionReadback';
 export const PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER='v267StatementSourceDetail';
+export const PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER='v267StatementSourceBalance';
 
 function statementMoney(value){
   if(value===null||value===undefined||value==='')return null;
@@ -12,6 +13,12 @@ export function statementOwnerApprovedDiscount(contractValue,currentValue){
   const contract=statementMoney(contractValue),current=statementMoney(currentValue);
   if(contract===null||current===null)return null;
   return Math.max(0,Math.round((contract-current)*1000)/1000);
+}
+
+export function statementSourceRemaining(currentValue,paidValue){
+  const current=statementMoney(currentValue),paid=statementMoney(paidValue);
+  if(current===null||paid===null)return null;
+  return Math.max(0,Math.round((current-paid)*1000)/1000);
 }
 
 export function statementRentTotals(rows){
@@ -31,11 +38,11 @@ export function statementRentTotals(rows){
 
 export function patchPropertyStatementDiscountUi(source){
   let next=String(source||'');
-  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)&&next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER))return next;
+  if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)&&next.includes(PROPERTY_STATEMENT_COLLECTION_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER)&&next.includes(PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER))return next;
 
   if(!next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER)){
     const showAnchor=` function show(content){`;
-    const helper=` // ${PROPERTY_STATEMENT_DISCOUNT_MARKER}\n function v267StatementMoney(value){\n  if(value===null||value===undefined||value==='')return null;\n  const amount=Number(value);\n  return Number.isFinite(amount)&&amount>=0?Math.round(amount*1000)/1000:null;\n }\n function v267OwnerApprovedDiscount(row){\n  const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n  if(contract===null||current===null)return null;\n  return Math.max(0,Math.round((contract-current)*1000)/1000);\n }\n function v267StatementRentTotals(rows){\n  if(!Array.isArray(rows)||!rows.length)return null;\n  let contractRent=0,currentRent=0,ownerDiscount=0;\n  for(const row of rows){\n   const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n   if(contract===null||current===null)return null;\n   contractRent+=contract;currentRent+=current;ownerDiscount+=Math.max(0,contract-current);\n  }\n  return {contractRent:Math.round(contractRent*1000)/1000,ownerDiscount:Math.round(ownerDiscount*1000)/1000,currentRent:Math.round(currentRent*1000)/1000};\n }\n`;
+    const helper=` // ${PROPERTY_STATEMENT_DISCOUNT_MARKER}\n function v267StatementMoney(value){\n  if(value===null||value===undefined||value==='')return null;\n  const amount=Number(value);\n  return Number.isFinite(amount)&&amount>=0?Math.round(amount*1000)/1000:null;\n }\n function v267OwnerApprovedDiscount(row){\n  const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n  if(contract===null||current===null)return null;\n  return Math.max(0,Math.round((contract-current)*1000)/1000);\n }\n function v267SourceRemaining(row){\n  const current=v267StatementMoney(row?.current_rent_kd),paid=v267StatementMoney(row?.paid_amount_kd);\n  if(current===null||paid===null)return null;\n  return Math.max(0,Math.round((current-paid)*1000)/1000);\n }\n function v267StatementRentTotals(rows){\n  if(!Array.isArray(rows)||!rows.length)return null;\n  let contractRent=0,currentRent=0,ownerDiscount=0;\n  for(const row of rows){\n   const contract=v267StatementMoney(row?.contract_rent_kd),current=v267StatementMoney(row?.current_rent_kd);\n   if(contract===null||current===null)return null;\n   contractRent+=contract;currentRent+=current;ownerDiscount+=Math.max(0,contract-current);\n  }\n  return {contractRent:Math.round(contractRent*1000)/1000,ownerDiscount:Math.round(ownerDiscount*1000)/1000,currentRent:Math.round(currentRent*1000)/1000};\n }\n`;
     if(!next.includes(showAnchor))throw Error('V267 property statement discount show anchor not found.');
     next=next.replace(showAnchor,helper+showAnchor);
 
@@ -45,7 +52,7 @@ export function patchPropertyStatementDiscountUi(source){
     next=next.replace(fieldsAnchor,fieldsReplacement);
 
     const valueAnchor=`let v=key==='__payment_reference'?(paymentReference.value??t('غير مدون')):(row[key]??t('غير مدون'));`;
-    const valueReplacement=`let v=key==='__payment_reference'?(paymentReference.value??t('غير مدون')):key==='__owner_discount'?(v267OwnerApprovedDiscount(row)??t('غير مدون')):(row[key]??t('غير مدون'));`;
+    const valueReplacement=`let v=key==='__payment_reference'?(paymentReference.value??t('غير مدون')):key==='__owner_discount'?(v267OwnerApprovedDiscount(row)??t('غير مدون')):key==='__source_remaining'?(v267SourceRemaining(row)??t('غير مدون')):(row[key]??t('غير مدون'));`;
     if(!next.includes(valueAnchor))throw Error('V267 property statement discount value anchor not found.');
     next=next.replace(valueAnchor,valueReplacement);
 
@@ -60,14 +67,14 @@ export function patchPropertyStatementDiscountUi(source){
     next=next.replace(summaryAnchor,summaryReplacement);
   }
 
-  if(!next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER)){
+  if(!next.includes(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER)||!next.includes(PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER)){
     const sourceDetailAnchor=`const paymentReference=statementPaymentReference(row);\n   for(const [title,key]of [`;
-    const sourceDetailReplacement=`const paymentReference=statementPaymentReference(row);\n   // ${PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER}\n   for(const [title,key]of [`;
+    const sourceDetailReplacement=`const paymentReference=statementPaymentReference(row);\n   // ${PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER}\n   // ${PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER}\n   for(const [title,key]of [`;
     if(!next.includes(sourceDetailAnchor))throw Error('V267 property statement source-detail marker anchor not found.');
     next=next.replace(sourceDetailAnchor,sourceDetailReplacement);
 
     const paidAnchor=`[t('الإيجار الحالي'),'current_rent_kd'],[t('العربون'),'advance_kd']`;
-    const paidReplacement=`[t('الإيجار الحالي'),'current_rent_kd'],[t('المدفوع بالمصدر'),'paid_amount_kd'],[t('العربون'),'advance_kd']`;
+    const paidReplacement=`[t('الإيجار الحالي'),'current_rent_kd'],[t('المدفوع بالمصدر'),'paid_amount_kd'],[t('المتبقي بالمصدر'),'__source_remaining'],[t('العربون'),'advance_kd']`;
     if(!next.includes(paidAnchor))throw Error('V267 property statement paid-source anchor not found.');
     next=next.replace(paidAnchor,paidReplacement);
 
@@ -77,7 +84,7 @@ export function patchPropertyStatementDiscountUi(source){
     next=next.replace(nationalityAnchor,nationalityReplacement);
 
     const detailNoteAnchor=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
-    const detailNoteReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
+    const detailNoteReplacement=`كشف المصدر المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تبقى قيماً منفصلة؛ الخصم خاص بصف المستأجر وفترة هذا الكشف ولا يغيّر الوحدة أو عقد مستأجر لاحق؛ المدفوع بالمصدر والمتبقي بالمصدر قراءة من الكشف المحفوظ، والمتبقي مشتق فقط من الإيجار الحالي ناقص المدفوع بالمصدر ولا يحسب فرق الخصم كمتأخرات؛ هذه القيم لا تستبدل التحصيل الفعلي المحمي؛ مبالغ الإيجار لا تُرحّل تلقائياً كتحصيل جديد.`;
     if(!next.includes(detailNoteAnchor))throw Error('V267 property statement source-detail note anchor not found.');
     next=next.replace(detailNoteAnchor,detailNoteReplacement);
   }

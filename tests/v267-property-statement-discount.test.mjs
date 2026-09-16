@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {patchPropertyStatementDiscountUi,statementOwnerApprovedDiscount,statementRentTotals,PROPERTY_STATEMENT_DISCOUNT_MARKER,PROPERTY_STATEMENT_COLLECTION_MARKER,PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
+import {patchPropertyStatementDiscountUi,statementOwnerApprovedDiscount,statementSourceRemaining,statementRentTotals,PROPERTY_STATEMENT_DISCOUNT_MARKER,PROPERTY_STATEMENT_COLLECTION_MARKER,PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER,PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER} from '../src/v267/support/property-statement-discount-patch.js';
 
 test('owner-approved statement discount is derived only from saved contract/current rent values',()=>{
   assert.equal(statementOwnerApprovedDiscount(250,195),55);
@@ -12,6 +12,15 @@ test('owner-approved statement discount is derived only from saved contract/curr
   assert.equal(statementOwnerApprovedDiscount(250,null),null);
   assert.equal(statementOwnerApprovedDiscount('bad',195),null);
   assert.equal(statementOwnerApprovedDiscount(-1,0),null);
+});
+
+test('source-register remaining uses only saved current rent and saved paid amount and never turns discount into debt',()=>{
+  assert.equal(statementSourceRemaining(195,195),0);
+  assert.equal(statementSourceRemaining('195.125','145'),50.125);
+  assert.equal(statementSourceRemaining(145,195),0);
+  assert.equal(statementSourceRemaining('',100),null);
+  assert.equal(statementSourceRemaining(195,'bad'),null);
+  assert.equal(statementSourceRemaining(-1,0),null);
 });
 
 test('statement rent totals separate contract rent, owner discount and current due and fail closed on incomplete source rows',()=>{
@@ -39,16 +48,20 @@ test('property statement overlay displays contract rent, owner-approved discount
   assert.equal(patchPropertyStatementDiscountUi(patched),patched);
 });
 
-test('property statement exposes only saved source paid amount and nationality without replacing protected collection truth',()=>{
+test('property statement exposes saved source paid and remaining values without replacing protected collection truth',()=>{
   const original=readFileSync(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8');
   const patched=patchPropertyStatementDiscountUi(original);
   assert.match(patched,new RegExp(PROPERTY_STATEMENT_SOURCE_DETAIL_MARKER));
+  assert.match(patched,new RegExp(PROPERTY_STATEMENT_SOURCE_BALANCE_MARKER));
   assert.match(patched,/المدفوع بالمصدر/);
   assert.match(patched,/paid_amount_kd/);
+  assert.match(patched,/المتبقي بالمصدر/);
+  assert.match(patched,/__source_remaining/);
   assert.match(patched,/الجنسية بالمصدر/);
   assert.match(patched,/nationality_raw/);
-  assert.match(patched,/المدفوع بالمصدر قراءة من الكشف المحفوظ ولا يستبدل التحصيل الفعلي المحمي/);
-  assert.equal((patched.match(/paid_amount_kd/g)||[]).length,1);
+  assert.match(patched,/المتبقي مشتق فقط من الإيجار الحالي ناقص المدفوع بالمصدر ولا يحسب فرق الخصم كمتأخرات/);
+  assert.match(patched,/هذه القيم لا تستبدل التحصيل الفعلي المحمي/);
+  assert.equal((patched.match(/paid_amount_kd/g)||[]).length,2,'one field plus one derivation helper');
   assert.equal((patched.match(/nationality_raw/g)||[]).length,1);
   assert.equal(patchPropertyStatementDiscountUi(patched),patched);
 });

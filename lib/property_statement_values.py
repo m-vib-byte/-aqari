@@ -13,6 +13,12 @@ def owner_approved_discount(row):
     if contract is None or current is None:return None
     return round(max(0,contract-current),3)
 
+def source_remaining(row):
+    """Derive source-register remaining only from saved current rent and saved paid amount."""
+    current=_saved_money(row.get('current_rent_kd'));paid=_saved_money(row.get('paid_amount_kd'))
+    if current is None or paid is None:return None
+    return round(max(0,current-paid),3)
+
 def statement_rent_totals(rows):
     """Return separated contract/discount/current totals only when every saved row is complete."""
     if not isinstance(rows,list) or not rows:return None

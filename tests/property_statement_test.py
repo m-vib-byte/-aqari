@@ -25,6 +25,13 @@ class StatementTests(unittest.TestCase):
   self.assertEqual(owner_approved_discount(dict(contract_rent_kd=195,current_rent_kd=260)),0)
   self.assertIsNone(owner_approved_discount(dict(contract_rent_kd='',current_rent_kd=195)))
   self.assertIsNone(owner_approved_discount(dict(contract_rent_kd='bad',current_rent_kd=195)))
+ def test_source_remaining_uses_current_rent_and_saved_paid_only(self):
+  from lib.property_statement_values import source_remaining
+  self.assertEqual(source_remaining(dict(current_rent_kd=195,paid_amount_kd=195)),0)
+  self.assertEqual(source_remaining(dict(current_rent_kd='195.125',paid_amount_kd='145')),50.125)
+  self.assertEqual(source_remaining(dict(current_rent_kd=145,paid_amount_kd=195)),0)
+  self.assertIsNone(source_remaining(dict(current_rent_kd='',paid_amount_kd=100)))
+  self.assertIsNone(source_remaining(dict(current_rent_kd=195,paid_amount_kd='bad')))
  def test_notes_are_scoped_to_saved_statement(self):
   from lib.property_statement_pdf import statement_notes
   clean=dict(rows=[dict(unit='101',pending=None)],pending=[])
