@@ -1,5 +1,5 @@
 import unittest
-from lib.mfa_selftest import totp_code,_totp_candidates,_config,_error_code,_factor_status,_expect_factors,_tenant_payload,_service_headers,WORKSPACE_ID
+from lib.mfa_selftest import totp_code,_totp_candidates,_config,_error_code,_factor_status,_expect_factors,_tenant_payload,_service_headers,_cleanup_disposable,WORKSPACE_ID
 
 ENV={'VERCEL_ENV':'preview','VERCEL_GIT_COMMIT_REF':'support/v267-knet-range-reconcile-20260915','VERCEL_GIT_COMMIT_SHA':'a'*40,'AQARI_SUPABASE_URL':'https://ofgmcsmxmdswlovsckqs.supabase.co','AQARI_SUPABASE_SERVICE_ROLE_KEY':'sb_secret_'+'x'*32}
 
@@ -34,5 +34,19 @@ class MfaSelftestTest(unittest.TestCase):
   self.assertIsNone(_factor_status([{'id':fid,'factor_type':'phone','status':'verified'}],fid))
   self.assertIsNone(_factor_status([{'id':'other','factor_type':'totp','status':'verified'}],fid))
   with self.assertRaisesRegex(RuntimeError,'FACTOR_VERIFIED:INVALID_RESPONSE'):_expect_factors('FACTOR_VERIFIED',200,'bad')
+ def test_cleanup_removes_portal_binding_before_auth_user_and_tenant(self):
+  uid='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';tid='11111111-2222-4333-8444-555555555555';calls=[]
+  def fake(url,method,headers,body=None,open_url=None):calls.append((url,method));return 204,{}
+  result=_cleanup_disposable('https://staging.example',{'apikey':'secret'},uid,tid,True,request_fn=fake)
+  self.assertEqual([method for _,method in calls],['DELETE','DELETE','DELETE'])
+  self.assertIn('/rest/v1/aqari_portal_accounts?user_id=eq.'+uid+'&tenant_id=eq.'+tid,calls[0][0])
+  self.assertEqual(calls[1][0],'https://staging.example/auth/v1/admin/users/'+uid)
+  self.assertEqual(calls[2][0],'https://staging.example/rest/v1/aqari_tenants?id=eq.'+tid)
+  self.assertEqual(result,{'portalCleanup':True,'authCleanup':True,'tenantCleanup':True,'cleanup':True})
+ def test_cleanup_attempts_all_stages_and_fails_closed(self):
+  uid='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';tid='11111111-2222-4333-8444-555555555555';calls=[];statuses=iter((409,500,204))
+  def fake(url,method,headers,body=None,open_url=None):calls.append(url);return next(statuses),{}
+  result=_cleanup_disposable('https://staging.example',{'apikey':'secret'},uid,tid,True,request_fn=fake)
+  self.assertEqual(len(calls),3);self.assertFalse(result['portalCleanup']);self.assertFalse(result['authCleanup']);self.assertTrue(result['tenantCleanup']);self.assertFalse(result['cleanup'])
 
 if __name__=='__main__':unittest.main()
