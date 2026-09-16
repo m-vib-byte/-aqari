@@ -1,5 +1,12 @@
 export const PROPERTY_STATEMENT_DISCOUNT_MARKER='v267StatementOwnerDiscount';
 
+export function statementOwnerApprovedDiscount(contractValue,currentValue){
+  if(contractValue===null||contractValue===undefined||contractValue===''||currentValue===null||currentValue===undefined||currentValue==='')return null;
+  const contract=Number(contractValue),current=Number(currentValue);
+  if(!Number.isFinite(contract)||!Number.isFinite(current)||contract<0||current<0)return null;
+  return Math.max(0,Math.round((contract-current)*1000)/1000);
+}
+
 export function patchPropertyStatementDiscountUi(source){
   let next=String(source||'');
   if(next.includes(PROPERTY_STATEMENT_DISCOUNT_MARKER))return next;
