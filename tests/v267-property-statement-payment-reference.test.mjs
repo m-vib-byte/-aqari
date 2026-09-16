@@ -20,12 +20,13 @@ test('property statement UI uses the guarded payment-reference formatter and doe
  assert.doesNotMatch(source,/bank_account|account_number|\biban\b/i);
 });
 
-test('property statement PDF carries confirmed saved contract dates phone and civil id without inventing another source',()=>{
+test('property statement PDF carries confirmed saved source provenance without inventing another source',()=>{
  const pdfSource=fs.readFileSync(new URL('../lib/property_statement_pdf.py',import.meta.url),'utf8');
- for(const marker of ["('الرقم المدني بالمصدر','civil_id_raw')","('الهاتف بالمصدر','phone_raw')","('نهاية العقد بالمصدر','contract_end_raw')","('بداية العقد بالمصدر','contract_start_raw')"]){
+ for(const marker of ["('صفحة الاتصال بالمصدر','contact_source_page')","('صفحة البيانات المالية بالمصدر','financial_source_page')","('الرقم المدني بالمصدر','civil_id_raw')","('الهاتف بالمصدر','phone_raw')","('نهاية العقد بالمصدر','contract_end_raw')","('بداية العقد بالمصدر','contract_start_raw')"]){
   assert.match(pdfSource,new RegExp(marker.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));
  }
  assert.match(pdfSource,/بيانات المصدر التكميلية/);
+ assert.match(pdfSource,/أرقام صفحات المصدر/);
  assert.match(pdfSource,/قراءة فقط من نفس صفوف الكشف المحفوظ/);
  assert.doesNotMatch(pdfSource,/email_raw|bank_account|account_number|\biban\b/i);
 });
