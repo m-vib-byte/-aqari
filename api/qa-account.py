@@ -10,6 +10,7 @@ from lib.qa_accounts import UUID
 EXPECTED_URL='https://ofgmcsmxmdswlovsckqs.supabase.co'
 EXPECTED_BRANCH='support/v267-knet-range-reconcile-20260915'
 JWT=re.compile(r'^Bearer [A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$')
+SHA=re.compile(r'^[0-9a-f]{40}$')
 SAFE_ERROR=re.compile(r'^[A-Z][A-Z0-9_]{2,79}$')
 
 class NoRedirect(HTTPRedirectHandler):
@@ -20,6 +21,13 @@ def public_key():
  url=re.search(r"url:\s*'([^']+)'",source);key=re.search(r"publishableKey:\s*'([^']+)'",source)
  if not url or not key or url.group(1)!=EXPECTED_URL or not key.group(1).startswith('sb_publishable_'):raise RuntimeError('QA_STAGING_CONFIG_INVALID')
  return key.group(1)
+
+def exact_candidate(requested):
+ deployed=str(os.environ.get('VERCEL_GIT_COMMIT_SHA') or '').strip().lower()
+ candidate=str(requested or '').strip().lower()
+ if not SHA.fullmatch(deployed):raise RuntimeError('QA_PREVIEW_SHA_INVALID')
+ if not SHA.fullmatch(candidate) or candidate!=deployed:raise ValueError('QA_CANDIDATE_SHA_MISMATCH')
+ return candidate
 
 def edge_request(payload,auth):
  if os.environ.get('VERCEL_ENV')!='preview' or os.environ.get('VERCEL_GIT_COMMIT_REF')!=EXPECTED_BRANCH:raise RuntimeError('QA_PREVIEW_ONLY')
@@ -49,6 +57,8 @@ class handler(BaseHTTPRequestHandler):
   self.send_response(status);self.send_header('Content-Type','application/json; charset=utf-8');self.send_header('Cache-Control','no-store, max-age=0');self.send_header('Pragma','no-cache');self.send_header('X-Content-Type-Options','nosniff');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
  def do_POST(self):
   try:
+   try:exact_candidate(self.headers.get('X-AQARI-Candidate-Sha'))
+   except ValueError:self._reply(409,{'ok':False,'error':'QA_CANDIDATE_SHA_MISMATCH'});return
    length=int(self.headers.get('Content-Length','0'))
    if length<=0 or length>32768:raise ValueError('INVALID_REQUEST')
    data=json.loads(self.rfile.read(length));workspace=str(data.get('workspaceId','')) if isinstance(data,dict) else '';action=data.get('action') if isinstance(data,dict) else None
@@ -60,7 +70,7 @@ class handler(BaseHTTPRequestHandler):
   except PermissionError:self._reply(403,{'ok':False,'error':'ACCESS_DENIED'})
   except RuntimeError as exc:
    code=str(exc)
-   if code in('QA_PREVIEW_ONLY','QA_STAGING_CONFIG_INVALID'):self._reply(503,{'ok':False,'error':code})
+   if code in('QA_PREVIEW_ONLY','QA_STAGING_CONFIG_INVALID','QA_PREVIEW_SHA_INVALID'):self._reply(503,{'ok':False,'error':code})
    else:self._reply(502,{'ok':False,'error':'QA_UPSTREAM_REJECTED'})
   except (ValueError,KeyError,TypeError,json.JSONDecodeError):self._reply(400,{'ok':False,'error':'INVALID_REQUEST'})
   except Exception:self._reply(500,{'ok':False,'error':'QA_OPERATION_FAILED'})
