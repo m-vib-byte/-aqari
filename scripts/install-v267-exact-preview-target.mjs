@@ -6,6 +6,11 @@ const HOST_RE=/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.vercel\.app$/;
 const SHA_RE=/^[0-9a-f]{40}$/;
 const FALLBACK_BRANCH_HOST='aqari-git-support-v267-knet-range-reconcile-20260915-m-vib-5421.vercel.app';
 
+function replaceRequired(source,needle,replacement,code){
+  if(!source.includes(needle))throw Error(code);
+  return source.replace(needle,replacement);
+}
+
 export function exactPreviewTarget({vercelEnv,vercelUrl,vercelBranchUrl,candidateSha},source){
   if(String(vercelEnv||'')!=='preview') return new Map();
   const immutableHost=String(vercelUrl||'').trim().toLowerCase();
@@ -28,12 +33,29 @@ export function exactPreviewTarget({vercelEnv,vercelUrl,vercelBranchUrl,candidat
   if(!adapterMatch) throw Error('PREVIEW_ADAPTER_REDIRECT_LAYOUT_CHANGED');
   output.set('supabase-adapter.js',adapter.replace(adapterMatch[0],`target.hostname !== '${branchHost}'`));
 
-  for(const path of ['qa-b.html','qa-b-reauth.html']){
-    const html=String(source.get(path)||'');
-    const hostMatch=html.match(/const BRANCH_HOST='[^']+\.vercel\.app';/);
-    if(!hostMatch) throw Error(`PREVIEW_QA_HOST_LAYOUT_CHANGED:${path}`);
-    output.set(path,html.replace(hostMatch[0],`const BRANCH_HOST='${branchHost}';`));
-  }
+  let runner=String(source.get('qa-b.html')||'');
+  const runnerHost=runner.match(/const BRANCH_HOST='[^']+\.vercel\.app';/);
+  if(!runnerHost)throw Error('PREVIEW_QA_HOST_LAYOUT_CHANGED:qa-b.html');
+  runner=runner.replace(runnerHost[0],`const BRANCH_HOST='${branchHost}';\nconst CANDIDATE_SHA='${sha}';`);
+  runner=replaceRequired(runner,"'Authorization':'Bearer '+token}","'Authorization':'Bearer '+token,'X-AQARI-Candidate-Sha':CANDIDATE_SHA}",'PREVIEW_QA_API_HEADER_LAYOUT_CHANGED');
+  runner=replaceRequired(runner,"'Authorization':'Bearer '+token}","'Authorization':'Bearer '+token,'X-AQARI-Candidate-Sha':CANDIDATE_SHA}",'PREVIEW_QA_EVIDENCE_HEADER_LAYOUT_CHANGED');
+  runner=replaceRequired(runner,
+    "assert(cfg.releaseStage==='preview'&&cfg.supabaseUrl===EXPECTED_URL,'PREVIEW_CONFIG_REQUIRED');",
+    "assert(cfg.releaseStage==='preview'&&cfg.supabaseUrl===EXPECTED_URL,'PREVIEW_CONFIG_REQUIRED');assert(cfg.previewCandidateSha===CANDIDATE_SHA&&cfg.previewBranchHost===BRANCH_HOST,'EXACT_CANDIDATE_CONFIG_REQUIRED');const requestedCandidate=new URLSearchParams(location.search).get('candidate');assert(requestedCandidate===CANDIDATE_SHA,'EXACT_CANDIDATE_REQUIRED');",
+    'PREVIEW_QA_CANDIDATE_GUARD_LAYOUT_CHANGED');
+  runner=replaceRequired(runner,"assert(saved?.ok===true&&saved?.id,'EVIDENCE_NOT_CONFIRMED');","assert(saved?.ok===true&&saved?.id&&saved?.candidate_sha===CANDIDATE_SHA,'EVIDENCE_NOT_CONFIRMED');",'PREVIEW_QA_EVIDENCE_CONFIRM_LAYOUT_CHANGED');
+  output.set('qa-b.html',runner);
+
+  let reauth=String(source.get('qa-b-reauth.html')||'');
+  const reauthHost=reauth.match(/const BRANCH_HOST='[^']+\.vercel\.app';/);
+  if(!reauthHost)throw Error('PREVIEW_QA_HOST_LAYOUT_CHANGED:qa-b-reauth.html');
+  reauth=reauth.replace(reauthHost[0],`const BRANCH_HOST='${branchHost}';\nconst CANDIDATE_SHA='${sha}';`);
+  reauth=replaceRequired(reauth,
+    "if(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL)fail('PREVIEW_REQUIRED');",
+    "if(location.hostname!==BRANCH_HOST||cfg.releaseStage!=='preview'||cfg.supabaseUrl!==EXPECTED_URL||cfg.previewCandidateSha!==CANDIDATE_SHA||cfg.previewBranchHost!==BRANCH_HOST)fail('PREVIEW_REQUIRED');",
+    'PREVIEW_REAUTH_CANDIDATE_GUARD_LAYOUT_CHANGED');
+  reauth=replaceRequired(reauth,"location.replace('/qa-b.html?run=1');","location.replace('/qa-b.html?run=1&candidate='+encodeURIComponent(CANDIDATE_SHA));",'PREVIEW_REAUTH_RUNNER_TARGET_LAYOUT_CHANGED');
+  output.set('qa-b-reauth.html',reauth);
   return output;
 }
 
