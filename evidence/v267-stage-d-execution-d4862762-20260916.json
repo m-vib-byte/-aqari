@@ -1,6 +1,6 @@
 {
-  "schema": "AQARI-V267-STAGE-D-EXECUTION-1",
-  "recordedAt": "2026-09-16T14:58:00Z",
+  "schema": "AQARI-V267-STAGE-D-EXECUTION-2",
+  "recordedAt": "2026-09-16T15:56:00Z",
   "candidateSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
   "phaseBClosed": true,
   "phaseCClosed": true,
@@ -19,11 +19,21 @@
     "phaseBAccepted": true,
     "commitSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
     "deploymentId": "dpl_2CyyF4iLE2csCEVu27wWoZFkx5ky",
-    "immutableHost": "aqari-1p165cmpl-m-vib-5421.vercel.app"
+    "immutableHost": "aqari-1p165cmpl-m-vib-5421.vercel.app",
+    "state": "READY",
+    "target": "preview",
+    "runtimeErrorFatalLogsLast24h": 0,
+    "automatedProtectedFetchStatus": 302,
+    "automatedProtectedFetchClassification": "VERCEL_SSO_BEFORE_AQARI",
+    "automatedProtectedFetchCountsAsDesktopAcceptance": false
   },
   "phaseC": {
     "backupTestPassed": true,
     "independentRestorePassed": true,
+    "databaseCanonicalMatch": true,
+    "databaseCanonicalSha256": "9417916f5b6a7f4905ee478edd109f5378fdd9a67f4d9cdbb4a2fb83d38cf836",
+    "databaseMismatchClassification": "NUMERIC_SCALE_SERIALIZATION_ONLY",
+    "logicalDataDifferenceFound": false,
     "storageByteHashMatch": true,
     "rollbackRehearsed": true,
     "temporaryRestoreBranchDeleted": true,
@@ -34,10 +44,16 @@
     "commitSha": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
     "allRequiredPassed": false,
     "classification": "pre-runner-infrastructure-blocker",
-    "latestRuntimeJobId": 104847154824,
-    "latestRuntimeSteps": null,
-    "latestRuntimeLogsUrl": null,
-    "issue": 194
+    "rerunAcceptedAtStageD": true,
+    "latestAttempts": [
+      {"workflow":"V267 security integration accounting","runId":35083508224,"jobId":104869468038,"conclusion":"failure","steps":null,"logsUrl":null},
+      {"workflow":"Runtime contracts","runId":35083508253,"jobId":104869499515,"conclusion":"failure","steps":null,"logsUrl":null},
+      {"workflow":"App first paint","runId":35083508201,"jobId":104869540403,"conclusion":"failure","steps":null,"logsUrl":null},
+      {"workflow":"Authenticated UI startup order","runId":35083508271,"jobId":104869593030,"conclusion":"failure","steps":null,"logsUrl":null}
+    ],
+    "issue": 194,
+    "applicationFailureObserved": false,
+    "workflowWeakeningAllowed": false
   },
   "productionConfig": {
     "readOnlyAuditComplete": true,
@@ -53,6 +69,7 @@
       "required": true,
       "physicalRequired": false,
       "accepted": false,
+      "reason": "Protected automated fetch is still intercepted by Vercel SSO before AQARI; no authenticated browser journey was executed in this Stage-D refresh.",
       "flows": ["login","session","save","reopen","permissions","contracts","printing"]
     },
     "iphone": {
@@ -68,6 +85,12 @@
       "flows": ["login","session","save","reopen","permissions","contracts","printing"]
     }
   },
+  "candidateIsolation": {
+    "stageDContinuesOnExactClosedCandidate": "d4862762ac5df21209177c7c6fdcd31cdf8293cb",
+    "currentPr192HeadObserved": "80f8a0938e28663474753596c4c8ef5e49d471f2",
+    "currentPr192HeadAheadBy": 7,
+    "laterPrHeadInheritsPhaseCClosure": false
+  },
   "currentBlockers": [
     "SAME_SHA_CI_NOT_GREEN",
     "DESKTOP_ACCEPTANCE_PENDING",
@@ -77,5 +100,11 @@
   ],
   "releaseGatePassed": false,
   "myaqariCandidateDeploymentPerformed": false,
-  "finalOwnerApprovalInferred": false
+  "finalOwnerApprovalInferred": false,
+  "governance": {
+    "mainChanged": false,
+    "productionChanged": false,
+    "myaqariChanged": false,
+    "noProductionBeforeAgreedGates": true
+  }
 }
