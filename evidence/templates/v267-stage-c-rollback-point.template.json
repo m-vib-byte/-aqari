@@ -1,0 +1,13 @@
+{
+  "schema":"AQARI-V267-STAGE-C-ROLLBACK-1",
+  "candidateSha":"<exact-40-char-candidate-sha>",
+  "previousApplicationSha":"<known-good-app-sha>",
+  "backupManifestSha256":"<backup-manifest-sha256>",
+  "dataSafetyBaselineSha256":"<pre-change-data-safety-manifest-sha256>",
+  "strategy":"application-source-rollback-with-data-preservation",
+  "databaseRollback":false,
+  "capturePostCheckpointTransactions":true,
+  "preserveAuditAndDocuments":true,
+  "rehearsed":false,
+  "notes":"Application rollback must never silently roll database state backward; reconcile all post-checkpoint writes."
+}
