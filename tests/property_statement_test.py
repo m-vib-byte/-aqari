@@ -32,13 +32,13 @@ class StatementTests(unittest.TestCase):
   self.assertEqual(source_remaining(dict(current_rent_kd=145,paid_amount_kd=195)),0)
   self.assertIsNone(source_remaining(dict(current_rent_kd='',paid_amount_kd=100)))
   self.assertIsNone(source_remaining(dict(current_rent_kd=195,paid_amount_kd='bad')))
- def test_source_totals_preserve_saved_insurance_and_knet_without_inventing_missing_values(self):
+ def test_source_totals_preserve_saved_charges_insurance_and_knet_without_inventing_missing_values(self):
   from lib.property_statement_values import statement_source_totals
   rows=[
-   dict(current_rent_kd='195',paid_amount_kd='195',insurance_kd='50',payment_method_raw='كي نت من المصدر'),
-   dict(current_rent_kd='145',paid_amount_kd='100',insurance_kd='75',payment_method_raw='نقدي')
+   dict(current_rent_kd='195',paid_amount_kd='195',insurance_kd='50',advance_kd='15',cleaning_kd='2',payment_method_raw='كي نت من المصدر'),
+   dict(current_rent_kd='145',paid_amount_kd='100',insurance_kd='75',advance_kd='5',cleaning_kd='5',payment_method_raw='نقدي')
   ]
-  self.assertEqual(statement_source_totals(rows),dict(paid_amount_kd=295.0,remaining_kd=45.0,insurance_kd=125.0,knet_paid_kd=195.0))
+  self.assertEqual(statement_source_totals(rows),dict(paid_amount_kd=295.0,remaining_kd=45.0,insurance_kd=125.0,advance_kd=20.0,cleaning_kd=7.0,knet_paid_kd=195.0))
   pending=[dict(rows[0],insurance_status='pending_reconciliation'),rows[1]]
   self.assertIsNone(statement_source_totals(pending)['insurance_kd'])
   missing_method=[rows[0],dict(rows[1],payment_method_raw='')]
@@ -46,6 +46,10 @@ class StatementTests(unittest.TestCase):
   missing_paid=[dict(rows[0],paid_amount_kd='bad'),rows[1]]
   totals=statement_source_totals(missing_paid)
   self.assertIsNone(totals['paid_amount_kd']);self.assertIsNone(totals['remaining_kd']);self.assertIsNone(totals['knet_paid_kd'])
+  missing_advance=[dict(rows[0],advance_kd=''),rows[1]]
+  self.assertIsNone(statement_source_totals(missing_advance)['advance_kd'])
+  missing_cleaning=[rows[0],dict(rows[1],cleaning_kd='bad')]
+  self.assertIsNone(statement_source_totals(missing_cleaning)['cleaning_kd'])
  def test_notes_are_scoped_to_saved_statement(self):
   from lib.property_statement_pdf import statement_notes
   clean=dict(rows=[dict(unit='101',pending=None)],pending=[])
