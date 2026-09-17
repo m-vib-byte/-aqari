@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {
   PRODUCTION_CONFIG_FORMAT,
   productionRuntimeConfigFingerprint,
+  productionSupabaseTopologyFingerprint,
   productionTargetFingerprint,
   validateProductionConfigForCli,
 } from '../scripts/v267-production-config-gate.mjs';
@@ -16,6 +17,12 @@ const TARGET={projectRef:PRODUCTION_PROJECT,publishableKey:'sb_publishable_01234
 const sha256=(value)=>createHash('sha256').update(Buffer.from(value,'utf8')).digest('hex');
 
 function validConfig(){
+  const supabaseTopology={
+    projectRef:PRODUCTION_PROJECT,
+    parentProjectRef:PRODUCTION_PROJECT,
+    branchName:'main',
+    isDefault:true,
+  };
   const config={
     format:PRODUCTION_CONFIG_FORMAT,
     correct:true,
@@ -28,6 +35,9 @@ function validConfig(){
     authRedirectUrl:'https://myaqari.com/login.html?release=V267',
     projectRef:PRODUCTION_PROJECT,
     supabaseUrl:`https://${PRODUCTION_PROJECT}.supabase.co`,
+    supabaseTopology,
+    supabaseTopologyEvidence:['evidence/supabase-branch-inventory.json'],
+    supabaseTopologySha256:productionSupabaseTopologyFingerprint(supabaseTopology),
     authStorageKey:`sb-${PRODUCTION_PROJECT}-auth-token`,
     publishableKeySha256:sha256(TARGET.publishableKey),
     targetConfigSha256:productionTargetFingerprint(TARGET),
@@ -40,7 +50,7 @@ function validConfig(){
 
 const STAGE_C={source_project_ref:'ofgmcsmxmdswlovsckqs',restore_project_ref:RESTORE_PROJECT};
 
-test('accepts a same-SHA Production configuration bound to a distinct repository target and exact runtime URL',()=>{
+test('accepts a same-SHA Production configuration bound to a distinct default Supabase project and exact runtime URL',()=>{
   const result=validateProductionConfigForCli({productionConfig:validConfig(),stageCBundle:STAGE_C,productionTarget:TARGET},SHA);
   assert.equal(result.ok,true,JSON.stringify(result.errors));
 });
@@ -48,7 +58,8 @@ test('accepts a same-SHA Production configuration bound to a distinct repository
 test('rejects Production target reuse of Preview source or independent restore project',()=>{
   for(const projectRef of [STAGE_C.source_project_ref,STAGE_C.restore_project_ref]){
     const target={...TARGET,projectRef};
-    const config={...validConfig(),projectRef,supabaseUrl:`https://${projectRef}.supabase.co`,authStorageKey:`sb-${projectRef}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
+    const supabaseTopology={projectRef,parentProjectRef:projectRef,branchName:'main',isDefault:true};
+    const config={...validConfig(),projectRef,supabaseUrl:`https://${projectRef}.supabase.co`,supabaseTopology,supabaseTopologySha256:productionSupabaseTopologyFingerprint(supabaseTopology),authStorageKey:`sb-${projectRef}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
     config.runtimeConfigSha256=productionRuntimeConfigFingerprint(config);
     const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:target},SHA);
     assert.equal(result.ok,false,projectRef);
@@ -56,7 +67,19 @@ test('rejects Production target reuse of Preview source or independent restore p
   }
 });
 
-test('rejects candidate, environment, domain, redirect, project, runtime URL, target fingerprint and key fingerprint drift',()=>{
+test('rejects a non-default Supabase branch even when its ref differs from Stage C source and restore refs',()=>{
+  const branchProject='zzzzzzzzzzzzzzzzzzzz';
+  const parentProject='yyyyyyyyyyyyyyyyyyyy';
+  const target={...TARGET,projectRef:branchProject};
+  const supabaseTopology={projectRef:branchProject,parentProjectRef:parentProject,branchName:'v267-isolated-test',isDefault:false};
+  const config={...validConfig(),projectRef:branchProject,supabaseUrl:`https://${branchProject}.supabase.co`,supabaseTopology,supabaseTopologySha256:'a'.repeat(64),authStorageKey:`sb-${branchProject}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
+  config.runtimeConfigSha256='b'.repeat(64);
+  const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:target},SHA);
+  assert.equal(result.ok,false);
+  assert.match(result.errors.join('\n'),/default project|default branch|topology fingerprint/);
+});
+
+test('rejects candidate, environment, domain, redirect, project, runtime URL, topology, target fingerprint and key fingerprint drift',()=>{
   const mutations=[
     (config)=>{config.candidateSha=OTHER_SHA},
     (config)=>{config.targetEnvironment='preview'},
@@ -65,6 +88,9 @@ test('rejects candidate, environment, domain, redirect, project, runtime URL, ta
     (config)=>{config.authRedirectUrl='https://myaqari.com/'},
     (config)=>{config.projectRef='wrong'},
     (config)=>{config.supabaseUrl='https://wrong-project.supabase.co'},
+    (config)=>{config.supabaseTopology={...config.supabaseTopology,isDefault:false}},
+    (config)=>{config.supabaseTopologyEvidence=[]},
+    (config)=>{config.supabaseTopologySha256='d'.repeat(64)},
     (config)=>{config.authStorageKey='sb-wrong-auth-token'},
     (config)=>{config.publishableKeySha256='a'.repeat(64)},
     (config)=>{config.targetConfigSha256='b'.repeat(64)},
@@ -76,7 +102,7 @@ test('rejects candidate, environment, domain, redirect, project, runtime URL, ta
   }
 });
 
-test('runtime fingerprint binds project URL, domain, redirect, Auth storage namespace and public-key digest together',()=>{
+test('runtime fingerprint binds project URL, domain, redirect, Auth storage namespace, topology and public-key digest together',()=>{
   const config=validConfig();
   const baseline=productionRuntimeConfigFingerprint(config);
   assert.match(baseline,/^[0-9a-f]{64}$/);
@@ -88,6 +114,7 @@ test('runtime fingerprint binds project URL, domain, redirect, Auth storage name
     {productVersion:'V266'},
     {releaseStage:'preview'},
     {publishableKeySha256:'f'.repeat(64)},
+    {supabaseTopologySha256:'e'.repeat(64)},
   ]){
     assert.notEqual(productionRuntimeConfigFingerprint({...config,...patch}),baseline,JSON.stringify(patch));
   }
@@ -108,7 +135,8 @@ test('rejects missing verification evidence and raw secret-like material',()=>{
 
 test('current documented Stage C restore ref cannot be accepted as the Production target',()=>{
   const target={projectRef:RESTORE_PROJECT,publishableKey:TARGET.publishableKey};
-  const config={...validConfig(),projectRef:RESTORE_PROJECT,supabaseUrl:`https://${RESTORE_PROJECT}.supabase.co`,authStorageKey:`sb-${RESTORE_PROJECT}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
+  const supabaseTopology={projectRef:RESTORE_PROJECT,parentProjectRef:RESTORE_PROJECT,branchName:'main',isDefault:true};
+  const config={...validConfig(),projectRef:RESTORE_PROJECT,supabaseUrl:`https://${RESTORE_PROJECT}.supabase.co`,supabaseTopology,supabaseTopologySha256:productionSupabaseTopologyFingerprint(supabaseTopology),authStorageKey:`sb-${RESTORE_PROJECT}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
   config.runtimeConfigSha256=productionRuntimeConfigFingerprint(config);
   const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:target},SHA);
   assert.equal(result.ok,false);

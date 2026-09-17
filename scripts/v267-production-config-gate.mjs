@@ -25,17 +25,28 @@ export function productionTargetFingerprint(target={}){
   return sha256(JSON.stringify({projectRef,publishableKeySha256:sha256(publishableKey)}));
 }
 
+export function productionSupabaseTopologyFingerprint(input={}){
+  const value=object(input);
+  const projectRef=text(value.projectRef);
+  const parentProjectRef=text(value.parentProjectRef);
+  const branchName=text(value.branchName);
+  if(!PROJECT_REF_RE.test(projectRef)||!PROJECT_REF_RE.test(parentProjectRef))return '';
+  if(value.isDefault!==true||parentProjectRef!==projectRef||!branchName)return '';
+  return sha256(JSON.stringify({projectRef,parentProjectRef,branchName,isDefault:true}));
+}
+
 export function productionRuntimeConfigFingerprint(input={}){
   const value=object(input);
   const projectRef=text(value.projectRef);
   const publishableKeySha256=text(value.publishableKeySha256);
+  const supabaseTopologySha256=text(value.supabaseTopologySha256);
   const supabaseUrl=text(value.supabaseUrl);
   const hostname=text(value.hostname);
   const authRedirectUrl=text(value.authRedirectUrl);
   const authStorageKey=text(value.authStorageKey);
   const productVersion=text(value.productVersion);
   const releaseStage=text(value.releaseStage);
-  if(!PROJECT_REF_RE.test(projectRef)||!SHA256_RE.test(publishableKeySha256))return '';
+  if(!PROJECT_REF_RE.test(projectRef)||!SHA256_RE.test(publishableKeySha256)||!SHA256_RE.test(supabaseTopologySha256))return '';
   if(supabaseUrl!==expectedSupabaseUrl(projectRef))return '';
   if(hostname!==PRODUCTION_HOST||authRedirectUrl!==PRODUCTION_REDIRECT)return '';
   if(authStorageKey!==`sb-${projectRef}-auth-token`)return '';
@@ -49,6 +60,7 @@ export function productionRuntimeConfigFingerprint(input={}){
     productVersion,
     releaseStage,
     publishableKeySha256,
+    supabaseTopologySha256,
   }));
 }
 
@@ -87,6 +99,19 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   if(!expectedUrl)errors.push('Production Supabase URL cannot be validated without a valid Production project reference');
   else if(supabaseUrl!==expectedUrl)errors.push('Production Supabase URL must match the exact Production project reference');
 
+  const topology=object(value.supabaseTopology);
+  const topologyProjectRef=text(topology.projectRef);
+  const topologyParentProjectRef=text(topology.parentProjectRef);
+  const topologyBranchName=text(topology.branchName);
+  if(topologyProjectRef!==projectRef)errors.push('Production Supabase topology projectRef must match the exact Production project reference');
+  if(topologyParentProjectRef!==projectRef)errors.push('Production Supabase project must be the default project, not a development/preview branch');
+  if(topology.isDefault!==true)errors.push('Production Supabase project must be verified as the default branch');
+  if(!topologyBranchName)errors.push('Production Supabase topology branch name is required');
+  if(!evidencePresent(value.supabaseTopologyEvidence))errors.push('Production Supabase topology evidence references are required');
+  const expectedTopologyDigest=productionSupabaseTopologyFingerprint(topology);
+  if(!SHA256_RE.test(String(value.supabaseTopologySha256||'')))errors.push('Production Supabase topology fingerprint must be SHA-256');
+  else if(expectedTopologyDigest&&value.supabaseTopologySha256!==expectedTopologyDigest)errors.push('Production Supabase topology fingerprint does not match the verified default project');
+
   const targetRef=text(target.projectRef);
   const publishableKey=text(target.publishableKey);
   if(!PROJECT_REF_RE.test(targetRef))errors.push('Repository production target projectRef is invalid');
@@ -112,9 +137,10 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
     productVersion:'V267',
     releaseStage:'production',
     publishableKeySha256:expectedKeyDigest,
+    supabaseTopologySha256:expectedTopologyDigest,
   });
   if(!SHA256_RE.test(String(value.runtimeConfigSha256||'')))errors.push('Production runtime configuration fingerprint must be SHA-256');
-  else if(expectedRuntimeDigest&&value.runtimeConfigSha256!==expectedRuntimeDigest)errors.push('Production runtime configuration fingerprint does not match the exact Production project/domain/Auth configuration');
+  else if(expectedRuntimeDigest&&value.runtimeConfigSha256!==expectedRuntimeDigest)errors.push('Production runtime configuration fingerprint does not match the exact Production project/domain/Auth/topology configuration');
 
   if(!evidencePresent(value.evidence))errors.push('Production configuration evidence references are required');
   const verifiedAt=Date.parse(text(value.verifiedAt));
