@@ -1,9 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import {
   readReleaseGateManifest,
   validateReleaseGateManifest,
 } from './v267-release-gate-manifest.mjs';
 import {validateStageCReleaseBundle} from './v267-stage-c-release-bundle-gate.mjs';
+import {validateProductionConfigForCli} from './v267-production-config-gate.mjs';
 
 export const REQUIRED_DECISION = 'approved_for_production';
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
@@ -72,14 +74,22 @@ export function validateOwnerProductionApproval(input = {}) {
 
 // CLI/Production path is intentionally stricter than the compatibility validator above.
 // It requires the deterministic Stage-C bundle produced from the actual backup/restore/
-// rollback/device evidence, preventing independently true booleans from being mixed across
-// candidates or data projects. Preview/design approval still cannot satisfy this path.
+// rollback/device evidence and a cross-bound Production target verified against that bundle.
+// Preview/design approval still cannot satisfy this path.
 export function validateOwnerProductionApprovalForCli(input = {}) {
   const base = validateOwnerProductionApproval(input);
   const errors = [...base.errors];
   if (FULL_SHA_RE.test(base.candidateSha)) {
     const stageC = validateStageCReleaseBundle(input.releaseGateManifest?.stageCBundle, base.candidateSha);
     for (const error of stageC.errors) errors.push(`release gate Stage C bundle: ${error}`);
+    if (stageC.ok) {
+      const production = validateProductionConfigForCli({
+        productionConfig: input.releaseGateManifest?.productionConfig,
+        stageCBundle: input.releaseGateManifest?.stageCBundle,
+        productionTarget: input.productionTarget,
+      }, base.candidateSha);
+      for (const error of production.errors) errors.push(`release gate Production configuration: ${error}`);
+    }
   } else {
     errors.push('release gate Stage C bundle cannot be validated without the exact candidate SHA');
   }
@@ -125,6 +135,14 @@ function main() {
   } catch (error) {
     console.error('V267 OWNER PRODUCTION GATE: HOLD');
     console.error(`- unable to load full release gate manifest: ${error.message}`);
+    process.exitCode = 1;
+    return;
+  }
+  try {
+    input.productionTarget = JSON.parse(readFileSync(new URL('../config/production-target.json', import.meta.url), 'utf8'));
+  } catch (error) {
+    console.error('V267 OWNER PRODUCTION GATE: HOLD');
+    console.error(`- unable to load Production target configuration: ${error.message}`);
     process.exitCode = 1;
     return;
   }
