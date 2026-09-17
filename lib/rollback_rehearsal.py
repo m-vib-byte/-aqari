@@ -179,6 +179,11 @@ def verify_rollback_rehearsal(
     during_map = {_record_key(row): row["immutable_sha256"] for row in during["records"]}
     after_map = {_record_key(row): row["immutable_sha256"] for row in after["records"]}
 
+    if not checkpoint_map:
+        raise RollbackRehearsalError("checkpoint manifest must contain at least one pre-existing transaction")
+    if not during_map:
+        raise RollbackRehearsalError("during-window manifest must contain at least one newly created transaction")
+
     overlap = set(checkpoint_map) & set(during_map)
     if overlap:
         raise RollbackRehearsalError("during-window manifest must contain only newly created transactions")
