@@ -139,6 +139,21 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         with self.assertRaisesRegex(StageCEvidenceError, "avoid database rollback"):
             create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
 
+    def test_rejects_empty_rollback_rehearsal_that_does_not_prove_old_and_new_transactions(self):
+        backup, storage, restore, rollback, devices = fixtures()
+        rollback["checkpoint_record_count"] = 0
+        rollback["after_record_count"] = rollback["new_record_count"]
+        rollback["counts_by_kind"] = {"payment": 2}
+        with self.assertRaisesRegex(StageCEvidenceError, "pre-existing transaction"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+        backup, storage, restore, rollback, devices = fixtures()
+        rollback["new_record_count"] = 0
+        rollback["after_record_count"] = rollback["checkpoint_record_count"]
+        rollback["counts_by_kind"] = {"payment": 5, "receipt": 5}
+        with self.assertRaisesRegex(StageCEvidenceError, "newly created transaction"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
     def test_rejects_simulated_or_nonphysical_device_acceptance(self):
         for mutate in (
             lambda devices: devices["iphone"].update(simulated=True),
