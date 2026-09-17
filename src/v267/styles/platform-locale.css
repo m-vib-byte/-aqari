@@ -1,0 +1,19 @@
+/* AQARI V267 global locale direction and account language control. Presentation only. */
+@media screen{
+.aq-platform-language{min-height:48px;display:flex;align-items:center;gap:8px;padding:5px 8px 5px 11px;border:1px solid #d0b693;border-radius:12px;background:#fffaf3;color:#4b392f;white-space:nowrap}
+.aq-platform-language>span{font-size:.68rem;font-weight:760;color:#7b6656}
+.aq-platform-language select{min-width:86px;min-height:36px;margin:0!important;padding:0 8px!important;border:0!important;border-radius:8px!important;background:#f4e8d7!important;color:#4a372c!important;font:inherit!important;font-size:.78rem!important;font-weight:760!important;box-shadow:none!important}
+html[dir="ltr"] body :is(.aq-exact-top,.aq-exact-rail,.aq-exact-home,.aq-unified-dashboard,.aq-unified-page,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog){text-align:left}
+html[dir="rtl"] body :is(.aq-exact-top,.aq-exact-rail,.aq-exact-home,.aq-unified-dashboard,.aq-unified-page,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog){text-align:right}
+html[dir="ltr"] body :is(input,textarea){text-align:left}
+html[dir="rtl"] body :is(input,textarea){text-align:right}
+@media (min-width:1180px){
+ html[dir="rtl"] body.aq-owner-exact-ready .aq-exact-rail,html[dir="rtl"] body.aq-unified-experience .aq-exact-rail{right:0!important;left:auto!important;inset-inline:auto!important}
+ html[dir="rtl"] body.aq-owner-exact-ready .aq-exact-top,html[dir="rtl"] body.aq-unified-experience .aq-exact-top{right:270px!important;left:0!important;inset-inline:auto!important}
+ html[dir="rtl"] body.aq-owner-exact-ready main.w,html[dir="rtl"] body.aq-unified-experience main.w{margin-right:270px!important;margin-left:0!important}
+ html[dir="ltr"] body.aq-owner-exact-ready .aq-exact-rail,html[dir="ltr"] body.aq-unified-experience .aq-exact-rail{left:0!important;right:auto!important;inset-inline:auto!important;border-right:1px solid #ae8754!important;border-left:0!important}
+ html[dir="ltr"] body.aq-owner-exact-ready .aq-exact-top,html[dir="ltr"] body.aq-unified-experience .aq-exact-top{left:270px!important;right:0!important;inset-inline:auto!important}
+ html[dir="ltr"] body.aq-owner-exact-ready main.w,html[dir="ltr"] body.aq-unified-experience main.w{margin-left:270px!important;margin-right:0!important}
+}
+@media (max-width:699px){.aq-platform-language{min-height:42px;padding:3px 6px}.aq-platform-language>span{display:none}.aq-platform-language select{min-width:72px;min-height:34px;font-size:.74rem!important}}
+}
