@@ -7,15 +7,20 @@
  --aq-st-line:#d7c2a8;--aq-st-muted:#75665a;--aq-st-success:#2f7454;--aq-st-success-bg:#e8f2ec;
  --aq-st-danger:#a3453e;--aq-st-danger-bg:#f7e8e5;--aq-st-shadow:0 12px 34px rgba(73,50,38,.075);
 }
-body.aq-live-stable{background:linear-gradient(180deg,#fbf7f1 0,var(--aq-st-bg) 58%,#e8dccf 100%)!important;color:var(--aq-st-brown)!important}
+body.aq-live-stable{padding:0!important;background:linear-gradient(180deg,#fbf7f1 0,var(--aq-st-bg) 58%,#e8dccf 100%)!important;color:var(--aq-st-brown)!important}
 body.aq-live-stable #aqUnifiedExperience,body.aq-live-stable #aqUnifiedMobileNav,body.aq-live-stable #aqOwnerReferenceRail,body.aq-live-stable #aqOwnerReferenceCommand{display:none!important}
 /* ID scope wins over the old #home > * exclusion, regardless of load order. */
 body.aq-live-stable #home > #aqOwnerExactHome{display:grid!important;gap:14px!important;max-width:1480px!important;margin-inline:auto!important}
 body.aq-live-stable #home > :not(#aqOwnerExactHome){display:none!important}
-body.aq-live-stable #home #aqOwnerExactHome > :not(#aqUnifiedExperience){display:grid!important}
+body.aq-live-stable #home #aqOwnerExactHome > :not([id="aqUnifiedExperience"]){display:grid!important}
 body.aq-live-stable #home #aqOwnerExactHome > .aq-exact-kpis,
 body.aq-live-stable #home #aqOwnerExactHome .aq-exact-collection,
 body.aq-live-stable #home #aqOwnerExactHome .aq-exact-units{display:none!important}
+body.aq-live-stable #home #aqOwnerExactHome > .aq-exact-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:180px!important;padding:20px 24px!important;gap:20px!important}
+body.aq-live-stable #home #aqOwnerExactHome .aq-exact-hero-copy{position:relative!important;inset:auto!important;padding:0!important;flex:1;min-width:0;text-align:start!important}
+body.aq-live-stable #home #aqOwnerExactHome .aq-exact-hero-copy h1{font-size:clamp(1.5rem,3vw,2.5rem)!important;line-height:1.4!important;white-space:normal!important}
+body.aq-live-stable #home #aqOwnerExactHome .aq-exact-hero-promise{position:relative!important;inset:auto!important;flex:0 1 38%;padding:16px!important;border-radius:14px;max-width:360px}
+body.aq-live-stable #home #aqOwnerExactHome .aq-exact-skyline{display:none!important}
 /* The retired header rule is sticky!important and otherwise catches every panel. */
 body.aq-live-stable #aqOwnerExactHome header,
 body.aq-live-stable main.w > .p header{position:static!important;inset:auto!important;min-height:0!important;z-index:auto!important;padding:14px 16px!important}
