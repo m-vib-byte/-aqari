@@ -15,7 +15,7 @@ function sourceNodes(selector){
 function clean(value){return String(value??'').replace(/\s+/g,' ').trim();}
 function sourceValue(pattern,fallback='—'){
  const candidates=sourceNodes('.v199-kpi,.aq267-counter-card,[data-kpi],.v210-kpis>*');
- const hit=candidates.find(node=>pattern.test(clean(node.textContent)));
+ const hit=candidates.find(node=>{const label=node.querySelector('.v199-kpi-label,dt,[data-kpi-label],span');return pattern.test(clean(label?.textContent));});
  if(!hit)return fallback;
  const value=hit.querySelector('.v199-kpi-value,dd,strong,[data-value]');
  return clean(value?.textContent)||fallback;
@@ -48,7 +48,7 @@ function ensureDashboard(){
 }
 function setValue(key,value){
  const node=document.querySelector(`[data-live-value="${key}"]`);if(!node)return;
- const text=clean(value)||'—';node.textContent=text;node.closest('[data-live-card]')?.classList.toggle('is-missing',text==='—');
+ const text=clean(value)||'—';if(node.textContent!==text)node.textContent=text;node.closest('[data-live-card]')?.classList.toggle('is-missing',text==='—');
 }
 function refreshMetrics(){
  const map={
@@ -72,7 +72,7 @@ function refreshMetrics(){
 }
 function refreshActivity(){
  const host=document.querySelector('[data-live-activity]');if(!host)return;
- const rows=sourceNodes('.v199-activity-row,.aq267-audit-row,[data-audit-row],.v199-priority-item').map(row=>clean(row.textContent)).filter(Boolean).slice(0,6);
+ const rows=sourceNodes('.v199-activity-row,.aq267-audit-row,[data-audit-row]').map(row=>clean(row.textContent)).filter(Boolean).slice(0,6);
  host.replaceChildren();
  if(!rows.length){const p=document.createElement('p');p.className='aq-live-empty';p.textContent='لا توجد عمليات ظاهرة ضمن صلاحيات الحساب الحالية.';host.append(p);return;}
  for(const text of rows){const p=document.createElement('p');p.textContent=text;host.append(p);}
@@ -99,16 +99,24 @@ function normalizePages(){
 }
 function refresh(){
  if(!scope())return;
- suppressDuplicateShells();ensureDashboard();normalizePages();refreshMetrics();refreshActivity();refreshAlerts();
+ observer?.disconnect();
+ try{suppressDuplicateShells();ensureDashboard();normalizePages();refreshMetrics();refreshActivity();refreshAlerts();}
+ finally{observeSources();}
+}
+function observeSources(){observer?.observe(document.body,{subtree:true,childList:true,characterData:true});}
+function isSourceMutation(record){
+ const target=record.target?.nodeType===3?record.target.parentElement:record.target;
+ return !target?.closest?.('#aqOwnerExactHome,#aqOwnerExactShell,#aqUnifiedExperience,#aqUnifiedMobileNav,#aqOwnerReferenceRail,#aqOwnerReferenceCommand');
 }
 function schedule(){if(refreshQueued)return;refreshQueued=true;requestAnimationFrame(()=>{refreshQueued=false;refresh();});}
 function boot(){
  if(!document.getElementById('aqari-live-stability-css')){const link=document.createElement('link');link.id='aqari-live-stability-css';link.rel='stylesheet';link.href='/src/v267/styles/live-stability.css?release='+RELEASE;document.head.appendChild(link);}
  refresh();
- observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(record=>{const target=record.target;return !target?.closest?.('#'+ROOT);})){schedule();}});
- observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
+ observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(isSourceMutation))schedule();});
+ observeSources();
  window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(schedule,0);});
  window.addEventListener('aqari:owner-final-route',()=>setTimeout(schedule,0));
  window.AQARI_LIVE_STABILITY=Object.freeze({version:'V267-work1-stability-1',refresh:schedule});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
