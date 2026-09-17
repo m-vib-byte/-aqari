@@ -19,9 +19,20 @@ function canonical(value){
 
 function normalizedSha(value){return String(value||'').trim().toLowerCase()}
 function text(value){return typeof value==='string'?value.trim():''}
-function evidencePresent(value){return Array.isArray(value)&&value.length>0&&value.every((item)=>typeof item==='string'&&item.trim())}
 function nonNegativeInt(value){return Number.isInteger(value)&&value>=0}
 function positiveInt(value){return Number.isInteger(value)&&value>0}
+function normalizedEvidenceList(value){
+  if(!Array.isArray(value)||value.length===0)return null;
+  const refs=[];
+  const seen=new Set();
+  for(const item of value){
+    const ref=text(item);
+    if(!ref||seen.has(ref))return null;
+    seen.add(ref);
+    refs.push(ref);
+  }
+  return refs.sort();
+}
 function normalizedPreviewUrl(value){
   const raw=text(value);
   if(!raw)return '';
@@ -88,6 +99,7 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   const devices=value.devices&&typeof value.devices==='object'&&!Array.isArray(value.devices)?value.devices:{};
   if(JSON.stringify(Object.keys(devices).sort())!==JSON.stringify([...DEVICE_CLASSES].sort()))errors.push('Stage C device evidence must contain exactly desktop, iphone and ipad');
   const instances=new Set();
+  const evidenceRefs=new Set();
   for(const deviceClass of DEVICE_CLASSES){
     const row=devices[deviceClass]&&typeof devices[deviceClass]==='object'&&!Array.isArray(devices[deviceClass])?devices[deviceClass]:{};
     if(row.accepted!==true)errors.push(`Stage C ${deviceClass} acceptance must be true`);
@@ -106,7 +118,27 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
     if(!browser)errors.push(`Stage C ${deviceClass} browser is required`);
     const flows=row.flows&&typeof row.flows==='object'&&!Array.isArray(row.flows)?row.flows:{};
     if(JSON.stringify(Object.keys(flows).sort())!==JSON.stringify([...REQUIRED_FLOWS].sort())||REQUIRED_FLOWS.some((flow)=>flows[flow]!==true))errors.push(`Stage C ${deviceClass} must pass every required practical flow`);
-    if(!evidencePresent(row.evidence))errors.push(`Stage C ${deviceClass} evidence references are required`);
+
+    const flowEvidence=row.flow_evidence&&typeof row.flow_evidence==='object'&&!Array.isArray(row.flow_evidence)?row.flow_evidence:{};
+    if(JSON.stringify(Object.keys(flowEvidence).sort())!==JSON.stringify([...REQUIRED_FLOWS].sort())){
+      errors.push(`Stage C ${deviceClass} must provide evidence for every required practical flow`);
+    }
+    const flattened=[];
+    for(const flow of REQUIRED_FLOWS){
+      const refs=normalizedEvidenceList(flowEvidence[flow]);
+      if(!refs){
+        errors.push(`Stage C ${deviceClass} ${flow} evidence must contain unique non-empty references`);
+        continue;
+      }
+      for(const ref of refs){
+        if(evidenceRefs.has(ref))errors.push('Stage C physical-device evidence references must not be reused across flows or devices');
+        else evidenceRefs.add(ref);
+        flattened.push(ref);
+      }
+    }
+    const aggregate=normalizedEvidenceList(row.evidence);
+    if(!aggregate)errors.push(`Stage C ${deviceClass} evidence references must be unique and non-empty`);
+    else if(JSON.stringify(aggregate)!==JSON.stringify(flattened.sort()))errors.push(`Stage C ${deviceClass} evidence list must exactly match the per-flow evidence references`);
   }
 
   const digest=String(value.bundle_sha256||'').trim().toLowerCase();
