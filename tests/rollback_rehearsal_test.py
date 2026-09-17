@@ -71,6 +71,21 @@ class RollbackRehearsalTest(unittest.TestCase):
             self.assertEqual(report["after_record_count"], 4)
             self.assertEqual(report["counts_by_kind"], {"receipt": 2, "rent_payment": 2})
 
+    def test_rehearsal_requires_preexisting_and_new_transactions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            checkpoint, during, after, before, new = self.make_evidence(root)
+            self.write_manifest(checkpoint, "2026-09-17T05:00:00Z", [])
+            self.write_manifest(after, "2026-09-17T05:20:00Z", new)
+            with self.assertRaisesRegex(RollbackRehearsalError, "pre-existing transaction"):
+                self.verify(checkpoint, during, after)
+
+            self.write_manifest(checkpoint, "2026-09-17T05:00:00Z", before)
+            self.write_manifest(during, "2026-09-17T05:10:00Z", [])
+            self.write_manifest(after, "2026-09-17T05:20:00Z", before)
+            with self.assertRaisesRegex(RollbackRehearsalError, "newly created transaction"):
+                self.verify(checkpoint, during, after)
+
     def test_missing_or_unexpected_transaction_fails_closed(self):
         for mode in ("missing", "unexpected"):
             with self.subTest(mode=mode), tempfile.TemporaryDirectory() as temp:
