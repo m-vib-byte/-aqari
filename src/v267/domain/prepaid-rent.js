@@ -11,16 +11,29 @@ const isoDate=value=>{
  const year=Number(match[1]),month=Number(match[2]),day=Number(match[3]),date=new Date(Date.UTC(year,month-1,day));
  return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day;
 };
+const monthStart=value=>{
+ const raw=text(value),match=/^(\d{4})-(\d{2})-01$/.exec(raw);if(!match)return null;
+ const month=Number(match[2]);return month>=1&&month<=12?raw:null;
+};
+const kwdNonnegative=value=>{
+ if(value===null||value===undefined||value==='')return null;
+ const n=Number(value);return Number.isFinite(n)&&n>=0&&Math.round(n*1000)/1000===n?n:null;
+};
 const sameMoney=(a,b)=>Number.isFinite(Number(a))&&Number.isFinite(Number(b))&&Math.round(Number(a)*1000)===Math.round(Number(b)*1000);
 
 export function allocatePrepaidAmount(periods,total,{maxPeriods=24}={}){
  const requested=money(total);if(!Array.isArray(periods)||!periods.length)throw Error('لا توجد فترات مستحقة قابلة للتغطية.');
  if(!Number.isInteger(maxPeriods)||maxPeriods<1||maxPeriods>60)throw Error('عدد الفترات غير صالح.');
- let remaining=Math.round(requested*1000),rows=[];
+ let remaining=Math.round(requested*1000),rows=[],previousPeriod='';const seenPeriods=new Set();
  for(const row of periods.slice(0,maxPeriods)){
-  const balance=Math.round(Number(row?.balance||0)*1000);if(balance<=0)continue;
+  const period=monthStart(row?.period),due=kwdNonnegative(row?.due_amount),balanceValue=kwdNonnegative(row?.balance);
+  if(!period||due===null||balanceValue===null)throw Error('جدول الاستحقاقات غير صالح للدفعة المقدمة. أعد تحميل الاستحقاقات من الخادم.');
+  if(seenPeriods.has(period))throw Error('جدول الاستحقاقات يحتوي فترة مكررة. أعد تحميل الاستحقاقات قبل الحفظ.');
+  if(previousPeriod&&period<=previousPeriod)throw Error('جدول الاستحقاقات يجب أن يكون مرتبًا زمنياً من الأقدم إلى الأحدث. أعد تحميل الاستحقاقات.');
+  seenPeriods.add(period);previousPeriod=period;
+  const balance=Math.round(balanceValue*1000);if(balance<=0)continue;
   const take=Math.min(balance,remaining);if(take<=0)break;
-  rows.push({period:String(row.period).slice(0,10),amount:take/1000,dueAmount:Number(row.due_amount),balanceBefore:balance/1000,dueOn:row.due_on||null});remaining-=take;
+  rows.push({period,amount:take/1000,dueAmount:due,balanceBefore:balance/1000,dueOn:row.due_on||null});remaining-=take;
   if(remaining===0)break;
  }
  if(remaining!==0)throw Error('المبلغ أكبر من رصيد الفترات المختارة. وسّع نطاق الأشهر أو خفّض المبلغ.');
