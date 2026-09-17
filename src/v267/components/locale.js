@@ -29,7 +29,7 @@ export const dateLocale=()=>DATE_LOCALES[locale];
 // Call only for source-code UI strings. Do not pass tenant names or record values.
 export function t(source,value=locale) {
  if(!valid(value)||value==='ar')return source;
- return WORKSPACE_MESSAGES[source]?.[value]||MESSAGES[source]?.[value]||source;
+ return MESSAGES[source]?.[value]||WORKSPACE_MESSAGES[source]?.[value]||source;
 }
 
 // Interpolate source-code templates once. Record values remain literal text,
