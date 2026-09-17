@@ -126,7 +126,7 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
   if (!evidencePresent(preview.evidence)) errors.push('hosted Preview acceptance evidence is required');
 
   const devices = manifest.devices || {};
-  validateDevice(errors, devices.desktop, candidateSha, 'Desktop');
+  validateDevice(errors, devices.desktop, candidateSha, 'Desktop', { physical: true });
   validateDevice(errors, devices.iphone, candidateSha, 'iPhone', { physical: true });
   validateDevice(errors, devices.ipad, candidateSha, 'iPad', { physical: true });
 
