@@ -6,3 +6,4 @@ run(process.execPath,['scripts/check-v267-integration-readiness.mjs']);
 run('python',['-m','unittest','tests.mfa_selftest_test']);
 run('python',['-m','unittest','tests.property_statement_source_charge_totals_test']);
 run('python',['-m','unittest','tests.storage_byte_manifest_test']);
+run('python',['-m','unittest','tests.backup_set_manifest_test']);
