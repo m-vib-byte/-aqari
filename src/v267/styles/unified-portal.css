@@ -1,0 +1,19 @@
+/* AQARI V267 — shared external portal identity for login / tenant / partner. */
+@media screen{
+:root{--aqp-bg:#f3eadf;--aqp-surface:#fffaf3;--aqp-surface2:#f0e2cf;--aqp-brown:#5b4233;--aqp-brown2:#715440;--aqp-gold:#b88a3e;--aqp-gold2:#d7b46f;--aqp-ink:#34271f;--aqp-muted:#756455;--aqp-line:#d8c3a5;--aqp-success:#2f7855;--aqp-danger:#aa433b}
+body{background:linear-gradient(180deg,#f8f2ea 0,#efe5d8 52%,#e8d8c7 100%)!important;color:var(--aqp-ink)!important;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif!important}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 15% 8%,rgba(217,181,111,.18),transparent 30%),radial-gradient(circle at 88% 18%,rgba(112,82,61,.08),transparent 28%)}
+main,body>main{position:relative;z-index:1}
+header{border-color:var(--aqp-line)!important;background:linear-gradient(135deg,#f4e6d2,#e6d0b2)!important;color:var(--aqp-ink)!important;box-shadow:0 12px 32px rgba(85,61,43,.08)!important}
+header span,header small{color:#8c6431!important}h1,h2,h3,strong{color:#493429!important}
+p,small,label{color:var(--aqp-muted)!important}
+section,article,.card,.box,fieldset,details{border-color:var(--aqp-line)!important;background:linear-gradient(180deg,#fffaf3,#f7eee2)!important;box-shadow:0 8px 24px rgba(86,62,44,.055)!important}
+button,.button,a.button{min-height:44px;border:1px solid #c5a77b!important;border-radius:11px!important;background:#fff9ef!important;color:#66482f!important;font-weight:800!important}
+button.primary,.primary,button[type=submit]{background:linear-gradient(180deg,#d8b56e,#b3823d)!important;border-color:#b48748!important;color:#332319!important}
+input,select,textarea{min-height:47px;border:1px solid #ccb18c!important;border-radius:11px!important;background:#fffdf8!important;color:#3d3028!important;font-size:16px!important}
+input:focus,select:focus,textarea:focus{outline:3px solid rgba(184,138,62,.18)!important;border-color:var(--aqp-gold)!important}
+.status.ready,.success,.paid,[data-state=success]{color:var(--aqp-success)!important;background:#e8f4ed!important;border-color:#b9d9c6!important}.status.bad,.error,.danger,.cancelled,[data-state=error],[data-state=cancelled]{color:var(--aqp-danger)!important;background:#faeae7!important;border-color:#e1b4ae!important}
+@media(max-width:699px){body{padding:8px!important}main,body>main{width:100%!important;max-width:none!important;margin:0!important}header{padding:16px!important;border-radius:16px!important}section,article,.card,.box{border-radius:14px!important;padding:13px!important}button,.button,a.button{min-height:48px!important}}
+@media(min-width:700px) and (max-width:1179px){main,body>main{max-width:980px!important;margin-inline:auto!important;padding:18px!important}section,article,.card,.box{border-radius:15px!important}}
+@media(min-width:1180px){main,body>main{max-width:1180px!important;margin-inline:auto!important;padding:24px!important}header{border-radius:20px!important}section,article,.card,.box{border-radius:16px!important}}
+}

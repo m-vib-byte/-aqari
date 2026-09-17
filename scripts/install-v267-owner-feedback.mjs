@@ -25,9 +25,26 @@ if(!release.includes(finalMarker)){
  writeFileSync(releasePath,release);
  console.log('Installed V267 final warm-beige owner-test runtime loader.');
 }
+
+// Owner-approved structural layer: rebuild the actual layout above the compatibility
+// layers while delegating every business action to the existing authoritative workflow.
+release=readFileSync(releasePath,'utf8');
+const unifiedMarker='/* AQARI V267 unified structural layout loader */';
+if(!release.includes(unifiedMarker)){
+ release+=`\n${unifiedMarker}\n;(function(){\n function loadUnifiedLayout(){\n  if(!document.getElementById('aqari-v267-unified-layout-css')){const link=document.createElement('link');link.id='aqari-v267-unified-layout-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout.css?release=V267';document.head.appendChild(link);}\n  if(document.getElementById('aqari-v267-unified-layout-js'))return;\n  const script=document.createElement('script');script.id='aqari-v267-unified-layout-js';script.type='module';script.src='/src/v267/unified-layout-runtime.js?release=V267';document.body.appendChild(script);\n }\n if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadUnifiedLayout,{once:true});else loadUnifiedLayout();\n})();\n`;
+ writeFileSync(releasePath,release);
+ console.log('Installed V267 unified structural layout above compatible business workflows.');
+}
+
+const portalCss='<link id="aqari-v267-unified-portal-css" rel="stylesheet" href="/src/v267/styles/unified-portal.css?release=V267">';
+for(const relative of ['login.html','tenant.html','partner.html']){
+ const path=new URL('../'+relative,import.meta.url);let html=readFileSync(path,'utf8');
+ if(!html.includes('aqari-v267-unified-portal-css')){if(!html.includes('</head>'))throw Error('V267_UNIFIED_PORTAL_HEAD_ANCHOR_MISSING:'+relative);html=html.replace('</head>',portalCss+'\n</head>');writeFileSync(path,html);}
+}
 const loginPath=new URL('../login.html',import.meta.url);let login=readFileSync(loginPath,'utf8');
 const finalLoginCss='<link id="aqari-v267-owner-final-login-css" rel="stylesheet" href="/src/v267/styles/owner-final-login.css?release=V267">';
 if(!login.includes('aqari-v267-owner-final-login-css')){if(!login.includes('</head>'))throw Error('V267_OWNER_FINAL_LOGIN_HEAD_ANCHOR_MISSING');login=login.replace('</head>',finalLoginCss+'\n</head>');writeFileSync(loginPath,login);}
-for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/owner-final-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs'],{stdio:'inherit'});
-console.log('Verified V267 owner feedback/final batch: real navigation, beige reference identity, OpenAI boundary, direct Meta WhatsApp, independent Email, guest control and scoped owner reports.');
+
+for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/owner-final-runtime.js','src/v267/unified-layout-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs','tests/v267-unified-layout.test.mjs'],{stdio:'inherit'});
+console.log('Verified V267 unified owner experience: real section navigation, full-page beige/brown/gold structure, iPhone-first/iPad/Desktop layouts, OpenAI read-only, guest controls and direct Meta owner reports.');

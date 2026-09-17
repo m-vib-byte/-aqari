@@ -32,6 +32,9 @@
     {"source": "/src/v267/styles/owner-final-beige.css", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
     {"source": "/src/v267/styles/owner-final-login.css", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
     {"source": "/src/v267/owner-final-runtime.js", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
+    {"source": "/src/v267/styles/unified-layout.css", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
+    {"source": "/src/v267/styles/unified-portal.css", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
+    {"source": "/src/v267/unified-layout-runtime.js", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
     {"source": "/vendor/supabase-js-2.114.0.js", "headers": [{"key": "Cache-Control", "value": "public, max-age=31536000, immutable"},{"key": "x-vercel-enable-rewrite-caching", "value": "1"}]}
   ],
   "redirects": [
