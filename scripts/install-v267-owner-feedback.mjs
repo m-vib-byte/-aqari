@@ -21,7 +21,7 @@ const oldShortcut="window.addEventListener('keydown',event=>{if((event.metaKey||
 const newShortcut="document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();event.stopImmediatePropagation();openAssistant();}},true);";
 if(runtime.includes(oldShortcut))runtime=runtime.replace(oldShortcut,newShortcut);
 else if(!runtime.includes("event.stopImmediatePropagation();openAssistant();}},true)"))throw Error('V267_OWNER_ASSISTANT_SHORTCUT_ANCHOR_MISSING');
-if(runtime.includes('CSS?.escape?.')||runtime.includes(oldShortcut))throw Error('V267_OWNER_FEEDBACK_HARDENING_INCOMPLETE');
+if(runtime.includes(oldShortcut)||!runtime.includes('globalThis.CSS?.escape?.'))throw Error('V267_OWNER_FEEDBACK_HARDENING_INCOMPLETE');
 writeFileSync(runtimePath,runtime);
 
 for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
