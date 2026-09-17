@@ -38,10 +38,10 @@ def rpc(name,payload,env=os.environ,open_url=None):
         return json.loads(raw or b'null')
 
 def _provider_reference(value):
-    if not isinstance(value,dict):return ''
+    if not isinstance(value,dict) or 'error' in value or 'errors' in value:return ''
     for key in ('message_id','messageId','id','reference','provider_reference'):
         item=value.get(key)
-        if isinstance(item,(str,int)) and 1<=len(str(item))<=300:return str(item)
+        if type(item) in (str,int) and 1<=len(str(item))<=300 and str(item).strip() and not re.search(r'[\x00-\x1f\x7f]',str(item)):return str(item)
     return ''
 
 def _provider_request(item,env):
@@ -83,11 +83,15 @@ def _send(item,env=os.environ,open_url=None):
     try:
         with open_url(req,timeout=15) as response:
             status=getattr(response,'status',200);raw=response.read(65537)
-            if len(raw)>65536:raise RuntimeError('PROVIDER_RESPONSE_TOO_LARGE')
+            if len(raw)>65536:return False,False,'','PROVIDER_RESPONSE_TOO_LARGE'
             if status<200 or status>=300:raise HTTPError(url,status,'provider error',{},None)
             try:value=json.loads(raw or b'{}')
-            except json.JSONDecodeError:value={}
-            return True,False,_provider_reference(value),None
+            except (json.JSONDecodeError,UnicodeDecodeError):value={}
+            reference=_provider_reference(value)
+            # A successful HTTP response without an acknowledgement is ambiguous.
+            # Do not mark sent or retry blindly: the provider may have accepted it.
+            if not reference:return False,False,'','PROVIDER_ACKNOWLEDGEMENT_REQUIRED'
+            return True,False,reference,None
     except HTTPError as exc:
         retryable=exc.code in (408,425,429) or 500<=exc.code<=599
         return False,retryable,'','PROVIDER_HTTP_'+str(exc.code)
