@@ -12,8 +12,10 @@ const OTHER_SHA='13a219e7930db89ebf2f9b44d30007499efa6ccf';
 const DIGEST='a'.repeat(64);
 const PREVIEW_DEPLOYMENT='dpl_AqariExactPreview123';
 const PREVIEW_URL='https://aqari-exact-preview-123.vercel.app';
+const REQUIRED_FLOWS=['login','session','save','reopen','permissions','contracts','printing'];
 
 function device(deviceClass){
+  const flowEvidence=Object.fromEntries(REQUIRED_FLOWS.map((flow)=>[flow,[`evidence/${deviceClass}/${flow}.json`]]));
   return {
     accepted:true,
     real_account:true,
@@ -26,7 +28,8 @@ function device(deviceClass){
     device_instance:`physical-${deviceClass}-01`,
     browser:deviceClass==='desktop'?'Chrome':'Mobile Safari',
     flows:{login:true,session:true,save:true,reopen:true,permissions:true,contracts:true,printing:true},
-    evidence:[`evidence/${deviceClass}.json`],
+    flow_evidence:flowEvidence,
+    evidence:Object.values(flowEvidence).flat().sort(),
   };
 }
 
@@ -124,6 +127,24 @@ test('rejects rollback evidence that does not prove both pre-existing and newly 
     const result=validateStageCReleaseBundle(value,SHA);
     assert.equal(result.ok,false);
     assert.match(result.errors.join('\n'),/positive integer proving/);
+  }
+});
+
+test('rejects generic, reused, incomplete or mismatched physical-device flow evidence',()=>{
+  const mutations=[
+    (b)=>{delete b.devices.desktop.flow_evidence},
+    (b)=>{b.devices.iphone.flow_evidence.login=['evidence/shared.json'];b.devices.iphone.flow_evidence.session=['evidence/shared.json'];b.devices.iphone.evidence=Object.values(b.devices.iphone.flow_evidence).flat().sort()},
+    (b)=>{b.devices.ipad.flow_evidence.printing=[];b.devices.ipad.evidence=Object.values(b.devices.ipad.flow_evidence).flat().sort()},
+    (b)=>{b.devices.desktop.evidence=['evidence/desktop/login.json']},
+    (b)=>{b.devices.ipad.flow_evidence.login=[b.devices.iphone.flow_evidence.login[0]];b.devices.ipad.evidence=Object.values(b.devices.ipad.flow_evidence).flat().sort()},
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/evidence|flow/);
   }
 });
 
