@@ -4,6 +4,7 @@ export const STAGE_C_BUNDLE_FORMAT='AQARI-V267-STAGE-C-EVIDENCE-1';
 const FULL_SHA_RE=/^[0-9a-f]{40}$/;
 const SHA256_RE=/^[0-9a-f]{64}$/;
 const PROJECT_REF_RE=/^[a-z0-9][a-z0-9_-]{2,127}$/;
+const DEPLOYMENT_ID_RE=/^dpl_[A-Za-z0-9]+$/;
 const REQUIRED_DIGESTS=['backup_set','backup_storage_bytes','independent_restore','rollback_rehearsal','physical_devices'];
 const DEVICE_CLASSES=['desktop','iphone','ipad'];
 const REQUIRED_FLOWS=['login','session','save','reopen','permissions','contracts','printing'];
@@ -21,6 +22,17 @@ function text(value){return typeof value==='string'?value.trim():''}
 function evidencePresent(value){return Array.isArray(value)&&value.length>0&&value.every((item)=>typeof item==='string'&&item.trim())}
 function nonNegativeInt(value){return Number.isInteger(value)&&value>=0}
 function positiveInt(value){return Number.isInteger(value)&&value>0}
+function normalizedPreviewUrl(value){
+  const raw=text(value);
+  if(!raw)return '';
+  try{
+    const parsed=new URL(raw);
+    if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.port||parsed.search||parsed.hash)return '';
+    if(parsed.pathname&&parsed.pathname!=='/')return '';
+    if(!parsed.hostname.endsWith('.vercel.app'))return '';
+    return `https://${parsed.hostname}`;
+  }catch{return ''}
+}
 
 export function stageCBundleSha256(payload={}){
   const copy={...(payload&&typeof payload==='object'&&!Array.isArray(payload)?payload:{})};
@@ -44,6 +56,16 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   if(!PROJECT_REF_RE.test(source))errors.push('Stage C source project reference is invalid');
   if(!PROJECT_REF_RE.test(restored))errors.push('Stage C restore project reference is invalid');
   if(source&&restored&&source===restored)errors.push('Stage C independent restore project must differ from the source project');
+
+  const preview=value.preview&&typeof value.preview==='object'&&!Array.isArray(value.preview)?value.preview:{};
+  const previewDeploymentId=text(preview.deployment_id);
+  const previewUrl=normalizedPreviewUrl(preview.url);
+  const previewSha=normalizedSha(preview.candidate_sha);
+  if(!DEPLOYMENT_ID_RE.test(previewDeploymentId))errors.push('Stage C Preview deployment_id is invalid');
+  if(!previewUrl)errors.push('Stage C Preview url must be an immutable HTTPS vercel.app deployment URL');
+  if(!FULL_SHA_RE.test(previewSha)||previewSha!==candidateSha)errors.push('Stage C Preview identity is not tied to the exact candidate SHA');
+  if(preview.environment!=='preview')errors.push('Stage C Preview environment must be exactly preview');
+  if(preview.release_stage!=='preview')errors.push('Stage C Preview release_stage must be exactly preview');
 
   const digests=value.evidence_sha256&&typeof value.evidence_sha256==='object'&&!Array.isArray(value.evidence_sha256)?value.evidence_sha256:{};
   const digestKeys=Object.keys(digests).sort();
@@ -73,6 +95,10 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
     if(row.simulated!==false||row.emulated!==false||row.physical!==true)errors.push(`Stage C ${deviceClass} evidence must be physical, non-simulated and non-emulated`);
     const rowSha=normalizedSha(row.candidate_sha);
     if(!FULL_SHA_RE.test(rowSha)||rowSha!==candidateSha)errors.push(`Stage C ${deviceClass} evidence is not tied to the exact candidate SHA`);
+    const rowDeploymentId=text(row.preview_deployment_id);
+    const rowPreviewUrl=normalizedPreviewUrl(row.preview_url);
+    if(!DEPLOYMENT_ID_RE.test(rowDeploymentId)||rowDeploymentId!==previewDeploymentId)errors.push(`Stage C ${deviceClass} evidence must use the exact accepted Preview deployment`);
+    if(!rowPreviewUrl||rowPreviewUrl!==previewUrl)errors.push(`Stage C ${deviceClass} evidence must use the exact accepted Preview URL`);
     const instance=text(row.device_instance),browser=text(row.browser);
     if(!instance)errors.push(`Stage C ${deviceClass} physical device instance is required`);
     else if(instances.has(instance))errors.push('Stage C physical device instances must be distinct');
