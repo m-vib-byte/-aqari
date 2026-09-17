@@ -47,8 +47,8 @@ export function allocatePrepaidAmount(periods,total,{maxPeriods=24}={}){
 
 export function prepaidReceiptArtifacts({api,contract,profile,periodRow,allocation,receiptNo,contractReceiptSequence,paidAt,method,transactionNo,batchId}){
  if(!api||!contract||contract.status!=='signed'||!profile)throw Error('لا يمكن إصدار دفعة مقدمة قبل توقيع العقد.');
- const paid=money(allocation?.amount),rowPeriod=String(periodRow?.period||'').slice(0,10),allocationPeriod=String(allocation?.period||'').slice(0,10),period=rowPeriod.slice(0,7),receipt=text(receiptNo),tx=text(transactionNo),date=text(paidAt),sequence=Number(contractReceiptSequence),batch=text(batchId);
- if(!/^\d{4}-\d{2}-01$/.test(rowPeriod)||allocationPeriod!==rowPeriod||!isoDate(date)||!uuid(batch)||!/^AQ-R-\d{4}-\d{8,}$/.test(receipt)||!Number.isSafeInteger(sequence)||sequence<1||tx.length<1||tx.length>150)throw Error('بيانات الوصل أو الفترة غير مكتملة.');
+ const paid=money(allocation?.amount),rowPeriod=monthStart(periodRow?.period),allocationPeriod=monthStart(allocation?.period),period=rowPeriod?.slice(0,7)||'',receipt=text(receiptNo),tx=text(transactionNo),date=text(paidAt),sequence=Number(contractReceiptSequence),batch=text(batchId);
+ if(!rowPeriod||!allocationPeriod||allocationPeriod!==rowPeriod||!isoDate(date)||!uuid(batch)||!/^AQ-R-\d{4}-\d{8,}$/.test(receipt)||!Number.isSafeInteger(sequence)||sequence<1||tx.length<1||tx.length>150)throw Error('بيانات الوصل أو الفترة غير مكتملة.');
  const due=Number(periodRow.due_amount),before=Number(periodRow.balance),plannedBefore=Number(allocation?.balanceBefore),after=Number((before-paid).toFixed(3));
  if(!Number.isFinite(due)||due<0||!Number.isFinite(before)||before<=0||!sameMoney(plannedBefore,before)||paid>before+0.0001||after<0)throw Error('تغير رصيد الفترة أو تتجاوز الدفعة رصيدها. أعد تحميل الاستحقاقات قبل الحفظ.');
  const breakdown=api.entitlementBreakdown(contract,period);if(Math.round(Number(breakdown.net)*1000)!==Math.round(due*1000))throw Error('صافي الفترة لا يطابق جدول الاستحقاق الخادمي.');
@@ -65,8 +65,8 @@ export function prepaidBatchManifest({id,contract,leaseId,method,transactionNo,p
  paymentMethodLabel(method);
  const periods=new Set(),receipts=new Set(),operations=new Set();
  const sum=allocations.reduce((s,x)=>{
-  const period=String(x?.period||'').slice(0,10),receipt=text(x?.receiptNo),operation=text(x?.operationRef),sequence=Number(x?.contractReceiptSequence),part=money(x?.amount);
-  if(!/^\d{4}-\d{2}-01$/.test(period)||!/^AQ-R-\d{4}-\d{8,}$/.test(receipt)||!uuid(operation)||!Number.isSafeInteger(sequence)||sequence<1)throw Error('بيانات توزيع الدفعة المقدمة غير مكتملة.');
+  const period=monthStart(x?.period),receipt=text(x?.receiptNo),operation=text(x?.operationRef),sequence=Number(x?.contractReceiptSequence),part=money(x?.amount);
+  if(!period||!/^AQ-R-\d{4}-\d{8,}$/.test(receipt)||!uuid(operation)||!Number.isSafeInteger(sequence)||sequence<1)throw Error('بيانات توزيع الدفعة المقدمة غير مكتملة.');
   if(periods.has(period)||receipts.has(receipt)||operations.has(operation))throw Error('توزيع الدفعة المقدمة يحتوي فترة أو وصلًا أو مرجع عملية مكررًا.');
   periods.add(period);receipts.add(receipt);operations.add(operation);return s+Math.round(part*1000);
  },0);
