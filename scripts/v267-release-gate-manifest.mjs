@@ -3,6 +3,7 @@ import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
 const DEPLOYMENT_ID_RE = /^dpl_[A-Za-z0-9]{12,}$/;
+const REQUIREMENTS_TOTAL = 155;
 export const OWNER_GOVERNANCE_POLICY_ID = 'owner-governance-2026-09-13-kuwait';
 export const REQUIRED_DEVICE_FLOWS = [
   'login',
@@ -40,6 +41,51 @@ function requireSameSha(errors, value, candidateSha, label) {
     errors.push(`${label} commit SHA must be a full 40-character hexadecimal commit SHA`);
   } else if (sha !== candidateSha) {
     errors.push(`${label} evidence is not tied to the exact candidate SHA`);
+  }
+}
+
+function validateRequirements155(errors, requirements, candidateSha) {
+  const value = requirements && typeof requirements === 'object' && !Array.isArray(requirements)
+    ? requirements
+    : {};
+  requireTrue(errors, value.accepted, 'all 155 requirements must be explicitly accepted');
+  if (value.acceptedCount !== REQUIREMENTS_TOTAL) {
+    errors.push(`requirements155.acceptedCount must equal ${REQUIREMENTS_TOTAL}`);
+  }
+  if (!evidencePresent(value.evidence)) errors.push('155/155 acceptance evidence is required');
+
+  const items = Array.isArray(value.items) ? value.items : [];
+  if (items.length !== REQUIREMENTS_TOTAL) {
+    errors.push(`requirements155.items must contain exactly ${REQUIREMENTS_TOTAL} requirement records`);
+  }
+
+  const seen = new Set();
+  for (const raw of items) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      errors.push('every requirements155.items entry must be an object');
+      continue;
+    }
+    const id = Number(raw.id);
+    if (!Number.isInteger(id) || id < 1 || id > REQUIREMENTS_TOTAL) {
+      errors.push(`requirements155 item id must be an integer from 1 to ${REQUIREMENTS_TOTAL}`);
+      continue;
+    }
+    if (seen.has(id)) errors.push(`requirements155 item ${id} is duplicated`);
+    seen.add(id);
+    if (raw.status !== 'accepted') errors.push(`requirement ${id} status must be exactly accepted`);
+    requireSameSha(errors, raw.commitSha, candidateSha, `requirement ${id}`);
+    if (!evidencePresent(raw.evidence)) errors.push(`requirement ${id} acceptance evidence is required`);
+  }
+
+  if (seen.size !== REQUIREMENTS_TOTAL) {
+    errors.push(`requirements155.items must cover every requirement id 1..${REQUIREMENTS_TOTAL} exactly once`);
+  } else {
+    for (let id = 1; id <= REQUIREMENTS_TOTAL; id += 1) {
+      if (!seen.has(id)) {
+        errors.push(`requirements155.items is missing requirement ${id}`);
+        break;
+      }
+    }
   }
 }
 
@@ -126,11 +172,7 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
   if (manifest.status !== 'accepted') errors.push('release gate manifest status must be exactly accepted');
 
   validateOwnerGovernance(errors, manifest.ownerGovernance, candidateSha);
-
-  const requirements = manifest.requirements155 || {};
-  requireTrue(errors, requirements.accepted, 'all 155 requirements must be explicitly accepted');
-  if (requirements.acceptedCount !== 155) errors.push('requirements155.acceptedCount must equal 155');
-  if (!evidencePresent(requirements.evidence)) errors.push('155/155 acceptance evidence is required');
+  validateRequirements155(errors, manifest.requirements155, candidateSha);
 
   const ci = manifest.ci || {};
   requireTrue(errors, ci.allRequiredPassed, 'all required CI checks must pass');

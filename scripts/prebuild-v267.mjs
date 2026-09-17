@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 const run=(cmd,args)=>execFileSync(cmd,args,{stdio:'inherit',env:process.env});
 run(process.execPath,['--test','tests/v267-exact-preview-target.test.mjs']);
 run(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs']);
+run(process.execPath,['--test','tests/v267-requirements-155-evidence.test.mjs']);
 run(process.execPath,['--test','tests/v267-production-config-gate.test.mjs']);
 run(process.execPath,['--test','tests/v267-stage-c-release-bundle-gate.test.mjs']);
 run(process.execPath,['scripts/check-v267-integration-readiness.mjs']);
