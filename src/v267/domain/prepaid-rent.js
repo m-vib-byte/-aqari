@@ -24,16 +24,20 @@ const sameMoney=(a,b)=>Number.isFinite(Number(a))&&Number.isFinite(Number(b))&&M
 export function allocatePrepaidAmount(periods,total,{maxPeriods=24}={}){
  const requested=money(total);if(!Array.isArray(periods)||!periods.length)throw Error('لا توجد فترات مستحقة قابلة للتغطية.');
  if(!Number.isInteger(maxPeriods)||maxPeriods<1||maxPeriods>60)throw Error('عدد الفترات غير صالح.');
- let remaining=Math.round(requested*1000),rows=[],previousPeriod='';const seenPeriods=new Set();
- for(const row of periods.slice(0,maxPeriods)){
+ let previousPeriod='';const seenPeriods=new Set();
+ const schedule=periods.slice(0,maxPeriods).map(row=>{
   const period=monthStart(row?.period),due=kwdNonnegative(row?.due_amount),balanceValue=kwdNonnegative(row?.balance);
   if(!period||due===null||balanceValue===null)throw Error('جدول الاستحقاقات غير صالح للدفعة المقدمة. أعد تحميل الاستحقاقات من الخادم.');
   if(seenPeriods.has(period))throw Error('جدول الاستحقاقات يحتوي فترة مكررة. أعد تحميل الاستحقاقات قبل الحفظ.');
   if(previousPeriod&&period<=previousPeriod)throw Error('جدول الاستحقاقات يجب أن يكون مرتبًا زمنياً من الأقدم إلى الأحدث. أعد تحميل الاستحقاقات.');
   seenPeriods.add(period);previousPeriod=period;
-  const balance=Math.round(balanceValue*1000);if(balance<=0)continue;
+  return {period,due,balanceValue,dueOn:row.due_on||null};
+ });
+ let remaining=Math.round(requested*1000),rows=[];
+ for(const row of schedule){
+  const balance=Math.round(row.balanceValue*1000);if(balance<=0)continue;
   const take=Math.min(balance,remaining);if(take<=0)break;
-  rows.push({period,amount:take/1000,dueAmount:due,balanceBefore:balance/1000,dueOn:row.due_on||null});remaining-=take;
+  rows.push({period:row.period,amount:take/1000,dueAmount:row.due,balanceBefore:balance/1000,dueOn:row.dueOn});remaining-=take;
   if(remaining===0)break;
  }
  if(remaining!==0)throw Error('المبلغ أكبر من رصيد الفترات المختارة. وسّع نطاق الأشهر أو خفّض المبلغ.');
