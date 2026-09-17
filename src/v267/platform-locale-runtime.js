@@ -49,7 +49,9 @@ function translateElement(el){
  }
 }
 function translateTree(root=document.body){
- if(!root)return;applyDirection();const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))translateTextNode(node);
+ if(!root)return;applyDirection();
+ for(const dialog of document.querySelectorAll('dialog.aq267-dialog,dialog.aq-owner-center-dialog,dialog.aq-exact-assistant')){dialog.lang=getLocale();dialog.dir=direction();}
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))translateTextNode(node);
  const attrs=root.querySelectorAll?.('input[placeholder],textarea[placeholder],[aria-label],[title]')||[];for(const el of attrs)translateElement(el);
 }
 function mountLanguageControl(){
@@ -74,4 +76,3 @@ function start(){
  window.AQARI_PLATFORM_LOCALE=Object.freeze({version:'V267-platform-locale-2',get:getLocale,set(value){setLocale(value);window.location.reload();}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-
