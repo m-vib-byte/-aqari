@@ -3,6 +3,7 @@ import {
   readReleaseGateManifest,
   validateReleaseGateManifest,
 } from './v267-release-gate-manifest.mjs';
+import {validateStageCReleaseBundle} from './v267-stage-c-release-bundle-gate.mjs';
 
 export const REQUIRED_DECISION = 'approved_for_production';
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
@@ -69,6 +70,22 @@ export function validateOwnerProductionApproval(input = {}) {
   };
 }
 
+// CLI/Production path is intentionally stricter than the compatibility validator above.
+// It requires the deterministic Stage-C bundle produced from the actual backup/restore/
+// rollback/device evidence, preventing independently true booleans from being mixed across
+// candidates or data projects. Preview/design approval still cannot satisfy this path.
+export function validateOwnerProductionApprovalForCli(input = {}) {
+  const base = validateOwnerProductionApproval(input);
+  const errors = [...base.errors];
+  if (FULL_SHA_RE.test(base.candidateSha)) {
+    const stageC = validateStageCReleaseBundle(input.releaseGateManifest?.stageCBundle, base.candidateSha);
+    for (const error of stageC.errors) errors.push(`release gate Stage C bundle: ${error}`);
+  } else {
+    errors.push('release gate Stage C bundle cannot be validated without the exact candidate SHA');
+  }
+  return {...base, ok: errors.length === 0, errors};
+}
+
 function readArgs(argv) {
   const args = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -112,7 +129,7 @@ function main() {
     return;
   }
 
-  const result = validateOwnerProductionApproval(input);
+  const result = validateOwnerProductionApprovalForCli(input);
   if (!result.ok) {
     console.error('V267 OWNER PRODUCTION GATE: HOLD');
     for (const error of result.errors) console.error(`- ${error}`);
