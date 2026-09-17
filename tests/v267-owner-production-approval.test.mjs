@@ -39,6 +39,15 @@ function deviceEvidence({ physical = false, device = 'Desktop workstation', brow
   };
 }
 
+function requirementItems() {
+  return Array.from({ length: 155 }, (_, index) => ({
+    id: index + 1,
+    status: 'accepted',
+    commitSha: SHA,
+    evidence: [`evidence/requirements/${String(index + 1).padStart(3, '0')}.json`],
+  }));
+}
+
 function fullGateManifest() {
   return {
     schemaVersion: 1,
@@ -57,6 +66,7 @@ function fullGateManifest() {
       accepted: true,
       acceptedCount: 155,
       evidence: ['docs/V267-REQUIREMENTS-155.md'],
+      items: requirementItems(),
     },
     ci: {
       allRequiredPassed: true,
