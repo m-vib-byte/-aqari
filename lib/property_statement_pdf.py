@@ -79,6 +79,9 @@ def render_statement(content):
         value=source_totals.get(key)
         return 'غير مكتمل بالمصدر' if value is None else str(value)+' د.ك'
     story.append(p('إجمالي المدفوع بالمصدر: '+total_text('paid_amount_kd')+' • إجمالي المتبقي بالمصدر: '+total_text('remaining_kd')+' • إجمالي التأمين بالمصدر: '+total_text('insurance_kd')+' • إجمالي KNET بالمصدر: '+total_text('knet_paid_kd')))
+    story.append(p('إجمالي العربون بالمصدر: '+total_text('advance_kd')+' • إجمالي رسوم النظافة بالمصدر: '+total_text('cleaning_kd')))
+    if source_totals.get('advance_kd') is None or source_totals.get('cleaning_kd') is None:
+        story.append(p('لا يُنشر مجموع العربون أو رسوم النظافة إذا كان أي صف يفتقد القيمة المحفوظة أو يحتوي قيمة غير صالحة؛ يبقى كل إجمالي غير مكتمل حتى يوجد دليل مصدر صالح لكل صف.'))
     if source_totals.get('insurance_kd') is None:
         story.append(p('لا يُنشر مجموع التأمين إذا كان أي صف مفقوداً أو معلّماً كمعلق للمصالحة؛ لا تُحوّل قيمة متنازعاً عليها إلى إجمالي معتمد.'))
     if source_totals.get('knet_paid_kd') is None:
