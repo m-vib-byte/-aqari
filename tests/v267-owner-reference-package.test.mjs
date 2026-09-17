@@ -71,7 +71,7 @@ test('actual standalone login receives black-gold skin and manager-controlled ze
  assert.doesNotMatch(loginCss,/service_role|SUPABASE_SERVICE|api[_-]?key/i);
 });
 
-test('owner package installs after the fixed navigation build and permits the additive feedback layer',()=>{
+test('owner package installs after the fixed navigation build and permits the additive feedback and startup blocker layers',()=>{
  const installer=read('scripts/install-v267-owner-reference-package.mjs');
  const build=read('scripts/build-vercel.mjs');
  const vercel=JSON.parse(read('vercel.json'));
@@ -83,5 +83,5 @@ test('owner package installs after the fixed navigation build and permits the ad
  assert.match(installer,/aqari-v267-owner-login-js/);
  assert.match(installer,/login-owner-reference\.js/);
  assert.ok(build.includes("scripts/install-v267-section-target-navigation.mjs"),'navigation blocker installer must remain in build');
- assert.match(vercel.buildCommand,/^node scripts\/build-vercel\.mjs && node scripts\/install-v267-owner-reference-package\.mjs(?: && node scripts\/install-v267-owner-feedback\.mjs)?$/);
+ assert.match(vercel.buildCommand,/^node scripts\/build-vercel\.mjs && node scripts\/install-v267-owner-reference-package\.mjs(?: && node scripts\/install-v267-owner-feedback\.mjs)?(?: && node scripts\/install-v267-iphone-startup-fix\.mjs)?$/);
 });
