@@ -1,0 +1,4 @@
+@media screen{
+body.aq-unified-experience:has(main.w > .aq-unified-page.on) #home{display:none!important}
+body.aq-unified-experience:has(main.w > .aq-unified-page.on) main.w > .aq-unified-page.on{display:block!important}
+}
