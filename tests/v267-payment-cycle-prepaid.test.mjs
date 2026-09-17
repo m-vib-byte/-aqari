@@ -29,6 +29,16 @@ test('prepaid amount allocates FIFO across positive balances and supports a part
  assert.throws(()=>allocatePrepaidAmount(periods,250,{maxPeriods:2}),/أكبر من رصيد/);
 });
 
+test('prepaid allocator rejects malformed, duplicate or out-of-order server schedules before reserving receipts',()=>{
+ const october={period:'2026-10-01',due_amount:100,balance:100,due_on:'2026-10-01'};
+ const november={period:'2026-11-01',due_amount:100,balance:100,due_on:'2026-11-01'};
+ assert.throws(()=>allocatePrepaidAmount([november,october],50),/مرتبًا زمنياً/);
+ assert.throws(()=>allocatePrepaidAmount([october,{...october,balance:50}],50),/فترة مكررة/);
+ assert.throws(()=>allocatePrepaidAmount([{...october,period:'2026-10-15'}],50),/غير صالح/);
+ assert.throws(()=>allocatePrepaidAmount([{...october,balance:'NaN'}],50),/غير صالح/);
+ assert.throws(()=>allocatePrepaidAmount([{...october,due_amount:10.0009}],5),/غير صالح/);
+});
+
 test('prepaid batch manifest requires exact sum and server reservation identities',()=>{
  const contract={id:'c1',contract_no:'AQ-C-2026-000001'};
  const allocations=[{operationRef,period:'2026-10-01',amount:100,receiptNo:'AQ-R-2026-00000001',contractReceiptSequence:1}];
