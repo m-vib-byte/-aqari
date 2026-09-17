@@ -10,6 +10,7 @@ from __future__ import annotations
 from hashlib import sha256
 import json
 import re
+from urllib.parse import urlsplit
 
 from lib.backup_set_manifest import backup_set_sha256, validate_backup_set
 
@@ -20,6 +21,7 @@ ROLLBACK_FORMAT = "AQARI-V267-ROLLBACK-REHEARSAL-1"
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
+_DEPLOYMENT_ID_RE = re.compile(r"^dpl_[A-Za-z0-9]+$")
 REQUIRED_FLOWS = ("login", "session", "save", "reopen", "permissions", "contracts", "printing")
 DEVICE_CLASSES = ("desktop", "iphone", "ipad")
 
@@ -52,6 +54,35 @@ def _project_ref(value: object, field: str) -> str:
     if not isinstance(value, str) or not _PROJECT_REF_RE.fullmatch(value):
         raise StageCEvidenceError(f"invalid {field}")
     return value
+
+
+def _deployment_id(value: object, field: str) -> str:
+    if not isinstance(value, str) or not _DEPLOYMENT_ID_RE.fullmatch(value.strip()):
+        raise StageCEvidenceError(f"invalid {field}")
+    return value.strip()
+
+
+def _preview_url(value: object, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise StageCEvidenceError(f"invalid {field}")
+    raw = value.strip()
+    try:
+        parsed = urlsplit(raw)
+    except ValueError as exc:
+        raise StageCEvidenceError(f"invalid {field}") from exc
+    if (
+        parsed.scheme != "https"
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port is not None
+        or parsed.query
+        or parsed.fragment
+        or parsed.path not in ("", "/")
+        or not parsed.hostname.endswith(".vercel.app")
+    ):
+        raise StageCEvidenceError(f"{field} must be an immutable HTTPS vercel.app Preview URL")
+    return f"https://{parsed.hostname}"
 
 
 def _non_negative_int(value: object, field: str) -> int:
@@ -161,11 +192,13 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
     }
 
 
-def _validate_devices(payload: object, candidate_sha: str) -> dict:
+def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
     if not isinstance(payload, dict) or set(payload) != set(DEVICE_CLASSES):
         raise StageCEvidenceError("device evidence must contain exactly desktop, iphone and ipad")
     normalized = {}
     seen_instances = set()
+    preview_deployment_id = None
+    preview_url = None
     for device_class in DEVICE_CLASSES:
         row = payload[device_class]
         if not isinstance(row, dict):
@@ -178,6 +211,13 @@ def _validate_devices(payload: object, candidate_sha: str) -> dict:
             raise StageCEvidenceError(f"{device_class} evidence must come from a physical device")
         if _sha(row.get("candidate_sha"), f"{device_class} candidate_sha") != candidate_sha:
             raise StageCEvidenceError(f"{device_class} evidence is not tied to the exact candidate SHA")
+        row_deployment_id = _deployment_id(row.get("preview_deployment_id"), f"{device_class} preview_deployment_id")
+        row_preview_url = _preview_url(row.get("preview_url"), f"{device_class} preview_url")
+        if preview_deployment_id is None:
+            preview_deployment_id = row_deployment_id
+            preview_url = row_preview_url
+        elif row_deployment_id != preview_deployment_id or row_preview_url != preview_url:
+            raise StageCEvidenceError("all physical devices must test the exact same hosted Preview deployment")
         instance = row.get("device_instance")
         browser = row.get("browser")
         evidence = row.get("evidence")
@@ -200,12 +240,21 @@ def _validate_devices(payload: object, candidate_sha: str) -> dict:
             "emulated": False,
             "physical": True,
             "candidate_sha": candidate_sha,
+            "preview_deployment_id": row_deployment_id,
+            "preview_url": row_preview_url,
             "device_instance": instance.strip(),
             "browser": browser.strip(),
             "flows": {name: True for name in REQUIRED_FLOWS},
             "evidence": list(evidence),
         }
-    return normalized
+    preview = {
+        "deployment_id": preview_deployment_id,
+        "url": preview_url,
+        "candidate_sha": candidate_sha,
+        "environment": "preview",
+        "release_stage": "preview",
+    }
+    return normalized, preview
 
 
 def create_stage_c_evidence_bundle(
@@ -225,13 +274,14 @@ def create_stage_c_evidence_bundle(
     backup_storage = _validate_backup_storage_report(backup_storage_report, backup)
     restore = _validate_restore(restore_report, candidate, backup)
     rollback = _validate_rollback(rollback_report, candidate, backup)
-    device_rows = _validate_devices(devices, candidate)
+    device_rows, preview = _validate_devices(devices, candidate)
     normalized = {
         "format": FORMAT,
         "accepted": True,
         "candidate_sha": candidate,
         "source_project_ref": backup["project_ref"],
         "restore_project_ref": restore["restore_project_ref"],
+        "preview": preview,
         "evidence_sha256": {
             "backup_set": backup_set_sha256(backup),
             "backup_storage_bytes": _digest(backup_storage),
