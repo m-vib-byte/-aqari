@@ -131,6 +131,10 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
     checkpoint = _non_negative_int(report.get("checkpoint_record_count"), "rollback checkpoint_record_count")
     new = _non_negative_int(report.get("new_record_count"), "rollback new_record_count")
     after = _non_negative_int(report.get("after_record_count"), "rollback after_record_count")
+    if checkpoint == 0:
+        raise StageCEvidenceError("rollback rehearsal must prove at least one pre-existing transaction")
+    if new == 0:
+        raise StageCEvidenceError("rollback rehearsal must prove at least one newly created transaction")
     if after != checkpoint + new:
         raise StageCEvidenceError("rollback rehearsal did not preserve checkpoint plus new transactions")
     counts = report.get("counts_by_kind")
