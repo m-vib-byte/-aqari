@@ -67,3 +67,5 @@ if(!login.includes('aqari-v267-owner-final-login-css')){if(!login.includes('</he
 for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/owner-final-runtime.js','src/v267/unified-layout-runtime.js','src/v267/premium-navigation-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs','tests/v267-unified-layout.test.mjs','tests/v267-premium-refinement.test.mjs'],{stdio:'inherit'});
 console.log('Verified V267 premium refinement: restrained identity, direct real-function navigation, iPhone-first/iPad/Desktop composition, and unchanged authoritative business workflows.');
+
+await import('./install-v267-iphone-startup-fix.mjs');
