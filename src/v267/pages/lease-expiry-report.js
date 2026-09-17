@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {uiText} from '../components/ui-text.js';
 import {t,message} from '../components/locale.js';
@@ -35,4 +36,5 @@ export async function mountAvailableLeaseExpiryReport(d){
  if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.role!==d.session.bound.role||access?.features?.lease_expiry_report!==true||access?.permissions?.reports?.read!==true||access?.permissions?.contracts?.read!==true){d.body.append(uiText('p','تقرير انتهاء العقود غير متاح لهذا الحساب.'));return;}
  await mountLeaseExpiryReport(d).load();
 }
-export function openLeaseExpiryReport(){const d=createDialog('العقود المنتهية والقريبة من الانتهاء');if(d)d.run(()=>mountAvailableLeaseExpiryReport(d));}
+export function openLeaseExpiryReport(){const d=createDialog(translateStatic('العقود المنتهية والقريبة من الانتهاء'));if(d)d.run(()=>mountAvailableLeaseExpiryReport(d));}
+

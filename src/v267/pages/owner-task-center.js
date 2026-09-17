@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node} from '../components/dialog.js';
 import {readManagementCounters,kuwaitDay} from '../components/management-counters.js';
 
@@ -15,7 +16,7 @@ async function openAfter(d,path,exportName){
 }
 
 export function openOwnerTaskCenter(){
- const d=createDialog('التنبيهات والمهام');if(!d)return false;
+ const d=createDialog(translateStatic('التنبيهات والمهام'));if(!d)return false;
  d.el.classList.add('aq-owner-center-dialog');
  d.run(async()=>{
   const report=await readManagementCounters(d.session,kuwaitDay());
@@ -38,7 +39,8 @@ export function openOwnerTaskCenter(){
    action('إعلانات العقارات','تنبيهات وإرشادات المستأجرين مع إثبات الاطلاع.',()=>openAfter(d,'./property-notices.js','openPropertyNotices'))
   );
   d.body.replaceChildren(text('p','مركز موحّد للمتابعة فقط؛ كل إجراء يفتح الوظيفة الأصلية وصلاحياتها الحالية ولا ينشئ سجلاً موازيًا.'),cards,actions);
-  d.status.textContent='تم تحديث المهام من العدادات المصرح بها بتاريخ '+report.asOf+' بتوقيت الكويت.';
+  d.status.textContent=translateStatic('تم تحديث المهام من العدادات المصرح بها بتاريخ ')+report.asOf+' بتوقيت الكويت.';
  });
  return true;
 }
+

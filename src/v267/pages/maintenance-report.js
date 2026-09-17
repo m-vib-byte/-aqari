@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {uiText} from '../components/ui-text.js';
 import {t,message} from '../components/locale.js';
@@ -59,4 +60,5 @@ export async function mountAvailableMaintenanceReport(d){
  await mountMaintenanceReport(d).load();
 }
 
-export function openMaintenanceReport(){const d=createDialog('تقرير الصيانة — الحالة والتكلفة والزمن');if(d)d.run(()=>mountAvailableMaintenanceReport(d));}
+export function openMaintenanceReport(){const d=createDialog(translateStatic('تقرير الصيانة — الحالة والتكلفة والزمن'));if(d)d.run(()=>mountAvailableMaintenanceReport(d));}
+

@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {uiText,setText} from '../components/ui-text.js';
 import {createSession,currentScope,safeError} from '../api/session.js';
 import {node,field} from '../components/dialog.js';
@@ -18,7 +19,7 @@ export function installFinancialIntegrity(){
   const actions=node('div');actions.className='aq267-document-actions';
   const routes=[['مسح ورق أو رفع وثيقة','document-scanner','openDocumentScanner'],['رفع ملف أصلي دون تعديل','original-documents','openOriginalDocuments'],['فتح العقود ومرفقاتها','rental-contracts','openRentalContracts']];
   for(const [text,path,method]of routes){const b=node('button',text);b.type='button';b.onclick=()=>import('./'+path+'.js').then(m=>m[method]()).catch(e=>setText(status,safeError(e)));actions.append(b);}
-  panel.append(node('p','لإضافة وثيقة: اختر التصوير أو الملف، حدد العقار أو المستأجر أو العقد، ثم احفظ. ستجد النسخة في مستندات السجل نفسه.'),actions);
+  panel.append(node('p',translateStatic('لإضافة وثيقة: اختر التصوير أو الملف، حدد العقار أو المستأجر أو العقد، ثم احفظ. ستجد النسخة في مستندات السجل نفسه.')),actions);
  }else panel.append(monthField);
  panel.append(refresh,status,body);page.append(panel);panels.set(id,{status,body,month,refresh});refresh.onclick=()=>load(id);month.onchange=()=>load(id);setText(status,'اختر قراءة السجلات للتحقق من البيانات الحالية.');
  }
@@ -37,3 +38,4 @@ async function load(id){
  setText(p.status,'تمت القراءة من مساحة العمل الحالية. لا يوجد تغيير أو حفظ مالي من هذه الشاشة.');
  }catch(e){p.body.replaceChildren();setText(p.status,safeError(e));}finally{busy=false;p.refresh.disabled=false;own?.close();}
 }
+

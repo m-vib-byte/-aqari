@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node} from '../components/dialog.js';
 import {readManagementCounters,kuwaitDay} from '../components/management-counters.js';
 
@@ -8,7 +9,7 @@ function card(title,description,count,run){
 async function launch(d,path,exportName){d.close();const mod=await import(path+'?release=V267');if(typeof mod?.[exportName]!=='function')throw Error('مسار الموافقة غير متاح.');return mod[exportName]();}
 
 export function openApprovalCenter(){
- const d=createDialog('مركز الموافقات');if(!d)return false;d.el.classList.add('aq-owner-center-dialog');
+ const d=createDialog(translateStatic('مركز الموافقات'));if(!d)return false;d.el.classList.add('aq-owner-center-dialog');
  d.run(async()=>{
   const access=await d.session.request(d.session.client.rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace}));
   if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.role!==d.session.bound.role||access?.role!=='general_manager')throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
@@ -21,6 +22,7 @@ export function openApprovalCenter(){
   if(access.features?.vacating_review===true)grid.append(card('مراجعة الإخلاء','يفتح مراجعة الإخلاء والتسوية المرتبطة.',null,()=>launch(d,'./vacating-review.js','openVacatingReview')));
   if(!grid.childElementCount)grid.append(text('p','لا توجد مسارات موافقات متاحة لصلاحية هذا الحساب.'));
   d.body.replaceChildren(text('p','يجمع هذا المركز مسارات الاعتماد الموجودة فعليًا. التنفيذ النهائي يبقى داخل كل سجل وبنفس سجل التدقيق والصلاحيات.'),grid);
-  d.status.textContent='تم التحقق من الصلاحيات وتجميع مسارات الموافقات المتاحة.';
+  d.status.textContent=translateStatic('تم التحقق من الصلاحيات وتجميع مسارات الموافقات المتاحة.');
  });return true;
 }
+

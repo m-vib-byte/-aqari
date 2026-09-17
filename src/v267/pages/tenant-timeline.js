@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
 const text=(tag,value)=>node(tag,String(value??''));
@@ -10,9 +11,9 @@ async function pageAll(session,queryBuilder,limit=5000){
 }
 
 export function openTenantTimeline(){
- const d=createDialog('الملف الزمني للمستأجر');if(!d)return false;d.el.classList.add('aq-owner-center-dialog','aq-owner-timeline-dialog');
- const search=node('input'),tenant=node('select'),reload=node('button','تحديث'),header=node('section'),timeline=node('section');search.type='search';search.placeholder='ابحث بالاسم أو المدني أو الهاتف';reload.type='button';timeline.className='aq-owner-timeline';
- const controls=node('form');controls.className='aq-owner-timeline-controls';controls.append(field('بحث',search),field('المستأجر',tenant),reload);d.body.append(text('p','سجل زمني للقراءة فقط يجمع العقد والتحصيل والصيانة والمستندات ضمن صلاحيات الحساب. لا يعدّل أي سجل.'),controls,header,timeline);
+ const d=createDialog(translateStatic('الملف الزمني للمستأجر'));if(!d)return false;d.el.classList.add('aq-owner-center-dialog','aq-owner-timeline-dialog');
+ const search=node('input'),tenant=node('select'),reload=node('button',translateStatic('تحديث')),header=node('section'),timeline=node('section');search.type='search';search.placeholder=translateStatic('ابحث بالاسم أو المدني أو الهاتف');reload.type='button';timeline.className='aq-owner-timeline';
+ const controls=node('form');controls.className='aq-owner-timeline-controls';controls.append(field(translateStatic('بحث'),search),field(translateStatic('المستأجر'),tenant),reload);d.body.append(text('p','سجل زمني للقراءة فقط يجمع العقد والتحصيل والصيانة والمستندات ضمن صلاحيات الحساب. لا يعدّل أي سجل.'),controls,header,timeline);
  let access=null,tenants=[];
  function filtered(){const q=search.value.trim().toLowerCase();return q?tenants.filter(row=>[row.full_name,row.civil_id,row.phone,row.email].some(v=>String(v||'').toLowerCase().includes(q))):tenants;}
  function renderOptions(preserve=true){const current=preserve?tenant.value:'';tenant.replaceChildren(option('','اختر مستأجرًا'));for(const row of filtered())tenant.append(option(row.id,row.full_name+' · '+(row.civil_id||row.phone||'بدون رقم')));if([...tenant.options].some(x=>x.value===current))tenant.value=current;}
@@ -43,3 +44,4 @@ export function openTenantTimeline(){
  search.oninput=()=>renderOptions(true);tenant.onchange=()=>d.run(loadTimeline);reload.onclick=()=>d.run(async()=>{const current=tenant.value;await loadDirectory();if(tenants.some(x=>x.id===current)){tenant.value=current;await loadTimeline();}});
  d.onDispose(()=>{tenants=[];access=null;header.replaceChildren();timeline.replaceChildren();});d.run(loadDirectory);return true;
 }
+

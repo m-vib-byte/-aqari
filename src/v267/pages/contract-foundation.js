@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {leaseEndFromMonths} from '../domain/lease-dates.js';
 import {rentalTemplateKinds,validTemplate,templateForContract} from '../components/rental-templates.js';
@@ -16,7 +17,7 @@ function profileRef(row){if(!Array.isArray(row))return null;return row.find(x=>x
 function formatMoney(value){return Number(value||0).toFixed(3)+' د.ك';}
 
 export function openContractFoundation(options={}){
- const d=createDialog('عقد جديد — التأسيس من البداية للنهاية');if(!d)return false;
+ const d=createDialog(translateStatic('عقد جديد — التأسيس من البداية للنهاية'));if(!d)return false;
  const api=window.AQARI_RENTAL_RECORDS;
  if(!api)throw Error('تعذر تحميل محرك العقود.');
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
@@ -119,25 +120,25 @@ export function openContractFoundation(options={}){
 
  async function start(){
   await load();clear('ابدأ عقدًا جديدًا');
-  if(options.propertyId&&options.unitId)d.body.append(node('p','بدأت من ملف وحدة محددة. سيعيد النظام التحقق من العقار والوحدة والدور قبل حفظ العقد.'));
-  d.body.append(node('p','اختر نوع العقد أولاً. عند الاختيار يحجز الخادم رقم عقد فريدًا على مستوى المنصة وينشئ مسودة تأسيس محفوظة فورًا؛ لا يتم إنشاء دفعة أو وصل وهمي.'));
+  if(options.propertyId&&options.unitId)d.body.append(node('p',translateStatic('بدأت من ملف وحدة محددة. سيعيد النظام التحقق من العقار والوحدة والدور قبل حفظ العقد.')));
+  d.body.append(node('p',translateStatic('اختر نوع العقد أولاً. عند الاختيار يحجز الخادم رقم عقد فريدًا على مستوى المنصة وينشئ مسودة تأسيس محفوظة فورًا؛ لا يتم إنشاء دفعة أو وصل وهمي.')));
   const openDrafts=(state.contractPreparationDraftsV267||[]).filter(row=>row.status==='preparation');
-  if(openDrafts.length){const section=node('section');section.append(node('h4','مسودات تأسيس محفوظة'));for(const row of openDrafts)section.append(button(`${row.contractNo} · ${rentalTemplateKinds.find(x=>x[0]===row.kind)?.[1]||row.kind}`,async()=>{preparation=row;await editPreparation();}));d.body.append(section);}
-  const choices=node('div');choices.className='aq267-grid';for(const [kind,label]of rentalTemplateKinds)choices.append(button(label,()=>createPreparation(kind)));d.body.append(choices);d.status.textContent='لم يتم تسجيل أي حركة مالية.';
+  if(openDrafts.length){const section=node('section');section.append(node('h4',translateStatic('مسودات تأسيس محفوظة')));for(const row of openDrafts)section.append(button(`${row.contractNo} · ${rentalTemplateKinds.find(x=>x[0]===row.kind)?.[1]||row.kind}`,async()=>{preparation=row;await editPreparation();}));d.body.append(section);}
+  const choices=node('div');choices.className='aq267-grid';for(const [kind,label]of rentalTemplateKinds)choices.append(button(label,()=>createPreparation(kind)));d.body.append(choices);d.status.textContent=translateStatic('لم يتم تسجيل أي حركة مالية.');
  }
 
  async function editPreparation(){
   await load();preparation=(state.contractPreparationDraftsV267||[]).find(row=>row.id===preparation.id)||preparation;if(preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
-  clear('تأسيس '+preparation.contractNo);d.body.append(button('رجوع',start),node('p','نوع العقد: '+(rentalTemplateKinds.find(x=>x[0]===preparation.kind)?.[1]||preparation.kind)+' · الحالة: مسودة تأسيس محفوظة'));
+  clear('تأسيس '+preparation.contractNo);d.body.append(button('رجوع',start),node('p',translateStatic('نوع العقد: ')+(rentalTemplateKinds.find(x=>x[0]===preparation.kind)?.[1]||preparation.kind)+' · الحالة: مسودة تأسيس محفوظة'));
   const profiles=state.tenantProfilesV267||[],tenantChoice=select([['','مستأجر جديد'],...profiles.map(p=>[p.id,(p.nameAr||p.nameEn)+' / '+(p.nameEn||'')])],preparation.tenantId||'');
-  const tenantBox=node('fieldset'),tenantFields={};tenantBox.append(node('legend','بيانات المستأجر — من نفس شاشة العقد'));
+  const tenantBox=node('fieldset'),tenantFields={};tenantBox.append(node('legend',translateStatic('بيانات المستأجر — من نفس شاشة العقد')));
   const tenantSpecs=[['nameAr','الاسم الكامل بالعربي','text'],['nameEn','الاسم الكامل بالإنجليزي','text'],['civilId','الرقم المدني','text'],['passportNo','رقم الجواز','text'],['phone','الهاتف','tel'],['email','البريد الإلكتروني','email'],['nationality','الجنسية بالعربي','text'],['nationalityEn','الجنسية بالإنجليزي','text']];
   for(const [key,label,type]of tenantSpecs){const control=input(type);control.required=true;control.maxLength=300;tenantFields[key]=control;tenantBox.append(field(label,control));}
   let tenantId=tenantChoice.value||crypto.randomUUID();
   function fillTenant(){const profile=profiles.find(p=>p.id===tenantChoice.value);tenantId=profile?.id||crypto.randomUUID();for(const [key,control]of Object.entries(tenantFields))control.value=profile?.[key]||'';}
   tenantChoice.onchange=fillTenant;fillTenant();
-  const saveTenantButton=button('حفظ المستأجر وربطه بالعقد',async()=>{const values=Object.fromEntries(Object.entries(tenantFields).map(([key,control])=>[key,control.value]));const saved=await saveTenant(values,tenantId);const existing=profiles.findIndex(p=>p.id===saved.id);if(existing<0)profiles.push(saved);else profiles[existing]=saved;if(![...tenantChoice.options].some(option=>option.value===saved.id)){const option=node('option',(saved.nameAr||saved.nameEn)+' / '+(saved.nameEn||''));option.value=saved.id;tenantChoice.append(option);}tenantChoice.value=saved.id;tenantId=saved.id;preparation.tenantId=saved.id;d.status.textContent='تم حفظ المستأجر وربطه بمسودة العقد.';});
-  d.body.append(field('اختر مستأجرًا محفوظًا أو أضف جديدًا',tenantChoice),tenantBox,saveTenantButton);
+  const saveTenantButton=button('حفظ المستأجر وربطه بالعقد',async()=>{const values=Object.fromEntries(Object.entries(tenantFields).map(([key,control])=>[key,control.value]));const saved=await saveTenant(values,tenantId);const existing=profiles.findIndex(p=>p.id===saved.id);if(existing<0)profiles.push(saved);else profiles[existing]=saved;if(![...tenantChoice.options].some(option=>option.value===saved.id)){const option=node('option',(saved.nameAr||saved.nameEn)+' / '+(saved.nameEn||''));option.value=saved.id;tenantChoice.append(option);}tenantChoice.value=saved.id;tenantId=saved.id;preparation.tenantId=saved.id;d.status.textContent=translateStatic('تم حفظ المستأجر وربطه بمسودة العقد.');});
+  d.body.append(field(translateStatic('اختر مستأجرًا محفوظًا أو أضف جديدًا'),tenantChoice),tenantBox,saveTenantButton);
 
   const initialPropertyId=preparation.propertyId||properties.find(row=>row.name===preparation.property)?.id||'',property=select([['','اختر العقار'],...properties.map(p=>[p.id,p.name])],initialPropertyId),unit=select([['','اختر الوحدة']],preparation.unitId||'');property.required=unit.required=true;
   function unitsForProperty(value){unit.replaceChildren();for(const [id,label]of [['','اختر الوحدة'],...units.filter(row=>row.property_id===property.value).map(row=>[String(row.id),String(row.unit_no)])]){const option=node('option',label);option.value=id;unit.append(option);}unit.value=value||'';}
@@ -146,8 +147,8 @@ export function openContractFoundation(options={}){
   const form=node('form'),grid=node('div');grid.className='aq267-grid';
   const floor=input('text',preparation.floor||''),startDate=input('date',preparation.start_date||''),duration=input('number',preparation.durationMonths||'12'),endDate=input('date',preparation.end_date||''),entitlementStart=input('date',preparation.entitlementStart||''),firstPolicy=select([['full_month','شهر كامل'],['daily_prorated','احتساب أول فترة بالأيام'],['manual_first_period','مبلغ أول فترة يدوي']],preparation.firstPeriodPolicy||'full_month'),manualFirst=input('text',preparation.manualFirstPeriodAmount??'');
   floor.required=true;floor.maxLength=100;duration.min='1';duration.max='600';duration.step='1';startDate.required=duration.required=endDate.required=entitlementStart.required=firstPolicy.required=true;
-  const linkButton=button('حفظ ربط العقار والوحدة من السجل الخادمي',async()=>{if(!property.value||!unit.value)throw Error('اختر العقار والوحدة.');const ctx=await readBinding(property.value,unit.value);if(ctx.activeLease)throw Error('يوجد عقد فعال على هذه الوحدة.');floor.value=ctx.unit.floor||'';floor.readOnly=true;await patchPreparation({property:ctx.property.name,propertyId:ctx.property.id,propertyAddress:ctx.property.address||'',unit:ctx.unit.unitNo,unitId:ctx.unit.id,floor:ctx.unit.floor||'',propertyRevision:Number(ctx.binding?.propertyRevision||0),unitRevision:Number(ctx.binding?.unitRevision||0)},'ربط العقار والوحدة والدور بمسودة العقد من السجل الخادمي');d.status.textContent='تم ربط '+ctx.property.name+' / الوحدة '+ctx.unit.unitNo+' / الدور '+(ctx.unit.floor||'غير محدد')+'.';});
-  d.body.append(field('العقار',property),field('الوحدة',unit),linkButton);
+  const linkButton=button('حفظ ربط العقار والوحدة من السجل الخادمي',async()=>{if(!property.value||!unit.value)throw Error('اختر العقار والوحدة.');const ctx=await readBinding(property.value,unit.value);if(ctx.activeLease)throw Error('يوجد عقد فعال على هذه الوحدة.');floor.value=ctx.unit.floor||'';floor.readOnly=true;await patchPreparation({property:ctx.property.name,propertyId:ctx.property.id,propertyAddress:ctx.property.address||'',unit:ctx.unit.unitNo,unitId:ctx.unit.id,floor:ctx.unit.floor||'',propertyRevision:Number(ctx.binding?.propertyRevision||0),unitRevision:Number(ctx.binding?.unitRevision||0)},'ربط العقار والوحدة والدور بمسودة العقد من السجل الخادمي');d.status.textContent=translateStatic('تم ربط ')+ctx.property.name+' / الوحدة '+ctx.unit.unitNo+' / الدور '+(ctx.unit.floor||'غير محدد')+'.';});
+  d.body.append(field(translateStatic('العقار'),property),field(translateStatic('الوحدة'),unit),linkButton);
   const recalcEnd=()=>{if(startDate.value&&duration.value){endDate.value=leaseEndFromMonths(startDate.value,Number(duration.value));if(!entitlementStart.value)entitlementStart.value=startDate.value;}};startDate.onchange=duration.oninput=recalcEnd;
   for(const [label,control]of [['الدور — من سجل الوحدة',floor],['بداية العقد',startDate],['مدة العقد بالأشهر',duration],['نهاية العقد المحتسبة',endDate],['بداية الاستحقاق',entitlementStart],['سياسة أول فترة',firstPolicy],['صافي أول فترة اليدوي عند اختياره',manualFirst]])grid.append(field(label,control));
   floor.readOnly=Boolean(preparation.unitId);
@@ -155,7 +156,7 @@ export function openContractFoundation(options={}){
   for(const control of [rent,discount,deposit,advance,fees,manualFirst])control.inputMode='decimal';rent.required=discount.required=deposit.required=advance.required=fees.required=accountant.required=true;accountant.maxLength=300;free.checked=preparation.freeMonthApproved===true;free.disabled=d.session.bound.role!=='general_manager';freePeriod.disabled=free.disabled;free.onchange=()=>{freePeriod.required=free.checked;if(!free.checked)freePeriod.value='';};free.onchange();
   for(const [label,control]of [['الإيجار الأصلي',rent],['الخصم',discount],['التأمين',deposit],['العربون',advance],['الرسوم عند الإبرام',fees],['المحاسب المسؤول',accountant],['اعتماد فترة مجانية',free],['الشهر المجاني',freePeriod]])grid.append(field(label,control));
   const templateSelect=select([['','اختر النسخة المنشورة'],...templates.filter(t=>t.kind===preparation.kind).map(t=>[t.id,`${t.title} · الإصدار ${t.version}`])]);templateSelect.required=true;
-  form.append(grid,field('قالب العقد المنشور',templateSelect));
+  form.append(grid,field(translateStatic('قالب العقد المنشور'),templateSelect));
   const review=node('section'),reviewButton=button('مراجعة المبلغ المستحق عند الإبرام',async()=>{
    if(!preparation.tenantId)throw Error('احفظ المستأجر واربطه أولاً.');if(!preparation.property||!preparation.unit)throw Error('احفظ ربط العقار والوحدة أولاً.');
    const fresh=await verifyBinding(floor.value);floor.value=fresh.unit.floor||'';
@@ -163,12 +164,12 @@ export function openContractFoundation(options={}){
    const candidate={id:preparation.id,property:preparation.property,unit:preparation.unit,start_date:startDate.value,end_date:endDate.value,rent:Number(((Math.round(contractRent*1000)-Math.round(initialDiscount*1000))/1000).toFixed(3)),contractRent,discount:initialDiscount,rentalTermsVersion:1,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',rentAdjustments:[],rentEntitlement:{version:1,startDate:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null}};
    const conflict=activeUnitConflict(state.contractsV202||[],candidate);if(conflict)throw Error('يوجد عقد متعارض على هذه الوحدة: '+String(conflict.contract_no||conflict.contractNo||'راجع العقود'));
    const firstRent=api.effectiveRent(candidate,entitlementStart.value.slice(0,7)),due=executionAmount({firstRent,deposit:deposit.value,advance:advance.value,fees:fees.value});
-   review.replaceChildren(node('h4','المستحق عند الإبرام'),node('p','العقار: '+fresh.property.name+' — '+(fresh.property.address||'العنوان غير محفوظ')),node('p','الوحدة: '+fresh.unit.unitNo+' — الدور: '+(fresh.unit.floor||'غير محدد')),node('p','إيجار أول فترة: '+formatMoney(due.firstRent)),node('p','التأمين: '+formatMoney(due.deposit)),node('p','العربون: '+formatMoney(due.advance)),node('p','الرسوم: '+formatMoney(due.fees)),node('strong','الإجمالي: '+formatMoney(due.total)),node('p',due.total===0?'لا توجد دفعة مستحقة. سيبقى ذلك موثقًا دون إنشاء دفعة أو وصل وهمي.':'الدفعة الفعلية لا تُسجل إلا بطريقة دفع ومرجع حركة فعليين.'));
+   review.replaceChildren(node('h4',translateStatic('المستحق عند الإبرام')),node('p',translateStatic('العقار: ')+fresh.property.name+' — '+(fresh.property.address||'العنوان غير محفوظ')),node('p',translateStatic('الوحدة: ')+fresh.unit.unitNo+' — الدور: '+(fresh.unit.floor||'غير محدد')),node('p',translateStatic('إيجار أول فترة: ')+formatMoney(due.firstRent)),node('p',translateStatic('التأمين: ')+formatMoney(due.deposit)),node('p',translateStatic('العربون: ')+formatMoney(due.advance)),node('p',translateStatic('الرسوم: ')+formatMoney(due.fees)),node('strong',translateStatic('الإجمالي: ')+formatMoney(due.total)),node('p',due.total===0?'لا توجد دفعة مستحقة. سيبقى ذلك موثقًا دون إنشاء دفعة أو وصل وهمي.':'الدفعة الفعلية لا تُسجل إلا بطريقة دفع ومرجع حركة فعليين.'));
    await patchPreparation({floor:fresh.unit.floor||'',propertyAddress:fresh.property.address||'',propertyRevision:Number(fresh.binding?.propertyRevision||0),unitRevision:Number(fresh.binding?.unitRevision||0),start_date:startDate.value,end_date:endDate.value,durationMonths:Number(duration.value),entitlementStart:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,fees:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',dueAtExecution:due.total},'مراجعة وحفظ شروط تأسيس العقد');
-   d.status.textContent='تم حفظ الشروط واحتساب المستحق عند الإبرام.';
+   d.status.textContent=translateStatic('تم حفظ الشروط واحتساب المستحق عند الإبرام.');
   });
   form.append(reviewButton,review);
-  const save=node('button','تثبيت العقد كمسودة تشغيلية');save.type='submit';form.append(save);d.body.append(form);
+  const save=node('button',translateStatic('تثبيت العقد كمسودة تشغيلية'));save.type='submit';form.append(save);d.body.append(form);
   form.onsubmit=event=>{event.preventDefault();d.run(async()=>{
    if(!preparation.tenantId||!preparation.property||!preparation.unit||!preparation.propertyId||!preparation.unitId)throw Error('أكمل ربط المستأجر والعقار والوحدة من السجل الخادمي أولاً.');
    const fresh=await verifyBinding(floor.value);floor.value=fresh.unit.floor||'';
@@ -178,10 +179,11 @@ export function openContractFoundation(options={}){
    const previewCandidate={...values,id:preparation.id,property:preparation.property,unit:preparation.unit,rent:Number(((Math.round(contractRent*1000)-Math.round(initialDiscount*1000))/1000).toFixed(3)),rentalTermsVersion:1,rentAdjustments:[]};
    const conflict=activeUnitConflict(state.contractsV202||[],previewCandidate);if(conflict)throw Error('يوجد عقد متعارض على هذه الوحدة.');
    const firstRent=api.effectiveRent(previewCandidate,entitlementStart.value.slice(0,7)),due=executionAmount({firstRent,deposit:deposit.value,advance:advance.value,fees:fees.value});values.executionSummary={firstRent:due.firstRent,deposit:due.deposit,advance:due.advance,fees:due.fees,total:due.total,requiresPayment:due.total>0,zeroPaymentReason:due.total===0?(free.checked?'فترة مجانية/صافي مستحق صفر':'صافي المستحق عند الإبرام صفر'):null};
-   const contract=await promoteContract(values,selectedTemplate);d.status.textContent='تم تأسيس العقد كمسودة تشغيلية وربطه بمعرف العقار والوحدة والدور. لا توجد دفعة مسجلة حتى الآن.';
+   const contract=await promoteContract(values,selectedTemplate);d.status.textContent=translateStatic('تم تأسيس العقد كمسودة تشغيلية وربطه بمعرف العقار والوحدة والدور. لا توجد دفعة مسجلة حتى الآن.');
    d.close();if(typeof options.openContracts==='function')options.openContracts({id:contract.id});
   });};
  }
 
  d.run(start);return true;
 }
+

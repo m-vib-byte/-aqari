@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
 const text=(tag,value)=>node(tag,String(value??''));
@@ -5,7 +6,7 @@ function codeInput(){const input=node('input');input.type='text';input.inputMode
 function result(value){if(value?.error)throw value.error;return value?.data;}
 
 export function openSecurityCenter(){
- const d=createDialog('الأمان والتوثيق الثنائي');if(!d)return;
+ const d=createDialog(translateStatic('الأمان والتوثيق الثنائي'));if(!d)return;
  let factorId=null,challengeId=null,qr=null,secret=null,disposed=false;
  const state=text('section',''),actions=node('section'),factors=node('section');
  d.body.append(text('p','التوثيق الثنائي مطلوب للمالك والمدير العام والمحاسب قبل العمليات الحساسة. لا تحفظ المنصة سر المصادقة داخل قاعدة بيانات الأعمال.'),state,actions,factors);
@@ -24,27 +25,28 @@ export function openSecurityCenter(){
   const verified=[...(listed?.totp||[]),...(listed?.phone||[])].filter(item=>item.status==='verified');
   if(!verified.length)factors.append(text('p','لا يوجد عامل ثانٍ موثق لهذا الحساب.'));
   for(const factor of verified){
-   const card=node('article'),verify=node('button','التحقق بهذا الجهاز'),remove=node('button','إزالة الجهاز');
+   const card=node('article'),verify=node('button',translateStatic('التحقق بهذا الجهاز')),remove=node('button',translateStatic('إزالة الجهاز'));
    verify.type=remove.type='button';card.append(text('h3',factor.friendly_name||'تطبيق المصادقة'),text('p',factor.factor_type==='totp'?'رمز من تطبيق المصادقة':'رمز الهاتف'),verify,remove);
-   verify.onclick=()=>challenge(factor.id);remove.onclick=()=>d.run(async()=>{const current=await assurance();if(current.currentLevel!=='aal2')throw Error('يجب ترقية الجلسة إلى عاملين قبل إزالة جهاز مصادقة.');if(!window.confirm('هل تؤكد إزالة جهاز المصادقة المحدد؟'))return;result(await auth().unenroll({factorId:factor.id}));await list();d.status.textContent='تمت إزالة جهاز المصادقة.';});factors.append(card);
+   verify.onclick=()=>challenge(factor.id);remove.onclick=()=>d.run(async()=>{const current=await assurance();if(current.currentLevel!=='aal2')throw Error('يجب ترقية الجلسة إلى عاملين قبل إزالة جهاز مصادقة.');if(!window.confirm('هل تؤكد إزالة جهاز المصادقة المحدد؟'))return;result(await auth().unenroll({factorId:factor.id}));await list();d.status.textContent=translateStatic('تمت إزالة جهاز المصادقة.');});factors.append(card);
   }
  }
  async function challenge(id){
   clearEnrollment();factorId=id;const challenged=result(await auth().challenge({factorId:id}));challengeId=challenged?.id;if(!challengeId)throw Error('تعذر إنشاء تحدي التوثيق.');
-  const form=node('form'),code=codeInput();form.append(field('رمز التحقق المكون من 6 أرقام',code),Object.assign(node('button','تحقق من الرمز'),{type:'submit'}));
-  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');result(await auth().verify({factorId,challengeId,code:code.value}));clearEnrollment();await list();d.status.textContent='تم توثيق العامل الثاني وترقية الجلسة.';});};actions.replaceChildren(text('h2','التحقق من الجلسة'),form);code.focus();
+  const form=node('form'),code=codeInput();form.append(field(translateStatic('رمز التحقق المكون من 6 أرقام'),code),Object.assign(node('button',translateStatic('تحقق من الرمز')),{type:'submit'}));
+  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');result(await auth().verify({factorId,challengeId,code:code.value}));clearEnrollment();await list();d.status.textContent=translateStatic('تم توثيق العامل الثاني وترقية الجلسة.');});};actions.replaceChildren(text('h2','التحقق من الجلسة'),form);code.focus();
  }
  async function enroll(){
   clearEnrollment();const enrolled=result(await auth().enroll({factorType:'totp',friendlyName:'AQARI V267'}));
   factorId=enrolled?.id;secret=enrolled?.totp?.secret;const qrCode=enrolled?.totp?.qr_code;
   if(!factorId||!qrCode)throw Error('تعذر بدء تسجيل تطبيق المصادقة.');
   qr=node('img');qr.alt='رمز QR لإضافة AQARI V267 إلى تطبيق المصادقة';qr.src=qrCode;qr.width=220;qr.height=220;
-  const form=node('form'),code=codeInput(),cancel=node('button','إلغاء التسجيل');cancel.type='button';
-  form.append(text('h2','إضافة تطبيق مصادقة'),text('p','امسح الرمز بتطبيق المصادقة، أو أدخل المفتاح يدوياً ثم اكتب الرمز المؤقت.'),qr,text('p','المفتاح اليدوي: '+secret),field('رمز التحقق',code),Object.assign(node('button','تفعيل التوثيق الثنائي'),{type:'submit'}),cancel);
+  const form=node('form'),code=codeInput(),cancel=node('button',translateStatic('إلغاء التسجيل'));cancel.type='button';
+  form.append(text('h2','إضافة تطبيق مصادقة'),text('p','امسح الرمز بتطبيق المصادقة، أو أدخل المفتاح يدوياً ثم اكتب الرمز المؤقت.'),qr,text('p','المفتاح اليدوي: '+secret),field(translateStatic('رمز التحقق'),code),Object.assign(node('button',translateStatic('تفعيل التوثيق الثنائي')),{type:'submit'}),cancel);
   cancel.onclick=()=>d.run(async()=>{if(factorId)result(await auth().unenroll({factorId}));clearEnrollment();actions.replaceChildren();await list();});
-  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');const challenged=result(await auth().challenge({factorId}));result(await auth().verify({factorId,challengeId:challenged.id,code:code.value}));clearEnrollment();actions.replaceChildren();await list();d.status.textContent='تم تفعيل التوثيق الثنائي للحساب.';});};actions.replaceChildren(form);code.focus();
+  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');const challenged=result(await auth().challenge({factorId}));result(await auth().verify({factorId,challengeId:challenged.id,code:code.value}));clearEnrollment();actions.replaceChildren();await list();d.status.textContent=translateStatic('تم تفعيل التوثيق الثنائي للحساب.');});};actions.replaceChildren(form);code.focus();
  }
- const add=node('button','إضافة تطبيق مصادقة');add.type='button';add.onclick=()=>d.run(enroll);actions.append(add);
+ const add=node('button',translateStatic('إضافة تطبيق مصادقة'));add.type='button';add.onclick=()=>d.run(enroll);actions.append(add);
  d.onDispose(()=>{disposed=true;clearEnrollment();state.replaceChildren();actions.replaceChildren();factors.replaceChildren();});
  d.run(list);
 }
+

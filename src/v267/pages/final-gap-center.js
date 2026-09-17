@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createFinancialRecordBrowser} from '../components/financial-record-browser.js';
 import {createCollectionAccountManager} from '../components/collection-account-manager.js';
@@ -9,12 +10,12 @@ const forms={preference:['tenant_id','preferred_channel'],account:['property_id'
 const numeric=new Set(['amount','year']);
 
 export function openFinalGapCenter(){
- const d=createDialog('السجلات المالية وتواصل المستأجر');if(!d)return;
+ const d=createDialog(translateStatic('السجلات المالية وتواصل المستأجر'));if(!d)return;
  let data=null,pending=false,draftId=crypto.randomUUID(),controls={};
- const action=node('select'),form=node('form'),fields=node('section'),result=node('section'),saveButton=Object.assign(node('button','حفظ والتحقق'),{type:'submit'});
+ const action=node('select'),form=node('form'),fields=node('section'),result=node('section'),saveButton=Object.assign(node('button',translateStatic('حفظ والتحقق')),{type:'submit'});
  for(const [value,text]of Object.entries(actions))action.append(option(value,text));action.value='preference';
- const archive=createFinancialRecordBrowser(),accountManager=createCollectionAccountManager(d,{onChanged:async()=>{await load();}}),refresh=Object.assign(node('button','تحديث السجلات المحفوظة'),{type:'button'});
- form.append(field('العملية',action),fields,saveButton);d.body.append(node('p','اختر السجلات المحفوظة وأدخل تفاصيل العملية. يحتفظ النظام بالسجل المالي وتاريخ التعديلات.'),form,refresh,result,archive.el,accountManager.el);
+ const archive=createFinancialRecordBrowser(),accountManager=createCollectionAccountManager(d,{onChanged:async()=>{await load();}}),refresh=Object.assign(node('button',translateStatic('تحديث السجلات المحفوظة')),{type:'button'});
+ form.append(field(translateStatic('العملية'),action),fields,saveButton);d.body.append(node('p',translateStatic('اختر السجلات المحفوظة وأدخل تفاصيل العملية. يحتفظ النظام بالسجل المالي وتاريخ التعديلات.')),form,refresh,result,archive.el,accountManager.el);
  const rpc=(a,p={})=>d.session.request(d.session.client.rpc('aqari_final_gap_register',{p_workspace_id:d.session.bound.workspace,p_action:a,p_data:p}));
  const openingRpc=()=>d.session.request(d.session.client.rpc('aqari_opening_balance_statement',{p_workspace_id:d.session.bound.workspace,p_tenant_id:null}));
  const rows=name=>data?.[name]||[];
@@ -64,7 +65,7 @@ export function openFinalGapCenter(){
   const expectedKeys={account:['property_id','kind','name','masked_reference'],post_payment:['payment_id','account_id'],reserve:['property_id','direction','amount','reason'],tenant_entry:['tenant_id','lease_id','direction','kind','amount','occurred_on','reason','source_type','source_id'],allocate_credit:['credit_entry_id','lease_id','period','amount'],cancel_receipt:['payment_id','reason'],channel:['property_id','kind','public_url','management_reference','tenant_visible']}[a];
   return expectedKeys.every(k=>Object.hasOwn(saved,k)&&(numeric.has(k)?Number(saved[k])===Number(p[k]):k==='lease_id'&&!p[k]?saved[k]===null:saved[k]===p[k]));
  }
- async function save(a,p){if(pending)return;pending=true;try{await rpc(a,p);await load();if(!confirmed(a,p))throw Error('تعذر تأكيد العملية المحفوظة؛ حدّث السجلات قبل إعادة المحاولة.');d.status.textContent='تم الحفظ وإعادة القراءة من قاعدة البيانات.';draftId=crypto.randomUUID();build();}finally{pending=false;}}
+ async function save(a,p){if(pending)return;pending=true;try{await rpc(a,p);await load();if(!confirmed(a,p))throw Error('تعذر تأكيد العملية المحفوظة؛ حدّث السجلات قبل إعادة المحاولة.');d.status.textContent=translateStatic('تم الحفظ وإعادة القراءة من قاعدة البيانات.');draftId=crypto.randomUUID();build();}finally{pending=false;}}
  action.onchange=()=>{draftId=crypto.randomUUID();build();};
  form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
   if(!data)throw Error('انتظر استرجاع السجلات المحفوظة قبل الحفظ.');
@@ -77,10 +78,11 @@ export function openFinalGapCenter(){
  });};
  function render(){
   const o=data.opening?.totals;
-  result.replaceChildren(node('h3','السجلات المحفوظة'),node('p',`الحسابات: ${data.accounts.length} • حركات الذمم: ${data.ledger.length} • تخصيصات الرصيد: ${data.credit_allocations.length}`),node('h4','الأرصدة الافتتاحية منفصلة عن التحصيل'));
+  result.replaceChildren(node('h3',translateStatic('السجلات المحفوظة')),node('p',`الحسابات: ${data.accounts.length} • حركات الذمم: ${data.ledger.length} • تخصيصات الرصيد: ${data.credit_allocations.length}`),node('h4',translateStatic('الأرصدة الافتتاحية منفصلة عن التحصيل')));
   result.append(node('p',o?`افتتاحي مدين: ${Number(o.opening_debit).toFixed(3)} د.ك • افتتاحي دائن: ${Number(o.opening_credit).toFixed(3)} د.ك • صافي الافتتاح: ${Number(o.opening_net).toFixed(3)} د.ك • التحصيل الفعلي — جميع الفترات: ${Number(o.actual_collections).toFixed(3)} د.ك`:'تعذر استرجاع فصل الأرصدة الافتتاحية؛ لا تعتمد على إجمالي قبل تحديث السجلات.'));
-  result.append(node('h4','أداء المحصلين — جميع الفترات'));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));
+  result.append(node('h4',translateStatic('أداء المحصلين — جميع الفترات')));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));
  }
- refresh.onclick=()=>d.run(async()=>{await load();d.status.textContent='تم تحديث السجلات من قاعدة البيانات.';});
+ refresh.onclick=()=>d.run(async()=>{await load();d.status.textContent=translateStatic('تم تحديث السجلات من قاعدة البيانات.');});
  build();d.onDispose(()=>{data=null;controls={};fields.replaceChildren();result.replaceChildren();archive.clear();accountManager.clear();});d.run(async()=>{await load();build();});
 }
+

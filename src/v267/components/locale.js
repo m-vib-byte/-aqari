@@ -1,5 +1,6 @@
 import {MESSAGES} from './translations.js';
 import {WORKSPACE_MESSAGES} from './workspace-translations.js';
+import {OPERATIONAL_MESSAGES} from './operational-translations.js';
 
 export const LANGUAGES = Object.freeze({ar:'العربية',en:'English',hi:'हिन्दी',ur:'اردو',ml:'മലയാളം'});
 const DATE_LOCALES = {ar:'ar-KW',en:'en-KW',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'};
@@ -25,11 +26,16 @@ export function setLocale(value,storage=defaultStorage()) {
 export const getLocale=()=>locale;
 export const direction=(value=locale)=>value==='ar'||value==='ur'?'rtl':'ltr';
 export const dateLocale=()=>DATE_LOCALES[locale];
+export function hasTranslation(source,value=locale){
+ if(!valid(value))return false;
+ if(value==='ar')return true;
+ return [MESSAGES,WORKSPACE_MESSAGES,OPERATIONAL_MESSAGES].some(messages=>typeof messages[source]?.[value]==='string'&&messages[source][value].trim().length>0);
+}
 
 // Call only for source-code UI strings. Do not pass tenant names or record values.
 export function t(source,value=locale) {
  if(!valid(value)||value==='ar')return source;
- return MESSAGES[source]?.[value]||WORKSPACE_MESSAGES[source]?.[value]||source;
+ return MESSAGES[source]?.[value]||WORKSPACE_MESSAGES[source]?.[value]||OPERATIONAL_MESSAGES[source]?.[value]||source;
 }
 
 // Interpolate source-code templates once. Record values remain literal text,

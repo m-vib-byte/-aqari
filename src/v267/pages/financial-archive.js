@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createArchiveXlsx,ARCHIVE_XLSX_TYPE} from '../reports/financial-archive-xlsx.js';
 
@@ -25,15 +26,15 @@ function money(value){
 const normalize=value=>String(value??'').normalize('NFKC').replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).toLocaleLowerCase('ar').trim();
 
 export function openFinancialArchive(){
- const d=createDialog('الأرشيف المالي التاريخي');if(!d)return;
- const month=node('input'),loadButton=node('button','استرجاع الشهر'),output=node('section');
+ const d=createDialog(translateStatic('الأرشيف المالي التاريخي'));if(!d)return;
+ const month=node('input'),loadButton=node('button',translateStatic('استرجاع الشهر')),output=node('section');
  const downloads=new Map();let generation=0,loading=false,loaded=null;
  month.type='month';month.value=monthValue();loadButton.type='button';
  output.setAttribute('aria-label','نتيجة الأرشيف المالي');output.setAttribute('aria-live','polite');
- d.body.append(node('p','يعرض السجل التحصيل والمصروفات والتأمين والذمم والعهدة كلّاً بنوعه. الرصيد الافتتاحي وتخصيص الرصيد لا يمثلان تحصيلاً جديداً. لقطة الإقفال تبقى كما صدرت.'),field('الشهر',month),loadButton,output);
+ d.body.append(node('p',translateStatic('يعرض السجل التحصيل والمصروفات والتأمين والذمم والعهدة كلّاً بنوعه. الرصيد الافتتاحي وتخصيص الرصيد لا يمثلان تحصيلاً جديداً. لقطة الإقفال تبقى كما صدرت.')),field(translateStatic('الشهر'),month),loadButton,output);
  function release(url){const timer=downloads.get(url);if(timer!==undefined)clearTimeout(timer);downloads.delete(url);URL.revokeObjectURL(url);}
  function clear(){loaded=null;output.replaceChildren();for(const url of [...downloads.keys()])release(url);}
- function invalidate(){generation++;clear();d.status.textContent='تغيّر الشهر؛ اضغط استرجاع الشهر لعرض بياناته.';}
+ function invalidate(){generation++;clear();d.status.textContent=translateStatic('تغيّر الشهر؛ اضغط استرجاع الشهر لعرض بياناته.');}
  month.oninput=invalidate;month.onchange=invalidate;
  function validate(data,selectedMonth){
   if(!object(data)||data.month!==selectedMonth||!object(data.summary)||!Array.isArray(data.entries)||!Array.isArray(data.history)||!Array.isArray(data.properties))throw Error('تعذر تأكيد شهر الأرشيف أو سجلاته.');
@@ -70,15 +71,15 @@ export function openFinancialArchive(){
   metric('عدد المصروفات المعتمدة',Number.isSafeInteger(count)&&count>=0?String(count):'غير متاح');
   if(Object.hasOwn(s,'rent_payments'))metric('التحصيل في لقطة الإقفال',money(s.rent_payments));
   if(Object.hasOwn(s,'rent_payment_count'))metric('عدد عمليات التحصيل في اللقطة',Number.isSafeInteger(s.rent_payment_count)&&s.rent_payment_count>=0?String(s.rent_payment_count):'غير متاح');
-  output.append(node('p',notice),summary,node('p','الأرقام تخص البيانات المعادة فقط، وليست كشفاً محاسبياً شاملاً أو صافي ربح.'),node('p',`الحركات: ${data.entries.length} • أحداث التدقيق المعادة: ${data.history.length} (بحد أقصى أحدث ${AUDIT_LIMIT} حدثاً).`));
-  if(s.legacy_finance_reconciled===false)output.append(node('p','مطابقة السجلات المالية القديمة ما زالت غير معتمدة.'));
-  if(data.history_truncated)output.append(node('p','المعروض آخر ١٠٠ حدث تدقيق؛ لا يمثل كامل تاريخ التدقيق.'));
-  const search=node('input'),state=node('select'),stream=node('select'),resultCount=node('p'),table=node('table'),thead=node('thead'),tbody=node('tbody'),pager=node('div'),previous=node('button','السابق'),next=node('button','التالي'),pageText=node('span');
-  search.type='search';search.placeholder='رقم المرجع أو البيان أو العقار';search.maxLength=200;
+  output.append(node('p',notice),summary,node('p',translateStatic('الأرقام تخص البيانات المعادة فقط، وليست كشفاً محاسبياً شاملاً أو صافي ربح.')),node('p',`الحركات: ${data.entries.length} • أحداث التدقيق المعادة: ${data.history.length} (بحد أقصى أحدث ${AUDIT_LIMIT} حدثاً).`));
+  if(s.legacy_finance_reconciled===false)output.append(node('p',translateStatic('مطابقة السجلات المالية القديمة ما زالت غير معتمدة.')));
+  if(data.history_truncated)output.append(node('p',translateStatic('المعروض آخر ١٠٠ حدث تدقيق؛ لا يمثل كامل تاريخ التدقيق.')));
+  const search=node('input'),state=node('select'),stream=node('select'),resultCount=node('p'),table=node('table'),thead=node('thead'),tbody=node('tbody'),pager=node('div'),previous=node('button',translateStatic('السابق')),next=node('button',translateStatic('التالي')),pageText=node('span');
+  search.type='search';search.placeholder=translateStatic('رقم المرجع أو البيان أو العقار');search.maxLength=200;
   function options(control,first,labels){for(const [value,label] of [['',first],...Object.entries(labels)]){const option=node('option',label);option.value=value;control.append(option);}}
   options(state,'كل الحالات',states);options(stream,'كل الحركات',streams);
   table.style.minWidth='58rem';table.style.width='100%';table.style.borderCollapse='separate';table.style.borderSpacing='0.75rem 0.5rem';
-  table.append(node('caption','حركات الشهر المسترجع'),thead,tbody);const header=node('tr');
+  table.append(node('caption',translateStatic('حركات الشهر المسترجع')),thead,tbody);const header=node('tr');
   for(const label of columns){const th=node('th',label);th.scope='col';th.style.whiteSpace='nowrap';header.append(th);}thead.append(header);
   const wrap=node('div');wrap.style.overflowX='auto';wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','جدول الحركات؛ قابل للتمرير أفقياً');wrap.append(table);
   previous.type=next.type='button';pager.append(previous,pageText,next);resultCount.setAttribute('role','status');
@@ -101,9 +102,9 @@ export function openFinancialArchive(){
    resultCount.textContent=`النتائج: ${matching.length} من ${rows.length} حركة.`;pageText.textContent=`الصفحة ${page+1} من ${pages}`;previous.disabled=page===0;next.disabled=page>=pages-1;
   }
   search.oninput=state.onchange=stream.onchange=()=>{page=0;showRows();};previous.onclick=()=>{page--;showRows();};next.onclick=()=>{page++;showRows();};
-  output.append(field('البحث في الحركات',search),field('حالة الحركة',state),field('نوع الحركة',stream),resultCount,wrap,pager);showRows();
-  const details=node('details');details.append(node('summary','عرض ملخص التدقيق الخام'),node('pre',JSON.stringify(s,null,2)));output.append(details);
-  const audit=node('details');audit.append(node('summary','أحداث التدقيق المعادة'));
+  output.append(field(translateStatic('البحث في الحركات'),search),field(translateStatic('حالة الحركة'),state),field(translateStatic('نوع الحركة'),stream),resultCount,wrap,pager);showRows();
+  const details=node('details');details.append(node('summary',translateStatic('عرض ملخص التدقيق الخام')),node('pre',JSON.stringify(s,null,2)));output.append(details);
+  const audit=node('details');audit.append(node('summary',translateStatic('أحداث التدقيق المعادة')));
   for(const event of data.history)if(object(event))audit.append(node('p',[event.recorded_at,event.actor_name,event.reason].filter(Boolean).join(' — ')));
   output.append(audit);
   function download(kind,contents,type){
@@ -139,10 +140,11 @@ export function openFinancialArchive(){
     download('xlsx',contents,ARCHIVE_XLSX_TYPE);
    });
   }
-  const json=node('button','تصدير السجل للتدقيق'),csv=node('button','تنزيل جدول CSV');json.type=csv.type='button';json.onclick=()=>exportData('json');csv.onclick=()=>exportData('csv');
-  output.append(node('p','التصدير يشمل كل الحركات المعادة للشهر، ولا يتأثر بمرشح البحث. سجل التدقيق محدود بالأحداث المعادة.'),json,csv);
-  const excel=node('button','تنزيل Excel للنتائج');excel.type='button';excel.onclick=exportExcel;
-  output.append(node('p','Excel يشمل جميع النتائج المطابقة للبحث والحالة والنوع، عبر كل الصفحات، مع بيان المرشحات ووقت استرجاع البيانات. يُعاد التحقق من السجلات والصلاحيات قبل التنزيل.'),excel);
+  const json=node('button',translateStatic('تصدير السجل للتدقيق')),csv=node('button',translateStatic('تنزيل جدول CSV'));json.type=csv.type='button';json.onclick=()=>exportData('json');csv.onclick=()=>exportData('csv');
+  output.append(node('p',translateStatic('التصدير يشمل كل الحركات المعادة للشهر، ولا يتأثر بمرشح البحث. سجل التدقيق محدود بالأحداث المعادة.')),json,csv);
+  const excel=node('button',translateStatic('تنزيل Excel للنتائج'));excel.type='button';excel.onclick=exportExcel;
+  output.append(node('p',translateStatic('Excel يشمل جميع النتائج المطابقة للبحث والحالة والنوع، عبر كل الصفحات، مع بيان المرشحات ووقت استرجاع البيانات. يُعاد التحقق من السجلات والصلاحيات قبل التنزيل.')),excel);
  }
  loadButton.onclick=load;d.onDispose(()=>{generation++;clear();});load();
 }
+

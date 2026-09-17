@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {checksum} from '../components/scan-image.js';
@@ -19,12 +20,12 @@ function mount(d){
  reference.maxLength=500;coverage.maxLength=2000;correction.maxLength=1000;debit.inputMode=credit.inputMode='decimal';
  const form=node('form'),entries=node('section'),archive=node('section'),summary=node('p'),download=node('section');
  const verify=button('فتح المصدر المحفوظ والتحقق منه'),refresh=button('تحديث السجلات'),submit=Object.assign(button('اعتماد مطابقة القيود المختارة'),{type:'submit'}),retry=button('التحقق من الحفظ السابق');
- form.append(field('المستأجر',tenant),field('تاريخ القطع — نهاية اليوم المحدد',cutoff),refresh,
-  node('p','هذه مراجعة مستقلة للقيود الافتتاحية التي تختارها فقط. لا تصدر كشف حساب نهائيًا، ولا توزع دينًا عامًا على عقد، ولا تغيّر تحصيل الإيجار.'),
-  field('المستند المحفوظ',source),node('p','لإضافة مصدر جديد، ارفعه أولًا في مركز المستندات مربوطًا بالمستأجر أو بعقده أو عقاره، ثم حدّث هذه الصفحة.'),verify,download,
-  field('موضع المصدر — رقم الصفحة أو البيان',reference),field('ما الذي يغطيه المصدر؟ وضّح الإيجار والرسوم والتأمين بحسب المستند',coverage),
-  field('المدين المثبت بالمصدر — د.ك',debit),field('الدائن المثبت بالمصدر — د.ك',credit),field('سبب التصحيح — مطلوب عند وجود مراجعة سابقة لنفس تاريخ القطع',correction),entries,summary,
-  field('راجعت الملف المحفوظ وأقر بأن المبالغ والتغطية والقيود المختارة تخص هذا المستأجر حتى نهاية يوم القطع',attest),submit,retry);
+ form.append(field(translateStatic('المستأجر'),tenant),field(translateStatic('تاريخ القطع — نهاية اليوم المحدد'),cutoff),refresh,
+  node('p',translateStatic('هذه مراجعة مستقلة للقيود الافتتاحية التي تختارها فقط. لا تصدر كشف حساب نهائيًا، ولا توزع دينًا عامًا على عقد، ولا تغيّر تحصيل الإيجار.')),
+  field(translateStatic('المستند المحفوظ'),source),node('p',translateStatic('لإضافة مصدر جديد، ارفعه أولًا في مركز المستندات مربوطًا بالمستأجر أو بعقده أو عقاره، ثم حدّث هذه الصفحة.')),verify,download,
+  field(translateStatic('موضع المصدر — رقم الصفحة أو البيان'),reference),field(translateStatic('ما الذي يغطيه المصدر؟ وضّح الإيجار والرسوم والتأمين بحسب المستند'),coverage),
+  field(translateStatic('المدين المثبت بالمصدر — د.ك'),debit),field(translateStatic('الدائن المثبت بالمصدر — د.ك'),credit),field(translateStatic('سبب التصحيح — مطلوب عند وجود مراجعة سابقة لنفس تاريخ القطع'),correction),entries,summary,
+  field(translateStatic('راجعت الملف المحفوظ وأقر بأن المبالغ والتغطية والقيود المختارة تخص هذا المستأجر حتى نهاية يوم القطع'),attest),submit,retry);
  d.body.append(form,archive);
  const rpc=async(action,data={})=>{try{return await d.session.request(d.session.client.rpc('aqari_opening_balance_reconciliation',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));}catch(e){if(errors[e.message])e.message=errors[e.message];throw e;}};
  const run=task=>d.run(task).finally(()=>{if(!d.closed)controls();});
@@ -39,20 +40,20 @@ function mount(d){
  function total(){let a=0n,b=0n;for(const row of context?.entries||[])if(chosen.has(row.id)){if(row.direction==='debit')a+=fils(row.amount);else b+=fils(row.amount);}
   summary.textContent=`القيود المختارة: ${chosen.size} • مدين ${money(a)} د.ك • دائن ${money(b)} د.ك. التحصيل الفعلي لجميع الفترات: ${context?.actual_collections==null?'لم يحدد مستأجر':openingAmount(context.actual_collections)+' د.ك'}.`;controls();return {a,b};}
  function renderEntries(){entries.replaceChildren();checks.clear();
-  if(!context?.cutoff_date){entries.append(node('p','اختر تاريخ القطع صراحةً لعرض القيود حتى نهايته وما بعدها.'));total();return;}
+  if(!context?.cutoff_date){entries.append(node('p',translateStatic('اختر تاريخ القطع صراحةً لعرض القيود حتى نهايته وما بعدها.')));total();return;}
   for(const [side,title] of [['through_cutoff','القيود حتى نهاية يوم القطع'],['after_cutoff','القيود بعد يوم القطع']]){
    const table=node('table'),head=node('tr');for(const h of ['اختيار','تاريخ القيد','النوع','العقد','الاتجاه','المبلغ — د.ك','البيان'])head.append(node('th',h));table.append(head);
    const rows=context.entries.filter(e=>e.side===side);for(const row of rows){const tr=node('tr'),selection=node('td');
     if(side==='through_cutoff'&&opening(row)){const check=input('checkbox');check.setAttribute('aria-label','اختيار القيد '+row.id);check.checked=chosen.has(row.id);check.onchange=()=>{if(pending)return;check.checked?chosen.add(row.id):chosen.delete(row.id);attest.checked=false;total();};checks.set(row.id,check);selection.append(check);}
     else selection.textContent='—';
     tr.append(selection,...[row.occurred_on,opening(row)?'افتتاحي':'حركة أخرى',row.contract_no||'عام دون تخصيص',row.direction==='debit'?'مدين':'دائن',openingAmount(row.amount),row.reason].map(v=>node('td',v)));table.append(tr);
-   }entries.append(node('h3',title),rows.length?table:node('p','لا توجد قيود في هذه المجموعة.'));
+   }entries.append(node('h3',title),rows.length?table:node('p',translateStatic('لا توجد قيود في هذه المجموعة.')));
   }total();
  }
- function renderArchive(){archive.replaceChildren(node('h3','المراجعات المحفوظة — لا تستبدل النسخ السابقة'));
+ function renderArchive(){archive.replaceChildren(node('h3',translateStatic('المراجعات المحفوظة — لا تستبدل النسخ السابقة')));
   for(const r of context?.reviews||[]){const card=node('details');card.append(node('summary',`مراجعة ${r.revision} • نهاية ${r.cutoff_date} • مدين ${openingAmount(r.source_debit)} / دائن ${openingAmount(r.source_credit)} د.ك`),
     node('p',`${r.reviewed_by_name} • ${r.reviewed_at}`),node('p',`المصدر: ${r.document_snapshot.title} • ${r.source_reference}`),node('p',r.source_coverage),node('p',`بصمة المصدر: ${r.source_sha256}`));
-   if(r.correction_reason)card.append(node('p','سبب التصحيح: '+r.correction_reason));
+   if(r.correction_reason)card.append(node('p',translateStatic('سبب التصحيح: ')+r.correction_reason));
    for(const e of r.entries_snapshot)card.append(node('p',`${e.occurred_on} • ${e.direction==='debit'?'مدين':'دائن'} ${openingAmount(e.amount)} • ${e.reason}`));archive.append(card);
   }
  }
@@ -70,7 +71,7 @@ function mount(d){
   const blob=await d.session.storage('GET',doc.storage_path,undefined,doc.storage_bucket),hash=await checksum(blob);d.session.check();
   if(d.closed||epoch!==version||source.value!==id)return;
   if(blob.size!==doc.size_bytes||blob.type!==doc.mime_type||hash!==doc.checksum_sha256)throw Error('بصمة الملف أو حجمه لا يطابق المصدر المحفوظ. لم يتم اعتماده.');
-  verified={...doc};const link=node('a','تنزيل المصدر الخاص لقراءته');link.href=urls.create(blob);link.download=doc.original_filename||'opening-source';link.rel='noopener';download.replaceChildren(node('p','تطابقت بصمة الملف المحفوظ. اقرأه ثم أدخل القيم والتغطية وأقرّ بالمراجعة.'),link);controls();
+  verified={...doc};const link=node('a',translateStatic('تنزيل المصدر الخاص لقراءته'));link.href=urls.create(blob);link.download=doc.original_filename||'opening-source';link.rel='noopener';download.replaceChildren(node('p',translateStatic('تطابقت بصمة الملف المحفوظ. اقرأه ثم أدخل القيم والتغطية وأقرّ بالمراجعة.')),link);controls();
  }
  function request(){if(!context||!verified||verified.id!==source.value||!attest.checked||!chosen.size||!cutoff.value||cutoff.value!==context.cutoff_date)throw Error('اختر المصدر والقيود وتاريخ القطع، ثم اقرأ المستند وأقرّ بالمراجعة.');
   const sourceDebit=openingAmount(debit.value),sourceCredit=openingAmount(credit.value),totals=total();if(fils(sourceDebit)!==totals.a||fils(sourceCredit)!==totals.b)throw Error('المدين والدائن من المصدر يجب أن يطابقا القيود المختارة كلٌ على حدة.');
@@ -89,7 +90,7 @@ function mount(d){
   for(const key of ['id','storage_bucket','storage_path','checksum_sha256','size_bytes','mime_type'])if(saved.document_snapshot?.[key]!==doc[key])throw Error('تعذر تأكيد نسخة المصدر المحفوظة.');
   if((saved.previous_review_id??null)!==(attempt.data.previous_review_id??null)||(saved.correction_reason??null)!==(attempt.data.correction_reason??null)||!/^[a-f0-9]{64}$/.test(saved.review_fingerprint||''))throw Error('تعذر تأكيد ارتباط المراجعة بالنسخة السابقة وسبب التصحيح.');
   for(const e of attempt.entries){const found=saved.entries_snapshot.find(x=>x.id===e.id);if(!found||found.workspace_id!==d.session.bound.workspace||['tenant_id','lease_id','kind','direction','occurred_on','reason'].some(k=>found[k]!==e[k])||openingAmount(found.amount)!==openingAmount(e.amount))throw Error('تعذر تأكيد خطوط المراجعة المحفوظة.');}
-  pending=null;await load();d.status.textContent='تم اعتماد المطابقة والتحقق من المصدر والقيود بإعادة القراءة. لم ينشأ تحصيل أو وصل.';
+  pending=null;await load();d.status.textContent=translateStatic('تم اعتماد المطابقة والتحقق من المصدر والقيود بإعادة القراءة. لم ينشأ تحصيل أو وصل.');
  }
  form.onsubmit=e=>{e.preventDefault();if(pending)return;return run(async()=>{if(pending)return;pending={data:request(),document:{...verified},entries:context.entries.filter(e=>chosen.has(e.id)).map(e=>({...e}))};controls();try{await rpc('review',pending.data);await confirm();}catch(error){if(['22023','22007','22008','23514','23505','40001','42501'].includes(error?.code))pending=null;throw error;}finally{controls();}});};
  retry.onclick=()=>run(()=>confirm({recover:true}));verify.onclick=()=>run(verifySource);refresh.onclick=()=>run(load);
@@ -99,9 +100,10 @@ function mount(d){
  controls();return {load};
 }
 
-export function openOpeningBalances(){const d=createDialog('مطابقة الرصيد الافتتاحي بالمصدر');if(!d)return;
+export function openOpeningBalances(){const d=createDialog(translateStatic('مطابقة الرصيد الافتتاحي بالمصدر'));if(!d)return;
  return d.run(async()=>{const access=await d.session.request(d.session.client.rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace}));
-  if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.role!==d.session.bound.role||access.role!=='general_manager'||access?.features?.opening_balance_reconciliation!==true||access?.permissions?.finance?.read!==true||access?.permissions?.documents?.read!==true){d.body.append(node('p','مطابقة الرصيد الافتتاحي غير متاحة لهذا الحساب.'));return;}
+  if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.role!==d.session.bound.role||access.role!=='general_manager'||access?.features?.opening_balance_reconciliation!==true||access?.permissions?.finance?.read!==true||access?.permissions?.documents?.read!==true){d.body.append(node('p',translateStatic('مطابقة الرصيد الافتتاحي غير متاحة لهذا الحساب.')));return;}
   await mount(d).load();
  });
 }
+

@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {executionMethods,executionDue,rentReceiptArtifacts,executionManifest} from '../domain/contract-execution.js';
 
@@ -8,7 +9,7 @@ function select(rows,value=''){const el=node('select');for(const [key,label]of r
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 
 export function openContractExecution(contractId,{onDone}={}){
- const d=createDialog('اعتماد دفعة الإبرام وإصدار المستندات');if(!d)return false;
+ const d=createDialog(translateStatic('اعتماد دفعة الإبرام وإصدار المستندات'));if(!d)return false;
  const api=window.AQARI_RENTAL_RECORDS;if(!api)throw Error('تعذر تحميل محرك العقود.');
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
@@ -81,25 +82,25 @@ export function openContractExecution(contractId,{onDone}={}){
  }
 
  async function start(){
-  await load();d.body.replaceChildren(node('p','هذه الخطوة نهائية: تثبت العقد كتوقيع معتمد وتسوية الإبرام في عملية واحدة غير قابلة للحذف. رقم الوصل، عند وجود إيجار فعلي، يُحجز من الخادم وله رقم عام وتسلسل داخل العقد.'));
-  const summary=node('section');summary.append(node('h3','المستحق عند الإبرام'),node('p','العقد: '+currentContract.contract_no),node('p','المستأجر: '+currentProfile.nameAr+' / '+currentProfile.nameEn),node('p','العقار / الوحدة: '+currentContract.property+' / '+currentContract.unit),node('p','إيجار أول فترة: '+money(currentDue.rent)),node('p','التأمين: '+money(currentDue.deposit)),node('p','العربون: '+money(currentDue.advance)),node('p','الرسوم: '+money(currentDue.fees)),node('strong','الإجمالي: '+money(currentDue.total)));d.body.append(summary);
-  const form=node('form'),onDate=input('date',api.kuwaitDate()),method=currentDue.total>0?select([['','اختر طريقة الدفع'],...executionMethods]):select([['none','لا توجد دفعة']], 'none'),transaction=input('text'),zeroReason=node('textarea'),confirm=input('checkbox'),submit=node('button','اعتماد الإبرام وإصدار المستندات');
+  await load();d.body.replaceChildren(node('p',translateStatic('هذه الخطوة نهائية: تثبت العقد كتوقيع معتمد وتسوية الإبرام في عملية واحدة غير قابلة للحذف. رقم الوصل، عند وجود إيجار فعلي، يُحجز من الخادم وله رقم عام وتسلسل داخل العقد.')));
+  const summary=node('section');summary.append(node('h3',translateStatic('المستحق عند الإبرام')),node('p',translateStatic('العقد: ')+currentContract.contract_no),node('p',translateStatic('المستأجر: ')+currentProfile.nameAr+' / '+currentProfile.nameEn),node('p',translateStatic('العقار / الوحدة: ')+currentContract.property+' / '+currentContract.unit),node('p',translateStatic('إيجار أول فترة: ')+money(currentDue.rent)),node('p',translateStatic('التأمين: ')+money(currentDue.deposit)),node('p',translateStatic('العربون: ')+money(currentDue.advance)),node('p',translateStatic('الرسوم: ')+money(currentDue.fees)),node('strong',translateStatic('الإجمالي: ')+money(currentDue.total)));d.body.append(summary);
+  const form=node('form'),onDate=input('date',api.kuwaitDate()),method=currentDue.total>0?select([['','اختر طريقة الدفع'],...executionMethods]):select([['none','لا توجد دفعة']], 'none'),transaction=input('text'),zeroReason=node('textarea'),confirm=input('checkbox'),submit=node('button',translateStatic('اعتماد الإبرام وإصدار المستندات'));
   onDate.required=true;method.required=true;transaction.maxLength=150;zeroReason.maxLength=500;confirm.type='checkbox';confirm.required=true;submit.type='submit';
-  if(currentDue.total>0){transaction.required=true;form.append(field('طريقة الدفع',method),field('رقم العملية / المرجع — إلزامي لكل طرق الدفع',transaction));}
-  else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=currentDue.breakdown.freeMonth?'لا توجد دفعة عند الإبرام بسبب الفترة المجانية المعتمدة.':'صافي المستحق عند الإبرام يساوي صفراً حسب شروط العقد المعتمدة.';form.append(field('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي',zeroReason));}
-  form.append(field('تاريخ العملية',onDate),field('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد',confirm),submit);d.body.append(form);
+  if(currentDue.total>0){transaction.required=true;form.append(field(translateStatic('طريقة الدفع'),method),field(translateStatic('رقم العملية / المرجع — إلزامي لكل طرق الدفع'),transaction));}
+  else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=currentDue.breakdown.freeMonth?'لا توجد دفعة عند الإبرام بسبب الفترة المجانية المعتمدة.':'صافي المستحق عند الإبرام يساوي صفراً حسب شروط العقد المعتمدة.';form.append(field(translateStatic('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي'),zeroReason));}
+  form.append(field(translateStatic('تاريخ العملية'),onDate),field(translateStatic('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد'),confirm),submit);d.body.append(form);
   form.onsubmit=event=>{event.preventDefault();if(!form.reportValidity())return;d.run(async()=>{
-   submit.disabled=true;d.status.textContent='جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…';
+   submit.disabled=true;d.status.textContent=translateStatic('جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…');
    const result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?zeroReason.value.trim():''});
-   d.body.replaceChildren(node('h3','تم إبرام العقد وتأكيد السجل'),node('p','العقد '+result.contract.contract_no+' أصبح موقّعًا، وتسوية الإبرام محفوظة وغير قابلة للحذف.'));
-   if(result.receiptNo)d.body.append(node('p','وصل الإيجار الرسمي: '+result.receiptNo+' · تسلسله داخل هذا العقد: '+result.contractReceiptSequence));
-   const documentBox=node('section');documentBox.append(node('h3','المستندات الرسمية'));d.body.append(documentBox);let documentErrors=[];
-   try{const tenantPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.tenant_document_id,version:1},{mustBeArchived:true});documentBox.append(downloadLink('نسخة المستأجر — PDF رسمي مؤرشف',tenantPdf.blob,'contract-'+result.contract.contract_no+'-tenant.pdf'));}catch(error){documentErrors.push('نسخة المستأجر PDF');documentBox.append(node('p','تم إنشاء سجل نسخة المستأجر، لكن لم يتأكد أرشيف PDF في هذه الجلسة.'));}
-   try{const ownerPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.owner_document_id,version:1},{mustBeArchived:true});documentBox.append(downloadLink('نسخة المالك / الإدارة — PDF رسمي مؤرشف',ownerPdf.blob,'contract-'+result.contract.contract_no+'-owner.pdf'));}catch(error){documentErrors.push('نسخة المالك PDF');documentBox.append(node('p','تم إنشاء سجل نسخة المالك / الإدارة، لكن لم يتأكد أرشيف PDF في هذه الجلسة.'));}
-   if(result.receiptNo){try{const receiptPdf=await pdf('/api/rent-receipt',{workspaceId:d.session.bound.workspace,receiptNo:result.receiptNo});documentBox.append(downloadLink('وصل الإيجار الرسمي رقم '+result.receiptNo,receiptPdf.blob,'rent-receipt-'+result.receiptNo+'.pdf'));}catch(error){documentErrors.push('وصل الإيجار PDF');documentBox.append(node('p','وصل الإيجار محفوظ ومربوط بالحركة، لكن لم يتأكد تصدير PDF في هذه الجلسة.'));}}
-   else documentBox.append(node('p','لا يوجد وصل إيجار لأن مبلغ الإيجار عند الإبرام صفر؛ لم يُنشأ أي وصل أو دفعة وهمية.'));
+   d.body.replaceChildren(node('h3',translateStatic('تم إبرام العقد وتأكيد السجل')),node('p',translateStatic('العقد ')+result.contract.contract_no+' أصبح موقّعًا، وتسوية الإبرام محفوظة وغير قابلة للحذف.'));
+   if(result.receiptNo)d.body.append(node('p',translateStatic('وصل الإيجار الرسمي: ')+result.receiptNo+' · تسلسله داخل هذا العقد: '+result.contractReceiptSequence));
+   const documentBox=node('section');documentBox.append(node('h3',translateStatic('المستندات الرسمية')));d.body.append(documentBox);let documentErrors=[];
+   try{const tenantPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.tenant_document_id,version:1},{mustBeArchived:true});documentBox.append(downloadLink('نسخة المستأجر — PDF رسمي مؤرشف',tenantPdf.blob,'contract-'+result.contract.contract_no+'-tenant.pdf'));}catch(error){documentErrors.push('نسخة المستأجر PDF');documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المستأجر، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
+   try{const ownerPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.owner_document_id,version:1},{mustBeArchived:true});documentBox.append(downloadLink('نسخة المالك / الإدارة — PDF رسمي مؤرشف',ownerPdf.blob,'contract-'+result.contract.contract_no+'-owner.pdf'));}catch(error){documentErrors.push('نسخة المالك PDF');documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المالك / الإدارة، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
+   if(result.receiptNo){try{const receiptPdf=await pdf('/api/rent-receipt',{workspaceId:d.session.bound.workspace,receiptNo:result.receiptNo});documentBox.append(downloadLink('وصل الإيجار الرسمي رقم '+result.receiptNo,receiptPdf.blob,'rent-receipt-'+result.receiptNo+'.pdf'));}catch(error){documentErrors.push('وصل الإيجار PDF');documentBox.append(node('p',translateStatic('وصل الإيجار محفوظ ومربوط بالحركة، لكن لم يتأكد تصدير PDF في هذه الجلسة.')));}}
+   else documentBox.append(node('p',translateStatic('لا يوجد وصل إيجار لأن مبلغ الإيجار عند الإبرام صفر؛ لم يُنشأ أي وصل أو دفعة وهمية.')));
    d.status.textContent=documentErrors.length?'تم الإبرام وتحديث الاستحقاقات، وبقي التحقق المستضاف من: '+documentErrors.join(' و '):'تم الإبرام، وتأكد تحديث الاستحقاقات ونسختا العقد الرسميتان والوصل عند وجوده.';
-   const done=node('button','العودة إلى العقد');done.type='button';done.onclick=()=>{d.close();if(typeof onDone==='function')onDone(result.contract);};d.body.append(done);
+   const done=node('button',translateStatic('العودة إلى العقد'));done.type='button';done.onclick=()=>{d.close();if(typeof onDone==='function')onDone(result.contract);};d.body.append(done);
   });};
  }
  d.run(start);return true;

@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 const kinds={elevator:'مصعد',air_conditioning:'تكييف',fire_system:'أنظمة إطفاء',water_tank:'خزان مياه',generator:'مولد',plumbing:'تمديدات صحية',electrical:'كهرباء',other:'أخرى'};
 const states={scheduled:'بانتظار التكليف',assigned:'تم التكليف',in_progress:'قيد التنفيذ',completed:'مكتملة',cancelled:'ملغاة'};
@@ -7,15 +8,15 @@ function select(items,placeholder,required=true){const s=node('select');s.append
 function validDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;}
 function button(label,action){const b=node('button',label);b.type='button';b.onclick=action;return b;}
 export function openMaintenancePlans(){
- const d=createDialog('الصيانة الدورية والتنبيهات');if(!d)return;
+ const d=createDialog(translateStatic('الصيانة الدورية والتنبيهات'));if(!d)return;
  let data=null,pending=false,uncertain=false,editing=null;
- const toolbar=node('div'),reload=node('button','تحديث السجل'),prepare=node('button','تجهيز تنبيهات اليوم'),summary=node('section'),editor=node('section'),plans=node('section'),tasks=node('section'),alerts=node('section');
+ const toolbar=node('div'),reload=node('button',translateStatic('تحديث السجل')),prepare=node('button',translateStatic('تجهيز تنبيهات اليوم')),summary=node('section'),editor=node('section'),plans=node('section'),tasks=node('section'),alerts=node('section');
  reload.type=prepare.type='button';toolbar.append(reload,prepare);d.body.append(text('p','اختر خطة، كلّف الجهة المنفذة، ثم وثّق الإنجاز. تُجهز التنبيهات في سجل داخلي فقط؛ لا تُعرض كرسائل مُرسلة حتى يؤكد المزود التسليم.'),toolbar,summary,editor,plans,tasks,alerts);
  const rpc=(action,payload={})=>d.session.request(d.session.client.rpc('aqari_maintenance_plans',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload}));
  async function load(proof){const fresh=await rpc('list');if(!Array.isArray(fresh?.plans)||!Array.isArray(fresh.tasks)||!Array.isArray(fresh.alerts)||!Array.isArray(fresh.properties)||!Array.isArray(fresh.documents)||(fresh.workflow_version===2&&(!Array.isArray(fresh.vendors)||!Array.isArray(fresh.contracts))))throw Error('تعذر استرجاع سجل الصيانة الدورية.');data=fresh;if(proof&&!proof(fresh))throw Error('تعذر مطابقة العملية بعد إعادة القراءة؛ لا تكررها قبل المراجعة.');render();}
  async function write(action,payload,proof){
   if(pending||uncertain)throw Error('حدّث السجل وتحقق من العملية السابقة أولًا.');pending=true;render();
-  try{await rpc(action,payload);await load(proof);editing=null;d.status.textContent='تم الحفظ والتحقق بإعادة القراءة.';}
+  try{await rpc(action,payload);await load(proof);editing=null;d.status.textContent=translateStatic('تم الحفظ والتحقق بإعادة القراءة.');}
   catch(error){uncertain=true;if(error?.code==='42501'||[401,403].includes(error?.status))throw error;throw Error(errors[error?.message]||'لم يتأكد الحفظ. حدّث السجل وراجع العملية قبل إعادة المحاولة.');}
   finally{pending=false;render();}
  }
@@ -32,7 +33,7 @@ export function openMaintenancePlans(){
   function contractOptions(){const previous=contract.value||saved?.vendor_contract_id||'';contract.replaceChildren(opt('','بدون عقد مورد مرتبط'));for(const c of data.contracts||[])if(!c.property_id||c.property_id===property.value){const vendor=data.vendors?.find(v=>v.id===c.vendor_id);contract.append(opt(c.id,`${c.contract_no} — ${vendor?.name||'مورد'} • حتى ${c.ends_on}`));}contract.value=previous;}
   property.onchange=contractOptions;contractOptions();
   if(saved?.vendor_contract_id&&!(data.contracts||[]).some(c=>c.id===saved.vendor_contract_id))editor.append(text('p','عقد المورد السابق لم يعد متاحًا. راجع العقد قبل حفظ التعديل.'));
-  f.append(field('العقار',property),field('نوع الأصل',kind),field('عنوان الخطة',title),field('التكرار بالأيام',frequency),field('موعد الصيانة القادمة',next),field('عقد المورد المرتبط',contract),field('الخطة فعالة',active),Object.assign(node('button',saved?'حفظ التعديلات':'حفظ الخطة'),{type:'submit'}));
+  f.append(field(translateStatic('العقار'),property),field(translateStatic('نوع الأصل'),kind),field(translateStatic('عنوان الخطة'),title),field(translateStatic('التكرار بالأيام'),frequency),field(translateStatic('موعد الصيانة القادمة'),next),field(translateStatic('عقد المورد المرتبط'),contract),field(translateStatic('الخطة فعالة'),active),Object.assign(node('button',saved?'حفظ التعديلات':'حفظ الخطة'),{type:'submit'}));
   f.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
    if(!validDate(next.value)||!Number.isInteger(Number(frequency.value))||Number(frequency.value)<1||Number(frequency.value)>730||title.value.trim().length<3||!property.value)throw Error('راجع العقار والعنوان والتكرار وموعد الصيانة.');
    const id=saved?.id||crypto.randomUUID(),payload={id,revision:saved?.revision||0,property_id:property.value,asset_kind:kind.value,title:title.value.trim(),frequency_days:Number(frequency.value),next_due_on:next.value,vendor_contract_id:contract.value||null,warning_days:saved?.warning_days||[90,60,30],is_active:active.checked};
@@ -62,23 +63,24 @@ export function openMaintenancePlans(){
    if(writable&&!['completed','cancelled'].includes(task.status)){
     if(['scheduled','assigned'].includes(task.status)){
      const assignment=node('form'),plan=data.plans.find(p=>p.id===task.plan_id),contract=(data.contracts||[]).find(c=>c.id===plan?.vendor_contract_id),vendors=select((data.vendors||[]).filter(v=>!contract||contract.vendor_id===v.id),'اختر الجهة المنفذة'),reason=node('input');vendors.value=task.assigned_vendor_id||'';reason.required=true;reason.minLength=3;
-     assignment.append(field('الجهة المنفذة',vendors),field('بيان التكليف',reason),Object.assign(node('button','حفظ التكليف'),{type:'submit'}));
+     assignment.append(field(translateStatic('الجهة المنفذة'),vendors),field(translateStatic('بيان التكليف'),reason),Object.assign(node('button',translateStatic('حفظ التكليف')),{type:'submit'}));
      assignment.onsubmit=e=>{e.preventDefault();const vendorId=vendors.value;return d.run(()=>write('assign_task',{id:task.id,revision:task.revision,vendor_id:vendorId,reason:reason.value.trim()},proofTask(task,'assigned',t=>t.assigned_vendor_id===vendorId&&!!t.assigned_at&&!!t.assigned_by)));};card.append(assignment);
     }
     if(task.status==='assigned')card.append(button('بدء التنفيذ',()=>d.run(()=>write('start_task',{id:task.id,revision:task.revision,reason:'بدء تنفيذ مهمة الصيانة'},proofTask(task,'in_progress',t=>!!t.started_at)))));
     if(task.status==='in_progress'&&!data.can_complete)card.append(text('p','اعتماد الإنجاز وإثباته متاح للإدارة المخولة بالمستندات.'));
     if(task.status==='in_progress'&&data.can_complete){const f=node('form'),doc=select(data.documents.filter(x=>x.property_id===task.property_id).map(x=>({...x,name:(x.document_no?x.document_no+' — ':'')+x.title})),'اختر مستند وصور الإنجاز'),photo=select(data.documents.filter(x=>x.property_id===task.property_id&&['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(x.mime_type)).map(x=>({...x,name:x.title})),'اختر صورة إنجاز محفوظة'),cost=node('input'),reason=node('input');cost.inputMode='decimal';cost.required=reason.required=true;reason.minLength=3;
-    f.append(field('مستند الإنجاز المحفوظ',doc),field('صورة الإنجاز المحفوظة',photo),field('التكلفة د.ك',cost),field('بيان الإنجاز',reason),Object.assign(node('button','اعتماد إكمال المهمة'),{type:'submit'}));
+    f.append(field(translateStatic('مستند الإنجاز المحفوظ'),doc),field(translateStatic('صورة الإنجاز المحفوظة'),photo),field(translateStatic('التكلفة د.ك'),cost),field(translateStatic('بيان الإنجاز'),reason),Object.assign(node('button',translateStatic('اعتماد إكمال المهمة')),{type:'submit'}));
     f.onsubmit=e=>{e.preventDefault();return d.run(()=>{const amount=cost.value.trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace('٫','.');if(!/^\d{1,12}(\.\d{1,3})?$/.test(amount))throw Error('أدخل تكلفة صحيحة بدقة ثلاثة منازل.');return write('complete_task',{id:task.id,revision:task.revision,completion_document_id:doc.value,photo_document_ids:[photo.value],cost:amount,reason:reason.value.trim()},proofTask(task,'completed',t=>t.completion_document_id===doc.value&&Number(t.cost)===Number(amount)));});};card.append(f);}
-    const cancel=node('details'),cancelForm=node('form'),cancelReason=node('input');cancelReason.required=true;cancelReason.minLength=3;cancel.append(text('summary','إلغاء المهمة مع حفظ السبب'));cancelForm.append(field('سبب إلغاء المهمة',cancelReason),Object.assign(node('button','تأكيد إلغاء المهمة'),{type:'submit'}));cancelForm.onsubmit=e=>{e.preventDefault();const reason=cancelReason.value.trim();return d.run(()=>write('cancel_task',{id:task.id,revision:task.revision,reason},proofTask(task,'cancelled',t=>t.cancellation_reason===reason)));};cancel.append(cancelForm);card.append(cancel);
+    const cancel=node('details'),cancelForm=node('form'),cancelReason=node('input');cancelReason.required=true;cancelReason.minLength=3;cancel.append(text('summary','إلغاء المهمة مع حفظ السبب'));cancelForm.append(field(translateStatic('سبب إلغاء المهمة'),cancelReason),Object.assign(node('button',translateStatic('تأكيد إلغاء المهمة')),{type:'submit'}));cancelForm.onsubmit=e=>{e.preventDefault();const reason=cancelReason.value.trim();return d.run(()=>write('cancel_task',{id:task.id,revision:task.revision,reason},proofTask(task,'cancelled',t=>t.cancellation_reason===reason)));};cancel.append(cancelForm);card.append(cancel);
    }tasks.append(card);
   }
   alerts.replaceChildren(text('h2','سجل التنبيهات'));if(!data.alerts.length)alerts.append(text('p','لا توجد تنبيهات مجهزة.'));const alertKinds={maintenance_due:'موعد صيانة',lease_expiry:'انتهاء عقد إيجار',vendor_contract_expiry:'انتهاء عقد مورد'},alertStates={awaiting_configuration:'بانتظار إعداد الإرسال',queued:'بانتظار الإرسال',sending:'جارٍ الإرسال',sent:'تم الإرسال',failed:'تعذر الإرسال',delivered:'تم التسليم',cancelled:'ملغى'};
   for(const alert of data.alerts)alerts.append(text('p',`${alertKinds[alert.kind]||'تنبيه'} • ${String(alert.scheduled_for).slice(0,10)} • ${alertStates[alert.status]||'راجع سجل الإرسال'}`));
   if(pending||uncertain)for(const section of [editor,plans,tasks])for(const control of section.querySelectorAll('button,input,select'))control.disabled=true;
  }
- reload.onclick=()=>d.run(async()=>{await load();uncertain=false;editing=null;render();d.status.textContent='تم استرجاع الخطط والمهام والتنبيهات. راجع العملية السابقة إن انقطع الاتصال.';});
+ reload.onclick=()=>d.run(async()=>{await load();uncertain=false;editing=null;render();d.status.textContent=translateStatic('تم استرجاع الخطط والمهام والتنبيهات. راجع العملية السابقة إن انقطع الاتصال.');});
  prepare.onclick=()=>d.run(()=>write('prepare_alerts',{},x=>Array.isArray(x.runs)&&x.runs.some(r=>r.as_of===new Date(Date.now()+10800000).toISOString().slice(0,10))));
  d.onDispose(()=>{data=null;editing=null;pending=false;uncertain=false;for(const x of [summary,editor,plans,tasks,alerts])x.replaceChildren();});
  d.run(load);
 }
+

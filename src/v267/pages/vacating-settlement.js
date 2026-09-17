@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 
@@ -31,11 +32,11 @@ const releaseErrors={
 };
 const checkbox=()=>{const input=node('input');input.type='checkbox';return input;};
 export function openVacatingSettlement(){
- const d=createDialog('تسوية الإخلاء وبراءة الذمة');if(!d)return;
+ const d=createDialog(translateStatic('تسوية الإخلاء وبراءة الذمة'));if(!d)return;
  const lease=node('select'),vacate=node('input'),keys=checkbox(),inspection=checkbox(),meters=checkbox(),damage=node('input'),damageNotes=node('textarea'),resolved=checkbox(),reference=node('input'),exception=node('textarea');
  vacate.type='date';damage.type='text';damage.inputMode='decimal';damage.value='0.000';damageNotes.maxLength=1000;reference.maxLength=160;exception.maxLength=1000;
- const refresh=node('button','تحديث التسوية من السجل');
- const summary=node('section'),save=node('button','حفظ مسودة الإخلاء'),finalize=node('button','اعتماد التسوية النهائية'),clearance=node('button','إصدار براءة الذمة'),releaseUnit=node('button','إنهاء العقد وإطلاق الوحدة'),printSettlement=node('button','طباعة التسوية المحفوظة'),printClearance=node('button','طباعة براءة الذمة');
+ const refresh=node('button',translateStatic('تحديث التسوية من السجل'));
+ const summary=node('section'),save=node('button',translateStatic('حفظ مسودة الإخلاء')),finalize=node('button',translateStatic('اعتماد التسوية النهائية')),clearance=node('button',translateStatic('إصدار براءة الذمة')),releaseUnit=node('button',translateStatic('إنهاء العقد وإطلاق الوحدة')),printSettlement=node('button',translateStatic('طباعة التسوية المحفوظة')),printClearance=node('button',translateStatic('طباعة براءة الذمة'));
  const urls=createPrivateUrls(d),printOutput=node('div');
  let current=null,isManager=false,leases=[];
  const run=async task=>{await d.run(task);if(!d.closed)draw();};
@@ -43,10 +44,10 @@ export function openVacatingSettlement(){
  const releaseRpc=(leaseId,revision)=>d.session.request(d.session.client.rpc('aqari_vacating_release',{p_workspace_id:d.session.bound.workspace,p_lease_id:leaseId,p_revision:revision}));
  function draw(){
   summary.replaceChildren();
-  if(!current){summary.append(node('p','لا توجد مسودة محفوظة لهذا العقد.'));for(const x of [vacate,keys,inspection,meters,damage,damageNotes,resolved,reference])x.disabled=!lease.value;save.disabled=!lease.value;for(const x of [finalize,clearance,releaseUnit,printSettlement,printClearance])x.disabled=true;return;}
-  const b=current.balances||{};summary.append(node('h3','حالة التسوية: '+current.status),node('p','المتبقي على المستأجر: '+money(b.rent_balance)+' د.ك · الرصيد الدائن: '+money(b.tenant_credit)+' د.ك · التأمين غير المسوّى: '+money(b.deposit_balance)+' د.ك'));
-  if(current.settlement_no)summary.append(node('p','رقم التسوية: '+current.settlement_no));if(current.clearance_no)summary.append(node('p','رقم براءة الذمة: '+current.clearance_no));if(current.exception_reason)summary.append(node('p','استثناء موثق: '+current.exception_reason));
-  if(current.status==='released')summary.append(node('p','تم إنهاء الإشغال تشغيلياً وتحرير الوحدة مع بقاء نهاية العقد الأصلية محفوظة في السجل.'));
+  if(!current){summary.append(node('p',translateStatic('لا توجد مسودة محفوظة لهذا العقد.')));for(const x of [vacate,keys,inspection,meters,damage,damageNotes,resolved,reference])x.disabled=!lease.value;save.disabled=!lease.value;for(const x of [finalize,clearance,releaseUnit,printSettlement,printClearance])x.disabled=true;return;}
+  const b=current.balances||{};summary.append(node('h3',translateStatic('حالة التسوية: ')+current.status),node('p',translateStatic('المتبقي على المستأجر: ')+money(b.rent_balance)+' د.ك · الرصيد الدائن: '+money(b.tenant_credit)+' د.ك · التأمين غير المسوّى: '+money(b.deposit_balance)+' د.ك'));
+  if(current.settlement_no)summary.append(node('p',translateStatic('رقم التسوية: ')+current.settlement_no));if(current.clearance_no)summary.append(node('p',translateStatic('رقم براءة الذمة: ')+current.clearance_no));if(current.exception_reason)summary.append(node('p',translateStatic('استثناء موثق: ')+current.exception_reason));
+  if(current.status==='released')summary.append(node('p',translateStatic('تم إنهاء الإشغال تشغيلياً وتحرير الوحدة مع بقاء نهاية العقد الأصلية محفوظة في السجل.')));
   const locked=current.status!=='draft';for(const x of [vacate,keys,inspection,meters,damage,damageNotes,resolved,reference])x.disabled=locked;
   save.disabled=locked;finalize.disabled=locked||!isManager;clearance.disabled=current.status!=='finalized'||!isManager;releaseUnit.disabled=current.status!=='cleared'||!isManager;printSettlement.disabled=!current.settlement_snapshot;printClearance.disabled=!current.clearance_snapshot;
  }
@@ -54,25 +55,26 @@ export function openVacatingSettlement(){
  async function load(){const id=lease.value;fill(null);if(!id)return;const result=await rpc('get',{lease_id:id});d.session.check();if(!result||!Object.hasOwn(result,'settlement'))throw Error('تعذر قراءة التسوية المحفوظة.');fill(result.settlement);}
  async function confirm(result){const saved=result?.settlement;if(!saved||saved.lease_id!==lease.value)throw Error('تعذر التحقق من الحفظ.');await load();if(!current||current.revision!==saved.revision||current.status!==saved.status)throw Error('تغيرت التسوية أثناء التحقق. راجع النسخة الحالية قبل إجراء جديد.');}
  lease.onchange=()=>run(load);refresh.onclick=()=>run(load);
- save.onclick=()=>run(async()=>{const result=await rpc('save',{lease_id:lease.value,vacate_date:vacate.value,keys_returned:keys.checked,inspection_completed:inspection.checked,meters_recorded:meters.checked,damage_amount:String(damage.value).trim(),damage_notes:damageNotes.value,charges_resolved:resolved.checked,charges_reference:reference.value,revision:current?.revision||0});await confirm(result);d.status.textContent='حُفظت مسودة الإخلاء وأعيدت قراءتها من قاعدة البيانات.';});
- finalize.onclick=()=>run(async()=>{if(!current)throw Error('احفظ المسودة أولاً.');const result=await rpc('finalize',{lease_id:lease.value,revision:current.revision});await confirm(result);d.status.textContent='اعتمدت التسوية النهائية وحُفظت نسخة ثابتة للطباعة.';});
- clearance.onclick=()=>run(async()=>{if(!current)throw Error('اعتمد التسوية أولاً.');const result=await rpc('clearance',{lease_id:lease.value,revision:current.revision,exception_reason:exception.value.trim()});await confirm(result);d.status.textContent='صدرت براءة الذمة من السجل المحفوظ.';});
+ save.onclick=()=>run(async()=>{const result=await rpc('save',{lease_id:lease.value,vacate_date:vacate.value,keys_returned:keys.checked,inspection_completed:inspection.checked,meters_recorded:meters.checked,damage_amount:String(damage.value).trim(),damage_notes:damageNotes.value,charges_resolved:resolved.checked,charges_reference:reference.value,revision:current?.revision||0});await confirm(result);d.status.textContent=translateStatic('حُفظت مسودة الإخلاء وأعيدت قراءتها من قاعدة البيانات.');});
+ finalize.onclick=()=>run(async()=>{if(!current)throw Error('احفظ المسودة أولاً.');const result=await rpc('finalize',{lease_id:lease.value,revision:current.revision});await confirm(result);d.status.textContent=translateStatic('اعتمدت التسوية النهائية وحُفظت نسخة ثابتة للطباعة.');});
+ clearance.onclick=()=>run(async()=>{if(!current)throw Error('اعتمد التسوية أولاً.');const result=await rpc('clearance',{lease_id:lease.value,revision:current.revision,exception_reason:exception.value.trim()});await confirm(result);d.status.textContent=translateStatic('صدرت براءة الذمة من السجل المحفوظ.');});
  releaseUnit.onclick=()=>run(async()=>{
   if(!current||current.status!=='cleared')throw Error('يجب إصدار براءة الذمة أولاً قبل إنهاء العقد وإطلاق الوحدة.');
   try{
    const result=await releaseRpc(lease.value,current.revision);d.session.check();await confirm(result);
    if(current?.status!=='released')throw Error('تعذر التحقق من إنهاء العقد من السجل.');
-   d.status.textContent='تم إنهاء العقد تشغيلياً وإطلاق الوحدة بعد إعادة التحقق من المستندات والالتزامات والأرصدة.';
+   d.status.textContent=translateStatic('تم إنهاء العقد تشغيلياً وإطلاق الوحدة بعد إعادة التحقق من المستندات والالتزامات والأرصدة.');
   }catch(error){if(releaseErrors[error?.message])throw Error(releaseErrors[error.message]);throw error;}
  });
  async function preparePrint(kind){
   const id=lease.value,result=await rpc('get',{lease_id:id});d.session.check();
   if(result?.settlement?.lease_id!==id)throw Error('تعذر التحقق من المستند المحفوظ.');
   const html=printable(result.settlement,kind);urls.clear();printOutput.replaceChildren();
-  const link=node('a','فتح المستند المحفوظ للطباعة أو الحفظ');link.href=urls.create(new Blob([html],{type:'text/html;charset=utf-8'}));link.target='_blank';link.rel='noopener';printOutput.append(link);
+  const link=node('a',translateStatic('فتح المستند المحفوظ للطباعة أو الحفظ'));link.href=urls.create(new Blob([html],{type:'text/html;charset=utf-8'}));link.target='_blank';link.rel='noopener';printOutput.append(link);
  }
  printSettlement.onclick=()=>run(()=>preparePrint('settlement'));printClearance.onclick=()=>run(()=>preparePrint('clearance'));
  d.onDispose(()=>{current=null;leases=[];printOutput.replaceChildren();});
- d.body.append(field('العقد',lease),refresh,field('تاريخ الإخلاء',vacate),field('استلام جميع المفاتيح',keys),field('اكتمال فحص الوحدة',inspection),field('تثبيت قراءات الكهرباء والماء',meters),field('قيمة الأضرار — د.ك',damage),field('وصف الأضرار',damageNotes),field('تمت تسوية الأضرار/المبالغ الأخرى',resolved),field('مرجع تسوية الأضرار',reference),field('استثناء إداري موثق عند وجود رصيد مفتوح',exception),summary,save,finalize,clearance,releaseUnit,printSettlement,printClearance,printOutput);
- return run(async()=>{const result=await rpc('list');isManager=result.manager===true;leases=result.leases||[];for(const x of leases){const option=node('option',[x.contract_no,x.tenant_name,x.property_name,x.unit_no].filter(Boolean).join(' — '));option.value=x.id;lease.append(option);}if(leases.length)await load();else{d.status.textContent='لا توجد عقود متاحة ضمن صلاحية الحساب.';draw();}});
+ d.body.append(field(translateStatic('العقد'),lease),refresh,field(translateStatic('تاريخ الإخلاء'),vacate),field(translateStatic('استلام جميع المفاتيح'),keys),field(translateStatic('اكتمال فحص الوحدة'),inspection),field(translateStatic('تثبيت قراءات الكهرباء والماء'),meters),field(translateStatic('قيمة الأضرار — د.ك'),damage),field(translateStatic('وصف الأضرار'),damageNotes),field(translateStatic('تمت تسوية الأضرار/المبالغ الأخرى'),resolved),field(translateStatic('مرجع تسوية الأضرار'),reference),field(translateStatic('استثناء إداري موثق عند وجود رصيد مفتوح'),exception),summary,save,finalize,clearance,releaseUnit,printSettlement,printClearance,printOutput);
+ return run(async()=>{const result=await rpc('list');isManager=result.manager===true;leases=result.leases||[];for(const x of leases){const option=node('option',[x.contract_no,x.tenant_name,x.property_name,x.unit_no].filter(Boolean).join(' — '));option.value=x.id;lease.append(option);}if(leases.length)await load();else{d.status.textContent=translateStatic('لا توجد عقود متاحة ضمن صلاحية الحساب.');draw();}});
 }
+
