@@ -29,9 +29,10 @@ export async function readLiveDashboard(session,day,readCounters){
   call('aqari_kpi_dashboard',{p_from:first,p_to:day}),
   call('aqari_kpi_dashboard',{p_from:day,p_to:day}),
   call('aqari_monthly_collection_report',{p_period:first,p_property_id:null}),
-  readCounters(session,day)
+  readCounters(session,day),
+  Promise.resolve().then(()=>session.request(session.client.from('aqari_rent_payments').select('amount,paid_at,status').eq('workspace_id',session.bound.workspace).neq('status','cancelled').order('paid_at',{ascending:false}).limit(3)))
  ]);
  session.check();
  const values=results.map(result=>result.status==='fulfilled'?result.value:null);
- return {values:projectDashboard(...values),partial:results.some(result=>result.status==='rejected'),day};
+ return {values:projectDashboard(...values),collections:values[2],payments:values[4],partial:results.some(result=>result.status==='rejected'),day};
 }

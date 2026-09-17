@@ -1,3 +1,4 @@
+import {WORKSPACE_MESSAGES} from './workspace-translations.js';
 import {LEASE_EXPIRY_MESSAGES} from './lease-expiry-translations.js';
 import {SERVICE_LABEL_MESSAGES} from './service-label-translations.js';
 // Interface text only. Record values and legal documents are never translated.
@@ -5,6 +6,7 @@ import {PARTNER_MESSAGES} from './partner-translations.js';
 import {DEPOSIT_MESSAGES} from './deposit-translations.js';
 import {EXIT_MESSAGES} from './exit-translations.js';
 export const MESSAGES = {
+ ...WORKSPACE_MESSAGES,
  ...LEASE_EXPIRY_MESSAGES,
  ...SERVICE_LABEL_MESSAGES,
  ...DEPOSIT_MESSAGES,

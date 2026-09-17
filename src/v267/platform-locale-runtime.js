@@ -7,7 +7,7 @@ const EXTRA_EN=Object.freeze({
 });
 const SHELL_ROOTS='#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,.aq-unified-dashboard,.aq-unified-page-head,#aqUnifiedMore';
 const STATIC_TAGS=new Set(['BUTTON','LABEL','OPTION','LEGEND','SUMMARY','H1','H2','H3','H4','H5','H6']);
-const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN']);
+const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','TH','TD']);
 let observer=null,queued=false,boundKey='';
 
 function liveScope(){
@@ -28,7 +28,7 @@ function applyDirection(){
  if(document.body){document.body.lang=locale;document.body.dir=dir;document.body.dataset.aqariLocale=locale;}
 }
 function uiTextNode(node){
- const parent=node.parentElement;if(!parent)return false;
+ const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record]'))return false;
  if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"]'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
  if(parent.closest('main.w>.p,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
@@ -74,3 +74,4 @@ function start(){
  window.AQARI_PLATFORM_LOCALE=Object.freeze({version:'V267-platform-locale-2',get:getLocale,set(value){setLocale(value);window.location.reload();}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+
