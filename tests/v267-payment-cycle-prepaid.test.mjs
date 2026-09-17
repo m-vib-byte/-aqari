@@ -26,10 +26,10 @@ test('prepaid amount allocates FIFO across positive balances and supports a part
   {period:'2026-12-01',due_amount:100,balance:100,due_on:'2026-12-01'}
  ];
  assert.deepEqual(allocatePrepaidAmount(periods,190,{maxPeriods:3}).map(x=>[x.period,x.amount]),[['2026-10-01',40],['2026-11-01',100],['2026-12-01',50]]);
- assert.throws(()=>allocatePrepaidAmount(periods,250,{maxPeriods:2}),/أكبر من رصيد/);
+ assert.throws(()=>allocatePrepaidAmount(periods,250,{maxPeriods:2}),/عدد الفترات المختارة/);
 });
 
-test('prepaid allocator rejects malformed, duplicate or out-of-order server schedules before reserving receipts',()=>{
+test('prepaid allocator rejects malformed, duplicate, out-of-order or silently truncated server schedules before reserving receipts',()=>{
  const october={period:'2026-10-01',due_amount:100,balance:100,due_on:'2026-10-01'};
  const november={period:'2026-11-01',due_amount:100,balance:100,due_on:'2026-11-01'};
  assert.throws(()=>allocatePrepaidAmount([november,october],50),/مرتبًا زمنياً/);
@@ -37,6 +37,7 @@ test('prepaid allocator rejects malformed, duplicate or out-of-order server sche
  assert.throws(()=>allocatePrepaidAmount([{...october,period:'2026-10-15'}],50),/غير صالح/);
  assert.throws(()=>allocatePrepaidAmount([{...october,balance:'NaN'}],50),/غير صالح/);
  assert.throws(()=>allocatePrepaidAmount([{...october,due_amount:10.0009}],5),/غير صالح/);
+ assert.throws(()=>allocatePrepaidAmount([october,november,{...october,balance:50}],50,{maxPeriods:2}),/عدد الفترات المختارة/);
 });
 
 test('prepaid batch manifest requires exact sum and server reservation identities',()=>{

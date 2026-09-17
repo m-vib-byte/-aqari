@@ -24,8 +24,9 @@ const sameMoney=(a,b)=>Number.isFinite(Number(a))&&Number.isFinite(Number(b))&&M
 export function allocatePrepaidAmount(periods,total,{maxPeriods=24}={}){
  const requested=money(total);if(!Array.isArray(periods)||!periods.length)throw Error('لا توجد فترات مستحقة قابلة للتغطية.');
  if(!Number.isInteger(maxPeriods)||maxPeriods<1||maxPeriods>60)throw Error('عدد الفترات غير صالح.');
+ if(periods.length>maxPeriods)throw Error('عدد الفترات المختارة يتجاوز الحد المسموح. أعد تحميل الاختيار قبل الحفظ.');
  let previousPeriod='';const seenPeriods=new Set();
- const schedule=periods.slice(0,maxPeriods).map(row=>{
+ const schedule=periods.map(row=>{
   const period=monthStart(row?.period),due=kwdNonnegative(row?.due_amount),balanceValue=kwdNonnegative(row?.balance);
   if(!period||due===null||balanceValue===null)throw Error('جدول الاستحقاقات غير صالح للدفعة المقدمة. أعد تحميل الاستحقاقات من الخادم.');
   if(seenPeriods.has(period))throw Error('جدول الاستحقاقات يحتوي فترة مكررة. أعد تحميل الاستحقاقات قبل الحفظ.');
