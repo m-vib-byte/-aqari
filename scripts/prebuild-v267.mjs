@@ -6,6 +6,7 @@ run(process.execPath,['--test','tests/v267-owner-production-approval.test.mjs'])
 run(process.execPath,['--test','tests/v267-requirements-155-evidence.test.mjs']);
 run(process.execPath,['--test','tests/v267-production-config-gate.test.mjs']);
 run(process.execPath,['--test','tests/v267-stage-c-release-bundle-gate.test.mjs']);
+run(process.execPath,['--test','tests/v267-payment-cycle-prepaid.test.mjs']);
 run(process.execPath,['scripts/check-v267-integration-readiness.mjs']);
 run('python',['-m','unittest','tests.mfa_selftest_test']);
 run('python',['-m','unittest','tests.property_statement_source_charge_totals_test']);
