@@ -1,11 +1,26 @@
 """Provider-neutral KNET payment-link dispatcher."""
 from urllib.request import Request,build_opener
 from urllib.error import HTTPError,URLError
-import json,os,re
+import json,os,re,ipaddress
+from urllib.parse import urlsplit
 from lib.integration_dispatch import rpc,NoRedirect
 from lib.outbound_adapters import knet_payment_request,encoded_body
 
 UUID=re.compile(r'^[0-9a-f-]{36}$',re.I);ENV=re.compile(r'^[A-Z][A-Z0-9_]{2,127}$')
+
+def _valid_payment_url(value):
+ try:
+  if not isinstance(value,str) or len(value)>2048 or re.search(r'[\s\x00-\x1f\x7f\\]',value):return False
+  parsed=urlsplit(value)
+  if parsed.scheme!='https' or not parsed.hostname or parsed.username is not None or parsed.password is not None or parsed.fragment or parsed.port not in (None,443):return False
+  host=parsed.hostname.lower().rstrip('.')
+  if '.' not in host or host.endswith(('.localhost','.local','.internal')):return False
+  try:
+   if not ipaddress.ip_address(host).is_global:return False
+  except ValueError:
+   if not re.fullmatch(r'[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?',host) or '..' in host:return False
+  return True
+ except ValueError:return False
 
 def provider_request(item,env=os.environ):
  if not isinstance(item,dict) or item.get('eventType')!='knet.payment_link' or not UUID.fullmatch(str(item.get('eventId',''))):raise ValueError('INVALID_KNET_CLAIM')
@@ -25,11 +40,12 @@ def send_link(item,env=os.environ,open_url=None):
    if len(raw)>65536:raise RuntimeError('PROVIDER_RESPONSE_TOO_LARGE')
    if status<200 or status>=300:raise HTTPError(url,status,'provider error',{},None)
    value=json.loads(raw or b'{}');payment_url=value.get('payment_url') if isinstance(value,dict) else None;reference=(value.get('payment_reference') or value.get('provider_reference') or value.get('reference') or value.get('id')) if isinstance(value,dict) else None
-   if not isinstance(payment_url,str) or not payment_url.startswith('https://') or len(payment_url)>2048 or any(c.isspace() or ord(c)<32 for c in payment_url) or not isinstance(reference,(str,int)) or not 1<=len(str(reference))<=300:raise ValueError('INVALID_KNET_PROVIDER_RESPONSE')
+   if not _valid_payment_url(payment_url) or type(reference) not in (str,int) or not 1<=len(str(reference))<=300 or not str(reference).strip() or re.search(r'[\x00-\x1f\x7f]',str(reference)):raise ValueError('INVALID_KNET_PROVIDER_RESPONSE')
    return True,False,str(reference),payment_url,None
  except HTTPError as exc:return False,exc.code in(408,425,429) or 500<=exc.code<=599,'','',f'PROVIDER_HTTP_{exc.code}'
- except (URLError,TimeoutError,OSError,RuntimeError) as exc:return False,True,'','',str(exc)[:200]
- except Exception as exc:return False,False,'','',str(exc)[:200]
+ except (URLError,TimeoutError,OSError):return False,True,'','','PROVIDER_NETWORK_ERROR'
+ except RuntimeError:return False,False,'','','PROVIDER_CONFIGURATION_OR_RESPONSE_ERROR'
+ except Exception:return False,False,'','','INVALID_KNET_PROVIDER_RESPONSE'
 
 def dispatch_knet_once(limit=1,env=os.environ,db_rpc=rpc,send=send_link):
  if not isinstance(limit,int) or not 1<=limit<=3:raise ValueError('INVALID_KNET_DISPATCH_LIMIT')
