@@ -1,3 +1,5 @@
+import './platform-locale-runtime.js?release=V267';
+
 const RELEASE='V267';
 const DIRECT=new Map([
  ['units',{service:'unit_readiness'}],
@@ -16,4 +18,4 @@ function setStatus(message,bad=false){const el=document.getElementById('aqUnifie
 async function openDirect(key){const session=scope(),def=DIRECT.get(key);if(!session||!def)throw Error('تعذر فتح القسم بصلاحية الحساب الحالية.');if(def.manager&&session.role!=='general_manager')throw Error('هذا القسم للمدير العام فقط.');setStatus('');if(def.section){const api=window.AQARI_UNIFIED_EXPERIENCE;if(typeof api?.openSection!=='function')throw Error('التنقل التشغيلي غير جاهز بعد.');return api.openSection(def.section);}if(def.service){const target=serviceButton(def.service);if(!target)throw Error('الوظيفة الفعلية غير متاحة لصلاحيات الحساب الحالية.');target.click();document.body.dataset.aqUnifiedSection=key;return true;}if(def.module){const mod=await import(def.module+'?release='+encodeURIComponent(RELEASE));if(typeof mod?.[def.exportName]!=='function')throw Error('الوظيفة الفعلية غير جاهزة.');mod[def.exportName]();document.body.dataset.aqUnifiedSection=key;return true;}return false;}
 function interceptDirect(event){const trigger=event.target?.closest?.('[data-unified-section]');if(!trigger)return;const key=trigger.dataset.unifiedSection;if(!DIRECT.has(key))return;event.preventDefault();event.stopImmediatePropagation();openDirect(key).catch(error=>setStatus(error?.message||'تعذر فتح الوظيفة الفعلية.',true));}
 window.addEventListener('click',interceptDirect,true);
-window.AQARI_PREMIUM_NAVIGATION=Object.freeze({version:'V267-premium-navigation-1',openDirect,keys:[...DIRECT.keys()]});
+window.AQARI_PREMIUM_NAVIGATION=Object.freeze({version:'V267-premium-navigation-2',openDirect,keys:[...DIRECT.keys()]});
