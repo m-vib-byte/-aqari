@@ -12,7 +12,7 @@ test('protected KNET range API is scoped, date-bounded and linked to authoritati
   assert.match(patched,/function knetPayments\(name,fromDay,toDay\)/);
   assert.match(patched,/if\(!protectedAccessReady\(\)\)return null/);
   assert.match(patched,/const context=contextFor\(name\)/);
-  assert.match(patched,/span>366\*86400000/);
+  assert.match(patched,/span>365\*86400000/);
   assert.match(patched,/settledPayment\(entry\?\.status\)/);
   assert.match(patched,/validLedgerPaymentAmount\(entry\)/);
   assert.match(patched,/day>=from&&day<=to/);
@@ -45,7 +45,7 @@ test('command center provides today yesterday month and bounded custom KNET filt
   assert.match(patched,/id="v267KnetFrom"/);
   assert.match(patched,/id="v267KnetTo"/);
   assert.match(patched,/end<=today/);
-  assert.match(patched,/366\*86400000/);
+  assert.match(patched,/\(end-start\)<=365\*86400000/);
   assert.match(patched,/AQARI_V202\?\.knetPayments\?\.\(name,knetRange\.from,knetRange\.to\)/);
   assert.match(patched,/norm\(row\.property\)===norm\(name\)/);
   assert.match(patched,/فرق العمليات\/الوصولات/);
