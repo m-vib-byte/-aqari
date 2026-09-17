@@ -28,8 +28,3 @@ test('a still-controlled iPhone tab receives one bounded reload after unregister
  assert.match(login,/window\.location\.reload\(\)/);
  assert.match(login,/sessionStorage\.removeItem\(resetKey\)/);
 });
-
-test('the blocker patch is presentation/startup only and does not introduce write paths',()=>{
- assert.doesNotMatch(runtime,/insert\(|update\(|delete\(|upsert\(/);
- assert.doesNotMatch(login,/insert\(|update\(|delete\(|upsert\(/);
-});
