@@ -102,7 +102,26 @@ function syncNav(){const key=document.body.dataset.aqUnifiedSection||'home';docu
 function intercept(event){const button=event.target.closest?.('[data-unified-section]');if(!button||button.closest('#aqUnifiedMore'))return;const key=button.dataset.unifiedSection;if(!key)return;event.preventDefault();event.stopImmediatePropagation();openSection(key).catch(error=>setStatus(error.message,true));}
 function reset(){accessCache=null;accessKey='';navigationFlight++;}
 function applyGlobalPageClasses(){document.body.classList.add('aq-unified-experience');document.querySelectorAll('main.w > .p').forEach(page=>page.classList.add('aq-unified-page-surface'));}
-function watch(){observer?.disconnect?.();observer=new MutationObserver(()=>{if(document.body.classList.contains('aq-live-stable'))return;observer.disconnect();try{applyGlobalPageClasses();mountDashboard();refreshDashboard();mountDesktopNav();}finally{observer.observe(document.body,{subtree:true,childList:true});}});observer.observe(document.body,{subtree:true,childList:true});}
+let dashboardRefreshQueued=false;
+function watch(){
+ observer?.disconnect?.();
+ observer=new MutationObserver(records=>{
+  if(document.body.classList.contains('aq-live-stable'))return;
+  const externalMutation=records.some(record=>{
+   const target=record?.target;
+   return !target?.closest?.('#'+ROOT_ID);
+  });
+  if(!externalMutation||dashboardRefreshQueued)return;
+  dashboardRefreshQueued=true;
+  requestAnimationFrame(()=>{
+   dashboardRefreshQueued=false;
+   observer.disconnect();
+   try{applyGlobalPageClasses();mountDashboard();refreshDashboard();mountDesktopNav();}
+   finally{observer.observe(document.body,{subtree:true,childList:true});}
+  });
+ });
+ observer.observe(document.body,{subtree:true,childList:true});
+}
 function boot(){if(!scope())return;applyGlobalPageClasses();mountDashboard();mountDesktopNav();mountMobileNav();document.addEventListener('click',intercept,true);window.addEventListener('aqari:auth-boundary',event=>{reset();if(event?.detail?.state==='ready')setTimeout(boot,0);});window.addEventListener('aqari:v267-controls-changed',reset);watch();document.body.dataset.aqUnifiedSection='home';syncNav();window.AQARI_UNIFIED_EXPERIENCE=Object.freeze({version:'V267-unified-layout-1',openSection,refresh:refreshDashboard,sections:SECTIONS.map(x=>x.key)});}
 function waitForAuth(){if(scope())return boot();let tries=0;const timer=setInterval(()=>{if(scope()){clearInterval(timer);boot();}else if(++tries>160)clearInterval(timer);},125);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',waitForAuth,{once:true});else waitForAuth();
