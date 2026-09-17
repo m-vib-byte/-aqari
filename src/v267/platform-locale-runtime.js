@@ -1,4 +1,5 @@
 import {bindLocale,setLocale,getLocale,direction,t,LANGUAGES} from './components/locale.js';
+import {createLiveTextTranslator} from './components/live-locale-text.js';
 
 const RELEASE='V267';
 const EXTRA_EN=Object.freeze({
@@ -9,6 +10,8 @@ const SHELL_ROOTS='#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,.
 const STATIC_TAGS=new Set(['BUTTON','LABEL','OPTION','LEGEND','SUMMARY','H1','H2','H3','H4','H5','H6']);
 const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','TH','TD']);
 let observer=null,queued=false,boundKey='';
+const translateLiveText=createLiveTextTranslator(translate);
+const attributeOwners=new WeakMap();
 
 function liveScope(){
  try{
@@ -28,7 +31,7 @@ function applyDirection(){
  if(document.body){document.body.lang=locale;document.body.dir=dir;document.body.dataset.aqariLocale=locale;}
 }
 function uiTextNode(node){
- const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record]'))return false;
+ const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record],[translate="no"]'))return false;
  if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"]'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
  if(parent.closest('main.w>.p,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
@@ -36,16 +39,17 @@ function uiTextNode(node){
 }
 function translateTextNode(node){
  if(!uiTextNode(node))return;
- const raw=node.nodeValue||'',match=raw.match(/^(\s*)([\s\S]*?)(\s*)$/);if(!match)return;
- const source=node.__aqariSourceText||match[2];if(!source.trim())return;
- const localized=translate(source);node.__aqariSourceText=source;if(localized!==match[2])node.nodeValue=match[1]+localized+match[3];
+ const raw=node.nodeValue||'';if(!raw.trim())return;
+ const localized=translateLiveText(node,raw);if(localized!==raw)node.nodeValue=localized;
 }
 function translateElement(el){
  if(!(el instanceof Element))return;
+ if(el.closest('[data-aq-record],[translate="no"]'))return;
+ let owners=attributeOwners.get(el);if(!owners){owners={};attributeOwners.set(el,owners);}
  for(const attr of ['placeholder','aria-label','title']){
   const value=el.getAttribute(attr);if(!value)continue;
-  const key='aqariSource'+attr.replace(/-([a-z])/g,(_,x)=>x.toUpperCase()).replace(/^./,x=>x.toUpperCase());
-  const source=el[key]||value;el[key]=source;const localized=translate(source);if(localized!==value)el.setAttribute(attr,localized);
+  const owner=owners[attr]||(owners[attr]={});
+  const localized=translateLiveText(owner,value);if(localized!==value)el.setAttribute(attr,localized);
  }
 }
 function translateTree(root=document.body){
@@ -71,7 +75,7 @@ function bind(){
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;if(bind())translateTree();});}
 function start(){
  if(!document.getElementById('aqari-platform-locale-css')){const link=document.createElement('link');link.id='aqari-platform-locale-css';link.rel='stylesheet';link.href='/src/v267/styles/platform-locale.css?release='+RELEASE;document.head.append(link);}
- bind();observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length||r.type==='attributes'))schedule();});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
+ bind();observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length||r.type==='attributes'||r.type==='characterData'))schedule();});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden','aria-hidden','placeholder','aria-label','title']});
  window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready'){boundKey='';setTimeout(schedule,0);}});
  window.AQARI_PLATFORM_LOCALE=Object.freeze({version:'V267-platform-locale-2',get:getLocale,set(value){setLocale(value);window.location.reload();}});
 }
