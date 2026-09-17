@@ -84,3 +84,4 @@ execFileSync(process.execPath,['--test','tests/v267-owner-feedback-batch.test.mj
 console.log('Verified V267 luxury warm-beige owner design across app, internal functions and portals without changing authoritative business workflows.');
 
 await import('./install-v267-iphone-startup-fix.mjs');
+await import('./install-v267-live-stability.mjs');
