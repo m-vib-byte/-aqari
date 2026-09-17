@@ -70,7 +70,7 @@ function fullGateManifest() {
       evidence: ['evidence/preview-smoke.json'],
     },
     devices: {
-      desktop: deviceEvidence(),
+      desktop: deviceEvidence({ physical: true }),
       iphone: deviceEvidence({ physical: true, device: 'Physical iPhone', browser: 'Mobile Safari' }),
       ipad: deviceEvidence({ physical: true, device: 'Physical iPad', browser: 'Mobile Safari' }),
     },
@@ -130,6 +130,7 @@ test('release gate validator fails closed across every owner-mandated technical 
     (m) => { m.ci.allRequiredPassed = false; },
     (m) => { m.hostedPreview.accepted = false; },
     (m) => { m.devices.desktop.flows.reopen = false; },
+    (m) => { m.devices.desktop.physical = false; },
     (m) => { m.devices.iphone.physical = false; },
     (m) => { m.devices.ipad.realAccount = false; },
     (m) => { m.backup.attachmentBytesIncluded = false; },
@@ -243,7 +244,7 @@ test('rejects design or preview approval as production approval', () => {
   }
 });
 
-test('rejects owner approval for a different SHA', () => {
+test('rejects owner production approval for a different SHA', () => {
   const result = validateOwnerProductionApproval({ ...BASE, approvedSha: OTHER_SHA });
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /exact candidate SHA/);
