@@ -1,0 +1,161 @@
+import copy
+import unittest
+
+from lib.backup_set_manifest import FORMAT as BACKUP_FORMAT
+from lib.stage_c_evidence_bundle import StageCEvidenceError, create_stage_c_evidence_bundle
+from lib.storage_byte_manifest import FORMAT as STORAGE_FORMAT
+from lib.restore_equivalence import FORMAT as RESTORE_FORMAT
+from lib.rollback_rehearsal import REPORT_FORMAT as ROLLBACK_FORMAT
+
+SHA = "1" * 40
+ROLLBACK_SHA = "2" * 40
+H = "a" * 64
+H2 = "b" * 64
+SOURCE = "ofgmcsmxmdswlovsckqs"
+RESTORE = "djkpkkgoibruaezdrchb"
+
+
+def fixtures():
+    backup = {
+        "format": BACKUP_FORMAT,
+        "candidate_sha": SHA,
+        "project_ref": SOURCE,
+        "capture_started_at": "2026-09-17T06:00:00Z",
+        "capture_finished_at": "2026-09-17T06:00:30Z",
+        "capture_window_seconds": 30,
+        "components": {
+            "database": {"bytes": 1000, "sha256": H},
+            "auth": {"bytes": 200, "sha256": H2},
+            "storage": {
+                "bytes": 300,
+                "sha256": H,
+                "object_count": 2,
+                "object_bytes": 156509,
+                "storage_manifest_sha256": H2,
+            },
+        },
+    }
+    storage = {
+        "format": STORAGE_FORMAT,
+        "verified": True,
+        "object_count": 2,
+        "total_bytes": 156509,
+        "manifest_sha256": H2,
+    }
+    restore = {
+        "format": RESTORE_FORMAT,
+        "verified": True,
+        "candidate_sha": SHA,
+        "source_project_ref": SOURCE,
+        "restore_project_ref": RESTORE,
+        "section_sha256": {
+            "business": H,
+            "schema_safe": H2,
+            "auth_safe": H,
+            "storage_safe": H2,
+        },
+        "storage_object_count": 2,
+        "storage_total_bytes": 156509,
+        "storage_manifest_sha256": H2,
+    }
+    rollback = {
+        "format": ROLLBACK_FORMAT,
+        "verified": True,
+        "candidate_sha": SHA,
+        "rollback_application_sha": ROLLBACK_SHA,
+        "database_project_ref": SOURCE,
+        "database_rollback_performed": False,
+        "rehearsal_window_seconds": 180,
+        "checkpoint_record_count": 10,
+        "new_record_count": 2,
+        "after_record_count": 12,
+        "counts_by_kind": {"payment": 7, "receipt": 5},
+        "checkpoint_records_sha256": H,
+        "during_records_sha256": H2,
+        "after_records_sha256": H,
+    }
+    devices = {}
+    for cls, instance, browser in (
+        ("desktop", "desktop-hardware-01", "Chrome"),
+        ("iphone", "iphone-hardware-01", "Safari"),
+        ("ipad", "ipad-hardware-01", "Safari"),
+    ):
+        devices[cls] = {
+            "accepted": True,
+            "real_account": True,
+            "simulated": False,
+            "emulated": False,
+            "physical": True,
+            "candidate_sha": SHA,
+            "device_instance": instance,
+            "browser": browser,
+            "flows": {name: True for name in ("login", "session", "save", "reopen", "permissions", "contracts", "printing")},
+            "evidence": [f"evidence/{cls}/run-1"],
+        }
+    return backup, storage, restore, rollback, devices
+
+
+class StageCEvidenceBundleTests(unittest.TestCase):
+    def test_accepts_only_cross_bound_exact_candidate_evidence(self):
+        bundle = create_stage_c_evidence_bundle(
+            candidate_sha=SHA,
+            backup_set=fixtures()[0],
+            backup_storage_report=fixtures()[1],
+            restore_report=fixtures()[2],
+            rollback_report=fixtures()[3],
+            devices=fixtures()[4],
+        )
+        self.assertTrue(bundle["accepted"])
+        self.assertEqual(bundle["candidate_sha"], SHA)
+        self.assertEqual(bundle["source_project_ref"], SOURCE)
+        self.assertEqual(bundle["restore_project_ref"], RESTORE)
+        self.assertEqual(bundle["storage"]["total_bytes"], 156509)
+        self.assertEqual(bundle["rollback"]["after_record_count"], 12)
+        self.assertEqual(len(bundle["bundle_sha256"]), 64)
+
+    def test_rejects_storage_byte_evidence_that_does_not_match_backup_set(self):
+        backup, storage, restore, rollback, devices = fixtures()
+        storage["manifest_sha256"] = H
+        with self.assertRaisesRegex(StageCEvidenceError, "Storage byte manifest"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_restore_from_wrong_source_or_same_project(self):
+        backup, storage, restore, rollback, devices = fixtures()
+        restore["source_project_ref"] = "otherproject123"
+        with self.assertRaisesRegex(StageCEvidenceError, "source project"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+        backup, storage, restore, rollback, devices = fixtures()
+        restore["restore_project_ref"] = SOURCE
+        with self.assertRaisesRegex(StageCEvidenceError, "must differ"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_rollback_that_loses_new_transactions_or_rolls_back_database(self):
+        backup, storage, restore, rollback, devices = fixtures()
+        rollback["after_record_count"] = 11
+        with self.assertRaisesRegex(StageCEvidenceError, "checkpoint plus new"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+        backup, storage, restore, rollback, devices = fixtures()
+        rollback["database_rollback_performed"] = True
+        with self.assertRaisesRegex(StageCEvidenceError, "avoid database rollback"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_simulated_or_nonphysical_device_acceptance(self):
+        for mutate in (
+            lambda devices: devices["iphone"].update(simulated=True),
+            lambda devices: devices["ipad"].update(physical=False),
+            lambda devices: devices["desktop"]["flows"].update(printing=False),
+        ):
+            backup, storage, restore, rollback, devices = fixtures()
+            mutate(devices)
+            with self.assertRaises(StageCEvidenceError):
+                create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_mixed_candidate_sha(self):
+        backup, storage, restore, rollback, devices = fixtures()
+        restore["candidate_sha"] = "3" * 40
+        with self.assertRaisesRegex(StageCEvidenceError, "exact candidate"):
+            create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+
+if __name__ == "__main__":
+    unittest.main()
