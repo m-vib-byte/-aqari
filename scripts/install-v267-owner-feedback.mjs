@@ -34,7 +34,16 @@ if(!release.includes(unifiedMarker)){
  console.log('Installed V267 unified structural layout above compatible business workflows.');
 }
 
+release=readFileSync(releasePath,'utf8');
+const premiumMarker='/* AQARI V267 premium refinement loader */';
+if(!release.includes(premiumMarker)){
+ release+=`\n${premiumMarker}\n;(function(){\n function loadPremiumRefinement(){\n  if(!document.getElementById('aqari-v267-premium-refinement-css')){const link=document.createElement('link');link.id='aqari-v267-premium-refinement-css';link.rel='stylesheet';link.href='/src/v267/styles/premium-refinement.css?release=V267';document.head.appendChild(link);}\n  if(document.getElementById('aqari-v267-premium-navigation-js'))return;\n  const script=document.createElement('script');script.id='aqari-v267-premium-navigation-js';script.type='module';script.src='/src/v267/premium-navigation-runtime.js?release=V267';document.body.appendChild(script);\n }\n if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadPremiumRefinement,{once:true});else loadPremiumRefinement();\n})();\n`;
+ writeFileSync(releasePath,release);
+ console.log('Installed V267 premium visual refinement and direct-function navigation layer.');
+}
+
 const portalCss='<link id="aqari-v267-unified-portal-css" rel="stylesheet" href="/src/v267/styles/unified-portal.css?release=V267">';
+const premiumPortalCss='<link id="aqari-v267-premium-portal-css" rel="stylesheet" href="/src/v267/styles/premium-portal-refinement.css?release=V267">';
 for(const relative of ['login.html','tenant.html','partner.html']){
  const path=new URL('../'+relative,import.meta.url);let html=readFileSync(path,'utf8');
  if(!html.includes('aqari-v267-unified-portal-css')){
@@ -42,13 +51,19 @@ for(const relative of ['login.html','tenant.html','partner.html']){
   else if(html.includes('<style>'))html=html.replace('<style>',portalCss+'\n<style>');
   else if(html.includes('<main'))html=html.replace('<main',portalCss+'\n<main');
   else throw Error('V267_UNIFIED_PORTAL_STYLE_ANCHOR_MISSING:'+relative);
-  writeFileSync(path,html);
  }
+ if(!html.includes('aqari-v267-premium-portal-css')){
+  if(html.includes('</head>'))html=html.replace('</head>',premiumPortalCss+'\n</head>');
+  else if(html.includes('<style>'))html=html.replace('<style>',premiumPortalCss+'\n<style>');
+  else if(html.includes('<main'))html=html.replace('<main',premiumPortalCss+'\n<main');
+  else throw Error('V267_PREMIUM_PORTAL_STYLE_ANCHOR_MISSING:'+relative);
+ }
+ writeFileSync(path,html);
 }
 const loginPath=new URL('../login.html',import.meta.url);let login=readFileSync(loginPath,'utf8');
 const finalLoginCss='<link id="aqari-v267-owner-final-login-css" rel="stylesheet" href="/src/v267/styles/owner-final-login.css?release=V267">';
 if(!login.includes('aqari-v267-owner-final-login-css')){if(!login.includes('</head>'))throw Error('V267_OWNER_FINAL_LOGIN_HEAD_ANCHOR_MISSING');login=login.replace('</head>',finalLoginCss+'\n</head>');writeFileSync(loginPath,login);}
 
-for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/owner-final-runtime.js','src/v267/unified-layout-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs','tests/v267-unified-layout.test.mjs'],{stdio:'inherit'});
-console.log('Verified V267 unified owner experience: real section navigation, full-page beige/brown/gold structure, iPhone-first/iPad/Desktop layouts, OpenAI read-only, guest controls and direct Meta owner reports.');
+for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/owner-final-runtime.js','src/v267/unified-layout-runtime.js','src/v267/premium-navigation-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs','tests/v267-unified-layout.test.mjs','tests/v267-premium-refinement.test.mjs'],{stdio:'inherit'});
+console.log('Verified V267 premium refinement: restrained identity, direct real-function navigation, iPhone-first/iPad/Desktop composition, and unchanged authoritative business workflows.');

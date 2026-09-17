@@ -1,0 +1,188 @@
+/* AQARI V267 — premium refinement pass.
+   Visual composition only. No business rules, data keys, permissions or write paths are changed. */
+@media screen{
+:root{
+ --aq-pr-ivory:#fbf7f1;--aq-pr-canvas:#f3ece3;--aq-pr-sand:#e7d8c6;--aq-pr-sand-2:#d8c2a8;
+ --aq-pr-brown:#4c352a;--aq-pr-brown-2:#62483a;--aq-pr-ink:#2f251f;--aq-pr-muted:#76675c;
+ --aq-pr-gold:#b48845;--aq-pr-gold-2:#d3b06c;--aq-pr-line:#d8c7b2;--aq-pr-line-soft:#e9ded0;
+ --aq-pr-success:#2f7453;--aq-pr-success-bg:#e7f2eb;--aq-pr-danger:#a8443d;--aq-pr-danger-bg:#f7e8e5;
+ --aq-pr-shadow:0 14px 40px rgba(67,48,37,.07);--aq-pr-shadow-soft:0 5px 18px rgba(67,48,37,.045);
+ --aq-pr-r:18px;--aq-pr-r-sm:13px;
+}
+body.aq-unified-experience{
+ font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif!important;
+ background:linear-gradient(180deg,#fbf8f3 0,#f4ede4 54%,#eee3d7 100%)!important;
+ color:var(--aq-pr-ink)!important;
+ letter-spacing:0!important;
+}
+body.aq-unified-experience :is(h1,h2,h3,h4,strong,b){letter-spacing:0}
+body.aq-unified-experience :is(button,a,input,select,textarea){font-family:inherit!important}
+body.aq-unified-experience :is(button,a){-webkit-tap-highlight-color:transparent}
+body.aq-unified-experience .aq-exact-top{
+ background:rgba(251,248,243,.96)!important;border-bottom:1px solid rgba(190,164,130,.38)!important;
+ box-shadow:0 8px 28px rgba(69,48,36,.035)!important;backdrop-filter:blur(16px) saturate(120%);
+}
+body.aq-unified-experience .aq-exact-search{border-color:#d8c6af!important;background:#fffdf9!important;color:#5e4a3c!important;box-shadow:none!important}
+body.aq-unified-experience .aq-exact-search:hover{border-color:#bd9a68!important;background:#fffaf2!important}
+body.aq-unified-experience .aq-exact-avatar{background:linear-gradient(145deg,#7a5a43,#4d352b)!important;color:#f8e7c7!important;border:1px solid #af8651!important}
+
+/* Quieter, more premium home composition. */
+body.aq-unified-experience .aq-unified-dashboard{gap:14px!important}
+body.aq-unified-experience .aq-unified-hero{
+ min-height:188px!important;border-radius:22px!important;border:1px solid #c7aa83!important;
+ background:linear-gradient(135deg,#f3e7d7 0%,#e3ceb3 48%,#c5a27e 100%)!important;
+ box-shadow:0 18px 48px rgba(74,52,38,.09)!important;
+}
+body.aq-unified-experience .aq-unified-hero:before{
+ background:radial-gradient(circle at 18% 22%,rgba(255,255,255,.75),transparent 34%),linear-gradient(105deg,rgba(255,251,245,.38),transparent 55%)!important;
+}
+body.aq-unified-experience .aq-unified-hero-copy{padding:24px!important;gap:7px!important}
+body.aq-unified-experience .aq-unified-hero-copy>span{font-size:.78rem!important;color:#806348!important}
+body.aq-unified-experience .aq-unified-hero-copy h1{font-size:clamp(1.85rem,5vw,2.7rem)!important;color:#412f27!important;font-weight:850!important}
+body.aq-unified-experience .aq-unified-hero-copy p{color:#6d5748!important;font-size:.92rem!important;font-weight:650!important}
+body.aq-unified-experience .aq-unified-hero-actions button{min-height:42px!important;border-radius:11px!important;box-shadow:none!important}
+body.aq-unified-experience .aq-unified-hero-actions button:first-child{background:linear-gradient(180deg,#b98c49,#9c7138)!important;color:#fffaf0!important;border-color:#9c7138!important}
+body.aq-unified-experience .aq-unified-hero-actions button+button{background:rgba(255,251,245,.82)!important;color:#5c4232!important;border-color:#c6a985!important}
+body.aq-unified-experience .aq-unified-hero-visual{margin:16px!important;padding:15px 17px!important;border-radius:15px!important;background:linear-gradient(135deg,#5b4133,#765844)!important;box-shadow:0 10px 28px rgba(62,43,32,.12)!important}
+body.aq-unified-experience .aq-unified-hero-visual span{color:#dbc08f!important}
+body.aq-unified-experience .aq-unified-hero-visual strong{font-size:.95rem!important;font-weight:720!important}
+
+/* Metrics are deliberately larger and fewer per row than the previous crowded strip. */
+body.aq-unified-experience .aq-unified-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+body.aq-unified-experience .aq-unified-metric{
+ min-height:104px!important;padding:14px!important;border-radius:16px!important;border-color:var(--aq-pr-line)!important;
+ background:linear-gradient(180deg,#fffdf9,#f8f1e9)!important;box-shadow:var(--aq-pr-shadow-soft)!important;
+ grid-template-columns:44px minmax(0,1fr)!important;gap:10px!important;
+}
+body.aq-unified-experience .aq-unified-metric>span{width:44px!important;height:44px!important;border-radius:12px!important;background:#efe2d1!important;color:#8b642e!important}
+body.aq-unified-experience .aq-unified-metric small{font-size:.76rem!important;color:#7b6a5d!important;font-weight:700!important}
+body.aq-unified-experience .aq-unified-metric strong{font-size:1.15rem!important;color:#443229!important;font-weight:850!important}
+body.aq-unified-experience .aq-unified-metric.success>span{background:var(--aq-pr-success-bg)!important;color:var(--aq-pr-success)!important}
+body.aq-unified-experience .aq-unified-metric.danger>span{background:var(--aq-pr-danger-bg)!important;color:var(--aq-pr-danger)!important}
+body.aq-unified-experience .aq-unified-metric.danger strong{color:var(--aq-pr-danger)!important}
+
+body.aq-unified-experience .aq-unified-board{gap:12px!important}
+body.aq-unified-experience .aq-unified-panel{
+ border:1px solid var(--aq-pr-line)!important;border-radius:18px!important;background:linear-gradient(180deg,#fffdf9,#f8f1e8)!important;
+ box-shadow:var(--aq-pr-shadow-soft)!important;padding:16px!important;
+}
+body.aq-unified-experience .aq-unified-panel>header{margin:0 0 13px!important;padding:0 0 10px!important;border-bottom:1px solid var(--aq-pr-line-soft)!important}
+body.aq-unified-experience .aq-unified-panel>header small{color:#98703c!important;font-size:.72rem!important}
+body.aq-unified-experience .aq-unified-panel>header h2{font-size:1.08rem!important;color:#403028!important;font-weight:820!important}
+body.aq-unified-experience .aq-unified-panel>header button,body.aq-unified-experience .aq-unified-panel>button{
+ min-height:38px!important;border-radius:10px!important;border-color:#cdb28e!important;background:#fffaf2!important;color:#634a38!important;box-shadow:none!important
+}
+body.aq-unified-experience .aq-unified-collection-grid{gap:9px!important}
+body.aq-unified-experience .aq-unified-collection-grid>div,body.aq-unified-experience .aq-unified-finance-values>div{padding:13px!important;border-color:#e1d3c1!important;background:#fffdf9!important}
+body.aq-unified-experience .aq-unified-alert-list button,body.aq-unified-experience .aq-unified-alert-list p,body.aq-unified-experience .aq-unified-activity p{padding:10px 2px!important;border-bottom-color:#eadfd2!important;color:#514238!important}
+body.aq-unified-experience .aq-unified-property-preview button{border-color:#dfcfbc!important;background:#fffdf8!important;border-radius:13px!important;box-shadow:none!important}
+body.aq-unified-experience .aq-unified-property-preview button>span{background:#eee0cf!important;color:#8b632e!important}
+body.aq-unified-experience .aq-unified-ai{background:linear-gradient(145deg,#fffdf8,#efe1ce)!important}
+body.aq-unified-experience .aq-unified-ai-badge{background:linear-gradient(145deg,#a97d3d,#66462f)!important}
+body.aq-unified-experience .aq-unified-owner-report{background:linear-gradient(145deg,#fffdf9,#f4eadc)!important}
+body.aq-unified-experience .aq-unified-quick-grid button{min-height:72px!important;border-color:#deceb9!important;background:#fffdf9!important;border-radius:13px!important;box-shadow:none!important}
+
+/* Internal pages: one consistent visual grammar across native pages, service dialogs and virtual section pages. */
+body.aq-unified-experience main.w>.p.aq-unified-page-surface.on:not(#home),
+body.aq-unified-experience main.w>.aq-unified-page.on{
+ border:1px solid #d6c4ad!important;border-radius:20px!important;background:linear-gradient(180deg,#fffdf9,#f7efe5)!important;
+ box-shadow:var(--aq-pr-shadow)!important;
+}
+body.aq-unified-experience .aq-unified-page-head{
+ border:1px solid #d9c4a8!important;border-radius:16px!important;background:linear-gradient(135deg,#f3e7d7,#e8d5bc)!important;
+ color:#453128!important;box-shadow:none!important;
+}
+body.aq-unified-experience .aq-unified-page-head span{color:#99703a!important}
+body.aq-unified-experience .aq-unified-page-head h1{color:#3f2e26!important;font-weight:850!important}
+body.aq-unified-experience .aq-unified-page-head p{color:#736154!important;max-width:68ch}
+body.aq-unified-experience .aq-unified-page-head button{border-color:#c7a578!important;background:#fffaf3!important;color:#5d4332!important}
+body.aq-unified-experience .aq-unified-action-card{border-color:#ddcbb4!important;background:#fffdf9!important;border-radius:15px!important;box-shadow:var(--aq-pr-shadow-soft)!important}
+body.aq-unified-experience .aq-unified-action-card>span{background:#efe1cf!important;color:#8a612d!important}
+body.aq-unified-experience .aq-unified-preserve{border-color:#d3b894!important;background:#fbf3e9!important;color:#6d594b!important}
+
+body.aq-unified-experience :is(.aq267-dialog,.aq-owner-modal,.aq-exact-modal,dialog:not(.aq-unified-more)){
+ border-color:#ccb18d!important;border-radius:20px!important;background:#fffaf4!important;color:#352a23!important;box-shadow:0 30px 90px rgba(57,39,29,.24)!important;
+}
+body.aq-unified-experience :is(.aq267-dialog,.aq-owner-modal,.aq-exact-modal,dialog:not(.aq-unified-more))::backdrop{background:rgba(65,47,36,.36)!important;backdrop-filter:blur(5px)}
+body.aq-unified-experience :is(.aq267-dialog-head,.aq-owner-modal-head,.aq-exact-modal-head){background:linear-gradient(135deg,#f0e2d0,#e5d0b4)!important;border-bottom:1px solid #d5bea1!important;color:#47352b!important}
+body.aq-unified-experience main.w>.p.on:not(#home) :is(.card,.panel,.box,fieldset,details),body.aq-unified-experience .aq267-dialog :is(.card,.panel,.box,fieldset,details){border-color:#e0d1bf!important;background:#fffdf9!important;border-radius:14px!important;box-shadow:none!important}
+body.aq-unified-experience :is(input,select,textarea){border-color:#cfb896!important;background:#fffdf9!important;color:#342820!important;border-radius:11px!important;box-shadow:none!important}
+body.aq-unified-experience :is(input,select,textarea):focus{border-color:#af8447!important;background:#fff!important;box-shadow:0 0 0 3px rgba(180,136,69,.12)!important;outline:none!important}
+body.aq-unified-experience :is(table){border-color:#dfcfbd!important;background:#fffdf9!important;border-radius:13px!important}
+body.aq-unified-experience :is(th){background:#eadfce!important;color:#4d392d!important}
+body.aq-unified-experience :is(th,td){border-bottom-color:#eadfd2!important}
+body.aq-unified-experience :is(.status.ready,.success,.paid,.is-success,[data-state="success"],[data-status="paid"]){color:var(--aq-pr-success)!important;background:var(--aq-pr-success-bg)!important}
+body.aq-unified-experience :is(.status.bad,.error,.danger,.cancelled,.is-danger,[data-state="error"],[data-state="cancelled"],[data-status="cancelled"]){color:var(--aq-pr-danger)!important;background:var(--aq-pr-danger-bg)!important}
+
+/* Navigation is intentionally calmer and more legible. */
+body.aq-unified-experience .aq-exact-rail{background:linear-gradient(180deg,#5a4033 0,#4b342b 72%,#432e27 100%)!important;border-inline-start:1px solid #a77e49!important;box-shadow:-12px 0 34px rgba(62,43,32,.08)!important}
+body.aq-unified-experience .aq-exact-rail nav button{border:1px solid transparent!important;border-radius:11px!important;color:#f3e8da!important;font-weight:720!important}
+body.aq-unified-experience .aq-exact-rail nav button:hover{background:rgba(255,247,235,.07)!important;border-color:rgba(225,194,145,.14)!important}
+body.aq-unified-experience .aq-exact-rail nav button.active{background:linear-gradient(90deg,#b88a45,#966a34)!important;color:#fffaf2!important;border-color:#d0ae73!important;box-shadow:0 6px 18px rgba(44,30,23,.14)!important}
+body.aq-unified-experience .aq-unified-mobile-nav{background:rgba(69,47,39,.97)!important;border-top-color:#b08345!important;box-shadow:0 -10px 30px rgba(59,41,32,.18)!important;backdrop-filter:blur(14px)}
+body.aq-unified-experience .aq-unified-mobile-nav button{color:#eadbca!important;border-radius:10px!important}
+body.aq-unified-experience .aq-unified-mobile-nav button.active{background:linear-gradient(180deg,#b88a45,#936632)!important;color:#fffaf2!important;box-shadow:none!important}
+}
+
+/* iPhone first: large touch targets, no cramped cards, no desktop leftovers. */
+@media screen and (max-width:699px){
+ body.aq-unified-experience main.w{padding:74px 10px 94px!important}
+ body.aq-unified-experience .aq-unified-dashboard{gap:10px!important}
+ body.aq-unified-experience .aq-unified-hero{min-height:184px!important;border-radius:18px!important}
+ body.aq-unified-experience .aq-unified-hero-copy{padding:18px!important}
+ body.aq-unified-experience .aq-unified-hero-visual{margin:0 10px 10px!important;padding:12px 14px!important}
+ body.aq-unified-experience .aq-unified-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ body.aq-unified-experience .aq-unified-metric{min-height:100px!important;padding:12px!important;grid-template-columns:38px minmax(0,1fr)!important}
+ body.aq-unified-experience .aq-unified-metric>span{width:38px!important;height:38px!important}
+ body.aq-unified-experience .aq-unified-metric strong{font-size:1.03rem!important}
+ body.aq-unified-experience .aq-unified-board{grid-template-columns:1fr!important;gap:9px!important}
+ body.aq-unified-experience .aq-unified-panel{padding:13px!important;border-radius:16px!important}
+ body.aq-unified-experience .aq-unified-collection-grid,body.aq-unified-experience .aq-unified-finance-values{grid-template-columns:1fr 1fr!important}
+ body.aq-unified-experience .aq-unified-quick-grid{grid-template-columns:1fr 1fr!important}
+ body.aq-unified-experience .aq-unified-quick-grid button{min-height:68px!important;padding:9px!important}
+ body.aq-unified-experience .aq-unified-page-head{display:grid!important;grid-template-columns:1fr auto!important;padding:12px!important;margin-bottom:10px!important}
+ body.aq-unified-experience .aq-unified-page-head p{grid-column:1/-1!important;font-size:.82rem!important}
+ body.aq-unified-experience main.w>.p.aq-unified-page-surface.on:not(#home),body.aq-unified-experience main.w>.aq-unified-page.on{padding:10px!important;border-radius:16px!important}
+ body.aq-unified-experience main.w>.p.on:not(#home) :is(table){font-size:.8rem!important;display:block!important;overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+ body.aq-unified-experience :is(input,select,textarea,button){min-height:46px}
+ body.aq-unified-experience .aq267-dialog{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 18px)!important;border-radius:17px!important}
+}
+
+/* iPad: deliberate workspace, four substantial metrics, balanced two-column panels. */
+@media screen and (min-width:700px) and (max-width:1179px){
+ body.aq-unified-experience main.w{padding:88px 16px 36px!important}
+ body.aq-unified-experience .aq-unified-hero{grid-template-columns:1.2fr .8fr!important;min-height:190px!important}
+ body.aq-unified-experience .aq-unified-metrics{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important}
+ body.aq-unified-experience .aq-unified-metric{min-height:102px!important}
+ body.aq-unified-experience .aq-unified-board{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important}
+ body.aq-unified-experience .aq-unified-collection,body.aq-unified-experience .aq-unified-portfolio,body.aq-unified-experience .aq-unified-quick{grid-column:span 2!important}
+ body.aq-unified-experience .aq-unified-section-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.aq-unified-experience .aq-exact-rail{width:86px!important;padding-inline:7px!important}
+ body.aq-unified-experience .aq-exact-top{inset-inline-end:86px!important}
+ body.aq-unified-experience main.w{margin-inline-end:86px!important}
+}
+
+/* Desktop: larger metrics, fewer tiny tiles, calmer right rail, denser useful canvas. */
+@media screen and (min-width:1180px){
+ body.aq-unified-experience .aq-exact-rail{width:238px!important;padding:18px 13px!important}
+ body.aq-unified-experience .aq-exact-top{inset-inline-end:238px!important;height:70px!important}
+ body.aq-unified-experience main.w{margin-inline-end:238px!important;padding:88px 22px 38px!important}
+ body.aq-unified-experience .aq-unified-dashboard{max-width:1480px!important;gap:14px!important}
+ body.aq-unified-experience .aq-unified-hero{grid-template-columns:1.35fr .65fr!important;min-height:194px!important}
+ body.aq-unified-experience .aq-unified-metrics{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+ body.aq-unified-experience .aq-unified-metric{min-height:96px!important}
+ body.aq-unified-experience .aq-unified-board{grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:12px!important}
+ body.aq-unified-experience .aq-unified-collection{grid-column:span 7!important}
+ body.aq-unified-experience .aq-unified-alerts{grid-column:span 5!important}
+ body.aq-unified-experience .aq-unified-portfolio{grid-column:span 4!important}
+ body.aq-unified-experience .aq-unified-operations{grid-column:span 4!important}
+ body.aq-unified-experience .aq-unified-finance{grid-column:span 4!important}
+ body.aq-unified-experience .aq-unified-ai{grid-column:span 6!important}
+ body.aq-unified-experience .aq-unified-owner-report{grid-column:span 6!important}
+ body.aq-unified-experience .aq-unified-quick{grid-column:span 12!important}
+ body.aq-unified-experience .aq-unified-quick-grid{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+ body.aq-unified-experience .aq-unified-section-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ body.aq-unified-experience main.w>.p.aq-unified-page-surface.on:not(#home),body.aq-unified-experience main.w>.aq-unified-page.on{padding:20px!important}
+}
+
+@media (prefers-reduced-motion:reduce){body.aq-unified-experience *,body.aq-unified-experience *::before,body.aq-unified-experience *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}

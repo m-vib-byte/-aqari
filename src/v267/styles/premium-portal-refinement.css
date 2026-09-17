@@ -1,0 +1,35 @@
+/* AQARI V267 — premium portal refinement. Visual-only identity shared by login/tenant/partner portals. */
+@media screen{
+:root{--aq-portal-bg:#f3ece3;--aq-portal-surface:#fffaf4;--aq-portal-line:#d9c7b0;--aq-portal-ink:#31271f;--aq-portal-muted:#77675b;--aq-portal-brown:#4f382d;--aq-portal-gold:#b48945;--aq-portal-success:#2f7453;--aq-portal-danger:#a8443d}
+html,body{min-height:100%;background:linear-gradient(180deg,#fbf8f3 0,#f1e8dd 58%,#eadfD2 100%)!important;color:var(--aq-portal-ink)!important;font-family:-apple-system,BlinkMacSystemFont,"SF Arabic","Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif!important}
+body>main{width:min(920px,calc(100% - 22px))!important;margin:0 auto!important;padding:22px 0 46px!important}
+body>main>header,body>main>section,body>main>div>section{border:1px solid var(--aq-portal-line)!important;border-radius:18px!important;background:linear-gradient(180deg,#fffdf9,#f8f1e8)!important;box-shadow:0 12px 34px rgba(67,48,37,.06)!important}
+body>main>header{position:relative;overflow:hidden;border-top:1px solid var(--aq-portal-line)!important;background:linear-gradient(135deg,#f1e4d3,#dfc7aa)!important;padding:24px!important}
+body>main>header:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 12%,rgba(255,255,255,.66),transparent 35%);pointer-events:none}
+body>main>header>*{position:relative;z-index:1}
+body>main>header>span{font-size:.72rem;font-weight:900;color:#926a34;letter-spacing:.08em}
+body>main>header h1{color:#413027!important;font-size:clamp(1.75rem,6vw,2.4rem)!important;line-height:1.2!important;margin:7px 0!important}
+body>main>header p{color:#685548!important;margin:0 0 12px!important}
+body>main h2{color:#453329!important;font-size:1.1rem!important;margin-top:0!important}
+body>main label{color:#5e4b3d!important;font-weight:720!important}
+body>main :is(input,textarea,select){min-height:48px!important;border:1px solid #cfb793!important;border-radius:11px!important;background:#fffdf9!important;color:#342820!important;box-shadow:none!important}
+body>main :is(input,textarea,select):focus{border-color:#ad8245!important;outline:none!important;box-shadow:0 0 0 3px rgba(180,137,69,.12)!important}
+body>main button{min-height:48px!important;border:1px solid #9e743b!important;border-radius:11px!important;background:linear-gradient(180deg,#b98c49,#98703a)!important;color:#fffaf0!important;font-weight:850!important;box-shadow:none!important}
+body>main button.secondary{border-color:#c9ad88!important;background:#fffaf3!important;color:#624838!important}
+body>main button:disabled{opacity:.56!important}
+body>main a{color:#7c5b31!important;font-weight:750!important}
+body>main .item{border-bottom-color:#e7dacb!important}
+#notice{color:#71573d!important;border-radius:11px}
+[role=status].success,.success,.paid{color:var(--aq-portal-success)!important;background:#e8f2eb!important}
+[role=status].error,.error,.danger,.cancelled{color:var(--aq-portal-danger)!important;background:#f7e8e5!important}
+.tenant-technician-action{border-color:#d8c5aa!important;background:#fffaf2!important;color:#604632!important}
+}
+@media screen and (max-width:699px){
+ body>main{width:calc(100% - 16px)!important;padding:10px 0 28px!important}
+ body>main>header,body>main>section,body>main>div>section{margin:8px 0!important;padding:16px!important;border-radius:15px!important}
+ body>main>header{padding:18px!important}
+ body>main :is(input,textarea,select,button){font-size:16px!important;min-height:50px!important}
+ body>main h2{font-size:1.03rem!important}
+}
+@media screen and (min-width:700px) and (max-width:1179px){body>main{width:min(840px,calc(100% - 34px))!important;padding-top:28px!important}}
+@media screen and (min-width:1180px){body>main{width:min(960px,calc(100% - 56px))!important;padding-top:36px!important}}
