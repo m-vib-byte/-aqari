@@ -1,6 +1,6 @@
 const RELEASE='V267';
 const ROOT='aqLiveStability';
-let refreshQueued=false,observer=null;
+let refreshQueued=false,observer=null,dataKey='',dataFlight=0,dataSession=null,liveValues=null;
 
 function scope(){
  try{
@@ -25,7 +25,7 @@ function makeMetric(label,key,tone=''){
 }
 function dashboardMarkup(){
  return `<section id="${ROOT}" class="aq-live-stability" aria-label="ملخص التشغيل الفعلي">
-  <article class="aq-live-group aq-live-collections"><header><div><small>التحصيل</small><h2>اليوم وهذا الشهر</h2></div><button type="button" data-owner-final-route="collectionProPage">فتح التحصيل</button></header><div class="aq-live-metric-grid">
+  <p id="aqLiveDataStatus" role="status" aria-live="polite">جارٍ قراءة المؤشرات…</p><button type="button" id="aqLiveRefresh">تحديث المؤشرات</button><article class="aq-live-group aq-live-collections"><header><div><small>التحصيل</small><h2>اليوم وهذا الشهر</h2></div><button type="button" data-owner-final-route="collectionProPage">فتح التحصيل</button></header><div class="aq-live-metric-grid">
    ${makeMetric('تحصيل اليوم','today','success')}${makeMetric('تحصيل الشهر','month','success')}${makeMetric('المستحق','due')}${makeMetric('المتبقي','remaining')}${makeMetric('المتأخر','overdue','danger')}
   </div></article>
   <article class="aq-live-group aq-live-portfolio"><header><div><small>المحفظة</small><h2>العقارات والإشغال</h2></div><button type="button" data-owner-final-route="properties">العقارات</button></header><div class="aq-live-metric-grid">
@@ -69,6 +69,31 @@ function refreshMetrics(){
   net:sourceValue(/صافي التشغيل|الصافي/i)
  };
  for(const [key,value] of Object.entries(map))setValue(key,value);
+ if(liveValues)for(const [key,value] of Object.entries(liveValues))setValue(key,formatMetric(key,value));
+}
+function formatMetric(key,value){
+ if(value===null||value===undefined)return '—';
+ const locale=document.documentElement.lang==='en'?'en-KW':'ar-KW';
+ if(['today','month','due','remaining','expenses','net'].includes(key))return new Intl.NumberFormat(locale,{style:'currency',currency:'KWD',minimumFractionDigits:3}).format(value);
+ return new Intl.NumberFormat(locale,{maximumFractionDigits:2}).format(value)+(key==='occupancy'?'٪':'');
+}
+function clearLiveData(){dataFlight++;dataSession?.close();dataSession=null;dataKey='';liveValues=null;document.querySelectorAll('[data-live-value]').forEach(node=>{node.textContent='—';});}
+async function loadLiveData(force=false){
+ const bound=scope();if(!bound||!document.getElementById(ROOT))return;
+ const key=JSON.stringify(bound);if(!force&&dataKey===key)return;
+ clearLiveData();dataKey=key;const token=dataFlight;
+ const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent='جارٍ قراءة المؤشرات من السجلات المحفوظة…';
+ const button=document.getElementById('aqLiveRefresh');if(button){button.disabled=true;button.onclick=()=>loadLiveData(true);}
+ try{
+  const [{createSession},{readManagementCounters,kuwaitDay},{readLiveDashboard}]=await Promise.all([import('./api/session.js'),import('./components/management-counters.js'),import('./components/live-dashboard-data.js')]);
+  if(token!==dataFlight||JSON.stringify(scope())!==key)return;
+  const session=createSession();dataSession=session;await session.connect();
+  const report=await readLiveDashboard(session,kuwaitDay(),readManagementCounters);
+  session.check();if(token!==dataFlight||JSON.stringify(scope())!==key)return;
+  liveValues=report.values;for(const [name,value] of Object.entries(liveValues))setValue(name,formatMetric(name,value));
+  if(status)status.textContent=(report.partial?'بعض المؤشرات غير متاحة؛ راجع الصلاحيات أو أعد التحديث. ':'تم تحديث المؤشرات من السجلات. ')+report.day;
+ }catch{if(token===dataFlight&&status)status.textContent='تعذر قراءة المؤشرات. أعد التحديث؛ القيم غير المتاحة لا تُعد صفرًا.';}
+ finally{if(token===dataFlight){dataSession?.close();dataSession=null;if(button)button.disabled=false;}}
 }
 function refreshActivity(){
  const host=document.querySelector('[data-live-activity]');if(!host)return;
@@ -100,7 +125,7 @@ function normalizePages(){
 function refresh(){
  if(!scope())return;
  observer?.disconnect();
- try{suppressDuplicateShells();ensureDashboard();normalizePages();refreshMetrics();refreshActivity();refreshAlerts();}
+ try{suppressDuplicateShells();ensureDashboard();normalizePages();refreshMetrics();refreshActivity();refreshAlerts();loadLiveData();}
  finally{observeSources();}
 }
 function observeSources(){observer?.observe(document.body,{subtree:true,childList:true,characterData:true});}
@@ -114,7 +139,7 @@ function boot(){
  refresh();
  observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(isSourceMutation))schedule();});
  observeSources();
- window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(schedule,0);});
+ window.addEventListener('aqari:auth-boundary',event=>{clearLiveData();if(event?.detail?.state==='ready')setTimeout(schedule,0);});
  window.addEventListener('aqari:owner-final-route',()=>setTimeout(schedule,0));
  window.AQARI_LIVE_STABILITY=Object.freeze({version:'V267-work1-stability-1',refresh:schedule});
 }

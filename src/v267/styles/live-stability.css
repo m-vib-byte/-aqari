@@ -53,6 +53,8 @@ body.aq-live-stable #home.on #aqOwnerExactHome{visibility:visible!important;opac
 body.aq-live-stable main.w>.p.on:not(#home){min-height:0!important;height:auto!important;overflow:visible!important}
 body.aq-live-stable main.w>.p:not(.on):not(#home){display:none!important}
 body.aq-live-stable .aq-live-stability{display:grid;gap:12px}
+#aqLiveDataStatus{grid-column:1/-1;margin:0;color:var(--aq-st-muted);font-size:.85rem}
+#aqLiveRefresh{grid-column:1/-1;justify-self:start;min-height:42px;border:1px solid var(--aq-st-line);border-radius:10px;background:var(--aq-st-surface);color:var(--aq-st-brown);padding:8px 16px}
 body.aq-live-stable .aq-live-group{border:1px solid var(--aq-st-line);border-radius:18px;background:linear-gradient(180deg,var(--aq-st-surface),var(--aq-st-surface-2));box-shadow:var(--aq-st-shadow);overflow:hidden}
 body.aq-live-stable .aq-live-group>header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid #e3d5c2;background:#efe2d1}
 body.aq-live-stable .aq-live-group>header div{display:grid;gap:2px}.aq-live-group>header small{color:#956a34;font-weight:800;font-size:.72rem}.aq-live-group>header h2{margin:0;color:#463229;font-size:1.05rem}.aq-live-group>header button{min-height:38px;padding:0 12px;border:1px solid #c5a476;border-radius:10px;background:#fff9f0;color:#674b35;font:inherit;font-weight:760}
