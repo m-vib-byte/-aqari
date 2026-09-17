@@ -15,6 +15,7 @@ SOURCE = "ofgmcsmxmdswlovsckqs"
 RESTORE = "djkpkkgoibruaezdrchb"
 PREVIEW_DEPLOYMENT = "dpl_AqariExactPreview123"
 PREVIEW_URL = "https://aqari-exact-preview-123.vercel.app"
+REQUIRED_FLOWS = ("login", "session", "save", "reopen", "permissions", "contracts", "printing")
 
 
 def fixtures():
@@ -82,6 +83,7 @@ def fixtures():
         ("iphone", "iphone-hardware-01", "Safari"),
         ("ipad", "ipad-hardware-01", "Safari"),
     ):
+        flow_evidence = {flow: [f"evidence/{cls}/{flow}.json"] for flow in REQUIRED_FLOWS}
         devices[cls] = {
             "accepted": True,
             "real_account": True,
@@ -93,8 +95,9 @@ def fixtures():
             "preview_url": PREVIEW_URL,
             "device_instance": instance,
             "browser": browser,
-            "flows": {name: True for name in ("login", "session", "save", "reopen", "permissions", "contracts", "printing")},
-            "evidence": [f"evidence/{cls}/run-1"],
+            "flows": {name: True for name in REQUIRED_FLOWS},
+            "flow_evidence": flow_evidence,
+            "evidence": sorted(ref for refs in flow_evidence.values() for ref in refs),
         }
     return backup, storage, restore, rollback, devices
 
@@ -119,6 +122,8 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         self.assertEqual(bundle["preview"]["release_stage"], "preview")
         self.assertEqual(bundle["storage"]["total_bytes"], 156509)
         self.assertEqual(bundle["rollback"]["after_record_count"], 12)
+        self.assertEqual(set(bundle["devices"]["desktop"]["flow_evidence"]), set(REQUIRED_FLOWS))
+        self.assertEqual(len(bundle["devices"]["desktop"]["evidence"]), len(REQUIRED_FLOWS))
         self.assertEqual(len(bundle["bundle_sha256"]), 64)
 
     def test_rejects_storage_byte_evidence_that_does_not_match_backup_set(self):
@@ -183,6 +188,19 @@ class StageCEvidenceBundleTests(unittest.TestCase):
             backup, storage, restore, rollback, devices = fixtures()
             mutate(devices)
             with self.assertRaisesRegex(StageCEvidenceError, "Preview|preview|same hosted"):
+                create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_missing_reused_or_aggregate_only_device_flow_evidence(self):
+        mutations = (
+            lambda devices: devices["ipad"]["flow_evidence"].pop("printing"),
+            lambda devices: devices["iphone"]["flow_evidence"].update(session=devices["iphone"]["flow_evidence"]["login"]),
+            lambda devices: devices["ipad"]["flow_evidence"].update(login=devices["iphone"]["flow_evidence"]["login"]),
+            lambda devices: devices["desktop"].update(evidence=devices["desktop"]["evidence"][:-1]),
+        )
+        for mutate in mutations:
+            backup, storage, restore, rollback, devices = fixtures()
+            mutate(devices)
+            with self.assertRaisesRegex(StageCEvidenceError, "evidence|Evidence"):
                 create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
 
     def test_rejects_mixed_candidate_sha(self):
