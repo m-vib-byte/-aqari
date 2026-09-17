@@ -15,6 +15,7 @@ function normalizedSha(value){return text(value).toLowerCase()}
 function sha256(value){return createHash('sha256').update(Buffer.from(String(value),'utf8')).digest('hex')}
 function evidencePresent(value){return Array.isArray(value)&&value.length>0&&value.every((item)=>typeof item==='string'&&item.trim())}
 function object(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}
+function expectedSupabaseUrl(projectRef){return PROJECT_REF_RE.test(projectRef)?`https://${projectRef}.supabase.co`:''}
 
 export function productionTargetFingerprint(target={}){
   const value=object(target);
@@ -22,6 +23,33 @@ export function productionTargetFingerprint(target={}){
   const publishableKey=text(value.publishableKey);
   if(!PROJECT_REF_RE.test(projectRef)||!PUBLISHABLE_KEY_RE.test(publishableKey))return '';
   return sha256(JSON.stringify({projectRef,publishableKeySha256:sha256(publishableKey)}));
+}
+
+export function productionRuntimeConfigFingerprint(input={}){
+  const value=object(input);
+  const projectRef=text(value.projectRef);
+  const publishableKeySha256=text(value.publishableKeySha256);
+  const supabaseUrl=text(value.supabaseUrl);
+  const hostname=text(value.hostname);
+  const authRedirectUrl=text(value.authRedirectUrl);
+  const authStorageKey=text(value.authStorageKey);
+  const productVersion=text(value.productVersion);
+  const releaseStage=text(value.releaseStage);
+  if(!PROJECT_REF_RE.test(projectRef)||!SHA256_RE.test(publishableKeySha256))return '';
+  if(supabaseUrl!==expectedSupabaseUrl(projectRef))return '';
+  if(hostname!==PRODUCTION_HOST||authRedirectUrl!==PRODUCTION_REDIRECT)return '';
+  if(authStorageKey!==`sb-${projectRef}-auth-token`)return '';
+  if(productVersion!=='V267'||releaseStage!=='production')return '';
+  return sha256(JSON.stringify({
+    projectRef,
+    supabaseUrl,
+    hostname,
+    authRedirectUrl,
+    authStorageKey,
+    productVersion,
+    releaseStage,
+    publishableKeySha256,
+  }));
 }
 
 export function validateProductionConfigForCli(input={},expectedCandidateSha=''){
@@ -54,6 +82,11 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   if(projectRef&&sourceProject&&projectRef===sourceProject)errors.push('Production project must differ from the Stage C source project');
   if(projectRef&&restoreProject&&projectRef===restoreProject)errors.push('Production project must differ from the independent Stage C restore project');
 
+  const expectedUrl=expectedSupabaseUrl(projectRef);
+  const supabaseUrl=text(value.supabaseUrl);
+  if(!expectedUrl)errors.push('Production Supabase URL cannot be validated without a valid Production project reference');
+  else if(supabaseUrl!==expectedUrl)errors.push('Production Supabase URL must match the exact Production project reference');
+
   const targetRef=text(target.projectRef);
   const publishableKey=text(target.publishableKey);
   if(!PROJECT_REF_RE.test(targetRef))errors.push('Repository production target projectRef is invalid');
@@ -69,6 +102,20 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   else if(expectedTargetDigest&&value.targetConfigSha256!==expectedTargetDigest)errors.push('Production target configuration fingerprint does not match config/production-target.json');
 
   if(value.authStorageKey!==`sb-${projectRef}-auth-token`)errors.push('Production Auth storage key must be scoped to the exact Production project');
+
+  const expectedRuntimeDigest=productionRuntimeConfigFingerprint({
+    projectRef,
+    supabaseUrl:expectedUrl,
+    hostname:PRODUCTION_HOST,
+    authRedirectUrl:PRODUCTION_REDIRECT,
+    authStorageKey:`sb-${projectRef}-auth-token`,
+    productVersion:'V267',
+    releaseStage:'production',
+    publishableKeySha256:expectedKeyDigest,
+  });
+  if(!SHA256_RE.test(String(value.runtimeConfigSha256||'')))errors.push('Production runtime configuration fingerprint must be SHA-256');
+  else if(expectedRuntimeDigest&&value.runtimeConfigSha256!==expectedRuntimeDigest)errors.push('Production runtime configuration fingerprint does not match the exact Production project/domain/Auth configuration');
+
   if(!evidencePresent(value.evidence))errors.push('Production configuration evidence references are required');
   const verifiedAt=Date.parse(text(value.verifiedAt));
   if(!Number.isFinite(verifiedAt))errors.push('Production configuration verifiedAt must be a valid ISO-8601 date/time');
