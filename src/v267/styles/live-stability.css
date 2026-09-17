@@ -34,7 +34,7 @@ body.aq-live-stable #aqOwnerExactRail .aq-exact-logo{flex:none}
 body.aq-live-stable #mainContentV103{box-sizing:border-box!important;width:auto!important;max-width:none!important;margin:0 var(--aq-st-rail) 0 0!important;padding:94px 20px 42px!important;min-width:0!important}
 body.aq-live-stable #mainContentV103 > .p{scroll-margin-top:90px;min-width:0;max-width:100%}
 body.aq-live-stable #mainContentV103 > .p:not(.on){display:none!important}
-body.aq-live-stable #mainContentV103 > .p.on > .aq-exact-section-head:has(~ .aq-unified-page-head){display:none!important}
+body.aq-live-stable #mainContentV103 > .p.on:has(> .aq-unified-page-head) > .aq-exact-section-head{display:none!important}
 html[dir="ltr"] body.aq-live-stable #aqOwnerExactRail{left:0!important;right:auto!important}
 html[dir="ltr"] body.aq-live-stable #aqOwnerExactTop{left:var(--aq-st-rail)!important;right:0!important}
 html[dir="ltr"] body.aq-live-stable #mainContentV103{margin:0 0 0 var(--aq-st-rail)!important}
