@@ -10,6 +10,8 @@ import {validateOwnerProductionApprovalForCli} from '../scripts/v267-owner-produ
 const SHA='861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA='13a219e7930db89ebf2f9b44d30007499efa6ccf';
 const DIGEST='a'.repeat(64);
+const PREVIEW_DEPLOYMENT='dpl_AqariExactPreview123';
+const PREVIEW_URL='https://aqari-exact-preview-123.vercel.app';
 
 function device(deviceClass){
   return {
@@ -19,6 +21,8 @@ function device(deviceClass){
     emulated:false,
     physical:true,
     candidate_sha:SHA,
+    preview_deployment_id:PREVIEW_DEPLOYMENT,
+    preview_url:PREVIEW_URL,
     device_instance:`physical-${deviceClass}-01`,
     browser:deviceClass==='desktop'?'Chrome':'Mobile Safari',
     flows:{login:true,session:true,save:true,reopen:true,permissions:true,contracts:true,printing:true},
@@ -33,6 +37,13 @@ function validBundle(){
     candidate_sha:SHA,
     source_project_ref:'aqari-preview-source',
     restore_project_ref:'aqari-preview-restore',
+    preview:{
+      deployment_id:PREVIEW_DEPLOYMENT,
+      url:PREVIEW_URL,
+      candidate_sha:SHA,
+      environment:'preview',
+      release_stage:'preview',
+    },
     evidence_sha256:{
       backup_set:DIGEST,
       backup_storage_bytes:'b'.repeat(64),
@@ -53,7 +64,7 @@ function recompute(value){
   return value;
 }
 
-test('accepts only a canonical Stage-C bundle tied to the exact candidate and independent restore project',()=>{
+test('accepts only a canonical Stage-C bundle tied to the exact candidate, Preview deployment and independent restore project',()=>{
   const result=validateStageCReleaseBundle(validBundle(),SHA);
   assert.equal(result.ok,true,JSON.stringify(result.errors));
 });
@@ -73,6 +84,25 @@ test('rejects mixed candidate, same-project restore, byte digest drift, rollback
     mutate(value);
     recompute(value);
     assert.equal(validateStageCReleaseBundle(value,SHA).ok,false);
+  }
+});
+
+test('rejects device evidence from a different, non-Preview, or mutable hosted target even when commit SHA matches',()=>{
+  const mutations=[
+    (b)=>{b.devices.iphone.preview_deployment_id='dpl_DifferentDeployment456'},
+    (b)=>{b.devices.ipad.preview_url='https://aqari-other-preview.vercel.app'},
+    (b)=>{b.preview.environment='production'},
+    (b)=>{b.preview.release_stage='production'},
+    (b)=>{b.preview.url='https://myaqari.com'},
+    (b)=>{b.preview.candidate_sha=OTHER_SHA},
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/Preview|preview/);
   }
 });
 
