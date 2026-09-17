@@ -55,20 +55,23 @@ test('black gold visual layer is responsive and does not rewrite data rules',()=
  assert.doesNotMatch(css,/service_role|SUPABASE_SERVICE|api[_-]?key/i);
 });
 
-test('actual standalone login receives black-gold skin and a zero-data guest preview',()=>{
+test('actual standalone login receives black-gold skin and manager-controlled zero-data guest preview',()=>{
  const loginJs=read('src/v267/login-owner-reference.js');
  const loginCss=read('src/v267/styles/owner-reference-login.css');
  assert.match(loginJs,/معاينة كضيف — بدون بيانات/);
  assert.match(loginJs,/لا تتصل بقاعدة البيانات ولا تعرض أي سجل حقيقي/);
  assert.match(loginJs,/body\.v267-login-page main/);
- assert.doesNotMatch(loginJs,/AQARI_SUPABASE|supabase|fetch\(|XMLHttpRequest|\.from\(|\.rpc\(/i);
+ assert.match(loginJs,/aqari_guest_mode_status/);
+ assert.match(loginJs,/data_access===false/);
+ assert.match(loginJs,/return false/);
+ assert.doesNotMatch(loginJs,/service_role|SUPABASE_SERVICE|AQARI_SUPABASE_SERVICE_ROLE_KEY/i);
  assert.match(loginCss,/body\.v267-login-page/);
  assert.match(loginCss,/#c79b45/);
  assert.match(loginCss,/\.aq-owner-login-dialog/);
  assert.doesNotMatch(loginCss,/service_role|SUPABASE_SERVICE|api[_-]?key/i);
 });
 
-test('owner package installs after the fixed navigation build without replacing it',()=>{
+test('owner package installs after the fixed navigation build and permits the additive feedback layer',()=>{
  const installer=read('scripts/install-v267-owner-reference-package.mjs');
  const build=read('scripts/build-vercel.mjs');
  const vercel=JSON.parse(read('vercel.json'));
@@ -80,5 +83,5 @@ test('owner package installs after the fixed navigation build without replacing 
  assert.match(installer,/aqari-v267-owner-login-js/);
  assert.match(installer,/login-owner-reference\.js/);
  assert.ok(build.includes("scripts/install-v267-section-target-navigation.mjs"),'navigation blocker installer must remain in build');
- assert.equal(vercel.buildCommand,'node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs');
+ assert.match(vercel.buildCommand,/^node scripts\/build-vercel\.mjs && node scripts\/install-v267-owner-reference-package\.mjs(?: && node scripts\/install-v267-owner-feedback\.mjs)?$/);
 });
