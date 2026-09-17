@@ -1,4 +1,5 @@
 import {MESSAGES} from './translations.js';
+import {WORKSPACE_MESSAGES} from './workspace-translations.js';
 
 export const LANGUAGES = Object.freeze({ar:'العربية',en:'English',hi:'हिन्दी',ur:'اردو',ml:'മലയാളം'});
 const DATE_LOCALES = {ar:'ar-KW',en:'en-KW',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'};
@@ -27,7 +28,8 @@ export const dateLocale=()=>DATE_LOCALES[locale];
 
 // Call only for source-code UI strings. Do not pass tenant names or record values.
 export function t(source,value=locale) {
- return valid(value)&&value!=='ar'&&Object.hasOwn(MESSAGES,source)?MESSAGES[source][value]||source:source;
+ if(!valid(value)||value==='ar')return source;
+ return WORKSPACE_MESSAGES[source]?.[value]||MESSAGES[source]?.[value]||source;
 }
 
 // Interpolate source-code templates once. Record values remain literal text,
