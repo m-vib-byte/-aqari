@@ -6,6 +6,7 @@ import {
 } from './v267-release-gate-manifest.mjs';
 import {validateStageCReleaseBundle} from './v267-stage-c-release-bundle-gate.mjs';
 import {validateProductionConfigForCli} from './v267-production-config-gate.mjs';
+import {validateSameShaCiEvidence} from './v267-ci-evidence-gate.mjs';
 
 export const REQUIRED_DECISION = 'approved_for_production';
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
@@ -73,13 +74,16 @@ export function validateOwnerProductionApproval(input = {}) {
 }
 
 // CLI/Production path is intentionally stricter than the compatibility validator above.
-// It requires the deterministic Stage-C bundle produced from the actual backup/restore/
-// rollback/device evidence and a cross-bound Production target verified against that bundle.
+// It requires executed same-SHA GitHub CI evidence, the deterministic Stage-C bundle produced
+// from the actual backup/restore/rollback/device evidence and a cross-bound Production target.
 // Preview/design approval still cannot satisfy this path.
 export function validateOwnerProductionApprovalForCli(input = {}) {
   const base = validateOwnerProductionApproval(input);
   const errors = [...base.errors];
   if (FULL_SHA_RE.test(base.candidateSha)) {
+    const ci = validateSameShaCiEvidence(input.releaseGateManifest?.ci, base.candidateSha);
+    for (const error of ci.errors) errors.push(`release gate CI evidence: ${error}`);
+
     const stageC = validateStageCReleaseBundle(input.releaseGateManifest?.stageCBundle, base.candidateSha);
     for (const error of stageC.errors) errors.push(`release gate Stage C bundle: ${error}`);
     if (stageC.ok) {
@@ -91,6 +95,7 @@ export function validateOwnerProductionApprovalForCli(input = {}) {
       for (const error of production.errors) errors.push(`release gate Production configuration: ${error}`);
     }
   } else {
+    errors.push('release gate CI evidence cannot be validated without the exact candidate SHA');
     errors.push('release gate Stage C bundle cannot be validated without the exact candidate SHA');
   }
   return {...base, ok: errors.length === 0, errors};
