@@ -8,7 +8,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from lib.rent_pdf import FONT,FONT_PATH,shaped
-from lib.property_statement_values import owner_approved_discount,source_remaining,statement_rent_totals
+from lib.property_statement_values import owner_approved_discount,source_remaining,statement_rent_totals,statement_source_totals
 
 def statement_notes(content):
     """Only annotate evidence stored on this statement; never borrow another property's notes."""
@@ -68,13 +68,21 @@ def render_statement(content):
         profile_data.append(values)
     profile_table=Table(profile_data,colWidths=[95,110,90,105,105,125,250,55],repeatRows=1,hAlign='RIGHT')
     profile_table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#F8F4E9')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
-    summary=content['summary']['printed_totals'];rent_totals=statement_rent_totals(content.get('rows',[]))
+    summary=content['summary']['printed_totals'];rent_totals=statement_rent_totals(content.get('rows',[]));source_totals=statement_source_totals(content.get('rows',[]))
     story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ المدفوع بالمصدر والمتبقي بالمصدر قراءة فقط من صف المصدر المحفوظ، والمتبقي مشتق من الإيجار الحالي ناقص المدفوع بالمصدر ولا يحسب فرق الخصم كمتأخرات؛ هذه القيم لا تستبدل التحصيل الفعلي المحمي؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('بيانات المصدر التكميلية — تواريخ العقد والهاتف والرقم المدني وأرقام صفحات المصدر أدناه قراءة فقط من نفس صفوف الكشف المحفوظ ولا تُستكمل بقيم افتراضية.'),Spacer(1,6),source_table,Spacer(1,12),p('بيانات إضافية من المصدر — رسوم النظافة واستلام العقد والجنسية والجواز والشهر المجاني وتنبيه الإخلاء والملاحظات أدناه تعرض فقط إذا كانت محفوظة في صف المصدر نفسه؛ أي قيمة مفقودة تبقى غير مدونة ولا تُستعار من مستأجر أو عقار آخر. البريد الإلكتروني لا يُصدّر في هذا PDF وفق حد الخصوصية الحالي.'),Spacer(1,6),profile_table,Spacer(1,12)]
     if rent_totals is None:
         story.append(p('مجاميع إيجار العقد والخصم المعتمد والإيجار الحالي غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة.'))
     else:
         story.append(p('إجمالي إيجار العقود: '+str(rent_totals['contract_rent_kd'])+' د.ك • إجمالي خصم المالك: '+str(rent_totals['owner_discount_kd'])+' د.ك • إجمالي الإيجار الحالي: '+str(rent_totals['current_rent_kd'])+' د.ك'))
     story.append(p('الإيجار الحالي المطبوع بالمصدر: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك'))
+    def total_text(key):
+        value=source_totals.get(key)
+        return 'غير مكتمل بالمصدر' if value is None else str(value)+' د.ك'
+    story.append(p('إجمالي المدفوع بالمصدر: '+total_text('paid_amount_kd')+' • إجمالي المتبقي بالمصدر: '+total_text('remaining_kd')+' • إجمالي التأمين بالمصدر: '+total_text('insurance_kd')+' • إجمالي KNET بالمصدر: '+total_text('knet_paid_kd')))
+    if source_totals.get('insurance_kd') is None:
+        story.append(p('لا يُنشر مجموع التأمين إذا كان أي صف مفقوداً أو معلّماً كمعلق للمصالحة؛ لا تُحوّل قيمة متنازعاً عليها إلى إجمالي معتمد.'))
+    if source_totals.get('knet_paid_kd') is None:
+        story.append(p('لا يُفترض مجموع KNET عند فقدان طريقة السداد أو مبلغ KNET في أي صف؛ يبقى الإجمالي غير مكتمل حتى يوجد دليل محفوظ لكل صف.'))
     for note in statement_notes(content):story.append(p(note))
     doc.build(story);return out.getvalue()
 
