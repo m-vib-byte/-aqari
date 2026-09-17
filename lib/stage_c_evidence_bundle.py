@@ -91,6 +91,22 @@ def _non_negative_int(value: object, field: str) -> int:
     return value
 
 
+def _evidence_refs(value: object, field: str) -> list[str]:
+    if not isinstance(value, list) or not value:
+        raise StageCEvidenceError(f"{field} must contain at least one evidence reference")
+    refs = []
+    seen = set()
+    for item in value:
+        if not isinstance(item, str) or not item.strip():
+            raise StageCEvidenceError(f"{field} contains an invalid evidence reference")
+        ref = item.strip()
+        if ref in seen:
+            raise StageCEvidenceError(f"{field} contains a duplicate evidence reference")
+        seen.add(ref)
+        refs.append(ref)
+    return sorted(refs)
+
+
 def _validate_backup_storage_report(report: object, backup: dict) -> dict:
     if not isinstance(report, dict) or report.get("format") != STORAGE_FORMAT or report.get("verified") is not True:
         raise StageCEvidenceError("backup Storage bytes must have a successful byte-verification report")
@@ -197,6 +213,7 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
         raise StageCEvidenceError("device evidence must contain exactly desktop, iphone and ipad")
     normalized = {}
     seen_instances = set()
+    seen_evidence_refs = set()
     preview_deployment_id = None
     preview_url = None
     for device_class in DEVICE_CLASSES:
@@ -220,7 +237,6 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
             raise StageCEvidenceError("all physical devices must test the exact same hosted Preview deployment")
         instance = row.get("device_instance")
         browser = row.get("browser")
-        evidence = row.get("evidence")
         if not isinstance(instance, str) or not instance.strip():
             raise StageCEvidenceError(f"{device_class} must identify the physical device instance")
         if instance in seen_instances:
@@ -231,8 +247,23 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
         flows = row.get("flows")
         if not isinstance(flows, dict) or set(flows) != set(REQUIRED_FLOWS) or any(flows[name] is not True for name in REQUIRED_FLOWS):
             raise StageCEvidenceError(f"{device_class} must pass every required practical flow")
-        if not isinstance(evidence, list) or not evidence or any(not isinstance(item, str) or not item.strip() for item in evidence):
-            raise StageCEvidenceError(f"{device_class} evidence references are required")
+        flow_evidence = row.get("flow_evidence")
+        if not isinstance(flow_evidence, dict) or set(flow_evidence) != set(REQUIRED_FLOWS):
+            raise StageCEvidenceError(f"{device_class} must provide evidence for every required practical flow")
+        normalized_flow_evidence = {}
+        flattened_evidence = []
+        for flow in REQUIRED_FLOWS:
+            refs = _evidence_refs(flow_evidence[flow], f"{device_class} {flow} evidence")
+            for ref in refs:
+                if ref in seen_evidence_refs:
+                    raise StageCEvidenceError("physical-device evidence references must not be reused across flows or devices")
+                seen_evidence_refs.add(ref)
+            normalized_flow_evidence[flow] = refs
+            flattened_evidence.extend(refs)
+        normalized_evidence = sorted(flattened_evidence)
+        provided_evidence = _evidence_refs(row.get("evidence"), f"{device_class} evidence")
+        if provided_evidence != normalized_evidence:
+            raise StageCEvidenceError(f"{device_class} evidence list must exactly match the per-flow evidence references")
         normalized[device_class] = {
             "accepted": True,
             "real_account": True,
@@ -245,7 +276,8 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
             "device_instance": instance.strip(),
             "browser": browser.strip(),
             "flows": {name: True for name in REQUIRED_FLOWS},
-            "evidence": list(evidence),
+            "flow_evidence": normalized_flow_evidence,
+            "evidence": normalized_evidence,
         }
     preview = {
         "deployment_id": preview_deployment_id,
