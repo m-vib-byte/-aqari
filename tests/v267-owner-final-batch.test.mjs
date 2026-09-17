@@ -10,7 +10,7 @@ test('final owner runtime rechecks permissions and owns real section navigation 
  assert.match(runtime,/document\.addEventListener\('click',captureNavigation,true\)/);
  assert.match(runtime,/main\.w > \.p/);
  assert.match(runtime,/scrollIntoView/);
- assert.match(runtime,/data-aqari-final-route|aqariFinalRoute/);
+ assert.match(runtime,/aqariFinalRoute/);
  assert.doesNotMatch(runtime,/scrollTo\(\{top:0/);
  assert.match(runtime,/permissions\?\.\[section\]\?\.read===true/);
 });
@@ -54,7 +54,8 @@ test('general manager controls report owners properties WhatsApp email and timin
 test('automatic owner report cron supports WhatsApp first and Email additional channel',()=>{
  const api=read('api/owner-report-delivery.js'),vercel=JSON.parse(read('vercel.json'));
  assert.match(api,/CRON_SECRET/);assert.match(api,/aqari_owner_report_delivery_targets/);assert.match(api,/aqari_owner_report_service_v2/);
- assert.match(api,/channel==='whatsapp'/);assert.match(api,/channel==='email'/);
+ assert.match(api,/channel==='whatsapp'\?setting\.whatsapp:setting\.email/);
+ assert.match(api,/x=>x==='whatsapp'\|\|x==='email'/);
  assert.ok(vercel.crons.some(c=>c.path==='/api/owner-report-delivery'&&c.schedule==='0 * * * *'));
 });
 
