@@ -8,3 +8,4 @@ run('python',['-m','unittest','tests.property_statement_source_charge_totals_tes
 run('python',['-m','unittest','tests.storage_byte_manifest_test']);
 run('python',['-m','unittest','tests.backup_set_manifest_test']);
 run('python',['-m','unittest','tests.restore_equivalence_test']);
+run('python',['-m','unittest','tests.rollback_rehearsal_test']);
