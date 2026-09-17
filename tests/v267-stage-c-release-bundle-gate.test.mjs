@@ -76,6 +76,27 @@ test('rejects mixed candidate, same-project restore, byte digest drift, rollback
   }
 });
 
+test('rejects rollback evidence that does not prove both pre-existing and newly created transactions',()=>{
+  const mutations=[
+    (b)=>{
+      b.rollback.checkpoint_record_count=0;
+      b.rollback.after_record_count=b.rollback.new_record_count;
+    },
+    (b)=>{
+      b.rollback.new_record_count=0;
+      b.rollback.after_record_count=b.rollback.checkpoint_record_count;
+    },
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/positive integer proving/);
+  }
+});
+
 test('rejects tampering when the canonical bundle digest is not recomputed',()=>{
   const value=validBundle();
   value.rollback.new_record_count=4;
