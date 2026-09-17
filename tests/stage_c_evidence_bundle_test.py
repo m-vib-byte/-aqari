@@ -13,6 +13,8 @@ H = "a" * 64
 H2 = "b" * 64
 SOURCE = "ofgmcsmxmdswlovsckqs"
 RESTORE = "djkpkkgoibruaezdrchb"
+PREVIEW_DEPLOYMENT = "dpl_AqariExactPreview123"
+PREVIEW_URL = "https://aqari-exact-preview-123.vercel.app"
 
 
 def fixtures():
@@ -87,6 +89,8 @@ def fixtures():
             "emulated": False,
             "physical": True,
             "candidate_sha": SHA,
+            "preview_deployment_id": PREVIEW_DEPLOYMENT,
+            "preview_url": PREVIEW_URL,
             "device_instance": instance,
             "browser": browser,
             "flows": {name: True for name in ("login", "session", "save", "reopen", "permissions", "contracts", "printing")},
@@ -109,6 +113,10 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         self.assertEqual(bundle["candidate_sha"], SHA)
         self.assertEqual(bundle["source_project_ref"], SOURCE)
         self.assertEqual(bundle["restore_project_ref"], RESTORE)
+        self.assertEqual(bundle["preview"]["deployment_id"], PREVIEW_DEPLOYMENT)
+        self.assertEqual(bundle["preview"]["url"], PREVIEW_URL)
+        self.assertEqual(bundle["preview"]["environment"], "preview")
+        self.assertEqual(bundle["preview"]["release_stage"], "preview")
         self.assertEqual(bundle["storage"]["total_bytes"], 156509)
         self.assertEqual(bundle["rollback"]["after_record_count"], 12)
         self.assertEqual(len(bundle["bundle_sha256"]), 64)
@@ -163,6 +171,18 @@ class StageCEvidenceBundleTests(unittest.TestCase):
             backup, storage, restore, rollback, devices = fixtures()
             mutate(devices)
             with self.assertRaises(StageCEvidenceError):
+                create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_device_evidence_from_mixed_or_non_preview_deployments(self):
+        mutations = (
+            lambda devices: devices["iphone"].update(preview_deployment_id="dpl_DifferentPreview456"),
+            lambda devices: devices["ipad"].update(preview_url="https://aqari-other-preview.vercel.app"),
+            lambda devices: devices["desktop"].update(preview_url="https://myaqari.com"),
+        )
+        for mutate in mutations:
+            backup, storage, restore, rollback, devices = fixtures()
+            mutate(devices)
+            with self.assertRaisesRegex(StageCEvidenceError, "Preview|preview|same hosted"):
                 create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
 
     def test_rejects_mixed_candidate_sha(self):
