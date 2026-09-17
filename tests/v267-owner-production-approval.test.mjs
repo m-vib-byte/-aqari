@@ -11,6 +11,8 @@ import {
 
 const SHA = '861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA = '13a219e7930db89ebf2f9b44d30007499efa6ccf';
+const PREVIEW_URL = 'https://example-preview.vercel.app/app?release=V267';
+const PREVIEW_DEPLOYMENT_ID = 'dpl_AbCdEfGh1234567890';
 
 function deviceEvidence({ physical = false, device = 'Desktop workstation', browser = 'Chrome' } = {}) {
   return {
@@ -22,6 +24,8 @@ function deviceEvidence({ physical = false, device = 'Desktop workstation', brow
     device,
     ...(physical ? { physical: true } : {}),
     commitSha: SHA,
+    hostedPreviewUrl: PREVIEW_URL,
+    deploymentId: PREVIEW_DEPLOYMENT_ID,
     flows: {
       login: true,
       session: true,
@@ -66,7 +70,11 @@ function fullGateManifest() {
       buildReadyOnly: false,
       simulated: false,
       commitSha: SHA,
-      url: 'https://example-preview.vercel.app/app?release=V267',
+      runtimeGitSha: SHA,
+      deploymentId: PREVIEW_DEPLOYMENT_ID,
+      releaseStage: 'preview',
+      environment: 'preview',
+      url: PREVIEW_URL,
       evidence: ['evidence/preview-smoke.json'],
     },
     devices: {
@@ -147,7 +155,7 @@ test('release gate validator fails closed across every owner-mandated technical 
   }
 });
 
-test('hosted Preview acceptance rejects READY-only, simulated, or pre-runtime evidence', () => {
+test('hosted Preview acceptance rejects READY-only, simulated, pre-runtime, stale runtime, or non-Preview deployment evidence', () => {
   const mutations = [
     (m) => { m.hostedPreview.applicationRuntimeReached = false; },
     (m) => { m.hostedPreview.realAccountTested = false; },
@@ -155,6 +163,11 @@ test('hosted Preview acceptance rejects READY-only, simulated, or pre-runtime ev
     (m) => { m.hostedPreview.simulated = true; },
     (m) => { delete m.hostedPreview.applicationRuntimeReached; },
     (m) => { delete m.hostedPreview.buildReadyOnly; },
+    (m) => { m.hostedPreview.runtimeGitSha = OTHER_SHA; },
+    (m) => { m.hostedPreview.releaseStage = 'production'; },
+    (m) => { m.hostedPreview.environment = 'production'; },
+    (m) => { m.hostedPreview.url = 'https://myaqari.com/app?release=V267'; },
+    (m) => { m.hostedPreview.deploymentId = 'invalid'; },
   ];
 
   for (const mutate of mutations) {
@@ -162,6 +175,23 @@ test('hosted Preview acceptance rejects READY-only, simulated, or pre-runtime ev
     mutate(manifest);
     const result = validateReleaseGateManifest(manifest, SHA);
     assert.equal(result.ok, false, JSON.stringify(result.errors));
+  }
+});
+
+test('physical device acceptance must be bound to the exact hosted Preview deployment and URL', () => {
+  const mutations = [
+    (m) => { m.devices.desktop.hostedPreviewUrl = 'https://different-preview.vercel.app/app?release=V267'; },
+    (m) => { m.devices.iphone.deploymentId = 'dpl_Different123456789'; },
+    (m) => { delete m.devices.ipad.hostedPreviewUrl; },
+    (m) => { delete m.devices.desktop.deploymentId; },
+  ];
+
+  for (const mutate of mutations) {
+    const manifest = fullGateManifest();
+    mutate(manifest);
+    const result = validateReleaseGateManifest(manifest, SHA);
+    assert.equal(result.ok, false, JSON.stringify(result.errors));
+    assert.match(result.errors.join('\n'), /hosted Preview/);
   }
 });
 
@@ -209,6 +239,7 @@ test('release gate validator rejects evidence attached to any different candidat
     (m) => { m.ownerGovernance.candidateSha = OTHER_SHA; },
     (m) => { m.ci.commitSha = OTHER_SHA; },
     (m) => { m.hostedPreview.commitSha = OTHER_SHA; },
+    (m) => { m.hostedPreview.runtimeGitSha = OTHER_SHA; },
     (m) => { m.devices.iphone.commitSha = OTHER_SHA; },
     (m) => { m.productionConfig.candidateSha = OTHER_SHA; },
   ]) {

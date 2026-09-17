@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+const DEPLOYMENT_ID_RE = /^dpl_[A-Za-z0-9]{12,}$/;
 export const OWNER_GOVERNANCE_POLICY_ID = 'owner-governance-2026-09-13-kuwait';
 export const REQUIRED_DEVICE_FLOWS = [
   'login',
@@ -42,7 +43,22 @@ function requireSameSha(errors, value, candidateSha, label) {
   }
 }
 
-function validateDevice(errors, device, candidateSha, label, { physical = false } = {}) {
+function normalizedPreviewUrl(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.vercel.app')) return '';
+    if (parsed.username || parsed.password || parsed.hash) return '';
+    return parsed.href;
+  } catch {
+    return '';
+  }
+}
+
+function validateDevice(errors, device, candidateSha, label, {
+  physical = false,
+  previewUrl = '',
+  deploymentId = '',
+} = {}) {
   const value = device && typeof device === 'object' ? device : {};
   requireTrue(errors, value.accepted, `${label} acceptance must be explicitly true`);
   requireTrue(errors, value.realAccount, `${label} must use a real authenticated account`);
@@ -52,6 +68,12 @@ function validateDevice(errors, device, candidateSha, label, { physical = false 
   if (!nonEmptyText(value.browser)) errors.push(`${label} acceptance must identify the browser used`);
   if (!nonEmptyText(value.device)) errors.push(`${label} acceptance must identify the tested device`);
   requireSameSha(errors, value.commitSha, candidateSha, label);
+  if (!previewUrl || normalizedPreviewUrl(value.hostedPreviewUrl) !== previewUrl) {
+    errors.push(`${label} acceptance must be tied to the exact hosted Preview URL`);
+  }
+  if (!deploymentId || String(value.deploymentId || '').trim() !== deploymentId) {
+    errors.push(`${label} acceptance must be tied to the exact hosted Preview deployment`);
+  }
   const flows = value.flows && typeof value.flows === 'object' ? value.flows : {};
   for (const flow of REQUIRED_DEVICE_FLOWS) {
     requireTrue(errors, flows[flow], `${label} flow ${flow} must be accepted`);
@@ -122,13 +144,19 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
   requireFalse(errors, preview.buildReadyOnly, 'Vercel READY/build success alone must not count as hosted Preview acceptance');
   requireFalse(errors, preview.simulated, 'hosted Preview acceptance must explicitly state simulated=false');
   requireSameSha(errors, preview.commitSha, candidateSha, 'hosted Preview');
-  if (typeof preview.url !== 'string' || !/^https:\/\//.test(preview.url)) errors.push('hosted Preview URL is required');
+  requireSameSha(errors, preview.runtimeGitSha, candidateSha, 'hosted Preview runtime');
+  const previewUrl = normalizedPreviewUrl(preview.url);
+  if (!previewUrl) errors.push('hosted Preview URL must be an HTTPS vercel.app deployment URL');
+  const previewDeploymentId = String(preview.deploymentId || '').trim();
+  if (!DEPLOYMENT_ID_RE.test(previewDeploymentId)) errors.push('hosted Preview deployment ID is required');
+  if (preview.releaseStage !== 'preview') errors.push('hosted Preview releaseStage must be exactly preview');
+  if (preview.environment !== 'preview') errors.push('hosted Preview environment must be exactly preview');
   if (!evidencePresent(preview.evidence)) errors.push('hosted Preview acceptance evidence is required');
 
   const devices = manifest.devices || {};
-  validateDevice(errors, devices.desktop, candidateSha, 'Desktop', { physical: true });
-  validateDevice(errors, devices.iphone, candidateSha, 'iPhone', { physical: true });
-  validateDevice(errors, devices.ipad, candidateSha, 'iPad', { physical: true });
+  validateDevice(errors, devices.desktop, candidateSha, 'Desktop', { physical: true, previewUrl, deploymentId: previewDeploymentId });
+  validateDevice(errors, devices.iphone, candidateSha, 'iPhone', { physical: true, previewUrl, deploymentId: previewDeploymentId });
+  validateDevice(errors, devices.ipad, candidateSha, 'iPad', { physical: true, previewUrl, deploymentId: previewDeploymentId });
 
   const backup = manifest.backup || {};
   requireTrue(errors, backup.current, 'backup must be current for the release candidate review');
