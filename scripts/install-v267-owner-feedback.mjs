@@ -26,8 +26,6 @@ if(!release.includes(finalMarker)){
  console.log('Installed V267 final warm-beige owner-test runtime loader.');
 }
 
-// Owner-approved structural layer: rebuild the actual layout above the compatibility
-// layers while delegating every business action to the existing authoritative workflow.
 release=readFileSync(releasePath,'utf8');
 const unifiedMarker='/* AQARI V267 unified structural layout loader */';
 if(!release.includes(unifiedMarker)){
@@ -39,7 +37,13 @@ if(!release.includes(unifiedMarker)){
 const portalCss='<link id="aqari-v267-unified-portal-css" rel="stylesheet" href="/src/v267/styles/unified-portal.css?release=V267">';
 for(const relative of ['login.html','tenant.html','partner.html']){
  const path=new URL('../'+relative,import.meta.url);let html=readFileSync(path,'utf8');
- if(!html.includes('aqari-v267-unified-portal-css')){if(!html.includes('</head>'))throw Error('V267_UNIFIED_PORTAL_HEAD_ANCHOR_MISSING:'+relative);html=html.replace('</head>',portalCss+'\n</head>');writeFileSync(path,html);}
+ if(!html.includes('aqari-v267-unified-portal-css')){
+  if(html.includes('</head>'))html=html.replace('</head>',portalCss+'\n</head>');
+  else if(html.includes('<style>'))html=html.replace('<style>',portalCss+'\n<style>');
+  else if(html.includes('<main'))html=html.replace('<main',portalCss+'\n<main');
+  else throw Error('V267_UNIFIED_PORTAL_STYLE_ANCHOR_MISSING:'+relative);
+  writeFileSync(path,html);
+ }
 }
 const loginPath=new URL('../login.html',import.meta.url);let login=readFileSync(loginPath,'utf8');
 const finalLoginCss='<link id="aqari-v267-owner-final-login-css" rel="stylesheet" href="/src/v267/styles/owner-final-login.css?release=V267">';
