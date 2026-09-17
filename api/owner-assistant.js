@@ -7,7 +7,7 @@ const ALLOWED_KEYS=new Set(['workspace_id','expected_role','question','current_r
 const OPENAI_URL='https://api.openai.com/v1/responses';
 const clean=(value,max)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 function openAIConfig(env=process.env){
- const key=String(env.OPENAI_API_KEY||'').trim(),model=String(env.OPENAI_MODEL||'gpt-6-astra').trim();
+ const key=String(env.OPENAI_API_KEY||'').trim(),model=String(env.OPENAI_MODEL||'gpt-5.6-sol').trim();
  if(!/^sk-[A-Za-z0-9_\-]{20,}$/.test(key)||key.length>8192||!/^[A-Za-z0-9._:-]{2,120}$/.test(model))return null;
  return {key,model};
 }
