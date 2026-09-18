@@ -139,7 +139,7 @@ const navigationReplacement=`  function routeNode(target){
 if(navigationSource.includes(navigationAnchor))navigationSource=navigationSource.replace(navigationAnchor,navigationReplacement);
 else if(!navigationSource.includes("window.AQARI_V199_BASE_GO=original"))throw Error('V267_PRIMARY_NAVIGATION_ANCHOR_MISSING');
 if(navigationSource.includes("window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});"))throw Error('V267_PRIMARY_NAVIGATION_UNCONDITIONAL_SCROLL_REMAINS');
-if(!navigationSource.includes("if(routeVisible(target)===true)window.scrollTo({top:0,behavior:'auto'});"))throw Error('V267_PRIMARY_NAVIGATION_VERIFICATION_MISSING');
+if(!navigationSource.includes("if(routeVisible(target)===true)window.scrollTo({top:0,behavior:'auto'});")&&!navigationSource.includes("if(routeReady()===true&&page)"))throw Error('V267_PRIMARY_NAVIGATION_VERIFICATION_MISSING');
 writeFileSync(navigationPath,navigationSource);
 console.log('Installed V267 verified primary-section navigation hotfix for myaqari.com/Safari.');
 
@@ -155,6 +155,8 @@ if(!luxurySource.includes(usabilityMarker)){
 }
 if(!luxurySource.includes(usabilityMarker))throw Error('V267_USABILITY_POLISH_MISSING');
 
+// Validate the final navigation behavior after the existing section-context repair.
+execFileSync(process.execPath,['scripts/install-v267-section-target-navigation.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','v199-ui.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/control-center.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v205-click-routing.test.cjs','tests/v267-manager-control-design.test.mjs','tests/v267-navigation-matrix.test.mjs'],{stdio:'inherit'});

@@ -717,8 +717,8 @@
     },
     {
       "path": "docs/verification/pr200-closure-run-20260918.md",
-      "size": 5498,
-      "sha256": "9cb95d5727d0064161a27312d6ddbe953bfda2251e0d39144486d774140e3e8f"
+      "size": 6911,
+      "sha256": "e18f1a5c5dcc592f3533dd4a287b42844a0816ec85b3c1f9c456b9679d51238b"
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
@@ -969,6 +969,11 @@
       "path": "scripts/final-release-selftest.mjs",
       "sha256": "7cd979e85aa315358403ee02b13d25b4f30c81fcf3862debdf5291dd1e1e4b1a",
       "size": 753
+    },
+    {
+      "path": "scripts/install-v267-property-ownership.mjs",
+      "sha256": "71f1bb2765d68eee239443dca6436c921f69e98ae257060b2865f7db00cdf000",
+      "size": 15268
     },
     {
       "path": "scripts/migration-selftest.mjs",
