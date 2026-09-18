@@ -7,6 +7,7 @@ evidence all agree on the same candidate and source data project.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import re
@@ -23,6 +24,7 @@ _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _REHEARSAL_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
 _DEPLOYMENT_ID_RE = re.compile(r"^dpl_[A-Za-z0-9]+$")
+_UTC_SECOND_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 REQUIRED_FLOWS = ("login", "session", "save", "reopen", "permissions", "contracts", "printing")
 DEVICE_CLASSES = ("desktop", "iphone", "ipad")
 
@@ -92,6 +94,18 @@ def _preview_url(value: object, field: str) -> str:
     return f"https://{parsed.hostname}"
 
 
+def _utc_second(value: object, field: str) -> tuple[str, datetime]:
+    if not isinstance(value, str) or not _UTC_SECOND_RE.fullmatch(value):
+        raise StageCEvidenceError(f"{field} must use canonical UTC second precision YYYY-MM-DDTHH:MM:SSZ")
+    try:
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    except ValueError as exc:
+        raise StageCEvidenceError(f"invalid {field}") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
+        raise StageCEvidenceError(f"{field} must be UTC")
+    return value, parsed
+
+
 def _non_negative_int(value: object, field: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
         raise StageCEvidenceError(f"{field} must be a non-negative integer")
@@ -145,6 +159,14 @@ def _validate_restore(report: object, candidate_sha: str, backup: dict) -> dict:
         raise StageCEvidenceError("restore source project does not match the backup source project")
     if restored == source:
         raise StageCEvidenceError("independent restore project must differ from the source project")
+    source_generated_at, source_generated_time = _utc_second(
+        report.get("source_generated_at"), "restore source_generated_at"
+    )
+    restored_generated_at, restored_generated_time = _utc_second(
+        report.get("restored_generated_at"), "restore restored_generated_at"
+    )
+    if restored_generated_time <= source_generated_time:
+        raise StageCEvidenceError("restored data-safety evidence must be generated after the source evidence")
     section_hashes = report.get("section_sha256")
     required_sections = {"business", "schema_safe", "auth_safe", "storage_safe"}
     if not isinstance(section_hashes, dict) or set(section_hashes) != required_sections:
@@ -165,6 +187,8 @@ def _validate_restore(report: object, candidate_sha: str, backup: dict) -> dict:
         "candidate_sha": candidate_sha,
         "source_project_ref": source,
         "restore_project_ref": restored,
+        "source_generated_at": source_generated_at,
+        "restored_generated_at": restored_generated_at,
         "section_sha256": normalized_sections,
         "storage_object_count": count,
         "storage_total_bytes": total,
@@ -349,6 +373,7 @@ def create_stage_c_evidence_bundle(
             "total_bytes": backup_storage["total_bytes"],
             "manifest_sha256": backup_storage["manifest_sha256"],
         },
+        "restore": restore,
         # Keep the full normalized rollback report in the canonical Stage-C bundle.
         # The JavaScript release gate validates these fields directly, so emitting a
         # compact subset would make a bundle created by this verifier fail the next gate.
