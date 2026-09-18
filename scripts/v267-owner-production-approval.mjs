@@ -13,11 +13,50 @@ export const EXPECTED_REPOSITORY_OWNER = 'm-vib-byte';
 export const OWNER_GOVERNANCE_EFFECTIVE_AT = '2026-09-13T00:00:00+03:00';
 const OWNER_GOVERNANCE_EFFECTIVE_MS = Date.parse(OWNER_GOVERNANCE_EFFECTIVE_AT);
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+const AQARI_PREVIEW_HOST_RE = /^aqari-(?!test-)[a-z0-9-]+-m-vib-5421\.vercel\.app$/;
 
 function parseIsoDate(value) {
   if (!value || typeof value !== 'string') return null;
   const ms = Date.parse(value);
   return Number.isFinite(ms) ? ms : null;
+}
+
+function previewUrlIdentity(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port || parsed.hash) return null;
+    if (!AQARI_PREVIEW_HOST_RE.test(parsed.hostname)) return null;
+    return { hostname: parsed.hostname.toLowerCase() };
+  } catch {
+    return null;
+  }
+}
+
+export function validateExactPreviewBinding(releaseGateManifest = {}) {
+  const errors = [];
+  const hosted = releaseGateManifest?.hostedPreview && typeof releaseGateManifest.hostedPreview === 'object'
+    ? releaseGateManifest.hostedPreview
+    : {};
+  const stageC = releaseGateManifest?.stageCBundle && typeof releaseGateManifest.stageCBundle === 'object'
+    ? releaseGateManifest.stageCBundle
+    : {};
+  const stagePreview = stageC?.preview && typeof stageC.preview === 'object' ? stageC.preview : {};
+
+  const hostedUrl = previewUrlIdentity(hosted.url);
+  const stageUrl = previewUrlIdentity(stagePreview.url);
+  if (!hostedUrl) errors.push('hosted Preview must belong to the AQARI Vercel project on team m-vib-5421');
+  if (!stageUrl) errors.push('Stage C Preview must belong to the AQARI Vercel project on team m-vib-5421');
+  if (hostedUrl && stageUrl && hostedUrl.hostname !== stageUrl.hostname) {
+    errors.push('hosted Preview and Stage C physical-device evidence must use the exact same immutable Vercel hostname');
+  }
+
+  const hostedDeployment = String(hosted.deploymentId || '').trim();
+  const stageDeployment = String(stagePreview.deployment_id || '').trim();
+  if (!hostedDeployment || !stageDeployment || hostedDeployment !== stageDeployment) {
+    errors.push('hosted Preview and Stage C physical-device evidence must use the exact same Vercel deployment ID');
+  }
+
+  return { ok: errors.length === 0, errors };
 }
 
 export function validateOwnerProductionApproval(input = {}) {
@@ -102,6 +141,9 @@ export function validateOwnerProductionApprovalForCli(input = {}) {
     const stageC = validateStageCReleaseBundle(input.releaseGateManifest?.stageCBundle, base.candidateSha);
     for (const error of stageC.errors) errors.push(`release gate Stage C bundle: ${error}`);
     if (stageC.ok) {
+      const previewBinding = validateExactPreviewBinding(input.releaseGateManifest);
+      for (const error of previewBinding.errors) errors.push(`release gate Preview binding: ${error}`);
+
       const production = validateProductionConfigForCli({
         productionConfig: input.releaseGateManifest?.productionConfig,
         stageCBundle: input.releaseGateManifest?.stageCBundle,
