@@ -104,8 +104,18 @@ class BackupSetManifestTest(unittest.TestCase):
     def test_capture_window_is_bounded(self):
         with tempfile.TemporaryDirectory() as temp:
             db, auth, storage = self.make_artifacts(Path(temp))
+            exact = self.create(db, auth, storage, capture_finished_at='2026-09-17T03:05:00Z')
+            self.assertEqual(exact['capture_window_seconds'], 300)
             with self.assertRaisesRegex(BackupSetManifestError, 'capture window out of bounds'):
-                self.create(db, auth, storage, capture_finished_at='2026-09-17T03:10:01Z')
+                self.create(db, auth, storage, capture_finished_at='2026-09-17T03:05:01Z')
+
+    def test_capture_timestamps_reject_subsecond_or_noncanonical_precision(self):
+        with tempfile.TemporaryDirectory() as temp:
+            db, auth, storage = self.make_artifacts(Path(temp))
+            for invalid in ('2026-09-17T03:05:00.001Z', '2026-09-17 03:05:00Z'):
+                with self.subTest(invalid=invalid):
+                    with self.assertRaisesRegex(BackupSetManifestError, 'canonical UTC second precision'):
+                        self.create(db, auth, storage, capture_finished_at=invalid)
 
     def test_invalid_storage_manifest_or_reused_file_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp:

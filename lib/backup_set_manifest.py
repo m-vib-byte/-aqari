@@ -19,6 +19,7 @@ FORMAT = "AQARI-V267-BACKUP-SET-MANIFEST-1"
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
+_UTC_SECOND_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 _COMPONENTS = ("database", "auth", "storage")
 MAX_CAPTURE_WINDOW_SECONDS = 300
 
@@ -46,8 +47,10 @@ def _artifact(path: str | Path, label: str) -> dict:
 
 
 def _parse_utc(value: object, field: str) -> datetime:
-    if not isinstance(value, str) or not value.endswith("Z"):
-        raise BackupSetManifestError(f"{field} must be an ISO-8601 UTC timestamp ending in Z")
+    if not isinstance(value, str) or not _UTC_SECOND_RE.fullmatch(value):
+        raise BackupSetManifestError(
+            f"{field} must use canonical UTC second precision YYYY-MM-DDTHH:MM:SSZ"
+        )
     try:
         parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as exc:
