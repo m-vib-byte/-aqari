@@ -9,6 +9,8 @@ import {validateOwnerProductionApprovalForCli} from '../scripts/v267-owner-produ
 
 const SHA='861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA='13a219e7930db89ebf2f9b44d30007499efa6ccf';
+const ROLLBACK_SHA='2'.repeat(40);
+const REHEARSAL_ID='3'.repeat(32);
 const DIGEST='a'.repeat(64);
 const PREVIEW_DEPLOYMENT='dpl_AqariExactPreview123';
 const PREVIEW_URL='https://aqari-exact-preview-123.vercel.app';
@@ -55,7 +57,23 @@ function validBundle(){
       physical_devices:'e'.repeat(64),
     },
     storage:{object_count:2,total_bytes:156509,manifest_sha256:'f'.repeat(64)},
-    rollback:{checkpoint_record_count:12,new_record_count:3,after_record_count:15},
+    rollback:{
+      format:'AQARI-V267-ROLLBACK-REHEARSAL-1',
+      verified:true,
+      candidate_sha:SHA,
+      rollback_application_sha:ROLLBACK_SHA,
+      rehearsal_id:REHEARSAL_ID,
+      database_project_ref:'aqari-preview-source',
+      database_rollback_performed:false,
+      rehearsal_window_seconds:180,
+      checkpoint_record_count:12,
+      new_record_count:3,
+      after_record_count:15,
+      counts_by_kind:{payment:9,receipt:6},
+      checkpoint_records_sha256:'1'.repeat(64),
+      during_records_sha256:'2'.repeat(64),
+      after_records_sha256:'3'.repeat(64),
+    },
     devices:{desktop:device('desktop'),iphone:device('iphone'),ipad:device('ipad')},
   };
   value.bundle_sha256=stageCBundleSha256(value);
@@ -114,10 +132,12 @@ test('rejects rollback evidence that does not prove both pre-existing and newly 
     (b)=>{
       b.rollback.checkpoint_record_count=0;
       b.rollback.after_record_count=b.rollback.new_record_count;
+      b.rollback.counts_by_kind={payment:b.rollback.new_record_count};
     },
     (b)=>{
       b.rollback.new_record_count=0;
       b.rollback.after_record_count=b.rollback.checkpoint_record_count;
+      b.rollback.counts_by_kind={payment:b.rollback.checkpoint_record_count};
     },
   ];
   for(const mutate of mutations){
@@ -127,6 +147,29 @@ test('rejects rollback evidence that does not prove both pre-existing and newly 
     const result=validateStageCReleaseBundle(value,SHA);
     assert.equal(result.ok,false);
     assert.match(result.errors.join('\n'),/positive integer proving/);
+  }
+});
+
+test('rejects rollback summaries that bypass the verified same-rehearsal and data-preserving semantics',()=>{
+  const mutations=[
+    (b)=>{delete b.rollback.rehearsal_id},
+    (b)=>{b.rollback.rehearsal_id='A'.repeat(32)},
+    (b)=>{b.rollback.verified=false},
+    (b)=>{b.rollback.candidate_sha=OTHER_SHA},
+    (b)=>{b.rollback.rollback_application_sha=SHA},
+    (b)=>{b.rollback.database_project_ref='another-source-project'},
+    (b)=>{b.rollback.database_rollback_performed=true},
+    (b)=>{b.rollback.rehearsal_window_seconds=-1},
+    (b)=>{b.rollback.counts_by_kind={payment:15,receipt:1}},
+    (b)=>{b.rollback.checkpoint_records_sha256='bad'},
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/rollback|rehearsal/i);
   }
 });
 
