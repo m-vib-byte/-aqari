@@ -5,10 +5,14 @@ const FULL_SHA_RE=/^[0-9a-f]{40}$/;
 const SHA256_RE=/^[0-9a-f]{64}$/;
 const PROJECT_REF_RE=/^[a-z0-9]{20}$/;
 const PUBLISHABLE_KEY_RE=/^sb_publishable_[A-Za-z0-9_-]{16,}$/;
+const UTC_SECOND_RE=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const PRODUCTION_HOST='myaqari.com';
 const PRODUCTION_REDIRECT='https://myaqari.com/login.html?release=V267';
 const PREVIEW_PROJECT='ofgmcsmxmdswlovsckqs';
-const FORBIDDEN_EVIDENCE_KEYS=['publishableKey','serviceRoleKey','service_role_key','secret','password','token'];
+const FORBIDDEN_EVIDENCE_KEYS=new Set([
+  'servicerolekey','secret','clientsecret','password','token','accesstoken','refreshtoken',
+  'apikey','authorization','bearer','privatekey','signingsecret','webhooksecret',
+]);
 
 function text(value){return typeof value==='string'?value.trim():''}
 function normalizedSha(value){return text(value).toLowerCase()}
@@ -16,6 +20,15 @@ function sha256(value){return createHash('sha256').update(Buffer.from(String(val
 function evidencePresent(value){return Array.isArray(value)&&value.length>0&&value.every((item)=>typeof item==='string'&&item.trim())}
 function object(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}
 function expectedSupabaseUrl(projectRef){return PROJECT_REF_RE.test(projectRef)?`https://${projectRef}.supabase.co`:''}
+function canonicalUtcSecond(value){
+  const raw=text(value);
+  if(!UTC_SECOND_RE.test(raw))return null;
+  const millis=Date.parse(raw);
+  if(!Number.isFinite(millis))return null;
+  if(new Date(millis).toISOString().replace('.000Z','Z')!==raw)return null;
+  return {raw,millis};
+}
+function normalizedEvidenceKey(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
 function findForbiddenEvidenceKey(value,path='productionConfig'){
   if(Array.isArray(value)){
     for(let index=0;index<value.length;index+=1){
@@ -27,7 +40,7 @@ function findForbiddenEvidenceKey(value,path='productionConfig'){
   if(!value||typeof value!=='object')return '';
   for(const [key,nested] of Object.entries(value)){
     const nextPath=`${path}.${key}`;
-    if(FORBIDDEN_EVIDENCE_KEYS.includes(key))return nextPath;
+    if(FORBIDDEN_EVIDENCE_KEYS.has(normalizedEvidenceKey(key)))return nextPath;
     const found=findForbiddenEvidenceKey(nested,nextPath);
     if(found)return found;
   }
@@ -160,8 +173,8 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   else if(expectedRuntimeDigest&&value.runtimeConfigSha256!==expectedRuntimeDigest)errors.push('Production runtime configuration fingerprint does not match the exact Production project/domain/Auth/topology configuration');
 
   if(!evidencePresent(value.evidence))errors.push('Production configuration evidence references are required');
-  const verifiedAt=Date.parse(text(value.verifiedAt));
-  if(!Number.isFinite(verifiedAt))errors.push('Production configuration verifiedAt must be a valid ISO-8601 date/time');
+  const verifiedAt=canonicalUtcSecond(value.verifiedAt);
+  if(!verifiedAt)errors.push('Production configuration verifiedAt must use canonical UTC second precision');
   const forbiddenEvidencePath=findForbiddenEvidenceKey(value);
   if(forbiddenEvidencePath)errors.push(`Production configuration evidence must not contain raw secret material at ${forbiddenEvidencePath}`);
 
