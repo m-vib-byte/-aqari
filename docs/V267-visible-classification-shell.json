@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 129,
-  "newCatalogEntries": 39,
+  "visibleUnique": 142,
+  "newCatalogEntries": 52,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -969,6 +969,110 @@
         "src/v267/components/shell-translations.js"
       ],
       "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "إدارة وتشغيل الصيانة من صفحة واضحة وموحدة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "صفحة الصيانة الفعلية ضمن صلاحيات الحساب الحالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "مركز الصيانة الاحترافي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "طلبات مفتوحة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "عاجلة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "متوسط الاستجابة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "تكلفة الصيانة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا توجد مؤشرات SLA",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا يوجد فنيون",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "الصيانة الوقائية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا توجد خطة وقائية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "قطع الغيار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا توجد قطع غيار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
     }
   ]
 }

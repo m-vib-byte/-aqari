@@ -1,6 +1,7 @@
 import {bindLocale,setLocale,getLocale,direction,t,LANGUAGES} from './components/locale.js';
 import {createLiveTextTranslator} from './components/live-locale-text.js';
 import {mountAppLoginLocale} from './app-login-locale.js';
+import {formatMaintenanceMetric} from './components/legacy-maintenance-locale.js';
 
 const RELEASE='V267';
 const EXTRA_EN=Object.freeze({
@@ -12,6 +13,8 @@ const STATIC_TAGS=new Set(['BUTTON','LABEL','OPTION','LEGEND','SUMMARY','TH','H1
 const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','TH','TD']);
 let observer=null,queued=false,boundKey='';
 const translateLiveText=createLiveTextTranslator(translate);
+const translateMaintenanceResponse=createLiveTextTranslator(source=>formatMaintenanceMetric(source,'response',getLocale()));
+const translateMaintenanceCost=createLiveTextTranslator(source=>formatMaintenanceMetric(source,'cost',getLocale()));
 const attributeOwners=new WeakMap();
 
 function liveScope(){
@@ -34,6 +37,7 @@ function applyDirection(){
 function uiTextNode(node){
  const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record],[translate="no"]'))return false;
  if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut'))return true;
+ if(parent.closest('#maintenanceProPage')&&parent.matches('.c.m,#mpResponseV62,#mpCostV62,#mpSlaV62>p,#mpTechV62>p,#mpPreventiveV62>p,#mpPartsV62>p'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
  if(parent.closest('main.w>.p,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
  return false;
@@ -41,7 +45,8 @@ function uiTextNode(node){
 function translateTextNode(node){
  if(!uiTextNode(node))return;
  const raw=node.nodeValue||'';if(!raw.trim())return;
- const localized=translateLiveText(node,raw);if(localized!==raw)node.nodeValue=localized;
+ const render=node.parentElement.id==='mpResponseV62'?translateMaintenanceResponse:node.parentElement.id==='mpCostV62'?translateMaintenanceCost:translateLiveText;
+ const localized=render(node,raw);if(localized!==raw)node.nodeValue=localized;
 }
 function translateElement(el){
  if(!(el instanceof Element))return;

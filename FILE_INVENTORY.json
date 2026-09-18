@@ -3839,6 +3839,31 @@
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
       "size": 4192,
       "sha256": "5c43b9442d9d1caff79cedbea6f53d30bb0824b0ea116c9f2e823bfd67ec3980"
+    },
+    {
+      "path": "src/v267/components/legacy-maintenance-locale.js",
+      "size": 750,
+      "sha256": "cd1494f4097cc625b706774de46b6b47015a3d86965a4d8a126690803fcd5dd2"
+    },
+    {
+      "path": "src/v267/platform-locale-runtime.js",
+      "size": 10544,
+      "sha256": "e01cf6447f0618900dda8cf5d295fff9cf7d7b244c5b5b8d8f2dfa9c4715b6fe"
+    },
+    {
+      "path": "src/v267/components/shell-translations.js",
+      "size": 17113,
+      "sha256": "dc8bf526e53f1c3df55250a7a0c20a1dadcb33a1301b01459eb4938af4b0188c"
+    },
+    {
+      "path": "docs/V267-visible-classification-shell.json",
+      "size": 28521,
+      "sha256": "de276c9d21117bf6ce80dfe352c8cc532e84434e0e07bb3b5a46fc774275bccd"
+    },
+    {
+      "path": "tests/v267-legacy-maintenance-locale.test.mjs",
+      "size": 1414,
+      "sha256": "592d84828214de41326274fb2a4f170067ce024d7c792835607492f5b3d69993"
     }
   ],
   "version": "V198"
