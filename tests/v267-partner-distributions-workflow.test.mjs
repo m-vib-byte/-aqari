@@ -1,3 +1,4 @@
+import {t as translateStatic,t as visibleText,message as visibleMessage,dateLocale} from '../src/v267/components/locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -33,7 +34,7 @@ function fixture(){
   throw Error('unexpected action');
  }}};
  const d={body:node('div'),status:node('p'),session,onDispose:f=>cleanups.push(f),async run(task){try{await task();}catch(e){d.status.textContent=e.message;}},close(){closed=true;cleanups.forEach(f=>f());}};
- const context={node,field,Date,Error,BigInt,crypto:{randomUUID:()=> 'request-'+(++id)}};vm.createContext(context);
+ const context={translateStatic,visibleText,visibleMessage,dateLocale,node,field,Date,Error,BigInt,crypto:{randomUUID:()=> 'request-'+(++id)}};vm.createContext(context);
  vm.runInContext(fs.readFileSync('src/v267/pages/partner-distributions.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);context.mountPartnerDistributions(d,d.body);
  const control=label=>nodes.find(x=>x.isConnected&&x.tag==='label'&&x._text===label)?.children[0],button=text=>nodes.find(x=>x.isConnected&&x.tag==='button'&&x.textContent===text);
  const submit=async()=>{const btn=button('حفظ مراجعة المصدر الموثقة'),form=nodes.find(x=>x.isConnected&&x.tag==='form'&&x.children.includes(btn));await form.onsubmit({preventDefault(){}});};

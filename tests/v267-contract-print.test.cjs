@@ -1,4 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let localeBindings;
+test.before(async()=>{const locale=await import('../src/v267/components/locale.js');localeBindings={translateStatic:locale.t,visibleText:locale.t,visibleMessage:locale.message,dateLocale:locale.dateLocale};});
 const runtimeSource=fs.readFileSync('v267-rental-records.js','utf8');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function fixture(status='approved'){
@@ -88,7 +90,7 @@ function pageFixture(){
  const urls={create(blob){if(closed)throw Error('closed');created.push(blob);return 'blob:fixture-'+created.length;},release(url){released.push(url);}};
  const d={body:node('div'),status:node('p'),session:{check(){if(closed)throw Error('closed');}},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  const page=fs.readFileSync('src/v267/pages/rental-contracts.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
- const context={node,createDialog:()=>d,createPrivateUrls:()=>urls,window:{AQARI_RENTAL_RECORDS:api},Blob};vm.createContext(context);vm.runInContext(page,context);
+ const context={...localeBindings,node,createDialog:()=>d,createPrivateUrls:()=>urls,window:{AQARI_RENTAL_RECORDS:api},Blob};vm.createContext(context);vm.runInContext(page,context);
  return {d,state,calls,created,released,open:()=>context.openContractPrint(123,2,'official'),links:()=>descendants(d.body).filter(e=>e.tag==='a'),retry:()=>descendants(d.body).find(e=>e.tag==='button').onclick(),close:()=>{closed=true;}};
 }
 test('print dialog creates no file until verified and clears an old file before a denied retry',async()=>{

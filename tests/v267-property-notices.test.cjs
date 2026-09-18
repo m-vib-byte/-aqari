@@ -1,4 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let localeBindings;
+test.before(async()=>{const locale=await import('../src/v267/components/locale.js');localeBindings={translateStatic:locale.t,visibleText:locale.t,visibleMessage:locale.message,dateLocale:locale.dateLocale};});
 const source=fs.readFileSync('src/v267/pages/property-notices.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
 function fixture(initial=[]){
  const all=[],records=structuredClone(initial),calls=[],versions=[];let sequence=0;
@@ -29,7 +31,7 @@ function fixture(initial=[]){
   versions.push({revision:row.revision,action:args.p_action,actor_name:'مدير الاختبار',recorded_at:'2026-09-09T11:00:00Z',after_snapshot:structuredClone(row),reason:values.reason||''});return structuredClone(row);
  };
  const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},onDispose(){},run(work){d.pending=Promise.resolve().then(work).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
- const ctx={node,field,createDialog:()=>d,crypto:{randomUUID:()=> 'notice-new-'+(++sequence)},console};vm.createContext(ctx);vm.runInContext(source+'\nopenPropertyNotices();',ctx);
+ const ctx={...localeBindings,node,field,createDialog:()=>d,crypto:{randomUUID:()=> 'notice-new-'+(++sequence)},console};vm.createContext(ctx);vm.runInContext(source+'\nopenPropertyNotices();',ctx);
  const descendants=element=>[element,...element.children.flatMap(descendants)];
  const button=label=>descendants(d.body).find(element=>element.tag==='button'&&element.textContent===label);
  const control=label=>descendants(d.body).find(element=>element.label===label)?.children[0];

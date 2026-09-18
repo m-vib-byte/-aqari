@@ -22,7 +22,7 @@ test('statement navigation isolates months and disables actions after missing da
  globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
  try{
   const source=(await readFile(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8')).replace("import {t,message} from '../components/locale.js';","const {t,message}=globalThis.__statementFixture;").replace("import {createDialog,node,field} from '../components/dialog.js';","const {createDialog,node,field}=globalThis.__statementFixture;");
-  const linked=source.replace("'../components/private-urls.js'",JSON.stringify(new URL('../src/v267/components/private-urls.js',import.meta.url).href)).replace("'../api/protected-pdf.js'",JSON.stringify(new URL('../src/v267/api/protected-pdf.js',import.meta.url).href));
+  const linked=source.replace(/from (['"])(\.\.?\/[^'"]+)\1/g,(_match,_quote,path)=>'from '+JSON.stringify(new URL(path,new URL('../src/v267/pages/property-statements.js',import.meta.url)).href));
   const mod=await import('data:text/javascript;base64,'+Buffer.from(linked).toString('base64'));
   mod.openPropertyStatements();await tasks[0];await Promise.resolve();
   const [property,month,refresh,pdf,link,result]=dialog.body.children;
@@ -43,11 +43,11 @@ test('statement navigation isolates months and disables actions after missing da
   dialog.body.replaceChildren();let next=tasks.length;
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-09'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[1].value,'2026-09');assert.equal(dialog.body.children[3].disabled,true);
-  assert.match(dialog.status.textContent,/لا يوجد كشف محفوظ لهذا الشهر/);
+  assert.match(dialog.status.textContent,/لا يوجد كشف مصدر محفوظ لهذا الشهر/);
   dialog.body.replaceChildren();next=tasks.length;
   mod.openPropertyStatements({propertyName:'عقار آخر',period:'2026-08'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[0].value,'');assert.equal(dialog.body.children[3].disabled,true);
-  assert.match(dialog.status.textContent,/لا يوجد كشف مصدر محفوظ لهذا العقار/);
+  assert.match(dialog.status.textContent,/لا يوجد عقار مطابق ضمن صلاحيتك/);
   dialog.body.replaceChildren();next=tasks.length;
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[0].value,'p');assert.equal(dialog.body.children[3].disabled,false);

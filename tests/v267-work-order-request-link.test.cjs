@@ -1,4 +1,10 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let localeBindings;
+test.before(async()=>{
+ const locale=await import('../src/v267/components/locale.js');
+ const errors=await import('../src/v267/components/ui-error.js');
+ localeBindings={translateStatic:locale.t,visibleMessage:locale.message,uiError:errors.uiError};
+});
 const requestFixture={id:'request-1',request_no:101,revision:3,description:'إصلاح تسرب اصطناعي',property_id:'property-1',unit_id:'unit-1',unit_no:'101',status:'received'};
 function fixture(initial={}){
  const state={orders:[],requests:[{...requestFixture},{...requestFixture,id:'request-2',request_no:102,property_id:'property-2',unit_id:'unit-2',unit_no:'202'}],wrongReadback:false},calls=[];let serial=0;
@@ -24,7 +30,7 @@ function fixture(initial={}){
   const row={...payload,status:'draft',revision:1,request_snapshot:r?{id:r.id,request_no:r.request_no,revision:r.revision,unit_no:r.unit_no}:null};state.orders.push(row);return row;
  }}};
  let busy=false;const d={body:node('div'),status:node('p'),session,onDispose(){},run(fn){if(busy)return;busy=true;d.last=Promise.resolve().then(fn).catch(error=>{d.status.textContent=error.message;}).finally(()=>{busy=false;});return d.last;}};
- const context=vm.createContext({node,field,createDialog:()=>d,crypto:{randomUUID:()=>`order-${++serial}`}});vm.runInContext(fs.readFileSync('src/v267/pages/operations-center.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
+ const context=vm.createContext({...localeBindings,node,field,createDialog:()=>d,crypto:{randomUUID:()=>`order-${++serial}`}});vm.runInContext(fs.readFileSync('src/v267/pages/operations-center.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
  const walk=e=>[e,...e.children.flatMap(walk)],orders=()=>d.body.children.find(e=>e.tag==='section'&&e.children[0]?._text==='أوامر الشغل');
  const control=label=>walk(orders()).find(e=>e.tag==='label'&&e._text===label).children[0],button=text=>walk(orders()).find(e=>e.tag==='button'&&e.textContent===text);
  return {state,d,calls,control,button,async start(){context.openOperationsCenter(initial);await d.last;},async submit(){await walk(orders()).find(e=>e.tag==='form').onsubmit({preventDefault(){}});}};

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {t as translateStatic} from '../src/v267/components/locale.js';
 
 function fixture(){
  const nodes=[],calls=[],rows=[],cleanups=[],paymentDesks=[];let id=0,closed=false;
@@ -35,7 +36,7 @@ function fixture(){
   throw Error('unexpected action');
  }}};
  const d={body:node('div'),status:node('p'),session,onDispose:f=>cleanups.push(f),async run(task){try{await task();}catch(error){d.status.textContent=error.message;}},close(){closed=true;cleanups.forEach(f=>f());}};
- const context={node,field,mountCommercialPaymentAllocations(d,container,{leases}){const desk={leases,disposed:false};paymentDesks.push(desk);return {dispose(){desk.disposed=true;container.replaceChildren();}};},mountCommercialCollections(){return {load:async()=>{}};},crypto:{randomUUID:()=> 'request-'+(++id)},Date,Error,BigInt};vm.createContext(context);
+ const context={translateStatic,node,field,mountCommercialPaymentAllocations(d,container,{leases}){const desk={leases,disposed:false};paymentDesks.push(desk);return {dispose(){desk.disposed=true;container.replaceChildren();}};},mountCommercialCollections(){return {load:async()=>{}};},crypto:{randomUUID:()=> 'request-'+(++id)},Date,Error,BigInt};vm.createContext(context);
  vm.runInContext(fs.readFileSync('src/v267/pages/commercial-sales.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);context.mountCommercialSales(d,d.body);
  const button=label=>nodes.find(x=>x.isConnected&&x.tag==='button'&&x.textContent===label),control=label=>nodes.find(x=>x.isConnected&&x.tag==='label'&&x._text===label).children[0];
  const submit=async label=>{const btn=button(label),form=nodes.find(x=>x.isConnected&&x.tag==='form'&&x.children.includes(btn));await form.onsubmit({preventDefault(){}});};

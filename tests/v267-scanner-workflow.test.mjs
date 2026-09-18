@@ -34,9 +34,22 @@ function fixture(initial={}){
  const d={el:node('dialog'),body:node('div'),status:node('p'),session,get closed(){return disposed;},onDispose(f){cleanups.push(f);},close(){disposed=true;for(const f of cleanups)f();},async run(task){const controls=nodes.filter(n=>['button','input','select'].includes(n.tag)),before=controls.map(n=>n.disabled);controls.forEach(n=>n.disabled=true);try{await task();}catch(e){d.status.textContent=e.message;}finally{controls.forEach((n,i)=>n.disabled=before[i]);}}};
  const context={node,field,createDialog:()=>d,createPrivateUrls:()=>({create:()=> 'blob:fixture',clear(){},release(){}}),t:x=>x,dateLocale:()=> 'en',scanPdf,MAX_SCAN_PAGES,MAX_SCAN_BYTES,scanGeometry,MAX_SOURCE_BYTES,checksum,documentTarget,createVerifiedUpload,Blob,
   decodeImage:async file=>({naturalWidth:100,naturalHeight:200,marker:new Uint8Array(await file.arrayBuffer())[0]}),renderScan:async img=>jpeg(img.marker)};
- vm.createContext(context);vm.runInContext(fs.readFileSync('src/v267/pages/document-scanner.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
+ vm.createContext(context);vm.runInContext('const createStoredVisualReview=(()=>{'+fs.readFileSync('src/v267/components/stored-visual-review.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+';return createStoredVisualReview;})();',context);vm.runInContext(fs.readFileSync('src/v267/pages/document-scanner.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
  const button=text=>nodes.find(n=>n.tag==='button'&&n.textContent===text),control=label=>nodes.find(n=>n.tag==='label'&&n._text===label).children[0];
- return {d,state,calls,rows,objects,nodes,button,control,async start(){await context.openDocumentScanner(initial);if(!initial.ref)control('السجل المرتبط').value='saved';},async choose(files){const file=control('اختيار ملف أو صور من الجهاز');file.files=files;await file.onchange();},async save(){await button('رفع نسخة جديدة والتحقق منها').onclick();}};
+ return {d,state,calls,rows,objects,nodes,button,control,async start(){await context.openDocumentScanner(initial);if(!initial.ref)control('السجل المرتبط').value='saved';},async choose(files){const file=control('اختيار ملف أو صور من الجهاز');file.files=files;await file.onchange();},async save(){
+  let settled=false;const pending=button('رفع نسخة جديدة والتحقق منها').onclick().finally(()=>{settled=true;});
+  for(let attempt=0;attempt<100&&!settled;attempt++){
+   const confirm=button('اعتماد النسخة المرفوعة وإقفال المستند');
+   if(confirm?.onclick&&!confirm.disabled&&nodes.some(node=>node.className==='aq267-stored-visual-review'&&!node.hidden)){
+    assert.equal(button('رفع نسخة جديدة والتحقق منها').disabled,true,'upload remains locked during stored review');
+    assert.equal(control('راجعت النسخة المرفوعة فعلياً وجميع صفحاتها وأؤكد وضوح النصوص والصور وعدم فقدان الجودة.').disabled,false,'quality confirmation must be interactive');
+    control('راجعت النسخة المرفوعة فعلياً وجميع صفحاتها وأؤكد وضوح النصوص والصور وعدم فقدان الجودة.').checked=true;
+    await confirm.onclick();
+   }
+   await new Promise(resolve=>setTimeout(resolve,1));
+  }
+  assert.ok(settled,'scanner must finish after stored-copy review or an explicit error');await pending;
+ }};
 }
 test('multipage scan keeps page order, checks stored bytes and recovers a lost upload reply',async()=>{
  const f=fixture({type:'property',ref:'outside-first-50'});await f.start();assert.equal(f.control('السجل المرتبط').value,'outside-first-50');assert.ok(f.control('السجل المرتبط').disabled);assert.equal(f.calls.some(c=>c.name==='aqari_document_entities'),false);

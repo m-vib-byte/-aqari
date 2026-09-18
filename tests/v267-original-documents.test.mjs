@@ -50,7 +50,8 @@ test('scanner rotation follows the selected image after dialog controls are rest
  globalThis.__scannerControlTest=mocks;
  try{
   const source=readFileSync(new URL('../src/v267/pages/document-scanner.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
-  const module=await import('data:text/javascript;base64,'+Buffer.from('const {'+Object.keys(mocks).join(',')+'}=globalThis.__scannerControlTest;\n'+source).toString('base64'));
+  const review=readFileSync(new URL('../src/v267/components/stored-visual-review.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
+  const module=await import('data:text/javascript;base64,'+Buffer.from('const {'+Object.keys(mocks).join(',')+'}=globalThis.__scannerControlTest;\nconst createStoredVisualReview=(()=>{'+review+';return createStoredVisualReview;})();\n'+source).toString('base64'));
   await module.openDocumentScanner();
   const rotate=nodes.find(n=>n.tag==='button'&&n.textContent==='تدوير الصورة'),file=nodes.find(n=>n.type==='file');
   assert.equal(rotate.disabled,true);

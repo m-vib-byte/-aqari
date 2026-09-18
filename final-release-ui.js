@@ -92,6 +92,12 @@
   // Presentation loading is not authorization. The auth bridge must finish
   // verifying and activating BOTH data boundaries before optional UI boots.
   let uiStartQueued=false;
+  const authenticatedUIExtensions=new Set();
+  window.AQARI_REGISTER_AUTH_UI=function(callback){
+    if(typeof callback!=='function')return;
+    authenticatedUIExtensions.add(callback);
+    scheduleAuthenticatedUI();
+  };
   function authenticatedUIReady(){
     try{
       const context=window.AQARI_SUPABASE?.context;
@@ -108,6 +114,7 @@
   function noteScriptLoaded(event){
     if(event?.type==='load'&&event.target?.dataset){
       event.target.dataset.aqariUiLoaded='true';
+      if(event.target.id==='aqari-v199-ui-js'&&authenticatedUIExtensions.size)scheduleAuthenticatedUI();
     }
   }
   function continueExistingScript(id,next,ready=false){
@@ -125,7 +132,13 @@
     uiStartQueued=true;
     setTimeout(function(){
       uiStartQueued=false;
-      if(authenticatedUIReady()&&document.getElementById('aqari-v199-ui-js')?.dataset.aqariUiLoaded==='true')installV201Experience();
+      if(authenticatedUIReady()&&document.getElementById('aqari-v199-ui-js')?.dataset.aqariUiLoaded==='true'){
+        installV201Experience();
+        for(const callback of authenticatedUIExtensions){
+          if(!authenticatedUIReady())break;
+          callback();authenticatedUIExtensions.delete(callback);
+        }
+      }
     },0);
   }
   window.addEventListener('aqari:auth-boundary',function(event){

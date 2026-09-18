@@ -7,7 +7,7 @@ const photo=name=>new File([new Uint8Array([255,216,255,224]),name],name,{type:'
 function fixture(t){
  const docs=new Map(),objects=new Map(),calls=[],revoked=[],created=[],disposers=[],state={active:true,canUpload:true};
  class Element{
-  constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.hidden=false;this.disabled=false;this.value='';this.files=[];this.attributes={};}
+  constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.hidden=false;this.disabled=false;this.value='';this.files=[];this.attributes={};this.dataset={};}
   append(...children){for(const child of children){child.parent=this;this.children.push(child);}}
   replaceChildren(...children){this.children=[];this._text='';this.append(...children);}
   set textContent(value){this._text=value;this.children=[];}
