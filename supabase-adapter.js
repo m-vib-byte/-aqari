@@ -508,9 +508,9 @@
     return true;
   }
 
-  async function signOut(){
+  async function signOut(options){
     const client = await getClient();
-    const { error } = await client.auth.signOut();
+    const { error } = await client.auth.signOut(options?.scope==='local'?{ scope:'local' }:undefined);
     if(error) throw error;
     clearPersistedSession();
   }

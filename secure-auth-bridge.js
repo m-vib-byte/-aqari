@@ -401,7 +401,9 @@
       hideLegacyGates();
       return false;
     }
-    return window.cloudLogoutV198();
+    // An idle/lock event belongs to this browser session. It must not revoke
+    // an active session on another device. Explicit logout keeps its scope.
+    return window.cloudLogoutV198({ scope:'local' });
   }
 
   // The obsolete V121 label-based list omits core routes, even for managers.
@@ -614,12 +616,12 @@
     }
   };
 
-  window.cloudLogoutV198 = async function(){
+  window.cloudLogoutV198 = async function(options){
     window.AQARI_AUTOSYNC?.disable();
     localStorage.removeItem(SYNC_READY_KEY);
     showGate('جاري تسجيل الخروج…', 'wait');
     try{
-      await window.AQARI_SUPABASE.signOut();
+      await window.AQARI_SUPABASE.signOut(options?.scope==='local'?{ scope:'local' }:undefined);
     }catch(signOutError){
       try{
         if(typeof window.AQARI_SUPABASE.clearPersistedSession !== 'function' ||

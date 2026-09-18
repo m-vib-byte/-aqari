@@ -35,3 +35,39 @@ test('a signed-out state cannot reset the idle timer or grant access',()=>{
  const r=fixture(false);const before=[...r.values];r.unlock();assert.deepEqual([...r.values],before);
  r.tick();assert.equal(r.signouts,1);
 });
+
+function logoutFixture({sdkError=false,clearError=false,mismatch=false}={}){
+ const adapter=fs.readFileSync(path.join(root,'supabase-adapter.js'),'utf8');
+ const a=adapter.indexOf('  async function signOut('),b=adapter.indexOf('\n  async function bindAccess(',a);
+ const l=bridge.indexOf('  function legacyLockV198('),le=bridge.indexOf('\n  // The obsolete V121',l);
+ const o=bridge.indexOf('  window.cloudLogoutV198 ='),oe=bridge.indexOf('\n  window.uploadLocalToCloudV198',o);
+ const sessions=new Set(['current','other-device']),calls=[],notices=[];
+ let cleared=0,resets=0,sealed=0;
+ const identity={userId:'user',workspaceId:'workspace'};
+ const sdk={auth:{signOut:async options=>{calls.push(options?.scope||'global');if(sdkError)return {error:new Error('unavailable')};if(options?.scope==='local')sessions.delete('current');else sessions.clear();return {error:null};}}};
+ const clear=()=>{if(clearError)throw Error('cannot clear');cleared++;};
+ const sandbox={context:identity,accessIdentity:x=>x,sameIdentity:(x,y)=>x===y,getClient:async()=>sdk,clearPersistedSession:clear,localStorage:{removeItem(){}},SYNC_READY_KEY:'sync',showGate:(...args)=>notices.push(args),hardResetPage:()=>resets++,sealData:()=>sealed++,hideLegacyGates(){},window:{AQARI_AUTOSYNC:{disable(){}}}};
+ vm.createContext(sandbox);vm.runInContext(adapter.slice(a,b),sandbox);
+ sandbox.window.AQARI_SUPABASE={context:mismatch?{}:identity,signOut:sandbox.signOut,clearPersistedSession:clear,verifySessionNull:async()=>{if(clearError)throw Error('session remains');}};
+ vm.runInContext(bridge.slice(l,le)+'\n'+bridge.slice(o,oe),sandbox);
+ return {sessions,calls,notices,lock:()=>sandbox.legacyLockV198(),logout:options=>sandbox.window.cloudLogoutV198(options),get cleared(){return cleared;},get resets(){return resets;},get sealed(){return sealed;}};
+}
+test('idle lock signs out this session and preserves another active device',async()=>{
+ const r=logoutFixture();assert.equal(await r.lock(),true);
+ assert.deepEqual(r.calls,['local']);assert.deepEqual([...r.sessions],['other-device']);
+ assert.equal(r.cleared,1);assert.equal(r.resets,1);
+});
+test('explicit logout retains the existing global scope',async()=>{
+ const r=logoutFixture();assert.equal(await r.logout(),true);
+ assert.deepEqual(r.calls,['global']);assert.equal(r.sessions.size,0);
+ assert.equal(r.cleared,1);assert.equal(r.resets,1);
+});
+test('a stale identity cannot log out a different active identity',async()=>{
+ const r=logoutFixture({mismatch:true});assert.equal(await r.lock(),false);
+ assert.equal(r.calls.length,0);assert.equal(r.sealed,1);assert.equal(r.sessions.size,2);
+});
+test('failed local logout cannot reopen the workspace or report success',async()=>{
+ const r=logoutFixture({sdkError:true,clearError:true});assert.equal(await r.lock(),false);
+ assert.deepEqual(r.calls,['local']);assert.equal(r.resets,0);
+ assert.equal(r.notices.at(-1)[1],'bad');assert.equal(r.sessions.size,2);
+});

@@ -721,6 +721,11 @@
       "sha256": "5c43b9442d9d1caff79cedbea6f53d30bb0824b0ea116c9f2e823bfd67ec3980"
     },
     {
+      "path": "docs/verification/pr200-session-and-live-review-20260918.md",
+      "size": 6349,
+      "sha256": "ea510be7e3a88177891c3e55da43f9c4c24b446a243653b6b27ef2eef73086b7"
+    },
+    {
       "path": "docs/verification/pr200-session-closure-20260918.md",
       "size": 3404,
       "sha256": "1ca80beeecce3dc515300c29a557f7ad61d4bd35f9bf9fb08743a3b6c6bc9b87"
@@ -1027,8 +1032,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 39760,
-      "sha256": "2e46ae7c79fe36e32761f0318d2888bcd6299c084c5f03d450575b261b462d07"
+      "size": 39991,
+      "sha256": "50e1cf9acdb0adfe36b3254c0b1866ae80c818b9b631ddc88644317c43d89ad0"
     },
     {
       "path": "src/v267/api/partner-session.js",
@@ -2852,8 +2857,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "cf83fd433f9095b1e9ce3177794ee8991c1c47dd32bfc0d6fdb7b87ab5be2f91",
-      "size": 25877
+      "sha256": "b7fc383f29e6a5354be56ad3e2ddb24dbad6f3d8f9c0a14d6e3ac2ba4d14166d",
+      "size": 25936
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -3632,8 +3637,8 @@
     },
     {
       "path": "tests/v267-session-idle-restore.test.cjs",
-      "size": 2588,
-      "sha256": "8fc9574adc3a1d2190baea632b05d7d7fa34e3bce0980a7496aa2b64533a14a3"
+      "size": 5531,
+      "sha256": "8c2854c90d97b65924427539450b3126a13691a64b52ad8cce60746b9bc8a92d"
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
