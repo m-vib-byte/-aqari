@@ -39,7 +39,7 @@ function dashboardMarkup(){
  ${panel('إجراءات سريعة',`<div class="aq-live-quick-grid"><button type="button" data-exact-route="tenants">${workspaceIcon('user')}<span>${ui('إضافة مستأجر')}</span></button><button type="button" data-exact-route="properties">${workspaceIcon('building')}<span>${ui('إضافة عقار')}</span></button><button type="button" data-exact-service="rental_contracts">${workspaceIcon('file')}<span>${ui('إنشاء عقد')}</span></button><button type="button" data-exact-route="maintenanceProPage">${workspaceIcon('tool')}<span>${ui('طلب صيانة')}</span></button><button type="button" data-exact-route="collectionProPage">${workspaceIcon('wallet')}<span>${ui('فتح التحصيل')}</span></button><button type="button" data-exact-route="documentsHub">${workspaceIcon('upload')}<span>${ui('رفع مستند')}</span></button></div>`,'aq-live-quick-panel')}
  ${panel('التنبيهات والمتابعة','<div id="aqLiveFollowups" class="aq-live-followups"></div>','aq-live-alert-panel')}
  ${panel('تقارير الملاك',`<div class="aq-live-report-body"><div class="aq-live-paper" aria-hidden="true">${workspaceIcon('file')}</div><p>${ui('راجع كشوف العقار والتحصيل والمستندات المحفوظة.')}</p><button type="button" data-exact-route="reports">${ui('فتح التقارير')}</button></div>`,'aq-live-report')}
- <section class="aq-live-secondary">${makeMetric('تحصيل اليوم','today','success')}${makeMetric('المتبقي','remaining')}${makeMetric('المستأجرون','tenants')}${makeMetric('تنتهي خلال 30 يومًا','expiring')}${makeMetric('الإشغال المسجل','occupancy')}${makeMetric('المصروفات المعتمدة','expenses')}${makeMetric('صافي السجلات','net')}</section>
+ <details class="aq-live-secondary-details"><summary>${ui('المحفظة')}</summary><section class="aq-live-secondary">${makeMetric('تحصيل اليوم','today','success')}${makeMetric('المتبقي','remaining')}${makeMetric('المستأجرون','tenants')}${makeMetric('تنتهي خلال 30 يومًا','expiring')}${makeMetric('الإشغال المسجل','occupancy')}${makeMetric('المصروفات المعتمدة','expenses')}${makeMetric('صافي السجلات','net')}</section></details>
  <p class="aq-live-disclosure">${ui('المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.')}</p>
  </section>`;
 }
@@ -158,4 +158,3 @@ async function boot(){
  window.AQARI_LIVE_STABILITY=Object.freeze({version:'V267-work1-stability-1',refresh:schedule});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-
