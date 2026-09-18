@@ -23,9 +23,10 @@ class RollbackRehearsalTest(unittest.TestCase):
             "immutable_sha256": sha256(facts.encode()).hexdigest(),
         }
 
-    def write_manifest(self, path: Path, at: str, records):
+    def write_manifest(self, path: Path, at: str, records, *, application_sha=None):
         payload = create_continuity_manifest(
             project_ref=self.PROJECT,
+            application_sha=application_sha or self.CANDIDATE,
             captured_at=at,
             records=records,
         )
@@ -44,7 +45,12 @@ class RollbackRehearsalTest(unittest.TestCase):
         during = root / "during.json"
         after = root / "after.json"
         self.write_manifest(checkpoint, "2026-09-17T05:00:00Z", before)
-        self.write_manifest(during, "2026-09-17T05:10:00Z", new)
+        self.write_manifest(
+            during,
+            "2026-09-17T05:10:00Z",
+            new,
+            application_sha=self.ROLLBACK,
+        )
         self.write_manifest(after, "2026-09-17T05:20:00Z", before + new)
         return checkpoint, during, after, before, new
 
@@ -81,7 +87,12 @@ class RollbackRehearsalTest(unittest.TestCase):
                 self.verify(checkpoint, during, after)
 
             self.write_manifest(checkpoint, "2026-09-17T05:00:00Z", before)
-            self.write_manifest(during, "2026-09-17T05:10:00Z", [])
+            self.write_manifest(
+                during,
+                "2026-09-17T05:10:00Z",
+                [],
+                application_sha=self.ROLLBACK,
+            )
             self.write_manifest(after, "2026-09-17T05:20:00Z", before)
             with self.assertRaisesRegex(RollbackRehearsalError, "newly created transaction"):
                 self.verify(checkpoint, during, after)
@@ -117,6 +128,7 @@ class RollbackRehearsalTest(unittest.TestCase):
                 self.verify(checkpoint, during, after, database_rollback_performed=True)
             changed = create_continuity_manifest(
                 project_ref="aqari-v267-other",
+                application_sha=self.ROLLBACK,
                 captured_at="2026-09-17T05:10:00Z",
                 records=new,
             )
@@ -128,7 +140,12 @@ class RollbackRehearsalTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             checkpoint, during, after, before, new = self.make_evidence(root)
-            self.write_manifest(during, "2026-09-17T05:10:00Z", [before[0]] + new)
+            self.write_manifest(
+                during,
+                "2026-09-17T05:10:00Z",
+                [before[0]] + new,
+                application_sha=self.ROLLBACK,
+            )
             with self.assertRaisesRegex(RollbackRehearsalError, "only newly created"):
                 self.verify(checkpoint, during, after)
 
@@ -168,6 +185,59 @@ class RollbackRehearsalTest(unittest.TestCase):
                 with self.subTest(timestamp=invalid_timestamp):
                     with self.assertRaises(RollbackRehearsalError):
                         self.write_manifest(after, invalid_timestamp, before + new)
+
+    def test_manifest_application_sha_must_match_each_rehearsal_phase(self):
+        for phase, wrong_sha, expected_error in (
+            ("checkpoint", self.ROLLBACK, "checkpoint manifest application_sha must match candidate_sha"),
+            ("during", self.CANDIDATE, "during-window manifest application_sha must match rollback_application_sha"),
+            ("after", self.ROLLBACK, "after-rehearsal manifest application_sha must match candidate_sha"),
+        ):
+            with self.subTest(phase=phase), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                checkpoint, during, after, before, new = self.make_evidence(root)
+                if phase == "checkpoint":
+                    self.write_manifest(
+                        checkpoint,
+                        "2026-09-17T05:00:00Z",
+                        before,
+                        application_sha=wrong_sha,
+                    )
+                elif phase == "during":
+                    self.write_manifest(
+                        during,
+                        "2026-09-17T05:10:00Z",
+                        new,
+                        application_sha=wrong_sha,
+                    )
+                else:
+                    self.write_manifest(
+                        after,
+                        "2026-09-17T05:20:00Z",
+                        before + new,
+                        application_sha=wrong_sha,
+                    )
+                with self.assertRaisesRegex(RollbackRehearsalError, expected_error):
+                    self.verify(checkpoint, during, after)
+
+    def test_manifest_application_sha_is_required_and_canonical(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            checkpoint, during, after, _, _ = self.make_evidence(root)
+            payload = json.loads(checkpoint.read_text(encoding="utf-8"))
+            payload.pop("application_sha")
+            checkpoint.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RollbackRehearsalError, "application_sha"):
+                self.verify(checkpoint, during, after)
+
+            for invalid_sha in ("bad", self.CANDIDATE.upper()):
+                with self.subTest(application_sha=invalid_sha):
+                    with self.assertRaisesRegex(RollbackRehearsalError, "application_sha"):
+                        create_continuity_manifest(
+                            project_ref=self.PROJECT,
+                            application_sha=invalid_sha,
+                            captured_at="2026-09-17T05:00:00Z",
+                            records=[],
+                        )
 
 
 if __name__ == "__main__":
