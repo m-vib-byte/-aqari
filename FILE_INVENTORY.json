@@ -712,8 +712,8 @@
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 45465,
-      "sha256": "76ea979abed289c02a4e25f7e2305463617c91f7033b24c9f9adc94a7b8be4c2"
+      "size": 48304,
+      "sha256": "140c12763ebc3089a76702c0f29107b2ac3518891d42a6a43a0562f9a1933db7"
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
@@ -1217,8 +1217,8 @@
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 41077,
-      "sha256": "1f3a1aa24df3127b250c50cd88d8f5b2b767bd07fff80355dfe5cdc150b0c5f2"
+      "size": 46575,
+      "sha256": "a197189490adcbcdd9f688a9dbe0c4a4e2a866afbacaa5c01e08712e41eaf9af"
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 11808,
-      "sha256": "c742cfaf5c01087a4bd7ad35c9e63a947647e39892bd43947e7a27a6f6d3fb34"
+      "size": 13013,
+      "sha256": "1c52d5de6049ece20f6776d13b05ce356665f4fa8b739dbfe26aaa1087762c5a"
     },
     {
       "path": "src/v267/reports/financial-archive-xlsx.js",
@@ -3567,8 +3567,8 @@
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
-      "size": 2062,
-      "sha256": "3de576423dc1f27bf0f950cf8e54821ba1f411cd97c31817c56817ecd2cad542"
+      "size": 2805,
+      "sha256": "62435944f9f6e808173d2cc0096d105352143bb7b7387454286d6a2c6532479f"
     },
     {
       "path": "tests/v267-recovery-boundary.test.cjs",

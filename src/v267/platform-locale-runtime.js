@@ -11,7 +11,7 @@ const EXTRA_EN=Object.freeze({
 const SHELL_ROOTS='#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,.aq-unified-dashboard,.aq-unified-page-head,#aqUnifiedMore';
 const STATIC_TAGS=new Set(['BUTTON','LABEL','OPTION','LEGEND','SUMMARY','TH','H1','H2','H3','H4','H5','H6']);
 const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','TH','TD']);
-const PROPERTY_UI_ROOTS='.v202-workspace-head,.v202-actions,.v202-tabs,.v202-overview-grid,.aq267-property-summary';
+const PROPERTY_UI_ROOTS='.v202-workspace-head,.v202-actions,.v202-tabs,.v202-overview-grid,.v202-property-kpis,.aq267-property-summary';
 const PROPERTY_UI_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','DT','DD']);
 let observer=null,queued=false,boundKey='';
 const translateLiveText=createLiveTextTranslator(translate);
@@ -30,10 +30,16 @@ function scopedStorageKey(scope){return 'aqari:v267:locale:'+JSON.stringify([sco
 function translate(source){
  if(!source)return source;
  const standard=t(source);if(standard!==source)return standard;
- const propertyCount=source.match(/^(\d+) (عقد موقّع سارٍ|عقد مرتبط يحتاج تحقق|عملية|بند مسجل)$/);
+ const propertyCount=source.match(/^(\d+) (عقد موقّع سارٍ|عقد مرتبط يحتاج تحقق|عملية|بند مسجل|دفعة معتمدة)$/);
  if(propertyCount)return t('{count} '+propertyCount[2]).replace('{count}',propertyCount[1]);
  const propertyOccupied=source.match(/^(\d+) من (\d+)$/);
  if(propertyOccupied)return t('{count} من {total}').replace('{count}',propertyOccupied[1]).replace('{total}',propertyOccupied[2]);
+ const digits=value=>value.replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));
+ const locale={ar:'ar-KW',en:'en-KW',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'}[getLocale()];
+ const propertyMoney=source.match(/^([\d٠-٩٬٫,.]+) د\.ك$/);
+ if(propertyMoney){const amount=Number(digits(propertyMoney[1]).replace(/[٬,]/g,'').replace('٫','.'));if(Number.isFinite(amount))return new Intl.NumberFormat(locale,{style:'currency',currency:'KWD',minimumFractionDigits:0,maximumFractionDigits:3}).format(amount);}
+ const periodParts=source.split(' • '),period=periodParts.length===2?periodParts[1].match(/^(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر) ([\d٠-٩]{4})$/):null;
+ if(period){const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];const date=new Date(Date.UTC(Number(digits(period[2])),months.indexOf(period[1]),1));return translate(periodParts[0])+' • '+new Intl.DateTimeFormat(locale,{month:'long',year:'numeric',timeZone:'UTC'}).format(date);}
  const propertyLabel='فتح ملف العقار ';
  if(source.startsWith(propertyLabel))return t('فتح ملف العقار')+' '+source.slice(propertyLabel.length);
  const section=source.match(/^إدارة وتشغيل (.+) من صفحة واضحة وموحدة\.$/);

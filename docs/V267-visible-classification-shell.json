@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 214,
-  "newCatalogEntries": 123,
+  "visibleUnique": 232,
+  "newCatalogEntries": 141,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -1637,6 +1637,132 @@
       "files": [
         "v202-property-os.js",
         "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "كشف الإيجار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "نظرة عامة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الشركاء والحصص",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الكشف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المسجلة في العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيجار المصدر",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "قيمة مرجعية وليست تحصيلاً فعلياً",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المقبوضات المرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "{count} دفعة معتمدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الإيجار المستحق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا يوجد متبقٍ على العقود المعتمدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "صافي المقبوضات المسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "دفعات الفترة المعتمدة؛ ليس ربحاً محاسبياً نهائياً",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "معلّق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يلزم توثيق فترة المصروفات وحالة صرفها",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "حسب كشف المصدر",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستحق العقود المعتمدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يلزم اكتمال اعتماد عقود الفترة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
       ]
     }
   ]

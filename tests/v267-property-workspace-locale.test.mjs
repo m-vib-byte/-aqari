@@ -27,3 +27,12 @@ test('property locations remain record values even when they match an interface 
  assert.ok(property.includes('<h2 id="v202PropertyTitle" data-aq-record>'));
  assert.ok(property.includes('<dt>المالك</dt><dd data-aq-record>'));
 });
+test('property financial captions localize currency and month without changing precision',()=>{
+ for(const [language,locale] of Object.entries({ar:'ar-KW',en:'en-KW',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'})){
+  setLocale(language);
+  assert.equal(runtime.translate('١٬٢٣٤٫١٢٥ د.ك'),new Intl.NumberFormat(locale,{style:'currency',currency:'KWD',minimumFractionDigits:0,maximumFractionDigits:3}).format(1234.125));
+  const month=new Intl.DateTimeFormat(locale,{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(2026,8,1)));
+  assert.equal(runtime.translate('12 دفعة معتمدة • سبتمبر ٢٠٢٦'),t('{count} دفعة معتمدة',language).replace('{count}','12')+' • '+month);
+ }
+ setLocale('ar');
+});
