@@ -822,8 +822,8 @@
     },
     {
       "path": "partner.html",
-      "sha256": "de23f01652e6619f195c483f2e9ec30f6a1f51c1cf29ff2d30c19c024e38e7da",
-      "size": 4539
+      "sha256": "90ef7a7f2a1e9173dff29d6c4c9b70646e921470966cb7ee0493ec67b51d60e7",
+      "size": 5309
     },
     {
       "path": "pre-migration-backup.js",
@@ -1032,8 +1032,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "fa6accacfbe35c2440e0e40522d0ccb67d88682826965fb15416612ee3db729e",
-      "size": 17857
+      "sha256": "6577e9edfb38a0e1beb45085234c7c90a4afe56f7555b613f81ba7c344c91aad",
+      "size": 17943
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1112,13 +1112,13 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "sha256": "728a20b5dcc6b3dc9b3db9e1a1ea552148e629ef60d45b269384fd19af07c108",
-      "size": 1906
+      "sha256": "7171b83d7b38a51c82dc490b9eb45f0bc213300679647c121faec5ecfe57e703",
+      "size": 3184
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
-      "sha256": "4b319d7ec5eedf10fcad8a222c2f86287414511926db1321be55f4cebd1d6036",
-      "size": 8317
+      "sha256": "680fad3ace7e963c0db47a71ab90866fff45897540e6cc3e294857927abae908",
+      "size": 8642
     },
     {
       "path": "src/v267/components/maintenance-attachments.js",
@@ -1242,8 +1242,8 @@
     },
     {
       "path": "src/v267/domain/payroll.js",
-      "sha256": "3234b24bdcab2878d2b01f0895ab71636ec681484b9e14fffbbef57735593c27",
-      "size": 6892
+      "sha256": "59e0d09d526d78cbd96f6f78a5fc3b826f86194d773447e09dc483913d03ba38",
+      "size": 6900
     },
     {
       "path": "src/v267/domain/property-presentation.js",
@@ -1252,8 +1252,8 @@
     },
     {
       "path": "src/v267/domain/salary-slip.js",
-      "sha256": "ff9260237adb48add13f45f268e11725ce3de5692641c01d165546e65f18b842",
-      "size": 14975
+      "sha256": "add4ef1d6a9996bd2833b29ea28b0a41851bda82d0fe1238b8ad66ba27c623e7",
+      "size": 14466
     },
     {
       "path": "src/v267/domain/vacating-review.js",
@@ -1267,18 +1267,18 @@
     },
     {
       "path": "src/v267/pages/commercial-sales.js",
-      "sha256": "311b30d6e23fce6072787442cbc2f8a7815e187ab85dc0259b1bd4419a195005",
-      "size": 13055
+      "sha256": "e46b06af29c09ed3788edd50e90e6f1265210bfa5c54d4221ca0fb2da3678c7a",
+      "size": 13662
     },
     {
       "path": "src/v267/pages/compliance-center.js",
-      "sha256": "6155bda0c53ed0d99af19a308bf6d57a53779783d5d95c9e30fec9ad273a4e3f",
-      "size": 9627
+      "sha256": "6e21fad977d1878a09bf9fb0cf4988a3b5285e787424cfb9badc653a20319590",
+      "size": 10822
     },
     {
       "path": "src/v267/pages/control-center.js",
-      "sha256": "2ac48e71eed3319e72afe0ce1a4cf5b6cb864424a42a9a83ba163232897810eb",
-      "size": 7172
+      "sha256": "bddeb375690abad5fd3a174e0c9cb384196b0c373e04509393b1ff6b5de3d628",
+      "size": 11320
     },
     {
       "path": "src/v267/pages/data-quality.js",
@@ -1287,163 +1287,163 @@
     },
     {
       "path": "src/v267/pages/deposit-ledger.js",
-      "sha256": "5847d0a92b529f4e0658bdf18b9dfe4b8ba102a8c0e8039234ab0f35875d3e0a",
-      "size": 14552
+      "sha256": "03c3809a0e0991fd0aeeee8f0990f8b5a1a375957fc3dafd35a2590ac4cdd95b",
+      "size": 14685
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "dbb09a47b1a983fe9c9035b92e2bcd8a5f43cfa31ee856c412240d9d27211514",
-      "size": 18205
+      "sha256": "d10f44eb1d2a9e1ea3d7367097df3cc6acc6402d6148924d0d183dd257a8fc4b",
+      "size": 18681
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "a7ae7eb1d4beac08571a61789f8f43c992d1d4bb8732cc5b33ff7347f3dde5d4",
-      "size": 24612
+      "sha256": "704c8369a141e55c9083d936a79d714f593e989638861aa4bab1302c567f2a99",
+      "size": 29637
     },
     {
       "path": "src/v267/pages/exit-review.js",
-      "sha256": "0743e872e546b43cd68de902cd3d88b7085c2e438d485e1a2d8381cf0fd899d8",
-      "size": 9111
+      "sha256": "5cf9f136e68040a703ae59a9bfbc84f69cdaf220b91a42a959005489e0416134",
+      "size": 9166
     },
     {
       "path": "src/v267/pages/final-gap-center.js",
-      "sha256": "4f88e346e3ab93b1027a815f0bb6fdf2c53db3dac7318f446676953bbfcf30e4",
-      "size": 11852
+      "sha256": "3d71fbb0eef638c901ece445527ffe0222cc410366e76310db5ebd299d21bd70",
+      "size": 12772
     },
     {
       "path": "src/v267/pages/financial-archive.js",
-      "sha256": "3bc3e66fab6cce36743571771ddfad7ea9cbb00aae6cc94114ac8ea20e4d9443",
-      "size": 15645
+      "sha256": "8ba564810fb6932a2b22b5b15465355117f294856d75018c2ec15175b7802a51",
+      "size": 17853
     },
     {
       "path": "src/v267/pages/financial-integrity.js",
-      "sha256": "676edd093c6987f2298a95a0e230e9a0ccb025ea123961b1dc3cfbfa09d3f1b7",
-      "size": 6906
+      "sha256": "1fe3a3ca42a2b6d8243f6d6ec2a1eca18509f616c60dc6573520d840acbff5ad",
+      "size": 7267
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "sha256": "5cf6f070bd86fdd9543d68500e2ea6a9fab830deba28943e5db21ac710e702a8",
-      "size": 20893
+      "sha256": "fc950fc2d87bdc64b829e9e940e4c5f9d8202987173d8c7ff0473bbe261be728",
+      "size": 27837
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "a8e0cd7318afa03d074505a7585b347a18bb0c438783415fa6abdaac04bbab16",
-      "size": 5288
+      "sha256": "1a5ce53966d43f26652c22f922990438328cb9fe8aaaabb5d5bd7b9957afe265",
+      "size": 5913
     },
     {
       "path": "src/v267/pages/integration-center.js",
-      "sha256": "f6f5447f104602015146a75b3c8aad66121a66128d75c2b2028637018ce0de7f",
-      "size": 6260
+      "sha256": "6144264f6d1cffc8dac16eb90473abacef44a5d6bae497eeb8e4634491a408fc",
+      "size": 7155
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
-      "sha256": "94e25ff6d780159b8d4941677abd41dd28d3980cb975e7b7fe5ac1e5a2347e7e",
-      "size": 2541
+      "sha256": "681f2d626881ae321816985a37c7b0e8386c596d38426253758da11071eba7ab",
+      "size": 4206
     },
     {
       "path": "src/v267/pages/lease-expiry-report.js",
-      "sha256": "29d61100e192458b34fcde446a66c0b02ac296dfbfa936659fc51659906b5655",
-      "size": 5772
+      "sha256": "f358c4b14ced9c62f35511c29e9c1926d8aa2188ca21de60fe0b7c167b661971",
+      "size": 5968
     },
     {
       "path": "src/v267/pages/lease-review.js",
-      "sha256": "d0682312b45273192cd0ee7c3274151a43929bfcc0e8f05af6d94bf2ff16dfef",
-      "size": 6022
+      "sha256": "df5d9af613d70934bb0ca8f6e1941a10195542a12d244beb24cb6c97efe4bc65",
+      "size": 6221
     },
     {
       "path": "src/v267/pages/maintenance-plans.js",
-      "sha256": "ffb697188b5335dc5a266885483a9a9c635706d31d6a0fdac105a8b44563cecf",
-      "size": 15904
+      "sha256": "1c135867e32416d606e2b793ee9ff6b03045374a428e6545360ef6d44326c6e5",
+      "size": 17956
     },
     {
       "path": "src/v267/pages/maintenance-report.js",
-      "sha256": "0f928b8df2cde7db58643cfb9cc21745350737c9e5aca2ae23f7719ff708c417",
-      "size": 7076
+      "sha256": "cc40fba387a0c5627eb9960f7a1edfc9a432a5a6332197a4c01e39f4596f5a96",
+      "size": 7514
     },
     {
       "path": "src/v267/pages/official-document-center.js",
-      "sha256": "7c099f1f30f6acca0df1b043664882b8a032eed246daa0cc12c6fea7dedf3d10",
-      "size": 15897
+      "sha256": "cc650287fa52dde0b8eb36dd673781bbd9f2401855fb067170a90ac3583ebe3d",
+      "size": 16650
     },
     {
       "path": "src/v267/pages/opening-balances.js",
-      "sha256": "141b15213ae6f85d8690da30214bb5563a0a99183e0d77d8516221463dbf90b6",
-      "size": 16968
+      "sha256": "c9ea43884641cc906742984267c65cf739cf9c95289cad875b2201da49252316",
+      "size": 18100
     },
     {
       "path": "src/v267/pages/operations-center.js",
-      "sha256": "9afe4d95c138ea92b3fc6ebb4fd7c08910e8dc87c87ba61e1833d04c1b002573",
-      "size": 23496
+      "sha256": "0ee61fa93d562773f463ac7a2fbcb919d79b98678cde266372bb9eae6ff5452c",
+      "size": 27612
     },
     {
       "path": "src/v267/pages/original-documents.js",
-      "sha256": "7abb21885908bded11cc316962d7ec55d90f80576788bf3c8b847d8b075ad262",
-      "size": 4669
+      "sha256": "a59dc063defd553202fc6bb00cd8dfca9521d02a53abba46acaf47db874f369c",
+      "size": 5111
     },
     {
       "path": "src/v267/pages/partner-access.js",
-      "sha256": "1868332ef532e9c3b418a8895827e4a4504ff85fa77b1a1e6aacf551f3d351b9",
-      "size": 3559
+      "sha256": "217a62b2a892784eff736756d672a12afea360682b9e17e303e7047802ecd070",
+      "size": 3551
     },
     {
       "path": "src/v267/pages/partner-distributions.js",
-      "sha256": "ad26103b681052df8463a654d6f6bfd99daa349c7d0422882935c2369caf8091",
-      "size": 16265
+      "sha256": "0e5fc95f0b5a3457721c0869b1d6d39a3c37effaacf6d65769c475b552816f30",
+      "size": 17410
     },
     {
       "path": "src/v267/pages/property-notices.js",
-      "sha256": "8425069349701123c59e1c6e5fa99910c1b9a52b29c9f4093a5d933ed1859ecf",
-      "size": 9975
+      "sha256": "ed6565ba3e70138259d6a9cf0cdff82b57db282e78040ecf0fbf0af7b58bc41d",
+      "size": 11067
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "f46cc941c4e05819594d5ac08df4532ccd3d6328240f05d976cb803507fc58ed",
-      "size": 7176
+      "sha256": "d033800a31898be2ed6a36e7f92316036d9d16ee14d31f94b1b5e820b213aac9",
+      "size": 17079
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "f94eb94671f65d90d43e25ad0e528c35794d2702bb3a10415deedf317ab46795",
-      "size": 26950
+      "sha256": "5974bdcdaa93bdf7ba41f9a69670fb71021baad4de71f798e64329d22f1f7e76",
+      "size": 29085
     },
     {
       "path": "src/v267/pages/security-center.js",
-      "sha256": "43301303cf57b2c6e5585c9ab238ddc390f58aabeec654cf1aa037e77b9a5ad1",
-      "size": 5896
+      "sha256": "92a70bc8c3fe6e9edd73c5a7f15726daf7fb5f92756e24878c5330137447dd04",
+      "size": 6429
     },
     {
       "path": "src/v267/pages/staff-access.js",
-      "sha256": "4ba3cd1224e59b433488dde81b45ffe76d9fbdb55aad57a92902eac2508a043f",
-      "size": 13190
+      "sha256": "81c13ac927a56fff26d5e15080a537b33a77ac47ba7ba85062c1c7cd3e9a685f",
+      "size": 15672
     },
     {
       "path": "src/v267/pages/staff-circulars.js",
-      "sha256": "b574fe00adecba51e6344fa7dc7c530262fd76b9da18b5e4314ffd69c57c9797",
-      "size": 11357
+      "sha256": "3e7124fe44ecea4ac7c66e877f08ffa009105f57e1def86bd38f87484af56464",
+      "size": 14939
     },
     {
       "path": "src/v267/pages/unit-readiness.js",
-      "sha256": "06f8a9f95c21a27c47f45ee62503413958b7f37a7b928c058b063f2ae5d23d54",
-      "size": 6831
+      "sha256": "fa14eef7d40cb80c611a81bda401e8e659728e2ff856b9f539a8cb1372a05aab",
+      "size": 6974
     },
     {
       "path": "src/v267/pages/user-guide.js",
-      "sha256": "5160dba6b3e73590b6abe5ec008e89aeda0115bdd89bcefbea7618dc814aa99b",
-      "size": 9171
+      "sha256": "2fcc16be916b430d1ab1e3da45cd7c799cf3342b37301e5a6d95c95c32c30cca",
+      "size": 9395
     },
     {
       "path": "src/v267/pages/utility-meters.js",
-      "sha256": "e82817ac93ba21d663fe6ff2e1f5c26c47240a5bcdf07ac0e954c43748a8b212",
-      "size": 11725
+      "sha256": "9dcedeb6dba14b2ffcddc0ec53d9e1f643c03b6e3f3d6c07e117548165cfec80",
+      "size": 14421
     },
     {
       "path": "src/v267/pages/vacating-review.js",
-      "sha256": "c3734533515157f87905afca19a6230a5654e6e738a49939c69259d057a1bb10",
-      "size": 7922
+      "sha256": "afd01e7dda9bbebdcc8f6c72b805fd5447b4d2da76db1b4f31c338b9ad495ffa",
+      "size": 8640
     },
     {
       "path": "src/v267/pages/vacating-settlement.js",
-      "sha256": "5d048a244606bfe0813d25b3b67a802e1b1fd8bb54c7383d5d91fa9755999a8e",
-      "size": 13908
+      "sha256": "262cf166433523b518d5b5d6d1d00ebd884d0b4c2ce2b92365b4805871d94457",
+      "size": 15211
     },
     {
       "path": "src/v267/reports/financial-archive-xlsx.js",
@@ -2847,8 +2847,8 @@
     },
     {
       "path": "tenant.html",
-      "sha256": "754e2593ae2f99770422b21002a818a76beb560cb55f3243e364013c7ea3de02",
-      "size": 4601
+      "sha256": "48fe8acc284745a57b6c044b3190815294da9074db0b37b0de66120f5d63c7bd",
+      "size": 6308
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
@@ -3772,13 +3772,13 @@
     },
     {
       "path": "v267-login-locale.js",
-      "sha256": "879d71f20f220ae8d1326b92d8d08d99ede9e9af14221674ce65bf895e9d55ca",
-      "size": 26747
+      "sha256": "38c43e921113bc9986aee78dc620b93da64982c13f4f219da02550893424d6b5",
+      "size": 26784
     },
     {
       "path": "v267-partner-portal.js",
-      "sha256": "c6e103cfcf528c06536cd5dd321cef22fe10b27b9536f59daa8af1c2903c395b",
-      "size": 7874
+      "sha256": "f1b531632d8c5491f46ed10d1458de8a13684cd21a8d6cef1f5915ae44468077",
+      "size": 8072
     },
     {
       "path": "v267-partners.js",
@@ -3817,8 +3817,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "00c9336e829f34e865bce80cea42be0dbbf58ff5401d5e6c94ebd47c9075a480",
-      "size": 22201
+      "sha256": "ea721ea67d9c86e479c984f10c1f657a68ab2d627124f3feb717c7ddd56ae707",
+      "size": 22475
     },
     {
       "path": "v267-unified.css",
