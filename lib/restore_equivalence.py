@@ -6,6 +6,7 @@ byte manifest. It is verification tooling only: it does not create a backup or a
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 import json
@@ -38,6 +39,20 @@ def _validate_project_ref(value: object, field: str) -> str:
     return value
 
 
+def _parse_manifest_time(value: object, field: str) -> datetime:
+    if not isinstance(value, str) or not value.strip():
+        raise RestoreEquivalenceError(f"{field} must be an ISO-8601 UTC timestamp")
+    raw = value.strip()
+    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError as exc:
+        raise RestoreEquivalenceError(f"invalid {field}") from exc
+    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
+        raise RestoreEquivalenceError(f"{field} must be UTC")
+    return parsed
+
+
 def validate_data_safety_manifest(payload: object, label: str) -> dict:
     if not isinstance(payload, dict) or payload.get("format") != DATA_SAFETY_FORMAT:
         raise RestoreEquivalenceError(f"{label} must use {DATA_SAFETY_FORMAT}")
@@ -51,11 +66,18 @@ def validate_data_safety_manifest(payload: object, label: str) -> dict:
     return normalized
 
 
-def read_data_safety_manifest(path: str | Path, label: str) -> dict:
+def _read_data_safety_payload(path: str | Path, label: str) -> dict:
     try:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise RestoreEquivalenceError(f"cannot read {label}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise RestoreEquivalenceError(f"{label} must be a JSON object")
+    return payload
+
+
+def read_data_safety_manifest(path: str | Path, label: str) -> dict:
+    payload = _read_data_safety_payload(path, label)
     return validate_data_safety_manifest(payload, label)
 
 
@@ -77,8 +99,20 @@ def verify_restore_equivalence(
     if source_ref == restore_ref:
         raise RestoreEquivalenceError("restore_project_ref must differ from source_project_ref")
 
-    source = read_data_safety_manifest(source_data_safety_path, "source data-safety manifest")
-    restored = read_data_safety_manifest(restored_data_safety_path, "restored data-safety manifest")
+    source_manifest_path = Path(source_data_safety_path).resolve()
+    restored_manifest_path = Path(restored_data_safety_path).resolve()
+    if source_manifest_path == restored_manifest_path:
+        raise RestoreEquivalenceError("restored data-safety manifest must be independently generated")
+
+    source_payload = _read_data_safety_payload(source_manifest_path, "source data-safety manifest")
+    restored_payload = _read_data_safety_payload(restored_manifest_path, "restored data-safety manifest")
+    source_generated_at = _parse_manifest_time(source_payload.get("generated_at"), "source generated_at")
+    restored_generated_at = _parse_manifest_time(restored_payload.get("generated_at"), "restored generated_at")
+    if restored_generated_at <= source_generated_at:
+        raise RestoreEquivalenceError("restored data-safety manifest must be generated after the source manifest")
+
+    source = validate_data_safety_manifest(source_payload, "source data-safety manifest")
+    restored = validate_data_safety_manifest(restored_payload, "restored data-safety manifest")
 
     section_hashes: dict[str, str] = {}
     for name in _SECTIONS:
@@ -100,6 +134,8 @@ def verify_restore_equivalence(
         "candidate_sha": candidate_sha,
         "source_project_ref": source_ref,
         "restore_project_ref": restore_ref,
+        "source_generated_at": source_payload["generated_at"],
+        "restored_generated_at": restored_payload["generated_at"],
         "section_sha256": section_hashes,
         "storage_object_count": storage_report["object_count"],
         "storage_total_bytes": storage_report["total_bytes"],
