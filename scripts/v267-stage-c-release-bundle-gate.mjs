@@ -40,8 +40,12 @@ function normalizedEvidenceList(value){
   const refs=[];
   const seen=new Set();
   for(const item of value){
-    const ref=text(item);
-    if(!ref||seen.has(ref))return null;
+    if(typeof item!=='string'||!item||item.trim()!==item)return null;
+    const ref=item;
+    if(!ref.startsWith('evidence/')||ref.startsWith('/')||ref.includes('://')||ref.includes('\\')||ref.includes('?')||ref.includes('#'))return null;
+    const segments=ref.split('/');
+    if(segments.some((segment)=>!segment||segment==='.'||segment==='..'))return null;
+    if(seen.has(ref))return null;
     seen.add(ref);
     refs.push(ref);
   }
@@ -214,7 +218,7 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
     for(const flow of REQUIRED_FLOWS){
       const refs=normalizedEvidenceList(flowEvidence[flow]);
       if(!refs){
-        errors.push(`Stage C ${deviceClass} ${flow} evidence must contain unique non-empty references`);
+        errors.push(`Stage C ${deviceClass} ${flow} evidence must contain unique canonical repository evidence paths`);
         continue;
       }
       for(const ref of refs){
@@ -224,7 +228,7 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
       }
     }
     const aggregate=normalizedEvidenceList(row.evidence);
-    if(!aggregate)errors.push(`Stage C ${deviceClass} evidence references must be unique and non-empty`);
+    if(!aggregate)errors.push(`Stage C ${deviceClass} evidence references must be unique canonical repository evidence paths`);
     else if(JSON.stringify(aggregate)!==JSON.stringify(flattened.sort()))errors.push(`Stage C ${deviceClass} evidence list must exactly match the per-flow evidence references`);
   }
   const deviceEvidenceDigest=stageCEvidenceSha256(devices);
