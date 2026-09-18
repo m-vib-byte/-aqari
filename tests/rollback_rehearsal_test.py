@@ -150,6 +150,25 @@ class RollbackRehearsalTest(unittest.TestCase):
             with self.assertRaisesRegex(RollbackRehearsalError, "must differ"):
                 self.verify(checkpoint, during, after, rollback_application_sha=self.CANDIDATE)
 
+    def test_timestamps_require_canonical_utc_seconds_and_exact_boundary(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            checkpoint, during, after, before, new = self.make_evidence(root)
+            self.write_manifest(after, "2026-09-17T06:00:00Z", before + new)
+            report = self.verify(checkpoint, during, after)
+            self.assertEqual(report["rehearsal_window_seconds"], 3600)
+            self.assertIsInstance(report["rehearsal_window_seconds"], int)
+
+            for invalid_timestamp in (
+                "2026-09-17T06:00:00.500Z",
+                "2026-09-17T06:00:00+00:00",
+                "2026-09-17 06:00:00Z",
+                "2026-02-30T06:00:00Z",
+            ):
+                with self.subTest(timestamp=invalid_timestamp):
+                    with self.assertRaises(RollbackRehearsalError):
+                        self.write_manifest(after, invalid_timestamp, before + new)
+
 
 if __name__ == "__main__":
     unittest.main()
