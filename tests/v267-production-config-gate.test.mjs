@@ -41,7 +41,7 @@ function validConfig(){
     authStorageKey:`sb-${PRODUCTION_PROJECT}-auth-token`,
     publishableKeySha256:sha256(TARGET.publishableKey),
     targetConfigSha256:productionTargetFingerprint(TARGET),
-    verifiedAt:'2026-09-17T13:00:00+03:00',
+    verifiedAt:'2026-09-17T10:00:00Z',
     evidence:['evidence/production-config.json'],
   };
   config.runtimeConfigSha256=productionRuntimeConfigFingerprint(config);
@@ -130,9 +130,28 @@ test('rejects missing verification evidence and raw secret-like material at any 
     (config)=>{config.supabaseTopology={...config.supabaseTopology,secret:'nested-secret'}},
     (config)=>{config.audit={checks:[{password:'nested-password'}]}},
     (config)=>{config.verification={detail:{service_role_key:'nested-service-role'}}},
+    (config)=>{config.audit={checks:[{ClientSecret:'nested-client-secret'}]}},
+    (config)=>{config.verification={detail:{access_token:'nested-access-token'}}},
+    (config)=>{config.verification={detail:{API_KEY:'nested-api-key'}}},
+    (config)=>{config.verification={detail:{Authorization:'Bearer hidden'}}},
   ]){
     const config=validConfig();mutate(config);
     assert.equal(validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA).ok,false);
+  }
+});
+
+test('requires verifiedAt to be a real canonical UTC timestamp at whole-second precision',()=>{
+  for(const verifiedAt of [
+    '2026-09-17T13:00:00+03:00',
+    '2026-09-17T10:00:00.000Z',
+    '2026-09-17 10:00:00Z',
+    '2026-02-30T10:00:00Z',
+  ]){
+    const config=validConfig();
+    config.verifiedAt=verifiedAt;
+    const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA);
+    assert.equal(result.ok,false,verifiedAt);
+    assert.match(result.errors.join('\n'),/canonical UTC second precision/);
   }
 });
 
