@@ -1,11 +1,31 @@
-export const REQUIRED_CI_WORKFLOWS = Object.freeze([
-  'V267 owner production approval policy',
-  'Authenticated UI startup order',
-  'App first paint',
-  'V267 security integration accounting',
-  'Runtime contracts',
-  'V267 owner governance supersession',
-]);
+export const REQUIRED_CI_WORKFLOW_DEFINITIONS = Object.freeze({
+  'V267 owner production approval policy': Object.freeze({
+    workflowId: 356803447,
+    workflowPath: '.github/workflows/v267-owner-production-approval.yml',
+  }),
+  'Authenticated UI startup order': Object.freeze({
+    workflowId: 351287920,
+    workflowPath: '.github/workflows/startup-ui-order.yml',
+  }),
+  'App first paint': Object.freeze({
+    workflowId: 351189755,
+    workflowPath: '.github/workflows/app-first-paint.yml',
+  }),
+  'V267 security integration accounting': Object.freeze({
+    workflowId: 357268398,
+    workflowPath: '.github/workflows/v267-security-integration-accounting.yml',
+  }),
+  'Runtime contracts': Object.freeze({
+    workflowId: 348771756,
+    workflowPath: '.github/workflows/runtime-contracts.yml',
+  }),
+  'V267 owner governance supersession': Object.freeze({
+    workflowId: 357175508,
+    workflowPath: '.github/workflows/v267-owner-governance.yml',
+  }),
+});
+
+export const REQUIRED_CI_WORKFLOWS = Object.freeze(Object.keys(REQUIRED_CI_WORKFLOW_DEFINITIONS));
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
 const REPOSITORY_WEB_URL = 'https://github.com/m-vib-byte/-aqari';
@@ -92,6 +112,17 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
     if (seen.has(name)) errors.push(`CI workflow is duplicated: ${name}`);
     seen.add(name);
 
+    const definition = REQUIRED_CI_WORKFLOW_DEFINITIONS[name];
+    if (row.workflowId !== definition.workflowId) {
+      errors.push(`CI workflow ${name} workflowId must be exactly ${definition.workflowId}`);
+    }
+    if (text(row.workflowPath) !== definition.workflowPath) {
+      errors.push(`CI workflow ${name} path must be exactly ${definition.workflowPath}`);
+    }
+    if (row.event !== 'pull_request') {
+      errors.push(`CI workflow ${name} event must be exactly pull_request`);
+    }
+
     requireSameSha(errors, row.commitSha, candidateSha, `CI workflow ${name}`);
     if (!positiveInt(row.runId)) {
       errors.push(`CI workflow ${name} runId must be a positive integer`);
@@ -105,8 +136,9 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
       errors.push(`CI workflow ${name} evidence is required`);
     } else if (positiveInt(row.runId)) {
       const expectedRunUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}`;
-      if (!canonicalEvidenceSet(row.evidence, [expectedRunUrl])) {
-        errors.push(`CI workflow ${name} evidence must contain only the exact GitHub Actions run URL for runId ${row.runId} plus canonical repository evidence paths`);
+      const expectedWorkflowApiUrl = `${REPOSITORY_API_URL}/actions/workflows/${definition.workflowId}`;
+      if (!canonicalEvidenceSet(row.evidence, [expectedRunUrl, expectedWorkflowApiUrl])) {
+        errors.push(`CI workflow ${name} evidence must contain the exact GitHub Actions run URL for runId ${row.runId}, the required workflow identity ${definition.workflowId}, plus canonical repository evidence paths`);
       }
     }
 
