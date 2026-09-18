@@ -18,7 +18,7 @@ class RestoreEquivalenceTest(unittest.TestCase):
             "business": {"table_count": 1, "row_count": 1, "sha256": "a" * 64, "tables": []},
             "schema_safe": {"columns": {"rows": 2, "sha256": "b" * 64}},
             "auth_safe": {"users": {"rows": 1, "sha256": "c" * 64}},
-            "storage_safe": {"objects": 1, "buckets": 1, "metadata_sha256": "d" * 64, "bytes_reported": 8},
+            "storage_safe": {"objects": 1, "buckets": 1, "metadata_sha256": "d" * 64, "bytes_reported": 9},
             "warning": "volatile explanatory text may differ",
         }
 
@@ -58,6 +58,7 @@ class RestoreEquivalenceTest(unittest.TestCase):
             self.assertEqual(report["source_generated_at"], "2026-09-17T04:00:00Z")
             self.assertEqual(report["restored_generated_at"], "2026-09-17T04:10:00Z")
             self.assertEqual(report["storage_object_count"], 1)
+            self.assertEqual(report["storage_total_bytes"], 9)
             self.assertEqual(set(report["section_sha256"]), {"business", "schema_safe", "auth_safe", "storage_safe"})
 
     def test_restore_must_use_a_different_project_ref(self):
@@ -109,6 +110,21 @@ class RestoreEquivalenceTest(unittest.TestCase):
                 payload[section]["restore_tamper"] = True
                 restored.write_text(json.dumps(payload), encoding="utf-8")
                 with self.assertRaisesRegex(RestoreEquivalenceError, rf"restored {section} does not match"):
+                    self.verify(source, restored, storage, tree)
+
+    def test_source_storage_byte_manifest_must_match_data_safety_metadata(self):
+        for field, value, expected in (
+            ("objects", 2, "object_count"),
+            ("bytes_reported", 8, "total_bytes"),
+        ):
+            with self.subTest(field=field), tempfile.TemporaryDirectory() as temp:
+                root = Path(temp)
+                source, restored, storage, tree = self.make_evidence(root)
+                for path in (source, restored):
+                    payload = json.loads(path.read_text(encoding="utf-8"))
+                    payload["storage_safe"][field] = value
+                    path.write_text(json.dumps(payload), encoding="utf-8")
+                with self.assertRaisesRegex(RestoreEquivalenceError, expected):
                     self.verify(source, restored, storage, tree)
 
     def test_storage_byte_tamper_is_rejected_even_when_metadata_manifest_matches(self):
