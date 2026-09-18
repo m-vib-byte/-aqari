@@ -101,8 +101,8 @@ def _non_negative_int(value: object, field: str) -> int:
 def _evidence_refs(value: object, field: str) -> list[str]:
     if not isinstance(value, list) or not value:
         raise StageCEvidenceError(f"{field} must contain at least one evidence reference")
-    refs = []
-    seen = set()
+    refs: list[str] = []
+    seen: set[str] = set()
     for item in value:
         if not isinstance(item, str) or not item.strip():
             raise StageCEvidenceError(f"{field} contains an invalid evidence reference")
@@ -149,7 +149,10 @@ def _validate_restore(report: object, candidate_sha: str, backup: dict) -> dict:
     required_sections = {"business", "schema_safe", "auth_safe", "storage_safe"}
     if not isinstance(section_hashes, dict) or set(section_hashes) != required_sections:
         raise StageCEvidenceError("restore section hashes are incomplete")
-    normalized_sections = {name: _hex64(section_hashes[name], f"restore {name} hash") for name in sorted(required_sections)}
+    normalized_sections = {
+        name: _hex64(section_hashes[name], f"restore {name} hash")
+        for name in sorted(required_sections)
+    }
     count = _non_negative_int(report.get("storage_object_count"), "restored Storage object_count")
     total = _non_negative_int(report.get("storage_total_bytes"), "restored Storage total_bytes")
     manifest_digest = _hex64(report.get("storage_manifest_sha256"), "restored Storage manifest_sha256")
@@ -193,13 +196,17 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
     if after != checkpoint + new:
         raise StageCEvidenceError("rollback rehearsal did not preserve checkpoint plus new transactions")
     counts = report.get("counts_by_kind")
-    if not isinstance(counts, dict) or any(not isinstance(k, str) or not k or not isinstance(v, int) or isinstance(v, bool) or v < 0 for k, v in counts.items()):
+    if not isinstance(counts, dict) or any(
+        not isinstance(k, str) or not k or not isinstance(v, int) or isinstance(v, bool) or v < 0
+        for k, v in counts.items()
+    ):
         raise StageCEvidenceError("rollback counts_by_kind is invalid")
     if sum(counts.values()) != after:
         raise StageCEvidenceError("rollback counts_by_kind does not match after_record_count")
-    digests = {}
-    for field in ("checkpoint_records_sha256", "during_records_sha256", "after_records_sha256"):
-        digests[field] = _hex64(report.get(field), f"rollback {field}")
+    digests = {
+        field: _hex64(report.get(field), f"rollback {field}")
+        for field in ("checkpoint_records_sha256", "during_records_sha256", "after_records_sha256")
+    }
     return {
         "format": ROLLBACK_FORMAT,
         "verified": True,
@@ -208,7 +215,9 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
         "rehearsal_id": rehearsal_id,
         "database_project_ref": source,
         "database_rollback_performed": False,
-        "rehearsal_window_seconds": _non_negative_int(report.get("rehearsal_window_seconds"), "rollback rehearsal_window_seconds"),
+        "rehearsal_window_seconds": _non_negative_int(
+            report.get("rehearsal_window_seconds"), "rollback rehearsal_window_seconds"
+        ),
         "checkpoint_record_count": checkpoint,
         "new_record_count": new,
         "after_record_count": after,
@@ -220,9 +229,9 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
 def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
     if not isinstance(payload, dict) or set(payload) != set(DEVICE_CLASSES):
         raise StageCEvidenceError("device evidence must contain exactly desktop, iphone and ipad")
-    normalized = {}
-    seen_instances = set()
-    seen_evidence_refs = set()
+    normalized: dict[str, dict] = {}
+    seen_instances: set[str] = set()
+    seen_evidence_refs: set[str] = set()
     preview_deployment_id = None
     preview_url = None
     for device_class in DEVICE_CLASSES:
@@ -237,7 +246,9 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
             raise StageCEvidenceError(f"{device_class} evidence must come from a physical device")
         if _sha(row.get("candidate_sha"), f"{device_class} candidate_sha") != candidate_sha:
             raise StageCEvidenceError(f"{device_class} evidence is not tied to the exact candidate SHA")
-        row_deployment_id = _deployment_id(row.get("preview_deployment_id"), f"{device_class} preview_deployment_id")
+        row_deployment_id = _deployment_id(
+            row.get("preview_deployment_id"), f"{device_class} preview_deployment_id"
+        )
         row_preview_url = _preview_url(row.get("preview_url"), f"{device_class} preview_url")
         if preview_deployment_id is None:
             preview_deployment_id = row_deployment_id
@@ -248,13 +259,16 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
         browser = row.get("browser")
         if not isinstance(instance, str) or not instance.strip():
             raise StageCEvidenceError(f"{device_class} must identify the physical device instance")
-        if instance in seen_instances:
+        normalized_instance = instance.strip()
+        if normalized_instance in seen_instances:
             raise StageCEvidenceError("physical device instances must be distinct")
-        seen_instances.add(instance)
+        seen_instances.add(normalized_instance)
         if not isinstance(browser, str) or not browser.strip():
             raise StageCEvidenceError(f"{device_class} browser is required")
         flows = row.get("flows")
-        if not isinstance(flows, dict) or set(flows) != set(REQUIRED_FLOWS) or any(flows[name] is not True for name in REQUIRED_FLOWS):
+        if not isinstance(flows, dict) or set(flows) != set(REQUIRED_FLOWS) or any(
+            flows[name] is not True for name in REQUIRED_FLOWS
+        ):
             raise StageCEvidenceError(f"{device_class} must pass every required practical flow")
         flow_evidence = row.get("flow_evidence")
         if not isinstance(flow_evidence, dict) or set(flow_evidence) != set(REQUIRED_FLOWS):
@@ -282,7 +296,7 @@ def _validate_devices(payload: object, candidate_sha: str) -> tuple[dict, dict]:
             "candidate_sha": candidate_sha,
             "preview_deployment_id": row_deployment_id,
             "preview_url": row_preview_url,
-            "device_instance": instance.strip(),
+            "device_instance": normalized_instance,
             "browser": browser.strip(),
             "flows": {name: True for name in REQUIRED_FLOWS},
             "flow_evidence": normalized_flow_evidence,
@@ -335,12 +349,10 @@ def create_stage_c_evidence_bundle(
             "total_bytes": backup_storage["total_bytes"],
             "manifest_sha256": backup_storage["manifest_sha256"],
         },
-        "rollback": {
-            "rehearsal_id": rollback["rehearsal_id"],
-            "checkpoint_record_count": rollback["checkpoint_record_count"],
-            "new_record_count": rollback["new_record_count"],
-            "after_record_count": rollback["after_record_count"],
-        },
+        # Keep the full normalized rollback report in the canonical Stage-C bundle.
+        # The JavaScript release gate validates these fields directly, so emitting a
+        # compact subset would make a bundle created by this verifier fail the next gate.
+        "rollback": rollback,
         "devices": device_rows,
     }
     normalized["bundle_sha256"] = _digest(normalized)
