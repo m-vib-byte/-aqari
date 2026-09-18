@@ -58,6 +58,16 @@
         const error = accessError(response.status === 401 || response.status === 403
           ? 'AQARI workspace access could not be verified' : 'AQARI startup connection failed');
         error.status = response.status;
+        if(path === '/auth/v1/user' && typeof response.json === 'function'){
+          // Preserve only recognized Auth codes. Provider text may contain
+          // private details; neither copy nor log the response body.
+          try{
+            const failure = await response.json();
+            const code = failure?.code;
+            if(['session_not_found','session_expired','refresh_token_not_found',
+              'refresh_token_already_used','bad_jwt'].includes(code)) error.code = code;
+          }catch(_){}
+        }
         if(confirmationRequest){
           error.message = response.status === 401 ? 'انتهت جلسة الدخول. سجل الدخول من جديد.' :
             response.status === 403 ? 'تعذر تأكيد صلاحية الوصول لهذا الحساب.' :

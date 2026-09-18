@@ -155,7 +155,7 @@
     if(/user already registered/i.test(raw)) return 'الحساب موجود؛ استخدم زر الدخول.';
     // A failed user/session check is not evidence of an inactive membership.
     // Classify transport and authentication failures before workspace wording.
-    if(Number(error?.status || error?.statusCode || 0) === 401 || /session_not_found|refresh_token_not_found|refresh_token_already_used|bad_jwt/i.test(marker)) return 'انتهت جلسة الدخول. أعد تسجيل الدخول.';
+    if(Number(error?.status || error?.statusCode || 0) === 401 || /session_not_found|session_expired|refresh_token_not_found|refresh_token_already_used|bad_jwt/i.test(marker)) return 'انتهت جلسة الدخول. أعد تسجيل الدخول.';
     if(Number(error?.status || error?.statusCode || 0) >= 500 || /unexpected_failure|internal server error|unhandled server error|context canceled|couldn't start a new transaction|database error/i.test(marker)) return 'تعثر الاتصال الآمن مؤقتاً. أعد المحاولة بعد لحظات.';
     if(/failed to fetch|load failed|failed to load supabase|supabase js unavailable|network/i.test(raw)) return 'تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.';
     if(Number(error?.status || error?.statusCode || 0) === 403 || /not authorized|membership|workspace/i.test(raw)) return 'تعذر تأكيد صلاحية الوصول لهذا الحساب.';

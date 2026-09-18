@@ -10,7 +10,7 @@ const context={};vm.runInNewContext(source.slice(start,end),context);
 const errorText=context.errorText;
 
 test('expired authentication is not reported as an inactive workspace membership',()=>{
- for(const error of [{status:401,message:'AQARI workspace access could not be verified'},{code:'session_not_found',message:'Session missing'},{code:'refresh_token_not_found',message:'Token missing'}])
+ for(const error of [{status:401,message:'AQARI workspace access could not be verified'},{status:403,code:'session_not_found',message:'Session missing'},{status:403,code:'session_expired',message:'AQARI workspace access could not be verified'},{code:'refresh_token_not_found',message:'Token missing'}])
   assert.equal(errorText(error),'انتهت جلسة الدخول. أعد تسجيل الدخول.');
 });
 test('network and server errors take precedence over workspace wording',()=>{
