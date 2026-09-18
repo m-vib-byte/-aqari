@@ -14,13 +14,15 @@ from pathlib import Path
 import json
 import re
 
-FORMAT = "AQARI-V267-ROLLBACK-CONTINUITY-1"
+FORMAT = "AQARI-V267-ROLLBACK-CONTINUITY-2"
 REPORT_FORMAT = "AQARI-V267-ROLLBACK-REHEARSAL-1"
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
 _KIND_RE = re.compile(r"^[a-z][a-z0-9_.-]{1,63}$")
 _UTC_SECOND_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+_REHEARSAL_ID_RE = re.compile(r"^[0-9a-f]{32}$")
+_PHASES = ("checkpoint", "during", "after")
 MAX_REHEARSAL_WINDOW_SECONDS = 3600
 
 
@@ -46,6 +48,18 @@ def _require_sha(value: object, field: str) -> str:
     return value
 
 
+def _require_rehearsal_id(value: object, field: str) -> str:
+    if not isinstance(value, str) or not _REHEARSAL_ID_RE.fullmatch(value):
+        raise RollbackRehearsalError(f"{field} must be a lowercase 32-character hexadecimal rehearsal id")
+    return value
+
+
+def _require_phase(value: object, field: str) -> str:
+    if not isinstance(value, str) or value not in _PHASES:
+        raise RollbackRehearsalError(f"{field} must be one of: {', '.join(_PHASES)}")
+    return value
+
+
 def _canonical_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -60,6 +74,8 @@ def validate_continuity_manifest(payload: object, label: str) -> dict:
     project_ref = payload.get("project_ref")
     if not isinstance(project_ref, str) or not _PROJECT_REF_RE.fullmatch(project_ref):
         raise RollbackRehearsalError(f"{label} has invalid project_ref")
+    rehearsal_id = _require_rehearsal_id(payload.get("rehearsal_id"), f"{label}.rehearsal_id")
+    phase = _require_phase(payload.get("phase"), f"{label}.phase")
     application_sha = _require_sha(payload.get("application_sha"), f"{label}.application_sha")
     captured_at = payload.get("captured_at")
     _parse_utc(captured_at, f"{label}.captured_at")
@@ -103,6 +119,8 @@ def validate_continuity_manifest(payload: object, label: str) -> dict:
     return {
         "format": FORMAT,
         "project_ref": project_ref,
+        "rehearsal_id": rehearsal_id,
+        "phase": phase,
         "application_sha": application_sha,
         "captured_at": captured_at,
         "record_count": len(normalized_records),
@@ -114,6 +132,8 @@ def validate_continuity_manifest(payload: object, label: str) -> dict:
 def create_continuity_manifest(
     *,
     project_ref: str,
+    rehearsal_id: str,
+    phase: str,
     application_sha: str,
     captured_at: str,
     records: list[dict],
@@ -121,6 +141,8 @@ def create_continuity_manifest(
     payload = {
         "format": FORMAT,
         "project_ref": project_ref,
+        "rehearsal_id": rehearsal_id,
+        "phase": phase,
         "application_sha": application_sha,
         "captured_at": captured_at,
         "record_count": len(records),
@@ -170,9 +192,29 @@ def verify_rollback_rehearsal(
     if database_rollback_performed is not False:
         raise RollbackRehearsalError("database rollback must not be performed during application rollback rehearsal")
 
+    resolved_paths = {
+        Path(checkpoint_manifest_path).resolve(),
+        Path(during_manifest_path).resolve(),
+        Path(after_manifest_path).resolve(),
+    }
+    if len(resolved_paths) != 3:
+        raise RollbackRehearsalError("checkpoint, during-window and after-rehearsal manifests must be distinct files")
+
     checkpoint = read_continuity_manifest(checkpoint_manifest_path, "checkpoint manifest")
     during = read_continuity_manifest(during_manifest_path, "during-window manifest")
     after = read_continuity_manifest(after_manifest_path, "after-rehearsal manifest")
+
+    if checkpoint["phase"] != "checkpoint":
+        raise RollbackRehearsalError("checkpoint manifest phase must be checkpoint")
+    if during["phase"] != "during":
+        raise RollbackRehearsalError("during-window manifest phase must be during")
+    if after["phase"] != "after":
+        raise RollbackRehearsalError("after-rehearsal manifest phase must be after")
+
+    rehearsal_ids = {checkpoint["rehearsal_id"], during["rehearsal_id"], after["rehearsal_id"]}
+    if len(rehearsal_ids) != 1:
+        raise RollbackRehearsalError("all rollback continuity manifests must belong to the same rehearsal_id")
+    rehearsal_id = checkpoint["rehearsal_id"]
 
     if checkpoint["application_sha"] != candidate_sha:
         raise RollbackRehearsalError("checkpoint manifest application_sha must match candidate_sha")
@@ -234,6 +276,7 @@ def verify_rollback_rehearsal(
         "verified": True,
         "candidate_sha": candidate_sha,
         "rollback_application_sha": rollback_application_sha,
+        "rehearsal_id": rehearsal_id,
         "database_project_ref": checkpoint["project_ref"],
         "database_rollback_performed": False,
         "rehearsal_window_seconds": window,
