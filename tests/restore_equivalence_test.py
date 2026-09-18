@@ -55,6 +55,8 @@ class RestoreEquivalenceTest(unittest.TestCase):
             report = self.verify(source, restored, storage, tree)
             self.assertTrue(report["verified"])
             self.assertEqual(report["candidate_sha"], self.SHA)
+            self.assertEqual(report["source_generated_at"], "2026-09-17T04:00:00Z")
+            self.assertEqual(report["restored_generated_at"], "2026-09-17T04:10:00Z")
             self.assertEqual(report["storage_object_count"], 1)
             self.assertEqual(set(report["section_sha256"]), {"business", "schema_safe", "auth_safe", "storage_safe"})
 
@@ -63,6 +65,39 @@ class RestoreEquivalenceTest(unittest.TestCase):
             source, restored, storage, tree = self.make_evidence(Path(temp))
             with self.assertRaisesRegex(RestoreEquivalenceError, "must differ"):
                 self.verify(source, restored, storage, tree, restore_project_ref="aqari-v267-staging")
+
+    def test_restore_manifest_must_be_independently_generated_after_source(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source, restored, storage, tree = self.make_evidence(root)
+            with self.assertRaisesRegex(RestoreEquivalenceError, "independently generated"):
+                self.verify(source, source, storage, tree)
+
+            payload = json.loads(restored.read_text(encoding="utf-8"))
+            payload["generated_at"] = "2026-09-17T04:00:00Z"
+            restored.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RestoreEquivalenceError, "generated after"):
+                self.verify(source, restored, storage, tree)
+
+            payload["generated_at"] = "2026-09-17T03:59:59Z"
+            restored.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RestoreEquivalenceError, "generated after"):
+                self.verify(source, restored, storage, tree)
+
+    def test_restore_manifest_timestamps_must_be_valid_utc(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source, restored, storage, tree = self.make_evidence(root)
+            payload = json.loads(restored.read_text(encoding="utf-8"))
+            payload["generated_at"] = "2026-09-17T07:10:00+03:00"
+            restored.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RestoreEquivalenceError, "must be UTC"):
+                self.verify(source, restored, storage, tree)
+
+            payload["generated_at"] = "not-a-time"
+            restored.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RestoreEquivalenceError, "invalid restored generated_at"):
+                self.verify(source, restored, storage, tree)
 
     def test_each_canonical_section_drift_is_rejected(self):
         for section in ("business", "schema_safe", "auth_safe", "storage_safe"):
