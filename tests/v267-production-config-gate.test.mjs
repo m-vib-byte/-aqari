@@ -155,6 +155,26 @@ test('requires verifiedAt to be a real canonical UTC timestamp at whole-second p
   }
 });
 
+test('requires canonical unique repo-relative evidence references under evidence/',()=>{
+  const mutations=[
+    (config)=>{config.evidence=['../../secret.json']},
+    (config)=>{config.evidence=['https://example.com/evidence.json']},
+    (config)=>{config.evidence=['evidence/production-config.json','evidence/production-config.json']},
+    (config)=>{config.evidence=[' evidence/production-config.json']},
+    (config)=>{config.evidence=['evidence\\production-config.json']},
+    (config)=>{config.supabaseTopologyEvidence=['evidence/../supabase-branch-inventory.json']},
+    (config)=>{config.supabaseTopologyEvidence=['/evidence/supabase-branch-inventory.json']},
+    (config)=>{config.supabaseTopologyEvidence=['evidence/supabase-branch-inventory.json?raw=1']},
+  ];
+  for(const mutate of mutations){
+    const config=validConfig();
+    mutate(config);
+    const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA);
+    assert.equal(result.ok,false,JSON.stringify(config));
+    assert.match(result.errors.join('\n'),/evidence references/);
+  }
+});
+
 test('current documented Stage C restore ref cannot be accepted as the Production target',()=>{
   const target={projectRef:RESTORE_PROJECT,publishableKey:TARGET.publishableKey};
   const supabaseTopology={projectRef:RESTORE_PROJECT,parentProjectRef:RESTORE_PROJECT,branchName:'main',isDefault:true};
