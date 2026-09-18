@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 144,
-  "newCatalogEntries": 54,
+  "visibleUnique": 159,
+  "newCatalogEntries": 68,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -1089,6 +1089,118 @@
         "src/v267/platform-locale-runtime.js"
       ],
       "evidence": "Observed reports page heading and skip link"
+    },
+    {
+      "source": "تعديل العقارات والوحدات",
+      "category": "visible_ui",
+      "files": [
+        "v267-rental-records.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "إضافة العقارات والوحدات",
+      "category": "visible_ui",
+      "files": [
+        "v267-rental-records.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "إغلاق النافذة",
+      "category": "visible_ui",
+      "files": [
+        "index.html"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "حفظ",
+      "category": "visible_ui",
+      "files": [
+        "index.html"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "المنطقة والعنوان (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "نوع العرض",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "للإيجار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "للبيع",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "الإيجار المطلوب — د.ك / شهر (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "سعر البيع — د.ك (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "هاتف التواصل (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "صور العقار — حتى ٤ صور (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "بيانات الإدارة (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "إيجار المصدر — قيمة مرجعية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
     }
   ]
 }

@@ -3847,18 +3847,18 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 10795,
-      "sha256": "ba7a155c6fdde2845415fa17cccd196512af227e71793b4e97e924463f3d8fbf"
+      "size": 10817,
+      "sha256": "79a73defcbc2f89935120b9aa12eb935b5176a345f6a80ded98c2cd8679253b6"
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 17905,
-      "sha256": "baf0af3eabed7f1e89eccd870aab83ee8f76c88779c7bb56920a2e9f6baa21d0"
+      "size": 22121,
+      "sha256": "da84b14b98fccb9f28a336be619dda4414737237bf811c2078edddb93e5a7944"
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 29027,
-      "sha256": "9de9af10039b396c07f6a87e6022283751c996339f99e2d7b57459c57b56193d"
+      "size": 33920,
+      "sha256": "14553f724284c6bc80fc4e0377b4d834ac610c7a87efd227da77aa4ef1f05027"
     },
     {
       "path": "tests/v267-legacy-maintenance-locale.test.mjs",
