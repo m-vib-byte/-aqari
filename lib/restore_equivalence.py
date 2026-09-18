@@ -19,6 +19,7 @@ FORMAT = "AQARI-V267-RESTORE-EQUIVALENCE-1"
 DATA_SAFETY_FORMAT = "AQARI-V267-DATA-SAFETY-MANIFEST-3"
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
+_UTC_SECOND_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 _SECTIONS = ("business", "schema_safe", "auth_safe", "storage_safe")
 
 
@@ -41,12 +42,12 @@ def _validate_project_ref(value: object, field: str) -> str:
 
 
 def _parse_manifest_time(value: object, field: str) -> datetime:
-    if not isinstance(value, str) or not value.strip():
-        raise RestoreEquivalenceError(f"{field} must be an ISO-8601 UTC timestamp")
-    raw = value.strip()
-    normalized = raw[:-1] + "+00:00" if raw.endswith("Z") else raw
+    if not isinstance(value, str) or not _UTC_SECOND_RE.fullmatch(value):
+        raise RestoreEquivalenceError(
+            f"{field} must use canonical UTC second precision YYYY-MM-DDTHH:MM:SSZ"
+        )
     try:
-        parsed = datetime.fromisoformat(normalized)
+        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError as exc:
         raise RestoreEquivalenceError(f"invalid {field}") from exc
     if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
