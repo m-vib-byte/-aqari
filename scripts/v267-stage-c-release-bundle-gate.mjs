@@ -2,15 +2,18 @@ import {createHash} from 'node:crypto';
 
 export const STAGE_C_BUNDLE_FORMAT='AQARI-V267-STAGE-C-EVIDENCE-1';
 const STORAGE_FORMAT='AQARI-V267-STORAGE-BYTE-MANIFEST-1';
+const RESTORE_FORMAT='AQARI-V267-RESTORE-EQUIVALENCE-1';
 const ROLLBACK_FORMAT='AQARI-V267-ROLLBACK-REHEARSAL-1';
 const FULL_SHA_RE=/^[0-9a-f]{40}$/;
 const SHA256_RE=/^[0-9a-f]{64}$/;
 const REHEARSAL_ID_RE=/^[0-9a-f]{32}$/;
 const PROJECT_REF_RE=/^[a-z0-9][a-z0-9_-]{2,127}$/;
 const DEPLOYMENT_ID_RE=/^dpl_[A-Za-z0-9]+$/;
+const UTC_SECOND_RE=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const REQUIRED_DIGESTS=['backup_set','backup_storage_bytes','independent_restore','rollback_rehearsal','physical_devices'];
 const DEVICE_CLASSES=['desktop','iphone','ipad'];
 const REQUIRED_FLOWS=['login','session','save','reopen','permissions','contracts','printing'];
+const RESTORE_SECTIONS=['auth_safe','business','schema_safe','storage_safe'];
 
 function canonical(value){
   if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
@@ -24,6 +27,14 @@ function normalizedSha(value){return String(value||'').trim().toLowerCase()}
 function text(value){return typeof value==='string'?value.trim():''}
 function nonNegativeInt(value){return Number.isInteger(value)&&value>=0}
 function positiveInt(value){return Number.isInteger(value)&&value>0}
+function canonicalUtcSecond(value){
+  const raw=text(value);
+  if(!UTC_SECOND_RE.test(raw))return null;
+  const millis=Date.parse(raw);
+  if(!Number.isFinite(millis))return null;
+  if(new Date(millis).toISOString().replace('.000Z','Z')!==raw)return null;
+  return {raw,millis};
+}
 function normalizedEvidenceList(value){
   if(!Array.isArray(value)||value.length===0)return null;
   const refs=[];
@@ -103,6 +114,32 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   });
   if(SHA256_RE.test(String(digests.backup_storage_bytes||''))&&digests.backup_storage_bytes!==storageEvidenceDigest){
     errors.push('Stage C backup Storage byte evidence digest does not match the embedded Storage summary');
+  }
+
+  const restore=value.restore&&typeof value.restore==='object'&&!Array.isArray(value.restore)?value.restore:{};
+  if(restore.format!==RESTORE_FORMAT)errors.push(`Stage C restore format must be exactly ${RESTORE_FORMAT}`);
+  if(restore.verified!==true)errors.push('Stage C independent restore must be explicitly verified');
+  const restoreCandidateSha=normalizedSha(restore.candidate_sha);
+  if(!FULL_SHA_RE.test(restoreCandidateSha)||restoreCandidateSha!==candidateSha)errors.push('Stage C restore evidence is not tied to the exact candidate SHA');
+  const restoreSource=text(restore.source_project_ref);
+  const restoreTarget=text(restore.restore_project_ref);
+  if(!PROJECT_REF_RE.test(restoreSource)||restoreSource!==source)errors.push('Stage C restore source project must match the exact source project');
+  if(!PROJECT_REF_RE.test(restoreTarget)||restoreTarget!==restored)errors.push('Stage C restore target project must match the exact independent restore project');
+  if(restoreSource&&restoreTarget&&restoreSource===restoreTarget)errors.push('Stage C restore target must differ from source project');
+  const sourceGenerated=canonicalUtcSecond(restore.source_generated_at);
+  const restoredGenerated=canonicalUtcSecond(restore.restored_generated_at);
+  if(!sourceGenerated)errors.push('Stage C restore source_generated_at must use canonical UTC second precision');
+  if(!restoredGenerated)errors.push('Stage C restore restored_generated_at must use canonical UTC second precision');
+  if(sourceGenerated&&restoredGenerated&&restoredGenerated.millis<=sourceGenerated.millis)errors.push('Stage C restored evidence must be generated after source evidence');
+  const sections=restore.section_sha256&&typeof restore.section_sha256==='object'&&!Array.isArray(restore.section_sha256)?restore.section_sha256:{};
+  if(JSON.stringify(Object.keys(sections).sort())!==JSON.stringify(RESTORE_SECTIONS))errors.push('Stage C restore section hash set is incomplete');
+  for(const name of RESTORE_SECTIONS){if(!SHA256_RE.test(String(sections[name]||'')))errors.push(`Stage C restore ${name} hash must be SHA-256`)}
+  if(!nonNegativeInt(restore.storage_object_count)||restore.storage_object_count!==storage.object_count)errors.push('Stage C restored Storage object count must match the backup Storage summary');
+  if(!nonNegativeInt(restore.storage_total_bytes)||restore.storage_total_bytes!==storage.total_bytes)errors.push('Stage C restored Storage bytes must match the backup Storage summary');
+  if(!SHA256_RE.test(String(restore.storage_manifest_sha256||''))||restore.storage_manifest_sha256!==storage.manifest_sha256)errors.push('Stage C restored Storage manifest must match the backup Storage summary');
+  const restoreEvidenceDigest=stageCEvidenceSha256(restore);
+  if(SHA256_RE.test(String(digests.independent_restore||''))&&digests.independent_restore!==restoreEvidenceDigest){
+    errors.push('Stage C independent restore evidence digest does not match the embedded restore report');
   }
 
   const rollback=value.rollback&&typeof value.rollback==='object'&&!Array.isArray(value.rollback)?value.rollback:{};
