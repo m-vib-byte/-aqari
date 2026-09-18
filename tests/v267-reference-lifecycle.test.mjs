@@ -6,7 +6,7 @@ import {readFileSync} from 'node:fs';
 test('home is mounted when it arrives after the shell, and remounted after legacy page replacement',()=>{
  const nodes=new Map(),listeners=new Map();let authenticated=true;
  const element=id=>({id,addEventListener(type){listeners.set(id,(listeners.get(id)||0)+1);},insertAdjacentHTML(){nodes.set('aqOwnerExactHome',element('aqOwnerExactHome'));}});
- const body={classList:{add(){}},insertAdjacentHTML(){nodes.set('aqOwnerExactShell',element('aqOwnerExactShell'));}};
+ const body={classList:{add(){},contains:()=>false},insertAdjacentHTML(){nodes.set('aqOwnerExactShell',element('aqOwnerExactShell'));}};
  const context=vm.createContext({document:{body,documentElement:{classList:{contains:()=>authenticated}},readyState:'loading',addEventListener(){},getElementById:id=>nodes.get(id)},window:{AQARI_SUPABASE:{context:{membership:{is_active:true,user_id:'u',workspace_id:'w'},user:{id:'u'},workspace:{id:'w'}}},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}}},t:x=>x,direction:()=> 'rtl',getLocale:()=> 'ar'});
  let source=readFileSync(new URL('../src/v267/owner-feedback-runtime.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
  source+='\nrefreshMetrics=()=>{};syncActive=()=>{};railMarkup=topMarkup=bottomMarkup=homeMarkup=()=>"";';
@@ -26,4 +26,21 @@ test('canonical dashboard does not suppress the fallback until replacement conte
  vm.runInContext('refresh()',context);assert.deepEqual(calls,['observe']);calls.length=0;
  vm.runInContext('ensureDashboard=()=>true;normalizePages=refreshMetrics=refreshPropertyCards=renderFollowups=loadLiveData=()=>{};refresh()',context);
  assert.deepEqual(calls,['hide','observe']);
+});
+
+
+test('stable reference shell never rewrites legacy dashboard and ignores its own rendered mutations',()=>{
+ const calls=[],classes=new Set(['aq-live-stable']);
+ const nodes=new Map([['aqOwnerExactShell',{}],['aqOwnerExactHome',{}],['home',{}]]);
+ const context=vm.createContext({document:{documentElement:{classList:{contains:()=>true}},readyState:'loading',addEventListener(){},getElementById:id=>nodes.get(id),body:{classList:{contains:x=>classes.has(x),add:x=>{classes.add(x);calls.push('class');}}}},window:{AQARI_SUPABASE:{context:{membership:{is_active:true,user_id:'u',workspace_id:'w'},user:{id:'u'},workspace:{id:'w'}}},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}}},t:x=>x,calls});
+ const source=readFileSync(new URL('../src/v267/owner-feedback-runtime.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
+ vm.runInContext(source,context);
+ vm.runInContext('refreshMetrics=()=>calls.push("metrics");syncActive=()=>calls.push("active");refresh();refresh();',context);
+ assert.deepEqual(calls,['class']);
+ const inside={closest:selector=>selector.includes('#aqOwnerExactHome')?{}:null};
+ context.record={target:inside};assert.equal(vm.runInContext('isExactSourceMutation(record)',context),false);
+ context.record={target:{nodeType:3,parentElement:inside}};assert.equal(vm.runInContext('isExactSourceMutation(record)',context),false);
+ context.record={target:{closest:()=>null}};assert.equal(vm.runInContext('isExactSourceMutation(record)',context),true);
+ classes.delete('aq-live-stable');calls.length=0;
+ vm.runInContext('refresh()',context);assert.deepEqual(calls,['metrics','active']);
 });
