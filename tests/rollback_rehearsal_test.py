@@ -15,6 +15,7 @@ class RollbackRehearsalTest(unittest.TestCase):
     CANDIDATE = "5c920cbfd3113e4520b29fdbd7f07816f3b661e5"
     ROLLBACK = "102f3d17fb25a0b460bde76eb984361682a4ba3e"
     PROJECT = "aqari-v267-staging"
+    REHEARSAL = "a" * 32
 
     def record(self, kind: str, key: str, facts: str):
         return {
@@ -23,9 +24,22 @@ class RollbackRehearsalTest(unittest.TestCase):
             "immutable_sha256": sha256(facts.encode()).hexdigest(),
         }
 
-    def write_manifest(self, path: Path, at: str, records, *, application_sha=None):
+    def write_manifest(
+        self,
+        path: Path,
+        at: str,
+        records,
+        *,
+        application_sha=None,
+        rehearsal_id=None,
+        phase=None,
+    ):
+        if phase is None:
+            phase = {"checkpoint": "checkpoint", "during": "during", "after": "after"}.get(path.stem)
         payload = create_continuity_manifest(
             project_ref=self.PROJECT,
+            rehearsal_id=rehearsal_id or self.REHEARSAL,
+            phase=phase,
             application_sha=application_sha or self.CANDIDATE,
             captured_at=at,
             records=records,
@@ -72,6 +86,7 @@ class RollbackRehearsalTest(unittest.TestCase):
             report = self.verify(checkpoint, during, after)
             self.assertTrue(report["verified"])
             self.assertFalse(report["database_rollback_performed"])
+            self.assertEqual(report["rehearsal_id"], self.REHEARSAL)
             self.assertEqual(report["checkpoint_record_count"], 2)
             self.assertEqual(report["new_record_count"], 2)
             self.assertEqual(report["after_record_count"], 4)
@@ -128,6 +143,8 @@ class RollbackRehearsalTest(unittest.TestCase):
                 self.verify(checkpoint, during, after, database_rollback_performed=True)
             changed = create_continuity_manifest(
                 project_ref="aqari-v267-other",
+                rehearsal_id=self.REHEARSAL,
+                phase="during",
                 application_sha=self.ROLLBACK,
                 captured_at="2026-09-17T05:10:00Z",
                 records=new,
@@ -234,10 +251,55 @@ class RollbackRehearsalTest(unittest.TestCase):
                     with self.assertRaisesRegex(RollbackRehearsalError, "application_sha"):
                         create_continuity_manifest(
                             project_ref=self.PROJECT,
+                            rehearsal_id=self.REHEARSAL,
+                            phase="checkpoint",
                             application_sha=invalid_sha,
                             captured_at="2026-09-17T05:00:00Z",
                             records=[],
                         )
+
+    def test_rehearsal_id_phase_and_distinct_manifest_guards(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            checkpoint, during, after, before, new = self.make_evidence(root)
+
+            self.write_manifest(
+                during,
+                "2026-09-17T05:10:00Z",
+                new,
+                application_sha=self.ROLLBACK,
+                rehearsal_id="b" * 32,
+            )
+            with self.assertRaisesRegex(RollbackRehearsalError, "same rehearsal_id"):
+                self.verify(checkpoint, during, after)
+
+            self.write_manifest(
+                during,
+                "2026-09-17T05:10:00Z",
+                new,
+                application_sha=self.ROLLBACK,
+            )
+            self.write_manifest(
+                after,
+                "2026-09-17T05:20:00Z",
+                before + new,
+                phase="checkpoint",
+            )
+            with self.assertRaisesRegex(RollbackRehearsalError, "phase must be after"):
+                self.verify(checkpoint, during, after)
+
+            with self.assertRaisesRegex(RollbackRehearsalError, "distinct files"):
+                self.verify(checkpoint, during, checkpoint)
+
+            with self.assertRaisesRegex(RollbackRehearsalError, "rehearsal_id"):
+                create_continuity_manifest(
+                    project_ref=self.PROJECT,
+                    rehearsal_id="BAD",
+                    phase="checkpoint",
+                    application_sha=self.CANDIDATE,
+                    captured_at="2026-09-17T05:00:00Z",
+                    records=[],
+                )
 
 
 if __name__ == "__main__":
