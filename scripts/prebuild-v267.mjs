@@ -18,3 +18,4 @@ run('python',['-m','unittest','tests.backup_set_manifest_test']);
 run('python',['-m','unittest','tests.restore_equivalence_test']);
 run('python',['-m','unittest','tests.rollback_rehearsal_test']);
 run('python',['-m','unittest','tests.stage_c_evidence_bundle_test']);
+run('python',['-m','unittest','tests.stage_c_python_js_interop_test']);
