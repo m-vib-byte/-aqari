@@ -156,7 +156,7 @@ class StageCEvidenceBundleTests(unittest.TestCase):
             create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
 
     def test_rejects_rollback_without_canonical_rehearsal_identity(self):
-        for value in (None, "bad", REHEARSAL_ID.upper()):
+        for value in (None, "bad", "A" * 32):
             with self.subTest(rehearsal_id=value):
                 backup, storage, restore, rollback, devices = fixtures()
                 if value is None:
