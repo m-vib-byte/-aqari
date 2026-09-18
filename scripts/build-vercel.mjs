@@ -10,6 +10,7 @@ if(process.env.VERCEL_ENV==='production'){
   else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-session-activity-routing.test.cjs','tests/v267-session-idle-restore.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{stdio:'inherit'});
