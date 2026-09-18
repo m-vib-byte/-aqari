@@ -33,3 +33,17 @@ test('visible login translates status and direction while leaving credentials un
  assert.equal(status.nodeValue,t('أدخل البريد الإلكتروني وكلمة المرور للدخول.','ml'));
  mounted.dispose();assert.equal(disconnected(),true);
 }));
+test('session, connectivity and access errors render in each selected login language',()=>environment(()=>{
+ const messages=['انتهت جلسة الدخول. أعد تسجيل الدخول.','تعذر تأكيد صلاحية الوصول لهذا الحساب.','تعثر الاتصال الآمن مؤقتاً. أعد المحاولة بعد لحظات.','تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.'];
+ for(const source of messages){
+  bindLocale(null);const {doc,status,root}=fixture();status.nodeValue=source;
+  const mounted=mountAppLoginLocale(doc);
+  for(const language of ['ar','en','hi','ur','ml']){
+   setLocale(language);mounted.refresh();
+   assert.equal(status.nodeValue,t(source,language));
+   if(language!=='ar')assert.notEqual(status.nodeValue,source,language+' '+source);
+   assert.equal(root.dir,['ar','ur'].includes(language)?'rtl':'ltr');
+  }
+  mounted.dispose();
+ }
+}));
