@@ -6,6 +6,7 @@ const SHA256_RE=/^[0-9a-f]{64}$/;
 const PROJECT_REF_RE=/^[a-z0-9]{20}$/;
 const PUBLISHABLE_KEY_RE=/^sb_publishable_[A-Za-z0-9_-]{16,}$/;
 const UTC_SECOND_RE=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+const EVIDENCE_REF_RE=/^evidence\/[A-Za-z0-9][A-Za-z0-9._/-]*$/;
 const PRODUCTION_HOST='myaqari.com';
 const PRODUCTION_REDIRECT='https://myaqari.com/login.html?release=V267';
 const PREVIEW_PROJECT='ofgmcsmxmdswlovsckqs';
@@ -17,7 +18,6 @@ const FORBIDDEN_EVIDENCE_KEYS=new Set([
 function text(value){return typeof value==='string'?value.trim():''}
 function normalizedSha(value){return text(value).toLowerCase()}
 function sha256(value){return createHash('sha256').update(Buffer.from(String(value),'utf8')).digest('hex')}
-function evidencePresent(value){return Array.isArray(value)&&value.length>0&&value.every((item)=>typeof item==='string'&&item.trim())}
 function object(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}
 function expectedSupabaseUrl(projectRef){return PROJECT_REF_RE.test(projectRef)?`https://${projectRef}.supabase.co`:''}
 function canonicalUtcSecond(value){
@@ -29,6 +29,21 @@ function canonicalUtcSecond(value){
   return {raw,millis};
 }
 function normalizedEvidenceKey(value){return String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+function canonicalEvidenceRefs(value){
+  if(!Array.isArray(value)||value.length===0)return null;
+  const seen=new Set();
+  const refs=[];
+  for(const item of value){
+    if(typeof item!=='string'||item!==item.trim()||!EVIDENCE_REF_RE.test(item))return null;
+    if(item.includes('\\')||item.includes('//')||item.includes('?')||item.includes('#'))return null;
+    const segments=item.split('/');
+    if(segments.some((segment)=>!segment||segment==='.'||segment==='..'))return null;
+    if(seen.has(item))return null;
+    seen.add(item);
+    refs.push(item);
+  }
+  return refs;
+}
 function findForbiddenEvidenceKey(value,path='productionConfig'){
   if(Array.isArray(value)){
     for(let index=0;index<value.length;index+=1){
@@ -137,7 +152,7 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   if(topologyParentProjectRef!==projectRef)errors.push('Production Supabase project must be the default project, not a development/preview branch');
   if(topology.isDefault!==true)errors.push('Production Supabase project must be verified as the default branch');
   if(!topologyBranchName)errors.push('Production Supabase topology branch name is required');
-  if(!evidencePresent(value.supabaseTopologyEvidence))errors.push('Production Supabase topology evidence references are required');
+  if(!canonicalEvidenceRefs(value.supabaseTopologyEvidence))errors.push('Production Supabase topology evidence references must be unique canonical repo-relative evidence/ paths');
   const expectedTopologyDigest=productionSupabaseTopologyFingerprint(topology);
   if(!SHA256_RE.test(String(value.supabaseTopologySha256||'')))errors.push('Production Supabase topology fingerprint must be SHA-256');
   else if(expectedTopologyDigest&&value.supabaseTopologySha256!==expectedTopologyDigest)errors.push('Production Supabase topology fingerprint does not match the verified default project');
@@ -172,7 +187,7 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   if(!SHA256_RE.test(String(value.runtimeConfigSha256||'')))errors.push('Production runtime configuration fingerprint must be SHA-256');
   else if(expectedRuntimeDigest&&value.runtimeConfigSha256!==expectedRuntimeDigest)errors.push('Production runtime configuration fingerprint does not match the exact Production project/domain/Auth/topology configuration');
 
-  if(!evidencePresent(value.evidence))errors.push('Production configuration evidence references are required');
+  if(!canonicalEvidenceRefs(value.evidence))errors.push('Production configuration evidence references must be unique canonical repo-relative evidence/ paths');
   const verifiedAt=canonicalUtcSecond(value.verifiedAt);
   if(!verifiedAt)errors.push('Production configuration verifiedAt must use canonical UTC second precision');
   const forbiddenEvidencePath=findForbiddenEvidenceKey(value);
