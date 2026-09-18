@@ -712,8 +712,13 @@
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 64728,
-      "sha256": "49c54c09e34bd9e7a3f970433a30b725a879a53229359a8944f6650a272504f5"
+      "size": 66230,
+      "sha256": "4b67b0a1c3ab1aa37ba070eaa2fb468d1bfd3a8e674d0059f408756eb9ecabe9"
+    },
+    {
+      "path": "docs/verification/pr200-closure-run-20260918.md",
+      "size": 5498,
+      "sha256": "9cb95d5727d0064161a27312d6ddbe953bfda2251e0d39144486d774140e3e8f"
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
@@ -977,8 +982,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "27e53eb70c27c8c7bc4467ebfd599de3577dd237064425663403547826249e5e",
-      "size": 9937
+      "sha256": "c2935e1b645d5adc986892cc4dccebaec3e4ef2b0b5f39c15512fb83edad69ab",
+      "size": 9956
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -1032,8 +1037,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 39991,
-      "sha256": "50e1cf9acdb0adfe36b3254c0b1866ae80c818b9b631ddc88644317c43d89ad0"
+      "size": 40174,
+      "sha256": "f5d63448fd058932d355a5b6a5d4b439693d4ed43f8d7dba86e30ff3982ca369"
     },
     {
       "path": "src/v267/api/partner-session.js",
@@ -1222,8 +1227,8 @@
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 79732,
-      "sha256": "527116073330279fc4843da20aa2539b54b48aa28798128114d1f101a04dc5a9"
+      "size": 81226,
+      "sha256": "27cc991ec3bb8439eade861bd97c7d38ad97a3e5c5e33e6c2d9d3b8d05e9dc29"
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -1289,6 +1294,11 @@
       "path": "src/v267/domain/vacating-review.js",
       "sha256": "501ce1590eb5e895b6cc5fb8631aecbc401bde687740fc0b2c9221af98f1d6b1",
       "size": 6265
+    },
+    {
+      "path": "src/v267/owner-feedback-runtime.js",
+      "size": 23497,
+      "sha256": "6ea114327ec5e3dd312de47bb581dd75c672791b74b22f563842e79fe05f92b7"
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1477,13 +1487,18 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 14983,
-      "sha256": "8dc0294c88f1578b2c80b702df1f211aa708b40cbe7845357b2787af0c643203"
+      "size": 15014,
+      "sha256": "dbaf7c6ac270b91a91603775e6c951cc32fb5c39a69448c96128badd820131a7"
     },
     {
       "path": "src/v267/reports/financial-archive-xlsx.js",
       "sha256": "788fc96d0c3f01b624906c41b867d9762a4272b11133e33a230116db7497c09a",
       "size": 10668
+    },
+    {
+      "path": "src/v267/styles/live-stability.css",
+      "size": 33227,
+      "sha256": "f39a1781f5f7b4c9b8fa19eb59cbb4efc4eaa4fc19eb9c3e84f7a4251b7729e8"
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -2766,6 +2781,11 @@
       "size": 7942
     },
     {
+      "path": "staging-database/tests/staff_property_scope.sql",
+      "size": 26946,
+      "sha256": "9c59d27211fe44301c2f2b961012eb709447b5af915d12aa45cf6c3315322b1b"
+    },
+    {
       "path": "staging-database/tests/tenant_contact_unification.sql",
       "sha256": "a32675e83caeac55c1a4a211d137e420c4f62353d4aa8ecf962f4a8f55736da8",
       "size": 15138
@@ -2857,8 +2877,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "b7fc383f29e6a5354be56ad3e2ddb24dbad6f3d8f9c0a14d6e3ac2ba4d14166d",
-      "size": 25936
+      "sha256": "2c093a3e647755844c3db19ca392cbc0deb14227dfdf3a7ffa31dd8e394bb1f9",
+      "size": 26037
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -2957,8 +2977,8 @@
     },
     {
       "path": "tests/mobile-login-shell.test.cjs",
-      "sha256": "bf04e523b72aaf6faa779bb28fcd67da700beddc73c636fbc44453513b523211",
-      "size": 6381
+      "sha256": "924874e30b21e9465c0dab76720934116f86ee2a7da7083f6f2e40ab13332853",
+      "size": 6412
     },
     {
       "path": "tests/official_document_archive_test.py",
@@ -3152,8 +3172,8 @@
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
-      "sha256": "89569511c70c4322395a63ed73f572f316a4b212d9c3aeab850bf04faedfe54f",
-      "size": 4510
+      "sha256": "380f4ff67647bd5c7545db4b10ba8820054b55c91be04711249bb74563a30d35",
+      "size": 4982
     },
     {
       "path": "tests/v267-collection-account-manager.test.cjs",
@@ -3282,8 +3302,8 @@
     },
     {
       "path": "tests/v267-external-integrations.test.cjs",
-      "sha256": "56b32c45c23aa13d581549bebedd9ce27e203ef1f485710188e070c4d95eb71b",
-      "size": 1633
+      "sha256": "047aa47ab8510d5e3e3ec5ceda81c5273a666aec5620aaea7f1e305e28d1d0d7",
+      "size": 1831
     },
     {
       "path": "tests/v267-final-gap-register.test.cjs",
@@ -3426,6 +3446,11 @@
       "sha256": "7c84e4e854371b55e8e2f176e53e48a285b02c5cc65f5c92b67f2ebecbd02fc2"
     },
     {
+      "path": "tests/v267-navigation-matrix.test.mjs",
+      "size": 5282,
+      "sha256": "0bf3ab5e0a7290c3daff4b0055293069cae24dfbd9103e001639852de8016640"
+    },
+    {
       "path": "tests/v267-navigation-work.test.cjs",
       "sha256": "467c5122631e987d737e78de519558ab14966ade8235288b9e63b1791d9f4e17",
       "size": 3422
@@ -3542,8 +3567,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "53004be669338d4edebde10c87fc5f9b28a0ef189ed8f6201973bb48b7f1829d",
-      "size": 10096
+      "sha256": "2df22e22741a3ad7a2a98ef8a6010243c6245b81859a2e658072b1cd4db3d89f",
+      "size": 10839
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",
@@ -3637,8 +3662,8 @@
     },
     {
       "path": "tests/v267-session-idle-restore.test.cjs",
-      "size": 5531,
-      "sha256": "8c2854c90d97b65924427539450b3126a13691a64b52ad8cce60746b9bc8a92d"
+      "size": 6977,
+      "sha256": "1882fbff1c6c1cdf81ef8ca1bd08e134f4c2f166d1f6708f1bb2eacddf30820e"
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
@@ -3902,8 +3927,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "ea721ea67d9c86e479c984f10c1f657a68ab2d627124f3feb717c7ddd56ae707",
-      "size": 22475
+      "sha256": "53608356dd6666adcb92bb455b3b8ebdbc78a9548f36700c87b6c3f7f67d760a",
+      "size": 22490
     },
     {
       "path": "v267-unified.css",

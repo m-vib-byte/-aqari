@@ -106,7 +106,7 @@ export function productionPatch(read,{projectRef,publishableKey}){
   // patch, or the new supporting_document kind. Keep completed edits usable
   // without exposing those unimplemented parts or changing existing records.
   const editorPath='src/v267/pages/imported-tenant.js';
-  let editor=replaceExact(read(editorPath),"const preferredContact=node('select');for(const [value,label]of contactOptions){const option=node('option',label);option.value=value;preferredContact.append(option);}inputs.preferredContact=preferredContact;body.append(field('وسيلة التواصل المفضلة',preferredContact));","const preferredContact={value:'both'};",1,editorPath);
+  let editor=replaceExact(read(editorPath),"const preferredContact=node('select');for(const [value,label]of contactOptions()){const option=node('option',label);option.value=value;preferredContact.append(option);}inputs.preferredContact=preferredContact;body.append(field(translateStatic('وسيلة التواصل المفضلة'),preferredContact));","const preferredContact={value:'both'};",1,editorPath);
   editor=replaceExact(editor,'patch.preferredContact=preferredContact.value;','',1,editorPath);
   patch.set(editorPath,editor);
   const workspacePath='src/v267/workspace.js';

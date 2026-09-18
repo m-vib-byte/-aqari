@@ -143,7 +143,7 @@ $('tenantSignup').onclick=async()=>{
  try{const {error}=await bounded(client.auth.signUp({email:$('tenantEmail').value.trim(),password:$('tenantPassword').value,options:{emailRedirectTo:new URL(cfg.supabaseAuthRedirectUrl).origin+'/tenant.html'}}));if(!current(e))return;if(error)throw Error('تعذر إنشاء الحساب. يجب أن يكون بريدك مسجلاً في ملف مستأجر واحد لدى الإدارة.');notice('راجع بريدك لتأكيد الحساب، ثم ارجع إلى هذه الصفحة وسجل الدخول.');}
  catch(error){if(current(e))notice(safeError(error));}finally{if(current(e))$('tenantPassword').value='';finish(token);}
 };
-$('tenantLogout').onclick=async()=>{invalidate();const e=epoch,token=start();try{const {error}=await bounded(client.auth.signOut());if(!current(e))return;if(error)throw error;notice('تم تسجيل الخروج.');}catch{if(current(e)){$('tenantLogout').hidden=false;notice('تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.');}}finally{finish(token);}};
+$('tenantLogout').onclick=async()=>{invalidate();const e=epoch,token=start();try{const {error}=await bounded(client.auth.signOut({scope:'local'}));if(!current(e))return;if(error)throw error;notice('تم تسجيل الخروج.');}catch{if(current(e)){$('tenantLogout').hidden=false;notice('تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.');}}finally{finish(token);}};
 $('maintenanceForm').addEventListener('submit',async event=>{
  event.preventDefault();if(busy||!snapshot||saveUncertain)return;const token=start(),e=epoch,account=snapshot.account;let sent=false,confirmed=false;
  try{

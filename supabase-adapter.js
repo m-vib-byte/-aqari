@@ -408,7 +408,7 @@
     if(error) throw error;
     const context = await refreshContext();
     if(!context.membership || !context.workspace || !context.profile){
-      await client.auth.signOut().catch(() => {});
+      await client.auth.signOut({ scope:'local' }).catch(() => {});
       clearPersistedSession();
       const accessError = new Error('Account is not authorized for an active AQARI workspace');
       accessError.code = 'AQARI_ACCESS_DENIED';
@@ -510,7 +510,8 @@
 
   async function signOut(options){
     const client = await getClient();
-    const { error } = await client.auth.signOut(options?.scope==='local'?{ scope:'local' }:undefined);
+    // A broad revocation is opt-in; an omitted scope must never end other devices.
+    const { error } = await client.auth.signOut({ scope:options?.scope==='global'?'global':'local' });
     if(error) throw error;
     clearPersistedSession();
   }

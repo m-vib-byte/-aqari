@@ -230,3 +230,13 @@ html[dir='ltr'] body.aq-live-stable #mainContentV103{margin:0 0 0 var(--aq-st-ra
  html[dir='ltr'] body.aq-live-stable #mainContentV103{margin:var(--aq-st-frame) var(--aq-st-frame) var(--aq-st-frame) calc(var(--aq-st-rail) + var(--aq-st-frame))!important;border-radius:0 26px 26px 0!important}
 }
 }
+
+/* Keep the original account actions available from the reference header. */
+@media screen {
+ body.aq-live-stable #v199MoreMenu{z-index:1200!important;inset-block-start:76px!important;inset-block-end:auto!important;inset-inline:auto!important;left:20px!important;right:auto!important;width:min(310px,calc(100vw - 40px))!important;max-height:calc(100dvh - 96px);overflow:auto;background:#fffaf0!important;border:1px solid #d8c8aa!important;box-shadow:0 15px 40px #3d2c2026!important;color:#4a3926!important}
+ body.aq-live-stable #v199MoreMenu .v199-menu-head{border-color:#e4d7c0!important}
+ body.aq-live-stable #v199MoreMenu .v199-menu-action{color:#59452d!important;min-height:44px;white-space:normal}
+ body.aq-live-stable #v199MoreMenu .v199-menu-action svg{color:#97743c!important}
+ body.aq-live-stable #v199MoreMenu .v199-menu-action:hover{background:#eee1ca!important}
+ body.aq-live-stable #v199MoreMenu .v199-menu-action.danger{color:#a23c35!important}
+}

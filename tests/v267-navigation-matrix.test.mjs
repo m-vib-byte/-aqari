@@ -81,16 +81,16 @@ for(const [device,width] of [['iPhone',390],['iPad',820],['Desktop',1440]]){
    runtime.calls.length=0;
    runtime.navigate(route);
    assert.equal(runtime.calls[0],'close');
-   assert.ok(runtime.calls.includes('stable:'+route),route+' must use the stable base route');
+   assert.ok(runtime.calls.includes('current:'+route),route+' must use the current guarded router');
    assert.ok(runtime.calls.includes('scroll:0:auto'),route+' must reset viewport only after the target is visible');
   }
  });
 }
 
-test('failed primary transition retries through the current router before scrolling',()=>{
- const runtime=navigationRuntime(820,{stableOpens:false,currentOpens:true});
+test('failed primary transition falls back to the preserved router before scrolling',()=>{
+ const runtime=navigationRuntime(820,{stableOpens:true,currentOpens:false});
  runtime.navigate('properties');
- assert.deepEqual(runtime.calls.filter(value=>/^(stable|current|scroll):/.test(value)),['stable:properties','current:properties','scroll:0:auto']);
+ assert.deepEqual(runtime.calls.filter(value=>/^(stable|current|scroll):/.test(value)),['current:properties','stable:properties','scroll:0:auto']);
 });
 
 test('a destination that never becomes visible never performs the old scroll-only behavior',()=>{

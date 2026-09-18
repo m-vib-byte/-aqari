@@ -402,7 +402,7 @@
       return false;
     }
     // An idle/lock event belongs to this browser session. It must not revoke
-    // an active session on another device. Explicit logout keeps its scope.
+    // an active session on another device, just like ordinary user logout.
     return window.cloudLogoutV198({ scope:'local' });
   }
 
@@ -617,17 +617,20 @@
   };
 
   window.cloudLogoutV198 = async function(options){
+    const logoutScope = options?.scope==='global'?'global':'local';
     window.AQARI_AUTOSYNC?.disable();
     localStorage.removeItem(SYNC_READY_KEY);
     showGate('جاري تسجيل الخروج…', 'wait');
     try{
-      await window.AQARI_SUPABASE.signOut(options?.scope==='local'?{ scope:'local' }:undefined);
+      await window.AQARI_SUPABASE.signOut({ scope:logoutScope });
     }catch(signOutError){
       try{
         if(typeof window.AQARI_SUPABASE.clearPersistedSession !== 'function' ||
            typeof window.AQARI_SUPABASE.verifySessionNull !== 'function') throw signOutError;
         window.AQARI_SUPABASE.clearPersistedSession();
         await window.AQARI_SUPABASE.verifySessionNull();
+        // Clearing this browser cannot prove that a requested global revocation succeeded.
+        if(logoutScope==='global') throw signOutError;
       }catch(clearError){
         showGate('تعذر إكمال تسجيل الخروج. بقيت المنصة مقفلة؛ تحقق من الاتصال ثم أعد المحاولة.', 'bad');
         return false;

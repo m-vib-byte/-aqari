@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 334,
-  "newCatalogEntries": 237,
+  "visibleUnique": 340,
+  "newCatalogEntries": 243,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -2478,6 +2478,54 @@
       "files": [
         "v202-property-os.js"
       ]
+    },
+    {
+      "source": "الحساب والمزيد",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "حساب عقاري",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "الحساب والنسخة السحابية",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "تنزيل نسخة احتياطية",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "استعادة نسخة",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "المستندات والعقود",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
     }
   ]
 }

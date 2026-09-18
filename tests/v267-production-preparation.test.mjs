@@ -7,6 +7,8 @@ import {spawnSync} from 'node:child_process';
 import vm from 'node:vm';
 import {productionPatch,PRODUCTION_PROJECT,PREVIEW_PROJECT,PRODUCTION_REDIRECT} from '../scripts/prepare-v267-production.mjs';
 import {deploymentTargetErrors} from '../scripts/verify-deployment-target.mjs';
+import {t as translateStatic} from '../src/v267/components/locale.js';
+import {isUiError} from '../src/v267/components/ui-error.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const options={projectRef:PRODUCTION_PROJECT,publishableKey:'sb_publishable_fixture'};
 const patch=productionPatch(read,options);
@@ -15,9 +17,9 @@ function sessionFixture(){
   const cfg=browserConfig(),scope={userId:'u',workspaceId:'w'};
   const context={user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}};
   const calls=[];const w={AQARI_PUBLIC_CONFIG:cfg,AQARI_DATA_GATE:{scope},AQARI_SUPABASE:{context,getClient:async()=>({}),getSession:async()=>({user:{id:'u'},access_token:'synthetic-only'})}};
-  const ctx={window:w,document:{documentElement:{classList:{contains:()=>true}}},AbortController,setTimeout,clearTimeout,Blob,
+  const ctx={window:w,document:{documentElement:{classList:{contains:()=>true}}},AbortController,setTimeout,clearTimeout,Blob,isUiError,
     fetch:async(url,options)=>{calls.push({url,options});return {ok:true,blob:async()=>new Blob(['synthetic file']),json:async()=>({Key:'saved'})};}};
-  vm.runInNewContext(patch.get('src/v267/api/session.js').replace(/\bexport /g,''),ctx);
+  vm.runInNewContext(patch.get('src/v267/api/session.js').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),ctx);
   return {ctx,window:w,calls,session:ctx.createSession()};
 }
 test('production preparation is separate and leaves isolated source unchanged',()=>{
@@ -69,12 +71,18 @@ test('tenant, partner and password recovery retain explicit production project a
   assert.ok(!patch.get('v267-partner-portal.js').includes('aqari-git-design-v267-premium-workspace'));
 });
 
-test('Vercel prepares production in a disposable build and leaves preview isolated',()=>{
+test('Vercel preparation stage selects production only when domain trial is disabled',()=>{
+  const build=read('scripts/build-vercel.mjs');
+  const boundary=build.indexOf("execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs']");
+  assert.ok(boundary>0,'execute the real target-preparation stage before independent build installers');
   for(const environment of ['preview','production']){
     const dir=mkdtempSync(join(tmpdir(),'aqari-target-build-'));
     try{
-      const paths=new Set([...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
+      const paths=new Set([...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
       for(const path of paths){const target=join(dir,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,read(path));}
+      writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary));
+      const trial=JSON.parse(read('config/domain-trial-target.json'));trial.enabled=false;
+      writeFileSync(join(dir,'config/domain-trial-target.json'),JSON.stringify(trial));
       const result=spawnSync(process.execPath,['scripts/build-vercel.mjs'],{cwd:dir,encoding:'utf8',env:{...process.env,VERCEL_ENV:environment}});
       assert.equal(result.status,0,result.stderr);
       const ctx={window:{}};vm.runInNewContext(readFileSync(join(dir,'public-config.js'),'utf8'),ctx);
@@ -98,7 +106,7 @@ test('production imported-tenant edits omit the unsupported preference and confi
     }
     return {profile:{...profile},revision,history:[]};
   }},run:fn=>fn()};
-  const context={createDialog:()=>d,node,field};
+  const context={createDialog:()=>d,node,field,translateStatic};
   vm.runInNewContext(patch.get('src/v267/pages/imported-tenant.js').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
   await context.openImportedTenant({ref:'tenant-a',onSaved:async()=>{saved++;},onDraft:async()=>{}});
   assert.equal(controls['وسيلة التواصل المفضلة'],undefined);

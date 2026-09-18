@@ -57,8 +57,13 @@ test('idle lock signs out this session and preserves another active device',asyn
  assert.deepEqual(r.calls,['local']);assert.deepEqual([...r.sessions],['other-device']);
  assert.equal(r.cleared,1);assert.equal(r.resets,1);
 });
-test('explicit logout retains the existing global scope',async()=>{
+test('ordinary logout preserves the other device session',async()=>{
  const r=logoutFixture();assert.equal(await r.logout(),true);
+ assert.deepEqual(r.calls,['local']);assert.deepEqual([...r.sessions],['other-device']);
+ assert.equal(r.cleared,1);assert.equal(r.resets,1);
+});
+test('only an explicit global logout revokes both devices',async()=>{
+ const r=logoutFixture();assert.equal(await r.logout({scope:'global'}),true);
  assert.deepEqual(r.calls,['global']);assert.equal(r.sessions.size,0);
  assert.equal(r.cleared,1);assert.equal(r.resets,1);
 });
@@ -70,4 +75,17 @@ test('failed local logout cannot reopen the workspace or report success',async()
  const r=logoutFixture({sdkError:true,clearError:true});assert.equal(await r.lock(),false);
  assert.deepEqual(r.calls,['local']);assert.equal(r.resets,0);
  assert.equal(r.notices.at(-1)[1],'bad');assert.equal(r.sessions.size,2);
+});
+test('a failed global request cannot report success after clearing only the current browser',async()=>{
+ const r=logoutFixture({sdkError:true});assert.equal(await r.logout({scope:'global'}),false);
+ assert.equal(r.resets,0);assert.equal(r.notices.at(-1)[1],'bad');assert.equal(r.sessions.size,2);
+});
+test('tenant portal logout revokes only the current device',async()=>{
+ const source=fs.readFileSync(path.join(root,'v267-tenant-portal.js'),'utf8');
+ const handler=source.split('\n').find(line=>line.startsWith("$('tenantLogout').onclick="));
+ assert.ok(handler,'exercise the actual tenant logout handler');
+ const button={},sessions=new Set(['current','other-device']);let scope,finished=false;
+ const sandbox={$:()=>button,invalidate(){},epoch:1,start:()=>1,current:()=>true,bounded:p=>p,notice(){},finish(){finished=true;},client:{auth:{async signOut(options){scope=options?.scope;if(scope==='local')sessions.delete('current');else sessions.clear();return {error:null};}}}};
+ vm.runInNewContext(handler,sandbox);await button.onclick();
+ assert.equal(scope,'local');assert.deepEqual([...sessions],['other-device']);assert.equal(finished,true);
 });
