@@ -9,6 +9,9 @@ import {validateProductionConfigForCli} from './v267-production-config-gate.mjs'
 import {validateSameShaCiEvidence} from './v267-ci-evidence-gate.mjs';
 
 export const REQUIRED_DECISION = 'approved_for_production';
+export const EXPECTED_REPOSITORY_OWNER = 'm-vib-byte';
+export const OWNER_GOVERNANCE_EFFECTIVE_AT = '2026-09-13T00:00:00+03:00';
+const OWNER_GOVERNANCE_EFFECTIVE_MS = Date.parse(OWNER_GOVERNANCE_EFFECTIVE_AT);
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
 
 function parseIsoDate(value) {
@@ -44,6 +47,12 @@ export function validateOwnerProductionApproval(input = {}) {
 
   if (!approvalActor) errors.push('approval actor is required');
   if (!repositoryOwner) errors.push('repository owner is required');
+  if (repositoryOwner && repositoryOwner !== EXPECTED_REPOSITORY_OWNER) {
+    errors.push(`repository owner must be exactly ${EXPECTED_REPOSITORY_OWNER}`);
+  }
+  if (approvalActor && approvalActor !== EXPECTED_REPOSITORY_OWNER) {
+    errors.push(`explicit production approval must be dispatched by ${EXPECTED_REPOSITORY_OWNER}, the repository owner`);
+  }
   if (approvalActor && repositoryOwner && approvalActor !== repositoryOwner) {
     errors.push('explicit production approval must be dispatched by the repository owner');
   }
@@ -52,6 +61,12 @@ export function validateOwnerProductionApproval(input = {}) {
   const approvedMs = parseIsoDate(approvedAt);
   if (finalTestMs === null) errors.push('final-test completion timestamp must be a valid ISO-8601 date/time');
   if (approvedMs === null) errors.push('owner production-approval timestamp must be a valid ISO-8601 date/time');
+  if (finalTestMs !== null && finalTestMs < OWNER_GOVERNANCE_EFFECTIVE_MS) {
+    errors.push(`final owner testing must occur under the controlling owner governance effective ${OWNER_GOVERNANCE_EFFECTIVE_AT}`);
+  }
+  if (approvedMs !== null && approvedMs < OWNER_GOVERNANCE_EFFECTIVE_MS) {
+    errors.push(`owner production approval must occur under the controlling owner governance effective ${OWNER_GOVERNANCE_EFFECTIVE_AT}`);
+  }
   if (finalTestMs !== null && approvedMs !== null && approvedMs <= finalTestMs) {
     errors.push('owner production approval must occur after final owner testing');
   }
