@@ -52,6 +52,8 @@ def fixtures():
         "candidate_sha": SHA,
         "source_project_ref": SOURCE,
         "restore_project_ref": RESTORE,
+        "source_generated_at": "2026-09-17T06:00:10Z",
+        "restored_generated_at": "2026-09-17T06:10:10Z",
         "section_sha256": {
             "business": H,
             "schema_safe": H2,
@@ -123,6 +125,8 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         self.assertEqual(bundle["preview"]["environment"], "preview")
         self.assertEqual(bundle["preview"]["release_stage"], "preview")
         self.assertEqual(bundle["storage"]["total_bytes"], 156509)
+        self.assertEqual(bundle["restore"]["source_generated_at"], "2026-09-17T06:00:10Z")
+        self.assertEqual(bundle["restore"]["restored_generated_at"], "2026-09-17T06:10:10Z")
         self.assertEqual(bundle["rollback"]["rehearsal_id"], REHEARSAL_ID)
         self.assertEqual(bundle["rollback"]["after_record_count"], 12)
         self.assertEqual(set(bundle["devices"]["desktop"]["flow_evidence"]), set(REQUIRED_FLOWS))
@@ -144,6 +148,20 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         restore["restore_project_ref"] = SOURCE
         with self.assertRaisesRegex(StageCEvidenceError, "must differ"):
             create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_restore_without_canonical_forward_chronology(self):
+        mutations = (
+            lambda restore: restore.pop("source_generated_at"),
+            lambda restore: restore.update(source_generated_at="2026-09-17T06:00:10+00:00"),
+            lambda restore: restore.update(restored_generated_at=restore["source_generated_at"]),
+            lambda restore: restore.update(restored_generated_at="2026-09-17T05:59:59Z"),
+            lambda restore: restore.update(restored_generated_at="2026-02-30T06:10:10Z"),
+        )
+        for mutate in mutations:
+            backup, storage, restore, rollback, devices = fixtures()
+            mutate(restore)
+            with self.assertRaisesRegex(StageCEvidenceError, "generated|canonical|invalid"):
+                create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
 
     def test_rejects_rollback_that_loses_new_transactions_or_rolls_back_database(self):
         backup, storage, restore, rollback, devices = fixtures()
