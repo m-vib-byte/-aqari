@@ -157,6 +157,13 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   if(!SHA256_RE.test(String(value.supabaseTopologySha256||'')))errors.push('Production Supabase topology fingerprint must be SHA-256');
   else if(expectedTopologyDigest&&value.supabaseTopologySha256!==expectedTopologyDigest)errors.push('Production Supabase topology fingerprint does not match the verified default project');
 
+  const targetKeys=Object.keys(target).sort();
+  if(JSON.stringify(targetKeys)!==JSON.stringify(['projectRef','publishableKey'])){
+    errors.push('Repository production target must contain exactly projectRef and publishableKey');
+  }
+  const forbiddenTargetPath=findForbiddenEvidenceKey(target,'productionTarget');
+  if(forbiddenTargetPath)errors.push(`Repository production target must not contain raw secret material at ${forbiddenTargetPath}`);
+
   const targetRef=text(target.projectRef);
   const publishableKey=text(target.publishableKey);
   if(!PROJECT_REF_RE.test(targetRef))errors.push('Repository production target projectRef is invalid');
