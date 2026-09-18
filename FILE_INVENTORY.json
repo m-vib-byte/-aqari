@@ -712,8 +712,8 @@
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 48304,
-      "sha256": "140c12763ebc3089a76702c0f29107b2ac3518891d42a6a43a0562f9a1933db7"
+      "size": 62650,
+      "sha256": "75950a2e87ecb486cb3356401452cccd60b2231751adc591ea902e5337d89850"
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
@@ -1217,8 +1217,8 @@
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 46575,
-      "sha256": "a197189490adcbcdd9f688a9dbe0c4a4e2a866afbacaa5c01e08712e41eaf9af"
+      "size": 76828,
+      "sha256": "0077a069ea2db6f9a4cf8d505c399dfbbfd870c7a848b7f70b8871e3fe453b89"
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 13013,
-      "sha256": "1c52d5de6049ece20f6776d13b05ce356665f4fa8b739dbfe26aaa1087762c5a"
+      "size": 14983,
+      "sha256": "8dc0294c88f1578b2c80b702df1f211aa708b40cbe7845357b2787af0c643203"
     },
     {
       "path": "src/v267/reports/financial-archive-xlsx.js",
@@ -3567,8 +3567,8 @@
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
-      "size": 2805,
-      "sha256": "62435944f9f6e808173d2cc0096d105352143bb7b7387454286d6a2c6532479f"
+      "size": 4574,
+      "sha256": "f7c11df3ecb37dc39aafa642d2462e03d99bb19d5be9d1a24c5119ab294dc97f"
     },
     {
       "path": "tests/v267-recovery-boundary.test.cjs",
@@ -3762,8 +3762,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 276983,
-      "sha256": "d25fce3bc96ae6bc02e6d63ff4aa770a59084e293f3197f957cc88d00df26dd3"
+      "size": 277603,
+      "sha256": "a45a18eed5446d28437393bd3223b4bde2b778eff0a54324083ab96a95d6632e"
     },
     {
       "path": "v205-simple.css",

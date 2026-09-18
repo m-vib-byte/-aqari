@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 232,
-  "newCatalogEntries": 141,
+  "visibleUnique": 319,
+  "newCatalogEntries": 222,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -1760,6 +1760,615 @@
     },
     {
       "source": "يلزم اكتمال اعتماد عقود الفترة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "البريد الإلكتروني / Email",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "بيانات الوحدات محمية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "سجّل الدخول بعضوية فعّالة لعرض المستأجرين والعقود وبيانات السداد.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "كشف المستأجر / Tenant Statement",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "وصل الإيجار / Receipt",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد الإيجار / Contract",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مسودة العقد / Draft Contract",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تسجيل إيجار للوحدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "دليل الوحدات المحمي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "كل وحدة بملف مستقل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "بحث بالوحدة أو المستأجر أو رقم العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مثال: 12 أو رقم العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "ملفات مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "{count} بلا بيانات تفصيلية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مسددة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "للفترة المختارة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستحقة/جزئية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تحتاج تحصيل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تحتاج مراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "ربط أو اعتماد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عرض {count} من {total} وحدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عرض كل بيانات الوحدة {value}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إظهار الرقم المدني للوحدة {value}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد {value}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد ملفات وحدات مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "اربط عقدًا أو بيانات مستأجر لتظهر هنا.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد وحدات مطابقة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "جرّب رقم وحدة أو اسم مستأجر أو رقم عقد مختلف.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستأجر غير مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد غير مربوط",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الهاتف / Phone",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الجنسية / Nationality",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المحاسب / Accountant",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مرجع الصفحة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "العقود المحمية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تُعرض العقود المرتبطة هنا من الذاكرة الآمنة ولا تُنسخ إلى التخزين المحلي.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد بدون رقم",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستأجر غير محدد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "وحدة غير محددة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيجار غير محدد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد جديد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الإيصال",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "فتح الوصل / Open receipt",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج مراجعة الوصل / Receipt review required",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج تصحيح التاريخ / Date review required",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "بانتظار الاعتماد / Pending approval",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير مؤرخ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تحصيلات العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مصروفات العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الفئة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد مصروفات مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المصروفات التي تسجّل باسم العقار ستظهر هنا وفي كشف الإيجار.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد عمليات تحصيل مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد عقود محمية مرتبطة بهذا العقار حالياً.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إبرام عقد من هنا يربطه بالعقار تلقائياً.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "جاري قراءة سجل الشركاء من السحابة…",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تعذر تحميل الحصص. حدّث الصفحة وحاول مرة أخرى.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "معاينة التوزيع الجديد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد مبالغ جديدة للتوزيع.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "اختياري للعقارات المشتركة وعقارات الورثة.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إعداد الشركاء والنسب",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إضافة مالك أو وارث",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "حفظ وتفعيل الحصص",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيقاف التوزيع الجديد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تعديل الحصص متاح للمدير العام.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيرادات محصلة مسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مصروفات مسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الصافي النقدي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "التوزيع تراكمي من السجلات المتاحة للعقار. تُوزّع الفروق منذ آخر توزيع فقط؛ تغيير الحصص لا يغيّر التوزيعات السابقة. أي نقص في سجلات المصروفات ينعكس على الصافي.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "توزيع الأرباح غير متاح لهذا الملف المحمي حتى تتوفر مصادر المصروفات الكاملة؛ لم تُفترض مصروفات صفرية.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تسجيل توزيع المبالغ الجديدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "كشف حساب كل شريك",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المبلغ المصروف (د.ك)",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مرجع التحويل أو السند",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تسجيل صرف للشريك",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "السجل محفوظ في مساحة العمل السحابية.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مالك / وارث",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الحصة ٪",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إزالة من القائمة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تعذرت قراءة الحصص من السحابة. أعد فتح هذا التبويب للمحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "سجل التوزيعات والتعديلات — آخر ٥٠ من ({count})",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير مفعّل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مفعّل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "موقّع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مسدد",
       "category": "visible_ui",
       "files": [
         "v202-property-os.js"

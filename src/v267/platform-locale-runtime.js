@@ -11,8 +11,8 @@ const EXTRA_EN=Object.freeze({
 const SHELL_ROOTS='#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,.aq-unified-dashboard,.aq-unified-page-head,#aqUnifiedMore';
 const STATIC_TAGS=new Set(['BUTTON','LABEL','OPTION','LEGEND','SUMMARY','TH','H1','H2','H3','H4','H5','H6']);
 const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','TH','TD']);
-const PROPERTY_UI_ROOTS='.v202-workspace-head,.v202-actions,.v202-tabs,.v202-overview-grid,.v202-property-kpis,.aq267-property-summary';
-const PROPERTY_UI_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','DT','DD']);
+const PROPERTY_UI_ROOTS='.v202-workspace-head,.v202-actions,.v202-tabs,.v202-overview-grid,.v202-property-kpis,.aq267-property-summary,.aq-unit-directory,.v202-contract-card,.v202-ledger,.v202-empty,.v202-document-note,.v202-panel-footer,.v267-partners';
+const PROPERTY_UI_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','DT','DD','EM']);
 let observer=null,queued=false,boundKey='';
 const translateLiveText=createLiveTextTranslator(translate);
 const translateMaintenanceResponse=createLiveTextTranslator(source=>formatMaintenanceMetric(source,'response',getLocale()));
@@ -40,8 +40,19 @@ function translate(source){
  if(propertyMoney){const amount=Number(digits(propertyMoney[1]).replace(/[٬,]/g,'').replace('٫','.'));if(Number.isFinite(amount))return new Intl.NumberFormat(locale,{style:'currency',currency:'KWD',minimumFractionDigits:0,maximumFractionDigits:3}).format(amount);}
  const periodParts=source.split(' • '),period=periodParts.length===2?periodParts[1].match(/^(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر) ([\d٠-٩]{4})$/):null;
  if(period){const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];const date=new Date(Date.UTC(Number(digits(period[2])),months.indexOf(period[1]),1));return translate(periodParts[0])+' • '+new Intl.DateTimeFormat(locale,{month:'long',year:'numeric',timeZone:'UTC'}).format(date);}
+ const unitCount=source.match(/^(\d+) بلا بيانات تفصيلية$/);
+ if(unitCount)return t('{count} بلا بيانات تفصيلية').replace('{count}',unitCount[1]);
+ const unitResult=source.match(/^عرض (\d+) من (\d+) وحدة$/);
+ if(unitResult)return t('عرض {count} من {total} وحدة').replace('{count}',unitResult[1]).replace('{total}',unitResult[2]);
+ const shareCount=source.match(/^سجل التوزيعات والتعديلات — آخر ٥٠ من \((\d+)\)$/);
+ if(shareCount)return t('سجل التوزيعات والتعديلات — آخر ٥٠ من ({count})').replace('{count}',shareCount[1]);
+ for(const prefix of ['عرض كل بيانات الوحدة ','إظهار الرقم المدني للوحدة ','عقد '])if(source.startsWith(prefix))return t(prefix.trim()+' {value}').replace('{value}',source.slice(prefix.length));
+ const standalonePeriod=source.match(/^(?:([\d٠-٩]{1,2}) )?(يناير|فبراير|مارس|أبريل|مايو|يونيو|يوليو|أغسطس|سبتمبر|أكتوبر|نوفمبر|ديسمبر) ([\d٠-٩]{4})$/);
+ if(standalonePeriod){const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];return new Intl.DateTimeFormat(locale,{...(standalonePeriod[1]?{day:'numeric'}:{}),month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(Number(digits(standalonePeriod[3])),months.indexOf(standalonePeriod[2]),Number(digits(standalonePeriod[1]||'1')))));}
  const propertyLabel='فتح ملف العقار ';
  if(source.startsWith(propertyLabel))return t('فتح ملف العقار')+' '+source.slice(propertyLabel.length);
+ const actualSection=source.match(/^صفحة (.+) الفعلية ضمن صلاحيات الحساب الحالية\.$/);
+ if(actualSection)return t('صفحة مستقلة ضمن صلاحيات الحساب الحالية.');
  const section=source.match(/^إدارة وتشغيل (.+) من صفحة واضحة وموحدة\.$/);
  if(section)return t('إدارة وتشغيل {section} من صفحة واضحة وموحدة.').replace('{section}',t(section[1]));
  return getLocale()==='en'?(EXTRA_EN[source]||source):source;
@@ -55,7 +66,7 @@ function uiTextNode(node){
  if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut,a.skipLinkV103'))return true;
  if(parent.closest('#maintenanceProPage')&&parent.matches('.c.m,#mpResponseV62,#mpCostV62,#mpSlaV62>p,#mpTechV62>p,#mpPreventiveV62>p,#mpPartsV62>p'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
- if(parent.closest(PROPERTY_UI_ROOTS))return PROPERTY_UI_TAGS.has(parent.tagName)||parent.matches('.aq267-photo-empty');
+ if(parent.closest(PROPERTY_UI_ROOTS))return PROPERTY_UI_TAGS.has(parent.tagName)||parent.matches('.aq267-photo-empty,.aq-unit-result-count');
  if(parent.matches('.aq267-property-finance>summary'))return true;
  if(parent.closest('main.w>.p,#modal[role="dialog"],.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
  return false;
@@ -70,7 +81,7 @@ function translateElement(el){
  if(!(el instanceof Element))return;
  if(el.closest('[data-aq-record],[translate="no"]'))return;
  let owners=attributeOwners.get(el);if(!owners){owners={};attributeOwners.set(el,owners);}
- for(const attr of ['placeholder','aria-label','title']){
+ for(const attr of ['placeholder','aria-label','title','data-label']){
   const value=el.getAttribute(attr);if(!value)continue;
   const owner=owners[attr]||(owners[attr]={});
   const localized=translateLiveText(owner,value);if(localized!==value)el.setAttribute(attr,localized);
@@ -80,7 +91,7 @@ function translateTree(root=document.body){
  if(!root)return;applyDirection();
  for(const dialog of document.querySelectorAll('dialog.aq267-dialog,dialog.aq-owner-center-dialog,dialog.aq-exact-assistant')){dialog.lang=getLocale();dialog.dir=direction();}
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while((node=walker.nextNode()))translateTextNode(node);
- const attrs=root.querySelectorAll?.('input[placeholder],textarea[placeholder],[aria-label],[title]')||[];for(const el of attrs)translateElement(el);
+ const attrs=root.querySelectorAll?.('input[placeholder],textarea[placeholder],[aria-label],[title],[data-label]')||[];for(const el of attrs)translateElement(el);
 }
 function mountLanguageControl(){
  const top=document.querySelector('.aq-exact-top');if(!top)return;
@@ -100,7 +111,7 @@ function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queu
 function start(){
  mountAppLoginLocale();
  if(!document.getElementById('aqari-platform-locale-css')){const link=document.createElement('link');link.id='aqari-platform-locale-css';link.rel='stylesheet';link.href='/src/v267/styles/platform-locale.css?release='+RELEASE;document.head.append(link);}
- bind();observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length||r.type==='attributes'||r.type==='characterData'))schedule();});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden','aria-hidden','placeholder','aria-label','title']});
+ bind();observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length||r.type==='attributes'||r.type==='characterData'))schedule();});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden','aria-hidden','placeholder','aria-label','title','data-label']});
  window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready'){boundKey='';setTimeout(schedule,0);}});
  window.AQARI_PLATFORM_LOCALE=Object.freeze({version:'V267-platform-locale-2',get:getLocale,set(value){setLocale(value);window.location.reload();}});
 }

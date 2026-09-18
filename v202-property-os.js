@@ -1645,7 +1645,8 @@
 
   function unitField(label,value,extraClass){
     const shown=value==null||String(value).trim()===''?'غير مسجل':String(value);
-    return '<div class="aq-unit-field '+(extraClass||'')+'"><dt>'+escapeHtml(label)+'</dt><dd>'+escapeHtml(shown)+'</dd></div>';
+    const uiValue=shown==='غير مسجل'||label==='حالة العقد'||['الإيجار','المدفوع','المتبقي','قيد المراجعة','التأمين','العربون','النظافة','بداية العقد','نهاية العقد','تاريخ آخر دفعة'].includes(label);
+    return '<div class="aq-unit-field '+(extraClass||'')+'"><dt>'+escapeHtml(label)+'</dt><dd'+(uiValue?'':' data-aq-record')+'>'+escapeHtml(shown)+'</dd></div>';
   }
 
   function unitMoneyField(label,value){
@@ -1657,7 +1658,7 @@
     const addresses=emailAddresses(raw);
     const shown=raw||'غير مسجل';
     const link=addresses.length?'<a class="aq-unit-email" href="mailto:'+escapeHtml(addresses[0])+'">'+escapeHtml(shown)+'</a>':escapeHtml(shown);
-    return '<div class="aq-unit-field"><dt>البريد الإلكتروني / Email</dt><dd>'+link+'</dd></div>';
+    return '<div class="aq-unit-field"><dt>البريد الإلكتروني / Email</dt><dd'+(raw?' data-aq-record':'')+'>'+link+'</dd></div>';
   }
 
   function unitsPanel(context,periodValue,accessGranted){
@@ -1674,14 +1675,14 @@
       const notes=[record.freeMonth&&'شهر مجاني: '+record.freeMonth,record.evictionNotice&&'إنذار إخلاء: '+record.evictionNotice,record.notes].filter(Boolean).join(' • ');
       const hasRentReceipt=tenantLedgerEntries(context,record,period).some(function(entry){return Boolean(resolvedReceiptForRecord(context,record,entry,period))});
       return '<article class="aq-unit-card '+unitStatusTone(record.paymentStatus)+'" data-v202-unit-index="'+index+'" aria-labelledby="v202UnitTitle'+index+'">'+
-        '<header class="aq-unit-card-head"><span class="aq-unit-number">'+escapeHtml(record.unit)+'</span><div class="aq-unit-title"><strong id="v202UnitTitle'+index+'">'+escapeHtml(record.tenant||'مستأجر غير مسجل')+'</strong><small>'+escapeHtml(record.contractNo?'عقد '+record.contractNo:'عقد غير مربوط')+'</small></div><span class="aq-unit-status '+unitStatusTone(record.paymentStatus)+'">'+escapeHtml(record.paymentStatus)+'</span></header>'+ 
+        '<header class="aq-unit-card-head"><span class="aq-unit-number" data-aq-record>'+escapeHtml(record.unit)+'</span><div class="aq-unit-title"><strong id="v202UnitTitle'+index+'"'+(record.tenant?' data-aq-record':'')+'>'+escapeHtml(record.tenant||'مستأجر غير مسجل')+'</strong><small>'+escapeHtml(record.contractNo?'عقد '+record.contractNo:'عقد غير مربوط')+'</small></div><span class="aq-unit-status '+unitStatusTone(record.paymentStatus)+'">'+escapeHtml(record.paymentStatus)+'</span></header>'+ 
         '<dl class="aq-unit-summary">'+unitMoneyField('الإيجار',record.rent)+unitMoneyField('المدفوع',record.paid)+unitMoneyField('المتبقي',record.balance)+'</dl>'+ 
         '<details class="aq-unit-details"><summary>عرض كل بيانات الوحدة '+escapeHtml(record.unit)+'</summary><dl class="aq-unit-details-body">'+ 
           unitField('المستأجر',record.tenant)+unitField('رقم العقد',record.contractNo)+unitField('حالة العقد',record.contractStatus)+unitField('بداية العقد',record.startDate?localDate(record.startDate):'غير مسجل')+unitField('نهاية العقد',record.endDate?localDate(record.endDate):'غير مسجل')+unitMoneyField('قيد المراجعة',record.pending)+
           unitField('الوصولات',record.receipts.join('، '))+unitField('تاريخ آخر دفعة',record.paidAt?localDate(record.paidAt):'غير مسجل')+unitField('طريقة السداد',record.methods.join('، '))+
           unitField('الهاتف / Phone',record.phone)+unitField('الجنسية / Nationality',record.nationality)+unitEmailField(record.email)+unitField('المحاسب / Accountant',record.accountant)+
           unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+unitField('ملاحظات',notes)+
-          '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked">'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
+          '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked" data-aq-record>'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
         '</dl></details>'+ 
         '<footer class="aq-unit-actions"><button type="button" class="is-primary" data-v202-unit-statement="'+index+'">كشف المستأجر / Tenant Statement</button>'+(record.hasContract?'<button type="button" data-v202-unit-contract="'+index+'">'+(record.verified?'عقد الإيجار / Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(hasRentReceipt?'<button type="button" data-v202-unit-receipt="'+index+'">وصل الإيجار / Receipt</button>':'')+(canWrite&&record.billable&&record.collectible?'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>':'')+'</footer>'+ 
       '</article>';
@@ -1788,7 +1789,7 @@
     return '<div class="v202-card-list">'+context.propertyContracts.map(function(contract){
       const visibleStatus=contractDisplayStatus(contract,directoryRecordFor(directory,contract));
       const visibleClass=visibleStatus==='يحتاج تحقق'?'draft':(contract.status||'draft');
-      return '<article class="v202-contract-card"><div class="v202-contract-icon">'+icon('contract')+'</div><div><span>'+escapeHtml(contract.contract_no||'عقد بدون رقم')+'</span><strong>'+escapeHtml(contract.tenant||'مستأجر غير محدد')+'</strong><small>'+escapeHtml(contract.unit||'وحدة غير محددة')+' • '+escapeHtml(contract.rent||'إيجار غير محدد')+'</small></div><em class="is-'+escapeHtml(visibleClass)+'">'+escapeHtml(visibleStatus)+'</em></article>';
+      return '<article class="v202-contract-card"><div class="v202-contract-icon">'+icon('contract')+'</div><div><span'+(contract.contract_no?' data-aq-record':'')+'>'+escapeHtml(contract.contract_no||'عقد بدون رقم')+'</span><strong'+(contract.tenant?' data-aq-record':'')+'>'+escapeHtml(contract.tenant||'مستأجر غير محدد')+'</strong><small data-aq-record>'+escapeHtml(contract.unit||'وحدة غير محددة')+' • '+escapeHtml(contract.rent||'إيجار غير محدد')+'</small></div><em class="is-'+escapeHtml(visibleClass)+'">'+escapeHtml(visibleStatus)+'</em></article>';
     }).join('')+'</div>'+(protectedOnly?'<div class="v202-document-note"><strong>العقود المحمية</strong><p>تُعرض العقود المرتبطة هنا من الذاكرة الآمنة ولا تُنسخ إلى التخزين المحلي.</p></div>':'<div class="v202-panel-footer"><button type="button" data-v202-action="contract">عقد جديد '+icon('arrow')+'</button></div>');
   }
 
@@ -1811,14 +1812,14 @@
       const reviewCopy=collectionFinanciallySettled(row)?(validPaymentDate?'يحتاج مراجعة الوصل / Receipt review required':'يحتاج تصحيح التاريخ / Date review required'):'بانتظار الاعتماد / Pending approval';
       const action=resolvedReceipt?'<button type="button" data-v202-receipt-index="'+entry.index+'">فتح الوصل / Open receipt</button>':'<span class="v202-status">'+reviewCopy+'</span>';
       const shownDate=validPaymentDate?localDate(row?.[5]):escapeHtml(row?.[5]||'غير مؤرخ');
-      return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(statusLabel(row?.[3]))+'</span></td><td data-label="التاريخ">'+shownDate+'</td><td data-label="إجراء">'+action+'</td></tr>';
+      return '<tr><td data-label="الإيصال">'+escapeHtml(row?.[0]||'—')+'</td><td data-label="المستأجر">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ"><span>'+escapeHtml(row?.[2]||'—')+'</span></td><td data-label="الحالة"><span class="v202-status">'+escapeHtml(statusLabel(row?.[3]))+'</span></td><td data-label="التاريخ"><span>'+shownDate+'</span></td><td data-label="إجراء">'+action+'</td></tr>';
     }).join('')+'</tbody></table></div>'+(canWrite?'<div class="v202-panel-footer"><button type="button" data-v202-action="payment">تسجيل إيجار '+icon('arrow')+'</button></div>':'');
   }
 
   function expensesPanel(context){
     if(!context.expenses.length)return emptyState('لا توجد مصروفات مرتبطة','المصروفات التي تسجّل باسم العقار ستظهر هنا وفي كشف الإيجار.','','');
     return '<div class="v202-ledger" role="region" aria-label="مصروفات العقار"><table><thead><tr><th>الفئة</th><th>المبلغ</th><th>المورد</th></tr></thead><tbody>'+context.expenses.map(function(row){
-      return '<tr><td data-label="الفئة">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ">'+escapeHtml(row?.[2]||'—')+'</td><td data-label="المورد">'+escapeHtml(row?.[3]||'—')+'</td></tr>';
+      return '<tr><td data-label="الفئة">'+escapeHtml(row?.[1]||'—')+'</td><td data-label="المبلغ"><span>'+escapeHtml(row?.[2]||'—')+'</span></td><td data-label="المورد">'+escapeHtml(row?.[3]||'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
   }
 
@@ -1897,7 +1898,7 @@
       if(state.enabled&&completeBasis){
         try{
           const draft=E.transition(state,{type:'distribution',basis},scope.userId,new Date().toISOString(),'preview');
-          preview='<details open><summary>معاينة التوزيع الجديد</summary>'+draft.events.at(-1).rows.map(r=>'<article class="v267-share-event"><b>'+escape(r.name)+'</b><p>إيرادات: '+cash(r.income)+' · مصروفات: '+cash(r.expenses)+' · صافي: '+cash(r.net)+'</p></article>').join('')+'</details>';
+          preview='<details open><summary>معاينة التوزيع الجديد</summary>'+draft.events.at(-1).rows.map(r=>'<article class="v267-share-event"><b data-aq-record>'+escape(r.name)+'</b><p>إيرادات: '+cash(r.income)+' · مصروفات: '+cash(r.expenses)+' · صافي: '+cash(r.net)+'</p></article>').join('')+'</details>';
         }catch(_){preview='<p>لا توجد مبالغ جديدة للتوزيع.</p>'}
       }
       panel.innerHTML='<section class="v267-partners"><header><div><p>AQARI V267</p><h3>الشركاء والحصص</h3><p>اختياري للعقارات المشتركة وعقارات الورثة.</p></div><span>'+ (state.enabled?'مفعّل':'غير مفعّل')+'</span></header>'+
@@ -1907,7 +1908,7 @@
       '<p>التوزيع تراكمي من السجلات المتاحة للعقار. تُوزّع الفروق منذ آخر توزيع فقط؛ تغيير الحصص لا يغيّر التوزيعات السابقة. أي نقص في سجلات المصروفات ينعكس على الصافي.</p>'+
       preview+(!completeBasis?'<p role="status">توزيع الأرباح غير متاح لهذا الملف المحمي حتى تتوفر مصادر المصروفات الكاملة؛ لم تُفترض مصروفات صفرية.</p>':'')+
       (manager&&state.enabled&&completeBasis?'<button type="button" data-partners-distribute>تسجيل توزيع المبالغ الجديدة</button>':'')+
-      '<h3>كشف حساب كل شريك</h3><div class="v267-partner-statements">'+Array.from(historical.values()).map(r=>'<details><summary>'+escape(r.name)+' · '+cash(E.balance(state,r.id))+' مستحق</summary><p>'+escape(r.role)+' · '+(r.bps/100)+'٪ '+(state.owners.some(o=>o.id===r.id)?'':'(شريك سابق)')+'</p>'+
+      '<h3>كشف حساب كل شريك</h3><div class="v267-partner-statements">'+Array.from(historical.values()).map(r=>'<details><summary><span data-aq-record>'+escape(r.name)+'</span> · '+cash(E.balance(state,r.id))+' مستحق</summary><p>'+escape(r.role)+' · '+(r.bps/100)+'٪ '+(state.owners.some(o=>o.id===r.id)?'':'(شريك سابق)')+'</p>'+
         state.events.filter(e=>e.type==='distribution'&&e.rows.some(row=>row.id===r.id)||e.type==='payment'&&e.partnerId===r.id).map(e=>{
           const row=e.rows?.find(x=>x.id===r.id);
           return '<article class="v267-share-event"><time>'+escape(localDate(e.at))+'</time><p>'+(row?'إيرادات: '+cash(row.income)+' · مصروفات: '+cash(row.expenses)+' · صافي: '+cash(row.net)+'<br>إيجارات غير محصلة وقت التوزيع: '+cash(row.receivable):'صرف: '+cash(e.amount)+' · '+escape(e.reference))+'</p></article>';
