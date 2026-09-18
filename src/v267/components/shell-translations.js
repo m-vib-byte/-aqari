@@ -1,6 +1,14 @@
 // Static shell messages only; record names and assistant content are excluded.
 export const SHELL_MESSAGES = {
 
+  "العقد والتحصيل والكشف": {
+    "en": "Contract, collections and statement",
+    "hi": "अनुबंध, वसूली और विवरण",
+    "ur": "معاہدہ، وصولیاں اور گوشوارہ",
+    "ml": "കരാർ, പിരിവുകൾ, സ്റ്റേറ്റ്മെന്റ്"
+  }
+,
+
   "جاري الحفظ والتحقق من السحابة…": {
     "en": "Saving and verifying with cloud storage…",
     "hi": "सहेज रहे हैं और क्लाउड से सत्यापित कर रहे हैं…",

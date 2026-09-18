@@ -28,6 +28,8 @@ function scopedStorageKey(scope){return 'aqari:v267:locale:'+JSON.stringify([sco
 function translate(source){
  if(!source)return source;
  const standard=t(source);if(standard!==source)return standard;
+ const propertyLabel='فتح ملف العقار ';
+ if(source.startsWith(propertyLabel))return t('فتح ملف العقار')+' '+source.slice(propertyLabel.length);
  const section=source.match(/^إدارة وتشغيل (.+) من صفحة واضحة وموحدة\.$/);
  if(section)return t('إدارة وتشغيل {section} من صفحة واضحة وموحدة.').replace('{section}',t(section[1]));
  return getLocale()==='en'?(EXTRA_EN[source]||source):source;

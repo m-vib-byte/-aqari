@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 160,
-  "newCatalogEntries": 69,
+  "visibleUnique": 161,
+  "newCatalogEntries": 70,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -1209,6 +1209,14 @@
         "v267-rental-records.js"
       ],
       "evidence": "Observed while saving the existing test-property address and reading it back after reload."
+    },
+    {
+      "source": "العقد والتحصيل والكشف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ],
+      "evidence": "Title of the existing property-record launcher. Property name in its aria-label remains a record value."
     }
   ]
 }

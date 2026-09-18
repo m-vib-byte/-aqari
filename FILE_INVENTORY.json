@@ -3672,8 +3672,8 @@
     },
     {
       "path": "v201-experience.js",
-      "sha256": "b4c5ac2f0d4e00510046898f17cd4238f10d2450e66b2570bce0e68002eb0f86",
-      "size": 36145
+      "sha256": "447db02713788611eca2908e3ecf190ae08344cb43403c728c60ebd96857aef0",
+      "size": 36115
     },
     {
       "path": "v202-prestige.css",
@@ -3847,23 +3847,28 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 10795,
-      "sha256": "ba7a155c6fdde2845415fa17cccd196512af227e71793b4e97e924463f3d8fbf"
+      "size": 10985,
+      "sha256": "a4f5075b0f332260e7b4ee1bd2fbf8683bf63d399aaafbfed7d821cf50931198"
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 22639,
-      "sha256": "5f9845b51c5ed6a087898b727651efc53c9b894e2425a31ec34abfff1f6e1655"
+      "size": 22981,
+      "sha256": "5a4b4e95827b6dd9104e3132f9e6ac60c15b396161154aa4ef962edde0e5f9af"
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 34212,
-      "sha256": "b7b33881a3eb6602c75e1a4347d8d834c6188278fad13284037b07cc34b8dacf"
+      "size": 34497,
+      "sha256": "bd480ccb53f585d7f71b7084587cdf2ed008b8a5f8b9d492c38afa1f8111059c"
     },
     {
       "path": "tests/v267-legacy-maintenance-locale.test.mjs",
       "size": 1414,
       "sha256": "592d84828214de41326274fb2a4f170067ce024d7c792835607492f5b3d69993"
+    },
+    {
+      "path": "tests/v267-property-action-locale.test.cjs",
+      "sha256": "8b864e834a7c2ab5a5dd452a390dfa57871a66266559e7ded10282bef1b3fb76",
+      "size": 1668
     }
   ],
   "version": "V198"
