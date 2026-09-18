@@ -37,18 +37,19 @@ function evidencePresent(value) {
   return true;
 }
 
-function canonicalEvidenceSet(value, requiredUrl = null) {
+function canonicalEvidenceSet(value, requiredUrls = []) {
   if (!evidencePresent(value)) return false;
-  let hasRequired = requiredUrl === null;
+  const required = new Set(Array.isArray(requiredUrls) ? requiredUrls : [requiredUrls]);
+  const seenRequired = new Set();
   for (const item of value) {
     const normalized = text(item);
-    if (requiredUrl !== null && normalized === requiredUrl) {
-      hasRequired = true;
+    if (required.has(normalized)) {
+      seenRequired.add(normalized);
       continue;
     }
     if (!canonicalRepositoryEvidenceRef(item)) return false;
   }
-  return hasRequired;
+  return seenRequired.size === required.size;
 }
 
 function requireSameSha(errors, value, candidateSha, label) {
@@ -104,7 +105,7 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
       errors.push(`CI workflow ${name} evidence is required`);
     } else if (positiveInt(row.runId)) {
       const expectedRunUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}`;
-      if (!canonicalEvidenceSet(row.evidence, expectedRunUrl)) {
+      if (!canonicalEvidenceSet(row.evidence, [expectedRunUrl])) {
         errors.push(`CI workflow ${name} evidence must contain only the exact GitHub Actions run URL for runId ${row.runId} plus canonical repository evidence paths`);
       }
     }
@@ -116,6 +117,12 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
       if (!job || typeof job !== 'object' || Array.isArray(job)) {
         errors.push(`CI workflow ${name} contains an invalid job record`);
         continue;
+      }
+      requireSameSha(errors, job.commitSha, candidateSha, `CI workflow ${name} job`);
+      if (!positiveInt(job.runId)) {
+        errors.push(`CI workflow ${name} job runId must be a positive integer`);
+      } else if (positiveInt(row.runId) && job.runId !== row.runId) {
+        errors.push(`CI workflow ${name} job runId ${job.runId} does not match parent workflow runId ${row.runId}`);
       }
       if (!positiveInt(job.jobId)) {
         errors.push(`CI workflow ${name} jobId must be a positive integer`);
@@ -133,10 +140,11 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
       if (job.conclusion !== 'success') errors.push(`CI workflow ${name} job conclusion must be exactly success`);
       if (!evidencePresent(job.evidence)) {
         errors.push(`CI workflow ${name} job evidence is required`);
-      } else if (positiveInt(job.jobId)) {
-        const expectedJobUrl = `${REPOSITORY_API_URL}/actions/jobs/${job.jobId}`;
-        if (!canonicalEvidenceSet(job.evidence, expectedJobUrl)) {
-          errors.push(`CI workflow ${name} job evidence must contain only the exact GitHub Actions job URL for jobId ${job.jobId} plus canonical repository evidence paths`);
+      } else if (positiveInt(job.jobId) && positiveInt(row.runId)) {
+        const expectedJobApiUrl = `${REPOSITORY_API_URL}/actions/jobs/${job.jobId}`;
+        const expectedJobWebUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}/job/${job.jobId}`;
+        if (!canonicalEvidenceSet(job.evidence, [expectedJobApiUrl, expectedJobWebUrl])) {
+          errors.push(`CI workflow ${name} job evidence must contain the exact GitHub Actions job URL for jobId ${job.jobId}, its parent run ${row.runId}, plus only canonical repository evidence paths`);
         }
       }
     }
