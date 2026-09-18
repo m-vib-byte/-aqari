@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 142,
-  "newCatalogEntries": 52,
+  "visibleUnique": 144,
+  "newCatalogEntries": 54,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -1073,6 +1073,22 @@
         "src/v267/components/shell-translations.js"
       ],
       "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "إدارة وتشغيل {section} من صفحة واضحة وموحدة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "evidence": "Observed reports page heading and skip link"
+    },
+    {
+      "source": "تجاوز إلى المحتوى",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "evidence": "Observed reports page heading and skip link"
     }
   ]
 }

@@ -28,6 +28,8 @@ function scopedStorageKey(scope){return 'aqari:v267:locale:'+JSON.stringify([sco
 function translate(source){
  if(!source)return source;
  const standard=t(source);if(standard!==source)return standard;
+ const section=source.match(/^إدارة وتشغيل (.+) من صفحة واضحة وموحدة\.$/);
+ if(section)return t('إدارة وتشغيل {section} من صفحة واضحة وموحدة.').replace('{section}',t(section[1]));
  return getLocale()==='en'?(EXTRA_EN[source]||source):source;
 }
 function applyDirection(){
@@ -36,7 +38,7 @@ function applyDirection(){
 }
 function uiTextNode(node){
  const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record],[translate="no"]'))return false;
- if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut'))return true;
+ if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut,a.skipLinkV103'))return true;
  if(parent.closest('#maintenanceProPage')&&parent.matches('.c.m,#mpResponseV62,#mpCostV62,#mpSlaV62>p,#mpTechV62>p,#mpPreventiveV62>p,#mpPartsV62>p'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
  if(parent.closest('main.w>.p,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
