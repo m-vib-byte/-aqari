@@ -20,6 +20,7 @@ RESTORE_FORMAT = "AQARI-V267-RESTORE-EQUIVALENCE-1"
 ROLLBACK_FORMAT = "AQARI-V267-ROLLBACK-REHEARSAL-1"
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+_REHEARSAL_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
 _DEPLOYMENT_ID_RE = re.compile(r"^dpl_[A-Za-z0-9]+$")
 REQUIRED_FLOWS = ("login", "session", "save", "reopen", "permissions", "contracts", "printing")
@@ -47,6 +48,12 @@ def _sha(value: object, field: str) -> str:
 def _hex64(value: object, field: str) -> str:
     if not isinstance(value, str) or not _HEX64_RE.fullmatch(value):
         raise StageCEvidenceError(f"{field} must be a lowercase SHA-256 digest")
+    return value
+
+
+def _rehearsal_id(value: object, field: str) -> str:
+    if not isinstance(value, str) or not _REHEARSAL_ID_RE.fullmatch(value):
+        raise StageCEvidenceError(f"{field} must be a lowercase 32-character hexadecimal rehearsal id")
     return value
 
 
@@ -170,6 +177,7 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
     rollback_sha = _sha(report.get("rollback_application_sha"), "rollback application SHA")
     if rollback_sha == candidate_sha:
         raise StageCEvidenceError("rollback application SHA must differ from the candidate SHA")
+    rehearsal_id = _rehearsal_id(report.get("rehearsal_id"), "rollback rehearsal_id")
     source = _project_ref(report.get("database_project_ref"), "rollback database_project_ref")
     if source != backup["project_ref"]:
         raise StageCEvidenceError("rollback rehearsal did not use the backup source database project")
@@ -197,6 +205,7 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
         "verified": True,
         "candidate_sha": candidate_sha,
         "rollback_application_sha": rollback_sha,
+        "rehearsal_id": rehearsal_id,
         "database_project_ref": source,
         "database_rollback_performed": False,
         "rehearsal_window_seconds": _non_negative_int(report.get("rehearsal_window_seconds"), "rollback rehearsal_window_seconds"),
@@ -327,6 +336,7 @@ def create_stage_c_evidence_bundle(
             "manifest_sha256": backup_storage["manifest_sha256"],
         },
         "rollback": {
+            "rehearsal_id": rollback["rehearsal_id"],
             "checkpoint_record_count": rollback["checkpoint_record_count"],
             "new_record_count": rollback["new_record_count"],
             "after_record_count": rollback["after_record_count"],
