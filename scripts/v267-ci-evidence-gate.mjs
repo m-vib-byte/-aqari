@@ -19,6 +19,13 @@ function positiveInt(value) {
   return Number.isInteger(value) && value > 0;
 }
 
+function canonicalRepositoryEvidenceRef(value) {
+  if (typeof value !== 'string' || !value || value.trim() !== value) return false;
+  if (!value.startsWith('evidence/') || value.startsWith('/') || value.includes('://') || value.includes('\\') || value.includes('?') || value.includes('#')) return false;
+  const segments = value.split('/');
+  return !segments.some((segment) => !segment || segment === '.' || segment === '..');
+}
+
 function evidencePresent(value) {
   if (!Array.isArray(value) || value.length === 0) return false;
   const seen = new Set();
@@ -30,8 +37,18 @@ function evidencePresent(value) {
   return true;
 }
 
-function evidenceIncludes(value, expected) {
-  return Array.isArray(value) && value.some((item) => text(item) === expected);
+function canonicalEvidenceSet(value, requiredUrl = null) {
+  if (!evidencePresent(value)) return false;
+  let hasRequired = requiredUrl === null;
+  for (const item of value) {
+    const normalized = text(item);
+    if (requiredUrl !== null && normalized === requiredUrl) {
+      hasRequired = true;
+      continue;
+    }
+    if (!canonicalRepositoryEvidenceRef(item)) return false;
+  }
+  return hasRequired;
 }
 
 function requireSameSha(errors, value, candidateSha, label) {
@@ -50,7 +67,7 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
   const value = ci && typeof ci === 'object' && !Array.isArray(ci) ? ci : {};
   if (value.allRequiredPassed !== true) errors.push('all required CI checks must pass');
   requireSameSha(errors, value.commitSha, candidateSha, 'CI');
-  if (!evidencePresent(value.evidence)) errors.push('same-SHA CI evidence is required');
+  if (!canonicalEvidenceSet(value.evidence)) errors.push('same-SHA CI evidence must use unique canonical repository evidence paths');
 
   const workflows = Array.isArray(value.workflows) ? value.workflows : [];
   if (workflows.length !== REQUIRED_CI_WORKFLOWS.length) {
@@ -87,8 +104,8 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
       errors.push(`CI workflow ${name} evidence is required`);
     } else if (positiveInt(row.runId)) {
       const expectedRunUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}`;
-      if (!evidenceIncludes(row.evidence, expectedRunUrl)) {
-        errors.push(`CI workflow ${name} evidence must include the exact GitHub Actions run URL for runId ${row.runId}`);
+      if (!canonicalEvidenceSet(row.evidence, expectedRunUrl)) {
+        errors.push(`CI workflow ${name} evidence must contain only the exact GitHub Actions run URL for runId ${row.runId} plus canonical repository evidence paths`);
       }
     }
 
@@ -118,8 +135,8 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
         errors.push(`CI workflow ${name} job evidence is required`);
       } else if (positiveInt(job.jobId)) {
         const expectedJobUrl = `${REPOSITORY_API_URL}/actions/jobs/${job.jobId}`;
-        if (!evidenceIncludes(job.evidence, expectedJobUrl)) {
-          errors.push(`CI workflow ${name} job evidence must include the exact GitHub Actions job URL for jobId ${job.jobId}`);
+        if (!canonicalEvidenceSet(job.evidence, expectedJobUrl)) {
+          errors.push(`CI workflow ${name} job evidence must contain only the exact GitHub Actions job URL for jobId ${job.jobId} plus canonical repository evidence paths`);
         }
       }
     }

@@ -101,3 +101,33 @@ test('rejects nonempty CI evidence that does not identify the declared run and j
   assert.match(result.errors.join('\n'), /exact GitHub Actions run URL/);
   assert.match(result.errors.join('\n'), /exact GitHub Actions job URL/);
 });
+
+test('rejects unsafe or unrelated CI evidence references even when the required run/job URL is present', () => {
+  const badRefs = [
+    'https://example.com/fake-ci.json',
+    '../evidence/ci/run.json',
+    'evidence/../ci/run.json',
+    '/evidence/ci/run.json',
+    'evidence/ci\\run.json',
+    'evidence/ci/run.json?raw=1',
+    ' evidence/ci/run.json',
+    'evidence//ci/run.json',
+  ];
+  for (const badRef of badRefs) {
+    const ci = fullCi();
+    ci.evidence = [badRef];
+    ci.workflows[0].evidence.push(badRef);
+    ci.workflows[1].jobs[0].evidence.push(badRef);
+    const result = validateSameShaCiEvidence(ci, SHA);
+    assert.equal(result.ok, false, badRef);
+    assert.match(result.errors.join('\n'), /canonical repository evidence paths|contain only the exact GitHub Actions/);
+  }
+
+  const unrelatedRun = fullCi();
+  unrelatedRun.workflows[0].evidence.push('https://github.com/m-vib-byte/-aqari/actions/runs/999999');
+  assert.equal(validateSameShaCiEvidence(unrelatedRun, SHA).ok, false);
+
+  const unrelatedJob = fullCi();
+  unrelatedJob.workflows[0].jobs[0].evidence.push('https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/999999');
+  assert.equal(validateSameShaCiEvidence(unrelatedJob, SHA).ok, false);
+});
