@@ -40,6 +40,12 @@ def _parse_utc(value: object, field: str) -> datetime:
     return parsed
 
 
+def _require_sha(value: object, field: str) -> str:
+    if not isinstance(value, str) or not _SHA_RE.fullmatch(value):
+        raise RollbackRehearsalError(f"{field} must be a lowercase 40-character git SHA")
+    return value
+
+
 def _canonical_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
@@ -54,6 +60,7 @@ def validate_continuity_manifest(payload: object, label: str) -> dict:
     project_ref = payload.get("project_ref")
     if not isinstance(project_ref, str) or not _PROJECT_REF_RE.fullmatch(project_ref):
         raise RollbackRehearsalError(f"{label} has invalid project_ref")
+    application_sha = _require_sha(payload.get("application_sha"), f"{label}.application_sha")
     captured_at = payload.get("captured_at")
     _parse_utc(captured_at, f"{label}.captured_at")
     records = payload.get("records")
@@ -96,6 +103,7 @@ def validate_continuity_manifest(payload: object, label: str) -> dict:
     return {
         "format": FORMAT,
         "project_ref": project_ref,
+        "application_sha": application_sha,
         "captured_at": captured_at,
         "record_count": len(normalized_records),
         "records_sha256": actual_digest,
@@ -103,10 +111,17 @@ def validate_continuity_manifest(payload: object, label: str) -> dict:
     }
 
 
-def create_continuity_manifest(*, project_ref: str, captured_at: str, records: list[dict]) -> dict:
+def create_continuity_manifest(
+    *,
+    project_ref: str,
+    application_sha: str,
+    captured_at: str,
+    records: list[dict],
+) -> dict:
     payload = {
         "format": FORMAT,
         "project_ref": project_ref,
+        "application_sha": application_sha,
         "captured_at": captured_at,
         "record_count": len(records),
         "records_sha256": "",
@@ -148,10 +163,8 @@ def verify_rollback_rehearsal(
     database_rollback_performed: bool,
 ) -> dict:
     """Verify a data-preserving application-only rollback rehearsal."""
-    if not isinstance(candidate_sha, str) or not _SHA_RE.fullmatch(candidate_sha):
-        raise RollbackRehearsalError("candidate_sha must be a lowercase 40-character git SHA")
-    if not isinstance(rollback_application_sha, str) or not _SHA_RE.fullmatch(rollback_application_sha):
-        raise RollbackRehearsalError("rollback_application_sha must be a lowercase 40-character git SHA")
+    candidate_sha = _require_sha(candidate_sha, "candidate_sha")
+    rollback_application_sha = _require_sha(rollback_application_sha, "rollback_application_sha")
     if rollback_application_sha == candidate_sha:
         raise RollbackRehearsalError("rollback_application_sha must differ from candidate_sha")
     if database_rollback_performed is not False:
@@ -160,6 +173,15 @@ def verify_rollback_rehearsal(
     checkpoint = read_continuity_manifest(checkpoint_manifest_path, "checkpoint manifest")
     during = read_continuity_manifest(during_manifest_path, "during-window manifest")
     after = read_continuity_manifest(after_manifest_path, "after-rehearsal manifest")
+
+    if checkpoint["application_sha"] != candidate_sha:
+        raise RollbackRehearsalError("checkpoint manifest application_sha must match candidate_sha")
+    if during["application_sha"] != rollback_application_sha:
+        raise RollbackRehearsalError(
+            "during-window manifest application_sha must match rollback_application_sha"
+        )
+    if after["application_sha"] != candidate_sha:
+        raise RollbackRehearsalError("after-rehearsal manifest application_sha must match candidate_sha")
 
     refs = {checkpoint["project_ref"], during["project_ref"], after["project_ref"]}
     if len(refs) != 1:
