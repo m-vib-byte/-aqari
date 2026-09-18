@@ -1,3 +1,4 @@
+import {message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createFinancialRecordBrowser} from '../components/financial-record-browser.js';
@@ -13,7 +14,7 @@ export function openFinalGapCenter(){
  const d=createDialog(translateStatic('السجلات المالية وتواصل المستأجر'));if(!d)return;
  let data=null,pending=false,draftId=crypto.randomUUID(),controls={};
  const action=node('select'),form=node('form'),fields=node('section'),result=node('section'),saveButton=Object.assign(node('button',translateStatic('حفظ والتحقق')),{type:'submit'});
- for(const [value,text]of Object.entries(actions))action.append(option(value,text));action.value='preference';
+ for(const [value,text]of Object.entries(actions))action.append(option(value,translateStatic(text)));action.value='preference';
  const archive=createFinancialRecordBrowser(),accountManager=createCollectionAccountManager(d,{onChanged:async()=>{await load();}}),refresh=Object.assign(node('button',translateStatic('تحديث السجلات المحفوظة')),{type:'button'});
  form.append(field(translateStatic('العملية'),action),fields,saveButton);d.body.append(node('p',translateStatic('اختر السجلات المحفوظة وأدخل تفاصيل العملية. يحتفظ النظام بالسجل المالي وتاريخ التعديلات.')),form,refresh,result,archive.el,accountManager.el);
  const rpc=(a,p={})=>d.session.request(d.session.client.rpc('aqari_final_gap_register',{p_workspace_id:d.session.bound.workspace,p_action:a,p_data:p}));
@@ -25,14 +26,14 @@ export function openFinalGapCenter(){
   if(key==='lease_id'){
    const tenant=action.value==='allocate_credit'?rows('ledger').find(x=>x.id===controls.credit_entry_id?.value)?.tenant_id:controls.tenant_id?.value;
    const leases=rows('leases').filter(x=>tenant&&x.tenant_id===tenant).map(x=>[x.id,x.contract_no]);
-   return action.value==='tenant_entry'?[['','رصيد المستأجر العام دون عقد محدد'],...leases]:leases;
+   return action.value==='tenant_entry'?[['',translateStatic('رصيد المستأجر العام دون عقد محدد')],...leases]:leases;
   }
-  if(key==='credit_entry_id')return rows('ledger').filter(x=>x.direction==='credit').map(x=>[x.id,`${rows('tenants').find(t=>t.id===x.tenant_id)?.name||'مستأجر'} — ${x.amount} د.ك — ${x.reason}`]);
-  if(key==='payment_id')return rows('payments').map(x=>[x.id,`${x.reference} — ${x.amount} د.ك`]);
+  if(key==='credit_entry_id')return rows('ledger').filter(x=>x.direction==='credit').map(x=>[x.id,visibleMessage("{p0} — {p1} د.ك — {p2}",{p0:(rows('tenants').find(t=>t.id===x.tenant_id)?.name||translateStatic('مستأجر')),p1:(x.amount),p2:(x.reason)})]);
+  if(key==='payment_id')return rows('payments').map(x=>[x.id,visibleMessage("{p0} — {p1} د.ك",{p0:(x.reference),p1:(x.amount)})]);
   if(key==='account_id')return rows('accounts').filter(x=>x.status==='active').map(x=>[x.id,`${x.name} — ${x.masked_reference}`]);
-  if(key==='preferred_channel')return [['email','البريد الإلكتروني'],['whatsapp','واتساب'],['both','واتساب والبريد الإلكتروني'],['sms','رسالة نصية'],['push','إشعار التطبيق'],['phone','اتصال هاتفي فقط'],['none','عدم إرسال رسائل']];
-  if(key==='direction')return action.value==='reserve'?[['hold','حجز احتياطي'],['release','فك احتياطي']]:[['credit','رصيد دائن'],['debit','رصيد مدين']];
-  if(key==='kind')return action.value==='account'?[['bank','حساب بنكي'],['cashbox','صندوق نقدي']]:action.value==='channel'?[['whatsapp','واتساب'],['instagram','إنستغرام'],['facebook','فيسبوك'],['website','موقع إلكتروني']]:[controls.direction?.value==='debit'?['opening_debit','رصيد افتتاحي مدين']:['opening_credit','رصيد افتتاحي دائن'],['adjustment','تسوية موثقة']];
+  if(key==='preferred_channel')return [['email',translateStatic('البريد الإلكتروني')],['whatsapp',translateStatic('واتساب')],['both',translateStatic('واتساب والبريد الإلكتروني')],['sms',translateStatic('رسالة نصية')],['push',translateStatic('إشعار التطبيق')],['phone',translateStatic('اتصال هاتفي فقط')],['none',translateStatic('عدم إرسال رسائل')]];
+  if(key==='direction')return action.value==='reserve'?[['hold',translateStatic('حجز احتياطي')],['release',translateStatic('فك احتياطي')]]:[['credit',translateStatic('رصيد دائن')],['debit',translateStatic('رصيد مدين')]];
+  if(key==='kind')return action.value==='account'?[['bank',translateStatic('حساب بنكي')],['cashbox',translateStatic('صندوق نقدي')]]:action.value==='channel'?[['whatsapp',translateStatic('واتساب')],['instagram',translateStatic('إنستغرام')],['facebook',translateStatic('فيسبوك')],['website',translateStatic('موقع إلكتروني')]]:[controls.direction?.value==='debit'?['opening_debit',translateStatic('رصيد افتتاحي مدين')]:['opening_credit',translateStatic('رصيد افتتاحي دائن')],['adjustment',translateStatic('تسوية موثقة')]];
   return null;
  }
  function populate(key,control){const previous=key==='preferred_channel'?rows('preferences').find(x=>x.tenant_id===controls.tenant_id?.value)?.preferred_channel:control.value,values=choices(key)||[];control.replaceChildren(...values.map(([v,t])=>option(v,t)));control.value=values.some(([v])=>v===previous)?previous:values[0]?.[0]||'';}
@@ -46,7 +47,7 @@ export function openFinalGapCenter(){
    if(key==='year'){control.min='2000';control.max=String(new Date().getFullYear());control.value=control.max;}
    if(['tenant_id','credit_entry_id'].includes(key))control.onchange=()=>{if(controls.lease_id)populate('lease_id',controls.lease_id);if(controls.preferred_channel)populate('preferred_channel',controls.preferred_channel);};
    if(key==='direction'&&action.value==='tenant_entry')control.onchange=()=>populate('kind',controls.kind);
-   fields.append(field(labels[key],control));
+   fields.append(field(translateStatic(labels[key]),control));
   }
  }
  async function load(){
@@ -78,9 +79,9 @@ export function openFinalGapCenter(){
  });};
  function render(){
   const o=data.opening?.totals;
-  result.replaceChildren(node('h3',translateStatic('السجلات المحفوظة')),node('p',`الحسابات: ${data.accounts.length} • حركات الذمم: ${data.ledger.length} • تخصيصات الرصيد: ${data.credit_allocations.length}`),node('h4',translateStatic('الأرصدة الافتتاحية منفصلة عن التحصيل')));
-  result.append(node('p',o?`افتتاحي مدين: ${Number(o.opening_debit).toFixed(3)} د.ك • افتتاحي دائن: ${Number(o.opening_credit).toFixed(3)} د.ك • صافي الافتتاح: ${Number(o.opening_net).toFixed(3)} د.ك • التحصيل الفعلي — جميع الفترات: ${Number(o.actual_collections).toFixed(3)} د.ك`:'تعذر استرجاع فصل الأرصدة الافتتاحية؛ لا تعتمد على إجمالي قبل تحديث السجلات.'));
-  result.append(node('h4',translateStatic('أداء المحصلين — جميع الفترات')));for(const x of data.collector_performance)result.append(node('p',`${x.collector}: ${x.operations} عملية — ${Number(x.amount).toFixed(3)} د.ك`));
+  result.replaceChildren(node('h3',translateStatic('السجلات المحفوظة')),node('p',visibleMessage("الحسابات: {p0} • حركات الذمم: {p1} • تخصيصات الرصيد: {p2}",{p0:(data.accounts.length),p1:(data.ledger.length),p2:(data.credit_allocations.length)})),node('h4',translateStatic('الأرصدة الافتتاحية منفصلة عن التحصيل')));
+  result.append(node('p',o?visibleMessage("افتتاحي مدين: {p0} د.ك • افتتاحي دائن: {p1} د.ك • صافي الافتتاح: {p2} د.ك • التحصيل الفعلي — جميع الفترات: {p3} د.ك",{p0:(Number(o.opening_debit).toFixed(3)),p1:(Number(o.opening_credit).toFixed(3)),p2:(Number(o.opening_net).toFixed(3)),p3:(Number(o.actual_collections).toFixed(3))}):translateStatic('تعذر استرجاع فصل الأرصدة الافتتاحية؛ لا تعتمد على إجمالي قبل تحديث السجلات.')));
+  result.append(node('h4',translateStatic('أداء المحصلين — جميع الفترات')));for(const x of data.collector_performance)result.append(node('p',visibleMessage("{p0}: {p1} عملية — {p2} د.ك",{p0:(x.collector),p1:(x.operations),p2:(Number(x.amount).toFixed(3))})));
  }
  refresh.onclick=()=>d.run(async()=>{await load();d.status.textContent=translateStatic('تم تحديث السجلات من قاعدة البيانات.');});
  build();d.onDispose(()=>{data=null;controls={};fields.replaceChildren();result.replaceChildren();archive.clear();accountManager.clear();});d.run(async()=>{await load();build();});

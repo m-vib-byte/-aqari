@@ -1,11 +1,14 @@
+import {uiError} from '../components/ui-error.js';
+import {safeError} from '../api/session.js';
+import {dateLocale as visibleDateLocale} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
-const states={draft:'مسودة غير محتسبة',approved:'مصروف معتمد',cancelled:'ملغى مع حفظ الأصل'};
-const methods={cash:'نقدي',bank:'تحويل بنكي',cheque:'شيك'};
-const actions={save:'حفظ مسودة',approve:'اعتماد مصروف',cancel:'إلغاء موثق',close_period:'إقفال الفترة','expense.save':'حفظ مسودة','expense.approve':'اعتماد مصروف','expense.cancel':'إلغاء موثق','period.close':'إقفال الفترة'};
+const states={get draft(){return translateStatic('مسودة غير محتسبة');},get approved(){return translateStatic('مصروف معتمد');},get cancelled(){return translateStatic('ملغى مع حفظ الأصل');}};
+const methods={get cash(){return translateStatic('نقدي');},get bank(){return translateStatic('تحويل بنكي');},get cheque(){return translateStatic('شيك');}};
+const actions={get save(){return translateStatic('حفظ مسودة');},get approve(){return translateStatic('اعتماد مصروف');},get cancel(){return translateStatic('إلغاء موثق');},get close_period(){return translateStatic('إقفال الفترة');},get 'expense.save'(){return translateStatic('حفظ مسودة');},get 'expense.approve'(){return translateStatic('اعتماد مصروف');},get 'expense.cancel'(){return translateStatic('إلغاء موثق');},get 'period.close'(){return translateStatic('إقفال الفترة');}};
 const text=(tag,value)=>node(tag,String(value??''));
-const stamp=value=>value?new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'}):'غير مسجل';
+const stamp=value=>value?new Date(value).toLocaleString(visibleDateLocale(),{timeZone:'Asia/Kuwait'}):translateStatic('غير مسجل');
 const digits=value=>String(value??'').replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-1632)).replace(/[۰-۹]/g,d=>String(d.charCodeAt(0)-1776)).replace(/٫/g,'.');
 function money(value){
  const normalized=digits(value).trim();
@@ -34,7 +37,7 @@ export function openFinancialRegister(){
  let page=1;const pageSize=20;
  filters.className='aq267-financial-filters';pager.className='aq267-financial-pager';search.type='search';search.maxLength=200;search.placeholder=translateStatic('المستفيد، البند، رقم السند أو المرجع');
  resetFilters.type='button';results.setAttribute('role','status');results.setAttribute('aria-live','polite');
- for(const [value,label]of Object.entries({all:'كل الحالات',...states})){const option=node('option',label);option.value=value;stateFilter.append(option);}
+ for(const [value,label]of Object.entries({all:translateStatic('كل الحالات'),...states})){const option=node('option',label);option.value=value;stateFilter.append(option);}
  filters.append(field(translateStatic('البحث في مصروفات الفترة'),search),field(translateStatic('تصفية المصروفات حسب العقار'),propertyFilter),field(translateStatic('حالة المصروف'),stateFilter),resetFilters);
  month.type='month';month.value=currentMonth;reload.type=add.type='button';
  const property=node('select'),expenseDate=node('input'),category=node('input'),payee=node('input'),amount=node('input'),method=node('select'),reference=node('input'),description=node('textarea'),document=node('select');
@@ -51,7 +54,7 @@ export function openFinancialRegister(){
  const formValues=()=>({property_id:property.value,expense_date:expenseDate.value,category:category.value.trim(),payee:payee.value.trim(),amount:amount.value.trim(),method:method.value,reference:reference.value.trim(),description:description.value.trim(),document_id:document.value||null});
  const draftSnapshot=()=>JSON.stringify(formValues());
  const dirty=()=>!editor.hidden&&draftSnapshot()!==baseline;
- const allowDiscard=()=>!dirty()||window.confirm('توجد تعديلات غير محفوظة في مسودة المصروف. هل تريد تركها؟');
+ const allowDiscard=()=>!dirty()||window.confirm(translateStatic('توجد تعديلات غير محفوظة في مسودة المصروف. هل تريد تركها؟'));
  function closeEditor(){editing=null;requestId=crypto.randomUUID();editor.reset();editor.hidden=true;baseline='';}
  function clearPrivate(){
   readDenied=true;records=[];properties=[];documents=[];history=[];period=null;summary={};manager=false;canWrite=false;reasons.clear();
@@ -70,7 +73,7 @@ export function openFinancialRegister(){
  function populateDocuments(selected=''){
   document.replaceChildren();const empty=node('option',translateStatic('دون مستند — مسودة فقط'));empty.value='';document.append(empty);
   for(const item of documents.filter(item=>item.property_id===property.value)){
-   const option=node('option',(item.document_no?item.document_no+' — ':'')+(item.title||'مستند العقار'));option.value=item.id;document.append(option);
+   const option=node('option',(item.document_no?item.document_no+' — ':'')+(item.title||translateStatic('مستند العقار')));option.value=item.id;document.append(option);
   }
   if(selected&&!documents.some(item=>item.id===selected&&item.property_id===property.value)){
    const missing=node('option',translateStatic('المستند السابق غير متاح لهذا العقار'));missing.value=selected;document.append(missing);
@@ -106,10 +109,10 @@ export function openFinancialRegister(){
  }
  function inspectHistory(record){
   if(readDenied)return;
-  audit.replaceChildren(text('h3','سجل الإجراء: '+(record.voucher_no||record.category)));
+  audit.replaceChildren(text('h3',translateStatic('سجل الإجراء: ')+(record.voucher_no||record.category)));
   const events=history.filter(event=>event.entity_id===record.id);
   if(!events.length)audit.append(node('p',translateStatic('لا توجد إجراءات معروضة لهذا السجل.')));
-  for(const event of events)audit.append(text('p',(actions[event.action]||event.action)+' • '+(event.actor_name||'غير مدون')+' • '+stamp(event.recorded_at)+(event.reason?' • '+event.reason:'')));
+  for(const event of events)audit.append(text('p',(actions[event.action]||event.action)+' • '+(event.actor_name||translateStatic('غير مدون'))+' • '+stamp(event.recorded_at)+(event.reason?' • '+event.reason:'')));
  }
  function reasonForm(key,label,buttonText,callback){
   const form=node('form'),reason=node('input'),button=node('button',buttonText);reason.required=true;reason.minLength=3;reason.maxLength=500;button.type='submit';
@@ -121,8 +124,8 @@ export function openFinancialRegister(){
  function render(){
   if(readDenied)return;
   add.hidden=!canWrite||Boolean(period?.closed_at);add.disabled=Boolean(pendingWrite);overview.replaceChildren();
-  overview.append(text('p','الفترة: '+currentMonth+' • المصروفات المعتمدة لكل العقارات المتاحة: '+money(summary.approved_expenses??'0')+' د.ك • عددها: '+Number(summary.count||0)));
-  if(period?.closed_at)overview.append(text('p','الفترة مقفلة منذ '+stamp(period.closed_at)+' بواسطة '+(period.closed_by_name||'الإدارة')+' — '+(period.reason||'')+'؛ لا يسمح بإضافة مصروفات أو تعديلها في هذه الفترة.'));
+  overview.append(text('p',translateStatic('الفترة: ')+currentMonth+translateStatic(' • المصروفات المعتمدة لكل العقارات المتاحة: ')+money(summary.approved_expenses??'0')+translateStatic(' د.ك • عددها: ')+Number(summary.count||0)));
+  if(period?.closed_at)overview.append(text('p',translateStatic('الفترة مقفلة منذ ')+stamp(period.closed_at)+translateStatic(' بواسطة ')+(period.closed_by_name||translateStatic('الإدارة'))+' — '+(period.reason||'')+translateStatic('؛ لا يسمح بإضافة مصروفات أو تعديلها في هذه الفترة.')));
   filters.hidden=false;
   const propertyNames=new Map(properties.map(p=>[p.id,p.name])),terms=searchKey(search.value).split(' ').filter(Boolean),filtered=records.filter(record=>{
    if(propertyFilter.value&&record.property_id!==propertyFilter.value||stateFilter.value!=='all'&&record.state!==stateFilter.value)return false;
@@ -130,27 +133,27 @@ export function openFinancialRegister(){
    return terms.every(term=>haystack.includes(term));
   });
   const pages=Math.max(1,Math.ceil(filtered.length/pageSize));page=Math.max(1,Math.min(page,pages));const start=(page-1)*pageSize;
-  results.textContent=filtered.length?'نتائج التصفية: '+filtered.length+' من '+records.length+' • المعروض: '+(start+1)+'–'+Math.min(start+pageSize,filtered.length):'نتائج التصفية: 0 من '+records.length;
+  results.textContent=filtered.length?translateStatic('نتائج التصفية: ')+filtered.length+translateStatic(' من ')+records.length+translateStatic(' • المعروض: ')+(start+1)+'–'+Math.min(start+pageSize,filtered.length):translateStatic('نتائج التصفية: 0 من ')+records.length;
   const previous=node('button',translateStatic('الصفحة السابقة')),next=node('button',translateStatic('الصفحة التالية'));previous.type=next.type='button';previous.disabled=page===1;next.disabled=page===pages;pager.hidden=pages===1;
   previous.onclick=()=>{if(readDenied||page===1)return;page--;audit.replaceChildren();render();};
   next.onclick=()=>{if(readDenied||page>=pages)return;page++;audit.replaceChildren();render();};
-  pager.replaceChildren(previous,node('span',translateStatic('الصفحة ')+page+' من '+pages),next);
+  pager.replaceChildren(previous,node('span',translateStatic('الصفحة ')+page+translateStatic(' من ')+pages),next);
   resetFilters.hidden=!search.value&&!propertyFilter.value&&stateFilter.value==='all';
-  list.replaceChildren();if(!filtered.length)list.append(node('p',records.length?'لا توجد مصروفات تطابق البحث والتصفية.':'لا توجد مصروفات محفوظة في هذه الفترة.'));
+  list.replaceChildren();if(!filtered.length)list.append(node('p',records.length?translateStatic('لا توجد مصروفات تطابق البحث والتصفية.'):translateStatic('لا توجد مصروفات محفوظة في هذه الفترة.')));
   for(const record of filtered.slice(start,start+pageSize)){
-   const card=node('article');card.append(text('h3',(record.voucher_no?record.voucher_no+' — ':'')+record.category),text('p',(properties.find(item=>item.id===record.property_id)?.name||'العقار')+' • '+record.expense_date+' • '+(states[record.state]||record.state)),text('p','المستفيد: '+record.payee+' • المبلغ: '+money(record.amount)+' د.ك'),text('p','طريقة الصرف: '+(methods[record.method]||record.method)+' • المرجع: '+(record.reference||'غير مسجل')),text('p',record.description||''));
+   const card=node('article');card.append(text('h3',(record.voucher_no?record.voucher_no+' — ':'')+record.category),text('p',(properties.find(item=>item.id===record.property_id)?.name||translateStatic('العقار'))+' • '+record.expense_date+' • '+(states[record.state]||record.state)),text('p',translateStatic('المستفيد: ')+record.payee+translateStatic(' • المبلغ: ')+money(record.amount)+translateStatic(' د.ك')),text('p',translateStatic('طريقة الصرف: ')+(methods[record.method]||record.method)+translateStatic(' • المرجع: ')+(record.reference||translateStatic('غير مسجل'))),text('p',record.description||''));
    const attachment=documents.find(item=>item.id===record.document_id&&item.property_id===record.property_id);
-   card.append(text('p','المستند: '+(attachment?((attachment.document_no?attachment.document_no+' — ':'')+(attachment.title||'مستند محفوظ')):record.document_id?'مرتبط بالسجل وغير متاح في القائمة الحالية':'لم يرفق بعد')));
-   if(record.approved_at)card.append(text('p','اعتمده: '+(record.approved_by_name||'غير مدون')+' • '+stamp(record.approved_at)));
-   if(record.cancelled_at)card.append(text('p','ألغاه: '+(record.cancelled_by_name||'غير مدون')+' • '+stamp(record.cancelled_at)+' • السبب: '+(record.cancel_reason||'')));
+   card.append(text('p',translateStatic('المستند: ')+(attachment?((attachment.document_no?attachment.document_no+' — ':'')+(attachment.title||translateStatic('مستند محفوظ'))):record.document_id?translateStatic('مرتبط بالسجل وغير متاح في القائمة الحالية'):translateStatic('لم يرفق بعد'))));
+   if(record.approved_at)card.append(text('p',translateStatic('اعتمده: ')+(record.approved_by_name||translateStatic('غير مدون'))+' • '+stamp(record.approved_at)));
+   if(record.cancelled_at)card.append(text('p',translateStatic('ألغاه: ')+(record.cancelled_by_name||translateStatic('غير مدون'))+' • '+stamp(record.cancelled_at)+translateStatic(' • السبب: ')+(record.cancel_reason||'')));
    if(!period?.closed_at&&!pendingWrite){
     if(canWrite&&record.state==='draft'){const edit=node('button',translateStatic('تعديل مسودة المصروف'));edit.type='button';edit.onclick=()=>openEditor(record);card.append(edit);}
-    if(manager&&record.state==='draft')card.append(reasonForm('approve:'+record.id,'سبب اعتماد المصروف','اعتماد المصروف',async reason=>{
+    if(manager&&record.state==='draft')card.append(reasonForm('approve:'+record.id,translateStatic('سبب اعتماد المصروف'),translateStatic('اعتماد المصروف'),async reason=>{
      if(!attachment)throw Error('يلزم مستند محفوظ ومربوط بالعقار نفسه قبل اعتماد المصروف.');
      if(dirty())throw Error('احفظ تعديلات المسودة أو أغلقها قبل اعتماد المصروف.');
      await write('approve',{id:record.id,revision:record.revision,reason},{id:record.id,revision:record.revision,state:'approved',reason,values:financialValues(record)});
     }));
-    if(manager&&record.state!=='cancelled')card.append(reasonForm('cancel:'+record.id,'سبب إلغاء المصروف','إلغاء المصروف مع حفظ الأصل',async reason=>{
+    if(manager&&record.state!=='cancelled')card.append(reasonForm('cancel:'+record.id,translateStatic('سبب إلغاء المصروف'),translateStatic('إلغاء المصروف مع حفظ الأصل'),async reason=>{
      if(dirty())throw Error('احفظ تعديلات المسودة أو أغلقها قبل إلغاء المصروف.');
      await write('cancel',{id:record.id,revision:record.revision,reason},{id:record.id,revision:record.revision,state:'cancelled',reason,values:financialValues(record)});
     }));
@@ -161,9 +164,9 @@ export function openFinancialRegister(){
   if(manager&&!period?.closed_at){
    closing.append(node('h3',translateStatic('إقفال الفترة المالية')),node('p',translateStatic('الإقفال نهائي لهذه الفترة ولا يتاح التعديل بعدها. يتحقق النظام من انتهاء الشهر وإغلاق مسودات المصروفات والرواتب المستحقة قبل الإقفال.')));
    if(currentMonth>=today().slice(0,7))closing.append(node('p',translateStatic('يصبح إقفال هذه الفترة متاحاً بعد انتهاء الشهر.')));
-   else if(!pendingWrite)closing.append(reasonForm('close:'+currentMonth,'سبب إقفال الفترة','إقفال الشهر نهائياً',async reason=>{
+   else if(!pendingWrite)closing.append(reasonForm('close:'+currentMonth,translateStatic('سبب إقفال الفترة'),translateStatic('إقفال الشهر نهائياً'),async reason=>{
     if(dirty())throw Error('احفظ تعديلات المسودة أو أغلقها قبل إقفال الفترة.');
-    if(!window.confirm('سيُقفل شهر '+currentMonth+' ولن يسمح بتعديل حركاته. هل تؤكد الإقفال؟'))return;
+    if(!window.confirm(translateStatic('سيُقفل شهر ')+currentMonth+translateStatic(' ولن يسمح بتعديل حركاته. هل تؤكد الإقفال؟')))return;
     await write('close_period',{month:currentMonth,reason},{month:currentMonth,reason});
    }));
   }
@@ -183,7 +186,7 @@ export function openFinancialRegister(){
   if(selectedFilter&&!properties.some(p=>p.id===selectedFilter)){const unavailable=node('option',translateStatic('العقار المحدد غير متاح حالياً'));unavailable.value=selectedFilter;propertyFilter.append(unavailable);}propertyFilter.value=selectedFilter;
   if(reconcile&&pendingWrite){
    if(pendingWrite.redacted)d.status.textContent=translateStatic('تم استرجاع السجل بعد التحقق من الصلاحية. راجع العملية السابقة في السجلات المحفوظة قبل إضافة عملية جديدة.');
-   else if(confirmWrite(pendingWrite)){const kept=finishWrite(pendingWrite);d.status.textContent=kept?'تم التحقق من العملية السابقة. احتُفظ بتعديلاتك الجديدة؛ احفظها عندما تنتهي.':'تم التحقق من العملية السابقة بإعادة القراءة من قاعدة البيانات.';}
+   else if(confirmWrite(pendingWrite)){const kept=finishWrite(pendingWrite);d.status.textContent=kept?translateStatic('تم التحقق من العملية السابقة. احتُفظ بتعديلاتك الجديدة؛ احفظها عندما تنتهي.'):translateStatic('تم التحقق من العملية السابقة بإعادة القراءة من قاعدة البيانات.');}
    else d.status.textContent=translateStatic('السجل المحفوظ لا يطابق العملية المطلوبة. احتُفظ بمدخلات المسودة؛ راجع السجل قبل إعادة الحفظ.');
    pendingWrite=null;
   }
@@ -197,10 +200,10 @@ export function openFinancialRegister(){
    if(!confirmWrite(pendingWrite))throw Error('لم تتأكد مطابقة العملية من السجل المحفوظ.');
    const kept=finishWrite(pendingWrite);pendingWrite=null;render();
    if(kept){d.status.textContent=translateStatic('تم التحقق من العملية السابقة. احتُفظ بتعديلاتك الجديدة؛ احفظها عندما تنتهي.');return;}
-   d.status.textContent=action==='save'?'تم حفظ المسودة والتحقق منها بإعادة القراءة.':action==='approve'?'تم اعتماد المصروف والتحقق من قيمته وسجله.':action==='cancel'?'تم الإلغاء والتحقق منه مع حفظ البيانات الأصلية.':'تم إقفال الشهر والتحقق من سجل الإقفال.';
+   d.status.textContent=action==='save'?translateStatic('تم حفظ المسودة والتحقق منها بإعادة القراءة.'):action==='approve'?translateStatic('تم اعتماد المصروف والتحقق من قيمته وسجله.'):action==='cancel'?translateStatic('تم الإلغاء والتحقق منه مع حفظ البيانات الأصلية.'):translateStatic('تم إقفال الشهر والتحقق من سجل الإقفال.');
   }catch(error){
    if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED'){clearPrivate();throw error;}
-   render();throw Error((error?.message||'تعذر تأكيد العملية.')+' حدّث السجل للتحقق قبل إعادة المحاولة.');
+   render();throw uiError(translateStatic(safeError(error))+translateStatic(' حدّث السجل للتحقق قبل إعادة المحاولة.'));
   }
  }
  property.onchange=()=>populateDocuments('');
@@ -208,7 +211,7 @@ export function openFinancialRegister(){
  function filterChanged(){if(readDenied)return;page=1;audit.replaceChildren();render();}
  search.oninput=propertyFilter.onchange=stateFilter.onchange=filterChanged;
  resetFilters.onclick=()=>{if(readDenied)return;search.value='';propertyFilter.value='';stateFilter.value='all';filterChanged();};
- reload.onclick=()=>d.run(async()=>{await load(currentMonth,{reconcile:true});if(!pendingWrite&&!d.status.textContent.includes('العملية السابقة')&&!d.status.textContent.includes('لا يطابق'))d.status.textContent=translateStatic('تم استرجاع المصروفات وحالة الفترة من قاعدة البيانات.');});
+ reload.onclick=()=>d.run(async()=>{const wasPending=Boolean(pendingWrite);await load(currentMonth,{reconcile:true});if(!wasPending&&!pendingWrite)d.status.textContent=translateStatic('تم استرجاع المصروفات وحالة الفترة من قاعدة البيانات.');});
  month.onchange=()=>{
   const requested=month.value;
   if(!validMonth(requested)){month.value=currentMonth;d.status.textContent=translateStatic('اختر شهراً صحيحاً للفترة المالية.');return;}

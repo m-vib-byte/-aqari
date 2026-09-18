@@ -1,10 +1,12 @@
+import {dateLocale} from '../components/locale.js';
+import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
-const kinds={notice:'إعلان العقار',guidance:'إرشاد للمستأجر',circular:'تعميم إداري'};
-const states={draft:'مسودة',published:'منشور',archived:'مؤرشف'};
-const actions={save:'حفظ المسودة',publish:'نشر',archive:'أرشفة'};
-const date=value=>value?new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'}):'غير محدد';
+const kinds={get notice(){return visibleText('إعلان العقار');},get guidance(){return visibleText('إرشاد للمستأجر');},get circular(){return visibleText('تعميم إداري');}};
+const states={get draft(){return visibleText('مسودة');},get published(){return visibleText('منشور');},get archived(){return visibleText('مؤرشف');}};
+const actions={get save(){return visibleText('حفظ المسودة');},get publish(){return visibleText('نشر');},get archive(){return visibleText('أرشفة');}};
+const date=value=>value?new Date(value).toLocaleString(dateLocale(),{timeZone:'Asia/Kuwait'}):visibleText('غير محدد');
 const text=(tag,value)=>node(tag,String(value??''));
 
 export function openPropertyNotices(){
@@ -29,7 +31,7 @@ export function openPropertyNotices(){
   if(!rows.length)list.append(node('p',translateStatic('لا توجد سجلات محفوظة ضمن التصفية الحالية.')));
   for(const record of rows){
    const card=node('article'),content=text('p',record.body);content.style.whiteSpace='pre-wrap';
-   card.append(text('h3',record.title),text('p',(properties.find(p=>p.id===record.property_id)?.name||'العقار')+' • '+(kinds[record.kind]||'محتوى العقار')+' • '+(states[record.status]||record.status)+' • النسخة '+record.revision),content,text('p','تاريخ النشر: '+date(record.published_at)+' • نهاية العرض: '+date(record.expires_at)),text('p','إقرارات الاطلاع: '+Number(record.ack_count||0)));
+   card.append(text('h3',record.title),text('p',(properties.find(p=>p.id===record.property_id)?.name||visibleText('العقار'))+' • '+(kinds[record.kind]||visibleText('محتوى العقار'))+' • '+(states[record.status]||record.status)+visibleText(' • النسخة ')+record.revision),content,text('p',visibleText('تاريخ النشر: ')+date(record.published_at)+visibleText(' • نهاية العرض: ')+date(record.expires_at)),text('p',visibleText('إقرارات الاطلاع: ')+Number(record.ack_count||0)));
    if(manager&&record.status==='draft'){
     const edit=node('button',translateStatic('تعديل المسودة')),publish=node('button',translateStatic('نشر للمستأجرين'));edit.type=publish.type='button';edit.onclick=()=>openEditor(record);publish.onclick=()=>d.run(async()=>{
      await rpc('publish',{id:record.id,revision:record.revision});await load();const verified=records.find(r=>r.id===record.id);
@@ -44,10 +46,10 @@ export function openPropertyNotices(){
    }
    const audit=node('button',translateStatic('سجل النسخ وإقرارات الاطلاع'));audit.type='button';audit.onclick=()=>d.run(async()=>{
     const data=await rpc('history',{id:record.id});if(!Array.isArray(data?.versions)||!Array.isArray(data?.acknowledgements))throw Error('تعذر قراءة سجل هذه المادة.');
-    history.replaceChildren(text('h3','سجل: '+record.title));
-    for(const version of data.versions){const section=node('details'),original=version.after_snapshot||version.before_snapshot||{};section.append(text('summary','النسخة '+version.revision+' • '+(actions[version.action]||version.action)+' • '+date(version.recorded_at)),text('p','المستخدم: '+(version.actor_name||'غير مدون')),text('p',version.reason||''),text('h4',original.title));const saved=text('p',original.body);saved.style.whiteSpace='pre-wrap';section.append(saved);history.append(section);}
+    history.replaceChildren(text('h3',visibleText('سجل: ')+record.title));
+    for(const version of data.versions){const section=node('details'),original=version.after_snapshot||version.before_snapshot||{};section.append(text('summary',visibleText('النسخة ')+version.revision+' • '+(actions[version.action]||version.action)+' • '+date(version.recorded_at)),text('p',visibleText('المستخدم: ')+(version.actor_name||visibleText('غير مدون'))),text('p',version.reason||''),text('h4',original.title));const saved=text('p',original.body);saved.style.whiteSpace='pre-wrap';section.append(saved);history.append(section);}
     history.append(node('h4',translateStatic('إقرارات الاطلاع المسجلة')));if(!data.acknowledgements.length)history.append(node('p',translateStatic('لا توجد إقرارات اطلاع مسجلة.')));
-    for(const acknowledgement of data.acknowledgements)history.append(text('p',(acknowledgement.user_name||'المستأجر')+' • النسخة '+acknowledgement.notice_revision+' • '+date(acknowledgement.acknowledged_at)));
+    for(const acknowledgement of data.acknowledgements)history.append(text('p',(acknowledgement.user_name||visibleText('المستأجر'))+visibleText(' • النسخة ')+acknowledgement.notice_revision+' • '+date(acknowledgement.acknowledged_at)));
     d.status.textContent=translateStatic('تم استرجاع سجل النسخ والإقرارات من قاعدة البيانات.');
    });card.append(audit);list.append(card);
   }

@@ -1,3 +1,4 @@
+import {workspaceIcon} from './components/workspace-icons.js';
 const RELEASE='V267';
 const ROOT='aqLiveStability';
 let refreshQueued=false,observer=null,dataKey='',dataFlight=0,dataSession=null,liveValues=null;
@@ -22,7 +23,8 @@ function sourceValue(pattern,fallback='—'){
  return clean(value?.textContent)||fallback;
 }
 function makeMetric(label,key,tone=''){
- return `<article class="aq-live-metric ${tone}" data-live-card="${key}"><span>${ui(label)}</span><strong data-live-value="${key}">—</strong></article>`;
+ const icon=({month:'wallet',today:'wallet',due:'file',properties:'building',units:'grid',contracts:'file',maintenance:'tool',remaining:'clock',tenants:'user',expiring:'clock',occupancy:'grid',expenses:'file',net:'chart'})[key];
+ return `<article class="aq-live-metric ${tone}" data-live-card="${key}"><i aria-hidden="true">${workspaceIcon(icon)}</i><span>${ui(label)}</span><strong data-live-value="${key}">—</strong></article>`;
 }
 function panel(title,body,cls,route=''){
  return `<article class="aq-live-panel ${cls}"><header><h2>${ui(title)}</h2>${route?`<button type="button" data-exact-route="${route}">${ui('عرض الكل')}</button>`:''}</header>${body}</article>`;
@@ -34,18 +36,19 @@ function dashboardMarkup(){
  ${panel('العقارات','<div id="aqLiveProperties" class="aq-live-property-grid"></div>','aq-live-properties','properties')}
  ${panel('التحصيلات · هذا الشهر',`<div class="aq-live-table-scroll"><table><thead><tr>${['العقار / الوحدة','رقم العقد','المستحق','المحصل','المتبقي'].map(x=>`<th>${ui(x)}</th>`).join('')}</tr></thead><tbody id="aqLiveCollectionRows"></tbody></table></div><p class="aq-live-note">${ui('حسب شهر الاستحقاق؛ تحصيل الشهر أعلاه حسب تاريخ الدفع.')}</p><h3 class="aq-live-activity-title">${ui('أحدث العمليات')}</h3><div id="aqLiveRecentPayments"></div>`,'aq-live-collection-panel','collectionProPage')}
  ${panel('مساعد AQARI الذكي',`<div class="aq-live-assistant-body"><span class="aq-live-ai-mark">AI</span><h3>${ui('كيف أساعدك اليوم؟')}</h3><p>${ui('اسأل عن بياناتك أو متابعة التحصيل والعقود.')}</p><button type="button" data-exact-special="assistant">${ui('فتح المساعد')}</button><small>${ui('قراءة وإرشاد فقط؛ لا ينفذ عمليات مالية.')}</small></div>`,'aq-live-assistant')}
- ${panel('إجراءات سريعة',`<div class="aq-live-quick-grid"><button data-exact-route="tenants">♙<span>${ui('إضافة مستأجر')}</span></button><button data-exact-route="properties">⌂<span>${ui('إضافة عقار')}</span></button><button data-exact-service="rental_contracts">▤<span>${ui('إنشاء عقد')}</span></button><button data-exact-route="maintenanceProPage">⚒<span>${ui('طلب صيانة')}</span></button><button data-exact-route="collectionProPage">▣<span>${ui('فتح التحصيل')}</span></button><button data-exact-route="documentsHub">⇧<span>${ui('رفع مستند')}</span></button></div>`,'aq-live-quick-panel')}
+ ${panel('إجراءات سريعة',`<div class="aq-live-quick-grid"><button type="button" data-exact-route="tenants">${workspaceIcon('user')}<span>${ui('إضافة مستأجر')}</span></button><button type="button" data-exact-route="properties">${workspaceIcon('building')}<span>${ui('إضافة عقار')}</span></button><button type="button" data-exact-service="rental_contracts">${workspaceIcon('file')}<span>${ui('إنشاء عقد')}</span></button><button type="button" data-exact-route="maintenanceProPage">${workspaceIcon('tool')}<span>${ui('طلب صيانة')}</span></button><button type="button" data-exact-route="collectionProPage">${workspaceIcon('wallet')}<span>${ui('فتح التحصيل')}</span></button><button type="button" data-exact-route="documentsHub">${workspaceIcon('upload')}<span>${ui('رفع مستند')}</span></button></div>`,'aq-live-quick-panel')}
  ${panel('التنبيهات والمتابعة','<div id="aqLiveFollowups" class="aq-live-followups"></div>','aq-live-alert-panel')}
- ${panel('تقارير الملاك',`<div class="aq-live-report-body"><div class="aq-live-paper" aria-hidden="true">▤</div><p>${ui('راجع كشوف العقار والتحصيل والمستندات المحفوظة.')}</p><button type="button" data-exact-route="reports">${ui('فتح التقارير')}</button></div>`,'aq-live-report')}
+ ${panel('تقارير الملاك',`<div class="aq-live-report-body"><div class="aq-live-paper" aria-hidden="true">${workspaceIcon('file')}</div><p>${ui('راجع كشوف العقار والتحصيل والمستندات المحفوظة.')}</p><button type="button" data-exact-route="reports">${ui('فتح التقارير')}</button></div>`,'aq-live-report')}
  <section class="aq-live-secondary">${makeMetric('تحصيل اليوم','today','success')}${makeMetric('المتبقي','remaining')}${makeMetric('المستأجرون','tenants')}${makeMetric('تنتهي خلال 30 يومًا','expiring')}${makeMetric('الإشغال المسجل','occupancy')}${makeMetric('المصروفات المعتمدة','expenses')}${makeMetric('صافي السجلات','net')}</section>
  <p class="aq-live-disclosure">${ui('المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.')}</p>
  </section>`;
 }
 function ensureDashboard(){
  const home=document.getElementById('aqOwnerExactHome');
- if(!home||document.getElementById(ROOT))return;
+ if(!home)return false;if(document.getElementById(ROOT))return true;
  const hero=home.querySelector('.aq-exact-hero');
  if(hero)hero.insertAdjacentHTML('afterend',dashboardMarkup());else home.insertAdjacentHTML('afterbegin',dashboardMarkup());
+ return Boolean(document.getElementById(ROOT));
 }
 function setValue(key,value){
  const node=document.querySelector(`[data-live-value="${key}"]`);if(!node)return;
@@ -100,7 +103,7 @@ function renderFollowups(){
  const host=document.getElementById('aqLiveFollowups');if(!host)return;host.replaceChildren();
  for(const [label,key,route] of [['تنتهي خلال 30 يومًا','expiring','contracts'],['الصيانة المفتوحة','maintenance','maintenanceProPage'],['المتبقي','remaining','collectionProPage']]){
   const button=document.createElement('button');button.type='button';
-  if(route==='contracts')button.dataset.unifiedSection='contracts';else button.dataset.exactRoute=route;
+  if(route==='contracts')button.dataset.exactService='rental_contracts';else button.dataset.exactRoute=route;
   const labelNode=document.createElement('span'),value=document.createElement('b');labelNode.textContent=ui(label);value.textContent=formatMetric(key,liveValues?.[key]);button.append(labelNode,value);host.append(button);
  }
  const button=document.createElement('button');button.type='button';button.dataset.exactSpecial='tasks';button.textContent=ui('فتح مركز التنبيهات');host.append(button);
@@ -108,12 +111,14 @@ function renderFollowups(){
 function refreshPropertyCards(){
  const host=document.getElementById('aqLiveProperties');if(!host)return;
  const rows=sourceNodes('.v199-property-row').slice(0,2);
- const signature=JSON.stringify(rows.map(row=>row.textContent));if(host.dataset.signature===signature)return;host.dataset.signature=signature;
+ const signature=JSON.stringify(rows.map(row=>[row.textContent,row.querySelector('img')?.getAttribute('src')]));if(host.dataset.signature===signature)return;host.dataset.signature=signature;
  host.replaceChildren();
  if(!rows.length){empty(host,'لا توجد عقارات ظاهرة ضمن صلاحياتك.');return;}
  for(const row of rows){
   const card=document.createElement('button');card.type='button';card.className='aq-live-property';card.dataset.exactRoute='properties';
-  const art=document.createElement('div');art.className='aq-live-building-art';art.setAttribute('aria-hidden','true');art.innerHTML='<svg viewBox="0 0 160 90"><path d="M30 84V25L84 9v75M84 9l47 19v56"/><path d="M39 31l34-10M39 42l34-8M39 54l34-6M39 66l34-4M95 29l25 9M95 42l25 7M95 55l25 4M95 68l25 2M20 84h120"/></svg>';
+  const art=document.createElement('div');art.className='aq-live-building-art';art.setAttribute('aria-hidden','true');
+  const sourceImage=row.querySelector('img');
+  if(sourceImage?.getAttribute('src')){const photo=sourceImage.cloneNode(false);photo.removeAttribute('id');photo.alt='';photo.loading='lazy';art.append(photo);}else art.innerHTML=workspaceIcon('building');
   const name=document.createElement('strong');name.textContent=row.querySelector('strong')?.textContent||ui('العقار');name.dataset.aqRecord='';
   const action=document.createElement('small');action.textContent=ui('فتح ملف العقار');card.append(art,name,action);host.append(card);
  }
@@ -133,7 +138,7 @@ function normalizePages(){
 function refresh(){
  if(!scope())return;
  observer?.disconnect();
- try{suppressDuplicateShells();ensureDashboard();normalizePages();refreshMetrics();refreshPropertyCards();renderFollowups();loadLiveData();}
+ try{if(!ensureDashboard())return;suppressDuplicateShells();normalizePages();refreshMetrics();refreshPropertyCards();renderFollowups();loadLiveData();}
  finally{observeSources();}
 }
 function observeSources(){observer?.observe(document.body,{subtree:true,childList:true,characterData:true});}

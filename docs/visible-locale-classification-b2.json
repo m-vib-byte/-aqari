@@ -1,0 +1,3461 @@
+{
+  "scope": [
+    "property-master-file.js",
+    "property-hub.js",
+    "property-onboarding.js",
+    "rental-contracts.js"
+  ],
+  "policy": "Only rendered interface literals and templates; persisted records, audit reasons, enum values/comparisons remain unchanged.",
+  "entries": [
+    {
+      "file": "property-master-file.js",
+      "start": 341,
+      "source": "غير متاح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 377,
+      "source": " د.ك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 416,
+      "source": "غير متاح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 1593,
+      "source": "غير متاح حسب الصلاحية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 2051,
+      "source": "الجلسة غير جاهزة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 2207,
+      "source": "تغيرت الجلسة أو مساحة العمل أثناء فتح ملف العقار. أعد المحاولة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 2598,
+      "source": "اسم العقار غير فريد. افتح السجل باستخدام معرفه.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 2648,
+      "source": "لم يتم ربط هذا العقار بالسجل الخادمي بعد.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 2831,
+      "source": "الملف الكامل للعقار",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 3345,
+      "source": "تعذر تأكيد نطاق ملف العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 3636,
+      "source": "تغيرت صلاحية الحساب. حدّث الصفحة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 4071,
+      "source": "تعذر تأكيد نطاق الملخص المالي.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 4476,
+      "source": "تعذر تأكيد نطاق المستأجرين واستحقاقات الإيجار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6064,
+      "source": "مالك",
+      "classification": "persisted_owner_role"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6240,
+      "source": "مالك",
+      "classification": "persisted_owner_role"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6375,
+      "source": "إزالة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6592,
+      "source": "اسم المالك / الشريك",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6643,
+      "source": "النسبة %",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6684,
+      "source": "الصفة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6721,
+      "source": "البريد",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6760,
+      "source": "الهاتف",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6799,
+      "source": "واتساب",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 6995,
+      "source": "+ إضافة مالك / شريك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 7680,
+      "source": "تعديل العقار غير متاح لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 7804,
+      "source": "تعديل بيانات العقار الرئيسية",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8293,
+      "source": "اسم العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8313,
+      "source": "العنوان",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8333,
+      "source": "نوع العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8353,
+      "source": "حالة العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8376,
+      "source": "الدخل المعلن — لا يستخدم بدل التحصيل الفعلي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8431,
+      "source": "البريد الرسمي للعقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8462,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8479,
+      "source": "واتساب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8560,
+      "source": "الملاك والحصص — يجب أن يكون المجموع 100% عند وجود ملاك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8750,
+      "source": "سبب التعديل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8815,
+      "source": "حفظ وإعادة القراءة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 8901,
+      "source": "إلغاء",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 9087,
+      "source": "مجموع حصص الملاك يجب أن يساوي 100%.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 9750,
+      "source": "لم تتأكد إعادة قراءة تعديل العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 9840,
+      "source": "تم حفظ بيانات العقار وتأكيدها من الخادم.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 9959,
+      "source": "رفع مرفقات العقار يحتاج صلاحية تعديل العقار والمستندات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10102,
+      "source": "إضافة مستند أو صورة إلى ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10196,
+      "source": "شعار العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10229,
+      "source": "صورة العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10258,
+      "source": "وثيقة الملكية",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10288,
+      "source": "مخطط / كروكي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10322,
+      "source": "مستند آخر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10440,
+      "source": "رفع وأرشفة وربط بالملف الكامل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10648,
+      "source": "إضافة مرفق إلى ملف العقار",
+      "classification": "persisted_reason_default"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10729,
+      "source": "نوع المرفق",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10771,
+      "source": "الملف",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10813,
+      "source": "عنوان المستند",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10859,
+      "source": "سبب الإضافة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 10914,
+      "source": "إلغاء",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12028,
+      "source": "لم يتأكد ربط المرفق بملف العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12156,
+      "source": "المرفق مؤرشف لكنه لم يظهر في الملف الكامل بعد إعادة القراءة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12272,
+      "source": "تم أرشفة المرفق وربطه بملف العقار وإعادة قراءته.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12397,
+      "source": "إضافة الوحدة غير متاحة لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12500,
+      "source": "إضافة وحدة إلى ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12748,
+      "source": "تحتاج معاينة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12773,
+      "source": "جاهزة للتأجير",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12803,
+      "source": "غير جاهزة للتأجير",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 12956,
+      "source": "حفظ الوحدة وربط الدور وإعادة القراءة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13253,
+      "source": "رقم الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13275,
+      "source": "الدور",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13296,
+      "source": "نوع الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13316,
+      "source": "الحالة التشغيلية",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13344,
+      "source": "الإيجار المعلن",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13368,
+      "source": "الرقم الآلي / المرجع الحكومي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13414,
+      "source": "حالة الجاهزية",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13442,
+      "source": "تاريخ المعاينة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13471,
+      "source": "مرجع محضر المعاينة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13501,
+      "source": "سبب / نتيجة المعاينة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13611,
+      "source": "إلغاء",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13798,
+      "source": "راجع رقم الوحدة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 13913,
+      "source": "رقم الوحدة موجود مسبقاً داخل هذا العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 14419,
+      "source": "لم يتأكد إنشاء هوية الوحدة وسجل الجاهزية.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 14839,
+      "source": "إنشاء الوحدة من الملف الكامل: ",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15107,
+      "source": "لم تتأكد إعادة قراءة رقم الوحدة والدور.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15202,
+      "source": "تم إنشاء الوحدة وتثبيت الدور والبيانات وسجل الجاهزية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15337,
+      "source": "تعديل الوحدة غير متاح لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15426,
+      "source": "بيانات الوحدة ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15864,
+      "source": "رقم الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15886,
+      "source": "الدور",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15907,
+      "source": "نوع الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15927,
+      "source": "الحالة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15945,
+      "source": "الإيجار المعلن",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 15969,
+      "source": "الرقم الآلي / المرجع الحكومي — مستقل عن رقم الوحدة والعقد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 16044,
+      "source": "سبب التعديل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 16145,
+      "source": "حفظ الوحدة وإعادة القراءة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 16238,
+      "source": "إلغاء",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 16888,
+      "source": "لم تتأكد إعادة قراءة تعديل الوحدة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 16978,
+      "source": "تم حفظ الوحدة وربطها بالعقار وتأكيدها من الخادم.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 17111,
+      "source": "إنشاء العقود غير متاح لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 17426,
+      "source": "تغير ربط الوحدة بالعقار. حدّث الملف.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 17502,
+      "source": "توجد حاليًا علاقة عقد فعالة على هذه الوحدة: ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18013,
+      "source": "توزيع التكاليف غير متاح في هذه البيئة أو لهذه الصلاحية.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18792,
+      "source": "العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18825,
+      "source": "العنوان",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18857,
+      "source": "النوع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18884,
+      "source": "الحالة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18914,
+      "source": "الدخل المعلن",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 18994,
+      "source": "تعديل بيانات العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19077,
+      "source": "التواصل والملاك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19123,
+      "source": "البريد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19152,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19181,
+      "source": "واتساب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19306,
+      "source": "مالك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19395,
+      "source": "لم تُحفظ حصص ملاك بعد.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19472,
+      "source": "الملخص التشغيلي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19589,
+      "source": "الوحدات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19622,
+      "source": "العقود",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19658,
+      "source": "المتأخرات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19701,
+      "source": "الموظفون المرتبطون",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19749,
+      "source": "أعمال الصيانة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 19898,
+      "source": "الدخل والمصروف وصافي العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20128,
+      "source": "دخل الشهر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20171,
+      "source": "مصروف الشهر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20218,
+      "source": "صافي الشهر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20259,
+      "source": "دخل السنة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20301,
+      "source": "مصروف السنة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20347,
+      "source": "صافي السنة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20519,
+      "source": "مصروف الشهر: سجل مالي ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20575,
+      "source": " · رواتب ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20617,
+      "source": " · كهرباء/ماء/خدمات ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20698,
+      "source": "مصروف السنة: سجل مالي ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20753,
+      "source": " · رواتب ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20794,
+      "source": " · كهرباء/ماء/خدمات ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20874,
+      "source": "السياسة: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 20995,
+      "source": "تنبيه: توجد رواتب مشتركة غير موزعة بقيمة ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21080,
+      "source": "؛ لا تدخل صافي العقار حتى اعتماد التوزيع.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21171,
+      "source": "توزيع الرواتب والمصاريف على العقارات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21276,
+      "source": "الحساب الحالي مؤقت: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21322,
+      "source": "غير متاح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21360,
+      "source": "توزيع الرواتب والخدمات الرسمي غير مفعّل على قاعدة هذه البيئة بعد؛ لذلك لا تُخصم هذه البنود بالتخمين.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21515,
+      "source": "الوحدات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21568,
+      "source": "+ إضافة وحدة وربط الدور",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21632,
+      "source": "لا توجد وحدات مرتبطة بهذا العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21780,
+      "source": "الوحدة ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21829,
+      "source": "الدور: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21850,
+      "source": "غير محدد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21862,
+      "source": " · النوع: ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21884,
+      "source": "غير محدد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21896,
+      "source": " · الحالة: ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 21955,
+      "source": "الإيجار المعلن: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22024,
+      "source": "الرقم الآلي: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22058,
+      "source": "غير محفوظ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22113,
+      "source": "إبرام عقد من هذه الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22211,
+      "source": "تعديل بيانات الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22324,
+      "source": "العقود",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22402,
+      "source": "لا توجد عقود مرتبطة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22437,
+      "source": "{v0} · وحدة {v1} · {v2} · {v3}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22612,
+      "source": "المستأجرون المرتبطون",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22704,
+      "source": "سجل المستأجرين المرتبطين غير مفعّل في قاعدة هذه المعاينة بعد.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22937,
+      "source": "لا يوجد مستأجرون مرتبطون بعقود هذا العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 22994,
+      "source": "{v0}{v1} · {v2} · {v3} · العقود {v4}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 23203,
+      "source": "استحقاقات الإيجار والرصيد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 23301,
+      "source": "سجل الاستحقاقات الخادمي غير مفعّل في قاعدة هذه المعاينة بعد.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 23540,
+      "source": "لا توجد استحقاقات إيجار مولدة لهذا العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 23597,
+      "source": "{v0} · {v1} · وحدة {v2} · مستحق {v3} · مدفوع {v4} · رصيد {v5} · {v6}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 23805,
+      "source": "التحصيلات وكشف الإيجارات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 23907,
+      "source": "لا توجد تحصيلات مسجلة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24080,
+      "source": "الموظفون والرواتب المرتبطة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24210,
+      "source": "لا يوجد موظفون مرتبطون بهذا العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24354,
+      "source": "{v0} · {v1} · الأساسي {v2} · البدلات {v3}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24502,
+      "source": "الصيانة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24660,
+      "source": "عدد أعمال الصيانة ظاهر في الملخص، أما تفاصيل طلبات المستأجر فتحتاج صلاحية قراءة العقود لربط الطلب بالوحدة.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24816,
+      "source": "لا توجد طلبات صيانة مرتبطة بعقود هذا العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24875,
+      "source": "#{v0} · {v1} · {v2} · {v3} · التكلفة المسجلة {v4}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 24928,
+      "source": "غير مصنف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25050,
+      "source": "المصاريف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25126,
+      "source": "لا توجد مصروفات مرتبطة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25287,
+      "source": "المستندات والصور والمخططات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25359,
+      "source": "+ رفع وأرشفة مرفق",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25453,
+      "source": "لا توجد مستندات مرتبطة في كتالوج المستندات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25607,
+      "source": "التنبيهات والقنوات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25730,
+      "source": "لا توجد قنوات تواصل مرتبطة بالعقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25831,
+      "source": "غير مضبوط",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 25893,
+      "source": "لا توجد إعلانات/تنبيهات عقارية محفوظة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 26034,
+      "source": "سجل التعديلات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 26079,
+      "source": "لا توجد تعديلات Master Data بعد.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-master-file.js",
+      "start": 26240,
+      "source": "هذا الملف يعرض المصادر الخادمة الفعلية؛ القيم غير المتاحة أو غير الموزعة لا تتحول إلى أصفار مفترضة.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 288,
+      "source": "غير متاح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 320,
+      "source": " د.ك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1782,
+      "source": "هاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1795,
+      "source": "قناة أخرى",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1840,
+      "source": "شاغرة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1858,
+      "source": "جاهزة للتأجير",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1885,
+      "source": "مؤجرة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1906,
+      "source": "محجوزة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1928,
+      "source": "تحتاج تنظيف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1958,
+      "source": "تحتاج صيانة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 1987,
+      "source": "تحتاج تجديد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 2088,
+      "source": "الملف الكامل للعقار",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 3298,
+      "source": "تعذر تأكيد نطاق ملف العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 4589,
+      "source": "تعديل العقار غير متاح لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 4725,
+      "source": "تعديل بيانات العقار والظهور للمستأجر",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 4773,
+      "source": "رجوع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5265,
+      "source": "تحديث ملف العقار",
+      "classification": "persisted_reason_default"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5378,
+      "source": "اسم العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5398,
+      "source": "العنوان",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5418,
+      "source": "الوصف المختصر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5448,
+      "source": "رابط الموقع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5476,
+      "source": "الرقم الآلي للعقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5504,
+      "source": "نوع العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5524,
+      "source": "الحالة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5542,
+      "source": "الدخل المعلن الاختياري",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5576,
+      "source": "البريد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5593,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5610,
+      "source": "واتساب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5670,
+      "source": "ما يظهر للمستأجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5741,
+      "source": "اسم العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5768,
+      "source": "الشعار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5793,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5821,
+      "source": "واتساب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5846,
+      "source": "البريد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5874,
+      "source": "الموقع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5906,
+      "source": "التعليمات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5940,
+      "source": "أوقات الإدارة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 5976,
+      "source": "الطوارئ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6005,
+      "source": "الخدمات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6452,
+      "source": "تعليمات المستأجر",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6508,
+      "source": "أوقات الإدارة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6555,
+      "source": "الطوارئ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6599,
+      "source": "الخدمات",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6656,
+      "source": "سبب التعديل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 6721,
+      "source": "حفظ وإعادة القراءة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 7696,
+      "source": "لم تتأكد إعادة قراءة العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 7780,
+      "source": "تم حفظ ملف العقار وإعادة قراءته.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 7886,
+      "source": "تعديل الوحدة غير متاح لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8046,
+      "source": "تعديل الوحدة ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8083,
+      "source": "رجوع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8677,
+      "source": "تحديث بيانات الوحدة",
+      "classification": "persisted_reason_default"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8806,
+      "source": "رقم الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8828,
+      "source": "الدور",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8844,
+      "source": "نوع الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8864,
+      "source": "الحالة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8882,
+      "source": "المساحة م²",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8902,
+      "source": "الإيجار المعلن",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8926,
+      "source": "الرقم الآلي للعين المؤجرة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8961,
+      "source": "الرقم التسلسلي الداخلي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 8995,
+      "source": "الموقف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 9014,
+      "source": "المخزن",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 9033,
+      "source": "الخدمات — مفصولة بفاصلة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 9126,
+      "source": "سبب التعديل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 9191,
+      "source": "حفظ الوحدة وإعادة القراءة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 9497,
+      "source": "مفاتيح الخدمات تستخدم أحرفًا إنجليزية مثل elevator, water, internet.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 10178,
+      "source": "لم تتأكد إعادة قراءة الوحدة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 10262,
+      "source": "تم حفظ بيانات الوحدة وإعادة قراءتها.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 10572,
+      "source": "تعذر تأكيد ربط العقار والوحدة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 10989,
+      "source": "إدارة قنوات العقار متاحة للمدير العام فقط.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11102,
+      "source": "تعديل قناة التواصل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11123,
+      "source": "إضافة قناة تواصل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11150,
+      "source": "رجوع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11361,
+      "source": "يظهر للمستأجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11434,
+      "source": "مفعل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11452,
+      "source": "مخفي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11472,
+      "source": "مؤرشف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11660,
+      "source": "تحديث قناة العقار",
+      "classification": "persisted_reason_default"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11680,
+      "source": "إضافة قناة عقار",
+      "classification": "persisted_reason_default"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11800,
+      "source": "https://... أو mailto:... أو tel:+...",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11872,
+      "source": "نوع القناة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11914,
+      "source": "المسمى",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 11953,
+      "source": "الرابط/الاتصال",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 12009,
+      "source": "الحالة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 12049,
+      "source": "الترتيب",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 12088,
+      "source": "مرجع إداري داخلي",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 12141,
+      "source": "سبب التعديل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 12206,
+      "source": "حفظ القناة وإعادة القراءة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 12979,
+      "source": "لم تتأكد إعادة قراءة قناة العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 13068,
+      "source": "تم حفظ قناة العقار وإعادة قراءتها.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14068,
+      "source": "ملخص العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14175,
+      "source": "اكتمال الملف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14203,
+      "source": "الوحدات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14233,
+      "source": "المؤجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14265,
+      "source": "الشاغر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14295,
+      "source": "تحصيل الشهر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14336,
+      "source": "المتأخرات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14367,
+      "source": "صافي الشهر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14403,
+      "source": "صافي السنة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14566,
+      "source": "الناقص: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14647,
+      "source": "تعديل بيانات العقار والظهور للمستأجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14707,
+      "source": "+ إضافة وحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14769,
+      "source": "بنود المالك وخصائص العقار والفنيون والقوالب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14840,
+      "source": "تخصيص المسميات والأيقونات والحقول",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14948,
+      "source": "مركز تكلفة العقار والتوزيع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 14999,
+      "source": "كشف الملاك المحسوب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15088,
+      "source": "بيانات العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15142,
+      "source": "العنوان: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15198,
+      "source": "النوع: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15223,
+      "source": " · الحالة: ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15279,
+      "source": "الوصف: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15337,
+      "source": "الرقم الآلي للعقار: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15430,
+      "source": "فتح الموقع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15505,
+      "source": "الملاك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15535,
+      "source": "لا توجد حصص ملاك محفوظة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15585,
+      "source": "مالك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15743,
+      "source": "التواصل والسوشال ميديا",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15810,
+      "source": "+ إضافة قناة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 15895,
+      "source": "لا توجد قنوات مضافة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16023,
+      "source": " · يظهر للمستأجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16086,
+      "source": "تعديل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16194,
+      "source": "الوحدات والأدوار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16236,
+      "source": "لا توجد وحدات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16359,
+      "source": "الوحدة ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16389,
+      "source": "الدور {v0} · {v1} · {v2} · المساحة {v3} م²",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16490,
+      "source": "الإيجار {v0} · آلي العين {v1} · داخلي {v2}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16612,
+      "source": "الموقف {v0} · المخزن {v1} · الخدمات {v2}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16780,
+      "source": "تعديل الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 16888,
+      "source": "إبرام عقد من هذه الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17003,
+      "source": "العقود",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17094,
+      "source": "ليس لديك صلاحية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17151,
+      "source": "لا توجد عقود مرتبطة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17304,
+      "source": "التحصيل والمتأخرات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17411,
+      "source": "ليس لديك صلاحية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17472,
+      "source": "لا توجد تحصيلات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17605,
+      "source": "متوقع الشهر {v0} · فعلي {v1} · الفرق {v2} · المتأخر {v3}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17823,
+      "source": "المصروفات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17914,
+      "source": "ليس لديك صلاحية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 17969,
+      "source": "لا توجد مصروفات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18108,
+      "source": "مصروف الشهر الفعلي {v0} · الأثر التحليلي الشهري {v1} · صافي تحليلي {v2}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18317,
+      "source": "المستندات والصور والمخططات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18423,
+      "source": "ليس لديك صلاحية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18475,
+      "source": "لا توجد مستندات مرتبطة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18609,
+      "source": "الصيانة والموظفون والتنبيهات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18661,
+      "source": "الصيانة المفتوحة/المحفوظة: {v0} · الموظفون المرتبطون: {v1}",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18718,
+      "source": "غير متاح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18779,
+      "source": "غير متاح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18873,
+      "source": "التنبيهات: ليس لديك صلاحية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 18933,
+      "source": "لا توجد إعلانات/تنبيهات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 19060,
+      "source": "سجل التعديلات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 19099,
+      "source": "لا توجد تعديلات مسجلة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-hub.js",
+      "start": 19250,
+      "source": "الملف الكامل يقرأ البيانات الخادمة الفعلية. تخصيص المسميات والأيقونات والترتيب هو عرض فقط ولا يغير المفاتيح التقنية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 949,
+      "source": "راجع {v0}؛ استخدم ٨ أرقام كويتية أو رقماً دولياً يبدأ بـ +.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1215,
+      "source": "راجع {v0}.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1451,
+      "source": "مالك",
+      "classification": "persisted_owner_role"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1580,
+      "source": "إزالة المالك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1771,
+      "source": "اسم المالك / الشريك",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1822,
+      "source": "النسبة %",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1863,
+      "source": "الصفة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1900,
+      "source": "البريد",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1939,
+      "source": "الهاتف",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 1978,
+      "source": "واتساب",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 2113,
+      "source": "+ إضافة مالك / شريك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 2261,
+      "source": "مالك",
+      "classification": "persisted_owner_role"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 2305,
+      "source": "بريد المالك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 2357,
+      "source": "هاتف المالك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 2415,
+      "source": "واتساب المالك",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 2884,
+      "source": "تعذر تجهيز صورة العرض.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 3223,
+      "source": "إحدى صور العقار كبيرة جداً لإنشاء معاينة خفيفة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 3373,
+      "source": "إضافة عقار — ملف متكامل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 3480,
+      "source": "تعذر تحميل محرك بيانات العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 3611,
+      "source": "تعذر تحميل جسر السحابة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4549,
+      "source": "اسم العقار *",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4571,
+      "source": "العنوان *",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4593,
+      "source": "نوع العقار *",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4615,
+      "source": "حالة العقار *",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4640,
+      "source": "وصف مختصر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4666,
+      "source": "رابط الموقع — https://",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4705,
+      "source": "الرقم الآلي للعقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4749,
+      "source": "الدخل المعلن — اختياري ولا يحل محل التحصيل الفعلي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4810,
+      "source": "البريد الرسمي للعقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4841,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4858,
+      "source": "واتساب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 4989,
+      "source": "الملاك والحصص — عند إدخال ملاك يجب أن يكون المجموع 100%",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5167,
+      "source": "ما يظهر للمستأجر",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5217,
+      "source": "اسم العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5247,
+      "source": "الشعار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5274,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5305,
+      "source": "واتساب",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5333,
+      "source": "البريد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5364,
+      "source": "الموقع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5399,
+      "source": "تعليمات العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5441,
+      "source": "أوقات الإدارة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5480,
+      "source": "الطوارئ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5512,
+      "source": "الخدمات",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5862,
+      "source": "تعليمات العقار للمستأجر",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5925,
+      "source": "أوقات الإدارة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 5977,
+      "source": "بيانات الطوارئ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 6028,
+      "source": "الخدمات الظاهرة للمستأجر",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 6142,
+      "source": "الشعار والصور والوثائق والمخططات والرخص",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 6780,
+      "source": "شعار العقار — صورة واحدة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 6836,
+      "source": "الصورة الرئيسية — صورة واحدة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 6901,
+      "source": "صور العقار — حتى 10 صور",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 6958,
+      "source": "وثيقة الملكية",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7003,
+      "source": "المخططات والكروكيات",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7055,
+      "source": "الرخص",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7096,
+      "source": "الشهادات",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7144,
+      "source": "التأمينات",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7191,
+      "source": "مستندات أخرى",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7245,
+      "source": "يُرفع الأصل إلى الأرشيف الخاص، ويُثبت checksum ثم يعاد قراءة سجل المستند قبل تأكيد الحفظ.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7385,
+      "source": "إنشاء ملف عقار متكامل",
+      "classification": "persisted_reason_default"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7514,
+      "source": "حفظ العقار والملف الكامل",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7628,
+      "source": "سبب إنشاء الملف",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 7867,
+      "source": "إذا أدخلت ملاكًا يجب أن تكتمل الأسماء وأن يساوي مجموع الحصص 100%.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 8034,
+      "source": "راجع الدخل المعلن؛ حتى ثلاث منازل عشرية.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 8391,
+      "source": "بريد العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 8439,
+      "source": "هاتف العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 8493,
+      "source": "واتساب العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 8885,
+      "source": "أكمل بيانات العقار الأساسية وسبب الإنشاء.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9007,
+      "source": "رابط الموقع يجب أن يبدأ بـ https://",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9108,
+      "source": "أدخل وسيلة تواصل واحدة على الأقل: هاتف أو واتساب أو بريد إلكتروني.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9336,
+      "source": "قسّم المرفقات إلى دفعات أصغر: 10 صور و20 ملفًا لكل مجموعة أخرى.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9515,
+      "source": "شعار العقار — ",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9671,
+      "source": "الصورة الرئيسية — ",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9833,
+      "source": "صورة العقار {v0} — {v1}",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 9981,
+      "source": "وثيقة الملكية — ",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 10134,
+      "source": "مخطط / كروكي {v0} — {v1}",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 10309,
+      "source": "رخصة {v0} — {v1}",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 10491,
+      "source": "شهادة {v0} — {v1}",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 10672,
+      "source": "تأمين {v0} — {v1}",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 10847,
+      "source": "مستند عقار {v0} — {v1}",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 10981,
+      "source": "حسابك لا يملك صلاحية رفع مستندات. أزل الملفات أو اطلب صلاحية المستندات.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 11427,
+      "source": "اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 11852,
+      "source": "إنشاء عقار من شاشة الملف المتكامل",
+      "classification": "persisted_audit_reason"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 12191,
+      "source": "لم تؤكد إعادة القراءة إنشاء العقار في السحابة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 12494,
+      "source": "تعذر تأكيد السجل الخادمي للعقار بعد الحفظ.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 13277,
+      "source": "جارٍ أرشفة ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 14147,
+      "source": "تعذر إعادة قراءة ملف العقار قبل حفظ البيانات الرئيسية.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 14969,
+      "source": "لم تتأكد إعادة قراءة بيانات العقار الرئيسية.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 15424,
+      "source": "مستند مرفوع لم يظهر في الملف الكامل بعد إعادة القراءة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 15642,
+      "source": "ملف العقار المعاد قراءته لا يطابق البيانات المحفوظة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 15748,
+      "source": "تعذر حساب اكتمال ملف العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 16087,
+      "source": "إضافة العقارات غير متاحة لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 16186,
+      "source": "أكمل الحقول المطلوبة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 16341,
+      "source": "جارٍ إنشاء سجل العقار…",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 16548,
+      "source": "تعذر تثبيت هوية العقار.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 16636,
+      "source": "جارٍ حفظ Master Data وربط الأرشيف…",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 16848,
+      "source": "تم إنشاء {v0} وأرشفة {v1} ملف/صورة. اكتمال الملف {v2}%.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 17381,
+      "source": "إضافة العقارات غير متاحة لصلاحية حسابك.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 17510,
+      "source": "ملاحظة: رفع الملفات غير متاح لهذه الصلاحية؛ يمكن إنشاء العقار بدون مرفقات.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "property-onboarding.js",
+      "start": 17627,
+      "source": "أكمل الملف في شاشة واحدة ثم اضغط حفظ.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 693,
+      "source": "مسودة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 707,
+      "source": "جاهز للمراجعة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 732,
+      "source": "معتمد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 748,
+      "source": "بانتظار التوقيع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 773,
+      "source": "موقّع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 791,
+      "source": "ملغى",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 806,
+      "source": "منتهي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 1519,
+      "source": "فتح النسخة المعتمدة وملاحقها للطباعة / Open approved copy and annexes",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 1591,
+      "source": "فتح المسودة وملاحقها للمراجعة / Open draft and annexes",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 1777,
+      "source": "تم التحقق من اعتماد العقد المحفوظ قبل إصدار النسخة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 1831,
+      "source": "مسودة للمراجعة فقط، غير صالحة للتوقيع.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 2168,
+      "source": "طباعة العقد وملاحقه / Contract printing",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 2328,
+      "source": "إعادة التحقق وتجهيز النسخة / Check and prepare copy",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 2520,
+      "source": "إبرام عقود الإيجار / Rental contracts",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 3455,
+      "source": "إدارة قوالب العقود",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 3610,
+      "source": "العقود المحفوظة / Saved contracts",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 3686,
+      "source": "ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 3788,
+      "source": "إبرام عقد جديد / New rental contract",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 3855,
+      "source": "تحديث العقود / Refresh",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 3952,
+      "source": "إدارة واعتماد قوالب العقود",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4081,
+      "source": "البحث برقم العقد أو اسم المستأجر / Search",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4421,
+      "source": "غير مدون",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4545,
+      "source": "لا توجد عقود مطابقة.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4636,
+      "source": "تم استرجاع العقود من قاعدة البيانات.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4737,
+      "source": "تعديل بيانات العقد مع حفظ السجل السابق",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4778,
+      "source": "إبرام عقد جديد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 4817,
+      "source": "العودة للعقود / Back",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5063,
+      "source": "اختر المستأجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5223,
+      "source": "اختر العقار",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5344,
+      "source": "اختر الوحدة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5514,
+      "source": "رقم العقد / Contract number",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5588,
+      "source": "رقم الدور / Floor",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5651,
+      "source": "بداية العقد / Start",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5744,
+      "source": "نهاية العقد / End",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5812,
+      "source": "الإيجار عند إبرام العقد — د.ك / Original rent",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 5908,
+      "source": "الخصم عند إبرام العقد — د.ك / Initial discount",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6005,
+      "source": "التأمين عند وجوده — د.ك / Deposit if applicable",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6112,
+      "source": "تاريخ استلام التأمين عند استلامه / Deposit received",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6219,
+      "source": "العربون عند وجوده — د.ك / Advance if applicable",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6320,
+      "source": "رسوم النظافة عند وجودها — د.ك / Cleaning if applicable",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6431,
+      "source": "تاريخ ووقت استلام العقد — الكويت / Received at Kuwait",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6559,
+      "source": "اسم المحاسب المسؤول / Responsible accountant",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 6929,
+      "source": "تاريخ مقترح حسب المدة؛ راجعه قبل الحفظ. بداية الاستحقاق تُختار بشكل مستقل أدناه.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 7282,
+      "source": "تاريخ مقترح حسب المدة؛ راجعه قبل الحفظ.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 7469,
+      "source": "مدة العقد بالأشهر — لحساب تاريخ نهاية مقترح",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 7676,
+      "source": "اختر سياسة أول فترة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 7713,
+      "source": "صافي شهر كامل في أول فترة تقويمية",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 7768,
+      "source": "صافي الفترة بالأيام الفعلية حتى نهاية أول شهر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 7840,
+      "source": "صافي أول فترة بمبلغ يدوي صريح",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 8427,
+      "source": "بداية استحقاق الإيجار",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 8475,
+      "source": "تاريخ بداية الاستحقاق — ضمن مدة العقد",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 8556,
+      "source": "سياسة أول شهر تقويمي — اختيار صريح",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 8629,
+      "source": "صافي أول فترة فقط — د.ك؛ بعد أي خصم ودون التأمين والعربون والرسوم",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 8736,
+      "source": "الاحتساب اليومي يخص أول شهر تقويمي فقط ويستخدم أيامه الفعلية. المبلغ اليدوي صافي نهائي؛ لا يُخصم منه خصم الشهر مرة ثانية. الشهر المجاني المعتمد يلغي مستحق شهره. الأشهر التالية تعود للإيجار الشهري وشروطه المعتمدة.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 9880,
+      "source": "صافي أول فترة قبل تطبيق أي شهر مجاني معتمد: ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 9945,
+      "source": " د.ك. هذا عرض للمراجعة؛ يثبت الحفظ والتحقق النتيجة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10053,
+      "source": "أكمل التواريخ والسياسة والمبلغ لمراجعة صافي أول فترة.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10389,
+      "source": "العقد التاريخي بلا بداية استحقاق مستقلة محفوظ كما هو؛ لا تضاف سياسة جديدة بأثر رجعي.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10641,
+      "source": "تواريخ العقد والاستحقاق المعتمد ثابتة؛ استخدم «تجديد بعقد جديد» للمدة التالية.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10753,
+      "source": "لم يستلم",
+      "classification": "persisted_enum_value"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10764,
+      "source": "لم يستلم / Not received",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10792,
+      "source": "مستلم",
+      "classification": "persisted_enum_value"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10800,
+      "source": "مستلم / Received",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10849,
+      "source": "لم يستلم",
+      "classification": "persisted_enum_logic"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10954,
+      "source": "لم يُبلّغ",
+      "classification": "persisted_enum_value"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10966,
+      "source": "لم يُبلّغ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10980,
+      "source": "تم التبليغ",
+      "classification": "persisted_enum_value"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 10993,
+      "source": "تم التبليغ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11008,
+      "source": "غير محدد",
+      "classification": "persisted_enum_value"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11019,
+      "source": "غير محدد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11058,
+      "source": "لم يُبلّغ",
+      "classification": "persisted_enum_logic"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11349,
+      "source": "مستلم",
+      "classification": "persisted_enum_logic"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11756,
+      "source": "الاسم الكامل بالعربي",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11790,
+      "source": "الاسم الكامل بالإنجليزي — في العقد وملاحقه",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11850,
+      "source": "رقم الجواز",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11879,
+      "source": "الجنسية",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11899,
+      "source": "الهاتف",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11918,
+      "source": "البريد الإلكتروني",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 11950,
+      "source": "الرقم المدني",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 12019,
+      "source": "غير مكتمل في ملف المستأجر",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 12487,
+      "source": "اختر الوحدة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13517,
+      "source": "المستأجر — سحب البيانات من ملفه / Tenant",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13599,
+      "source": "العقار / Property",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13652,
+      "source": "الوحدة المحفوظة / Saved unit",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13715,
+      "source": "حُرر هذا العقد في دولة الكويت بتاريخ ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13821,
+      "source": "حالة استلام العقد / Contract delivery",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13894,
+      "source": "اعتماد شهر مجاني / Approve free month",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 13963,
+      "source": "الشهر المجاني عند اعتماده / Approved free month",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14048,
+      "source": "حالة تبليغ الإخلاء / Eviction notice",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14120,
+      "source": "سبب التعديل المعتمد / Change reason",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14421,
+      "source": "إضافة تعديل خصم مؤرخ — يحفظ القيم السابقة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14496,
+      "source": "شهر سريان الخصم الجديد",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14555,
+      "source": "الخصم الجديد من الإيجار الأصلي — د.ك",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14627,
+      "source": "سبب اعتماد الخصم",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14698,
+      "source": "حفظ العقد والتحقق من الربط / Save contract",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 14857,
+      "source": "أكمل شروط العقد. البيانات المسحوبة تُراجع في ملف المستأجر؛ المبالغ الاختيارية الفارغة تعني عدم وجودها.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 16402,
+      "source": "حُفظ العقد وربطه بالمستأجر والوحدة والعقار، مع سجل التغيير.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 16540,
+      "source": "قالب العقد المحفوظ: ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 16595,
+      "source": " · الإصدار ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 16643,
+      "source": "عقد تاريخي محفوظ دون ربطه بقالب جديد بأثر رجعي.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 16969,
+      "source": "العقد غير موجود.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 16995,
+      "source": "عقد ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 17038,
+      "source": "العودة للعقود / Back",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 17161,
+      "source": "مسح أو رفع العقد ومرفقاته",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 17483,
+      "source": "هذا عقد مستورد محفوظ للمراجعة. تُحسم بياناته من المرجع الأصلي عبر مسار اعتماد عقود المصدر.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 17616,
+      "source": "تم فتح مرجع العقد المستورد دون تعديل بيانات المصدر.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 17757,
+      "source": "تجديد بعقد جديد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18098,
+      "source": "إلغاء تجديد غير موقّع",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18122,
+      "source": "إلغاء مسودة التجديد",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18258,
+      "source": "سبب إلغاء التجديد غير الموقّع — يبقى الأصل والربط والسجل محفوظين",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18592,
+      "source": "ألغيت مسودة التجديد مع حفظ أصلها وسبب الإلغاء.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18808,
+      "source": "مسودة للمراجعة فقط / Review draft",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18859,
+      "source": "تجهيز نسخة معتمدة للطباعة / Prepare approved copy",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 18926,
+      "source": "تجهيز نسختين معتمدتين مع الملاحق / Prepare two approved sets",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19044,
+      "source": "تعديل معتمد مع حفظ السجل السابق",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19121,
+      "source": "جدول الاستحقاقات والتحصيل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19497,
+      "source": "تعذر تأكيد جدول الاستحقاق.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19609,
+      "source": "الفترة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19618,
+      "source": "تاريخ الاستحقاق",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19636,
+      "source": "صافي المستحق",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19651,
+      "source": "المحصل",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19660,
+      "source": "الرصيد الدائن المخصص",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19683,
+      "source": "رصيد الفترة",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19821,
+      "source": "جدول استحقاق لا يخص العقد.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 19914,
+      "source": "لا استحقاق",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 20062,
+      "source": "غير مدون",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 20236,
+      "source": "جدول الاستحقاقات المحفوظ للعقد",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 20296,
+      "source": "رصيد الفترة المستقبلية ليس متأخرًا قبل تاريخ استحقاقها. لا يشمل الجدول تحويل التأمين أو العربون تلقائيًا.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 20589,
+      "source": "نقل إلى: ",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 20718,
+      "source": "اعتماد المدير العام مطلوب.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 20799,
+      "source": "اعتماد انتقال حالة العقد إلى ",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 21197,
+      "source": "العقد الموقّع والملاحق المرتبطة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 21409,
+      "source": "فتح الأصل المحفوظ",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 21621,
+      "source": "رفع النسخة الموقعة وربطها بالعقد",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 21781,
+      "source": "النسخة الموقعة — PDF أو صورة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 21841,
+      "source": "راجعت النسخة وهي العقد الموقّع الفعلي لهذا المستأجر والوحدة",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 22197,
+      "source": "أكد مطابقة النسخة الموقعة.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 22422,
+      "source": "عقد موقّع ",
+      "classification": "persisted_record"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 22755,
+      "source": "تعذر حجز نسخة المستند.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 23527,
+      "source": "لم تتأكد إعادة قراءة سجل المستند.",
+      "classification": "visible_interface"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 23620,
+      "source": "حُفظت النسخة الموقعة وربطت بالعقد والمستأجر والوحدة.",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 23874,
+      "source": "سجل العقد والنسخ السابقة / Contract history",
+      "classification": "already_localized"
+    },
+    {
+      "file": "rental-contracts.js",
+      "start": 24222,
+      "source": "تمت قراءة العقد ومستنداته وسجل نسخه المحفوظة.",
+      "classification": "already_localized"
+    }
+  ]
+}

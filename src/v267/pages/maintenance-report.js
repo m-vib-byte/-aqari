@@ -3,7 +3,7 @@ import {createDialog,node,field} from '../components/dialog.js';
 import {uiText} from '../components/ui-text.js';
 import {t,message} from '../components/locale.js';
 
-const statusLabel={received:'مستلم',assigned:'مكلّف',in_progress:'قيد التنفيذ',completed:'مكتمل',cancelled:'ملغى'};
+const statusLabel={get received(){return translateStatic('مستلم');},get assigned(){return translateStatic('مكلّف');},get in_progress(){return translateStatic('قيد التنفيذ');},get completed(){return translateStatic('مكتمل');},get cancelled(){return translateStatic('ملغى');}};
 const count=value=>Number.isSafeInteger(Number(value))&&Number(value)>=0?Number(value):null;
 const amount=value=>Number.isFinite(Number(value))?Number(value):null;
 const minutes=value=>value===null||value===undefined?null:(Number.isFinite(Number(value))&&Number(value)>=0?Number(value):NaN);
@@ -33,20 +33,20 @@ export function mountMaintenanceReport(d){
  function render(result){
   const s=result.summary;summary.replaceChildren(uiText('h2','الملخص'));
   const grid=node('div');grid.className='aq267-report-summary';
-  for(const [label,value]of [['إجمالي الطلبات',s.total_requests],['مفتوحة',s.open_requests],['مكتملة',s.completed_requests],['ملغاة',s.cancelled_requests],['إجمالي التكلفة',money(s.total_cost)+' د.ك'],['متوسط أول استجابة',s.average_response_minutes==null?'—':s.average_response_minutes+' دقيقة'],['متوسط الإغلاق',s.average_resolution_minutes==null?'—':s.average_resolution_minutes+' دقيقة']]){const card=node('article');card.append(uiText('strong',label),node('p',String(value)));grid.append(card);}summary.append(grid);
+  for(const [label,value]of [[translateStatic('إجمالي الطلبات'),s.total_requests],[translateStatic('مفتوحة'),s.open_requests],[translateStatic('مكتملة'),s.completed_requests],[translateStatic('ملغاة'),s.cancelled_requests],[translateStatic('إجمالي التكلفة'),money(s.total_cost)+translateStatic(' د.ك')],[translateStatic('متوسط أول استجابة'),s.average_response_minutes==null?'—':s.average_response_minutes+translateStatic(' دقيقة')],[translateStatic('متوسط الإغلاق'),s.average_resolution_minutes==null?'—':s.average_resolution_minutes+translateStatic(' دقيقة')]]){const card=node('article');card.append(uiText('strong',label),node('p',String(value)));grid.append(card);}summary.append(grid);
   statuses.replaceChildren(uiText('h2','الحالات'));
   const entries=Object.entries(result.statuses);if(!entries.length)statuses.append(uiText('p','لا توجد حالات ضمن الفترة المحددة.'));
   for(const [status,value]of entries){const card=node('article');card.append(uiText('h3',statusLabel[status]||status),uiText('p','الطلبات: {count} • التكلفة: {cost} د.ك',{count:value.count,cost:money(value.cost)}));statuses.append(card);}
   rows.replaceChildren(uiText('h2','طلبات الصيانة'));
   if(!result.requests.length)rows.append(uiText('p','لا توجد طلبات صيانة تطابق الفترة المحددة.'));
-  for(const r of result.requests){const card=node('article');card.append(uiText('h3','طلب {number}',{number:r.request_no}),node('p',`${r.property_name} • ${r.unit_no}`),uiText('p','الحالة: {status}',{status:statusLabel[r.status]||r.status}),uiText('p','النوع: {type}',{type:r.request_type||'—'}),uiText('p','المستأجر: {name}',{name:r.tenant_name||'—'}),uiText('p','التكلفة: {amount} د.ك',{amount:money(r.cost)}),uiText('p','أول استجابة: {time}',{time:r.response_minutes==null?'—':r.response_minutes+' دقيقة'}),uiText('p','زمن الإغلاق: {time}',{time:r.resolution_minutes==null?'—':r.resolution_minutes+' دقيقة'}));rows.append(card);}
+  for(const r of result.requests){const card=node('article');card.append(uiText('h3','طلب {number}',{number:r.request_no}),node('p',`${r.property_name} • ${r.unit_no}`),uiText('p','الحالة: {status}',{status:statusLabel[r.status]||r.status}),uiText('p','النوع: {type}',{type:r.request_type||'—'}),uiText('p','المستأجر: {name}',{name:r.tenant_name||'—'}),uiText('p','التكلفة: {amount} د.ك',{amount:money(r.cost)}),uiText('p','أول استجابة: {time}',{time:r.response_minutes==null?'—':r.response_minutes+translateStatic(' دقيقة')}),uiText('p','زمن الإغلاق: {time}',{time:r.resolution_minutes==null?'—':r.resolution_minutes+translateStatic(' دقيقة')}));rows.append(card);}
   note.textContent=result.truncated?t('يُعرض آخر 500 طلب فقط ضمن الفترة. ضيّق نطاق التاريخ لرؤية بقية النتائج.'):message('تم استرجاع {count} طلب صيانة من السجلات المحفوظة.',{count:s.total_requests});
  }
  async function load(filters=selected()){
   summary.replaceChildren();statuses.replaceChildren();rows.replaceChildren();note.textContent='';loaded=null;
-  if(filters.from&&filters.to&&filters.to<filters.from)throw Error(t('تاريخ النهاية يجب ألا يسبق تاريخ البداية.'));
+  if(filters.from&&filters.to&&filters.to<filters.from)throw Error('تاريخ النهاية يجب ألا يسبق تاريخ البداية.');
   const result=await d.session.request(d.session.client.rpc('aqari_maintenance_status_report',{p_workspace_id:d.session.bound.workspace,p_from:filters.from,p_to:filters.to}));
-  if(!valid(result,filters))throw Error(t('تعذر التحقق من نتائج تقرير الصيانة. أعد الاسترجاع.'));
+  if(!valid(result,filters))throw Error('تعذر التحقق من نتائج تقرير الصيانة. أعد الاسترجاع.');
   loaded={filters:structuredClone(filters),result};render(result);d.status.textContent=t('تم استرجاع تقرير الصيانة والتحقق من البيانات المحفوظة.');return result;
  }
  form.onsubmit=e=>{e.preventDefault();return d.run(()=>load());};

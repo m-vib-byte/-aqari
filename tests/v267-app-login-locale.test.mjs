@@ -1,0 +1,35 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mountAppLoginLocale} from '../src/v267/app-login-locale.js';
+import {bindLocale,getLocale,setLocale,t} from '../src/v267/components/locale.js';
+
+function fixture({on=true,hidden=false,unlocked=false}={}){
+ const attrs=new Map(),picker={value:'',getAttribute:k=>attrs.get(k),setAttribute:(k,v)=>attrs.set(k,v)},caption={textContent:''};
+ const credential={get value(){throw Error('Credential value must not be read');},set value(_){throw Error('Credential value must not be changed');}};
+ const status={nodeValue:'أدخل البريد الإلكتروني وكلمة المرور للدخول.',parentElement:{closest:()=>null}};
+ const root={classList:{contains:name=>name==='aqari-auth-unlocked'&&unlocked}};
+ const gate={hidden,classList:{contains:()=>on},querySelector:s=>s.includes('cloud')?credential:s==='[data-app-login-language]'?picker:caption,querySelectorAll:()=>[],getAttribute:k=>attrs.get('gate:'+k)??null,setAttribute:(k,v)=>attrs.set('gate:'+k,v),closest:()=>null};
+ const doc={documentElement:root,getElementById:()=>gate,createTreeWalker:()=>{let done=false;return {nextNode:()=>done?null:(done=true,status)};}};
+ return {doc,status,root,picker};
+}
+function environment(fn){
+ const previousObserver=globalThis.MutationObserver,previousStorage=globalThis.localStorage;
+ let disconnected=false;
+ globalThis.MutationObserver=class{observe(){}disconnect(){disconnected=true;}};
+ globalThis.localStorage={getItem:()=> 'ur',setItem(){}};
+ try{fn(()=>disconnected);}finally{globalThis.MutationObserver=previousObserver;globalThis.localStorage=previousStorage;bindLocale(null);}
+}
+test('a dormant gate never resets the verified workspace preference',()=>environment(()=>{
+ for(const flags of [{on:false},{hidden:true},{unlocked:true}]){
+  bindLocale(null);setLocale('ml');const {doc}=fixture(flags);const mounted=mountAppLoginLocale(doc);
+  assert.equal(getLocale(),'ml');mounted.refresh();assert.equal(getLocale(),'ml');mounted.dispose();
+ }
+}));
+test('visible login translates status and direction while leaving credentials untouched',()=>environment(disconnected=>{
+ bindLocale(null);const {doc,status,root,picker}=fixture();const mounted=mountAppLoginLocale(doc);
+ assert.equal(getLocale(),'ur');assert.equal(root.dir,'rtl');assert.equal(picker.value,'ur');
+ assert.equal(status.nodeValue,t('أدخل البريد الإلكتروني وكلمة المرور للدخول.','ur'));
+ setLocale('ml');mounted.refresh();assert.equal(root.dir,'ltr');assert.equal(picker.value,'ml');
+ assert.equal(status.nodeValue,t('أدخل البريد الإلكتروني وكلمة المرور للدخول.','ml'));
+ mounted.dispose();assert.equal(disconnected(),true);
+}));

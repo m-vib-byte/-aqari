@@ -1,3 +1,4 @@
+import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createPrivateUrls} from '../components/private-urls.js';
@@ -13,22 +14,22 @@ export function printable(currentRecord,kind){
  const balances=clearance?snapshot.clearance_balances:snapshot.final_balances;
  const number=clearance?record.clearance_no:record.settlement_no;
  if(!number)throw Error('رقم المستند المحفوظ مفقود.');
- const title=clearance?'براءة ذمة وإخلاء طرف':'تسوية إخلاء نهائية';
- const rows=[['الرقم',number],['رقم العقد',record.contract_no],['المستأجر',record.tenant_name],['العقار',record.property_name],['الوحدة',record.unit_no],['تاريخ الإخلاء',record.vacate_date],['الإيجار المستحق حتى الإخلاء',money(balances?.rent_due_total)],['إجمالي المسدد',money(balances?.rent_paid_total)],['المتبقي على المستأجر',money(balances?.rent_balance)],['الرصيد الدائن للمستأجر',money(balances?.tenant_credit)],['رصيد التأمين غير المسوّى',money(balances?.deposit_balance)],['الأضرار المثبتة',money(record.damage_amount)],['مرجع تسوية الأضرار',record.charges_reference||'—'],['المفاتيح مستلمة',record.keys_returned?'نعم':'لا'],['فحص الوحدة مكتمل',record.inspection_completed?'نعم':'لا'],['قراءات العدادات مثبتة',record.meters_recorded?'نعم':'لا']];
- if(clearance)rows.push(['الاستثناء الإداري',record.exception_reason||'لا يوجد']);
- return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><title>'+escape(title)+' '+escape(number)+'</title><style>body{font-family:Arial,sans-serif;color:#26231d;margin:0;padding:24px;line-height:1.7}main{max-width:800px;margin:auto;border:1px solid #b69a55;padding:28px}h1{font-size:25px;color:#695528}dl{display:grid;grid-template-columns:minmax(180px,1fr) 2fr;gap:8px 20px}dt{font-weight:bold}dd{margin:0;overflow-wrap:anywhere}.note{border-top:1px solid #d6c9ab;padding-top:16px;margin-top:24px}@media(max-width:520px){body,main{padding:12px}dl{display:block}dd{margin-bottom:12px}}@media print{body{padding:0}main{border:0;padding:12mm;max-width:none}}</style></head><body><main><p>AQARI</p><h1>'+escape(title)+'</h1><dl>'+rows.map(([k,v])=>'<dt>'+escape(k)+'</dt><dd>'+escape(v)+'</dd>').join('')+'</dl><p class="note">'+escape(clearance?'صدرت هذه البراءة من سجل التسوية المحفوظ. أي استثناء ظاهر أعلاه موثق ضمن سجل الاعتماد.':'هذه نسخة من التسوية المحفوظة وقت الاعتماد ولا تعتمد على قيم واجهة غير محفوظة.')+'</p></main></body></html>';
+ const title=clearance?visibleText('براءة ذمة وإخلاء طرف'):visibleText('تسوية إخلاء نهائية');
+ const rows=[[visibleText('الرقم'),number],[visibleText('رقم العقد'),record.contract_no],[visibleText('المستأجر'),record.tenant_name],[visibleText('العقار'),record.property_name],[visibleText('الوحدة'),record.unit_no],[visibleText('تاريخ الإخلاء'),record.vacate_date],[visibleText('الإيجار المستحق حتى الإخلاء'),money(balances?.rent_due_total)],[visibleText('إجمالي المسدد'),money(balances?.rent_paid_total)],[visibleText('المتبقي على المستأجر'),money(balances?.rent_balance)],[visibleText('الرصيد الدائن للمستأجر'),money(balances?.tenant_credit)],[visibleText('رصيد التأمين غير المسوّى'),money(balances?.deposit_balance)],[visibleText('الأضرار المثبتة'),money(record.damage_amount)],[visibleText('مرجع تسوية الأضرار'),record.charges_reference||'—'],[visibleText('المفاتيح مستلمة'),record.keys_returned?visibleText('نعم'):visibleText('لا')],[visibleText('فحص الوحدة مكتمل'),record.inspection_completed?visibleText('نعم'):visibleText('لا')],[visibleText('قراءات العدادات مثبتة'),record.meters_recorded?visibleText('نعم'):visibleText('لا')]];
+ if(clearance)rows.push([visibleText('الاستثناء الإداري'),record.exception_reason||visibleText('لا يوجد')]);
+ return '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'"><title>'+escape(title)+' '+escape(number)+'</title><style>body{font-family:Arial,sans-serif;color:#26231d;margin:0;padding:24px;line-height:1.7}main{max-width:800px;margin:auto;border:1px solid #b69a55;padding:28px}h1{font-size:25px;color:#695528}dl{display:grid;grid-template-columns:minmax(180px,1fr) 2fr;gap:8px 20px}dt{font-weight:bold}dd{margin:0;overflow-wrap:anywhere}.note{border-top:1px solid #d6c9ab;padding-top:16px;margin-top:24px}@media(max-width:520px){body,main{padding:12px}dl{display:block}dd{margin-bottom:12px}}@media print{body{padding:0}main{border:0;padding:12mm;max-width:none}}</style></head><body><main><p>AQARI</p><h1>'+escape(title)+'</h1><dl>'+rows.map(([k,v])=>'<dt>'+escape(k)+'</dt><dd>'+escape(v)+'</dd>').join('')+'</dl><p class="note">'+escape(clearance?visibleText('صدرت هذه البراءة من سجل التسوية المحفوظ. أي استثناء ظاهر أعلاه موثق ضمن سجل الاعتماد.'):visibleText('هذه نسخة من التسوية المحفوظة وقت الاعتماد ولا تعتمد على قيم واجهة غير محفوظة.'))+'</p></main></body></html>';
 }
 
 const releaseErrors={
- VACATING_HANDOVER_REQUIRED:'لا يمكن إنهاء العقد قبل إرفاق محضر تسليم أو فحص إخلاء محفوظ ومتحقق منه.',
- VACATING_OPEN_MAINTENANCE:'لا يمكن تحرير الوحدة مع وجود طلب صيانة مفتوح على العقد.',
- VACATING_OPEN_UTILITIES:'لا يمكن تحرير الوحدة مع وجود فاتورة خدمات غير محسومة مرتبطة بالعقار.',
- VACATING_FUTURE_PAYMENT_REVIEW_REQUIRED:'توجد دفعة مستقبلية مؤكدة تحتاج مراجعة قبل إنهاء العقد.',
- VACATING_UNCERTAIN_PAYMENT:'توجد حركة دفع غير محسومة تحتاج مراجعة قبل إنهاء العقد.',
- VACATING_DEPOSIT_HISTORY_REQUIRED:'سجل التأمين غير مكتمل ولا يسمح بإنهاء العقد.',
- VACATING_SOURCE_REVIEW_REQUIRED:'العقد المستورد يحتاج مراجعة مصدر موثقة قبل إنهائه.',
- VACATING_RELEASE_BALANCE_CHANGED:'تغيرت الأرصدة بعد إصدار براءة الذمة. حدّث التسوية قبل إنهاء العقد.',
- VACATING_CLEARANCE_REQUIRED:'يجب إصدار براءة الذمة أولاً قبل إنهاء العقد وإطلاق الوحدة.'
+ get VACATING_HANDOVER_REQUIRED(){return visibleText('لا يمكن إنهاء العقد قبل إرفاق محضر تسليم أو فحص إخلاء محفوظ ومتحقق منه.');},
+ get VACATING_OPEN_MAINTENANCE(){return visibleText('لا يمكن تحرير الوحدة مع وجود طلب صيانة مفتوح على العقد.');},
+ get VACATING_OPEN_UTILITIES(){return visibleText('لا يمكن تحرير الوحدة مع وجود فاتورة خدمات غير محسومة مرتبطة بالعقار.');},
+ get VACATING_FUTURE_PAYMENT_REVIEW_REQUIRED(){return visibleText('توجد دفعة مستقبلية مؤكدة تحتاج مراجعة قبل إنهاء العقد.');},
+ get VACATING_UNCERTAIN_PAYMENT(){return visibleText('توجد حركة دفع غير محسومة تحتاج مراجعة قبل إنهاء العقد.');},
+ get VACATING_DEPOSIT_HISTORY_REQUIRED(){return visibleText('سجل التأمين غير مكتمل ولا يسمح بإنهاء العقد.');},
+ get VACATING_SOURCE_REVIEW_REQUIRED(){return visibleText('العقد المستورد يحتاج مراجعة مصدر موثقة قبل إنهائه.');},
+ get VACATING_RELEASE_BALANCE_CHANGED(){return visibleText('تغيرت الأرصدة بعد إصدار براءة الذمة. حدّث التسوية قبل إنهاء العقد.');},
+ get VACATING_CLEARANCE_REQUIRED(){return visibleText('يجب إصدار براءة الذمة أولاً قبل إنهاء العقد وإطلاق الوحدة.');}
 };
 const checkbox=()=>{const input=node('input');input.type='checkbox';return input;};
 export function openVacatingSettlement(){
@@ -45,7 +46,7 @@ export function openVacatingSettlement(){
  function draw(){
   summary.replaceChildren();
   if(!current){summary.append(node('p',translateStatic('لا توجد مسودة محفوظة لهذا العقد.')));for(const x of [vacate,keys,inspection,meters,damage,damageNotes,resolved,reference])x.disabled=!lease.value;save.disabled=!lease.value;for(const x of [finalize,clearance,releaseUnit,printSettlement,printClearance])x.disabled=true;return;}
-  const b=current.balances||{};summary.append(node('h3',translateStatic('حالة التسوية: ')+current.status),node('p',translateStatic('المتبقي على المستأجر: ')+money(b.rent_balance)+' د.ك · الرصيد الدائن: '+money(b.tenant_credit)+' د.ك · التأمين غير المسوّى: '+money(b.deposit_balance)+' د.ك'));
+  const b=current.balances||{};summary.append(node('h3',translateStatic('حالة التسوية: ')+current.status),node('p',translateStatic('المتبقي على المستأجر: ')+money(b.rent_balance)+visibleText(' د.ك · الرصيد الدائن: ')+money(b.tenant_credit)+visibleText(' د.ك · التأمين غير المسوّى: ')+money(b.deposit_balance)+visibleText(' د.ك')));
   if(current.settlement_no)summary.append(node('p',translateStatic('رقم التسوية: ')+current.settlement_no));if(current.clearance_no)summary.append(node('p',translateStatic('رقم براءة الذمة: ')+current.clearance_no));if(current.exception_reason)summary.append(node('p',translateStatic('استثناء موثق: ')+current.exception_reason));
   if(current.status==='released')summary.append(node('p',translateStatic('تم إنهاء الإشغال تشغيلياً وتحرير الوحدة مع بقاء نهاية العقد الأصلية محفوظة في السجل.')));
   const locked=current.status!=='draft';for(const x of [vacate,keys,inspection,meters,damage,damageNotes,resolved,reference])x.disabled=locked;

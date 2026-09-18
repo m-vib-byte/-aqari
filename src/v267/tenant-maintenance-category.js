@@ -1,3 +1,5 @@
+import {t} from './components/locale.js';
+import {setText} from './components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG;
 const form=document.getElementById('maintenanceForm');
 const category=document.getElementById('maintenanceCategory');
@@ -22,7 +24,7 @@ if(!cfg||cfg.releaseStage!=='preview'||!form||!category||!leaseSelect||!descript
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let submitting=false,decorating=false,timer=null;
 
-function status(text){if(notice)notice.textContent=text;}
+function status(text,values){if(notice)setText(notice,text,values);}
 function validCategory(value){return Object.hasOwn(CATEGORY_LABELS,value)&&value!=='legacy_unclassified';}
 function todayKuwait(){return new Date(Date.now()+10800000).toISOString().slice(0,10);}
 async function session(){const {data,error}=await client.auth.getSession();if(error)throw Error('تعذر التحقق من جلسة الدخول.');return data.session;}
@@ -39,12 +41,13 @@ async function decorateCategories(){
   for(let i=0;i<cards.length;i++){
    cards[i].querySelector('.maintenance-category-label')?.remove();
    const row=data.maintenance[i];if(!row)continue;
-   const badge=document.createElement('strong');badge.className='maintenance-category-label';badge.textContent='النوع: '+(CATEGORY_LABELS[row.category_code]||'غير معروف')+' • ';
+   const badge=document.createElement('strong');badge.className='maintenance-category-label';setText(badge,'النوع: {category} • ',{category:t(CATEGORY_LABELS[row.category_code]||'غير معروف')});
    cards[i].prepend(badge);
   }
  }catch{}
  finally{observer.observe(requestList,{childList:true,subtree:true});decorating=false;}
 }
+window.addEventListener('aqari:portal-locale',()=>{decorateCategories();});
 function scheduleDecorate(){clearTimeout(timer);timer=setTimeout(decorateCategories,120);}
 const observer=new MutationObserver(scheduleDecorate);observer.observe(requestList,{childList:true,subtree:true});
 window.addEventListener('load',()=>setTimeout(decorateCategories,500),{once:true});
@@ -70,8 +73,9 @@ form.addEventListener('submit',async event=>{
   const after=await snapshot();
   const saved=(after.maintenance||[]).find(item=>item.id===id);
   if(!saved||saved.category_code!==categoryCode)throw Error('تم الإرسال لكن لم يتأكد الاسترجاع. حدّث الصفحة قبل إعادة الإرسال.');
-  status('تم حفظ طلب الصيانة بنوع «'+CATEGORY_LABELS[categoryCode]+'» وظهوره في السجل.');
+  status('تم حفظ طلب الصيانة بنوع «{category}» وظهوره في السجل.',{category:t(CATEGORY_LABELS[categoryCode])});
   window.location.reload();
  }catch(error){status(inserted?'تم الإرسال لكن لم يتأكد الاسترجاع. حدّث الصفحة قبل إعادة الإرسال.':(error?.message||'تعذر حفظ طلب الصيانة.'));}
  finally{submitting=false;if(save)save.disabled=false;}
 },true);
+

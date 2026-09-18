@@ -1,5 +1,6 @@
 import {bindLocale,setLocale,getLocale,direction,t,LANGUAGES} from './components/locale.js';
 import {createLiveTextTranslator} from './components/live-locale-text.js';
+import {mountAppLoginLocale} from './app-login-locale.js';
 
 const RELEASE='V267';
 const EXTRA_EN=Object.freeze({
@@ -74,6 +75,7 @@ function bind(){
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;if(bind())translateTree();});}
 function start(){
+ mountAppLoginLocale();
  if(!document.getElementById('aqari-platform-locale-css')){const link=document.createElement('link');link.id='aqari-platform-locale-css';link.rel='stylesheet';link.href='/src/v267/styles/platform-locale.css?release='+RELEASE;document.head.append(link);}
  bind();observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(r=>r.addedNodes.length||r.type==='attributes'||r.type==='characterData'))schedule();});observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','hidden','aria-hidden','placeholder','aria-label','title']});
  window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready'){boundKey='';setTimeout(schedule,0);}});

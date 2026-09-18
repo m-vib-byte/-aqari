@@ -1,9 +1,10 @@
+import {t as visibleText} from '../components/locale.js';
 import {mountAvailableUnitMeterReadings} from '../components/unit-meter-readings.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {createPaymentProof} from '../components/payment-proof.js';
-const labels={unknown:'غير مؤكد',unpaid:'غير مسدد',partial:'مسدد جزئياً',paid:'مسدد'};
+const labels={get unknown(){return visibleText('غير مؤكد');},get unpaid(){return visibleText('غير مسدد');},get partial(){return visibleText('مسدد جزئياً');},get paid(){return visibleText('مسدد');}};
 export function openUtilityMeters(){
  const d=createDialog(t('الإعدادات والخدمات — عدادات العقارات'),{localized:true});if(!d)return;
  const view=mountUtilityMeters(d);d.run(view.init);
@@ -67,3 +68,4 @@ export function mountUtilityMeters(d){
  async function init(){await mountAvailableUnitMeterReadings(d);properties=await allRows(()=>d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).order('name').order('id'));if(d.closed)return;property.replaceChildren();for(const p of properties){const o=node('option',p.name);o.value=p.id;property.append(o);}if(!properties.some(p=>p.name.includes('ضحاوي'))){const o=node('option',t('برج ضحاوي — تجهيز العدادات لاحقاً'));o.value='';property.append(o);}property.value=properties[0]?.id||'';await load();}
  return {init};
 }
+

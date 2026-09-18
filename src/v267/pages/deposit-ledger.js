@@ -29,7 +29,7 @@ export function openDepositLedger(){
   catch(error){
    let lost=false;try{d.session.check();}catch{lost=true;}
    if(lost||isDepositDenied(error)){forgetView();loaded=false;}
-   const code=String(error?.message||'').split(':')[0],source=errors[code]||(/^[\u0600-\u06ff]/.test(error?.message||'')?error.message:'تعذر تأكيد العملية. حدّث السجل للتحقق قبل إعادة المحاولة.');
+   const code=String(error?.message||'').split(':')[0],source=errors[code]||(/^[\u0600-\u06ff]/.test(error?.message||'')?error.message:t('تعذر تأكيد العملية. حدّث السجل للتحقق قبل إعادة المحاولة.'));
    say(source);
    if(!lost&&!isDepositDenied(error))render();
   }
@@ -46,9 +46,9 @@ export function openDepositLedger(){
   leases=data.leases;entries=data.entries;loaded=true;
   if(selectedId&&!leases.some(lease=>lease.id===selectedId)){selectedId='';entries=[];}
   render();
-  if(result?.state==='saved')say('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.');
-  else if(writer.pending)say(absent?'لم تظهر الحركة في السجل بعد. أعد المحاولة بالبيانات نفسها فقط.':'تحقق من العملية السابقة قبل تسجيل حركة جديدة.');
-  else say('تم استرجاع دفتر التأمين من السجلات المحفوظة.');
+  if(result?.state==='saved')say(t('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.'));
+  else if(writer.pending)say(absent?t('لم تظهر الحركة في السجل بعد. أعد المحاولة بالبيانات نفسها فقط.'):t('تحقق من العملية السابقة قبل تسجيل حركة جديدة.'));
+  else say(t('تم استرجاع دفتر التأمين من السجلات المحفوظة.'));
  }
  async function movement(retry=false){
   const lease=selected();if(!lease)throw Error('اختر عقداً محفوظاً.');
@@ -58,66 +58,67 @@ export function openDepositLedger(){
   const values=depositValues(mode,{...draft,lease_id:selectedId});
   if(!retry&&mode==='refund'&&depositFils(values.amount)>depositFils(lease.balance))throw Error('مبلغ الرد يتجاوز رصيد التأمين المحفوظ.');
   const result=await (retry?writer.retry(values):writer.submit(mode,values));d.session.check();absent=result.state==='absent';
-  if(result.state==='saved'){draft=freshDraft();output=null;await read({reconcile:false});say('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.');}
-  else{draft={...values};render();say('لم تظهر الحركة في السجل بعد. أعد المحاولة بالبيانات نفسها فقط.');}
+  if(result.state==='saved'){draft=freshDraft();output=null;await read({reconcile:false});say(t('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.'));}
+  else{draft={...values};render();say(t('لم تظهر الحركة في السجل بعد. أعد المحاولة بالبيانات نفسها فقط.'));}
  }
  async function prepareReceipt(id){
   output=null;urls.clear();
   const result=await rpc('get',{id});d.session.check();const entry=result?.entry;
   if(!entry||entry.id!==id||entry.snapshot?.lease_id!==selectedId)throw Error('تعذر التحقق من الوصل المحفوظ. حدّث السجل.');
   const html=depositReceiptHTML(entry,{translate:t,locale:getLocale(),direction:direction()});
-  output=urls.create(new Blob([html],{type:'text/html;charset=utf-8'}));render();say('تم تجهيز الوصل من الحركة المحفوظة. افتحه للطباعة أو الحفظ بصيغة PDF.');
+  output=urls.create(new Blob([html],{type:'text/html;charset=utf-8'}));render();say(t('تم تجهيز الوصل من الحركة المحفوظة. افتحه للطباعة أو الحفظ بصيغة PDF.'));
  }
  function render(){
   if(d.closed)return;
-  d.body.replaceChildren(text('p','دفتر التأمين مستقل عن تحصيل الإيجار. قيمة التأمين في العقد لا تعني أنه مقبوض.'),text('p','القبض والرد يسجلان حركة منفذة. لا ترسل هذه الشاشة أموالاً أو تنفذ تحويلاً خارجياً.'));
-  const toolbar=node('div'),picker=node('select'),empty=text('option','اختر عقداً محفوظاً.');empty.value='';picker.append(empty);
+  d.body.replaceChildren(text('p',t('دفتر التأمين مستقل عن تحصيل الإيجار. قيمة التأمين في العقد لا تعني أنه مقبوض.')),text('p',t('القبض والرد يسجلان حركة منفذة. لا ترسل هذه الشاشة أموالاً أو تنفذ تحويلاً خارجياً.')));
+  const toolbar=node('div'),picker=node('select'),empty=text('option',t('اختر عقداً محفوظاً.'));empty.value='';picker.append(empty);
   for(const lease of leases){const option=node('option',[lease.contract_no,lease.tenant_name,lease.property_name,lease.unit_no].filter(Boolean).join(' · '));option.value=lease.id;picker.append(option);}
   picker.value=selectedId;picker.disabled=!!writer?.pending;picker.onchange=()=>work(async()=>{selectedId=picker.value;draft=freshDraft();output=null;urls.clear();await read({reconcile:false});});
-  toolbar.append(field(t('العقد المحفوظ'),picker),button('تحديث السجل والتحقق من العملية',()=>work(()=>read())));d.body.append(toolbar);
+  toolbar.append(field(t('العقد المحفوظ'),picker),button(t('تحديث السجل والتحقق من العملية'),()=>work(()=>read())));d.body.append(toolbar);
   if(!loaded)return;
-  if(!leases.length){d.body.append(text('p','لا توجد عقود متاحة لدفتر التأمين حسب صلاحيتك.'));return;}
-  if(writer?.pending)d.body.append(text('p',writer.retained?'توجد عملية بانتظار التحقق. تبقى بياناتها ثابتة لمنع تكرار القبض أو الرد.':'توجد عملية سابقة بانتظار التحقق. إن لم تظهر في السجل، أعد إدخال بياناتها نفسها لإعادة المحاولة.'));
-  const lease=selected();if(!lease){d.body.append(text('p','اختر عقداً لعرض المستأجر والعقار والوحدة وحركات التأمين المرتبطة به.'));return;}
+  if(!leases.length){d.body.append(text('p',t('لا توجد عقود متاحة لدفتر التأمين حسب صلاحيتك.')));return;}
+  if(writer?.pending)d.body.append(text('p',writer.retained?t('توجد عملية بانتظار التحقق. تبقى بياناتها ثابتة لمنع تكرار القبض أو الرد.'):t('توجد عملية سابقة بانتظار التحقق. إن لم تظهر في السجل، أعد إدخال بياناتها نفسها لإعادة المحاولة.')));
+  const lease=selected();if(!lease){d.body.append(text('p',t('اختر عقداً لعرض المستأجر والعقار والوحدة وحركات التأمين المرتبطة به.')));return;}
   const details=node('dl');
-  for(const [label,value]of [['رقم العقد',lease.contract_no],['المستأجر',lease.tenant_name],['العقار',lease.property_name],['الوحدة',lease.unit_no],['التأمين المحدد في العقد — د.ك',lease.contract_deposit],['التأمين المقبوض — د.ك',lease.received],['التأمين المردود — د.ك',lease.refunded],['رصيد التأمين المحفوظ — د.ك',lease.balance]])details.append(text('dt',label),node('dd',String(value??t('غير مسجل'))));
+  for(const [label,value]of [[t('رقم العقد'),lease.contract_no],[t('المستأجر'),lease.tenant_name],[t('العقار'),lease.property_name],[t('الوحدة'),lease.unit_no],[t('التأمين المحدد في العقد — د.ك'),lease.contract_deposit],[t('التأمين المقبوض — د.ك'),lease.received],[t('التأمين المردود — د.ك'),lease.refunded],[t('رصيد التأمين المحفوظ — د.ك'),lease.balance]])details.append(text('dt',label),node('dd',String(value??t('غير مسجل'))));
   d.body.append(details);
   const canReceive=lease.can_receive===true,canRefund=lease.can_refund===true&&d.session.bound.role==='general_manager';
   if(canReceive||canRefund||writer?.pending){
    const actions=node('div');
    if(!writer?.pending){
-    if(canReceive)actions.append(button('تسجيل قبض تأمين',()=>{mode='receive';draft=freshDraft();render();}));
-    if(canRefund)actions.append(button('تسجيل رد تأمين',()=>{mode='refund';draft=freshDraft();render();}));
+    if(canReceive)actions.append(button(t('تسجيل قبض تأمين'),()=>{mode='receive';draft=freshDraft();render();}));
+    if(canRefund)actions.append(button(t('تسجيل رد تأمين'),()=>{mode='refund';draft=freshDraft();render();}));
     if((mode==='receive'&&!canReceive)||(mode==='refund'&&!canRefund))mode=canReceive?'receive':'refund';
    }
    d.body.append(actions);const form=node('form');form.dataset.aq267DepositForm=mode;
-   form.append(text('h3',mode==='receive'?'وصل قبض تأمين':'وصل رد تأمين'));
+   form.append(text('h3',mode==='receive'?t('وصل قبض تأمين'):t('وصل رد تأمين')));
    const controls={},add=(name,label,type='text')=>{const control=node(type==='textarea'?'textarea':'input');if(type!=='textarea')control.type=type;control.value=draft[name]??'';control.oninput=()=>{draft[name]=control.value;};control.disabled=!!writer?.pending&&!!writer.retained;controls[name]=control;form.append(field(t(label),control));return control;};
-   const amount=add('amount','المبلغ بالدينار الكويتي');amount.inputMode='decimal';amount.dir='ltr';amount.required=true;amount.maxLength=16;
-   const date=add('on_date','تاريخ العملية','date');date.required=true;date.max=depositToday();
+   const amount=add('amount',t('المبلغ بالدينار الكويتي'));amount.inputMode='decimal';amount.dir='ltr';amount.required=true;amount.maxLength=16;
+   const date=add('on_date',t('تاريخ العملية'),'date');date.required=true;date.max=depositToday();
    const method=node('select');for(const [value,label]of Object.entries(DEPOSIT_METHODS)){const option=text('option',label);option.value=value;method.append(option);}method.value=draft.method;method.disabled=!!writer?.pending&&!!writer.retained;
    method.onchange=()=>{draft.method=method.value;controls.reference.required=method.value!=='cash';};form.append(field(t('طريقة الدفع'),method));
-   const reference=add('reference','مرجع الدفع — اختياري للنقدي');reference.maxLength=120;reference.required=draft.method!=='cash';
-   const reason=add('reason',mode==='refund'?'سبب رد التأمين':'بيان القبض — اختياري','textarea');reason.maxLength=500;reason.rows=3;reason.required=mode==='refund';
-   if(mode==='refund'&&!writer?.pending){const full=button('استخدام كامل الرصيد للرد',()=>{draft.amount=depositMoney(lease.balance);amount.value=draft.amount;});full.disabled=depositFils(lease.balance)===0n;form.append(full);}
+   const reference=add('reference',t('مرجع الدفع — اختياري للنقدي'));reference.maxLength=120;reference.required=draft.method!=='cash';
+   const reason=add('reason',mode==='refund'?t('سبب رد التأمين'):t('بيان القبض — اختياري'),'textarea');reason.maxLength=500;reason.rows=3;reason.required=mode==='refund';
+   if(mode==='refund'&&!writer?.pending){const full=button(t('استخدام كامل الرصيد للرد'),()=>{draft.amount=depositMoney(lease.balance);amount.value=draft.amount;});full.disabled=depositFils(lease.balance)===0n;form.append(full);}
    if(writer?.pending){
-    if(absent){const retry=text('button','إعادة نفس العملية دون تكرار');retry.type='submit';form.append(retry);form.onsubmit=event=>{event.preventDefault();return work(()=>movement(true));};}
-   }else{const save=text('button','حفظ الحركة والتحقق من الوصل');save.type='submit';form.append(save);form.onsubmit=event=>{event.preventDefault();return work(()=>movement());};}
+    if(absent){const retry=text('button',t('إعادة نفس العملية دون تكرار'));retry.type='submit';form.append(retry);form.onsubmit=event=>{event.preventDefault();return work(()=>movement(true));};}
+   }else{const save=text('button',t('حفظ الحركة والتحقق من الوصل'));save.type='submit';form.append(save);form.onsubmit=event=>{event.preventDefault();return work(()=>movement());};}
    d.body.append(form);
-  }else d.body.append(text('p','عرض دفتر التأمين فقط. لا تتاح حركة جديدة لهذا العقد حسب حالته وصلاحيتك.'));
-  const list=node('div');list.append(text('h3','حركات التأمين المحفوظة'));
-  if(!entries.length)list.append(text('p','لا توجد حركات تأمين محفوظة لهذا العقد.'));
+  }else d.body.append(text('p',t('عرض دفتر التأمين فقط. لا تتاح حركة جديدة لهذا العقد حسب حالته وصلاحيتك.')));
+  const list=node('div');list.append(text('h3',t('حركات التأمين المحفوظة')));
+  if(!entries.length)list.append(text('p',t('لا توجد حركات تأمين محفوظة لهذا العقد.')));
   for(const entry of entries){
    const card=node('article');card.dataset.aq267DepositEntry=entry.id;
-   card.append(node('h4',t(entry.kind==='receipt'?'وصل قبض تأمين':'وصل رد تأمين')+' · '+entry.voucher_no),node('p',message('{amount} د.ك · {date}',{amount:depositMoney(entry.amount),date:entry.on_date})),node('p',entry.reason||''));
+   card.append(node('h4',t(entry.kind==='receipt'?t('وصل قبض تأمين'):t('وصل رد تأمين'))+' · '+entry.voucher_no),node('p',message('{amount} د.ك · {date}',{amount:depositMoney(entry.amount),date:entry.on_date})),node('p',entry.reason||''));
    if(entry.actor_name)card.append(node('p',t('سجل العملية')+': '+entry.actor_name));
    if(entry.created_at){const when=new Date(entry.created_at);if(Number.isFinite(when.getTime()))card.append(node('p',when.toLocaleString(dateLocale(),{timeZone:'Asia/Kuwait'})));}
-   card.append(button('تجهيز الوصل المحفوظ للطباعة',()=>work(()=>prepareReceipt(entry.id))));list.append(card);
+   card.append(button(t('تجهيز الوصل المحفوظ للطباعة'),()=>work(()=>prepareReceipt(entry.id))));list.append(card);
   }
   d.body.append(list);
-  if(output){const link=text('a','فتح الوصل للطباعة أو الحفظ');link.href=output;link.target='_blank';link.rel='noopener';d.body.append(link);}
-  d.body.append(text('p','وصل التأمين مستقل عن الإيجار ولا يمثل مخالصة أو براءة ذمة.'));
+  if(output){const link=text('a',t('فتح الوصل للطباعة أو الحفظ'));link.href=output;link.target='_blank';link.rel='noopener';d.body.append(link);}
+  d.body.append(text('p',t('وصل التأمين مستقل عن الإيجار ولا يمثل مخالصة أو براءة ذمة.')));
  }
  d.onDispose(()=>{forgetView();writer=null;});
  return work(async()=>{writer=createDepositWriter({rpc,scope:d.session.bound,check:d.session.check});await read();});
 }
+

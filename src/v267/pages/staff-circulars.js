@@ -1,11 +1,13 @@
+import {dateLocale} from '../components/locale.js';
+import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
-const states={draft:'مسودة',published:'منشور',archived:'مؤرشف'};
-const when=v=>v?new Date(v).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'}):'لم يسجل بعد';
+const states={get draft(){return visibleText('مسودة');},get published(){return visibleText('منشور');},get archived(){return visibleText('مؤرشف');}};
+const when=v=>v?new Date(v).toLocaleString(dateLocale(),{timeZone:'Asia/Kuwait'}):visibleText('لم يسجل بعد');
 const sameTargets=(a,b)=>JSON.stringify([...(a||[])].sort())===JSON.stringify([...(b||[])].sort());
 const sameContent=(a,b)=>a.title===b.title&&a.body===b.body&&sameTargets(a.recipient_ids,b.recipient_ids)&&(!a.expires_at&&!b.expires_at||new Date(a.expires_at).getTime()===new Date(b.expires_at).getTime());
-const errors={INVALID_CIRCULAR_RECIPIENTS:'راجع الموظفين المحددين؛ يجب أن تكون حساباتهم فعالة في مساحة العمل.',REVISION_CONFLICT:'تغيرت النسخة. حدّث السجلات وافتح المسودة الأحدث.',PUBLISHED_CIRCULAR_IMMUTABLE:'النسخة المنشورة محفوظة. أنشئ مسودة جديدة للتعديل.',CIRCULAR_EXPIRED:'انتهى تاريخ العرض؛ عدّل المسودة قبل النشر.',ARCHIVE_REASON_REQUIRED:'أدخل سبب الأرشفة.',MFA_REQUIRED:'أكمل التحقق الثنائي قبل إجراء هذه العملية.'};
+const errors={get INVALID_CIRCULAR_RECIPIENTS(){return visibleText('راجع الموظفين المحددين؛ يجب أن تكون حساباتهم فعالة في مساحة العمل.');},get REVISION_CONFLICT(){return visibleText('تغيرت النسخة. حدّث السجلات وافتح المسودة الأحدث.');},get PUBLISHED_CIRCULAR_IMMUTABLE(){return visibleText('النسخة المنشورة محفوظة. أنشئ مسودة جديدة للتعديل.');},get CIRCULAR_EXPIRED(){return visibleText('انتهى تاريخ العرض؛ عدّل المسودة قبل النشر.');},get ARCHIVE_REASON_REQUIRED(){return visibleText('أدخل سبب الأرشفة.');},get MFA_REQUIRED(){return visibleText('أكمل التحقق الثنائي قبل إجراء هذه العملية.');}};
 
 export function mountStaffCirculars(d){
  let records=[],staff=[],manager=false,editing=null,draftId=null,pending=null,baseline='';
@@ -24,7 +26,7 @@ export function mountStaffCirculars(d){
  const dirty=()=>!editor.hidden&&snapshot()!==baseline;
  function targetChoices(selected=[]){
   targets.replaceChildren(node('legend',translateStatic('الموظفون المقصودون بالتعميم')));
-  for(const p of staff){const box=node('input');box.type='checkbox';box.value=p.user_id;box.checked=selected.includes(p.user_id);targets.append(field(p.name||'موظف',box));}
+  for(const p of staff){const box=node('input');box.type='checkbox';box.value=p.user_id;box.checked=selected.includes(p.user_id);targets.append(field(p.name||visibleText('موظف'),box));}
   for(const id of selected.filter(id=>!staff.some(p=>p.user_id===id))){
    const box=node('input'),remove=node('button',translateStatic('إزالة الموظف غير المتاح'));box.type='checkbox';box.value=id;box.checked=box.disabled=true;remove.type='button';
    remove.onclick=()=>{box.checked=false;targetChoices(selectedTargets());};
@@ -56,7 +58,7 @@ export function mountStaffCirculars(d){
    if(snapshot()===operation.draftSnapshot)closeEditor();
    else{editing=record;draftId=record.id;baseline=operation.draftSnapshot;d.status.textContent=translateStatic('تم التحقق من الحفظ السابق. احتُفظ بتعديلاتك الجديدة؛ احفظ المسودة عندما تنتهي.');return;}
   }else if(action!=='ack'&&editing?.id===record.id&&!dirty())closeEditor();
-  d.status.textContent=({save:'تم حفظ المسودة والتحقق منها بإعادة القراءة.',publish:'تم نشر النسخة المحفوظة للموظفين المحددين والتحقق منها.',archive:'تمت الأرشفة مع بقاء النص وسجل الاطلاع.',ack:'تم تسجيل إقرار اطلاعك والتحقق منه بإعادة القراءة.'})[action];
+  d.status.textContent=({get save(){return visibleText('تم حفظ المسودة والتحقق منها بإعادة القراءة.');},get publish(){return visibleText('تم نشر النسخة المحفوظة للموظفين المحددين والتحقق منها.');},get archive(){return visibleText('تمت الأرشفة مع بقاء النص وسجل الاطلاع.');},get ack(){return visibleText('تم تسجيل إقرار اطلاعك والتحقق منه بإعادة القراءة.');}})[action];
  }
  async function mutate(action,data,content){
   if(pending&&(pending.action!==action||pending.data.id!==data.id))locked();
@@ -69,13 +71,13 @@ export function mountStaffCirculars(d){
   list.replaceChildren();if(!records.length)list.append(node('p',translateStatic('لا توجد تعاميم متاحة لك.')));
   for(const r of records){
    const card=node('article'),message=node('p',r.body);message.style.whiteSpace='pre-wrap';
-   card.append(node('h3',r.title),node('p',(states[r.status]||'تعميم')+' • النسخة '+r.revision+' • النشر: '+when(r.published_at)),message);
+   card.append(node('h3',r.title),node('p',(states[r.status]||visibleText('تعميم'))+visibleText(' • النسخة ')+r.revision+visibleText(' • النشر: ')+when(r.published_at)),message);
    if(r.expires_at)card.append(node('p',translateStatic('ينتهي العرض: ')+when(r.expires_at)));
    if(r.acknowledged_at)card.append(node('p',translateStatic('سُجل اطلاعك: ')+when(r.acknowledged_at)));
    else if(r.can_ack){const ack=node('button',translateStatic('أقر بأنني اطلعت على هذا التعميم'));ack.type='button';ack.onclick=()=>d.run(()=>mutate('ack',{id:r.id,revision:r.revision}));card.append(ack);}
    if(manager){
     card.append(node('p',translateStatic('إقرارات الاطلاع: ')+Number(r.ack_count||0)));
-    const edit=node('button',r.status==='draft'?'تعديل المسودة':'نسخة جديدة من هذا التعميم');edit.type='button';edit.onclick=()=>d.run(async()=>openEditor(r,r.status!=='draft'));card.append(edit);
+    const edit=node('button',r.status==='draft'?visibleText('تعديل المسودة'):visibleText('نسخة جديدة من هذا التعميم'));edit.type='button';edit.onclick=()=>d.run(async()=>openEditor(r,r.status!=='draft'));card.append(edit);
     if(r.status==='draft'){const publish=node('button',translateStatic('نشر للموظفين المحددين'));publish.type='button';publish.onclick=()=>d.run(()=>mutate('publish',{id:r.id,revision:r.revision},r));card.append(publish);}
     if(r.status!=='archived'){
      const form=node('form'),reason=node('input'),archive=node('button',translateStatic('أرشفة التعميم'));reason.required=true;reason.minLength=3;reason.maxLength=500;archive.type='submit';form.append(field(translateStatic('سبب الأرشفة'),reason),archive);
@@ -87,7 +89,7 @@ export function mountStaffCirculars(d){
      history.replaceChildren(node('h3',translateStatic('سجل: ')+r.title));
      for(const v of result.versions){const section=node('details'),snapshot=v.after_snapshot||{};section.append(node('summary',translateStatic('النسخة ')+v.revision+' • '+when(v.recorded_at)),node('p',translateStatic('بواسطة: ')+v.actor_name),node('p',v.reason||''),node('h4',snapshot.title));const original=node('p',snapshot.body);original.style.whiteSpace='pre-wrap';section.append(original);history.append(section);}
      history.append(node('h4',translateStatic('الموظفون المقصودون وإقراراتهم')));if(!result.recipients.length)history.append(node('p',translateStatic('لم ينشر هذا التعميم بعد.')));
-     for(const a of result.recipients)history.append(node('p',a.user_name+' • النسخة '+a.notice_revision+' • '+(a.acknowledged_at?'اطلع في '+when(a.acknowledged_at):'لم يسجل إقرار الاطلاع')));
+     for(const a of result.recipients)history.append(node('p',a.user_name+visibleText(' • النسخة ')+a.notice_revision+' • '+(a.acknowledged_at?visibleText('اطلع في ')+when(a.acknowledged_at):visibleText('لم يسجل إقرار الاطلاع'))));
      d.status.textContent=translateStatic('تم استرجاع النسخ وسجل الاطلاع المحفوظ.');
     });card.append(audit);
    }

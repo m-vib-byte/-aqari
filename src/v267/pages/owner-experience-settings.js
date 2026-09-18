@@ -1,3 +1,4 @@
+import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
@@ -25,7 +26,7 @@ export function openOwnerExperienceSettings(){
   const card=node('article'),head=node('div'),remove=node('button',translateStatic('حذف من قائمة الإرسال')),grid=node('div');
   card.className='aq-owner-final-target';head.className='aq-owner-final-target-head';grid.className='aq-owner-final-target-grid';remove.type='button';remove.className='aq-owner-final-target-remove';head.append(node('strong',translateStatic('المستلم ')+(index+1)),remove);
   const ownerAccount=node('select'),owner=input(),property=node('select'),wa=checkbox(),mail=checkbox(),phone=input('tel'),email=input('email'),schedule=node('select'),hour=node('select'),enabled=checkbox();
-  ownerAccount.append(option('','مالك / مستلم يدوي'));for(const x of owners)ownerAccount.append(option(x.user_id,(x.display_name||x.email||'مالك')+' — حساب مرتبط'));ownerAccount.value=target.owner_user_id||'';
+  ownerAccount.append(option('',visibleText('مالك / مستلم يدوي')));for(const x of owners)ownerAccount.append(option(x.user_id,(x.display_name||x.email||visibleText('مالك'))+visibleText(' — حساب مرتبط')));ownerAccount.value=target.owner_user_id||'';
   owner.value=target.owner_name||'';owner.maxLength=120;owner.required=true;
   property.multiple=true;property.size=Math.min(6,Math.max(3,properties.length||3));
   function fillProperties(){
@@ -36,7 +37,7 @@ export function openOwnerExperienceSettings(){
   fillProperties();
   wa.checked=(target.channels||[]).includes('whatsapp');mail.checked=(target.channels||[]).includes('email');
   phone.value=target.whatsapp||'';phone.placeholder='+965...';phone.autocomplete='off';email.value=target.email||'';email.autocomplete='off';
-  schedule.append(option('daily','يومي'),option('weekly','أسبوعي — الأحد'),option('monthly','شهري — أول يوم'));schedule.value=target.schedule||'monthly';
+  schedule.append(option('daily',visibleText('يومي')),option('weekly',visibleText('أسبوعي — الأحد')),option('monthly',visibleText('شهري — أول يوم')));schedule.value=target.schedule||'monthly';
   for(let i=0;i<24;i++)hour.append(option(String(i),String(i).padStart(2,'0')+':00'));hour.value=String(target.hour??8);enabled.checked=target.enabled!==false;
   ownerAccount.onchange=()=>{
    const linked=owners.find(x=>x.user_id===ownerAccount.value);
@@ -45,7 +46,7 @@ export function openOwnerExperienceSettings(){
   };
   function syncChannels(){phone.disabled=!wa.checked;email.disabled=!mail.checked;if(!wa.checked&&!mail.checked){wa.checked=true;phone.disabled=false;}}
   wa.onchange=mail.onchange=syncChannels;syncChannels();
-  const scopeNote=node('small',ownerAccount.value?'إذا لم تحدد عقارًا، يشمل التقرير كل العقارات المصرح بها لهذا المالك فقط.':'للمستلم اليدوي يجب تحديد عقار واحد على الأقل.');
+  const scopeNote=node('small',ownerAccount.value?visibleText('إذا لم تحدد عقارًا، يشمل التقرير كل العقارات المصرح بها لهذا المالك فقط.'):visibleText('للمستلم اليدوي يجب تحديد عقار واحد على الأقل.'));
   grid.append(field(translateStatic('حساب المالك المرتبط — اختياري'),ownerAccount),field(translateStatic('اسم المالك / المستلم'),owner),field(translateStatic('العقار أو مجموعة العقارات'),property),scopeNote,field(translateStatic('إرسال عبر WhatsApp — Meta Cloud API'),wa),field(translateStatic('إرسال عبر Email'),mail),field(translateStatic('رقم WhatsApp'),phone),field(translateStatic('البريد الإلكتروني'),email),field(translateStatic('نوع التقرير'),schedule),field(translateStatic('ساعة الإرسال بتوقيت الكويت'),hour),field(translateStatic('مفعّل'),enabled));
   card.append(head,grid);
   card._read=()=>({id:target.id,owner_name:owner.value.trim(),owner_user_id:ownerAccount.value||'',property_ids:selectedValues(property),channels:[...(wa.checked?['whatsapp']:[]),...(mail.checked?['email']:[])],email:email.value.trim(),whatsapp:phone.value.trim(),schedule:schedule.value,hour:Number(hour.value),enabled:enabled.checked});
@@ -55,7 +56,7 @@ export function openOwnerExperienceSettings(){
  function collectTargets(){return [...targetsHost.querySelectorAll('.aq-owner-final-target')].map(card=>card._read());}
  function applySettings(value){guest.checked=value.guest_enabled===true;assistant.checked=value.assistant_enabled!==false;report.checked=value.report_enabled===true;settingsRevision=Number(value.revision||0);syncNote();}
  function applyTargets(value){targetRevision=Number(value.revision||0);properties=Array.isArray(value.properties)?value.properties:[];owners=Array.isArray(value.owners)?value.owners:[];targets=Array.isArray(value.targets)?structuredClone(value.targets):[];renderTargets();}
- function syncNote(){note.textContent=report.checked?'التقرير التلقائي مفعّل منطقيًا. الإرسال يحتاج Secrets الخادم لـMeta WhatsApp و/أو مزود Email، وتنفذ الجدولة كل ساعة ثم تطابق توقيت الكويت لكل مستلم.':'التقرير التلقائي متوقف. يمكنك إنشاء تقرير المالك يدويًا بدون إرسال خارجي.';}
+ function syncNote(){note.textContent=report.checked?visibleText('التقرير التلقائي مفعّل منطقيًا. الإرسال يحتاج Secrets الخادم لـMeta WhatsApp و/أو مزود Email، وتنفذ الجدولة كل ساعة ثم تطابق توقيت الكويت لكل مستلم.'):visibleText('التقرير التلقائي متوقف. يمكنك إنشاء تقرير المالك يدويًا بدون إرسال خارجي.');}
  report.onchange=syncNote;addTarget.onclick=()=>{targets=collectTargets();targets.push(blankTarget());renderTargets();};
  async function load(){const [settingsValue,targetValue]=await Promise.all([settingsRpc('read'),targetsRpc('read')]);if(settingsValue?.workspace_id!==d.session.bound.workspace||targetValue?.workspace_id!==d.session.bound.workspace)throw Error('تعذر التحقق من إعدادات تجربة المالك.');applySettings(settingsValue);applyTargets(targetValue);d.status.textContent=translateStatic('تمت قراءة إعدادات المدير العام ومستلمي التقارير.');}
  function validateTargets(rows){

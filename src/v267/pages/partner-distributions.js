@@ -1,3 +1,4 @@
+import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 
@@ -14,24 +15,24 @@ export function partnerFils(value){
 }
 export function partnerMoney(fils){
  if(!/^-?\d+$/.test(String(fils)))throw Error('تعذر التحقق من مبلغ السجل.');
- const n=BigInt(fils),a=n<0n?-n:n;return (n<0n?'-':'')+(a/1000n)+'.'+String(a%1000n).padStart(3,'0')+' د.ك';
+ const n=BigInt(fils),a=n<0n?-n:n;return (n<0n?'-':'')+(a/1000n)+'.'+String(a%1000n).padStart(3,'0')+visibleText(' د.ك');
 }
 const canonical=value=>JSON.stringify(value&&typeof value==='object'?(Array.isArray(value)?value.map(x=>JSON.parse(canonical(x))):Object.fromEntries(Object.keys(value).sort().map(k=>[k,JSON.parse(canonical(value[k]))]))):value);
 const messages={
- PARTNER_COMMERCIAL_ALLOCATION_REVIEW_REQUIRED:'يتضمن وصل في هذا العقار تخصيصًا تجاريًا. يحتاج مصدره مطابقة منفصلة؛ لم يحتسب كتوزيع إيجاري.',
- PARTNER_PERIOD_ALREADY_DISTRIBUTED:'سبق توزيع العقار في هذا الشهر؛ لا يمكن تكراره حتى بعد عكسه.',
- PARTNER_ALREADY_REVERSED:'سبق عكس هذا التوزيع؛ أعد قراءة السجل.',
- PARTNER_SOURCE_REVIEW_REQUIRED:'هذا الشهر يحتاج إقفالًا مفصلًا ومطابقًا من السجل المالي. الإقفال القديم أو غير المتطابق لا يسمح بالتوزيع.',
- PARTNER_SHARES_REVIEW_REQUIRED:'فعّل سجل الحصص وحدد حصصًا موثقة مجموعها 100% أولًا.',
- PARTNER_LEGACY_FINANCE_REVIEW_REQUIRED:'لهذا العقار توزيعات أو مدفوعات قديمة تحتاج مطابقة منفصلة قبل استخدام الدفتر الجديد.',
- PARTNER_REVIEW_STALE:'تغيرت المراجعة أو الحصص؛ أعد عرض المصدر وراجع القيم قبل الاعتماد.',
- PARTNER_SHARES_CHANGED_AFTER_REVIEW:'تغيرت الحصص بعد المراجعة. اعتمد مراجعة جديدة موثقة قبل التوزيع.',
- PARTNER_EXPLICIT_RECONCILIATION_REQUIRED:'مبالغ المطابقة المدخلة لا تطابق المصدر. راجع المستند وأدخل المقبوض والمصروف والاحتياطي، بما فيها الصفر.',
- PARTNER_DOCUMENT_UNVERIFIED:'اختر مستند مطابقة مرفوعًا ومتحققًا منه للعقار نفسه.',
- PARTNER_RECIPIENT_ACCESS_REQUIRED:'أحد حسابات الشركاء غير فعال أو غير مؤكد لهذا العقار؛ راجع صلاحياته.',
- PARTNER_PROPERTY_SHARES_BINDING_CONFLICT:'سجل الحصص مرتبط بعقار آخر؛ راجع ربط الحصص.',
- PARTNER_DISTRIBUTED_SOURCE_IMMUTABLE:'سبق توزيع هذا المصدر. تبقى مراجعته ثابتة، والتصحيح بعكس مستقل.',
- PARTNER_RETRY_CONFLICT:'معرف المحاولة مرتبط ببيانات مختلفة. أعد التحقق من العملية السابقة.'
+ get PARTNER_COMMERCIAL_ALLOCATION_REVIEW_REQUIRED(){return visibleText('يتضمن وصل في هذا العقار تخصيصًا تجاريًا. يحتاج مصدره مطابقة منفصلة؛ لم يحتسب كتوزيع إيجاري.');},
+ get PARTNER_PERIOD_ALREADY_DISTRIBUTED(){return visibleText('سبق توزيع العقار في هذا الشهر؛ لا يمكن تكراره حتى بعد عكسه.');},
+ get PARTNER_ALREADY_REVERSED(){return visibleText('سبق عكس هذا التوزيع؛ أعد قراءة السجل.');},
+ get PARTNER_SOURCE_REVIEW_REQUIRED(){return visibleText('هذا الشهر يحتاج إقفالًا مفصلًا ومطابقًا من السجل المالي. الإقفال القديم أو غير المتطابق لا يسمح بالتوزيع.');},
+ get PARTNER_SHARES_REVIEW_REQUIRED(){return visibleText('فعّل سجل الحصص وحدد حصصًا موثقة مجموعها 100% أولًا.');},
+ get PARTNER_LEGACY_FINANCE_REVIEW_REQUIRED(){return visibleText('لهذا العقار توزيعات أو مدفوعات قديمة تحتاج مطابقة منفصلة قبل استخدام الدفتر الجديد.');},
+ get PARTNER_REVIEW_STALE(){return visibleText('تغيرت المراجعة أو الحصص؛ أعد عرض المصدر وراجع القيم قبل الاعتماد.');},
+ get PARTNER_SHARES_CHANGED_AFTER_REVIEW(){return visibleText('تغيرت الحصص بعد المراجعة. اعتمد مراجعة جديدة موثقة قبل التوزيع.');},
+ get PARTNER_EXPLICIT_RECONCILIATION_REQUIRED(){return visibleText('مبالغ المطابقة المدخلة لا تطابق المصدر. راجع المستند وأدخل المقبوض والمصروف والاحتياطي، بما فيها الصفر.');},
+ get PARTNER_DOCUMENT_UNVERIFIED(){return visibleText('اختر مستند مطابقة مرفوعًا ومتحققًا منه للعقار نفسه.');},
+ get PARTNER_RECIPIENT_ACCESS_REQUIRED(){return visibleText('أحد حسابات الشركاء غير فعال أو غير مؤكد لهذا العقار؛ راجع صلاحياته.');},
+ get PARTNER_PROPERTY_SHARES_BINDING_CONFLICT(){return visibleText('سجل الحصص مرتبط بعقار آخر؛ راجع ربط الحصص.');},
+ get PARTNER_DISTRIBUTED_SOURCE_IMMUTABLE(){return visibleText('سبق توزيع هذا المصدر. تبقى مراجعته ثابتة، والتصحيح بعكس مستقل.');},
+ get PARTNER_RETRY_CONFLICT(){return visibleText('معرف المحاولة مرتبط ببيانات مختلفة. أعد التحقق من العملية السابقة.');}
 };
 
 export function mountPartnerDistributions(d,container){
@@ -71,8 +72,8 @@ export function mountPartnerDistributions(d,container){
   content.replaceChildren();if(!state)return;
   if(!state.sources.length)content.append(node('p',translateStatic('لا يوجد مصدر مفصل لهذا الشهر. أكمل إقفاله من السجل المالي؛ الإقفالات القديمة تبقى محفوظة للمراجعة.')));
   const property=node('select'),shares=node('select'),show=node('button',translateStatic('عرض المصدر والحصص للمراجعة')),reviewArea=node('div');show.type='button';
-  property.append(option('','اختر العقار'));for(const p of state.properties)property.append(option(p.id,p.name));
-  shares.append(option('','اختر سجل الحصص المرتبط بالعقار'));for(const [key,s] of Object.entries(state.shares))if(s?.enabled===true&&Array.isArray(s.owners))shares.append(option(key,key+' — '+s.owners.map(x=>x.name).join('، ')));
+  property.append(option('',visibleText('اختر العقار')));for(const p of state.properties)property.append(option(p.id,p.name));
+  shares.append(option('',visibleText('اختر سجل الحصص المرتبط بالعقار')));for(const [key,s] of Object.entries(state.shares))if(s?.enabled===true&&Array.isArray(s.owners))shares.append(option(key,key+' — '+s.owners.map(x=>x.name).join('، ')));
   property.onchange=shares.onchange=()=>{preview=null;reviewArea.replaceChildren();};
   show.onclick=()=>execute(async()=>{
    if(pending)throw Error('أكمل التحقق من محاولة الحفظ السابقة أولًا.');
@@ -84,7 +85,7 @@ export function mountPartnerDistributions(d,container){
   content.append(field(translateStatic('العقار'),property),field(translateStatic('سجل الحصص'),shares),show,reviewArea,node('h3',translateStatic('المراجعات والتوزيعات المحفوظة')));
   for(const a of state.approvals){
    const card=node('article'),p=state.properties.find(x=>x.id===a.property_id),newer=state.approvals.some(x=>x.property_id===a.property_id&&Number(x.review_revision)>Number(a.review_revision)),posted=state.entries.some(x=>x.source_id===a.id&&x.kind==='distribution');
-   card.append(node('h4',(p?.name||a.property_id)+' — مراجعة '+a.review_revision),node('p',translateStatic('الصافي المحدود: ')+partnerMoney(a.net_fils)+' — '+a.reason),node('p',translateStatic('نسخة الحصص ')+a.shares_version+' — '+a.owners.map(x=>x.name+' '+(x.bps/100).toFixed(2)+'%').join('، ')));
+   card.append(node('h4',(p?.name||a.property_id)+visibleText(' — مراجعة ')+a.review_revision),node('p',translateStatic('الصافي المحدود: ')+partnerMoney(a.net_fils)+' — '+a.reason),node('p',translateStatic('نسخة الحصص ')+a.shares_version+' — '+a.owners.map(x=>x.name+' '+(x.bps/100).toFixed(2)+'%').join('، ')));
    if(newer)card.append(node('p',translateStatic('مراجعة سابقة محفوظة؛ توجد مراجعة أحدث.')));
    else if(!posted&&!state.entries.some(x=>x.property_id===a.property_id&&x.kind==='distribution')){
     const reason=input(),post=node('button',translateStatic('اعتماد التوزيع من هذه المراجعة'));post.type='button';reason.maxLength=500;
@@ -95,7 +96,7 @@ export function mountPartnerDistributions(d,container){
   }
   for(const entry of state.entries){
    const card=node('article'),reversed=state.entries.some(x=>x.reverses_id===entry.id);
-   card.append(node('h4',(entry.kind==='reversal'?'قيد عكسي':'توزيع معتمد')+' — '+partnerMoney(entry.net_fils)),node('p',entry.occurred_on+' — '+entry.reason));
+   card.append(node('h4',(entry.kind==='reversal'?visibleText('قيد عكسي'):visibleText('توزيع معتمد'))+' — '+partnerMoney(entry.net_fils)),node('p',entry.occurred_on+' — '+entry.reason));
    for(const row of entry.allocations)card.append(node('p',row.name+' — '+partnerMoney(row.amount_fils)));
    if(entry.kind==='distribution'&&!reversed){const reason=input(),reverse=node('button',translateStatic('عكس التوزيع بقيد مستقل'));reverse.type='button';reason.maxLength=500;
     reverse.onclick=()=>execute(async()=>{if(pending)return submit();if(reason.value.trim().length<5)throw Error('أدخل سبب العكس بخمسة أحرف على الأقل.');proposal('reverse',{distribution_id:entry.id,reason:reason.value.trim()});await submit();});card.append(field(translateStatic('سبب العكس'),reason),reverse);}
@@ -105,12 +106,12 @@ export function mountPartnerDistributions(d,container){
  function renderReview(area,v){
   area.replaceChildren();const form=node('form'),income=input(),expense=input(),reserve=input(),document=node('select'),reason=input(),recipients=[];
   for(const el of [income,expense,reserve]){el.required=true;el.inputMode='decimal';}
-  document.required=true;document.append(option('','اختر مستند المطابقة المحفوظ'));for(const x of state.documents.filter(x=>x.property_id===v.property_id))document.append(option(x.id,x.title));
+  document.required=true;document.append(option('',visibleText('اختر مستند المطابقة المحفوظ')));for(const x of state.documents.filter(x=>x.property_id===v.property_id))document.append(option(x.id,x.title));
   reason.required=true;reason.minLength=5;reason.maxLength=500;
-  form.append(node('p',translateStatic('المقبوض: ')+partnerMoney(v.income_fils)+'؛ المصروف: '+partnerMoney(v.expense_fils)+'؛ صافي حجز الاحتياطي: '+partnerMoney(v.reserve_fils)+'؛ صافي المصدر: '+partnerMoney(v.net_fils)),node('p',translateStatic('توزيع الفلس: أكبر باقي كسر أولًا، ثم معرف الشريك بترتيب ثابت. الخسارة توزع بالإشارة السالبة نفسها.')));
+  form.append(node('p',translateStatic('المقبوض: ')+partnerMoney(v.income_fils)+visibleText('؛ المصروف: ')+partnerMoney(v.expense_fils)+visibleText('؛ صافي حجز الاحتياطي: ')+partnerMoney(v.reserve_fils)+visibleText('؛ صافي المصدر: ')+partnerMoney(v.net_fils)),node('p',translateStatic('توزيع الفلس: أكبر باقي كسر أولًا، ثم معرف الشريك بترتيب ثابت. الخسارة توزع بالإشارة السالبة نفسها.')));
   for(const row of v.allocations)form.append(node('p',row.name+' — '+partnerMoney(row.amount_fils)));
   form.append(field(translateStatic('المقبوض المطابق للمستند د.ك'),income),field(translateStatic('المصروف المطابق للمستند د.ك، أدخل 0 إن لم يوجد'),expense),field(translateStatic('صافي الاحتياطي المطابق د.ك، أدخل 0 إن لم يوجد'),reserve),field(translateStatic('مستند مطابقة العقار'),document));
-  for(const owner of v.owners){const recipient=node('select');recipient.required=true;recipient.append(option('','حدد حساب الشريك أو عدم وجود حساب'),option('offline','بدون حساب إلكتروني — لا يمنح أحدًا صلاحية'));
+  for(const owner of v.owners){const recipient=node('select');recipient.required=true;recipient.append(option('',visibleText('حدد حساب الشريك أو عدم وجود حساب')),option('offline',visibleText('بدون حساب إلكتروني — لا يمنح أحدًا صلاحية')));
    for(const p of state.partners.filter(p=>p.property_id===v.property_id))recipient.append(option(p.user_id,p.name+' — '+p.email));
    recipients.push({owner,recipient});form.append(field(translateStatic('حساب ')+owner.name,recipient));}
   form.append(node('p',translateStatic('اعتماد هذه المراجعة يثبت مطابقة الحصص لهذه الفترة وفق المستند. تبقى كل مراجعة محفوظة. إذا تغيرت الحصص قبل التوزيع، اعتمد مراجعة جديدة.')),field(translateStatic('سبب المطابقة واعتماد الحصص للفترة'),reason),node('button',translateStatic('حفظ مراجعة المصدر الموثقة')));

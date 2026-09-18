@@ -1,0 +1,799 @@
+{
+  "visibleUnique": 107,
+  "newCatalogEntries": 17,
+  "excluded": [
+    {
+      "category": "brand_preserved",
+      "sources": [
+        "عقاري",
+        "AQARI",
+        "V267",
+        "AI"
+      ]
+    },
+    {
+      "category": "record_values",
+      "sources": [
+        "profile.display_name",
+        "user.email",
+        "property_name",
+        "unit_no",
+        "contract_no",
+        "question",
+        "data.answer",
+        "paid_at"
+      ]
+    },
+    {
+      "category": "technical_not_displayed",
+      "reason": "DOM IDs, CSS selectors, route/service identifiers, event names, SVG paths and API error codes are not display text."
+    }
+  ],
+  "items": [
+    {
+      "source": "الرئيسية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العقارات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الوحدات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستأجرون",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقود",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التحصيل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المصروفات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الصيانة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الموظفون والرواتب",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الفواتير والخدمات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التقارير والإحصائيات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستندات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التنبيهات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الإعدادات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستخدم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستندات والأرشيف",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "القسم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "صفحة مستقلة ضمن صلاحيات الحساب الحالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العودة للرئيسية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تعذر فتح صفحة {section}. أعد المحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "هذه الخدمة غير متاحة لصلاحية الحساب الحالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تظهر العقارات هنا من بيانات المحفظة المصرح بها.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المساعدة والدعم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "اسأل المساعد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المدير العام",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "حساب مصرح",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "ابحث عن عقار، مستأجر، عقد، رقم شقة…",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مرحباً مجدداً",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العقار… قيمة تدوم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إدارة احترافية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "لعقارك في مكان واحد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إنشاء عقد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "إضافة مستأجر",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التقارير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إجمالي الدخل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إجمالي التحصيل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العقود الفعّالة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المتأخرات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الصيانة المفتوحة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التنبيهات والمهام",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عرض الكل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "عقود وانتهاءات تحتاج متابعة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تحصيلات ومهام اليوم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "طلبات الصيانة المفتوحة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التحصيل الشهري",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح التحصيل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "نسبة التحصيل الحالية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المحفظة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تفاصيل العقارات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الأرقام المعروضة أعلاه تأتي من السجلات المصرح بها فقط.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عقاراتي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إضافة عقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "طلب صيانة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "إصدار وصل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إجراء سريع",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المساعد الذكي التوليدي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مرتبط بصلاحيات حسابك، والعمليات الحساسة تبقى داخل صفحاتها الأصلية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "اكتب سؤالك أو اطلب شرح قسم. المساعد للقراءة والإرشاد ولا ينفذ حفظاً أو اعتماداً نيابةً عنك.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مثال: ما الذي يحتاج متابعتي في التحصيل؟",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إرسال",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "جارٍ إعداد الرد…",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "انتهت الجلسة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مزود الذكاء التوليدي غير مهيأ على الخادم حتى الآن.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المساعد متوقف من إعدادات المدير العام.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تعذر الحصول على رد آمن من المساعد.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عقاري",
+      "category": "brand_preserved",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "لوحة الإدارة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تحصيل الشهر",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المستحق",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الوحدات المرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقود النشطة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "جارٍ قراءة المؤشرات…",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تحديث",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التحصيلات · هذا الشهر",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقار / الوحدة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "رقم العقد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المحصل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المتبقي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "حسب شهر الاستحقاق؛ تحصيل الشهر أعلاه حسب تاريخ الدفع.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "أحدث العمليات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "مساعد AQARI الذكي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "كيف أساعدك اليوم؟",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "اسأل عن بياناتك أو متابعة التحصيل والعقود.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح المساعد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "قراءة وإرشاد فقط؛ لا ينفذ عمليات مالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "إجراءات سريعة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "رفع مستند",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التنبيهات والمتابعة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تقارير الملاك",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "راجع كشوف العقار والتحصيل والمستندات المحفوظة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح التقارير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تحصيل اليوم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تنتهي خلال 30 يومًا",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الإشغال المسجل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المصروفات المعتمدة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "صافي السجلات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "بعض المؤشرات غير متاحة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تم التحديث من السجلات.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تعذر قراءة المؤشرات. أعد المحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "لا توجد استحقاقات مسجلة لهذه الفترة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "البيانات غير متاحة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "لا توجد دفعات محفوظة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح مركز التنبيهات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "لا توجد عقارات ظاهرة ضمن صلاحياتك.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح ملف العقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    }
+  ]
+}

@@ -1,13 +1,14 @@
+import {message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {assertSafeIntegrationPublicMetadata} from '../components/integration-public-metadata.js';
 const input=(type='text')=>Object.assign(node('input'),{type});const option=(value,text)=>Object.assign(node('option',text),{value});const uuid=()=>crypto.randomUUID();
-const providers={knet:'K-Net — محول بانتظار مواصفات المزود',email:'البريد الإلكتروني',whatsapp:'WhatsApp',sms:'SMS',push:'Push',quickbooks:'QuickBooks',zoho_books:'Zoho Books',xero:'Xero',generic_webhook:'Webhook عام'};
+const providers={get knet(){return translateStatic('K-Net — محول بانتظار مواصفات المزود');},get email(){return translateStatic('البريد الإلكتروني');},whatsapp:'WhatsApp',sms:'SMS',push:'Push',quickbooks:'QuickBooks',zoho_books:'Zoho Books',xero:'Xero',get generic_webhook(){return translateStatic('Webhook عام');}};
 const canonical=value=>JSON.stringify(value,(_,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 export function openIntegrationCenter(){
  const d=createDialog(translateStatic('مركز التكاملات الخارجية'));if(!d)return;let data={configs:[],outbox:[],webhooks:[]},pending=false,editing=null,draftId=uuid();
  const warning=node('p',translateStatic('هذه الشاشة تجهز الربط الآمن فقط. وضع Live لا يعمل قبل إضافة سر المزود في بيئة الخادم والتحقق من مواصفاته.')),form=node('form'),provider=node('select'),purpose=input(),mode=node('select'),origin=input('url'),secretRef=input(),metadata=node('textarea'),list=node('section');
- for(const [value,label] of Object.entries(providers))provider.append(option(value,label));mode.append(option('disabled','متوقف'),option('sandbox','Sandbox'),option('live','Live'));purpose.required=true;metadata.value='{}';metadata.rows=4;
+ for(const [value,label] of Object.entries(providers))provider.append(option(value,label));mode.append(option('disabled',translateStatic('متوقف')),option('sandbox','Sandbox'),option('live','Live'));purpose.required=true;metadata.value='{}';metadata.rows=4;
  const save=Object.assign(node('button',translateStatic('حفظ الإعداد')),{type:'submit'}),cancel=Object.assign(node('button',translateStatic('إلغاء التعديل')),{type:'button',hidden:true}),refresh=Object.assign(node('button',translateStatic('تحديث حالة التكاملات')),{type:'button'});
  form.append(field(translateStatic('المزود'),provider),field(translateStatic('الغرض'),purpose),field(translateStatic('الوضع'),mode),field(translateStatic('Origin HTTPS فقط'),origin),field(translateStatic('مرجع السر بالخادم — ليس السر نفسه'),secretRef),field(translateStatic('بيانات عامة JSON — يمنع تضمين الأسرار والرموز والبيانات المدنية حتى داخل الحقول المتداخلة'),metadata),save,cancel);d.body.append(warning,form,refresh,list);
  const rpc=(action,payload={})=>d.session.request(d.session.client.rpc('aqari_external_integrations',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload}));
@@ -27,9 +28,9 @@ export function openIntegrationCenter(){
   await write('save',payload,proof);reset();
  });};
  function render(){list.replaceChildren(node('h3',translateStatic('حالة الربط والطوابير')));
-  for(const c of data.configs){const card=node('article');card.append(node('h4',`${providers[c.provider]||c.provider} — ${c.purpose}`),node('p',`الوضع: ${c.mode} • الإصدار ${c.revision} • ${c.secret_reference?'مرجع السر مسجل':'لا يوجد مرجع سر'}`));const change=node('button',translateStatic('تعديل الإعداد أو إيقافه'));change.type='button';change.onclick=()=>edit(c);const probe=node('button',translateStatic('إنشاء حدث اختبار داخلي'));probe.type='button';probe.onclick=()=>d.run(()=>write('enqueue_test',{id:uuid(),config_id:c.id,idempotency_key:`probe:${c.id}:${c.revision}`},x=>x.outbox.some(o=>o.idempotency_key===`probe:${c.id}:${c.revision}`)));card.append(change,probe);list.append(card);}
-  list.append(node('p',`أحداث Outbox: ${data.outbox.length} • Webhooks موثقة: ${data.webhooks.length}`));
-  for(const x of data.outbox.slice(0,20))list.append(node('p',`${x.event_type} • ${x.status} • المحاولات ${x.attempts}`));
+  for(const c of data.configs){const card=node('article');card.append(node('h4',`${providers[c.provider]||c.provider} — ${c.purpose}`),node('p',visibleMessage("الوضع: {value0} • الإصدار {value1} • {value2}",{value0:(c.mode),value1:(c.revision),value2:(c.secret_reference?translateStatic('مرجع السر مسجل'):translateStatic('لا يوجد مرجع سر'))})));const change=node('button',translateStatic('تعديل الإعداد أو إيقافه'));change.type='button';change.onclick=()=>edit(c);const probe=node('button',translateStatic('إنشاء حدث اختبار داخلي'));probe.type='button';probe.onclick=()=>d.run(()=>write('enqueue_test',{id:uuid(),config_id:c.id,idempotency_key:`probe:${c.id}:${c.revision}`},x=>x.outbox.some(o=>o.idempotency_key===`probe:${c.id}:${c.revision}`)));card.append(change,probe);list.append(card);}
+  list.append(node('p',visibleMessage("أحداث Outbox: {value0} • Webhooks موثقة: {value1}",{value0:(data.outbox.length),value1:(data.webhooks.length)})));
+  for(const x of data.outbox.slice(0,20))list.append(node('p',visibleMessage("{value0} • {value1} • المحاولات {value2}",{value0:(x.event_type),value1:(x.status),value2:(x.attempts)})));
   for(const x of data.webhooks.slice(0,20))list.append(node('p',`${x.provider} • ${x.event_type} • ${x.status} • ${x.provider_event_id}`));
  }
  d.onDispose(()=>{data={configs:[],outbox:[],webhooks:[]};editing=null;draftId=null;});d.run(load);
