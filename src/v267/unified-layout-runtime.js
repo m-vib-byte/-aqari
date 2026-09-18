@@ -67,7 +67,16 @@ function showVirtualPage(section){hideNativePages();hideVirtualPages();const pag
 async function openSection(key){if(key==='more')return openMore();const section=SECTIONS.find(x=>x.key===key);if(!section)return false;const a=await access();if(section.manager&&scope()?.role!=='general_manager')throw Error('هذا القسم للمدير العام فقط.');if(section.permission&&!canRead(section.permission,a))throw Error('هذا القسم غير متاح لصلاحيات حسابك الحالية.');if(section.native)return openNative(section.native);if(section.external)return runAction({external:section.external});return showVirtualPage(section);}
 
 function pageHeader(title,subtitle){return `<header class="aq-unified-page-head"><div><span>AQARI ${RELEASE}</span><h1>${title}</h1><p>${subtitle}</p></div><button type="button" data-unified-section="home">العودة للرئيسية</button></header>`;}
-function decorateNativePage(route,page){if(route==='home')return;page.classList.add('aq-unified-native-page');let head=page.querySelector(':scope > .aq-unified-page-head');const section=SECTIONS.find(x=>x.native===route);if(!head){head=document.createElement('div');head.innerHTML=pageHeader(section?.label||'القسم','إدارة وتشغيل '+(section?.label||'القسم')+' من صفحة واضحة وموحدة.');page.prepend(head.firstElementChild);}}
+function decorateNativePage(route,page){
+ if(route==='home')return;
+ page.classList.add('aq-unified-native-page');
+ const head=page.querySelector(':scope > .aq-unified-page-head');
+ if(head?.dataset.aqariNativeRoute===route)return;
+ const section=SECTIONS.find(x=>x.native===route),container=document.createElement('div');
+ container.innerHTML=pageHeader(section?.label||'القسم','إدارة وتشغيل '+(section?.label||'القسم')+' من صفحة واضحة وموحدة.');
+ const next=container.firstElementChild;next.dataset.aqariNativeRoute=route;
+ if(head)head.replaceWith(next);else page.prepend(next);
+}
 function actionCard(label,action,index){const key=`action-${index}`;return `<button type="button" class="aq-unified-action-card" data-unified-action="${key}"><span>${icon(index%3===0?'file':index%3===1?'chart':'tool')}</span><strong>${label}</strong><small>فتح الوظيفة الأصلية دون إنشاء نسخة مكررة من البيانات.</small></button>`;}
 function ensureVirtualPage(section){let page=document.getElementById(VIRTUAL_PREFIX+section.key);if(page)return page;const main=document.querySelector('main.w')||document.querySelector('main');if(!main)throw Error('تعذر إنشاء صفحة القسم.');page=document.createElement('section');page.id=VIRTUAL_PREFIX+section.key;page.className='p aq-unified-page';page.hidden=true;page.innerHTML=pageHeader(section.label,'صفحة تشغيل موحدة تجمع الوظائف الأصلية المرتبطة بهذا القسم.')+`<div class="aq-unified-section-grid">${(section.actions||[]).map((x,i)=>actionCard(x[0],x[1],i)).join('')}</div><section class="aq-unified-preserve"><strong>حماية الوظائف الحالية</strong><p>جميع الأزرار في هذه الصفحة تفتح مسارات AQARI الأصلية مع نفس الصلاحيات والحفظ وسجل التدقيق؛ هذه الصفحة تنظيمية فقط.</p></section>`;main.appendChild(page);page.addEventListener('click',event=>{const home=event.target.closest('[data-unified-section]')?.dataset.unifiedSection;if(home){event.preventDefault();openSection(home);return;}const key=event.target.closest('[data-unified-action]')?.dataset.unifiedAction;if(!key)return;const index=Number(key.split('-')[1]);const action=section.actions?.[index]?.[1];if(action)runAction(action).catch(error=>setStatus(error.message,true));});return page;}
 
@@ -125,4 +134,5 @@ function watch(){
 function boot(){if(!scope())return;applyGlobalPageClasses();mountDashboard();mountDesktopNav();mountMobileNav();document.addEventListener('click',intercept,true);window.addEventListener('aqari:auth-boundary',event=>{reset();if(event?.detail?.state==='ready')setTimeout(boot,0);});window.addEventListener('aqari:v267-controls-changed',reset);watch();document.body.dataset.aqUnifiedSection='home';syncNav();window.AQARI_UNIFIED_EXPERIENCE=Object.freeze({version:'V267-unified-layout-1',openSection,refresh:refreshDashboard,sections:SECTIONS.map(x=>x.key)});}
 function waitForAuth(){if(scope())return boot();let tries=0;const timer=setInterval(()=>{if(scope()){clearInterval(timer);boot();}else if(++tries>160)clearInterval(timer);},125);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',waitForAuth,{once:true});else waitForAuth();
+
 

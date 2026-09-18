@@ -11,6 +11,8 @@ const EXTRA_EN=Object.freeze({
 const SHELL_ROOTS='#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,.aq-unified-dashboard,.aq-unified-page-head,#aqUnifiedMore';
 const STATIC_TAGS=new Set(['BUTTON','LABEL','OPTION','LEGEND','SUMMARY','TH','H1','H2','H3','H4','H5','H6']);
 const SHELL_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','TH','TD']);
+const PROPERTY_UI_ROOTS='.v202-workspace-head,.v202-actions,.v202-tabs,.v202-overview-grid,.aq267-property-summary';
+const PROPERTY_UI_TAGS=new Set([...STATIC_TAGS,'SMALL','STRONG','B','P','SPAN','DT','DD']);
 let observer=null,queued=false,boundKey='';
 const translateLiveText=createLiveTextTranslator(translate);
 const translateMaintenanceResponse=createLiveTextTranslator(source=>formatMaintenanceMetric(source,'response',getLocale()));
@@ -28,6 +30,10 @@ function scopedStorageKey(scope){return 'aqari:v267:locale:'+JSON.stringify([sco
 function translate(source){
  if(!source)return source;
  const standard=t(source);if(standard!==source)return standard;
+ const propertyCount=source.match(/^(\d+) (عقد موقّع سارٍ|عقد مرتبط يحتاج تحقق|عملية|بند مسجل)$/);
+ if(propertyCount)return t('{count} '+propertyCount[2]).replace('{count}',propertyCount[1]);
+ const propertyOccupied=source.match(/^(\d+) من (\d+)$/);
+ if(propertyOccupied)return t('{count} من {total}').replace('{count}',propertyOccupied[1]).replace('{total}',propertyOccupied[2]);
  const propertyLabel='فتح ملف العقار ';
  if(source.startsWith(propertyLabel))return t('فتح ملف العقار')+' '+source.slice(propertyLabel.length);
  const section=source.match(/^إدارة وتشغيل (.+) من صفحة واضحة وموحدة\.$/);
@@ -43,6 +49,8 @@ function uiTextNode(node){
  if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut,a.skipLinkV103'))return true;
  if(parent.closest('#maintenanceProPage')&&parent.matches('.c.m,#mpResponseV62,#mpCostV62,#mpSlaV62>p,#mpTechV62>p,#mpPreventiveV62>p,#mpPartsV62>p'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
+ if(parent.closest(PROPERTY_UI_ROOTS))return PROPERTY_UI_TAGS.has(parent.tagName)||parent.matches('.aq267-photo-empty');
+ if(parent.matches('.aq267-property-finance>summary'))return true;
  if(parent.closest('main.w>.p,#modal[role="dialog"],.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
  return false;
 }

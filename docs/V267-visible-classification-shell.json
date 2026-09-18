@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 164,
-  "newCatalogEntries": 73,
+  "visibleUnique": 214,
+  "newCatalogEntries": 123,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -1237,6 +1237,406 @@
       "category": "visible_ui",
       "files": [
         "secure-auth-bridge.js"
+      ]
+    },
+    {
+      "source": "ملف العقار التشغيلي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "العقد والتحصيل والوصولات والكشف في مكان واحد.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إغلاق ملف العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الوضع منتظم",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "صور العقار والسعر والموقع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لم تُضف صور لهذا العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "السعر غير مضاف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الموقع غير مضاف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "رقم التواصل غير مضاف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "المؤشرات المالية والوحدات",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إبرام عقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إنشاء وربط العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "تسجيل إيجار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "تحصيل وإصدار وصل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "كشف تفصيلي PDF",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الملف الكامل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "العقار 360°",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "وثائق العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "تصوير ورفع واسترجاع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إجراءات العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "رحلة العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "من العقد إلى الكشف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "مسار تشغيل العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "العقار مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "بيانات عقود الفترة متاحة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الإجراء التالي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لا توجد متابعة عاجلة في البيانات المسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الوحدات المشغولة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "عقود مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} عقد موقّع سارٍ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} عقد مرتبط يحتاج تحقق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} عملية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} من {total}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} بند مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يحتاج ربط عقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "ابدأ بعقد لربط المستأجر والتحصيل بالعقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "المستحقات تحتاج مراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "توجد بيانات عقود غير معتمدة؛ الإجمالي غير مكتمل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يحتاج تحصيل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يوجد إيجار مستحق مرتبط بالعقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "توجد متابعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "طلبات صيانة تحتاج متابعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لا يوجد عقد موقّع سارٍ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لا يوجد تحصيل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "كشف مصدر محفوظ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يلزم اعتماد بيانات العقود أولاً",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "غير مربوط",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "داخل الملف المحمي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "عرض العقود المرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "عرض الدفعات والوصولات",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
       ]
     }
   ]

@@ -712,8 +712,8 @@
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 35129,
-      "sha256": "e2535abde081d7ae8f59594b84be8d24dac5ef1f0dbf087fb199e9d18f775d56"
+      "size": 45465,
+      "sha256": "76ea979abed289c02a4e25f7e2305463617c91f7033b24c9f9adc94a7b8be4c2"
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
@@ -1217,8 +1217,8 @@
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 25079,
-      "sha256": "c70e3ae9d3fad07ccd409bba3b44dbb9918c7e6c138bac65a0b2f0c138170ae9"
+      "size": 41077,
+      "sha256": "1f3a1aa24df3127b250c50cd88d8f5b2b767bd07fff80355dfe5cdc150b0c5f2"
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -1272,8 +1272,8 @@
     },
     {
       "path": "src/v267/domain/property-presentation.js",
-      "sha256": "c498ed705205c29305a6420fdaca60c4b9d9900ccb0c3b93128ab81b381606cd",
-      "size": 4909
+      "size": 4947,
+      "sha256": "521d12d925a7b4f9b090b4c08c37aaf04a6b7d0a47acc202cd7a1f998cf1f6a9"
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 10985,
-      "sha256": "a4f5075b0f332260e7b4ee1bd2fbf8683bf63d399aaafbfed7d821cf50931198"
+      "size": 11808,
+      "sha256": "c742cfaf5c01087a4bd7ad35c9e63a947647e39892bd43947e7a27a6f6d3fb34"
     },
     {
       "path": "src/v267/reports/financial-archive-xlsx.js",
@@ -1504,6 +1504,11 @@
       "path": "src/v267/styles/workspace.css",
       "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
       "size": 3662
+    },
+    {
+      "path": "src/v267/unified-layout-runtime.js",
+      "size": 27741,
+      "sha256": "161879035a91e8cfbe39c41b1a3d0615b6d32c2e1348ea5dee1eba7a4ae232dd"
     },
     {
       "path": "src/v267/workspace.js",
@@ -3411,6 +3416,11 @@
       "size": 4916
     },
     {
+      "path": "tests/v267-native-page-heading.test.cjs",
+      "size": 1501,
+      "sha256": "7c84e4e854371b55e8e2f176e53e48a285b02c5cc65f5c92b67f2ebecbd02fc2"
+    },
+    {
       "path": "tests/v267-navigation-work.test.cjs",
       "sha256": "467c5122631e987d737e78de519558ab14966ade8235288b9e63b1791d9f4e17",
       "size": 3422
@@ -3556,6 +3566,11 @@
       "size": 2009
     },
     {
+      "path": "tests/v267-property-workspace-locale.test.mjs",
+      "size": 2062,
+      "sha256": "3de576423dc1f27bf0f950cf8e54821ba1f411cd97c31817c56817ecd2cad542"
+    },
+    {
       "path": "tests/v267-recovery-boundary.test.cjs",
       "sha256": "5e27f1754210f8df2f45277e6e21f27ed01cd168a77ae5d66cbfd8a45be8a7bf",
       "size": 1948
@@ -3681,6 +3696,11 @@
       "size": 8173
     },
     {
+      "path": "tests/v267-visible-locale-integration.test.mjs",
+      "size": 2868,
+      "sha256": "d95ab69260c71fb9c2b9d4d5037eca43e6ea0bafa4f92831c8659482d94bf9ce"
+    },
+    {
       "path": "tests/v267-work-order-request-link.test.cjs",
       "sha256": "c0dedace91435621b61782049914949439bfba496c5ebaaf24cee2e0ab07d39e",
       "size": 7309
@@ -3742,8 +3762,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "4015538f38d97c6ebf78505342cadc8387898510444f92c957c1efbb4eb1dd2a",
-      "size": 276952
+      "size": 276983,
+      "sha256": "d25fce3bc96ae6bc02e6d63ff4aa770a59084e293f3197f957cc88d00df26dd3"
     },
     {
       "path": "v205-simple.css",

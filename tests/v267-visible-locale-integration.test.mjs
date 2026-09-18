@@ -9,11 +9,12 @@ import {VISIBLE_MESSAGES_B} from '../src/v267/components/visible-translations-b.
 import {VISIBLE_MESSAGES_B2} from '../src/v267/components/visible-translations-b2.js';
 import {VISIBLE_MESSAGES_GUIDE} from '../src/v267/components/visible-translations-guide.js';
 import {PORTAL_MESSAGES} from '../src/v267/components/portal-translations.js';
+import {SHELL_MESSAGES} from '../src/v267/components/shell-translations.js';
 
 test('all classified UI catalogs have complete language values and preserve record placeholders',()=>{
  const foreign={en:/[\u0600-\u06ff\u0900-\u097f\u0d00-\u0d7f]/u,hi:/[\u0600-\u06ff\u0d00-\u0d7f]/u,ur:/[\u0900-\u097f\u0d00-\u0d7f]/u,ml:/[\u0600-\u06ff\u0900-\u097f]/u};
  const slots=s=>[...s.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)].map(x=>x[1]).sort();
- for(const catalog of [VISIBLE_MESSAGES_A,VISIBLE_MESSAGES_A2,VISIBLE_MESSAGES_B,VISIBLE_MESSAGES_B2,VISIBLE_MESSAGES_GUIDE,PORTAL_MESSAGES])for(const [source,values] of Object.entries(catalog)){
+ for(const catalog of [VISIBLE_MESSAGES_A,VISIBLE_MESSAGES_A2,VISIBLE_MESSAGES_B,VISIBLE_MESSAGES_B2,VISIBLE_MESSAGES_GUIDE,PORTAL_MESSAGES,SHELL_MESSAGES])for(const [source,values] of Object.entries(catalog)){
   for(const language of ['en','hi','ur','ml']){
    const value=values[language];assert.ok(typeof value==='string'&&value.trim(),language+' '+source);
    assert.doesNotMatch(value,foreign[language],language+' '+source);assert.deepEqual(slots(value),slots(source),language+' '+source);
