@@ -9,6 +9,7 @@ from lib.rollback_rehearsal import REPORT_FORMAT as ROLLBACK_FORMAT
 
 SHA = "1" * 40
 ROLLBACK_SHA = "2" * 40
+REHEARSAL_ID = "3" * 32
 H = "a" * 64
 H2 = "b" * 64
 SOURCE = "ofgmcsmxmdswlovsckqs"
@@ -66,6 +67,7 @@ def fixtures():
         "verified": True,
         "candidate_sha": SHA,
         "rollback_application_sha": ROLLBACK_SHA,
+        "rehearsal_id": REHEARSAL_ID,
         "database_project_ref": SOURCE,
         "database_rollback_performed": False,
         "rehearsal_window_seconds": 180,
@@ -121,6 +123,7 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         self.assertEqual(bundle["preview"]["environment"], "preview")
         self.assertEqual(bundle["preview"]["release_stage"], "preview")
         self.assertEqual(bundle["storage"]["total_bytes"], 156509)
+        self.assertEqual(bundle["rollback"]["rehearsal_id"], REHEARSAL_ID)
         self.assertEqual(bundle["rollback"]["after_record_count"], 12)
         self.assertEqual(set(bundle["devices"]["desktop"]["flow_evidence"]), set(REQUIRED_FLOWS))
         self.assertEqual(len(bundle["devices"]["desktop"]["evidence"]), len(REQUIRED_FLOWS))
@@ -151,6 +154,17 @@ class StageCEvidenceBundleTests(unittest.TestCase):
         rollback["database_rollback_performed"] = True
         with self.assertRaisesRegex(StageCEvidenceError, "avoid database rollback"):
             create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
+
+    def test_rejects_rollback_without_canonical_rehearsal_identity(self):
+        for value in (None, "bad", REHEARSAL_ID.upper()):
+            with self.subTest(rehearsal_id=value):
+                backup, storage, restore, rollback, devices = fixtures()
+                if value is None:
+                    rollback.pop("rehearsal_id")
+                else:
+                    rollback["rehearsal_id"] = value
+                with self.assertRaisesRegex(StageCEvidenceError, "rehearsal_id"):
+                    create_stage_c_evidence_bundle(candidate_sha=SHA, backup_set=backup, backup_storage_report=storage, restore_report=restore, rollback_report=rollback, devices=devices)
 
     def test_rejects_empty_rollback_rehearsal_that_does_not_prove_old_and_new_transactions(self):
         backup, storage, restore, rollback, devices = fixtures()
