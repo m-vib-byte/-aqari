@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { REQUIRED_CI_WORKFLOWS, validateSameShaCiEvidence } from '../scripts/v267-ci-evidence-gate.mjs';
+import {
+  REQUIRED_CI_WORKFLOW_DEFINITIONS,
+  REQUIRED_CI_WORKFLOWS,
+  validateSameShaCiEvidence,
+} from '../scripts/v267-ci-evidence-gate.mjs';
 
 const SHA = 'b719c9cc2b4a8f4d0024ad0a0b6f9ff200cd72b9';
 const OTHER_SHA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -10,28 +14,37 @@ function fullCi() {
     allRequiredPassed: true,
     commitSha: SHA,
     evidence: ['evidence/ci/summary.json'],
-    workflows: REQUIRED_CI_WORKFLOWS.map((name, index) => ({
-      name,
-      commitSha: SHA,
-      runId: 1000 + index,
-      status: 'completed',
-      conclusion: 'success',
-      evidence: [`https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}`],
-      jobs: [{
+    workflows: REQUIRED_CI_WORKFLOWS.map((name, index) => {
+      const definition = REQUIRED_CI_WORKFLOW_DEFINITIONS[name];
+      return {
+        name,
+        workflowId: definition.workflowId,
+        workflowPath: definition.workflowPath,
+        event: 'pull_request',
         commitSha: SHA,
         runId: 1000 + index,
-        jobId: 2000 + index,
-        runnerId: 3000 + index,
-        runnerName: 'GitHub Actions 1',
-        stepsExecuted: 5,
         status: 'completed',
         conclusion: 'success',
         evidence: [
-          `https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/${2000 + index}`,
-          `https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}/job/${2000 + index}`,
+          `https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}`,
+          `https://api.github.com/repos/m-vib-byte/-aqari/actions/workflows/${definition.workflowId}`,
         ],
-      }],
-    })),
+        jobs: [{
+          commitSha: SHA,
+          runId: 1000 + index,
+          jobId: 2000 + index,
+          runnerId: 3000 + index,
+          runnerName: 'GitHub Actions 1',
+          stepsExecuted: 5,
+          status: 'completed',
+          conclusion: 'success',
+          evidence: [
+            `https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/${2000 + index}`,
+            `https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}/job/${2000 + index}`,
+          ],
+        }],
+      };
+    }),
   };
 }
 
@@ -111,7 +124,7 @@ test('rejects reused run or job identities across different required workflows',
   const ci = fullCi();
   ci.workflows[1].runId = ci.workflows[0].runId;
   ci.workflows[1].jobs[0].runId = ci.workflows[0].runId;
-  ci.workflows[1].evidence = [...ci.workflows[0].evidence];
+  ci.workflows[1].evidence[0] = ci.workflows[0].evidence[0];
   ci.workflows[1].jobs[0].evidence[1] = `https://github.com/m-vib-byte/-aqari/actions/runs/${ci.workflows[0].runId}/job/${ci.workflows[1].jobs[0].jobId}`;
   ci.workflows[2].jobs[0].jobId = ci.workflows[0].jobs[0].jobId;
   ci.workflows[2].jobs[0].evidence = [
@@ -125,7 +138,7 @@ test('rejects reused run or job identities across different required workflows',
 
 test('rejects nonempty CI evidence that does not identify the declared run and job', () => {
   const ci = fullCi();
-  ci.workflows[0].evidence = ['https://github.com/m-vib-byte/-aqari/actions/runs/999999'];
+  ci.workflows[0].evidence[0] = 'https://github.com/m-vib-byte/-aqari/actions/runs/999999';
   ci.workflows[1].jobs[0].evidence = [
     'https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/999999',
     'https://github.com/m-vib-byte/-aqari/actions/runs/1001/job/999999',
@@ -156,7 +169,7 @@ test('rejects unsafe or unrelated CI evidence references even when the required 
     ci.workflows[1].jobs[0].evidence.push(badRef);
     const result = validateSameShaCiEvidence(ci, SHA);
     assert.equal(result.ok, false, badRef);
-    assert.match(result.errors.join('\n'), /canonical repository evidence paths|contain only the exact GitHub Actions/);
+    assert.match(result.errors.join('\n'), /canonical repository evidence paths|contain the exact GitHub Actions/);
   }
 
   const unrelatedRun = fullCi();
@@ -166,4 +179,31 @@ test('rejects unsafe or unrelated CI evidence references even when the required 
   const unrelatedJob = fullCi();
   unrelatedJob.workflows[0].jobs[0].evidence.push('https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/999999');
   assert.equal(validateSameShaCiEvidence(unrelatedJob, SHA).ok, false);
+});
+
+test('rejects a relabeled successful run unless workflow identity, path and trigger are the required ones', () => {
+  const wrongId = fullCi();
+  wrongId.workflows[0].workflowId = REQUIRED_CI_WORKFLOW_DEFINITIONS[REQUIRED_CI_WORKFLOWS[1]].workflowId;
+  wrongId.workflows[0].evidence[1] = `https://api.github.com/repos/m-vib-byte/-aqari/actions/workflows/${wrongId.workflows[0].workflowId}`;
+  let result = validateSameShaCiEvidence(wrongId, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /workflowId must be exactly/);
+
+  const wrongPath = fullCi();
+  wrongPath.workflows[0].workflowPath = REQUIRED_CI_WORKFLOW_DEFINITIONS[REQUIRED_CI_WORKFLOWS[1]].workflowPath;
+  result = validateSameShaCiEvidence(wrongPath, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /path must be exactly/);
+
+  const wrongEvent = fullCi();
+  wrongEvent.workflows[0].event = 'workflow_dispatch';
+  result = validateSameShaCiEvidence(wrongEvent, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /event must be exactly pull_request/);
+
+  const missingWorkflowIdentityUrl = fullCi();
+  missingWorkflowIdentityUrl.workflows[0].evidence.pop();
+  result = validateSameShaCiEvidence(missingWorkflowIdentityUrl, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /required workflow identity/);
 });
