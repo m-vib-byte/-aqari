@@ -8,6 +8,8 @@ export const REQUIRED_CI_WORKFLOWS = Object.freeze([
 ]);
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+const REPOSITORY_WEB_URL = 'https://github.com/m-vib-byte/-aqari';
+const REPOSITORY_API_URL = 'https://api.github.com/repos/m-vib-byte/-aqari';
 
 function text(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -26,6 +28,10 @@ function evidencePresent(value) {
     seen.add(normalized);
   }
   return true;
+}
+
+function evidenceIncludes(value, expected) {
+  return Array.isArray(value) && value.some((item) => text(item) === expected);
 }
 
 function requireSameSha(errors, value, candidateSha, label) {
@@ -53,6 +59,8 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
 
   const required = new Set(REQUIRED_CI_WORKFLOWS);
   const seen = new Set();
+  const workflowRunIds = new Set();
+  const allJobIds = new Set();
   for (const row of workflows) {
     if (!row || typeof row !== 'object' || Array.isArray(row)) {
       errors.push('every CI workflow record must be an object');
@@ -67,10 +75,22 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
     seen.add(name);
 
     requireSameSha(errors, row.commitSha, candidateSha, `CI workflow ${name}`);
-    if (!positiveInt(row.runId)) errors.push(`CI workflow ${name} runId must be a positive integer`);
+    if (!positiveInt(row.runId)) {
+      errors.push(`CI workflow ${name} runId must be a positive integer`);
+    } else {
+      if (workflowRunIds.has(row.runId)) errors.push(`CI workflow ${name} reuses runId ${row.runId} from another required workflow`);
+      workflowRunIds.add(row.runId);
+    }
     if (row.status !== 'completed') errors.push(`CI workflow ${name} status must be exactly completed`);
     if (row.conclusion !== 'success') errors.push(`CI workflow ${name} conclusion must be exactly success`);
-    if (!evidencePresent(row.evidence)) errors.push(`CI workflow ${name} evidence is required`);
+    if (!evidencePresent(row.evidence)) {
+      errors.push(`CI workflow ${name} evidence is required`);
+    } else if (positiveInt(row.runId)) {
+      const expectedRunUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}`;
+      if (!evidenceIncludes(row.evidence, expectedRunUrl)) {
+        errors.push(`CI workflow ${name} evidence must include the exact GitHub Actions run URL for runId ${row.runId}`);
+      }
+    }
 
     const jobs = Array.isArray(row.jobs) ? row.jobs : [];
     if (jobs.length === 0) errors.push(`CI workflow ${name} must contain at least one executed job`);
@@ -80,15 +100,28 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
         errors.push(`CI workflow ${name} contains an invalid job record`);
         continue;
       }
-      if (!positiveInt(job.jobId)) errors.push(`CI workflow ${name} jobId must be a positive integer`);
-      else if (jobIds.has(job.jobId)) errors.push(`CI workflow ${name} jobId ${job.jobId} is duplicated`);
-      else jobIds.add(job.jobId);
+      if (!positiveInt(job.jobId)) {
+        errors.push(`CI workflow ${name} jobId must be a positive integer`);
+      } else if (jobIds.has(job.jobId)) {
+        errors.push(`CI workflow ${name} jobId ${job.jobId} is duplicated`);
+      } else {
+        jobIds.add(job.jobId);
+        if (allJobIds.has(job.jobId)) errors.push(`CI workflow ${name} reuses jobId ${job.jobId} from another required workflow`);
+        allJobIds.add(job.jobId);
+      }
       if (!positiveInt(job.runnerId)) errors.push(`CI workflow ${name} must prove a runner was assigned`);
       if (!text(job.runnerName)) errors.push(`CI workflow ${name} runnerName is required`);
       if (!positiveInt(job.stepsExecuted)) errors.push(`CI workflow ${name} must prove at least one workflow step executed`);
       if (job.status !== 'completed') errors.push(`CI workflow ${name} job status must be exactly completed`);
       if (job.conclusion !== 'success') errors.push(`CI workflow ${name} job conclusion must be exactly success`);
-      if (!evidencePresent(job.evidence)) errors.push(`CI workflow ${name} job evidence is required`);
+      if (!evidencePresent(job.evidence)) {
+        errors.push(`CI workflow ${name} job evidence is required`);
+      } else if (positiveInt(job.jobId)) {
+        const expectedJobUrl = `${REPOSITORY_API_URL}/actions/jobs/${job.jobId}`;
+        if (!evidenceIncludes(job.evidence, expectedJobUrl)) {
+          errors.push(`CI workflow ${name} job evidence must include the exact GitHub Actions job URL for jobId ${job.jobId}`);
+        }
+      }
     }
   }
 
