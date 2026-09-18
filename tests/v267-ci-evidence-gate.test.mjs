@@ -110,6 +110,8 @@ test('rejects unsafe or unrelated CI evidence references even when the required 
     '/evidence/ci/run.json',
     'evidence/ci\\run.json',
     'evidence/ci/run.json?raw=1',
+    'evidence/ci/%2e%2e/run.json',
+    'evidence/ci/run.json%3Fraw=1',
     ' evidence/ci/run.json',
     'evidence//ci/run.json',
   ];
