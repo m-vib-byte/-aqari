@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated database acceptance/rejection test. No provider call is made; all rows roll back.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
@@ -7,7 +9,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('7f680000-0000-4000-8000-000000000001','integration-manager@example.invalid',now()),
  ('7f680000-0000-4000-8000-000000000002','integration-accountant@example.invalid',now());
 select set_config('request.jwt.claim.sub','7f680000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('aqari.test.integration.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 set local role authenticated;
 do $$ declare w uuid:=current_setting('aqari.test.integration.workspace')::uuid;r jsonb;a jsonb;b jsonb;begin

@@ -1,8 +1,10 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Run with fixtures/partner-shares-existing.sql before installing the guard.
 -- All changes below roll back; the runner itself connects only to local memory.
 begin;
 select set_config('request.jwt.claim.sub','76530000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 create function pg_temp.shares_next(before_state jsonb,owners jsonb,event_id text)
 returns jsonb language sql as $$
  select jsonb_build_object('version',coalesce((before_state->>'version')::bigint,0)+1,'enabled',true,'owners',owners,

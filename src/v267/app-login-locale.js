@@ -16,11 +16,13 @@ export function mountAppLoginLocale(doc=document){
  };
  function render(){
   const gate=doc.getElementById('aqariCloudGateV168');
-  if(!gate||!gate.querySelector('#cloudEmailV168')||!gate.querySelector('#cloudPasswordV168'))return;
+  if(!gate)return;
+  const hasForm=!!gate.querySelector('#cloudEmailV168')&&!!gate.querySelector('#cloudPasswordV168');
   // A dormant login gate remains in the authenticated document. Its anonymous
   // preference must never overwrite the verified account/workspace preference.
   if(!gate.classList.contains('on')||gate.hidden||doc.documentElement.classList.contains('aqari-auth-unlocked'))return;
   if(!initialized){restorePortalLocale();initialized=true;}
+  if(hasForm){
   let picker=gate.querySelector('[data-app-login-language]');
   if(!picker){
    const control=doc.createElement('label'),caption=doc.createElement('span');picker=doc.createElement('select');
@@ -34,6 +36,7 @@ export function mountAppLoginLocale(doc=document){
   picker.value=getLocale();const caption=gate.querySelector('[data-app-login-language-caption]');
   const label=t('لغة الواجهة');if(caption.textContent!==label)caption.textContent=label;
   if(picker.getAttribute('aria-label')!==label)picker.setAttribute('aria-label',label);
+  }
   const dir=direction();if(gate.getAttribute('dir')!==dir)gate.setAttribute('dir',dir);
   if(gate.getAttribute('lang')!==getLocale())gate.setAttribute('lang',getLocale());
   if(gate.classList.contains('on')&&!gate.hidden&&!doc.documentElement.classList.contains('aqari-auth-unlocked')){

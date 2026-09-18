@@ -1,3 +1,4 @@
+-- Positive local fixture carries current MFA evidence; production guards remain enabled.
 -- Synthetic, local-memory-only state predating partner-shares-integrity.sql.
 -- The incomplete shares are deliberate source evidence and must not be rewritten.
 -- The catalog stores table ACLs only; restore the original column grants from
@@ -20,7 +21,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76530000-0000-4000-8000-000000000003','shares-viewer@example.invalid',now()),
  ('76530000-0000-4000-8000-000000000004','shares-property-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','76530000-0000-4000-8000-000000000001',false);
-select set_config('request.jwt.claims','{"aal":"aal2"}',false);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,false);
 set role authenticated;
 update public.aqari_app_state set payload=jsonb_build_object('properties','[]'::jsonb,'propertySharesV267',jsonb_build_object(
  'legacy-incomplete',jsonb_build_object('version',1,'enabled',true,

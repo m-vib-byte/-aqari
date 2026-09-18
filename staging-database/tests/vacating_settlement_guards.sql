@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
  ('deposit-manager@example.invalid','مدير اختبار التأمين','general_manager','aqari-v267-staging'),
@@ -10,7 +12,7 @@ insert into auth.users(id,email,email_confirmed_at) values
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
 -- Manager-only fixture setup must cross the same sensitive-operation MFA guard as
 -- production. Use an explicit synthetic AAL2 claim rather than weakening the guard.
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('deposit.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('f267d100-0000-4000-8000-000000000001',current_setting('deposit.test.workspace')::uuid,'deposit-a','عقار التأمين أ','{}'),

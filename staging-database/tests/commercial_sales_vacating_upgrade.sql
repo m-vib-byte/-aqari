@@ -1,8 +1,10 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- IN-MEMORY UPGRADE ACCEPTANCE ONLY. Requires the explicitly local fixture
 -- commercial-vacating-existing.sql before the guard migration. No hosted use.
 begin;
 select set_config('request.jwt.claim.sub','76570000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('aqari.test.commercial.legacy.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 set local role authenticated;
 do $$declare w uuid:=current_setting('aqari.test.commercial.legacy.workspace')::uuid;detail text;r jsonb;begin

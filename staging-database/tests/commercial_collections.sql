@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic isolated PostgreSQL acceptance. No existing workspace is used.
 -- Auth/storage metadata fixtures are synthetic; the entire test rolls back.
 begin;
@@ -11,7 +13,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76790000-0000-4000-8000-000000000002','cc-accountant@example.invalid',now());
 select set_config('aqari.test.sales.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76790000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76790000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('76790000-0000-4000-8000-000000000099','commercial-collections-foreign-fixture','Other synthetic workspace');
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('commercial-collections-foreign-manager@example.invalid','مدير مساحة الرفض الاصطناعية','general_manager','commercial-collections-foreign-fixture');
 insert into auth.users(id,email,email_confirmed_at)values('76790000-0000-4000-8000-000000000003','commercial-collections-foreign-manager@example.invalid',now());
@@ -89,7 +91,7 @@ do $$declare w uuid:=current_setting('aqari.test.sales.workspace')::uuid;n integ
  begin perform public.aqari_commercial_collections(w,'record',current_setting('cc.request.r3')::jsonb);raise exception 'UNEXPECTED_COLLECTION_SUCCESS';exception when others then if sqlerrm<>'COMMERCIAL_ALLOCATION_EXCEEDS_BALANCE' then raise;end if;end;
  perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
  begin perform public.aqari_commercial_collections(w,'record',current_setting('cc.request.r1')::jsonb);raise exception 'UNEXPECTED_COLLECTION_SUCCESS';exception when others then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
  r:=public.aqari_commercial_collections(w,'record',current_setting('cc.request.r1')::jsonb);
  if r#>>'{collection,amount}'<>'20.000' or r#>>'{collection,source_checksum}'<>repeat('a',64) or r#>>'{collection,account_snapshot,revision}'<>'1' then raise exception 'CC_SAVED_PROOF_FAILED';end if;
  if public.aqari_commercial_collections(w,'record',current_setting('cc.request.r1')::jsonb) is distinct from r or public.aqari_commercial_collections(w,'get','{"id":"76790000-0000-4000-8000-000000000701"}') is distinct from r then raise exception 'CC_RETRY_OR_GET_MISMATCH';end if;

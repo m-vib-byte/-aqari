@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic records only; all writes roll back. Must run after source/access/template upgrades.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
@@ -8,7 +10,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('7f680000-0000-4000-8000-000000000002','official-source-accountant@example.invalid',now());
 select set_config('aqari.test.official_source.workspace',(select workspace_id::text from public.aqari_memberships where user_id='7f680000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','7f680000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('7f680000-0000-4000-8000-000000000099','official-source-foreign-fixture','Foreign isolated fixture');
 insert into public.aqari_app_state(workspace_id,payload) values('7f680000-0000-4000-8000-000000000099','{}');
 do $$declare n integer;w uuid;p uuid;t uuid;u uuid;l uuid;begin
@@ -120,7 +122,7 @@ do $$declare w uuid:=current_setting('aqari.test.official_source.workspace')::uu
  begin perform public.aqari_official_document_context(w,'clearance','7f680000-0000-4000-8000-000000000401');raise exception 'UNCLEARED_CONTRACT_ALLOWED';exception when check_violation then null;end;
  perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
  begin perform public.aqari_official_document_number(w,gen_random_uuid(),'rent_receipt','7f680000-0000-4000-8000-000000000401');raise exception 'MFA_NUMBER_BYPASS';exception when insufficient_privilege then null;end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 end $$;
 reset role;
 insert into private.aqari_receipt_cancellations(id,workspace_id,payment_id,reason,approved_by,approved_by_name,snapshot) values(gen_random_uuid(),current_setting('aqari.test.official_source.workspace')::uuid,'7f680000-0000-4000-8000-000000000501','إلغاء لاحق لاختبار المصدر','7f680000-0000-4000-8000-000000000001','مدير اختبار','{}');

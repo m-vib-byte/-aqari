@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic isolated acceptance, with no DDL or external delivery. Everything rolls back.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values
@@ -8,7 +10,7 @@ insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) 
 insert into auth.users(id,email,email_confirmed_at) values
  ('76730000-0000-4000-8000-000000000001','reminder-balance-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','76730000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('76730000-0000-4000-8000-000000000101','76730000-0000-4000-8000-000000000099','REMINDER-BALANCE-P','Synthetic reminder property','{}');
 do $$declare w uuid:='76730000-0000-4000-8000-000000000099';u uuid;t uuid;l uuid;r jsonb;begin

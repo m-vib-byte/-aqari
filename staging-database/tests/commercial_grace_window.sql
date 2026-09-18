@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic isolated acceptance. No production data; every row is rolled back.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values('77660000-0000-4000-8000-000000000099','commercial-grace-fixture','Commercial grace fixture');
@@ -11,7 +13,7 @@ insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) 
 insert into auth.users(id,email,email_confirmed_at) values
  ('77660000-0000-4000-8000-000000000001','commercial-grace-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','77660000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 do $$declare r jsonb;begin
  for i in 1..2 loop
   r:=public.aqari_unit_readiness_register('77660000-0000-4000-8000-000000000099','record',jsonb_build_object(

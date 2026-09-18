@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Hosted acceptance after payment-method-reference-guard.sql. No production data used.
 -- A dedicated synthetic workspace/account plus document metadata only; no real Auth or file-byte acceptance.
 -- Entire test rolls back. No DDL, privilege grants, disabled triggers, or historical receipt fixtures.
@@ -7,7 +9,7 @@ insert into public.aqari_app_state(workspace_id,payload)values('768c0000-0000-40
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('payment-method-hosted-manager@example.invalid','مدير اختبار طرق الدفع','general_manager','payment-method-reference-hosted');
 insert into auth.users(id,email,email_confirmed_at)values('768c0000-0000-4000-8000-000000000001','payment-method-hosted-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','768c0000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:='768c0000-0000-4000-8000-000000000098';d jsonb;rev bigint;t jsonb;c jsonb;r jsonb;v jsonb;l jsonb;doc record;p uuid;candidate jsonb;sample jsonb;before_count bigint;savedpay jsonb;payid uuid;begin
  d:='{"properties":[["عقار اختبار طرق الدفع"]],"tenantProfilesV267":[],"contractsV202":[],"collections":[],"rentLedgerV202":[],"rentReceiptsV267":[]}';

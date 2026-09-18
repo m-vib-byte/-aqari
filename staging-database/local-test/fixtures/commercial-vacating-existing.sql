@@ -1,3 +1,4 @@
+-- Positive local fixture carries current MFA evidence; production guards remain enabled.
 -- IN-MEMORY UPGRADE FIXTURE ONLY. DO NOT RUN ON A HOSTED DATABASE.
 -- Creates synthetic pre-upgrade history, intentionally committed in PGlite memory.
 -- Run after commercial-sales.sql BEFORE commercial-sales-vacating-guard.sql;
@@ -14,7 +15,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76570000-0000-4000-8000-000000000002','commercial-legacy-accountant@example.invalid',now());
 select set_config('aqari.test.commercial.legacy.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76570000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76570000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('76570000-0000-4000-8000-000000000099','commercial-legacy-foreign-fixture','Other synthetic workspace');
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('commercial-legacy-foreign-manager@example.invalid','مدير مساحة الرفض الاصطناعية','general_manager','commercial-legacy-foreign-fixture');
 insert into auth.users(id,email,email_confirmed_at)values('76570000-0000-4000-8000-000000000003','commercial-legacy-foreign-manager@example.invalid',now());

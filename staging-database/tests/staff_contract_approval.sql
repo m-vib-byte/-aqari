@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- LOCAL ISOLATED POSTGRESQL ONLY. Synthetic accounts/data; always rolls back.
 -- Regression: a property assignment does not permit skipping manager approval
 -- by submitting an older contract shape without rentalTermsVersion.
@@ -12,7 +14,7 @@ select set_config('aqari.test.contract.workspace',(select workspace_id::text fro
 select set_config('request.jwt.claim.sub','76500000-0000-4000-8000-000000000001',true);
 -- Privileged manager setup is expected to run after MFA; model that explicitly
 -- in the isolated fixture while leaving production AAL2 enforcement intact.
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$
 declare w uuid:=current_setting('aqari.test.contract.workspace')::uuid;s jsonb;d jsonb;t jsonb;c jsonb;prop uuid;

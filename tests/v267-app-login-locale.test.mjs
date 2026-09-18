@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import {mountAppLoginLocale} from '../src/v267/app-login-locale.js';
 import {bindLocale,getLocale,setLocale,t} from '../src/v267/components/locale.js';
 
-function fixture({on=true,hidden=false,unlocked=false}={}){
+function fixture({on=true,hidden=false,unlocked=false,hasForm=true}={}){
  const attrs=new Map(),picker={value:'',getAttribute:k=>attrs.get(k),setAttribute:(k,v)=>attrs.set(k,v)},caption={textContent:''};
  const credential={get value(){throw Error('Credential value must not be read');},set value(_){throw Error('Credential value must not be changed');}};
  const status={nodeValue:'أدخل البريد الإلكتروني وكلمة المرور للدخول.',parentElement:{closest:()=>null}};
  const root={classList:{contains:name=>name==='aqari-auth-unlocked'&&unlocked}};
- const gate={hidden,classList:{contains:()=>on},querySelector:s=>s.includes('cloud')?credential:s==='[data-app-login-language]'?picker:caption,querySelectorAll:()=>[],getAttribute:k=>attrs.get('gate:'+k)??null,setAttribute:(k,v)=>attrs.set('gate:'+k,v),closest:()=>null};
+ const gate={hidden,classList:{contains:()=>on},querySelector:s=>s.includes('cloud')?(hasForm?credential:null):s==='[data-app-login-language]'?picker:caption,querySelectorAll:()=>[],getAttribute:k=>attrs.get('gate:'+k)??null,setAttribute:(k,v)=>attrs.set('gate:'+k,v),closest:()=>null};
  const doc={documentElement:root,getElementById:()=>gate,createTreeWalker:()=>{let done=false;return {nextNode:()=>done?null:(done=true,status)};}};
  return {doc,status,root,picker};
 }
@@ -46,4 +46,17 @@ test('session, connectivity and access errors render in each selected login lang
   }
   mounted.dispose();
  }
+}));
+
+test('session restoration translates before credential inputs exist',()=>environment(()=>{
+ bindLocale(null);const {doc,status,root}=fixture({hasForm:false});
+ status.nodeValue='جاري استعادة الجلسة وفتح الصفحة الرئيسية…';
+ const mounted=mountAppLoginLocale(doc);
+ for(const language of ['ar','en','hi','ur','ml']){
+  setLocale(language);mounted.refresh();
+  assert.equal(status.nodeValue,t('جاري استعادة الجلسة وفتح الصفحة الرئيسية…',language));
+  if(language!=='ar')assert.notEqual(status.nodeValue,'جاري استعادة الجلسة وفتح الصفحة الرئيسية…');
+  assert.equal(root.dir,['ar','ur'].includes(language)?'rtl':'ltr');
+ }
+ mounted.dispose();
 }));

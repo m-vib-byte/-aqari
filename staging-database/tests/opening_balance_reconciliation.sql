@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Transactional acceptance after the report upgrade. Every synthetic write rolls back.
 begin;
 insert into public.aqari_workspaces(id,slug,name)values
@@ -13,7 +15,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('9ac124f6-0000-4000-8000-000000000002','opening-review-viewer@example.invalid',now()),
  ('9ac124f6-0000-4000-8000-000000000003','opening-review-accountant@example.invalid',now());
 select set_config('request.jwt.claim.sub','9ac124f6-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('opening.review.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 do $$declare w uuid:=current_setting('opening.review.w')::uuid;n integer;begin
  for n in 1..2 loop
@@ -86,7 +88,7 @@ do $$declare w uuid:=current_setting('opening.review.w')::uuid;d jsonb;r jsonb;b
  begin perform public.aqari_opening_balance_reconciliation(w,'review',d||'{"unexpected":"not stored"}');raise exception 'UNKNOWN_KEY_ACCEPTED';exception when invalid_parameter_value then null;end;
  perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
  begin perform public.aqari_opening_balance_reconciliation(w,'review',d);raise exception 'AAL1_ACCEPTED';exception when insufficient_privilege then null;end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
  initial:=public.aqari_opening_balance_reconciliation(w,'review',d);r:=public.aqari_opening_balance_reconciliation(w,'review',d);
  if r<>initial or r#>>'{review,revision}'<>'1' or r#>'{review,request_snapshot}'<>d or r#>>'{review,reviewed_by}'<>auth.uid()::text or jsonb_array_length(r#>'{review,entries_snapshot}')<>2 then raise exception 'REVIEW_OR_EXACT_RETRY_FAILED:%',r;end if;
  if public.aqari_opening_balance_reconciliation(w,'get',jsonb_build_object('id',d->>'id'))<>initial then raise exception 'SAVED_REVIEW_READBACK_FAILED';end if;

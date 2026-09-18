@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic transactional acceptance; local memory or independently verified test branch only.
 -- Run after staff-property-scope.sql and unit-meters.sql. All fixture writes roll back.
 begin;
@@ -32,7 +34,7 @@ begin
 end $$;
 insert into public.aqari_utility_meters(id,workspace_id,property_id,source_key,kind,serial_no,unit_no,source_refs)
  select ('76510000-0000-4000-8000-00000000060'||n)::uuid,case when n=3 then '76510000-0000-4000-8000-000000000099'::uuid else current_setting('aqari.test.location.workspace')::uuid end,('76510000-0000-4000-8000-00000000010'||n)::uuid,'TEST-METER-'||n,'electricity','SERIAL-'||n,'UNIT-'||n,'[]'::jsonb from generate_series(1,3)n;
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:=current_setting('aqari.test.location.workspace')::uuid;d jsonb;r jsonb;rows jsonb;bad jsonb;begin
  d:='{"id":"76510000-0000-4000-8000-000000000701","lease_id":"76510000-0000-4000-8000-000000000401","meter_id":"76510000-0000-4000-8000-000000000601","phase":"entry","reading":"100.125","observed_on":"2026-01-01","source_ref":"محضر دخول الاختبار","reason":"قراءة أولية موثقة"}';

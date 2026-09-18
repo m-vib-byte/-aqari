@@ -63,6 +63,7 @@ function applyDirection(){
 }
 function uiTextNode(node){
  const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record],[translate="no"],#v199MenuAccount'))return false;
+ if(parent.matches('body[data-v205-route="tenants"] #rows>tr>td:nth-child(4)'))return true;
  if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut,a.skipLinkV103'))return true;
  if(parent.closest('#maintenanceProPage')&&parent.matches('.c.m,#mpResponseV62,#mpCostV62,#mpSlaV62>p,#mpTechV62>p,#mpPreventiveV62>p,#mpPartsV62>p'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);

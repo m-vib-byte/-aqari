@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 340,
-  "newCatalogEntries": 243,
+  "visibleUnique": 349,
+  "newCatalogEntries": 252,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -2526,6 +2526,73 @@
         "v199-ui.js"
       ],
       "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "إغلاق المزيد",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "إغلاق ×",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "المحفظة والعقود",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "المالية والخدمات",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "إدارة الخدمات",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "نشط",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "reason": "Tenant status display only; tenant name, unit and rent cells remain record values."
+    },
+    {
+      "source": "غير نشط",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "reason": "Tenant status display only; tenant name, unit and rent cells remain record values."
+    },
+    {
+      "source": "جاري استعادة الجلسة وفتح الصفحة الرئيسية…",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js",
+        "src/v267/app-login-locale.js"
+      ]
+    },
+    {
+      "source": "إدارة أملاكك من مكان واحد",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js",
+        "src/v267/app-login-locale.js"
+      ]
     }
   ]
 }

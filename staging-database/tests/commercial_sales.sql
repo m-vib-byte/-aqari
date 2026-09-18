@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic in-memory PostgreSQL acceptance only. Every fixture rolls back.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
@@ -8,7 +10,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76550000-0000-4000-8000-000000000002','commercial-accountant@example.invalid',now());
 select set_config('aqari.test.sales.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76550000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76550000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('76550000-0000-4000-8000-000000000099','commercial-foreign-fixture','Other synthetic workspace');
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('commercial-foreign-manager@example.invalid','مدير مساحة الرفض الاصطناعية','general_manager','commercial-foreign-fixture');
 insert into auth.users(id,email,email_confirmed_at)values('76550000-0000-4000-8000-000000000003','commercial-foreign-manager@example.invalid',now());
@@ -57,7 +59,7 @@ do $$declare w uuid:=current_setting('aqari.test.sales.workspace')::uuid;req jso
  begin perform public.aqari_commercial_sales('76550000-0000-4000-8000-000000000099','list','{"month":"2026-08"}');raise exception 'OTHER_WORKSPACE_ALLOWED';exception when insufficient_privilege then null;end;
  perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
  begin perform public.aqari_commercial_sales(w,'record',req);raise exception 'MFA_BYPASS';exception when insufficient_privilege then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
  r:=public.aqari_commercial_sales(w,'record',req);
  if (r->>'amount')::numeric<>41.667 or r->>'period_end'<>'2026-08-31' or r->>'source_checksum'<>repeat('a',64) then raise exception 'SALES_EXACT_CALCULATION_FAILED: %',r;end if;
  if public.aqari_commercial_sales(w,'record',req) is distinct from r then raise exception 'SALES_IDEMPOTENCY_FAILED';end if;
@@ -115,7 +117,7 @@ do $$declare w uuid:=current_setting('aqari.test.sales.workspace')::uuid;begin
 end $$;
 
 select set_config('request.jwt.claim.sub','76550000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 delete from private.aqari_commercial_terms where workspace_id=current_setting('aqari.test.sales.workspace')::uuid and lease_id='76550000-0000-4000-8000-000000000402';
 set local role authenticated;
 do $$declare w uuid:=current_setting('aqari.test.sales.workspace')::uuid;terms jsonb;allocation jsonb;r jsonb;begin

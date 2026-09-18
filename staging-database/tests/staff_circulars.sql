@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- A separate synthetic workspace, password-free identities, no external delivery.
 -- Safe to run after the migration in local or verified isolated hosted PostgreSQL.
 begin;
@@ -13,7 +15,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('9ca10000-0000-4000-8000-000000000011','circular-manager@example.invalid',now()),('9ca10000-0000-4000-8000-000000000012','circular-staff@example.invalid',now()),('9ca10000-0000-4000-8000-000000000013','circular-other@example.invalid',now()),('9ca10000-0000-4000-8000-000000000014','circular-foreign@example.invalid',now());
 select set_config('circular.w','9ca10000-0000-4000-8000-000000000001',true);
 select set_config('request.jwt.claim.sub','9ca10000-0000-4000-8000-000000000011',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:=current_setting('circular.w')::uuid;r jsonb;again jsonb;draft jsonb:='{"id":"9ca10000-0000-4000-8000-000000000021","revision":0,"title":"تعميم اختبار","body":"تعليمات محفوظة للاختبار","recipient_ids":["9ca10000-0000-4000-8000-000000000012"]}';begin
  if public.aqari_workspace_access(w)#>>'{features,staff_circulars}' is distinct from 'true' then raise exception 'CIRCULAR_FEATURE_MISSING';end if;
@@ -34,7 +36,7 @@ do $$declare w uuid:=current_setting('circular.w')::uuid;r jsonb;begin
  begin perform public.aqari_staff_circulars(w,'publish','{"id":"9ca10000-0000-4000-8000-000000000021","revision":1}');raise exception 'STAFF_PUBLISHED';exception when insufficient_privilege then null;end;
  begin perform public.aqari_staff_circulars(w,'ack','{"id":"9ca10000-0000-4000-8000-000000000021","revision":1}');raise exception 'DRAFT_ACK_ACCEPTED';exception when insufficient_privilege then null;end;
 end$$;
-select set_config('request.jwt.claim.sub','9ca10000-0000-4000-8000-000000000011',true);select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','9ca10000-0000-4000-8000-000000000011',true);select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 do $$declare w uuid:=current_setting('circular.w')::uuid;r jsonb;begin
  r:=public.aqari_staff_circulars(w,'publish','{"id":"9ca10000-0000-4000-8000-000000000021","revision":1}');
  if r->>'revision'<>'2' or r->>'status'<>'published' or r is distinct from public.aqari_staff_circulars(w,'publish','{"id":"9ca10000-0000-4000-8000-000000000021","revision":1}') then raise exception 'PUBLISH_RETRY_FAILED';end if;
