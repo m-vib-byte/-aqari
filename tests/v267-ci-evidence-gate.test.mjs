@@ -18,13 +18,18 @@ function fullCi() {
       conclusion: 'success',
       evidence: [`https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}`],
       jobs: [{
+        commitSha: SHA,
+        runId: 1000 + index,
         jobId: 2000 + index,
         runnerId: 3000 + index,
         runnerName: 'GitHub Actions 1',
         stepsExecuted: 5,
         status: 'completed',
         conclusion: 'success',
-        evidence: [`https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/${2000 + index}`],
+        evidence: [
+          `https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/${2000 + index}`,
+          `https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}/job/${2000 + index}`,
+        ],
       }],
     })),
   };
@@ -60,6 +65,28 @@ test('rejects stale-SHA or failed workflow evidence', () => {
   }
 });
 
+test('rejects a successful job unless it is bound to the exact candidate and parent workflow run', () => {
+  const staleJob = fullCi();
+  staleJob.workflows[0].jobs[0].commitSha = OTHER_SHA;
+  let result = validateSameShaCiEvidence(staleJob, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /job evidence is not tied to the exact candidate SHA/);
+
+  const crossRunJob = fullCi();
+  crossRunJob.workflows[0].jobs[0].runId = 999999;
+  result = validateSameShaCiEvidence(crossRunJob, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /does not match parent workflow runId/);
+
+  const missingCrossLinkedUrl = fullCi();
+  missingCrossLinkedUrl.workflows[0].jobs[0].evidence = [
+    'https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/2000',
+  ];
+  result = validateSameShaCiEvidence(missingCrossLinkedUrl, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /parent run 1000/);
+});
+
 test('rejects pre-runner failures even when the top-level boolean says passed', () => {
   const ci = fullCi();
   ci.workflows[0].jobs[0].runnerId = 0;
@@ -83,9 +110,13 @@ test('rejects empty or duplicate evidence references', () => {
 test('rejects reused run or job identities across different required workflows', () => {
   const ci = fullCi();
   ci.workflows[1].runId = ci.workflows[0].runId;
+  ci.workflows[1].jobs[0].runId = ci.workflows[0].runId;
   ci.workflows[1].evidence = [...ci.workflows[0].evidence];
+  ci.workflows[1].jobs[0].evidence[1] = `https://github.com/m-vib-byte/-aqari/actions/runs/${ci.workflows[0].runId}/job/${ci.workflows[1].jobs[0].jobId}`;
   ci.workflows[2].jobs[0].jobId = ci.workflows[0].jobs[0].jobId;
-  ci.workflows[2].jobs[0].evidence = [...ci.workflows[0].jobs[0].evidence];
+  ci.workflows[2].jobs[0].evidence = [
+    ...ci.workflows[0].jobs[0].evidence,
+  ];
   const result = validateSameShaCiEvidence(ci, SHA);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /reuses runId/);
@@ -95,7 +126,10 @@ test('rejects reused run or job identities across different required workflows',
 test('rejects nonempty CI evidence that does not identify the declared run and job', () => {
   const ci = fullCi();
   ci.workflows[0].evidence = ['https://github.com/m-vib-byte/-aqari/actions/runs/999999'];
-  ci.workflows[1].jobs[0].evidence = ['https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/999999'];
+  ci.workflows[1].jobs[0].evidence = [
+    'https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/999999',
+    'https://github.com/m-vib-byte/-aqari/actions/runs/1001/job/999999',
+  ];
   const result = validateSameShaCiEvidence(ci, SHA);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /exact GitHub Actions run URL/);
