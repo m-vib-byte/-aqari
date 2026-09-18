@@ -58,6 +58,24 @@ function validBundle(){
       physical_devices:'e'.repeat(64),
     },
     storage:{object_count:2,total_bytes:156509,manifest_sha256:'f'.repeat(64)},
+    restore:{
+      format:'AQARI-V267-RESTORE-EQUIVALENCE-1',
+      verified:true,
+      candidate_sha:SHA,
+      source_project_ref:'aqari-preview-source',
+      restore_project_ref:'aqari-preview-restore',
+      source_generated_at:'2026-09-17T06:00:10Z',
+      restored_generated_at:'2026-09-17T06:10:10Z',
+      section_sha256:{
+        business:'4'.repeat(64),
+        schema_safe:'5'.repeat(64),
+        auth_safe:'6'.repeat(64),
+        storage_safe:'7'.repeat(64),
+      },
+      storage_object_count:2,
+      storage_total_bytes:156509,
+      storage_manifest_sha256:'f'.repeat(64),
+    },
     rollback:{
       format:'AQARI-V267-ROLLBACK-REHEARSAL-1',
       verified:true,
@@ -84,6 +102,7 @@ function validBundle(){
     total_bytes:value.storage.total_bytes,
     manifest_sha256:value.storage.manifest_sha256,
   });
+  value.evidence_sha256.independent_restore=stageCEvidenceSha256(value.restore);
   value.evidence_sha256.rollback_rehearsal=stageCEvidenceSha256(value.rollback);
   value.evidence_sha256.physical_devices=stageCEvidenceSha256(value.devices);
   value.bundle_sha256=stageCBundleSha256(value);
@@ -134,6 +153,28 @@ test('rejects device evidence from a different, non-Preview, or mutable hosted t
     const result=validateStageCReleaseBundle(value,SHA);
     assert.equal(result.ok,false);
     assert.match(result.errors.join('\n'),/Preview|preview/);
+  }
+});
+
+test('rejects independent restore evidence without canonical forward chronology or matching source/target identity',()=>{
+  const mutations=[
+    (b)=>{delete b.restore.source_generated_at},
+    (b)=>{b.restore.source_generated_at='2026-09-17T06:00:10+00:00'},
+    (b)=>{b.restore.restored_generated_at=b.restore.source_generated_at},
+    (b)=>{b.restore.restored_generated_at='2026-09-17T05:59:59Z'},
+    (b)=>{b.restore.restored_generated_at='2026-02-30T06:10:10Z'},
+    (b)=>{b.restore.source_project_ref='another-source-project'},
+    (b)=>{b.restore.restore_project_ref='another-restore-project'},
+    (b)=>{b.restore.candidate_sha=OTHER_SHA},
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    value.evidence_sha256.independent_restore=stageCEvidenceSha256(value.restore);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/restore|restored|source/i);
   }
 });
 
@@ -201,9 +242,10 @@ test('rejects generic, reused, incomplete or mismatched physical-device flow evi
   }
 });
 
-test('rejects embedded Storage, rollback, or physical-device tampering even when bundle_sha256 is recomputed',()=>{
+test('rejects embedded Storage, restore, rollback, or physical-device tampering even when bundle_sha256 is recomputed',()=>{
   const mutations=[
     (b)=>{b.storage.total_bytes+=1},
+    (b)=>{b.restore.restored_generated_at='2026-09-17T06:11:10Z'},
     (b)=>{b.rollback.rehearsal_window_seconds+=1},
     (b)=>{b.devices.desktop.browser='Chrome Stable - altered'},
   ];
