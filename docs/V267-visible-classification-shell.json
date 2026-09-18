@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 124,
-  "newCatalogEntries": 34,
+  "visibleUnique": 129,
+  "newCatalogEntries": 39,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -929,6 +929,46 @@
         "src/v267/components/shell-translations.js"
       ],
       "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "العقار/الوحدة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "العطل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "الفني",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "الأولوية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "جدول بيانات قابل للتمرير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
     }
   ]
 }
