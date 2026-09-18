@@ -41,9 +41,26 @@ older login payload/style assumptions, deployment-preparation fixtures, metadata
 guard assumptions and navigation assertions for the earlier pre-install router.
 These need reconciliation with the applicable build stages; they are not waived.
 
-The GitHub jobs on the base commit fail before steps execute. The connected API
-does not permit fetching their diagnostic annotations, so the account-level cause
-is still unverified. The protected candidate opens the Vercel sign-in page in the
+The owner supplied a GitHub Actions annotation screenshot on 2026-09-18:
+"The job was not started because an Actions budget is preventing further use."
+That run is blocked before execution, not evidence of a code/test failure. No
+budget or billing settings were changed. The connected API cannot read the
+annotation endpoint; the screenshot is the evidence for the budget diagnosis. The protected candidate opens the Vercel sign-in page in the
 current browser. Authenticated visual checks, live save/readback and actual device
 verification therefore remain incomplete. No production promotion or final design
 certification is claimed. The owner's final test URL remains myaqari.com.
+
+## Continuation after owner sign-in report
+
+- Remote branch head verified as `bdad3719f214d0f5684918174e55f7c109dc286e`.
+- Reconciled deployment-target test expectations with the existing explicit
+  isolated domain-trial configuration and ordered reference-design build stages.
+  Retained all three independent production-data rejection assertions by testing
+  the production mode with trial disabled. No deployment settings were changed.
+- 24 deployment-target, domain-trial and owner-approval tests passed locally.
+- Production-preparation tests still fail at the localized imported-tenant source
+  anchor; these failures are independent of Actions budget and remain open.
+- A fresh browser navigation still shows GitHub Sign in/404 for private PR 200
+  and Vercel login for the exact candidate. The reported sign-in is not available
+  in the connected browser session. Live visual/data verification remains blocked.
+- No domain promotion and no final acceptance are claimed.

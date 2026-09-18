@@ -3157,8 +3157,8 @@
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
-      "sha256": "9f2355baeff38b501e31d4382c7f68742a745fb8fdf79d9c26820aaa234d58b6",
-      "size": 3417
+      "sha256": "bb2cfc9e24cb22f3b264327b9d77dc222caad3ce5bfe1014f8b10815373abcdd",
+      "size": 4228
     },
     {
       "path": "tests/v267-deposit-ledger.e2e.mjs",
@@ -3834,6 +3834,11 @@
       "path": "tests/helpers/locale-vm.cjs",
       "sha256": "57eca76fa068bd59041628de0631c87a5ac278ef191718bd6660c90e790d3f09",
       "size": 1387
+    },
+    {
+      "path": "docs/verification/pr200-repair-continuation-20260918.md",
+      "size": 4192,
+      "sha256": "5c43b9442d9d1caff79cedbea6f53d30bb0824b0ea116c9f2e823bfd67ec3980"
     }
   ],
   "version": "V198"
