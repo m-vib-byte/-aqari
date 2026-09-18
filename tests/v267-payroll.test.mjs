@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {money,netPay,voucherHTML,validateDocument,kuwaitTime} from '../src/v267/domain/payroll.js';
+import {setLocale} from '../src/v267/components/locale.js';
 test('salary arithmetic uses fils and rejects invalid or negative inputs',()=>{
  assert.equal(money('١٢٣٫٤٥٦'),'123.456');assert.equal(netPay({basic:'500.001',allowances:'20.009',overtime:'0.010',deductions:'0.019',advance_repayment:'10.001'}),'510.000');
  for(const value of ['',null,'-1','1e3','1.2345','NaN','1000000000'])assert.throws(()=>money(value));
  assert.throws(()=>netPay({basic:10,allowances:0,overtime:0,deductions:11,advance_repayment:0}));
 });
-test('voucher preserves bilingual snapshot, approvals, methods and blank physical evidence',()=>{
+test('English voucher preserves both stored name fields, approvals, methods and blank physical evidence',()=>{
+ setLocale('en');
  const html=voucherHTML({id:'sample',month:'2026-09-01',snapshot:{name_ar:'موظف اختبار',name_en:'<script>not executed</script>',properties:['برج الاختبار']},basic:500,allowances:25,overtime:20,deductions:5,advance_repayment:10,method:'transfer',reference:'REF<&',state:'issued',admin_approval:{name:'مدير اختبار',at:'2026-09-09T06:00:00Z'}});
  assert.ok(html.includes('530.000'));assert.ok(html.includes('موظف اختبار'));assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('REF&lt;&amp;'));assert.ok(html.includes('Employee fingerprint'));assert.ok(html.includes('Chairman'));assert.ok(html.includes('Administration stamp'));assert.ok(html.includes('مدير اختبار'));assert.ok(!html.includes('data:image'));
  assert.ok(kuwaitTime('2026-09-09T06:00:00Z').includes('09:00'));
@@ -33,9 +35,13 @@ test('salary amount words preserve fils and the supplied bilingual 150 wording',
  for(const v of ['-1','NaN','1000000000','1.0001'])assert.throws(()=>amountWords(v));
 });
 test('complete Dhahawi slip renders fixed snapshot, issue date, receipt clauses and unsigned approvals',()=>{
+ setLocale('en');
  const p={id:'test',voucher_no:'DT-20260909-000001',issued_at:'2026-09-08T22:00:00Z',state:'issued',month:'2026-08-01',snapshot:{name_ar:'موظف اختبار',name_en:'TEST EMPLOYEE',civil_id:'TEST-ID',passport:'ONE-PASSPORT',nationality:'هندي',nationality_en:'Indian',job_ar:'فني',job_en:'Technician',hired_on:'2024-09-30'},slip_details:{template:'dhahawi-v1',payer_ar:'مسؤول اختبار',payer_en:'<img onerror=evil>'},basic:120,allowances:5,overtime:5,indemnity:10,holidays:10,method:'cash'};
- const html=voucherHTML(p);for(const s of ['DHAHAWI TOWER','Salary Slip','09/09/2026','30/09/2024','150.000','One Hundred And Fifty','Payments / المستحقات','Monetary Reward','Employee housing','Official holidays','Late entry','Absence','ACKNOWLEDGMENT','Chairman of the Board','Administration stamp','إقرار واستلام'])assert.ok(html.includes(s),s);
- assert.equal(html.split('ONE-PASSPORT').length-1,2);assert.ok(html.includes('&lt;img onerror=evil&gt;'));assert.ok(!html.includes('<img'));assert.ok(!html.includes('data:image'));assert.equal(ACKNOWLEDGEMENTS.length,6);
+ const html=voucherHTML(p);for(const s of ['DHAHAWI TOWER','Salary Slip','09/09/2026','30/09/2024','150.000','One Hundred And Fifty','Payments','Monetary Reward','Employee housing','Official holidays','Late entry','Absence','ACKNOWLEDGMENT','Chairman of the Board','Administration stamp'])assert.ok(html.includes(s),s);
+ assert.equal(html.split('ONE-PASSPORT').length-1,1);assert.ok(html.includes('&lt;img onerror=evil&gt;'));assert.ok(!html.includes('<img'));assert.ok(!html.includes('data:image'));assert.equal(ACKNOWLEDGEMENTS.length,6);
+ for(const [,en]of ACKNOWLEDGEMENTS)assert.ok(html.includes(en));
  assert.ok(html.includes('payment pending'));assert.ok(!html.includes('29/08/2026'));assert.ok(!html.includes('Sunil Rambelas'));
  assert.ok(voucherHTML({...p,state:'draft',issued_at:null,voucher_no:null}).includes('On issue'));
+ setLocale('ar');const arabic=voucherHTML(p);for(const s of ['برج ضحاوي','سند استلام راتب','09/09/2026','30/09/2024','150.000','فقط مائة وخمسون','المستحقات','مكافأة مالية','السكن للموظف','بدلات أيام العطل والإجازات الرسمية','التأخير عن الدوام','الغياب','إقرار واستلام','رئيس مجلس الإدارة','ختم الإدارة'])assert.ok(arabic.includes(s),s);
+ for(const [ar]of ACKNOWLEDGEMENTS)assert.ok(arabic.includes(ar));assert.equal(arabic.split('ONE-PASSPORT').length-1,1);assert.ok(!arabic.includes('Salary Slip'));assert.ok(!html.includes('إقرار واستلام'));
 });

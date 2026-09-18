@@ -1,4 +1,7 @@
+let localeBindings;
+const loadLocaleBindings=async()=>{const locale=await import('../src/v267/components/locale.js');const errors=await import('../src/v267/components/ui-error.js');const session=await import('../src/v267/api/session.js');const metadata=await import('../src/v267/components/integration-public-metadata.js');return {assertSafeIntegrationPublicMetadata:metadata.assertSafeIntegrationPublicMetadata,translateStatic:locale.t,visibleMessage:locale.message,visibleDateLocale:locale.dateLocale,uiError:errors.uiError,safeError:session.safeError};};
 const test=require('node:test');
+test.before(async()=>{localeBindings=await loadLocaleBindings();});
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
@@ -37,7 +40,7 @@ function fixture(configs=[]){
   if(busy||d.closed)return;busy=true;d.status.textContent='جارٍ الاتصال…';
   d.last=Promise.resolve().then(fn).catch(error=>{d.status.textContent=error.message;}).finally(()=>{busy=false;});return d.last;
  }};
- const context=vm.createContext({node,field,createDialog:()=>d,crypto:{randomUUID:()=>`draft-${++serial}`}});
+ const context=vm.createContext({...localeBindings,node,field,createDialog:()=>d,crypto:{randomUUID:()=>`draft-${++serial}`}});
  vm.runInContext(fs.readFileSync('src/v267/pages/integration-center.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
  const walk=element=>[element,...element.children.flatMap(walk)];
  const button=text=>walk(d.body).find(e=>e.tag==='button'&&e.textContent===text);
@@ -75,6 +78,6 @@ test('a concurrent revision cannot be overwritten or reported as the requested e
 test('cancel and refresh never save a configuration, and non-object metadata is rejected',async()=>{
  const f=fixture([initial]);await f.start();f.button('تعديل الإعداد أو إيقافه').onclick();f.button('إلغاء التعديل').onclick();
  assert.equal(f.control('الغرض').value,'');await f.button('تحديث حالة التكاملات').onclick();assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
- for(const value of ['null','[]','"text"']){f.control('بيانات عامة JSON').value=value;await f.submit();assert.match(f.d.status.textContent,/كائن JSON/);}
+ for(const value of ['null','[]','"text"']){f.control('بيانات عامة JSON — يمنع تضمين الأسرار والرموز والبيانات المدنية حتى داخل الحقول المتداخلة').value=value;await f.submit();assert.match(f.d.status.textContent,/كائن JSON/);}
  assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
 });

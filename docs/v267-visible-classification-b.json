@@ -8028,6 +8028,38 @@
     "missingCatalogSources": 0,
     "verification": "Four non-Arabic catalog values present for every classified UI source; static validation errors translated after sanitization; placeholders preserve record values; 23 page syntax checks pass. This is source coverage, not a browser/device assertion.",
     "defaultValueVerification": "Localized initial owner roles and system reasons round-trip to canonical source when unchanged; edits and existing records remain literal. Verified five languages in all four affected page helpers.",
-    "partnerFlowVerification": "Executed actual partner-access module with mocked DOM/RPC in five languages: validation, save/readback, names/reasons/IDs and email normalization. This does not assert live database or browser success."
-  }
+    "partnerFlowVerification": "Executed actual partner-access module with mocked DOM/RPC in five languages: validation, save/readback, names/reasons/IDs and email normalization. This does not assert live database or browser success.",
+    "buildInjectedAdditionalUniqueSources": 4,
+    "requiredUniqueIncludingBuildInjection": 1014
+  },
+  "buildInjectedUI": [
+    {
+      "source": "أدلة الصيانة قبل/بعد ومؤشرات الزمن",
+      "file": "scripts/install-v267-maintenance-evidence.mjs",
+      "category": "ui-build-injected",
+      "translated": true,
+      "rationale": "Visible output injected during production build; translated at rendering, technical enums and custom stored fields unchanged."
+    },
+    {
+      "source": "مستند مؤرشف مرتبط",
+      "file": "scripts/install-v267-partner-owner-fields.mjs",
+      "category": "ui-build-injected",
+      "translated": true,
+      "rationale": "Visible output injected during production build; translated at rendering, technical enums and custom stored fields unchanged."
+    },
+    {
+      "source": "د.ك",
+      "file": "scripts/install-v267-partner-owner-fields.mjs",
+      "category": "ui-build-injected",
+      "translated": true,
+      "rationale": "Visible output injected during production build; translated at rendering, technical enums and custom stored fields unchanged."
+    },
+    {
+      "source": "بيانات العقار المخصصة",
+      "file": "scripts/install-v267-partner-owner-fields.mjs",
+      "category": "ui-build-injected",
+      "translated": true,
+      "rationale": "Visible output injected during production build; translated at rendering, technical enums and custom stored fields unchanged."
+    }
+  ]
 }

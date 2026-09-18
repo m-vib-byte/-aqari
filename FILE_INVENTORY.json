@@ -2897,8 +2897,8 @@
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "sha256": "5ed588b3fe0a49e256dea0fa535694302da5529717f9d88355805cffe9e676f2",
-      "size": 3527
+      "sha256": "e27a015866ead0ee6ce72f73f5730b10045173a07943cccdc5730045ffdb5458",
+      "size": 3633
     },
     {
       "path": "tests/login-navigation.test.cjs",
@@ -3252,8 +3252,8 @@
     },
     {
       "path": "tests/v267-financial-archive.test.cjs",
-      "sha256": "6397430e33b20bdedbe0c7af4812f385f8bde04e1b42f0bb6b3408e953812cd0",
-      "size": 24408
+      "sha256": "7d093b64e167efcade096f21a43bea7876173a5a31c75ed49a39c167c5e7a976",
+      "size": 24886
     },
     {
       "path": "tests/v267-financial-close-gate.test.mjs",
@@ -3267,13 +3267,13 @@
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
-      "sha256": "b63913599090b179abd93d3742bea161f9801d6dd57d99d15260a0b46b236594",
-      "size": 25185
+      "sha256": "d6d63159ff6586c279977664bf9d215b68ad7445e263f025cb6a7f805fa36393",
+      "size": 32312
     },
     {
       "path": "tests/v267-integration-center-workflow.test.cjs",
-      "sha256": "b5ca56daf6e4a6d9336491618a67d5af28085960b94bbfcad48c4c947118220a",
-      "size": 6593
+      "sha256": "628468b8e614d479bee2f2ecbf84d936ad98ee3ad16105fe278fe70e5cde38ed",
+      "size": 7373
     },
     {
       "path": "tests/v267-kpi-dashboard.test.cjs",
@@ -3452,8 +3452,8 @@
     },
     {
       "path": "tests/v267-payroll.test.mjs",
-      "sha256": "9c5602e28b604209af554db45c3e9ef3670a418e2215ad783d3963f940117492",
-      "size": 4779
+      "sha256": "5dce7515e31795970f372718446e57eeddd97b6f4ecee37a4f89edfdd6bdc908",
+      "size": 5614
     },
     {
       "path": "tests/v267-pearl-gold-review.test.cjs",

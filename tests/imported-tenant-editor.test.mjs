@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../src/v267/components/locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -7,8 +8,8 @@ async function fixture(){
  const nodes=[],fields={},calls=[];let state={profile:{id:'imported',nameEn:'Source name',passportNo:'SOURCE-PASS',preferredContact:'both',sourceValues:{untouched:true}},revision:1,history:[]},failRead=false,failSave=false;
  const node=(tag,text)=>{const n={tag,textContent:text||'',value:'',children:[],append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items}};nodes.push(n);return n;};
  const d={body:node('div'),status:node('p'),closed:false,session:{bound:{workspace:'fixture-workspace'},check(){},client:{rpc:(name,args)=>({name,args})},async request(call){calls.push(call);if(call.name.endsWith('_save')){if(failSave)throw Error('connection lost');assert.equal(call.args.p_expected_revision,state.revision);state={...state,profile:{...state.profile,...call.args.p_patch},revision:state.revision+1};return structuredClone(state);}if(failRead)throw Error('read failed');return structuredClone(state);}},async run(fn){try{await fn();}catch(e){d.status.textContent=e.message;}}};
- globalThis.__importEditorTest={createDialog:()=>d,node,field:(label,input)=>{fields[label]=input;return input;}};
- const module=await import('data:text/javascript;base64,'+Buffer.from(source.replace(source.split('\n')[0],"const {createDialog,node,field}=globalThis.__importEditorTest;\n// fixture "+(++serial))).toString('base64'));
+ globalThis.__importEditorTest={translateStatic,createDialog:()=>d,node,field:(label,input)=>{fields[label]=input;return input;}};
+ const module=await import('data:text/javascript;base64,'+Buffer.from("const {createDialog,node,field,translateStatic}=globalThis.__importEditorTest;\n// fixture "+(++serial)+"\n"+source.replace(/^import .*;$/gm,'')).toString('base64'));
  delete globalThis.__importEditorTest;
  let refreshed=0;
  await module.openImportedTenant({ref:'imported',onDraft:async()=>{state.revision++;},onSaved:async()=>{refreshed++;}});

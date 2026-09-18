@@ -1,4 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let locale;
+test.before(async()=>{locale=await import('../src/v267/components/locale.js');locale.setLocale('ar');});
 const source=fs.readFileSync('src/v267/pages/employees.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
 function fixture(employees,options={}){
  const callbacks=[],calls=[];
@@ -12,9 +14,9 @@ function fixture(employees,options={}){
  }
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const group=node('div');group.label=label;group.append(control);return group;};
  const d={body:node('div'),status:node('p'),closed:false,onDispose:fn=>callbacks.push(fn),session:{bound:{workspace:'w'},client:{rpc(name,args){assert.equal(name,'aqari_hr');calls.push(args);return structuredClone(options.rpc?options.rpc(args):args.p_action==='get'?{employee:employee({id:args.p_data.employee_id,revision:1,property_ids:[],profile:{name_ar:'محفوظ',name_en:'Saved'}}),permissions:{},payroll:[],events:[],documents:[],audit:[]}:{employees,properties:[],manager:false});}},request:query=>query},run(work){if(d.closed)return;d.pending=Promise.resolve().then(work).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
- vm.runInNewContext(source+'\nopenEmployees();',{createDialog:()=>d,node,field,createPrivateUrls:()=>({clear(){}}),console,crypto:{randomUUID:()=> 'new-employee'},PROFILE_FIELDS:[['name_ar','الاسم']],money:Number,currentMonth:()=> '2026-09'});
+ vm.runInNewContext(source+'\nopenEmployees();',{translateStatic:locale.t,visibleMessage:locale.message,createDialog:()=>d,node,field,createPrivateUrls:()=>({clear(){}}),console,crypto:{randomUUID:()=> 'new-employee'},PROFILE_FIELDS:[['name_ar','الاسم']],money:Number,currentMonth:()=> '2026-09'});
  const descendants=el=>[el,...el.children.flatMap(descendants)];
- return {d,calls,find:label=>descendants(d.body).find(x=>x.label===label)?.children[0],button:label=>descendants(d.body).find(x=>x.tag==='button'&&x.textContent===label),all:()=>descendants(d.body),search:()=>descendants(d.body).find(x=>x.tag==='input'&&x.type==='search'),cards:()=>descendants(d.body).filter(x=>x.tag==='article'),dispose(){d.closed=true;callbacks.forEach(fn=>fn());}};
+ return {d,calls,find:label=>descendants(d.body).find(x=>x.label===locale.t(label))?.children[0],button:label=>descendants(d.body).find(x=>x.tag==='button'&&x.textContent===locale.t(label)),all:()=>descendants(d.body),search:()=>descendants(d.body).find(x=>x.tag==='input'&&x.type==='search'),cards:()=>descendants(d.body).filter(x=>x.tag==='article'),dispose(){d.closed=true;callbacks.forEach(fn=>fn());}};
 }
 const employee=overrides=>({id:'employee-one',status:'active',profile:{name_ar:'أحْمَد سالم',name_en:'Ahmed Salem',phone:'00965 5555-1234',job_ar:'محاسب'},...overrides});
 test('employee search accepts Arabic digits, diacritics and formatted phone fragments without extra requests',async()=>{

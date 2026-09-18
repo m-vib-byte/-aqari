@@ -15,7 +15,7 @@ const files = [
 ];
 const rows = files.flatMap(file => {
  const data = JSON.parse(fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'));
- return [...(data.records||data.entries||data.items||data.visible),
+ return [...(data.records||data.entries||data.items||data.visible),...(data.buildInjectedUI||[]),
  ...(data.appCloudGate?.visibleSources||[]).map(source=>({source,category:'visible_ui'}))];
 });
 const visible = rows.filter(row=>/^(visible|ui-|already_localized)/.test(row.category||row.classification));
