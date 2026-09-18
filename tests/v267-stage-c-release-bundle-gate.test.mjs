@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   STAGE_C_BUNDLE_FORMAT,
+  stageCEvidenceSha256,
   stageCBundleSha256,
   validateStageCReleaseBundle,
 } from '../scripts/v267-stage-c-release-bundle-gate.mjs';
@@ -76,6 +77,15 @@ function validBundle(){
     },
     devices:{desktop:device('desktop'),iphone:device('iphone'),ipad:device('ipad')},
   };
+  value.evidence_sha256.backup_storage_bytes=stageCEvidenceSha256({
+    format:'AQARI-V267-STORAGE-BYTE-MANIFEST-1',
+    verified:true,
+    object_count:value.storage.object_count,
+    total_bytes:value.storage.total_bytes,
+    manifest_sha256:value.storage.manifest_sha256,
+  });
+  value.evidence_sha256.rollback_rehearsal=stageCEvidenceSha256(value.rollback);
+  value.evidence_sha256.physical_devices=stageCEvidenceSha256(value.devices);
   value.bundle_sha256=stageCBundleSha256(value);
   return value;
 }
@@ -188,6 +198,22 @@ test('rejects generic, reused, incomplete or mismatched physical-device flow evi
     const result=validateStageCReleaseBundle(value,SHA);
     assert.equal(result.ok,false);
     assert.match(result.errors.join('\n'),/evidence|flow/);
+  }
+});
+
+test('rejects embedded Storage, rollback, or physical-device tampering even when bundle_sha256 is recomputed',()=>{
+  const mutations=[
+    (b)=>{b.storage.total_bytes+=1},
+    (b)=>{b.rollback.rehearsal_window_seconds+=1},
+    (b)=>{b.devices.desktop.browser='Chrome Stable - altered'},
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/evidence digest/i);
   }
 });
 
