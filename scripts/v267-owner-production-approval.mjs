@@ -14,11 +14,34 @@ export const OWNER_GOVERNANCE_EFFECTIVE_AT = '2026-09-13T00:00:00+03:00';
 const OWNER_GOVERNANCE_EFFECTIVE_MS = Date.parse(OWNER_GOVERNANCE_EFFECTIVE_AT);
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
 const AQARI_PREVIEW_HOST_RE = /^aqari-(?!test-)[a-z0-9-]+-m-vib-5421\.vercel\.app$/;
+const ISO_SECOND_WITH_ZONE_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(Z|([+-])(\d{2}):(\d{2}))$/;
 
-function parseIsoDate(value) {
-  if (!value || typeof value !== 'string') return null;
-  const ms = Date.parse(value);
-  return Number.isFinite(ms) ? ms : null;
+function parseCanonicalIsoSecond(value) {
+  if (!value || typeof value !== 'string' || value !== value.trim()) return null;
+  const match = ISO_SECOND_WITH_ZONE_RE.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const zone = match[7];
+  const offsetHour = zone === 'Z' ? 0 : Number(match[9]);
+  const offsetMinute = zone === 'Z' ? 0 : Number(match[10]);
+  if (month < 1 || month > 12 || hour > 23 || minute > 59 || second > 59) return null;
+  if (offsetHour > 14 || offsetMinute > 59 || (offsetHour === 14 && offsetMinute !== 0)) return null;
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (day < 1 || day > daysInMonth) return null;
+  const parsedMs = Date.parse(value);
+  if (!Number.isFinite(parsedMs)) return null;
+  let expectedMs = Date.UTC(year, month - 1, day, hour, minute, second);
+  if (zone !== 'Z') {
+    const offsetMs = (offsetHour * 60 + offsetMinute) * 60_000;
+    expectedMs += match[8] === '+' ? -offsetMs : offsetMs;
+  }
+  if (parsedMs !== expectedMs) return null;
+  return { raw: value, millis: parsedMs };
 }
 
 function previewUrlIdentity(value) {
@@ -96,10 +119,12 @@ export function validateOwnerProductionApproval(input = {}) {
     errors.push('explicit production approval must be dispatched by the repository owner');
   }
 
-  const finalTestMs = parseIsoDate(finalTestCompletedAt);
-  const approvedMs = parseIsoDate(approvedAt);
-  if (finalTestMs === null) errors.push('final-test completion timestamp must be a valid ISO-8601 date/time');
-  if (approvedMs === null) errors.push('owner production-approval timestamp must be a valid ISO-8601 date/time');
+  const finalTestTimestamp = parseCanonicalIsoSecond(finalTestCompletedAt);
+  const approvedTimestamp = parseCanonicalIsoSecond(approvedAt);
+  const finalTestMs = finalTestTimestamp?.millis ?? null;
+  const approvedMs = approvedTimestamp?.millis ?? null;
+  if (finalTestMs === null) errors.push('final-test completion timestamp must be canonical ISO-8601 second precision with an explicit timezone');
+  if (approvedMs === null) errors.push('owner production-approval timestamp must be canonical ISO-8601 second precision with an explicit timezone');
   if (finalTestMs !== null && finalTestMs < OWNER_GOVERNANCE_EFFECTIVE_MS) {
     errors.push(`final owner testing must occur under the controlling owner governance effective ${OWNER_GOVERNANCE_EFFECTIVE_AT}`);
   }
