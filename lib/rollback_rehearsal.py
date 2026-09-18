@@ -20,6 +20,7 @@ _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
 _KIND_RE = re.compile(r"^[a-z][a-z0-9_.-]{1,63}$")
+_UTC_SECOND_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 MAX_REHEARSAL_WINDOW_SECONDS = 3600
 
 
@@ -28,14 +29,14 @@ class RollbackRehearsalError(ValueError):
 
 
 def _parse_utc(value: object, field: str) -> datetime:
-    if not isinstance(value, str) or not value.endswith("Z"):
-        raise RollbackRehearsalError(f"{field} must be an ISO-8601 UTC timestamp ending in Z")
+    if not isinstance(value, str) or not _UTC_SECOND_RE.fullmatch(value):
+        raise RollbackRehearsalError(
+            f"{field} must use canonical UTC seconds format YYYY-MM-DDTHH:MM:SSZ"
+        )
     try:
-        parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+        parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     except ValueError as exc:
         raise RollbackRehearsalError(f"invalid {field}") from exc
-    if parsed.tzinfo is None or parsed.utcoffset() != timezone.utc.utcoffset(parsed):
-        raise RollbackRehearsalError(f"{field} must be UTC")
     return parsed
 
 
@@ -169,7 +170,7 @@ def verify_rollback_rehearsal(
     after_at = _parse_utc(after["captured_at"], "after-rehearsal captured_at")
     if not (checkpoint_at <= during_at <= after_at):
         raise RollbackRehearsalError("rollback evidence timestamps are out of order")
-    window = int((after_at - checkpoint_at).total_seconds())
+    window = (after_at - checkpoint_at).total_seconds()
     if window < 0 or window > MAX_REHEARSAL_WINDOW_SECONDS:
         raise RollbackRehearsalError(
             f"rollback rehearsal window exceeds {MAX_REHEARSAL_WINDOW_SECONDS} seconds"
