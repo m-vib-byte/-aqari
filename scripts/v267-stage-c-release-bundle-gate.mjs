@@ -1,8 +1,10 @@
 import {createHash} from 'node:crypto';
 
 export const STAGE_C_BUNDLE_FORMAT='AQARI-V267-STAGE-C-EVIDENCE-1';
+const ROLLBACK_FORMAT='AQARI-V267-ROLLBACK-REHEARSAL-1';
 const FULL_SHA_RE=/^[0-9a-f]{40}$/;
 const SHA256_RE=/^[0-9a-f]{64}$/;
+const REHEARSAL_ID_RE=/^[0-9a-f]{32}$/;
 const PROJECT_REF_RE=/^[a-z0-9][a-z0-9_-]{2,127}$/;
 const DEPLOYMENT_ID_RE=/^dpl_[A-Za-z0-9]+$/;
 const REQUIRED_DIGESTS=['backup_set','backup_storage_bytes','independent_restore','rollback_rehearsal','physical_devices'];
@@ -89,11 +91,40 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   if(!SHA256_RE.test(String(storage.manifest_sha256||'')))errors.push('Stage C Storage manifest digest must be SHA-256');
 
   const rollback=value.rollback&&typeof value.rollback==='object'&&!Array.isArray(value.rollback)?value.rollback:{};
+  if(rollback.format!==ROLLBACK_FORMAT)errors.push(`Stage C rollback format must be exactly ${ROLLBACK_FORMAT}`);
+  if(rollback.verified!==true)errors.push('Stage C rollback rehearsal must be explicitly verified');
+  const rollbackCandidateSha=normalizedSha(rollback.candidate_sha);
+  if(!FULL_SHA_RE.test(rollbackCandidateSha)||rollbackCandidateSha!==candidateSha)errors.push('Stage C rollback evidence is not tied to the exact candidate SHA');
+  const rollbackApplicationSha=normalizedSha(rollback.rollback_application_sha);
+  if(!FULL_SHA_RE.test(rollbackApplicationSha))errors.push('Stage C rollback application SHA must be a full 40-character hexadecimal commit SHA');
+  else if(rollbackApplicationSha===candidateSha)errors.push('Stage C rollback application SHA must differ from the candidate SHA');
+  if(!REHEARSAL_ID_RE.test(String(rollback.rehearsal_id||'')))errors.push('Stage C rollback rehearsal_id must be a lowercase 32-character hexadecimal id');
+  const rollbackProject=text(rollback.database_project_ref);
+  if(!PROJECT_REF_RE.test(rollbackProject))errors.push('Stage C rollback database project reference is invalid');
+  else if(source&&rollbackProject!==source)errors.push('Stage C rollback must use the exact source database project');
+  if(rollback.database_rollback_performed!==false)errors.push('Stage C rollback rehearsal must explicitly avoid database rollback');
+  if(!nonNegativeInt(rollback.rehearsal_window_seconds))errors.push('Stage C rollback rehearsal_window_seconds must be a non-negative integer');
   if(!positiveInt(rollback.checkpoint_record_count))errors.push('Stage C rollback checkpoint_record_count must be a positive integer proving pre-existing transactions');
   if(!positiveInt(rollback.new_record_count))errors.push('Stage C rollback new_record_count must be a positive integer proving transactions created during rehearsal');
   if(!positiveInt(rollback.after_record_count))errors.push('Stage C rollback after_record_count must be a positive integer');
   if(positiveInt(rollback.checkpoint_record_count)&&positiveInt(rollback.new_record_count)&&positiveInt(rollback.after_record_count)&&rollback.after_record_count!==rollback.checkpoint_record_count+rollback.new_record_count){
     errors.push('Stage C rollback must preserve checkpoint plus new transactions');
+  }
+  const counts=rollback.counts_by_kind&&typeof rollback.counts_by_kind==='object'&&!Array.isArray(rollback.counts_by_kind)?rollback.counts_by_kind:null;
+  if(!counts){
+    errors.push('Stage C rollback counts_by_kind must be an object');
+  }else{
+    let total=0;
+    let valid=true;
+    for(const [kind,count] of Object.entries(counts)){
+      if(!text(kind)||!nonNegativeInt(count)){valid=false;break}
+      total+=count;
+    }
+    if(!valid)errors.push('Stage C rollback counts_by_kind contains an invalid kind or count');
+    else if(positiveInt(rollback.after_record_count)&&total!==rollback.after_record_count)errors.push('Stage C rollback counts_by_kind must match after_record_count');
+  }
+  for(const field of ['checkpoint_records_sha256','during_records_sha256','after_records_sha256']){
+    if(!SHA256_RE.test(String(rollback[field]||'')))errors.push(`Stage C rollback ${field} must be SHA-256`);
   }
 
   const devices=value.devices&&typeof value.devices==='object'&&!Array.isArray(value.devices)?value.devices:{};
