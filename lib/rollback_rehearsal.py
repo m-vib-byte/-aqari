@@ -170,11 +170,12 @@ def verify_rollback_rehearsal(
     after_at = _parse_utc(after["captured_at"], "after-rehearsal captured_at")
     if not (checkpoint_at <= during_at <= after_at):
         raise RollbackRehearsalError("rollback evidence timestamps are out of order")
-    window = (after_at - checkpoint_at).total_seconds()
-    if window < 0 or window > MAX_REHEARSAL_WINDOW_SECONDS:
+    window_seconds = (after_at - checkpoint_at).total_seconds()
+    if window_seconds < 0 or window_seconds > MAX_REHEARSAL_WINDOW_SECONDS:
         raise RollbackRehearsalError(
             f"rollback rehearsal window exceeds {MAX_REHEARSAL_WINDOW_SECONDS} seconds"
         )
+    window = int(window_seconds)
 
     checkpoint_map = {_record_key(row): row["immutable_sha256"] for row in checkpoint["records"]}
     during_map = {_record_key(row): row["immutable_sha256"] for row in during["records"]}
