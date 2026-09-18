@@ -243,6 +243,32 @@ test('rejects generic, reused, incomplete or mismatched physical-device flow evi
   }
 });
 
+test('rejects unsafe or noncanonical physical-device evidence paths even when all digests are recomputed',()=>{
+  const badRefs=[
+    'https://example.com/evidence.json',
+    '/evidence/desktop/login.json',
+    '../evidence/desktop/login.json',
+    'evidence/../desktop/login.json',
+    'evidence/desktop\\login.json',
+    'evidence/desktop/login.json?raw=1',
+    'evidence/desktop/login.json#fragment',
+    ' evidence/desktop/login.json',
+    'evidence/desktop/login.json ',
+    'evidence//desktop/login.json',
+    'evidence/./desktop/login.json',
+  ];
+  for(const badRef of badRefs){
+    const value=validBundle();
+    value.devices.desktop.flow_evidence.login=[badRef];
+    value.devices.desktop.evidence=Object.values(value.devices.desktop.flow_evidence).flat().sort();
+    value.evidence_sha256.physical_devices=stageCEvidenceSha256(value.devices);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false,badRef);
+    assert.match(result.errors.join('\n'),/canonical repository evidence paths/);
+  }
+});
+
 test('rejects embedded Storage, restore, rollback, or physical-device tampering even when bundle_sha256 is recomputed',()=>{
   const mutations=[
     (b)=>{b.storage.total_bytes+=1},
