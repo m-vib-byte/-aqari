@@ -712,8 +712,8 @@
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 62650,
-      "sha256": "75950a2e87ecb486cb3356401452cccd60b2231751adc591ea902e5337d89850"
+      "size": 64728,
+      "sha256": "49c54c09e34bd9e7a3f970433a30b725a879a53229359a8944f6650a272504f5"
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
@@ -1217,8 +1217,8 @@
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 76828,
-      "sha256": "0077a069ea2db6f9a4cf8d505c399dfbbfd870c7a848b7f70b8871e3fe453b89"
+      "size": 79732,
+      "sha256": "527116073330279fc4843da20aa2539b54b48aa28798128114d1f101a04dc5a9"
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -3762,8 +3762,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 277603,
-      "sha256": "a45a18eed5446d28437393bd3223b4bde2b778eff0a54324083ab96a95d6632e"
+      "size": 277953,
+      "sha256": "acfa3e675777046a76dd20f620817b5984730198b69d107f4ec02b8cf4dbb23d"
     },
     {
       "path": "v205-simple.css",

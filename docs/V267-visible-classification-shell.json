@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 319,
-  "newCatalogEntries": 222,
+  "visibleUnique": 334,
+  "newCatalogEntries": 237,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -2369,6 +2369,111 @@
     },
     {
       "source": "مسدد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المدفوع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "حالة العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "قيد المراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تاريخ آخر دفعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "النظافة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "شهر مجاني:",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إنذار إخلاء:",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "جاهز للاعتماد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "ملغي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مدفوع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج تحقق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج مراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير قابل للفوترة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "شهر مجاني",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستحق",
       "category": "visible_ui",
       "files": [
         "v202-property-os.js"

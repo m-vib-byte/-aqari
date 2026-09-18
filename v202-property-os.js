@@ -1645,7 +1645,7 @@
 
   function unitField(label,value,extraClass){
     const shown=value==null||String(value).trim()===''?'غير مسجل':String(value);
-    const uiValue=shown==='غير مسجل'||label==='حالة العقد'||['الإيجار','المدفوع','المتبقي','قيد المراجعة','التأمين','العربون','النظافة','بداية العقد','نهاية العقد','تاريخ آخر دفعة'].includes(label);
+    const uiValue=shown==='غير مسجل'||label==='حالة العقد'||label==='طريقة السداد'||['الإيجار','المدفوع','المتبقي','قيد المراجعة','التأمين','العربون','النظافة','بداية العقد','نهاية العقد','تاريخ آخر دفعة'].includes(label);
     return '<div class="aq-unit-field '+(extraClass||'')+'"><dt>'+escapeHtml(label)+'</dt><dd'+(uiValue?'':' data-aq-record')+'>'+escapeHtml(shown)+'</dd></div>';
   }
 
@@ -1672,7 +1672,7 @@
     const canWrite=rentWriteAllowed()&&!protectedOnly;
     const cards=records.map(function(record,index){
       const civil=maskCivilId(record.civilId);
-      const notes=[record.freeMonth&&'شهر مجاني: '+record.freeMonth,record.evictionNotice&&'إنذار إخلاء: '+record.evictionNotice,record.notes].filter(Boolean).join(' • ');
+      const notes=[record.freeMonth&&'<span>شهر مجاني:</span> <span data-aq-record>'+escapeHtml(record.freeMonth)+'</span>',record.evictionNotice&&'<span>إنذار إخلاء:</span> <span'+(['غير محدد','نعم','لا'].includes(record.evictionNotice)?'':' data-aq-record')+'>'+escapeHtml(record.evictionNotice)+'</span>',record.notes&&'<span data-aq-record>'+escapeHtml(record.notes)+'</span>'].filter(Boolean).join(' • ');
       const hasRentReceipt=tenantLedgerEntries(context,record,period).some(function(entry){return Boolean(resolvedReceiptForRecord(context,record,entry,period))});
       return '<article class="aq-unit-card '+unitStatusTone(record.paymentStatus)+'" data-v202-unit-index="'+index+'" aria-labelledby="v202UnitTitle'+index+'">'+
         '<header class="aq-unit-card-head"><span class="aq-unit-number" data-aq-record>'+escapeHtml(record.unit)+'</span><div class="aq-unit-title"><strong id="v202UnitTitle'+index+'"'+(record.tenant?' data-aq-record':'')+'>'+escapeHtml(record.tenant||'مستأجر غير مسجل')+'</strong><small>'+escapeHtml(record.contractNo?'عقد '+record.contractNo:'عقد غير مربوط')+'</small></div><span class="aq-unit-status '+unitStatusTone(record.paymentStatus)+'">'+escapeHtml(record.paymentStatus)+'</span></header>'+ 
@@ -1681,7 +1681,7 @@
           unitField('المستأجر',record.tenant)+unitField('رقم العقد',record.contractNo)+unitField('حالة العقد',record.contractStatus)+unitField('بداية العقد',record.startDate?localDate(record.startDate):'غير مسجل')+unitField('نهاية العقد',record.endDate?localDate(record.endDate):'غير مسجل')+unitMoneyField('قيد المراجعة',record.pending)+
           unitField('الوصولات',record.receipts.join('، '))+unitField('تاريخ آخر دفعة',record.paidAt?localDate(record.paidAt):'غير مسجل')+unitField('طريقة السداد',record.methods.join('، '))+
           unitField('الهاتف / Phone',record.phone)+unitField('الجنسية / Nationality',record.nationality)+unitEmailField(record.email)+unitField('المحاسب / Accountant',record.accountant)+
-          unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+unitField('ملاحظات',notes)+
+          unitMoneyField('التأمين',record.insurance)+unitMoneyField('العربون',record.advance)+unitMoneyField('النظافة',record.cleaningFee)+unitField('مرجع الصفحة',record.sourcePage)+'<div class="aq-unit-field"><dt>ملاحظات</dt><dd>'+(notes||'غير مسجل')+'</dd></div>'+
           '<div class="aq-unit-field"><dt>الرقم المدني</dt><dd class="aq-unit-sensitive"><span class="aq-unit-sensitive-value is-masked" data-aq-record>'+escapeHtml(civil)+'</span>'+(record.civilId?'<button type="button" class="aq-unit-reveal" data-v202-civil-reveal="'+index+'" aria-pressed="false" aria-label="إظهار الرقم المدني للوحدة '+escapeHtml(record.unit)+'">إظهار</button>':'')+'</dd></div>'+ 
         '</dl></details>'+ 
         '<footer class="aq-unit-actions"><button type="button" class="is-primary" data-v202-unit-statement="'+index+'">كشف المستأجر / Tenant Statement</button>'+(record.hasContract?'<button type="button" data-v202-unit-contract="'+index+'">'+(record.verified?'عقد الإيجار / Contract':'مسودة العقد / Draft Contract')+'</button>':'')+(hasRentReceipt?'<button type="button" data-v202-unit-receipt="'+index+'">وصل الإيجار / Receipt</button>':'')+(canWrite&&record.billable&&record.collectible?'<button type="button" data-v202-unit-payment="'+index+'">تسجيل إيجار للوحدة</button>':'')+'</footer>'+ 
