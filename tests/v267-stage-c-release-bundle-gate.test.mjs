@@ -6,7 +6,7 @@ import {
   stageCBundleSha256,
   validateStageCReleaseBundle,
 } from '../scripts/v267-stage-c-release-bundle-gate.mjs';
-import {validateOwnerProductionApprovalForCli} from '../scripts/v267-owner-production-approval.mjs';
+import {validateExactPreviewBinding,validateOwnerProductionApprovalForCli} from '../scripts/v267-owner-production-approval.mjs';
 
 const SHA='861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA='13a219e7930db89ebf2f9b44d30007499efa6ccf';
@@ -15,6 +15,7 @@ const REHEARSAL_ID='3'.repeat(32);
 const DIGEST='a'.repeat(64);
 const PREVIEW_DEPLOYMENT='dpl_AqariExactPreview123';
 const PREVIEW_URL='https://aqari-exact-preview-123.vercel.app';
+const AQARI_PREVIEW_URL='https://aqari-exact-preview-123-m-vib-5421.vercel.app';
 const REQUIRED_FLOWS=['login','session','save','reopen','permissions','contracts','printing'];
 
 function device(deviceClass){
@@ -264,6 +265,31 @@ test('rejects tampering when the canonical bundle digest is not recomputed',()=>
   value.rollback.new_record_count=4;
   assert.equal(validateStageCReleaseBundle(value,SHA).ok,false);
   assert.match(validateStageCReleaseBundle(value,SHA).errors.join('\n'),/bundle_sha256/);
+});
+
+test('owner Production preview binding requires the exact AQARI Vercel hostname and deployment identity',()=>{
+  const stageCBundle=validBundle();
+  stageCBundle.preview.url=AQARI_PREVIEW_URL;
+  const manifest={
+    hostedPreview:{url:`${AQARI_PREVIEW_URL}/app?release=V267`,deploymentId:PREVIEW_DEPLOYMENT},
+    stageCBundle,
+  };
+  const accepted=validateExactPreviewBinding(manifest);
+  assert.equal(accepted.ok,true,JSON.stringify(accepted.errors));
+
+  const mutations=[
+    (m)=>{m.hostedPreview.deploymentId='dpl_DifferentDeployment456'},
+    (m)=>{m.stageCBundle.preview.url='https://aqari-other-build-m-vib-5421.vercel.app'},
+    (m)=>{m.stageCBundle.preview.url='https://aqari-test-build-m-vib-5421.vercel.app'},
+    (m)=>{m.stageCBundle.preview.url='https://unrelated-preview.vercel.app'},
+  ];
+  for(const mutate of mutations){
+    const value=JSON.parse(JSON.stringify(manifest));
+    mutate(value);
+    const result=validateExactPreviewBinding(value);
+    assert.equal(result.ok,false,JSON.stringify(value));
+    assert.match(result.errors.join('\n'),/Preview|preview|deployment|hostname|AQARI/);
+  }
 });
 
 test('owner Production CLI path fails closed when deterministic Stage-C bundle is absent',()=>{
