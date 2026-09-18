@@ -1,6 +1,6 @@
 {
-  "visibleUnique": 107,
-  "newCatalogEntries": 17,
+  "visibleUnique": 108,
+  "newCatalogEntries": 18,
   "excluded": [
     {
       "category": "brand_preserved",
@@ -30,6 +30,13 @@
     }
   ],
   "items": [
+    {
+      "source": "📄 عقد الشقة الاستثمارية — تجريبي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/experimental-investment-apartment-contract.js"
+      ]
+    },
     {
       "source": "الرئيسية",
       "category": "visible_ui",

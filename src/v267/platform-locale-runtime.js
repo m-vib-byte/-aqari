@@ -33,7 +33,7 @@ function applyDirection(){
 }
 function uiTextNode(node){
  const parent=node.parentElement;if(!parent||parent.closest('[data-aq-record],[translate="no"]'))return false;
- if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"]'))return true;
+ if(parent.matches('[data-aq267-text],.aq267-dialog-title,[role="status"],#aqari-exp-investment-apartment-shortcut'))return true;
  if(parent.closest(SHELL_ROOTS))return SHELL_TAGS.has(parent.tagName);
  if(parent.closest('main.w>.p,.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant'))return STATIC_TAGS.has(parent.tagName);
  return false;

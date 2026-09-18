@@ -1,5 +1,11 @@
 // Static shell messages only; record names and assistant content are excluded.
 export const SHELL_MESSAGES = {
+  "📄 عقد الشقة الاستثمارية — تجريبي": {
+    "en": "📄 Investment apartment contract — Trial",
+    "hi": "📄 निवेश अपार्टमेंट का अनुबंध — परीक्षण",
+    "ur": "📄 سرمایہ کاری اپارٹمنٹ کا معاہدہ — آزمائشی",
+    "ml": "📄 നിക്ഷേപ അപ്പാർട്ട്മെന്റ് കരാർ — പരീക്ഷണ പതിപ്പ്"
+  },
   "المستخدم": {
     "en": "User",
     "hi": "उपयोगकर्ता",
