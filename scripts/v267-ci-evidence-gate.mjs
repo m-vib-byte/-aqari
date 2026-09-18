@@ -26,6 +26,13 @@ export const REQUIRED_CI_WORKFLOW_DEFINITIONS = Object.freeze({
 });
 
 export const REQUIRED_CI_WORKFLOWS = Object.freeze(Object.keys(REQUIRED_CI_WORKFLOW_DEFINITIONS));
+export const REQUIRED_CI_SOURCE = Object.freeze({
+  repository: 'm-vib-byte/-aqari',
+  pullRequestNumber: 192,
+  headBranch: 'support/v267-knet-range-reconcile-20260915',
+  baseBranch: 'support/v267-owner-gate-latest-1c80-20260915',
+  baseSha: '2d7a3a3f893fed1eb6b633731bd0dee5e6be9aa3',
+});
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
 const REPOSITORY_WEB_URL = 'https://github.com/m-vib-byte/-aqari';
@@ -42,6 +49,7 @@ function positiveInt(value) {
 function canonicalRepositoryEvidenceRef(value) {
   if (typeof value !== 'string' || !value || value.trim() !== value) return false;
   if (!value.startsWith('evidence/') || value.startsWith('/') || value.includes('://') || value.includes('\\') || value.includes('?') || value.includes('#') || value.includes('%')) return false;
+  if (/[^\x20-\x7e]/.test(value)) return false;
   const segments = value.split('/');
   return !segments.some((segment) => !segment || segment === '.' || segment === '..');
 }
@@ -78,6 +86,15 @@ function requireSameSha(errors, value, candidateSha, label) {
   else if (sha !== candidateSha) errors.push(`${label} evidence is not tied to the exact candidate SHA`);
 }
 
+function requireExactSource(errors, value, label) {
+  if (text(value.repository) !== REQUIRED_CI_SOURCE.repository) errors.push(`${label} repository must be exactly ${REQUIRED_CI_SOURCE.repository}`);
+  if (value.pullRequestNumber !== REQUIRED_CI_SOURCE.pullRequestNumber) errors.push(`${label} pull request must be exactly #${REQUIRED_CI_SOURCE.pullRequestNumber}`);
+  if (text(value.headBranch) !== REQUIRED_CI_SOURCE.headBranch) errors.push(`${label} head branch must be exactly ${REQUIRED_CI_SOURCE.headBranch}`);
+  if (text(value.baseBranch) !== REQUIRED_CI_SOURCE.baseBranch) errors.push(`${label} base branch must be exactly ${REQUIRED_CI_SOURCE.baseBranch}`);
+  const baseSha = text(value.baseSha).toLowerCase();
+  if (!FULL_SHA_RE.test(baseSha) || baseSha !== REQUIRED_CI_SOURCE.baseSha) errors.push(`${label} base SHA must be exactly ${REQUIRED_CI_SOURCE.baseSha}`);
+}
+
 export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
   const errors = [];
   const candidateSha = text(expectedCandidateSha).toLowerCase();
@@ -88,6 +105,7 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
   const value = ci && typeof ci === 'object' && !Array.isArray(ci) ? ci : {};
   if (value.allRequiredPassed !== true) errors.push('all required CI checks must pass');
   requireSameSha(errors, value.commitSha, candidateSha, 'CI');
+  requireExactSource(errors, value, 'CI');
   if (!canonicalEvidenceSet(value.evidence)) errors.push('same-SHA CI evidence must use unique canonical repository evidence paths');
 
   const workflows = Array.isArray(value.workflows) ? value.workflows : [];
@@ -124,6 +142,7 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
     }
 
     requireSameSha(errors, row.commitSha, candidateSha, `CI workflow ${name}`);
+    requireExactSource(errors, row, `CI workflow ${name}`);
     if (!positiveInt(row.runId)) {
       errors.push(`CI workflow ${name} runId must be a positive integer`);
     } else {
@@ -136,9 +155,11 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
       errors.push(`CI workflow ${name} evidence is required`);
     } else if (positiveInt(row.runId)) {
       const expectedRunUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}`;
+      const expectedRunApiUrl = `${REPOSITORY_API_URL}/actions/runs/${row.runId}`;
       const expectedWorkflowApiUrl = `${REPOSITORY_API_URL}/actions/workflows/${definition.workflowId}`;
-      if (!canonicalEvidenceSet(row.evidence, [expectedRunUrl, expectedWorkflowApiUrl])) {
-        errors.push(`CI workflow ${name} evidence must contain the exact GitHub Actions run URL for runId ${row.runId}, the required workflow identity ${definition.workflowId}, plus canonical repository evidence paths`);
+      const expectedPullRequestApiUrl = `${REPOSITORY_API_URL}/pulls/${REQUIRED_CI_SOURCE.pullRequestNumber}`;
+      if (!canonicalEvidenceSet(row.evidence, [expectedRunUrl, expectedRunApiUrl, expectedWorkflowApiUrl, expectedPullRequestApiUrl])) {
+        errors.push(`CI workflow ${name} evidence must contain the exact GitHub Actions run web/API URLs for runId ${row.runId}, the required workflow identity ${definition.workflowId}, PR #${REQUIRED_CI_SOURCE.pullRequestNumber}, plus canonical repository evidence paths`);
       }
     }
 
@@ -151,6 +172,7 @@ export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
         continue;
       }
       requireSameSha(errors, job.commitSha, candidateSha, `CI workflow ${name} job`);
+      if (text(job.headBranch) !== REQUIRED_CI_SOURCE.headBranch) errors.push(`CI workflow ${name} job head branch must be exactly ${REQUIRED_CI_SOURCE.headBranch}`);
       if (!positiveInt(job.runId)) {
         errors.push(`CI workflow ${name} job runId must be a positive integer`);
       } else if (positiveInt(row.runId) && job.runId !== row.runId) {
