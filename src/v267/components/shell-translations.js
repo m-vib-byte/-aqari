@@ -1,6 +1,14 @@
 // Static shell messages only; record names and assistant content are excluded.
 export const SHELL_MESSAGES = {
 
+  "جاري الحفظ والتحقق من السحابة…": {
+    "en": "Saving and verifying with cloud storage…",
+    "hi": "सहेज रहे हैं और क्लाउड से सत्यापित कर रहे हैं…",
+    "ur": "محفوظ کیا جا رہا ہے اور کلاؤڈ سے تصدیق ہو رہی ہے…",
+    "ml": "സംരക്ഷിച്ച് ക്ലൗഡ് സംഭരണവുമായി സ്ഥിരീകരിക്കുന്നു…"
+  }
+,
+
   "تعديل العقارات والوحدات": {
     "en": "Edit properties and units",
     "hi": "संपत्तियाँ और इकाइयाँ संपादित करें",
