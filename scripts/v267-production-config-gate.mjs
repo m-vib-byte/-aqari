@@ -16,6 +16,23 @@ function sha256(value){return createHash('sha256').update(Buffer.from(String(val
 function evidencePresent(value){return Array.isArray(value)&&value.length>0&&value.every((item)=>typeof item==='string'&&item.trim())}
 function object(value){return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}
 function expectedSupabaseUrl(projectRef){return PROJECT_REF_RE.test(projectRef)?`https://${projectRef}.supabase.co`:''}
+function findForbiddenEvidenceKey(value,path='productionConfig'){
+  if(Array.isArray(value)){
+    for(let index=0;index<value.length;index+=1){
+      const found=findForbiddenEvidenceKey(value[index],`${path}[${index}]`);
+      if(found)return found;
+    }
+    return '';
+  }
+  if(!value||typeof value!=='object')return '';
+  for(const [key,nested] of Object.entries(value)){
+    const nextPath=`${path}.${key}`;
+    if(FORBIDDEN_EVIDENCE_KEYS.includes(key))return nextPath;
+    const found=findForbiddenEvidenceKey(nested,nextPath);
+    if(found)return found;
+  }
+  return '';
+}
 
 export function productionTargetFingerprint(target={}){
   const value=object(target);
@@ -145,7 +162,8 @@ export function validateProductionConfigForCli(input={},expectedCandidateSha='')
   if(!evidencePresent(value.evidence))errors.push('Production configuration evidence references are required');
   const verifiedAt=Date.parse(text(value.verifiedAt));
   if(!Number.isFinite(verifiedAt))errors.push('Production configuration verifiedAt must be a valid ISO-8601 date/time');
-  for(const key of FORBIDDEN_EVIDENCE_KEYS){if(Object.prototype.hasOwnProperty.call(value,key))errors.push(`Production configuration evidence must not contain raw ${key}`)}
+  const forbiddenEvidencePath=findForbiddenEvidenceKey(value);
+  if(forbiddenEvidencePath)errors.push(`Production configuration evidence must not contain raw secret material at ${forbiddenEvidencePath}`);
 
   return {ok:errors.length===0,candidateSha,projectRef,errors};
 }
