@@ -85,20 +85,24 @@ class RestoreEquivalenceTest(unittest.TestCase):
             with self.assertRaisesRegex(RestoreEquivalenceError, "generated after"):
                 self.verify(source, restored, storage, tree)
 
-    def test_restore_manifest_timestamps_must_be_valid_utc(self):
+    def test_restore_manifest_timestamps_must_use_canonical_utc_second_precision(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             source, restored, storage, tree = self.make_evidence(root)
-            payload = json.loads(restored.read_text(encoding="utf-8"))
-            payload["generated_at"] = "2026-09-17T07:10:00+03:00"
-            restored.write_text(json.dumps(payload), encoding="utf-8")
-            with self.assertRaisesRegex(RestoreEquivalenceError, "must be UTC"):
-                self.verify(source, restored, storage, tree)
-
-            payload["generated_at"] = "not-a-time"
-            restored.write_text(json.dumps(payload), encoding="utf-8")
-            with self.assertRaisesRegex(RestoreEquivalenceError, "invalid restored generated_at"):
-                self.verify(source, restored, storage, tree)
+            for invalid in (
+                "2026-09-17T07:10:00+03:00",
+                "2026-09-17T04:10:00+00:00",
+                "2026-09-17T04:10:00.001Z",
+                "2026-09-17 04:10:00Z",
+                "not-a-time",
+            ):
+                with self.subTest(invalid=invalid):
+                    payload = json.loads(restored.read_text(encoding="utf-8"))
+                    payload["generated_at"] = invalid
+                    restored.write_text(json.dumps(payload), encoding="utf-8")
+                    with self.assertRaisesRegex(RestoreEquivalenceError, "canonical UTC second precision"):
+                        self.verify(source, restored, storage, tree)
+                    restored.write_text(json.dumps(self.manifest("2026-09-17T04:10:00Z")), encoding="utf-8")
 
     def test_each_canonical_section_drift_is_rejected(self):
         for section in ("business", "schema_safe", "auth_safe", "storage_safe"):
