@@ -1,8 +1,9 @@
 """Verify AQARI V267 independent restore equivalence without performing a restore.
 
 The verifier compares source and restored DATA-SAFETY-MANIFEST-3 payloads while ignoring only
-volatile report metadata, and separately proves restored Storage object bytes against the source
-byte manifest. It is verification tooling only: it does not create a backup or a restore.
+volatile report metadata, binds the source Storage byte manifest to the source data-safety metadata,
+and separately proves restored Storage object bytes against that exact source byte manifest. It is
+verification tooling only: it does not create a backup or a restore.
 """
 from __future__ import annotations
 
@@ -53,6 +54,12 @@ def _parse_manifest_time(value: object, field: str) -> datetime:
     return parsed
 
 
+def _non_negative_int(value: object, field: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise RestoreEquivalenceError(f"{field} must be a non-negative integer")
+    return value
+
+
 def validate_data_safety_manifest(payload: object, label: str) -> dict:
     if not isinstance(payload, dict) or payload.get("format") != DATA_SAFETY_FORMAT:
         raise RestoreEquivalenceError(f"{label} must use {DATA_SAFETY_FORMAT}")
@@ -79,6 +86,19 @@ def _read_data_safety_payload(path: str | Path, label: str) -> dict:
 def read_data_safety_manifest(path: str | Path, label: str) -> dict:
     payload = _read_data_safety_payload(path, label)
     return validate_data_safety_manifest(payload, label)
+
+
+def _bind_storage_manifest_to_data_safety(storage_manifest: dict, storage_safe: dict) -> None:
+    expected_objects = _non_negative_int(storage_safe.get("objects"), "source storage_safe.objects")
+    expected_bytes = _non_negative_int(storage_safe.get("bytes_reported"), "source storage_safe.bytes_reported")
+    if storage_manifest["object_count"] != expected_objects:
+        raise RestoreEquivalenceError(
+            "source Storage byte manifest object_count does not match data-safety Storage metadata"
+        )
+    if storage_manifest["total_bytes"] != expected_bytes:
+        raise RestoreEquivalenceError(
+            "source Storage byte manifest total_bytes does not match data-safety Storage metadata"
+        )
 
 
 def verify_restore_equivalence(
@@ -124,7 +144,10 @@ def verify_restore_equivalence(
 
     try:
         storage_manifest = read_manifest(source_storage_manifest_path)
+        _bind_storage_manifest_to_data_safety(storage_manifest, source["storage_safe"])
         storage_report = verify_storage_tree(restored_storage_root, storage_manifest)
+    except RestoreEquivalenceError:
+        raise
     except (StorageByteManifestError, OSError, json.JSONDecodeError) as exc:
         raise RestoreEquivalenceError(f"restored Storage bytes do not match source: {exc}") from exc
 
