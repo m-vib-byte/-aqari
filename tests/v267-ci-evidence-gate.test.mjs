@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  REQUIRED_CI_SOURCE,
   REQUIRED_CI_WORKFLOW_DEFINITIONS,
   REQUIRED_CI_WORKFLOWS,
   validateSameShaCiEvidence,
@@ -9,10 +10,21 @@ import {
 const SHA = 'b719c9cc2b4a8f4d0024ad0a0b6f9ff200cd72b9';
 const OTHER_SHA = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
+function sourceFields() {
+  return {
+    repository: REQUIRED_CI_SOURCE.repository,
+    pullRequestNumber: REQUIRED_CI_SOURCE.pullRequestNumber,
+    headBranch: REQUIRED_CI_SOURCE.headBranch,
+    baseBranch: REQUIRED_CI_SOURCE.baseBranch,
+    baseSha: REQUIRED_CI_SOURCE.baseSha,
+  };
+}
+
 function fullCi() {
   return {
     allRequiredPassed: true,
     commitSha: SHA,
+    ...sourceFields(),
     evidence: ['evidence/ci/summary.json'],
     workflows: REQUIRED_CI_WORKFLOWS.map((name, index) => {
       const definition = REQUIRED_CI_WORKFLOW_DEFINITIONS[name];
@@ -22,15 +34,19 @@ function fullCi() {
         workflowPath: definition.workflowPath,
         event: 'pull_request',
         commitSha: SHA,
+        ...sourceFields(),
         runId: 1000 + index,
         status: 'completed',
         conclusion: 'success',
         evidence: [
           `https://github.com/m-vib-byte/-aqari/actions/runs/${1000 + index}`,
+          `https://api.github.com/repos/m-vib-byte/-aqari/actions/runs/${1000 + index}`,
           `https://api.github.com/repos/m-vib-byte/-aqari/actions/workflows/${definition.workflowId}`,
+          `https://api.github.com/repos/m-vib-byte/-aqari/pulls/${REQUIRED_CI_SOURCE.pullRequestNumber}`,
         ],
         jobs: [{
           commitSha: SHA,
+          headBranch: REQUIRED_CI_SOURCE.headBranch,
           runId: 1000 + index,
           jobId: 2000 + index,
           runnerId: 3000 + index,
@@ -125,6 +141,7 @@ test('rejects reused run or job identities across different required workflows',
   ci.workflows[1].runId = ci.workflows[0].runId;
   ci.workflows[1].jobs[0].runId = ci.workflows[0].runId;
   ci.workflows[1].evidence[0] = ci.workflows[0].evidence[0];
+  ci.workflows[1].evidence[1] = ci.workflows[0].evidence[1];
   ci.workflows[1].jobs[0].evidence[1] = `https://github.com/m-vib-byte/-aqari/actions/runs/${ci.workflows[0].runId}/job/${ci.workflows[1].jobs[0].jobId}`;
   ci.workflows[2].jobs[0].jobId = ci.workflows[0].jobs[0].jobId;
   ci.workflows[2].jobs[0].evidence = [
@@ -145,7 +162,7 @@ test('rejects nonempty CI evidence that does not identify the declared run and j
   ];
   const result = validateSameShaCiEvidence(ci, SHA);
   assert.equal(result.ok, false);
-  assert.match(result.errors.join('\n'), /exact GitHub Actions run URL/);
+  assert.match(result.errors.join('\n'), /run web\/API URLs/);
   assert.match(result.errors.join('\n'), /exact GitHub Actions job URL/);
 });
 
@@ -161,6 +178,7 @@ test('rejects unsafe or unrelated CI evidence references even when the required 
     'evidence/ci/run.json%3Fraw=1',
     ' evidence/ci/run.json',
     'evidence//ci/run.json',
+    'evidence/ci/run.json\nspoof',
   ];
   for (const badRef of badRefs) {
     const ci = fullCi();
@@ -184,7 +202,7 @@ test('rejects unsafe or unrelated CI evidence references even when the required 
 test('rejects a relabeled successful run unless workflow identity, path and trigger are the required ones', () => {
   const wrongId = fullCi();
   wrongId.workflows[0].workflowId = REQUIRED_CI_WORKFLOW_DEFINITIONS[REQUIRED_CI_WORKFLOWS[1]].workflowId;
-  wrongId.workflows[0].evidence[1] = `https://api.github.com/repos/m-vib-byte/-aqari/actions/workflows/${wrongId.workflows[0].workflowId}`;
+  wrongId.workflows[0].evidence[2] = `https://api.github.com/repos/m-vib-byte/-aqari/actions/workflows/${wrongId.workflows[0].workflowId}`;
   let result = validateSameShaCiEvidence(wrongId, SHA);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /workflowId must be exactly/);
@@ -202,8 +220,43 @@ test('rejects a relabeled successful run unless workflow identity, path and trig
   assert.match(result.errors.join('\n'), /event must be exactly pull_request/);
 
   const missingWorkflowIdentityUrl = fullCi();
-  missingWorkflowIdentityUrl.workflows[0].evidence.pop();
+  missingWorkflowIdentityUrl.workflows[0].evidence.splice(2, 1);
   result = validateSameShaCiEvidence(missingWorkflowIdentityUrl, SHA);
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /required workflow identity/);
+});
+
+test('rejects same-head evidence from another PR, branch, base, repository or job head', () => {
+  for (const mutate of [
+    (ci) => { ci.repository = 'm-vib-byte/other'; },
+    (ci) => { ci.pullRequestNumber = 200; },
+    (ci) => { ci.headBranch = 'work1/parallel'; },
+    (ci) => { ci.baseBranch = 'main'; },
+    (ci) => { ci.baseSha = OTHER_SHA; },
+    (ci) => { ci.workflows[0].pullRequestNumber = 200; },
+    (ci) => { ci.workflows[0].headBranch = 'work1/parallel'; },
+    (ci) => { ci.workflows[0].baseBranch = 'main'; },
+    (ci) => { ci.workflows[0].baseSha = OTHER_SHA; },
+    (ci) => { ci.workflows[0].jobs[0].headBranch = 'work1/parallel'; },
+  ]) {
+    const ci = fullCi();
+    mutate(ci);
+    const result = validateSameShaCiEvidence(ci, SHA);
+    assert.equal(result.ok, false);
+    assert.match(result.errors.join('\n'), /repository must be exactly|pull request must be exactly|head branch must be exactly|base branch must be exactly|base SHA must be exactly/);
+  }
+});
+
+test('requires direct run API and PR identity evidence in addition to the web run URL', () => {
+  const missingRunApi = fullCi();
+  missingRunApi.workflows[0].evidence.splice(1, 1);
+  let result = validateSameShaCiEvidence(missingRunApi, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /run web\/API URLs/);
+
+  const missingPr = fullCi();
+  missingPr.workflows[0].evidence.pop();
+  result = validateSameShaCiEvidence(missingPr, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /PR #192/);
 });
