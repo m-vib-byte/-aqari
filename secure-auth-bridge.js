@@ -201,6 +201,12 @@
       role: role.legacy,
       source: 'supabase'
     }));
+    // A verified unlock starts a new active interval. Otherwise a timestamp
+    // from a previous visit can make the legacy idle timer immediately invoke
+    // the cloud logout override, including from another open app tab.
+    const activatedAt = Date.now();
+    localStorage.setItem('aqari_v75_last_activity', String(activatedAt));
+    localStorage.setItem('aqari_last_activity_v119', new Date(activatedAt).toISOString());
     if(typeof window.applyRole === 'function') window.applyRole(role.legacy);
     const badge = byId('sessionBadge');
     if(badge) badge.textContent = displayName + ' • ' + role.label;

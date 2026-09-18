@@ -1027,8 +1027,8 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 39332,
-      "sha256": "c4e7161ba2c39fa0f09c2994c8886a072900386b799cbd86f1bd7022055d4a87"
+      "size": 39760,
+      "sha256": "2e46ae7c79fe36e32761f0318d2888bcd6299c084c5f03d450575b261b462d07"
     },
     {
       "path": "src/v267/api/partner-session.js",
@@ -3614,6 +3614,11 @@
       "path": "tests/v267-service-directory.test.mjs",
       "sha256": "d6b2c666aafb5e2a857c1e40aa0ebfecc95727456efddfdf38462b4ded0a485e",
       "size": 13516
+    },
+    {
+      "path": "tests/v267-session-idle-restore.test.cjs",
+      "size": 2588,
+      "sha256": "8fc9574adc3a1d2190baea632b05d7d7fa34e3bce0980a7496aa2b64533a14a3"
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
