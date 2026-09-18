@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 
 export const STAGE_C_BUNDLE_FORMAT='AQARI-V267-STAGE-C-EVIDENCE-1';
+const STORAGE_FORMAT='AQARI-V267-STORAGE-BYTE-MANIFEST-1';
 const ROLLBACK_FORMAT='AQARI-V267-ROLLBACK-REHEARSAL-1';
 const FULL_SHA_RE=/^[0-9a-f]{40}$/;
 const SHA256_RE=/^[0-9a-f]{64}$/;
@@ -47,10 +48,14 @@ function normalizedPreviewUrl(value){
   }catch{return ''}
 }
 
+export function stageCEvidenceSha256(value){
+  return createHash('sha256').update(Buffer.from(canonical(value),'utf8')).digest('hex');
+}
+
 export function stageCBundleSha256(payload={}){
   const copy={...(payload&&typeof payload==='object'&&!Array.isArray(payload)?payload:{})};
   delete copy.bundle_sha256;
-  return createHash('sha256').update(Buffer.from(canonical(copy),'utf8')).digest('hex');
+  return stageCEvidenceSha256(copy);
 }
 
 export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
@@ -89,6 +94,16 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   if(!nonNegativeInt(storage.object_count))errors.push('Stage C Storage object count must be a non-negative integer');
   if(!nonNegativeInt(storage.total_bytes))errors.push('Stage C Storage total bytes must be a non-negative integer');
   if(!SHA256_RE.test(String(storage.manifest_sha256||'')))errors.push('Stage C Storage manifest digest must be SHA-256');
+  const storageEvidenceDigest=stageCEvidenceSha256({
+    format:STORAGE_FORMAT,
+    verified:true,
+    object_count:storage.object_count,
+    total_bytes:storage.total_bytes,
+    manifest_sha256:storage.manifest_sha256,
+  });
+  if(SHA256_RE.test(String(digests.backup_storage_bytes||''))&&digests.backup_storage_bytes!==storageEvidenceDigest){
+    errors.push('Stage C backup Storage byte evidence digest does not match the embedded Storage summary');
+  }
 
   const rollback=value.rollback&&typeof value.rollback==='object'&&!Array.isArray(value.rollback)?value.rollback:{};
   if(rollback.format!==ROLLBACK_FORMAT)errors.push(`Stage C rollback format must be exactly ${ROLLBACK_FORMAT}`);
@@ -125,6 +140,10 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   }
   for(const field of ['checkpoint_records_sha256','during_records_sha256','after_records_sha256']){
     if(!SHA256_RE.test(String(rollback[field]||'')))errors.push(`Stage C rollback ${field} must be SHA-256`);
+  }
+  const rollbackEvidenceDigest=stageCEvidenceSha256(rollback);
+  if(SHA256_RE.test(String(digests.rollback_rehearsal||''))&&digests.rollback_rehearsal!==rollbackEvidenceDigest){
+    errors.push('Stage C rollback evidence digest does not match the embedded rollback report');
   }
 
   const devices=value.devices&&typeof value.devices==='object'&&!Array.isArray(value.devices)?value.devices:{};
@@ -170,6 +189,10 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
     const aggregate=normalizedEvidenceList(row.evidence);
     if(!aggregate)errors.push(`Stage C ${deviceClass} evidence references must be unique and non-empty`);
     else if(JSON.stringify(aggregate)!==JSON.stringify(flattened.sort()))errors.push(`Stage C ${deviceClass} evidence list must exactly match the per-flow evidence references`);
+  }
+  const deviceEvidenceDigest=stageCEvidenceSha256(devices);
+  if(SHA256_RE.test(String(digests.physical_devices||''))&&digests.physical_devices!==deviceEvidenceDigest){
+    errors.push('Stage C physical-device evidence digest does not match the embedded device evidence');
   }
 
   const digest=String(value.bundle_sha256||'').trim().toLowerCase();
