@@ -79,3 +79,25 @@ test('rejects empty or duplicate evidence references', () => {
   assert.equal(result.ok, false);
   assert.match(result.errors.join('\n'), /evidence is required/);
 });
+
+test('rejects reused run or job identities across different required workflows', () => {
+  const ci = fullCi();
+  ci.workflows[1].runId = ci.workflows[0].runId;
+  ci.workflows[1].evidence = [...ci.workflows[0].evidence];
+  ci.workflows[2].jobs[0].jobId = ci.workflows[0].jobs[0].jobId;
+  ci.workflows[2].jobs[0].evidence = [...ci.workflows[0].jobs[0].evidence];
+  const result = validateSameShaCiEvidence(ci, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /reuses runId/);
+  assert.match(result.errors.join('\n'), /reuses jobId/);
+});
+
+test('rejects nonempty CI evidence that does not identify the declared run and job', () => {
+  const ci = fullCi();
+  ci.workflows[0].evidence = ['https://github.com/m-vib-byte/-aqari/actions/runs/999999'];
+  ci.workflows[1].jobs[0].evidence = ['https://api.github.com/repos/m-vib-byte/-aqari/actions/jobs/999999'];
+  const result = validateSameShaCiEvidence(ci, SHA);
+  assert.equal(result.ok, false);
+  assert.match(result.errors.join('\n'), /exact GitHub Actions run URL/);
+  assert.match(result.errors.join('\n'), /exact GitHub Actions job URL/);
+});
