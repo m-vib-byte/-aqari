@@ -120,13 +120,16 @@ test('runtime fingerprint binds project URL, domain, redirect, Auth storage name
   }
 });
 
-test('rejects missing verification evidence and raw secret-like material',()=>{
+test('rejects missing verification evidence and raw secret-like material at any nested config depth',()=>{
   for(const mutate of [
     (config)=>{config.verified=false},
     (config)=>{config.evidence=[]},
     (config)=>{config.verifiedAt='bad-date'},
     (config)=>{config.serviceRoleKey='should-never-be-here'},
     (config)=>{config.token='should-never-be-here'},
+    (config)=>{config.supabaseTopology={...config.supabaseTopology,secret:'nested-secret'}},
+    (config)=>{config.audit={checks:[{password:'nested-password'}]}},
+    (config)=>{config.verification={detail:{service_role_key:'nested-service-role'}}},
   ]){
     const config=validConfig();mutate(config);
     assert.equal(validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA).ok,false);
