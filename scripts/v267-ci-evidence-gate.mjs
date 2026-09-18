@@ -21,7 +21,7 @@ function positiveInt(value) {
 
 function canonicalRepositoryEvidenceRef(value) {
   if (typeof value !== 'string' || !value || value.trim() !== value) return false;
-  if (!value.startsWith('evidence/') || value.startsWith('/') || value.includes('://') || value.includes('\\') || value.includes('?') || value.includes('#')) return false;
+  if (!value.startsWith('evidence/') || value.startsWith('/') || value.includes('://') || value.includes('\\') || value.includes('?') || value.includes('#') || value.includes('%')) return false;
   const segments = value.split('/');
   return !segments.some((segment) => !segment || segment === '.' || segment === '..');
 }
