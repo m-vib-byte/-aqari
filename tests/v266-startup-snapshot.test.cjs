@@ -51,9 +51,9 @@ test('an invalid user cannot request a snapshot',async()=>{
  const r=runtime(({body,response})=>body?response:{ok:false,status:401});
  await assert.rejects(r.api.refreshContext(),e=>e.status===401);assert.equal(r.calls.length,1);assert.equal(r.api.context.user,null);
 });
-for(const code of ['session_not_found','session_expired','refresh_token_not_found','refresh_token_already_used','bad_jwt']){
- test('a forbidden Auth '+code+' preserves its safe code and fails closed',async()=>{
-  const r=runtime(()=>({ok:false,status:403,async json(){return {code,message:'private provider details',token:'private token'}}}));
+for(const code of ['session_not_found','session_expired','refresh_token_not_found','refresh_token_already_used','bad_jwt'])for(const field of ['code','error_code']){
+ test('a forbidden Auth '+code+' in '+field+' preserves its safe code and fails closed',async()=>{
+  const r=runtime(()=>({ok:false,status:403,async json(){return {code:403,[field]:code,message:'private provider details',token:'private token'}}}));
   await assert.rejects(r.api.refreshContext(),e=>e.status===403 && e.code===code && !JSON.stringify(e).includes('private') && !e.message.includes('private'));
   assert.equal(r.calls.length,1);assert.equal(r.api.context.user,null);
  });

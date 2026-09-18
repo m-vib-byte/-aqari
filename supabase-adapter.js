@@ -63,7 +63,7 @@
           // private details; neither copy nor log the response body.
           try{
             const failure = await response.json();
-            const code = failure?.code;
+            const code = typeof failure?.code === 'string' ? failure.code : failure?.error_code;
             if(['session_not_found','session_expired','refresh_token_not_found',
               'refresh_token_already_used','bad_jwt'].includes(code)) error.code = code;
           }catch(_){}

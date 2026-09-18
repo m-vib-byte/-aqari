@@ -612,8 +612,8 @@
     },
     {
       "path": "docs/verification/pr200-sql-and-live-continuation-20260918.md",
-      "sha256": "adbcc38e9bc3b9e34892bc0e2f5a6bb2b5761ec4e45b641d8b0c743ab0e81d68",
-      "size": 6499
+      "sha256": "26ff00cf478d67dc0ecb68996469e4b411def3d39d06260f34f2c16a5d466a8b",
+      "size": 6893
     },
     {
       "path": "ENVIRONMENT_CONTRACT.json",
@@ -2842,8 +2842,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "a45b0673025f0868b17fa0561a884eb636184f7e5b230aea32460a119991e49c",
-      "size": 26568
+      "sha256": "40d0f263fbe561994bc647c1d8732e7e934836a868cefea332a0a4aa53c3325d",
+      "size": 26625
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -3117,8 +3117,8 @@
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
-      "sha256": "e42f57fcf3525a8a18e91b95ff91ebdee269c5bc459bda6488c6483d9d768999",
-      "size": 7281
+      "sha256": "490006e04a2e9fef2d761edf08868af9cc52cf856473e2d3dbd685c247bd92bd",
+      "size": 7352
     },
     {
       "path": "tests/v267-admin-receipt-download.test.cjs",

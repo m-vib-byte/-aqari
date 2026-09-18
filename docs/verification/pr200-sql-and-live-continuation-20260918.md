@@ -34,6 +34,8 @@ After the successful local-only logout/re-login evidence, the Chrome session cre
 
 The startup adapter discarded Auth error codes and turned every 403 into a generic access message. It now preserves only five recognized authentication-expiry/token codes from the failed Auth user endpoint; arbitrary provider code/text is discarded. The UI recognizes session_expired as well as session_not_found. Permission-RPC denial remains a permission denial. JSON parsing remains inside the original deadline and cannot authorize a failed response. Tests cover all allowed codes, unknown codes, malformed JSON, permission RPC and a stalled body. This corrects diagnostic classification; it does not claim to fix or explain the later server-session revocation.
 
-The complete generated-output Node suite after this repair passes **1,642 tests, zero failures/skips**. The full SQL completion result above remains valid; no SQL or production-security changes followed it.
+The complete generated-output Node suite after this repair passes **1,647 tests, zero failures/skips**. The full SQL completion result above remains valid; no SQL or production-security changes followed it.
 
 At 87745b56, Vercel Preview dpl_BtAJBNiH3HFFxT2iv2t6jbsYM76S reached READY for the exact SHA. All ten GitHub workflows still failed before execution; Runtime contracts run 35379287734/job 105711353929 has steps=[] and runner_id=0. No workflow was rerun or disabled to mask this infrastructure block.
+
+The safe-code reader covers both the modern code string and the legacy error_code field (including a numeric HTTP code alongside error_code), matching Supabase Auth JS's documented source response handling. Live reloading 9b29860d still showed the generic message; therefore the subsequent legacy-field coverage is part of the diagnostic continuation, not a certified session-revocation cure.
