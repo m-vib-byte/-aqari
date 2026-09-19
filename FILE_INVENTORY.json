@@ -1192,8 +1192,8 @@
     },
     {
       "path": "src/v267/components/service-directory.js",
-      "sha256": "9d9b84e286323dafb32cf5e474d679f0add263a253ba6d5f4c572ea6c75b671b",
-      "size": 18899
+      "sha256": "6a6e43a3dd25df74021f823df10ac5e814c00e42709970398b136975e742ddc4",
+      "size": 21079
     },
     {
       "path": "src/v267/components/service-label-translations.js",
@@ -1212,8 +1212,8 @@
     },
     {
       "path": "src/v267/components/touch-navigation.js",
-      "size": 2346,
-      "sha256": "6abaff1e8852042040ce018ab4ed2233c86715d51da28d6d66bec565aa8807b0"
+      "size": 2426,
+      "sha256": "21ce4624eea0e97e99ac4333fdeed888ba5968cb47a2c16ea3aa8a8a66dd5fdf"
     },
     {
       "path": "src/v267/components/translations.js",
@@ -4079,6 +4079,16 @@
       "path": "scripts/install-v267-owner-feedback.mjs",
       "size": 8955,
       "sha256": "0b23030085d4cb1f98c1937fb283a6de0537766b14e77a8a797c49312c507152"
+    },
+    {
+      "path": "api/owner-assistant.js",
+      "size": 9370,
+      "sha256": "6d7f973c742a4bb236a2ee76a78c3f97f3aaf797cae7db010137386f47bf0534"
+    },
+    {
+      "path": "api/owner-report-delivery.js",
+      "size": 10467,
+      "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6"
     }
   ],
   "version": "V198"
