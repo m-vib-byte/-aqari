@@ -1,0 +1,35 @@
+// Keep native click/keyboard routing and authorization as the single action path.
+export function installTouchNavigation(root, now=()=>Date.now()) {
+ let gesture=null, recent=null;
+ const listeners=[];
+ const target=event=>{
+  const button=event.target?.closest?.('button[data-exact-key],button[data-exact-route],button[data-exact-service],button[data-exact-special]');
+  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome')&&!button.disabled?button:null;
+ };
+ const on=(name,handler)=>{root.addEventListener(name,handler,true);listeners.push([name,handler]);};
+ on('pointerdown',event=>{
+  gesture=null;
+  if(event.pointerType!=='touch'||event.isPrimary===false)return;
+  const button=target(event);
+  if(button)gesture={button,id:event.pointerId,x:event.clientX,y:event.clientY,time:now()};
+ });
+ on('pointermove',event=>{
+  if(gesture&&event.pointerId===gesture.id&&Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)>10)gesture=null;
+ });
+ on('pointercancel',()=>{gesture=null;});
+ on('scroll',()=>{gesture=null;});
+ on('pointerup',event=>{
+  const tap=gesture;gesture=null;
+  if(!tap||event.pointerId!==tap.id||target(event)!==tap.button||now()-tap.time>500||Math.hypot(event.clientX-tap.x,event.clientY-tap.y)>10)return;
+  recent={button:tap.button,time:now()};
+  event.preventDefault();
+  tap.button.click();
+ });
+ // Window capture runs before existing document routers. Only consume the
+ // browser's duplicate click; programmatic and keyboard activation still work.
+ on('click',event=>{
+  if(!recent||!event.isTrusted||event.detail===0||now()-recent.time>800||target(event)!==recent.button)return;
+  recent=null;event.preventDefault();event.stopImmediatePropagation();
+ });
+ return ()=>{for(const [name,handler] of listeners)root.removeEventListener(name,handler,true);gesture=null;recent=null;};
+}
