@@ -49,3 +49,11 @@ test('live stability is installed after the successful iPhone startup blocker',(
  assert.match(installer,/v267-live-stability\.test\.mjs/);
 });
 
+
+
+test('live dashboard module downloads are bounded so the home screen cannot wait forever',()=>{
+ assert.match(runtime,/async function withDeadline\(load,timeout=8000\)/);
+ assert.match(runtime,/withDeadline\(\(\)=>Promise\.all\(\[import\('\.\/api\/session\.js'\),import\('\.\/components\/management-counters\.js'\),import\('\.\/components\/live-dashboard-data\.js'\)\]\)\)/);
+ assert.match(runtime,/withDeadline\(\(\)=>import\('\.\/api\/session\.js'\)\)/);
+ assert.match(runtime,/catch\{if\(token===dataFlight&&status\)status\.textContent=ui\('تعذر قراءة المؤشرات\. أعد المحاولة\.'\);\}/);
+});
