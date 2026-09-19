@@ -31,11 +31,15 @@ export function openContractFoundation(options={}){
  const clear=title=>d.body.replaceChildren(node('h3',title));
 
  async function load(){
-  const saved=await window.AQARI_SUPABASE.loadAppState(scope());d.session.check();
+  const [saved,loadedProperties,loadedUnits,templateContext]=await Promise.all([
+   window.AQARI_SUPABASE.loadAppState(scope()),
+   d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).order('name')),
+   d.session.request(d.session.client.from('aqari_units').select('id,property_id,unit_no').eq('workspace_id',d.session.bound.workspace).order('unit_no')),
+   rpc('aqari_rental_templates',{p_workspace_id:d.session.bound.workspace,p_action:'context',p_data:{}})
+  ]);
+  d.session.check();
   state=api.primary(saved.payload);
-  properties=await d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).order('name'));
-  units=await d.session.request(d.session.client.from('aqari_units').select('id,property_id,unit_no').eq('workspace_id',d.session.bound.workspace).order('unit_no'));
-  const templateContext=await rpc('aqari_rental_templates',{p_workspace_id:d.session.bound.workspace,p_action:'context',p_data:{}});
+  properties=loadedProperties;units=loadedUnits;
   templates=Array.isArray(templateContext?.items)?templateContext.items.filter(validTemplate):[];
  }
  async function readBinding(propertyId,unitId){
@@ -80,7 +84,7 @@ export function openContractFoundation(options={}){
    data.audit=(data.audit||[]).concat([[d.session.bound.user,'إنشاء مسودة تأسيس عقد برقم محجوز من الخادم',contractNo,now]]);
    return record;
   },(data,record)=>(data.contractPreparationDraftsV267||[]).some(row=>same(row,record)));
-  await editPreparation();
+  await editPreparation(false);
  }
 
  async function patchPreparation(patch,action='تحديث مسودة تأسيس عقد'){
@@ -147,8 +151,8 @@ export function openContractFoundation(options={}){
   const choices=node('div');choices.className='aq267-grid';for(const [kind,label]of rentalTemplateKinds)choices.append(button(translateStatic(label),()=>createPreparation(kind)));d.body.append(choices);d.status.textContent=translateStatic('لم يتم تسجيل أي حركة مالية.');
  }
 
- async function editPreparation(){
-  await load();preparation=(state.contractPreparationDraftsV267||[]).find(row=>row.id===preparation.id)||preparation;if(preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
+ async function editPreparation(reload=true){
+  if(reload)await load();preparation=(state.contractPreparationDraftsV267||[]).find(row=>row.id===preparation.id)||preparation;if(preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
   clear(translateStatic('تأسيس ')+preparation.contractNo);const cancelDraft=button(translateStatic('إلغاء'),cancelPreparation);cancelDraft.className='danger';d.body.append(button(translateStatic('رجوع'),start),cancelDraft,node('p',translateStatic('نوع العقد: ')+(translateStatic(rentalTemplateKinds.find(x=>x[0]===preparation.kind)?.[1])||preparation.kind)+translateStatic(' · الحالة: مسودة تأسيس محفوظة')));
   const profiles=state.tenantProfilesV267||[],tenantChoice=select([['',translateStatic('مستأجر جديد')],...profiles.map(p=>[p.id,(p.nameAr||p.nameEn)+' / '+(p.nameEn||'')])],preparation.tenantId||'');
   const tenantBox=node('fieldset'),tenantFields={};tenantBox.append(node('legend',translateStatic('بيانات المستأجر — من نفس شاشة العقد')));

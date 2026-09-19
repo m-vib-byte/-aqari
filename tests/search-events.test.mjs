@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installSearchEvents} from '../src/v267/components/search-events.js';
+import {installTouchNavigation} from '../src/v267/components/touch-navigation.js';
 
 function setup(){
  const listeners=new Map();let searches=0,shortcuts=0,valid=true,active=true;
@@ -38,4 +39,13 @@ test('Ctrl/Cmd+K opens search once and stops older assistant and search handlers
 test('signed-out shortcuts do not open records and all handlers are removable',()=>{
  const f=setup();f.active=false;const e={...f.event({}),ctrlKey:true,key:'k'};f.listeners.get('keydown')(e);
  assert.equal(f.shortcuts,0);assert.equal(e.stopped,undefined);f.dispose();assert.equal(f.listeners.size,0);
+});
+test('touch fallback and its delayed native click submit only once',()=>{
+ const listeners=new Map();let submissions=0;
+ const root={addEventListener(type,fn){const list=listeners.get(type)||[];list.push(fn);listeners.set(type,list);}};
+ const dispatch=(type,extra={})=>{const e={target:{closest:()=>button},pointerType:'touch',pointerId:1,isPrimary:true,clientX:0,clientY:0,isTrusted:true,detail:1,preventDefault(){},stopImmediatePropagation(){this.stopped=true;},...extra};for(const fn of listeners.get(type)||[]){fn(e);if(e.stopped)break;}};
+ const form={id:'aqExactHeroSearch',requestSubmit(){dispatch('submit',{target:form});}};
+ const button={form,type:'submit',disabled:false,closest:selector=>selector.includes('#aqOwnerExactHome'),click(){dispatch('click',{isTrusted:false});}};
+ installTouchNavigation(root,()=>0);installSearchEvents(root,{submit(){submissions++;},shortcut(){},ready:()=>true});
+ dispatch('pointerdown');dispatch('pointerup');dispatch('click');assert.equal(submissions,1);
 });
