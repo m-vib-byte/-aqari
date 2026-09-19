@@ -39,22 +39,24 @@
   color:var(--aq-sem-danger)!important;
   box-shadow:none!important;
  }
- body.aq-v267 .aq267-close {
+ body.aq-v267 .aq267-dialog button.aq267-close {
   position:sticky;
   inset-block-start:0;
   inset-inline-end:0;
-  display:block;
   z-index:2;
   margin:0!important;
+  margin-inline-start:auto!important;
+  margin-block-end:-44px!important;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:6px;
-  width:auto!important;
+  width:max-content!important;
   min-width:88px!important;
   padding-inline:10px!important;
   font-size:14px!important;
   font-weight:700;
+  white-space:nowrap;
   -webkit-user-select:none;
   user-select:none;
   -webkit-touch-callout:none;
