@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join,delimiter} from 'node:path';
 import {productionPatch,domainTrialPatch} from './prepare-v267-production.mjs';
 
-execFileSync(process.execPath,['--test','tests/v267-contract-view.test.mjs','tests/v267-more-navigation.test.mjs','tests/exact-navigation-events.test.mjs','tests/search-events.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-contract-view.test.mjs','tests/v267-more-navigation.test.mjs','tests/exact-navigation-events.test.mjs','tests/search-events.test.mjs','tests/assistant-request.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs'],{stdio:'inherit'});
 if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
   if(trial?.enabled===true){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
@@ -50,5 +50,6 @@ execFileSync(process.execPath,['--test','tests/v267-unit-handover-bundle.test.mj
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
 try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
 await import('./check.mjs');
+
 
 

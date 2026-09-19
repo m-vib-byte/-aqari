@@ -20,3 +20,4 @@ function interceptDirect(event){const trigger=event.target?.closest?.('[data-uni
 window.addEventListener('click',interceptDirect,true);
 window.AQARI_PREMIUM_NAVIGATION=Object.freeze({version:'V267-premium-navigation-2',openDirect,keys:[...DIRECT.keys()]});
 
+

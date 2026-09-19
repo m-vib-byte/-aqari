@@ -120,3 +120,4 @@ export function openRentalContracts(initial={}){
  d.run(initial.renewalFrom!==undefined?async()=>{await load();await form(null,await loadLeaseRenewal(d,String(initial.renewalFrom)));}:initial.id!==undefined?()=>show(initial.id):initial.create?async()=>{await load();await form(null);}:home);
 }
 
+

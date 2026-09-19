@@ -1,3 +1,4 @@
+import {runAssistantTask} from './components/assistant-request.js';
 import {installSearchEvents} from './components/search-events.js';
 import {installExactNavigationEvents} from './components/exact-navigation-events.js';
 async function runNavigationAction({scope:scopeCheck,action,report}){
@@ -174,13 +175,48 @@ function handleExactClick(event){
  return runNavigationAction({scope,action:()=>dispatchExactClick(event),report:setStatus});
 }
 
-async function openAssistant(question=''){const s=scope();if(!s)return false;let dialog=document.getElementById('aqExactAssistant');if(!dialog){dialog=document.createElement('dialog');dialog.id='aqExactAssistant';dialog.className='aq-exact-assistant';dialog.innerHTML=`<form method="dialog" class="aq-exact-modal-head"><div>${svg('spark')}<span><strong>${t('المساعد الذكي التوليدي')}</strong><small>${t('مرتبط بصلاحيات حسابك، والعمليات الحساسة تبقى داخل صفحاتها الأصلية.')}</small></span></div><button value="close">×</button></form><div class="aq-exact-chat"><div id="aqExactChatLog" class="aq-exact-chat-log"><p>${t('اكتب سؤالك أو اطلب شرح قسم. المساعد للقراءة والإرشاد ولا ينفذ حفظاً أو اعتماداً نيابةً عنك.')}</p></div><form id="aqExactChatForm"><input id="aqExactChatInput" maxlength="1200" placeholder="${escapeText(t('مثال: ما الذي يحتاج متابعتي في التحصيل؟'))}"><button>${t('إرسال')}</button></form></div>`;document.body.append(dialog);dialog.querySelector('form#aqExactChatForm').onsubmit=sendAssistant;}dialog.lang=getLocale();dialog.dir=direction();dialog.showModal?.();if(typeof question==='string'&&question.trim()){dialog.querySelector('#aqExactChatInput').value=question.trim().slice(0,1200);dialog.querySelector('#aqExactChatForm').requestSubmit();}setTimeout(()=>dialog.querySelector('#aqExactChatInput')?.focus(),0);return true;}
-async function sendAssistant(event){event.preventDefault();const input=document.getElementById('aqExactChatInput'),log=document.getElementById('aqExactChatLog'),question=input.value.trim(),s=scope();if(!question||!s)return;const mine=document.createElement('p');mine.className='me';mine.dataset.aqRecord='';mine.textContent=question;log.append(mine);input.value='';const pending=document.createElement('p');pending.textContent=t('جارٍ إعداد الرد…');log.append(pending);try{const auth=await window.AQARI_SUPABASE?.getSession?.();if(!auth?.access_token)throw uiError(t('انتهت الجلسة.'));const summary=[...document.querySelectorAll('#aqLiveStability [data-live-value]')].map(x=>`${x.closest('article')?.querySelector('span')?.textContent||''}: ${x.textContent}`).filter(Boolean);const response=await fetch('/api/owner-assistant',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.access_token},body:JSON.stringify({workspace_id:s.workspace,expected_role:s.role,question,current_route:document.body.dataset.aqExactRoute||'home',section_context:[],visible_summary:summary}),cache:'no-store'});const data=await response.json();if(!response.ok)throw uiError(t(['AI_PROVIDER_NOT_CONFIGURED','OPENAI_NOT_CONFIGURED'].includes(data?.error)?'مزود الذكاء التوليدي غير مهيأ على الخادم حتى الآن.':data?.error==='ASSISTANT_DISABLED'?'المساعد متوقف من إعدادات المدير العام.':'تعذر الحصول على رد آمن من المساعد.'));pending.dataset.aqRecord='';pending.textContent=data.answer;}catch(error){pending.textContent=isUiError(error)?error.message:t('تعذر الحصول على رد آمن من المساعد.');pending.classList.add('bad');}}
+async function openAssistant(question=''){checkAssistantBoundary();const s=scope();if(!s)return false;let dialog=document.getElementById('aqExactAssistant');if(!dialog){dialog=document.createElement('dialog');dialog.id='aqExactAssistant';dialog.className='aq-exact-assistant';dialog.innerHTML=`<form method="dialog" class="aq-exact-modal-head"><div>${svg('spark')}<span><strong>${t('المساعد الذكي التوليدي')}</strong><small>${t('مرتبط بصلاحيات حسابك، والعمليات الحساسة تبقى داخل صفحاتها الأصلية.')}</small></span></div><button value="close">×</button></form><div class="aq-exact-chat"><div id="aqExactChatLog" class="aq-exact-chat-log"><p>${t('اكتب سؤالك أو اطلب شرح قسم. المساعد للقراءة والإرشاد ولا ينفذ حفظاً أو اعتماداً نيابةً عنك.')}</p></div><form id="aqExactChatForm"><input id="aqExactChatInput" maxlength="1200" placeholder="${escapeText(t('مثال: ما الذي يحتاج متابعتي في التحصيل؟'))}"><button>${t('إرسال')}</button></form></div>`;dialog.dataset.scope=assistantIdentity(s);dialog.addEventListener('close',cancelAssistant);dialog.addEventListener('cancel',cancelAssistant);document.body.append(dialog);dialog.querySelector('form#aqExactChatForm').onsubmit=sendAssistant;}dialog.lang=getLocale();dialog.dir=direction();dialog.showModal?.();if(typeof question==='string'&&question.trim()){dialog.querySelector('#aqExactChatInput').value=question.trim().slice(0,1200);dialog.querySelector('#aqExactChatForm').requestSubmit();}setTimeout(()=>dialog.querySelector('#aqExactChatInput')?.focus(),0);return true;}
+let assistantRequest=null;
+const assistantIdentity=s=>s?JSON.stringify([s.user,s.workspace,s.role]):'';
+function cancelAssistant(){assistantRequest?.controller.abort();}
+function checkAssistantBoundary(){
+ const dialog=document.getElementById('aqExactAssistant');
+ if(dialog&&dialog.dataset.scope!==assistantIdentity(scope())){cancelAssistant();dialog.close();dialog.remove();}
+}
+async function sendAssistant(event){
+ event.preventDefault();
+ const input=document.getElementById('aqExactChatInput'),log=document.getElementById('aqExactChatLog'),dialog=document.getElementById('aqExactAssistant'),question=input?.value.trim(),s=scope();
+ if(!question||!s||assistantRequest||!dialog?.open)return;
+ const request={controller:new AbortController(),identity:assistantIdentity(s)};
+ assistantRequest=request;
+ const button=document.getElementById('aqExactChatForm')?.querySelector('button');
+ if(button)button.disabled=true;
+ const mine=document.createElement('p');mine.className='me';mine.dataset.aqRecord='';mine.textContent=question;log.append(mine);input.value='';
+ const pending=document.createElement('p');pending.textContent=t('جارٍ إعداد الرد…');log.append(pending);
+ const check=()=>{if(request.controller.signal.aborted||assistantIdentity(scope())!==request.identity||!dialog.open)throw Error('ASSISTANT_CANCELLED');};
+ try{
+  const data=await runAssistantTask(async signal=>{
+   const auth=await window.AQARI_SUPABASE?.getSession?.();check();
+   if(!auth?.access_token||auth.user?.id!==s.user)throw uiError(t('انتهت الجلسة.'));
+   const summary=[...document.querySelectorAll('#aqLiveStability [data-live-value]')].map(x=>`${x.closest('article')?.querySelector('span')?.textContent||''}: ${x.textContent}`).filter(Boolean);
+   const response=await fetch('/api/owner-assistant',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.access_token},body:JSON.stringify({workspace_id:s.workspace,expected_role:s.role,question,current_route:document.body.dataset.aqExactRoute||'home',section_context:[],visible_summary:summary}),cache:'no-store',signal});
+   check();const data=await response.json();check();
+   if(!response.ok)throw uiError(t(['AI_PROVIDER_NOT_CONFIGURED','OPENAI_NOT_CONFIGURED'].includes(data?.error)?'مزود الذكاء التوليدي غير مهيأ على الخادم حتى الآن.':data?.error==='ASSISTANT_DISABLED'?'المساعد متوقف من إعدادات المدير العام.':'تعذر الحصول على رد آمن من المساعد.'));
+   if(typeof data?.answer!=='string'||!data.answer.trim())throw Error('ASSISTANT_EMPTY_RESPONSE');
+   return data;
+  },request.controller);
+  check();pending.dataset.aqRecord='';pending.textContent=data.answer;
+ }catch(error){
+  if(pending.isConnected&&assistantIdentity(scope())===request.identity){pending.textContent=isUiError(error)?error.message:t('تعذر الحصول على رد آمن من المساعد.');pending.classList.add('bad');}
+ }finally{
+  if(assistantRequest===request){assistantRequest=null;if(button?.isConnected)button.disabled=false;}
+ }
+}
 function interceptLegacy(event){const button=event.target.closest?.('[data-v199-go]');if(!button||button.closest('#'+ROOT_ID)||button.closest('#aqOwnerExactHome'))return;const route=button.dataset.v199Go;if(!route||!['home','properties','tenants','collectionProPage','maintenanceProPage','reports','documentsHub','settingsCenterPage'].includes(route))return;event.preventDefault();event.stopImmediatePropagation();navigateRoute(route);}
 function ensureCss(){if(document.getElementById('aqari-owner-feedback-css'))return;const link=document.createElement('link');link.id='aqari-owner-feedback-css';link.rel='stylesheet';link.href='/src/v267/styles/owner-feedback-reference.css?release='+RELEASE;document.head.append(link);}
 function refresh(){if(!scope())return;mountShell();if(document.body.classList.contains('aq-live-stable'))return;refreshMetrics();syncActive();}
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
-function boot(){installTouchNavigation(window);installSearchEvents(window,{ready:scope,submit:event=>runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus}),shortcut:()=>runNavigationAction({scope,action:()=>openRecordSearch(),report:setStatus})});installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
+function boot(){installTouchNavigation(window);installSearchEvents(window,{ready:scope,submit:event=>runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus}),shortcut:()=>runNavigationAction({scope,action:()=>openRecordSearch(),report:setStatus})});installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{checkAssistantBoundary();if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 
 

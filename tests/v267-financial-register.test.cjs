@@ -53,7 +53,7 @@ function fixture(initial=[],options={}){
   return clone(row);
  };
  const el=node('dialog'),close=node('button','إغلاق');el.append(close);
- const d={el,body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},cleanups:[],onDispose(fn){this.cleanups.push(fn);},run(work){d.lastError=null;d.pending=Promise.resolve().then(work).catch(error=>{d.lastError=error;d.status.textContent=error.message;});return d.pending;}};el.append(d.body);
+ const d={el,body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},cleanups:[],onDispose(fn){this.cleanups.push(fn);},run(work){d.lastError=null;d.pending=Promise.resolve().then(work).catch(error=>{d.lastError=error;d.status.textContent=error.message;});return d.pending;}};el.append(d.body);close.onclick=()=>{d.closed=true;};
  const ctx={...localeBindings,node,field,createDialog:()=>d,crypto:{randomUUID:()=> 'expense-new-'+(++sequence)},window:{confirm:message=>{confirmations.push(message);return state.confirm;}},console};vm.createContext(ctx);vm.runInContext(source+'\nopenFinancialRegister();',ctx);
  const button=label=>descendants(d.body).find(element=>element.tag==='button'&&element.textContent===label);
  const control=label=>descendants(d.body).find(element=>element.label===label)?.children[0];
@@ -121,7 +121,7 @@ test('past-month close requires explicit reason and confirmation then verifies s
 });
 test('local close and Escape guard dirty input without intercepting forced disposal',async()=>{
  const f=fixture();await f.d.pending;f.newDraft();f.state.confirm=false;
- for(const name of ['click','cancel']){let prevented=false,stopped=false;for(const listener of f.d.el.listeners[name])listener({target:f.close,preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});assert.equal(prevented,true);assert.equal(stopped,true);}
+ for(const name of ['click','cancel']){let prevented=false,stopped=false;for(const listener of name==='click'?[f.close.onclick]:f.d.el.listeners[name])listener({target:f.close,preventDefault(){prevented=true;},stopImmediatePropagation(){stopped=true;}});assert.equal(prevented,true);assert.equal(stopped,true);}
  const count=f.confirmations.length;for(const cleanup of f.d.cleanups)cleanup();assert.equal(f.confirmations.length,count);
 });
 
@@ -230,4 +230,20 @@ test('refresh clamps a shortened result page and denied reads cannot revive filt
  const f=fixture(Array.from({length:21},(_,i)=>expense({id:'row-'+i})));await f.d.pending;f.button('الصفحة التالية').onclick();f.records.splice(1);await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,1);assert.equal(f.button('الصفحة التالية').disabled,true);assert.match(f.d.body.textContent,/الصفحة 1 من 1/);
  f.control('البحث في مصروفات الفترة').value='المستفيد';f.control('البحث في مصروفات الفترة').oninput();const oldNext=f.button('الصفحة التالية'),oldReset=f.button('مسح البحث والتصفية');f.state.listError=Object.assign(Error('ACCESS_DENIED'),{status:403});await f.button('تحديث السجل والتحقق من الحفظ').onclick();oldNext.onclick();oldReset.onclick();f.control('البحث في مصروفات الفترة').oninput();
  assert.equal(f.control('البحث في مصروفات الفترة').value,'');assert.equal(f.control('تصفية المصروفات حسب العقار').children.length,0);assert.equal(f.descendants(f.d.body).filter(x=>x.tag==='article').length,0);assert.doesNotMatch(f.d.body.textContent,/المستفيد الأصلي|نتائج التصفية:/);
+});
+
+ test('window capture close preserves dirty financial drafts until discard is confirmed',async()=>{
+ const {installTouchNavigation}=await import('../src/v267/components/touch-navigation.js');
+ const f=fixture();await f.d.pending;f.newDraft();f.state.confirm=false;
+ const listeners={};installTouchNavigation({addEventListener(name,handler){listeners[name]=handler;}});
+ f.close.closest=()=>({});f.close.type='button';
+ const click=()=>listeners.click({target:{closest:()=>f.close},preventDefault(){},stopImmediatePropagation(){}});
+ click();assert.equal(f.d.closed,undefined);assert.equal(f.confirmations.length,1);
+ assert.equal(f.control('المستفيد').value,'مقاول <محفوظ>');
+ f.state.confirm=true;click();assert.equal(f.d.closed,true);assert.equal(f.confirmations.length,2);
+});
+
+test('clean financial register closes without a discard prompt',async()=>{
+ const f=fixture();await f.d.pending;f.close.onclick();
+ assert.equal(f.d.closed,true);assert.equal(f.confirmations.length,0);
 });
