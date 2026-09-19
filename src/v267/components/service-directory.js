@@ -33,7 +33,10 @@ export const serviceSearch=value=>String(value||'').normalize('NFKC').toLocaleLo
 function fullPreview(){
  try{
   const current=globalThis.location;if(!current)return false;
-  const hostname=String(current.hostname||'');return hostname==='myaqari.com'||hostname.endsWith('.vercel.app');
+  const hostname=String(current.hostname||'');
+  // The owner-facing domain must never advertise unavailable controls as if
+  // they were actionable. Full service review belongs only to Vercel previews.
+  return hostname.endsWith('.vercel.app')&&hostname!=='aqari-lovat.vercel.app'&&hostname!=='aqari-m-vib-5421.vercel.app';
  }catch{return false;}
 }
 
