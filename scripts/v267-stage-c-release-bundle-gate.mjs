@@ -208,7 +208,7 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   if(!PROJECT_REF_RE.test(rollbackProject))errors.push('Stage C rollback database project reference is invalid');
   else if(source&&rollbackProject!==source)errors.push('Stage C rollback must use the exact source database project');
   if(rollback.database_rollback_performed!==false)errors.push('Stage C rollback rehearsal must explicitly avoid database rollback');
-  if(!nonNegativeInt(rollback.rehearsal_window_seconds)||rollback.rehearsal_window_seconds>3600)errors.push('Stage C rollback rehearsal_window_seconds must be an integer between 0 and 3600');
+  if(!positiveInt(rollback.rehearsal_window_seconds)||rollback.rehearsal_window_seconds>3600)errors.push('Stage C rollback rehearsal_window_seconds must be an integer between 1 and 3600');
   if(!positiveInt(rollback.checkpoint_record_count))errors.push('Stage C rollback checkpoint_record_count must be a positive integer proving pre-existing transactions');
   if(!positiveInt(rollback.new_record_count))errors.push('Stage C rollback new_record_count must be a positive integer proving transactions created during rehearsal');
   if(!positiveInt(rollback.after_record_count))errors.push('Stage C rollback after_record_count must be a positive integer');
