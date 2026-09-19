@@ -45,14 +45,27 @@
   inset-inline-end:16px;
   z-index:2;
   margin:0!important;
-  font-size:0!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:auto!important;
+  min-width:88px!important;
+  padding-inline:10px!important;
+  font-size:14px!important;
+  font-weight:700;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  touch-action:manipulation;
  }
  body.aq-v267 .aq267-close::before {
   content:'×';
   display:grid;
   place-items:center;
-  width:100%;
-  height:100%;
+  pointer-events:none;
+  -webkit-user-select:none;
+  user-select:none;
   font:600 28px/1 system-ui,-apple-system,sans-serif;
   color:var(--aq-sem-danger);
  }
@@ -65,6 +78,8 @@
   outline:3px solid #d85f57!important;
   outline-offset:3px!important;
  }
+
+ body.aq-v267 .aq267-dialog .aq267-dialog-title {margin-inline-end:96px!important}
 
  /* Shared semantic states: restrained tints, one meaning per colour. */
  body.aq-v267 :is(.success,[data-state='success'],[data-tone='success']) {--aq-state:var(--aq-sem-success);--aq-state-soft:var(--aq-sem-success-soft)}

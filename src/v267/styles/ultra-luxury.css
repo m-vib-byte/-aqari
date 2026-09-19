@@ -220,6 +220,10 @@
   body.aq-v267 .aq267-dialog-body {
     color:var(--aq-int-ink)!important;
   }
+  /* Headings can be direct children or nested in forms, not just sections. */
+  body.aq-v267 .aq267-dialog-body :is(h2,h3,h4,h5,h6) {
+    color:#4c372a!important;
+  }
   body.aq-v267 .aq267-dialog-body>section,
   body.aq-v267 .aq267-property-master-section {
     margin:0!important;
