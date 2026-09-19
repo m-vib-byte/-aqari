@@ -1362,8 +1362,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "sha256": "4fc681cccbf42dac4abd193bf4d0762c380e5186d0e1f835767e9abcda0f6599",
-      "size": 28325
+      "sha256": "cfc6805beda052a5e46a5a177a3fb610f60e8771dfe3118a12ce12c00f0525dd",
+      "size": 28432
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -3367,8 +3367,8 @@
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
-      "sha256": "d210dcec658a7a910f442b0979b73d58f2aca3e3830f63c0df07370863fd5583",
-      "size": 33386
+      "sha256": "c276471453c37ec863be415be13fd6aaa9b127bd24078402fccb6cd0ceebe598",
+      "size": 33755
     },
     {
       "path": "tests/v267-hero-record-search.test.mjs",
@@ -4124,6 +4124,16 @@
       "path": "tests/operational-report-request.test.mjs",
       "size": 3981,
       "sha256": "846bf6f50887225263ab4be2d1b44cf5691c984af53b6710873e60438d75bf47"
+    },
+    {
+      "path": "src/v267/pages/unit-entry.js",
+      "size": 1611,
+      "sha256": "332969b71c8a2371235a367434843bd36fab354e1ab277fd2dd05e4b167a45d2"
+    },
+    {
+      "path": "tests/v267-unit-create-validation.test.mjs",
+      "size": 3929,
+      "sha256": "5fe258aefc426dd481a844646107aa0491672d2139b9e9ef71855c137d1ee876"
     }
   ],
   "version": "V198"
