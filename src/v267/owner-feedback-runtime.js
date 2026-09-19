@@ -1,5 +1,4 @@
 import {installExactNavigationEvents} from './components/exact-navigation-events.js';
-import {guardPageImport} from './components/navigation-import.js';
 async function runNavigationAction({scope:scopeCheck,action,report}){
  if(!scopeCheck()){report('تعذر فتح الخدمة.',true);return false;}
  report('');
@@ -60,7 +59,7 @@ function setStatus(text,bad=false){
 function exactRouteReady(route){const page=routePage(route);if(!visible(page))return false;if(PRIMARY.has(route)&&window.AQARI_V205)return document.body.getAttribute('data-v205-route')===route;return true;}
 function decoratePage(route){const page=routePage(route);if(!page||route==='home')return;let head=page.querySelector(':scope > .aq-exact-section-head');if(!head){head=document.createElement('header');head.className='aq-exact-section-head';page.prepend(head);}head.innerHTML=`<div><span>AQARI ${RELEASE}</span><h1>${escapeText(t(sectionLabel(route)))}</h1><p>${t('صفحة مستقلة ضمن صلاحيات الحساب الحالية.')}</p></div><button type="button" data-exact-route="home">${t('العودة للرئيسية')}</button>`;head.querySelector('button').onclick=()=>navigateRoute('home');}
 async function navigateRoute(route){
- if(!scope())return false;const token=++routeFlight,bound=JSON.stringify(scope()),current=()=>token===routeFlight&&bound===JSON.stringify(scope());setStatus('');
+ if(!scope())return false;const token=++routeFlight;const bound=JSON.stringify(scope());const current=()=>token===routeFlight&&bound===JSON.stringify(scope());setStatus('');
  window.dispatchEvent(new CustomEvent('aqari:navigation-start'));
  const v205=window.AQARI_V205;try{if(PRIMARY.has(route)&&typeof v205?.navigate==='function')v205.navigate(route);else if(typeof window.go==='function')window.go(route);}catch{}
  await waitPaint();if(!current())return false;
@@ -70,14 +69,6 @@ async function navigateRoute(route){
  document.body.dataset.aqExactRoute=route;decoratePage(route);syncActive();const page=routePage(route);page?.scrollIntoView?.({block:'start',behavior:'auto'});window.dispatchEvent(new CustomEvent('aqari:owner-final-route',{detail:{route}}));return true;
 }
 function serviceButton(def){if(def.id){const e=document.getElementById(def.id);if(visible(e))return e;}if(def.service){const e=[...document.querySelectorAll(`[data-aq267-label="${CSS?.escape?.(def.service)||def.service}"]`)].find(visible);if(e)return e;}return null;}
-async function waitForRuntimeMount(check,timeout=1800){
- const deadline=Date.now()+timeout;
- while(scope()&&Date.now()<deadline){
-  try{const value=check();if(value)return value;}catch{}
-  await new Promise(resolve=>setTimeout(resolve,50));
- }
- try{return check()||null;}catch{return null;}
-}
 async function waitForServiceButton(def,timeout=1800){
  const immediate=serviceButton(def);if(immediate)return immediate;
  return new Promise(resolve=>{
@@ -90,7 +81,7 @@ async function waitForServiceButton(def,timeout=1800){
 }
 async function openPropertyAction(name=null){
  if(!scope())return false;
- const api=window.AQARI_PROPERTY_EXPERIENCE||await waitForRuntimeMount(()=>window.AQARI_PROPERTY_EXPERIENCE);
+ const api=window.AQARI_PROPERTY_EXPERIENCE;
  try{
   if(name===null){if(!api?.canWrite?.()||typeof api.openOnboarding!=='function')throw Error('PROPERTY_ACTION_UNAVAILABLE');return (await api.openOnboarding())!==false;}
   if(typeof name!=='string'||!name.trim()||typeof api?.openCompleteFileByName!=='function')throw Error('PROPERTY_ACTION_UNAVAILABLE');
@@ -99,11 +90,11 @@ async function openPropertyAction(name=null){
 }
 
 async function openMaintenanceAction(){
- if(!scope())return false;const m=await guardPageImport(()=>import('./pages/maintenance-request-create.js'));await m.openMaintenanceRequest();return true;
+ if(!scope())return false;const m=await import('./pages/maintenance-request-create.js');await m.openMaintenanceRequest();return true;
 }
 async function openUnitAction(){
  if(!scope())return false;
- const module=await guardPageImport(()=>import('./pages/unit-entry.js'));
+ const module=await import('./pages/unit-entry.js');
  if(!scope())return false;
  return module.openUnitEntry();
 }
@@ -111,15 +102,7 @@ async function openTenantAction(){
  try{return await openQuickTenantEntry({scope,navigate:navigateRoute,ready:exactRouteReady,page:routePage,visible});}
  catch{setStatus(t('تعذر فتح الخدمة.'),true);return false;}
 }
-async function openServicesDirectory(){
- if(!scope())return false;
- const dispatch=()=>{const event=new CustomEvent('aqari:open-services',{cancelable:true});document.dispatchEvent(event);return event.defaultPrevented;};
- if(dispatch())return true;
- await waitForRuntimeMount(()=>document.getElementById('aq267-workspace-tools'));
- if(!scope())return false;
- const opened=dispatch();if(!opened)setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return opened;
-}
-async function openDefinition(def){if(!scope())return false;if(def.special==='services')return openServicesDirectory();if(def.special==='tasks')return guardPageImport(()=>import('./pages/owner-task-center.js?release='+RELEASE)).then(m=>m.openOwnerTaskCenter());if(def.special==='assistant')return openAssistant();if(def.special==='receipts')return openRecordSearch();if(def.special==='property_create')return openPropertyAction();if(def.special==='tenant_create')return openTenantAction();if(def.special==='maintenance_create')return openMaintenanceAction();if(def.special==='experience')return guardPageImport(()=>import('./pages/owner-experience-settings.js?release='+RELEASE)).then(m=>m.openOwnerExperienceSettings());if(def.href){window.location.assign(def.href);return true;}if(def.route)return navigateRoute(def.route);const button=serviceButton(def)||await waitForServiceButton(def);if(button){button.click();return true;}if(def.fallback)return navigateRoute(def.fallback);setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return false;}
+async function openDefinition(def){if(!scope())return false;if(def.special==='services'){const event=new CustomEvent('aqari:open-services',{cancelable:true});document.dispatchEvent(event);if(!event.defaultPrevented)setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return event.defaultPrevented;}if(def.special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());if(def.special==='assistant')return openAssistant();if(def.special==='receipts')return openRecordSearch();if(def.special==='property_create')return openPropertyAction();if(def.special==='tenant_create')return openTenantAction();if(def.special==='maintenance_create')return openMaintenanceAction();if(def.special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());if(def.href){window.location.assign(def.href);return true;}if(def.route)return navigateRoute(def.route);const button=serviceButton(def)||await waitForServiceButton(def);if(button){button.click();return true;}if(def.fallback)return navigateRoute(def.fallback);setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return false;}
 function syncActive(){const route=document.body.dataset.aqExactRoute||document.body.getAttribute('data-v205-route')||'home';document.querySelectorAll('[data-exact-key]').forEach(button=>{const def=ROUTES.find(x=>x.key===button.dataset.exactKey);button.classList.toggle('active',Boolean(def?.route&&def.route===route));});}
 const escapeText=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function userName(){return String(scope()?.name||t('المستخدم')).split('•')[0].trim();}
@@ -146,8 +129,7 @@ async function openRecordSearch(question=''){
  // Open after the originating click has passed the legacy outside-click closer.
  await new Promise(resolve=>setTimeout(resolve,0));
  if(!scope())return false;
- const api=typeof window.AQARI_V209?.open==='function'?window.AQARI_V209:await waitForRuntimeMount(()=>typeof window.AQARI_V209?.open==='function'?window.AQARI_V209:null);
- if(typeof api?.open==='function'&&await api.open(question)!==false)return true;
+ if(typeof window.AQARI_V209?.open==='function'&&await window.AQARI_V209.open(question)!==false)return true;
  setStatus('تعذر فتح الخدمة.',true);return false;
 }
 function heroMarkup(){return `<section class="aq-exact-hero"><div class="aq-exact-hero-copy"><span>${t('مرحباً مجدداً')}</span><h1 data-aq-record>${escapeText(userName())}</h1><p>${t('إدارة ذكية .. عوائد أكثر .. لمستقبل أفضل')}</p></div>${heroSearchMarkup()}<img class="aq-exact-hero-photo" src="/src/v267/assets/dashboard-hero.png" alt="" width="2163" height="727" fetchpriority="high"><div class="aq-exact-hero-promise"><strong>${t('العقار، أكثر من إدارة')}<br>${t('إن استثمارك في مستقبل أفضل')}</strong><p>${t('ممتلكاتك .. قيمة تدوم')}</p><div><button type="button" data-exact-route="properties">${svg('building')}<small>${t('العقارات')}</small></button><button type="button" data-exact-service="rental_contracts">${svg('file')}<small>${t('إنشاء عقد')}</small></button><button type="button" data-exact-special="tenant_create">${svg('user')}<small>${t('إضافة مستأجر')}</small></button><button type="button" data-exact-route="reports">${svg('chart')}<small>${t('التقارير')}</small></button></div></div></section>`;}
@@ -182,6 +164,7 @@ function refresh(){if(!scope())return;mountShell();if(document.body.classList.co
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
 function boot(){window.addEventListener('submit',event=>{if(event.target?.id!=='aqExactHeroSearch')return;event.preventDefault();event.stopImmediatePropagation();runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus});},true);installTouchNavigation(window);installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
 
 
 
