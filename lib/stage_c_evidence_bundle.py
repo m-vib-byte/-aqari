@@ -361,6 +361,7 @@ def create_stage_c_evidence_bundle(
         "source_project_ref": backup["project_ref"],
         "restore_project_ref": restore["restore_project_ref"],
         "preview": preview,
+        "backup": backup,
         "evidence_sha256": {
             "backup_set": backup_set_sha256(backup),
             "backup_storage_bytes": _digest(backup_storage),
