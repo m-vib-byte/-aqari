@@ -17,27 +17,32 @@ function bundle(overrides={}){
       counts_by_kind:{payment:9,receipt:6},
       checkpoint_records_sha256:DIGEST_A,
       during_records_sha256:DIGEST_B,
-      after_records_sha256:DIGEST_B,
+      after_records_sha256:DIGEST_C,
       ...overrides,
     },
   };
 }
 
-test('accepts a rollback rehearsal only when the pre-rollback and post-rollback canonical transaction sets are identical',()=>{
+test('accepts distinct checkpoint, new-subset and final-union digests with reconciled counts',()=>{
   const result=validateStageCRollbackContinuity(bundle());
   assert.equal(result.ok,true,JSON.stringify(result.errors));
 });
 
-test('rejects a rollback rehearsal that loses or mutates current/new transactions after application rollback',()=>{
-  const result=validateStageCRollbackContinuity(bundle({after_records_sha256:DIGEST_C}));
-  assert.equal(result.ok,false);
-  assert.match(result.errors.join('\n'),/during and after digests must match exactly/);
+test('rejects a final digest that aliases either subset digest',()=>{
+  for(const [after_records_sha256,pattern] of [
+    [DIGEST_A,/checkpoint subset digest/],
+    [DIGEST_B,/during-window new-transaction subset digest/],
+  ]){
+    const result=validateStageCRollbackContinuity(bundle({after_records_sha256}));
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),pattern);
+  }
 });
 
-test('rejects a rehearsal that claims new transactions but the canonical set never changed',()=>{
-  const result=validateStageCRollbackContinuity(bundle({during_records_sha256:DIGEST_A,after_records_sha256:DIGEST_A}));
+test('rejects a rehearsal that claims new transactions but checkpoint and new subset digests are identical',()=>{
+  const result=validateStageCRollbackContinuity(bundle({during_records_sha256:DIGEST_A}));
   assert.equal(result.ok,false);
-  assert.match(result.errors.join('\n'),/newly created transactions changed/);
+  assert.match(result.errors.join('\n'),/distinct newly-created transaction subset/);
 });
 
 test('requires proof that at least one new transaction was created with safe integer record counts',()=>{
