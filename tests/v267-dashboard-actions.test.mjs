@@ -13,13 +13,13 @@ test('each dashboard metric is a keyboard-accessible button with its correspondi
   assert.ok(html.includes(`data-exact-${kind}="${target}"`),key);assert.ok(html.includes(`data-live-value="${key}"`),key);
  }
 });
-test('unit addition first selects a property and does not enter the inspection screen',async()=>{
+test('unit addition opens the property chooser without entering the inspection screen',async()=>{
  assert.ok(live.includes("refAction('إضافة وحدة','special','unit_create','grid')"));
  const source=read('src/v267/owner-feedback-runtime.js');
- const code=source.slice(source.indexOf('async function openUnitAction(){'),source.indexOf('async function openTenantAction(){'));
+ const code=source.slice(source.indexOf('async function openUnitAction(){'),source.indexOf('async function openTenantAction(){')).replace("import('./pages/unit-entry.js')",'loadEntry()');
  for(const active of [true,false]){
-  const calls=[],messages=[],box={scope:()=>active,navigateRoute:async route=>{calls.push(route);return true;},t:x=>x,setStatus:x=>messages.push(x)};
+  const calls=[],messages=[],box={scope:()=>active,loadEntry:async()=>({openUnitEntry:()=>{calls.push('chooser');return true;}}),t:x=>x,setStatus:x=>messages.push(x)};
   vm.createContext(box);vm.runInContext(code,box);assert.equal(await box.openUnitAction(),active);
-  assert.deepEqual(calls,active?['properties']:[]);assert.equal(messages.length,active?1:0);
+  assert.deepEqual(calls,active?['chooser']:[]);assert.equal(messages.length,0);
  }
 });

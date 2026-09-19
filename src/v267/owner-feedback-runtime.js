@@ -82,9 +82,9 @@ async function openMaintenanceAction(){
 }
 async function openUnitAction(){
  if(!scope())return false;
- const opened=await navigateRoute('properties');
- if(opened)setStatus(t('اختر العقار ثم افتح ملفه لإضافة وحدة.'));
- return opened;
+ const module=await import('./pages/unit-entry.js');
+ if(!scope())return false;
+ return module.openUnitEntry();
 }
 async function openTenantAction(){
  try{return await openQuickTenantEntry({scope,navigate:navigateRoute,ready:exactRouteReady,page:routePage,visible});}
