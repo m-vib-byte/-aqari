@@ -1,10 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
 const page=readFileSync(new URL('../src/v267/pages/property-onboarding.js',import.meta.url),'utf8');
 const experience=readFileSync(new URL('../src/v267/components/property-experience.js',import.meta.url),'utf8');
 const upload=readFileSync(new URL('../src/v267/components/original-document-upload.js',import.meta.url),'utf8');
 const legacyQuickCreate=readFileSync(new URL('../v201-experience.js',import.meta.url),'utf8');
+
+function directEntry({bridge=true}={}){
+ const labels=[],calls=[];
+ const node=(tag,text='')=>({tag,textContent:text,value:'',children:[],append(...items){this.children.push(...items);},focus(){}});
+ const d={body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace'},client:{rpc(name){calls.push(name);return name;}},request:async()=>({user_id:'user',workspace_id:'workspace',permissions:{properties:{write:true},documents:{write:true}}})},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
+ let opened=0;
+ const context={window:{AQARI_SUPABASE:bridge?{loadAppState(){},saveAppState(){}}:null},node,field(label,control){labels.push(label);return control;},createDialog(){opened++;return d;},translateStatic:x=>x,translateMessage:x=>x};
+ vm.createContext(context);
+ // Execute the declared dependency, as a direct module entry does, without the property finder.
+ const dependency=page.match(/^import '([^']*v267-rental-records\.js)';$/m);
+ assert.ok(dependency,'direct onboarding must load its own records dependency');
+ vm.runInContext(readFileSync(new URL('../src/v267/pages/'+dependency[1],import.meta.url),'utf8'),context);
+ vm.runInContext(page.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nthis.openPage=openPropertyOnboarding;',context);
+ return {d,labels,calls,open:()=>context.openPage(),opened:()=>opened};
+}
+
+test('direct service entry renders the property form without visiting the property finder first',async()=>{
+ const f=directEntry();assert.equal(f.open(),true);await f.d.pending;
+ assert.ok(f.labels.includes('اسم العقار *'));assert.ok(f.labels.includes('العنوان *'));
+ assert.equal(f.d.body.children[0].tag,'form');assert.deepEqual(f.calls,['aqari_workspace_access']);
+ assert.equal(f.d.status.textContent,'أكمل الملف في شاشة واحدة ثم اضغط حفظ.');
+});
+
+test('missing cloud bridge does not leave an empty modal blocking navigation',()=>{
+ const f=directEntry({bridge:false});assert.throws(f.open,/جسر السحابة/);assert.equal(f.opened(),0);assert.deepEqual(f.calls,[]);
+});
 
 test('every property add entry is intercepted into the unified onboarding instead of the legacy property form',()=>{
  assert.match(experience,/property-onboarding\.js/);

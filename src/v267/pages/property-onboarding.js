@@ -1,4 +1,5 @@
 import {uiError} from '../components/ui-error.js';
+import '../../../v267-rental-records.js';
 import {t as translateStatic,message as translateMessage} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {withPresentation,contactPhone} from '../domain/property-presentation.js';
@@ -23,9 +24,9 @@ async function compressedPreview(file){
 }
 
 export function openPropertyOnboarding(){
- const d=createDialog(translateStatic('إضافة عقار — ملف متكامل'));if(!d)return false;
  const api=window.AQARI_RENTAL_RECORDS;if(!api)throw Error('تعذر تحميل محرك بيانات العقار.');
  const bridge=window.AQARI_SUPABASE;if(!bridge?.loadAppState||!bridge?.saveAppState)throw Error('تعذر تحميل جسر السحابة.');
+ const d=createDialog(translateStatic('إضافة عقار — ملف متكامل'));if(!d)return false;
  const bound=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null;
@@ -80,4 +81,3 @@ export function openPropertyOnboarding(){
  d.run(async()=>{access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');if(access?.permissions?.documents?.write!==true)files.append(node('p',translateStatic('ملاحظة: رفع الملفات غير متاح لهذه الصلاحية؛ يمكن إنشاء العقار بدون مرفقات.')));d.status.textContent=translateStatic('أكمل الملف في شاشة واحدة ثم اضغط حفظ.');name.focus();});
  return true;
 }
-
