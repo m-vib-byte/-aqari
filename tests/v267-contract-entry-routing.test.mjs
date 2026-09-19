@@ -25,3 +25,11 @@ test('workspace re-checks session scope and contract read permission around lazy
  assert.match(source,/openRentalContracts\(initial\)/);
  assert.match(source,/installContractRoutes\(window,openContracts\)/);
 });
+
+
+test('signing settlement module load is bounded and rechecked before dialog handoff',()=>{
+ const source=readFileSync(new URL('../src/v267/pages/rental-contracts.js',import.meta.url),'utf8');
+ assert.match(source,/async function openContractExecutionDialog\(d,id,onDone\)[\s\S]*guardPageImport\(\(\)=>import\('\.\/contract-execution\.js'\)\)/);
+ assert.match(source,/guardPageImport[\s\S]*d\.session\.check\(\)[\s\S]*d\.close\(\)[\s\S]*openContractExecution\(id,\{onDone\}\)/);
+ assert.doesNotMatch(source,/openContractExecutionDialog[\s\S]{0,180}await import\('\.\/contract-execution\.js'\)/);
+});
