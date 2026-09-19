@@ -9,7 +9,7 @@ export async function openPartnerAccess(){
  body.append(node('p',t('حساب الشريك مستقل عن حساب الموظف. يسمح بعرض ملخص العقارات المحددة فقط.')),
  field(t('البريد الإلكتروني'),email),field(t('اسم الشريك'),name),field(t('العقار'),property),field(t('تفعيل الوصول'),enabled),field(t('سبب التعديل'),reason),save,reload,list);
  async function load(){
-  const properties=await session.request(session.client.from('aqari_properties').select('id,name').eq('workspace_id',session.bound.workspace).order('name'));
+  const properties=await session.request(session.client.from('aqari_properties').select('id,name').eq('workspace_id',session.bound.workspace).or('metadata->>source_only.is.null,metadata->>source_only.neq.true').order('name'));
   rows=await session.request(session.client.rpc('aqari_partner_access_list',{p_workspace_id:session.bound.workspace}));
   property.replaceChildren();for(const p of properties){const o=node('option',p.name);o.value=p.id;property.append(o);}
   list.replaceChildren();for(const row of rows){const button=node('button',row.display_name+' • '+(properties.find(p=>p.id===row.property_id)?.name||'—')+' • '+t(row.is_active?'مسموح':'ممنوع'));
