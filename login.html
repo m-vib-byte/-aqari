@@ -77,7 +77,7 @@ tasks.push(window.caches.keys().then(function(keys){
 return Promise.all(keys.map(function(key){ return window.caches.delete(key); }));}));}}catch(_error){}try{
 if('serviceWorker' in navigator && navigator.serviceWorker.getRegistrations){
 tasks.push(navigator.serviceWorker.getRegistrations().then(function(registrations){
-return Promise.all(registrations.map(function(registration){ return registration.unregister(); }));}));}}catch(_error){}releaseResetPromise = Promise.all(tasks).catch(function(){ return []; });return releaseResetPromise;}function validContext(context){
+return Promise.all(registrations.map(function(registration){ return registration.unregister(); }));}));}}catch(_error){}releaseResetPromise = withTimeout(Promise.all(tasks),3000,'تحديث نسخة المنصة').catch(function(){ return []; });return releaseResetPromise;}function validContext(context){
 var userId = String(context && context.user && context.user.id || '');var workspaceId = String(context && context.workspace && context.workspace.id || '');var membership = context && context.membership;return Boolean(userId && workspaceId && membership && membership.is_active === true &&
 String(membership.user_id || '') === userId &&
 String(membership.workspace_id || '') === workspaceId);}function friendlyError(error){
@@ -112,6 +112,19 @@ await withTimeout(ensureCore(false,true),18000,'تجهيز استعادة كلم
 resetTimedOutCore(error);setStatus(friendlyError(error),'bad');}finally{
 setBusy(false);}});stagingSignupButton?.addEventListener('click',async function(){
 if(busy)return;restoreEpoch+=1;try{var signup=await import('/v267-signup.js');await signup.openSignup({email,password,setStatus,setBusy,ensureCore,withTimeout,friendlyError});}catch(error){setBusy(false);setStatus(friendlyError(error),'bad');}});retryButton.addEventListener('click',function(){ if(!busy && !preparing) prepare(true); });window.addEventListener('online',function(){ if(!busy && !preparing) warmCore(); });window.addEventListener('pageshow',function(event){
-if(event.persisted) window.location.reload();});setControls();retireLegacyReleaseState();warmCore();})();</script>
+if(event.persisted) window.location.reload();});setControls();
+retireLegacyReleaseState().then(function(){
+ try{
+  var resetKey='__aqari_sw_retired_v267';
+  if('serviceWorker' in navigator && navigator.serviceWorker.controller && sessionStorage.getItem(resetKey)!=='1'){
+   sessionStorage.setItem(resetKey,'1');
+   window.location.reload();
+   return;
+  }
+  sessionStorage.removeItem(resetKey);
+ }catch(_error){}
+ warmCore();
+},function(){ warmCore(); });
+})();</script>
 </body>
 </html>

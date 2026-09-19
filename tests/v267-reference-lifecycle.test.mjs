@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 
-test('hero search submits the literal question once through the existing assistant and preserves it when signed out',async()=>{
+test('hero search submits the literal query once through record search and preserves it when signed out',async()=>{
  let authenticated=true,opened=0;
  const question={value:'  ما المستحق على عقد <123>؟  '},chat={value:''},sent=[];
  const dialog={showModal(){opened++;},querySelector:selector=>selector==='#aqExactChatInput'?chat:{requestSubmit(){sent.push(chat.value);}}};
- const context=vm.createContext({document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>authenticated}},getElementById:id=>({aqExactHeroQuestion:question,aqExactAssistant:dialog})[id]},window:{AQARI_SUPABASE:{context:{membership:{is_active:true,user_id:'u',workspace_id:'w'},user:{id:'u'},workspace:{id:'w'}}},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}}},setTimeout(){},t:x=>x,direction:()=> 'rtl',getLocale:()=> 'ar',event:{preventDefault(){}}});
+ const context=vm.createContext({document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>authenticated}},getElementById:id=>({aqExactHeroQuestion:question,aqExactAssistant:dialog})[id]},window:{AQARI_V209:{async open(query){opened++;sent.push(query);return true;}},AQARI_SUPABASE:{context:{membership:{is_active:true,user_id:'u',workspace_id:'w'},user:{id:'u'},workspace:{id:'w'}}},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}}},setTimeout(fn){fn();},t:x=>x,direction:()=> 'rtl',getLocale:()=> 'ar',event:{preventDefault(){}}});
  const source=readFileSync(new URL('../src/v267/owner-feedback-runtime.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
  vm.runInContext(source,context);
  await vm.runInContext('searchFromHero(event)',context);
@@ -29,8 +29,8 @@ test('home is mounted when it arrives after the shell, and remounted after legac
  vm.runInContext(source,context);
  vm.runInContext('mountShell()',context);assert.ok(nodes.has('aqOwnerExactShell'));assert.ok(!nodes.has('aqOwnerExactHome'));
  nodes.set('home',element('home'));vm.runInContext('mountShell()',context);assert.ok(nodes.has('aqOwnerExactHome'));
- vm.runInContext('mountShell()',context);assert.equal(listeners.get('aqOwnerExactShell'),1);assert.equal(listeners.get('aqOwnerExactHome'),1);
- nodes.delete('aqOwnerExactHome');vm.runInContext('mountShell()',context);assert.ok(nodes.has('aqOwnerExactHome'));assert.equal(listeners.get('aqOwnerExactHome'),2);
+ vm.runInContext('mountShell()',context);assert.equal(listeners.size,0);
+ nodes.delete('aqOwnerExactHome');vm.runInContext('mountShell()',context);assert.ok(nodes.has('aqOwnerExactHome'));assert.equal(listeners.size,0);
  authenticated=false;nodes.delete('aqOwnerExactHome');vm.runInContext('mountShell()',context);assert.ok(!nodes.has('aqOwnerExactHome'));
 });
 

@@ -837,8 +837,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "0e13d4aba28a21b0d4f4edb3e00ba2864110f51d750ee7b28ba581d2f4be894c",
-      "size": 16965
+      "sha256": "8a3e8f3e094c31860a0ea580e424abc0b79b992f7883acd2dd19c289aadf0e52",
+      "size": 17374
     },
     {
       "path": "manifest.webmanifest",
@@ -997,8 +997,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "c2935e1b645d5adc986892cc4dccebaec3e4ef2b0b5f39c15512fb83edad69ab",
-      "size": 9956
+      "sha256": "a317900323c565d4aa8d57d7040023f8b9b1026c1eabfa1a81140d33d0649f67",
+      "size": 9270
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -1282,8 +1282,8 @@
     },
     {
       "path": "src/v267/components/workspace-translations.js",
-      "sha256": "a8812a45ab3bc63b70317d525fd83b55dbc25942c8632e381e2398f9d5caedb9",
-      "size": 47910
+      "sha256": "02e3785fc66bc673c7a34d60ad2472e9aa57bee55ec19011f8f2484dd3fdd088",
+      "size": 48163
     },
     {
       "path": "src/v267/domain/deposit-ledger.js",
@@ -3132,8 +3132,8 @@
     },
     {
       "path": "tests/v209-behavior.test.cjs",
-      "sha256": "0662236460336990cb76cb4c6d48fcebd7490fe802761f1bbe13b03805e76d52",
-      "size": 25515
+      "sha256": "58bb4bfcbce14377a6e7cedc91680f831909fd64f30426f168af18287f60f42a",
+      "size": 25526
     },
     {
       "path": "tests/v209-global-search.test.cjs",
@@ -3597,8 +3597,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "2df22e22741a3ad7a2a98ef8a6010243c6245b81859a2e658072b1cd4db3d89f",
-      "size": 10839
+      "sha256": "dfee0b769e10a573c8dde079b04f1e48475b02ccb02bfbe038252c85303a3bd4",
+      "size": 11067
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",
@@ -3637,8 +3637,8 @@
     },
     {
       "path": "tests/v267-reference-lifecycle.test.mjs",
-      "sha256": "cd8b8e9f63194bd88d9ef0d74f7c758bf4325d1fc870e706f86c47af9df30ccc",
-      "size": 6278
+      "sha256": "67a0292ca0a1f2397b92af824c4d3decf46bdc94b1fb66e92738d6e4bdf81526",
+      "size": 6255
     },
     {
       "path": "tests/v267-release-source-identity.test.mjs",
@@ -4049,6 +4049,11 @@
       "path": "src/v267/components/touch-navigation.js",
       "size": 2115,
       "sha256": "f726ee1dde32c4c9c811cf6d949f720421813fc39977f59cc828557299ae8a8e"
+    },
+    {
+      "path": "tests/v267-iphone-startup-blocker.test.mjs",
+      "size": 3849,
+      "sha256": "4c4720c33d59b5571d5ffa5a4f8a1670d42c8bcb098f3102e2dec62cb4020a1a"
     }
   ],
   "version": "V198"

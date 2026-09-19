@@ -443,12 +443,12 @@ function resultArticles(html){
   return html.match(/<article class="v209-result">[\s\S]*?<\/article>/g)||[];
 }
 
-test('the public search API recreates a missing presentation surface safely',()=>{
+test('the public search API recreates a missing presentation surface safely',async()=>{
   const env=createHarness();
   env.panel.remove();
 
   assert.equal(env.document.getElementById('v199SearchPanel'),null);
-  assert.equal(env.window.AQARI_V209.open(),true);
+  assert.equal(await env.window.AQARI_V209.open(),true);
 
   const panel=env.document.getElementById('v199SearchPanel');
   const input=env.document.getElementById('v199SearchInput');
