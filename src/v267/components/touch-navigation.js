@@ -4,7 +4,7 @@ export function installTouchNavigation(root, now=()=>Date.now()) {
  const listeners=[];
  const target=event=>{
   const button=event.target?.closest?.('button');
-  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome')&&!button.disabled?button:null;
+  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head')&&!button.disabled?button:null;
  };
  const on=(name,handler)=>{root.addEventListener(name,handler,true);listeners.push([name,handler]);};
  on('pointerdown',event=>{
