@@ -43,10 +43,15 @@ const routePage=route=>document.getElementById(route==='properties'||route==='te
 const sectionLabel=route=>ROUTES.find(x=>x.route===route)?.label||({'reports':'التقارير والإحصائيات','documentsHub':'المستندات والأرشيف','settingsCenterPage':'الإعدادات'})[route]||'القسم';
 const waitPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 function setStatus(text,bad=false){
- const el=document.getElementById('aqExactStatus');if(el){el.textContent=t(text||'');el.classList.toggle('bad',bad);}
- let notice=document.getElementById('aqNavigationNotice');
- if(!notice&&text){notice=document.createElement('div');notice.id='aqNavigationNotice';notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');notice.style.cssText='position:fixed;top:72px;left:16px;right:16px;max-width:520px;margin:auto;z-index:1100;padding:14px;border:1px solid #b49354;border-radius:12px;background:#fffaf0;color:#453728;box-shadow:0 6px 24px #0002;font:16px/1.6 system-ui';document.body.append(notice);}
- if(notice){notice.textContent=t(text||'');notice.hidden=!text;notice.setAttribute('role',bad?'alert':'status');}
+ const getById=typeof document?.getElementById==='function'?document.getElementById.bind(document):()=>null;
+ const el=getById('aqExactStatus');if(el){el.textContent=t(text||'');el.classList?.toggle?.('bad',bad);}
+ let notice=getById('aqNavigationNotice');
+ if(!notice&&text&&typeof document?.createElement==='function'&&typeof document?.body?.append==='function'){
+  notice=document.createElement('div');notice.id='aqNavigationNotice';notice.setAttribute?.('role','status');notice.setAttribute?.('aria-live','polite');
+  if(notice.style)notice.style.cssText='position:fixed;top:72px;left:16px;right:16px;max-width:520px;margin:auto;z-index:1100;padding:14px;border:1px solid #b49354;border-radius:12px;background:#fffaf0;color:#453728;box-shadow:0 6px 24px #0002;font:16px/1.6 system-ui';
+  document.body.append(notice);
+ }
+ if(notice){notice.textContent=t(text||'');notice.hidden=!text;notice.setAttribute?.('role',bad?'alert':'status');}
 }
 function exactRouteReady(route){const page=routePage(route);if(!visible(page))return false;if(PRIMARY.has(route)&&window.AQARI_V205)return document.body.getAttribute('data-v205-route')===route;return true;}
 function decoratePage(route){const page=routePage(route);if(!page||route==='home')return;let head=page.querySelector(':scope > .aq-exact-section-head');if(!head){head=document.createElement('header');head.className='aq-exact-section-head';page.prepend(head);}head.innerHTML=`<div><span>AQARI ${RELEASE}</span><h1>${escapeText(t(sectionLabel(route)))}</h1><p>${t('صفحة مستقلة ضمن صلاحيات الحساب الحالية.')}</p></div><button type="button" data-exact-route="home">${t('العودة للرئيسية')}</button>`;head.querySelector('button').onclick=()=>navigateRoute('home');}
