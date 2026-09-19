@@ -57,7 +57,7 @@ function dashboardMarkup(){
  ${referencePanel('حالة النظام',`<div class="aq-ref-system"><span class="aq-ref-health-mark">${workspaceIcon('cloud')}</span><div id="aqLiveSystemStatus">${loading}</div>${refAction('عرض حالة النظام','service','integration_center')}</div>`,'health')}
  ${referencePanel('بوابة المستأجر',`<div class="aq-ref-portal">${workspaceIcon('user')}<p>${ui('تمكّن المستأجرين من الوصول لعقودهم ومتابعة طلباتهم.')}</p><a href="/tenant.html">${ui('فتح بوابة المستأجر')}</a></div>`,'portal')}
  </div>
- <section class="aq-live-reference-quick"><h2>${ui('الإجراءات السريعة')}</h2><div>${refAction('إضافة عقار','route','properties','building')}${refAction('إضافة وحدة','service','unit_readiness','grid')}${refAction('إضافة مستأجر','route','tenants','user')}${refAction('إنشاء عقد','service','rental_contracts','file')}${refAction('إصدار وصل','special','receipts','wallet')}${refAction('طلب صيانة','route','maintenanceProPage','tool')}${refAction('إرسال إشعار','service','property_notices','bell')}${refAction('إصدار تقرير','route','reports','chart')}</div></section>
+ <section class="aq-live-reference-quick"><h2>${ui('الإجراءات السريعة')}</h2><div>${refAction('إضافة عقار','special','property_create','building')}${refAction('إضافة وحدة','service','unit_readiness','grid')}${refAction('إضافة مستأجر','route','tenants','user')}${refAction('إنشاء عقد','service','rental_contracts','file')}${refAction('إصدار وصل','special','receipts','wallet')}${refAction('طلب صيانة','route','maintenanceProPage','tool')}${refAction('إرسال إشعار','service','property_notices','bell')}${refAction('إصدار تقرير','route','reports','chart')}</div></section>
  <div class="aq-live-update"><span id="aqLiveDataStatus" role="status" aria-live="polite">${ui('جارٍ قراءة المؤشرات…')}</span><button type="button" id="aqLiveRefresh">${ui('تحديث')}</button></div>
  <details class="aq-live-secondary-details"><summary>${ui('تفاصيل التحصيل والمحفظة')}</summary><section class="aq-live-secondary">${makeMetric('تحصيل اليوم','today','success')}${makeMetric('المستحق','due')}${makeMetric('المتبقي','remaining')}${makeMetric('تنتهي خلال 30 يومًا','expiring')}${makeMetric('المصروفات المعتمدة','expenses')}${makeMetric('صافي السجلات','net')}</section><div class="aq-live-table-scroll"><table><thead><tr>${['العقار / الوحدة','رقم العقد','المستحق','المحصل','المتبقي'].map(x=>`<th>${ui(x)}</th>`).join('')}</tr></thead><tbody id="aqLiveCollectionRows"></tbody></table></div></details>
  <footer class="aq-ref-footer"><span>AQARI © ${new Date().getFullYear()}</span><span>${ui('المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.')}</span></footer>
@@ -183,11 +183,12 @@ function refreshPropertyCards(){
  host.replaceChildren();
  if(!rows.length){empty(host,'لا توجد عقارات ظاهرة ضمن صلاحياتك.');return;}
  for(const row of rows){
-  const card=document.createElement('button');card.type='button';card.className='aq-live-property';card.dataset.exactRoute='properties';
+  const card=document.createElement('button');card.type='button';card.className='aq-live-property';
   const art=document.createElement('div');art.className='aq-live-building-art';art.setAttribute('aria-hidden','true');
   const sourceImage=row.querySelector('img');
   if(sourceImage?.getAttribute('src')){const photo=sourceImage.cloneNode(false);photo.removeAttribute('id');photo.alt='';photo.loading='lazy';art.append(photo);}else art.innerHTML=workspaceIcon('building');
   const name=document.createElement('strong');name.textContent=row.querySelector('strong')?.textContent||ui('العقار');name.dataset.aqRecord='';
+  card.onclick=async event=>{event.preventDefault();event.stopPropagation();if(!scope()||card.disabled)return;card.disabled=true;try{const opened=await window.AQARI_OWNER_EXACT?.openProperty?.(name.textContent);if(opened!==true){const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent=ui('تعذر فتح الخدمة.');}}catch{const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent=ui('تعذر فتح الخدمة.');}finally{card.disabled=false;}};
   const action=document.createElement('small');action.textContent=ui('فتح ملف العقار');const detail=document.createElement('small');detail.dataset.aqRecord='';detail.textContent=clean(row.querySelector('.v199-property-units')?.textContent);const income=document.createElement('b');income.dataset.aqRecord='';income.textContent=clean(row.querySelector('.v199-property-income')?.textContent);card.append(art,name,detail,income,action);host.append(card);
  }
 }
@@ -226,4 +227,5 @@ async function boot(){
  window.AQARI_LIVE_STABILITY=Object.freeze({version:'V267-work1-stability-1',refresh:schedule});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
 
