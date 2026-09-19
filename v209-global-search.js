@@ -132,7 +132,10 @@
     const rows=[];
     propertyNames().forEach(function(property){
       const data=officeData(property,period,scope);
-      if(!data||!Array.isArray(data.records))return;
+      if(!data||!Array.isArray(data.records)||!data.records.length){
+        rows.push(Object.freeze({kind:'property',scope:scope,property:String(property),period:String(period),key:'property:'+property,tenant:'',unit:'',contractNo:'',balance:0,pending:0,canRecordPayment:false}));
+        return;
+      }
       data.records.forEach(function(record){
         const key=String(record?.key||'').trim();
         if(!key)return;
@@ -330,6 +333,7 @@
   }
 
   function resultMarkup(item,index){
+    if(item.kind==='property')return '<article class="v209-result"><button type="button" class="v209-result-main" data-v209-index="'+index+'" data-v209-action="property"><span class="v209-result-property">عقار</span><strong dir="auto">'+esc(item.property)+'</strong><small>فتح ملف العقار</small></button></article>';
     const contract=item.contractNo||'بدون رقم عقد';
     const payment=item.canRecordPayment?'تحصيل':'عرض التحصيل';
     const contractButton=item.hasContract?'<button type="button" data-v209-index="'+index+'" data-v209-action="contract">العقد</button>':'';
@@ -413,6 +417,13 @@
 
   function openResult(item,action,trigger){
     const scope=scopeKey();
+    if(item?.kind==='property'){
+      if(!scope||item.scope!==scope||item.period!==period||!propertyNames().includes(item.property)||scopeKey()!==scope)return false;
+      if(typeof window.AQARI_OWNER_EXACT?.openProperty!=='function')return false;
+      closePanel();
+      Promise.resolve(window.AQARI_OWNER_EXACT.openProperty(item.property)).catch(function(){});
+      return true;
+    }
     if(!scope||!item||item.scope!==scope||item.period!==period||typeof window.AQARI_V202?.openProperty!=='function'||typeof window.AQARI_V202?.rentOfficeAction!=='function')return false;
     if(!liveRecord(item))return false;
     const actionToken=++interactionEpoch;
