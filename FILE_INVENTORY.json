@@ -1112,8 +1112,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "bf212d6015867861a4bf3ed8f8b1beedc841a6150e7850d3a9aeae6ea66e82f0",
-      "size": 3466
+      "sha256": "d653a2f9e90eeeb41e6f94f15c651fca26f75eaa6dec3c2673d8876e7322f122",
+      "size": 3713
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1467,8 +1467,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "5974bdcdaa93bdf7ba41f9a69670fb71021baad4de71f798e64329d22f1f7e76",
-      "size": 29085
+      "sha256": "3c5ee4de86015cfb8e33a931aca68da28fbea908b961dc8a6e7691766fcf89e1",
+      "size": 29138
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3287,8 +3287,8 @@
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
-      "sha256": "5cbff84ee6f8527c27cbf97a19ea49845048c5366cc15aa2c2d01da2f6393d95",
-      "size": 4814
+      "sha256": "cf13c85dbd00fca7937d1b33f6e81d44e816f3d3ff4ed1364e32fa3ea1bbda2f",
+      "size": 6244
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
