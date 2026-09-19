@@ -35,3 +35,16 @@ test('second touch is a separate activation and stale suppression expires',()=>{
  f.emit('pointerdown');f.emit('pointerup');f.advance(900);assert.equal(f.emit('click').stopped,undefined);
  f.dispose();assert.equal(f.listeners.size,0);
 });
+
+test('touch fallback also activates search submit and property-card buttons',()=>{
+ for(const kind of ['search-submit','property-card']){
+  const listeners=new Map();let clicks=0;
+  const root={addEventListener:(n,f)=>listeners.set(n,f),removeEventListener(){}};
+  const button={disabled:false,closest:()=>true,click:()=>clicks++};
+  const icon={closest:selector=>selector==='button'?button:null};
+  installTouchNavigation(root,()=>100);
+  const event={target:icon,pointerType:'touch',pointerId:1,isPrimary:true,clientX:10,clientY:10,preventDefault(){}};
+  listeners.get('pointerdown')(event);listeners.get('pointerup')(event);
+  assert.equal(clicks,1,kind);
+ }
+});
