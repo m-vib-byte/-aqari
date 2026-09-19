@@ -62,10 +62,11 @@ export function openRentalContracts(initial={}){
    d.session.request(d.session.client.from('aqari_units').select('id,property_id,unit_no').eq('workspace_id',d.session.bound.workspace).order('unit_no'))
   ]);d.session.check();properties=nextProperties;units=nextUnits;
  }
- async function showDocuments(id){
+ async function showDocuments(id,target=d.body){
   const docs=await d.session.request(d.session.client.from('aqari_documents').select('id,original_filename,storage_path,status').eq('workspace_id',d.session.bound.workspace).eq('entity_type','lease').eq('entity_ref',String(id)).eq('status','uploaded').order('created_at',{ascending:false}));d.session.check();
-  d.body.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));
-  for(const doc of docs)d.body.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);d.session.check();const a=node('a',translateStatic('فتح الأصل المحفوظ'));a.href=urls.create(blob);a.target='_blank';a.rel='noopener';d.body.append(a);}));
+  if(target!==d.body)target.replaceChildren();
+  target.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));
+  for(const doc of docs)target.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);d.session.check();const a=node('a',translateStatic('فتح الأصل المحفوظ'));a.href=urls.create(blob);a.target='_blank';a.rel='noopener';target.append(a);}));
  }
 
  function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
@@ -113,7 +114,7 @@ export function openRentalContracts(initial={}){
   if(c.rentalTermsVersion===1)d.body.append(button(translateStatic('تعديل معتمد مع حفظ السجل السابق'),async()=>form(c)));
   d.body.append(button(translateStatic('جدول الاستحقاقات والتحصيل'),async()=>{const lease=await d.session.request(d.session.client.from('aqari_leases').select('id').eq('workspace_id',d.session.bound.workspace).eq('external_ref',String(c.id)).single());const schedule=await rpc('aqari_rent_due_schedule',{p_workspace_id:d.session.bound.workspace,p_lease_id:lease.id});if(!Array.isArray(schedule?.periods))throw Error('تعذر تأكيد جدول الاستحقاق.');const box=node('section'),table=node('table'),head=node('tr');for(const label of [translateStatic('الفترة'),translateStatic('تاريخ الاستحقاق'),translateStatic('صافي المستحق'),translateStatic('المحصل'),translateStatic('الرصيد الدائن المخصص'),translateStatic('رصيد الفترة')])head.append(node('th',label));table.append(head);for(const row of schedule.periods){if(row.lease_id!==lease.id)throw Error('جدول استحقاق لا يخص العقد.');const tr=node('tr');for(const value of [row.period,row.due_on||translateStatic('لا استحقاق'),...['due_amount','paid_amount','credit_amount','balance'].map(key=>api.amount(row[key]).toFixed(3))])tr.append(node('td',String(value??translateStatic('غير مدون'))));table.append(tr);}const scroll=node('div');scroll.style.overflowX='auto';scroll.style.maxWidth='100%';scroll.append(table);box.append(node('h3',translateStatic('جدول الاستحقاقات المحفوظ للعقد')),node('p',translateStatic('رصيد الفترة المستقبلية ليس متأخرًا قبل تاريخ استحقاقها. لا يشمل الجدول تحويل التأمين أو العربون تلقائيًا.')),scroll);d.body.append(box);}));
   const transitions={draft:'ready',ready:'approved',approved:'signing',signing:'signed'};const next=transitions[c.status];if(next)d.body.append(button(translateStatic('نقل إلى: ')+translateStatic(states[next]),async()=>{if(['approved','signed'].includes(next)&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');if(next==='signed'&&c.source==='v267-cloud')return openContractExecutionDialog(d,id,()=>openRentalContracts({id}));await api.saveLease({...c,status:next,changeReason:'اعتماد انتقال حالة العقد إلى '+states[next]});await show(id);}));
-  await showDocuments(id);
+  const documents=node('section');d.body.append(button(translateStatic('عرض المرفقات المحفوظة'),async()=>{await showDocuments(id,documents);d.status.textContent=translateStatic('تمت قراءة المرفقات المحفوظة.');}),documents);
   const upload=node('form'),file=input('file'),confirm=input('checkbox'),save=node('button',translateStatic('رفع النسخة الموقعة وربطها بالعقد'));file.accept='application/pdf,image/jpeg,image/png';file.required=confirm.required=true;upload.append(field(translateStatic('النسخة الموقعة — PDF أو صورة'),file),field(translateStatic('راجعت النسخة وهي العقد الموقّع الفعلي لهذا المستأجر والوحدة'),confirm),save);d.body.append(upload);let pending=null;
   file.onchange=()=>{pending=null;confirm.checked=false;};
   upload.onsubmit=event=>{event.preventDefault();const chosen=file.files?.[0];d.run(async()=>{
@@ -129,9 +130,17 @@ export function openRentalContracts(initial={}){
    if(verified?.id!==doc.document_id||verified.status!=='uploaded'||verified.entity_type!=='lease'||verified.entity_ref!==String(id)||verified.created_by!==d.session.bound.user||verified.checksum_sha256!==hash)throw Error('لم تتأكد إعادة قراءة سجل المستند.');
    await show(id);d.status.textContent=translateStatic('حُفظت النسخة الموقعة وربطت بالعقد والمستأجر والوحدة.');
   });};
-  const history=await rpc('aqari_contract_history',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(id)});const box=node('details');box.append(node('summary',translateStatic('سجل العقد والنسخ السابقة / Contract history')));for(const h of history){const item=node('details');item.append(node('summary',h.actor_name+' · '+kuwaitTime(h.recorded_at)+' · '+h.reason),node('pre',JSON.stringify({before:h.before_snapshot,after:h.after_snapshot},null,2)));box.append(item);}d.body.append(box);d.status.textContent=translateStatic('تمت قراءة العقد ومستنداته وسجل نسخه المحفوظة.');
+  const historyTarget=node('section');
+  d.body.append(button(translateStatic('عرض سجل العقد والنسخ السابقة'),async()=>{
+   const history=await rpc('aqari_contract_history',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(id)});d.session.check();
+   const box=node('details');box.open=true;box.append(node('summary',translateStatic('سجل العقد والنسخ السابقة / Contract history')));
+   for(const h of history){const item=node('details');item.append(node('summary',h.actor_name+' · '+kuwaitTime(h.recorded_at)+' · '+h.reason),node('pre',JSON.stringify({before:h.before_snapshot,after:h.after_snapshot},null,2)));box.append(item);}
+   historyTarget.replaceChildren(box);d.status.textContent=translateStatic('تمت قراءة سجل العقد.');
+  }),historyTarget);
+  d.status.textContent=translateStatic('تمت قراءة بيانات العقد. يمكنك فتح المرفقات وسجل النسخ عند الحاجة.');
  }
  d.run(initial.renewalFrom!==undefined?async()=>{await load();await form(null,await loadLeaseRenewal(d,String(initial.renewalFrom)));}:initial.id!==undefined?()=>show(initial.id):initial.create?async()=>{await load();await form(null);}:home);
 }
+
 
 
