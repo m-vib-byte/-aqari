@@ -1,4 +1,5 @@
 import {installExactNavigationEvents} from './components/exact-navigation-events.js';
+import {guardPageImport} from './components/navigation-import.js';
 async function runNavigationAction({scope:scopeCheck,action,report}){
  if(!scopeCheck()){report('تعذر فتح الخدمة.',true);return false;}
  report('');
@@ -43,6 +44,7 @@ const scope=()=>{try{const c=window.AQARI_SUPABASE?.context,m=c?.membership,d=wi
 const visible=el=>{if(!el||el.hidden)return false;const style=window.getComputedStyle?.(el);return !style||(style.display!=='none'&&style.visibility!=='hidden');};
 const routePage=route=>document.getElementById(route==='properties'||route==='tenants'?'list':route);
 const sectionLabel=route=>ROUTES.find(x=>x.route===route)?.label||({'reports':'التقارير والإحصائيات','documentsHub':'المستندات والأرشيف','settingsCenterPage':'الإعدادات'})[route]||'القسم';
+let routeFlight=0;
 const waitPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 function setStatus(text,bad=false){
  const getById=typeof document?.getElementById==='function'?document.getElementById.bind(document):()=>null;
@@ -58,11 +60,12 @@ function setStatus(text,bad=false){
 function exactRouteReady(route){const page=routePage(route);if(!visible(page))return false;if(PRIMARY.has(route)&&window.AQARI_V205)return document.body.getAttribute('data-v205-route')===route;return true;}
 function decoratePage(route){const page=routePage(route);if(!page||route==='home')return;let head=page.querySelector(':scope > .aq-exact-section-head');if(!head){head=document.createElement('header');head.className='aq-exact-section-head';page.prepend(head);}head.innerHTML=`<div><span>AQARI ${RELEASE}</span><h1>${escapeText(t(sectionLabel(route)))}</h1><p>${t('صفحة مستقلة ضمن صلاحيات الحساب الحالية.')}</p></div><button type="button" data-exact-route="home">${t('العودة للرئيسية')}</button>`;head.querySelector('button').onclick=()=>navigateRoute('home');}
 async function navigateRoute(route){
- if(!scope())return false;setStatus('');
+ if(!scope())return false;const token=++routeFlight,bound=JSON.stringify(scope()),current=()=>token===routeFlight&&bound===JSON.stringify(scope());setStatus('');
+ window.dispatchEvent(new CustomEvent('aqari:navigation-start'));
  const v205=window.AQARI_V205;try{if(PRIMARY.has(route)&&typeof v205?.navigate==='function')v205.navigate(route);else if(typeof window.go==='function')window.go(route);}catch{}
- await waitPaint();
- if(!exactRouteReady(route)){try{if(typeof window.AQARI_V199_BASE_GO==='function')window.AQARI_V199_BASE_GO(route);else if(typeof window.go==='function')window.go(route);}catch{}await new Promise(r=>setTimeout(r,70));await waitPaint();}
- if(PRIMARY.has(route)&&v205&&document.body.getAttribute('data-v205-route')!==route){try{v205.navigate(route);}catch{}await waitPaint();}
+ await waitPaint();if(!current())return false;
+ if(!exactRouteReady(route)){try{if(typeof window.AQARI_V199_BASE_GO==='function')window.AQARI_V199_BASE_GO(route);else if(typeof window.go==='function')window.go(route);}catch{}await waitPaint();if(!current())return false;}
+ if(PRIMARY.has(route)&&v205&&document.body.getAttribute('data-v205-route')!==route){try{v205.navigate(route);}catch{}await waitPaint();if(!current())return false;}
  if(!exactRouteReady(route)){setStatus(message('تعذر فتح صفحة {section}. أعد المحاولة.',{section:t(sectionLabel(route))}),true);return false;}
  document.body.dataset.aqExactRoute=route;decoratePage(route);syncActive();const page=routePage(route);page?.scrollIntoView?.({block:'start',behavior:'auto'});window.dispatchEvent(new CustomEvent('aqari:owner-final-route',{detail:{route}}));return true;
 }
@@ -96,11 +99,11 @@ async function openPropertyAction(name=null){
 }
 
 async function openMaintenanceAction(){
- if(!scope())return false;const m=await import('./pages/maintenance-request-create.js');await m.openMaintenanceRequest();return true;
+ if(!scope())return false;const m=await guardPageImport(()=>import('./pages/maintenance-request-create.js'));await m.openMaintenanceRequest();return true;
 }
 async function openUnitAction(){
  if(!scope())return false;
- const module=await import('./pages/unit-entry.js');
+ const module=await guardPageImport(()=>import('./pages/unit-entry.js'));
  if(!scope())return false;
  return module.openUnitEntry();
 }
@@ -116,7 +119,7 @@ async function openServicesDirectory(){
  if(!scope())return false;
  const opened=dispatch();if(!opened)setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return opened;
 }
-async function openDefinition(def){if(!scope())return false;if(def.special==='services')return openServicesDirectory();if(def.special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());if(def.special==='assistant')return openAssistant();if(def.special==='receipts')return openRecordSearch();if(def.special==='property_create')return openPropertyAction();if(def.special==='tenant_create')return openTenantAction();if(def.special==='maintenance_create')return openMaintenanceAction();if(def.special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());if(def.href){window.location.assign(def.href);return true;}if(def.route)return navigateRoute(def.route);const button=serviceButton(def)||await waitForServiceButton(def);if(button){button.click();return true;}if(def.fallback)return navigateRoute(def.fallback);setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return false;}
+async function openDefinition(def){if(!scope())return false;if(def.special==='services')return openServicesDirectory();if(def.special==='tasks')return guardPageImport(()=>import('./pages/owner-task-center.js?release='+RELEASE)).then(m=>m.openOwnerTaskCenter());if(def.special==='assistant')return openAssistant();if(def.special==='receipts')return openRecordSearch();if(def.special==='property_create')return openPropertyAction();if(def.special==='tenant_create')return openTenantAction();if(def.special==='maintenance_create')return openMaintenanceAction();if(def.special==='experience')return guardPageImport(()=>import('./pages/owner-experience-settings.js?release='+RELEASE)).then(m=>m.openOwnerExperienceSettings());if(def.href){window.location.assign(def.href);return true;}if(def.route)return navigateRoute(def.route);const button=serviceButton(def)||await waitForServiceButton(def);if(button){button.click();return true;}if(def.fallback)return navigateRoute(def.fallback);setStatus('هذه الخدمة غير متاحة لصلاحية الحساب الحالية.',true);return false;}
 function syncActive(){const route=document.body.dataset.aqExactRoute||document.body.getAttribute('data-v205-route')||'home';document.querySelectorAll('[data-exact-key]').forEach(button=>{const def=ROUTES.find(x=>x.key===button.dataset.exactKey);button.classList.toggle('active',Boolean(def?.route&&def.route===route));});}
 const escapeText=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 function userName(){return String(scope()?.name||t('المستخدم')).split('•')[0].trim();}
@@ -167,6 +170,7 @@ function mountShell(){
 function dispatchExactClick(event){const key=event.target.closest('[data-exact-key]')?.dataset.exactKey;if(key){const def=ROUTES.find(x=>x.key===key);if(def)return openDefinition(def);return false;}const route=event.target.closest('[data-exact-route]')?.dataset.exactRoute;if(route){return navigateRoute(route);}const special=event.target.closest('[data-exact-special]')?.dataset.exactSpecial;if(special){if(special==='assistant')return openAssistant();else if(special==='receipts')return openRecordSearch();else if(special==='property_create')return openPropertyAction();else if(special==='unit_create')return openUnitAction();else if(special==='tenant_create')return openTenantAction();else if(special==='maintenance_create')return openMaintenanceAction();else if(special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());else if(special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());return;}const service=event.target.closest('[data-exact-service]')?.dataset.exactService;if(service)return openDefinition({service});}
 function handleExactClick(event){
  const trigger=event.target?.closest?.('[data-exact-key],[data-exact-route],[data-exact-special],[data-exact-service]');if(!trigger)return;
+ routeFlight++;window.dispatchEvent(new CustomEvent('aqari:navigation-start'));
  return runNavigationAction({scope,action:()=>dispatchExactClick(event),report:setStatus});
 }
 
