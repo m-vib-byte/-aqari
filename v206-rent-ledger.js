@@ -101,8 +101,8 @@
   function viewModel(data){
     const items=(Array.isArray(data?.records)?data.records:[]).map(function(record){
       const rent=numberFrom(record?.rent);
-      const contractRent=numberFrom(record?.contractRent)||rent;
-      const currentRent=numberFrom(record?.currentRent)||rent;
+      const contractRent=record?.contractRent==null?rent:numberFrom(record.contractRent);
+      const currentRent=record?.currentRent==null?rent:numberFrom(record.currentRent);
       return {
         insuranceDateRaw:String(record?.insuranceDateRaw||''),freeMonth:String(record?.freeMonth||''),nameAr:String(record?.nameAr||''),nameEn:String(record?.nameEn||''),floor:String(record?.floor||''),phone:String(record?.phone||''),nationality:String(record?.nationality||''),civilId:String(record?.civilId||''),passportNo:String(record?.passportNo||''),startDate:String(record?.startDate||''),endDate:String(record?.endDate||''),receivedAt:String(record?.receivedAt||''),evictionNotice:String(record?.evictionNotice||''),
         key:String(record?.key||''),unit:String(record?.unit||'—'),tenant:String(record?.tenant||'—'),
@@ -115,15 +115,16 @@
         accountant:String(record?.accountant||''),email:validEmail(record?.email)?String(record.email).trim():''
       };
     }).sort(function(left,right){return left.unit.localeCompare(right.unit,'ar',{numeric:true,sensitivity:'base'})});
+    const sum=key=>items.reduce((total,item)=>total+Math.round(item[key]*1000),0)/1000;
     const totalRent=numberFrom(data?.totalRent);
     const totalPaid=numberFrom(data?.totalCollected);
     const totalBalance=Math.max(0,numberFrom(data?.totalBalance));
     return {
       items,totalRent,totalPaid,totalBalance,obligationsVerified:data?.obligationsVerified!==false,
-      totalContractRent:items.reduce(function(total,item){return total+item.contractRent},0),
-      totalCurrentRent:totalRent||items.reduce(function(total,item){return total+item.currentRent},0),
+      totalContractRent:sum('contractRent'),
+      totalCurrentRent:data?.totalRent==null?sum('currentRent'):totalRent,
       totalInsurance:numberFrom(data?.totalInsurance),totalAdvance:numberFrom(data?.totalAdvance),totalCleaning:numberFrom(data?.totalCleaning),
-      totalPending:items.reduce(function(total,item){return total+item.pending},0),
+      totalPending:sum('pending'),
       paidCount:items.filter(function(item){return item.rent>0&&item.balance<=0}).length,
       dueCount:items.filter(function(item){return item.balance>0}).length,
       collectionRate:totalRent>0?Math.min(100,Math.round(totalPaid/totalRent*100)):0,
@@ -235,9 +236,9 @@
   function rowMarkup(item,index){
     return '<tr class="'+(item.balance>0?'v206-due':'v206-paid')+'" data-v206-row-key="'+esc(item.key)+'" title="فتح كشف المستأجر">'+
       tableCell(item.unit||index+1,'','ltr')+'<td class="v206-name"><button type="button" class="v206-tenant-link" data-v206-tenant-action="statement" data-v206-key="'+esc(item.key)+'" aria-label="فتح كشف المستأجر '+esc(item.tenant)+'"><bdi dir="auto">'+esc(item.tenant)+'</bdi></button>'+tenantDetails(item)+'</td>'+tableCell(item.contractNo,'','ltr')+
-      tableCell(item.contractRent?money(item.contractRent):'')+tableCell(item.insurance==null?'غير مدون':money(item.insurance))+
+      tableCell(money(item.contractRent))+tableCell(item.insurance==null?'غير مدون':money(item.insurance))+
       tableCell(item.advance==null?'غير مدون':money(item.advance))+tableCell(item.cleaning==null?'غير مدون':money(item.cleaning))+
-      tableCell(item.currentRent?money(item.currentRent):'')+tableCell(item.date,'','ltr')+tableCell(item.method)+
+      tableCell(money(item.currentRent))+tableCell(item.date,'','ltr')+tableCell(item.method)+
       tableCell(item.knet,'','ltr')+tableCell(item.receipt,'','ltr')+'<td>'+esc(item.contractReceived||'غير مدون')+'<br><bdi dir="ltr">'+esc(item.receivedAt||'')+'</bdi></td>'+'<td><strong>'+esc(item.accountant||'غير مدون')+'</strong></td>'+'</tr>';
   }
 

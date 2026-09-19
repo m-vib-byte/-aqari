@@ -7,6 +7,7 @@ import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 export function openPropertyStatements(options={}){
  const d=createDialog(t('كشوف العقارات المحفوظة'),{localized:true});if(!d)return;
+ if(typeof options.onBack==='function'){const back=node('button',t('العودة للعقود / Back'));back.type='button';back.onclick=()=>{d.session.check();d.close();options.onBack();};d.body.append(back);}
  const select=node('select'),month=node('input'),refresh=node('button',t('عرض الكشف')),pdf=node('button',t('تحميل PDF / طباعة')),link=node('button',t('ربط الكشف بملفات المستأجرين والعقود')),result=node('div'),collection=node('button',t('كشف التحصيل الفعلي')),collectionResult=node('div'),collector=node('button',t('تقرير أداء موظفي التحصيل')),collectorResult=node('div');month.type='month';month.value=new Date().toISOString().slice(0,7);pdf.disabled=true;link.disabled=true;collection.disabled=true;collector.disabled=true;
  d.body.append(field(t('العقار'),select),field(t('الشهر'),month),refresh,pdf,link,result,collection,collectionResult,collector,collectorResult);
  let selected;let links=[];const urls=createPrivateUrls(d);

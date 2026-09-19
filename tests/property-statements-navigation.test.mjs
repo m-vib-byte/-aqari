@@ -51,5 +51,10 @@ test('statement navigation isolates months and disables actions after missing da
   dialog.body.replaceChildren();next=tasks.length;
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08'});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[0].value,'p');assert.equal(dialog.body.children[3].disabled,false);
+  const handoff=[];dialog.session.check=()=>handoff.push('check');dialog.close=()=>handoff.push('close');
+  dialog.body.replaceChildren();next=tasks.length;
+  mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08',onBack:()=>handoff.push('back')});await tasks[next];
+  const back=dialog.body.children[0];assert.equal(back.textContent,t('العودة للعقود / Back'));back.onclick();
+  assert.deepEqual(handoff,['check','close','back']);
  }finally{delete globalThis.__statementFixture;}
 });

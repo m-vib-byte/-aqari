@@ -1,3 +1,4 @@
+import {guardPageImport} from '../components/navigation-import.js';
 import {t as translateStatic} from '../components/locale.js';
 import '../../../v267-rental-records.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -15,6 +16,18 @@ async function openContractExecutionDialog(d,id,onDone){
  if(typeof module.openContractExecution!=='function')throw Error('تعذر فتح اعتماد تسوية الإبرام.');
  d.close();
  return module.openContractExecution(id,{onDone});
+}
+function contractSearchText(value){return String(value??'').normalize('NFKC').toLowerCase().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[أإآ]/g,'ا').replace(/[\u064b-\u065f\u0670ـ]/g,'');}
+function matchesContract(c,query,profiles){
+ const profile=profiles.find(p=>String(p.id)===String(c.tenantId));
+ const text=contractSearchText([c.contract_no,c.tenant,c.tenantProfile?.nameEn,profile?.nameAr,profile?.nameEn,c.property,c.unit].join(' '));
+ return contractSearchText(query).trim().split(/\s+/).filter(Boolean).every(term=>text.includes(term));
+}
+async function openContractStatements(d,c){
+ const module=await guardPageImport(()=>import('./property-statements.js'));
+ d.session.check();
+ if(typeof module.openPropertyStatements!=='function')throw Error('تعذر فتح الكشف.');
+ d.close();return module.openPropertyStatements({propertyName:c.property,period:currentMonth(),onBack:()=>openRentalContracts({id:c.id})});
 }
 function select(rows,value){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}if(value!==undefined)x.value=String(value);return x;}
 function printControls(d,api,urls,id,choices){
@@ -57,7 +70,7 @@ export function openRentalContracts(initial={}){
 
  function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
  async function manageTemplates(){clear(translateStatic('إدارة قوالب العقود'));await mountRentalTemplateManager(d,d.body,{suggestion:api.defaultClauses(),onBack:home});}
- async function home(){await load();clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(node('p',translateStatic('ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.')),button(translateStatic('إبرام عقد جديد / New rental contract'),async()=>form(null)),button(translateStatic('تحديث العقود / Refresh'),home));if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إدارة واعتماد قوالب العقود'),manageTemplates));const search=input('search'),list=node('div');d.body.append(field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);function draw(){list.replaceChildren();const q=search.value.trim().toLowerCase();for(const c of (data.contractsV202||[]).filter(c=>[c.contract_no,c.tenant,c.tenantProfile?.nameEn].some(v=>String(v||'').toLowerCase().includes(q))))list.append(button(`${c.contract_no} · ${c.tenant||translateStatic('غير مدون')} · ${translateStatic(states[c.status]||c.status)}`,()=>show(c.id)));if(!list.children.length)list.append(node('p',translateStatic('لا توجد عقود مطابقة.')));}search.oninput=draw;draw();d.status.textContent=translateStatic('تم استرجاع العقود من قاعدة البيانات.');}
+ async function home(){await load();clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(node('p',translateStatic('ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.')),button(translateStatic('إبرام عقد جديد / New rental contract'),async()=>form(null)),button(translateStatic('تحديث العقود / Refresh'),home));if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إدارة واعتماد قوالب العقود'),manageTemplates));const search=input('search'),list=node('div');d.body.append(field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);function draw(){list.replaceChildren();const q=search.value;for(const c of (data.contractsV202||[]).filter(c=>matchesContract(c,q,data.tenantProfilesV267||[])))list.append(button(`${c.contract_no} · ${c.tenant||translateStatic('غير مدون')} · ${translateStatic(states[c.status]||c.status)}`,()=>show(c.id)));if(!list.children.length)list.append(node('p',translateStatic('لا توجد عقود مطابقة.')));}search.oninput=draw;draw();d.status.textContent=translateStatic('تم استرجاع العقود من قاعدة البيانات.');}
  async function form(existing,renewal=null){await loadBindings();clear(existing?translateStatic('تعديل بيانات العقد مع حفظ السجل السابق'):translateStatic('إبرام عقد جديد'));d.body.append(backButton());const f=node('form'),g=node('div');g.className='aq267-grid';
   const templateBox=node('section');let selectedTemplate=existing?.contractTemplate||null;
   const profiles=data.tenantProfilesV267||[],tenant=select([['',translateStatic('اختر المستأجر')],...profiles.map(p=>[p.id,(p.nameAr||p.nameEn)+' / '+(p.nameEn||'')])],existing?.tenantId||renewal?.source.tenant_ref||''),property=select([['',translateStatic('اختر العقار')],...properties.map(p=>[p.name,p.name])],existing?.property||renewal?.source.property||''),unit=select([['',translateStatic('اختر الوحدة')]]),details=node('dl');tenant.required=property.required=unit.required=true;
@@ -90,6 +103,7 @@ export function openRentalContracts(initial={}){
   else await mountRentalTemplatePicker(d,templateBox,{onChange:value=>{selectedTemplate=value;save.disabled=!value;},onManage:manageTemplates});
  }
  async function show(id){await load();const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');clear(translateStatic('عقد ')+c.contract_no);d.body.append(backButton(),node('p',translateStatic(states[c.status]||c.status)+' · '+c.property+' · '+c.unit));
+  d.body.append(button(translateStatic('كشوف العقارات المحفوظة'),()=>openContractStatements(d,c)));
   d.body.append(button(translateStatic('مسح أو رفع العقد ومرفقاته'),async()=>{const m=await import('./document-scanner.js');d.session.check();d.close();return m.openDocumentScanner({type:'lease',ref:String(c.id),category:'lease_contract',onBack:()=>openRentalContracts({id:c.id})});}));
   if(c.source==='statement-import'){await showDocuments(id);d.body.append(node('p',translateStatic('هذا عقد مستورد محفوظ للمراجعة. تُحسم بياناته من المرجع الأصلي عبر مسار اعتماد عقود المصدر.')));d.status.textContent=translateStatic('تم فتح مرجع العقد المستورد دون تعديل بيانات المصدر.');return;}
   if(['approved','signed','expired'].includes(c.status))d.body.append(button(translateStatic('تجديد بعقد جديد'),async()=>form(null,await loadLeaseRenewal(d,String(c.id)))));
