@@ -28,7 +28,7 @@ const sectionAnchor="box.className='aq267-service-group';box.dataset.group=group
 const sectionReplacement="box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};count.className='aq267-service-count';";
 const nativeSectionReplacement=sectionReplacement.replace("summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};",'/* Native summary activation owns expansion for touch, mouse and keyboard. */');
 if(directorySource.includes(sectionReplacement))directorySource=directorySource.replace(sectionReplacement,nativeSectionReplacement);
-if(directorySource.includes(nativeSectionReplacement)){}else if(directorySource.includes(sectionAnchor))directorySource=directorySource.replace(sectionAnchor,nativeSectionReplacement);
+if(directorySource.includes("summary.className='aq267-service-heading'")){}else if(directorySource.includes(nativeSectionReplacement)){}else if(directorySource.includes(sectionAnchor))directorySource=directorySource.replace(sectionAnchor,nativeSectionReplacement);
 else if(!directorySource.includes(sectionReplacement))throw Error('V267_SERVICE_DIRECTORY_SECTION_ANCHOR_MISSING');
 const serviceIconAnchor="button.dataset.service=group.key;";
 const serviceIconReplacement="button.dataset.service=item.source?.dataset?.aq267Label||group.key;";
