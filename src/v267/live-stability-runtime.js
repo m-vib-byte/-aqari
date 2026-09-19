@@ -6,6 +6,15 @@ let refreshQueued=false,observer=null,dataKey='',dataFlight=0,dataSession=null,l
 let ui=value=>value,liveReport=null,referenceReport=null;
 const escapeText=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
+async function withDeadline(load,timeout=8000){
+ let timer;
+ try{
+  return await Promise.race([
+   Promise.resolve().then(load),
+   new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('MODULE_LOAD_TIMEOUT')),timeout);})
+  ]);
+ }finally{clearTimeout(timer);}
+}
 function scope(){
  try{
   const c=window.AQARI_SUPABASE?.context,m=c?.membership,d=window.AQARI_DATA_GATE?.scope,s=window.AQARI_EARLY_STORAGE_GATE?.scope;
@@ -94,7 +103,7 @@ async function loadLiveData(force=false){
  const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent=ui('جارٍ قراءة المؤشرات…');
  const button=document.getElementById('aqLiveRefresh');if(button){button.disabled=true;button.onclick=()=>loadLiveData(true);}
  try{
-  const [{createSession},{readManagementCounters,kuwaitDay},{readLiveDashboard,readReferenceDashboard}]=await Promise.all([import('./api/session.js'),import('./components/management-counters.js'),import('./components/live-dashboard-data.js')]);
+  const [{createSession},{readManagementCounters,kuwaitDay},{readLiveDashboard,readReferenceDashboard}]=await withDeadline(()=>Promise.all([import('./api/session.js'),import('./components/management-counters.js'),import('./components/live-dashboard-data.js')]));
   if(token!==dataFlight||JSON.stringify(scope())!==key)return;
   const session=createSession();dataSession=session;await session.connect();
   const day=kuwaitDay();
@@ -171,7 +180,7 @@ async function loadOwnerShares(propertyId){
  if(!propertyId){empty(host,'اختر العقار لعرض حصص الملاك.');return;}
  empty(host,'جارٍ قراءة المؤشرات…');let session;
  try{
-  const {createSession}=await import('./api/session.js');session=createSession();await session.connect();
+  const {createSession}=await withDeadline(()=>import('./api/session.js'));session=createSession();await session.connect();
   const report=await session.request(session.client.rpc('aqari_property_ownership',{p_workspace_id:bound.workspace,p_action:'context',p_data:{propertyId}}));session.check();
   if(token!==ownerFlight||JSON.stringify(scope())!==JSON.stringify(bound))return;
   if(report?.workspace_id!==bound.workspace||report?.user_id!==bound.user||report?.property_id!==propertyId)throw Error('scope');
