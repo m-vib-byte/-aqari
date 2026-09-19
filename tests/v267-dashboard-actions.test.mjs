@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {guardPageImport} from '../src/v267/components/navigation-import.js';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const live=read('src/v267/live-stability-runtime.js');
@@ -18,7 +19,7 @@ test('unit addition opens the property chooser without entering the inspection s
  const source=read('src/v267/owner-feedback-runtime.js');
  const code=source.slice(source.indexOf('async function openUnitAction(){'),source.indexOf('async function openTenantAction(){')).replace("import('./pages/unit-entry.js')",'loadEntry()');
  for(const active of [true,false]){
-  const calls=[],messages=[],box={scope:()=>active,loadEntry:async()=>({openUnitEntry:()=>{calls.push('chooser');return true;}}),t:x=>x,setStatus:x=>messages.push(x)};
+  const calls=[],messages=[],box={guardPageImport,scope:()=>active,loadEntry:async()=>({openUnitEntry:()=>{calls.push('chooser');return true;}}),t:x=>x,setStatus:x=>messages.push(x)};
   vm.createContext(box);vm.runInContext(code,box);assert.equal(await box.openUnitAction(),active);
   assert.deepEqual(calls,active?['chooser']:[]);assert.equal(messages.length,0);
  }
