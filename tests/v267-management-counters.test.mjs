@@ -6,7 +6,7 @@ function fixture({permissions={},countOverride,failAt,denyAfter=false,role='gene
  const calls=[];let accessReads=0,inFlight=0,maxInFlight=0,closed=false;
  const day='2026-09-13',lease=(id,end,status='signed',start='2026-01-01',workspace_id='w')=>({id,workspace_id,start_date:start,end_date:end,status});
  const rows={
-  aqari_properties:[{id:'p',workspace_id:'w'},{id:'foreign',workspace_id:'other'}],
+  aqari_properties:[{id:'p',workspace_id:'w',metadata:{}},{id:'source',workspace_id:'w',metadata:{source_only:true}},{id:'foreign',workspace_id:'other',metadata:{}}],
   aqari_tenants:Array.from({length:1501},(_,i)=>({id:'t'+i,workspace_id:'w'})),
   aqari_leases:[lease('today',day),lease('day30','2026-10-13'),lease('day31','2026-10-14'),lease('day60','2026-11-12'),lease('day61','2026-11-13'),lease('day90','2026-12-12'),lease('day91','2026-12-13'),lease('old','2026-09-12'),lease('explicit-expired','2026-09-12','expired'),lease('draft','2027-01-01','draft'),lease('ready','2027-01-01','ready'),lease('approved','2027-01-01','approved'),lease('signing','2027-01-01','signing'),lease('cancelled','2026-09-20','cancelled'),lease('future','2026-10-01','signed','2026-09-14'),lease('foreign','2026-09-20','signed','2026-01-01','other')],
   aqari_maintenance_requests:['received','assigned','in_progress','completed','cancelled'].map((status,i)=>({id:'m'+i,workspace_id:'w',status}))
@@ -16,6 +16,7 @@ function fixture({permissions={},countOverride,failAt,denyAfter=false,role='gene
   constructor(table){this.table=table;this.filters=[];}
   select(columns,options){assert.equal(columns,'id');assert.deepEqual(options,{count:'exact',head:true});return this;}
   eq(k,v){this.filters.push(r=>r[k]===v);if(k==='workspace_id')assert.equal(v,'w');return this;}
+  or(expression){assert.equal(expression,'metadata->>source_only.is.null,metadata->>source_only.neq.true');this.filters.push(r=>r.metadata?.source_only!==true);return this;}
   in(k,v){this.filters.push(r=>v.includes(r[k]));return this;}
   lte(k,v){this.filters.push(r=>r[k]<=v);return this;}
   gte(k,v){this.filters.push(r=>r[k]>=v);return this;}
