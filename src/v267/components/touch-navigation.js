@@ -4,7 +4,7 @@ export function installTouchNavigation(root, now=()=>Date.now()) {
  const listeners=[];
  const target=event=>{
   const button=event.target?.closest?.('button');
-  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,#aq267-service-dialog,.aq267-contracts')&&!button.disabled?button:null;
+  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,#aq267-service-dialog,.aq267-contracts,.aq267-dialog')&&!button.disabled?button:null;
  };
  const on=(name,handler)=>{root.addEventListener(name,handler,true);listeners.push([name,handler]);};
  on('pointerdown',event=>{
@@ -32,8 +32,11 @@ export function installTouchNavigation(root, now=()=>Date.now()) {
   if(recent&&event.isTrusted&&event.detail!==0&&now()-recent.time<=800&&button===recent.button){
    recent=null;event.preventDefault();event.stopImmediatePropagation();return;
   }
-  // Directory and rental-contract controls own their action before legacy document-level routers.
-  if(button?.closest?.('#aq267-service-dialog[open],.aq267-contracts[open]')&&!button.disabled&&typeof button.onclick==='function'){
+  // Shared V267 dialog actions run before legacy document routers.
+  // Form submit/reset controls retain native validation and default behavior.
+  const owned=button?.closest?.('#aq267-service-dialog[open],.aq267-contracts[open]')||
+   (button?.closest?.('.aq267-dialog[open]')&&(!button.form||button.type==='button'));
+  if(owned&&!button.disabled&&typeof button.onclick==='function'){
    event.preventDefault();event.stopImmediatePropagation();button.onclick.call(button,event);
   }
  });
