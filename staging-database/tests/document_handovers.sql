@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic fixtures only. Source rows, account fixtures and Storage metadata roll back.
 begin;
 create temporary table handover_before as select
@@ -12,7 +14,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('f267ad00-0000-4000-8000-000000000001','handover-manager@example.invalid',now()),
  ('f267ad00-0000-4000-8000-000000000002','handover-viewer@example.invalid',now());
 select set_config('request.jwt.claim.sub','f267ad00-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"sub":"f267ad00-0000-4000-8000-000000000001","aal":"aal2"}',true);
+select set_config('request.jwt.claims',('{"sub":"f267ad00-0000-4000-8000-000000000001","aal":"aal2"}'::jsonb||jsonb_build_object('amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint))))::text,true);
 select set_config('handover.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('f267ad10-0000-4000-8000-000000000001',current_setting('handover.workspace')::uuid,'handover-a','عقار تسليم اصطناعي أ','{}'),

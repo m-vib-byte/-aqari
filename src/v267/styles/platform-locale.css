@@ -1,5 +1,8 @@
 /* AQARI V267 global locale direction and account language control. Presentation only. */
 @media screen{
+/* The legacy shell sets RTL explicitly; follow the selected language. */
+html[dir] #aqOwnerExactShell,html[dir] #aqOwnerExactHome{direction:inherit}
+
 .aq-platform-language{min-height:48px;display:flex;align-items:center;gap:8px;padding:5px 8px 5px 11px;border:1px solid #d0b693;border-radius:12px;background:#fffaf3;color:#4b392f;white-space:nowrap}
 .aq-platform-language>span{font-size:.68rem;font-weight:760;color:#7b6656}
 .aq-platform-language select{min-width:86px;min-height:36px;margin:0!important;padding:0 8px!important;border:0!important;border-radius:8px!important;background:#f4e8d7!important;color:#4a372c!important;font:inherit!important;font-size:.78rem!important;font-weight:760!important;box-shadow:none!important}
@@ -17,3 +20,4 @@ html[dir="rtl"] body :is(input,textarea){text-align:right}
 }
 @media (max-width:699px){.aq-platform-language{min-height:42px;padding:3px 6px}.aq-platform-language>span{display:none}.aq-platform-language select{min-width:72px;min-height:34px;font-size:.74rem!important}}
 }
+

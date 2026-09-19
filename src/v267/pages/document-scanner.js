@@ -35,7 +35,7 @@ const DOCUMENT_CATALOG={
 const IMAGE_MIMES=new Set(['image/jpeg','image/png','image/webp','image/heic','image/heif']);
 const SUPPORTED_MIMES=new Set([...IMAGE_MIMES,'application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
 const extension=mime=>mime==='application/pdf'?'.pdf':mime==='application/vnd.openxmlformats-officedocument.wordprocessingml.document'?'.docx':'.jpg';
-const categoryLabel=value=>Object.values(DOCUMENT_CATALOG).flat().find(([key])=>key===value)?.[1]||value||'';
+const categoryLabel=value=>{const source=Object.values(DOCUMENT_CATALOG).flat().find(([key])=>key===value)?.[1];return source?t(source):value||'';};
 
 export async function openDocumentScanner(initial={}){
  const dialog=createDialog(t('مسح المستندات ورفع الوثائق'),{localized:true});if(!dialog)return;
@@ -122,7 +122,7 @@ export async function openDocumentScanner(initial={}){
    list.append(card);}
   if(!rows.length)list.append(node('p',t('لا توجد مستندات لهذا السجل.')));previous.hidden=page===0;next.hidden=rows.length<20;}
  type.onchange=()=>run(async()=>{refreshCategories();await loadRecords();});
- category.onchange=()=>{reviewed.checked=false;reviewField.hidden=!(type.value==='lease'&&category.value==='lease_contract');if(!title.value.trim()||Object.values(DOCUMENT_CATALOG).flat().some(([,label])=>label===title.value.trim()))title.value=categoryLabel(category.value);};
+ category.onchange=()=>{reviewed.checked=false;reviewField.hidden=!(type.value==='lease'&&category.value==='lease_contract');if(!title.value.trim()||Object.values(DOCUMENT_CATALOG).flat().some(([,label])=>t(label)===title.value.trim()))title.value=categoryLabel(category.value);};
  search.onclick=()=>run(loadRecords);records.onchange=()=>run(async()=>{page=0;pending=null;reviewed.checked=false;await loadDocuments();status.textContent=t('تم تحديث مستندات السجل المحدد.');});reload.onclick=()=>run(async()=>{await loadDocuments();status.textContent=t('تمت إعادة القراءة من قاعدة البيانات.');});
  save.onclick=()=>run(async()=>{
   if(!records.value||!category.value||!title.value.trim()||(!blob&&!pages.length))throw Error('حدد السجل وتصنيف المستند والعنوان والملف قبل الرفع.');
@@ -146,3 +146,4 @@ export async function openDocumentScanner(initial={}){
  dialog.onDispose(()=>{renderId++;img=null;blob=null;pending=null;pages.length=0;file.value=camera.value='';pagesList.replaceChildren();preview.removeAttribute('src');previewUrl=null;});
  rotate.disabled=addPage.disabled=true;cropBox.hidden=true;refreshCategories();await run(loadRecords);
 }
+

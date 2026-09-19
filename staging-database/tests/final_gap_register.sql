@@ -1,8 +1,10 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated acceptance/rejection test; all synthetic data rolls back.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('gap-manager@example.invalid','مدير اختبار الفجوات','general_manager','aqari-v267-staging'),('gap-accountant@example.invalid','محاسب اختبار الفجوات','accountant','aqari-v267-staging'),('gap-tenant@example.invalid','مستأجر اختبار الفجوات','viewer','aqari-v267-staging');
 insert into auth.users(id,email,email_confirmed_at)values('7f690000-0000-4000-8000-000000000001','gap-manager@example.invalid',now()),('7f690000-0000-4000-8000-000000000002','gap-accountant@example.invalid',now()),('7f690000-0000-4000-8000-000000000003','gap-tenant@example.invalid',now());
-select set_config('request.jwt.claim.sub','7f690000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','7f690000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('gap.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)values('7f690000-0000-4000-8000-000000000010',current_setting('gap.w')::uuid,'gap-property','عقار اختبار الفجوات','{}');
 insert into public.aqari_units(id,workspace_id,property_id,unit_no)values('7f690000-0000-4000-8000-000000000011',current_setting('gap.w')::uuid,'7f690000-0000-4000-8000-000000000010','GAP-1');

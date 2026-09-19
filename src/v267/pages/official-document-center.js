@@ -1,3 +1,5 @@
+import {message as visibleMessage} from '../components/locale.js';
+import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {OFFICIAL_FORM_TEMPLATES,renderOfficialForm} from '../components/document-catalog.js';
 import {officialFields,validateOfficialValues} from '../components/official-form-fields.js';
@@ -11,13 +13,13 @@ function saveBlob(blob,name){const url=URL.createObjectURL(blob),a=node('a');a.h
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 
 export function openOfficialDocumentCenter(){
- const d=createDialog('مركز النماذج الرسمية والأرشيف');if(!d)return;
+ const d=createDialog(translateStatic('مركز النماذج الرسمية والأرشيف'));if(!d)return;
  let items=[],pending=false,preparing=false,context=null,contextEpoch=0,fields=new Map(),replacement=null,unconfirmed=null,numberRequest=null;
- const intro=node('p','اختر السجل والحركة المحفوظة. الحقول المسترجعة من قاعدة البيانات للقراءة فقط. يحفظ كل تصحيح إصداراً جديداً مع إبقاء الأصل.'),form=node('form'),kind=node('select'),entity=node('select'),source=node('select'),editor=node('section'),reason=input(),list=node('section');
- const submit=Object.assign(node('button','إصدار وحفظ'),{type:'submit'}),retry=Object.assign(node('button','التحقق من الحفظ السابق'),{type:'button',hidden:true}),cancel=Object.assign(node('button','إلغاء التصحيح'),{type:'button',hidden:true});
+ const intro=node('p',translateStatic('اختر السجل والحركة المحفوظة. الحقول المسترجعة من قاعدة البيانات للقراءة فقط. يحفظ كل تصحيح إصداراً جديداً مع إبقاء الأصل.')),form=node('form'),kind=node('select'),entity=node('select'),source=node('select'),editor=node('section'),reason=input(),list=node('section');
+ const submit=Object.assign(node('button',translateStatic('إصدار وحفظ')),{type:'submit'}),retry=Object.assign(node('button',translateStatic('التحقق من الحفظ السابق')),{type:'button',hidden:true}),cancel=Object.assign(node('button',translateStatic('إلغاء التصحيح')),{type:'button',hidden:true});
  for(const [key,spec] of Object.entries(OFFICIAL_FORM_TEMPLATES))kind.append(option(key,spec.title));
  kind.value='rent_receipt';entity.required=true;reason.required=true;reason.maxLength=500;
- form.append(field('نوع النموذج',kind),field('السجل المرتبط',entity),field('الحركة المحفوظة',source),editor,field('سبب الإصدار أو التصحيح',reason),submit,cancel,retry);d.body.append(intro,form,list);
+ form.append(field(translateStatic('نوع النموذج'),kind),field(translateStatic('السجل المرتبط'),entity),field(translateStatic('الحركة المحفوظة'),source),editor,field(translateStatic('سبب الإصدار أو التصحيح'),reason),submit,cancel,retry);d.body.append(intro,form,list);
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_official_document_register',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
  const run=task=>d.run(task).finally(()=>{if(!d.closed)controls();});
  const raw=()=>Object.fromEntries([...fields].map(([key,control])=>[key,control.value]));
@@ -28,9 +30,9 @@ export function openOfficialDocumentCenter(){
    const control=spec.multiline?node('textarea'):input(spec.type==='date'?'date':spec.type==='month'?'month':'text');
    control.required=true;control.maxLength=spec.maxLength;control.name=spec.key;
    if(spec.type==='decimal')control.inputMode='decimal';
-   const locked=Object.hasOwn(defaults,spec.key)&&!['collectionDate','fromDate','toDate','dueDate'].includes(spec.key);control.readOnly=locked||spec.key==='documentNo';if(spec.key==='documentNo'){control.required=false;control.placeholder='يُرقّم تلقائياً عند الحفظ';}
+   const locked=Object.hasOwn(defaults,spec.key)&&!['collectionDate','fromDate','toDate','dueDate'].includes(spec.key);control.readOnly=locked||spec.key==='documentNo';if(spec.key==='documentNo'){control.required=false;control.placeholder=translateStatic('يُرقّم تلقائياً عند الحفظ');}
    control.value=String(locked?defaults[spec.key]??'':retained[spec.key]??defaults[spec.key]??(spec.key==='issuedAt'?today():''));
-   fields.set(spec.key,control);editor.append(field(spec.label+(locked?' — من السجل المحفوظ':''),control));
+   fields.set(spec.key,control);editor.append(field(spec.label+(locked?translateStatic(' — من السجل المحفوظ'):''),control));
   }
  }
  async function refreshContext({keep=false,keepSource=false,initial=false,archived=null}={}){
@@ -41,8 +43,8 @@ export function openOfficialDocumentCenter(){
    const r=await d.session.request(d.session.client.rpc('aqari_official_document_context',query));
    if(epoch!==contextEpoch||d.closed)return;
    if(r?.workspace_id!==d.session.bound.workspace||r.user_id!==d.session.bound.user||r.kind!==selectedKind||r.entity_id!==selectedEntity||r.source_id!==selectedSource||!Array.isArray(r.entities)||!Array.isArray(r.sources)||!r.defaults||typeof r.defaults!=='object'||Array.isArray(r.defaults))throw Error('تعذر تأكيد بيانات النموذج وصلاحيات السجل.');
-   context=r;entity.replaceChildren(option('','اختر السجل المحفوظ'),...r.entities.map(x=>option(x.id,x.label)));entity.value=selectedEntity||'';
-   source.replaceChildren(option('',r.source_required?'اختر الحركة المعتمدة':'لا يتطلب حركة مالية مستقلة'),...r.sources.map(x=>option(x.id,x.label)));source.value=selectedSource||'';source.required=r.source_required;
+   context=r;entity.replaceChildren(option('',translateStatic('اختر السجل المحفوظ')),...r.entities.map(x=>option(x.id,x.label)));entity.value=selectedEntity||'';
+   source.replaceChildren(option('',r.source_required?translateStatic('اختر الحركة المعتمدة'):translateStatic('لا يتطلب حركة مالية مستقلة')),...r.sources.map(x=>option(x.id,x.label)));source.value=selectedSource||'';source.required=r.source_required;
    renderFields(r.defaults,retained);for(const key of ['collectionDate','fromDate','toDate','dueDate'])if(fields.has(key))fields.get(key).onchange=()=>run(()=>refreshContext({keep:true,keepSource:true}));
   }finally{if(epoch===contextEpoch)controls();}
  }
@@ -58,7 +60,7 @@ export function openOfficialDocumentCenter(){
   const verified=request.action==='void'?result.series.status==='void'&&result.series.void_reason===request.data.reason:
    version&&version.workspace_id===d.session.bound.workspace&&version.series_id===request.data.id&&version.content_sha256===request.data.content_sha256&&version.body===request.data.body&&canonical(version.payload)===canonical(request.data.payload);
   if(!verified)throw Error('تعذر تأكيد حفظ المستند؛ استخدم التحقق من الحفظ السابق.');
-  unconfirmed=null;replacement=null;numberRequest=null;cancel.hidden=true;submit.textContent='إصدار وحفظ';await load();d.status.textContent='تم الحفظ والتحقق بإعادة القراءة من قاعدة البيانات.';
+  unconfirmed=null;replacement=null;numberRequest=null;cancel.hidden=true;submit.textContent=translateStatic('إصدار وحفظ');await load();d.status.textContent=translateStatic('تم الحفظ والتحقق بإعادة القراءة من قاعدة البيانات.');
  }
  async function write(action,data){
   if(pending)return;pending=true;unconfirmed={action,data};controls();
@@ -66,12 +68,12 @@ export function openOfficialDocumentCenter(){
  }
  retry.onclick=()=>run(async()=>{if(pending||!unconfirmed)return;pending=true;controls();try{await confirmWrite(unconfirmed,{recover:true});}finally{pending=false;controls();}});
  kind.onchange=()=>run(()=>refreshContext({initial:true}));entity.onchange=()=>run(()=>refreshContext());source.onchange=()=>run(()=>refreshContext({keep:true,keepSource:true}));
- cancel.onclick=()=>run(async()=>{replacement=null;cancel.hidden=true;submit.textContent='إصدار وحفظ';await refreshContext({initial:true});});
+ cancel.onclick=()=>run(async()=>{replacement=null;cancel.hidden=true;submit.textContent=translateStatic('إصدار وحفظ');await refreshContext({initial:true});});
  form.onsubmit=e=>{e.preventDefault();if(pending||preparing||unconfirmed||!context)return;return run(async()=>{
   if(pending||preparing||unconfirmed||!context)return;
   if(!entity.value||(context.source_required&&!source.value))throw Error('اختر السجل والحركة المحفوظة أولاً.');
   if(reason.value.trim().length<3)throw Error('أدخل سبب الإصدار أو التصحيح.');
-  const values=validateOfficialValues(kind.value,{...raw(),documentNo:replacement?.document_no||'رقم سيصدر آلياً'});
+  const values=validateOfficialValues(kind.value,{...raw(),documentNo:replacement?.document_no||translateStatic('رقم سيصدر آلياً')});
   const payload={...context.defaults,...values};if(source.value)payload.sourceId=source.value;
   preparing=true;controls();try{
   numberRequest||={id:uuid(),kind:kind.value,entityId:entity.value};
@@ -93,15 +95,15 @@ export function openOfficialDocumentCenter(){
   if(!/^[a-f0-9]{64}$/.test(expected||'')||expected!==actual||!['issued','void'].includes(status))throw Error('لم تتطابق بصمة الملف مع الأرشيف. لم يتم التنزيل.');
   const finalAuth=await d.session.client.auth.getSession();d.session.check();if(finalAuth?.data?.session?.user?.id!==d.session.bound.user||!finalAuth?.data?.session?.access_token)throw Error('تغيرت جلسة الدخول. لم يتم تنزيل الملف.');
   return {blob,status};});
-  d.session.check();saveBlob(blob,item.document_no+'-v'+item.current_version+(status==='void'?'-ملغى':'')+'.pdf');
-  d.status.textContent=status==='void'?'نُزّلت النسخة الأصلية المؤرشفة لمستند ملغى؛ تبقى حالة الإلغاء موثقة في السجل.':'تم تنزيل النسخة المؤرشفة والتحقق من بصمتها. للطباعة افتح الملف ثم اختر طباعة.';
+  d.session.check();saveBlob(blob,item.document_no+'-v'+item.current_version+(status==='void'?translateStatic('-ملغى'):'')+'.pdf');
+  d.status.textContent=status==='void'?translateStatic('نُزّلت النسخة الأصلية المؤرشفة لمستند ملغى؛ تبقى حالة الإلغاء موثقة في السجل.'):translateStatic('تم تنزيل النسخة المؤرشفة والتحقق من بصمتها. للطباعة افتح الملف ثم اختر طباعة.');
  }
  async function historyOf(item){const r=await rpc('get',{id:item.id});if(r?.series?.id!==item.id||r.series.workspace_id!==d.session.bound.workspace||!Array.isArray(r.versions))throw Error('تعذر تأكيد أرشيف المستند.');return r;}
- function render(){list.replaceChildren(node('h3','الإصدارات المحفوظة'));
-  for(const item of items){const card=node('article'),title=node('h4',`${item.document_no} — ${item.version.title}`),meta=node('p',`الإصدار ${item.current_version} • ${item.status==='void'?'ملغى':'صادر'} • ${item.version.issued_by_name}`),download=node('button','تنزيل PDF'),history=node('button','عرض جميع الإصدارات');download.type=history.type='button';
-   const archive=node('section');download.onclick=()=>run(()=>pdf(item));history.onclick=()=>run(async()=>{const result=await historyOf(item);archive.replaceChildren(node('h5','النسخ المؤرشفة'));for(const v of result.versions){const previous=node('button',`تنزيل الإصدار ${v.version}`);previous.type='button';previous.onclick=()=>run(()=>pdf({...item,current_version:v.version}));archive.append(previous);}d.status.textContent='تم استرجاع النسخ المحفوظة.';});card.append(title,meta,download,history,archive);
-   if(item.status==='issued'){const replace=node('button','إنشاء إصدار مصحح'),voidButton=node('button','إلغاء موثق');replace.type=voidButton.type='button';
-    replace.onclick=()=>run(async()=>{if(pending||unconfirmed)return;const r=await historyOf(item),v=r.versions.find(x=>x.version===item.current_version);if(!v?.payload)throw Error('تعذر استرجاع محتوى الإصدار.');replacement=item;kind.value=item.kind;await refreshContext({keep:true,archived:{entityId:item.entity_id,sourceId:v.payload.sourceId||null,payload:v.payload}});cancel.hidden=false;submit.textContent='حفظ إصدار مصحح';});
+ function render(){list.replaceChildren(node('h3',translateStatic('الإصدارات المحفوظة')));
+  for(const item of items){const card=node('article'),title=node('h4',`${item.document_no} — ${item.version.title}`),meta=node('p',visibleMessage("الإصدار {value0} • {value1} • {value2}",{value0:(item.current_version),value1:(item.status==='void'?translateStatic('ملغى'):translateStatic('صادر')),value2:(item.version.issued_by_name)})),download=node('button',translateStatic('تنزيل PDF')),history=node('button',translateStatic('عرض جميع الإصدارات'));download.type=history.type='button';
+   const archive=node('section');download.onclick=()=>run(()=>pdf(item));history.onclick=()=>run(async()=>{const result=await historyOf(item);archive.replaceChildren(node('h5',translateStatic('النسخ المؤرشفة')));for(const v of result.versions){const previous=node('button',visibleMessage("تنزيل الإصدار {value0}",{value0:(v.version)}));previous.type='button';previous.onclick=()=>run(()=>pdf({...item,current_version:v.version}));archive.append(previous);}d.status.textContent=translateStatic('تم استرجاع النسخ المحفوظة.');});card.append(title,meta,download,history,archive);
+   if(item.status==='issued'){const replace=node('button',translateStatic('إنشاء إصدار مصحح')),voidButton=node('button',translateStatic('إلغاء موثق'));replace.type=voidButton.type='button';
+    replace.onclick=()=>run(async()=>{if(pending||unconfirmed)return;const r=await historyOf(item),v=r.versions.find(x=>x.version===item.current_version);if(!v?.payload)throw Error('تعذر استرجاع محتوى الإصدار.');replacement=item;kind.value=item.kind;await refreshContext({keep:true,archived:{entityId:item.entity_id,sourceId:v.payload.sourceId||null,payload:v.payload}});cancel.hidden=false;submit.textContent=translateStatic('حفظ إصدار مصحح');});
     voidButton.onclick=()=>run(async()=>{if(pending||unconfirmed)return;if(reason.value.trim().length<3)throw Error('أدخل سبب الإلغاء.');await write('void',{id:item.id,event_id:uuid(),reason:reason.value.trim()});});card.append(replace,voidButton);
    }list.append(card);
   }
@@ -109,3 +111,4 @@ export function openOfficialDocumentCenter(){
  d.onDispose(()=>{contextEpoch++;items=[];fields.clear();context=null;unconfirmed=null;});
  renderFields();controls();run(async()=>{await load();await refreshContext({initial:true});});
 }
+

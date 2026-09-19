@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic acceptance in one rollback transaction; no DDL or stored PDFs changed.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values('76a10000-0000-4000-8000-000000000900','supplemental-source-test','Synthetic supplemental source');
@@ -9,7 +11,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76a10000-0000-4000-8000-000000000001','supplemental-manager@example.invalid',now()),
  ('76a10000-0000-4000-8000-000000000002','supplemental-accountant@example.invalid',now());
 select set_config('request.jwt.claim.sub','76a10000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 do $$declare w uuid:=('76a10000-0000-4000-8000-'||lpad((900)::text,12,'0'))::uuid;n integer;begin
  for n in 1..7 loop
   insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values(('76a10000-0000-4000-8000-'||lpad((100+n)::text,12,'0'))::uuid,w,'SUP-P-'||n,'عقار مصدر '||n,'{}');
@@ -40,14 +42,14 @@ do $$declare w uuid:=('76a10000-0000-4000-8000-'||lpad((900)::text,12,'0'))::uui
    perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
    begin perform public.aqari_vacating_settlement(w,'save',d);raise exception 'AAL1_SAVED_SETTLEMENT';
    exception when insufficient_privilege then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
-   perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+   perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
   end if;
   r:=public.aqari_vacating_settlement(w,'save',d);
   if n=1 then
    perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
    begin perform public.aqari_vacating_settlement(w,'finalize',jsonb_build_object('lease_id',('76a10000-0000-4000-8000-'||lpad((401)::text,12,'0'))::uuid,'revision',r#>>'{settlement,revision}'));raise exception 'AAL1_FINALIZED_SETTLEMENT';
    exception when insufficient_privilege then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
-   perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+   perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
   end if;
   r:=public.aqari_vacating_settlement(w,'finalize',jsonb_build_object('lease_id',('76a10000-0000-4000-8000-'||lpad((400+n)::text,12,'0'))::uuid,'revision',r#>>'{settlement,revision}'));
   if n in(2,3) and (r#>'{settlement,settlement_snapshot}') ? 'utility_balance' then raise exception 'OPEN_BILL_CAPTURED_AS_ZERO';end if;
@@ -95,7 +97,7 @@ set local role authenticated;
 do $$declare w uuid:=('76a10000-0000-4000-8000-'||lpad((900)::text,12,'0'))::uuid;reqs jsonb:=current_setting('supp.requests')::jsonb;r jsonb;n integer;expected text;begin
  perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
  begin perform public.aqari_official_document_register(w,'issue',reqs->0);raise exception 'AAL1_ISSUED_FINAL_SETTLEMENT';exception when insufficient_privilege then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
  r:=public.aqari_official_document_register(w,'issue',reqs->0);
  if r#>>'{version,payload,netBalance}' is distinct from '0.000' then raise exception 'VALID_ZERO_ISSUE_FAILED';end if;
  for n in 2..7 loop

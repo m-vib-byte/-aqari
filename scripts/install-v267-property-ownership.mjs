@@ -9,8 +9,9 @@ if(!source.includes(marker)){
  const replacementA="async function ownerStatement(){d.close();const m=await import('./property-owner-statement.js');return m.openPropertyOwnerStatement(propertyId);}\n async function ownershipProfile(){d.close();const m=await import('./property-ownership.js');return m.openPropertyOwnership(propertyId);}\n async function render(){";
  if(!source.includes(anchorA))throw Error('V267_PROPERTY_OWNERSHIP_FUNCTION_ANCHOR_MISSING');
  source=source.replace(anchorA,replacementA);
- const anchorB="if(file.permissions?.finance!==false)head.append(button('مركز تكلفة العقار والتوزيع',financeCenter),button('كشف الملاك المحسوب',ownerStatement));mount('summary',head,p.name);";
- const replacementB="if(file.permissions?.finance!==false)head.append(button('مركز تكلفة العقار والتوزيع',financeCenter),button('كشف الملاك المحسوب',ownerStatement));head.append(button('الملكية والمساحات والورثة',ownershipProfile));mount('summary',head,p.name);";
+ const propertyLabel=text=>source.includes("t as translateStatic")?"translateStatic('"+text+"')":"'"+text+"'";
+ const anchorB="if(file.permissions?.finance!==false)head.append(button("+propertyLabel('مركز تكلفة العقار والتوزيع')+",financeCenter),button("+propertyLabel('كشف الملاك المحسوب')+",ownerStatement));mount('summary',head,p.name);";
+ const replacementB=anchorB.replace("mount('summary',head,p.name);","head.append(button("+propertyLabel('الملكية والمساحات والورثة')+",ownershipProfile));mount('summary',head,p.name);");
  if(!source.includes(anchorB))throw Error('V267_PROPERTY_OWNERSHIP_BUTTON_ANCHOR_MISSING');
  source=source.replace(anchorB,replacementB);
  writeFileSync(path,source);
@@ -52,9 +53,10 @@ console.log('Installed V267 editable service/group display labels without changi
 
 const staffAccessPath=new URL('../src/v267/pages/staff-access.js',import.meta.url);
 let staffAccessSource=readFileSync(staffAccessPath,'utf8');
-const staffAccessAnchor="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;";
-const staffAccessReplacement="const d=createDialog('صلاحيات حسابات الموظفين والعقارات');if(!d)return;d.el?.classList?.add('aq267-staff-access');";
-if(staffAccessSource.includes(staffAccessAnchor))staffAccessSource=staffAccessSource.replace(staffAccessAnchor,staffAccessReplacement);
+const staffTitle=staffAccessSource.includes("t as translateStatic")?"translateStatic('صلاحيات حسابات الموظفين والعقارات')":"'صلاحيات حسابات الموظفين والعقارات'";
+const staffAccessAnchor="const d=createDialog("+staffTitle+");if(!d)return;";
+const staffAccessReplacement=staffAccessAnchor+"d.el?.classList?.add('aq267-staff-access');";
+if(!staffAccessSource.includes(staffAccessReplacement)&&staffAccessSource.includes(staffAccessAnchor))staffAccessSource=staffAccessSource.replace(staffAccessAnchor,staffAccessReplacement);
 else if(!staffAccessSource.includes(staffAccessReplacement))throw Error('V267_STAFF_ACCESS_VISUAL_SCOPE_ANCHOR_MISSING');
 writeFileSync(staffAccessPath,staffAccessSource);
 console.log('Installed V267 visual scope for the audited staff-permission editor.');
@@ -137,7 +139,7 @@ const navigationReplacement=`  function routeNode(target){
 if(navigationSource.includes(navigationAnchor))navigationSource=navigationSource.replace(navigationAnchor,navigationReplacement);
 else if(!navigationSource.includes("window.AQARI_V199_BASE_GO=original"))throw Error('V267_PRIMARY_NAVIGATION_ANCHOR_MISSING');
 if(navigationSource.includes("window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});"))throw Error('V267_PRIMARY_NAVIGATION_UNCONDITIONAL_SCROLL_REMAINS');
-if(!navigationSource.includes("if(routeVisible(target)===true)window.scrollTo({top:0,behavior:'auto'});"))throw Error('V267_PRIMARY_NAVIGATION_VERIFICATION_MISSING');
+if(!navigationSource.includes("if(routeVisible(target)===true)window.scrollTo({top:0,behavior:'auto'});")&&!navigationSource.includes("if(routeReady()===true&&page)"))throw Error('V267_PRIMARY_NAVIGATION_VERIFICATION_MISSING');
 writeFileSync(navigationPath,navigationSource);
 console.log('Installed V267 verified primary-section navigation hotfix for myaqari.com/Safari.');
 
@@ -153,6 +155,8 @@ if(!luxurySource.includes(usabilityMarker)){
 }
 if(!luxurySource.includes(usabilityMarker))throw Error('V267_USABILITY_POLISH_MISSING');
 
+// Validate the final navigation behavior after the existing section-context repair.
+execFileSync(process.execPath,['scripts/install-v267-section-target-navigation.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','v199-ui.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/control-center.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v205-click-routing.test.cjs','tests/v267-manager-control-design.test.mjs','tests/v267-navigation-matrix.test.mjs'],{stdio:'inherit'});

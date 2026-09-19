@@ -1,6 +1,8 @@
+import {workspaceIcon} from './components/workspace-icons.js';
 const RELEASE='V267';
 const ROOT='aqLiveStability';
-let refreshQueued=false,observer=null;
+let refreshQueued=false,observer=null,dataKey='',dataFlight=0,dataSession=null,liveValues=null;
+let ui=value=>value,liveReport=null;
 
 function scope(){
  try{
@@ -15,75 +17,111 @@ function sourceNodes(selector){
 function clean(value){return String(value??'').replace(/\s+/g,' ').trim();}
 function sourceValue(pattern,fallback='—'){
  const candidates=sourceNodes('.v199-kpi,.aq267-counter-card,[data-kpi],.v210-kpis>*');
- const hit=candidates.find(node=>pattern.test(clean(node.textContent)));
+ const hit=candidates.find(node=>{const label=node.querySelector('.v199-kpi-label,dt,[data-kpi-label],span');return pattern.test(clean(label?.textContent));});
  if(!hit)return fallback;
  const value=hit.querySelector('.v199-kpi-value,dd,strong,[data-value]');
  return clean(value?.textContent)||fallback;
 }
 function makeMetric(label,key,tone=''){
- return `<article class="aq-live-metric ${tone}" data-live-card="${key}"><span>${label}</span><strong data-live-value="${key}">—</strong></article>`;
+ const icon=({month:'wallet',today:'wallet',due:'file',properties:'building',units:'grid',contracts:'file',maintenance:'tool',remaining:'clock',tenants:'user',expiring:'clock',occupancy:'grid',expenses:'file',net:'chart'})[key];
+ return `<article class="aq-live-metric ${tone}" data-live-card="${key}"><i aria-hidden="true">${workspaceIcon(icon)}</i><span>${ui(label)}</span><strong data-live-value="${key}">—</strong></article>`;
+}
+function panel(title,body,cls,route=''){
+ return `<article class="aq-live-panel ${cls}"><header><h2>${ui(title)}</h2>${route?`<button type="button" data-exact-route="${route}">${ui('عرض الكل')}</button>`:''}</header>${body}</article>`;
 }
 function dashboardMarkup(){
- return `<section id="${ROOT}" class="aq-live-stability" aria-label="ملخص التشغيل الفعلي">
-  <article class="aq-live-group aq-live-collections"><header><div><small>التحصيل</small><h2>اليوم وهذا الشهر</h2></div><button type="button" data-owner-final-route="collectionProPage">فتح التحصيل</button></header><div class="aq-live-metric-grid">
-   ${makeMetric('تحصيل اليوم','today','success')}${makeMetric('تحصيل الشهر','month','success')}${makeMetric('المستحق','due')}${makeMetric('المتبقي','remaining')}${makeMetric('المتأخر','overdue','danger')}
-  </div></article>
-  <article class="aq-live-group aq-live-portfolio"><header><div><small>المحفظة</small><h2>العقارات والإشغال</h2></div><button type="button" data-owner-final-route="properties">العقارات</button></header><div class="aq-live-metric-grid">
-   ${makeMetric('العقارات','properties')}${makeMetric('الوحدات','units')}${makeMetric('الإشغال','occupancy','success')}${makeMetric('المستأجرون','tenants')}
-  </div></article>
-  <article class="aq-live-group aq-live-followup"><header><div><small>المتابعة</small><h2>العقود والصيانة</h2></div><button type="button" data-owner-final-route="maintenanceProPage">الصيانة</button></header><div class="aq-live-metric-grid">
-   ${makeMetric('العقود النشطة','contracts')}${makeMetric('قريبة الانتهاء','expiring')}${makeMetric('الصيانة المفتوحة','maintenance')}${makeMetric('التنبيهات','alerts','danger')}
-  </div></article>
-  <article class="aq-live-group aq-live-finance"><header><div><small>الأداء المالي</small><h2>المصروفات وصافي التشغيل</h2></div><button type="button" data-unified-section="expenses">فتح المالية</button></header><div class="aq-live-metric-grid">
-   ${makeMetric('المصروفات','expenses')}${makeMetric('صافي التشغيل','net','success')}
-  </div></article>
-  <article class="aq-live-group aq-live-activity"><header><div><small>السجل</small><h2>أحدث العمليات</h2></div><button type="button" data-owner-final-route="reports">التقارير</button></header><div class="aq-live-activity-list" data-live-activity></div></article>
+ return `<section id="${ROOT}" class="aq-live-stability" aria-label="${ui('لوحة الإدارة')}">
+ <section class="aq-live-kpis">${makeMetric('تحصيل الشهر','month','success')}${makeMetric('المستحق','due')}${makeMetric('العقارات','properties')}${makeMetric('الوحدات المرتبطة','units')}${makeMetric('العقود النشطة','contracts')}${makeMetric('الصيانة المفتوحة','maintenance')}</section>
+ <div class="aq-live-update"><span id="aqLiveDataStatus" role="status" aria-live="polite">${ui('جارٍ قراءة المؤشرات…')}</span><button type="button" id="aqLiveRefresh">${ui('تحديث')}</button></div>
+ ${panel('العقارات','<div id="aqLiveProperties" class="aq-live-property-grid"></div>','aq-live-properties','properties')}
+ ${panel('التحصيلات · هذا الشهر',`<div class="aq-live-table-scroll"><table><thead><tr>${['العقار / الوحدة','رقم العقد','المستحق','المحصل','المتبقي'].map(x=>`<th>${ui(x)}</th>`).join('')}</tr></thead><tbody id="aqLiveCollectionRows"></tbody></table></div><p class="aq-live-note">${ui('حسب شهر الاستحقاق؛ تحصيل الشهر أعلاه حسب تاريخ الدفع.')}</p><h3 class="aq-live-activity-title">${ui('أحدث العمليات')}</h3><div id="aqLiveRecentPayments"></div>`,'aq-live-collection-panel','collectionProPage')}
+ ${panel('مساعد AQARI الذكي',`<div class="aq-live-assistant-body"><span class="aq-live-ai-mark">AI</span><h3>${ui('كيف أساعدك اليوم؟')}</h3><p>${ui('اسأل عن بياناتك أو متابعة التحصيل والعقود.')}</p><button type="button" data-exact-special="assistant">${ui('فتح المساعد')}</button><small>${ui('قراءة وإرشاد فقط؛ لا ينفذ عمليات مالية.')}</small></div>`,'aq-live-assistant')}
+ ${panel('إجراءات سريعة',`<div class="aq-live-quick-grid"><button type="button" data-exact-route="tenants">${workspaceIcon('user')}<span>${ui('إضافة مستأجر')}</span></button><button type="button" data-exact-route="properties">${workspaceIcon('building')}<span>${ui('إضافة عقار')}</span></button><button type="button" data-exact-service="rental_contracts">${workspaceIcon('file')}<span>${ui('إنشاء عقد')}</span></button><button type="button" data-exact-route="maintenanceProPage">${workspaceIcon('tool')}<span>${ui('طلب صيانة')}</span></button><button type="button" data-exact-route="collectionProPage">${workspaceIcon('wallet')}<span>${ui('فتح التحصيل')}</span></button><button type="button" data-exact-route="documentsHub">${workspaceIcon('upload')}<span>${ui('رفع مستند')}</span></button></div>`,'aq-live-quick-panel')}
+ ${panel('التنبيهات والمتابعة','<div id="aqLiveFollowups" class="aq-live-followups"></div>','aq-live-alert-panel')}
+ ${panel('تقارير الملاك',`<div class="aq-live-report-body"><div class="aq-live-paper" aria-hidden="true">${workspaceIcon('file')}</div><p>${ui('راجع كشوف العقار والتحصيل والمستندات المحفوظة.')}</p><button type="button" data-exact-route="reports">${ui('فتح التقارير')}</button></div>`,'aq-live-report')}
+ <details class="aq-live-secondary-details"><summary>${ui('المحفظة')}</summary><section class="aq-live-secondary">${makeMetric('تحصيل اليوم','today','success')}${makeMetric('المتبقي','remaining')}${makeMetric('المستأجرون','tenants')}${makeMetric('تنتهي خلال 30 يومًا','expiring')}${makeMetric('الإشغال المسجل','occupancy')}${makeMetric('المصروفات المعتمدة','expenses')}${makeMetric('صافي السجلات','net')}</section></details>
+ <p class="aq-live-disclosure">${ui('المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.')}</p>
  </section>`;
 }
 function ensureDashboard(){
  const home=document.getElementById('aqOwnerExactHome');
- if(!home||document.getElementById(ROOT))return;
- const anchor=home.querySelector('.aq-exact-kpis')||home.querySelector('.aq-exact-hero');
- if(anchor)anchor.insertAdjacentHTML('afterend',dashboardMarkup());else home.insertAdjacentHTML('afterbegin',dashboardMarkup());
+ if(!home)return false;if(document.getElementById(ROOT))return true;
+ const hero=home.querySelector('.aq-exact-hero');
+ if(hero)hero.insertAdjacentHTML('afterend',dashboardMarkup());else home.insertAdjacentHTML('afterbegin',dashboardMarkup());
+ return Boolean(document.getElementById(ROOT));
 }
 function setValue(key,value){
  const node=document.querySelector(`[data-live-value="${key}"]`);if(!node)return;
- const text=clean(value)||'—';node.textContent=text;node.closest('[data-live-card]')?.classList.toggle('is-missing',text==='—');
+ const text=clean(value)||'—';if(node.textContent!==text)node.textContent=text;node.closest('[data-live-card]')?.classList.toggle('is-missing',text==='—');
 }
 function refreshMetrics(){
- const map={
-  today:sourceValue(/تحصيل اليوم|اليوم.*تحصيل/i),
-  month:sourceValue(/إجمالي التحصيل|تحصيل الشهر|المحصل.*الشهر/i),
-  due:sourceValue(/المستحق|الإيراد المتوقع/i),
-  remaining:sourceValue(/المتبقي/i),
-  overdue:sourceValue(/المتأخر/i),
-  properties:sourceValue(/العقارات المسجلة|إجمالي العقارات|عقار مسجل/i),
-  units:sourceValue(/الوحدات/i),
-  occupancy:sourceValue(/نسبة الإشغال|الإشغال/i),
-  tenants:sourceValue(/المستأجرون|المستأجرين/i),
-  contracts:sourceValue(/العقود الفعالة|العقود الفعّالة|العقود النشطة/i),
-  expiring:sourceValue(/قريبة.*الانتهاء|تنتهي.*30|انتهاء.*30/i),
-  maintenance:sourceValue(/الصيانة المفتوحة|بلاغات الصيانة|الصيانة/i),
-  alerts:sourceValue(/التنبيهات|المهام/i),
-  expenses:sourceValue(/المصروفات/i),
-  net:sourceValue(/صافي التشغيل|الصافي/i)
- };
- for(const [key,value] of Object.entries(map))setValue(key,value);
+ if(liveValues)for(const [key,value] of Object.entries(liveValues))setValue(key,formatMetric(key,value));
 }
-function refreshActivity(){
- const host=document.querySelector('[data-live-activity]');if(!host)return;
- const rows=sourceNodes('.v199-activity-row,.aq267-audit-row,[data-audit-row],.v199-priority-item').map(row=>clean(row.textContent)).filter(Boolean).slice(0,6);
+function formatMetric(key,value){
+ if(value===null||value===undefined)return '—';
+ const locale=({ar:'ar-KW',en:'en-KW',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'})[document.documentElement.lang]||'ar-KW';
+ if(['today','month','due','remaining','expenses','net'].includes(key))return new Intl.NumberFormat(locale,{style:'currency',currency:'KWD',minimumFractionDigits:3}).format(value);
+ return new Intl.NumberFormat(locale,{maximumFractionDigits:2}).format(value)+(key==='occupancy'?'%':'');
+}
+function clearLiveData(){dataFlight++;dataSession?.close();dataSession=null;dataKey='';liveValues=null;liveReport=null;document.querySelectorAll('[data-live-value]').forEach(node=>{node.textContent='—';});}
+async function loadLiveData(force=false){
+ const bound=scope();if(!bound||!document.getElementById(ROOT))return;
+ const key=JSON.stringify(bound);if(!force&&dataKey===key)return;
+ clearLiveData();dataKey=key;const token=dataFlight;
+ const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent=ui('جارٍ قراءة المؤشرات…');
+ const button=document.getElementById('aqLiveRefresh');if(button){button.disabled=true;button.onclick=()=>loadLiveData(true);}
+ try{
+  const [{createSession},{readManagementCounters,kuwaitDay},{readLiveDashboard}]=await Promise.all([import('./api/session.js'),import('./components/management-counters.js'),import('./components/live-dashboard-data.js')]);
+  if(token!==dataFlight||JSON.stringify(scope())!==key)return;
+  const session=createSession();dataSession=session;await session.connect();
+  const report=await readLiveDashboard(session,kuwaitDay(),readManagementCounters);
+  session.check();if(token!==dataFlight||JSON.stringify(scope())!==key)return;
+  liveReport=report;liveValues=report.values;renderCollectionRows();renderPayments();renderFollowups();for(const [name,value] of Object.entries(liveValues))setValue(name,formatMetric(name,value));
+  if(status)status.textContent=(report.partial?ui('بعض المؤشرات غير متاحة.'):ui('تم التحديث من السجلات.'))+' '+report.day;
+ }catch{if(token===dataFlight&&status)status.textContent=ui('تعذر قراءة المؤشرات. أعد المحاولة.');}
+ finally{if(token===dataFlight){dataSession?.close();dataSession=null;if(button)button.disabled=false;}}
+}
+function empty(host,message){const p=document.createElement('p');p.className='aq-live-empty';p.textContent=ui(message);host.replaceChildren(p);}
+function renderCollectionRows(){
+ const host=document.getElementById('aqLiveCollectionRows');if(!host)return;host.replaceChildren();
+ const rows=liveReport?.collections?.lines;
+ if(!Array.isArray(rows)||!rows.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.textContent=ui(Array.isArray(rows)?'لا توجد استحقاقات مسجلة لهذه الفترة.':'البيانات غير متاحة.');tr.append(td);host.append(tr);return;}
+ for(const row of rows.slice(0,5)){
+  const tr=document.createElement('tr');
+  for(const value of [String(row.property_name??'')+' / '+String(row.unit_no??''),row.contract_no,formatMetric('due',row.due_amount),formatMetric('month',row.allocated_paid),formatMetric('remaining',row.remaining)]){
+   const td=document.createElement('td');td.textContent=String(value??'—');td.dataset.aqRecord='';tr.append(td);
+  }
+  host.append(tr);
+ }
+}
+function renderPayments(){
+ const host=document.getElementById('aqLiveRecentPayments');if(!host)return;host.replaceChildren();
+ const rows=liveReport?.payments;if(!Array.isArray(rows)||!rows.length){empty(host,Array.isArray(rows)?'لا توجد دفعات محفوظة.':'البيانات غير متاحة.');return;}
+ for(const row of rows){const line=document.createElement('p'),date=document.createElement('span'),amount=document.createElement('b');line.className='aq-live-payment';date.textContent=String(row.paid_at??'').slice(0,10);amount.textContent=formatMetric('month',row.amount);line.append(date,amount);host.append(line);}
+}
+function renderFollowups(){
+ const host=document.getElementById('aqLiveFollowups');if(!host)return;host.replaceChildren();
+ for(const [label,key,route] of [['تنتهي خلال 30 يومًا','expiring','contracts'],['الصيانة المفتوحة','maintenance','maintenanceProPage'],['المتبقي','remaining','collectionProPage']]){
+  const button=document.createElement('button');button.type='button';
+  if(route==='contracts')button.dataset.exactService='rental_contracts';else button.dataset.exactRoute=route;
+  const labelNode=document.createElement('span'),value=document.createElement('b');labelNode.textContent=ui(label);value.textContent=formatMetric(key,liveValues?.[key]);button.append(labelNode,value);host.append(button);
+ }
+ const button=document.createElement('button');button.type='button';button.dataset.exactSpecial='tasks';button.textContent=ui('فتح مركز التنبيهات');host.append(button);
+}
+function refreshPropertyCards(){
+ const host=document.getElementById('aqLiveProperties');if(!host)return;
+ const rows=sourceNodes('.v199-property-row').slice(0,2);
+ const signature=JSON.stringify(rows.map(row=>[row.textContent,row.querySelector('img')?.getAttribute('src')]));if(host.dataset.signature===signature)return;host.dataset.signature=signature;
  host.replaceChildren();
- if(!rows.length){const p=document.createElement('p');p.className='aq-live-empty';p.textContent='لا توجد عمليات ظاهرة ضمن صلاحيات الحساب الحالية.';host.append(p);return;}
- for(const text of rows){const p=document.createElement('p');p.textContent=text;host.append(p);}
-}
-function refreshAlerts(){
- const host=document.querySelector('#aqOwnerExactHome .aq-exact-alerts');if(!host)return;
- const header=host.querySelector(':scope > header');
- const alerts=sourceNodes('.v199-alert,.aq267-alert,[data-alert],.v199-notification-row,.v199-priority-item').map(row=>clean(row.textContent)).filter(Boolean).slice(0,5);
- for(const node of [...host.children])if(node!==header)node.remove();
- if(!alerts.length){const p=document.createElement('p');p.className='aq-live-empty';p.textContent='لا توجد تنبيهات ظاهرة ضمن صلاحيات الحساب الحالية.';host.append(p);return;}
- for(const text of alerts){const button=document.createElement('button');button.type='button';button.textContent=text;button.addEventListener('click',()=>document.querySelector('[data-exact-special="tasks"]')?.click());host.append(button);}
+ if(!rows.length){empty(host,'لا توجد عقارات ظاهرة ضمن صلاحياتك.');return;}
+ for(const row of rows){
+  const card=document.createElement('button');card.type='button';card.className='aq-live-property';card.dataset.exactRoute='properties';
+  const art=document.createElement('div');art.className='aq-live-building-art';art.setAttribute('aria-hidden','true');
+  const sourceImage=row.querySelector('img');
+  if(sourceImage?.getAttribute('src')){const photo=sourceImage.cloneNode(false);photo.removeAttribute('id');photo.alt='';photo.loading='lazy';art.append(photo);}else art.innerHTML=workspaceIcon('building');
+  const name=document.createElement('strong');name.textContent=row.querySelector('strong')?.textContent||ui('العقار');name.dataset.aqRecord='';
+  const action=document.createElement('small');action.textContent=ui('فتح ملف العقار');card.append(art,name,action);host.append(card);
+ }
 }
 function suppressDuplicateShells(){
  for(const selector of ['#aqUnifiedExperience','#aqUnifiedMobileNav','#aqOwnerReferenceRail','#aqOwnerReferenceCommand']){
@@ -99,15 +137,23 @@ function normalizePages(){
 }
 function refresh(){
  if(!scope())return;
- suppressDuplicateShells();ensureDashboard();normalizePages();refreshMetrics();refreshActivity();refreshAlerts();
+ observer?.disconnect();
+ try{if(!ensureDashboard())return;suppressDuplicateShells();normalizePages();refreshMetrics();refreshPropertyCards();renderFollowups();loadLiveData();}
+ finally{observeSources();}
+}
+function observeSources(){observer?.observe(document.body,{subtree:true,childList:true,characterData:true});}
+function isSourceMutation(record){
+ const target=record.target?.nodeType===3?record.target.parentElement:record.target;
+ return !target?.closest?.('#aqOwnerExactHome,#aqOwnerExactShell,#aqUnifiedExperience,#aqUnifiedMobileNav,#aqOwnerReferenceRail,#aqOwnerReferenceCommand');
 }
 function schedule(){if(refreshQueued)return;refreshQueued=true;requestAnimationFrame(()=>{refreshQueued=false;refresh();});}
-function boot(){
+async function boot(){
+ const locale=await import('./components/locale.js');ui=source=>locale.t(source);
  if(!document.getElementById('aqari-live-stability-css')){const link=document.createElement('link');link.id='aqari-live-stability-css';link.rel='stylesheet';link.href='/src/v267/styles/live-stability.css?release='+RELEASE;document.head.appendChild(link);}
  refresh();
- observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(record=>{const target=record.target;return !target?.closest?.('#'+ROOT);})){schedule();}});
- observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
- window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(schedule,0);});
+ observer?.disconnect?.();observer=new MutationObserver(records=>{if(records.some(isSourceMutation))schedule();});
+ observeSources();
+ window.addEventListener('aqari:auth-boundary',event=>{clearLiveData();if(event?.detail?.state==='ready')setTimeout(schedule,0);});
  window.addEventListener('aqari:owner-final-route',()=>setTimeout(schedule,0));
  window.AQARI_LIVE_STABILITY=Object.freeze({version:'V267-work1-stability-1',refresh:schedule});
 }

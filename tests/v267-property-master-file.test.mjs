@@ -69,7 +69,7 @@ test('Complete Property File enforces each sensitive section permission independ
 
 test('permission-hidden property sections are distinct from genuinely empty datasets',()=>{
  assert.match(page,/غير متاح حسب الصلاحية/);
- assert.match(page,/const count=value=>value==null\?'غير متاح'/);
+ assert.match(page,/const count=value=>value==null\?translateStatic\('غير متاح'\):String\(value\)/);
  assert.match(page,/renderPermissionRows\(contracts,permissions\.contracts/);
  assert.match(page,/renderPermissionRows\(collections,permissions\.collections/);
  assert.match(page,/renderPermissionRows\(expenses,permissions\.finance/);
@@ -145,9 +145,9 @@ test('complete property file exposes permission-scoped tenants and authoritative
  assert.match(page,/استحقاقات الإيجار والرصيد/);
  assert.match(page,/tenantLedger\.permissions\?\.tenants===false/);
  assert.match(page,/tenantLedger\.permissions\?\.collections===false/);
- assert.match(page,/مستحق \$\{money\(r\.dueAmount\)\}/);
- assert.match(page,/مدفوع \$\{money\(r\.paidAmount\)\}/);
- assert.match(page,/رصيد \$\{money\(r\.balance\)\}/);
+ assert.match(page,/مستحق \{v3\}[^\n]*v3:\(money\(r\.dueAmount\)\)/);
+ assert.match(page,/مدفوع \{v4\}[^\n]*v4:\(money\(r\.paidAmount\)\)/);
+ assert.match(page,/رصيد \{v5\}[^\n]*v5:\(money\(r\.balance\)\)/);
 });
 
 test('allocated finance is preferred only when its server RPC exists and validates scope',()=>{

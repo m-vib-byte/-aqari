@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Rollback-only acceptance for requirement 80: maintenance status, cost and time report.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values('f2678000-0000-4000-8000-000000000080','aqari-v267-maintenance-report-test','Synthetic maintenance report acceptance');
@@ -7,7 +9,7 @@ values('maintenance-report-manager@example.invalid','مدير تقرير الص�
 insert into auth.users(id,email,email_confirmed_at)
 values('f2678000-0000-4000-8000-000000000090','maintenance-report-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','f2678000-0000-4000-8000-000000000090',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('maintenance.report.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)

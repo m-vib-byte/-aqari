@@ -1,3 +1,4 @@
+-- Positive local fixture carries current MFA evidence; production guards remain enabled.
 -- LOCAL ONLY: create a real old-format cash receipt before installing the new guard.
 -- The runner is an in-memory database; never apply this fixture to a hosted database.
 begin;
@@ -6,7 +7,7 @@ insert into public.aqari_app_state(workspace_id,payload)values('768b0000-0000-40
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('payment-method-manager@example.invalid','مدير اختبار طرق الدفع','general_manager','payment-method-reference-isolated');
 insert into auth.users(id,email,email_confirmed_at)values('768b0000-0000-4000-8000-000000000001','payment-method-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','768b0000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:='768b0000-0000-4000-8000-000000000098';d jsonb;rev bigint;t jsonb;c jsonb;r jsonb;v jsonb;l jsonb;doc record;p uuid;begin
  d:='{"properties":[["عقار اختبار طرق الدفع"]],"tenantProfilesV267":[],"contractsV202":[],"collections":[],"rentLedgerV202":[],"rentReceiptsV267":[]}';

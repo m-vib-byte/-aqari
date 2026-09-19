@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Local/isolated test target only. All financial/account fixtures are rolled back.
 -- A savepoint restores all fixtures before comparing the captured counts.
 begin;
@@ -18,7 +20,7 @@ insert into auth.users(id,email,email_confirmed_at) values
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
 -- This suite validates deposit policy under the production MFA guard. Manager-only
 -- setup/actions run under an explicit synthetic AAL2 claim; scoped staff remain AAL1.
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('deposit.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('f267d100-0000-4000-8000-000000000001',current_setting('deposit.test.workspace')::uuid,'deposit-a','عقار التأمين أ','{}'),
@@ -107,7 +109,7 @@ begin
  if jsonb_array_length(public.aqari_deposit_register(w,'list','{"lease_id":"f267d400-0000-4000-8000-000000000001"}')->'entries')<>2 then raise exception 'RETRY_CREATED_RECORDS';end if;
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 do $$
 declare w uuid:=current_setting('deposit.test.workspace')::uuid;r jsonb;d jsonb:=current_setting('deposit.test.first')::jsonb;
 begin
@@ -145,7 +147,7 @@ begin
  if (select count(*) from public.aqari_rent_payments)<>(select rent_payments from deposit_before_counts) then raise exception 'DEPOSIT_COUNTED_AS_RENT';end if;
 end $$;
 select set_config('request.jwt.claim.sub','f267d000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$
 declare w uuid:=current_setting('deposit.test.workspace')::uuid;r jsonb;d jsonb:=current_setting('deposit.test.refund')::jsonb;

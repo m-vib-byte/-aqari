@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Dual-mode compatibility after the captured hosted allocation migrations.
 -- Synthetic isolated PostgreSQL acceptance. No existing workspace is used.
 -- Auth/storage metadata fixtures are synthetic; the entire test rolls back.
@@ -12,7 +14,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('767a0000-0000-4000-8000-000000000002','cc-dual-accountant@example.invalid',now());
 select set_config('aqari.test.sales.workspace',(select workspace_id::text from public.aqari_memberships where user_id='767a0000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','767a0000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('767a0000-0000-4000-8000-000000000099','commercial-dual-foreign-fixture','Other synthetic workspace');
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('commercial-dual-foreign-manager@example.invalid','مدير مساحة الرفض الاصطناعية','general_manager','commercial-dual-foreign-fixture');
 insert into auth.users(id,email,email_confirmed_at)values('767a0000-0000-4000-8000-000000000003','commercial-dual-foreign-manager@example.invalid',now());

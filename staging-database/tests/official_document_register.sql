@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated database acceptance/rejection test. All synthetic rows roll back.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
@@ -7,7 +9,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('7f670000-0000-4000-8000-000000000001','official-doc-manager@example.invalid',now()),
  ('7f670000-0000-4000-8000-000000000002','official-doc-accountant@example.invalid',now());
 select set_config('request.jwt.claim.sub','7f670000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('aqari.test.official.workspace',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 set local role authenticated;
 do $$ declare w uuid:=current_setting('aqari.test.official.workspace')::uuid;r jsonb;g jsonb;begin
@@ -26,7 +28,7 @@ do $$ declare w uuid:=current_setting('aqari.test.official.workspace')::uuid;r j
  begin perform 1 from private.aqari_official_document_versions;raise exception 'PRIVATE_ARCHIVE_EXPOSED';exception when insufficient_privilege then null;end;
 end $$;
 select set_config('request.jwt.claim.sub','7f670000-0000-4000-8000-000000000002',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 do $$ begin
  begin perform public.aqari_official_document_register(current_setting('aqari.test.official.workspace')::uuid,'issue','{}');raise exception 'ACCOUNTANT_ISSUE_ALLOWED';exception when insufficient_privilege then null;end;
  if jsonb_array_length(public.aqari_official_document_register(current_setting('aqari.test.official.workspace')::uuid,'list')->'items')<>1 then raise exception 'ACCOUNTANT_READ_FAILED';end if;

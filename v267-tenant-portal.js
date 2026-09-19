@@ -1,5 +1,6 @@
 import {mountPortalAccountRecovery,portalRecoveryCallback} from './src/v267/components/portal-account-recovery.js';
-import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/components/locale.js';
+import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t,dateLocale,hasTranslation} from './src/v267/components/locale.js';
+import {restorePortalLocale,savePortalLocale,refreshPortalLabels} from './src/v267/components/portal-locale.js';
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
 if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
@@ -9,11 +10,11 @@ let accountRecovery;
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,engagementVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set(),attachmentDisposers=new Set();
-const safeError=e=>/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
-function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);accountRecovery?.refresh();}
-bindLocale(null);
+const safeError=e=>hasTranslation(e?.message,'en')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
+function updateLanguage(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب المستأجر')+' | AQARI V267';$('tenantLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);accountRecovery?.refresh();refreshPortalLabels();}
+bindLocale(null);restorePortalLocale();
 for(const [code,label] of Object.entries(LANGUAGES)){const option=document.createElement('option');option.value=code;option.textContent=label;$('tenantLanguage').append(option);}
-$('tenantLanguage').addEventListener('change',()=>{setLocale($('tenantLanguage').value);updateLanguage();});
+$('tenantLanguage').addEventListener('change',()=>{savePortalLocale($('tenantLanguage').value);updateLanguage();});
 updateLanguage();
 function releaseReceipts(){for(const url of receiptUrls)URL.revokeObjectURL(url);receiptUrls.clear();}
 async function bounded(promise){let timer;try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('انتهت مهلة الاتصال.')),20000);})]);}finally{clearTimeout(timer);}}
@@ -28,7 +29,7 @@ function lock(value){busy=value;for(const b of document.querySelectorAll('button
 function start(){const token=++operation;lock(true);return token;}
 function finish(token){if(token===operation)lock(false);}
 function clear(){snapshot=null;noticeVersion++;releaseReceipts();for(const dispose of attachmentDisposers)dispose();attachmentDisposers.clear();$('tenantLogout').hidden=true;$('content').hidden=true;$('auth').hidden=Boolean(accountRecovery?.active);$('tenantName').textContent='';$('maintenanceDescription').value='';$('tenantPassword').value='';for(const id of ['tenantLeases','tenantPayments','tenantRequests','maintenanceLease','tenantNotices'])$(id).replaceChildren();setText($('tenantNoticesStatus'),'');$('maintenanceForm').hidden=true;}
-function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();bindLocale(null);updateLanguage();saveUncertain=false;operation++;lock(false);}
+function invalidate(){epoch++;readVersion++;for(const job of jobs)job.abort();clear();bindLocale(null);restorePortalLocale();updateLanguage();saveUncertain=false;operation++;lock(false);}
 const current=e=>e===epoch;
 function items(target,rows,format){$(target).replaceChildren();if(!rows.length)$(target).append(uiText('p','لا توجد سجلات محفوظة.'));for(const r of rows){const p=document.createElement('p');p.className='item';p.append(...format(r));$(target).append(p);}}
 async function session(){const {data,error}=await bounded(client.auth.getSession());if(error)throw Error('تعذر التحقق من جلسة الدخول.');return data.session;}
@@ -68,16 +69,16 @@ async function maintenanceFiles(record,button){
 }
 async function loadEngagement(){
  if(!snapshot)return null;const e=epoch,version=++engagementVersion,account=snapshot.account;let box=$('tenantEngagement');
- if(!box){box=document.createElement('section');box.id='tenantEngagement';box.setAttribute('aria-label','التواصل والتقييم');$('content').append(box);}
+ if(!box){box=document.createElement('section');box.id='tenantEngagement';box.dataset.portalLabel='التواصل والتقييم';box.setAttribute('aria-label',t('التواصل والتقييم'));$('content').append(box);}
  box.replaceChildren(uiText('h2','التواصل والتقييم'));
  try{const auth=await session();if(!current(e)||version!==engagementVersion)return null;if(auth?.user.id!==account.user_id){invalidate();return null;}
   const {data,error}=await request(signal=>client.rpc('aqari_tenant_engagement_feed').abortSignal(signal));if(!current(e)||version!==engagementVersion)return null;if(error||!data||!Array.isArray(data.channels)||!Array.isArray(data.ratings))throw Error('تعذر تحميل التواصل والتقييم.');
-  box.append(uiText('p','وسيلة التواصل المفضلة: {channel}',{channel:data.preference?.preferred_channel||'غير محددة'}));
+  box.append(uiText('p','وسيلة التواصل المفضلة: {channel}',{channel:data.preference?.preferred_channel||t('غير محددة')}));
   const links=document.createElement('div');for(const c of data.channels){const a=document.createElement('a');a.href=c.public_url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=c.kind;links.append(a);}box.append(links);
   for(const r of data.ratings){const line=document.createElement('p');line.textContent=`${r.year}: ${'★'.repeat(r.stars)}${'☆'.repeat(4-r.stars)} — ${r.rating}`;box.append(line);}
  }catch(error){if(current(e)&&version===engagementVersion)box.append(uiText('p','تعذر تحميل التواصل والتقييم.'));}
 }
-const noticeDate=value=>new Date(value).toLocaleString('ar-KW',{timeZone:'Asia/Kuwait'});
+const noticeDate=value=>new Date(value).toLocaleString(dateLocale(),{timeZone:'Asia/Kuwait'});
 async function loadNotices(){
  if(!snapshot)return null;const e=epoch,version=++noticeVersion,account=snapshot.account;
  const fresh=()=>current(e)&&version===noticeVersion&&snapshot?.account===account;
@@ -142,7 +143,7 @@ $('tenantSignup').onclick=async()=>{
  try{const {error}=await bounded(client.auth.signUp({email:$('tenantEmail').value.trim(),password:$('tenantPassword').value,options:{emailRedirectTo:new URL(cfg.supabaseAuthRedirectUrl).origin+'/tenant.html'}}));if(!current(e))return;if(error)throw Error('تعذر إنشاء الحساب. يجب أن يكون بريدك مسجلاً في ملف مستأجر واحد لدى الإدارة.');notice('راجع بريدك لتأكيد الحساب، ثم ارجع إلى هذه الصفحة وسجل الدخول.');}
  catch(error){if(current(e))notice(safeError(error));}finally{if(current(e))$('tenantPassword').value='';finish(token);}
 };
-$('tenantLogout').onclick=async()=>{invalidate();const e=epoch,token=start();try{const {error}=await bounded(client.auth.signOut());if(!current(e))return;if(error)throw error;notice('تم تسجيل الخروج.');}catch{if(current(e)){$('tenantLogout').hidden=false;notice('تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.');}}finally{finish(token);}};
+$('tenantLogout').onclick=async()=>{invalidate();const e=epoch,token=start();try{const {error}=await bounded(client.auth.signOut({scope:'local'}));if(!current(e))return;if(error)throw error;notice('تم تسجيل الخروج.');}catch{if(current(e)){$('tenantLogout').hidden=false;notice('تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.');}}finally{finish(token);}};
 $('maintenanceForm').addEventListener('submit',async event=>{
  event.preventDefault();if(busy||!snapshot||saveUncertain)return;const token=start(),e=epoch,account=snapshot.account;let sent=false,confirmed=false;
  try{
@@ -166,3 +167,4 @@ client.auth.onAuthStateChange((event,auth)=>{
 window.addEventListener('pagehide',()=>{accountRecovery.close();invalidate();client.auth.stopAutoRefresh();});
 window.addEventListener('pageshow',event=>{if(event.persisted){client.auth.startAutoRefresh();reload();}});
 reload();
+

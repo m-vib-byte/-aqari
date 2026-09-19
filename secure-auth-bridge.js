@@ -153,9 +153,12 @@
     if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';
     if(/email not confirmed/i.test(raw)) return 'أكد بريدك الإلكتروني أولاً ثم حاول الدخول.';
     if(/user already registered/i.test(raw)) return 'الحساب موجود؛ استخدم زر الدخول.';
-    if(/not authorized|membership|workspace/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';
+    // A failed user/session check is not evidence of an inactive membership.
+    // Classify transport and authentication failures before workspace wording.
+    if(Number(error?.status || error?.statusCode || 0) === 401 || /session_not_found|session_expired|refresh_token_not_found|refresh_token_already_used|bad_jwt/i.test(marker)) return 'انتهت جلسة الدخول. أعد تسجيل الدخول.';
     if(Number(error?.status || error?.statusCode || 0) >= 500 || /unexpected_failure|internal server error|unhandled server error|context canceled|couldn't start a new transaction|database error/i.test(marker)) return 'تعثر الاتصال الآمن مؤقتاً. أعد المحاولة بعد لحظات.';
     if(/failed to fetch|load failed|failed to load supabase|supabase js unavailable|network/i.test(raw)) return 'تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.';
+    if(Number(error?.status || error?.statusCode || 0) === 403 || /not authorized|membership|workspace/i.test(raw)) return 'تعذر تأكيد صلاحية الوصول لهذا الحساب.';
     return raw;
   }
 
@@ -198,6 +201,12 @@
       role: role.legacy,
       source: 'supabase'
     }));
+    // A verified unlock starts a new active interval. Otherwise a timestamp
+    // from a previous visit can make the legacy idle timer immediately invoke
+    // the cloud logout override, including from another open app tab.
+    const activatedAt = Date.now();
+    localStorage.setItem('aqari_v75_last_activity', String(activatedAt));
+    localStorage.setItem('aqari_last_activity_v119', new Date(activatedAt).toISOString());
     if(typeof window.applyRole === 'function') window.applyRole(role.legacy);
     const badge = byId('sessionBadge');
     if(badge) badge.textContent = displayName + ' • ' + role.label;
@@ -392,7 +401,9 @@
       hideLegacyGates();
       return false;
     }
-    return window.cloudLogoutV198();
+    // An idle/lock event belongs to this browser session. It must not revoke
+    // an active session on another device, just like ordinary user logout.
+    return window.cloudLogoutV198({ scope:'local' });
   }
 
   // The obsolete V121 label-based list omits core routes, even for managers.
@@ -605,18 +616,21 @@
     }
   };
 
-  window.cloudLogoutV198 = async function(){
+  window.cloudLogoutV198 = async function(options){
+    const logoutScope = options?.scope==='global'?'global':'local';
     window.AQARI_AUTOSYNC?.disable();
     localStorage.removeItem(SYNC_READY_KEY);
     showGate('جاري تسجيل الخروج…', 'wait');
     try{
-      await window.AQARI_SUPABASE.signOut();
+      await window.AQARI_SUPABASE.signOut({ scope:logoutScope });
     }catch(signOutError){
       try{
         if(typeof window.AQARI_SUPABASE.clearPersistedSession !== 'function' ||
            typeof window.AQARI_SUPABASE.verifySessionNull !== 'function') throw signOutError;
         window.AQARI_SUPABASE.clearPersistedSession();
         await window.AQARI_SUPABASE.verifySessionNull();
+        // Clearing this browser cannot prove that a requested global revocation succeeded.
+        if(logoutScope==='global') throw signOutError;
       }catch(clearError){
         showGate('تعذر إكمال تسجيل الخروج. بقيت المنصة مقفلة؛ تحقق من الاتصال ثم أعد المحاولة.', 'bad');
         return false;

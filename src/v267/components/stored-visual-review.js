@@ -64,6 +64,10 @@ export function createStoredVisualReview(dialog,{parent,controls=[]}={}){
      finally{confirm.disabled=false;abort.disabled=false;}
     };
     abort.onclick=()=>{const error=Error('أُغلقت مراجعة الجودة دون اعتماد. بقي المستند غير مقفل.');clear();reject(error);};
+    // dialog.run disables existing controls while the upload is in progress.
+    // The verified-copy review now waits for the user, so only its controls
+    // must become interactive; the upload inputs remain locked until it ends.
+    confirmed.disabled=false;confirm.disabled=false;abort.disabled=false;
    });
   }catch(error){clear();throw error;}
  }

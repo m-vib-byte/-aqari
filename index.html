@@ -7540,7 +7540,8 @@ const SESSION_TIMEOUT_V75=15*60*1000;
 let lastActivityV75=Date.now();
 
 function touchSessionV75(){lastActivityV75=Date.now();localStorage.setItem('aqari_v75_last_activity',String(lastActivityV75));refreshSessionV75()}
-['click','keydown','touchstart'].forEach(e=>document.addEventListener(e,touchSessionV75,{passive:true}));
+// Observe genuine input before document-level route handlers stop propagation.
+['click','keydown','touchstart','pointerdown','wheel','input','change'].forEach(e=>window.addEventListener(e,event=>{if(event.isTrusted)touchSessionV75()},{capture:true,passive:true}));
 function refreshSessionV75(){
  if(!document.getElementById('sessStateV75'))return;
  const s=JSON.parse(localStorage.getItem('aqari_session_v31')||'null');
@@ -9632,7 +9633,7 @@ function touchSessionV119(){
  if(document.getElementById('sessionWarnV119'))sessionWarnV119.style.display='none';
  document.body.style.pointerEvents=''
 }
-['click','keydown','touchstart'].forEach(evt=>document.addEventListener(evt,touchSessionV119,{passive:true}));
+['click','keydown','touchstart','pointerdown','wheel','input','change'].forEach(evt=>window.addEventListener(evt,event=>{if(event.isTrusted)touchSessionV119()},{capture:true,passive:true}));
 function refreshSessionV119(){
  if(!document.getElementById('rcSessionV119'))return;
  const p=sessionPolicyV119(),last=localStorage.getItem('aqari_last_activity_v119')||new Date().toISOString(),idle=(Date.now()-new Date(last))/60000;

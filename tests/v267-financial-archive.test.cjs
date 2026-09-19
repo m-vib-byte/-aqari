@@ -1,4 +1,7 @@
+let localeBindings;
+const loadLocaleBindings=async()=>{const locale=await import('../src/v267/components/locale.js');const errors=await import('../src/v267/components/ui-error.js');const session=await import('../src/v267/api/session.js');return {translateStatic:locale.t,visibleMessage:locale.message,visibleDateLocale:locale.dateLocale,uiError:errors.uiError,safeError:session.safeError};};
 const test=require('node:test');
+test.before(async()=>{localeBindings=await loadLocaleBindings();});
 const assert=require('node:assert/strict');
 const {readFileSync}=require('node:fs');
 const {resolve}=require('node:path');
@@ -27,7 +30,7 @@ function harness(initial=record()){
  const d={body,status,session,onDispose:fn=>cleanup.push(fn),get closed(){return closed;},run(fn){const p=Promise.resolve().then(()=>{session.check();return fn();}).catch(e=>{if([401,403].includes(e.status))dispose();else if(!closed)status.textContent=e.message;});tasks.push(p);return p;}};
  const node=(tag,text)=>{const el=new Element(tag,text);if(tag==='a')el.onclick=()=>{downloads.push({name:el.download,blob:blobs.get(el.href),connected:el.parent===root});};return el;};
  class Clock extends Date{constructor(...args){super(...(args.length?args:['2026-09-12T06:00:00Z']));}}
- const context={createDialog:()=>d,node,field:(label,control)=>{const group=node('div');group.append(node('label',label),control);return group;},document:{body:root},Date:Clock,Intl,Blob,URL:{createObjectURL(blob){const id=`blob:fixture-${++serial}`;blobs.set(id,blob);return id;},revokeObjectURL(url){revoked.push(url);blobs.delete(url);}},setTimeout(fn){const id=++serial;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}};
+ const context={...localeBindings,createDialog:()=>d,node,field:(label,control)=>{const group=node('div');group.append(node('label',label),control);return group;},document:{body:root},Date:Clock,Intl,Blob,URL:{createObjectURL(blob){const id=`blob:fixture-${++serial}`;blobs.set(id,blob);return id;},revokeObjectURL(url){revoked.push(url);blobs.delete(url);}},setTimeout(fn){const id=++serial;timers.set(id,fn);return id;},clearTimeout(id){timers.delete(id);}};
  context.TextEncoder=TextEncoder;
  vm.runInNewContext(xlsxSource.replace(/^export /gm,'')+'\n'+source.replace(/^import[^\n]*\n/gm,'').replace(/^export /gm,'')+'\nglobalThis.api={openFinancialArchive,monthValue,money,archiveCsvCell};',context);
  const find=(tag,text)=>all(root,x=>x.tag===tag&&(text===undefined||x.textContent===text))[0];

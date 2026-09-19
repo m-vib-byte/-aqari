@@ -7,6 +7,7 @@ const vm=require('node:vm');
 const source=fs.readFileSync(path.join(__dirname,'..','final-release-ui.js'),'utf8');
 const uiSource=source.slice(source.indexOf('(function(){',source.indexOf('})();')+5));
 const ids=['aqari-v201-experience-js','aqari-v202-property-os-js','aqari-v205-simplified-shell-js','aqari-v206-rent-ledger-js','aqari-v208-portfolio-collections-js','aqari-v209-global-search-js','aqari-v210-daily-command-center-js','aqari-v211-follow-up-center-js','aqari-v266-scheduler-control-js'];
+const extensions=['owner-reference','owner-feedback','owner-final','unified-layout','premium-navigation','live-stability'].map(name=>'aqari-v267-'+name+'-js').filter(id=>source.includes(id));
 function runtime(){
   const nodes=new Map(),timers=[],listeners=new Map(),scripts=[],rootClasses=new Set();
   const context={user:{id:'user-a'},workspace:{id:'workspace-a'},membership:{user_id:'user-a',workspace_id:'workspace-a',role:'general_manager',is_active:true}};
@@ -35,7 +36,7 @@ test('both workspace scopes and the unlocked page must match',()=>{
 test('the complete UI chain loads once after validated home activation',()=>{
  const r=runtime();r.load('aqari-v199-ui-js');r.ready();r.event('ready');assert.deepEqual(r.scripts,['aqari-v199-ui-js'],'yield before starting optional modules');r.drain();
  for(const id of ids){assert.ok(r.scripts.includes(id),id);r.load(id);}
- assert.deepEqual(r.scripts,['aqari-v199-ui-js',...ids]);r.event('ready');r.drain();assert.equal(r.scripts.length,ids.length+1);
+ assert.deepEqual([...r.scripts].sort(),['aqari-v199-ui-js',...ids,...extensions].sort());r.event('ready');r.drain();assert.equal(r.scripts.length,ids.length+extensions.length+1);
 });
 test('a sign-out before the scheduled task prevents UI initialization',()=>{
  const r=runtime();r.load('aqari-v199-ui-js');r.ready();r.event('ready');r.window.AQARI_DATA_GATE.scope=null;r.rootClasses.clear();r.event('locked');r.drain();assert.deepEqual(r.scripts,['aqari-v199-ui-js']);

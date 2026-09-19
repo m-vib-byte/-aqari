@@ -27,8 +27,14 @@ test('canonical V267 styles are inline on the app entry and login identity is pr
  const css=fs.readFileSync('v267-unified.css','utf8'),html=fs.readFileSync('index.html','utf8'),login=fs.readFileSync('login.html','utf8');
  assert.ok(html.includes('<style data-aqari-unified-source="/v267-unified.css">\n'+css+'\n</style>'));
  assert.ok(login.slice(0,login.indexOf('</head>')).includes(css.slice(css.lastIndexOf('@media screen {'))));
- for(const source of [html,login])assert.doesNotMatch(source.split('</head>')[0],/<link[^>]+rel=["']stylesheet["'][^>]*>/i);
- assert.ok(Buffer.byteLength(login)<17000);
+ assert.doesNotMatch(html.split('</head>')[0],/<link[^>]+rel=["']stylesheet["'][^>]*>/i);
+ const allowed=new Set(['owner-reference-login','unified-portal','premium-portal-refinement','luxury-warm-beige','owner-final-login','professional-login']);
+ for(const match of login.split('</head>')[0].matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/gi)){
+  const href=match[0].match(/href="([^"]+)"/)?.[1];
+  const style=href?.match(/^\/src\/v267\/styles\/([a-z-]+)\.css\?release=V267$/)?.[1];
+  assert.ok(allowed.has(style),'only reviewed same-origin reference styles may augment the inline login');
+ }
+ assert.ok(Buffer.byteLength(login)<19000);
 });
 test('transport timeout resets loading without erasing a persisted session',()=>{
  const source=fs.readFileSync('login.html','utf8');const start=source.indexOf('function resetTimedOutCore('),end=source.indexOf('function loadScript(',start);

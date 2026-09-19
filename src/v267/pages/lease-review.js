@@ -1,3 +1,4 @@
+import {t as translateStatic} from '../components/locale.js';
 import {t,message} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 export async function openLeaseReview(){
@@ -8,7 +9,7 @@ export async function openLeaseReview(){
  async function loadSelection(){
   selected=rows.find(x=>x.id===leases.value);detail.replaceChildren();documents.replaceChildren();check.checked=false;note.value='';deposit.value='';save.hidden=true;
   if(!selected)return;
-  detail.append(node('p',message('العقار: {property} • الوحدة: {unit} • المستأجر: {tenant}',{property:selected.snapshot.property,unit:selected.snapshot.unit,tenant:selected.snapshot.tenant||t('الاسم معلق')})),node('p',message('من {start} إلى {end} • إيجار العقد {rent} • الحالة {status}',{start:selected.start_date||t('معلق'),end:selected.end_date||t('معلق'),rent:selected.monthly_rent,status:t(({draft:'مسودة',approved:'معتمد',signed:'موقع',active:'فعال',expired:'منتهي',terminated:'منهى',cancelled:'ملغى'})[selected.status]||'غير مؤكد')})));
+  detail.append(node('p',message('العقار: {property} • الوحدة: {unit} • المستأجر: {tenant}',{property:selected.snapshot.property,unit:selected.snapshot.unit,tenant:selected.snapshot.tenant||t('الاسم معلق')})),node('p',message('من {start} إلى {end} • إيجار العقد {rent} • الحالة {status}',{start:selected.start_date||t('معلق'),end:selected.end_date||t('معلق'),rent:selected.monthly_rent,status:t(({draft:translateStatic('مسودة'),approved:translateStatic('معتمد'),signed:translateStatic('موقع'),active:translateStatic('فعال'),expired:translateStatic('منتهي'),terminated:translateStatic('منهى'),cancelled:translateStatic('ملغى')})[selected.status]||translateStatic('غير مؤكد'))})));
   const docs=await session.request(session.client.from('aqari_documents').select('id,title,document_no,status').eq('workspace_id',session.bound.workspace).eq('entity_type','lease').eq('entity_ref',selected.external_ref).eq('document_type','signed_contract').eq('status','uploaded').order('created_at',{ascending:false}));
   const placeholder=node('option',t('اختر المستند الذي راجعته'));placeholder.value='';documents.append(placeholder);for(const doc of docs){const o=node('option',doc.document_no+' — '+doc.title);o.value=doc.id;documents.append(o);}
   if(selected.status==='approved')deposit.value=String(selected.deposit);
@@ -31,3 +32,4 @@ export async function openLeaseReview(){
  });
  await run(load);
 }
+

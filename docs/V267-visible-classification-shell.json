@@ -1,0 +1,2598 @@
+{
+  "visibleUnique": 349,
+  "newCatalogEntries": 252,
+  "excluded": [
+    {
+      "category": "brand_preserved",
+      "sources": [
+        "عقاري",
+        "AQARI",
+        "V267",
+        "AI"
+      ]
+    },
+    {
+      "category": "record_values",
+      "sources": [
+        "profile.display_name",
+        "user.email",
+        "property_name",
+        "unit_no",
+        "contract_no",
+        "question",
+        "data.answer",
+        "paid_at"
+      ]
+    },
+    {
+      "category": "technical_not_displayed",
+      "reason": "DOM IDs, CSS selectors, route/service identifiers, event names, SVG paths and API error codes are not display text."
+    }
+  ],
+  "items": [
+    {
+      "source": "📄 عقد الشقة الاستثمارية — تجريبي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/experimental-investment-apartment-contract.js"
+      ]
+    },
+    {
+      "source": "الرئيسية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العقارات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الوحدات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستأجرون",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقود",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التحصيل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المصروفات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الصيانة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الموظفون والرواتب",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الفواتير والخدمات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التقارير والإحصائيات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستندات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التنبيهات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الإعدادات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستخدم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المستندات والأرشيف",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "القسم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "صفحة مستقلة ضمن صلاحيات الحساب الحالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العودة للرئيسية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تعذر فتح صفحة {section}. أعد المحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "هذه الخدمة غير متاحة لصلاحية الحساب الحالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تظهر العقارات هنا من بيانات المحفظة المصرح بها.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المساعدة والدعم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "اسأل المساعد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المدير العام",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "حساب مصرح",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "ابحث عن عقار، مستأجر، عقد، رقم شقة…",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مرحباً مجدداً",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العقار… قيمة تدوم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إدارة احترافية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "لعقارك في مكان واحد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إنشاء عقد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "إضافة مستأجر",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التقارير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إجمالي الدخل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إجمالي التحصيل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "العقود الفعّالة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المتأخرات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الصيانة المفتوحة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التنبيهات والمهام",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عرض الكل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "عقود وانتهاءات تحتاج متابعة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تحصيلات ومهام اليوم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "طلبات الصيانة المفتوحة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "التحصيل الشهري",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح التحصيل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "نسبة التحصيل الحالية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المحفظة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تفاصيل العقارات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "الأرقام المعروضة أعلاه تأتي من السجلات المصرح بها فقط.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عقاراتي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إضافة عقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "طلب صيانة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js",
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "إصدار وصل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إجراء سريع",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المساعد الذكي التوليدي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مرتبط بصلاحيات حسابك، والعمليات الحساسة تبقى داخل صفحاتها الأصلية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "اكتب سؤالك أو اطلب شرح قسم. المساعد للقراءة والإرشاد ولا ينفذ حفظاً أو اعتماداً نيابةً عنك.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مثال: ما الذي يحتاج متابعتي في التحصيل؟",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "إرسال",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "جارٍ إعداد الرد…",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "انتهت الجلسة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "مزود الذكاء التوليدي غير مهيأ على الخادم حتى الآن.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "المساعد متوقف من إعدادات المدير العام.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "تعذر الحصول على رد آمن من المساعد.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "عقاري",
+      "category": "brand_preserved",
+      "files": [
+        "src/v267/owner-feedback-runtime.js"
+      ]
+    },
+    {
+      "source": "لوحة الإدارة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تحصيل الشهر",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المستحق",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الوحدات المرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقود النشطة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "جارٍ قراءة المؤشرات…",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تحديث",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التحصيلات · هذا الشهر",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقار / الوحدة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "رقم العقد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المحصل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المتبقي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "حسب شهر الاستحقاق؛ تحصيل الشهر أعلاه حسب تاريخ الدفع.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "أحدث العمليات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "مساعد AQARI الذكي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "كيف أساعدك اليوم؟",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "اسأل عن بياناتك أو متابعة التحصيل والعقود.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح المساعد",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "قراءة وإرشاد فقط؛ لا ينفذ عمليات مالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "إجراءات سريعة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "رفع مستند",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "التنبيهات والمتابعة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تقارير الملاك",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "راجع كشوف العقار والتحصيل والمستندات المحفوظة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح التقارير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تحصيل اليوم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تنتهي خلال 30 يومًا",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الإشغال المسجل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المصروفات المعتمدة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "صافي السجلات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "بعض المؤشرات غير متاحة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تم التحديث من السجلات.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "تعذر قراءة المؤشرات. أعد المحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "لا توجد استحقاقات مسجلة لهذه الفترة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "البيانات غير متاحة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "لا توجد دفعات محفوظة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح مركز التنبيهات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "لا توجد عقارات ظاهرة ضمن صلاحياتك.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "العقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "فتح ملف العقار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/live-stability-runtime.js"
+      ]
+    },
+    {
+      "source": "الإعدادات العامة V105",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "تطبيق",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "هوية المنصة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "واجهة الاستخدام",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "عادي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "مضغوط",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "عربي RTL",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "الإدارة اليومية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "غرفة التحكم",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "استعادة الافتراضي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "تصدير الإعدادات",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "اسم المنصة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "اسم الشركة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "رقم الترخيص",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "تذييل التقارير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "إدارة وتشغيل الإعدادات من صفحة واضحة وموحدة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Visible legacy settingsCenterPage UI, English session on PR200 3f4ce90b"
+    },
+    {
+      "source": "العقار/الوحدة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "العطل",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "الفني",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "الأولوية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "جدول بيانات قابل للتمرير",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenance table heading or region label in English session"
+    },
+    {
+      "source": "إدارة وتشغيل الصيانة من صفحة واضحة وموحدة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "صفحة الصيانة الفعلية ضمن صلاحيات الحساب الحالية.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "مركز الصيانة الاحترافي",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "طلبات مفتوحة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "عاجلة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "متوسط الاستجابة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "تكلفة الصيانة",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا توجد مؤشرات SLA",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا يوجد فنيون",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "الصيانة الوقائية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا توجد خطة وقائية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "قطع الغيار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "لا توجد قطع غيار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/shell-translations.js"
+      ],
+      "evidence": "Observed maintenanceProPage visible UI, PR200 1e12ed92"
+    },
+    {
+      "source": "إدارة وتشغيل {section} من صفحة واضحة وموحدة.",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "evidence": "Observed reports page heading and skip link"
+    },
+    {
+      "source": "تجاوز إلى المحتوى",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "evidence": "Observed reports page heading and skip link"
+    },
+    {
+      "source": "تعديل العقارات والوحدات",
+      "category": "visible_ui",
+      "files": [
+        "v267-rental-records.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "إضافة العقارات والوحدات",
+      "category": "visible_ui",
+      "files": [
+        "v267-rental-records.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "إغلاق النافذة",
+      "category": "visible_ui",
+      "files": [
+        "index.html"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "حفظ",
+      "category": "visible_ui",
+      "files": [
+        "index.html"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "المنطقة والعنوان (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "نوع العرض",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "للإيجار",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "للبيع",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "الإيجار المطلوب — د.ك / شهر (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "سعر البيع — د.ك (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "هاتف التواصل (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "صور العقار — حتى ٤ صور (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "بيانات الإدارة (اختياري)",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "إيجار المصدر — قيمة مرجعية",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/components/property-form.js"
+      ],
+      "evidence": "Legacy property edit dialog observed on Desktop; sale label is the same form's conditional display text. Record values and rent/sale option values are excluded."
+    },
+    {
+      "source": "جاري الحفظ والتحقق من السحابة…",
+      "category": "visible_ui",
+      "files": [
+        "v267-rental-records.js"
+      ],
+      "evidence": "Observed while saving the existing test-property address and reading it back after reload."
+    },
+    {
+      "source": "العقد والتحصيل والكشف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ],
+      "evidence": "Title of the existing property-record launcher. Property name in its aria-label remains a record value."
+    },
+    {
+      "source": "تعذر تأكيد صلاحية الوصول لهذا الحساب.",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js"
+      ]
+    },
+    {
+      "source": "تعثر الاتصال الآمن مؤقتاً. أعد المحاولة بعد لحظات.",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js"
+      ]
+    },
+    {
+      "source": "تعذر تحميل الاتصال الآمن. تحقق من الإنترنت ثم أعد المحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js"
+      ]
+    },
+    {
+      "source": "ملف العقار التشغيلي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "العقد والتحصيل والوصولات والكشف في مكان واحد.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إغلاق ملف العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الوضع منتظم",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "صور العقار والسعر والموقع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لم تُضف صور لهذا العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "السعر غير مضاف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الموقع غير مضاف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "رقم التواصل غير مضاف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "المؤشرات المالية والوحدات",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إبرام عقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إنشاء وربط العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "تسجيل إيجار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "تحصيل وإصدار وصل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "كشف تفصيلي PDF",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الملف الكامل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "العقار 360°",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "وثائق العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "تصوير ورفع واسترجاع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "إجراءات العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "رحلة العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "من العقد إلى الكشف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "مسار تشغيل العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "العقار مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "بيانات عقود الفترة متاحة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الإجراء التالي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لا توجد متابعة عاجلة في البيانات المسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "الوحدات المشغولة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "عقود مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} عقد موقّع سارٍ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} عقد مرتبط يحتاج تحقق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} عملية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} من {total}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "{count} بند مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يحتاج ربط عقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "ابدأ بعقد لربط المستأجر والتحصيل بالعقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "المستحقات تحتاج مراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "توجد بيانات عقود غير معتمدة؛ الإجمالي غير مكتمل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يحتاج تحصيل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يوجد إيجار مستحق مرتبط بالعقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "توجد متابعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "طلبات صيانة تحتاج متابعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لا يوجد عقد موقّع سارٍ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "لا يوجد تحصيل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "كشف مصدر محفوظ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "يلزم اعتماد بيانات العقود أولاً",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "غير مربوط",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "داخل الملف المحمي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "عرض العقود المرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "عرض الدفعات والوصولات",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js",
+        "src/v267/domain/property-presentation.js"
+      ]
+    },
+    {
+      "source": "كشف الإيجار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "نظرة عامة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الشركاء والحصص",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الكشف",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المسجلة في العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيجار المصدر",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "قيمة مرجعية وليست تحصيلاً فعلياً",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المقبوضات المرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "{count} دفعة معتمدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الإيجار المستحق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا يوجد متبقٍ على العقود المعتمدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "صافي المقبوضات المسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "دفعات الفترة المعتمدة؛ ليس ربحاً محاسبياً نهائياً",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "معلّق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يلزم توثيق فترة المصروفات وحالة صرفها",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "حسب كشف المصدر",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستحق العقود المعتمدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يلزم اكتمال اعتماد عقود الفترة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "البريد الإلكتروني / Email",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "بيانات الوحدات محمية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "سجّل الدخول بعضوية فعّالة لعرض المستأجرين والعقود وبيانات السداد.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "كشف المستأجر / Tenant Statement",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "وصل الإيجار / Receipt",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد الإيجار / Contract",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مسودة العقد / Draft Contract",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تسجيل إيجار للوحدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "دليل الوحدات المحمي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "كل وحدة بملف مستقل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "بحث بالوحدة أو المستأجر أو رقم العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مثال: 12 أو رقم العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "ملفات مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "{count} بلا بيانات تفصيلية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مسددة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "للفترة المختارة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستحقة/جزئية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تحتاج تحصيل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تحتاج مراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "ربط أو اعتماد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عرض {count} من {total} وحدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عرض كل بيانات الوحدة {value}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إظهار الرقم المدني للوحدة {value}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد {value}",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد ملفات وحدات مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "اربط عقدًا أو بيانات مستأجر لتظهر هنا.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد وحدات مطابقة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "جرّب رقم وحدة أو اسم مستأجر أو رقم عقد مختلف.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستأجر غير مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد غير مربوط",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير مسجل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الهاتف / Phone",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الجنسية / Nationality",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المحاسب / Accountant",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مرجع الصفحة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "العقود المحمية",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تُعرض العقود المرتبطة هنا من الذاكرة الآمنة ولا تُنسخ إلى التخزين المحلي.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد بدون رقم",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستأجر غير محدد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "وحدة غير محددة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيجار غير محدد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "عقد جديد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الإيصال",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "فتح الوصل / Open receipt",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج مراجعة الوصل / Receipt review required",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج تصحيح التاريخ / Date review required",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "بانتظار الاعتماد / Pending approval",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير مؤرخ",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تحصيلات العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مصروفات العقار",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الفئة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد مصروفات مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المصروفات التي تسجّل باسم العقار ستظهر هنا وفي كشف الإيجار.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد عمليات تحصيل مرتبطة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "سجّل إيجاراً من ملف العقار ليظهر هنا وفي الكشف.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد عقود محمية مرتبطة بهذا العقار حالياً.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إبرام عقد من هنا يربطه بالعقار تلقائياً.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "جاري قراءة سجل الشركاء من السحابة…",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تعذر تحميل الحصص. حدّث الصفحة وحاول مرة أخرى.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "معاينة التوزيع الجديد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "لا توجد مبالغ جديدة للتوزيع.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "اختياري للعقارات المشتركة وعقارات الورثة.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إعداد الشركاء والنسب",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إضافة مالك أو وارث",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "حفظ وتفعيل الحصص",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيقاف التوزيع الجديد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تعديل الحصص متاح للمدير العام.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إيرادات محصلة مسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مصروفات مسجلة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الصافي النقدي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "التوزيع تراكمي من السجلات المتاحة للعقار. تُوزّع الفروق منذ آخر توزيع فقط؛ تغيير الحصص لا يغيّر التوزيعات السابقة. أي نقص في سجلات المصروفات ينعكس على الصافي.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "توزيع الأرباح غير متاح لهذا الملف المحمي حتى تتوفر مصادر المصروفات الكاملة؛ لم تُفترض مصروفات صفرية.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تسجيل توزيع المبالغ الجديدة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "كشف حساب كل شريك",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المبلغ المصروف (د.ك)",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مرجع التحويل أو السند",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تسجيل صرف للشريك",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "السجل محفوظ في مساحة العمل السحابية.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مالك / وارث",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الحصة ٪",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إزالة من القائمة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تعذرت قراءة الحصص من السحابة. أعد فتح هذا التبويب للمحاولة.",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "سجل التوزيعات والتعديلات — آخر ٥٠ من ({count})",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير مفعّل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مفعّل",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "موقّع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مسدد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "المدفوع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "حالة العقد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "قيد المراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "تاريخ آخر دفعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "النظافة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "شهر مجاني:",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "إنذار إخلاء:",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "جاهز للاعتماد",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "ملغي",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مدفوع",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج تحقق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "يحتاج مراجعة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "غير قابل للفوترة",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "شهر مجاني",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "مستحق",
+      "category": "visible_ui",
+      "files": [
+        "v202-property-os.js"
+      ]
+    },
+    {
+      "source": "الحساب والمزيد",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "حساب عقاري",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "الحساب والنسخة السحابية",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "تنزيل نسخة احتياطية",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "استعادة نسخة",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "المستندات والعقود",
+      "category": "visible_ui",
+      "files": [
+        "v199-ui.js"
+      ],
+      "reason": "Existing account menu restored to the reference header; excludes the saved account label."
+    },
+    {
+      "source": "إغلاق المزيد",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "إغلاق ×",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "المحفظة والعقود",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "المالية والخدمات",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "إدارة الخدمات",
+      "category": "visible_ui",
+      "files": [
+        "v201-experience.js"
+      ]
+    },
+    {
+      "source": "نشط",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "reason": "Tenant status display only; tenant name, unit and rent cells remain record values."
+    },
+    {
+      "source": "غير نشط",
+      "category": "visible_ui",
+      "files": [
+        "src/v267/platform-locale-runtime.js"
+      ],
+      "reason": "Tenant status display only; tenant name, unit and rent cells remain record values."
+    },
+    {
+      "source": "جاري استعادة الجلسة وفتح الصفحة الرئيسية…",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js",
+        "src/v267/app-login-locale.js"
+      ]
+    },
+    {
+      "source": "إدارة أملاكك من مكان واحد",
+      "category": "visible_ui",
+      "files": [
+        "secure-auth-bridge.js",
+        "src/v267/app-login-locale.js"
+      ]
+    }
+  ]
+}

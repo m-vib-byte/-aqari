@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Preview SQL acceptance only. Dedicated identities and workspace; no DDL or external send.
 -- All fixture rows and session settings roll back. Fresh payments satisfy the current reference guard.
 begin;
@@ -9,7 +11,7 @@ insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) 
 insert into auth.users(id,email,email_confirmed_at) values
  ('76740000-0000-4000-8000-000000000001','reminder-cross-month-manager@example.invalid',now());
 select set_config('request.jwt.claim.sub','76740000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('76740000-0000-4000-8000-000000000101','76740000-0000-4000-8000-000000000099','REMINDER-CROSS-P','Synthetic calendar property','{}');
 do $$declare w uuid:='76740000-0000-4000-8000-000000000099';u uuid;t uuid;l uuid;r jsonb;g integer;begin

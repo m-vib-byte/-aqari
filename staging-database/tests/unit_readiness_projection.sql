@@ -1,7 +1,9 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Regression on the real application state RPC, after the readiness migration.
 begin;
 select set_config('request.jwt.claim.sub','76620000-0000-4000-8000-000000000004',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:='76620000-0000-4000-8000-000000000900';state jsonb;d jsonb;c jsonb;r jsonb;row_data jsonb;receipt jsonb;p uuid;prior jsonb;begin
  state:=public.aqari_read_state_v267(w);d:=state->'payload';c:=d->'contractsV202'->0;prior:=c;

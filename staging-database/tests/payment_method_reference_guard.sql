@@ -1,8 +1,10 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- LOCAL ONLY acceptance after payment-method-reference-existing.sql and guard twice.
 -- All assertions use that dedicated synthetic workspace; this transaction rolls back.
 begin;
 select set_config('request.jwt.claim.sub','768b0000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:='768b0000-0000-4000-8000-000000000098';d jsonb;rev bigint;candidate jsonb;c jsonb;r jsonb;l jsonb;v jsonb;oldpay jsonb;payid uuid;method text;ref jsonb;expected text;before_count bigint;begin
  select payload,revision into d,rev from public.aqari_app_state where workspace_id=w;

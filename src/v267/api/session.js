@@ -1,3 +1,4 @@
+import {isUiError} from '../components/ui-error.js';
 export function currentScope() {
  const c=window.AQARI_SUPABASE?.context,g=window.AQARI_DATA_GATE?.scope;
  if(!document.documentElement.classList.contains('aqari-auth-unlocked')||!c?.user?.id||!c?.workspace?.id||c.membership?.is_active!==true||c.membership.user_id!==c.user.id||c.membership.workspace_id!==c.workspace.id||g?.userId!==c.user.id||g?.workspaceId!==c.workspace.id)throw Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.');
@@ -77,7 +78,7 @@ Object.assign(messages,{
  INVALID_DOCUMENT_FIELD:'أكمل حقول النموذج بالقيم الصحيحة قبل الحفظ.',
  DOCUMENT_OPTIONS_LIMIT:'تجاوز عدد السجلات حد العرض؛ يلزم تضييق نطاق السجلات قبل الإصدار.'
 });
-export function safeError(e){if(e?.code==='23505'&&String(e?.message||'').includes('aqari_official_unique_financial_source'))return 'سبق إصدار مستند لهذه الحركة. افتحه من الأرشيف لإنشاء إصدار مصحح.';return messages[String(e?.message||'').split(':')[0]] || (/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.');}
+export function safeError(e){if(isUiError(e))return e.message;if(e?.code==='23505'&&String(e?.message||'').includes('aqari_official_unique_financial_source'))return 'سبق إصدار مستند لهذه الحركة. افتحه من الأرشيف لإنشاء إصدار مصحح.';return messages[String(e?.message||'').split(':')[0]] || (/^[\u0600-\u06ff]/.test(e?.message||'')?e.message:'تعذر إكمال العملية أو تأكيدها. حدّث السجلات وتحقق قبل إعادة المحاولة.');}
 export function createSession(){
  const bound=currentScope(),jobs=new Set();let closed=false,client;
  const check=()=>{if(closed||JSON.stringify(currentScope())!==JSON.stringify(bound))throw Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.');};

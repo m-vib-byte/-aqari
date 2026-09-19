@@ -26,7 +26,9 @@ function fixture(initial=[]){
   if(state.failReadAfterSave)state.failRead=true;if(state.lostSaveReply)throw Error('انقطع الرد بعد الحفظ');return {...values,revision:values.revision+1};
  };
  const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},onDispose(fn){cleanup=fn;},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
- const context={node,field,createDialog:()=>d,window:{confirm:()=>state.confirm}};vm.createContext(context);vm.runInContext(source+'\nopenStaffAccess();',context);
+ // Imports are stripped by this isolated permissions harness. Supply the Arabic
+ // locale boundary while leaving the real authorization/write/readback code intact.
+ const context={node,field,translateStatic:value=>value,visibleText:value=>value,dateLocale:()=> 'ar-KW',createDialog:()=>d,window:{confirm:()=>state.confirm}};vm.createContext(context);vm.runInContext(source+'\nopenStaffAccess();',context);
  const control=label=>descendants(d.body).find(element=>element.label===label)?.children[0];
  const form=()=>descendants(d.body).find(element=>element.tag==='form');
  const choose=()=>{control('حساب الموظف').value='user-a';control('حساب الموظف').onchange();control('الدور الوظيفي').value='collector';control('سبب منح الصلاحيات أو تعديلها أو إيقافها').value='إسناد التحصيل لهذا العقار';};

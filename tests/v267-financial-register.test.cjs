@@ -1,4 +1,7 @@
+let localeBindings;
+const loadLocaleBindings=async()=>{const locale=await import('../src/v267/components/locale.js');const errors=await import('../src/v267/components/ui-error.js');const session=await import('../src/v267/api/session.js');return {translateStatic:locale.t,visibleMessage:locale.message,visibleDateLocale:locale.dateLocale,uiError:errors.uiError,safeError:session.safeError};};
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+test.before(async()=>{localeBindings=await loadLocaleBindings();});
 const source=fs.readFileSync('src/v267/pages/financial-register.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
 const clone=value=>structuredClone(value);
 const currentMonth=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit'}).format(new Date());
@@ -51,7 +54,7 @@ function fixture(initial=[],options={}){
  };
  const el=node('dialog'),close=node('button','إغلاق');el.append(close);
  const d={el,body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},cleanups:[],onDispose(fn){this.cleanups.push(fn);},run(work){d.lastError=null;d.pending=Promise.resolve().then(work).catch(error=>{d.lastError=error;d.status.textContent=error.message;});return d.pending;}};el.append(d.body);
- const ctx={node,field,createDialog:()=>d,crypto:{randomUUID:()=> 'expense-new-'+(++sequence)},window:{confirm:message=>{confirmations.push(message);return state.confirm;}},console};vm.createContext(ctx);vm.runInContext(source+'\nopenFinancialRegister();',ctx);
+ const ctx={...localeBindings,node,field,createDialog:()=>d,crypto:{randomUUID:()=> 'expense-new-'+(++sequence)},window:{confirm:message=>{confirmations.push(message);return state.confirm;}},console};vm.createContext(ctx);vm.runInContext(source+'\nopenFinancialRegister();',ctx);
  const button=label=>descendants(d.body).find(element=>element.tag==='button'&&element.textContent===label);
  const control=label=>descendants(d.body).find(element=>element.label===label)?.children[0];
  const editor=()=>descendants(d.body).find(element=>element.tag==='form'&&element.children.some(child=>child.tag==='h3'));

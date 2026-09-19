@@ -1,3 +1,4 @@
+import {t as translateStatic,t as visibleText,message as visibleMessage,dateLocale} from '../src/v267/components/locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -51,9 +52,9 @@ function fixture(mode){
   if(state.readDenied)throw Object.assign(Error('denied'),{status:403});
   if(!objects.has(path))throw Object.assign(Error('missing'),{status:404});return objects.get(path);
  }};
- const d={body:node('div'),status:node('p'),session,run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
+ const d={body:node('div'),status:node('p'),session,disposers:[],onDispose(fn){this.disposers.push(fn);},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  const api={primary:x=>x,contractMarkup:()=>'<p>Saved fixture contract</p>'};
- const context={...payroll,node,field,createDialog:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
+ const context={translateStatic,visibleText,visibleMessage,dateLocale,...payroll,node,field,createDialog:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
  vm.createContext(context);const source=fs.readFileSync('src/v267/pages/'+(mode==='hr'?'employees':'rental-contracts')+'.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');vm.runInContext(source,context);
  const find=(tag,label)=>all(d.body).find(e=>e.tag===tag&&e.textContent===label);
  const uploadForm=()=>all(d.body).find(e=>e.tag==='form'&&all(e).some(c=>c.type==='file'));

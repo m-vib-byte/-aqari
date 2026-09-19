@@ -61,13 +61,22 @@ async function runAction(action){if(action.native)return openNative(action.nativ
 
 async function callNativeRouters(route){let called=false;try{if(typeof window.AQARI_OWNER_FINAL?.navigate==='function'){const ok=await window.AQARI_OWNER_FINAL.navigate(route);called=ok!==false;}}catch{}await waitPaint();if(!visible(nativePage(route))){try{if(typeof window.AQARI_V199_BASE_GO==='function'){window.AQARI_V199_BASE_GO(route);called=true;}else if(typeof window.go==='function'){window.go(route);called=true;}}catch{}await waitPaint();}if(['home','properties','tenants','collectionProPage','maintenanceProPage'].includes(route)&&window.AQARI_V205&&document.body.getAttribute('data-v205-route')!==route){try{window.AQARI_V205.navigate?.(route);called=true;}catch{}await waitPaint();}return called;}
 async function openNative(route){const token=++navigationFlight;const a=await access();const permission=NATIVE_PERMISSION[route];if(!canRead(permission,a))throw Error('هذا القسم غير متاح لصلاحيات حسابك الحالية.');await callNativeRouters(route);if(token!==navigationFlight)return false;const page=nativePage(route);if(!visible(page))throw Error('تعذر فتح صفحة القسم الفعلية.');hideVirtualPages();decorateNativePage(route,page);document.body.dataset.aqUnifiedSection=SECTIONS.find(x=>x.native===route)?.key||route;syncNav();page.scrollIntoView?.({block:'start',behavior:'auto'});return true;}
-function hideNativePages(){for(const id of new Set(Object.values(NATIVE_PAGE))){const el=document.getElementById(id);if(el&&el.id!=='home')el.classList.remove('on');}}
+function hideNativePages(){for(const page of document.querySelectorAll('main.w > .p'))page.classList.remove('on');}
 function hideVirtualPages(){document.querySelectorAll('.aq-unified-page').forEach(p=>{p.hidden=true;p.classList.remove('on');});}
 function showVirtualPage(section){hideNativePages();hideVirtualPages();const page=ensureVirtualPage(section);page.hidden=false;page.classList.add('on');document.body.dataset.aqUnifiedSection=section.key;syncNav();page.scrollIntoView?.({block:'start',behavior:'auto'});return true;}
 async function openSection(key){if(key==='more')return openMore();const section=SECTIONS.find(x=>x.key===key);if(!section)return false;const a=await access();if(section.manager&&scope()?.role!=='general_manager')throw Error('هذا القسم للمدير العام فقط.');if(section.permission&&!canRead(section.permission,a))throw Error('هذا القسم غير متاح لصلاحيات حسابك الحالية.');if(section.native)return openNative(section.native);if(section.external)return runAction({external:section.external});return showVirtualPage(section);}
 
 function pageHeader(title,subtitle){return `<header class="aq-unified-page-head"><div><span>AQARI ${RELEASE}</span><h1>${title}</h1><p>${subtitle}</p></div><button type="button" data-unified-section="home">العودة للرئيسية</button></header>`;}
-function decorateNativePage(route,page){if(route==='home')return;page.classList.add('aq-unified-native-page');let head=page.querySelector(':scope > .aq-unified-page-head');const section=SECTIONS.find(x=>x.native===route);if(!head){head=document.createElement('div');head.innerHTML=pageHeader(section?.label||'القسم','إدارة وتشغيل '+(section?.label||'القسم')+' من صفحة واضحة وموحدة.');page.prepend(head.firstElementChild);}}
+function decorateNativePage(route,page){
+ if(route==='home')return;
+ page.classList.add('aq-unified-native-page');
+ const head=page.querySelector(':scope > .aq-unified-page-head');
+ if(head?.dataset.aqariNativeRoute===route)return;
+ const section=SECTIONS.find(x=>x.native===route),container=document.createElement('div');
+ container.innerHTML=pageHeader(section?.label||'القسم','إدارة وتشغيل '+(section?.label||'القسم')+' من صفحة واضحة وموحدة.');
+ const next=container.firstElementChild;next.dataset.aqariNativeRoute=route;
+ if(head)head.replaceWith(next);else page.prepend(next);
+}
 function actionCard(label,action,index){const key=`action-${index}`;return `<button type="button" class="aq-unified-action-card" data-unified-action="${key}"><span>${icon(index%3===0?'file':index%3===1?'chart':'tool')}</span><strong>${label}</strong><small>فتح الوظيفة الأصلية دون إنشاء نسخة مكررة من البيانات.</small></button>`;}
 function ensureVirtualPage(section){let page=document.getElementById(VIRTUAL_PREFIX+section.key);if(page)return page;const main=document.querySelector('main.w')||document.querySelector('main');if(!main)throw Error('تعذر إنشاء صفحة القسم.');page=document.createElement('section');page.id=VIRTUAL_PREFIX+section.key;page.className='p aq-unified-page';page.hidden=true;page.innerHTML=pageHeader(section.label,'صفحة تشغيل موحدة تجمع الوظائف الأصلية المرتبطة بهذا القسم.')+`<div class="aq-unified-section-grid">${(section.actions||[]).map((x,i)=>actionCard(x[0],x[1],i)).join('')}</div><section class="aq-unified-preserve"><strong>حماية الوظائف الحالية</strong><p>جميع الأزرار في هذه الصفحة تفتح مسارات AQARI الأصلية مع نفس الصلاحيات والحفظ وسجل التدقيق؛ هذه الصفحة تنظيمية فقط.</p></section>`;main.appendChild(page);page.addEventListener('click',event=>{const home=event.target.closest('[data-unified-section]')?.dataset.unifiedSection;if(home){event.preventDefault();openSection(home);return;}const key=event.target.closest('[data-unified-action]')?.dataset.unifiedAction;if(!key)return;const index=Number(key.split('-')[1]);const action=section.actions?.[index]?.[1];if(action)runAction(action).catch(error=>setStatus(error.message,true));});return page;}
 
@@ -88,7 +97,7 @@ function dashboardMarkup(){return `<section id="${ROOT_ID}" class="aq-unified-da
  </section><p id="aqUnifiedStatus" role="status" aria-live="polite"></p>
  </section>`;}
 function mountDashboard(){const home=document.getElementById('aqOwnerExactHome')||document.getElementById('home');if(!home||document.getElementById(ROOT_ID))return;home.insertAdjacentHTML('afterbegin',dashboardMarkup());home.addEventListener('click',event=>{const key=event.target.closest('[data-unified-section]')?.dataset.unifiedSection;if(key){event.preventDefault();openSection(key).catch(error=>setStatus(error.message,true));return;}const special=event.target.closest('[data-unified-special]')?.dataset.unifiedSpecial;if(special==='assistant')document.querySelector('[data-exact-special="assistant"]')?.click();if(special==='experience')import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());});refreshDashboard();}
-function refreshDashboard(){const root=document.getElementById(ROOT_ID);if(!root)return;const metrics=root.querySelector('[data-unified-metrics]');if(metrics){const data=[['تحصيل اليوم',metricByLabel(/تحصيل اليوم|اليوم.*تحصيل/),'collection','success'],['تحصيل الشهر',metricByLabel(/إجمالي التحصيل|المحصل|تحصيل الشهر/),'collection','success'],['المستحق',metricByLabel(/المستحق|الإيراد المتوقع/),'receipt',''],['المتأخر',metricByLabel(/المتأخر/),'receipt','danger'],['العقارات',metricByLabel(/العقارات المسجلة|إجمالي العقارات/),'building',''],['الوحدات',metricByLabel(/الوحدات/),'units',''],['العقود',metricByLabel(/العقود الفعالة|العقود النشطة/),'file',''],['الصيانة المفتوحة',metricByLabel(/الصيانة|بلاغ/),'tool','']];metrics.innerHTML=data.map(x=>metricCard(...x)).join('');}
+function refreshDashboard(){if(document.body.classList.contains('aq-live-stable'))return;const root=document.getElementById(ROOT_ID);if(!root)return;const metrics=root.querySelector('[data-unified-metrics]');if(metrics){const data=[['تحصيل اليوم',metricByLabel(/تحصيل اليوم|اليوم.*تحصيل/),'collection','success'],['تحصيل الشهر',metricByLabel(/إجمالي التحصيل|المحصل|تحصيل الشهر/),'collection','success'],['المستحق',metricByLabel(/المستحق|الإيراد المتوقع/),'receipt',''],['المتأخر',metricByLabel(/المتأخر/),'receipt','danger'],['العقارات',metricByLabel(/العقارات المسجلة|إجمالي العقارات/),'building',''],['الوحدات',metricByLabel(/الوحدات/),'units',''],['العقود',metricByLabel(/العقود الفعالة|العقود النشطة/),'file',''],['الصيانة المفتوحة',metricByLabel(/الصيانة|بلاغ/),'tool','']];metrics.innerHTML=data.map(x=>metricCard(...x)).join('');}
  const set=(key,value)=>{const el=root.querySelector(`[data-unified-value="${key}"]`);if(el)el.textContent=value;};set('today',metricByLabel(/تحصيل اليوم|اليوم.*تحصيل/));set('due',metricByLabel(/المستحق|الإيراد المتوقع/));set('collected',metricByLabel(/إجمالي التحصيل|المحصل|تحصيل الشهر/));set('overdue',metricByLabel(/المتأخر|المتبقي/));set('expenses',metricByLabel(/المصروفات/));set('net',metricByLabel(/الصافي|صافي التشغيل/));
  const alerts=root.querySelector('[data-unified-alerts]');if(alerts){const rows=[...document.querySelectorAll('.v199-alert,.aq267-alert,[data-alert],.v199-notification-row')].filter(visible).slice(0,5);alerts.replaceChildren();if(rows.length)for(const row of rows){const p=document.createElement('button');p.type='button';p.textContent=(row.textContent||'').replace(/\s+/g,' ').trim();p.onclick=()=>openSection('manager');alerts.appendChild(p);}else alerts.innerHTML='<p>لا توجد تنبيهات ظاهرة ضمن صلاحيات الحساب الحالية.</p>';}
  const properties=root.querySelector('[data-unified-properties]');if(properties){const rows=[...document.querySelectorAll('.v199-property-row')].slice(0,3);properties.replaceChildren();if(rows.length)for(const row of rows){const b=document.createElement('button');b.type='button';b.innerHTML=`<span>${icon('building')}</span><div><strong>${row.querySelector('strong')?.textContent||'عقار'}</strong><small>${row.querySelector('.v199-property-units')?.textContent||'فتح ملف العقار'}</small></div>`;b.onclick=()=>openSection('properties');properties.appendChild(b);}else properties.innerHTML='<p>تظهر العقارات من المحفظة المصرح بها.</p>';}
@@ -102,7 +111,28 @@ function syncNav(){const key=document.body.dataset.aqUnifiedSection||'home';docu
 function intercept(event){const button=event.target.closest?.('[data-unified-section]');if(!button||button.closest('#aqUnifiedMore'))return;const key=button.dataset.unifiedSection;if(!key)return;event.preventDefault();event.stopImmediatePropagation();openSection(key).catch(error=>setStatus(error.message,true));}
 function reset(){accessCache=null;accessKey='';navigationFlight++;}
 function applyGlobalPageClasses(){document.body.classList.add('aq-unified-experience');document.querySelectorAll('main.w > .p').forEach(page=>page.classList.add('aq-unified-page-surface'));}
-function watch(){observer?.disconnect?.();observer=new MutationObserver(()=>{applyGlobalPageClasses();refreshDashboard();mountDesktopNav();});observer.observe(document.body,{subtree:true,childList:true});}
+let dashboardRefreshQueued=false;
+function watch(){
+ observer?.disconnect?.();
+ observer=new MutationObserver(records=>{
+  if(document.body.classList.contains('aq-live-stable'))return;
+  const externalMutation=records.some(record=>{
+   const target=record?.target;
+   return !target?.closest?.('#'+ROOT_ID);
+  });
+  if(!externalMutation||dashboardRefreshQueued)return;
+  dashboardRefreshQueued=true;
+  requestAnimationFrame(()=>{
+   dashboardRefreshQueued=false;
+   observer.disconnect();
+   try{applyGlobalPageClasses();mountDashboard();refreshDashboard();mountDesktopNav();}
+   finally{observer.observe(document.body,{subtree:true,childList:true});}
+  });
+ });
+ observer.observe(document.body,{subtree:true,childList:true});
+}
 function boot(){if(!scope())return;applyGlobalPageClasses();mountDashboard();mountDesktopNav();mountMobileNav();document.addEventListener('click',intercept,true);window.addEventListener('aqari:auth-boundary',event=>{reset();if(event?.detail?.state==='ready')setTimeout(boot,0);});window.addEventListener('aqari:v267-controls-changed',reset);watch();document.body.dataset.aqUnifiedSection='home';syncNav();window.AQARI_UNIFIED_EXPERIENCE=Object.freeze({version:'V267-unified-layout-1',openSection,refresh:refreshDashboard,sections:SECTIONS.map(x=>x.key)});}
 function waitForAuth(){if(scope())return boot();let tries=0;const timer=setInterval(()=>{if(scope()){clearInterval(timer);boot();}else if(++tries>160)clearInterval(timer);},125);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',waitForAuth,{once:true});else waitForAuth();
+
+

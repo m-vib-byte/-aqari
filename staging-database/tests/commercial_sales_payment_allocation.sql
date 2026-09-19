@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic in-memory PostgreSQL acceptance only. Every fixture rolls back.
 begin;
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)
@@ -6,7 +8,7 @@ insert into auth.users(id,email,email_confirmed_at)
 values('76610000-0000-4000-8000-000000000001','commercial-allocation-manager@example.invalid',now());
 select set_config('aqari.test.commercial.allocation.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76610000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76610000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2","email":"commercial-allocation-manager@example.invalid"}',true);
+select set_config('request.jwt.claims',('{"aal":"aal2","email":"commercial-allocation-manager@example.invalid"}'::jsonb||jsonb_build_object('amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint))))::text,true);
 
 do $$declare w uuid:=current_setting('aqari.test.commercial.allocation.workspace')::uuid; readiness jsonb; doc uuid:='76610000-0000-4000-8000-000000000501';begin
  insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)

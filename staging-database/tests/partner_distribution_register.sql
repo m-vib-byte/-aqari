@@ -1,10 +1,12 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- All identities and records are synthetic; every business write rolls back.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values('76580000-0000-4000-8000-000000000090','partner-distribution-fixture','Synthetic partner distribution workspace');
 insert into public.aqari_app_state(workspace_id,payload) values('76580000-0000-4000-8000-000000000090','{}');
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values ('distribution-manager@example.invalid','مدير اختبار الإقفال','general_manager','partner-distribution-fixture'),('distribution-accountant@example.invalid','محاسب اختبار','accountant','partner-distribution-fixture'),('distribution-other-manager@example.invalid','مدير ثان اصطناعي','general_manager','partner-distribution-fixture');
 insert into auth.users(id,email,email_confirmed_at) values ('76580000-0000-4000-8000-000000000001','distribution-manager@example.invalid',now()),('76580000-0000-4000-8000-000000000002','distribution-accountant@example.invalid',now()),('76580000-0000-4000-8000-000000000005','distribution-other-manager@example.invalid',now());
-select set_config('request.jwt.claim.sub','76580000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','76580000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('pd.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 -- Explicit owner IDs, fractions and roles from the existing source; never an assumed 100% owner.
 do $$declare rows jsonb:='[{"id":"a","name":"الشريك أ","role":"مالك","bps":3333},{"id":"b","name":"الشريك ب","role":"وارث","bps":6667}]';begin
@@ -116,7 +118,7 @@ do $$declare w uuid:=current_setting('pd.w')::uuid;e jsonb;v jsonb;a jsonb;r jso
   end;
   if not pd_rejected then raise exception 'UNEXPECTED_ACCEPTANCE: %',pd_query;end if;
  end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
  a:=public.aqari_partner_distribution_register(w,'approve_source',request);
  if public.aqari_partner_distribution_register(w,'approve_source',request) is distinct from a then raise exception 'SOURCE_RETRY_CHANGED';end if;
  declare pd_query text:=format('select public.aqari_partner_distribution_register(%L,''approve_source'',%L)',w,request||'{"reason":"طلب مختلف بنفس المعرف"}');pd_expected_code text:='23514';pd_expected_message text:='PARTNER_RETRY_CONFLICT';pd_rejected boolean:=false;pd_code text;pd_message text;

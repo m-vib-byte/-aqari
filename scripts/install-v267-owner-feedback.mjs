@@ -5,7 +5,7 @@ const releasePath=new URL('../final-release-ui.js',import.meta.url);
 let release=readFileSync(releasePath,'utf8');
 const marker='/* AQARI V267 owner feedback exact-reference loader */';
 if(!release.includes(marker)){
- release+=`\n${marker}\n;(function(){\n  function loadOwnerFeedback(){\n    if(document.getElementById('aqari-v267-owner-feedback-js'))return;\n    const script=document.createElement('script');\n    script.id='aqari-v267-owner-feedback-js';script.type='module';\n    script.src='/src/v267/owner-feedback-runtime.js?release=V267';\n    document.body.appendChild(script);\n  }\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadOwnerFeedback,{once:true});else loadOwnerFeedback();\n})();\n`;
+ release+=`\n${marker}\n;(function(){\n  function loadOwnerFeedback(){\n    if(document.getElementById('aqari-v267-owner-feedback-js'))return;\n    const script=document.createElement('script');\n    script.id='aqari-v267-owner-feedback-js';script.type='module';\n    script.src='/src/v267/owner-feedback-runtime.js?release=V267';\n    document.body.appendChild(script);\n  }\n  window.AQARI_REGISTER_AUTH_UI(loadOwnerFeedback);\n})();\n`;
  writeFileSync(releasePath,release);
  console.log('Installed V267 exact-reference owner feedback runtime loader.');
 }
@@ -21,7 +21,7 @@ writeFileSync(runtimePath,runtime);
 release=readFileSync(releasePath,'utf8');
 const finalMarker='/* AQARI V267 final beige owner-test loader */';
 if(!release.includes(finalMarker)){
- release+=`\n${finalMarker}\n;(function(){\n  function loadOwnerFinal(){\n    if(document.getElementById('aqari-v267-owner-final-js'))return;\n    const script=document.createElement('script');script.id='aqari-v267-owner-final-js';script.type='module';\n    script.src='/src/v267/owner-final-runtime.js?release=V267';document.body.appendChild(script);\n  }\n  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadOwnerFinal,{once:true});else loadOwnerFinal();\n})();\n`;
+ release+=`\n${finalMarker}\n;(function(){\n  function loadOwnerFinal(){\n    if(document.getElementById('aqari-v267-owner-final-js'))return;\n    const script=document.createElement('script');script.id='aqari-v267-owner-final-js';script.type='module';\n    script.src='/src/v267/owner-final-runtime.js?release=V267';document.body.appendChild(script);\n  }\n  window.AQARI_REGISTER_AUTH_UI(loadOwnerFinal);\n})();\n`;
  writeFileSync(releasePath,release);
  console.log('Installed V267 final warm-beige owner-test runtime loader.');
 }
@@ -29,7 +29,7 @@ if(!release.includes(finalMarker)){
 release=readFileSync(releasePath,'utf8');
 const unifiedMarker='/* AQARI V267 unified structural layout loader */';
 if(!release.includes(unifiedMarker)){
- release+=`\n${unifiedMarker}\n;(function(){\n function loadUnifiedLayout(){\n  if(!document.getElementById('aqari-v267-unified-layout-css')){const link=document.createElement('link');link.id='aqari-v267-unified-layout-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout.css?release=V267';document.head.appendChild(link);}\n  if(!document.getElementById('aqari-v267-unified-virtual-css')){const link=document.createElement('link');link.id='aqari-v267-unified-virtual-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout-virtual.css?release=V267';document.head.appendChild(link);}\n  if(document.getElementById('aqari-v267-unified-layout-js'))return;\n  const script=document.createElement('script');script.id='aqari-v267-unified-layout-js';script.type='module';script.src='/src/v267/unified-layout-runtime.js?release=V267';document.body.appendChild(script);\n }\n if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadUnifiedLayout,{once:true});else loadUnifiedLayout();\n})();\n`;
+ release+=`\n${unifiedMarker}\n;(function(){\n function loadUnifiedLayout(){\n  if(!document.getElementById('aqari-v267-unified-layout-css')){const link=document.createElement('link');link.id='aqari-v267-unified-layout-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout.css?release=V267';document.head.appendChild(link);}\n  if(!document.getElementById('aqari-v267-unified-virtual-css')){const link=document.createElement('link');link.id='aqari-v267-unified-virtual-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout-virtual.css?release=V267';document.head.appendChild(link);}\n  if(document.getElementById('aqari-v267-unified-layout-js'))return;\n  const script=document.createElement('script');script.id='aqari-v267-unified-layout-js';script.type='module';script.src='/src/v267/unified-layout-runtime.js?release=V267';document.body.appendChild(script);\n }\n window.AQARI_REGISTER_AUTH_UI(loadUnifiedLayout);\n})();\n`;
  writeFileSync(releasePath,release);
  console.log('Installed V267 unified structural layout above compatible business workflows.');
 }
@@ -37,7 +37,7 @@ if(!release.includes(unifiedMarker)){
 release=readFileSync(releasePath,'utf8');
 const premiumMarker='/* AQARI V267 premium refinement loader */';
 if(!release.includes(premiumMarker)){
- release+=`\n${premiumMarker}\n;(function(){\n function loadPremiumRefinement(){\n  if(!document.getElementById('aqari-v267-premium-refinement-css')){const link=document.createElement('link');link.id='aqari-v267-premium-refinement-css';link.rel='stylesheet';link.href='/src/v267/styles/premium-refinement.css?release=V267';document.head.appendChild(link);}\n  if(document.getElementById('aqari-v267-premium-navigation-js'))return;\n  const script=document.createElement('script');script.id='aqari-v267-premium-navigation-js';script.type='module';script.src='/src/v267/premium-navigation-runtime.js?release=V267';document.body.appendChild(script);\n }\n if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadPremiumRefinement,{once:true});else loadPremiumRefinement();\n})();\n`;
+ release+=`\n${premiumMarker}\n;(function(){\n function loadPremiumRefinement(){\n  if(!document.getElementById('aqari-v267-premium-refinement-css')){const link=document.createElement('link');link.id='aqari-v267-premium-refinement-css';link.rel='stylesheet';link.href='/src/v267/styles/premium-refinement.css?release=V267';document.head.appendChild(link);}\n  if(document.getElementById('aqari-v267-premium-navigation-js'))return;\n  const script=document.createElement('script');script.id='aqari-v267-premium-navigation-js';script.type='module';script.src='/src/v267/premium-navigation-runtime.js?release=V267';document.body.appendChild(script);\n }\n window.AQARI_REGISTER_AUTH_UI(loadPremiumRefinement);\n})();\n`;
  writeFileSync(releasePath,release);
  console.log('Installed V267 premium visual refinement and direct-function navigation layer.');
 }
@@ -45,7 +45,7 @@ if(!release.includes(premiumMarker)){
 release=readFileSync(releasePath,'utf8');
 const luxuryMarker='/* AQARI V267 luxury warm beige final visual loader */';
 if(!release.includes(luxuryMarker)){
- release+=`\n${luxuryMarker}\n;(function(){\n function loadLuxuryWarmBeige(){\n  let link=document.getElementById('aqari-v267-luxury-warm-css');\n  if(!link){link=document.createElement('link');link.id='aqari-v267-luxury-warm-css';link.rel='stylesheet';link.href='/src/v267/styles/luxury-warm-beige.css?release=V267';}\n  if(document.head&&document.head.lastElementChild!==link)document.head.appendChild(link);\n }\n if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadLuxuryWarmBeige,{once:true});else loadLuxuryWarmBeige();\n})();\n`;
+ release+=`\n${luxuryMarker}\n;(function(){\n function loadLuxuryWarmBeige(){\n  let link=document.getElementById('aqari-v267-luxury-warm-css');\n  if(!link){link=document.createElement('link');link.id='aqari-v267-luxury-warm-css';link.rel='stylesheet';link.href='/src/v267/styles/luxury-warm-beige.css?release=V267';}\n  if(document.head&&document.head.lastElementChild!==link)document.head.appendChild(link);\n }\n window.AQARI_REGISTER_AUTH_UI(loadLuxuryWarmBeige);\n})();\n`;
  writeFileSync(releasePath,release);
  console.log('Installed V267 final luxury warm-beige visual layer after the existing owner surfaces.');
 }

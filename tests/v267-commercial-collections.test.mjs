@@ -1,3 +1,4 @@
+import {t as translateStatic,t as visibleText,message as visibleMessage,dateLocale} from '../src/v267/components/locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -63,7 +64,7 @@ function fixture({standalone=false}={}){
   const controls=nodes.filter(x=>x.isConnected&&['button','input','select'].includes(x.tag)),disabled=controls.map(x=>x.disabled);controls.forEach(x=>x.disabled=true);
   try{await task();}catch(e){if(e.code==='42501')d.close();else d.status.textContent=e.message;}finally{running=false;if(!closed)controls.forEach((x,i)=>{if(x.isConnected)x.disabled=disabled[i];});}
  }};
- const context={node,field,Date:Clock,Error,BigInt,crypto:{randomUUID:()=>`operation-${++nextId}`},createDialog:()=>d};vm.createContext(context);
+ const context={translateStatic,visibleText,visibleMessage,dateLocale,node,field,Date:Clock,Error,BigInt,crypto:{randomUUID:()=>`operation-${++nextId}`},createDialog:()=>d};vm.createContext(context);
  const source=fs.readFileSync('src/v267/components/commercial-collections.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
  const component=vm.runInContext(`(()=>{${source}\nreturn {mountCommercialCollections,requireCommercialCollectionsAccess};})()`,context);Object.assign(context,component);
  if(standalone)vm.runInContext(fs.readFileSync('src/v267/pages/commercial-sales.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);

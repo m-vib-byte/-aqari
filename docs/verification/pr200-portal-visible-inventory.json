@@ -1,0 +1,2088 @@
+{
+  "scope": "Login and tenant/partner portal presentation; no new business features",
+  "baseline": "4f384b9f1bef8bb4f6ea7a5e3bf27497b82aae07",
+  "portalRuntimeUniqueVisible": 130,
+  "portalRuntimeUntranslated": 0,
+  "visible": [
+    {
+      "source": "تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "حساب المستأجر",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "انتهت مهلة الاتصال.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تغيرت الجلسة أو انتهت مهلة الاتصال.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تغيرت الجلسة.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لا توجد سجلات محفوظة.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر التحقق من جلسة الدخول.",
+      "files": [
+        "v267-tenant-portal.js",
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر فتح ملف المستأجر. تأكد من تأكيد بريدك وربطه بملفك لدى الإدارة.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تأكيد ارتباط الملف بحسابك.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "العقد {contract} • الوحدة {unit} • {property}\nالإيجار {amount} د.ك • من {start} إلى {end}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "وصل إيجار {reference} • {amount} د.ك • {date}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "فتح وصل الإيجار",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم الاستلام",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم التكليف",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "قيد التنفيذ",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "مكتمل",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "ملغى",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "طلب {number} • ",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "غير معروف",
+      "files": [
+        "v267-tenant-portal.js",
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "صور البلاغ ومرفقاته",
+      "files": [
+        "v267-tenant-portal.js",
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "العقد {contract} • الوحدة {unit}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تغيرت الجلسة. أعد الدخول إلى حسابك.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "البلاغ غير متاح لهذا الحساب.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر قراءة المرفقات.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "التواصل والتقييم",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تحميل التواصل والتقييم.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "وسيلة التواصل المفضلة: {channel}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "غير محددة",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "جارٍ تحميل إعلانات عقارك…",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تحميل إعلانات العقار. يمكنك متابعة استخدام حسابك والمحاولة مجدداً.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تأكيد بيانات إعلانات العقار.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لا توجد إعلانات أو إرشادات منشورة لعقارك حالياً.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "إعلان العقار",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "إرشاد للمستأجر",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعميم إداري",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تاريخ النشر: {date} • النسخة {revision}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "نهاية العرض: {date}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم تسجيل اطلاعك في {date}",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أقر بأنني اطلعت على هذه النسخة",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تُعرض أحدث ٥٠ مادة متاحة لك. لا يسجل الاطلاع إلا عند ضغط زر الإقرار.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لم يتأكد تسجيل الاطلاع. حدّث الإعلانات للتحقق.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لم يتأكد ظهور الإقرار في السجل الحالي. حدّث الإعلانات للتحقق.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم حفظ إقرار اطلاعك على هذه النسخة والتحقق منه.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم فتح ملفك المحفوظ.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر استرجاع الوصل المحفوظ.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "ملف الوصل غير صالح.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "عرض الوصل وطباعته",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تحميل PDF",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم استرجاع الوصل المحفوظ. يمكنك طباعته من عارض PDF أو قائمة المشاركة على الآيفون.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر الدخول. راجع البريد وكلمة المرور وتأكيد الحساب.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اختر كلمة مرور من ١٠ أحرف على الأقل.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر إنشاء الحساب. يجب أن يكون بريدك مسجلاً في ملف مستأجر واحد لدى الإدارة.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "راجع بريدك لتأكيد الحساب، ثم ارجع إلى هذه الصفحة وسجل الدخول.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم تسجيل الخروج.",
+      "files": [
+        "v267-tenant-portal.js",
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تأكيد تسجيل الخروج؛ أعد المحاولة.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اختر عقداً فعالاً.",
+      "files": [
+        "v267-tenant-portal.js",
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أدخل وصفاً من ٥ إلى ٣٠٠٠ حرف.",
+      "files": [
+        "v267-tenant-portal.js",
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم حفظ طلب الصيانة وظهوره في سجلك. افتح «صور البلاغ ومرفقاته» لإضافة صور العطل أو استرجاعها.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لم يتأكد الحفظ. أعد تحميل الصفحة وتحقق من الطلب قبل إرساله مرة أخرى.",
+      "files": [
+        "v267-tenant-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "حساب الشريك",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تغيرت الجلسة. سجّل الدخول أو حدّث البيانات.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "جارٍ الاتصال…",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أدخل البريد وكلمة المرور للدخول إلى حساب الشريك.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر إكمال العملية. تحقق من تأكيد بريدك وصلاحية العقار ثم أعد المحاولة.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "عدد الوحدات",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "عقود مسودة",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "عدد الوصول المسجلة",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "المقبوضات المسجلة — د.ك",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تمت قراءة البيانات المصرح بها من قاعدة البيانات.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لا توجد عقارات مصرح بها لهذا الحساب. راجع الإدارة.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "استخدم كلمة مرور لا تقل عن 10 أحرف.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تحقق من بريدك لتأكيد الحساب، ثم ارجع إلى دخول الشريك.",
+      "files": [
+        "v267-partner-portal.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "العقار",
+      "files": [
+        "src/v267/tenant-property-technicians.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "فني معتمد",
+      "files": [
+        "src/v267/tenant-property-technicians.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اتصال",
+      "files": [
+        "src/v267/tenant-property-technicians.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "يظهر لك {count} فني/فنيين معتمدين للعقار المرتبط بعقدك الحالي.",
+      "files": [
+        "src/v267/tenant-property-technicians.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تحميل فنيي العقار المصرح لهم حالياً.",
+      "files": [
+        "src/v267/tenant-property-technicians.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "كهرباء",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "سباكة",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تكييف",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "مصعد",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أبواب ونوافذ",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "نظافة",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أخرى",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "قديم — غير مصنف",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تأكيد ملف المستأجر.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "النوع: {category} • ",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اختر نوع العطل قبل إرسال الطلب.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "انتهت جلسة الدخول. أعد تسجيل الدخول.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تأكيد حساب المستأجر.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اختر نوع عطل صالحاً.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر حفظ طلب الصيانة.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم الإرسال لكن لم يتأكد الاسترجاع. حدّث الصفحة قبل إعادة الإرسال.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم حفظ طلب الصيانة بنوع «{category}» وظهوره في السجل.",
+      "files": [
+        "src/v267/tenant-maintenance-category.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم إغلاق مرفقات البلاغ.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أرفق حتى ٨ ملفات لهذا البلاغ. الحد ١٠ ميجابايت لكل صورة أو PDF.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اختيار صور أو PDF للبلاغ",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تصوير العطل بالكاميرا",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "رفع المرفقات والتحقق منها",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تحديث مرفقات البلاغ",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "بلغ البلاغ الحد الأقصى: ٨ مرفقات وحجوزات نشطة. حدّث القائمة لاستئناف حجوزاتك غير المكتملة أو إلغائها مع توثيق السبب.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "راجع نوع الملف واسمه وحجمه. المسموح صور JPEG أو PNG أو WebP أو PDF حتى ١٠ ميجابايت.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تغير الملف عن النسخة التي حُجزت له. اختر النسخة الأصلية وأعد المحاولة.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لم يتأكد اكتمال الملف في التخزين. احتُفظ بالاختيار لإعادة المحاولة والتحقق.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "أُلغي هذا الحجز. حدّث القائمة واختر ملفًا لحجز جديد عند الحاجة.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اكتمل حفظ هذا المرفق ولا يمكن إلغاء حجزه. حدّث القائمة لاسترجاع الأصل.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "سُجل الإلغاء مسبقًا بسبب مختلف. حدّث القائمة لمراجعة السجل.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اكتب سبب إلغاء الحجز من ٦ إلى ٢٤٠ حرف.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تعذر تأكيد العملية. حدّث المرفقات قبل المحاولة مجدداً.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "لا توجد مرفقات محفوظة لهذا البلاغ.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "استرجاع المرفق",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "فتح / تحميل الملف المحفوظ",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم استرجاع المرفق والتحقق من بصمته.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "حجوزاتك غير المكتملة",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "استأنف بالملف الأصلي نفسه، أو ألغِ الحجز مع ذكر السبب لتحرير مكانه. يُحفظ سجل الإلغاء وأي ملف وصل إلى التخزين دون حذف.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "البلاغ مغلق؛ هذا الحجز محفوظ للقراءة فقط.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "استئناف رفع {filename} — اختر الملف الأصلي",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "سبب إلغاء حجز {filename}",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "إلغاء الحجز وتوثيق السبب",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اكتمل استئناف المرفق والتحقق من الملف المحفوظ.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم إلغاء الحجز وتوثيق السبب وإعادة قراءة السجل. لم يُحذف أي ملف. وقت الإلغاء: {date}",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "سجل حجوزاتك الملغاة — أحدث ٥٠ حجزًا",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "{filename} — حجز قديم ملغى؛ السبب والفاعل غير مسجلين. الوقت: {date}",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "{filename} — السبب: {reason} — الفاعل: {actor} — الوقت: {date}",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "المرفقات خاصة بهذا البلاغ ومتاحة للحسابات المخولة فقط.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "اختر حتى ٨ ملفات فقط.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "الملفات المختارة جاهزة للرفع.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "جارٍ رفع المرفق {current} من {total} والتحقق منه…",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    },
+    {
+      "source": "تم حفظ {count} مرفق وإعادة قراءة الملف والسجل والتحقق منهما.",
+      "files": [
+        "src/v267/components/maintenance-attachment-panel.js"
+      ],
+      "classification": "visible-ui",
+      "languages": [
+        "ar",
+        "en",
+        "hi",
+        "ur",
+        "ml"
+      ],
+      "missing": []
+    }
+  ],
+  "reviewedExclusions": [
+    {
+      "kind": "record-values",
+      "expressions": [
+        "data.tenant.full_name",
+        "property.propertyName",
+        "technician.nameAr",
+        "technician.nameEn",
+        "technician.jobAr",
+        "m.description",
+        "record.title",
+        "record.body",
+        "record.property_name",
+        "doc.filename",
+        "audit.reason",
+        "audit.by",
+        "payment.reference",
+        "l.contract_no"
+      ],
+      "reason": "Stored user/business content is displayed literally; not a UI dictionary entry."
+    },
+    {
+      "kind": "technical-identifier",
+      "examples": [
+        "STAGING_REQUIRED",
+        "AUTH_TIMEOUT",
+        "PARTNER_SIGN_IN_REQUIRED",
+        "READBACK_REQUIRED",
+        "aqari_tenant_portal_snapshot",
+        "aqari_maintenance_requests",
+        "aqari_property_notices",
+        "tenantPassword",
+        "partnerProperty",
+        "category_code",
+        "data-aq267-text"
+      ],
+      "reason": "Error codes, RPC/table identifiers, DOM IDs and data keys are not UI text. Caught failures use visible friendly messages."
+    },
+    {
+      "kind": "canonical-value",
+      "examples": [
+        "signed",
+        "published",
+        "electrical",
+        "plumbing",
+        "legacy_unclassified",
+        "received",
+        "assigned",
+        "in_progress",
+        "completed",
+        "cancelled"
+      ],
+      "reason": "Persisted category/status codes stay unchanged; display labels are translated."
+    },
+    {
+      "kind": "protocol-format-brand",
+      "examples": [
+        "application/pdf",
+        "image/jpeg",
+        "Asia/Kuwait",
+        "AQARI V267",
+        "WhatsApp",
+        "JPEG",
+        "PNG",
+        "WebP",
+        "PDF",
+        "rent-receipt.pdf"
+      ],
+      "reason": "MIME types, time zones, product/file-format names and download identifiers are not translated."
+    },
+    {
+      "kind": "non-displayed",
+      "examples": [
+        "المعاينة لا تسجل دخولًا ولا تقرأ عقارات أو مستأجرين أو مستندات أو بيانات مالية."
+      ],
+      "reason": "Hidden guest trust note is not displayed; guest dialog has its own complete five-language copy."
+    }
+  ],
+  "existingIndependentDictionaries": {
+    "loginMessages": 54,
+    "loginRoleMessagesPerLocale": 18,
+    "accountRecoveryMessagesPerLocale": 30
+  },
+  "verification": {
+    "tests": [
+      "tests/v267-portal-visible-locale.test.mjs",
+      "tests/v267-app-login-locale.test.mjs"
+    ],
+    "result": "5 passed",
+    "limitations": "No authenticated portal browser/device run was performed in this subtask. Existing staging guards retained."
+  },
+  "appCloudGate": {
+    "scope": "Observed existing #aqariCloudGateV168 static UI only; no authentication logic changes",
+    "visibleSources": [
+      "منصة إدارة الأملاك الراقية",
+      "محفظتك العقارية. بالمستوى الذي يليق بها.",
+      "تجربة هادئة تجمع الدخل والتحصيل والصيانة في مساحة واحدة مصممة بعناية.",
+      "خصوصية موثوقة",
+      "صلاحيات آمنة",
+      "نسخ سحابية",
+      "سجّل الدخول إلى مساحة عملك",
+      "البريد الإلكتروني",
+      "كلمة المرور",
+      "إظهار كلمة المرور",
+      "إظهار",
+      "دخول",
+      "إنشاء حساب المدير لأول مرة",
+      "نسيت كلمة المرور؟",
+      "الحسابات غير المصرح بها مرفوضة من قاعدة البيانات.",
+      "أدخل البريد الإلكتروني وكلمة المرور للدخول.",
+      "العودة إلى تسجيل الدخول",
+      "معاينة كضيف — بدون بيانات",
+      "دخول محمي ومخصص للحسابات المصرح بها.",
+      "10 أحرف أو أكثر"
+    ],
+    "additionalDictionaryEntries": 17,
+    "excluded": [
+      "AQARI V267",
+      "عقاري V267",
+      "name@example.com"
+    ],
+    "exclusionReason": "Product/release branding and an email format example, not translatable interface prose.",
+    "untranslatedStaticSources": 0
+  }
+}

@@ -341,10 +341,11 @@ function render(){
  document.documentElement.lang=language;document.documentElement.dir=['ar','ur'].includes(language)?'rtl':'ltr';
  document.title=translate(document.querySelector?.('[data-reset-password]')?'إعادة تعيين كلمة المرور':'تسجيل الدخول')+' | AQARI V267';
  for(const [el,source] of textNodes)el.textContent=translate(source);
- document.getElementById('password').placeholder=translate('كلمة المرور');
+ const password=document.getElementById('password');if(password)password.placeholder=translate('كلمة المرور');
  status.textContent=translate(status.aqariSource);
 }
 selector.value=language;
 selector.addEventListener('change',()=>{if(!languages.includes(selector.value))return;language=selector.value;try{window.localStorage.setItem('aqari_login_language',language);}catch(_){}render();});
 document.getElementById('loginLanguageControl').hidden=false;render();
 })();
+

@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic SQL acceptance only. No external send and every fixture rolls back.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values('c0710000-0000-4000-8000-000000000000','contact-unification-test','مساحة اختبار التواصل المعزولة');
@@ -9,7 +11,7 @@ insert into auth.users(id,email) values
  ('c0710000-0000-4000-8000-000000000001','contact-unified-manager@example.invalid'),
  ('c0710000-0000-4000-8000-000000000002','contact-unified-accountant@example.invalid');
 select set_config('request.jwt.claim.sub','c0710000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('contact.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)
  values('c0710000-0000-4000-8000-000000000010',current_setting('contact.w')::uuid,'contact-property','عقار تواصل اصطناعي','{}');

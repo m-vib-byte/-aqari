@@ -496,7 +496,7 @@
     const active=document.querySelector('.p.on');
     if(!active)return;
     active.querySelectorAll('table').forEach(enhanceTable);
-    if(active.id==='list'&&document.getElementById('title')?.textContent.includes('العقارات')){
+    if(active.id==='list'&&typeof cur!=='undefined'&&cur==='properties'){
       active.querySelectorAll('tbody tr').forEach(function(row){
         const name=row.cells?.[0]?.textContent.trim();
         const actions=row.cells?.[row.cells.length-1];

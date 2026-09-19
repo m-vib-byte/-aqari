@@ -1,7 +1,8 @@
+import {t as visibleText} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {t} from '../components/locale.js';
 
-const states={ready:'جاهزة للتأجير',not_ready:'غير جاهزة للتأجير',review_required:'تحتاج معاينة'};
+const states={get ready(){return visibleText('جاهزة للتأجير');},get not_ready(){return visibleText('غير جاهزة للتأجير');},get review_required(){return visibleText('تحتاج معاينة');}};
 const option=(value,label)=>Object.assign(node('option',label),{value});
 const normalize=value=>value.trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));
 
@@ -72,3 +73,4 @@ export function mountUnitReadiness(d){
 }
 
 export async function openUnitReadiness(){const d=createDialog(t('جاهزية الوحدات قبل التأجير'));if(!d)return null;await d.run(()=>mountAvailableUnitReadiness(d));return d;}
+

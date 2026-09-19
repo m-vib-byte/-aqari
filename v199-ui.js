@@ -129,7 +129,7 @@
     menu.setAttribute('role','menu');
     menu.setAttribute('aria-label','الحساب والمزيد');
     menu.innerHTML=
-      '<div class="v199-menu-head"><strong>حساب عقاري</strong><span id="v199MenuAccount">'+escapeHtml(sessionLabel())+'</span></div>'+
+      '<div class="v199-menu-head"><strong>حساب عقاري</strong><span id="v199MenuAccount">'+escapeHtml(sessionLabel().split('•')[0].trim())+'</span></div>'+
       '<button type="button" class="v199-menu-action" role="menuitem" data-v199-action="cloud">'+icon('cloud')+' الحساب والنسخة السحابية</button>'+
       '<button type="button" class="v199-menu-action" role="menuitem" data-v199-action="backup">'+icon('download')+' تنزيل نسخة احتياطية</button>'+
       '<button type="button" class="v199-menu-action" role="menuitem" data-v199-action="restore">'+icon('upload')+' استعادة نسخة</button>'+
@@ -339,7 +339,7 @@
     const menuAccount=document.getElementById('v199MenuAccount');
     const greetingName=document.getElementById('v199GreetingName');
     if(account)account.textContent=label.split('•')[0].trim();
-    if(menuAccount)menuAccount.textContent=label;
+    if(menuAccount)menuAccount.textContent=label.split('•')[0].trim();
     if(greetingName)greetingName.textContent=label.split('•')[0].trim();
     const value=numberFrom(document.getElementById('notifCount')?.textContent||0);
     const count=document.getElementById('v199NotificationCount');

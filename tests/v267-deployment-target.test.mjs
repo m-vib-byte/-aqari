@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import {deploymentTargetErrors} from '../scripts/verify-deployment-target.mjs';
 
 function configuration() {
@@ -22,14 +23,26 @@ test('raw preview configuration cannot pass production validation before deliber
     cwd:new URL('..',import.meta.url), encoding:'utf8', env:{...process.env,VERCEL_ENV:'production'}
   });
   assert.notEqual(result.status,0);
-  assert.match(result.stderr,/Production cannot deploy a V267 preview configuration/);
-  assert.match(result.stderr,/preserve the current domain data source/);
-  assert.match(result.stderr,/Auth callbacks must return to myaqari.com/);
+  assert.match(result.stderr,/Single-domain trial Auth callbacks must return only to myaqari.com/);
+  // The authorized domain trial does not waive the separate production-data guard.
+  const context={window:{}};
+  runInNewContext(readFileSync(new URL('../public-config.js',import.meta.url),'utf8'),context);
+  const browser=context.window.AQARI_PUBLIC_CONFIG;
+  const backend={PRODUCT_VERSION:browser.productVersion,RELEASE_STAGE:browser.releaseStage,
+    SUPABASE_PUBLIC_CONFIG:{url:browser.supabaseUrl,publishableKey:browser.supabasePublishableKey}};
+  const errors=deploymentTargetErrors('production',browser,backend,{enabled:false}).join('\n');
+  assert.match(errors,/Production cannot deploy a V267 preview configuration/);
+  assert.match(errors,/preserve the current domain data source/);
+  assert.match(errors,/Auth callbacks must return to myaqari.com/);
 });
 
 test('the Vercel build prepares its target before invoking the package check', () => {
   const config=JSON.parse(readFileSync(new URL('../vercel.json',import.meta.url),'utf8'));
-  assert.equal(config.buildCommand,'node scripts/build-vercel.mjs');
+  assert.deepEqual(config.buildCommand.split(' && '),[
+    'node scripts/build-vercel.mjs',
+    'node scripts/install-v267-owner-reference-package.mjs',
+    'node scripts/install-v267-owner-feedback.mjs'
+  ]);
   assert.equal(config.outputDirectory,'.');
   const build=readFileSync(new URL('../scripts/build-vercel.mjs',import.meta.url),'utf8');
   assert.match(build,/VERCEL_ENV==='production'/);

@@ -1,3 +1,5 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Synthetic identities and records only. Full transaction rolls back; no DDL or permission changes.
 begin;
 insert into public.aqari_workspaces(id,slug,name) values('76610000-0000-4000-8000-000000000001','aqari-template-acceptance','Synthetic template acceptance');
@@ -9,7 +11,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76610000-0000-4000-8000-000000000002','template-manager@example.invalid',now()),
  ('76610000-0000-4000-8000-000000000003','template-staff@example.invalid',now());
 select set_config('request.jwt.claim.sub','76610000-0000-4000-8000-000000000002',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$
 declare w uuid:='76610000-0000-4000-8000-000000000001';ctx jsonb;published jsonb;again jsonb;req jsonb;kind text;idx integer:=10;s jsonb;d jsonb;t jsonb;prop uuid;c jsonb;r jsonb;
@@ -33,7 +35,7 @@ begin
  -- A publish operation requires actual AAL2, even for the manager.
  perform set_config('request.jwt.claims','{"aal":"aal1"}',true);
  begin perform public.aqari_rental_templates(w,'publish',req||'{"id":"76610000-0000-4000-8000-000000000090","expected_version":1}');raise exception 'TEMPLATE_AAL1_ALLOWED';exception when insufficient_privilege then null;end;
- perform set_config('request.jwt.claims','{"aal":"aal2"}',true);
+ perform set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
  -- Source drafts cannot be mislabeled as another type or workspace.
  begin perform public.aqari_rental_templates(w,'publish',req||'{"id":"76610000-0000-4000-8000-000000000091","expected_version":1,"source_draft_id":"76610000-0000-4000-8000-000000000004"}');raise exception 'TEMPLATE_SOURCE_TYPE_ALLOWED';exception when raise_exception then if sqlerrm='TEMPLATE_SOURCE_TYPE_ALLOWED' then raise;end if;end;
  begin perform public.aqari_rental_templates(w,'publish',req||'{"id":"76610000-0000-4000-8000-000000000092"}');raise exception 'TEMPLATE_STALE_REVISION_ALLOWED';exception when raise_exception then if sqlerrm='TEMPLATE_STALE_REVISION_ALLOWED' then raise;end if;end;

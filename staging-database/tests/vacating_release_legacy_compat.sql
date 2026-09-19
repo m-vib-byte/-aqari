@@ -1,8 +1,10 @@
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Local-memory acceptance using commercial-vacating-existing.sql synthetic history.
 -- The hosted legacy guard fixture must be installed before the compatibility SQL.
 begin;
 select set_config('request.jwt.claim.sub','76570000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('compat.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 set local role authenticated;
 do $$declare w uuid:=current_setting('compat.w')::uuid;begin
@@ -48,7 +50,7 @@ rollback;
 -- lease triggers, using the independent state-RPC readiness history fixture.
 begin;
 select set_config('request.jwt.claim.sub','76620000-0000-4000-8000-000000000004',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:='76620000-0000-4000-8000-000000000900';state jsonb;d jsonb;c jsonb;r jsonb;receipt jsonb;row_data jsonb;period date;doc record;lid uuid;begin
  state:=public.aqari_read_state_v267(w);d:=state->'payload';c:=d#>'{contractsV202,0}';

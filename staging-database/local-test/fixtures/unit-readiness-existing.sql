@@ -1,3 +1,4 @@
+-- Positive local fixture carries current MFA evidence; production guards remain enabled.
 -- Local isolated runner only. Existing signed lease predates the new readiness guard.
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
  ('readiness-manager@example.invalid','مدير اختبار الجاهزية','general_manager','aqari-v267-staging'),
@@ -9,7 +10,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76620000-0000-4000-8000-000000000003','readiness-viewer@example.invalid',now());
 select set_config('aqari.test.readiness.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76620000-0000-4000-8000-000000000001' and is_active),false);
 select set_config('request.jwt.claim.sub','76620000-0000-4000-8000-000000000001',false);
-select set_config('request.jwt.claims','{"aal":"aal2"}',false);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,false);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)
  select ('76620000-0000-4000-8000-00000000010'||n)::uuid,current_setting('aqari.test.readiness.workspace')::uuid,'readiness-property-'||n,'عقار اختبار الجاهزية '||n,'{}' from generate_series(1,2)n;
 insert into public.aqari_units(id,workspace_id,property_id,unit_no)

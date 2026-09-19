@@ -1,4 +1,6 @@
 const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const vm=require('node:vm');
+let localeBindings;
+test.before(async()=>{const locale=await import('../src/v267/components/locale.js');localeBindings={translateStatic:locale.t,visibleText:locale.t,visibleMessage:locale.message,dateLocale:locale.dateLocale};});
 function fixture(overrides={}){
  class Element{
   constructor(tag,value=''){this.tag=tag;this._text=value;this.children=[];this.value='';this.disabled=false;this.checked=false;this.hidden=false;}
@@ -17,7 +19,7 @@ function fixture(overrides={}){
   if(action==='assign_task'){const row=saved.tasks.find(t=>t.id===data.id);Object.assign(row,{revision:row.revision+1,status:'assigned',assigned_vendor_id:data.vendor_id,assigned_by:'u',assigned_at:'2026-09-12'});return structuredClone(row);}
   throw Error('unexpected action: '+action);
  }}},run(fn){this.last=Promise.resolve().then(fn).catch(e=>{this.status.textContent=e.message;});return this.last;}};
- const context={createDialog:()=>d,node,field,crypto:{randomUUID:()=> 'new-plan'},Date,JSON,Number,Object,Array,String,Error};vm.createContext(context);
+ const context={...localeBindings,createDialog:()=>d,node,field,crypto:{randomUUID:()=> 'new-plan'},Date,JSON,Number,Object,Array,String,Error};vm.createContext(context);
  vm.runInContext(fs.readFileSync('src/v267/pages/maintenance-plans.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
  const elements=tag=>d.body.querySelectorAll(tag),button=label=>elements('button').find(x=>x._text===label),control=(label,container=d.body)=>container.querySelectorAll('label').find(x=>x._text===label)?.children[0];
  return {d,calls,state,button,control,elements,saved,get data(){return saved;},async start(){context.openMaintenancePlans();await d.last;},async submit(label){const b=button(label);const form=elements('form').find(f=>f.querySelectorAll('button').includes(b));assert.ok(form,'form '+label);await form.onsubmit({preventDefault(){}});}};

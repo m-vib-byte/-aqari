@@ -224,10 +224,11 @@ function mountGuestPreview(){
  card.appendChild(button);
 }
 function refreshMounts(){
+ if(document.body.classList.contains('aq-live-stable'))return;
  if(!authReady()){mountGuestPreview();return;}
  ensureCss();document.body.classList.add(OWNER_CLASS);mountRail();mountTopSearch();mountCommandBar();syncAvailability();syncActiveRail();
  if(!observer){
-  observer=new MutationObserver(()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{mountRail();mountTopSearch();mountCommandBar();syncAvailability();syncActiveRail();},80);});
+  observer=new MutationObserver(()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(document.body.classList.contains('aq-live-stable'))return;mountRail();mountTopSearch();mountCommandBar();syncAvailability();syncActiveRail();},80);});
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});
  }
  if(!mounted){mounted=true;window.AQARI_OWNER_REFERENCE=Object.freeze({version:'V267-owner-reference-1',openAssistant,openArchiveCenter,refresh:refreshMounts});}
@@ -236,3 +237,4 @@ function boot(){ensureCss();document.body.classList.add(OWNER_CLASS);mountGuestP
 window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refreshMounts,0);});
 window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&authReady()){event.preventDefault();openAssistant();}});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+

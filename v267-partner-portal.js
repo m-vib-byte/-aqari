@@ -1,5 +1,6 @@
 import {mountPortalAccountRecovery,portalRecoveryCallback} from './src/v267/components/portal-account-recovery.js';
-import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t} from './src/v267/components/locale.js';
+import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t,dateLocale} from './src/v267/components/locale.js';
+import {restorePortalLocale,savePortalLocale,refreshPortalLabels} from './src/v267/components/portal-locale.js';
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 import {createPartnerSession} from './src/v267/api/partner-session.js';
 import {partnerDistributionView} from './src/v267/components/partner-distribution-view.js';
@@ -10,12 +11,12 @@ if(recoveryCallback)window.location.replace(recoveryCallback);
 let accountRecovery;
 const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-partner'}});
 let properties=[],operation=0,busy=false;
-function language(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب الشريك')+' | AQARI V267';$('partnerLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);accountRecovery?.refresh();}
+function language(){document.documentElement.lang=getLocale();document.documentElement.dir=direction();document.title=t('حساب الشريك')+' | AQARI V267';$('partnerLanguage').value=getLocale();for(const el of document.querySelectorAll('[data-aq267-text]'))refreshText(el);accountRecovery?.refresh();refreshPortalLabels();}
 function controls(value){busy=value;for(const el of document.querySelectorAll('button,input,select'))el.disabled=el.id==='partnerLogout'||el.id==='partnerLanguage'?false:value;accountRecovery?.refresh();}
 function clear(){properties=[];$('partnerProperty').replaceChildren();$('partnerSummary').replaceChildren();$('partnerContent').hidden=true;$('partnerAuth').hidden=Boolean(accountRecovery?.active);$('partnerPassword').value='';$('partnerLogout').hidden=true;}
-const session=createPartnerSession(client,()=>{operation++;clear();controls(false);bindLocale(null);language();notice('تغيرت الجلسة. سجّل الدخول أو حدّث البيانات.');});
-bindLocale(null);for(const [value,label]of Object.entries(LANGUAGES)){const o=document.createElement('option');o.value=value;o.textContent=label;$('partnerLanguage').append(o);}
-$('partnerLanguage').onchange=()=>{setLocale($('partnerLanguage').value);language();};language();
+const session=createPartnerSession(client,()=>{operation++;clear();controls(false);bindLocale(null);restorePortalLocale();language();notice('تغيرت الجلسة. سجّل الدخول أو حدّث البيانات.');});
+bindLocale(null);restorePortalLocale();for(const [value,label]of Object.entries(LANGUAGES)){const o=document.createElement('option');o.value=value;o.textContent=label;$('partnerLanguage').append(o);}
+$('partnerLanguage').onchange=()=>{savePortalLocale($('partnerLanguage').value);language();};language();
 const now=new Date();$('partnerMonth').value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 async function bounded(work){let timer;try{return await Promise.race([work,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('AUTH_TIMEOUT')),20000);})]);}finally{clearTimeout(timer);}}
 async function run(task){if(busy)return;const ticket=++operation;controls(true);notice('جارٍ الاتصال…');try{await task(ticket);}catch(error){if(ticket===operation){$('partnerSummary').replaceChildren();const anonymous=error?.message==='PARTNER_SIGN_IN_REQUIRED';$('partnerLogout').hidden=anonymous;notice(anonymous?'أدخل البريد وكلمة المرور للدخول إلى حساب الشريك.':'تعذر إكمال العملية. تحقق من تأكيد بريدك وصلاحية العقار ثم أعد المحاولة.');}}finally{if(ticket===operation)controls(false);}}
@@ -51,3 +52,4 @@ accountRecovery=mountPortalAccountRecovery({container:$('partnerRecovery'),butto
 window.addEventListener('pagehide',()=>{accountRecovery.close();session.invalidate();});window.addEventListener('pageshow',event=>{if(event.persisted)run(load);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)session.invalidate();else run(load);});
 window.AQARI_PARTNER_READY=true;run(load);
+
