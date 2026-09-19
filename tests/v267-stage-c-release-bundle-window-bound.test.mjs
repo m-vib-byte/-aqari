@@ -68,8 +68,14 @@ test('Stage-C release bundle accepts the canonical 3600-second rollback rehearsa
   assert.equal(result.ok,true,JSON.stringify(result.errors));
 });
 
+test('Stage-C release bundle rejects a zero-second rollback rehearsal even with recomputed digests',()=>{
+  const result=validateStageCReleaseBundle(bundle(0),SHA);
+  assert.equal(result.ok,false);
+  assert.match(result.errors.join('\n'),/between 1 and 3600/);
+});
+
 test('Stage-C release bundle rejects rollback rehearsal evidence above 3600 seconds even with recomputed digests',()=>{
   const result=validateStageCReleaseBundle(bundle(3601),SHA);
   assert.equal(result.ok,false);
-  assert.match(result.errors.join('\n'),/between 0 and 3600/);
+  assert.match(result.errors.join('\n'),/between 1 and 3600/);
 });
