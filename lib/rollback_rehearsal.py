@@ -235,7 +235,9 @@ def verify_rollback_rehearsal(
     if not (checkpoint_at <= during_at <= after_at):
         raise RollbackRehearsalError("rollback evidence timestamps are out of order")
     window_seconds = (after_at - checkpoint_at).total_seconds()
-    if window_seconds < 0 or window_seconds > MAX_REHEARSAL_WINDOW_SECONDS:
+    if window_seconds <= 0:
+        raise RollbackRehearsalError("rollback rehearsal window must be at least 1 second")
+    if window_seconds > MAX_REHEARSAL_WINDOW_SECONDS:
         raise RollbackRehearsalError(
             f"rollback rehearsal window exceeds {MAX_REHEARSAL_WINDOW_SECONDS} seconds"
         )
