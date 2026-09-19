@@ -922,8 +922,8 @@
     },
     {
       "path": "scripts/install-v267-property-ownership.mjs",
-      "sha256": "71f1bb2765d68eee239443dca6436c921f69e98ae257060b2865f7db00cdf000",
-      "size": 15268
+      "sha256": "bcd83e1fd5de951e6a10630c336dea67d7dcc84971c914c9c9b03dccd53cc131",
+      "size": 16063
     },
     {
       "path": "scripts/migration-selftest.mjs",
