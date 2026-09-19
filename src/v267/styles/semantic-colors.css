@@ -131,3 +131,48 @@
   display:block!important;min-width:0;flex:1 1 240px;overflow-wrap:anywhere;
  }
 }
+
+/* The close control owns a separate row; only the directory content scrolls. */
+@media screen {
+ body.aq-v267 dialog.aq267-service-dialog[open] {
+  display:flex!important;flex-direction:column!important;gap:12px!important;
+  position:fixed!important;inset:0!important;margin:auto!important;
+  height: min(860px,90dvh);max-height:90dvh!important;overflow:hidden!important;
+  isolation:isolate;
+ }
+ body.aq-v267 dialog.aq267-service-dialog > button.aq267-service-dialog-close {
+  position:relative!important;inset:auto!important;flex:0 0 auto!important;
+  align-self:flex-end;z-index:2!important;margin:0!important;
+  width:auto!important;min-width:88px!important;min-height:44px!important;
+  padding:10px 20px!important;white-space:nowrap!important;
+ }
+ body.aq-v267 dialog.aq267-service-dialog > .aq267-service-directory {
+  position:relative!important;z-index:0!important;isolation:isolate;
+  flex:1 1 auto;min-height:0!important;min-width:0!important;
+  margin:0!important;overflow:auto!important;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+ }
+ body.aq-v267 dialog.aq267-service-dialog .aq267-service-directory > header {
+  position:static!important;inset:auto!important;z-index:auto!important;
+ }
+ body.aq-v267 dialog.aq267-service-dialog .aq267-service-groups {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ body.aq-v267 .aq267-service-heading > button.aq267-service-toggle {
+  cursor:pointer;pointer-events:auto;white-space:normal;
+ }
+ body.aq-v267 button.aq267-service-toggle > * {pointer-events:none}
+ body.aq-v267 button.aq267-service-toggle > span:first-child {
+  flex:1 1 auto;min-width:0;text-align:start;
+ }
+ body.aq-v267 button.aq267-service-toggle > .aq267-service-count {
+  flex:0 0 auto;
+ }
+ body.aq-v267 .aq267-service-heading strong {font-size:1rem;line-height:1.5}
+ body.aq-v267 .aq267-service-heading small {font-size:.82rem;line-height:1.5}
+}
+@media screen and (max-width:600px) {
+ body.aq-v267 dialog.aq267-service-dialog .aq267-service-groups {
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}
