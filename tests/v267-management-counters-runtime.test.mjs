@@ -16,6 +16,7 @@ async function fixture(){
  }
  class Query{
   select(){return this;}eq(){return this;}in(){return this;}lte(){return this;}gte(){return this;}lt(){return this;}
+  or(value){assert.equal(value,'metadata->>source_only.is.null,metadata->>source_only.neq.true');return this;}
   async abortSignal(){return {data:null,count:bad?null:1501};}
  }
  const client={from:()=>new Query(),rpc(name,args){calls.push({name,args});return {abortSignal:async()=>{
