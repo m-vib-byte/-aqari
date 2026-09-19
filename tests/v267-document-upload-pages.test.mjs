@@ -10,7 +10,7 @@ const file=()=>new File(['%PDF-1.4\nfixture-A'],'signed.pdf',{type:'application/
 function fixture(mode){
  const all=e=>[e,...e.children.flatMap(all)];
  class Element{
-  constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.value='';this.checked=false;}
+  constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.value='';this.checked=false;const classes=new Set();this.classList={add:(...names)=>names.forEach(name=>classes.add(name)),contains:name=>classes.has(name)};}
   append(...items){this.children.push(...items);if(this.tag==='select'&&!this.value)this.value=items[0]?.value||'';}
   prepend(...items){this.children.unshift(...items);}
   replaceChildren(...items){this.children=items;}
@@ -52,7 +52,7 @@ function fixture(mode){
   if(state.readDenied)throw Object.assign(Error('denied'),{status:403});
   if(!objects.has(path))throw Object.assign(Error('missing'),{status:404});return objects.get(path);
  }};
- const d={body:node('div'),status:node('p'),session,disposers:[],onDispose(fn){this.disposers.push(fn);},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
+ const d={el:node('dialog'),body:node('div'),status:node('p'),session,disposers:[],onDispose(fn){this.disposers.push(fn);},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  const api={primary:x=>x,contractMarkup:()=>'<p>Saved fixture contract</p>'};
  const context={translateStatic,visibleText,visibleMessage,dateLocale,...payroll,node,field,createDialog:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
  vm.createContext(context);const source=fs.readFileSync('src/v267/pages/'+(mode==='hr'?'employees':'rental-contracts')+'.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');vm.runInContext(source,context);

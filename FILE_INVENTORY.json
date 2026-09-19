@@ -3307,8 +3307,8 @@
     },
     {
       "path": "tests/v267-document-upload-pages.test.mjs",
-      "sha256": "2947335590be6fd03b80ec2c4f51e659ce6c3840acf894c00fc16b60bf9f98ed",
-      "size": 8946
+      "sha256": "d4ab9dca47dce3d612507e2df6184403907c906055c8ebdc64d961857e3a2b32",
+      "size": 9093
     },
     {
       "path": "tests/v267-evidence-matrix.test.mjs",
