@@ -14,7 +14,7 @@ export const EXPECTED_REPOSITORY_OWNER = 'm-vib-byte';
 export const OWNER_GOVERNANCE_EFFECTIVE_AT = '2026-09-13T00:00:00+03:00';
 const OWNER_GOVERNANCE_EFFECTIVE_MS = Date.parse(OWNER_GOVERNANCE_EFFECTIVE_AT);
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
-const AQARI_PREVIEW_HOST_RE = /^aqari-(?!test-)[a-z0-9-]+-m-vib-5421\.vercel\.app$/;
+const AQARI_PREVIEW_HOST_RE = /^aqari-(?!git-)(?!test-)[a-z0-9-]+-m-vib-5421\.vercel\.app$/;
 const ISO_SECOND_WITH_ZONE_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(Z|([+-])(\d{2}):(\d{2}))$/;
 
 function parseCanonicalIsoSecond(value) {
