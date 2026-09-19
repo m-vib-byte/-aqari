@@ -5,6 +5,7 @@
  body.aq-owner-exact-ready>header{min-height:0!important;height:0!important;border:0!important;background:transparent!important;overflow:visible!important}
  body.aq-owner-exact-ready #aqariV199Topbar{display:none!important}
  #aqOwnerExactShell{font-family:system-ui,-apple-system,"SF Arabic","Geeza Pro","Segoe UI",Tahoma,Arial,sans-serif;direction:rtl}
+ body.aq-owner-exact-ready :is(#aqOwnerExactShell,#aqOwnerExactHome) button{touch-action:manipulation!important;-webkit-tap-highlight-color:transparent;pointer-events:auto!important}
  .aq-exact-rail{position:fixed;z-index:980;inset-block:0;inset-inline-end:0;width:270px;padding:20px 18px 14px;background:linear-gradient(180deg,#0b0e0b 0%,#070907 100%);border-inline-start:1px solid var(--aq-line);box-shadow:-18px 0 48px rgba(0,0,0,.22);overflow:auto}
  .aq-exact-rail:before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:2px;background:linear-gradient(180deg,transparent,#eac35d 16%,#7d5411 50%,#eac35d 84%,transparent);box-shadow:0 0 18px #eac35d}
  .aq-exact-logo{display:grid;place-items:center;padding:4px 0 18px;color:var(--aq-gold);text-align:center}.aq-exact-logo>span{width:60px;height:60px;display:grid;place-items:center;border:1px solid var(--aq-line);border-radius:18px;background:radial-gradient(circle,#3d2e12,#10130e 68%);box-shadow:0 0 28px rgba(231,189,85,.13)}.aq-exact-logo svg{width:34px;height:34px}.aq-exact-logo strong{font-size:1.75rem;line-height:1.15;margin-top:6px}.aq-exact-logo small{font-weight:850;letter-spacing:.32em;font-size:.68rem;color:#e8c96f}
