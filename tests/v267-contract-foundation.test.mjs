@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {nextContractSerial,executionAmount,activeUnitConflict,completeTenantIdentity} from '../src/v267/domain/contract-foundation.js';
 
 test('contract serial advances across saved and preparation records',()=>{
@@ -27,4 +28,17 @@ test('new tenant identity requires complete Arabic and English identity',()=>{
  assert.equal(completeTenantIdentity(valid),true);
  assert.equal(completeTenantIdentity({...valid,nationalityEn:''}),false);
  assert.equal(completeTenantIdentity({...valid,email:'bad'}),false);
+});
+
+
+test('contract foundation keeps cancelled preparation as audited history instead of deleting it',()=>{
+ const source=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
+ assert.match(source,/async function cancelPreparation\(\)/);
+ assert.match(source,/status:'cancelled'/);
+ assert.match(source,/cancelledAt:now/);
+ assert.match(source,/cancelledBy:d\.session\.bound\.user/);
+ assert.match(source,/cancelReason:'إلغاء مسودة تأسيس غير مكتملة من شاشة العقد'/);
+ assert.match(source,/إلغاء مسودة تأسيس عقد/);
+ assert.match(source,/cancelDraft\.className='danger'/);
+ assert.doesNotMatch(source,/contractPreparationDraftsV267=.*filter\([^\n]*id!==id/);
 });
