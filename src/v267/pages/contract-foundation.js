@@ -93,6 +93,22 @@ export function openContractFoundation(options={}){
   return preparation;
  }
 
+ async function cancelPreparation(){
+  if(!preparation?.id||preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
+  const contractNo=preparation.contractNo||'',id=preparation.id;
+  if(!window.confirm(translateStatic('إلغاء')+' '+contractNo+'؟'))return false;
+  const now=new Date().toISOString();
+  const cancelled=await changeState(data=>{
+   const drafts=data.contractPreparationDraftsV267||[],index=drafts.findIndex(row=>row.id===id);if(index<0)throw Error('مسودة التأسيس غير موجودة.');
+   if(drafts[index].status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
+   const next={...drafts[index],status:'cancelled',cancelledAt:now,cancelledBy:d.session.bound.user,cancelReason:'إلغاء مسودة تأسيس غير مكتملة من شاشة العقد',updatedAt:now};
+   drafts[index]=next;data.contractPreparationDraftsV267=drafts;
+   data.audit=(data.audit||[]).concat([[d.session.bound.user,'إلغاء مسودة تأسيس عقد',next.contractNo,now]]);
+   return next;
+  },(data,record)=>(data.contractPreparationDraftsV267||[]).some(row=>row.id===record.id&&row.status==='cancelled'&&row.cancelledAt===record.cancelledAt&&row.cancelledBy===record.cancelledBy));
+  preparation=cancelled;await start();return true;
+ }
+
  async function saveTenant(values,id){
   const now=new Date().toISOString();
   const saved=await changeState(data=>{
@@ -133,7 +149,7 @@ export function openContractFoundation(options={}){
 
  async function editPreparation(){
   await load();preparation=(state.contractPreparationDraftsV267||[]).find(row=>row.id===preparation.id)||preparation;if(preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
-  clear(translateStatic('تأسيس ')+preparation.contractNo);d.body.append(button(translateStatic('رجوع'),start),node('p',translateStatic('نوع العقد: ')+(translateStatic(rentalTemplateKinds.find(x=>x[0]===preparation.kind)?.[1])||preparation.kind)+translateStatic(' · الحالة: مسودة تأسيس محفوظة')));
+  clear(translateStatic('تأسيس ')+preparation.contractNo);const cancelDraft=button(translateStatic('إلغاء'),cancelPreparation);cancelDraft.className='danger';d.body.append(button(translateStatic('رجوع'),start),cancelDraft,node('p',translateStatic('نوع العقد: ')+(translateStatic(rentalTemplateKinds.find(x=>x[0]===preparation.kind)?.[1])||preparation.kind)+translateStatic(' · الحالة: مسودة تأسيس محفوظة')));
   const profiles=state.tenantProfilesV267||[],tenantChoice=select([['',translateStatic('مستأجر جديد')],...profiles.map(p=>[p.id,(p.nameAr||p.nameEn)+' / '+(p.nameEn||'')])],preparation.tenantId||'');
   const tenantBox=node('fieldset'),tenantFields={};tenantBox.append(node('legend',translateStatic('بيانات المستأجر — من نفس شاشة العقد')));
   const tenantSpecs=[['nameAr',translateStatic('الاسم الكامل بالعربي'),'text'],['nameEn',translateStatic('الاسم الكامل بالإنجليزي'),'text'],['civilId',translateStatic('الرقم المدني'),'text'],['passportNo',translateStatic('رقم الجواز'),'text'],['phone',translateStatic('الهاتف'),'tel'],['email',translateStatic('البريد الإلكتروني'),'email'],['nationality',translateStatic('الجنسية بالعربي'),'text'],['nationalityEn',translateStatic('الجنسية بالإنجليزي'),'text']];
