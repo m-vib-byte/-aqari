@@ -14,9 +14,9 @@ test('statement navigation isolates months and disables actions after missing da
  }
  const content={property_key:'shaikhah-tower',property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
- let failLinks=false;
+ let failLinks=false;let noSource=false;let failLatest=false;
  const queries=[];
- const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(){return q;},limit(){return q;}};return q;}},async request(q){queries.push(q);if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
+ const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;}},async request(q){queries.push(q);if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
  const tasks=[];
  dialog.run=(fn)=>{const p=Promise.resolve().then(fn).catch(()=>{dialog.status.textContent='read failed';});tasks.push(p);return p;};
  globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
@@ -33,6 +33,11 @@ test('statement navigation isolates months and disables actions after missing da
   month.value='2026-09';await month.onchange();
   assert.equal(result.children.length,0);assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);
   assert.match(dialog.status.textContent,/لا يوجد كشف/);
+  const latest=dialog.body.children.at(-1);assert.equal(latest.textContent,t('عرض آخر كشف محفوظ'));
+  await latest.onclick();assert.equal(month.value,'2026-08');assert.equal(pdf.disabled,false);
+  const lookup=queries.find(q=>q.limitCount===1);assert.equal(lookup.filters.property_id,'p');assert.equal(lookup.filters.workspace_id,'w');assert.equal(lookup.orderBy.ascending,false);
+  noSource=true;await latest.onclick();assert.equal(pdf.disabled,true);assert.equal(result.children.length,0);assert.match(dialog.status.textContent,/لا يوجد كشف مصدر محفوظ لهذا العقار/);noSource=false;
+  failLatest=true;await latest.onclick();assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);failLatest=false;
   month.value='2026-08';await month.onchange();
   assert.equal(pdf.disabled,false);assert.equal(link.disabled,false);
   assert.ok(queries.some(q=>q.filters.period==='2026-09-01'&&q.filters.property_id==='p'&&q.filters.workspace_id==='w'));
