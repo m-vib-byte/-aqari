@@ -1,5 +1,6 @@
 // Small interface icons matching the existing navigation stroke system.
 const paths={
+ cloud:'<path d="M7 18H6a4 4 0 0 1-.4-8A7 7 0 0 1 19 8a5 5 0 0 1 0 10h-2M12 12v10m-3-7 3-3 3 3"/>',
  wallet:'<path d="M3 7h18v13H3zM3 7V5a2 2 0 0 1 2-2h12M16 13h3"/>',
  building:'<path d="M4 21h16M6 21V5h12v16M9 8h2m2 0h2M9 12h2m2 0h2M9 16h6"/>',
  grid:'<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/>',

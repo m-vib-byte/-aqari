@@ -16,21 +16,23 @@ test('Work1 uses one canonical visible shell instead of stacking dashboard layer
 });
 
 test('dashboard augmentation reads existing authoritative UI only and never invents business writes',()=>{
- for(const label of ['تحصيل اليوم','تحصيل الشهر','المستحق','المتبقي','العقارات','الوحدات','الإشغال','المستأجرون','العقود النشطة','تنتهي خلال 30 يومًا','الصيانة المفتوحة','المصروفات','صافي السجلات','أحدث العمليات'])assert.match(runtime,new RegExp(label));
+ for(const label of ['تحصيل اليوم','تحصيل الشهر','المستحق','المتبقي','العقارات','الوحدات','الإشغال','المستأجرون','العقود النشطة','تنتهي خلال 30 يومًا','الصيانة المفتوحة','المصروفات','صافي السجلات','النشاط الأخير في النظام'])assert.match(runtime,new RegExp(label));
  assert.match(runtime,/sourceValue\(/);
  assert.match(runtime,/fallback='—'/);
  assert.doesNotMatch(runtime,/\.insert\(|\.update\(|\.delete\(|\.upsert\(|localStorage|sessionStorage/);
 });
 
-test('reference dashboard retains mobile and tablet layouts with six desktop metrics',()=>{
+test('reference dashboard retains mobile and tablet layouts with ten desktop metrics',()=>{
  assert.match(css,/@media\(max-width:699px\)/);
  assert.match(css,/@media\(min-width:700px\) and \(max-width:1049px\)/);
  assert.match(css,/@media\(min-width:1050px\)/);
  assert.match(css,/safe-area-inset-top/);
  assert.match(css,/safe-area-inset-bottom/);
  assert.match(css,/#aqOwnerExactRail\{display:none!important/);
- assert.match(css,/grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
- assert.match(css,/'properties collections assistant' 'quick alerts report'/);
+ assert.match(css,/grid-template-columns:repeat\(10,minmax\(0,1fr\)\)/);
+ assert.match(css,/aq-live-reference-grid/);
+ assert.match(css,/aq-ref-occupancy/);
+ assert.match(css,/aq-ref-expiry/);
 });
 
 test('internal pages dialogs forms tables and LTR direction share the same final stability grammar',()=>{

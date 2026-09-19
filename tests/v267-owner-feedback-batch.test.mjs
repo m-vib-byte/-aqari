@@ -11,7 +11,7 @@ test('exact-reference runtime owns navigation without scroll-only fallback',()=>
 
 test('reference shell compatibility remains below final beige visual layer',()=>{
  const css=read('src/v267/styles/owner-feedback-reference.css'),runtime=read('src/v267/owner-feedback-runtime.js');assert.match(css,/\.aq-exact-rail/);
- for(const key of ['الرئيسية','العقارات','الوحدات','المستأجرون','العقود','التحصيل','المصروفات','الصيانة','الموظفون والرواتب','الفواتير والخدمات','التقارير والإحصائيات','المستندات','التنبيهات','الإعدادات'])assert.ok(runtime.includes(key),key);
+ for(const key of ['الرئيسية','العقارات','الوحدات','المستأجرون','العقود','التحصيل','المصروفات','الصيانة','الموظفون والرواتب','الفواتير والأرشيف','التقارير والإحصائيات','المستندات','التنبيهات','الإعدادات'])assert.ok(runtime.includes(key),key);
 });
 
 test('owner shell stays behind authenticated data and storage boundaries',()=>{

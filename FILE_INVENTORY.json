@@ -1282,8 +1282,8 @@
     },
     {
       "path": "src/v267/components/workspace-translations.js",
-      "sha256": "e54cf1b33591e44aa6ad295065346a8cab7f645711a21a2ec2f3a8aea36ec4d3",
-      "size": 33760
+      "sha256": "a8812a45ab3bc63b70317d525fd83b55dbc25942c8632e381e2398f9d5caedb9",
+      "size": 47910
     },
     {
       "path": "src/v267/domain/deposit-ledger.js",
@@ -1322,8 +1322,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "e1947d985a0d982896aa21e7d4612b5b7d9bf167a8610793a715a424cf14a495",
-      "size": 25185
+      "sha256": "641658e7cd831799e18ad720e3558be694c15b0ad0abc23ac6ce94ebcdf91070",
+      "size": 26345
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1522,8 +1522,8 @@
     },
     {
       "path": "src/v267/styles/live-stability.css",
-      "sha256": "e4d463520ca3c3658b99f9353acb7934912fbf7e5deca052782cf3a4c3cea999",
-      "size": 39515
+      "sha256": "fb34c8b63636ef986cf650db251f8842a0e30338775f8214bea1e22b9a250c3c",
+      "size": 61885
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -1552,8 +1552,8 @@
     },
     {
       "path": "src/v267/unified-layout-runtime.js",
-      "size": 27741,
-      "sha256": "161879035a91e8cfbe39c41b1a3d0615b6d32c2e1348ea5dee1eba7a4ae232dd"
+      "size": 27795,
+      "sha256": "f1b19560ea16265d0378437d96a54d29a195fab7f5e2038500ef9d05ff1793a4"
     },
     {
       "path": "src/v267/workspace.js",
@@ -3979,6 +3979,41 @@
       "path": "vercel.json",
       "sha256": "686795f7eaf01aca669766820c9789c5bfa94b298802bcc4c57b0572f105c26b",
       "size": 4596
+    },
+    {
+      "path": "src/v267/live-stability-runtime.js",
+      "sha256": "26bb56db6d71658665ece85a610d715bedaa9333e0ce93e01fd32f2fdfd21484",
+      "size": 24650
+    },
+    {
+      "path": "src/v267/components/live-dashboard-data.js",
+      "sha256": "69e51626b3a4b6dde58c80511f12ea6033f92a7361c17bfdd4761503a9f5f402",
+      "size": 6222
+    },
+    {
+      "path": "src/v267/components/workspace-icons.js",
+      "sha256": "2cd54dfc88d582a9a6a480f220c7599d1206bf8f900a5f373f01a7613c2c0df4",
+      "size": 1271
+    },
+    {
+      "path": "tests/v267-live-stability.test.mjs",
+      "sha256": "b75f2719fc46e8577e661797d4b2b7a13ee916095a03ea3f062b68d6911f240b",
+      "size": 3124
+    },
+    {
+      "path": "src/v267/assets/dashboard-hero.png",
+      "sha256": "e0cdb55a09448f281557842e8e15a0b8df65c3e39d4002db6591236195a1fd96",
+      "size": 1837940
+    },
+    {
+      "path": "tests/v267-owner-feedback-batch.test.mjs",
+      "sha256": "d5b37090658db16c1204f05135c98086a36788c75e9c45ada0739942114f2c58",
+      "size": 4529
+    },
+    {
+      "path": "tests/v267-live-dashboard-data.test.mjs",
+      "sha256": "116df61dcf5fbaaf2e73fddcfd7f0fef5d6a158571b663efbf0c80b2ca218911",
+      "size": 4315
     }
   ],
   "version": "V198"

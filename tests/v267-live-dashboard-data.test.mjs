@@ -21,3 +21,22 @@ test('one unavailable source cannot invent finance metrics from another',async()
  const report=await readLiveDashboard(session,'2026-09-17',async()=>({items:[{id:'properties',value:4}]}));
  assert.equal(report.partial,true);assert.equal(report.values.month,null);assert.equal(report.values.due,100);assert.equal(report.values.properties,4);
 });
+
+// Additional dashboard sources must not widen account/workspace access.
+const {readReferenceDashboard}=await import('../src/v267/components/live-dashboard-data.js');
+test('reference dashboard refuses a mismatched workspace before loading details',async()=>{
+ const calls=[];const session={bound:{workspace:'w',user:'u',role:'general_manager'},client:{rpc:(name,args)=>({name,args})},request:async q=>{calls.push(q.name);return {workspace_id:'other',user_id:'u',role:'general_manager'}},check(){}};
+ await assert.rejects(readReferenceDashboard(session,'2026-09-19'),/ACCESS_DENIED/);
+ assert.deepEqual(calls,['aqari_workspace_access']);
+});
+test('denied dashboard sections stay unknown and never issue HR finance or property requests',async()=>{
+ const calls=[];const access={workspace_id:'w',user_id:'u',role:'staff',permissions:{},features:{}};
+ const session={bound:{workspace:'w',user:'u',role:'staff'},client:{rpc:(name,args)=>({name,args})},request:async q=>{calls.push(q.name);return access},check(){}};
+ const report=await readReferenceDashboard(session,'2026-09-19');assert.equal(report.metrics.employees,null);assert.equal(report.metrics.invoices,null);assert.equal(report.properties,null);assert.ok(report.months.every(x=>x.amount===null));assert.deepEqual(calls,['aqari_workspace_access','aqari_workspace_access']);
+});
+test('monthly chart ends at today, keeps future months unknown, and rejects changed permissions',async()=>{
+ const calls=[];let reads=0,changed=false;const access={workspace_id:'w',user_id:'u',role:'general_manager',permissions:{finance:{read:true}},features:{kpi_dashboard:true}};
+ const session={bound:{workspace:'w',user:'u',role:'general_manager'},client:{rpc:(name,args)=>({name,args}),from:()=>{throw Error('unavailable')}},request:async q=>{calls.push(q);if(q.name==='aqari_workspace_access'){reads++;return changed&&reads>1?{...access,permissions:{}}:access;}return {units:{total:10,occupied:8,vacant:2},collections:{actual:'125.125'}};},check(){}};
+ const r=await readReferenceDashboard(session,'2026-02-15');assert.deepEqual(r.months.slice(0,3).map(x=>x.amount),[125.125,125.125,null]);assert.ok(calls.filter(x=>x.name==='aqari_kpi_dashboard').every(x=>x.args.p_to<='2026-02-15'));assert.equal(r.partial,true);
+ changed=true;reads=0;await assert.rejects(readReferenceDashboard(session,'2026-02-15'),/ACCESS_CHANGED/);
+});
