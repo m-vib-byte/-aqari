@@ -20,7 +20,7 @@ test('legacy contract routes use one guarded entry and preserve unrelated naviga
 test('workspace re-checks session scope and contract read permission around lazy loading',()=>{
  const source=readFileSync(new URL('../src/v267/workspace.js',import.meta.url),'utf8');
  assert.match(source,/directoryAllowed\(\{section:'contracts'\}\)/);
- assert.match(source,/const bound=directoryScope\(\),m=await import\('\.\/pages\/rental-contracts\.js'\)/);
+ assert.match(source,/const bound=directoryScope\(\),m=await guardPageImport\(\(\)=>import\('\.\/pages\/rental-contracts\.js'\)/);
  assert.match(source,/bound!==directoryScope\(\)/);
  assert.match(source,/openRentalContracts\(initial\)/);
  assert.match(source,/installContractRoutes\(window,openContracts\)/);

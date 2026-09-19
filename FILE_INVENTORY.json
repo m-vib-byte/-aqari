@@ -1322,8 +1322,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "641658e7cd831799e18ad720e3558be694c15b0ad0abc23ac6ce94ebcdf91070",
-      "size": 26345
+      "sha256": "da2c3877c0c680ebe9df3184c884e3dc1f4d5231f0b2baf34c852871af1b2a0d",
+      "size": 32359
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1557,8 +1557,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "042346ff577670d56edd6e6b6bd63d718942c8999792d475f00b3e2a854fce79",
-      "size": 24854
+      "sha256": "93ec83542b610e8529fe30f18f3a16396d1f456c3e3d19c8aa4d82792692b683",
+      "size": 30245
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -4014,6 +4014,31 @@
       "path": "tests/v267-live-dashboard-data.test.mjs",
       "sha256": "aa6e4704d7587bfa4d732da219015100633c4a2b623b568f02a1b55829a1147f",
       "size": 4997
+    },
+    {
+      "path": "src/v267/components/navigation-import.js",
+      "size": 515,
+      "sha256": "89f5694bb063853f66f0e47d5012166980757201940a20a32cfc6788fe81159b"
+    },
+    {
+      "path": "tests/v267-navigation-import.test.mjs",
+      "size": 1325,
+      "sha256": "5c524ba23ece21b834f8cf89c51fe0da26c6354f61f0958c7f7d94eac8a3bf2f"
+    },
+    {
+      "path": "tests/v267-owner-route-race.test.mjs",
+      "size": 1246,
+      "sha256": "0df8b1f5b6263b627b77d48a771353dab1dee4bc6edaf67b3f3b67ceb9e00117"
+    },
+    {
+      "path": "tests/v267-contract-entry-routing.test.mjs",
+      "size": 1519,
+      "sha256": "a9f3c827c0b7f6e09ba1f3112f02683d25fd7991ebe87b6e5426cec97d315db9"
+    },
+    {
+      "path": "tests/v267-hero-record-search.test.mjs",
+      "size": 3981,
+      "sha256": "f4ec366b187ef310ba5848886fb850666e1dca262e21bd015ea2f7e312d06e9c"
     }
   ],
   "version": "V198"

@@ -43,6 +43,7 @@ const scope=()=>{try{const c=window.AQARI_SUPABASE?.context,m=c?.membership,d=wi
 const visible=el=>{if(!el||el.hidden)return false;const style=window.getComputedStyle?.(el);return !style||(style.display!=='none'&&style.visibility!=='hidden');};
 const routePage=route=>document.getElementById(route==='properties'||route==='tenants'?'list':route);
 const sectionLabel=route=>ROUTES.find(x=>x.route===route)?.label||({'reports':'التقارير والإحصائيات','documentsHub':'المستندات والأرشيف','settingsCenterPage':'الإعدادات'})[route]||'القسم';
+let routeFlight=0;
 const waitPaint=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 function setStatus(text,bad=false){
  const getById=typeof document?.getElementById==='function'?document.getElementById.bind(document):()=>null;
@@ -58,11 +59,12 @@ function setStatus(text,bad=false){
 function exactRouteReady(route){const page=routePage(route);if(!visible(page))return false;if(PRIMARY.has(route)&&window.AQARI_V205)return document.body.getAttribute('data-v205-route')===route;return true;}
 function decoratePage(route){const page=routePage(route);if(!page||route==='home')return;let head=page.querySelector(':scope > .aq-exact-section-head');if(!head){head=document.createElement('header');head.className='aq-exact-section-head';page.prepend(head);}head.innerHTML=`<div><span>AQARI ${RELEASE}</span><h1>${escapeText(t(sectionLabel(route)))}</h1><p>${t('صفحة مستقلة ضمن صلاحيات الحساب الحالية.')}</p></div><button type="button" data-exact-route="home">${t('العودة للرئيسية')}</button>`;head.querySelector('button').onclick=()=>navigateRoute('home');}
 async function navigateRoute(route){
- if(!scope())return false;setStatus('');
+ if(!scope())return false;const token=++routeFlight;const bound=JSON.stringify(scope());const current=()=>token===routeFlight&&bound===JSON.stringify(scope());setStatus('');
+ window.dispatchEvent(new CustomEvent('aqari:navigation-start'));
  const v205=window.AQARI_V205;try{if(PRIMARY.has(route)&&typeof v205?.navigate==='function')v205.navigate(route);else if(typeof window.go==='function')window.go(route);}catch{}
- await waitPaint();
- if(!exactRouteReady(route)){try{if(typeof window.AQARI_V199_BASE_GO==='function')window.AQARI_V199_BASE_GO(route);else if(typeof window.go==='function')window.go(route);}catch{}await new Promise(r=>setTimeout(r,70));await waitPaint();}
- if(PRIMARY.has(route)&&v205&&document.body.getAttribute('data-v205-route')!==route){try{v205.navigate(route);}catch{}await waitPaint();}
+ await waitPaint();if(!current())return false;
+ if(!exactRouteReady(route)){try{if(typeof window.AQARI_V199_BASE_GO==='function')window.AQARI_V199_BASE_GO(route);else if(typeof window.go==='function')window.go(route);}catch{}await waitPaint();if(!current())return false;}
+ if(PRIMARY.has(route)&&v205&&document.body.getAttribute('data-v205-route')!==route){try{v205.navigate(route);}catch{}await waitPaint();if(!current())return false;}
  if(!exactRouteReady(route)){setStatus(message('تعذر فتح صفحة {section}. أعد المحاولة.',{section:t(sectionLabel(route))}),true);return false;}
  document.body.dataset.aqExactRoute=route;decoratePage(route);syncActive();const page=routePage(route);page?.scrollIntoView?.({block:'start',behavior:'auto'});window.dispatchEvent(new CustomEvent('aqari:owner-final-route',{detail:{route}}));return true;
 }
@@ -150,6 +152,7 @@ function mountShell(){
 function dispatchExactClick(event){const key=event.target.closest('[data-exact-key]')?.dataset.exactKey;if(key){const def=ROUTES.find(x=>x.key===key);if(def)return openDefinition(def);return false;}const route=event.target.closest('[data-exact-route]')?.dataset.exactRoute;if(route){return navigateRoute(route);}const special=event.target.closest('[data-exact-special]')?.dataset.exactSpecial;if(special){if(special==='assistant')return openAssistant();else if(special==='receipts')return openRecordSearch();else if(special==='property_create')return openPropertyAction();else if(special==='unit_create')return openUnitAction();else if(special==='tenant_create')return openTenantAction();else if(special==='maintenance_create')return openMaintenanceAction();else if(special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());else if(special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());return;}const service=event.target.closest('[data-exact-service]')?.dataset.exactService;if(service)return openDefinition({service});}
 function handleExactClick(event){
  const trigger=event.target?.closest?.('[data-exact-key],[data-exact-route],[data-exact-special],[data-exact-service]');if(!trigger)return;
+ routeFlight++;window.dispatchEvent(new CustomEvent('aqari:navigation-start'));
  return runNavigationAction({scope,action:()=>dispatchExactClick(event),report:setStatus});
 }
 
@@ -161,6 +164,7 @@ function refresh(){if(!scope())return;mountShell();if(document.body.classList.co
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
 function boot(){window.addEventListener('submit',event=>{if(event.target?.id!=='aqExactHeroSearch')return;event.preventDefault();event.stopImmediatePropagation();runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus});},true);installTouchNavigation(window);installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
 
 
 

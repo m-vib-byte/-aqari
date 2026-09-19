@@ -6,7 +6,7 @@ const source=readFileSync(new URL('../src/v267/owner-feedback-runtime.js',import
 function runtime(value,active=true){
  const input={value},calls=[],status={textContent:'',classList:{toggle(){}}},notice={textContent:'',setAttribute(){}};
  const context={user:{id:'u'},workspace:{id:'w'},membership:{is_active:active,user_id:'u',workspace_id:'w',role:'general_manager'}};
- const box={setTimeout,t:s=>s,document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>true}},getElementById:id=>id==='aqExactHeroQuestion'?input:id==='aqNavigationNotice'?notice:id==='aqExactStatus'?status:null},window:{AQARI_SUPABASE:{context},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_V209:{open:q=>{calls.push(['search',q]);return true;}}}};
+ const box={CustomEvent:class {constructor(type){this.type=type;}},setTimeout,t:s=>s,document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>true}},getElementById:id=>id==='aqExactHeroQuestion'?input:id==='aqNavigationNotice'?notice:id==='aqExactStatus'?status:null},window:{dispatchEvent(){},AQARI_SUPABASE:{context},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_V209:{open:q=>{calls.push(['search',q]);return true;}}}};
  vm.createContext(box);vm.runInContext(source.replace(/^import .*;$/gm,''),box);
  box.calls=calls;vm.runInContext('openDefinition=async def=>{calls.push(["section",def.key]);return true;}',box);
  return {box,input,calls,status,run:()=>vm.runInContext('searchFromHero({preventDefault(){}})',box)};
@@ -33,3 +33,4 @@ test('initial search query is bounded and cannot open across a closed scope',asy
  const input={value:''};let allowed=true,opened=0;const box={query:'',handleAuthStateChange:async()=>{},scopeKey:()=>allowed?'u|w':'',ensureUi:()=>({input}),document:{querySelector:()=>null},setSearchExpanded:()=>{opened++;return true;}};vm.createContext(box);vm.runInContext('open=async function(initialQuery){'+fn[1]+'}',box);
  assert.equal(await box.open('  TEST-01  '),true);assert.equal(input.value,'TEST-01');assert.equal(box.query,'TEST-01');await box.open('x'.repeat(1400));assert.equal(input.value.length,1200);allowed=false;assert.equal(await box.open('other'),false);assert.equal(opened,2);
 });
+
