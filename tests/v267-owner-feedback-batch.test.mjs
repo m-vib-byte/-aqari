@@ -47,3 +47,18 @@ test('mobile and iPad navigation expose touch-safe controls with exactly five bo
  assert.match(css,/pointer-events:auto!important/);
  assert.match(css,/grid-template-columns:repeat\(5,1fr\)/);
 });
+
+
+test('service actions wait for the authorized workspace controls instead of failing during startup mount',()=>{
+ const source=read('src/v267/owner-feedback-runtime.js');
+ assert.match(source,/async function waitForServiceButton\(def,timeout=1800\)/);
+ assert.match(source,/serviceButton\(def\)\|\|await waitForServiceButton\(def\)/);
+ assert.match(source,/MutationObserver/);
+ assert.match(source,/data-aq267-label/);
+});
+
+test('owner quick add actions open the real tenant and property forms',()=>{
+ const source=read('src/v267/owner-feedback-runtime.js');
+ assert.match(source,/data-exact-special="tenant_create"[^>]*>\$\{svg\('user'\)\}<span>\$\{t\('إضافة مستأجر'\)\}<\/span>/);
+ assert.match(source,/data-exact-special="property_create"[^>]*>\$\{svg\('building'\)\}<span>\$\{t\('إضافة عقار'\)\}<\/span>/);
+});
