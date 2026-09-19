@@ -12,6 +12,24 @@ function openAIConfig(env=process.env){
  return {key,model};
 }
 async function readJson(response){const text=await response.text();if(text.length>262144)throw Error('UPSTREAM_TOO_LARGE');try{return JSON.parse(text);}catch{throw Error('UPSTREAM_INVALID_JSON');}}
+const LOCAL_HINTS=[
+ {permission:'contracts',label:'العقود',terms:['عقد','عقود','contract','lease']},
+ {permission:'collections',label:'التحصيل والمدفوعات',terms:['تحصيل','دفعة','دفع','وصل','ايصال','إيصال','payment','receipt']},
+ {permission:'properties',label:'العقارات والوحدات',terms:['عقار','عقارات','وحدة','وحدات','property','unit']},
+ {permission:'tenants',label:'المستأجرون',terms:['مستأجر','مستأجرين','tenant']},
+ {permission:'maintenance',label:'الصيانة',terms:['صيانة','بلاغ','فني','maintenance']},
+ {permission:'finance',label:'المالية والمصروفات',terms:['مالية','مصروف','مصروفات','finance','expense']},
+ {permission:'documents',label:'المستندات والأرشيف',terms:['مستند','وثيقة','ارشيف','أرشيف','document','archive']},
+ {permission:'reports',label:'التقارير',terms:['تقرير','تقارير','report']},
+ {permission:'partners',label:'الملاك والشركاء',terms:['مالك','ملاك','شريك','شركاء','owner','partner']}
+];
+function localFallback(question,route,allowed){
+ const q=String(question||'').normalize('NFKC').toLocaleLowerCase();
+ const hit=LOCAL_HINTS.find(item=>item.terms.some(term=>q.includes(term)));
+ if(hit&&!allowed.includes(hit.permission))return `المساعد التوليدي الخارجي غير مهيأ حاليًا، والقسم المطلوب «${hit.label}» غير متاح لصلاحية هذا الحساب. لم يتم تنفيذ أي تغيير.`;
+ if(hit)return `المساعد التوليدي الخارجي غير مهيأ حاليًا. يمكنك متابعة طلبك من قسم «${hit.label}» داخل عقاري أو استخدام البحث الذكي للوصول للسجل المطلوب. لم يتم تنفيذ أي تغيير.`;
+ return `المساعد التوليدي الخارجي غير مهيأ حاليًا. استخدم البحث الذكي أو «جميع الخدمات» للوصول للوظيفة المطلوبة${route?' من الصفحة الحالية «'+route+'»':''}. لم يتم تنفيذ أي تغيير.`;
+}
 function responseText(data){
  const direct=clean(data?.output_text,6000);if(direct)return direct;
  const parts=[];for(const item of Array.isArray(data?.output)?data.output:[]){for(const content of Array.isArray(item?.content)?item.content:[]){if(content?.type==='output_text'&&content?.text)parts.push(content.text);}}
@@ -42,7 +60,7 @@ export function createOwnerAssistantHandler({fetchImpl=globalThis.fetch,env=proc
    if(status?.assistant_enabled!==true)return fail(403,'ASSISTANT_DISABLED');
    const allowed=Object.entries(access.permissions||{}).filter(([,v])=>v?.read===true).map(([k])=>k);
    const requested=sectionContext.filter(section=>allowed.includes(section));
-   const provider=openAIConfig(env);if(!provider)return fail(503,'OPENAI_NOT_CONFIGURED');
+   const provider=openAIConfig(env);if(!provider)return res.status(200).json({answer:localFallback(question,route,allowed),provider:'local_fallback',model:null,read_only:true,degraded:true,configured:false,allowed_sections:allowed});
    const instructions=[
     'أنت المساعد الذكي لمنصة عقاري AQARI V267 لإدارة العقارات في الكويت.',
     'أجب بالعربية ما لم يطلب المستخدم لغة أخرى صراحة.',
