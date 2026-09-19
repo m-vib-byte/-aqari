@@ -25,6 +25,7 @@ _REHEARSAL_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 _PROJECT_REF_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{2,127}$")
 _DEPLOYMENT_ID_RE = re.compile(r"^dpl_[A-Za-z0-9]+$")
 _UTC_SECOND_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+_UNSAFE_EVIDENCE_PATH_RE = re.compile(r"[%\x00-\x1F\x7F-\x9F\u202A-\u202E\u2066-\u2069]")
 REQUIRED_FLOWS = ("login", "session", "save", "reopen", "permissions", "contracts", "printing")
 DEVICE_CLASSES = ("desktop", "iphone", "ipad")
 
@@ -118,9 +119,21 @@ def _evidence_refs(value: object, field: str) -> list[str]:
     refs: list[str] = []
     seen: set[str] = set()
     for item in value:
-        if not isinstance(item, str) or not item.strip():
+        if not isinstance(item, str) or not item or item.strip() != item:
             raise StageCEvidenceError(f"{field} contains an invalid evidence reference")
-        ref = item.strip()
+        ref = item
+        segments = ref.split("/")
+        if (
+            not ref.startswith("evidence/")
+            or ref.startswith("/")
+            or "://" in ref
+            or "\\" in ref
+            or "?" in ref
+            or "#" in ref
+            or _UNSAFE_EVIDENCE_PATH_RE.search(ref)
+            or any(not segment or segment in (".", "..") for segment in segments)
+        ):
+            raise StageCEvidenceError(f"{field} contains a non-canonical evidence reference")
         if ref in seen:
             raise StageCEvidenceError(f"{field} contains a duplicate evidence reference")
         seen.add(ref)
