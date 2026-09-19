@@ -28,6 +28,10 @@ class StatementTests(unittest.TestCase):
   self.assertNotIn('403',' '.join(notes))
   self.assertNotIn('2450',' '.join(notes))
   self.assertNotIn('2200',' '.join(notes))
+ def test_restored_source_notes_preserved(self):
+  from lib.property_statement_pdf import statement_notes
+  content=dict(source_notes=['Archived source; not new income'],rows=[dict(unit='401',source_note='Conflicting source names')])
+  self.assertEqual(statement_notes(content),['Archived source; not new income','الوحدة 401: Conflicting source names'])
  def test_clean_export_contains_no_foreign_dispute_amounts(self):
   from lib.property_statement_pdf import render_statement
   content=dict(property_name='Independent property',period='2026-09',rows=[dict(unit='101',insurance_kd=None,insurance_status='pending_reconciliation',pending=None)],summary=dict(printed_totals=dict(rent_kd=195,advance_kd=0,cleaning_kd=5)))
