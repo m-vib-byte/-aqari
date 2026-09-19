@@ -1,4 +1,12 @@
-import {runNavigationAction} from './components/navigation-action.js';
+async function runNavigationAction({scope:scopeCheck,action,report}){
+ if(!scopeCheck()){report('تعذر فتح الخدمة.',true);return false;}
+ report('');
+ try{
+  const result=await action();
+  if(result===false){report('تعذر فتح الخدمة.',true);return false;}
+  return true;
+ }catch{report('تعذر فتح الخدمة.',true);return false;}
+}
 import {openQuickTenantEntry} from './components/quick-tenant-entry.js';
 import {uiError,isUiError} from './components/ui-error.js';
 import {t,message,direction,getLocale} from './components/locale.js';
