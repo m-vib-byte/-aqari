@@ -1287,8 +1287,8 @@
     },
     {
       "path": "src/v267/live-stability-runtime.js",
-      "sha256": "26bb56db6d71658665ece85a610d715bedaa9333e0ce93e01fd32f2fdfd21484",
-      "size": 24650
+      "sha256": "e727afcedc5a5943cc0fc8f24c99efc04938dbad881f4bbc2eb4c44deffda2db",
+      "size": 26232
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
@@ -3417,8 +3417,8 @@
     },
     {
       "path": "tests/v267-live-stability.test.mjs",
-      "sha256": "b75f2719fc46e8577e661797d4b2b7a13ee916095a03ea3f062b68d6911f240b",
-      "size": 3124
+      "sha256": "077fc61cfb7036536812b3db4ef7dfa67d8a8f2a55048e763e64421acd4e8c46",
+      "size": 3748
     },
     {
       "path": "tests/v267-locale.test.mjs",
