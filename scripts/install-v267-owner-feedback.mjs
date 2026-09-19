@@ -15,7 +15,7 @@ runtime=runtime.replaceAll('CSS?.escape?.','globalThis.CSS?.escape?.');
 const oldShortcut="window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});";
 const newShortcut="document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();event.stopImmediatePropagation();openAssistant();}},true);";
 if(runtime.includes(oldShortcut))runtime=runtime.replace(oldShortcut,newShortcut);
-else if(!runtime.includes("event.stopImmediatePropagation();openAssistant();}},true)"))throw Error('V267_OWNER_ASSISTANT_SHORTCUT_ANCHOR_MISSING');
+else if(!runtime.includes("event.stopImmediatePropagation();openAssistant();}},true)")&&!runtime.includes("installSearchEvents(window,"))throw Error('V267_OWNER_ASSISTANT_SHORTCUT_ANCHOR_MISSING');
 if(runtime.includes(oldShortcut)||!runtime.includes('globalThis.CSS?.escape?.'))throw Error('V267_OWNER_FEEDBACK_HARDENING_INCOMPLETE');
 writeFileSync(runtimePath,runtime);
 release=readFileSync(releasePath,'utf8');

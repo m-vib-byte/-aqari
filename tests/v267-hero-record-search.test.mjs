@@ -14,6 +14,14 @@ function runtime(value,active=true){
 test('an Arabic section command opens its existing route without an AI request',async()=>{
  const r=runtime('أفتح العقود');await r.run();assert.deepEqual(JSON.parse(JSON.stringify(r.calls)),[['section','contracts']]);assert.equal(r.input.value,'');
 });
+test('completion of an earlier search does not erase a newly typed query',async()=>{
+ const r=runtime('401');let finish;
+ r.box.window.AQARI_V209.open=()=>new Promise(resolve=>{finish=resolve;});
+ const pending=r.run();
+ await new Promise(resolve=>setTimeout(resolve,10));
+ r.input.value='402';finish(true);await pending;
+ assert.equal(r.input.value,'402');
+});
 test('record names, contract numbers and Arabic unit numbers reach guarded record search unchanged',async()=>{
  for(const q of ['برج مرزوق','TEST-V267-20260910-01','٤٠١']){const r=runtime(q);await r.run();assert.deepEqual(r.calls,[['search',q]]);assert.equal(r.input.value,'');}
 });
@@ -33,4 +41,3 @@ test('initial search query is bounded and cannot open across a closed scope',asy
  const input={value:''};let allowed=true,opened=0;const box={query:'',handleAuthStateChange:async()=>{},scopeKey:()=>allowed?'u|w':'',ensureUi:()=>({input}),document:{querySelector:()=>null},setSearchExpanded:()=>{opened++;return true;}};vm.createContext(box);vm.runInContext('open=async function(initialQuery){'+fn[1]+'}',box);
  assert.equal(await box.open('  TEST-01  '),true);assert.equal(input.value,'TEST-01');assert.equal(box.query,'TEST-01');await box.open('x'.repeat(1400));assert.equal(input.value.length,1200);allowed=false;assert.equal(await box.open('other'),false);assert.equal(opened,2);
 });
-
