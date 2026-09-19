@@ -28,8 +28,14 @@ export function installTouchNavigation(root, now=()=>Date.now()) {
  // Window capture runs before existing document routers. Only consume the
  // browser's duplicate click; programmatic and keyboard activation still work.
  on('click',event=>{
-  if(!recent||!event.isTrusted||event.detail===0||now()-recent.time>800||event.target?.closest?.('button')!==recent.button)return;
-  recent=null;event.preventDefault();event.stopImmediatePropagation();
+  const button=event.target?.closest?.('button');
+  if(recent&&event.isTrusted&&event.detail!==0&&now()-recent.time<=800&&button===recent.button){
+   recent=null;event.preventDefault();event.stopImmediatePropagation();return;
+  }
+  // Directory controls own their action before legacy document-level routers.
+  if(button?.closest?.('#aq267-service-dialog[open]')&&!button.disabled&&typeof button.onclick==='function'){
+   event.preventDefault();event.stopImmediatePropagation();button.onclick.call(button,event);
+  }
  });
  return ()=>{for(const [name,handler] of listeners)root.removeEventListener(name,handler,true);gesture=null;recent=null;};
 }

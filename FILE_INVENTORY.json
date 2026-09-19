@@ -4042,13 +4042,13 @@
     },
     {
       "path": "tests/touch-navigation.test.mjs",
-      "size": 4431,
-      "sha256": "e9945406848d5bd01db51a7667538410c29486ffb7b625930d81e15641501644"
+      "size": 5338,
+      "sha256": "83d56656cf794e643834cef2be161dbda55144e5a037159e080734e6a0516dac"
     },
     {
       "path": "src/v267/components/touch-navigation.js",
-      "size": 1801,
-      "sha256": "d46a1b53af181017dc5a7a8923fad92b395ec424dc4c99f97535c100317b05ea"
+      "size": 2115,
+      "sha256": "f726ee1dde32c4c9c811cf6d949f720421813fc39977f59cc828557299ae8a8e"
     }
   ],
   "version": "V198"
