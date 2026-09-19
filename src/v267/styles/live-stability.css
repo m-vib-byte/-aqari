@@ -501,3 +501,20 @@ html[dir='ltr'] body.aq-live-stable #mainContentV103{margin:0 0 0 var(--aq-st-ra
  body.aq-live-stable .aq-ref-bar-value{grid-row:1;margin:0}
  body.aq-live-stable .aq-ref-bar small{grid-row:3;position:static}
 }
+/* Measured in the live desktop page: long navigation captions must grow, not overlap. */
+@media screen{
+ body.aq-live-stable #aqOwnerExactRail nav{grid-auto-rows:minmax(34px,auto)!important;align-content:start!important}
+ body.aq-live-stable #aqOwnerExactRail nav button{height:auto!important;min-height:34px!important;line-height:1.5!important;font-size:13px!important;flex-shrink:0!important}
+ body.aq-live-stable #aqOwnerExactRail nav button b{min-width:0!important;line-height:1.5!important}
+ body.aq-live-stable #aqOwnerExactRail nav button svg{stroke:currentColor!important;color:#79521c!important;opacity:1!important}
+ body.aq-live-stable #aqLiveStability .aq-live-kpis>.aq-live-metric{align-content:center!important;grid-template-rows:27px auto auto!important;row-gap:2px!important}
+ body.aq-live-stable #aqLiveStability .aq-live-kpis>.aq-live-metric span{line-height:1.35!important;font-size:12px!important}
+ body.aq-live-stable #aqLiveStability .aq-live-kpis>[data-live-card='month'] strong{font-size:15px!important;white-space:nowrap}
+ body.aq-live-stable .aq-ref-bars{margin-bottom:23px}
+ body.aq-live-stable .aq-ref-bar small{font-size:9px;transform:rotate(-40deg);transform-origin:center;line-height:1.3}
+}
+@media screen and (min-width:1050px){body.aq-live-stable{--aq-st-rail:216px}}
+@media screen{
+ body.aq-live-stable #aqari-exp-investment-apartment-shortcut{position:static!important;inset:auto!important;display:block!important;margin:8px 20px!important;max-width:calc(100vw - var(--aq-st-rail) - 40px)!important;box-shadow:none!important;z-index:auto!important}
+}
+@media screen and (min-width:1400px){body.aq-live-stable .aq-ref-bar small{transform:none;font-size:10px}}
