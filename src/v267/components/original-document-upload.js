@@ -16,7 +16,7 @@ function uploadCategory(category,entity){
  return documentCategory(category,entity);
 }
 export async function originalDocument(file){
- if(!file||file.size<1||file.size>10*1024*1024)throw Error('اختر صورة أو PDF بحجم لا يتجاوز ١٠ ميجابايت.');
+ if(!file||file.size<1||file.size>25*1024*1024)throw Error('اختر صورة أو PDF بحجم لا يتجاوز ٢٥ ميجابايت.');
  const b=new Uint8Array(await file.slice(0,12).arrayBuffer());
  const mime=b[0]===37&&b[1]===80&&b[2]===68&&b[3]===70&&b[4]===45?'application/pdf':b[0]===255&&b[1]===216&&b[2]===255?'image/jpeg':b[0]===137&&b[1]===80&&b[2]===78&&b[3]===71&&b[4]===13&&b[5]===10&&b[6]===26&&b[7]===10?'image/png':String.fromCharCode(...b.slice(0,4))==='RIFF'&&String.fromCharCode(...b.slice(8,12))==='WEBP'?'image/webp':null;
  if(!mime)throw Error('صيغة الملف غير مدعومة. اختر صورة JPEG أو PNG أو WebP أو ملف PDF.');
