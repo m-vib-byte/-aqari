@@ -80,9 +80,10 @@ const finalLoginCss='<link id="aqari-v267-owner-final-login-css" rel="stylesheet
 if(!login.includes('aqari-v267-owner-final-login-css')){if(!login.includes('</head>'))throw Error('V267_OWNER_FINAL_LOGIN_HEAD_ANCHOR_MISSING');login=login.replace('</head>',finalLoginCss+'\n</head>');writeFileSync(loginPath,login);}
 
 for(const path of ['src/v267/owner-feedback-runtime.js','src/v267/owner-final-runtime.js','src/v267/unified-layout-runtime.js','src/v267/premium-navigation-runtime.js','src/v267/pages/owner-experience-settings.js','api/owner-assistant.js','api/owner-report-delivery.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-service-directory.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs','tests/v267-unified-layout.test.mjs','tests/v267-premium-refinement.test.mjs','tests/v267-luxury-warm-beige.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/touch-navigation.test.mjs','tests/v267-service-directory.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v267-owner-feedback-batch.test.mjs','tests/v267-owner-final-batch.test.mjs','tests/v267-owner-delivery-meta.test.mjs','tests/v267-unified-layout.test.mjs','tests/v267-premium-refinement.test.mjs','tests/v267-luxury-warm-beige.test.mjs'],{stdio:'inherit'});
 console.log('Verified V267 luxury warm-beige owner design across app, internal functions and portals without changing authoritative business workflows.');
 
 await import('./install-v267-iphone-startup-fix.mjs');
 await import('./install-v267-live-stability.mjs');
+
 
