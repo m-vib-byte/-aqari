@@ -5,6 +5,7 @@ import {
   validateReleaseGateManifest,
 } from './v267-release-gate-manifest.mjs';
 import {validateStageCReleaseBundle} from './v267-stage-c-release-bundle-gate.mjs';
+import {validateStageCRollbackContinuity} from './v267-stage-c-rollback-continuity.mjs';
 import {validateProductionConfigForCli} from './v267-production-config-gate.mjs';
 import {validateSameShaCiEvidence} from './v267-ci-evidence-gate.mjs';
 
@@ -166,15 +167,19 @@ export function validateOwnerProductionApprovalForCli(input = {}) {
     const stageC = validateStageCReleaseBundle(input.releaseGateManifest?.stageCBundle, base.candidateSha);
     for (const error of stageC.errors) errors.push(`release gate Stage C bundle: ${error}`);
     if (stageC.ok) {
-      const previewBinding = validateExactPreviewBinding(input.releaseGateManifest);
-      for (const error of previewBinding.errors) errors.push(`release gate Preview binding: ${error}`);
+      const rollbackContinuity = validateStageCRollbackContinuity(input.releaseGateManifest?.stageCBundle);
+      for (const error of rollbackContinuity.errors) errors.push(`release gate Stage C rollback continuity: ${error}`);
+      if (rollbackContinuity.ok) {
+        const previewBinding = validateExactPreviewBinding(input.releaseGateManifest);
+        for (const error of previewBinding.errors) errors.push(`release gate Preview binding: ${error}`);
 
-      const production = validateProductionConfigForCli({
-        productionConfig: input.releaseGateManifest?.productionConfig,
-        stageCBundle: input.releaseGateManifest?.stageCBundle,
-        productionTarget: input.productionTarget,
-      }, base.candidateSha);
-      for (const error of production.errors) errors.push(`release gate Production configuration: ${error}`);
+        const production = validateProductionConfigForCli({
+          productionConfig: input.releaseGateManifest?.productionConfig,
+          stageCBundle: input.releaseGateManifest?.stageCBundle,
+          productionTarget: input.productionTarget,
+        }, base.candidateSha);
+        for (const error of production.errors) errors.push(`release gate Production configuration: ${error}`);
+      }
     }
   } else {
     errors.push('release gate CI evidence cannot be validated without the exact candidate SHA');
