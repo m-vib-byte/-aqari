@@ -11,6 +11,7 @@ const REHEARSAL_ID_RE=/^[0-9a-f]{32}$/;
 const PROJECT_REF_RE=/^[a-z0-9][a-z0-9_-]{2,127}$/;
 const DEPLOYMENT_ID_RE=/^dpl_[A-Za-z0-9]+$/;
 const UTC_SECOND_RE=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+const UNSAFE_EVIDENCE_PATH_CHAR_RE=/[%\u0000-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/;
 const REQUIRED_DIGESTS=['backup_set','backup_storage_bytes','independent_restore','rollback_rehearsal','physical_devices'];
 const DEVICE_CLASSES=['desktop','iphone','ipad'];
 const REQUIRED_FLOWS=['login','session','save','reopen','permissions','contracts','printing'];
@@ -50,7 +51,7 @@ function normalizedEvidenceList(value){
   for(const item of value){
     if(typeof item!=='string'||!item||item.trim()!==item)return null;
     const ref=item;
-    if(!ref.startsWith('evidence/')||ref.startsWith('/')||ref.includes('://')||ref.includes('\\')||ref.includes('?')||ref.includes('#'))return null;
+    if(!ref.startsWith('evidence/')||ref.startsWith('/')||ref.includes('://')||ref.includes('\\')||ref.includes('?')||ref.includes('#')||UNSAFE_EVIDENCE_PATH_CHAR_RE.test(ref))return null;
     const segments=ref.split('/');
     if(segments.some((segment)=>!segment||segment==='.'||segment==='..'))return null;
     if(seen.has(ref))return null;
