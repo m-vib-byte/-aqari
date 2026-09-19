@@ -39,7 +39,7 @@
   color:var(--aq-sem-danger)!important;
   box-shadow:none!important;
  }
- body.aq-v267 .aq267-close {
+ body.aq-v267 .aq267-dialog button.aq267-close {
   position:absolute;
   inset-block-start:16px;
   inset-inline-end:16px;
@@ -54,6 +54,7 @@
   padding-inline:10px!important;
   font-size:14px!important;
   font-weight:700;
+  white-space:nowrap;
   -webkit-user-select:none;
   user-select:none;
   -webkit-touch-callout:none;
