@@ -518,3 +518,7 @@ html[dir='ltr'] body.aq-live-stable #mainContentV103{margin:0 0 0 var(--aq-st-ra
  body.aq-live-stable #aqari-exp-investment-apartment-shortcut{position:static!important;inset:auto!important;display:block!important;margin:8px 20px!important;max-width:calc(100vw - var(--aq-st-rail) - 40px)!important;box-shadow:none!important;z-index:auto!important}
 }
 @media screen and (min-width:1400px){body.aq-live-stable .aq-ref-bar small{transform:none;font-size:10px}}
+@media screen{
+ body.aq-live-stable #aqOwnerExactRail nav{display:flex!important;flex-direction:column!important;align-items:stretch!important;overflow:auto!important}
+ body.aq-live-stable #aqOwnerExactRail nav button{flex:0 0 auto!important;max-height:none!important;white-space:normal!important}
+}
