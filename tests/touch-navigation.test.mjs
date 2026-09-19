@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {installTouchNavigation} from '../src/v267/components/touch-navigation.js';
 
-function fixture(){
+function fixture(scope='#aqOwnerExactHome'){
  const listeners=new Map();let time=0,actions=0;
  const root={addEventListener:(n,f)=>listeners.set(n,f),removeEventListener:n=>listeners.delete(n)};
- const button={disabled:false,closest:()=>true,click:()=>{const e=emit('click',{isTrusted:false});if(!e.stopped)actions++;}};
+ const button={disabled:false,closest:selector=>selector.split(',').includes(scope),click:()=>{const e=emit('click',{isTrusted:false});if(!e.stopped)actions++;}};
  function emit(name,extra={}){const e={target:{closest:()=>button},pointerType:'touch',pointerId:1,isPrimary:true,clientX:20,clientY:30,isTrusted:true,detail:1,preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;},...extra};listeners.get(name)?.(e);return e;}
  const dispose=installTouchNavigation(root,()=>time);
  return {emit,button,dispose,listeners,get actions(){return actions;},advance:n=>time+=n};
@@ -47,4 +47,27 @@ test('touch fallback also activates search submit and property-card buttons',()=
   listeners.get('pointerdown')(event);listeners.get('pointerup')(event);
   assert.equal(clicks,1,kind);
  }
+});
+
+test('service dialog close, upload and section icon taps activate once',()=>{
+ for(const action of ['close','upload','expand']){
+  const f=fixture('#aq267-service-dialog');
+  f.emit('pointerdown');f.advance(50);f.emit('pointerup');
+  assert.equal(f.actions,1,action);
+  // Upload/close can move the original button out of its dialog before the native click.
+  f.button.closest=()=>null;
+  assert.equal(f.emit('click').stopped,true,action);
+  assert.equal(f.actions,1,action);
+ }
+});
+test('service scrolling does not open a section or a document form',()=>{
+ const f=fixture('#aq267-service-dialog');
+ f.emit('pointerdown');f.emit('pointermove',{clientY:80});f.emit('pointerup',{clientY:80});
+ assert.equal(f.actions,0);
+ f.emit('pointerdown');f.emit('scroll');f.emit('pointerup');assert.equal(f.actions,0);
+});
+test('document upload forms outside the directory retain native file selection',()=>{
+ const f=fixture('.aq267-scanner');
+ f.emit('pointerdown');f.emit('pointerup');assert.equal(f.actions,0);
+ assert.equal(f.emit('click').stopped,undefined);
 });
