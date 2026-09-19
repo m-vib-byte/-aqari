@@ -191,3 +191,133 @@
   body.aq-v267 .aq267-staff-access form>fieldset {grid-template-columns:1fr}
 }
 @media print {#aq267-ultra-luxury-css {display:none!important}}
+
+
+/* AQARI unified internal-page palette — 2026-09-19
+   Presentation-only: improves contrast, spacing and card layout across the
+   authenticated internal dialogs without changing data, permissions or routes. */
+@media screen {
+  body.aq-v267 .aq267-dialog {
+    --aq-int-canvas:#fbf4e8;
+    --aq-int-surface:#fffdf9;
+    --aq-int-surface-2:#f8efe1;
+    --aq-int-ink:#382a22;
+    --aq-int-muted:#6c5849;
+    --aq-int-gold:#805a28;
+    --aq-int-gold-strong:#68461f;
+    --aq-int-line:#ddc6a6;
+    background:linear-gradient(155deg,#fffdf9 0%,#fbf4e8 100%)!important;
+    color:var(--aq-int-ink)!important;
+  }
+  body.aq-v267 .aq267-dialog-title {
+    color:#33261f!important;
+    border-bottom:1px solid #e1ccb0!important;
+    padding-bottom:16px!important;
+  }
+  body.aq-v267 .aq267-dialog>p[role='status'] {
+    color:#765a37!important;
+  }
+  body.aq-v267 .aq267-dialog-body {
+    color:var(--aq-int-ink)!important;
+  }
+  body.aq-v267 .aq267-dialog-body>section,
+  body.aq-v267 .aq267-property-master-section {
+    margin:0!important;
+    padding:16px!important;
+    border:1px solid var(--aq-int-line)!important;
+    border-radius:16px!important;
+    background:var(--aq-int-surface)!important;
+    box-shadow:0 5px 18px rgba(83,56,29,.035)!important;
+  }
+  body.aq-v267 .aq267-dialog-body>section>h3,
+  body.aq-v267 .aq267-property-master-section>h3 {
+    margin:0 0 12px!important;
+    padding-bottom:10px!important;
+    border-bottom:1px solid #eadbc7!important;
+    color:#4c372a!important;
+    font-size:1.02rem!important;
+    font-weight:850!important;
+  }
+  body.aq-v267 .aq267-dialog-body :is(p,span,small,dt,dd,label) {
+    color:var(--aq-int-muted);
+  }
+  body.aq-v267 .aq267-dialog-body p strong,
+  body.aq-v267 .aq267-dialog-body dt,
+  body.aq-v267 .aq267-dialog-body h4 {
+    color:#493528!important;
+  }
+  body.aq-v267 .aq267-property-master-metrics {
+    display:grid!important;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr))!important;
+    gap:12px!important;
+    width:100%!important;
+  }
+  body.aq-v267 .aq267-property-master-metric {
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    gap:7px!important;
+    min-width:0!important;
+    min-height:96px!important;
+    margin:0!important;
+    padding:14px 16px!important;
+    border:1px solid #dfc9a9!important;
+    border-radius:14px!important;
+    background:linear-gradient(145deg,#fff,#fbf3e7)!important;
+    box-shadow:inset 0 1px 0 #fff,0 4px 12px rgba(83,56,29,.035)!important;
+  }
+  body.aq-v267 .aq267-property-master-metric>span {
+    color:#665245!important;
+    font-size:.86rem!important;
+    font-weight:720!important;
+    line-height:1.55!important;
+  }
+  body.aq-v267 .aq267-property-master-metric>strong {
+    color:var(--aq-int-gold-strong)!important;
+    font-size:1.2rem!important;
+    font-weight:900!important;
+    line-height:1.35!important;
+    font-variant-numeric:tabular-nums!important;
+  }
+  body.aq-v267 .aq267-property-unit-card {
+    display:grid!important;
+    gap:6px!important;
+    border-color:#e2cfb4!important;
+    background:#fffaf3!important;
+  }
+  body.aq-v267 .aq267-property-unit-card>strong {
+    color:#563d27!important;
+    font-weight:850!important;
+  }
+  body.aq-v267 .aq267-property-unit-card>span {
+    color:#6a584b!important;
+  }
+  body.aq-v267 .aq267-dialog-body :is(article,details,fieldset) {
+    border-color:#e1ccb0!important;
+    background:#fffdf9!important;
+  }
+  body.aq-v267 .aq267-dialog-body summary {
+    color:#503b2e!important;
+  }
+  body.aq-v267 .aq267-dialog-body a {
+    color:#765022!important;
+  }
+  body.aq-v267 .aq267-dialog-body :is(input:not([type='checkbox']):not([type='radio']),select,textarea) {
+    border-color:#cfb590!important;
+    background:#fffefb!important;
+    color:#382a22!important;
+  }
+  body.aq-v267 .aq267-dialog-body :is(input,textarea)::placeholder {
+    color:#89796c!important;
+  }
+}
+@media screen and (max-width:700px) {
+  body.aq-v267 .aq267-property-master-metrics {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media screen and (max-width:460px) {
+  body.aq-v267 .aq267-property-master-metrics {
+    grid-template-columns:1fr!important;
+  }
+}
