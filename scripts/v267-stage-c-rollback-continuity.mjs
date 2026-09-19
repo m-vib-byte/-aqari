@@ -1,6 +1,7 @@
 const SHA256_RE=/^[0-9a-f]{64}$/;
 
 function text(value){return typeof value==='string'?value.trim():''}
+function nonNegativeInt(value){return Number.isSafeInteger(value)&&value>=0}
 function positiveInt(value){return Number.isSafeInteger(value)&&value>0}
 
 export function validateStageCRollbackContinuity(bundle={}){
@@ -19,6 +20,21 @@ export function validateStageCRollbackContinuity(bundle={}){
   if(!positiveInt(afterCount))errors.push('rollback continuity requires a positive integer after_record_count');
   if(positiveInt(checkpointCount)&&positiveInt(newRecordCount)&&positiveInt(afterCount)&&afterCount!==checkpointCount+newRecordCount){
     errors.push('rollback continuity after_record_count must equal checkpoint_record_count + new_record_count');
+  }
+
+  const counts=rollback.counts_by_kind&&typeof rollback.counts_by_kind==='object'&&!Array.isArray(rollback.counts_by_kind)?rollback.counts_by_kind:null;
+  if(!counts||Object.keys(counts).length===0){
+    errors.push('rollback continuity requires non-empty counts_by_kind evidence');
+  }else{
+    let total=0;
+    let valid=true;
+    for(const [kind,count] of Object.entries(counts)){
+      if(!text(kind)||!nonNegativeInt(count)){valid=false;break}
+      total+=count;
+      if(!Number.isSafeInteger(total)){valid=false;break}
+    }
+    if(!valid)errors.push('rollback continuity counts_by_kind requires safe non-negative integer counts and non-empty kinds');
+    else if(positiveInt(afterCount)&&total!==afterCount)errors.push('rollback continuity counts_by_kind must sum exactly to after_record_count');
   }
 
   const checkpoint=text(rollback.checkpoint_records_sha256);
