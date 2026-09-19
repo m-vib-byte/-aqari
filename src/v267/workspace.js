@@ -173,6 +173,14 @@ export function install(){
   queueMicrotask(updateLabels);
  },true);
  window.addEventListener('aqari:v267-controls-changed',refresh);
- window.addEventListener('aqari:auth-boundary',()=>{try{const c=currentScope();bindLocale(c);if(access&&(c.user!==access.user_id||c.workspace!==access.workspace_id||c.role!==access.role)){access=null;session?.close();}}catch{access=null;session?.close();bindLocale(null);}updateFeatureTools();updateLabels();});
+ window.addEventListener('aqari:auth-boundary',event=>{try{const c=currentScope();bindLocale(c);if(access&&(c.user!==access.user_id||c.workspace!==access.workspace_id||c.role!==access.role)){access=null;session?.close();}}catch{access=null;session?.close();bindLocale(null);}updateFeatureTools();updateLabels();
+  // Let a cancelled access read settle before requesting the ready account.
+  if(event?.detail?.state==='ready'&&!directoryScope()){
+   Promise.resolve(loading).then(()=>{
+    try{currentScope();}catch{return;}
+    if(!directoryScope())return refresh();
+   });
+  }
+ });
  refresh();
 }

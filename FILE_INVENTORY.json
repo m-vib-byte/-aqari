@@ -1532,8 +1532,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "93ec83542b610e8529fe30f18f3a16396d1f456c3e3d19c8aa4d82792692b683",
-      "size": 30245
+      "sha256": "7ea8ea44d708ff98c8fe0cccfb56554a7b96f985ad90e57395a17a4a3ac39eec",
+      "size": 30515
     },
     {
       "path": "staging-database/hosted-test/completion/01-maintenance_workflow.sql",
@@ -3812,8 +3812,8 @@
     },
     {
       "path": "tests/v267-workspace-features.test.cjs",
-      "sha256": "3a817e75f1a00468b25cc4aa5dcc7b005b7e6c17591c7bc3743d7128381337f9",
-      "size": 6327
+      "sha256": "e64cc5b59b9820a736cc06a9e4603da21c6a94ff61a4b2b3c93fe13e49ccfe4e",
+      "size": 8806
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
