@@ -4074,6 +4074,11 @@
       "path": "tests/search-events.test.mjs",
       "size": 3768,
       "sha256": "f160ffa97d3c10a495283b2bf12f71b7da6ca68aa205757136b98baf2918f1c1"
+    },
+    {
+      "path": "scripts/install-v267-owner-feedback.mjs",
+      "size": 8955,
+      "sha256": "0b23030085d4cb1f98c1937fb283a6de0537766b14e77a8a797c49312c507152"
     }
   ],
   "version": "V198"
