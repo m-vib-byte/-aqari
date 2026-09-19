@@ -29,8 +29,8 @@ function canonical(value){
 
 function normalizedSha(value){return String(value||'').trim().toLowerCase()}
 function text(value){return typeof value==='string'?value.trim():''}
-function nonNegativeInt(value){return Number.isInteger(value)&&value>=0}
-function positiveInt(value){return Number.isInteger(value)&&value>0}
+function nonNegativeInt(value){return Number.isSafeInteger(value)&&value>=0}
+function positiveInt(value){return Number.isSafeInteger(value)&&value>0}
 function exactKeys(value,keys){
   return !!value&&typeof value==='object'&&!Array.isArray(value)&&
     JSON.stringify(Object.keys(value).sort())===JSON.stringify([...keys].sort());
