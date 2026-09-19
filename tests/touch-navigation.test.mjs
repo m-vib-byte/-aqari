@@ -75,10 +75,26 @@ test('document upload forms outside the directory retain native file selection',
 test('directory clicks route before legacy handlers and retain the original authorization action',()=>{
  let handler,actions=0;
  const root={addEventListener:(name,fn)=>{if(name==='click')handler=fn;},removeEventListener(){}};
- const button={disabled:false,closest:s=>s==='#aq267-service-dialog[open]',onclick(){assert.equal(this,button);actions++;}};
+ const button={disabled:false,closest:s=>s.split(',').includes('#aq267-service-dialog[open]'),onclick(){assert.equal(this,button);actions++;}};
  installTouchNavigation(root);
  const event=()=>({target:{closest:()=>button},isTrusted:true,detail:1,preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;}});
  const e=event();handler(e);assert.equal(actions,1);assert.equal(e.stopped,true);
  button.disabled=true;const blocked=event();handler(blocked);assert.equal(actions,1);assert.equal(blocked.stopped,undefined);
  button.disabled=false;button.closest=()=>false;const outside=event();handler(outside);assert.equal(actions,1);assert.equal(outside.stopped,undefined);
+});
+
+test('contract list controls use the guarded touch path once',()=>{
+ const f=fixture('.aq267-contracts');
+ f.emit('pointerdown');f.advance(50);f.emit('pointerup');assert.equal(f.actions,1);
+ assert.equal(f.emit('click').stopped,true);assert.equal(f.actions,1);
+ f.emit('pointerdown');f.emit('scroll');f.emit('pointerup');assert.equal(f.actions,1);
+});
+test('contract click capture retains busy and disabled guards',()=>{
+ let handler,actions=0;
+ const root={addEventListener:(name,fn)=>{if(name==='click')handler=fn;},removeEventListener(){}};
+ const button={disabled:false,closest:s=>s.split(',').includes('.aq267-contracts[open]'),onclick(){actions++;}};
+ installTouchNavigation(root);
+ const event=()=>({target:{closest:()=>button},isTrusted:true,detail:1,preventDefault(){},stopImmediatePropagation(){this.stopped=true;}});
+ handler(event());assert.equal(actions,1);
+ button.disabled=true;const blocked=event();handler(blocked);assert.equal(actions,1);assert.equal(blocked.stopped,undefined);
 });

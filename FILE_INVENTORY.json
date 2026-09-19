@@ -1467,8 +1467,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "3c5ee4de86015cfb8e33a931aca68da28fbea908b961dc8a6e7691766fcf89e1",
-      "size": 29138
+      "sha256": "4bbde238d7c5b5d8d71a1d32eae6ae05d0518ffa122b9f6fd18817bea5d7e291",
+      "size": 29178
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -4042,13 +4042,13 @@
     },
     {
       "path": "tests/touch-navigation.test.mjs",
-      "size": 5338,
-      "sha256": "83d56656cf794e643834cef2be161dbda55144e5a037159e080734e6a0516dac"
+      "size": 6359,
+      "sha256": "7ab4468be6f167a559d2e2113042fa02c21de7f78293affc8097bba337060a7f"
     },
     {
       "path": "src/v267/components/touch-navigation.js",
-      "size": 2115,
-      "sha256": "f726ee1dde32c4c9c811cf6d949f720421813fc39977f59cc828557299ae8a8e"
+      "size": 2175,
+      "sha256": "5871037e51be5e92e8be99dac228179599390aad24574f051f8e13e407bf2884"
     },
     {
       "path": "tests/v267-iphone-startup-blocker.test.mjs",
