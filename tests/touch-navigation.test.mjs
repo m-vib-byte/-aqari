@@ -71,3 +71,14 @@ test('document upload forms outside the directory retain native file selection',
  f.emit('pointerdown');f.emit('pointerup');assert.equal(f.actions,0);
  assert.equal(f.emit('click').stopped,undefined);
 });
+
+test('directory clicks route before legacy handlers and retain the original authorization action',()=>{
+ let handler,actions=0;
+ const root={addEventListener:(name,fn)=>{if(name==='click')handler=fn;},removeEventListener(){}};
+ const button={disabled:false,closest:s=>s==='#aq267-service-dialog[open]',onclick(){assert.equal(this,button);actions++;}};
+ installTouchNavigation(root);
+ const event=()=>({target:{closest:()=>button},isTrusted:true,detail:1,preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;}});
+ const e=event();handler(e);assert.equal(actions,1);assert.equal(e.stopped,true);
+ button.disabled=true;const blocked=event();handler(blocked);assert.equal(actions,1);assert.equal(blocked.stopped,undefined);
+ button.disabled=false;button.closest=()=>false;const outside=event();handler(outside);assert.equal(actions,1);assert.equal(outside.stopped,undefined);
+});
