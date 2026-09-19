@@ -43,7 +43,7 @@ export async function readManagementCounters(session, asOf) {
   if (!permissions[section]) return;
   jobs.push({id, label, section, run:() => exactCount(session, filter(session.client.from(table).select('id', {count:'exact', head:true}).eq('workspace_id', session.bound.workspace)))});
  };
- add('properties', 'العقارات المسجلة', 'properties', 'aqari_properties');
+ add('properties', 'العقارات المسجلة', 'properties', 'aqari_properties', query => query.or('metadata->>source_only.is.null,metadata->>source_only.neq.true'));
  add('tenants', 'ملفات المستأجرين المحفوظة', 'tenants', 'aqari_tenants');
  const active = query => query.eq('status','signed').lte('start_date',asOf).gte('end_date',asOf);
  add('active_contracts', 'العقود الفعّالة اليوم', 'contracts', 'aqari_leases', active);
