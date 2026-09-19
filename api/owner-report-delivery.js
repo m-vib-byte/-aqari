@@ -79,7 +79,7 @@ export function createOwnerReportDeliveryHandler({fetchImpl=globalThis.fetch,env
  return async function handler(req,res){
   res.setHeader('Cache-Control','private, no-store, max-age=0');const fail=(status,code)=>res.status(status).json({error:code});
   if(!['POST','GET'].includes(req.method)){res.setHeader('Allow','GET, POST');return fail(405,'METHOD_NOT_ALLOWED');}
-  const base=baseConfig(env);if(!base||!validSupabasePublicConfig()||typeof fetchImpl!=='function')return fail(503,'OWNER_REPORT_DELIVERY_NOT_CONFIGURED');
+  const base=baseConfig(env);if(!base||!validSupabasePublicConfig()||typeof fetchImpl!=='function')return res.status(200).json({ok:true,configured:false,status:'not_configured',checked_at:kuwaitParts(now()).iso,sent:[],failed:[]});
   if(req.headers?.authorization!==`Bearer ${base.cron}`)return fail(401,'CRON_AUTH_REQUIRED');
   const sb=async(path,body)=>{const headers={apikey:base.key,'Content-Type':'application/json',Accept:'application/json'};if(!base.key.startsWith('sb_secret_'))headers.Authorization='Bearer '+base.key;const response=await fetchImpl(new URL(path,SUPABASE_PUBLIC_CONFIG.url),{method:'POST',headers,body:JSON.stringify(body||{}),cache:'no-store',redirect:'error'});if(!response.ok)throw Error('SUPABASE_SERVICE_FAILED');return json(response);};
   try{
