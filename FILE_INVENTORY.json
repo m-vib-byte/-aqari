@@ -892,8 +892,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "fb650ea38ac86cf5cf1972c6bc2f8df69f3847329daee4f7a476e11fb8cfa37e",
-      "size": 7539
+      "sha256": "8956b78d0e5ec967ef1c0cb914044233647b0164b0680c8105ce633bcd13448e",
+      "size": 7574
     },
     {
       "path": "scripts/check.mjs",
@@ -1292,8 +1292,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "1e38557e3d6808779e179c66ee7df949c2a135aef5e14e19995f5db05ef380ce",
-      "size": 33073
+      "sha256": "7976e76734495c175f3e79147df017d3dbc4fa17ecbd0351e5ae951746f32e27",
+      "size": 34662
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -4089,6 +4089,16 @@
       "path": "api/owner-report-delivery.js",
       "size": 10467,
       "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6"
+    },
+    {
+      "path": "src/v267/components/assistant-request.js",
+      "size": 799,
+      "sha256": "c8896a3f2746ef2ac9876e4e1a77c420a999f2b54fc82c94542130c9c4912e9f"
+    },
+    {
+      "path": "tests/assistant-request.test.mjs",
+      "size": 4943,
+      "sha256": "1c951b84635b9fac704e76acb0ddd09b4abd8d32aa306a044857b0afc630f767"
     }
   ],
   "version": "V198"
