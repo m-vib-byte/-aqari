@@ -321,3 +321,165 @@
     grid-template-columns:1fr!important;
   }
 }
+
+
+/* AQARI all-internal-pages unified shell — 2026-09-19
+   Visual-only normalization for every authenticated section and V267 dialog. */
+@media screen {
+  body.aq-unified-experience {
+    --aq-page-canvas:#f6eee4;
+    --aq-page-surface:#fffdf9;
+    --aq-page-surface-soft:#fbf3e8;
+    --aq-page-ink:#382a22;
+    --aq-page-muted:#6f5e51;
+    --aq-page-gold:#805926;
+    --aq-page-gold-strong:#67451f;
+    --aq-page-line:#dcc5a7;
+    --aq-page-line-soft:#eadccc;
+  }
+
+  /* Every non-home section shares the same base canvas and typography. */
+  body.aq-unified-experience main.w>.p.on:not(#home) {
+    color:var(--aq-page-ink)!important;
+    background:transparent!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(h1,h2,h3,h4,h5,h6,strong,b) {
+    color:#463229!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(p,small,label,dt,dd) {
+    color:var(--aq-page-muted);
+  }
+
+  /* Cards, panels and expandable blocks use one warm surface language. */
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(.card,.panel,.box,article,fieldset,details),
+  body.aq-unified-experience .aq267-dialog-body :is(article,fieldset,details) {
+    border-color:var(--aq-page-line-soft)!important;
+    background:var(--aq-page-surface)!important;
+    border-radius:15px!important;
+    box-shadow:0 5px 18px rgba(72,48,31,.035)!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(.card,.panel,.box)>:is(h2,h3,h4),
+  body.aq-unified-experience .aq267-dialog-body>section>h3 {
+    color:#4b3529!important;
+  }
+
+  /* Forms are identical across contracts, finance, maintenance, staff and property pages. */
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(input:not([type='checkbox']):not([type='radio']),select,textarea),
+  body.aq-unified-experience .aq267-dialog-body :is(input:not([type='checkbox']):not([type='radio']),select,textarea) {
+    min-height:48px!important;
+    border:1px solid #cfb590!important;
+    border-radius:11px!important;
+    background:#fffefb!important;
+    color:#382a22!important;
+    box-shadow:none!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(input,select,textarea):focus,
+  body.aq-unified-experience .aq267-dialog-body :is(input,select,textarea):focus {
+    border-color:#a87738!important;
+    outline:none!important;
+    box-shadow:0 0 0 3px rgba(170,122,58,.12)!important;
+  }
+  body.aq-unified-experience :is(input,textarea)::placeholder {
+    color:#8a796b!important;
+    opacity:1!important;
+  }
+
+  /* One button treatment. Semantic red close/delete buttons remain owned by semantic-colors.css. */
+  body.aq-unified-experience main.w>.p.on:not(#home) button:not(.danger):not(.destructive):not([data-variant='danger']):not([aria-label='إغلاق']):not([aria-label='Close']),
+  body.aq-unified-experience .aq267-dialog-body button:not(.danger):not(.destructive):not([data-variant='danger']) {
+    min-height:46px!important;
+    border:1px solid #8b622d!important;
+    border-radius:11px!important;
+    background:linear-gradient(180deg,#9c7138,#785226)!important;
+    color:#fffaf2!important;
+    font-weight:780!important;
+    box-shadow:none!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) button:not(.danger):not(.destructive):not([data-variant='danger']):hover,
+  body.aq-unified-experience .aq267-dialog-body button:not(.danger):not(.destructive):not([data-variant='danger']):hover {
+    background:linear-gradient(180deg,#8f642f,#68451f)!important;
+    border-color:#68451f!important;
+  }
+
+  /* Consistent data tables: strong contrast, warm header, no pale-gold text. */
+  body.aq-unified-experience main.w>.p.on:not(#home) table,
+  body.aq-unified-experience .aq267-dialog-body table {
+    width:100%;
+    border:1px solid var(--aq-page-line-soft)!important;
+    border-collapse:separate!important;
+    border-spacing:0!important;
+    border-radius:13px!important;
+    overflow:hidden!important;
+    background:var(--aq-page-surface)!important;
+    color:var(--aq-page-ink)!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) th,
+  body.aq-unified-experience .aq267-dialog-body th {
+    background:#efe3d3!important;
+    color:#4c382d!important;
+    font-weight:800!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) td,
+  body.aq-unified-experience .aq267-dialog-body td {
+    color:#554339!important;
+    background:#fffdf9!important;
+  }
+  body.aq-unified-experience :is(th,td) {
+    border-bottom-color:#eadccc!important;
+  }
+
+  /* Numbers and important values must stay readable on ivory surfaces. */
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(.number,.amount,.value,[data-value],article>strong),
+  body.aq-unified-experience .aq267-dialog-body :is(.number,.amount,.value,[data-value],article>strong) {
+    color:var(--aq-page-gold-strong)!important;
+    font-variant-numeric:tabular-nums!important;
+  }
+
+  /* Alerts and status text retain semantic meaning but never use low-contrast pale gold. */
+  body.aq-unified-experience :is([role='status'],.status,.notice,.message):not(.success):not(.error):not(.danger) {
+    color:#73552f!important;
+  }
+
+  /* Dialogs and direct pages share identical section spacing. */
+  body.aq-unified-experience .aq267-dialog-body {
+    gap:14px!important;
+  }
+  body.aq-unified-experience .aq267-dialog-body>section {
+    padding:15px!important;
+  }
+  body.aq-unified-experience .aq267-dialog-body>section>h3 {
+    margin:0 0 11px!important;
+    padding-bottom:9px!important;
+    border-bottom:1px solid #eadccc!important;
+  }
+
+  /* Scroll containers remain usable on iPad/iPhone instead of squeezing columns. */
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(.table-wrap,.table-scroll,[class*='table-scroll']),
+  body.aq-unified-experience .aq267-dialog-body :is(.table-wrap,.table-scroll,[class*='table-scroll']) {
+    max-width:100%!important;
+    overflow-x:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+}
+
+@media screen and (max-width:820px) {
+  body.aq-unified-experience main.w>.p.on:not(#home) {
+    padding-inline:10px!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) :is(.card,.panel,.box,article,fieldset,details) {
+    border-radius:13px!important;
+  }
+  body.aq-unified-experience .aq267-dialog-body>section {
+    padding:13px!important;
+  }
+}
+
+@media screen and (max-width:520px) {
+  body.aq-unified-experience main.w>.p.on:not(#home) {
+    padding-inline:6px!important;
+  }
+  body.aq-unified-experience main.w>.p.on:not(#home) button,
+  body.aq-unified-experience .aq267-dialog-body button {
+    width:100%!important;
+  }
+}
