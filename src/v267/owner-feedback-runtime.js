@@ -1,3 +1,4 @@
+import {installSearchEvents} from './components/search-events.js';
 import {installExactNavigationEvents} from './components/exact-navigation-events.js';
 async function runNavigationAction({scope:scopeCheck,action,report}){
  if(!scopeCheck()){report('تعذر فتح الخدمة.',true);return false;}
@@ -138,7 +139,7 @@ async function searchFromHero(event){
  const command=normalize(question).replace(/^(?:افتح|فتح|open)\s+/,'');
  const def=ROUTES.find(item=>[item.label,t(item.label)].some(label=>normalize(label)===command));
  const opened=def?await openDefinition(def):await openRecordSearch(question);
- if(opened)input.value='';
+ if(opened&&input.value.trim()===question)input.value='';
 }
 async function openRecordSearch(question=''){
  if(!scope())return false;
@@ -179,7 +180,7 @@ function interceptLegacy(event){const button=event.target.closest?.('[data-v199-
 function ensureCss(){if(document.getElementById('aqari-owner-feedback-css'))return;const link=document.createElement('link');link.id='aqari-owner-feedback-css';link.rel='stylesheet';link.href='/src/v267/styles/owner-feedback-reference.css?release='+RELEASE;document.head.append(link);}
 function refresh(){if(!scope())return;mountShell();if(document.body.classList.contains('aq-live-stable'))return;refreshMetrics();syncActive();}
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
-function boot(){window.addEventListener('submit',event=>{if(event.target?.id!=='aqExactHeroSearch')return;event.preventDefault();event.stopImmediatePropagation();runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus});},true);installTouchNavigation(window);installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
+function boot(){installSearchEvents(window,{ready:scope,submit:event=>runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus}),shortcut:()=>runNavigationAction({scope,action:()=>openRecordSearch(),report:setStatus})});installTouchNavigation(window);installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 
 

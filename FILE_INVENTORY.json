@@ -952,8 +952,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "1ee44758addee6f89bd756f3992e9f52a5382e02138b0d1e67da8e9167402fb6",
-      "size": 7117
+      "sha256": "fb650ea38ac86cf5cf1972c6bc2f8df69f3847329daee4f7a476e11fb8cfa37e",
+      "size": 7539
     },
     {
       "path": "scripts/check.mjs",
@@ -1322,8 +1322,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "da2c3877c0c680ebe9df3184c884e3dc1f4d5231f0b2baf34c852871af1b2a0d",
-      "size": 32359
+      "sha256": "6b4cd524ba6a73b0865960f803b6b07f9949edc0826279a3a04b0f8d489f76ff",
+      "size": 33073
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -4037,8 +4037,8 @@
     },
     {
       "path": "tests/v267-hero-record-search.test.mjs",
-      "size": 3981,
-      "sha256": "f4ec366b187ef310ba5848886fb850666e1dca262e21bd015ea2f7e312d06e9c"
+      "size": 4342,
+      "sha256": "1528491f28e7658cfb22ab06f4fcb95d315e588adfff998dd5848757431e288f"
     },
     {
       "path": "tests/touch-navigation.test.mjs",
@@ -4054,6 +4054,16 @@
       "path": "tests/v267-iphone-startup-blocker.test.mjs",
       "size": 3849,
       "sha256": "4c4720c33d59b5571d5ffa5a4f8a1670d42c8bcb098f3102e2dec62cb4020a1a"
+    },
+    {
+      "path": "src/v267/components/search-events.js",
+      "size": 1060,
+      "sha256": "4089767a6a120efe603b9b1b674d70f7c58e0bc5ea7cb9b63a47bae03d5fcbf7"
+    },
+    {
+      "path": "tests/search-events.test.mjs",
+      "size": 2681,
+      "sha256": "20aa4a09b0ab1e37b8b56c9020b153b45ea0c7877e0ae3f6f8c535c91d8186c9"
     }
   ],
   "version": "V198"
