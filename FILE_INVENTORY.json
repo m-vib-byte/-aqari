@@ -4039,6 +4039,16 @@
       "path": "tests/v267-hero-record-search.test.mjs",
       "size": 3981,
       "sha256": "f4ec366b187ef310ba5848886fb850666e1dca262e21bd015ea2f7e312d06e9c"
+    },
+    {
+      "path": "tests/touch-navigation.test.mjs",
+      "size": 4431,
+      "sha256": "e9945406848d5bd01db51a7667538410c29486ffb7b625930d81e15641501644"
+    },
+    {
+      "path": "src/v267/components/touch-navigation.js",
+      "size": 1801,
+      "sha256": "d46a1b53af181017dc5a7a8923fad92b395ec424dc4c99f97535c100317b05ea"
     }
   ],
   "version": "V198"

@@ -4,7 +4,7 @@ export function installTouchNavigation(root, now=()=>Date.now()) {
  const listeners=[];
  const target=event=>{
   const button=event.target?.closest?.('button');
-  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head')&&!button.disabled?button:null;
+  return button?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head,#aq267-service-dialog')&&!button.disabled?button:null;
  };
  const on=(name,handler)=>{root.addEventListener(name,handler,true);listeners.push([name,handler]);};
  on('pointerdown',event=>{
@@ -28,7 +28,7 @@ export function installTouchNavigation(root, now=()=>Date.now()) {
  // Window capture runs before existing document routers. Only consume the
  // browser's duplicate click; programmatic and keyboard activation still work.
  on('click',event=>{
-  if(!recent||!event.isTrusted||event.detail===0||now()-recent.time>800||target(event)!==recent.button)return;
+  if(!recent||!event.isTrusted||event.detail===0||now()-recent.time>800||event.target?.closest?.('button')!==recent.button)return;
   recent=null;event.preventDefault();event.stopImmediatePropagation();
  });
  return ()=>{for(const [name,handler] of listeners)root.removeEventListener(name,handler,true);gesture=null;recent=null;};
