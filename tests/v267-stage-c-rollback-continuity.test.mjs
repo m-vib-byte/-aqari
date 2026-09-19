@@ -14,6 +14,7 @@ function bundle(overrides={}){
       checkpoint_record_count:12,
       new_record_count:3,
       after_record_count:15,
+      counts_by_kind:{payment:9,receipt:6},
       checkpoint_records_sha256:DIGEST_A,
       during_records_sha256:DIGEST_B,
       after_records_sha256:DIGEST_B,
@@ -70,6 +71,21 @@ test('requires the final transaction count to preserve the checkpoint plus every
   const result=validateStageCRollbackContinuity(bundle({after_record_count:14}));
   assert.equal(result.ok,false);
   assert.match(result.errors.join('\n'),/must equal checkpoint_record_count \+ new_record_count/);
+});
+
+test('requires counts_by_kind to be non-empty, safe and exactly reconcile to the final transaction count',()=>{
+  for(const counts_by_kind of [
+    undefined,
+    {},
+    {payment:15,receipt:-1},
+    {'':15},
+    {payment:Number.MAX_SAFE_INTEGER+1},
+    {payment:8,receipt:6},
+  ]){
+    const result=validateStageCRollbackContinuity(bundle({counts_by_kind}));
+    assert.equal(result.ok,false,JSON.stringify(counts_by_kind));
+    assert.match(result.errors.join('\n'),/counts_by_kind/);
+  }
 });
 
 test('rejects zero-duration or malformed continuity evidence',()=>{
