@@ -1,5 +1,5 @@
 import {node} from './dialog.js';
-import {getLocale,direction} from './locale.js';
+import {t,getLocale,direction} from './locale.js';
 
 const copy={
  ar:['خدمات عقاري','ابحث عن خدمة','مثلاً: عقد، تأمين، راتب','مسح البحث','لم نجد خدمة بهذا الاسم. جرّب كلمة أخرى.','هذه الخدمة غير متاحة حالياً لحسابك.','نتائج البحث','التحصيل والحسابات','العقود والمستندات','العقارات والمستأجرون','الصيانة والخدمات','الموظفون والإدارة','الحساب والمساعدة','التأمين، المصروفات والأرشيف','إبرام، طباعة وإخلاء','الوحدات، الجاهزية وبيانات العقار','العدادات، الطلبات والمتابعة','الرواتب، الصلاحيات والتعاميم','الأمان، الإعدادات ودليل الاستخدام','قيد الاستكمال','وضع الاستعراض الكامل: جميع خدمات V267 ظاهرة. الخدمات غير الجاهزة مميزة بعبارة «قيد الاستكمال» ولن تنفذ أي إجراء.','معاينة شاملة V267','متطلبات V267 — 155'],
@@ -41,7 +41,7 @@ function fullPreview(){
 // trial site can show unavailable services for visual review only; unavailable
 // entries never bypass source visibility, feature discovery or authorization.
 export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>document.getElementById('v205SimpleHome')}){
- const menuGroups=[];let root=null,search,grid,status,clear,title,label,overview,expandAll,guide,documentShortcut,documentButton,documentHint,lastScope=null;
+ const menuGroups=[];let dialog=null,dialogHome=null;let root=null,search,grid,status,clear,title,label,overview,expandAll,guide,documentShortcut,documentButton,documentHint,lastScope=null;
  const expanded=new Set(),reviewAll=fullPreview();
  const groupTitle=(group,index)=>{try{const value=groupLabel?.(group.key);if(typeof value==='string'&&value.trim())return value.trim();}catch{}return text(7+index);};
  for(const [index,group] of groups.entries()){
@@ -54,6 +54,7 @@ export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>
  function listed(item){return item.menu!==false&&(reviewAll||available(item));}
  function titleOf(item){return String(item.source.textContent||'').trim();}
  function mount(){
+  if(dialog?.open&&root?.parentNode===dialog)return true;
   const host=home();if(!host)return false;if(root?.parentNode===host)return true;
   root=node('section');root.id='aq267-service-directory';root.className='aq267-service-directory';if(reviewAll)root.dataset.preview='full';
   if(reviewAll){const banner=node('div'),copyBox=node('span'),badge=node('strong',text(21)),desc=node('span',directoryText(5)),link=node('a',text(22));banner.className='aq267-preview-banner';copyBox.className='aq267-preview-copy';link.className='aq267-preview-requirements';link.href='/v267-requirements.html';copyBox.append(badge,desc);banner.append(copyBox,link);root.append(banner);}
@@ -68,12 +69,32 @@ export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>
   documentShortcut=node('div');documentShortcut.className='aq267-document-shortcut';documentShortcut.id='aq267-document-shortcut';
   documentButton=node('button');documentButton.type='button';documentButton.id='aq267-document-upload-action';
   documentHint=node('p');documentHint.id='aq267-document-upload-hint';documentButton.setAttribute('aria-describedby',documentHint.id);
-  documentButton.onclick=()=>{const item=groups.flatMap(group=>group.items).find(isDocumentEntry);if(!lastScope||!item||!available(item)){render();status.textContent=text(5);status.hidden=false;return;}item.source.click();};
+  documentButton.onclick=()=>{const item=groups.flatMap(group=>group.items).find(isDocumentEntry);if(!lastScope||!item||!available(item)){render();status.textContent=text(5);status.hidden=false;return;}closeDirectory();item.source.click();};
   documentShortcut.append(documentButton,documentHint);
   status=node('p');status.className='aq267-service-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   grid=node('div');grid.id='aq267-service-groups';grid.className='aq267-service-groups';root.append(head,toolbar,documentShortcut,status,grid);
   host.insertBefore(root,host.querySelector(':scope > details,:scope > .v205-home-footer'));return true;
  }
+ function restoreDirectory(){
+  if(dialog?.open||root?.parentNode!==dialog)return;
+  const host=home();
+  if(host===dialogHome)host.insertBefore(root,host.querySelector(':scope > details,:scope > .v205-home-footer'));
+  else {root.remove();root=null;mount();if(lastScope)render();}
+ }
+ function closeDirectory(){if(dialog?.open)dialog.close();restoreDirectory();}
+ function openDirectory(event){
+  if(!lastScope||!mount())return false;
+  if(!dialog){
+   dialog=node('dialog');dialog.id='aq267-service-dialog';dialog.className='aq267-service-dialog';
+   dialog.setAttribute('aria-labelledby','aq267-services-title');
+   const close=node('button');close.type='button';close.className='aq267-service-dialog-close';close.onclick=closeDirectory;dialog.append(close);
+   dialog.addEventListener('close',restoreDirectory);document.body.append(dialog);
+  }
+  dialog.dir=direction();dialog.lang=getLocale();dialog.children[0].textContent=t('إغلاق');
+  if(!dialog.open){dialogHome=home();dialog.append(root);dialog.showModal();}
+  render();search.focus();event?.preventDefault?.();return true;
+ }
+ document.addEventListener?.('aqari:open-services',openDirectory);
  function updateExpansion(){
   const boxes=[...grid.children],allOpen=boxes.length>0&&boxes.every(box=>box.open);
   expandAll.textContent=directoryText(allOpen?1:0);expandAll.setAttribute('aria-expanded',String(allOpen));expandAll.hidden=!!serviceSearch(search.value)||!boxes.length;
@@ -97,7 +118,7 @@ export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>
    for(const item of items){
     const ready=available(item),button=node('button',titleOf(item)+(reviewAll&&!ready?' — '+text(19):''));button.type='button';button.dataset.service=group.key;button.setAttribute('aria-label',titleOf(item));
     if(!ready){button.dataset.state='pending';button.setAttribute('aria-disabled','true');button.title=text(5);}
-    button.onclick=()=>{if(!lastScope||renderScope!==lastScope||renderRoot!==root)return;if(!available(item)){render();status.textContent=text(5);status.hidden=false;return;}item.source.click();};list.append(button);
+    button.onclick=()=>{if(!lastScope||renderScope!==lastScope||renderRoot!==root)return;if(!available(item)){render();status.textContent=text(5);status.hidden=false;return;}closeDirectory();item.source.click();};list.append(button);
    }
    grid.append(box);
   }
@@ -106,9 +127,10 @@ export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>
   else if(!total){status.textContent=text(5);status.hidden=false;}
   else{status.textContent='';status.hidden=true;}
  }
- return {refresh(scope){
-  if(scope!==lastScope){lastScope=scope;expanded.clear();if(search)search.value='';}
+ return {open:openDirectory,refresh(scope){
+  if(scope!==lastScope){closeDirectory();lastScope=scope;expanded.clear();if(search)search.value='';}
   for(const {box,name,index,group} of menuGroups){name.textContent=groupTitle(group,index);box.hidden=!groups[index].items.some(listed);}
   if(mount()){root.hidden=!scope;if(scope)render();else{grid.replaceChildren();documentShortcut.hidden=true;search.value='';status.textContent='';}}
  }};
 }
+

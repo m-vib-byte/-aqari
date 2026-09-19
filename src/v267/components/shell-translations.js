@@ -1,5 +1,6 @@
 // Reviewed visible shell and legacy UI text; excludes stored record values.
 export const SHELL_MESSAGES = {
+  "جميع الخدمات": {"en":"All services","hi":"सभी सेवाएँ","ur":"تمام خدمات","ml":"എല്ലാ സേവനങ്ങളും"},
   "كشف الإيجار": {
     "en": "Rent statement",
     "hi": "किराया विवरण",
@@ -1513,3 +1514,4 @@ export const SHELL_MESSAGES = {
     "ml": "നിങ്ങളുടെ വസ്തുക്കൾ ഒരിടത്ത് നിയന്ത്രിക്കുക"
   }
 };
+

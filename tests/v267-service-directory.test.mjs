@@ -15,15 +15,18 @@ function fixture(nestedDetails=false,preview=false){
   insertBefore(n,before){if(before&&before.parentNode!==this)throw Error('NotFoundError: reference is not a direct child');this.append(n);if(before){this.children.pop();this.children.splice(this.children.indexOf(before),0,n);}}
   querySelector(selector=''){if(selector.startsWith(':scope >'))return this.children.find(x=>x.tagName==='details')||null;const matches=n=>selector.startsWith('.')?n.className?.split(' ').includes(selector.slice(1)):n.tagName===selector;const walk=n=>matches(n)?n:n.children.map(walk).find(Boolean);return this.children.map(walk).find(Boolean)||null;}
   click(){this.onclick?.();}focus(){this.focused=true;}
+  addEventListener(type,fn){this['on'+type]=fn;}
+  showModal(){this.open=true;}close(){this.open=false;this.onclose?.();}
+  remove(){if(this.parentNode)this.parentNode.children=this.parentNode.children.filter(x=>x!==this);this.parentNode=null;}
  }
- globalThis.document={createElement:t=>new Element(t)};setLocale('ar',null);
+ globalThis.document={createElement:t=>new Element(t),body:new Element('body')};setLocale('ar',null);
  const tools=new Element('section');host=new Element('section');if(nestedDetails){const daily=new Element('section');daily.append(new Element('details'));host.append(daily);}const legacy=new Element('details');host.append(legacy);
  const source=new Element('button'),hidden=new Element('button'),denied=new Element('button');let clicks=0;
  source.textContent='الأرشيف المالي التاريخي';source.onclick=()=>clicks++;hidden.textContent='رواتب سرية';hidden.hidden=true;denied.textContent='صلاحيات المدير';denied.blocked=true;
  tools.append(source,hidden,denied);
  const groups=[{key:'finance',items:[{source},{source:hidden},{source:denied}]}];
  const view=organizeServices({tools,groups,home:()=>host,allowed:item=>permitted&&!item.source.blocked});view.refresh('user-workspace');
- const all=(p=host)=>[p,...p.children.flatMap(x=>all(x))];
+ const all=(p=globalThis.document.body.children.find(x=>x.open)||host)=>[p,...p.children.flatMap(x=>all(x))];
  const find=id=>all().find(x=>x.id===id),root=()=>find('aq267-service-directory');
  const proxies=()=>all(root()).filter(x=>x.tagName==='button'&&x.dataset.service);
  return {view,tools,source,hidden,denied,all,find,root,proxies,clicks:()=>clicks,deny:()=>permitted=false,
@@ -128,4 +131,24 @@ test('service directory polish keeps the document shortcut responsive on narrow 
  assert.match(css,/aq267-service-toolbar/);
  assert.match(css,/aq267-document-shortcut/);
  assert.match(css,/@media screen and \(max-width:600px\)[\s\S]*aq267-document-shortcut button\{width:100%;text-align:center\}/);
+});
+
+
+test('directory opens from any page, retains real handlers, and restores its original home',()=>{
+ const f=fixture();try{
+  const root=f.root();assert.equal(f.view.open(),true);const dialog=document.body.children[0];
+  assert.equal(dialog.open,true);assert.equal(root.parentNode,dialog);assert.equal(f.find('aq267-service-search').focused,true);
+  f.view.refresh('user-workspace');assert.equal(f.root(),root);
+  f.proxies()[0].click();assert.equal(f.clicks(),1);assert.equal(dialog.open,false);assert.equal(root.parentNode,f.host());
+  f.view.open();assert.equal(document.body.children.length,1);dialog.children[0].click();assert.equal(root.parentNode,f.host());
+ }finally{f.cleanup();}
+});
+test('logout closes the open directory and stale service buttons cannot execute',()=>{
+ const f=fixture(false,true);try{
+  f.view.open();const dialog=document.body.children[0],button=f.proxies()[0];f.view.refresh(null);
+  assert.equal(dialog.open,false);assert.equal(f.view.open(),false);button.click();assert.equal(f.clicks(),0);assert.equal(f.proxies().length,0);
+ }finally{f.cleanup();}
+});
+test('permission withdrawal while the directory is open does not enable a pending service',()=>{
+ const f=fixture(false,true);try{f.view.open();const button=f.proxies()[0];f.deny();button.click();assert.equal(f.clicks(),0);assert.equal(document.body.children[0].open,true);assert.ok(f.proxies().every(x=>x.attributes['aria-disabled']==='true'));}finally{f.cleanup();}
 });

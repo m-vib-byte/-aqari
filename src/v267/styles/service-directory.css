@@ -108,3 +108,13 @@
  body.aq-v267 .aq267-service-group>summary::before{width:38px;height:38px;border-radius:12px;-webkit-mask-size:22px 22px;mask-size:22px 22px}
 }
 @media print{.aq267-service-directory{display:none!important}}
+
+
+/* Full directory remains available above the owner shell on every section. */
+dialog.aq267-service-dialog{box-sizing:border-box;width:min(1120px,96vw);max-width:96vw;max-height:90dvh;padding:18px;border:1px solid #d8c9b5;border-radius:20px;background:#faf7f1;color:#352e27;overflow:auto;font-family:inherit;}
+dialog.aq267-service-dialog::backdrop{background:rgba(35,28,22,.52);}
+.aq267-service-dialog-close{position:sticky;top:0;z-index:2;display:block;margin-inline-start:auto;padding:10px 20px;border:1px solid #cdbda8;border-radius:10px;background:#fffaf3;color:#352e27;font:inherit;cursor:pointer;}
+.aq267-service-dialog .aq267-service-directory{display:block!important;margin:12px 0 0;}
+@media(max-width:600px){dialog.aq267-service-dialog{padding:10px;width:96vw;}.aq267-service-dialog .aq267-service-groups{grid-template-columns:1fr;}}
+
+#aqOwnerExactBottom{grid-template-columns:repeat(6,minmax(0,1fr));}
