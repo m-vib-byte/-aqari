@@ -39,6 +39,39 @@ test('rejects a rehearsal that claims new transactions but the canonical set nev
   assert.match(result.errors.join('\n'),/newly created transactions changed/);
 });
 
+test('requires proof that at least one new transaction was created with safe integer record counts',()=>{
+  for(const overrides of [
+    {new_record_count:undefined},
+    {new_record_count:0,after_record_count:12},
+    {new_record_count:-1,after_record_count:11},
+    {new_record_count:1.5,after_record_count:13.5},
+    {new_record_count:'3'},
+    {new_record_count:Number.MAX_SAFE_INTEGER+1},
+  ]){
+    const result=validateStageCRollbackContinuity(bundle(overrides));
+    assert.equal(result.ok,false,JSON.stringify(overrides));
+    assert.match(result.errors.join('\n'),/positive integer new_record_count/);
+  }
+});
+
+test('requires checkpoint and after counts to be positive safe integers',()=>{
+  for(const overrides of [
+    {checkpoint_record_count:0,after_record_count:3},
+    {checkpoint_record_count:1.5,after_record_count:4.5},
+    {after_record_count:0},
+    {after_record_count:'15'},
+  ]){
+    const result=validateStageCRollbackContinuity(bundle(overrides));
+    assert.equal(result.ok,false,JSON.stringify(overrides));
+  }
+});
+
+test('requires the final transaction count to preserve the checkpoint plus every newly created transaction',()=>{
+  const result=validateStageCRollbackContinuity(bundle({after_record_count:14}));
+  assert.equal(result.ok,false);
+  assert.match(result.errors.join('\n'),/must equal checkpoint_record_count \+ new_record_count/);
+});
+
 test('rejects zero-duration or malformed continuity evidence',()=>{
   for(const overrides of [
     {rehearsal_window_seconds:0},
