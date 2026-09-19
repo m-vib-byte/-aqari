@@ -21,9 +21,11 @@ function legacyVoucherHTML(p){
  return `<!doctype html><html lang="${getLocale()}" dir="${direction()}"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${text('سند استلام راتب')} ${esc(p.month.slice(0,7))}</title><style>@page{size:A4;margin:14mm}body{font:14px/1.65 system-ui,sans-serif;color:#172b37;max-width:800px;margin:24px auto;padding:12px}h1{font-size:24px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #bbc8cd;padding:5px;text-align:start;overflow-wrap:anywhere}th{width:50%;background:#f1f5f6}td{unicode-bidi:plaintext}section{break-inside:avoid;border:1px solid #bbc8cd;padding:12px;margin-top:12px}h3{margin:0}small{display:block} @media print{body{margin:0;padding:0}a{display:none}}</style><h1>AQARI · ${text('سند استلام راتب')}</h1><p>${text('نسخة')} ${text(p.state==='draft'?'مسودة للمراجعة':'صادرة')} — ${esc(p.month.slice(0,7))}</p><table>${rows.map(([k,v])=>`<tr><th>${ui(k)}</th><td><bdi>${esc(v)}</bdi></td></tr>`).join('')}</table><section><h3>${text('استلام الموظف')}</h3><p>${text('أقر باستلام صافي المستحق الموضح أعلاه.')}</p><p>${text('التاريخ')}: ____________________</p><p>${text('توقيع الموظف')}: ____________________</p><p>${text('البصمة')}:</p><div style="height:75px;border:1px dashed #888;width:150px"></div></section>${approval('المدير الإداري',p.admin_approval)}${approval('رئيس مجلس الإدارة',p.chairman_approval)}<section><h3>${text('ختم الإدارة')}</h3><div style="height:70px"></div></section><small>${text('تُحفظ النسخة الموقعة في ملف الموظف حسب السنة والشهر.')}</small></html>`;
 }
 export function voucherHTML(p){return p.slip_details?.template==='dhahawi-v1'?salarySlipHTML(p,salaryTotals(p)):legacyVoucherHTML(p);}
-export async function validateDocument(file){
- if(!file||file.size<1||file.size>10485760||!['application/pdf','image/jpeg','image/png'].includes(file.type))throw Error('اختر PDF أو صورة PNG/JPEG بحد أقصى 10 ميجابايت.');
+export async function validateDocument(file,maxBytes=10485760){
+ if(![10485760,26214400].includes(maxBytes))throw Error('حد حجم المستند غير صالح.');
+ if(!file||file.size<1||file.size>maxBytes||!['application/pdf','image/jpeg','image/png'].includes(file.type))throw Error(`اختر PDF أو صورة PNG/JPEG بحد أقصى ${maxBytes/1048576} ميجابايت.`);
  const b=new Uint8Array(await file.slice(0,8).arrayBuffer());const valid=file.type==='application/pdf'?String.fromCharCode(...b.slice(0,5))==='%PDF-':file.type==='image/png'?b.join(',')==='137,80,78,71,13,10,26,10':b[0]===255&&b[1]===216&&b[2]===255;
  if(!valid)throw Error('محتوى الملف لا يطابق نوعه.');return file;
 }
+
 

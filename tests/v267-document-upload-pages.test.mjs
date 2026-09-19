@@ -60,7 +60,7 @@ function fixture(mode){
  const uploadForm=()=>all(d.body).find(e=>e.tag==='form'&&all(e).some(c=>c.type==='file'));
  const input=type=>all(uploadForm()).find(e=>e.type===type);
  return {d,state,calls,docs,objects,uploadForm,input,
-  async start(){context[mode==='hr'?'openEmployees':'openRentalContracts']();await d.pending;const button=mode==='hr'?find('button','فتح ملف موظف اختبار'):all(d.body).find(e=>e.tag==='button'&&e.textContent.startsWith('C-123'));assert.ok(button);await button.onclick();await d.pending;input('file').files=[file()];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
+  async start(chosen=file()){context[mode==='hr'?'openEmployees':'openRentalContracts']();await d.pending;const button=mode==='hr'?find('button','فتح ملف موظف اختبار'):all(d.body).find(e=>e.tag==='button'&&e.textContent.startsWith('C-123'));assert.ok(button);await button.onclick();await d.pending;input('file').files=[chosen];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
   async save(){uploadForm().onsubmit({preventDefault(){}});await d.pending;},
   finalized:()=>calls.filter(c=>c.name==='aqari_finalize_document'||c.name==='aqari_hr'&&c.args.p_action==='finalize'),
   reservations:()=>calls.filter(c=>c.name==='aqari_reserve_document'||c.name==='aqari_hr'&&c.args.p_action==='reserve')
@@ -97,4 +97,13 @@ test('changing HR document type after an interrupted upload creates a separate m
 test('choosing a different signed contract requires reviewing the new file again',async()=>{
  const f=fixture('contract');await f.start();f.input('file').files=[file()];f.input('file').onchange();assert.equal(f.input('checkbox').checked,false);
  await f.save();assert.equal(f.reservations().length,0);assert.match(f.d.status.textContent,/أكد مطابقة/);
+});
+
+
+test('signed contract form uploads a valid PDF above 10 MiB with verified readback',async()=>{
+ const chosen=new File(['%PDF-1.7\n',new Uint8Array(11302174-9)],'large-contract.pdf',{type:'application/pdf'});
+ const f=fixture('contract');await f.start(chosen);await f.save();
+ assert.equal(f.reservations().length,1);assert.equal(f.finalized().length,1);
+ assert.equal(f.finalized()[0].args.p_size_bytes,chosen.size);
+ assert.match(f.d.status.textContent,/حُفظت النسخة الموقعة/);
 });

@@ -1297,8 +1297,8 @@
     },
     {
       "path": "src/v267/domain/payroll.js",
-      "sha256": "59e0d09d526d78cbd96f6f78a5fc3b826f86194d773447e09dc483913d03ba38",
-      "size": 6900
+      "sha256": "294fa083471cb40c61f41a44c5ce4ded3e348a7c66a6e63c448fe406124ef3e7",
+      "size": 7040
     },
     {
       "path": "src/v267/domain/property-presentation.js",
@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "fa184d4038e6c1e7e90efc2a58662efaf5730c9a0ae42952a3aa7a2a92cc6476",
-      "size": 32022
+      "sha256": "9d5863b71e84f20709f3dcb09850100eafcf2a34e728f107f554feaec9348249",
+      "size": 32062
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3372,8 +3372,8 @@
     },
     {
       "path": "tests/v267-document-upload-pages.test.mjs",
-      "sha256": "d4ab9dca47dce3d612507e2df6184403907c906055c8ebdc64d961857e3a2b32",
-      "size": 9093
+      "sha256": "06e645db8a15e91e2856973ac4fe56eb78bdc57119abd4287005938bd3a7b47a",
+      "size": 9609
     },
     {
       "path": "tests/v267-evidence-matrix.test.mjs",
@@ -3672,8 +3672,8 @@
     },
     {
       "path": "tests/v267-payroll.test.mjs",
-      "sha256": "5dce7515e31795970f372718446e57eeddd97b6f4ecee37a4f89edfdd6bdc908",
-      "size": 5614
+      "sha256": "d41988466b4c5d3050ce41e9d09a4c2dc37175a2236f667361eb8dff5aefa0c4",
+      "size": 6133
     },
     {
       "path": "tests/v267-pearl-gold-review.test.cjs",
