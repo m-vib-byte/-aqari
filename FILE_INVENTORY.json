@@ -892,8 +892,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "387ce4d0e76f254fb1222f37934095ff87e647b3e54b21a536f3911d7bf2a6ee",
-      "size": 7578
+      "sha256": "a62426127c44e0010bd1a710d8a657a605de101237cb0732e2fdde56cc49c2f6",
+      "size": 7615
     },
     {
       "path": "scripts/check.mjs",
@@ -1442,8 +1442,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "4bbde238d7c5b5d8d71a1d32eae6ae05d0518ffa122b9f6fd18817bea5d7e291",
-      "size": 29178
+      "sha256": "c8a3ed867298f3517de3eb1544c4c7925843d2ddedeeb0718dbbe74a75d89957",
+      "size": 29484
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -4099,6 +4099,11 @@
       "path": "tests/v267-more-navigation.test.mjs",
       "sha256": "2046e1f7f6be9bdda40c3c298033aec816a78a9f24ebcbb9d34827758c65b7be",
       "size": 2750
+    },
+    {
+      "path": "tests/v267-contract-view.test.mjs",
+      "sha256": "0ef48fe9853b26837e1fc3409eaa643521c01a5b6051efea5e8922861985a0b7",
+      "size": 4725
     }
   ],
   "version": "V198"
