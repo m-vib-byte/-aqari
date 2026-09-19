@@ -19,6 +19,7 @@ function loadRuntime(runtimeWindow = {}) {
       accessReady,
       validEmail,
       viewModel,
+      rowMarkup,
       csvCell,
       safeFilename,
       tenantMailto
@@ -184,4 +185,21 @@ test('V206 layout is readable on mobile and prints only the live A4 landscape do
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /forced-colors:active/);
   assert.doesNotMatch(css, /#v201RentStatement/);
+});
+
+
+test('rent ledger preserves authoritative zero rent and prints it explicitly',()=>{
+ const runtime=loadRuntime(),data=officeFixture();
+ data.totalRent=0;data.records=[{...data.records[0],contractRent:0,currentRent:0,rent:210}];
+ const model=runtime.viewModel(data);
+ assert.equal(model.items[0].contractRent,0);assert.equal(model.items[0].currentRent,0);
+ assert.equal(model.totalCurrentRent,0);
+ const zero=new Intl.NumberFormat('ar-KW',{minimumFractionDigits:0,maximumFractionDigits:3}).format(0);
+ assert.ok(runtime.rowMarkup(model.items[0],0).includes('<bdi dir="auto">'+zero+'</bdi>'));
+});
+test('rent ledger only falls back for missing amounts and sums fils exactly',()=>{
+ const runtime=loadRuntime(),data=officeFixture();delete data.totalRent;
+ data.records=[{rent:0.1,contractRent:null,currentRent:null,pending:0.1},{rent:0.2,pending:0.2}];
+ const model=runtime.viewModel(data);
+ assert.equal(model.totalCurrentRent,0.3);assert.equal(model.totalContractRent,0.3);assert.equal(model.totalPending,0.3);
 });

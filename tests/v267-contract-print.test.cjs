@@ -108,7 +108,7 @@ test('rental page initializes its runtime on a direct first visit and shares leg
    import assert from 'node:assert/strict';
    import fs from 'node:fs';
    import vm from 'node:vm';
-   globalThis.window={document:{}};
+   globalThis.window={document:{},addEventListener(){}};
    const source=fs.readFileSync('v267-rental-records.js','utf8');
    const legacy=()=>vm.runInNewContext(source,{window});
    if(${legacyFirst})legacy();

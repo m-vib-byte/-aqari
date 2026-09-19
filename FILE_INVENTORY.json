@@ -1437,13 +1437,13 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "d033800a31898be2ed6a36e7f92316036d9d16ee14d31f94b1b5e820b213aac9",
-      "size": 17079
+      "sha256": "9f250440e66adf5a095b0cda875c16811bb7bdad5f48785f80e92966ecbe2709",
+      "size": 17289
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "d308f98ea09e0d7a1df1ae7557e7ff8b9920d66696571dee882417ff99459ac3",
-      "size": 29921
+      "sha256": "5e5c4dc7d835e7a1d043f253081d1fec9f3465ebe9bebb78e33269fe89536f10",
+      "size": 31043
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3037,8 +3037,8 @@
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "sha256": "b9e459bab4b74790af739c62d4abf15ce362e3daa2649ada675df042aaa8a772",
-      "size": 4981
+      "sha256": "2382b2b5435ccb2bd5db9e0aa0b76f562532b5ab4b916c34e270491e2f2c2bf1",
+      "size": 5449
     },
     {
       "path": "tests/provider_webhook_test.py",
@@ -3107,8 +3107,8 @@
     },
     {
       "path": "tests/v206-rent-ledger.test.cjs",
-      "sha256": "fbc5bdf6e0d09858e1b678c70c9001acc1b466299386b83cc51f8f035ef492dc",
-      "size": 9081
+      "sha256": "0bed8dd2db228d7790fb440b0dc84fdfa31fcdcc44ad198782196d61119d40a3",
+      "size": 10114
     },
     {
       "path": "tests/v208-portfolio-collections.test.cjs",
@@ -3247,8 +3247,8 @@
     },
     {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "748d1234323b724bfb279ad4b6e90b915cb61f06c42d5bcf2b5ec6ca86b160c2",
-      "size": 11936
+      "sha256": "9fada024206654825a2a945b01d6db5d12c2c8b283582eecdf5e274de985ca2a",
+      "size": 11957
     },
     {
       "path": "tests/v267-contract-scanner-entry.test.cjs",
@@ -3887,8 +3887,8 @@
     },
     {
       "path": "v206-rent-ledger.js",
-      "sha256": "0524e58fb17910440873e2422eaf77d28829e60eb378e82ad82f308186ffb8b7",
-      "size": 27194
+      "sha256": "3f2875ed74043187e5112972118c9c5087364b3a60f50d5a8ebf64765b0b1ac3",
+      "size": 27164
     },
     {
       "path": "v208-portfolio-collections.css",
@@ -4107,8 +4107,8 @@
     },
     {
       "path": "tests/v267-contract-view.test.mjs",
-      "sha256": "463bbf134e5256b1e1cd1254d6aba744587d6437d66346ac7c18b7b753b8e609",
-      "size": 6582
+      "sha256": "9e2c47cf8dbd4bd72318ac19a19147b67a146abdeb50e52de6b8ffdfacf6b906",
+      "size": 8722
     },
     {
       "path": "tests/v267-more-navigation.test.mjs",
