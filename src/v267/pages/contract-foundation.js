@@ -1,4 +1,5 @@
 import {uiError} from '../components/ui-error.js';
+import '../../../v267-rental-records.js';
 import {message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -19,9 +20,10 @@ function profileRef(row){if(!Array.isArray(row))return null;return row.find(x=>x
 function formatMoney(value){return Number(value||0).toFixed(3)+translateStatic(' د.ك');}
 
 export function openContractFoundation(options={}){
- const d=createDialog(translateStatic('عقد جديد — التأسيس من البداية للنهاية'));if(!d)return false;
  const api=window.AQARI_RENTAL_RECORDS;
  if(!api)throw Error('تعذر تحميل محرك العقود.');
+ const bridge=window.AQARI_SUPABASE;if(!bridge?.loadAppState||!bridge?.saveAppState)throw Error('تعذر تحميل جسر السحابة.');
+ const d=createDialog(translateStatic('عقد جديد — التأسيس من البداية للنهاية'));if(!d)return false;
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  let state=null,properties=[],units=[],templates=[],preparation=null;
  const button=(label,fn)=>{const el=node('button',label);el.type='button';el.onclick=()=>d.run(fn);return el;};
@@ -188,4 +190,3 @@ export function openContractFoundation(options={}){
 
  d.run(start);return true;
 }
-
