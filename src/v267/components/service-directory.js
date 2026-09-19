@@ -92,7 +92,7 @@ export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>
   }
   dialog.dir=direction();dialog.lang=getLocale();dialog.children[0].textContent=t('إغلاق');
   if(!dialog.open){dialogHome=home();dialog.append(root);dialog.showModal();}
-  render();search.focus();event?.preventDefault?.();return true;
+  render();dialog.children[0].focus({preventScroll:true});event?.preventDefault?.();return true;
  }
  document.addEventListener?.('aqari:open-services',openDirectory);
  function updateExpansion(){
@@ -113,7 +113,7 @@ export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>
    const groupName=groupTitle(group,index),items=group.items.filter(listed).filter(item=>{const haystack=serviceSearch(titleOf(item)+' '+groupName+' '+termsOf(item));return words.every(word=>haystack.includes(word));});
    if(!items.length)continue;total+=items.length;sectionCount++;
    const box=node('details'),summary=node('summary'),caption=node('span'),name=node('strong',groupName),hint=node('small',text(13+index)),count=node('span',String(items.length)),list=node('div');
-   box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};count.className='aq267-service-count';count.setAttribute('aria-label',directoryText(2)+': '+items.length);caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
+   box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);/* Native summary activation owns expansion for touch, mouse and keyboard. */count.className='aq267-service-count';count.setAttribute('aria-label',directoryText(2)+': '+items.length);caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
    box.ontoggle=()=>{if(box.parentNode!==grid||renderScope!==lastScope)return;if(!serviceSearch(search.value)){if(box.open)expanded.add(group.key);else expanded.delete(group.key);}updateExpansion();};
    for(const item of items){
     const ready=available(item),button=node('button',titleOf(item)+(reviewAll&&!ready?' — '+text(19):''));button.type='button';button.dataset.service=group.key;button.setAttribute('aria-label',titleOf(item));
