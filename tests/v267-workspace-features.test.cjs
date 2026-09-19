@@ -44,3 +44,36 @@ test('financial completion tools require installed services, manager and documen
  context.update({...granted,features:{}});assert.ok(Object.values(elements).every(x=>x.hidden));
  context.update(null);assert.ok(Object.values(elements).every(x=>x.hidden));
 });
+
+function accessRecovery(){
+ let account={user:'a',workspace:'w',role:'general_manager'},handler;
+ const reads=[];
+ const context={Promise,uiText(){},currentScope(){if(!account)throw Error('signed out');return {...account};},bindLocale(){},t:x=>x,safeError:e=>e.message,
+ window:{addEventListener(name,fn){if(name==='aqari:auth-boundary')handler=fn;}},
+ createSession(){
+  const bound={...account};let closed=false;
+  return {bound,close(){closed=true;},async connect(){if(closed)throw Error('closed');},client:{rpc:()=>null},request(){return new Promise((resolve,reject)=>reads.push({bound,resolve(data){if(closed)reject(Error('closed'));else resolve(data);},reject}));}};}};
+ vm.createContext(context);
+ const start=source.indexOf("window.addEventListener('aqari:auth-boundary',");
+ const end=source.indexOf('\n refresh();',start);
+ assert.ok(start>=0&&end>start);
+ vm.runInContext(source+'\nupdateLabels=updateFeatureTools=()=>{};\n'+source.slice(start,end)+'\nthis.state=()=>access;',context);
+ return {context,reads,fire:state=>handler({detail:{state}}),account:value=>{account=value;},data:bound=>({user_id:bound.user,workspace_id:bound.workspace,role:bound.role,sections:{},permissions:{}})};
+}
+const flush=()=>new Promise(setImmediate);
+test('ready boundary loads missing workspace access automatically and avoids duplicate reads',async()=>{
+ const f=accessRecovery();f.fire('ready');f.fire('ready');await flush();assert.equal(f.reads.length,1);
+ f.reads[0].resolve(f.data(f.reads[0].bound));await flush();assert.equal(f.context.state().user_id,'a');
+ f.fire('ready');await flush();assert.equal(f.reads.length,1);
+});
+test('account switch waits out the cancelled access read then loads only the new account',async()=>{
+ const f=accessRecovery();f.fire('ready');await flush();
+ f.account(null);f.fire('sealed');
+ f.account({user:'b',workspace:'w2',role:'collector'});f.fire('ready');await flush();assert.equal(f.reads.length,1);
+ f.reads[0].resolve(f.data(f.reads[0].bound));await flush();assert.equal(f.reads.length,2);assert.equal(f.context.state(),null);
+ f.reads[1].resolve(f.data(f.reads[1].bound));await flush();assert.equal(f.context.state().user_id,'b');assert.equal(f.context.state().workspace_id,'w2');
+});
+test('sign-out before a queued ready refresh prevents a new permission request',async()=>{
+ const f=accessRecovery();f.fire('ready');f.account(null);f.fire('sealed');await flush();
+ assert.equal(f.reads.length,0);assert.equal(f.context.state(),null);
+});
