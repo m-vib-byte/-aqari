@@ -88,6 +88,17 @@ test('requires counts_by_kind to be non-empty, safe and exactly reconcile to the
   }
 });
 
+test('accepts the exact 3600-second rollback window boundary',()=>{
+  const result=validateStageCRollbackContinuity(bundle({rehearsal_window_seconds:3600}));
+  assert.equal(result.ok,true,JSON.stringify(result.errors));
+});
+
+test('rejects rollback evidence that exceeds the one-hour rehearsal window',()=>{
+  const result=validateStageCRollbackContinuity(bundle({rehearsal_window_seconds:3601}));
+  assert.equal(result.ok,false);
+  assert.match(result.errors.join('\n'),/no greater than 3600 seconds/);
+});
+
 test('rejects zero-duration or malformed continuity evidence',()=>{
   for(const overrides of [
     {rehearsal_window_seconds:0},
