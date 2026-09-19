@@ -152,3 +152,5 @@ test('logout closes the open directory and stale service buttons cannot execute'
 test('permission withdrawal while the directory is open does not enable a pending service',()=>{
  const f=fixture(false,true);try{f.view.open();const button=f.proxies()[0];f.deny();button.click();assert.equal(f.clicks(),0);assert.equal(document.body.children[0].open,true);assert.ok(f.proxies().every(x=>x.attributes['aria-disabled']==='true'));}finally{f.cleanup();}
 });
+
+test('section button preserves expansion across refresh before queued toggle event',()=>{const f=fixture();try{const grid=f.find('aq267-service-groups');const button=grid.children[0].children[0].children[0];button.click();assert.equal(grid.children[0].open,true);assert.equal(button.attributes['aria-expanded'],'true');f.view.refresh('user-workspace');assert.equal(grid.children[0].open,true);grid.children[0].children[0].children[0].click();f.view.refresh('user-workspace');assert.equal(grid.children[0].open,false);}finally{f.cleanup();}});
