@@ -11,7 +11,7 @@ import {mountRentalTemplatePicker,mountRentalTemplateManager,templateForContract
 const states={draft:'مسودة',ready:'جاهز للمراجعة',approved:'معتمد',signing:'بانتظار التوقيع',signed:'موقّع',cancelled:'ملغى',expired:'منتهي'};
 const input=(type,value='')=>{const x=node('input');x.type=type;x.value=value??'';return x;};
 async function openContractExecutionDialog(d,id,onDone){
- const module=await import('./contract-execution.js');
+ const module=await guardPageImport(()=>import('./contract-execution.js'));
  d.session.check();
  if(typeof module.openContractExecution!=='function')throw Error('تعذر فتح اعتماد تسوية الإبرام.');
  d.close();
