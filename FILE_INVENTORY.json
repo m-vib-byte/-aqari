@@ -892,8 +892,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "0067e8f261a32f096dfc354a740c66014080b93bc43978ad72d4c0fd100049d3",
-      "size": 7651
+      "sha256": "62c820289d648bee9b7e58f69e0f406c6e874c7ffd7758f23f1de9d2f161e2ff",
+      "size": 7695
     },
     {
       "path": "scripts/check.mjs",
@@ -4114,6 +4114,16 @@
       "path": "tests/v267-more-navigation.test.mjs",
       "sha256": "2046e1f7f6be9bdda40c3c298033aec816a78a9f24ebcbb9d34827758c65b7be",
       "size": 2750
+    },
+    {
+      "path": "src/v267/api/operational-report.js",
+      "size": 2303,
+      "sha256": "1ed358fb337fe265e9f41d3203094aae5613a8efd9c420cd0832684cb17d6ce4"
+    },
+    {
+      "path": "tests/operational-report-request.test.mjs",
+      "size": 3981,
+      "sha256": "846bf6f50887225263ab4be2d1b44cf5691c984af53b6710873e60438d75bf47"
     }
   ],
   "version": "V198"
