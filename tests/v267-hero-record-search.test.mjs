@@ -6,7 +6,7 @@ const source=readFileSync(new URL('../src/v267/owner-feedback-runtime.js',import
 function runtime(value,active=true){
  const input={value},calls=[],status={textContent:'',classList:{toggle(){}}};
  const context={user:{id:'u'},workspace:{id:'w'},membership:{is_active:active,user_id:'u',workspace_id:'w',role:'general_manager'}};
- const box={t:s=>s,document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>true}},getElementById:id=>id==='aqExactHeroQuestion'?input:status},window:{AQARI_SUPABASE:{context},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_V209:{open:q=>{calls.push(['search',q]);return true;}}}};
+ const box={setTimeout,t:s=>s,document:{readyState:'loading',addEventListener(){},documentElement:{classList:{contains:()=>true}},getElementById:id=>id==='aqExactHeroQuestion'?input:status},window:{AQARI_SUPABASE:{context},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_V209:{open:q=>{calls.push(['search',q]);return true;}}}};
  vm.createContext(box);vm.runInContext(source.replace(/^import .*;$/gm,''),box);
  box.calls=calls;vm.runInContext('openDefinition=async def=>{calls.push(["section",def.key]);return true;}',box);
  return {box,input,calls,status,run:()=>vm.runInContext('searchFromHero({preventDefault(){}})',box)};
@@ -24,8 +24,8 @@ test('signed-out and mismatched workspace boundaries cannot dispatch a search',a
 test('an unavailable local search retains the query and shows a failure instead of claiming success',async()=>{
  const r=runtime('٤٠١');delete r.box.window.AQARI_V209;await r.run();assert.equal(r.input.value,'٤٠١');assert.equal(r.status.textContent,'تعذر فتح الخدمة.');
 });
-test('receipt shortcut uses the contract search rather than the read-only report',()=>{
- const r=runtime('');vm.runInContext("handleExactClick({target:{closest:s=>s==='[data-exact-special]'?{dataset:{exactSpecial:'receipts'}}:null}})",r.box);assert.deepEqual(r.calls,[['search','']]);
+test('receipt shortcut uses the contract search rather than the read-only report',async()=>{
+ const r=runtime('');await vm.runInContext("handleExactClick({target:{closest:s=>s==='[data-exact-special]'?{dataset:{exactSpecial:'receipts'}}:null}})",r.box);assert.deepEqual(r.calls,[['search','']]);
  const live=readFileSync(new URL('../src/v267/live-stability-runtime.js',import.meta.url),'utf8');assert.ok(live.includes("refAction('إصدار وصل','special','receipts','wallet')"));
 });
 test('initial search query is bounded and cannot open across a closed scope',async()=>{
