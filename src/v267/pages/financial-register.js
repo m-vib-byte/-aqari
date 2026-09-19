@@ -1,3 +1,4 @@
+import {guardPageImport} from '../components/navigation-import.js';
 import {uiError} from '../components/ui-error.js';
 import {safeError} from '../api/session.js';
 import {dateLocale as visibleDateLocale} from '../components/locale.js';
@@ -50,7 +51,7 @@ export function openFinancialRegister(){
  editor.append(node('h3',translateStatic('بيانات المصروف')),field(translateStatic('العقار'),property),field(translateStatic('تاريخ المصروف'),expenseDate),field(translateStatic('بند المصروف'),category),field(translateStatic('المستفيد'),payee),field(translateStatic('المبلغ بالدينار الكويتي'),amount),field(translateStatic('طريقة الصرف'),method),field(translateStatic('رقم مرجع التحويل أو الشيك'),reference),field(translateStatic('البيان والتفاصيل'),description),field(translateStatic('مستند المصروف المحفوظ'),document),node('p',translateStatic('اختر مستنداً مرفوعاً للعقار من قسم المستندات. يمكن حفظ المسودة بدونه، ويلزم إرفاقه قبل الاعتماد.')),save,discard);
  const bankReconciliation=node('button',translateStatic('مطابقة التحويلات البنكية'));
  bankReconciliation.type='button';
- bankReconciliation.onclick=()=>d.run(async()=>{const m=await import('./bank-reconciliation.js');d.close();return m.openBankReconciliation();});
+ bankReconciliation.onclick=()=>d.run(async()=>{const m=await guardPageImport(()=>import('./bank-reconciliation.js'));d.session.check();d.close();return m.openBankReconciliation();});
  toolbar.append(field(translateStatic('الفترة المالية'),month),reload,add,bankReconciliation);
  d.body.append(node('p',translateStatic('يحتسب هذا السجل المصروفات المعتمدة فقط. المسودات والملغاة لا تدخل في الإجمالي. لا يمثل إجمالي المصروفات رصيد الصندوق أو صافي ربح العقار.')),toolbar,overview,editor,filters,results,list,pager,audit,closing);
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_financial_register',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
