@@ -108,3 +108,28 @@ test('internal destinations keep the current router chain instead of bypassing f
  assert.equal(runtime.calls.includes('stable:documentsHub'),false);
  assert.ok(runtime.calls.includes('scroll:0:auto'));
 });
+
+
+test('remaining owner-accessible V267 page centers are exposed through guarded navigation',()=>{
+ const workspace=read('src/v267/workspace.js');
+ const expected=[
+  ['./pages/approval-center.js','openApprovalCenter','aq267-approval-center'],
+  ['./pages/bank-reconciliation.js','openBankReconciliation','aq267-bank-reconciliation'],
+  ['./pages/contract-foundation.js','openContractFoundation','aq267-contract-foundation'],
+  ['./pages/owner-experience-settings.js','openOwnerExperienceSettings','aq267-owner-experience-settings'],
+  ['./pages/owner-report.js','openOwnerReport','aq267-owner-report'],
+  ['./pages/owner-task-center.js','openOwnerTaskCenter','aq267-owner-task-center'],
+  ['./pages/property-admin-settings.js','openPropertyAdminSettings','aq267-property-admin-settings'],
+  ['./pages/property-controls.js','openPropertyControls','aq267-property-controls'],
+  ['./pages/property-cost-allocation.js','openPropertyCostAllocation','aq267-property-cost-allocation'],
+  ['./pages/property-onboarding.js','openPropertyOnboarding','aq267-property-onboarding'],
+  ['./pages/tenant-timeline.js','openTenantTimeline','aq267-tenant-timeline']
+ ];
+ for(const [moduleName,method,id] of expected){
+  assert.ok(workspace.includes(moduleName),moduleName+' must be reachable from the workspace');
+  assert.ok(workspace.includes(method),method+' must retain its real page opener');
+  assert.ok(workspace.includes(id),id+' must have a visible service control');
+ }
+ assert.match(workspace,/const directPage=.*directoryAllowed\(\{section,manager\}\)/s);
+ assert.match(workspace,/bound!==directoryScope\(\)\|\|!directoryAllowed\(\{section,manager\}\)/);
+});
