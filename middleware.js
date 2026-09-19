@@ -1,6 +1,10 @@
 // The physical index.html is the protected app shell. Route only the public
 // root before filesystem matching, without a browser redirect or backend call.
-export const config = { matcher: '/' };
+//
+// Vercel now recommends the Node.js runtime for Routing Middleware. Keeping the
+// matcher explicit preserves the existing root-only behavior while avoiding the
+// deprecated implicit Edge runtime used by older deployments.
+export const config = { matcher: '/', runtime: 'nodejs' };
 
 export default function middleware(request) {
   const target = new URL(request.url);

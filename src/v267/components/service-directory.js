@@ -10,11 +10,11 @@ const copy={
 };
 const text=i=>(copy[getLocale()]||copy.ar)[i];
 const directoryCopy={
- ar:['عرض جميع الخدمات','طي الأقسام','الخدمات','الأقسام','افتح القسم للوصول إلى خدماته.','الخدمات غير المتاحة تظهر بعلامة «قيد الاستكمال».'],
- en:['Show all services','Collapse sections','Services','Sections','Open a section to access its services.','Unavailable services are marked “In progress”.'],
- hi:['सभी सेवाएँ दिखाएँ','अनुभाग समेटें','सेवाएँ','अनुभाग','सेवाएँ देखने के लिए अनुभाग खोलें।','अनुपलब्ध सेवाएँ “कार्य प्रगति पर” के रूप में चिह्नित हैं।'],
- ur:['تمام خدمات دکھائیں','حصے سمیٹیں','خدمات','حصے','خدمات تک رسائی کے لیے حصہ کھولیں۔','غیر دستیاب خدمات پر «زیر تکمیل» لکھا ہے۔'],
- ml:['എല്ലാ സേവനങ്ങളും കാണിക്കുക','വിഭാഗങ്ങൾ ചുരുക്കുക','സേവനങ്ങൾ','വിഭാഗങ്ങൾ','സേവനങ്ങൾ കാണാൻ ഒരു വിഭാഗം തുറക്കുക.','ലഭ്യമല്ലാത്ത സേവനങ്ങൾ “പുരോഗതിയിൽ” എന്ന് അടയാളപ്പെടുത്തിയിരിക്കുന്നു.']
+ ar:['عرض جميع الخدمات','طي الأقسام','الخدمات','الأقسام','اختر القسم ثم افتح الخدمة المطلوبة.','الخدمات غير المتاحة تظهر بعلامة «قيد الاستكمال».'],
+ en:['Show all services','Collapse sections','Services','Sections','Choose a section, then open the service you need.','Unavailable services are marked “In progress”.'],
+ hi:['सभी सेवाएँ दिखाएँ','अनुभाग समेटें','सेवाएँ','अनुभाग','अनुभाग चुनें, फिर आवश्यक सेवा खोलें।','अनुपलब्ध सेवाएँ “कार्य प्रगति पर” के रूप में चिह्नित हैं।'],
+ ur:['تمام خدمات دکھائیں','حصے سمیٹیں','خدمات','حصے','حصہ منتخب کریں، پھر مطلوبہ خدمت کھولیں۔','غیر دستیاب خدمات پر «زیر تکمیل» لکھا ہے۔'],
+ ml:['എല്ലാ സേവനങ്ങളും കാണിക്കുക','വിഭാഗങ്ങൾ ചുരുക്കുക','സേവനങ്ങൾ','വിഭാഗങ്ങൾ','വിഭാഗം തിരഞ്ഞെടുക്കുക, തുടർന്ന് ആവശ്യമായ സേവനം തുറക്കുക.','ലഭ്യമല്ലാത്ത സേവനങ്ങൾ “പുരോഗതിയിൽ” എന്ന് അടയാളപ്പെടുത്തിയിരിക്കുന്നു.']
 };
 const directoryText=i=>(directoryCopy[getLocale()]||directoryCopy.ar)[i];
 const documentCopy={
@@ -33,22 +33,22 @@ export const serviceSearch=value=>String(value||'').normalize('NFKC').toLocaleLo
 function fullPreview(){
  try{
   const current=globalThis.location;if(!current)return false;
-  return String(current.hostname||'').endsWith('.vercel.app');
+  const hostname=String(current.hostname||'');return hostname==='myaqari.com'||hostname.endsWith('.vercel.app');
  }catch{return false;}
 }
 
 // Original controls retain their handlers, IDs and server authorization. The
-// Vercel preview can show unavailable services for visual review only;
-// unavailable entries never bypass source visibility, feature discovery or
-// authorization and never invoke their original handlers.
-export function organizeServices({tools,groups,allowed,home=()=>document.getElementById('v205SimpleHome')}){
+// trial site can show unavailable services for visual review only; unavailable
+// entries never bypass source visibility, feature discovery or authorization.
+export function organizeServices({tools,groups,allowed,groupLabel=null,home=()=>document.getElementById('v205SimpleHome')}){
  const menuGroups=[];let root=null,search,grid,status,clear,title,label,overview,expandAll,guide,documentShortcut,documentButton,documentHint,lastScope=null;
  const expanded=new Set(),reviewAll=fullPreview();
+ const groupTitle=(group,index)=>{try{const value=groupLabel?.(group.key);if(typeof value==='string'&&value.trim())return value.trim();}catch{}return text(7+index);};
  for(const [index,group] of groups.entries()){
   const box=node('details'),summary=node('summary'),name=node('span');box.className='aq267-menu-group';box.open=true;
   summary.append(name);box.append(summary);
   for(const item of group.items)if(item.menu!==false)box.append(item.source);
-  tools.append(box);menuGroups.push({box,name,index});
+  tools.append(box);menuGroups.push({box,name,index,group});
  }
  function available(item){return allowed(item)===true&&!item.source.hidden&&!item.source.disabled;}
  function listed(item){return item.menu!==false&&(reviewAll||available(item));}
@@ -89,10 +89,10 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
   const banner=root.querySelector?.('.aq267-preview-banner');if(banner&&reviewAll){const copyBox=banner.children[0],link=banner.children[1];copyBox.children[0].textContent=text(21);copyBox.children[1].textContent=directoryText(5);link.textContent=text(22);}
   grid.replaceChildren();
   for(const [index,group] of groups.entries()){
-   const items=group.items.filter(listed).filter(item=>{const haystack=serviceSearch(titleOf(item)+' '+text(7+index)+' '+termsOf(item));return words.every(word=>haystack.includes(word));});
+   const groupName=groupTitle(group,index),items=group.items.filter(listed).filter(item=>{const haystack=serviceSearch(titleOf(item)+' '+groupName+' '+termsOf(item));return words.every(word=>haystack.includes(word));});
    if(!items.length)continue;total+=items.length;sectionCount++;
-   const box=node('details'),summary=node('summary'),caption=node('span'),name=node('strong',text(7+index)),hint=node('small',text(13+index)),count=node('span',String(items.length)),list=node('div');
-   box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);count.className='aq267-service-count';count.setAttribute('aria-label',directoryText(2)+': '+items.length);caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
+   const box=node('details'),summary=node('summary'),caption=node('span'),name=node('strong',groupName),hint=node('small',text(13+index)),count=node('span',String(items.length)),list=node('div');
+   box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};count.className='aq267-service-count';count.setAttribute('aria-label',directoryText(2)+': '+items.length);caption.append(name,hint);summary.append(caption,count);box.append(summary,list);list.className='aq267-service-links';
    box.ontoggle=()=>{if(box.parentNode!==grid||renderScope!==lastScope)return;if(!serviceSearch(search.value)){if(box.open)expanded.add(group.key);else expanded.delete(group.key);}updateExpansion();};
    for(const item of items){
     const ready=available(item),button=node('button',titleOf(item)+(reviewAll&&!ready?' — '+text(19):''));button.type='button';button.dataset.service=group.key;button.setAttribute('aria-label',titleOf(item));
@@ -108,7 +108,7 @@ export function organizeServices({tools,groups,allowed,home=()=>document.getElem
  }
  return {refresh(scope){
   if(scope!==lastScope){lastScope=scope;expanded.clear();if(search)search.value='';}
-  for(const {box,name,index} of menuGroups){name.textContent=text(7+index);box.hidden=!groups[index].items.some(listed);}
+  for(const {box,name,index,group} of menuGroups){name.textContent=groupTitle(group,index);box.hidden=!groups[index].items.some(listed);}
   if(mount()){root.hidden=!scope;if(scope)render();else{grid.replaceChildren();documentShortcut.hidden=true;search.value='';status.textContent='';}}
  }};
 }

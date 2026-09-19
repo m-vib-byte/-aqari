@@ -1,0 +1,72 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const registry=read('staging-database/supabase/migrations/20260915115500_v267_qa_account_registry.sql');
+const manager=read('staging-database/supabase/migrations/20260915115600_v267_qa_account_manager_rpc.sql');
+const binding=read('staging-database/supabase/migrations/20260915115700_v267_qa_account_auth_binding.sql');
+const dbExpiry=read('staging-database/supabase/migrations/20260915115800_v267_qa_account_db_expiry.sql');
+const rerun=read('staging-database/supabase/migrations/20260916094000_v267_qa_rerun_cleanup.sql');
+const worker=read('lib/qa_accounts.py'),api=read('api/qa-account.py'),evidence=read('api/qa-evidence.py'),edge=read('staging-database/supabase/functions/qa-account-admin/index.ts'),expiry=read('api/qa-expire.py'),vercel=JSON.parse(read('vercel.json'));
+
+test('temporary QA registry is private audited expiring and excludes temporary general-manager',()=>{
+ assert.match(registry,/private\.aqari_qa_accounts/);assert.match(registry,/private\.aqari_qa_account_events/);assert.match(registry,/expires_at/);assert.match(registry,/aqari_qa_events_immutable/);
+ assert.doesNotMatch(registry,/qa_role in\([^\n]*general_manager/);assert.doesNotMatch(registry,/when 'general_manager'/);
+ assert.match(registry,/revoke all on private\.aqari_qa_accounts from public,anon,authenticated,service_role/);
+});
+
+test('manager preparation is staging-only MFA guarded and limited to named QA properties',()=>{
+ assert.match(manager,/private\.aqari_require_sensitive_aal2/);assert.match(manager,/aqari-v267-staging/);assert.match(manager,/QA_STAGING_ONLY/);assert.match(manager,/QA_TEST_PROPERTY_REQUIRED/);
+ assert.match(manager,/p\.name like 'اختبار %'/);assert.match(manager,/target_role not in\('collector','accountant','maintenance','property_manager','viewer','partner','tenant'\)/);
+ assert.match(manager,/QA_AUTH_EMAIL_ALREADY_EXISTS/);assert.match(manager,/QA_TENANT_IDENTITY_MISMATCH/);assert.doesNotMatch(manager,/insert into auth\.users/i);
+});
+
+test('terminal QA email history no longer blocks a clean rerun',()=>{
+ assert.match(rerun,/drop constraint if exists aqari_qa_accounts_workspace_id_email_key/);
+ assert.match(rerun,/create unique index aqari_qa_accounts_active_email_unique/);
+ assert.match(rerun,/where status in\('prepared','active','disable_pending'\)/);
+ assert.match(rerun,/x\.email=target_email and x\.status in\('prepared','active','disable_pending'\)/);
+ assert.match(rerun,/p_action='cleanup'/);
+});
+
+test('Auth binding reuses existing staff partner and tenant identity paths without direct auth inserts',()=>{
+ assert.match(binding,/zzz_aqari_qa_auth_bound/);assert.match(binding,/QA_MEMBERSHIP_BIND_FAILED/);assert.match(binding,/QA_PARTNER_BIND_FAILED/);assert.match(binding,/QA_TENANT_BIND_FAILED/);
+ assert.match(binding,/current_setting\('role',true\) is distinct from 'service_role'/);assert.match(binding,/aqari_qa_expire_accounts/);assert.doesNotMatch(binding,/insert into auth\.users/i);
+});
+
+test('expired QA application access is revoked by Staging pg_cron, never by a Vercel production cron',()=>{
+ assert.match(dbExpiry,/private\.aqari_qa_revoke_expired/);assert.match(dbExpiry,/cron\.schedule\('aqari-v267-qa-expiry','\*\/5 \* \* \* \*'/);assert.match(dbExpiry,/update public\.aqari_memberships set is_active=false/);assert.match(dbExpiry,/update public\.aqari_portal_accounts set is_active=false/);
+ assert.equal(vercel.crons.some(row=>row.path==='/api/qa-expire'),false);assert.equal(vercel.crons.some(row=>row.path==='/api/integration-dispatch'),true);
+});
+
+test('Vercel QA endpoint is exact-SHA proxy only and holds no Supabase admin secret',()=>{
+ assert.match(api,/functions\/v1\/qa-account-admin/);assert.match(api,/Authorization/);assert.match(api,/Cache-Control/);assert.match(api,/VERCEL_ENV/);assert.match(api,/VERCEL_GIT_COMMIT_REF/);
+ assert.match(api,/action not in\('provision','disable','cleanup'\)/);assert.match(api,/timeout=30/);
+ assert.doesNotMatch(api,/AQARI_SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(api,/SUPABASE_SECRET_KEYS/);assert.doesNotMatch(api,/\/auth\/v1\/admin\/users/);assert.doesNotMatch(api,/provision_automation_account/);
+});
+
+test('active Supabase Edge QA admin uses official server context and user-scoped DB MFA guard',()=>{
+ assert.match(edge,/from 'npm:@supabase\/server'/);assert.match(edge,/withSupabase\(\{auth:'user'\}/);assert.match(edge,/ctx\.supabase/);assert.match(edge,/ctx\.supabaseAdmin/);
+ assert.match(edge,/ctx\.userClaims\?\.id/);assert.match(edge,/ctx\.jwtClaims\?\.sub/);assert.match(edge,/userClaimsId&&jwtSubject&&userClaimsId!==jwtSubject/);assert.doesNotMatch(edge,/ctx\.userClaims\?\.sub/);
+ assert.match(edge,/user\.rpc\('aqari_qa_account'/);assert.match(edge,/admin\.auth\.admin\.createUser/);assert.match(edge,/admin\.auth\.admin\.deleteUser/);assert.match(edge,/admin\.auth\.admin\.updateUserById/);assert.match(edge,/admin\.rpc\('aqari_qa_account_server_result'/);
+ assert.match(edge,/admin\.rpc\('aqari_qa_account_server_cleanup'/);assert.match(edge,/action==='cleanup'/);assert.match(edge,/deletedCount/);assert.match(edge,/deleted:true/);
+ assert.doesNotMatch(edge,/SUPABASE_SECRET_KEYS/);assert.doesNotMatch(edge,/SUPABASE_SERVICE_ROLE_KEY/);assert.doesNotMatch(edge,/insert into auth\.users/i);
+ assert.match(edge,/@example\.com/);assert.doesNotMatch(edge,/@example\.invalid/);
+});
+
+test('server cleanup removes only temporary application bindings before Auth Admin deletion',()=>{
+ assert.match(rerun,/aqari_qa_account_server_cleanup/);assert.match(rerun,/current_setting\('role',true\) is distinct from 'service_role'/);
+ assert.match(rerun,/raw_user_meta_data->>'aqari_qa'/);assert.match(rerun,/delete from public\.aqari_portal_accounts/);assert.match(rerun,/delete from private\.aqari_partner_access/);
+ assert.match(rerun,/delete from private\.aqari_staff_assignments/);assert.match(rerun,/delete from public\.aqari_memberships/);assert.match(rerun,/delete from private\.aqari_allowed_users/);
+ assert.match(rerun,/on delete set null/);assert.doesNotMatch(rerun,/delete from auth\.users/i);
+});
+
+test('QA mutation and evidence APIs reject stale branch-alias pages by exact candidate SHA',()=>{
+ for(const source of [api,evidence]){
+  assert.match(source,/X-AQARI-Candidate-Sha/);assert.match(source,/VERCEL_GIT_COMMIT_SHA/);assert.match(source,/QA_CANDIDATE_SHA_MISMATCH/);assert.match(source,/\^\[0-9a-f\]\{40\}\$/);
+ }
+ assert.match(evidence,/p_candidate_sha/);assert.match(evidence,/candidate_sha/);
+});
+
+test('legacy Python QA helper treats opaque Supabase secret keys as apikey-only',()=>{
+ assert.match(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key\}/);assert.doesNotMatch(worker,/if key\.startswith\('sb_secret_'\):return \{'apikey':key,'Authorization'/);
+ assert.match(expiry,/CRON_SECRET/);assert.match(expiry,/hmac\.compare_digest/);
+});

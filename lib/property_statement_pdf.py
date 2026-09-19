@@ -8,6 +8,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from lib.rent_pdf import FONT,FONT_PATH,shaped
+from lib.property_statement_values import owner_approved_discount,source_remaining,statement_rent_totals,statement_source_totals
 
 def statement_notes(content):
     """Only annotate evidence stored on this statement; never borrow another property's notes."""
@@ -26,23 +27,65 @@ def render_statement(content):
     out=BytesIO();doc=SimpleDocTemplate(out,pagesize=landscape(A3),rightMargin=24,leftMargin=24,topMargin=24,bottomMargin=24,title='كشف إيجار '+content['property_name'],author='AQARI V267')
     style=ParagraphStyle('ar',fontName=FONT,fontSize=8,leading=12,alignment=2)
     def p(v):return Paragraph(escape(shaped('غير مدون' if v is None else str(v))),style)
-    fields=[('المحاسب','accountant_raw'),('الوصل','receipt_no_raw'),('رقم العملية','payment_operation_raw'),('طريقة السداد','payment_method_raw'),('تاريخ الدفع','payment_date_raw'),('الإيجار الحالي','current_rent_kd'),('العربون','advance_kd'),('التأمين','insurance_kd'),('إيجار العقد','contract_rent_kd'),('رقم العقد','contract_no_raw'),('اسم المستأجر بالمصدر','name_en_raw'),('الوحدة','unit')]
+    fields=[('المحاسب','accountant_raw'),('الوصل','receipt_no_raw'),('رقم العملية','payment_operation_raw'),('طريقة السداد','payment_method_raw'),('تاريخ الدفع','payment_date_raw'),('المدفوع بالمصدر','paid_amount_kd'),('المتبقي بالمصدر','__source_remaining'),('الإيجار الحالي','current_rent_kd'),('خصم معتمد من المالك','__owner_discount'),('إيجار العقد','contract_rent_kd'),('العربون','advance_kd'),('التأمين','insurance_kd'),('رقم العقد','contract_no_raw'),('الجنسية بالمصدر','nationality_raw'),('اسم المستأجر بالمصدر','name_en_raw'),('الوحدة','unit')]
     data=[[p(title) for title,_ in fields]]
     for r in content['rows']:
         values=[]
         for _,key in fields:
-            value=r.get(key)
+            if key=='__owner_discount':value=owner_approved_discount(r)
+            elif key=='__source_remaining':value=source_remaining(r)
+            else:value=r.get(key)
             if value is None:value='غير مدون'
             if key=='insurance_kd' and r.get('insurance_status')=='pending_reconciliation':value=str(value) + ' • معلق'
             if key=='payment_date_raw' and 'payment_date' in (r.get('pending') or []):value='معلق — '+str(value)
             if key=='contract_no_raw' and 'contract_dates' in (r.get('pending') or []):value=str(value)+' • التواريخ معلقة'
             values.append(p(value))
         data.append(values)
-    widths=[66,50,72,60,96,62,60,72,60,62,220,52]
+    widths=[60,46,66,58,88,58,64,58,66,58,56,66,58,60,205,48]
     table=Table(data,colWidths=widths,repeatRows=1,hAlign='RIGHT')
     table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#E8DDBD')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
-    summary=content['summary']['printed_totals']
-    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. الإيجار الحالي وإيجار العقد محفوظان منفصلين؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('الإيجار الحالي: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك')]
+    source_fields=[('صفحة الاتصال بالمصدر','contact_source_page'),('صفحة البيانات المالية بالمصدر','financial_source_page'),('الرقم المدني بالمصدر','civil_id_raw'),('الهاتف بالمصدر','phone_raw'),('نهاية العقد بالمصدر','contract_end_raw'),('بداية العقد بالمصدر','contract_start_raw'),('الوحدة','unit')]
+    source_data=[[p(title) for title,_ in source_fields]]
+    for r in content['rows']:
+        values=[]
+        pending=r.get('pending') or []
+        for _,key in source_fields:
+            value=r.get(key)
+            if value is None or value=='':value='غير مدون'
+            if key in ('contract_start_raw','contract_end_raw') and 'contract_dates' in pending:value='معلق — '+str(value)
+            values.append(p(value))
+        source_data.append(values)
+    source_table=Table(source_data,colWidths=[100,115,125,105,105,105,55],repeatRows=1,hAlign='RIGHT')
+    source_table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#F3EEDF')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
+    profile_fields=[('رسوم النظافة بالمصدر','cleaning_kd'),('استلام العقد بالمصدر','contract_received_raw'),('الجنسية بالمصدر','nationality_raw'),('رقم الجواز بالمصدر','passport_no_raw'),('الشهر المجاني بالمصدر','free_month_raw'),('تنبيه الإخلاء بالمصدر','eviction_notice_raw'),('ملاحظات المصدر','notes_raw'),('الوحدة','unit')]
+    profile_data=[[p(title) for title,_ in profile_fields]]
+    for r in content['rows']:
+        values=[]
+        for _,key in profile_fields:
+            value=r.get(key)
+            if value is None or value=='':value='غير مدون'
+            values.append(p(value))
+        profile_data.append(values)
+    profile_table=Table(profile_data,colWidths=[95,110,90,105,105,125,250,55],repeatRows=1,hAlign='RIGHT')
+    profile_table.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#F8F4E9')),('GRID',(0,0),(-1,-1),.4,colors.HexColor('#B8B3A5')),('VALIGN',(0,0),(-1,-1),'MIDDLE'),('TOPPADDING',(0,0),(-1,-1),5),('BOTTOMPADDING',(0,0),(-1,-1),5)]))
+    summary=content['summary']['printed_totals'];rent_totals=statement_rent_totals(content.get('rows',[]));source_totals=statement_source_totals(content.get('rows',[]))
+    story=[p(content['property_name']+' — كشف إيجار '+content['period']),Spacer(1,12),p('نسخة من الكشف الأصلي المحفوظ. إيجار العقد والخصم المعتمد والإيجار الحالي تعرض كقيم منفصلة؛ المدفوع بالمصدر والمتبقي بالمصدر قراءة فقط من صف المصدر المحفوظ، والمتبقي مشتق من الإيجار الحالي ناقص المدفوع بالمصدر ولا يحسب فرق الخصم كمتأخرات؛ هذه القيم لا تستبدل التحصيل الفعلي المحمي؛ هذا الكشف لا ينشئ حركة مالية أو وصل إيجار جديداً.'),Spacer(1,12),table,Spacer(1,12),p('بيانات المصدر التكميلية — تواريخ العقد والهاتف والرقم المدني وأرقام صفحات المصدر أدناه قراءة فقط من نفس صفوف الكشف المحفوظ ولا تُستكمل بقيم افتراضية.'),Spacer(1,6),source_table,Spacer(1,12),p('بيانات إضافية من المصدر — رسوم النظافة واستلام العقد والجنسية والجواز والشهر المجاني وتنبيه الإخلاء والملاحظات أدناه تعرض فقط إذا كانت محفوظة في صف المصدر نفسه؛ أي قيمة مفقودة تبقى غير مدونة ولا تُستعار من مستأجر أو عقار آخر. البريد الإلكتروني لا يُصدّر في هذا PDF وفق حد الخصوصية الحالي.'),Spacer(1,6),profile_table,Spacer(1,12)]
+    if rent_totals is None:
+        story.append(p('مجاميع إيجار العقد والخصم المعتمد والإيجار الحالي غير مكتملة بالمصدر؛ لم تُفترض أي قيمة بديلة.'))
+    else:
+        story.append(p('إجمالي إيجار العقود: '+str(rent_totals['contract_rent_kd'])+' د.ك • إجمالي خصم المالك: '+str(rent_totals['owner_discount_kd'])+' د.ك • إجمالي الإيجار الحالي: '+str(rent_totals['current_rent_kd'])+' د.ك'))
+    story.append(p('الإيجار الحالي المطبوع بالمصدر: '+str(summary['rent_kd'])+' د.ك • العربون: '+str(summary['advance_kd'])+' د.ك • النظافة: '+str(summary['cleaning_kd'])+' د.ك'))
+    def total_text(key):
+        value=source_totals.get(key)
+        return 'غير مكتمل بالمصدر' if value is None else str(value)+' د.ك'
+    story.append(p('إجمالي المدفوع بالمصدر: '+total_text('paid_amount_kd')+' • إجمالي المتبقي بالمصدر: '+total_text('remaining_kd')+' • إجمالي التأمين بالمصدر: '+total_text('insurance_kd')+' • إجمالي KNET بالمصدر: '+total_text('knet_paid_kd')))
+    story.append(p('إجمالي العربون بالمصدر: '+total_text('advance_kd')+' • إجمالي رسوم النظافة بالمصدر: '+total_text('cleaning_kd')))
+    if source_totals.get('advance_kd') is None or source_totals.get('cleaning_kd') is None:
+        story.append(p('لا يُنشر مجموع العربون أو رسوم النظافة إذا كان أي صف يفتقد القيمة المحفوظة أو يحتوي قيمة غير صالحة؛ يبقى كل إجمالي غير مكتمل حتى يوجد دليل مصدر صالح لكل صف.'))
+    if source_totals.get('insurance_kd') is None:
+        story.append(p('لا يُنشر مجموع التأمين إذا كان أي صف مفقوداً أو معلّماً كمعلق للمصالحة؛ لا تُحوّل قيمة متنازعاً عليها إلى إجمالي معتمد.'))
+    if source_totals.get('knet_paid_kd') is None:
+        story.append(p('لا يُفترض مجموع KNET عند فقدان طريقة السداد أو مبلغ KNET في أي صف؛ يبقى الإجمالي غير مكتمل حتى يوجد دليل محفوظ لكل صف.'))
     for note in statement_notes(content):story.append(p(note))
     doc.build(story);return out.getvalue()
 

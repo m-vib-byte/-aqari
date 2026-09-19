@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 
 const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+const DEPLOYMENT_ID_RE = /^dpl_[A-Za-z0-9]{12,}$/;
+const REQUIREMENTS_TOTAL = 155;
 export const OWNER_GOVERNANCE_POLICY_ID = 'owner-governance-2026-09-13-kuwait';
 export const REQUIRED_DEVICE_FLOWS = [
   'login',
@@ -42,7 +44,67 @@ function requireSameSha(errors, value, candidateSha, label) {
   }
 }
 
-function validateDevice(errors, device, candidateSha, label, { physical = false } = {}) {
+function validateRequirements155(errors, requirements, candidateSha) {
+  const value = requirements && typeof requirements === 'object' && !Array.isArray(requirements)
+    ? requirements
+    : {};
+  requireTrue(errors, value.accepted, 'all 155 requirements must be explicitly accepted');
+  if (value.acceptedCount !== REQUIREMENTS_TOTAL) {
+    errors.push(`requirements155.acceptedCount must equal ${REQUIREMENTS_TOTAL}`);
+  }
+  if (!evidencePresent(value.evidence)) errors.push('155/155 acceptance evidence is required');
+
+  const items = Array.isArray(value.items) ? value.items : [];
+  if (items.length !== REQUIREMENTS_TOTAL) {
+    errors.push(`requirements155.items must contain exactly ${REQUIREMENTS_TOTAL} requirement records`);
+  }
+
+  const seen = new Set();
+  for (const raw of items) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+      errors.push('every requirements155.items entry must be an object');
+      continue;
+    }
+    const id = Number(raw.id);
+    if (!Number.isInteger(id) || id < 1 || id > REQUIREMENTS_TOTAL) {
+      errors.push(`requirements155 item id must be an integer from 1 to ${REQUIREMENTS_TOTAL}`);
+      continue;
+    }
+    if (seen.has(id)) errors.push(`requirements155 item ${id} is duplicated`);
+    seen.add(id);
+    if (raw.status !== 'accepted') errors.push(`requirement ${id} status must be exactly accepted`);
+    requireSameSha(errors, raw.commitSha, candidateSha, `requirement ${id}`);
+    if (!evidencePresent(raw.evidence)) errors.push(`requirement ${id} acceptance evidence is required`);
+  }
+
+  if (seen.size !== REQUIREMENTS_TOTAL) {
+    errors.push(`requirements155.items must cover every requirement id 1..${REQUIREMENTS_TOTAL} exactly once`);
+  } else {
+    for (let id = 1; id <= REQUIREMENTS_TOTAL; id += 1) {
+      if (!seen.has(id)) {
+        errors.push(`requirements155.items is missing requirement ${id}`);
+        break;
+      }
+    }
+  }
+}
+
+function normalizedPreviewUrl(value) {
+  try {
+    const parsed = new URL(String(value || '').trim());
+    if (parsed.protocol !== 'https:' || !parsed.hostname.endsWith('.vercel.app')) return '';
+    if (parsed.username || parsed.password || parsed.hash) return '';
+    return parsed.href;
+  } catch {
+    return '';
+  }
+}
+
+function validateDevice(errors, device, candidateSha, label, {
+  physical = false,
+  previewUrl = '',
+  deploymentId = '',
+} = {}) {
   const value = device && typeof device === 'object' ? device : {};
   requireTrue(errors, value.accepted, `${label} acceptance must be explicitly true`);
   requireTrue(errors, value.realAccount, `${label} must use a real authenticated account`);
@@ -52,6 +114,12 @@ function validateDevice(errors, device, candidateSha, label, { physical = false 
   if (!nonEmptyText(value.browser)) errors.push(`${label} acceptance must identify the browser used`);
   if (!nonEmptyText(value.device)) errors.push(`${label} acceptance must identify the tested device`);
   requireSameSha(errors, value.commitSha, candidateSha, label);
+  if (!previewUrl || normalizedPreviewUrl(value.hostedPreviewUrl) !== previewUrl) {
+    errors.push(`${label} acceptance must be tied to the exact hosted Preview URL`);
+  }
+  if (!deploymentId || String(value.deploymentId || '').trim() !== deploymentId) {
+    errors.push(`${label} acceptance must be tied to the exact hosted Preview deployment`);
+  }
   const flows = value.flows && typeof value.flows === 'object' ? value.flows : {};
   for (const flow of REQUIRED_DEVICE_FLOWS) {
     requireTrue(errors, flows[flow], `${label} flow ${flow} must be accepted`);
@@ -104,11 +172,7 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
   if (manifest.status !== 'accepted') errors.push('release gate manifest status must be exactly accepted');
 
   validateOwnerGovernance(errors, manifest.ownerGovernance, candidateSha);
-
-  const requirements = manifest.requirements155 || {};
-  requireTrue(errors, requirements.accepted, 'all 155 requirements must be explicitly accepted');
-  if (requirements.acceptedCount !== 155) errors.push('requirements155.acceptedCount must equal 155');
-  if (!evidencePresent(requirements.evidence)) errors.push('155/155 acceptance evidence is required');
+  validateRequirements155(errors, manifest.requirements155, candidateSha);
 
   const ci = manifest.ci || {};
   requireTrue(errors, ci.allRequiredPassed, 'all required CI checks must pass');
@@ -122,13 +186,19 @@ export function validateReleaseGateManifest(manifest = {}, expectedCandidateSha 
   requireFalse(errors, preview.buildReadyOnly, 'Vercel READY/build success alone must not count as hosted Preview acceptance');
   requireFalse(errors, preview.simulated, 'hosted Preview acceptance must explicitly state simulated=false');
   requireSameSha(errors, preview.commitSha, candidateSha, 'hosted Preview');
-  if (typeof preview.url !== 'string' || !/^https:\/\//.test(preview.url)) errors.push('hosted Preview URL is required');
+  requireSameSha(errors, preview.runtimeGitSha, candidateSha, 'hosted Preview runtime');
+  const previewUrl = normalizedPreviewUrl(preview.url);
+  if (!previewUrl) errors.push('hosted Preview URL must be an HTTPS vercel.app deployment URL');
+  const previewDeploymentId = String(preview.deploymentId || '').trim();
+  if (!DEPLOYMENT_ID_RE.test(previewDeploymentId)) errors.push('hosted Preview deployment ID is required');
+  if (preview.releaseStage !== 'preview') errors.push('hosted Preview releaseStage must be exactly preview');
+  if (preview.environment !== 'preview') errors.push('hosted Preview environment must be exactly preview');
   if (!evidencePresent(preview.evidence)) errors.push('hosted Preview acceptance evidence is required');
 
   const devices = manifest.devices || {};
-  validateDevice(errors, devices.desktop, candidateSha, 'Desktop');
-  validateDevice(errors, devices.iphone, candidateSha, 'iPhone', { physical: true });
-  validateDevice(errors, devices.ipad, candidateSha, 'iPad', { physical: true });
+  validateDevice(errors, devices.desktop, candidateSha, 'Desktop', { physical: true, previewUrl, deploymentId: previewDeploymentId });
+  validateDevice(errors, devices.iphone, candidateSha, 'iPhone', { physical: true, previewUrl, deploymentId: previewDeploymentId });
+  validateDevice(errors, devices.ipad, candidateSha, 'iPad', { physical: true, previewUrl, deploymentId: previewDeploymentId });
 
   const backup = manifest.backup || {};
   requireTrue(errors, backup.current, 'backup must be current for the release candidate review');

@@ -1,0 +1,186 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {
+  PRODUCTION_CONFIG_FORMAT,
+  productionRuntimeConfigFingerprint,
+  productionSupabaseTopologyFingerprint,
+  productionTargetFingerprint,
+  validateProductionConfigForCli,
+} from '../scripts/v267-production-config-gate.mjs';
+
+const SHA='861cfac1fea37f38d878526fea9422b63d216852';
+const OTHER_SHA='13a219e7930db89ebf2f9b44d30007499efa6ccf';
+const PRODUCTION_PROJECT='abcdefghijklmnopqrst';
+const RESTORE_PROJECT='djkpkkgoibruaezdrchb';
+const TARGET={projectRef:PRODUCTION_PROJECT,publishableKey:'sb_publishable_0123456789abcdefghijklmnop'};
+const sha256=(value)=>createHash('sha256').update(Buffer.from(value,'utf8')).digest('hex');
+
+function validConfig(){
+  const supabaseTopology={
+    projectRef:PRODUCTION_PROJECT,
+    parentProjectRef:PRODUCTION_PROJECT,
+    branchName:'main',
+    isDefault:true,
+  };
+  const config={
+    format:PRODUCTION_CONFIG_FORMAT,
+    correct:true,
+    verified:true,
+    candidateSha:SHA,
+    targetEnvironment:'production',
+    productVersion:'V267',
+    releaseStage:'production',
+    hostname:'myaqari.com',
+    authRedirectUrl:'https://myaqari.com/login.html?release=V267',
+    projectRef:PRODUCTION_PROJECT,
+    supabaseUrl:`https://${PRODUCTION_PROJECT}.supabase.co`,
+    supabaseTopology,
+    supabaseTopologyEvidence:['evidence/supabase-branch-inventory.json'],
+    supabaseTopologySha256:productionSupabaseTopologyFingerprint(supabaseTopology),
+    authStorageKey:`sb-${PRODUCTION_PROJECT}-auth-token`,
+    publishableKeySha256:sha256(TARGET.publishableKey),
+    targetConfigSha256:productionTargetFingerprint(TARGET),
+    verifiedAt:'2026-09-17T10:00:00Z',
+    evidence:['evidence/production-config.json'],
+  };
+  config.runtimeConfigSha256=productionRuntimeConfigFingerprint(config);
+  return config;
+}
+
+const STAGE_C={source_project_ref:'ofgmcsmxmdswlovsckqs',restore_project_ref:RESTORE_PROJECT};
+
+test('accepts a same-SHA Production configuration bound to a distinct default Supabase project and exact runtime URL',()=>{
+  const result=validateProductionConfigForCli({productionConfig:validConfig(),stageCBundle:STAGE_C,productionTarget:TARGET},SHA);
+  assert.equal(result.ok,true,JSON.stringify(result.errors));
+});
+
+test('rejects Production target reuse of Preview source or independent restore project',()=>{
+  for(const projectRef of [STAGE_C.source_project_ref,STAGE_C.restore_project_ref]){
+    const target={...TARGET,projectRef};
+    const supabaseTopology={projectRef,parentProjectRef:projectRef,branchName:'main',isDefault:true};
+    const config={...validConfig(),projectRef,supabaseUrl:`https://${projectRef}.supabase.co`,supabaseTopology,supabaseTopologySha256:productionSupabaseTopologyFingerprint(supabaseTopology),authStorageKey:`sb-${projectRef}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
+    config.runtimeConfigSha256=productionRuntimeConfigFingerprint(config);
+    const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:target},SHA);
+    assert.equal(result.ok,false,projectRef);
+    assert.match(result.errors.join('\n'),/must differ|must not reuse/);
+  }
+});
+
+test('rejects a non-default Supabase branch even when its ref differs from Stage C source and restore refs',()=>{
+  const branchProject='zzzzzzzzzzzzzzzzzzzz';
+  const parentProject='yyyyyyyyyyyyyyyyyyyy';
+  const target={...TARGET,projectRef:branchProject};
+  const supabaseTopology={projectRef:branchProject,parentProjectRef:parentProject,branchName:'v267-isolated-test',isDefault:false};
+  const config={...validConfig(),projectRef:branchProject,supabaseUrl:`https://${branchProject}.supabase.co`,supabaseTopology,supabaseTopologySha256:'a'.repeat(64),authStorageKey:`sb-${branchProject}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
+  config.runtimeConfigSha256='b'.repeat(64);
+  const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:target},SHA);
+  assert.equal(result.ok,false);
+  assert.match(result.errors.join('\n'),/default project|default branch|topology fingerprint/);
+});
+
+test('rejects candidate, environment, domain, redirect, project, runtime URL, topology, target fingerprint and key fingerprint drift',()=>{
+  const mutations=[
+    (config)=>{config.candidateSha=OTHER_SHA},
+    (config)=>{config.targetEnvironment='preview'},
+    (config)=>{config.releaseStage='preview'},
+    (config)=>{config.hostname='preview.example.com'},
+    (config)=>{config.authRedirectUrl='https://myaqari.com/'},
+    (config)=>{config.projectRef='wrong'},
+    (config)=>{config.supabaseUrl='https://wrong-project.supabase.co'},
+    (config)=>{config.supabaseTopology={...config.supabaseTopology,isDefault:false}},
+    (config)=>{config.supabaseTopologyEvidence=[]},
+    (config)=>{config.supabaseTopologySha256='d'.repeat(64)},
+    (config)=>{config.authStorageKey='sb-wrong-auth-token'},
+    (config)=>{config.publishableKeySha256='a'.repeat(64)},
+    (config)=>{config.targetConfigSha256='b'.repeat(64)},
+    (config)=>{config.runtimeConfigSha256='c'.repeat(64)},
+  ];
+  for(const mutate of mutations){
+    const config=validConfig();mutate(config);
+    assert.equal(validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA).ok,false);
+  }
+});
+
+test('runtime fingerprint binds project URL, domain, redirect, Auth storage namespace, topology and public-key digest together',()=>{
+  const config=validConfig();
+  const baseline=productionRuntimeConfigFingerprint(config);
+  assert.match(baseline,/^[0-9a-f]{64}$/);
+  for(const patch of [
+    {supabaseUrl:'https://zzzzzzzzzzzzzzzzzzzz.supabase.co'},
+    {hostname:'www.myaqari.com'},
+    {authRedirectUrl:'https://myaqari.com/login.html'},
+    {authStorageKey:'sb-other-auth-token'},
+    {productVersion:'V266'},
+    {releaseStage:'preview'},
+    {publishableKeySha256:'f'.repeat(64)},
+    {supabaseTopologySha256:'e'.repeat(64)},
+  ]){
+    assert.notEqual(productionRuntimeConfigFingerprint({...config,...patch}),baseline,JSON.stringify(patch));
+  }
+});
+
+test('rejects missing verification evidence and raw secret-like material at any nested config depth',()=>{
+  for(const mutate of [
+    (config)=>{config.verified=false},
+    (config)=>{config.evidence=[]},
+    (config)=>{config.verifiedAt='bad-date'},
+    (config)=>{config.serviceRoleKey='should-never-be-here'},
+    (config)=>{config.token='should-never-be-here'},
+    (config)=>{config.supabaseTopology={...config.supabaseTopology,secret:'nested-secret'}},
+    (config)=>{config.audit={checks:[{password:'nested-password'}]}},
+    (config)=>{config.verification={detail:{service_role_key:'nested-service-role'}}},
+    (config)=>{config.audit={checks:[{ClientSecret:'nested-client-secret'}]}},
+    (config)=>{config.verification={detail:{access_token:'nested-access-token'}}},
+    (config)=>{config.verification={detail:{API_KEY:'nested-api-key'}}},
+    (config)=>{config.verification={detail:{Authorization:'Bearer hidden'}}},
+  ]){
+    const config=validConfig();mutate(config);
+    assert.equal(validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA).ok,false);
+  }
+});
+
+test('requires verifiedAt to be a real canonical UTC timestamp at whole-second precision',()=>{
+  for(const verifiedAt of [
+    '2026-09-17T13:00:00+03:00',
+    '2026-09-17T10:00:00.000Z',
+    '2026-09-17 10:00:00Z',
+    '2026-02-30T10:00:00Z',
+  ]){
+    const config=validConfig();
+    config.verifiedAt=verifiedAt;
+    const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA);
+    assert.equal(result.ok,false,verifiedAt);
+    assert.match(result.errors.join('\n'),/canonical UTC second precision/);
+  }
+});
+
+test('requires canonical unique repo-relative evidence references under evidence/',()=>{
+  const mutations=[
+    (config)=>{config.evidence=['../../secret.json']},
+    (config)=>{config.evidence=['https://example.com/evidence.json']},
+    (config)=>{config.evidence=['evidence/production-config.json','evidence/production-config.json']},
+    (config)=>{config.evidence=[' evidence/production-config.json']},
+    (config)=>{config.evidence=['evidence\\production-config.json']},
+    (config)=>{config.supabaseTopologyEvidence=['evidence/../supabase-branch-inventory.json']},
+    (config)=>{config.supabaseTopologyEvidence=['/evidence/supabase-branch-inventory.json']},
+    (config)=>{config.supabaseTopologyEvidence=['evidence/supabase-branch-inventory.json?raw=1']},
+  ];
+  for(const mutate of mutations){
+    const config=validConfig();
+    mutate(config);
+    const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:TARGET},SHA);
+    assert.equal(result.ok,false,JSON.stringify(config));
+    assert.match(result.errors.join('\n'),/evidence references/);
+  }
+});
+
+test('current documented Stage C restore ref cannot be accepted as the Production target',()=>{
+  const target={projectRef:RESTORE_PROJECT,publishableKey:TARGET.publishableKey};
+  const supabaseTopology={projectRef:RESTORE_PROJECT,parentProjectRef:RESTORE_PROJECT,branchName:'main',isDefault:true};
+  const config={...validConfig(),projectRef:RESTORE_PROJECT,supabaseUrl:`https://${RESTORE_PROJECT}.supabase.co`,supabaseTopology,supabaseTopologySha256:productionSupabaseTopologyFingerprint(supabaseTopology),authStorageKey:`sb-${RESTORE_PROJECT}-auth-token`,publishableKeySha256:sha256(target.publishableKey),targetConfigSha256:productionTargetFingerprint(target)};
+  config.runtimeConfigSha256=productionRuntimeConfigFingerprint(config);
+  const result=validateProductionConfigForCli({productionConfig:config,stageCBundle:STAGE_C,productionTarget:target},SHA);
+  assert.equal(result.ok,false);
+  assert.match(result.errors.join('\n'),/independent Stage C restore project/);
+});

@@ -1,0 +1,212 @@
+export const REQUIRED_CI_WORKFLOW_DEFINITIONS = Object.freeze({
+  'V267 owner production approval policy': Object.freeze({
+    workflowId: 356803447,
+    workflowPath: '.github/workflows/v267-owner-production-approval.yml',
+  }),
+  'Authenticated UI startup order': Object.freeze({
+    workflowId: 351287920,
+    workflowPath: '.github/workflows/startup-ui-order.yml',
+  }),
+  'App first paint': Object.freeze({
+    workflowId: 351189755,
+    workflowPath: '.github/workflows/app-first-paint.yml',
+  }),
+  'V267 security integration accounting': Object.freeze({
+    workflowId: 357268398,
+    workflowPath: '.github/workflows/v267-security-integration-accounting.yml',
+  }),
+  'Runtime contracts': Object.freeze({
+    workflowId: 348771756,
+    workflowPath: '.github/workflows/runtime-contracts.yml',
+  }),
+  'V267 owner governance supersession': Object.freeze({
+    workflowId: 357175508,
+    workflowPath: '.github/workflows/v267-owner-governance.yml',
+  }),
+});
+
+export const REQUIRED_CI_WORKFLOWS = Object.freeze(Object.keys(REQUIRED_CI_WORKFLOW_DEFINITIONS));
+export const REQUIRED_CI_SOURCE = Object.freeze({
+  repository: 'm-vib-byte/-aqari',
+  pullRequestNumber: 192,
+  headBranch: 'support/v267-knet-range-reconcile-20260915',
+  baseBranch: 'support/v267-owner-gate-latest-1c80-20260915',
+  baseSha: '2d7a3a3f893fed1eb6b633731bd0dee5e6be9aa3',
+});
+
+const FULL_SHA_RE = /^[0-9a-f]{40}$/;
+const REPOSITORY_WEB_URL = 'https://github.com/m-vib-byte/-aqari';
+const REPOSITORY_API_URL = 'https://api.github.com/repos/m-vib-byte/-aqari';
+
+function text(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function positiveInt(value) {
+  return Number.isInteger(value) && value > 0;
+}
+
+function canonicalRepositoryEvidenceRef(value) {
+  if (typeof value !== 'string' || !value || value.trim() !== value) return false;
+  if (!value.startsWith('evidence/') || value.startsWith('/') || value.includes('://') || value.includes('\\') || value.includes('?') || value.includes('#') || value.includes('%')) return false;
+  if (/[^\x20-\x7e]/.test(value)) return false;
+  const segments = value.split('/');
+  return !segments.some((segment) => !segment || segment === '.' || segment === '..');
+}
+
+function evidencePresent(value) {
+  if (!Array.isArray(value) || value.length === 0) return false;
+  const seen = new Set();
+  for (const item of value) {
+    const normalized = text(item);
+    if (!normalized || seen.has(normalized)) return false;
+    seen.add(normalized);
+  }
+  return true;
+}
+
+function canonicalEvidenceSet(value, requiredUrls = []) {
+  if (!evidencePresent(value)) return false;
+  const required = new Set(Array.isArray(requiredUrls) ? requiredUrls : [requiredUrls]);
+  const seenRequired = new Set();
+  for (const item of value) {
+    const normalized = text(item);
+    if (required.has(normalized)) {
+      seenRequired.add(normalized);
+      continue;
+    }
+    if (!canonicalRepositoryEvidenceRef(item)) return false;
+  }
+  return seenRequired.size === required.size;
+}
+
+function requireSameSha(errors, value, candidateSha, label) {
+  const sha = text(value).toLowerCase();
+  if (!FULL_SHA_RE.test(sha)) errors.push(`${label} commit SHA must be a full 40-character hexadecimal commit SHA`);
+  else if (sha !== candidateSha) errors.push(`${label} evidence is not tied to the exact candidate SHA`);
+}
+
+function requireExactSource(errors, value, label) {
+  if (text(value.repository) !== REQUIRED_CI_SOURCE.repository) errors.push(`${label} repository must be exactly ${REQUIRED_CI_SOURCE.repository}`);
+  if (value.pullRequestNumber !== REQUIRED_CI_SOURCE.pullRequestNumber) errors.push(`${label} pull request must be exactly #${REQUIRED_CI_SOURCE.pullRequestNumber}`);
+  if (text(value.headBranch) !== REQUIRED_CI_SOURCE.headBranch) errors.push(`${label} head branch must be exactly ${REQUIRED_CI_SOURCE.headBranch}`);
+  if (text(value.baseBranch) !== REQUIRED_CI_SOURCE.baseBranch) errors.push(`${label} base branch must be exactly ${REQUIRED_CI_SOURCE.baseBranch}`);
+  const baseSha = text(value.baseSha).toLowerCase();
+  if (!FULL_SHA_RE.test(baseSha) || baseSha !== REQUIRED_CI_SOURCE.baseSha) errors.push(`${label} base SHA must be exactly ${REQUIRED_CI_SOURCE.baseSha}`);
+}
+
+export function validateSameShaCiEvidence(ci = {}, expectedCandidateSha = '') {
+  const errors = [];
+  const candidateSha = text(expectedCandidateSha).toLowerCase();
+  if (!FULL_SHA_RE.test(candidateSha)) {
+    return { ok: false, candidateSha, errors: ['expected candidate SHA must be a full 40-character hexadecimal commit SHA'] };
+  }
+
+  const value = ci && typeof ci === 'object' && !Array.isArray(ci) ? ci : {};
+  if (value.allRequiredPassed !== true) errors.push('all required CI checks must pass');
+  requireSameSha(errors, value.commitSha, candidateSha, 'CI');
+  requireExactSource(errors, value, 'CI');
+  if (!canonicalEvidenceSet(value.evidence)) errors.push('same-SHA CI evidence must use unique canonical repository evidence paths');
+
+  const workflows = Array.isArray(value.workflows) ? value.workflows : [];
+  if (workflows.length !== REQUIRED_CI_WORKFLOWS.length) {
+    errors.push(`CI workflows must contain exactly ${REQUIRED_CI_WORKFLOWS.length} required workflow records`);
+  }
+
+  const required = new Set(REQUIRED_CI_WORKFLOWS);
+  const seen = new Set();
+  const workflowRunIds = new Set();
+  const allJobIds = new Set();
+  for (const row of workflows) {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) {
+      errors.push('every CI workflow record must be an object');
+      continue;
+    }
+    const name = text(row.name);
+    if (!required.has(name)) {
+      errors.push(`unexpected CI workflow: ${name || '<missing>'}`);
+      continue;
+    }
+    if (seen.has(name)) errors.push(`CI workflow is duplicated: ${name}`);
+    seen.add(name);
+
+    const definition = REQUIRED_CI_WORKFLOW_DEFINITIONS[name];
+    if (row.workflowId !== definition.workflowId) {
+      errors.push(`CI workflow ${name} workflowId must be exactly ${definition.workflowId}`);
+    }
+    if (text(row.workflowPath) !== definition.workflowPath) {
+      errors.push(`CI workflow ${name} path must be exactly ${definition.workflowPath}`);
+    }
+    if (row.event !== 'pull_request') {
+      errors.push(`CI workflow ${name} event must be exactly pull_request`);
+    }
+
+    requireSameSha(errors, row.commitSha, candidateSha, `CI workflow ${name}`);
+    requireExactSource(errors, row, `CI workflow ${name}`);
+    if (!positiveInt(row.runId)) {
+      errors.push(`CI workflow ${name} runId must be a positive integer`);
+    } else {
+      if (workflowRunIds.has(row.runId)) errors.push(`CI workflow ${name} reuses runId ${row.runId} from another required workflow`);
+      workflowRunIds.add(row.runId);
+    }
+    if (row.status !== 'completed') errors.push(`CI workflow ${name} status must be exactly completed`);
+    if (row.conclusion !== 'success') errors.push(`CI workflow ${name} conclusion must be exactly success`);
+    if (!evidencePresent(row.evidence)) {
+      errors.push(`CI workflow ${name} evidence is required`);
+    } else if (positiveInt(row.runId)) {
+      const expectedRunUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}`;
+      const expectedRunApiUrl = `${REPOSITORY_API_URL}/actions/runs/${row.runId}`;
+      const expectedWorkflowApiUrl = `${REPOSITORY_API_URL}/actions/workflows/${definition.workflowId}`;
+      const expectedPullRequestApiUrl = `${REPOSITORY_API_URL}/pulls/${REQUIRED_CI_SOURCE.pullRequestNumber}`;
+      if (!canonicalEvidenceSet(row.evidence, [expectedRunUrl, expectedRunApiUrl, expectedWorkflowApiUrl, expectedPullRequestApiUrl])) {
+        errors.push(`CI workflow ${name} evidence must contain the exact GitHub Actions run web/API URLs for runId ${row.runId}, the required workflow identity ${definition.workflowId}, PR #${REQUIRED_CI_SOURCE.pullRequestNumber}, plus canonical repository evidence paths`);
+      }
+    }
+
+    const jobs = Array.isArray(row.jobs) ? row.jobs : [];
+    if (jobs.length === 0) errors.push(`CI workflow ${name} must contain at least one executed job`);
+    const jobIds = new Set();
+    for (const job of jobs) {
+      if (!job || typeof job !== 'object' || Array.isArray(job)) {
+        errors.push(`CI workflow ${name} contains an invalid job record`);
+        continue;
+      }
+      requireSameSha(errors, job.commitSha, candidateSha, `CI workflow ${name} job`);
+      if (text(job.headBranch) !== REQUIRED_CI_SOURCE.headBranch) errors.push(`CI workflow ${name} job head branch must be exactly ${REQUIRED_CI_SOURCE.headBranch}`);
+      if (!positiveInt(job.runId)) {
+        errors.push(`CI workflow ${name} job runId must be a positive integer`);
+      } else if (positiveInt(row.runId) && job.runId !== row.runId) {
+        errors.push(`CI workflow ${name} job runId ${job.runId} does not match parent workflow runId ${row.runId}`);
+      }
+      if (!positiveInt(job.jobId)) {
+        errors.push(`CI workflow ${name} jobId must be a positive integer`);
+      } else if (jobIds.has(job.jobId)) {
+        errors.push(`CI workflow ${name} jobId ${job.jobId} is duplicated`);
+      } else {
+        jobIds.add(job.jobId);
+        if (allJobIds.has(job.jobId)) errors.push(`CI workflow ${name} reuses jobId ${job.jobId} from another required workflow`);
+        allJobIds.add(job.jobId);
+      }
+      if (!positiveInt(job.runnerId)) errors.push(`CI workflow ${name} must prove a runner was assigned`);
+      if (!text(job.runnerName)) errors.push(`CI workflow ${name} runnerName is required`);
+      if (!positiveInt(job.stepsExecuted)) errors.push(`CI workflow ${name} must prove at least one workflow step executed`);
+      if (job.status !== 'completed') errors.push(`CI workflow ${name} job status must be exactly completed`);
+      if (job.conclusion !== 'success') errors.push(`CI workflow ${name} job conclusion must be exactly success`);
+      if (!evidencePresent(job.evidence)) {
+        errors.push(`CI workflow ${name} job evidence is required`);
+      } else if (positiveInt(job.jobId) && positiveInt(row.runId)) {
+        const expectedJobApiUrl = `${REPOSITORY_API_URL}/actions/jobs/${job.jobId}`;
+        const expectedJobWebUrl = `${REPOSITORY_WEB_URL}/actions/runs/${row.runId}/job/${job.jobId}`;
+        if (!canonicalEvidenceSet(job.evidence, [expectedJobApiUrl, expectedJobWebUrl])) {
+          errors.push(`CI workflow ${name} job evidence must contain the exact GitHub Actions job URL for jobId ${job.jobId}, its parent run ${row.runId}, plus only canonical repository evidence paths`);
+        }
+      }
+    }
+  }
+
+  for (const name of REQUIRED_CI_WORKFLOWS) {
+    if (!seen.has(name)) errors.push(`missing required CI workflow: ${name}`);
+  }
+
+  return { ok: errors.length === 0, candidateSha, errors };
+}
