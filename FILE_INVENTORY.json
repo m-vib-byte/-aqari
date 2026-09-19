@@ -892,8 +892,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "fb650ea38ac86cf5cf1972c6bc2f8df69f3847329daee4f7a476e11fb8cfa37e",
-      "size": 7539
+      "sha256": "387ce4d0e76f254fb1222f37934095ff87e647b3e54b21a536f3911d7bf2a6ee",
+      "size": 7578
     },
     {
       "path": "scripts/check.mjs",
@@ -4089,6 +4089,16 @@
       "path": "api/owner-report-delivery.js",
       "size": 10467,
       "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6"
+    },
+    {
+      "path": "src/v267/premium-navigation-runtime.js",
+      "sha256": "822e4f6f4fd55ac3acc36acf32c4b9fe939486b2a18d9bc21e785ca116c78434",
+      "size": 3265
+    },
+    {
+      "path": "tests/v267-more-navigation.test.mjs",
+      "sha256": "2046e1f7f6be9bdda40c3c298033aec816a78a9f24ebcbb9d34827758c65b7be",
+      "size": 2750
     }
   ],
   "version": "V198"
