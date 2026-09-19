@@ -1537,8 +1537,8 @@
     },
     {
       "path": "src/v267/styles/semantic-colors.css",
-      "sha256": "df36a0ddd4ff8c2ab910f02037835023c93dbd6863af3e6fc1c646139ee5fa6a",
-      "size": 3755
+      "sha256": "d6e63b2ef86e0e679d03064f8895ae007819d3ae87787088b9c70c2a296ed563",
+      "size": 10083
     },
     {
       "path": "src/v267/styles/service-directory.css",
@@ -4042,13 +4042,13 @@
     },
     {
       "path": "tests/touch-navigation.test.mjs",
-      "size": 6359,
-      "sha256": "7ab4468be6f167a559d2e2113042fa02c21de7f78293affc8097bba337060a7f"
+      "size": 7825,
+      "sha256": "deef30eb6470b78b7cee300ea635484847f67890bec2df9a0f3e0782c674b137"
     },
     {
       "path": "src/v267/components/touch-navigation.js",
-      "size": 2175,
-      "sha256": "5871037e51be5e92e8be99dac228179599390aad24574f051f8e13e407bf2884"
+      "size": 2346,
+      "sha256": "6abaff1e8852042040ce018ab4ed2233c86715d51da28d6d66bec565aa8807b0"
     },
     {
       "path": "tests/v267-iphone-startup-blocker.test.mjs",

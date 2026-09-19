@@ -184,3 +184,24 @@
 @media screen and (max-width:600px) {
  body.aq-v267 dialog.aq267-service-dialog .aq267-service-links {grid-template-columns:minmax(0,1fr)!important}
 }
+
+/* Keep the shared close control outside each page's scrolling/stacking region. */
+@media screen {
+ body.aq-v267 dialog.aq267-dialog[open] {
+  display:flex;flex-direction:column;overflow:hidden;
+  max-height:calc(100dvh - 24px);box-sizing:border-box;
+ }
+ body.aq-v267 dialog.aq267-dialog > button.aq267-close {
+  position:relative;flex:none;align-self:flex-end;
+  margin:0 0 8px!important;inset:auto;z-index:2;
+ }
+ body.aq-v267 dialog.aq267-dialog > .aq267-dialog-title {
+  flex:none;margin-inline-end:0!important;
+ }
+ body.aq-v267 dialog.aq267-dialog > p[role='status'] {flex:none}
+ body.aq-v267 dialog.aq267-dialog > .aq267-dialog-body {
+  min-height:0;overflow:auto;overscroll-behavior:contain;
+  position:relative;isolation:isolate;z-index:0;
+  -webkit-overflow-scrolling:touch;
+ }
+}

@@ -98,3 +98,23 @@ test('contract click capture retains busy and disabled guards',()=>{
  handler(event());assert.equal(actions,1);
  button.disabled=true;const blocked=event();handler(blocked);assert.equal(actions,1);assert.equal(blocked.stopped,undefined);
 });
+
+test('shared page dialogs activate a touch once and allow scrolling without action',()=>{
+ const f=fixture('.aq267-dialog');
+ f.emit('pointerdown');f.advance(50);f.emit('pointerup');assert.equal(f.actions,1);
+ assert.equal(f.emit('click').stopped,true);assert.equal(f.actions,1);
+ f.emit('pointerdown');f.emit('scroll');f.emit('pointerup');assert.equal(f.actions,1);
+});
+test('shared dialog actions precede a competing router while form defaults remain native',()=>{
+ let handler,actions=0;
+ const root={addEventListener:(name,fn)=>{if(name==='click')handler=fn;},removeEventListener(){}};
+ const button={type:'button',form:null,disabled:false,closest:s=>s.split(',').includes('.aq267-dialog[open]'),onclick(){actions++;}};
+ installTouchNavigation(root);
+ const emit=()=>{const event={target:{closest:()=>button},isTrusted:true,detail:1,preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;}};handler(event);return event;};
+ assert.equal(emit().stopped,true);assert.equal(actions,1);
+ button.disabled=true;assert.equal(emit().stopped,undefined);assert.equal(actions,1);
+ button.disabled=false;button.form={};
+ for(const type of ['submit','reset']){button.type=type;const event=emit();assert.equal(event.stopped,undefined);assert.equal(event.prevented,undefined);assert.equal(actions,1);}
+ button.type='button';assert.equal(emit().stopped,true);assert.equal(actions,2);
+ button.onclick=null;assert.equal(emit().stopped,undefined);
+});
