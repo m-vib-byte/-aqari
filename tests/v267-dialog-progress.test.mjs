@@ -49,3 +49,28 @@ test('closing a dialog restores the connected trigger without scrolling the page
  const removed=fixture({isConnected:false,focus(){throw Error('detached trigger must not receive focus');}});
  try{assert.doesNotThrow(()=>removed.close());}finally{removed.cleanup();}
 });
+
+test('a back action requested during loading runs once after the current read',async()=>{
+ const f=fixture();try{let finish;const visits=[];
+ const pending=f.d.run(()=>new Promise(r=>{finish=r;}));await new Promise(setImmediate);
+ f.d.navigate(async()=>{visits.push('superseded');});
+ f.d.navigate(async()=>{visits.push('home');});
+ assert.deepEqual(visits,[]);finish();await pending;
+ assert.deepEqual(visits,['home']);assert.equal(f.d.el.attrs['aria-busy'],'false');
+ }finally{f.cleanup();}
+});
+test('close remains available during loading and cancels queued navigation',async()=>{
+ const f=fixture();let fresh;try{let finish,visits=0;
+ const pending=f.d.run(()=>new Promise(r=>{finish=r;}));await new Promise(setImmediate);
+ f.d.navigate(async()=>{visits++;});assert.equal(f.d.el.children[0].disabled,false);
+ f.close();fresh=createDialog('صفحة جديدة');finish();await pending;
+ assert.equal(visits,0);assert.equal(f.d.closed,true);assert.equal(fresh.closed,false);
+ }finally{fresh?.close();f.cleanup();}
+});
+test('queued navigation rechecks the current authorization before running',async()=>{
+ const f=fixture();try{let finish,visits=0;
+ const pending=f.d.run(()=>new Promise(r=>{finish=r;}));await new Promise(setImmediate);
+ f.d.navigate(async()=>{visits++;});window.AQARI_DATA_GATE.scope={userId:'changed',workspaceId:'test-workspace'};
+ finish();await pending;assert.equal(visits,0);
+ }finally{f.cleanup();}
+});
