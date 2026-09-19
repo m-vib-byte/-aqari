@@ -1,3 +1,4 @@
+import {guardPageImport} from '../components/navigation-import.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {t} from '../components/locale.js';
 export function openUnitEntry(){
@@ -15,7 +16,7 @@ export function openUnitEntry(){
    event.preventDefault();
    d.run(async()=>{
     if(!rows.some(row=>row.id===select.value))return;
-    const id=select.value,module=await import('./property-unit-create.js');d.session.check();
+    const id=select.value,module=await guardPageImport(()=>import('./property-unit-create.js'));d.session.check();
     d.close();module.openPropertyUnitCreate(id);
    });
   };
