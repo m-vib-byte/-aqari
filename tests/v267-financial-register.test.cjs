@@ -247,3 +247,10 @@ test('clean financial register closes without a discard prompt',async()=>{
  const f=fixture();await f.d.pending;f.close.onclick();
  assert.equal(f.d.closed,true);assert.equal(f.confirmations.length,0);
 });
+
+
+test('bank reconciliation navigation is bounded before financial dialog handoff',()=>{
+ const raw=fs.readFileSync('src/v267/pages/financial-register.js','utf8');
+ assert.match(raw,/guardPageImport\(\(\)=>import\('\.\/bank-reconciliation\.js'\)\)/);
+ assert.match(raw,/guardPageImport[\s\S]*d\.session\.check\(\)[\s\S]*d\.close\(\)[\s\S]*openBankReconciliation/);
+});
