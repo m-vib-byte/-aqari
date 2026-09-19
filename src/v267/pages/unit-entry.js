@@ -6,7 +6,7 @@ export function openUnitEntry(){
  d.run(async()=>{
   const access=await d.session.request(d.session.client.rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace}));d.session.check();
   if(access?.workspace_id!==d.session.bound.workspace||access?.user_id!==d.session.bound.user||access?.permissions?.properties?.write!==true)throw Error('ACCESS_DENIED');
-  const rows=await d.session.request(d.session.client.from('aqari_properties').select('id,name').eq('workspace_id',d.session.bound.workspace).order('name'));d.session.check();
+  const rows=await d.session.request(d.session.client.from('aqari_properties').select('id,name').eq('workspace_id',d.session.bound.workspace).or('metadata->>source_only.is.null,metadata->>source_only.neq.true').order('name'));d.session.check();
   if(!Array.isArray(rows))throw Error('INVALID_PROPERTIES');
   const form=node('form'),select=node('select'),empty=node('option',t('اختر العقار')),next=node('button',t('إضافة وحدة'));
   empty.value='';select.append(empty);select.required=true;
