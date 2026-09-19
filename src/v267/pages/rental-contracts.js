@@ -66,7 +66,10 @@ export function openRentalContracts(initial={}){
   const docs=await d.session.request(d.session.client.from('aqari_documents').select('id,original_filename,storage_path,status').eq('workspace_id',d.session.bound.workspace).eq('entity_type','lease').eq('entity_ref',String(id)).eq('status','uploaded').order('created_at',{ascending:false}));d.session.check();
   if(target!==d.body)target.replaceChildren();
   target.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));
-  for(const doc of docs)target.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);d.session.check();const a=node('a',translateStatic('فتح الأصل المحفوظ'));a.href=urls.create(blob);a.target='_blank';a.rel='noopener';target.append(a);}));
+  if(!docs.length){target.append(node('p',translateStatic('لا توجد نسخة أصلية مرفوعة لهذا العقد حتى الآن. استخدم «مسح أو رفع العقد ومرفقاته» لإضافة الملف وربطه بهذا العقد.')));return;}
+  for(const doc of docs){const row=node('section'),output=node('div');let link;
+   row.append(button(doc.original_filename||doc.id,async()=>{if(link)return;const blob=await d.session.storage('GET',doc.storage_path);d.session.check();link=node('a',translateStatic('فتح الأصل المحفوظ')+' — '+(doc.original_filename||doc.id));link.href=urls.create(blob);link.target='_blank';link.rel='noopener';output.replaceChildren(link);d.status.textContent=translateStatic('الملف جاهز. اضغط «فتح الأصل المحفوظ» أسفل اسم الملف لعرضه.');}),output);target.append(row);
+  }
  }
 
  function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
