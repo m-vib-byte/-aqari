@@ -63,7 +63,7 @@ export async function readReferenceDashboard(session,day){
  }
  if(can('collections'))add('overdue',async()=>overdueTotal((await rpc('aqari_rent_due_schedule',{p_lease_id:null})).periods,day));
  if(can('employees'))add('employees',async()=>{const value=await rpc('aqari_hr',{p_action:'list',p_data:{}});if(!Array.isArray(value?.employees))throw Error('INVALID_REPORT');return value.employees.length;});
- if(can('properties'))add('properties',()=>session.request(session.client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).order('name').limit(100)));
+ if(can('properties'))add('properties',()=>session.request(session.client.from('aqari_properties').select('id,name,aqari_units(count)').eq('workspace_id',workspace).order('name').limit(100)));
  if(can('finance')){
   const invoices=()=>table('aqari_utility_entries').eq('entry_type','bill').in('payment_status',['unpaid','partial']).lte('due_on',day);
   add('utilities',()=>session.request(invoices().order('due_on').limit(4)));
@@ -92,4 +92,13 @@ export function overdueTotal(periods,day){
   if(row.due_on<day)overdue.push({balance});
  }
  return sumMoney(overdue,'balance');
+}
+
+// Unknown, denied or ambiguous property matches must never use legacy totals.
+export function registeredUnitCount(properties,name){
+ if(!Array.isArray(properties))return null;
+ const rows=properties.filter(row=>String(row.name).trim()===String(name).trim());
+ if(rows.length!==1)return null;
+ const value=finiteNumber(rows[0].aqari_units?.[0]?.count);
+ return value!==null&&Number.isSafeInteger(value)&&value>=0?value:null;
 }
