@@ -12,7 +12,7 @@ test('statement navigation isolates months and disables actions after missing da
   replaceChildren(){this.children=[];}
   addEventListener(){}
  }
- const content={property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
+ const content={property_key:'shaikhah-tower',property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
  let failLinks=false;
  const queries=[];
@@ -56,5 +56,14 @@ test('statement navigation isolates months and disables actions after missing da
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08',onBack:()=>handoff.push('back')});await tasks[next];
   const back=dialog.body.children[0];assert.equal(back.textContent,t('العودة للعقود / Back'));back.onclick();
   assert.deepEqual(handoff,['check','close','back']);
+  content.property_key='dhahawi-tower';content.source_notes=['Archived source — review required'];content.rows[0].source_note='Original name discrepancy';
+  dialog.body.replaceChildren();next=tasks.length;
+  mod.openPropertyStatements({propertyName:content.property_name,period:'2026-08'});await tasks[next];await Promise.resolve();
+  assert.equal(dialog.body.children[3].disabled,false);
+  assert.equal(dialog.body.children[4].disabled,true);
+  const archived=dialog.body.children[5];
+  assert.ok(archived.children.some(el=>el.textContent==='Archived source — review required'));
+  assert.ok(archived.children.find(el=>el.tag==='details').children.some(el=>el.textContent==='Original name discrepancy'));
+  const before=queries.length;await dialog.body.children[4].onclick();assert.equal(queries.length,before);
  }finally{delete globalThis.__statementFixture;}
 });

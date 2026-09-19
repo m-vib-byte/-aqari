@@ -687,8 +687,8 @@
     },
     {
       "path": "lib/property_statement_pdf.py",
-      "sha256": "0785312d450d753c66483f986ddaf0f1df24d34dab2c09d97481851e13ffbd1b",
-      "size": 6648
+      "sha256": "9f52499ce21878fcafcd4d21915a5e042dfa92504c6ccaf7cf959c42bedb36bc",
+      "size": 6817
     },
     {
       "path": "lib/provider_webhook.py",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "9f250440e66adf5a095b0cda875c16811bb7bdad5f48785f80e92966ecbe2709",
-      "size": 17289
+      "sha256": "8cc5aa926daceb6d6f16e6b595cdd4cc9030d3d111a2ed25c3ea8aefba37ba1a",
+      "size": 17509
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -3032,13 +3032,13 @@
     },
     {
       "path": "tests/property_statement_test.py",
-      "sha256": "52f3d448d55b2c22c836a2ccbab0872394f4c1851105645b9f6838d0279296f7",
-      "size": 2963
+      "sha256": "bd21b8524b8a539fddd744069503a1c12bfd883c492634a33d057e70c749ce00",
+      "size": 3323
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "sha256": "2382b2b5435ccb2bd5db9e0aa0b76f562532b5ab4b916c34e270491e2f2c2bf1",
-      "size": 5449
+      "sha256": "74ab950240acb2945ff39b4d6aea004c5e1b692998010fdc7681af466d6ab66f",
+      "size": 6296
     },
     {
       "path": "tests/provider_webhook_test.py",
