@@ -244,6 +244,13 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
         field: _hex64(report.get(field), f"rollback {field}")
         for field in ("checkpoint_records_sha256", "during_records_sha256", "after_records_sha256")
     }
+    rehearsal_window_seconds = report.get("rehearsal_window_seconds")
+    if (
+        not isinstance(rehearsal_window_seconds, int)
+        or isinstance(rehearsal_window_seconds, bool)
+        or not 1 <= rehearsal_window_seconds <= 3600
+    ):
+        raise StageCEvidenceError("rollback rehearsal_window_seconds must be an integer between 1 and 3600")
     return {
         "format": ROLLBACK_FORMAT,
         "verified": True,
@@ -252,9 +259,7 @@ def _validate_rollback(report: object, candidate_sha: str, backup: dict) -> dict
         "rehearsal_id": rehearsal_id,
         "database_project_ref": source,
         "database_rollback_performed": False,
-        "rehearsal_window_seconds": _non_negative_int(
-            report.get("rehearsal_window_seconds"), "rollback rehearsal_window_seconds"
-        ),
+        "rehearsal_window_seconds": rehearsal_window_seconds,
         "checkpoint_record_count": checkpoint,
         "new_record_count": new,
         "after_record_count": after,
