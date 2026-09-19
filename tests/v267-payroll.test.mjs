@@ -45,3 +45,12 @@ test('complete Dhahawi slip renders fixed snapshot, issue date, receipt clauses 
  setLocale('ar');const arabic=voucherHTML(p);for(const s of ['برج ضحاوي','سند استلام راتب','09/09/2026','30/09/2024','150.000','فقط مائة وخمسون','المستحقات','مكافأة مالية','السكن للموظف','بدلات أيام العطل والإجازات الرسمية','التأخير عن الدوام','الغياب','إقرار واستلام','رئيس مجلس الإدارة','ختم الإدارة'])assert.ok(arabic.includes(s),s);
  for(const [ar]of ACKNOWLEDGEMENTS)assert.ok(arabic.includes(ar));assert.equal(arabic.split('ONE-PASSPORT').length-1,1);assert.ok(!arabic.includes('Salary Slip'));assert.ok(!html.includes('إقرار واستلام'));
 });
+
+
+test('contract uploads accept up to 25 MiB without changing the 10 MiB default',async()=>{
+ const pdf=size=>({size,type:'application/pdf',slice:()=>new Blob(['%PDF-1.7'])});
+ for(const size of [11302174,26214400])await validateDocument(pdf(size),26214400);
+ await assert.rejects(()=>validateDocument(pdf(11302174)),/10/);
+ await assert.rejects(()=>validateDocument(pdf(26214401),26214400),/25/);
+ await assert.rejects(()=>validateDocument(new Blob(['not a pdf'],{type:'application/pdf'}),26214400),/محتوى/);
+});
