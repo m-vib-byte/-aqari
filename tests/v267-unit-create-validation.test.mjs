@@ -37,3 +37,10 @@ test('optional unknown numbers stay null and a stated zero rent stays explicit',
  const blank=fixture();await blank.submit();assert.equal(blank.d.error,undefined);assert.equal(blank.calls[1].args.p_data.areaSqm,null);assert.equal(blank.calls[1].args.p_data.statedRent,null);
  const zero=fixture();zero.controls.get('الإيجار المعلن').value='٠';zero.controls.get('المساحة م²').value='100000000';await zero.submit();assert.equal(zero.d.error,undefined);assert.equal(zero.calls[1].args.p_data.statedRent,'0.000');assert.equal(zero.calls[1].args.p_data.areaSqm,'100000000.000');
 });
+
+
+test('add-unit chooser bounds the property editor module load before closing its dialog',()=>{
+ const source=readFileSync(new URL('../src/v267/pages/unit-entry.js',import.meta.url),'utf8');
+ assert.match(source,/guardPageImport\(\(\)=>import\('\.\/property-unit-create\.js'\)\)/);
+ assert.match(source,/guardPageImport[\s\S]*d\.session\.check\(\)[\s\S]*d\.close\(\)[\s\S]*openPropertyUnitCreate/);
+});
