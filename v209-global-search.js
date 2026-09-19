@@ -491,7 +491,7 @@
     // The auth bridge owns startup until BOTH workspace data boundaries open.
     // An independent UI refresh here would supersede its pending snapshot.
     if(event==='SIGNED_OUT'||!expected||!dataScopesReady(expected)||typeof window.AQARI_SUPABASE?.refreshContext!=='function'){render();return}
-    Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
+    return Promise.resolve(window.AQARI_SUPABASE.refreshContext(expected)).then(function(context){
       if(epoch!==authEpoch)return;
       const returned=contextAccess(context);
       const live=contextAccess(window.AQARI_SUPABASE?.context);
@@ -539,8 +539,11 @@
       revision:REVISION,
       seal:seal,
       resume:resume,
-      open:function(initialQuery){
-        if(!scopeKey())return false;
+      open:async function(initialQuery){
+        if(!scopeKey()){
+          await handleAuthStateChange('SEARCH_REQUEST');
+          if(!scopeKey())return false;
+        }
         if(typeof initialQuery==='string'){
           const ui=ensureUi();if(!ui)return false;
           query=initialQuery.trim().slice(0,1200);

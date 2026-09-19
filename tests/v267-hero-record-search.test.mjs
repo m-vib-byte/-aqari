@@ -28,8 +28,8 @@ test('receipt shortcut uses the contract search rather than the read-only report
  const r=runtime('');vm.runInContext("handleExactClick({target:{closest:s=>s==='[data-exact-special]'?{dataset:{exactSpecial:'receipts'}}:null}})",r.box);assert.deepEqual(r.calls,[['search','']]);
  const live=readFileSync(new URL('../src/v267/live-stability-runtime.js',import.meta.url),'utf8');assert.ok(live.includes("refAction('إصدار وصل','special','receipts','wallet')"));
 });
-test('initial search query is bounded and cannot open across a closed scope',()=>{
- const search=readFileSync(new URL('../v209-global-search.js',import.meta.url),'utf8');const fn=search.match(/open:function\(initialQuery\)\{([\s\S]*?)\n      \}/);assert.ok(fn);
- const input={value:''};let allowed=true,opened=0;const box={query:'',scopeKey:()=>allowed?'u|w':'',ensureUi:()=>({input}),document:{querySelector:()=>null},setSearchExpanded:()=>{opened++;return true;}};vm.createContext(box);vm.runInContext('open=function(initialQuery){'+fn[1]+'}',box);
- assert.equal(box.open('  TEST-01  '),true);assert.equal(input.value,'TEST-01');assert.equal(box.query,'TEST-01');box.open('x'.repeat(1400));assert.equal(input.value.length,1200);allowed=false;assert.equal(box.open('other'),false);assert.equal(opened,2);
+test('initial search query is bounded and cannot open across a closed scope',async()=>{
+ const search=readFileSync(new URL('../v209-global-search.js',import.meta.url),'utf8');const fn=search.match(/open:async function\(initialQuery\)\{([\s\S]*?)\n      \}/);assert.ok(fn);
+ const input={value:''};let allowed=true,opened=0;const box={query:'',handleAuthStateChange:async()=>{},scopeKey:()=>allowed?'u|w':'',ensureUi:()=>({input}),document:{querySelector:()=>null},setSearchExpanded:()=>{opened++;return true;}};vm.createContext(box);vm.runInContext('open=async function(initialQuery){'+fn[1]+'}',box);
+ assert.equal(await box.open('  TEST-01  '),true);assert.equal(input.value,'TEST-01');assert.equal(box.query,'TEST-01');await box.open('x'.repeat(1400));assert.equal(input.value.length,1200);allowed=false;assert.equal(await box.open('other'),false);assert.equal(opened,2);
 });

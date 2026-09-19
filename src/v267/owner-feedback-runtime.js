@@ -63,12 +63,12 @@ async function searchFromHero(event){
  const normalize=value=>String(value).normalize('NFKC').trim().toLowerCase().replace(/[أإآ]/g,'ا').replace(/[ًٌٍَُِّْـ]/g,'').replace(/\s+/g,' ');
  const command=normalize(question).replace(/^(?:افتح|فتح|open)\s+/,'');
  const def=ROUTES.find(item=>[item.label,t(item.label)].some(label=>normalize(label)===command));
- const opened=def?await openDefinition(def):openRecordSearch(question);
+ const opened=def?await openDefinition(def):await openRecordSearch(question);
  if(opened)input.value='';
 }
-function openRecordSearch(question=''){
+async function openRecordSearch(question=''){
  if(!scope())return false;
- if(typeof window.AQARI_V209?.open==='function'&&window.AQARI_V209.open(question)!==false)return true;
+ if(typeof window.AQARI_V209?.open==='function'&&await window.AQARI_V209.open(question)!==false)return true;
  setStatus('تعذر فتح الخدمة.',true);return false;
 }
 function heroMarkup(){return `<section class="aq-exact-hero"><div class="aq-exact-hero-copy"><span>${t('مرحباً مجدداً')}</span><h1 data-aq-record>${escapeText(userName())}</h1><p>${t('إدارة ذكية .. عوائد أكثر .. لمستقبل أفضل')}</p></div>${heroSearchMarkup()}<img class="aq-exact-hero-photo" src="/src/v267/assets/dashboard-hero.png" alt="" width="2163" height="727" fetchpriority="high"><div class="aq-exact-hero-promise"><strong>${t('العقار، أكثر من إدارة')}<br>${t('إن استثمارك في مستقبل أفضل')}</strong><p>${t('ممتلكاتك .. قيمة تدوم')}</p><div><button type="button" data-exact-route="properties">${svg('building')}<small>${t('العقارات')}</small></button><button type="button" data-exact-service="rental_contracts">${svg('file')}<small>${t('إنشاء عقد')}</small></button><button type="button" data-exact-route="tenants">${svg('user')}<small>${t('إضافة مستأجر')}</small></button><button type="button" data-exact-route="reports">${svg('chart')}<small>${t('التقارير')}</small></button></div></div></section>`;}
