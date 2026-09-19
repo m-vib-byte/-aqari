@@ -118,3 +118,16 @@
 }
 
 @media screen {body.aq-v267 .aq267-service-links[hidden]{display:none!important}}
+
+/* Keep the service notice readable when legacy span rules are loaded later. */
+@media screen {
+ body.aq-v267 .aq267-service-directory .aq267-preview-banner > .aq267-preview-copy {
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px 12px!important;min-width:0;
+ }
+ body.aq-v267 .aq267-service-directory .aq267-preview-banner > .aq267-preview-copy > strong {
+  color:#fff!important;flex:0 0 auto;margin:0!important;
+ }
+ body.aq-v267 .aq267-service-directory .aq267-preview-banner > .aq267-preview-copy > span {
+  display:block!important;min-width:0;flex:1 1 240px;overflow-wrap:anywhere;
+ }
+}
