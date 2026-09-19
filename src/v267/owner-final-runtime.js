@@ -19,7 +19,7 @@ function visible(el){if(!el||el.hidden)return false;const style=window.getComput
 function page(route){return document.getElementById(PAGE_BY_ROUTE[route]||route);}
 function sectionTitle(route){return ({home:'الرئيسية',properties:'العقارات',tenants:'المستأجرون',collectionProPage:'التحصيل',maintenanceProPage:'الصيانة',reports:'التقارير والإحصائيات',documentsHub:'المستندات والأرشيف',settingsCenterPage:'الإعدادات'})[route]||'القسم';}
 function waitPaint(){return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));}
-function status(message,bad=false){const node=document.getElementById('aqExactStatus');if(node){node.textContent=message||'';node.classList.toggle('bad',bad);}}
+function status(message,bad=false){window.AQARI_OWNER_EXACT?.status?.(message,bad);const node=document.getElementById('aqExactStatus');if(node){node.textContent=message||'';node.classList.toggle('bad',bad);}}
 
 async function access(){
  const s=scope();if(!s)throw Error('ACCESS_DENIED');
