@@ -1,4 +1,5 @@
 const SHA256_RE=/^[0-9a-f]{64}$/;
+const MAX_REHEARSAL_WINDOW_SECONDS=3600;
 
 function text(value){return typeof value==='string'?value.trim():''}
 function nonNegativeInt(value){return Number.isSafeInteger(value)&&value>=0}
@@ -10,7 +11,9 @@ export function validateStageCRollbackContinuity(bundle={}){
     ?bundle.rollback:{};
 
   if(rollback.verified!==true)errors.push('rollback continuity requires an explicitly verified rehearsal');
-  if(!positiveInt(rollback.rehearsal_window_seconds))errors.push('rollback continuity requires a positive rehearsal window');
+  if(!positiveInt(rollback.rehearsal_window_seconds)||rollback.rehearsal_window_seconds>MAX_REHEARSAL_WINDOW_SECONDS){
+    errors.push(`rollback continuity requires a positive rehearsal window no greater than ${MAX_REHEARSAL_WINDOW_SECONDS} seconds`);
+  }
 
   const checkpointCount=rollback.checkpoint_record_count;
   const newRecordCount=rollback.new_record_count;
