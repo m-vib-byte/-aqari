@@ -48,10 +48,13 @@ export function validateStageCRollbackContinuity(bundle={}){
   }
 
   if(SHA256_RE.test(checkpoint)&&SHA256_RE.test(during)&&positiveInt(newRecordCount)&&checkpoint===during){
-    errors.push('rollback rehearsal did not prove that newly created transactions changed the canonical transaction set before rollback');
+    errors.push('rollback rehearsal did not prove a distinct newly-created transaction subset');
   }
-  if(SHA256_RE.test(during)&&SHA256_RE.test(after)&&during!==after){
-    errors.push('rollback rehearsal changed the canonical transaction set; during and after digests must match exactly');
+  if(SHA256_RE.test(checkpoint)&&SHA256_RE.test(after)&&positiveInt(newRecordCount)&&checkpoint===after){
+    errors.push('rollback rehearsal after digest must differ from the checkpoint subset digest when new transactions are preserved');
+  }
+  if(SHA256_RE.test(during)&&SHA256_RE.test(after)&&positiveInt(checkpointCount)&&during===after){
+    errors.push('rollback rehearsal after digest must differ from the during-window new-transaction subset digest when checkpoint transactions are preserved');
   }
 
   return {ok:errors.length===0,errors};
