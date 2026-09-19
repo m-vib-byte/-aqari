@@ -1,5 +1,6 @@
 // Static interface text only; never translate business records.
 export const WORKSPACE_MESSAGES = {
+"تعذر فتح الخدمة.":{"en":"Could not open the service.","hi":"सेवा नहीं खोली जा सकी।","ur":"سروس نہیں کھولی جا سکی۔","ml":"സേവനം തുറക്കാനായില്ല."},
 "إدارة احترافية\nلعقارك في مكان واحد": {"en": "Professional property management\nin one place", "hi": "आपकी संपत्ति का पेशेवर प्रबंधन\nएक ही जगह", "ur": "آپ کی جائیداد کا پیشہ ورانہ انتظام\nایک ہی جگہ", "ml": "നിങ്ങളുടെ വസ്തുവിന്റെ പ്രൊഫഷണൽ പരിപാലനം\nഒരിടത്ത്"},
 "إدارة احترافية": {"en": "Professional management", "hi": "पेशेवर प्रबंधन", "ur": "پیشہ ورانہ انتظام", "ml": "പ്രൊഫഷണൽ പരിപാലനം"},
 "لعقارك في مكان واحد": {"en": "Your property in one place", "hi": "आपकी संपत्ति एक ही जगह", "ur": "آپ کی جائیداد ایک ہی جگہ", "ml": "നിങ്ങളുടെ വസ്തു ഒരിടത്ത്"},
