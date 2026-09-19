@@ -12,7 +12,6 @@ const SHA='861cfac1fea37f38d878526fea9422b63d216852';
 const OTHER_SHA='13a219e7930db89ebf2f9b44d30007499efa6ccf';
 const ROLLBACK_SHA='2'.repeat(40);
 const REHEARSAL_ID='3'.repeat(32);
-const DIGEST='a'.repeat(64);
 const PREVIEW_DEPLOYMENT='dpl_AqariExactPreview123';
 const PREVIEW_URL='https://aqari-exact-preview-123.vercel.app';
 const AQARI_PREVIEW_URL='https://aqari-exact-preview-123-m-vib-5421.vercel.app';
@@ -52,13 +51,32 @@ function validBundle(){
       release_stage:'preview',
     },
     evidence_sha256:{
-      backup_set:DIGEST,
+      backup_set:'a'.repeat(64),
       backup_storage_bytes:'b'.repeat(64),
       independent_restore:'c'.repeat(64),
       rollback_rehearsal:'d'.repeat(64),
       physical_devices:'e'.repeat(64),
     },
     storage:{object_count:2,total_bytes:156509,manifest_sha256:'f'.repeat(64)},
+    backup:{
+      format:'AQARI-V267-BACKUP-SET-MANIFEST-1',
+      candidate_sha:SHA,
+      project_ref:'aqari-preview-source',
+      capture_started_at:'2026-09-17T06:00:00Z',
+      capture_finished_at:'2026-09-17T06:00:30Z',
+      capture_window_seconds:30,
+      components:{
+        database:{bytes:1000,sha256:'8'.repeat(64)},
+        auth:{bytes:200,sha256:'9'.repeat(64)},
+        storage:{
+          bytes:300,
+          sha256:'a'.repeat(64),
+          object_count:2,
+          object_bytes:156509,
+          storage_manifest_sha256:'f'.repeat(64),
+        },
+      },
+    },
     restore:{
       format:'AQARI-V267-RESTORE-EQUIVALENCE-1',
       verified:true,
@@ -96,6 +114,7 @@ function validBundle(){
     },
     devices:{desktop:device('desktop'),iphone:device('iphone'),ipad:device('ipad')},
   };
+  value.evidence_sha256.backup_set=stageCEvidenceSha256(value.backup);
   value.evidence_sha256.backup_storage_bytes=stageCEvidenceSha256({
     format:'AQARI-V267-STORAGE-BYTE-MANIFEST-1',
     verified:true,
@@ -135,6 +154,28 @@ test('rejects mixed candidate, same-project restore, byte digest drift, rollback
     mutate(value);
     recompute(value);
     assert.equal(validateStageCReleaseBundle(value,SHA).ok,false);
+  }
+});
+
+test('rejects missing, stale, cross-candidate or storage-divergent backup manifests even when digests are recomputed',()=>{
+  const mutations=[
+    (b)=>{delete b.backup},
+    (b)=>{b.backup.candidate_sha=OTHER_SHA},
+    (b)=>{b.backup.project_ref='another-source-project'},
+    (b)=>{b.backup.capture_finished_at='2026-09-17T06:10:00Z';b.backup.capture_window_seconds=600},
+    (b)=>{b.backup.capture_window_seconds=31},
+    (b)=>{b.backup.components.storage.object_bytes+=1},
+    (b)=>{b.backup.components.auth.bytes=0},
+    (b)=>{b.backup.components.database.extra='unexpected'},
+  ];
+  for(const mutate of mutations){
+    const value=validBundle();
+    mutate(value);
+    if(value.backup)value.evidence_sha256.backup_set=stageCEvidenceSha256(value.backup);
+    recompute(value);
+    const result=validateStageCReleaseBundle(value,SHA);
+    assert.equal(result.ok,false);
+    assert.match(result.errors.join('\n'),/backup|capture|Storage|component/i);
   }
 });
 
@@ -269,9 +310,10 @@ test('rejects unsafe or noncanonical physical-device evidence paths even when al
   }
 });
 
-test('rejects embedded Storage, restore, rollback, or physical-device tampering even when bundle_sha256 is recomputed',()=>{
+test('rejects embedded Storage, backup, restore, rollback, or physical-device tampering even when bundle_sha256 is recomputed',()=>{
   const mutations=[
     (b)=>{b.storage.total_bytes+=1},
+    (b)=>{b.backup.components.database.sha256='0'.repeat(64)},
     (b)=>{b.restore.restored_generated_at='2026-09-17T06:11:10Z'},
     (b)=>{b.rollback.rehearsal_window_seconds+=1},
     (b)=>{b.devices.desktop.browser='Chrome Stable - altered'},
