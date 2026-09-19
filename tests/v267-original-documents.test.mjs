@@ -20,6 +20,16 @@ test('original image/PDF bytes are preserved and spoofed file types are refused'
  await assert.rejects(originalDocument(new File(['<html>bad'],'x.pdf',{type:'application/pdf'})));
  await assert.rejects(originalDocument(new File([''],'empty.pdf')));
 });
+test('original PDF accepts the private bucket limit and refuses excess before reservation',async()=>{
+ for(const size of [11302174,25*1024*1024]){
+  const file=new File(['%PDF-1.7\n',new Uint8Array(size-9)],'large-original.pdf');
+  const blob=await originalDocument(file);assert.equal(blob.size,size);assert.equal(blob.type,'application/pdf');
+  assert.deepEqual(await blob.arrayBuffer(),await file.arrayBuffer());
+ }
+ const f=fixture();
+ await assert.rejects(createOriginalDocumentUpload(f.s)(new File(['%PDF-1.7\n',new Uint8Array(25*1024*1024-8)],'oversize.pdf'),target),/٢٥/);
+ assert.equal(f.calls.length,0);
+});
 function fixture(){
  let row,bytes;const calls=[],s={bound:{workspace:'w',user:'u'},check(){},request:async q=>q,
   client:{rpc(name,args){calls.push({name,args});if(name==='aqari_reserve_document'){row={id:'d',entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,document_type:args.p_document_type,metadata:args.p_metadata,created_by:'u'};return {document_id:'d',storage_bucket:'aqari-documents',storage_path:'w/d.pdf'};}row.status='uploaded';row.checksum_sha256=args.p_checksum;return 'd';},from(){const q={select(){return q;},eq(){return q;},single(){return row;}};return q;}},

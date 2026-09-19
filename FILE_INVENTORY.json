@@ -1002,7 +1002,7 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "bc003d3967a29e3976ca89a8ea1ba48aa72653f68ff90e0629b0049f04f092cf",
+      "sha256": "71e2c70f2d813f1c5e5178fac02a964f40b3ea206485bfa8ec99ab5711a414ee",
       "size": 3491
     },
     {
@@ -1162,7 +1162,7 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "bb09af29f252c5c198c30eae11c29b98bb338c273699e9f58e24a7db0b84e957",
+      "sha256": "f97d9a731ef742fe5f224f1acd04846627c274a98a7998246658d03149000ee2",
       "size": 4193
     },
     {
@@ -3622,8 +3622,8 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "sha256": "89e5e75716e693d33dd117d979afee6cad23843b25ba8cd02007d5a221918f3e",
-      "size": 6528
+      "sha256": "c1c7dcf8dd690a43412d4e3330cff76e7203caf4ae26431cf0cae557017c1056",
+      "size": 7147
     },
     {
       "path": "tests/v267-owner-feedback-batch.test.mjs",
