@@ -118,3 +118,14 @@ dialog.aq267-service-dialog::backdrop{background:rgba(35,28,22,.52);}
 @media(max-width:600px){dialog.aq267-service-dialog{padding:10px;width:96vw;}.aq267-service-dialog .aq267-service-groups{grid-template-columns:1fr;}}
 
 #aqOwnerExactBottom{grid-template-columns:repeat(6,minmax(0,1fr));}
+
+/* Keep the service dialog independent from global sticky headers and dashboard grids. */
+@media screen {
+ body.aq-v267 #aq267-service-dialog #aq267-service-directory>header{position:static!important;inset:auto!important;z-index:auto!important;}
+ body.aq-v267 #aq267-service-dialog>.aq267-service-dialog-close{z-index:1000!important;min-width:88px;min-height:44px;}
+ body.aq-v267 #aq267-service-dialog .aq267-service-group{grid-column:1/-1!important;}
+ body.aq-v267 #aq267-service-dialog .aq267-service-links{grid-template-columns:minmax(0,1fr)!important;}
+}
+@media screen and (min-width:700px){
+ body.aq-v267 #aq267-service-dialog .aq267-service-links{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+}
