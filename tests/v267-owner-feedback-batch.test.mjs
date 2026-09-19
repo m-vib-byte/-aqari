@@ -62,3 +62,13 @@ test('owner quick add actions open the real tenant and property forms',()=>{
  assert.match(source,/data-exact-special="tenant_create"[^>]*>\$\{svg\('user'\)\}<span>\$\{t\('إضافة مستأجر'\)\}<\/span>/);
  assert.match(source,/data-exact-special="property_create"[^>]*>\$\{svg\('building'\)\}<span>\$\{t\('إضافة عقار'\)\}<\/span>/);
 });
+
+
+test('late-mounted owner actions wait briefly instead of failing immediately after login',()=>{
+ const source=read('src/v267/owner-feedback-runtime.js');
+ assert.match(source,/async function waitForRuntimeMount\(check,timeout=1800\)/);
+ assert.match(source,/AQARI_PROPERTY_EXPERIENCE\|\|await waitForRuntimeMount/);
+ assert.match(source,/typeof window\.AQARI_V209\?\.open==='function'\?window\.AQARI_V209:await waitForRuntimeMount/);
+ assert.match(source,/async function openServicesDirectory\(\)/);
+ assert.match(source,/aq267-workspace-tools/);
+});
