@@ -22,7 +22,9 @@ const directoryPath=new URL('../src/v267/components/service-directory.js',import
 let directorySource=readFileSync(directoryPath,'utf8');
 const previewAnchor="return String(current.hostname||'').endsWith('.vercel.app');";
 const previewReplacement="const hostname=String(current.hostname||'');return hostname==='myaqari.com'||hostname.endsWith('.vercel.app');";
-if(directorySource.includes(previewAnchor))directorySource=directorySource.replace(previewAnchor,previewReplacement);
+// The current directory intentionally filters unavailable services on production.
+const productionFilteredPreview="return hostname.endsWith('.vercel.app')&&hostname!=='aqari-lovat.vercel.app'&&hostname!=='aqari-m-vib-5421.vercel.app';";
+if(directorySource.includes(productionFilteredPreview)){}else if(directorySource.includes(previewAnchor))directorySource=directorySource.replace(previewAnchor,previewReplacement);
 else if(!directorySource.includes(previewReplacement))throw Error('V267_SERVICE_DIRECTORY_PREVIEW_ANCHOR_MISSING');
 const sectionAnchor="box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);count.className='aq267-service-count';";
 const sectionReplacement="box.className='aq267-service-group';box.dataset.group=group.key;box.open=!!query||expanded.has(group.key);summary.onclick=event=>{event?.preventDefault?.();box.open=!box.open;};count.className='aq267-service-count';";
