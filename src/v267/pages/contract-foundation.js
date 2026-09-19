@@ -33,7 +33,7 @@ export function openContractFoundation(options={}){
  async function load(){
   const [saved,loadedProperties,loadedUnits,templateContext]=await Promise.all([
    window.AQARI_SUPABASE.loadAppState(scope()),
-   d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).order('name')),
+   d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).or('metadata->>source_only.is.null,metadata->>source_only.neq.true').order('name')),
    d.session.request(d.session.client.from('aqari_units').select('id,property_id,unit_no').eq('workspace_id',d.session.bound.workspace).order('unit_no')),
    rpc('aqari_rental_templates',{p_workspace_id:d.session.bound.workspace,p_action:'context',p_data:{}})
   ]);
