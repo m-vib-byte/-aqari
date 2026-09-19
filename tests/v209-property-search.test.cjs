@@ -464,3 +464,11 @@ test('property removal or scope change after search prevents opening',()=>{
 test('existing tenant and contract results retain their original actions',()=>{
  const env=createHarness();const html=env.search('C-101');assert.match(html,/data-v209-action="contract"/);assert.match(html,/data-v209-action="payment"/);assert.doesNotMatch(html,/data-v209-action="property"/);
 });
+
+ test('visible search close button dismisses the panel without keyboard input',()=>{
+ const env=createHarness();
+ env.panel.classList.add('on');
+ const close=env.document.getElementById('v209SearchClose');
+ assert.ok(close); assert.equal(close.getAttribute('aria-label'),'إغلاق البحث');
+ close.dispatchEvent({type:'click',stopPropagation(){}}); assert.equal(env.panel.classList.contains('on'),false);
+ });

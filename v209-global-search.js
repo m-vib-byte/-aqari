@@ -229,6 +229,20 @@
       panel.appendChild(label);
       panel.appendChild(field);
     }
+    let closeButton=document.getElementById('v209SearchClose');
+    if(!closeButton){
+      closeButton=document.createElement('button');
+      closeButton.id='v209SearchClose';
+      closeButton.type='button';
+      closeButton.setAttribute('aria-label','إغلاق البحث');
+      closeButton.textContent='× إغلاق';
+      closeButton.addEventListener('click',function(event){
+        event.preventDefault();
+        event.stopPropagation();
+        closePanel();
+      });
+      panel.appendChild(closeButton);
+    }
     panel.classList.add('v209-search-panel');
     panel.setAttribute('role','search');
     panel.setAttribute('aria-label','البحث الشامل في عقاري');

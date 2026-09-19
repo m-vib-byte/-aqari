@@ -26,7 +26,7 @@
  }
 
  /* Any close/X control is intentionally red and visually consistent. */
- body.aq-v267 .aq267-dialog {position:relative}
+ body.aq-v267 .aq267-dialog {position:fixed;inset:0;margin:auto!important}
  body.aq-v267 :is(.aq267-close,button.close,button.close-btn,button.modal-close,button.dialog-close,button[aria-label='إغلاق'],button[aria-label='Close'],button[title='إغلاق'],button[title='Close'],button[data-action='close'],button[data-v199-action='close']) {
   width:44px!important;
   min-width:44px!important;
@@ -40,16 +40,18 @@
   box-shadow:none!important;
  }
  body.aq-v267 .aq267-dialog button.aq267-close {
-  position:absolute;
-  inset-block-start:16px;
-  inset-inline-end:16px;
+  position:sticky;
+  inset-block-start:0;
+  inset-inline-end:0;
   z-index:2;
   margin:0!important;
+  margin-inline-start:auto!important;
+  margin-block-end:-44px!important;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:6px;
-  width:auto!important;
+  width:max-content!important;
   min-width:88px!important;
   padding-inline:10px!important;
   font-size:14px!important;
@@ -92,6 +94,6 @@
  }
 
  @media (max-width:600px) {
-  body.aq-v267 .aq267-close {inset-block-start:12px;inset-inline-end:12px}
+  body.aq-v267 .aq267-close {inset-block-start:0;inset-inline-end:0}
  }
 }
