@@ -42,3 +42,9 @@ test('contract foundation keeps cancelled preparation as audited history instead
  assert.match(source,/cancelDraft\.className='danger'/);
  assert.doesNotMatch(source,/contractPreparationDraftsV267=.*filter\([^\n]*id!==id/);
 });
+
+
+test('source-only statement properties are excluded from contract property choices',()=>{
+ const source=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
+ assert.match(source,/from\('aqari_properties'\)[\s\S]*metadata->>source_only\.is\.null,metadata->>source_only\.neq\.true/);
+});
