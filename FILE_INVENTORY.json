@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "04a4e570fc7c82d12d3900cd8a65a2167ff7fc58abf730ebb1d6bc2e009ff1a6",
-      "size": 7408
+      "sha256": "2bc99dda54b53b42184a7cc550e77f15347a28c4205277d6b20dae893f1b00be",
+      "size": 7565
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -282,7 +282,7 @@
     },
     {
       "path": "docs/V267-EVIDENCE-155.json",
-      "sha256": "5807c36ec7b03ac850d83535fc9e9b413a9688bae945ff6f211333317a7852bf",
+      "sha256": "a1eeb39177678ad9e6bda766df4eb642ba19c705d3111cf527c62557c8216392",
       "size": 644811
     },
     {
@@ -1442,8 +1442,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "4bbde238d7c5b5d8d71a1d32eae6ae05d0518ffa122b9f6fd18817bea5d7e291",
-      "size": 29178
+      "sha256": "683ebf54a7b841bdd2ad47566d4f4c9ef68ea429d69b3429817694fb039a47e9",
+      "size": 29663
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -4089,6 +4089,11 @@
       "path": "api/owner-report-delivery.js",
       "size": 10467,
       "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6"
+    },
+    {
+      "path": "tests/v267-contract-signing-navigation.test.mjs",
+      "sha256": "4e9fe2cac8cca892679c5e2cae191318c168c52013461c6954fa2e4ad071d156",
+      "size": 3070
     }
   ],
   "version": "V198"

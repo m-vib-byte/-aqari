@@ -1,6 +1,7 @@
 import {t as translateStatic} from '../components/locale.js';
 import '../../../v267-rental-records.js';
 import {createDialog,node,field} from '../components/dialog.js';
+import {guardPageImport} from '../components/navigation-import.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {createVerifiedUpload} from '../components/verified-upload.js';
 import {validateDocument,kuwaitTime,currentMonth} from '../domain/payroll.js';
@@ -79,7 +80,17 @@ export function openRentalContracts(initial={}){
   printControls(d,api,urls,id,[[1,'draft',translateStatic('مسودة للمراجعة فقط / Review draft')],[1,'official',translateStatic('تجهيز نسخة معتمدة للطباعة / Prepare approved copy')],[2,'official',translateStatic('تجهيز نسختين معتمدتين مع الملاحق / Prepare two approved sets')]]);
   if(c.rentalTermsVersion===1)d.body.append(button(translateStatic('تعديل معتمد مع حفظ السجل السابق'),async()=>form(c)));
   d.body.append(button(translateStatic('جدول الاستحقاقات والتحصيل'),async()=>{const lease=await d.session.request(d.session.client.from('aqari_leases').select('id').eq('workspace_id',d.session.bound.workspace).eq('external_ref',String(c.id)).single());const schedule=await rpc('aqari_rent_due_schedule',{p_workspace_id:d.session.bound.workspace,p_lease_id:lease.id});if(!Array.isArray(schedule?.periods))throw Error('تعذر تأكيد جدول الاستحقاق.');const box=node('section'),table=node('table'),head=node('tr');for(const label of [translateStatic('الفترة'),translateStatic('تاريخ الاستحقاق'),translateStatic('صافي المستحق'),translateStatic('المحصل'),translateStatic('الرصيد الدائن المخصص'),translateStatic('رصيد الفترة')])head.append(node('th',label));table.append(head);for(const row of schedule.periods){if(row.lease_id!==lease.id)throw Error('جدول استحقاق لا يخص العقد.');const tr=node('tr');for(const value of [row.period,row.due_on||translateStatic('لا استحقاق'),...['due_amount','paid_amount','credit_amount','balance'].map(key=>api.amount(row[key]).toFixed(3))])tr.append(node('td',String(value??translateStatic('غير مدون'))));table.append(tr);}const scroll=node('div');scroll.style.overflowX='auto';scroll.style.maxWidth='100%';scroll.append(table);box.append(node('h3',translateStatic('جدول الاستحقاقات المحفوظ للعقد')),node('p',translateStatic('رصيد الفترة المستقبلية ليس متأخرًا قبل تاريخ استحقاقها. لا يشمل الجدول تحويل التأمين أو العربون تلقائيًا.')),scroll);d.body.append(box);}));
-  const transitions={draft:'ready',ready:'approved',approved:'signing',signing:'signed'};const next=transitions[c.status];if(next)d.body.append(button(translateStatic('نقل إلى: ')+translateStatic(states[next]),async()=>{if(['approved','signed'].includes(next)&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');await api.saveLease({...c,status:next,changeReason:'اعتماد انتقال حالة العقد إلى '+states[next]});await show(id);}));
+  const transitions={draft:'ready',ready:'approved',approved:'signing',signing:'signed'};const next=transitions[c.status];if(next)d.body.append(button(translateStatic('نقل إلى: ')+translateStatic(states[next]),async()=>{
+   if(['approved','signed'].includes(next)&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');
+   if(next==='signed'&&c.source==='v267-cloud'){
+    const module=await guardPageImport(()=>import('./contract-execution.js'));d.session.check();
+    // The settlement owns the signed transition. Release this dialog before
+    // opening it, and return only after its explicit completion action.
+    d.close();
+    return module.openContractExecution(c.id,{onDone:()=>openRentalContracts({id:c.id})});
+   }
+   await api.saveLease({...c,status:next,changeReason:'اعتماد انتقال حالة العقد إلى '+states[next]});await show(id);
+  }));
   const docs=await d.session.request(d.session.client.from('aqari_documents').select('id,original_filename,storage_path,status').eq('workspace_id',d.session.bound.workspace).eq('entity_type','lease').eq('entity_ref',String(id)).eq('status','uploaded').order('created_at',{ascending:false}));d.body.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));for(const doc of docs)d.body.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);const a=node('a',translateStatic('فتح الأصل المحفوظ'));a.href=urls.create(blob);a.target='_blank';a.rel='noopener';d.body.append(a);}));
   const upload=node('form'),file=input('file'),confirm=input('checkbox'),save=node('button',translateStatic('رفع النسخة الموقعة وربطها بالعقد'));file.accept='application/pdf,image/jpeg,image/png';file.required=confirm.required=true;upload.append(field(translateStatic('النسخة الموقعة — PDF أو صورة'),file),field(translateStatic('راجعت النسخة وهي العقد الموقّع الفعلي لهذا المستأجر والوحدة'),confirm),save);d.body.append(upload);let pending=null;
   file.onchange=()=>{pending=null;confirm.checked=false;};
@@ -100,4 +111,3 @@ export function openRentalContracts(initial={}){
  }
  d.run(initial.renewalFrom!==undefined?async()=>{await load();await form(null,await loadLeaseRenewal(d,String(initial.renewalFrom)));}:initial.id!==undefined?()=>show(initial.id):initial.create?async()=>{await load();await form(null);}:home);
 }
-
