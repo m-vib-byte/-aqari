@@ -1127,8 +1127,8 @@
     },
     {
       "path": "src/v267/components/navigation-import.js",
-      "size": 515,
-      "sha256": "89f5694bb063853f66f0e47d5012166980757201940a20a32cfc6788fe81159b"
+      "size": 1085,
+      "sha256": "f5d0e378cce3857b7d41d0c583979ada94e08f09721e708c83d5bf36e3c49d9c"
     },
     {
       "path": "src/v267/components/official-form-fields.js",
@@ -3492,8 +3492,8 @@
     },
     {
       "path": "tests/v267-navigation-import.test.mjs",
-      "size": 1325,
-      "sha256": "5c524ba23ece21b834f8cf89c51fe0da26c6354f61f0958c7f7d94eac8a3bf2f"
+      "size": 2597,
+      "sha256": "b71e6773278d5940b8f6678fb998691fe535ddf63a275bf8118281a5d91b7fa0"
     },
     {
       "path": "tests/v267-navigation-matrix.test.mjs",
