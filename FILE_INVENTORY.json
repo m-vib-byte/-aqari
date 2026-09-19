@@ -1362,8 +1362,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "sha256": "fc950fc2d87bdc64b829e9e940e4c5f9d8202987173d8c7ff0473bbe261be728",
-      "size": 27837
+      "sha256": "4fc681cccbf42dac4abd193bf4d0762c380e5186d0e1f835767e9abcda0f6599",
+      "size": 28325
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -3367,8 +3367,8 @@
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
-      "sha256": "d6d63159ff6586c279977664bf9d215b68ad7445e263f025cb6a7f805fa36393",
-      "size": 32312
+      "sha256": "d210dcec658a7a910f442b0979b73d58f2aca3e3830f63c0df07370863fd5583",
+      "size": 33386
     },
     {
       "path": "tests/v267-hero-record-search.test.mjs",
