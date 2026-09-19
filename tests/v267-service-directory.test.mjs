@@ -137,7 +137,7 @@ test('service directory polish keeps the document shortcut responsive on narrow 
 test('directory opens from any page, retains real handlers, and restores its original home',()=>{
  const f=fixture();try{
   const root=f.root();assert.equal(f.view.open(),true);const dialog=document.body.children[0];
-  assert.equal(dialog.open,true);assert.equal(root.parentNode,dialog);assert.equal(f.find('aq267-service-search').focused,true);
+  assert.equal(dialog.open,true);assert.equal(root.parentNode,dialog);assert.notEqual(f.find('aq267-service-search').focused,true,'opening services must not summon the mobile keyboard');assert.equal(dialog.children[0].focused,true);
   f.view.refresh('user-workspace');assert.equal(f.root(),root);
   f.proxies()[0].click();assert.equal(f.clicks(),1);assert.equal(dialog.open,false);assert.equal(root.parentNode,f.host());
   f.view.open();assert.equal(document.body.children.length,1);dialog.children[0].click();assert.equal(root.parentNode,f.host());

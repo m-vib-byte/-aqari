@@ -97,3 +97,13 @@
   body.aq-v267 .aq267-close {inset-block-start:0;inset-inline-end:0}
  }
 }
+
+/* High-contrast close controls requested by the owner, including service directory. */
+@media screen {
+ body.aq-v267 :is(dialog.aq267-dialog,dialog.aq267-service-dialog) :is(button.aq267-close,button.aq267-service-dialog-close) {
+  background:#982018!important;color:#fff!important;border:1px solid #7f1d1d!important;
+  min-height:44px!important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;
+ }
+ body.aq-v267 .aq267-dialog button.aq267-close::before {color:inherit}
+ body.aq-v267 :is(dialog.aq267-dialog,dialog.aq267-service-dialog) :is(button.aq267-close,button.aq267-service-dialog-close):hover {background:#7f1d1d!important;color:#fff!important}
+}
