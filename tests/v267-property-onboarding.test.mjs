@@ -36,14 +36,15 @@ test('missing cloud bridge does not leave an empty modal blocking navigation',()
 test('direct contract foundation loads its engine and renders choices without creating a draft',async()=>{
  const source=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
  assert.match(source,/^import '\.\.\/\.\.\/\.\.\/v267-rental-records\.js';$/m);
- const writes=[],calls=[];
+ const writes=[],calls=[],classes=new Set();
  const node=(tag,text='')=>({tag,textContent:text,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;}});
  const query={select(){return this;},eq(){return this;},order(){return [];}};
- const d={body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace'},check(){},client:{from(name){calls.push(name);return query;},rpc(name){calls.push(name);return {items:[]};}},request:async value=>value},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
+ const d={el:{classList:{add:name=>classes.add(name)}},body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace'},check(){},client:{from(name){calls.push(name);return query;},rpc(name){calls.push(name);return {items:[]};}},request:async value=>value},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
  const context={window:{AQARI_SUPABASE:{loadAppState:async()=>({payload:{}}),saveAppState:()=>writes.push('save')}},node,createDialog:()=>d,translateStatic:x=>x,rentalTemplateKinds:[['investment','استثماري']],validTemplate:()=>true};
  vm.createContext(context);vm.runInContext(readFileSync(new URL('../v267-rental-records.js',import.meta.url),'utf8'),context);
  vm.runInContext(source.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nopenContractFoundation();',context);
  await d.pending;
+ assert.ok(classes.has('aq267-contract-foundation'));
  assert.equal(d.body.children[0].textContent,'ابدأ عقدًا جديدًا');
  assert.equal(d.body.children.at(-1).children[0].textContent,'استثماري');
  assert.deepEqual(calls,['aqari_properties','aqari_units','aqari_rental_templates']);assert.deepEqual(writes,[]);
@@ -109,3 +110,4 @@ test('archive retry keeps successful document ids and never asks storage or data
  assert.doesNotMatch(upload,/\.storage\.from\([^)]*\)\.remove\(/);
  assert.doesNotMatch(upload,/\.from\([^)]*\)\.delete\(/);
 });
+
