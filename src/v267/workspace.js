@@ -43,6 +43,20 @@ function updateFeatureTools(){
  const exit=document.getElementById('aq267-exit-review');
  if(exit)exit.hidden=access?.features?.exit_review!==true||access?.role!=='general_manager';
  if(vacating)vacating.hidden=access?.features?.vacating_settlement!==true||access?.permissions?.contracts?.read!==true||access?.permissions?.collections?.read!==true;
+ const directPages=[
+  ['aq267-approval-center',null,true],
+  ['aq267-bank-reconciliation','finance',false],
+  ['aq267-contract-foundation','contracts',false],
+  ['aq267-owner-experience-settings',null,true],
+  ['aq267-owner-report','reports',true],
+  ['aq267-owner-task-center',null,true],
+  ['aq267-property-admin-settings','properties',true],
+  ['aq267-property-controls','properties',true],
+  ['aq267-property-cost-allocation','finance',true],
+  ['aq267-property-onboarding','properties',true],
+  ['aq267-tenant-timeline','tenants',false]
+ ];
+ for(const [id,section,manager] of directPages){const button=document.getElementById(id);if(button)button.hidden=!directoryAllowed({section,manager});}
  serviceDirectory?.refresh(directoryScope());
  propertyExperience?.refresh();
 }
@@ -79,6 +93,18 @@ export function install(){
  propertyExperience=installPropertyExperience({readable:()=>directoryAllowed({section:'properties'}),writable:()=>directoryAllowed({section:'properties'})&&access?.permissions?.properties?.write===true&&['general_manager','property_manager'].includes(access?.role)});
  window.AQARI_DOCUMENTS={allowed:()=>directoryAllowed({section:'documents'})};
  const tools=node('section'),control=node('button',label('control_center')),scan=node('button',label('scan_document')),language=node('select');tools.className='aq267-tools';tools.id='aq267-workspace-tools';notice=node('p');notice.setAttribute('role','status');
+ const directPage=(id,title,path,method,section=null,manager=false)=>{const button=ui('button',title);button.id=id;button.hidden=true;button.onclick=async()=>{try{if(!directoryScope())await refresh();if(!directoryAllowed({section,manager}))throw Error('هذه الخدمة غير متاحة لصلاحية حسابك.');const bound=directoryScope(),m=await import(path);if(bound!==directoryScope()||!directoryAllowed({section,manager}))throw Error('تغيّرت الجلسة أو الصلاحية. أعد المحاولة.');if(typeof m[method]!=='function')throw Error('تعذر فتح الصفحة.');return m[method]();}catch(e){notice.textContent=t(safeError(e));return false;}};return button;};
+ const approvalCenter=directPage('aq267-approval-center','مركز الموافقات','./pages/approval-center.js','openApprovalCenter',null,true);
+ const bankReconciliation=directPage('aq267-bank-reconciliation','مطابقة التحويلات البنكية','./pages/bank-reconciliation.js','openBankReconciliation','finance');
+ const contractFoundation=directPage('aq267-contract-foundation','عقد جديد — التأسيس الكامل','./pages/contract-foundation.js','openContractFoundation','contracts');
+ const ownerExperienceSettings=directPage('aq267-owner-experience-settings','إعدادات تجربة المالك','./pages/owner-experience-settings.js','openOwnerExperienceSettings',null,true);
+ const ownerReport=directPage('aq267-owner-report','تقرير المالك','./pages/owner-report.js','openOwnerReport','reports',true);
+ const ownerTaskCenter=directPage('aq267-owner-task-center','التنبيهات والمهام','./pages/owner-task-center.js','openOwnerTaskCenter',null,true);
+ const propertyAdminSettings=directPage('aq267-property-admin-settings','إعدادات إدارة العقارات','./pages/property-admin-settings.js','openPropertyAdminSettings','properties',true);
+ const propertyControls=directPage('aq267-property-controls','ضوابط وخدمات العقار','./pages/property-controls.js','openPropertyControls','properties',true);
+ const propertyCostAllocation=directPage('aq267-property-cost-allocation','توزيع تكاليف العقار','./pages/property-cost-allocation.js','openPropertyCostAllocation','finance',true);
+ const propertyOnboarding=directPage('aq267-property-onboarding','إضافة عقار وتجهيزه','./pages/property-onboarding.js','openPropertyOnboarding','properties',true);
+ const tenantTimeline=directPage('aq267-tenant-timeline','السجل الزمني للمستأجر','./pages/tenant-timeline.js','openTenantTimeline','tenants');
  for(const [value,text]of Object.entries(LANGUAGES)){const option=node('option',text);option.value=value;language.append(option);}
  control.dataset.aq267Label='control_center';scan.dataset.aq267Label='scan_document';
  control.hidden=currentScope().role!=='general_manager';
@@ -119,17 +145,17 @@ export function install(){
  const readinessButton=ui('button','جاهزية الوحدات قبل التأجير');readinessButton.id='aq267-unit-readiness';readinessButton.hidden=true;readinessButton.onclick=()=>import('./pages/unit-readiness.js').then(m=>m.openUnitReadiness()).catch(e=>notice.textContent=t(safeError(e)));
  const originals=ui('button','المستندات الأصلية — الأطراف والعقار والعقد والإخلاء');originals.onclick=()=>import('./pages/original-documents.js').then(m=>m.openOriginalDocuments()).catch(e=>notice.textContent=t(safeError(e)));
  const vacatingReview=node('button','مراجعات الإخلاء المؤرشفة');vacatingReview.id='aq267-vacating-review';vacatingReview.hidden=true;vacatingReview.onclick=()=>import('./pages/vacating-review.js').then(m=>m.openVacatingReview()).catch(e=>notice.textContent=t(safeError(e)));
- tools.append(staffCirculars,readinessButton,staffAccess,financialRegister,openingBalances,partnerDistributions,commercialCollections,financialArchiveButton,deposits,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,maintenanceReportButton,securityCenter,operationsCenter,originals,exitReview,vacating,vacatingReview);
+ tools.append(staffCirculars,readinessButton,staffAccess,financialRegister,openingBalances,partnerDistributions,commercialCollections,financialArchiveButton,deposits,bankReconciliation,propertyCostAllocation,finalGapButton,officialDocumentsButton,integrationsButton,guideButton,complianceButton,kpiButton,maintenancePlansButton,maintenanceReportButton,securityCenter,operationsCenter,approvalCenter,contractFoundation,propertyOnboarding,propertyAdminSettings,propertyControls,tenantTimeline,ownerTaskCenter,ownerReport,ownerExperienceSettings,originals,exitReview,vacating,vacatingReview);
  const languageField=field(t('لغة الواجهة'),language);languageField.querySelector('label').dataset.aq267Text='لغة الواجهة';tools.append(rentalContracts,employees,propertyNotices,control,scan,contractScan,statements,utilities,quality,review,partners,languageField,notice);menu.append(tools);
  const entry=(source,section,manager=false,keywords='')=>({source,section,manager,keywords});
  const route=(name,section)=>({...entry(document.querySelector('#aqariV199Topbar [data-v199-go="'+name+'"]'),section),menu:false});
  serviceDirectory=organizeServices({tools,allowed:directoryAllowed,groups:[
-  {key:'finance',items:[route('collectionProPage','collections'),entry(deposits,'collections',false,'تأمين تامين قبض رد'),entry(financialRegister,'finance'),entry(commercialCollections,'finance',true,'تجاري تحصيل مبيعات مستحقات قبض commercial collections sales'),entry(openingBalances,'finance',true,'افتتاح افتتاحي مطابقة مستند قطع opening balance reconciliation'),entry(partnerDistributions,'partners',true,'شريك شركاء حصص توزيع مستحقات partner shares distribution'),entry(financialArchiveButton,'finance'),entry(finalGapButton,null,true)]},
-  {key:'contracts',items:[entry(rentalContracts,'contracts',false,'قالب قوالب شقة بيت محل تجاري استثماري مدة نهاية contract template apartment house shop commercial investment'),entry(contractScan,'documents',false,'مسح عقد تصوير عقد رفع عقد'),entry(expiryReportButton,'reports'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
-  {key:'properties',items:[route('properties','properties'),route('tenants','tenants'),entry(readinessButton,'properties'),entry(statements,null,true),entry(quality,null,true),entry(review,null,true)]},
+  {key:'finance',items:[route('collectionProPage','collections'),entry(deposits,'collections',false,'تأمين تامين قبض رد'),entry(bankReconciliation,'finance',false,'بنك تحويل مطابقة تسوية bank reconciliation transfer'),entry(propertyCostAllocation,'finance',true,'تكلفة تكاليف توزيع العقار cost allocation'),entry(financialRegister,'finance'),entry(commercialCollections,'finance',true,'تجاري تحصيل مبيعات مستحقات قبض commercial collections sales'),entry(openingBalances,'finance',true,'افتتاح افتتاحي مطابقة مستند قطع opening balance reconciliation'),entry(partnerDistributions,'partners',true,'شريك شركاء حصص توزيع مستحقات partner shares distribution'),entry(financialArchiveButton,'finance'),entry(finalGapButton,null,true)]},
+  {key:'contracts',items:[entry(contractFoundation,'contracts',false,'عقد جديد تأسيس كامل create contract foundation'),entry(approvalCenter,null,true,'موافقة موافقات اعتماد approval center'),entry(rentalContracts,'contracts',false,'قالب قوالب شقة بيت محل تجاري استثماري مدة نهاية contract template apartment house shop commercial investment'),entry(contractScan,'documents',false,'مسح عقد تصوير عقد رفع عقد'),entry(expiryReportButton,'reports'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
+  {key:'properties',items:[route('properties','properties'),route('tenants','tenants'),entry(propertyOnboarding,'properties',true,'إضافة عقار تجهيز onboarding'),entry(propertyAdminSettings,'properties',true,'إعدادات إدارة العقار admin settings'),entry(propertyControls,'properties',true,'ضوابط خدمات العقار controls'),entry(tenantTimeline,'tenants',false,'تاريخ مستأجر سجل زمني timeline'),entry(readinessButton,'properties'),entry(statements,null,true),entry(quality,null,true),entry(review,null,true)]},
   {key:'maintenance',items:[route('maintenanceProPage','maintenance'),entry(utilities),entry(maintenancePlansButton,'maintenance'),entry(maintenanceReportButton,'reports',false,'تقرير الصيانة حالة تكلفة زمن استجابة إغلاق'),entry(complianceButton,null,true),entry(operationsCenter,null,true)]},
   {key:'staff',items:[entry(employees,'employees',false,'راتب رواتب موظف'),entry(staffAccess,null,true),entry(partners,null,true),entry(propertyNotices,null,true),entry(staffCirculars)]},
-  {key:'account',items:[entry(kpiButton,null,true),entry(control,null,true),entry(securityCenter),entry(integrationsButton,null,true),entry(guideButton)]}
+  {key:'account',items:[entry(ownerTaskCenter,null,true,'مهام تنبيهات owner tasks'),entry(ownerReport,'reports',true,'تقرير المالك owner report'),entry(ownerExperienceSettings,null,true,'إعدادات تجربة المالك owner settings'),entry(kpiButton,null,true),entry(control,null,true),entry(securityCenter),entry(integrationsButton,null,true),entry(guideButton)]}
  ].map(group=>({...group,items:group.items.filter(item=>item.source)}))});
  tools.append(languageField,notice);updateLabels();
  for(const id of ['serviceManagementPage','settingsCenterPage']){const page=document.getElementById(id);if(page){const card=node('section'),button=ui('button','عدادات الكهرباء والماء');card.className='aq267-tools';button.onclick=utilities.onclick;card.append(ui('h3','خدمات العقارات'),button);page.prepend(card);}}
