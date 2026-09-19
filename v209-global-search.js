@@ -539,7 +539,13 @@
       revision:REVISION,
       seal:seal,
       resume:resume,
-      open:function(){
+      open:function(initialQuery){
+        if(!scopeKey())return false;
+        if(typeof initialQuery==='string'){
+          const ui=ensureUi();if(!ui)return false;
+          query=initialQuery.trim().slice(0,1200);
+          ui.input.value=query;
+        }
         return setSearchExpanded(true,document.querySelector('[data-v199-action="search"]'));
       }
     });
