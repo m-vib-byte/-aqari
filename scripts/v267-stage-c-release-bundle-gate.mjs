@@ -1,6 +1,7 @@
 import {createHash} from 'node:crypto';
 
 export const STAGE_C_BUNDLE_FORMAT='AQARI-V267-STAGE-C-EVIDENCE-1';
+const BACKUP_FORMAT='AQARI-V267-BACKUP-SET-MANIFEST-1';
 const STORAGE_FORMAT='AQARI-V267-STORAGE-BYTE-MANIFEST-1';
 const RESTORE_FORMAT='AQARI-V267-RESTORE-EQUIVALENCE-1';
 const ROLLBACK_FORMAT='AQARI-V267-ROLLBACK-REHEARSAL-1';
@@ -14,6 +15,9 @@ const REQUIRED_DIGESTS=['backup_set','backup_storage_bytes','independent_restore
 const DEVICE_CLASSES=['desktop','iphone','ipad'];
 const REQUIRED_FLOWS=['login','session','save','reopen','permissions','contracts','printing'];
 const RESTORE_SECTIONS=['auth_safe','business','schema_safe','storage_safe'];
+const BACKUP_COMPONENTS=['auth','database','storage'];
+const BACKUP_KEYS=['candidate_sha','capture_finished_at','capture_started_at','capture_window_seconds','components','format','project_ref'];
+const MAX_CAPTURE_WINDOW_SECONDS=300;
 
 function canonical(value){
   if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
@@ -27,6 +31,10 @@ function normalizedSha(value){return String(value||'').trim().toLowerCase()}
 function text(value){return typeof value==='string'?value.trim():''}
 function nonNegativeInt(value){return Number.isInteger(value)&&value>=0}
 function positiveInt(value){return Number.isInteger(value)&&value>0}
+function exactKeys(value,keys){
+  return !!value&&typeof value==='object'&&!Array.isArray(value)&&
+    JSON.stringify(Object.keys(value).sort())===JSON.stringify([...keys].sort());
+}
 function canonicalUtcSecond(value){
   const raw=text(value);
   if(!UTC_SECOND_RE.test(raw))return null;
@@ -118,6 +126,47 @@ export function validateStageCReleaseBundle(bundle={},expectedCandidateSha=''){
   });
   if(SHA256_RE.test(String(digests.backup_storage_bytes||''))&&digests.backup_storage_bytes!==storageEvidenceDigest){
     errors.push('Stage C backup Storage byte evidence digest does not match the embedded Storage summary');
+  }
+
+  const backup=value.backup&&typeof value.backup==='object'&&!Array.isArray(value.backup)?value.backup:{};
+  if(!exactKeys(backup,BACKUP_KEYS))errors.push('Stage C backup set must contain exactly the canonical backup manifest fields');
+  if(backup.format!==BACKUP_FORMAT)errors.push(`Stage C backup format must be exactly ${BACKUP_FORMAT}`);
+  const backupCandidateSha=normalizedSha(backup.candidate_sha);
+  if(!FULL_SHA_RE.test(backupCandidateSha)||backupCandidateSha!==candidateSha)errors.push('Stage C backup set is not tied to the exact candidate SHA');
+  const backupProject=text(backup.project_ref);
+  if(!PROJECT_REF_RE.test(backupProject)||backupProject!==source)errors.push('Stage C backup project must match the exact source project');
+  const captureStarted=canonicalUtcSecond(backup.capture_started_at);
+  const captureFinished=canonicalUtcSecond(backup.capture_finished_at);
+  if(!captureStarted)errors.push('Stage C backup capture_started_at must use canonical UTC second precision');
+  if(!captureFinished)errors.push('Stage C backup capture_finished_at must use canonical UTC second precision');
+  if(!nonNegativeInt(backup.capture_window_seconds)||backup.capture_window_seconds>MAX_CAPTURE_WINDOW_SECONDS){
+    errors.push(`Stage C backup capture_window_seconds must be between 0 and ${MAX_CAPTURE_WINDOW_SECONDS}`);
+  }
+  if(captureStarted&&captureFinished){
+    const actualWindow=(captureFinished.millis-captureStarted.millis)/1000;
+    if(actualWindow<0||actualWindow>MAX_CAPTURE_WINDOW_SECONDS)errors.push('Stage C backup capture window is outside the allowed bound');
+    else if(backup.capture_window_seconds!==actualWindow)errors.push('Stage C backup capture_window_seconds does not match capture timestamps');
+  }
+  const backupComponents=backup.components&&typeof backup.components==='object'&&!Array.isArray(backup.components)?backup.components:{};
+  if(JSON.stringify(Object.keys(backupComponents).sort())!==JSON.stringify(BACKUP_COMPONENTS))errors.push('Stage C backup set must contain exactly database, auth and storage components');
+  for(const name of ['database','auth']){
+    const item=backupComponents[name]&&typeof backupComponents[name]==='object'&&!Array.isArray(backupComponents[name])?backupComponents[name]:{};
+    if(!exactKeys(item,['bytes','sha256']))errors.push(`Stage C backup ${name} component fields are invalid`);
+    if(!positiveInt(item.bytes))errors.push(`Stage C backup ${name} byte size must be a positive integer`);
+    if(!SHA256_RE.test(String(item.sha256||'')))errors.push(`Stage C backup ${name} sha256 must be SHA-256`);
+  }
+  const backupStorage=backupComponents.storage&&typeof backupComponents.storage==='object'&&!Array.isArray(backupComponents.storage)?backupComponents.storage:{};
+  if(!exactKeys(backupStorage,['bytes','object_bytes','object_count','sha256','storage_manifest_sha256']))errors.push('Stage C backup storage component fields are invalid');
+  if(!positiveInt(backupStorage.bytes))errors.push('Stage C backup storage manifest byte size must be a positive integer');
+  if(!SHA256_RE.test(String(backupStorage.sha256||'')))errors.push('Stage C backup storage manifest file sha256 must be SHA-256');
+  if(!nonNegativeInt(backupStorage.object_count)||backupStorage.object_count!==storage.object_count)errors.push('Stage C backup Storage object count must match the embedded Storage summary');
+  if(!nonNegativeInt(backupStorage.object_bytes)||backupStorage.object_bytes!==storage.total_bytes)errors.push('Stage C backup Storage object bytes must match the embedded Storage summary');
+  if(!SHA256_RE.test(String(backupStorage.storage_manifest_sha256||''))||backupStorage.storage_manifest_sha256!==storage.manifest_sha256){
+    errors.push('Stage C backup Storage manifest digest must match the embedded Storage summary');
+  }
+  const backupEvidenceDigest=stageCEvidenceSha256(backup);
+  if(SHA256_RE.test(String(digests.backup_set||''))&&digests.backup_set!==backupEvidenceDigest){
+    errors.push('Stage C backup-set evidence digest does not match the embedded canonical backup manifest');
   }
 
   const restore=value.restore&&typeof value.restore==='object'&&!Array.isArray(value.restore)?value.restore:{};
