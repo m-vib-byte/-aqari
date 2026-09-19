@@ -48,3 +48,10 @@ test('arrears use net saved balances and exclude future, today, paid and credit 
  assert.throws(()=>overdueTotal([{balance:100}],'2026-09-19'),/MISSING_DUE_DATE/);
  assert.throws(()=>overdueTotal([{due_on:'2026-09-01',balance:null}],'2026-09-19'),/INVALID_DUE_BALANCE/);
 });
+
+const {registeredUnitCount}=await import('../src/v267/components/live-dashboard-data.js');
+test('property cards use registered unit counts, preserving zero and unknown',()=>{
+ assert.equal(registeredUnitCount([{name:'برج مرزوق',aqari_units:[{count:0}],units:10}],'برج مرزوق'),0);
+ assert.equal(registeredUnitCount([{name:'test',aqari_units:[{count:12}]}],'test'),12);
+ for(const props of [null,[],[{name:'test'}],[{name:'test',aqari_units:[{count:null}]}],[{name:'test',aqari_units:[{count:-1}]}],[{name:'test',aqari_units:[{count:1}]},{name:'test',aqari_units:[{count:2}]}]])assert.equal(registeredUnitCount(props,'test'),null);
+});

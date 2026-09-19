@@ -1,3 +1,4 @@
+import {registeredUnitCount} from './components/live-dashboard-data.js';
 import {workspaceIcon} from './components/workspace-icons.js';
 const RELEASE='V267';
 const ROOT='aqLiveStability';
@@ -85,7 +86,7 @@ function formatMetric(key,value){
  if(['today','month','due','remaining','expenses','net','overdue'].includes(key))return new Intl.NumberFormat(locale,{style:'currency',currency:'KWD',minimumFractionDigits:3}).format(value);
  return new Intl.NumberFormat(locale,{maximumFractionDigits:2}).format(value)+(key==='occupancy'?'%':'');
 }
-function clearLiveData(){dataFlight++;ownerFlight++;dataSession?.close();dataSession=null;dataKey='';liveValues=null;liveReport=null;referenceReport=null;document.querySelectorAll('[data-live-value]').forEach(node=>{node.textContent='—';});for(const id of ['aqLiveOwners','aqLiveUtilities','aqLiveExpiry','aqLiveLegal','aqLiveRecentPayments','aqLiveCollectionRows','aqLiveYearChart','aqLiveOccupancy','aqLiveSystemStatus'])document.getElementById(id)?.replaceChildren();const select=document.getElementById('aqLiveOwnerProperty');if(select){select.replaceChildren();select.disabled=true;}const total=document.querySelector('[data-live-payment-total]');if(total)total.textContent='—';}
+function clearLiveData(){dataFlight++;ownerFlight++;dataSession?.close();dataSession=null;dataKey='';liveValues=null;liveReport=null;referenceReport=null;refreshPropertyCards();document.querySelectorAll('[data-live-value]').forEach(node=>{node.textContent='—';});for(const id of ['aqLiveOwners','aqLiveUtilities','aqLiveExpiry','aqLiveLegal','aqLiveRecentPayments','aqLiveCollectionRows','aqLiveYearChart','aqLiveOccupancy','aqLiveSystemStatus'])document.getElementById(id)?.replaceChildren();const select=document.getElementById('aqLiveOwnerProperty');if(select){select.replaceChildren();select.disabled=true;}const total=document.querySelector('[data-live-payment-total]');if(total)total.textContent='—';}
 async function loadLiveData(force=false){
  const bound=scope();if(!bound||!document.getElementById(ROOT))return;
  const key=JSON.stringify(bound);if(!force&&dataKey===key)return;
@@ -99,7 +100,7 @@ async function loadLiveData(force=false){
   const day=kuwaitDay();
   const [report,reference]=await Promise.all([readLiveDashboard(session,day,readManagementCounters),readReferenceDashboard(session,day)]);
   session.check();if(token!==dataFlight||JSON.stringify(scope())!==key)return;
-  liveReport=report;referenceReport=reference;liveValues={...report.values,...reference.metrics};renderReferencePanels();renderCollectionRows();renderPayments();renderFollowups();for(const [name,value] of Object.entries(liveValues))setValue(name,formatMetric(name,value));
+  liveReport=report;referenceReport=reference;liveValues={...report.values,...reference.metrics};refreshPropertyCards();renderReferencePanels();renderCollectionRows();renderPayments();renderFollowups();for(const [name,value] of Object.entries(liveValues))setValue(name,formatMetric(name,value));
   if(status)status.textContent=(report.partial||reference.partial?ui('بعض المؤشرات غير متاحة.'):ui('تم التحديث من السجلات.'))+' '+report.day;
  }catch{if(token===dataFlight&&status)status.textContent=ui('تعذر قراءة المؤشرات. أعد المحاولة.');}
  finally{if(token===dataFlight){dataSession?.close();dataSession=null;if(button)button.disabled=false;}}
@@ -181,7 +182,7 @@ async function loadOwnerShares(propertyId){
 function refreshPropertyCards(){
  const host=document.getElementById('aqLiveProperties');if(!host)return;
  const rows=sourceNodes('.v199-property-row').slice(0,3);
- const signature=JSON.stringify(rows.map(row=>[row.textContent,row.querySelector('img')?.getAttribute('src')]));if(host.dataset.signature===signature)return;host.dataset.signature=signature;
+ const signature=JSON.stringify([referenceReport?.properties,rows.map(row=>[row.textContent,row.querySelector('img')?.getAttribute('src')])]);if(host.dataset.signature===signature)return;host.dataset.signature=signature;
  host.replaceChildren();
  if(!rows.length){empty(host,'لا توجد عقارات ظاهرة ضمن صلاحياتك.');return;}
  for(const row of rows){
@@ -191,7 +192,7 @@ function refreshPropertyCards(){
   if(sourceImage?.getAttribute('src')){const photo=sourceImage.cloneNode(false);photo.removeAttribute('id');photo.alt='';photo.loading='lazy';art.append(photo);}else art.innerHTML=workspaceIcon('building');
   const name=document.createElement('strong');name.textContent=row.querySelector('strong')?.textContent||ui('العقار');name.dataset.aqRecord='';
   card.onclick=async event=>{event.preventDefault();event.stopPropagation();if(!scope()||card.disabled)return;card.disabled=true;try{const opened=await window.AQARI_OWNER_EXACT?.openProperty?.(name.textContent);if(opened!==true){const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent=ui('تعذر فتح الخدمة.');}}catch{const status=document.getElementById('aqLiveDataStatus');if(status)status.textContent=ui('تعذر فتح الخدمة.');}finally{card.disabled=false;}};
-  const action=document.createElement('small');action.textContent=ui('فتح ملف العقار');const detail=document.createElement('small');detail.dataset.aqRecord='';detail.textContent=clean(row.querySelector('.v199-property-units')?.textContent);const income=document.createElement('b');income.dataset.aqRecord='';income.textContent=clean(row.querySelector('.v199-property-income')?.textContent);card.append(art,name,detail,income,action);host.append(card);
+  const action=document.createElement('small');action.textContent=ui('فتح ملف العقار');const detail=document.createElement('small');detail.dataset.aqRecord='';detail.textContent=formatMetric('units',registeredUnitCount(referenceReport?.properties,name.textContent))+' '+ui('وحدة');card.append(art,name,detail,action);host.append(card);
  }
 }
 function suppressDuplicateShells(){
