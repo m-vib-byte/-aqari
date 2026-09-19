@@ -11,6 +11,7 @@ run(process.execPath,['--test','tests/v267-requirements-155-evidence.test.mjs'])
 run(process.execPath,['--test','tests/v267-production-config-gate.test.mjs']);
 run(process.execPath,['--test','tests/v267-production-target-secrets.test.mjs']);
 run(process.execPath,['--test','tests/v267-stage-c-release-bundle-gate.test.mjs']);
+run(process.execPath,['--test','tests/v267-stage-c-release-bundle-window-bound.test.mjs']);
 run(process.execPath,['--test','tests/v267-stage-c-rollback-continuity.test.mjs']);
 run(process.execPath,['--test','tests/v267-payment-cycle-prepaid.test.mjs']);
 run(process.execPath,['--test','tests/v267-prepaid-period-canonical.test.mjs']);
