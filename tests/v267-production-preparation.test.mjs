@@ -78,7 +78,7 @@ test('Vercel preparation stage selects production only when domain trial is disa
   for(const environment of ['preview','production']){
     const dir=mkdtempSync(join(tmpdir(),'aqari-target-build-'));
     try{
-      const paths=new Set([...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
+      const paths=new Set(['tests/exact-navigation-events.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs','src/v267/components/exact-navigation-events.js','src/v267/components/touch-navigation.js','v209-global-search.js',...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
       for(const path of paths){const target=join(dir,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,read(path));}
       writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary));
       const trial=JSON.parse(read('config/domain-trial-target.json'));trial.enabled=false;
