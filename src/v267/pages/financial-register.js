@@ -48,7 +48,10 @@ export function openFinancialRegister(){
  save.type='submit';discard.type='button';editor.hidden=true;
  for(const [value,label]of Object.entries(methods)){const option=node('option',label);option.value=value;method.append(option);}
  editor.append(node('h3',translateStatic('بيانات المصروف')),field(translateStatic('العقار'),property),field(translateStatic('تاريخ المصروف'),expenseDate),field(translateStatic('بند المصروف'),category),field(translateStatic('المستفيد'),payee),field(translateStatic('المبلغ بالدينار الكويتي'),amount),field(translateStatic('طريقة الصرف'),method),field(translateStatic('رقم مرجع التحويل أو الشيك'),reference),field(translateStatic('البيان والتفاصيل'),description),field(translateStatic('مستند المصروف المحفوظ'),document),node('p',translateStatic('اختر مستنداً مرفوعاً للعقار من قسم المستندات. يمكن حفظ المسودة بدونه، ويلزم إرفاقه قبل الاعتماد.')),save,discard);
- toolbar.append(field(translateStatic('الفترة المالية'),month),reload,add);
+ const bankReconciliation=node('button',translateStatic('مطابقة التحويلات البنكية'));
+ bankReconciliation.type='button';
+ bankReconciliation.onclick=()=>d.run(async()=>{const m=await import('./bank-reconciliation.js');d.close();return m.openBankReconciliation();});
+ toolbar.append(field(translateStatic('الفترة المالية'),month),reload,add,bankReconciliation);
  d.body.append(node('p',translateStatic('يحتسب هذا السجل المصروفات المعتمدة فقط. المسودات والملغاة لا تدخل في الإجمالي. لا يمثل إجمالي المصروفات رصيد الصندوق أو صافي ربح العقار.')),toolbar,overview,editor,filters,results,list,pager,audit,closing);
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_financial_register',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
  const formValues=()=>({property_id:property.value,expense_date:expenseDate.value,category:category.value.trim(),payee:payee.value.trim(),amount:amount.value.trim(),method:method.value,reference:reference.value.trim(),description:description.value.trim(),document_id:document.value||null});
@@ -236,7 +239,12 @@ export function openFinancialRegister(){
  });};
  if(d.el?.addEventListener){
   const closeButton=d.el.querySelector('button');
-  d.el.addEventListener('click',event=>{if(event.target===closeButton&&!allowDiscard()){event.preventDefault();event.stopImmediatePropagation();}},true);
+  const closeAction=closeButton?.onclick;
+  // The window navigation handler invokes onclick before dialog capture listeners.
+  if(typeof closeAction==='function')closeButton.onclick=function(event){
+   if(!allowDiscard()){event?.preventDefault();event?.stopImmediatePropagation();return;}
+   return closeAction.call(this,event);
+  };
   d.el.addEventListener('cancel',event=>{if(!allowDiscard()){event.preventDefault();event.stopImmediatePropagation();}},true);
  }
  d.onDispose(()=>{clearPrivate();pendingWrite=null;});
