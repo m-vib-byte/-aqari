@@ -1,3 +1,4 @@
+import {installExactNavigationEvents} from './components/exact-navigation-events.js';
 async function runNavigationAction({scope:scopeCheck,action,report}){
  if(!scopeCheck()){report('تعذر فتح الخدمة.',true);return false;}
  report('');
@@ -129,12 +130,10 @@ function mountShell(){
  if(!scope())return;
  if(!document.getElementById(ROOT_ID)){
   document.body.insertAdjacentHTML('beforeend',`<div id="${ROOT_ID}">${railMarkup()}${topMarkup()}${bottomMarkup()}</div>`);
-  document.getElementById(ROOT_ID)?.addEventListener('click',handleExactClick);
  }
  const home=document.getElementById('home');
  if(home&&!document.getElementById('aqOwnerExactHome')){
   home.insertAdjacentHTML('afterbegin',homeMarkup());
-  document.getElementById('aqOwnerExactHome')?.addEventListener('click',handleExactClick);
   document.getElementById('aqExactHeroSearch')?.addEventListener('submit',searchFromHero);
  }
  if(document.getElementById('aqOwnerExactHome')&&!document.body.classList.contains('aq-owner-exact-ready'))document.body.classList.add('aq-owner-exact-ready');
@@ -151,9 +150,8 @@ function interceptLegacy(event){const button=event.target.closest?.('[data-v199-
 function ensureCss(){if(document.getElementById('aqari-owner-feedback-css'))return;const link=document.createElement('link');link.id='aqari-owner-feedback-css';link.rel='stylesheet';link.href='/src/v267/styles/owner-feedback-reference.css?release='+RELEASE;document.head.append(link);}
 function refresh(){if(!scope())return;mountShell();if(document.body.classList.contains('aq-live-stable'))return;refreshMetrics();syncActive();}
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
-function boot(){installTouchNavigation(window);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
+function boot(){installTouchNavigation(window);installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-
 
 
 
