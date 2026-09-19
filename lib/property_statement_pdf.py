@@ -11,11 +11,12 @@ from lib.rent_pdf import FONT,FONT_PATH,shaped
 
 def statement_notes(content):
     """Only annotate evidence stored on this statement; never borrow another property's notes."""
-    notes=[]
+    notes=[str(note) for note in content.get('source_notes',[])]
     if 'insurance_difference' in (content.get('pending') or []):
         notes.append('التأمين: يوجد فرق معلق بين تفاصيل المصدر وملخصه؛ لا تعتمد التسوية قبل توثيقها.')
     for row in content.get('rows',[]):
         pending=row.get('pending') or []
+        if row.get('source_note'):notes.append('الوحدة '+str(row.get('unit',''))+': '+str(row['source_note']))
         prefix='الوحدة '+str(row.get('unit','غير مدون'))+': '
         if 'contract_dates' in pending:notes.append(prefix+'تواريخ العقد معلقة للمراجعة.')
         if 'payment_date' in pending:notes.append(prefix+'تاريخ الدفع معلق للمراجعة.')
