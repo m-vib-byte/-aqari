@@ -17,22 +17,23 @@ export function field(labelText,control){
 let active;
 export function createDialog(title,{localized=true}={}){
  if(active)return null;
- const session=createSession(),el=node('dialog'),close=node('button',localized?t('إغلاق'):'إغلاق'),heading=node('h2',title),status=node('p'),body=node('div');let busy=false,closed=false;
+ const session=createSession(),el=node('dialog'),close=node('button',localized?t('إغلاق'):'إغلاق'),heading=node('h2',title),status=node('p'),body=node('div');let busy=false,closed=false,pendingNavigation=null;
  el.className='aq267-dialog';el.dir=localized?direction():'rtl';el.lang=localized?getLocale():'ar';el.setAttribute('aria-label',title);close.type='button';close.className='aq267-close';close.setAttribute('aria-label',localized?t('إغلاق'):'إغلاق');close.title=localized?t('إغلاق'):'إغلاق';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  heading.className='aq267-dialog-title';body.className='aq267-dialog-body';
  close.onclick=closeDialog;el.append(close,heading,status,body);
  const trigger=document.activeElement,cleanups=new Set();
  function onDispose(cleanup){if(closed){cleanup();return ()=>{};}cleanups.add(cleanup);return ()=>cleanups.delete(cleanup);}
- function dispose(){if(closed)return;closed=true;session.close();for(const cleanup of cleanups){try{cleanup();}catch{}}cleanups.clear();window.removeEventListener('aqari:auth-boundary',boundary);el.remove();active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});}
+ function dispose(){if(closed)return;closed=true;pendingNavigation=null;session.close();for(const cleanup of cleanups){try{cleanup();}catch{}}cleanups.clear();window.removeEventListener('aqari:auth-boundary',boundary);el.remove();active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});}
  function closeDialog(){el.close();dispose();}
  const boundary=()=>{try{session.check();}catch{closeDialog();}};
  window.addEventListener('aqari:auth-boundary',boundary);
  el.addEventListener('close',dispose,{once:true});
  el.addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
  document.body.append(el);el.showModal();active=el;
+ function navigate(task){if(closed)return;if(busy){pendingNavigation=task;return;}return run(task);}
  async function run(task){if(busy||closed)return;busy=true;const loadingMessage=localized?t('جارٍ الاتصال…'):'جارٍ الاتصال…';status.textContent=loadingMessage;el.setAttribute('aria-busy','true');const controls=[...el.querySelectorAll('button,input,select,textarea')].filter(x=>x!==close);const disabled=controls.map(x=>x.disabled);controls.forEach(x=>x.disabled=true);
   try{session.check();await session.connect();await task();if(!closed&&status.textContent===loadingMessage)status.textContent='';}
   catch(e){if(!closed){if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();else status.textContent=localized?t(safeError(e)):safeError(e);}}
-  finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');controls.forEach((x,i)=>{if(x.isConnected)x.disabled=disabled[i];});}}}
- return {el,body,status,session,run,onDispose,close:closeDialog,get closed(){return closed;}};
+  finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');controls.forEach((x,i)=>{if(x.isConnected)x.disabled=disabled[i];});if(pendingNavigation){const next=pendingNavigation;pendingNavigation=null;await run(next);}}}}
+ return {el,body,status,session,run,navigate,onDispose,close:closeDialog,get closed(){return closed;}};
 }
