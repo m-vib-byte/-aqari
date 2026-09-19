@@ -80,6 +80,12 @@ async function openPropertyAction(name=null){
 async function openMaintenanceAction(){
  if(!scope())return false;const m=await import('./pages/maintenance-request-create.js');await m.openMaintenanceRequest();return true;
 }
+async function openUnitAction(){
+ if(!scope())return false;
+ const module=await import('./pages/unit-entry.js');
+ if(!scope())return false;
+ return module.openUnitEntry();
+}
 async function openTenantAction(){
  try{return await openQuickTenantEntry({scope,navigate:navigateRoute,ready:exactRouteReady,page:routePage,visible});}
  catch{setStatus(t('تعذر فتح الخدمة.'),true);return false;}
@@ -132,7 +138,7 @@ function mountShell(){
  }
  if(document.getElementById('aqOwnerExactHome')&&!document.body.classList.contains('aq-owner-exact-ready'))document.body.classList.add('aq-owner-exact-ready');
 }
-function dispatchExactClick(event){const key=event.target.closest('[data-exact-key]')?.dataset.exactKey;if(key){const def=ROUTES.find(x=>x.key===key);if(def)return openDefinition(def);return false;}const route=event.target.closest('[data-exact-route]')?.dataset.exactRoute;if(route){return navigateRoute(route);}const special=event.target.closest('[data-exact-special]')?.dataset.exactSpecial;if(special){if(special==='assistant')return openAssistant();else if(special==='receipts')return openRecordSearch();else if(special==='property_create')return openPropertyAction();else if(special==='tenant_create')return openTenantAction();else if(special==='maintenance_create')return openMaintenanceAction();else if(special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());else if(special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());return;}const service=event.target.closest('[data-exact-service]')?.dataset.exactService;if(service)return openDefinition({service});}
+function dispatchExactClick(event){const key=event.target.closest('[data-exact-key]')?.dataset.exactKey;if(key){const def=ROUTES.find(x=>x.key===key);if(def)return openDefinition(def);return false;}const route=event.target.closest('[data-exact-route]')?.dataset.exactRoute;if(route){return navigateRoute(route);}const special=event.target.closest('[data-exact-special]')?.dataset.exactSpecial;if(special){if(special==='assistant')return openAssistant();else if(special==='receipts')return openRecordSearch();else if(special==='property_create')return openPropertyAction();else if(special==='unit_create')return openUnitAction();else if(special==='tenant_create')return openTenantAction();else if(special==='maintenance_create')return openMaintenanceAction();else if(special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());else if(special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());return;}const service=event.target.closest('[data-exact-service]')?.dataset.exactService;if(service)return openDefinition({service});}
 function handleExactClick(event){
  const trigger=event.target?.closest?.('[data-exact-key],[data-exact-route],[data-exact-special],[data-exact-service]');if(!trigger)return;
  return runNavigationAction({scope,action:()=>dispatchExactClick(event),report:setStatus});
