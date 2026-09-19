@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "4d6b02e596d3f9ee45534a41661202d48a44b4b6899504f9871e566a29bf91a3",
-      "size": 31708
+      "sha256": "fa184d4038e6c1e7e90efc2a58662efaf5730c9a0ae42952a3aa7a2a92cc6476",
+      "size": 32022
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3317,8 +3317,8 @@
     },
     {
       "path": "tests/v267-contract-view.test.mjs",
-      "sha256": "802f5d0657e80291120abb04a572a74f1bd8909600502ee258166817dbcc9e34",
-      "size": 9968
+      "sha256": "0fee02311d1f93845c8175ec419558b10c63a5fa5d9d5973b8d36729f5615336",
+      "size": 12002
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",

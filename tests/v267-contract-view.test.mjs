@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const source=readFileSync(new URL('../src/v267/pages/rental-contracts.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'').replace("import('./contract-execution.js')",'loadExecution()').replace("import('./property-statements.js')",'loadStatements()');
-function fixture({imported=false,closedAfterRead=false,status='signed',role='staff',moduleFailure=false,closeDuringImport=false,contractOverrides={},profiles=[],documentsError=false}={}){
+function fixture({imported=false,closedAfterRead=false,status='signed',role='staff',moduleFailure=false,closeDuringImport=false,contractOverrides={},profiles=[],documentsError=false,stateFailures=0,connectionFailures=0}={}){
  const calls=[],tasks=[],urls=[];let closed=false;
  class Element{constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.value='';this.classList={add(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}}
  const node=(tag,text)=>new Element(tag,text);
  const contract={id:123,contract_no:'C-123',tenant:'Test Tenant',property:'Test property',unit:'1',status,source:imported?'statement-import':'v267-cloud',...contractOverrides};
  const api={saveLease:async()=>calls.push('saveLease'),primary:x=>x,contractMarkup:()=>'<p>saved contract</p>'};
- const session={bound:{workspace:'workspace',role},check(){if(closed)throw Error('closed');},client:{rpc(name){calls.push(name);return {name};},from(table){calls.push(table);const query={table};for(const method of ['select','eq','order'])query[method]=()=>query;return query;}},async request(query){if(query.name==='aqari_read_state_v267'){if(closedAfterRead)closed=true;return {payload:{contractsV202:[contract],tenantProfilesV267:profiles}};}if(query.name==='aqari_contract_history')return [];if(query.table==='aqari_documents'&&documentsError)throw Error('attachment read unavailable');if(query.table==='aqari_documents')return [{id:'doc',original_filename:'original.pdf',storage_path:'workspace/original.pdf'}];throw Error('unrelated property read denied');},async storage(method,path){calls.push(method+':'+path);return new Blob(['saved original']);}};
- const d={el:node('dialog'),body:node('div'),status:node('p'),session,run(fn){const task=Promise.resolve().then(fn);tasks.push(task);return task;},navigate(fn){return this.run(fn);},close(){calls.push('close-dialog');closed=true;}};
+ const session={bound:{workspace:'workspace',role},check(){if(closed)throw Error('closed');},client:{rpc(name){calls.push(name);return {name};},from(table){calls.push(table);const query={table};for(const method of ['select','eq','order'])query[method]=()=>query;return query;}},async request(query){if(query.name==='aqari_read_state_v267'){if(stateFailures-->0)throw Error('state temporarily unavailable');if(closedAfterRead)closed=true;return {payload:{contractsV202:[contract],tenantProfilesV267:profiles}};}if(query.name==='aqari_contract_history')return [];if(query.table==='aqari_documents'&&documentsError)throw Error('attachment read unavailable');if(query.table==='aqari_documents')return [{id:'doc',original_filename:'original.pdf',storage_path:'workspace/original.pdf'}];throw Error('unrelated property read denied');},async storage(method,path){calls.push(method+':'+path);return new Blob(['saved original']);}};
+ const d={el:node('dialog'),body:node('div'),status:node('p'),session,run(fn){const task=Promise.resolve().then(()=>{if(connectionFailures-->0)throw Error('connection unavailable');return fn();});tasks.push(task);return task;},navigate(fn){return this.run(fn);},close(){calls.push('close-dialog');closed=true;}};
  const context={guardPageImport:load=>load(),currentMonth:()=> '2026-09',loadStatements:async()=>{calls.push('load-statements');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openPropertyStatements(options){assert.equal(closed,true);calls.push(options);}};},loadExecution:async()=>{calls.push('load-execution');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openContractExecution(id,options){assert.equal(closed,true);assert.equal(typeof options.onDone,'function');calls.push('execution:'+id);return true;}};},Blob,node,field:(label,control)=>control,translateStatic:x=>x,createDialog:()=>d,createPrivateUrls:()=>({clear(){},create(blob){urls.push(blob);return 'blob:verified-original';}}),window:{AQARI_RENTAL_RECORDS:api}};
  vm.runInNewContext(source,context);
  const all=(root=d.body)=>[root,...root.children.flatMap(x=>all(x))];
@@ -95,4 +95,31 @@ test('unavailable attachments do not prevent opening or retaining the saved cont
  await assert.rejects(f.click(f.all().find(x=>x.textContent==='عرض المرفقات المحفوظة')),/attachment read unavailable/);
  assert.ok(f.all().some(x=>x.innerHTML==='<p>saved contract</p>'));
  assert.equal(f.calls.includes('close-dialog'),false);
+});
+
+test('a failed initial list read keeps a refresh action that can recover',async()=>{
+ const f=fixture({stateFailures:1});await assert.rejects(f.open({}),/state temporarily unavailable/);
+ const retry=f.all().find(x=>x.tag==='button'&&x.textContent==='تحديث العقود / Refresh');assert.ok(retry);
+ assert.equal(f.all().some(x=>x.textContent.includes('C-123')),false);
+ await f.click(retry);assert.ok(f.all().some(x=>x.textContent.includes('C-123')));
+ assert.equal(f.calls.includes('saveLease'),false);
+});
+test('a failed direct contract read keeps both retry and back navigation',async()=>{
+ const f=fixture({stateFailures:1});await assert.rejects(f.open({id:123}),/state temporarily unavailable/);
+ assert.ok(f.all().some(x=>x.textContent==='العودة للعقود / Back'));
+ const retry=f.all().find(x=>x.tag==='button'&&x.textContent==='إعادة المحاولة');assert.ok(retry);
+ await f.click(retry);assert.ok(f.all().some(x=>x.innerHTML==='<p>saved contract</p>'));
+ assert.equal(f.calls.includes('saveLease'),false);
+});
+test('a missing contract still permits returning to the saved contract list',async()=>{
+ const f=fixture();await assert.rejects(f.open({id:'missing'}),/العقد غير موجود/);
+ const back=f.all().find(x=>x.textContent==='العودة للعقود / Back');assert.ok(back);
+ await f.click(back);assert.ok(f.all().some(x=>x.textContent.includes('C-123')));
+});
+
+test('initial connection failure retains a retry action before any page task runs',async()=>{
+ const f=fixture({connectionFailures:1});await assert.rejects(f.open({id:123}),/connection unavailable/);
+ assert.deepEqual(f.calls,[]);
+ const retry=f.all().find(x=>x.tag==='button'&&x.textContent==='إعادة المحاولة');assert.ok(retry);
+ await f.click(retry);assert.ok(f.all().some(x=>x.innerHTML==='<p>saved contract</p>'));
 });
