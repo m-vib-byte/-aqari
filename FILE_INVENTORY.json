@@ -3987,8 +3987,8 @@
     },
     {
       "path": "src/v267/components/live-dashboard-data.js",
-      "sha256": "69e51626b3a4b6dde58c80511f12ea6033f92a7361c17bfdd4761503a9f5f402",
-      "size": 6222
+      "sha256": "3f4f87c62eae4e8749457706c8dff79ef6e6591f0c969674ad26662dd4402e94",
+      "size": 6942
     },
     {
       "path": "src/v267/components/workspace-icons.js",
@@ -4012,8 +4012,8 @@
     },
     {
       "path": "tests/v267-live-dashboard-data.test.mjs",
-      "sha256": "116df61dcf5fbaaf2e73fddcfd7f0fef5d6a158571b663efbf0c80b2ca218911",
-      "size": 4315
+      "sha256": "aa6e4704d7587bfa4d732da219015100633c4a2b623b568f02a1b55829a1147f",
+      "size": 4997
     }
   ],
   "version": "V198"

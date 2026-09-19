@@ -46,7 +46,7 @@ export async function readReferenceDashboard(session,day){
  const workspace=session.bound.workspace;
  const rpc=(name,args={})=>session.request(session.client.rpc(name,{p_workspace_id:workspace,...args}));
  const year=Number(day.slice(0,4));
- const result={year,months:Array.from({length:12},(_,i)=>({month:i+1,amount:null})),units:null,metrics:{employees:null,invoices:null},properties:null,utilities:null,expiring:null,health:null,partial:false};
+ const result={year,months:Array.from({length:12},(_,i)=>({month:i+1,amount:null})),units:null,metrics:{employees:null,invoices:null,overdue:null},properties:null,utilities:null,expiring:null,health:null,partial:false};
  const access=await rpc('aqari_workspace_access');session.check();
  if(access?.user_id!==session.bound.user||access?.workspace_id!==workspace||access?.role!==session.bound.role)throw Error('ACCESS_DENIED');
  const can=section=>access.permissions?.[section]?.read===true;
@@ -61,6 +61,7 @@ export async function readReferenceDashboard(session,day){
    add('month:'+i,async()=>finiteNumber((await rpc('aqari_kpi_dashboard',{p_from:first,p_to:last>day?day:last})).collections?.actual));
   }
  }
+ if(can('collections'))add('overdue',async()=>overdueTotal((await rpc('aqari_rent_due_schedule',{p_lease_id:null})).periods,day));
  if(can('employees'))add('employees',async()=>{const value=await rpc('aqari_hr',{p_action:'list',p_data:{}});if(!Array.isArray(value?.employees))throw Error('INVALID_REPORT');return value.employees.length;});
  if(can('properties'))add('properties',()=>session.request(session.client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).order('name').limit(100)));
  if(can('finance')){
@@ -73,9 +74,22 @@ export async function readReferenceDashboard(session,day){
  for(let i=0;i<jobs.length;i+=4){
   session.check();
   const batch=jobs.slice(i,i+4),values=await Promise.allSettled(batch.map(job=>Promise.resolve().then(job.run)));
-  session.check();values.forEach((value,index)=>{const key=batch[index].key;if(value.status==='rejected'){result.partial=true;return;}if(key.startsWith('month:'))result.months[Number(key.slice(6))].amount=value.value;else if(key==='employees'||key==='invoices')result.metrics[key]=finiteNumber(value.value);else result[key]=value.value;});
+  session.check();values.forEach((value,index)=>{const key=batch[index].key;if(value.status==='rejected'){result.partial=true;return;}if(key.startsWith('month:'))result.months[Number(key.slice(6))].amount=value.value;else if(key==='employees'||key==='invoices'||key==='overdue')result.metrics[key]=finiteNumber(value.value);else result[key]=value.value;});
  }
  const verified=await rpc('aqari_workspace_access');session.check();
  if(JSON.stringify(verified)!==JSON.stringify(access))throw Error('ACCESS_CHANGED');
  return result;
+}
+
+// Net persisted balances include allocated credits; future charges are not arrears.
+export function overdueTotal(periods,day){
+ if(!Array.isArray(periods))throw Error('INVALID_DUE_SCHEDULE');
+ const overdue=[];
+ for(const row of periods){
+  const balance=finiteNumber(row?.balance);if(balance===null)throw Error('INVALID_DUE_BALANCE');
+  if(balance<=0)continue;
+  if(typeof row.due_on!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(row.due_on))throw Error('MISSING_DUE_DATE');
+  if(row.due_on<day)overdue.push({balance});
+ }
+ return sumMoney(overdue,'balance');
 }

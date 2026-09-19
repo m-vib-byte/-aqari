@@ -40,3 +40,11 @@ test('monthly chart ends at today, keeps future months unknown, and rejects chan
  const r=await readReferenceDashboard(session,'2026-02-15');assert.deepEqual(r.months.slice(0,3).map(x=>x.amount),[125.125,125.125,null]);assert.ok(calls.filter(x=>x.name==='aqari_kpi_dashboard').every(x=>x.args.p_to<='2026-02-15'));assert.equal(r.partial,true);
  changed=true;reads=0;await assert.rejects(readReferenceDashboard(session,'2026-02-15'),/ACCESS_CHANGED/);
 });
+
+const {overdueTotal}=await import('../src/v267/components/live-dashboard-data.js');
+test('arrears use net saved balances and exclude future, today, paid and credit periods',()=>{
+ assert.equal(overdueTotal([{due_on:'2026-08-01',balance:'75.125'},{due_on:'2026-09-01',balance:'25.125'},{due_on:'2026-09-19',balance:'100'},{due_on:'2026-10-01',balance:'200'},{due_on:null,balance:0},{due_on:'2026-08-01',balance:-40}],'2026-09-19'),100.25);
+ assert.equal(overdueTotal([],'2026-09-19'),0);
+ assert.throws(()=>overdueTotal([{balance:100}],'2026-09-19'),/MISSING_DUE_DATE/);
+ assert.throws(()=>overdueTotal([{due_on:'2026-09-01',balance:null}],'2026-09-19'),/INVALID_DUE_BALANCE/);
+});
