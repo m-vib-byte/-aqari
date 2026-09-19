@@ -1281,6 +1281,11 @@
       "size": 1335
     },
     {
+      "path": "src/v267/components/workspace-translations.js",
+      "sha256": "e54cf1b33591e44aa6ad295065346a8cab7f645711a21a2ec2f3a8aea36ec4d3",
+      "size": 33760
+    },
+    {
       "path": "src/v267/domain/deposit-ledger.js",
       "sha256": "d6b8782625ccef87e896d36a7331991a7de7c93aed7d5107bfff4aecec601c57",
       "size": 10204
@@ -1317,8 +1322,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "size": 23497,
-      "sha256": "6ea114327ec5e3dd312de47bb581dd75c672791b74b22f563842e79fe05f92b7"
+      "sha256": "e1947d985a0d982896aa21e7d4612b5b7d9bf167a8610793a715a424cf14a495",
+      "size": 25185
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1517,8 +1522,8 @@
     },
     {
       "path": "src/v267/styles/live-stability.css",
-      "size": 33227,
-      "sha256": "f39a1781f5f7b4c9b8fa19eb59cbb4efc4eaa4fc19eb9c3e84f7a4251b7729e8"
+      "sha256": "e4d463520ca3c3658b99f9353acb7934912fbf7e5deca052782cf3a4c3cea999",
+      "size": 39515
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -3629,6 +3634,11 @@
       "path": "tests/v267-recovery-boundary.test.cjs",
       "sha256": "5e27f1754210f8df2f45277e6e21f27ed01cd168a77ae5d66cbfd8a45be8a7bf",
       "size": 1948
+    },
+    {
+      "path": "tests/v267-reference-lifecycle.test.mjs",
+      "sha256": "cd8b8e9f63194bd88d9ef0d74f7c758bf4325d1fc870e706f86c47af9df30ccc",
+      "size": 6278
     },
     {
       "path": "tests/v267-release-source-identity.test.mjs",
