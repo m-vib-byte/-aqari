@@ -30,6 +30,7 @@ export function openContractPrint(id,count=1,mode='official'){
 }
 export function openRentalContracts(initial={}){
  const d=createDialog(translateStatic('إبرام عقود الإيجار / Rental contracts'));if(!d)return;
+ d.el.classList.add('aq267-contracts');
  const api=window.AQARI_RENTAL_RECORDS,urls=createPrivateUrls(d);let data,properties=[],units=[];
  const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=()=>d.run(fn);return b;};
  const backButton=()=>{const b=node('button',translateStatic('العودة للعقود / Back'));b.type='button';b.onclick=()=>d.navigate(home);return b;};
