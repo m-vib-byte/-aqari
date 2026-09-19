@@ -23,9 +23,11 @@ function sourceValue(pattern,fallback='—'){
  const value=hit.querySelector('.v199-kpi-value,dd,strong,[data-value]');
  return clean(value?.textContent)||fallback;
 }
+const METRIC_ACTIONS={properties:['route','properties'],units:['service','unit_readiness'],tenants:['route','tenants'],contracts:['service','rental_contracts'],month:['route','collectionProPage'],today:['route','collectionProPage'],due:['route','collectionProPage'],remaining:['route','collectionProPage'],overdue:['route','collectionProPage'],occupancy:['service','unit_readiness'],maintenance:['route','maintenanceProPage'],employees:['service','employees_payroll'],invoices:['service','maintenance_utilities'],expiring:['service','lease_expiry_report'],expenses:['service','financial_register'],net:['service','kpi_dashboard']};
 function makeMetric(label,key,tone=''){
  const icon=({month:'wallet',today:'wallet',due:'file',properties:'building',units:'grid',contracts:'file',maintenance:'tool',remaining:'clock',tenants:'user',expiring:'clock',occupancy:'grid',expenses:'file',net:'chart',employees:'user',invoices:'file',overdue:'bell'})[key];
- return `<article class="aq-live-metric ${tone}" data-live-card="${key}"><i aria-hidden="true">${workspaceIcon(icon)}</i><span>${ui(label)}</span><strong data-live-value="${key}">—</strong></article>`;
+ const [kind,target]=METRIC_ACTIONS[key];
+ return `<button type="button" class="aq-live-metric ${tone}" data-live-card="${key}" data-exact-${kind}="${target}" aria-label="${escapeText(ui(label))}"><i aria-hidden="true">${workspaceIcon(icon)}</i><span>${ui(label)}</span><strong data-live-value="${key}">—</strong></button>`;
 }
 function panel(title,body,cls,route=''){
  return `<article class="aq-live-panel ${cls}"><header><h2>${ui(title)}</h2>${route?`<button type="button" data-exact-route="${route}">${ui('عرض الكل')}</button>`:''}</header>${body}</article>`;
@@ -57,7 +59,7 @@ function dashboardMarkup(){
  ${referencePanel('حالة النظام',`<div class="aq-ref-system"><span class="aq-ref-health-mark">${workspaceIcon('cloud')}</span><div id="aqLiveSystemStatus">${loading}</div>${refAction('عرض حالة النظام','service','integration_center')}</div>`,'health')}
  ${referencePanel('بوابة المستأجر',`<div class="aq-ref-portal">${workspaceIcon('user')}<p>${ui('تمكّن المستأجرين من الوصول لعقودهم ومتابعة طلباتهم.')}</p><a href="/tenant.html">${ui('فتح بوابة المستأجر')}</a></div>`,'portal')}
  </div>
- <section class="aq-live-reference-quick"><h2>${ui('الإجراءات السريعة')}</h2><div>${refAction('إضافة عقار','special','property_create','building')}${refAction('إضافة وحدة','service','unit_readiness','grid')}${refAction('إضافة مستأجر','special','tenant_create','user')}${refAction('إنشاء عقد','service','rental_contracts','file')}${refAction('إصدار وصل','special','receipts','wallet')}${refAction('طلب صيانة','special','maintenance_create','tool')}${refAction('إرسال إشعار','service','property_notices','bell')}${refAction('إصدار تقرير','route','reports','chart')}</div></section>
+ <section class="aq-live-reference-quick"><h2>${ui('الإجراءات السريعة')}</h2><div>${refAction('إضافة عقار','special','property_create','building')}${refAction('إضافة وحدة','special','unit_create','grid')}${refAction('إضافة مستأجر','special','tenant_create','user')}${refAction('إنشاء عقد','service','rental_contracts','file')}${refAction('إصدار وصل','special','receipts','wallet')}${refAction('طلب صيانة','special','maintenance_create','tool')}${refAction('إرسال إشعار','service','property_notices','bell')}${refAction('إصدار تقرير','route','reports','chart')}</div></section>
  <div class="aq-live-update"><span id="aqLiveDataStatus" role="status" aria-live="polite">${ui('جارٍ قراءة المؤشرات…')}</span><button type="button" id="aqLiveRefresh">${ui('تحديث')}</button></div>
  <details class="aq-live-secondary-details"><summary>${ui('تفاصيل التحصيل والمحفظة')}</summary><section class="aq-live-secondary">${makeMetric('تحصيل اليوم','today','success')}${makeMetric('المستحق','due')}${makeMetric('المتبقي','remaining')}${makeMetric('تنتهي خلال 30 يومًا','expiring')}${makeMetric('المصروفات المعتمدة','expenses')}${makeMetric('صافي السجلات','net')}</section><div class="aq-live-table-scroll"><table><thead><tr>${['العقار / الوحدة','رقم العقد','المستحق','المحصل','المتبقي'].map(x=>`<th>${ui(x)}</th>`).join('')}</tr></thead><tbody id="aqLiveCollectionRows"></tbody></table></div></details>
  <footer class="aq-ref-footer"><span>AQARI © ${new Date().getFullYear()}</span><span>${ui('المؤشرات تخص السجلات المرتبطة فقط. اكتمال المحفظة والدفاتر يحتاج مراجعة قبل الاعتماد.')}</span></footer>
@@ -227,5 +229,6 @@ async function boot(){
  window.AQARI_LIVE_STABILITY=Object.freeze({version:'V267-work1-stability-1',refresh:schedule});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
 
 

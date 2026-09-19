@@ -10,5 +10,6 @@ if(!release.includes(marker)){
  console.log('Installed V267 Work1 live visual stability layer after startup blocker fix.');
 }
 for(const path of ['src/v267/live-stability-runtime.js','final-release-ui.js'])execFileSync(process.execPath,['--check',path],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-live-stability.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-live-stability.test.mjs','tests/v267-dashboard-actions.test.mjs'],{stdio:'inherit'});
 console.log('Verified Work1 canonical shell, real-data dashboard augmentation and iPhone/iPad/Desktop stability rules.');
+

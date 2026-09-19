@@ -79,6 +79,12 @@ async function openPropertyAction(name=null){
 async function openMaintenanceAction(){
  if(!scope())return false;const m=await import('./pages/maintenance-request-create.js');await m.openMaintenanceRequest();return true;
 }
+async function openUnitAction(){
+ if(!scope())return false;
+ const opened=await navigateRoute('properties');
+ if(opened)setStatus(t('اختر العقار ثم افتح ملفه لإضافة وحدة.'));
+ return opened;
+}
 async function openTenantAction(){
  try{return await openQuickTenantEntry({scope,navigate:navigateRoute,ready:exactRouteReady,page:routePage,visible});}
  catch{setStatus(t('تعذر فتح الخدمة.'),true);return false;}
@@ -133,7 +139,7 @@ function mountShell(){
  }
  if(document.getElementById('aqOwnerExactHome')&&!document.body.classList.contains('aq-owner-exact-ready'))document.body.classList.add('aq-owner-exact-ready');
 }
-function dispatchExactClick(event){const key=event.target.closest('[data-exact-key]')?.dataset.exactKey;if(key){const def=ROUTES.find(x=>x.key===key);if(def)return openDefinition(def);return false;}const route=event.target.closest('[data-exact-route]')?.dataset.exactRoute;if(route){return navigateRoute(route);}const special=event.target.closest('[data-exact-special]')?.dataset.exactSpecial;if(special){if(special==='assistant')return openAssistant();else if(special==='receipts')return openRecordSearch();else if(special==='property_create')return openPropertyAction();else if(special==='tenant_create')return openTenantAction();else if(special==='maintenance_create')return openMaintenanceAction();else if(special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());else if(special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());return;}const service=event.target.closest('[data-exact-service]')?.dataset.exactService;if(service)return openDefinition({service});}
+function dispatchExactClick(event){const key=event.target.closest('[data-exact-key]')?.dataset.exactKey;if(key){const def=ROUTES.find(x=>x.key===key);if(def)return openDefinition(def);return false;}const route=event.target.closest('[data-exact-route]')?.dataset.exactRoute;if(route){return navigateRoute(route);}const special=event.target.closest('[data-exact-special]')?.dataset.exactSpecial;if(special){if(special==='assistant')return openAssistant();else if(special==='receipts')return openRecordSearch();else if(special==='property_create')return openPropertyAction();else if(special==='unit_create')return openUnitAction();else if(special==='tenant_create')return openTenantAction();else if(special==='maintenance_create')return openMaintenanceAction();else if(special==='tasks')return import('./pages/owner-task-center.js?release='+RELEASE).then(m=>m.openOwnerTaskCenter());else if(special==='experience')return import('./pages/owner-experience-settings.js?release='+RELEASE).then(m=>m.openOwnerExperienceSettings());return;}const service=event.target.closest('[data-exact-service]')?.dataset.exactService;if(service)return openDefinition({service});}
 function handleExactClick(event){
  const trigger=event.target?.closest?.('[data-exact-key],[data-exact-route],[data-exact-special],[data-exact-service]');if(!trigger)return;
  return runNavigationAction({scope,action:()=>dispatchExactClick(event),report:setStatus});
@@ -147,6 +153,7 @@ function refresh(){if(!scope())return;mountShell();if(document.body.classList.co
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
 function boot(){installTouchNavigation(window);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+
 
 
 
