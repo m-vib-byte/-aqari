@@ -10,6 +10,15 @@ const input=(type='text',value='')=>{const x=node('input');x.type=type;x.value=v
 const text=v=>String(v??'').normalize('NFKC').trim();
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const normalizeUnitNo=value=>text(value).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776));
+// Validate both numeric fields before readiness creates the unit identity.
+function unitDecimal(value,kind){
+ const normalized=normalizeUnitNo(value).replace(/٫/g,'.');
+ if(!normalized)return null;
+ const valid=/^\d{1,12}(?:\.\d{1,3})?$/.test(normalized);
+ if(!valid||(kind==='area'&&(Number(normalized)<=0||Number(normalized)>100000000)))throw Error(kind==='area'?'راجع المساحة م².':'أدخل المبلغ بالدينار الكويتي، بثلاث منازل عشرية كحد أقصى ومن دون فواصل آلاف.');
+ const [whole,fraction='']=normalized.split('.');
+ return whole.replace(/^0+(?=\d)/,'')+'.'+fraction.padEnd(3,'0');
+}
 function select(rows,value=''){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}x.value=value;return x;}
 export function openPropertyUnitCreate(propertyId){
  const d=createDialog(translateStatic('إضافة وحدة من ملف العقار'));if(!d)return false;
@@ -19,10 +28,10 @@ export function openPropertyUnitCreate(propertyId){
  for(const [label,c]of [[visibleText('رقم الوحدة'),unitNo],[visibleText('الدور'),floor],[visibleText('نوع الوحدة'),type],[visibleText('الحالة التشغيلية'),status],[visibleText('المساحة م²'),area],[visibleText('الإيجار المعلن'),rent],[visibleText('الرقم الآلي للعين المؤجرة'),auto],[visibleText('الرقم التسلسلي الداخلي'),serial],[visibleText('الموقف'),parking],[visibleText('المخزن'),storage],[visibleText('الخدمات — مفصولة بفاصلة'),services],[visibleText('حالة الجاهزية'),readiness],[visibleText('تاريخ المعاينة'),inspected],[visibleText('مرجع المعاينة'),source],[visibleText('السبب/النتيجة'),reason]])form.append(field(label,c));const save=node('button',translateStatic('حفظ الوحدة وربطها بالعقار'));save.type='submit';form.append(save);d.body.append(form);
  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{
   const number=normalizeUnitNo(unitNo.value);if(!number||number.length>80||/[<>\x00-\x1f]/.test(number))throw Error('راجع رقم الوحدة.');
+  const areaValue=unitDecimal(area.value,'area'),rentValue=unitDecimal(rent.value,'rent');
   const serviceKeys=text(services.value).split(/[,،]/).map(x=>x.trim().toLowerCase()).filter(Boolean);if(serviceKeys.some(k=>!/^[a-z][a-z0-9_.-]{0,49}$/.test(k)))throw Error('مفاتيح الخدمات تستخدم أحرفًا إنجليزية مثل elevator أو water.');
   const requestId=crypto.randomUUID(),row=await rpc('aqari_unit_readiness_register',{p_workspace_id:d.session.bound.workspace,p_action:'record',p_data:{id:requestId,property_id:propertyId,unit_no:number,expected_revision:0,state:readiness.value,inspected_on:inspected.value,source_ref:text(source.value),reason:text(formValue(reason))}});d.session.check();if(row?.id!==requestId||!row.unit_id||Number(row.revision)!==1)throw Error('لم يتأكد إنشاء هوية الوحدة وسجل الجاهزية.');
-  const saved=await rpc('aqari_unit_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_unit_id:row.unit_id,p_expected_revision:0,p_data:{unitNo:number,floor:text(floor.value),type:text(type.value),status:status.value,areaSqm:text(area.value)||null,statedRent:text(rent.value)||null,leasedAssetAutomaticRef:text(auto.value),internalSerial:text(serial.value),parking:text(parking.value),storage:text(storage.value),services:Object.fromEntries(serviceKeys.map(k=>[k,true]))},p_reason:'إنشاء الوحدة من الملف الكامل: '+text(formValue(reason))});d.session.check();if(saved?.unit?.id!==row.unit_id||saved.unit.propertyId!==propertyId||saved.unit.unitNo!==number||saved.unit.floor!==text(floor.value)||Number(saved.unit.revision)!==1)throw Error('لم تتأكد إعادة قراءة الوحدة والدور والحقول الرسمية.');
+  const saved=await rpc('aqari_unit_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_unit_id:row.unit_id,p_expected_revision:0,p_data:{unitNo:number,floor:text(floor.value),type:text(type.value),status:status.value,areaSqm:areaValue,statedRent:rentValue,leasedAssetAutomaticRef:text(auto.value),internalSerial:text(serial.value),parking:text(parking.value),storage:text(storage.value),services:Object.fromEntries(serviceKeys.map(k=>[k,true]))},p_reason:'إنشاء الوحدة من الملف الكامل: '+text(formValue(reason))});d.session.check();if(saved?.unit?.id!==row.unit_id||saved.unit.propertyId!==propertyId||saved.unit.unitNo!==number||saved.unit.floor!==text(floor.value)||Number(saved.unit.revision)!==1)throw Error('لم تتأكد إعادة قراءة الوحدة والدور والحقول الرسمية.');
   d.status.textContent=translateStatic('تم إنشاء الوحدة وتثبيت الدور والبيانات وسجل الجاهزية.');d.close();const hub=await import('./property-hub.js');return hub.openPropertyHub(propertyId);
  });};return true;
 }
-
