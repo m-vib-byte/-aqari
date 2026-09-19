@@ -82,3 +82,32 @@ test('directory clicks route before legacy handlers and retain the original auth
  button.disabled=true;const blocked=event();handler(blocked);assert.equal(actions,1);assert.equal(blocked.stopped,undefined);
  button.disabled=false;button.closest=()=>false;const outside=event();handler(outside);assert.equal(actions,1);assert.equal(outside.stopped,undefined);
 });
+
+test('contract type and close taps execute once, including after dialog removal',()=>{
+ for(const action of ['apartment','house','shop','commercial','close']){
+  const f=fixture('.aq267-contract-foundation[open]');let calls=0;
+  f.button.type='button';f.button.onclick=()=>{calls++;};
+  f.emit('pointerdown');f.advance(40);f.emit('pointerup');
+  assert.equal(calls,1,action);assert.equal(f.actions,0,'native handler must not execute twice');
+  f.button.closest=()=>null;assert.equal(f.emit('click').stopped,true);
+  assert.equal(calls,1);
+ }
+});
+test('contract keyboard activation uses the existing action and disabled actions stay blocked',()=>{
+ const f=fixture('.aq267-contract-foundation[open]');let calls=0;
+ f.button.type='button';f.button.onclick=()=>calls++;
+ assert.equal(f.emit('click',{detail:0}).stopped,true);assert.equal(calls,1);
+ f.button.disabled=true;f.emit('pointerdown');f.emit('pointerup');f.emit('click');assert.equal(calls,1);
+});
+test('contract submit validation and other dialog close guards retain native click propagation',()=>{
+ for(const [scope,type]of [['.aq267-contract-foundation[open]','submit'],['.aq267-dialog[open]','button']]){
+  const f=fixture(scope);let calls=0;f.button.type=type;f.button.onclick=()=>calls++;
+  assert.equal(f.emit('click').stopped,undefined);assert.equal(calls,0);
+ }
+});
+test('contract scrolling and pointer cancellation never reserve a draft',()=>{
+ for(const cancel of ['scroll','pointercancel']){
+  const f=fixture('.aq267-contract-foundation[open]');f.button.type='button';let calls=0;f.button.onclick=()=>calls++;
+  f.emit('pointerdown');f.emit(cancel);f.emit('pointerup');assert.equal(calls,0);
+ }
+});

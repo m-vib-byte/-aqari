@@ -24,6 +24,7 @@ export function openContractFoundation(options={}){
  if(!api)throw Error('تعذر تحميل محرك العقود.');
  const bridge=window.AQARI_SUPABASE;if(!bridge?.loadAppState||!bridge?.saveAppState)throw Error('تعذر تحميل جسر السحابة.');
  const d=createDialog(translateStatic('عقد جديد — التأسيس من البداية للنهاية'));if(!d)return false;
+ d.el.classList.add('aq267-contract-foundation');
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  let state=null,properties=[],units=[],templates=[],preparation=null;
  const button=(label,fn)=>{const el=node('button',label);el.type='button';el.onclick=()=>d.run(fn);return el;};
