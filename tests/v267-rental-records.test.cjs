@@ -139,3 +139,15 @@ test('contract and annex retain both tenant names and escape inserted content',(
  assert.match(annex,/2026-10/);assert.doesNotMatch(annex,/2026-11|Approved test|تعديلات الخصم المؤرخة/);
  assert.deepEqual(c.rentAdjustments,[{effectiveMonth:'2026-11',discount:20,rent:80,reason:'Approved test'}]);
 });
+
+
+test('lease save locks only collections it mutates',()=>{
+ const source=fs.readFileSync(require('node:path').join(__dirname,'../v267-rental-records.js'),'utf8');
+ const block=source.slice(source.indexOf('async function saveLease'),source.indexOf('async function generate'));
+ const keys=block.match(/const keys=\[[^;]+\]/)?.[0]||'';
+ assert.match(keys,/contractsV202/);
+ assert.match(keys,/tenantDirectoryV202/);
+ assert.match(keys,/leases/);
+ assert.match(keys,/audit/);
+ assert.doesNotMatch(keys,/tenantProfilesV267|properties/);
+});
