@@ -3317,8 +3317,8 @@
     },
     {
       "path": "tests/v267-contract-view.test.mjs",
-      "sha256": "67c34053925a36ef9f446076a9627b201c77dad3cc93561dad371969a96ee7e8",
-      "size": 13854
+      "sha256": "b080d4b9541733f0d1ee84bfa1ef177b917b1835eefa4cdc6da7849012f9caf5",
+      "size": 13879
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
