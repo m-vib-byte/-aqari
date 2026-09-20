@@ -48,3 +48,12 @@ test('source-only statement properties are excluded from contract property choic
  const source=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
  assert.match(source,/from\('aqari_properties'\)[\s\S]*metadata->>source_only\.is\.null,metadata->>source_only\.neq\.true/);
 });
+
+
+test('historical statement-import drafts do not reserve the operational unit',()=>{
+ const historical={id:'source-1',status:'draft',source:'statement-import',property:'برج شيخة',unit:'101',start_date:'2026-01-01',end_date:'2026-12-31',contract_no:'SRC-1'};
+ const candidate={id:'new-1',property:'برج شيخة',unit:'101',start_date:'2026-06-01',end_date:'2027-05-31'};
+ assert.equal(activeUnitConflict([historical],candidate),null);
+ const ordinary={...historical,id:'draft-2',source:'v267-cloud',contract_no:'DRAFT-2'};
+ assert.equal(activeUnitConflict([ordinary],candidate)?.contract_no,'DRAFT-2');
+});
