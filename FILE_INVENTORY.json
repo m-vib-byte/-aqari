@@ -4144,6 +4144,21 @@
       "path": "docs/verification/pr200-continuation-dialog-templates-20260920.md",
       "sha256": "a6414eb17899542bcc56488a6dba3d4778ac0589c06055e51fc085ae10e61db2",
       "size": 3900
+    },
+    {
+      "path": "src/v267/components/property-record-navigation.js",
+      "size": 1406,
+      "sha256": "f9381ea265476dda6043f8d5f71b1d7960826eb4d28b3c5a9374fdc68771b975"
+    },
+    {
+      "path": "src/v267/pages/property-hub.js",
+      "size": 23947,
+      "sha256": "b90dfaf7d87e5f6c0357d4cd2261b52556e4cd77089f15204a01163344be1b06"
+    },
+    {
+      "path": "tests/property-record-navigation.test.mjs",
+      "size": 3317,
+      "sha256": "e1ec31634899ca554a389ea35eb8fc1438b1d5dd6d7d086275c4a65be05677e9"
     }
   ],
   "version": "V198"
