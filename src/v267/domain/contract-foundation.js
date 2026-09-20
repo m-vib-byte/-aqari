@@ -32,7 +32,7 @@ export function activeUnitConflict(contracts,candidate){
  const start=text(candidate?.start_date),end=text(candidate?.end_date),property=key(candidate?.property),unit=key(candidate?.unit),id=String(candidate?.id??'');
  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||!property||!unit)return null;
  return (contracts||[]).find(old=>{
-  if(String(old?.id??old?.contractId??'')===id||old?.status==='cancelled')return false;
+  if(String(old?.id??old?.contractId??'')===id||old?.status==='cancelled'||(old?.status==='draft'&&old?.source==='statement-import'))return false;
   if(key(old?.property??old?.propertyName)!==property||key(old?.unit??old?.unitName)!==unit)return false;
   const oldStart=text(old?.start_date??old?.startDate),oldEnd=text(old?.end_date??old?.endDate);
   return !oldStart||!oldEnd||start<=oldEnd&&end>=oldStart;
