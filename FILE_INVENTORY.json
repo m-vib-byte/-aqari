@@ -3757,8 +3757,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "7526847f0b181ff98a8f0ff4a92d72f7236ef2bc928d74b2b6a9ab4d1103a997",
-      "size": 13274
+      "sha256": "0f6d8d1b5f1a49f37ae252da9003765486006e054f4c979e6ad1c16ae046f7df",
+      "size": 13813
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
