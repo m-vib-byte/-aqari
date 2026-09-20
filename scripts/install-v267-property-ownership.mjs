@@ -5,8 +5,8 @@ const path=new URL('../src/v267/pages/property-hub.js',import.meta.url);
 let source=readFileSync(path,'utf8');
 const marker="openPropertyOwnership(propertyId)";
 if(!source.includes(marker)){
- const anchorA="async function ownerStatement(){d.close();const m=await import('./property-owner-statement.js');return m.openPropertyOwnerStatement(propertyId);}\n async function render(){";
- const replacementA="async function ownerStatement(){d.close();const m=await import('./property-owner-statement.js');return m.openPropertyOwnerStatement(propertyId);}\n async function ownershipProfile(){d.close();const m=await import('./property-ownership.js');return m.openPropertyOwnership(propertyId);}\n async function render(){";
+ const anchorA="async function ownerStatement(){return openPropertyPage(d,()=>import('./property-owner-statement.js'),'openPropertyOwnerStatement',propertyId);}\n async function render(){";
+ const replacementA="async function ownerStatement(){return openPropertyPage(d,()=>import('./property-owner-statement.js'),'openPropertyOwnerStatement',propertyId);}\n async function ownershipProfile(){d.close();const m=await import('./property-ownership.js');return m.openPropertyOwnership(propertyId);}\n async function render(){";
  if(!source.includes(anchorA))throw Error('V267_PROPERTY_OWNERSHIP_FUNCTION_ANCHOR_MISSING');
  source=source.replace(anchorA,replacementA);
  const propertyLabel=text=>source.includes("t as translateStatic")?"translateStatic('"+text+"')":"'"+text+"'";
