@@ -9,10 +9,10 @@ export async function openPropertyContract(d,propertyId,contract,loader=()=>guar
  d.close();return page.openRentalContracts({id:rows[0].external_ref});
 }
 
-export async function openPropertySavedStatements(d,name,loader=()=>guardPageImport(()=>import('../pages/property-statements.js'))){
+export async function openPropertySavedStatements(d,propertyId,loader=()=>guardPageImport(()=>import('../pages/property-statements.js'))){
  const page=await loader();d.session.check();
  if(typeof page.openPropertyStatements!=='function')throw Error('تعذر فتح الكشف.');
- d.close();return page.openPropertyStatements({propertyName:name});
+ d.close();return page.openPropertyStatements({propertyId});
 }
 
 export async function openPropertyPage(d,loader,exportName,initial){
