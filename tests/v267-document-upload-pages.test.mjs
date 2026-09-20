@@ -10,8 +10,9 @@ const file=()=>new File(['%PDF-1.4\nfixture-A'],'signed.pdf',{type:'application/
 function fixture(mode){
  const all=e=>[e,...e.children.flatMap(all)];
  class Element{
-  constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.value='';this.checked=false;const classes=new Set();this.classList={add:(...names)=>names.forEach(name=>classes.add(name)),contains:name=>classes.has(name)};}
+  constructor(tag,text=''){this.tag=tag;this.style={};this.attributes={};this.children=[];this._text=text;this.value='';this.checked=false;const classes=new Set();this.classList={add:(...names)=>names.forEach(name=>classes.add(name)),contains:name=>classes.has(name)};}
   append(...items){this.children.push(...items);if(this.tag==='select'&&!this.value)this.value=items[0]?.value||'';}
+  setAttribute(name,value){this.attributes[name]=String(value);}
   prepend(...items){this.children.unshift(...items);}
   replaceChildren(...items){this.children=items;}
   get textContent(){return this._text+this.children.map(e=>e.textContent).join('');}
@@ -60,7 +61,7 @@ function fixture(mode){
  const uploadForm=()=>all(d.body).find(e=>e.tag==='form'&&all(e).some(c=>c.type==='file'));
  const input=type=>all(uploadForm()).find(e=>e.type===type);
  return {d,state,calls,docs,objects,uploadForm,input,
-  async start(chosen=file()){context[mode==='hr'?'openEmployees':'openRentalContracts']();await d.pending;const button=mode==='hr'?find('button','فتح ملف موظف اختبار'):all(d.body).find(e=>e.tag==='button'&&e.textContent.startsWith('C-123'));assert.ok(button);await button.onclick();await d.pending;input('file').files=[chosen];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
+  async start(chosen=file()){context[mode==='hr'?'openEmployees':'openRentalContracts']();await d.pending;const button=mode==='hr'?find('button','فتح ملف موظف اختبار'):all(d.body).find(e=>e.tag==='button'&&e.attributes['aria-label']===translateStatic('عرض العقد')+' — C-123');assert.ok(button);await button.onclick();await d.pending;input('file').files=[chosen];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
   async save(){uploadForm().onsubmit({preventDefault(){}});await d.pending;},
   finalized:()=>calls.filter(c=>c.name==='aqari_finalize_document'||c.name==='aqari_hr'&&c.args.p_action==='finalize'),
   reservations:()=>calls.filter(c=>c.name==='aqari_reserve_document'||c.name==='aqari_hr'&&c.args.p_action==='reserve')
