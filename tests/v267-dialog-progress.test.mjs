@@ -23,8 +23,8 @@ function fixture(trigger=null){
 }
 test('successful read clears its loading announcement and restores prior control states',async()=>{
  const f=fixture();try{let finish;const wait=new Promise(r=>{finish=r;});const pending=f.d.run(()=>wait);await new Promise(setImmediate);
- assert.equal(f.d.status.textContent,'جارٍ الاتصال…');assert.equal(f.enabled.disabled,true);assert.equal(f.disabled.disabled,true);
- finish();await pending;assert.equal(f.d.status.textContent,'','DIALOG_LOADING_STUCK');assert.equal(f.d.el.attrs['aria-busy'],'false');assert.equal(f.enabled.disabled,false);assert.equal(f.disabled.disabled,true);
+ assert.equal(f.d.status.textContent,'جارٍ الاتصال…');assert.equal(f.d.body.inert,true);assert.equal(f.enabled.disabled,false);assert.equal(f.disabled.disabled,true);
+ finish();await pending;assert.equal(f.d.status.textContent,'','DIALOG_LOADING_STUCK');assert.equal(f.d.el.attrs['aria-busy'],'false');assert.equal(f.d.body.inert,false);assert.equal(f.enabled.disabled,false);assert.equal(f.disabled.disabled,true);
  }finally{f.cleanup();}
 });
 test('a successful task-specific readback message is retained',async()=>{
@@ -72,5 +72,14 @@ test('queued navigation rechecks the current authorization before running',async
  const pending=f.d.run(()=>new Promise(r=>{finish=r;}));await new Promise(setImmediate);
  f.d.navigate(async()=>{visits++;});window.AQARI_DATA_GATE.scope={userId:'changed',workspaceId:'test-workspace'};
  finish();await pending;assert.equal(visits,0);
+ }finally{f.cleanup();}
+});
+
+test('readback can enable an existing action and validation can disable it',async()=>{
+ const f=fixture();try{
+  await f.d.run(async()=>{f.disabled.disabled=false;});
+  assert.equal(f.disabled.disabled,false,'a verified record must unlock its existing action');
+  await f.d.run(async()=>{f.enabled.disabled=true;});
+  assert.equal(f.enabled.disabled,true,'invalid or revoked actions must stay disabled after loading');
  }finally{f.cleanup();}
 });

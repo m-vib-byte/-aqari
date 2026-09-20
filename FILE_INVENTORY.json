@@ -1082,8 +1082,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "d653a2f9e90eeeb41e6f94f15c651fca26f75eaa6dec3c2673d8876e7322f122",
-      "size": 3713
+      "sha256": "e01e6c7c11f50cdf1886782055b21b4113ba0a40855648f04d39c9f3e6ad18b4",
+      "size": 3661
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "4987c626f83f7910d4c717193e3a18317398524456aa38aab74f7d54df6fba47",
-      "size": 11134
+      "sha256": "f2a94d75ab8ceb56339964ba5fd8626431b6ff8dd229ef5f0cd240668f189823",
+      "size": 11372
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1277,8 +1277,8 @@
     },
     {
       "path": "src/v267/components/workspace-translations.js",
-      "sha256": "02e3785fc66bc673c7a34d60ad2472e9aa57bee55ec19011f8f2484dd3fdd088",
-      "size": 48163
+      "sha256": "bac50ecf50a0d7c669f9f7116cf7c78c7cb758fffb7e28328eafb5c95ccd595c",
+      "size": 69599
     },
     {
       "path": "src/v267/domain/deposit-ledger.js",
@@ -1552,8 +1552,8 @@
     },
     {
       "path": "src/v267/styles/semantic-colors.css",
-      "sha256": "d6e63b2ef86e0e679d03064f8895ae007819d3ae87787088b9c70c2a296ed563",
-      "size": 10083
+      "sha256": "4c710dd0fc0e6054c94cf22c4d70cb3a15b493b1ca8a58e17f18222355246fa9",
+      "size": 10167
     },
     {
       "path": "src/v267/styles/service-directory.css",
@@ -3302,8 +3302,8 @@
     },
     {
       "path": "tests/v267-contract-load.test.mjs",
-      "sha256": "c9fae4b78d5806457da7d1958f09fe1e01de8e4148a6ebfd7dd6edfd6fa53eba",
-      "size": 1442
+      "sha256": "aab9a7e96e6258648d47ab85a7573d3ddc382523b7cc4b2feb66010b1656a5f0",
+      "size": 1705
     },
     {
       "path": "tests/v267-contract-print.test.cjs",
@@ -3342,13 +3342,13 @@
     },
     {
       "path": "tests/v267-dialog-progress.browser.mjs",
-      "sha256": "03b8257a906553a9317237315f812294acfcf2134a6acbb4abaacb79c27d9ed7",
-      "size": 8033
+      "sha256": "deb3a8ad8453408f7248c94cd524fae47315c66053c587d47dfe6ebf38690aa9",
+      "size": 10156
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
-      "sha256": "cf13c85dbd00fca7937d1b33f6e81d44e816f3d3ff4ed1364e32fa3ea1bbda2f",
-      "size": 6244
+      "sha256": "40936f5e75a85ecd86f8b8b0caacf548c4a30c0f636d559d5a28ac47dfde41a7",
+      "size": 6762
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
@@ -3762,8 +3762,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "12b8e38a23e22549b0b007798348ec34e87b61358277fd5af65461034b40dd0f",
-      "size": 7791
+      "sha256": "1a0acb44e71082b783436e371e3db635047c4ab22dc8910ac1c2291288ff428d",
+      "size": 9540
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4139,6 +4139,11 @@
       "path": "VERSION.json",
       "sha256": "a8bece4d1f536b2af865a993826f3a683bd7b883501296aee58c3f6fe3b63e4f",
       "size": 2022
+    },
+    {
+      "path": "docs/verification/pr200-continuation-dialog-templates-20260920.md",
+      "sha256": "a6414eb17899542bcc56488a6dba3d4778ac0589c06055e51fc085ae10e61db2",
+      "size": 3900
     }
   ],
   "version": "V198"

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mountRentalTemplatePicker,mountRentalTemplateManager,templateForContract,requireContractIdentity} from '../src/v267/components/rental-templates.js';
+import {setLocale,t,hasTranslation} from '../src/v267/components/locale.js';
 class El{
  constructor(tag){this.tag=tag;this.children=[];this.value='';this.disabled=false;this.checked=false;this.textContent='';}
  append(...children){for(const child of children){child.parent=this;this.children.push(child);}}
@@ -59,4 +60,26 @@ test('a failed independent readback prevents another edit and verifies the origi
  fields.find(x=>x.tag==='input'&&x.maxLength===200).value='قالب اختبار';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب اعتماد اصطناعي';fields.find(x=>x.type==='checkbox').checked=true;f.state.failReadOnce=true;
  await assert.rejects(manager.form.onsubmit({preventDefault(){}}),/lost readback/);assert.equal(f.state.items.length,1);assert.equal(all(manager.form).filter(x=>x.tag==='input'||x.tag==='textarea').length,0);
  await all(manager.form).find(x=>x.tag==='button').onclick();assert.equal(f.state.items.length,1);assert.match(f.d.status.textContent,/تأكدت إعادة قراءتها/);
+});
+
+test('template picker and manager translate UI in five languages without translating saved legal text',async()=>{
+ try{for(const locale of ['ar','en','hi','ur','ml']){
+  setLocale(locale,null);
+  const f=setup({manager:true});
+  f.state.items[0].title='نوع العقد';f.state.items[0].clauses=[{title:'عنوان البند',text:'إضافة بند'}];
+  let selected;
+  await mountRentalTemplatePicker(f.d,f.target,{onChange:r=>selected=r,onManage:()=>{}});
+  assert.ok(all(f.target).some(x=>x.textContent===t('نوع العقد وقالب البنود',locale)));
+  const [kind,version]=all(f.target).filter(x=>x.tag==='select');kind.value='apartment';kind.onchange();
+  assert.ok(all(kind).some(x=>x.textContent===t('عقد شقة',locale)));
+  version.value=template.id;version.onchange();
+  assert.equal(selected.title,'نوع العقد');assert.equal(selected.clauses[0].text,'إضافة بند');
+  assert.ok(all(f.target).some(x=>x.tag==='h4'&&x.textContent==='عنوان البند'));
+  assert.ok(all(f.target).some(x=>x.tag==='p'&&x.textContent==='إضافة بند'));
+  await mountRentalTemplateManager(f.d,f.target,{onBack:()=>{}});
+  for(const source of ['قوالب العقود — اعتماد المدير العام','العودة للعقود','اعتماد ونشر نسخة جديدة','إضافة بند','عنوان القالب']){
+   assert.ok(hasTranslation(source,locale));assert.ok(all(f.target).some(x=>x.textContent===t(source,locale)),locale+': '+source);
+  }
+  assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0,'rendering translations must never publish a legal template');
+ }}finally{setLocale('ar',null);}
 });

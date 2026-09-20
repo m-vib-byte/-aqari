@@ -31,9 +31,11 @@ export function createDialog(title,{localized=true}={}){
  el.addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
  document.body.append(el);el.showModal();active=el;
  function navigate(task){if(closed)return;if(busy){pendingNavigation=task;return;}return run(task);}
- async function run(task){if(busy||closed)return;busy=true;const loadingMessage=localized?t('جارٍ الاتصال…'):'جارٍ الاتصال…';status.textContent=loadingMessage;el.setAttribute('aria-busy','true');const controls=[...el.querySelectorAll('button,input,select,textarea')].filter(x=>x!==close);const disabled=controls.map(x=>x.disabled);controls.forEach(x=>x.disabled=true);
+ // Lock interaction, not each control's business/validation state. Inert also
+ // covers controls created while loading and leaves FormData values intact.
+ async function run(task){if(busy||closed)return;busy=true;const loadingMessage=localized?t('جارٍ الاتصال…'):'جارٍ الاتصال…';status.textContent=loadingMessage;el.setAttribute('aria-busy','true');body.inert=true;
   try{session.check();await session.connect();await task();if(!closed&&status.textContent===loadingMessage)status.textContent='';}
   catch(e){if(!closed){if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();else status.textContent=localized?t(safeError(e)):safeError(e);}}
-  finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');controls.forEach((x,i)=>{if(x.isConnected)x.disabled=disabled[i];});if(pendingNavigation){const next=pendingNavigation;pendingNavigation=null;await run(next);}}}}
+  finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');body.inert=false;if(pendingNavigation){const next=pendingNavigation;pendingNavigation=null;await run(next);}}}}
  return {el,body,status,session,run,navigate,onDispose,close:closeDialog,get closed(){return closed;}};
 }
