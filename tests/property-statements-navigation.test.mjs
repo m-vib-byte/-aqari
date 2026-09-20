@@ -14,9 +14,9 @@ test('statement navigation isolates months and disables actions after missing da
  }
  const content={property_key:'shaikhah-tower',property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
- let failLinks=false;let noSource=false;let failLatest=false;
+ let failLinks=false;let noSource=false;let failLatest=false;let failInitial=false;
  const queries=[];
- const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;}},async request(q){queries.push(q);if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
+ const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;}},async request(q){queries.push(q);if(q.table==='aqari_properties')return [{id:'p',name:content.property_name}];if(failInitial&&q.limitCount===100)throw Error("initial read failed");if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
  const tasks=[];
  dialog.run=(fn)=>{const p=Promise.resolve().then(fn).catch(()=>{dialog.status.textContent='read failed';});tasks.push(p);return p;};
  globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
@@ -70,5 +70,12 @@ test('statement navigation isolates months and disables actions after missing da
   assert.ok(archived.children.some(el=>el.textContent==='Archived source — review required'));
   assert.ok(archived.children.find(el=>el.tag==='details').children.some(el=>el.textContent==='Original name discrepancy'));
   const before=queries.length;await dialog.body.children[4].onclick();assert.equal(queries.length,before);
+  dialog.body.replaceChildren();next=tasks.length;failInitial=true;
+  mod.openPropertyStatements();await tasks[next];await Promise.resolve();
+  const retry=dialog.body.children[2];assert.equal(dialog.body.children[0].children.length,0);
+  failInitial=false;await retry.onclick();
+  assert.equal(dialog.body.children[0].value,'p','retry must reload the missing property choices');
+  assert.equal(dialog.body.children[3].disabled,false,'retry must recover the saved statement');
+  assert.equal(dialog.body.children[0].children.length,1,'retry must not duplicate property choices');
  }finally{delete globalThis.__statementFixture;}
 });
