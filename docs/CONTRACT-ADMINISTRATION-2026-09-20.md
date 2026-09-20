@@ -16,8 +16,8 @@ Verification performed:
 - 84 passing Node tests across archive registration, administration, template preview, contract viewing/foundation, payment references, persisted rent readback, and the separate deposit ledger.
 - SQL upgrade and synthetic manager/staff fixture executed together inside a transaction on the identified test project `djkpkkgoibruaezdrchb`, then **rolled back in full**. No permanent schema change, fixture user, or test record was retained.
 - SQL verifies manager archive/readback/filtering/idempotency, invalid-unit rejection, missing signatures, required-witness retention, completed signature readback, staff admin denial, pending change request, cross-workspace denial, staff draft-write denial, and manager request decision. Final assertions verify no new lease/payment/notification/integration event and no contract rewrite from approval.
-- The repository-wide release-freeze check still reports 19 pre-existing inventory checksum mismatches outside this change. Only inventory entries for files changed by this work were refreshed; the unrelated release gate remains unresolved.
-- These are programmatic role tests, not browser sign-in acceptance tests. The cloud browser reached the live login screen; neither isolated manager nor isolated employee login was completed.
+- Release-freeze now passes. The 19 unrelated inventory entries were corrected after their local Git blob hashes matched the authoritative upstream tree; source files were not changed.
+- These are programmatic role tests, not browser acceptance tests. Secure sign-in reached the existing general-manager dashboard. Its records have not been used as isolated test fixtures; the complete manager/employee cycle remains untested.
 
 Open requirements / release blockers:
 
@@ -33,3 +33,11 @@ node --test tests/v267-contract-archive.test.mjs tests/v267-contract-administrat
 ```
 
 For the database test, execute the SQL upgrade and fixture in one transaction, omit the upgrade's final `COMMIT`, and finish with `ROLLBACK`. The fixture intentionally uses synthetic storage metadata; it does not prove actual file storage or external delivery.
+
+Native platform follow-up:
+
+- Added manager-only preview and operational-approval entries inside AQARI; the approval inbox excludes historical source contracts.
+- Contract HTML, originals, and archived originals render in sandboxed inline viewers with no external-tab preview. Downloads remain optional.
+- Focused workflow suite: 85 passing tests. Additional print, load, upload, document catalog, and onboarding regression suite: 42 passing tests.
+- The live domain-trial configuration selects branch `ofgmcsmxmdswlovsckqs`, under staging project `djkpkkgoibruaezdrchb`. The administration RPC is absent there and email/WhatsApp integration configurations are empty. No permanent upgrade applied.
+- Full source suite exposed additional build-overlay-dependent failures; do not claim a complete release pass.

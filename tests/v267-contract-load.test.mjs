@@ -9,7 +9,7 @@ test('contract reads start together and closed sessions cannot apply their resul
   const started=[],pending=[],filters=[];
   const read=name=>{started.push(name);return new Promise(resolve=>pending.push(resolve));};
   const query=name=>({select(){return this;},eq(){return this;},or(value){filters.push({name,value});return this;},order(){return name;}});
-  const box={window:{AQARI_SUPABASE:{loadAppState:()=>read('state')}},scope:()=>({}),api:{primary:x=>x},validTemplate:()=>true,rpc:()=>read('templates'),d:{session:{bound:{workspace:'w'},client:{from:query},request:read,check(){if(closed)throw Error('closed');}}}};
+  const box={window:{AQARI_SUPABASE:{loadAppState:()=>read('state')}},scope:()=>({}),api:{primary:x=>x},validTemplate:()=>true,rpc:()=>read('templates'),d:{session:{bound:{workspace:'w',role:'general_manager'},client:{from:query},request:read,check(){if(closed)throw Error('closed');}}}};
   vm.createContext(box);vm.runInContext('let state=null,properties=[],units=[],templates=[];'+load+';this.load=load;this.state=()=>state;',box);
   const task=box.load();assert.deepEqual(started,['state','aqari_properties','aqari_units','templates']);
   assert.deepEqual(filters,[{name:'aqari_properties',value:'metadata->>source_only.is.null,metadata->>source_only.neq.true'}],'source-only archive properties must remain excluded from new contracts');

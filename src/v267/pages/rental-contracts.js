@@ -37,8 +37,8 @@ function printControls(d,api,urls,id,choices){
   output.replaceChildren();if(previousUrl){urls.release(previousUrl);previousUrl=null;}
   const prepared=await api.prepareContractPrint(id,count,mode);d.session.check();
   previousUrl=urls.create(new Blob([prepared.html],{type:'text/html;charset=utf-8'}));
-  const link=node('a',mode==='official'?translateStatic('فتح النسخة المعتمدة وملاحقها للطباعة / Open approved copy and annexes'):translateStatic('فتح المسودة وملاحقها للمراجعة / Open draft and annexes'));
-  link.href=previousUrl;link.target='_blank';link.rel='noopener';output.append(link);
+  const preview=node('iframe');preview.title=translateStatic('معاينة العقد والملاحق داخل عقاري');preview.setAttribute('sandbox','');preview.src=previousUrl;preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.append(preview);
+  const download=node('a',translateStatic('تنزيل نسخة العقد والملاحق'));download.href=previousUrl;download.download='contract-'+id+'.html';output.append(download);
   d.status.textContent=mode==='official'?translateStatic('تم التحقق من اعتماد العقد المحفوظ قبل إصدار النسخة.'):translateStatic('مسودة للمراجعة فقط، غير صالحة للتوقيع.');
  }
  for(const [count,mode,label]of choices){const b=node('button',label);b.type='button';b.onclick=()=>d.run(()=>prepare(count,mode));d.body.append(b);}
@@ -68,8 +68,8 @@ export function openRentalContracts(initial={}){
   if(target!==d.body)target.replaceChildren();
   target.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));
   if(!docs.length){target.append(node('p',translateStatic('لا توجد نسخة أصلية مرفوعة لهذا العقد حتى الآن. استخدم «مسح أو رفع العقد ومرفقاته» لإضافة الملف وربطه بهذا العقد.')));return;}
-  for(const doc of docs){const row=node('section'),output=node('div');let link;
-   row.append(button(doc.original_filename||doc.id,async()=>{if(link)return;const blob=await d.session.storage('GET',doc.storage_path);d.session.check();link=node('a',translateStatic('فتح الأصل المحفوظ')+' — '+(doc.original_filename||doc.id));link.href=urls.create(blob);link.target='_blank';link.rel='noopener';output.replaceChildren(link);d.status.textContent=translateStatic('الملف جاهز. اضغط «فتح الأصل المحفوظ» أسفل اسم الملف لعرضه.');}),output);row.append(button(translateStatic('حالة المستند والتواقيع'),async()=>{output.replaceChildren();await mountSignatureReview(d,output,doc.id);}));target.append(row);
+  for(const doc of docs){const row=node('section'),output=node('div');
+   row.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);d.session.check();const preview=node('iframe');preview.title=doc.original_filename||translateStatic('أصل العقد');preview.setAttribute('sandbox','');preview.src=urls.create(blob);preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.replaceChildren(preview);d.status.textContent=translateStatic('المستند معروض داخل عقاري.');}),output);row.append(button(translateStatic('حالة المستند والتواقيع'),async()=>{output.replaceChildren();await mountSignatureReview(d,output,doc.id);}));target.append(row);
   }
  }
 
@@ -93,6 +93,7 @@ export function openRentalContracts(initial={}){
   await showDocuments(id);d.status.textContent=translateStatic('تمت قراءة المرفقات المحفوظة.');
  }
  async function home(){
+  if(initial.mode==='approval'&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');
   clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(button(translateStatic('تحديث العقود / Refresh'),home));await load();
   d.body.append(node('p',translateStatic('ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.')));if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إبرام عقد جديد / New rental contract'),async()=>form(null)));
   if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إدارة واعتماد قوالب العقود'),manageTemplates));
@@ -102,7 +103,7 @@ export function openRentalContracts(initial={}){
   d.body.append(summary,field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);
   function draw(){
    list.replaceChildren();const q=search.value;refreshSummary();
-   const rows=allContracts().filter(c=>matchesContract(c,q,data.tenantProfilesV267||[])).sort((a,b)=>Number(a.source==='statement-import')-Number(b.source==='statement-import'));
+   const rows=allContracts().filter(c=>initial.mode!=='approval'||(c.source!=='statement-import'&&['draft','ready'].includes(c.status))).filter(c=>matchesContract(c,q,data.tenantProfilesV267||[])).sort((a,b)=>Number(a.source==='statement-import')-Number(b.source==='statement-import'));
    for(const c of rows){
     const sourceOnly=c.source==='statement-import',card=node('section');card.className='aq267-contract-card'+(sourceOnly?' aq267-contract-source-review':'');card.dataset.contractMode=sourceOnly?'source_review':'operational';card.style.cssText='display:block;padding:16px;margin:12px 0;border:1px solid '+(sourceOnly?'#c9b28f':'#d8c8ae')+';border-radius:12px;background:'+(sourceOnly?'#fff8ee':'#fffdf9');
     card.append(node('h3',String(c.contract_no||c.id)),node('p',[c.tenant||translateStatic('غير مدون'),c.property,c.unit,sourceOnly?translateStatic('مصدر للمراجعة — غير تشغيلي'):translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')));if(sourceOnly)card.append(node('p',translateStatic('هذا سجل مصدر تاريخي محفوظ للمراجعة فقط؛ لا يحتسب إشغالاً أو تحصيلاً ولا يمنع عقداً تشغيلياً جديداً.')));
@@ -192,3 +193,6 @@ export function openRentalContracts(initial={}){
 
 
 
+
+export function openContractApprovals(){return openRentalContracts({mode:'approval'});}
+export function openContractPreview(){return openRentalContracts({mode:'preview'});}

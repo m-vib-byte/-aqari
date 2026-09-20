@@ -83,7 +83,7 @@ test('a hanging authoritative read times out without issuing a document',async()
 
 function pageFixture(){
  const descendants=x=>[x,...x.children.flatMap(descendants)];
- class Element{constructor(tag,text=''){this.tag=tag;this.children=[];this.textContent=text;}append(...children){this.children.push(...children);}replaceChildren(...children){this.children=children;}}
+ class Element{constructor(tag,text=''){this.tag=tag;this.style={};this.children=[];this.textContent=text;}setAttribute(name,value){this[name]=value;}append(...children){this.children.push(...children);}replaceChildren(...children){this.children=children;}}
  const node=(tag,text)=>new Element(tag,text),created=[],released=[],calls=[];let closed=false;
  const state={fail:false,pending:null};
  const api={async prepareContractPrint(...args){calls.push(args);if(state.pending)await state.pending;if(state.fail)throw Error('اعتماد المدير العام مطلوب');return {html:'<html>saved synthetic contract</html>'};}};

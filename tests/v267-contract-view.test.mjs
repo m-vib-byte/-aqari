@@ -23,7 +23,7 @@ test('selected contract can be previewed when unrelated property reads would fai
  const f=fixture();await f.open({id:123});assert.ok(f.all().some(x=>x.innerHTML==='<p>saved contract</p>'));assert.equal(f.calls.includes('aqari_documents'),false);assert.equal(f.calls.includes('aqari_contract_history'),false);assert.equal(f.calls.includes('aqari_units'),false);
 });
 test('imported contract exposes its original attachment without enabling official issuance',async()=>{
- const f=fixture({imported:true});await f.open({id:123});const file=f.all().find(x=>x.textContent==='original.pdf');assert.ok(file);assert.equal(f.all().some(x=>x.textContent.includes('Prepare approved copy')),false);await f.click(file);assert.ok(f.calls.includes('GET:workspace/original.pdf'));assert.equal(f.urls.length,1);assert.equal(f.all().find(x=>x.tag==='a').href,'blob:verified-original');
+ const f=fixture({imported:true});await f.open({id:123});const file=f.all().find(x=>x.textContent==='original.pdf');assert.ok(file);assert.equal(f.all().some(x=>x.textContent.includes('Prepare approved copy')),false);await f.click(file);assert.ok(f.calls.includes('GET:workspace/original.pdf'));assert.equal(f.urls.length,1);assert.equal(f.all().find(x=>x.tag==='iframe').src,'blob:verified-original');
 });
 test('a closed session cannot render contracts from a late state response',async()=>{
  const f=fixture({closedAfterRead:true});await assert.rejects(f.open({}),/closed/);assert.equal(f.all().some(x=>x.textContent.includes('C-123')),false);
@@ -146,3 +146,9 @@ test('source review contracts are visually separated from operational contracts'
  assert.match(source,/عقود المصدر للمراجعة:/);
 });
 
+
+test('contract approval inbox denies staff and excludes historical source rows',async()=>{
+ const staff=fixture();await assert.rejects(staff.open({mode:'approval'}),/اعتماد المدير/);
+ const historical=fixture({role:'general_manager',imported:true,status:'ready'});await historical.open({mode:'approval'});assert.equal(historical.all().some(x=>x.textContent==='C-123'),false);
+ const manager=fixture({role:'general_manager',status:'ready'});await manager.open({mode:'approval'});assert.ok(manager.all().some(x=>x.textContent==='C-123'));
+});
