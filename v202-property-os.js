@@ -3374,7 +3374,7 @@
     overlay.className='v202-dialog-overlay v202-document-overlay';
     overlay.setAttribute('aria-hidden','true');
     overlay.setAttribute('inert','');
-    overlay.innerHTML='<section class="v202-document-shell" role="dialog" aria-modal="true" aria-labelledby="v202DocumentDialogTitle"><header class="v202-document-toolbar"><button type="button" data-v202-document-close>رجوع</button><h2 id="v202DocumentDialogTitle">مستند عقاري</h2><button type="button" data-v267-document-download>تحميل نسخة HTML</button><button type="button" class="is-primary" data-v202-print>'+icon('printer')+' طباعة / حفظ PDF</button></header><div id="v202DocumentBody"></div></section>';
+    overlay.innerHTML='<section class="v202-document-shell" role="dialog" aria-modal="true" aria-labelledby="v202DocumentDialogTitle"><header class="v202-document-toolbar"><button type="button" data-v202-document-close>رجوع</button><h2 id="v202DocumentDialogTitle">مستند عقاري</h2><button type="button" data-v267-document-download>تحميل نسخة HTML</button><button type="button" data-v267-document-share hidden>تجهيز الوصل للمشاركة</button><button type="button" class="is-primary" data-v202-print>'+icon('printer')+' طباعة / حفظ PDF</button></header><p data-v267-share-status role="status" hidden></p><div id="v202DocumentBody"></div></section>';
     document.body.appendChild(overlay);
   }
 
@@ -3391,6 +3391,9 @@
     if(body)body.innerHTML=markup;
     const download=overlay.querySelector('[data-v267-document-download]');
     if(download){download.hidden=!body?.querySelector('[data-receipt-no]');download.textContent='تحميل وصل إيجار PDF';}
+    const share=overlay.querySelector('[data-v267-document-share]'),shareStatus=overlay.querySelector('[data-v267-share-status]');
+    if(share){share.hidden=!body?.querySelector('[data-receipt-no]');share.textContent='تجهيز الوصل للمشاركة';share.disabled=false;}
+    if(shareStatus){shareStatus.hidden=!body?.querySelector('[data-receipt-no]');shareStatus.textContent='مشاركة يدوية: اختر واتساب أو البريد من هاتف البناية، وتأكد من حساب البرج والمستأجر قبل الإرسال. لا تؤكد المنصة وصول الرسالة.';}
     overlay.classList.add('on');
     overlay.removeAttribute('inert');
     overlay.setAttribute('aria-hidden','false');
@@ -3656,19 +3659,21 @@
   }
 
   let receiptDownloadJob=null;
+  let receiptShareReady=null;
   const receiptDownloadUrls=new Set();
   function cancelReceiptDownload(){
+    receiptShareReady=null;
     const job=receiptDownloadJob;
     if(job){job.cancelled=true;job.controller.abort();receiptDownloadJob=null;if(job.button)job.button.disabled=false;}
     for(const url of receiptDownloadUrls)URL.revokeObjectURL(url);
     receiptDownloadUrls.clear();
   }
-  async function downloadDocument(){
+  async function downloadDocument(forShare=false){
     if(receiptDownloadJob||!protectedAccessReady())return false;
     const scope=activeAccessScope(),body=document.getElementById('v202DocumentBody');
     const reference=body?.querySelector('[data-receipt-no]')?.dataset.receiptNo;
     if(!reference)return false;
-    const button=document.querySelector('[data-v267-document-download]');
+    const button=document.querySelector(forShare?'[data-v267-document-share]':'[data-v267-document-download]');
     const job={controller:new AbortController(),button,cancelled:false};
     receiptDownloadJob=job;if(button)button.disabled=true;
     const current=()=>receiptDownloadJob===job&&!job.controller.signal.aborted&&protectedAccessReady()&&sameAccessScope(scope,activeAccessScope())&&body===document.getElementById('v202DocumentBody')&&body?.querySelector('[data-receipt-no]')?.dataset.receiptNo===reference;
@@ -3690,6 +3695,15 @@
         if(!current())return false;
         const verified=await window.AQARI_SUPABASE.getSession();
         if(!current()||verified?.user?.id!==scope.userId||!verified?.access_token)return false;
+        if(forShare){
+          const file=new File([blob],'AQARI-rent-receipt.pdf',{type:'application/pdf'});
+          if(typeof navigator.share!=='function'||typeof navigator.canShare!=='function'||!navigator.canShare({files:[file]})){
+            receiptShareStatus('المشاركة غير متاحة على هذا الجهاز. حمّل وصل PDF وأرفقه من واتساب أو بريد البناية.');return false;
+          }
+          receiptShareReady={file,scope,reference,body,expires:Date.now()+60000};
+          if(button)button.textContent='مشاركة الوصل عبر الهاتف';
+          receiptShareStatus('الملف جاهز. اضغط مشاركة الوصل، واختر تطبيق البناية ثم المستأجر الصحيح.');return true;
+        }
         const url=URL.createObjectURL(blob),link=document.createElement('a');receiptDownloadUrls.add(url);
         link.href=url;link.download='AQARI-V267-rent-receipt.pdf';document.body.appendChild(link);link.click();link.remove();
         setTimeout(()=>{if(receiptDownloadUrls.delete(url))URL.revokeObjectURL(url);},60000);return true;
@@ -3699,6 +3713,31 @@
       clearTimeout(timer);job.controller.signal.removeEventListener('abort',rejectAbort);
       if(receiptDownloadJob===job){receiptDownloadJob=null;if(button)button.disabled=false;}
     }
+  }
+
+  function receiptShareStatus(message){
+    const status=document.querySelector('[data-v267-share-status]');
+    if(status){status.hidden=false;status.textContent=message;}
+  }
+  async function shareDocument(){
+    if(!protectedAccessReady()||receiptDownloadJob)return false;
+    const ready=receiptShareReady,body=document.getElementById('v202DocumentBody');
+    if(!ready||Date.now()>ready.expires||!sameAccessScope(ready.scope,activeAccessScope())||ready.body!==body||body?.querySelector('[data-receipt-no]')?.dataset.receiptNo!==ready.reference){
+      receiptShareReady=null;
+      receiptShareStatus('جاري تجهيز الوصل المحفوظ…');
+      return downloadDocument(true);
+    }
+    // Invoke synchronously on the second click to preserve native user activation.
+    const button=document.querySelector('[data-v267-document-share]');
+    if(button)button.disabled=true;
+    try{
+      await navigator.share({files:[ready.file]});
+      if(receiptShareReady===ready)receiptShareStatus('تم فتح المشاركة. تأكد من الإرسال داخل التطبيق؛ وصول الرسالة غير مؤكّد في عقاري.');
+      return true;
+    }catch(error){
+      if(receiptShareReady===ready)receiptShareStatus(error?.name==='AbortError'?'أُغلقت المشاركة دون تأكيد الإرسال.':'تعذرت المشاركة. يمكنك تحميل PDF وإرفاقه من تطبيق البناية.');
+      return false;
+    }finally{if(receiptShareReady===ready&&button)button.disabled=false;}
   }
 
   function topLayer(){
@@ -3867,6 +3906,7 @@
       if(savedStatement){event.preventDefault();event.stopImmediatePropagation();return openSavedPropertyStatement(savedStatement)}
       if(target.closest('[data-v206-export-csv]')){event.preventDefault();event.stopImmediatePropagation();return exportPropertyRentLedgerCsv()}
       if(target.closest('[data-v202-print]')){event.preventDefault();event.stopImmediatePropagation();return printDocument()}
+      if(target.closest('[data-v267-document-share]')){event.preventDefault();event.stopImmediatePropagation();return shareDocument().catch(()=>receiptShareStatus('تعذر تجهيز الوصل. أعد المحاولة أو حمّل PDF.'))}
       if(target.closest('[data-v267-document-download]')){event.preventDefault();event.stopImmediatePropagation();return downloadDocument().catch(()=>window.alert('تعذر تحميل المستند. أعد المحاولة.'))}
       const ledgerStatement=target.closest('[data-v206-ledger-statement-key]');
       if(ledgerStatement){event.preventDefault();event.stopImmediatePropagation();return openLedgerTenantStatement(ledgerStatement)}

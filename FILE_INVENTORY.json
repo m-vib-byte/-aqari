@@ -3232,8 +3232,8 @@
     },
     {
       "path": "tests/v267-admin-receipt-download.test.cjs",
-      "sha256": "2c78fc9bce15844b4a99246843404a03f729dd196b3c3d6545181a955ee93de2",
-      "size": 5086
+      "sha256": "1c51e40be86dc976d303f2deff65189c0631a6344a2af7c6e6ae535eb78ee423",
+      "size": 7469
     },
     {
       "path": "tests/v267-app-login-locale.test.mjs",
@@ -3937,8 +3937,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "3a0927594f7b426c292c884822ccb82f9411f828afa571834214906fbfbb9982",
-      "size": 278618
+      "sha256": "0af89af6f42cf9b6dd05ff8f12b02a5c7ebbd02788cbb4c2304130be52e79e5a",
+      "size": 282080
     },
     {
       "path": "v205-simple.css",
