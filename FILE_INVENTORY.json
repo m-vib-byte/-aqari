@@ -4172,8 +4172,8 @@
     },
     {
       "path": "docs/CONTRACT-ADMINISTRATION-2026-09-20.md",
-      "sha256": "85e102767d52c12650de9b0393d3ed596f19a24b88ee3e16db3bc99a2fd265cd",
-      "size": 5847
+      "sha256": "c57702b04390be7fcf266ccdb20fe8befbe5d95b14b807ee05363a106568c8aa",
+      "size": 6022
     },
     {
       "path": "src/v267/components/contract-administration.js",

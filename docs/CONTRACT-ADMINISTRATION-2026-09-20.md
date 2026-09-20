@@ -40,4 +40,4 @@ Native platform follow-up:
 - Contract HTML, originals, and archived originals render in sandboxed inline viewers with no external-tab preview. Downloads remain optional.
 - Focused workflow suite: 85 passing tests. Additional print, load, upload, document catalog, and onboarding regression suite: 42 passing tests.
 - The live domain-trial configuration selects branch `ofgmcsmxmdswlovsckqs`, under staging project `djkpkkgoibruaezdrchb`. The administration RPC is absent there and email/WhatsApp integration configurations are empty. No permanent upgrade applied.
-- Full source suite exposed additional build-overlay-dependent failures; do not claim a complete release pass.
+- Standard build plus owner-reference and owner-feedback overlays succeeded in an isolated build copy. The complete built suite passed: 1,825 tests, zero failures. The source-only failures depended on these normal build overlays. This does not establish browser or delivery acceptance.
