@@ -40,8 +40,8 @@ test('statement navigation isolates months and disables actions after missing da
   failLatest=true;await latest.onclick();assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);failLatest=false;
   month.value='2026-08';await month.onchange();
   assert.equal(pdf.disabled,false);assert.equal(link.disabled,false);assert.equal(readinessReview.hidden,true);
-  readinessPending=true;await refresh.onclick();assert.equal(link.disabled,true);assert.equal(readinessReview.hidden,false);assert.match(dialog.status.textContent,/الربط متوقف/);
-  const linkCallsBefore=queries.filter(q=>q.rpc==='aqari_link_property_statement').length;await link.onclick();assert.equal(queries.filter(q=>q.rpc==='aqari_link_property_statement').length,linkCallsBefore);assert.match(dialog.status.textContent,/تحتاج معاينة/);
+  readinessPending=true;await refresh.onclick();assert.equal(link.disabled,false,'historical source draft linking remains available');assert.equal(readinessReview.hidden,false);
+  assert.ok(result.children.some(el=>/تحتاج معاينة موثقة قبل تفعيل عقد تشغيلي/.test(el.textContent||'')));
   readinessPending=false;await refresh.onclick();assert.equal(link.disabled,false);assert.equal(readinessReview.hidden,true);
   assert.ok(queries.some(q=>q.filters.period==='2026-09-01'&&q.filters.property_id==='p'&&q.filters.workspace_id==='w'));
   failLinks=true;await refresh.onclick();
