@@ -1192,8 +1192,8 @@
     },
     {
       "path": "src/v267/components/property-experience.js",
-      "sha256": "2cb93962bdcf3ba303b6b62354bdd1b0473b7152f5df1af52a453a5a07e74b91",
-      "size": 9385
+      "sha256": "89177d3ea45c27ef8c29b939ae37b9f902ac6035503119930b7c3f46429c3ecd",
+      "size": 9707
     },
     {
       "path": "src/v267/components/property-form.js",
@@ -3937,8 +3937,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 277953,
-      "sha256": "acfa3e675777046a76dd20f620817b5984730198b69d107f4ec02b8cf4dbb23d"
+      "size": 278675,
+      "sha256": "3a72ac59da2e4744dc4435038cc44dacc6cc19799d4086c28b69bff479922477"
     },
     {
       "path": "v205-simple.css",
@@ -4152,8 +4152,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "size": 23951,
-      "sha256": "590928d952a52a0c60cb29ade4841f8daef2b5ca82c8c35742e307fd0ea49e18"
+      "size": 26655,
+      "sha256": "b4a6f509505f73b90de67f405f441303607c291ad9fee9725c85b2fee16db5b3"
     },
     {
       "path": "tests/property-record-navigation.test.mjs",
