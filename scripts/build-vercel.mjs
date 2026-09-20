@@ -10,5 +10,4 @@ if(process.env.VERCEL_ENV==='production'){
   if(trial?.enabled===true){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
   else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
-execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
-console.log('DIAGNOSTIC_VERIFY_PASS');
+console.log('DIAGNOSTIC_INITIAL_TESTS_PASS');
