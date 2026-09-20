@@ -46,7 +46,7 @@ test('manager drafts and prior versions are proposals and publication requires e
 });
 test('a lost publication reply retains the request and retries the same version before verified success',async()=>{
  const f=setup({manager:true,items:[]});const manager=await mountRentalTemplateManager(f.d,f.target,{suggestion:[{title:'اقتراح',text:'نص اختبار'}]});const fields=all(manager.form);
- fields.find(x=>x.tag==='input'&&x.maxLength===200).value='قالب اختبار جديد';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب اعتماد اصطناعي';fields.find(x=>x.type==='checkbox').checked=true;f.state.failOnce=true;
+ fields.find(x=>x.tag==='input'&&x.maxLength===200).value='قالب اختبار جديد';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب اعتماد اصطناعي';fields.find(x=>x.textContent===t('معاينة نص النسخة قبل الاعتماد')).onclick();fields.find(x=>x.type==='checkbox').checked=true;f.state.failOnce=true;
  await assert.rejects(manager.form.onsubmit({preventDefault(){}}),/lost publication/);assert.equal(f.state.items.length,1);const retry=all(manager.form).find(x=>x.tag==='button');assert.match(retry.textContent,/بنفس الطلب/);await retry.onclick();
  const writes=f.state.calls.filter(x=>x.p_action==='publish');assert.equal(writes.length,2);assert.deepEqual(writes[0].p_data,writes[1].p_data);assert.equal(f.state.items.length,1);assert.ok(f.state.calls.some(x=>x.p_action==='get'));assert.match(f.d.status.textContent,/تأكدت إعادة قراءتها/);
 });
@@ -57,7 +57,7 @@ test('scope loss during a template response prevents rendering any saved clauses
 
 test('a failed independent readback prevents another edit and verifies the original publication on retry',async()=>{
  const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{suggestion:[{title:'اقتراح',text:'نص اختبار'}]});const fields=all(manager.form);
- fields.find(x=>x.tag==='input'&&x.maxLength===200).value='قالب اختبار';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب اعتماد اصطناعي';fields.find(x=>x.type==='checkbox').checked=true;f.state.failReadOnce=true;
+ fields.find(x=>x.tag==='input'&&x.maxLength===200).value='قالب اختبار';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب اعتماد اصطناعي';fields.find(x=>x.textContent===t('معاينة نص النسخة قبل الاعتماد')).onclick();fields.find(x=>x.type==='checkbox').checked=true;f.state.failReadOnce=true;
  await assert.rejects(manager.form.onsubmit({preventDefault(){}}),/lost readback/);assert.equal(f.state.items.length,1);assert.equal(all(manager.form).filter(x=>x.tag==='input'||x.tag==='textarea').length,0);
  await all(manager.form).find(x=>x.tag==='button').onclick();assert.equal(f.state.items.length,1);assert.match(f.d.status.textContent,/تأكدت إعادة قراءتها/);
 });
@@ -82,4 +82,16 @@ test('template picker and manager translate UI in five languages without transla
   }
   assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0,'rendering translations must never publish a legal template');
  }}finally{setLocale('ar',null);}
+});
+
+test('publication requires a full preview after the latest edit',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{suggestion:[{title:'بند',text:'نص للاختبار'}]});
+ const fields=all(manager.form),title=fields.find(x=>x.tag==='input'&&x.maxLength===200),approve=fields.find(x=>x.type==='checkbox'),preview=fields.find(x=>x.textContent===t('معاينة نص النسخة قبل الاعتماد'));
+ title.value='قالب اختبار';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب للاختبار';approve.checked=true;
+ await assert.rejects(manager.form.onsubmit({preventDefault(){}}),/المعاينة الكاملة/);
+ preview.onclick();title.value='تعديل بعد المعاينة';title.oninput();approve.checked=true;
+ await assert.rejects(manager.form.onsubmit({preventDefault(){}}),/المعاينة الكاملة/);
+ assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0);
+ preview.onclick();approve.checked=true;await manager.form.onsubmit({preventDefault(){}});
+ assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,1);
 });

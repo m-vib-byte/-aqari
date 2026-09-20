@@ -11,7 +11,7 @@ function fixture({imported=false,closedAfterRead=false,status='signed',role='sta
  const api={saveLease:async()=>calls.push('saveLease'),primary:x=>x,contractMarkup:()=>'<p>saved contract</p>'};
  const session={bound:{workspace:'workspace',role},check(){if(closed)throw Error('closed');},client:{rpc(name){calls.push(name);return {name};},from(table){calls.push(table);const query={table};for(const method of ['select','eq','order'])query[method]=()=>query;return query;}},async request(query){if(query.name==='aqari_read_state_v267'){if(stateFailures-->0)throw Error('state temporarily unavailable');if(closedAfterRead)closed=true;return {payload:{contractsV202:[contract],tenantProfilesV267:profiles}};}if(query.name==='aqari_contract_history')return [];if(query.table==='aqari_documents'&&(documentsError||documentFailures-->0))throw Error('attachment read unavailable');if(query.table==='aqari_documents'&&emptyDocuments)return [];if(query.table==='aqari_documents')return [{id:'doc',original_filename:'original.pdf',storage_path:'workspace/original.pdf'}];throw Error('unrelated property read denied');},async storage(method,path){calls.push(method+':'+path);return new Blob(['saved original']);}};
  const d={el:node('dialog'),body:node('div'),status:node('p'),session,run(fn){const task=Promise.resolve().then(()=>{if(connectionFailures-->0)throw Error('connection unavailable');return fn();});tasks.push(task);return task;},navigate(fn){return this.run(fn);},close(){calls.push('close-dialog');closed=true;}};
- const context={guardPageImport:load=>load(),currentMonth:()=> '2026-09',loadStatements:async()=>{calls.push('load-statements');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openPropertyStatements(options){assert.equal(closed,true);calls.push(options);}};},loadExecution:async()=>{calls.push('load-execution');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openContractExecution(id,options){assert.equal(closed,true);assert.equal(typeof options.onDone,'function');calls.push('execution:'+id);return true;}};},Blob,node,field:(label,control)=>control,translateStatic:x=>x,createDialog:()=>d,createPrivateUrls:()=>({clear(){},create(blob){urls.push(blob);return 'blob:verified-original';}}),window:{AQARI_RENTAL_RECORDS:api}};
+ const context={mountContractChangeRequest:()=>{},mountSignatureReview:async()=>{},guardPageImport:load=>load(),currentMonth:()=> '2026-09',loadStatements:async()=>{calls.push('load-statements');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openPropertyStatements(options){assert.equal(closed,true);calls.push(options);}};},loadExecution:async()=>{calls.push('load-execution');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openContractExecution(id,options){assert.equal(closed,true);assert.equal(typeof options.onDone,'function');calls.push('execution:'+id);return true;}};},Blob,node,field:(label,control)=>control,translateStatic:x=>x,createDialog:()=>d,createPrivateUrls:()=>({clear(){},create(blob){urls.push(blob);return 'blob:verified-original';}}),window:{AQARI_RENTAL_RECORDS:api}};
  vm.runInNewContext(source,context);
  const all=(root=d.body)=>[root,...root.children.flatMap(x=>all(x))];
  return {calls,d,urls,all,open:async initial=>{context.openRentalContracts(initial);await tasks.at(-1);},click:async el=>{el.onclick();await tasks.at(-1);}};
@@ -48,7 +48,7 @@ test('signing opens the settlement dialog after closing the contract, without a 
 });
 test('non-managers cannot open final settlement from the contract',async()=>{
  const f=fixture({status:'signing'});await f.open({id:123});
- await assert.rejects(f.click(f.all().find(x=>x.tag==='button'&&x.textContent==='نقل إلى: موقّع')),/اعتماد المدير/);
+ assert.equal(f.all().some(x=>x.tag==='button'&&x.textContent==='نقل إلى: موقّع'),false);
  assert.equal(f.calls.includes('load-execution'),false);assert.equal(f.calls.includes('saveLease'),false);
 });
 test('module failure preserves the contract dialog for retry; a late import cannot reopen a closed session',async()=>{
@@ -145,3 +145,4 @@ test('source review contracts are visually separated from operational contracts'
  assert.match(source,/العقود التشغيلية:/);
  assert.match(source,/عقود المصدر للمراجعة:/);
 });
+

@@ -1,5 +1,6 @@
 // Categories describe the document; they never infer authenticity, payment, legal approval or delivery.
 export const DOCUMENT_CATEGORIES=Object.freeze({
+ archived_contract:{label:'عقد سابق — أرشيف فقط',entities:['tenant']},
  owner_identity:{label:'هوية المالك',entities:['property']},
  landlord_identity:{label:'هوية المؤجر',entities:['property','lease']},
  tenant_identity:{label:'هوية المستأجر',entities:['tenant','lease']},

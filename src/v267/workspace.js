@@ -47,7 +47,10 @@ function updateFeatureTools(){
  const directPages=[
   ['aq267-approval-center',null,true],
   ['aq267-bank-reconciliation','finance',false],
-  ['aq267-contract-foundation','contracts',false],
+  ['aq267-contract-foundation','contracts',true],
+  ['aq267-contract-templates','contracts',true],
+  ['aq267-contract-archive','contracts',true],
+  ['aq267-contract-change-requests','contracts',false],
   ['aq267-owner-experience-settings',null,true],
   ['aq267-owner-report','reports',true],
   ['aq267-owner-task-center',null,true],
@@ -97,7 +100,10 @@ export function install(){
  const directPage=(id,title,path,method,section=null,manager=false)=>{const button=ui('button',title);button.id=id;button.hidden=true;button.onclick=async()=>{try{if(!directoryScope())await refresh();if(!directoryAllowed({section,manager}))throw Error('هذه الخدمة غير متاحة لصلاحية حسابك.');const bound=directoryScope(),m=await guardPageImport(()=>import(path));if(bound!==directoryScope()||!directoryAllowed({section,manager}))throw Error('تغيّرت الجلسة أو الصلاحية. أعد المحاولة.');if(typeof m[method]!=='function')throw Error('تعذر فتح الصفحة.');return m[method]();}catch(e){notice.textContent=t(safeError(e));return false;}};return button;};
  const approvalCenter=directPage('aq267-approval-center','مركز الموافقات','./pages/approval-center.js','openApprovalCenter',null,true);
  const bankReconciliation=directPage('aq267-bank-reconciliation','مطابقة التحويلات البنكية','./pages/bank-reconciliation.js','openBankReconciliation','finance');
- const contractFoundation=directPage('aq267-contract-foundation','عقد جديد — التأسيس الكامل','./pages/contract-foundation.js','openContractFoundation','contracts');
+ const contractFoundation=directPage('aq267-contract-foundation','عقد جديد — التأسيس الكامل','./pages/contract-foundation.js','openContractFoundation','contracts',true);
+ const contractTemplates=directPage('aq267-contract-templates','نماذج العقود — المدير العام','./pages/contract-templates.js','openContractTemplates','contracts',true);
+ const contractArchive=directPage('aq267-contract-archive','أرشيف العقود السابقة','./pages/contract-archive.js','openContractArchive','contracts',true);
+ const contractRequests=directPage('aq267-contract-change-requests','طلبات تعديل العقود','./pages/contract-change-requests.js','openContractChangeRequests','contracts');
  const ownerExperienceSettings=directPage('aq267-owner-experience-settings','إعدادات تجربة المالك','./pages/owner-experience-settings.js','openOwnerExperienceSettings',null,true);
  const ownerReport=directPage('aq267-owner-report','تقرير المالك','./pages/owner-report.js','openOwnerReport','reports',true);
  const ownerTaskCenter=directPage('aq267-owner-task-center','التنبيهات والمهام','./pages/owner-task-center.js','openOwnerTaskCenter',null,true);
@@ -152,7 +158,7 @@ export function install(){
  const route=(name,section)=>({...entry(document.querySelector('#aqariV199Topbar [data-v199-go="'+name+'"]'),section),menu:false});
  serviceDirectory=organizeServices({tools,allowed:directoryAllowed,groups:[
   {key:'finance',items:[route('collectionProPage','collections'),entry(deposits,'collections',false,'تأمين تامين قبض رد'),entry(bankReconciliation,'finance',false,'بنك تحويل مطابقة تسوية bank reconciliation transfer'),entry(propertyCostAllocation,'finance',true,'تكلفة تكاليف توزيع العقار cost allocation'),entry(financialRegister,'finance'),entry(commercialCollections,'finance',true,'تجاري تحصيل مبيعات مستحقات قبض commercial collections sales'),entry(openingBalances,'finance',true,'افتتاح افتتاحي مطابقة مستند قطع opening balance reconciliation'),entry(partnerDistributions,'partners',true,'شريك شركاء حصص توزيع مستحقات partner shares distribution'),entry(financialArchiveButton,'finance'),entry(finalGapButton,null,true)]},
-  {key:'contracts',items:[entry(contractFoundation,'contracts',false,'عقد جديد تأسيس كامل create contract foundation'),entry(approvalCenter,null,true,'موافقة موافقات اعتماد approval center'),entry(rentalContracts,'contracts',false,'قالب قوالب شقة بيت محل تجاري استثماري مدة نهاية contract template apartment house shop commercial investment'),entry(contractScan,'documents',false,'مسح عقد تصوير عقد رفع عقد'),entry(expiryReportButton,'reports'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
+  {key:'contracts',items:[entry(contractArchive,'contracts',true,'أرشفة أرشيف عقد سابق archive'),entry(contractRequests,'contracts',false,'طلب تعديل عقد approval request'),entry(contractTemplates,'contracts',true,'نموذج نماذج قوالب contract templates'),entry(contractFoundation,'contracts',true,'عقد جديد تأسيس كامل create contract foundation'),entry(approvalCenter,null,true,'موافقة موافقات اعتماد approval center'),entry(rentalContracts,'contracts',false,'قالب قوالب شقة بيت محل تجاري استثماري مدة نهاية contract template apartment house shop commercial investment'),entry(contractScan,'documents',false,'مسح عقد تصوير عقد رفع عقد'),entry(expiryReportButton,'reports'),entry(officialDocumentsButton,'documents',true),entry(originals,'documents'),entry(scan,'documents'),entry(exitReview,null,true),entry(vacating,'contracts'),entry(vacatingReview,null,true)]},
   {key:'properties',items:[route('properties','properties'),route('tenants','tenants'),entry(propertyOnboarding,'properties',true,'إضافة عقار تجهيز onboarding'),entry(propertyAdminSettings,'properties',true,'إعدادات إدارة العقار admin settings'),entry(propertyControls,'properties',true,'ضوابط خدمات العقار controls'),entry(tenantTimeline,'tenants',false,'تاريخ مستأجر سجل زمني timeline'),entry(readinessButton,'properties'),entry(statements,null,true),entry(quality,null,true),entry(review,null,true)]},
   {key:'maintenance',items:[route('maintenanceProPage','maintenance'),entry(utilities),entry(maintenancePlansButton,'maintenance'),entry(maintenanceReportButton,'reports',false,'تقرير الصيانة حالة تكلفة زمن استجابة إغلاق'),entry(complianceButton,null,true),entry(operationsCenter,null,true)]},
   {key:'staff',items:[entry(employees,'employees',false,'راتب رواتب موظف'),entry(staffAccess,null,true),entry(partners,null,true),entry(propertyNotices,null,true),entry(staffCirculars)]},
