@@ -88,6 +88,33 @@
     return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
   }
 
+  function retryableStartupUserError(error){
+    if(error?.code === 'AQARI_STARTUP_TIMEOUT') return true;
+    if(Number.isInteger(error?.status)) return error.status >= 500;
+    return error?.name === 'TypeError' || error?.name === 'AbortError';
+  }
+
+  async function verifyStartupUser(session, refreshEpoch){
+    let lastError;
+    for(let attempt = 0; attempt < 2; attempt++){
+      const deadlineAt = Date.now() + 6000;
+      try{
+        const user = await startupJson('/auth/v1/user', session, deadlineAt);
+        assertContextEpoch(refreshEpoch);
+        return user;
+      }catch(error){
+        lastError = error;
+        assertContextEpoch(refreshEpoch);
+        if(attempt > 0 || !retryableStartupUserError(error)) throw error;
+        // One bounded retry only for network/timeout/5xx failures. Auth
+        // rejection (401/403) remains fail-closed and is never retried.
+        await new Promise(resolve => setTimeout(resolve, 120));
+        assertContextEpoch(refreshEpoch);
+      }
+    }
+    throw lastError;
+  }
+
   function snapshotContext(client, user, snapshot, expected){
     if(!snapshot || snapshot.user_id !== user?.id) throw accessError();
     const next = {client,user,membership:snapshot.membership,workspace:snapshot.workspace,profile:snapshot.profile};
@@ -98,13 +125,13 @@
   }
 
   async function fastStartupContext(client, session, refreshEpoch){
-    const deadlineAt = Date.now() + 10000;
     startupProgress('verify-user');
-    const user = await startupJson('/auth/v1/user', session, deadlineAt);
+    const user = await verifyStartupUser(session, refreshEpoch);
     assertContextEpoch(refreshEpoch);
     if(user?.id !== session.user.id) throw accessError();
     startupProgress('workspace-snapshot');
-    const snapshot = await startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', session, deadlineAt,
+    const snapshotDeadlineAt = Date.now() + 10000;
+    const snapshot = await startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', session, snapshotDeadlineAt,
       {p_workspace_id:null,p_expected_role:null,p_include_payload:true});
     assertContextEpoch(refreshEpoch);
     const next = snapshotContext(client, user, snapshot, {userId:user.id});
