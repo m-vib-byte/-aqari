@@ -14,3 +14,9 @@ export async function openPropertySavedStatements(d,name,loader=()=>guardPageImp
  if(typeof page.openPropertyStatements!=='function')throw Error('تعذر فتح الكشف.');
  d.close();return page.openPropertyStatements({propertyName:name});
 }
+
+export async function openPropertyPage(d,loader,exportName,initial){
+ const page=await guardPageImport(loader);d.session.check();
+ if(typeof page[exportName]!=='function')throw Error('تعذر فتح الصفحة المطلوبة.');
+ d.close();return page[exportName](initial);
+}
