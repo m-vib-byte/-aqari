@@ -104,7 +104,7 @@ export function openRentalContracts(initial={}){
     card.append(node('h3',String(c.contract_no||c.id)),node('p',[c.tenant||translateStatic('غير مدون'),c.property,c.unit,translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')));
     const actions=node('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px';
     for(const [symbol,label,fn]of [['◉','عرض العقد',()=>show(c.id)],['▤','عرض المرفقات المحفوظة',()=>contractDocuments(c.id)],['◷','متابعة العقد',()=>trackContract(c.id)]]){
-     const b=button(translateStatic(label),fn),icon=node('span',symbol);icon.setAttribute('aria-hidden','true');b.prepend(icon,node('span',' '));b.setAttribute('aria-label',translateStatic(label)+' — '+String(c.contract_no||c.id));b.style.cssText='display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;flex:1 1 140px';actions.append(b);
+     const b=button(translateStatic(label)+' — '+String(c.contract_no||c.id),fn),icon=node('span',symbol);icon.setAttribute('aria-hidden','true');b.prepend(icon,node('span',' '));b.setAttribute('aria-label',translateStatic(label)+' — '+String(c.contract_no||c.id));b.style.cssText='display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;flex:1 1 140px';actions.append(b);
     }
     card.append(actions);list.append(card);
    }
