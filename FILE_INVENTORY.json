@@ -2932,8 +2932,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "40d0f263fbe561994bc647c1d8732e7e934836a868cefea332a0a4aa53c3325d",
-      "size": 26625
+      "sha256": "7351845a8c6af3f44c3b48e7da95c1ffbc36f9df9fe70ad8cdab9e1e831a074e",
+      "size": 27663
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -3227,8 +3227,8 @@
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
-      "sha256": "490006e04a2e9fef2d761edf08868af9cc52cf856473e2d3dbd685c247bd92bd",
-      "size": 7352
+      "sha256": "29bd76dc34262dd9f81a60335c39d98fb54b87ee11dd3d74af37eae426228ea0",
+      "size": 8337
     },
     {
       "path": "tests/v267-admin-receipt-download.test.cjs",
