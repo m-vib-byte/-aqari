@@ -68,13 +68,39 @@ for(const kind of ['unknown','invalid-json','permission-rpc']){
   assert.equal(r.api.context.user,null);
  });
 }
+
+test('a transient startup user failure retries once and then continues',async()=>{
+ let authAttempts=0;
+ const r=runtime(({body,response})=>{
+  if(body)return response;
+  authAttempts++;
+  if(authAttempts===1)return {ok:false,status:503,async json(){return {}}};
+  return response;
+ });
+ await r.api.refreshContext();
+ assert.equal(authAttempts,2);
+ assert.equal(r.api.context.user.id,'user-a');
+ assert.deepEqual(r.calls.slice(0,3).map(x=>x.path),['/auth/v1/user','/auth/v1/user','/rest/v1/rpc/aqari_startup_snapshot_v266']);
+});
+test('explicit Auth rejection is never retried',async()=>{
+ let authAttempts=0;
+ const r=runtime(({body,response})=>{
+  if(body)return response;
+  authAttempts++;
+  return {ok:false,status:401,async json(){return {code:'session_expired'}}};
+ });
+ await assert.rejects(r.api.refreshContext(),e=>e.status===401);
+ assert.equal(authAttempts,1);
+ assert.equal(r.api.context.user,null);
+});
+
 test('a stalled Auth error body remains bounded by the startup deadline',async()=>{
  let requestedDeadline;
  const r=runtime(()=>({ok:false,status:403,json(){return new Promise(()=>{})}}),{
   setTimeout(callback,delay){requestedDeadline=delay;return setTimeout(callback,5)},clearTimeout
  });
  await assert.rejects(r.api.refreshContext(),e=>e.code==='AQARI_STARTUP_TIMEOUT');
- assert.ok(requestedDeadline>0 && requestedDeadline<=10000);assert.equal(r.api.context.user,null);
+ assert.ok(requestedDeadline>0 && requestedDeadline<=6000);assert.equal(r.calls.filter(c=>c.path==='/auth/v1/user').length,2);assert.equal(r.api.context.user,null);
 });
 test('a denied or missing RPC fails closed rather than authorizing from browser storage',async()=>{
  const r=runtime(({body,response})=>body?{ok:false,status:403}:response);
