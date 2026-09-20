@@ -74,7 +74,44 @@ export function openRentalContracts(initial={}){
 
  function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
  async function manageTemplates(){clear(translateStatic('إدارة قوالب العقود'));await mountRentalTemplateManager(d,d.body,{suggestion:api.defaultClauses(),onBack:home});}
- async function home(){clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(button(translateStatic('تحديث العقود / Refresh'),home));await load();d.body.append(node('p',translateStatic('ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.')),button(translateStatic('إبرام عقد جديد / New rental contract'),async()=>form(null)));if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إدارة واعتماد قوالب العقود'),manageTemplates));const search=input('search'),list=node('div');d.body.append(field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);function draw(){list.replaceChildren();const q=search.value;for(const c of (data.contractsV202||[]).filter(c=>matchesContract(c,q,data.tenantProfilesV267||[])))list.append(button(`${c.contract_no} · ${c.tenant||translateStatic('غير مدون')} · ${translateStatic(states[c.status]||c.status)}`,()=>show(c.id)));if(!list.children.length)list.append(node('p',translateStatic('لا توجد عقود مطابقة.')));}search.oninput=draw;draw();d.status.textContent=translateStatic('تم استرجاع العقود من قاعدة البيانات.');}
+ async function trackContract(id){
+  clear(translateStatic('متابعة العقد'));d.body.append(backButton());await load();
+  const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');
+  d.body.append(node('h3',String(c.contract_no||id)),node('p',[c.tenant,c.property,c.unit,translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')),button(translateStatic('عرض العقد'),()=>show(id)));
+  const history=await rpc('aqari_contract_history',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(id)});d.session.check();
+  if(!Array.isArray(history))throw Error('تعذر قراءة سجل العقد.');
+  d.body.append(node('h3',translateStatic('سجل العقد والنسخ السابقة / Contract history')));
+  if(!history.length)d.body.append(node('p',translateStatic('لا توجد تغييرات مسجلة لهذا العقد.')));
+  for(const h of history){const item=node('details');item.append(node('summary',[h.actor_name,kuwaitTime(h.recorded_at),h.reason].filter(Boolean).join(' · ')),node('pre',JSON.stringify({before:h.before_snapshot,after:h.after_snapshot},null,2)));d.body.append(item);}
+  d.status.textContent=translateStatic('تمت قراءة سجل العقد.');
+ }
+ async function contractDocuments(id){
+  clear(translateStatic('عرض المرفقات المحفوظة'));d.body.append(backButton());await load();
+  const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');
+  d.body.append(node('h3',String(c.contract_no||id)),button(translateStatic('عرض العقد'),()=>show(id)));
+  await showDocuments(id);d.status.textContent=translateStatic('تمت قراءة المرفقات المحفوظة.');
+ }
+ async function home(){
+  clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(button(translateStatic('تحديث العقود / Refresh'),home));await load();
+  d.body.append(node('p',translateStatic('ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.')),button(translateStatic('إبرام عقد جديد / New rental contract'),async()=>form(null)));
+  if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إدارة واعتماد قوالب العقود'),manageTemplates));
+  const search=input('search'),list=node('div');list.className='aq267-contract-list';list.setAttribute('aria-live','polite');
+  d.body.append(field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);
+  function draw(){
+   list.replaceChildren();const q=search.value;
+   for(const c of (data.contractsV202||[]).filter(c=>matchesContract(c,q,data.tenantProfilesV267||[]))){
+    const card=node('section');card.className='aq267-contract-card';card.style.cssText='display:block;padding:16px;margin:12px 0;border:1px solid #d8c8ae;border-radius:12px';
+    card.append(node('h3',String(c.contract_no||c.id)),node('p',[c.tenant||translateStatic('غير مدون'),c.property,c.unit,translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')));
+    const actions=node('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px';
+    for(const [symbol,label,fn]of [['◉','عرض العقد',()=>show(c.id)],['▤','عرض المرفقات المحفوظة',()=>contractDocuments(c.id)],['◷','متابعة العقد',()=>trackContract(c.id)]]){
+     const b=button(translateStatic(label),fn),icon=node('span',symbol);icon.setAttribute('aria-hidden','true');b.prepend(icon,node('span',' '));b.setAttribute('aria-label',translateStatic(label)+' — '+String(c.contract_no||c.id));b.style.cssText='display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;flex:1 1 140px';actions.append(b);
+    }
+    card.append(actions);list.append(card);
+   }
+   if(!list.children.length)list.append(node('p',translateStatic('لا توجد عقود مطابقة.')));
+  }
+  search.oninput=draw;draw();d.status.textContent=translateStatic('تم استرجاع العقود من قاعدة البيانات.');
+ }
  async function form(existing,renewal=null){await loadBindings();clear(existing?translateStatic('تعديل بيانات العقد مع حفظ السجل السابق'):translateStatic('إبرام عقد جديد'));d.body.append(backButton());const f=node('form'),g=node('div');g.className='aq267-grid';
   const templateBox=node('section');let selectedTemplate=existing?.contractTemplate||null;
   const profiles=data.tenantProfilesV267||[],tenant=select([['',translateStatic('اختر المستأجر')],...profiles.map(p=>[p.id,(p.nameAr||p.nameEn)+' / '+(p.nameEn||'')])],existing?.tenantId||renewal?.source.tenant_ref||''),property=select([['',translateStatic('اختر العقار')],...properties.map(p=>[p.name,p.name])],existing?.property||renewal?.source.property||''),unit=select([['',translateStatic('اختر الوحدة')]]),details=node('dl');tenant.required=property.required=unit.required=true;
