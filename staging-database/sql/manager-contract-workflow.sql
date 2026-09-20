@@ -15,13 +15,15 @@ end $repair$;
 create table if not exists private.aqari_contract_archives (
  id uuid primary key, workspace_id uuid not null references public.aqari_workspaces(id),
  tenant_id uuid not null, property_id uuid not null, unit_id uuid not null,
- document_id uuid not null references public.aqari_documents(id), reference text not null,
+ document_id uuid not null references public.aqari_documents(id), reference text not null, original_date date,
  created_by uuid not null references auth.users(id), created_at timestamptz not null default now(),
  unique(workspace_id,document_id),
  foreign key(workspace_id,tenant_id) references public.aqari_tenants(workspace_id,id),
  foreign key(workspace_id,property_id) references public.aqari_properties(workspace_id,id),
  foreign key(workspace_id,unit_id) references public.aqari_units(workspace_id,id)
 );
+-- Historical rows retain NULL: never invent an original contract date.
+alter table private.aqari_contract_archives add column if not exists original_date date;
 create table if not exists private.aqari_contract_change_requests (
  id uuid primary key, workspace_id uuid not null references public.aqari_workspaces(id),
  lease_id uuid not null, proposed_change text not null check(length(proposed_change) between 3 and 4000),
@@ -71,6 +73,8 @@ begin
   perform private.aqari_require_sensitive_aal2(w);
   if not private.aqari_can(w,'documents','write') then raise insufficient_privilege using message='ACCESS_DENIED';end if;
   ident:=(d->>'id')::uuid;
+  if coalesce(d->>'original_date','') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' then raise invalid_parameter_value using message='ARCHIVE_ORIGINAL_DATE_REQUIRED';end if;
+  perform (d->>'original_date')::date;
   if ident is null or coalesce(length(btrim(d->>'reference')),0) not between 1 and 200 then raise invalid_parameter_value using message='ARCHIVE_REFERENCE_REQUIRED';end if;
   select * into tenant from public.aqari_tenants where workspace_id=w and id=(d->>'tenant_id')::uuid;
   select * into unit from public.aqari_units where workspace_id=w and id=(d->>'unit_id')::uuid and property_id=(d->>'property_id')::uuid;
@@ -79,11 +83,12 @@ begin
    or doc.entity_type is distinct from 'tenant' or doc.entity_ref is distinct from tenant.external_ref
    or doc.metadata->>'category' is distinct from 'archived_contract' or doc.checksum_sha256 is null
   then raise invalid_parameter_value using message='ARCHIVE_BINDING_INVALID';end if;
-  insert into private.aqari_contract_archives(id,workspace_id,tenant_id,property_id,unit_id,document_id,reference,created_by)
-   values(ident,w,tenant.id,unit.property_id,unit.id,doc.id,btrim(d->>'reference'),auth.uid()) on conflict(id) do nothing;
+  insert into private.aqari_contract_archives(id,workspace_id,tenant_id,property_id,unit_id,document_id,reference,original_date,created_by)
+   values(ident,w,tenant.id,unit.property_id,unit.id,doc.id,btrim(d->>'reference'),(d->>'original_date')::date,auth.uid()) on conflict(id) do nothing;
   select * into archive_row from private.aqari_contract_archives where id=ident;
   if archive_row.workspace_id is distinct from w or archive_row.tenant_id is distinct from tenant.id or archive_row.unit_id is distinct from unit.id
    or archive_row.property_id is distinct from unit.property_id or archive_row.document_id is distinct from doc.id or archive_row.reference is distinct from btrim(d->>'reference')
+   or archive_row.original_date is distinct from (d->>'original_date')::date
    or archive_row.created_by is distinct from auth.uid() then raise invalid_parameter_value using message='ARCHIVE_REQUEST_CONFLICT';end if;
   result:=to_jsonb(archive_row);
  elsif act='signature_status' then

@@ -17,3 +17,10 @@ test('contract reads start together and closed sessions cannot apply their resul
   if(closed){await assert.rejects(task,/closed/);assert.equal(box.state(),null);}else{await task;assert.equal(box.state().ok,true);}
  }
 });
+
+test('staff cannot enter the manager foundation or start a data read',async()=>{
+ const load=source.slice(source.indexOf(' async function load(){'),source.indexOf(' async function readBinding'));
+ const box={d:{session:{bound:{workspace:'w',role:'staff'}}}};
+ vm.runInNewContext(load+';this.load=load;',box);
+ await assert.rejects(box.load(),{code:'42501',message:'ACCESS_DENIED'});
+});

@@ -27,9 +27,13 @@ select set_config('request.jwt.claim.sub','a9200000-0000-4000-8000-000000000011'
 select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$
-declare w uuid:='a9200000-0000-4000-8000-000000000001'; r jsonb; d jsonb:=jsonb_build_object('id','a9200000-0000-4000-8000-000000000031','tenant_id','a9200000-0000-4000-8000-000000000023','property_id','a9200000-0000-4000-8000-000000000021','unit_id','a9200000-0000-4000-8000-000000000022','document_id','a9200000-0000-4000-8000-000000000025','reference','TEST-OLD-CONTRACT');
+declare w uuid:='a9200000-0000-4000-8000-000000000001'; r jsonb; d jsonb:=jsonb_build_object('id','a9200000-0000-4000-8000-000000000031','tenant_id','a9200000-0000-4000-8000-000000000023','property_id','a9200000-0000-4000-8000-000000000021','unit_id','a9200000-0000-4000-8000-000000000022','document_id','a9200000-0000-4000-8000-000000000025','reference','TEST-OLD-CONTRACT','original_date','2020-02-29');
 begin
  r:=public.aqari_contract_administration(w,'archive',d);
+ if r#>>'{result,original_date}'<>'2020-02-29' then raise exception 'ARCHIVE_DATE_READBACK';end if;
+ begin perform public.aqari_contract_administration(w,'archive',d-'original_date');raise exception 'MISSING_ARCHIVE_DATE_ACCEPTED';exception when invalid_parameter_value then null;end;
+ begin perform public.aqari_contract_administration(w,'archive',d||'{"original_date":"2025-02-29"}');raise exception 'IMPOSSIBLE_ARCHIVE_DATE_ACCEPTED';exception when datetime_field_overflow then null;end;
+ begin perform public.aqari_contract_administration(w,'archive',d||'{"original_date":"2020-03-01"}');raise exception 'CHANGED_ARCHIVE_DATE_ACCEPTED';exception when invalid_parameter_value then null;end;
  if r#>>'{result,id}'<>d->>'id' then raise exception 'ARCHIVE_READBACK';end if;
  if jsonb_array_length(public.aqari_contract_administration(w,'archives')->'result')<>1 then raise exception 'ARCHIVE_LIST_FAILED';end if;
  if jsonb_array_length(public.aqari_contract_administration(w,'archives',jsonb_build_object('tenant_id',d->>'tenant_id','property_id',d->>'property_id'))->'result')<>1 then raise exception 'ARCHIVE_FILTER_FAILED';end if;

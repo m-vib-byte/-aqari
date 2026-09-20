@@ -76,7 +76,7 @@ export function openRentalContracts(initial={}){
  function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
  async function manageTemplates(){const m=await guardPageImport(()=>import('./contract-templates.js'));d.session.check();d.close();return m.openContractTemplates();}
  async function trackContract(id){
-  clear(translateStatic('متابعة العقد'));d.body.append(backButton());await load();
+  clear(translateStatic('متابعة العقد'));d.body.append(backButton(),button(translateStatic('إعادة المحاولة'),()=>trackContract(id)));await load();
   const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');
   d.body.append(node('h3',String(c.contract_no||id)),node('p',[c.tenant,c.property,c.unit,translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')),button(translateStatic('عرض العقد'),()=>show(id)));
   const history=await rpc('aqari_contract_history',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(id)});d.session.check();
@@ -87,7 +87,7 @@ export function openRentalContracts(initial={}){
   d.status.textContent=translateStatic('تمت قراءة سجل العقد.');
  }
  async function contractDocuments(id){
-  clear(translateStatic('عرض المرفقات المحفوظة'));d.body.append(backButton());await load();
+  clear(translateStatic('عرض المرفقات المحفوظة'));d.body.append(backButton(),button(translateStatic('إعادة المحاولة'),()=>contractDocuments(id)));await load();
   const c=(data.contractsV202||[]).find(x=>String(x.id)===String(id));if(!c)throw Error('العقد غير موجود.');
   d.body.append(node('h3',String(c.contract_no||id)),button(translateStatic('عرض العقد'),()=>show(id)));
   await showDocuments(id);d.status.textContent=translateStatic('تمت قراءة المرفقات المحفوظة.');

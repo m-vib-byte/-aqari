@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const source=readFileSync(new URL('../src/v267/pages/rental-contracts.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'').replace("import('./contract-execution.js')",'loadExecution()').replace("import('./property-statements.js')",'loadStatements()');
-function fixture({imported=false,closedAfterRead=false,status='signed',role='staff',moduleFailure=false,closeDuringImport=false,contractOverrides={},profiles=[],documentFailures=0,emptyDocuments=false,documentsError=false,stateFailures=0,connectionFailures=0}={}){
+function fixture({imported=false,closedAfterRead=false,status='signed',role='staff',moduleFailure=false,closeDuringImport=false,contractOverrides={},profiles=[],historyFailures=0,documentFailures=0,emptyDocuments=false,documentsError=false,stateFailures=0,connectionFailures=0}={}){
  const calls=[],tasks=[],urls=[];let closed=false;
  class Element{constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.value='';this.style={};this.dataset={};this.classList={add(){}};}setAttribute(name,value){this[name]=value;}prepend(...nodes){this.children.unshift(...nodes);}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}}
  const node=(tag,text)=>new Element(tag,text);
  const contract={id:123,contract_no:'C-123',tenant:'Test Tenant',property:'Test property',unit:'1',status,source:imported?'statement-import':'v267-cloud',...contractOverrides};
  const api={saveLease:async()=>calls.push('saveLease'),primary:x=>x,contractMarkup:()=>'<p>saved contract</p>'};
- const session={bound:{workspace:'workspace',role},check(){if(closed)throw Error('closed');},client:{rpc(name){calls.push(name);return {name};},from(table){calls.push(table);const query={table};for(const method of ['select','eq','order'])query[method]=()=>query;return query;}},async request(query){if(query.name==='aqari_read_state_v267'){if(stateFailures-->0)throw Error('state temporarily unavailable');if(closedAfterRead)closed=true;return {payload:{contractsV202:[contract],tenantProfilesV267:profiles}};}if(query.name==='aqari_contract_history')return [];if(query.table==='aqari_documents'&&(documentsError||documentFailures-->0))throw Error('attachment read unavailable');if(query.table==='aqari_documents'&&emptyDocuments)return [];if(query.table==='aqari_documents')return [{id:'doc',original_filename:'original.pdf',storage_path:'workspace/original.pdf'}];throw Error('unrelated property read denied');},async storage(method,path){calls.push(method+':'+path);return new Blob(['saved original']);}};
+ const session={bound:{workspace:'workspace',role},check(){if(closed)throw Error('closed');},client:{rpc(name){calls.push(name);return {name};},from(table){calls.push(table);const query={table};for(const method of ['select','eq','order'])query[method]=()=>query;return query;}},async request(query){if(query.name==='aqari_read_state_v267'){if(stateFailures-->0)throw Error('state temporarily unavailable');if(closedAfterRead)closed=true;return {payload:{contractsV202:[contract],tenantProfilesV267:profiles}};}if(query.name==='aqari_contract_history'){if(historyFailures-->0)throw Error('history temporarily unavailable');return [];}if(query.table==='aqari_documents'&&(documentsError||documentFailures-->0))throw Error('attachment read unavailable');if(query.table==='aqari_documents'&&emptyDocuments)return [];if(query.table==='aqari_documents')return [{id:'doc',original_filename:'original.pdf',storage_path:'workspace/original.pdf'}];throw Error('unrelated property read denied');},async storage(method,path){calls.push(method+':'+path);return new Blob(['saved original']);}};
  const d={el:node('dialog'),body:node('div'),status:node('p'),session,run(fn){const task=Promise.resolve().then(()=>{if(connectionFailures-->0)throw Error('connection unavailable');return fn();});tasks.push(task);return task;},navigate(fn){return this.run(fn);},close(){calls.push('close-dialog');closed=true;}};
  const context={mountContractChangeRequest:()=>{},mountSignatureReview:async()=>{},guardPageImport:load=>load(),currentMonth:()=> '2026-09',loadStatements:async()=>{calls.push('load-statements');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openPropertyStatements(options){assert.equal(closed,true);calls.push(options);}};},loadExecution:async()=>{calls.push('load-execution');if(moduleFailure)throw Error('module unavailable');if(closeDuringImport)closed=true;return {openContractExecution(id,options){assert.equal(closed,true);assert.equal(typeof options.onDone,'function');calls.push('execution:'+id);return true;}};},Blob,node,field:(label,control)=>control,translateStatic:x=>x,createDialog:()=>d,createPrivateUrls:()=>({clear(){},create(blob){urls.push(blob);return 'blob:verified-original';}}),window:{AQARI_RENTAL_RECORDS:api}};
  vm.runInNewContext(source,context);
@@ -147,6 +147,18 @@ test('source review contracts are visually separated from operational contracts'
 });
 
 
+
+for(const [label,options,error]of [['عرض المرفقات المحفوظة',{documentFailures:1},/attachment read unavailable/],['متابعة العقد',{historyFailures:1},/history temporarily unavailable/]]){
+ test(label+' keeps retry and returns the same contract after a temporary failure',async()=>{
+  const f=fixture(options);await f.open({});
+  await assert.rejects(f.click(f.all().find(x=>x.tag==='button'&&x.textContent.includes(label))),error);
+  const retry=f.all().find(x=>x.tag==='button'&&x.textContent==='إعادة المحاولة');assert.ok(retry);
+  await f.click(retry);assert.ok(f.all().some(x=>x.textContent==='C-123'));
+  assert.equal(f.calls.includes('saveLease'),false);
+  await f.click(f.all().find(x=>x.tag==='button'&&x.textContent==='إعادة المحاولة'));
+  assert.equal(f.all().filter(x=>x.tag==='h3'&&x.textContent==='C-123').length,1);
+ });
+}
 test('contract approval inbox denies staff and excludes historical source rows',async()=>{
  const staff=fixture();await assert.rejects(staff.open({mode:'approval'}),/اعتماد المدير/);
  const historical=fixture({role:'general_manager',imported:true,status:'ready'});await historical.open({mode:'approval'});assert.equal(historical.all().some(x=>x.textContent==='C-123'),false);
