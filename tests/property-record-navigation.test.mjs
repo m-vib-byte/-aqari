@@ -21,10 +21,10 @@ test('missing or ambiguous contracts do not close the property file',async()=>{
 test('failed page imports retain the original file for retry',async()=>{
  const f=fixture();await assert.rejects(openPropertyContract(f.d,'p',{id:'l'},async()=>{throw Error('offline');}),/offline/);assert.ok(!f.events.includes('close'));
 });
-test('statement navigation keeps the property name and lets the page select the saved month',async()=>{
+test('statement navigation keeps the property identifier and lets the page select the saved month',async()=>{
  const f=fixture();let initial;
  await openPropertySavedStatements(f.d,'العقار',async()=>({openPropertyStatements(x){initial=x;}}));
- assert.deepEqual(initial,{propertyName:'العقار'});assert.deepEqual(f.events,['check','close']);
+ assert.deepEqual(initial,{propertyId:'العقار'});assert.deepEqual(f.events,['check','close']);
 });
 test('session changes prevent handoff to private pages',async()=>{
  const f=fixture();f.d.session.check=()=>{throw Error('changed');};
