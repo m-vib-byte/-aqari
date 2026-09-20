@@ -95,13 +95,16 @@ export function openRentalContracts(initial={}){
   clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(button(translateStatic('تحديث العقود / Refresh'),home));await load();
   d.body.append(node('p',translateStatic('ملف مستقل لإبرام العقد ومراجعته وملاحقه، مرتبط بملف المستأجر والعقار والوحدة وكشف الإيجار.')),button(translateStatic('إبرام عقد جديد / New rental contract'),async()=>form(null)));
   if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('إدارة واعتماد قوالب العقود'),manageTemplates));
-  const search=input('search'),list=node('div');list.className='aq267-contract-list';list.setAttribute('aria-live','polite');
-  d.body.append(field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);
+  const search=input('search'),list=node('div'),summary=node('p');list.className='aq267-contract-list';list.setAttribute('aria-live','polite');
+  const allContracts=()=>Array.isArray(data.contractsV202)?data.contractsV202:[];
+  const refreshSummary=()=>{const all=allContracts(),source=all.filter(c=>c.source==='statement-import').length,operational=all.length-source;summary.textContent=translateStatic('العقود التشغيلية: ')+operational+translateStatic(' · عقود المصدر للمراجعة: ')+source;};
+  d.body.append(summary,field(translateStatic('البحث برقم العقد أو اسم المستأجر / Search'),search),list);
   function draw(){
-   list.replaceChildren();const q=search.value;
-   for(const c of (data.contractsV202||[]).filter(c=>matchesContract(c,q,data.tenantProfilesV267||[]))){
-    const card=node('section');card.className='aq267-contract-card';card.style.cssText='display:block;padding:16px;margin:12px 0;border:1px solid #d8c8ae;border-radius:12px';
-    card.append(node('h3',String(c.contract_no||c.id)),node('p',[c.tenant||translateStatic('غير مدون'),c.property,c.unit,translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')));
+   list.replaceChildren();const q=search.value;refreshSummary();
+   const rows=allContracts().filter(c=>matchesContract(c,q,data.tenantProfilesV267||[])).sort((a,b)=>Number(a.source==='statement-import')-Number(b.source==='statement-import'));
+   for(const c of rows){
+    const sourceOnly=c.source==='statement-import',card=node('section');card.className='aq267-contract-card'+(sourceOnly?' aq267-contract-source-review':'');card.dataset.contractMode=sourceOnly?'source_review':'operational';card.style.cssText='display:block;padding:16px;margin:12px 0;border:1px solid '+(sourceOnly?'#c9b28f':'#d8c8ae')+';border-radius:12px;background:'+(sourceOnly?'#fff8ee':'#fffdf9');
+    card.append(node('h3',String(c.contract_no||c.id)),node('p',[c.tenant||translateStatic('غير مدون'),c.property,c.unit,sourceOnly?translateStatic('مصدر للمراجعة — غير تشغيلي'):translateStatic(states[c.status]||c.status||'غير مدون')].filter(Boolean).join(' · ')));if(sourceOnly)card.append(node('p',translateStatic('هذا سجل مصدر تاريخي محفوظ للمراجعة فقط؛ لا يحتسب إشغالاً أو تحصيلاً ولا يمنع عقداً تشغيلياً جديداً.')));
     const actions=node('div');actions.style.cssText='display:flex;flex-wrap:wrap;gap:8px';
     for(const [symbol,label,fn]of [['◉','عرض العقد',()=>show(c.id)],['▤','عرض المرفقات المحفوظة',()=>contractDocuments(c.id)],['◷','متابعة العقد',()=>trackContract(c.id)]]){
      const b=button(translateStatic(label)+' — '+String(c.contract_no||c.id),fn),icon=node('span',symbol);icon.setAttribute('aria-hidden','true');b.prepend(icon,node('span',' '));b.setAttribute('aria-label',translateStatic(label)+' — '+String(c.contract_no||c.id));b.style.cssText='display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;flex:1 1 140px';actions.append(b);
