@@ -50,3 +50,6 @@ execFileSync(process.execPath,['--test','tests/v267-unit-handover-bundle.test.mj
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
 try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
 await import('./check.mjs');
+
+
+
