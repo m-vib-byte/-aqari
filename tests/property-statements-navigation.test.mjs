@@ -1,3 +1,4 @@
+import {openPropertyPage} from '../src/v267/components/property-record-navigation.js';
 import {t,message} from '../src/v267/components/locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,14 +16,15 @@ test('statement navigation isolates months and disables actions after missing da
  const content={property_key:'shaikhah-tower',property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
  let failReadiness=false;let failLinks=false;let noSource=false;let failLatest=false;let failInitial=false;let readinessPending=false;
- const queries=[];
- const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;},rpc(name,args){return {rpc:name,args};}},async request(q){queries.push(q);if(q.rpc==='aqari_unit_readiness_register'&&failReadiness)throw Error('readiness read failed');if(q.rpc==='aqari_unit_readiness_register')return {properties:[{id:'p',name:content.property_name}],units:content.rows.map(row=>({id:'u-'+row.unit,property_id:'p',unit_no:row.unit,state:readinessPending?'review_required':'ready',revision:readinessPending?0:1})),history:[]};if(q.table==='aqari_properties')return [{id:'p',name:content.property_name}];if(failInitial&&q.limitCount===100)throw Error("initial read failed");if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
+ let closeCount=0;const queries=[];
+ const dialog={close(){closeCount++;},onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;},rpc(name,args){return {rpc:name,args};}},async request(q){queries.push(q);if(q.rpc==='aqari_unit_readiness_register'&&failReadiness)throw Error('readiness read failed');if(q.rpc==='aqari_unit_readiness_register')return {properties:[{id:'p',name:content.property_name}],units:content.rows.map(row=>({id:'u-'+row.unit,property_id:'p',unit_no:row.unit,state:readinessPending?'review_required':'ready',revision:readinessPending?0:1})),history:[]};if(q.table==='aqari_properties')return [{id:'p',name:content.property_name}];if(failInitial&&q.limitCount===100)throw Error("initial read failed");if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
  const tasks=[];
  dialog.run=(fn)=>{const p=Promise.resolve().then(fn).catch(()=>{dialog.status.textContent='read failed';});tasks.push(p);return p;};
- globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
+ globalThis.__statementFixture={openPropertyPage:(d,_loader,name,initial)=>openPropertyPage(d,async()=>{throw Error('offline');},name,initial),t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
  try{
   const source=(await readFile(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8')).replace("import {t,message} from '../components/locale.js';","const {t,message}=globalThis.__statementFixture;").replace("import {createDialog,node,field} from '../components/dialog.js';","const {createDialog,node,field}=globalThis.__statementFixture;");
-  const linked=source.replace(/from (['"])(\.\.?\/[^'"]+)\1/g,(_match,_quote,path)=>'from '+JSON.stringify(new URL(path,new URL('../src/v267/pages/property-statements.js',import.meta.url)).href));
+  const guarded=source.replace("import {openPropertyPage} from '../components/property-record-navigation.js';","const {openPropertyPage}=globalThis.__statementFixture;");
+  const linked=guarded.replace(/from (['"])(\.\.?\/[^'"]+)\1/g,(_match,_quote,path)=>'from '+JSON.stringify(new URL(path,new URL('../src/v267/pages/property-statements.js',import.meta.url)).href));
   const mod=await import('data:text/javascript;base64,'+Buffer.from(linked).toString('base64'));
   mod.openPropertyStatements();await tasks[0];await Promise.resolve();
   const [property,month,refresh,pdf,link,readinessReview,result]=dialog.body.children;
@@ -42,6 +44,7 @@ test('statement navigation isolates months and disables actions after missing da
   assert.equal(pdf.disabled,false);assert.equal(link.disabled,false);assert.equal(readinessReview.hidden,true);
   readinessPending=true;await refresh.onclick();assert.equal(link.disabled,false,'historical source draft linking remains available');assert.equal(readinessReview.hidden,false);
   assert.ok(result.children.some(el=>/تحتاج معاينة موثقة قبل تفعيل عقد تشغيلي/.test(el.textContent||'')));
+  const retained=[...dialog.body.children];await readinessReview.onclick();assert.equal(closeCount,0,'failed destination loading must preserve the statement');assert.deepEqual(dialog.body.children,retained);assert.equal(dialog.status.textContent,'read failed');
   readinessPending=false;await refresh.onclick();assert.equal(link.disabled,false);assert.equal(readinessReview.hidden,true);
   assert.ok(queries.some(q=>q.filters?.period==='2026-09-01'&&q.filters.property_id==='p'&&q.filters.workspace_id==='w'));
   failLinks=true;await refresh.onclick();

@@ -1,5 +1,6 @@
 import {t as visibleText,message as visibleMessage} from '../components/locale.js';
 import {createPrivateUrls} from '../components/private-urls.js';
+import {openPropertyPage} from '../components/property-record-navigation.js';
 import {readProtectedPDF} from '../api/protected-pdf.js';
 import {readOperationalReport} from '../api/operational-report.js';
 import {createOperationalReportXlsx,ARCHIVE_XLSX_TYPE} from '../reports/operational-report-xlsx.js';
@@ -76,7 +77,7 @@ function show(content){
  }
  async function loadCollector(){if(!select.value||!validMonth())throw Error('اختر العقار والشهر أولاً.');const range=monthRange(),report=await d.session.request(d.session.client.rpc('aqari_collector_performance_report',{p_workspace_id:d.session.bound.workspace,p_from:range.from,p_to:range.to,p_property_id:select.value}));showCollectors(report);return report;}
  link.onclick=()=>d.run(async()=>{if(!selected||selected.content.property_key!=='shaikhah-tower')return;readiness=await loadReadinessForStatement();let r;try{r=await d.session.request(d.session.client.rpc('aqari_link_property_statement',{p_workspace_id:d.session.bound.workspace,p_property_id:selected.property_id,p_period:selected.period,p_source_sha256:selected.source_sha256}));}catch(error){if(error?.message==='UNIT_NOT_READY'||String(error?.message||'').includes('UNIT_NOT_READY')){readiness=await loadReadinessForStatement();syncActions();throw Error(t('تغيرت جاهزية إحدى الوحدات. راجع جاهزية الوحدات ثم أعد المحاولة.'));}throw error;}await load();if(links.length!==r.linked_rows)throw Error('لم تؤكد إعادة القراءة اكتمال الربط.');d.status.textContent=message('تم حفظ واسترجاع {linked} رابطاً؛ ملفات مستأجرين جديدة: {tenants}، عقود جديدة: {leases}. حدّث الصفحة لعرضها في الأقسام.',{linked:r.linked_rows,tenants:r.new_tenants,leases:r.new_leases});}).then(syncActions);
- readinessReview.onclick=()=>d.run(async()=>{if(!selected)return;const propertyName=selected.content.property_name;d.close();const m=await import('./unit-readiness.js');await m.openUnitReadiness({propertyId:selected.property_id,propertyName});});
+ readinessReview.onclick=()=>d.run(async()=>{if(!selected)return;return openPropertyPage(d,()=>import('./unit-readiness.js'),'openUnitReadiness',{propertyId:selected.property_id,propertyName:selected.content.property_name});});
  refresh.onclick=reload;select.onchange=month.onchange=reload;
  collection.onclick=()=>d.run(async()=>{if(!select.value||!validMonth())throw Error('اختر العقار والشهر أولاً.');const report=await d.session.request(d.session.client.rpc('aqari_monthly_collection_report',{p_workspace_id:d.session.bound.workspace,p_period:month.value+'-01',p_property_id:select.value}));showCollection(report);d.status.textContent=t('تم احتساب كشف التحصيل من الاستحقاقات والدفعات المحفوظة.');});
  collector.onclick=()=>d.run(async()=>{await loadCollector();d.status.textContent=t('تم احتساب أداء موظفي التحصيل من العمليات غير الملغاة.');});

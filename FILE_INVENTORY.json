@@ -1467,8 +1467,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "26fde351020b542958b0021c00468179c814b45a66a800623058e724803afaf2",
-      "size": 21307
+      "sha256": "86bdbd383bce7f2a93b0cfb71e47016d965a37e34e3cc786ecbe3edde1dc7b32",
+      "size": 21366
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -3092,8 +3092,8 @@
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "sha256": "02b6f8686f230470e2fea706d4efb1a06cddfa69d4a061389c881ac4acd0f5e1",
-      "size": 9233
+      "sha256": "45e717acc4b3c01d73fc1e1b6022f38702695cc70235d3ff77659990b5d398f8",
+      "size": 9905
     },
     {
       "path": "tests/provider_webhook_test.py",
