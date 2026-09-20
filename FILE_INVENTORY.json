@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "eba55c1fc6463fb670b62192f8290ac5dead806e4245adc239ba2ba0fa522763",
-      "size": 11747
+      "sha256": "503c67b5f48f9787712913fc7746a877be530469f80a90bd5ba154719c0ed115",
+      "size": 24666
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -3762,8 +3762,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "ca0728cfdf91454ce9750914685b89a72de8b0835315e3d73a3b6e0afcba0baa",
-      "size": 10908
+      "sha256": "8df8b7a9a888216d09084f9c2b632eaef02af68a26878f9fdc21840a1e23f8db",
+      "size": 11423
     },
     {
       "path": "tests/v267-retired-home.test.cjs",

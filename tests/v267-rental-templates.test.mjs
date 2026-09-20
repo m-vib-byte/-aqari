@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mountRentalTemplatePicker,mountRentalTemplateManager,templateForContract,requireContractIdentity,validTemplate} from '../src/v267/components/rental-templates.js';
+import {readFileSync} from 'node:fs';
+import {documentTemplateBlueprints,mountRentalTemplatePicker,mountRentalTemplateManager,templateForContract,requireContractIdentity,validTemplate} from '../src/v267/components/rental-templates.js';
 
 class El{
  constructor(tag){this.tag=tag;this.children=[];this.value='';this.disabled=false;this.checked=false;this.hidden=false;this.textContent='';this.className='';this.style={};}
@@ -50,6 +51,26 @@ test('new-contract picker lists only published kinds and never exposes legal tex
 
 test('manager sees a clear create action and nothing publishes merely by opening the studio',async()=>{
  const f=setup({manager:true,items:[]});await mountRentalTemplateManager(f.d,f.target);assert.ok(all(f.target).some(x=>x.textContent.includes('إنشاء نموذج عقد جديد')));assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0);
+});
+
+test('five independent document blueprints contain only empty field definitions',()=>{
+ assert.deepEqual(documentTemplateBlueprints.map(x=>x.label),['نموذج عقد إيجار','نموذج استلام شقة','نموذج إخلاء','نموذج وصل إيجار','نموذج براءة ذمة ومخالصة نهائية من مالك العقار']);
+ assert.equal(new Set(documentTemplateBlueprints.map(x=>x.kind)).size,5);
+ for(const blueprint of documentTemplateBlueprints){assert.ok(blueprint.fields.length>0);assert.equal(new Set(blueprint.fields.map(x=>x.key)).size,blueprint.fields.length);for(const spec of blueprint.fields){assert.deepEqual(Object.keys(spec).sort(),['key','label','required','type']);assert.equal(spec.required,true);assert.match(spec.key,/^[a-z][a-z0-9_]{1,49}$/);}}
+});
+
+test('new template starts with rental fields and switching document type replaces the empty structure only',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{suggestion:[{title:'بند',text:'اكتب النص هنا'}]});const form=manager.form,kind=all(form).find(x=>x.tag==='select');
+ assert.equal(kind.value,'rental_agreement');assert.ok(all(form).some(x=>x.value==='contract_no'));assert.ok(all(form).some(x=>x.value==='monthly_rent'));
+ kind.value='rent_receipt';kind.onchange();assert.ok(all(form).some(x=>x.value==='receipt_no'));assert.ok(all(form).some(x=>x.value==='payment_reference'));assert.equal(all(form).some(x=>x.value==='monthly_rent'),false);assert.equal(f.state.calls.filter(x=>['save_draft','publish'].includes(x.p_action)).length,0);
+});
+
+test('non-contract document templates never appear in new-contract picker',async()=>{
+ const receipt={...template,id:'76610000-0000-4000-8000-000000000012',kind:'rent_receipt',kind_label:'نموذج وصل إيجار'};const f=setup({items:[template,receipt]});await mountRentalTemplatePicker(f.d,f.target);const options=all(f.target).filter(x=>x.tag==='option');assert.ok(options.some(x=>x.value==='apartment'));assert.equal(options.some(x=>x.value==='rent_receipt'),false);
+});
+
+test('template studio inputs keep explicit high-contrast text, placeholders and focus colors',()=>{
+ const css=readFileSync(new URL('../src/v267/styles/contract-template-studio.css',import.meta.url),'utf8');assert.match(css,/\.aq267-template-studio :is\(input,textarea,select\)\{[^}]*color:#2b2119!important[^}]*background:#fff!important/);assert.match(css,/::placeholder\{color:#746252!important;opacity:1!important\}/);assert.match(css,/:focus\{border-color:#7a5426!important/);
 });
 
 test('custom contract type saves as a draft and remains absent from new-contract picker',async()=>{
