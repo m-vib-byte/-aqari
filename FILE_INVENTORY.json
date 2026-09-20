@@ -1192,8 +1192,8 @@
     },
     {
       "path": "src/v267/components/property-experience.js",
-      "sha256": "89177d3ea45c27ef8c29b939ae37b9f902ac6035503119930b7c3f46429c3ecd",
-      "size": 9707
+      "sha256": "07494b89045a102f459b28a11351d77fb411dce97d1fb6d67a96c88b1f2cabe2",
+      "size": 9777
     },
     {
       "path": "src/v267/components/property-form.js",
@@ -3937,8 +3937,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 278675,
-      "sha256": "3a72ac59da2e4744dc4435038cc44dacc6cc19799d4086c28b69bff479922477"
+      "sha256": "3a0927594f7b426c292c884822ccb82f9411f828afa571834214906fbfbb9982",
+      "size": 278618
     },
     {
       "path": "v205-simple.css",
@@ -4224,6 +4224,11 @@
       "path": "docs/verification/contract-archive-recovery-20260920.md",
       "size": 4603,
       "sha256": "79002167e70beb86e8806a798eab65a06cf3ad0dffe3bcba769b87c9344f2a0d"
+    },
+    {
+      "path": "tests/v267-property-shortcuts.test.mjs",
+      "sha256": "aa30f4b894e44b7791c0927c2ecb5f06036b6be2a2d103d1afa5fb69c36b3398",
+      "size": 4514
     }
   ],
   "version": "V198"
