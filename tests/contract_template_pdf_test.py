@@ -1,5 +1,5 @@
 import unittest
-from lib.contract_template_pdf import render_contract_template
+from lib.contract_template_pdf import render_contract_template, render_document_template
 
 class ContractTemplatePdfTest(unittest.TestCase):
     def template(self):
@@ -13,5 +13,30 @@ class ContractTemplatePdfTest(unittest.TestCase):
     def test_empty_or_unknown_shapes_are_rejected(self):
         for value in [{}, {'title':'x','kind_label':'x','clauses':[]}, {**self.template(),'approved':True}]:
             with self.assertRaises(ValueError):render_contract_template(value)
+
+
+    def test_blank_model_uses_labels_and_rejects_unknown_generic_or_malformed_tokens(self):
+        template=self.template()
+        resolved=render_document_template(template)
+        self.assertIn('«اسم المستأجر»',resolved['clauses'][0]['text'])
+        self.assertNotIn('{{',resolved['clauses'][0]['text'])
+        for token in ['{{field_name}}','{{missing_key}}','{{ tenant_name }}','{{tenant_name}', '{(field_name}}']:
+            template['clauses'][0]['text']=token
+            with self.assertRaises(ValueError):render_document_template(template)
+
+    def test_required_values_zero_dates_and_inserted_data_are_validated(self):
+        with self.assertRaises(ValueError):render_document_template(self.template(),{})
+        with self.assertRaises(ValueError):render_document_template(self.template(),{'tenant_name':'{{owner_name}}'})
+        result=render_document_template(self.template(),{'tenant_name':'اسم {ملاحظة}'})
+        self.assertIn('اسم {ملاحظة}',result['clauses'][0]['text'])
+        for field in [{'key':'tenant_name','label':'duplicate','type':'text','required':True},{'key':'field_name','label':'generic','type':'text','required':True}]:
+            template=self.template();template['fields'].append(field)
+            with self.assertRaises(ValueError):render_document_template(template)
+
+    def test_signature_and_fingerprint_marks_are_never_generated(self):
+        template=self.template();template['kind']='owner_final_clearance'
+        result=render_document_template(template,{'tenant_name':'المستأجر','owner_name':'المالك','representative_name':'الوكيل','owner_signature':'forged mark','tenant_fingerprint':'forged mark'})
+        self.assertEqual(result['signatures'][0],{'role':'owner','label':'وكيل المالك المفوض','name':'الوكيل'})
+        self.assertFalse(any('forged' in str(s) for s in result['signatures']))
 
 if __name__=='__main__':unittest.main()
