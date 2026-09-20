@@ -136,3 +136,12 @@ test('imported contract attachment failure preserves explanation and can recover
  assert.equal(f.all().filter(x=>x.textContent==='original.pdf').length,1);
  assert.equal(f.all().some(x=>x.textContent.includes('Prepare approved copy')),false);
 });
+
+
+test('source review contracts are visually separated from operational contracts',()=>{
+ assert.match(source,/data\.contractMode=sourceOnly\?'source_review':'operational'/);
+ assert.match(source,/مصدر للمراجعة — غير تشغيلي/);
+ assert.match(source,/لا يحتسب إشغالاً أو تحصيلاً ولا يمنع عقداً تشغيلياً جديداً/);
+ assert.match(source,/العقود التشغيلية:/);
+ assert.match(source,/عقود المصدر للمراجعة:/);
+});
