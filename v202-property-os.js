@@ -1844,6 +1844,7 @@
         '<button type="button" data-v202-action="payment">'+icon('wallet')+'<span><strong>'+(canWrite?'تسجيل إيجار':'التحصيل')+'</strong><small>'+(canWrite?'تحصيل وإصدار وصل':'عرض الدفعات والوصولات')+'</small></span></button>'+ 
         '<button type="button" data-v202-action="statement">'+icon('chart')+'<span><strong>كشف الإيجار</strong><small>كشف تفصيلي PDF</small></span></button>'+ 
         '<button type="button" data-v202-action="profile">'+icon('building')+'<span><strong>'+(protectedOnly?'ملخص العقار':'الملف الكامل')+'</strong><small>'+(protectedOnly?'داخل الملف المحمي':'العقار 360°')+'</small></span></button>'+ 
+        (!protectedOnly&&window.AQARI_PROPERTY_EXPERIENCE?.canManageSender?.()?'<button type="button" data-v202-action="sender-settings">'+icon('building')+'<span><strong>واتساب وبريد العقار</strong><small>إعدادات خاصة بهذا العقار</small></span></button>':'')+
         (window.AQARI_DOCUMENTS?.allowed()?'<button type="button" data-v202-action="documents">'+icon('contract')+'<span><strong>وثائق العقار</strong><small>تصوير ورفع واسترجاع</small></span></button>':'')+
       '</nav>'+ 
       '<div class="v202-tabs" role="tablist" aria-label="تفاصيل العقار">'+
@@ -2083,6 +2084,10 @@
 
   function routeAction(action,trigger){
     if(!protectedAccessReady())return false;
+    if(action==='sender-settings'){
+      if(protectedPropertyActive(activeProperty)||!window.AQARI_PROPERTY_EXPERIENCE?.canManageSender?.())return false;
+      return Promise.resolve(window.AQARI_PROPERTY_EXPERIENCE.openSenderSettingsByName(activeProperty)).catch(function(){window.alert('تعذر فتح إعدادات العقار. تحقق من ربط العقار بالسجل وصلاحية المدير.');});
+    }
     if(action==='documents'){
       if(!window.AQARI_DOCUMENTS?.allowed())return false;
       const name=activeProperty,period=activePropertyPeriod;

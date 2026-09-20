@@ -5,7 +5,7 @@ import {scanGeometry,MAX_SOURCE_BYTES} from '../src/v267/components/scan-image.j
 import {MAX_SCAN_PAGES,MAX_SCAN_BYTES} from '../src/v267/components/scan-pdf.js';
 import {originalDocument,createOriginalDocumentUpload} from '../src/v267/components/original-document-upload.js';
 test('all requested document families have explicit permitted record links',()=>{
- assert.equal(Object.keys(DOCUMENT_CATEGORIES).length,47);
+ assert.equal(Object.keys(DOCUMENT_CATEGORIES).length,48);
  for(const [category,spec]of Object.entries(DOCUMENT_CATEGORIES))for(const entity of ['property','tenant','lease']){
   if(spec.entities.includes(entity))assert.equal(documentCategory(category,entity).documentType,category==='signed_lease'?'signed_contract':'supporting_document');
   else assert.throws(()=>documentCategory(category,entity));

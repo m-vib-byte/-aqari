@@ -23,11 +23,15 @@ export function installPropertyExperience({readable,writable}){
   if(!readable()||!manager())throw Error('تغيرت صلاحية إدارة خصائص العقارات. أعد المحاولة.');
   return m.openPropertyControls(propertyId);
  }
- async function openCompleteFileByName(name){
+ async function openCompleteFileByName(name,options={}){
   if(!readable())return false;const bridge=window.AQARI_SUPABASE,workspace=bridge?.context?.workspace?.id;if(!workspace||typeof bridge?.getClient!=='function')throw Error('الجلسة غير جاهزة.');
   const client=await bridge.getClient(),{data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).or('metadata->>source_only.is.null,metadata->>source_only.neq.true').eq('name',String(name||'').trim()).limit(2);if(error)throw error;
   if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد. افتح السجل باستخدام معرفه.':'لم يتم ربط هذا العقار بالسجل الخادمي بعد.');
-  const m=await import('../pages/property-hub.js');return m.openPropertyHub(data[0].id);
+  const m=await import('../pages/property-hub.js');return m.openPropertyHub(data[0].id,options);
+ }
+ async function openSenderSettingsByName(name){
+  if(!readable()||!manager())throw Error('إعدادات إرسال العقار متاحة للمدير العام فقط.');
+  return openCompleteFileByName(name,{section:'sender'});
  }
  async function openAuthoritativeStatement(name){
   if(!readable())throw Error('كشف الإيجار غير متاح لصلاحية حسابك.');
@@ -62,5 +66,5 @@ export function installPropertyExperience({readable,writable}){
  const onBoundary=()=>{viewScope='';search.value='';limit=6;refresh();};window.addEventListener('aqari:auth-boundary',onBoundary);window.addEventListener('aqari:property-saved',event=>{const name=event.detail?.name;search.value=typeof name==='string'&&rows().some(row=>row[0]===name)?name:'';limit=6;refresh();if(search.value)status.textContent='تم حفظ العقار — '+name;});
  const render=window.render;if(typeof render==='function')window.render=function(...args){const result=render.apply(this,args);refresh();return result;};
  document.addEventListener('click',e=>{if(e.target.closest?.('[data-v199-go="home"],[data-v205-route="home"]'))queueMicrotask(refresh);});
- window.AQARI_PROPERTY_EXPERIENCE=Object.freeze({summaryMarkup,canWrite:writable,openCompleteFileByName,openOnboarding,openAuthoritativeStatement,openPropertyControls});installed={refresh};refresh();return installed;
+ window.AQARI_PROPERTY_EXPERIENCE=Object.freeze({summaryMarkup,canWrite:writable,canManageSender:()=>readable()&&manager(),openSenderSettingsByName,openCompleteFileByName,openOnboarding,openAuthoritativeStatement,openPropertyControls});installed={refresh};refresh();return installed;
 }

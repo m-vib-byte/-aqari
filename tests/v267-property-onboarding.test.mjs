@@ -10,7 +10,7 @@ const legacyQuickCreate=readFileSync(new URL('../v201-experience.js',import.meta
 function directEntry({bridge=true}={}){
  const labels=[],calls=[];
  const node=(tag,text='')=>({tag,textContent:text,value:'',children:[],append(...items){this.children.push(...items);},focus(){}});
- const d={body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace'},client:{rpc(name){calls.push(name);return name;}},request:async()=>({user_id:'user',workspace_id:'workspace',permissions:{properties:{write:true},documents:{write:true}}})},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
+ const d={body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace',role:'general_manager'},client:{rpc(name){calls.push(name);return name;}},request:async()=>({user_id:'user',workspace_id:'workspace',permissions:{properties:{write:true},documents:{write:true}}})},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
  let opened=0;
  const context={window:{AQARI_SUPABASE:bridge?{loadAppState(){},saveAppState(){}}:null},node,field(label,control){labels.push(label);return control;},createDialog(){opened++;return d;},translateStatic:x=>x,translateMessage:x=>x};
  vm.createContext(context);
@@ -39,7 +39,7 @@ test('direct contract foundation loads its engine and renders choices without cr
  const writes=[],calls=[],filters=[];
  const node=(tag,text='')=>({tag,textContent:text,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;}});
  const query={select(){return this;},eq(){return this;},or(value){filters.push(value);return this;},order(){return [];}};
- const d={body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace'},check(){},client:{from(name){calls.push(name);return query;},rpc(name){calls.push(name);return {items:[]};}},request:async value=>value},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
+ const d={body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace',role:'general_manager'},check(){},client:{from(name){calls.push(name);return query;},rpc(name){calls.push(name);return {items:[]};}},request:async value=>value},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
  const context={window:{AQARI_SUPABASE:{loadAppState:async()=>({payload:{}}),saveAppState:()=>writes.push('save')}},node,createDialog:()=>d,translateStatic:x=>x,rentalTemplateKinds:[['investment','استثماري']],validTemplate:()=>true};
  vm.createContext(context);vm.runInContext(readFileSync(new URL('../v267-rental-records.js',import.meta.url),'utf8'),context);
  vm.runInContext(source.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nopenContractFoundation();',context);
