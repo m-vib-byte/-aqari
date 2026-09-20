@@ -6,15 +6,15 @@ const states={get ready(){return visibleText('جاهزة للتأجير');},get 
 const option=(value,label)=>Object.assign(node('option',label),{value});
 const normalize=value=>value.trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632));
 
-export async function mountAvailableUnitReadiness(d){
+export async function mountAvailableUnitReadiness(d,options={}){
  const s=d.session;
  const access=await s.request(s.client.rpc('aqari_workspace_access',{p_workspace_id:s.bound.workspace}));
  if(access?.workspace_id!==s.bound.workspace||access?.user_id!==s.bound.user||access?.role!==s.bound.role)throw Error('تغيرت صلاحية الحساب. حدّث الصفحة.');
  if(access?.features?.unit_readiness!==true||access?.permissions?.properties?.read!==true){d.status.textContent=t('سجل جاهزية الوحدات غير متاح لهذا الحساب حالياً.');return null;}
- return mountUnitReadiness(d);
+ return mountUnitReadiness(d,options);
 }
 
-export function mountUnitReadiness(d){
+export function mountUnitReadiness(d,options={}){
  const property=node('select'),unit=node('select'),number=node('input'),state=node('select'),date=node('input'),source=node('input'),reason=node('textarea');
  const loadButton=node('button',t('تحميل جاهزية الوحدات')),save=node('button',t('حفظ المعاينة والتحقق منها')),form=node('form'),history=node('section');
  let data,pending,requestId=crypto.randomUUID();
@@ -45,7 +45,7 @@ export function mountUnitReadiness(d){
  async function load(){
   const fresh=await call('list');
   if(!Array.isArray(fresh?.properties)||!Array.isArray(fresh?.units)||!Array.isArray(fresh?.history))throw Error('تعذر تحميل سجل جاهزية الوحدات.');
-  data=fresh;form.hidden=false;setOptions(property,data.properties.map(x=>({id:x.id,label:x.name})));showProperty();
+  data=fresh;form.hidden=false;setOptions(property,data.properties.map(x=>({id:x.id,label:x.name})));const preferred=data.properties.find(x=>String(x.id)===String(options.propertyId||''))||data.properties.find(x=>options.propertyName&&x.name===options.propertyName);if(preferred)property.value=preferred.id;showProperty();if(options.unitNo){const found=data.units.find(x=>x.property_id===property.value&&String(x.unit_no)===String(options.unitNo));if(found){unit.value=found.id;showUnit();}}
  }
  loadButton.onclick=()=>d.run(async()=>{await load();if(pending)d.status.textContent=t('لم تتأكد العملية السابقة بعد. اضغط الحفظ للتحقق من العملية نفسها.');});
  property.onchange=()=>{if(!pending)showProperty();};unit.onchange=()=>{if(!pending)showUnit();};
@@ -72,5 +72,5 @@ export function mountUnitReadiness(d){
  return {load};
 }
 
-export async function openUnitReadiness(){const d=createDialog(t('جاهزية الوحدات قبل التأجير'));if(!d)return null;await d.run(()=>mountAvailableUnitReadiness(d));return d;}
+export async function openUnitReadiness(options={}){const d=createDialog(t('جاهزية الوحدات قبل التأجير'));if(!d)return null;await d.run(()=>mountAvailableUnitReadiness(d,options));return d;}
 
