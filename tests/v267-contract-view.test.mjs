@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const source=readFileSync(new URL('../src/v267/pages/rental-contracts.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'').replace("import('./contract-execution.js')",'loadExecution()').replace("import('./property-statements.js')",'loadStatements()');
 function fixture({imported=false,closedAfterRead=false,status='signed',role='staff',moduleFailure=false,closeDuringImport=false,contractOverrides={},profiles=[],documentFailures=0,emptyDocuments=false,documentsError=false,stateFailures=0,connectionFailures=0}={}){
  const calls=[],tasks=[],urls=[];let closed=false;
- class Element{constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.value='';this.classList={add(){}};}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}}
+ class Element{constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];this.value='';this.style={};this.classList={add(){}};}setAttribute(name,value){this[name]=value;}prepend(...nodes){this.children.unshift(...nodes);}append(...nodes){this.children.push(...nodes);}replaceChildren(...nodes){this.children=nodes;}}
  const node=(tag,text)=>new Element(tag,text);
  const contract={id:123,contract_no:'C-123',tenant:'Test Tenant',property:'Test property',unit:'1',status,source:imported?'statement-import':'v267-cloud',...contractOverrides};
  const api={saveLease:async()=>calls.push('saveLease'),primary:x=>x,contractMarkup:()=>'<p>saved contract</p>'};
