@@ -14,9 +14,9 @@ test('statement navigation isolates months and disables actions after missing da
  }
  const content={property_key:'shaikhah-tower',property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
- let failLinks=false;let noSource=false;let failLatest=false;let failInitial=false;let readinessPending=false;
+ let failReadiness=false;let failLinks=false;let noSource=false;let failLatest=false;let failInitial=false;let readinessPending=false;
  const queries=[];
- const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;},rpc(name,args){return {rpc:name,args};}},async request(q){queries.push(q);if(q.rpc==='aqari_unit_readiness_register')return {properties:[{id:'p',name:content.property_name}],units:content.rows.map(row=>({id:'u-'+row.unit,property_id:'p',unit_no:row.unit,state:readinessPending?'review_required':'ready',revision:readinessPending?0:1})),history:[]};if(q.table==='aqari_properties')return [{id:'p',name:content.property_name}];if(failInitial&&q.limitCount===100)throw Error("initial read failed");if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
+ const dialog={onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;},rpc(name,args){return {rpc:name,args};}},async request(q){queries.push(q);if(q.rpc==='aqari_unit_readiness_register'&&failReadiness)throw Error('readiness read failed');if(q.rpc==='aqari_unit_readiness_register')return {properties:[{id:'p',name:content.property_name}],units:content.rows.map(row=>({id:'u-'+row.unit,property_id:'p',unit_no:row.unit,state:readinessPending?'review_required':'ready',revision:readinessPending?0:1})),history:[]};if(q.table==='aqari_properties')return [{id:'p',name:content.property_name}];if(failInitial&&q.limitCount===100)throw Error("initial read failed");if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
  const tasks=[];
  dialog.run=(fn)=>{const p=Promise.resolve().then(fn).catch(()=>{dialog.status.textContent='read failed';});tasks.push(p);return p;};
  globalThis.__statementFixture={t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
@@ -43,10 +43,12 @@ test('statement navigation isolates months and disables actions after missing da
   readinessPending=true;await refresh.onclick();assert.equal(link.disabled,false,'historical source draft linking remains available');assert.equal(readinessReview.hidden,false);
   assert.ok(result.children.some(el=>/تحتاج معاينة موثقة قبل تفعيل عقد تشغيلي/.test(el.textContent||'')));
   readinessPending=false;await refresh.onclick();assert.equal(link.disabled,false);assert.equal(readinessReview.hidden,true);
-  assert.ok(queries.some(q=>q.filters.period==='2026-09-01'&&q.filters.property_id==='p'&&q.filters.workspace_id==='w'));
+  assert.ok(queries.some(q=>q.filters?.period==='2026-09-01'&&q.filters.property_id==='p'&&q.filters.workspace_id==='w'));
   failLinks=true;await refresh.onclick();
   assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);assert.equal(result.children.length,0);
   failLinks=false;await refresh.onclick();assert.equal(pdf.disabled,false);
+  failReadiness=true;await refresh.onclick();assert.equal(pdf.disabled,true);assert.equal(link.disabled,true);assert.equal(readinessReview.hidden,true);assert.equal(result.children.length,0);
+  failReadiness=false;await refresh.onclick();assert.equal(pdf.disabled,false);
   const count=queries.length;month.value='';await month.onchange();assert.equal(queries.length,count);assert.equal(pdf.disabled,true);
   dialog.body.replaceChildren();let next=tasks.length;
   mod.openPropertyStatements({propertyName:content.property_name,period:'2026-09'});await tasks[next];await Promise.resolve();
