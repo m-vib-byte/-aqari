@@ -333,7 +333,8 @@ async function openRecord(module,index){
 }
 async function saveLease(input){
  if(root.AQARI_V202?.canCreateContract(input.property)!==true)fail('هذا العقار غير متاح للكتابة في هذه المعاينة.');
- const keys=['contractsV202','tenantProfilesV267','tenantDirectoryV202','properties','leases','audit'];
+ // Validate profiles and properties from the fresh cloud payload; only lock collections changed below.
+ const keys=['contractsV202','tenantDirectoryV202','leases','audit'];
  const saved=await store.change(keys,cloud=>{
   const old=cloud.contractsV202||[],profiles=cloud.tenantProfilesV267||[];
   const legacy=typeof localContractsV55==='function'?localContractsV55():[];

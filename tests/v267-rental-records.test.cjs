@@ -139,3 +139,22 @@ test('contract and annex retain both tenant names and escape inserted content',(
  assert.match(annex,/2026-10/);assert.doesNotMatch(annex,/2026-11|Approved test|تعديلات الخصم المؤرخة/);
  assert.deepEqual(c.rentAdjustments,[{effectiveMonth:'2026-11',discount:20,rent:80,reason:'Approved test'}]);
 });
+
+
+test('saving a lease uses authoritative identity data while ignoring read-only local projections',async()=>{
+ const f=fixture();await saveTenant(f.store);f.reload();
+ const originalProperties=clone(api.primary(f.read()).properties),originalProfiles=clone(api.primary(f.read()).tenantProfilesV267);
+ f.options.local().properties.push(['Display-only imported property']);
+ f.options.local().tenantProfilesV267[0].nameAr='Local display projection';
+ const source=fs.readFileSync(require('node:path').join(__dirname,'../v267-rental-records.js'),'utf8');
+ const saveBlock=source.slice(source.indexOf('async function saveLease'),source.indexOf('async function generate'));
+ const createSave=new vm.Script('('+saveBlock.trim()+')');
+ const context=vm.createContext({root:{AQARI_V202:{canCreateContract:()=>true}},fail:message=>{throw Error(message)},store:f.store,lease:api.lease,directoryFields:api.directoryFields,scope:f.options.scope,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b)});
+ const save=createSave.runInContext(context);await save(contract);
+ const saved=api.primary(f.read());
+ assert.equal(saved.contractsV202[0].tenantProfile.nameAr,tenant.nameAr);
+ assert.equal(saved.tenantDirectoryV202[0].tenantProfileId,tenant.id);
+ assert.equal(saved.leases[0][4],contract.id);
+ assert.deepEqual(saved.properties,originalProperties);assert.deepEqual(saved.tenantProfilesV267,originalProfiles);
+ assert.equal(saved.audit.length,1);
+});
