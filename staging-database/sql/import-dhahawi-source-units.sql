@@ -27,7 +27,17 @@ begin
  if (select count(*) from public.aqari_units where workspace_id=w and property_id=p_id)<>118
  or exists(select 1 from unnest(unit_numbers) x where not exists(select 1 from public.aqari_units u where u.workspace_id=w and u.property_id=p_id and u.unit_no=x))
  then raise exception 'Unit import verification failed'; end if;
- update public.aqari_properties set metadata=metadata||jsonb_build_object('unit_import',source_manifest)
- where workspace_id=w and id=p_id and metadata->'unit_import' is distinct from source_manifest;
+ update public.aqari_properties
+ set metadata=jsonb_set(
+   metadata,
+   '{unit_import}',
+   coalesce(metadata->'unit_import','{}'::jsonb) || source_manifest || jsonb_build_object(
+     'method','authorized_source_unit_import',
+     'status','source_inventory_only',
+     'period','2026-08-01'
+   ),
+   true
+ ) || jsonb_build_object('source_units_verified',118)
+ where workspace_id=w and id=p_id;
 end
 $import$;
