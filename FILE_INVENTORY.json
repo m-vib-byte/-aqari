@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "88e8ed194430580cea288c7214e56257938c2fa7fc22c779109ad1e7c18f9ddd",
-      "size": 32800
+      "sha256": "0014f5e7fa370dab47986a752b888574719f24adae41c7678962447d372712dc",
+      "size": 35748
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3317,8 +3317,8 @@
     },
     {
       "path": "tests/v267-contract-view.test.mjs",
-      "sha256": "e5aba3b46602100c86c144c0c0d754e844ea0966c129e5a376009ac163da16bb",
-      "size": 13236
+      "sha256": "8af5f3ec95a64e4077da130d24aaa1c362922f8aa1876c442eb6338f11950769",
+      "size": 13344
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
@@ -4164,6 +4164,11 @@
       "path": "staging-database/sql/import-dhahawi-source-units.sql",
       "size": 4098,
       "sha256": "cb2234a905c6f2723d587c800bf21100f279780f0c053be539ee3accc27406d6"
+    },
+    {
+      "path": "src/v267/components/visible-translations-b2.js",
+      "size": 96911,
+      "sha256": "5549a9a89f7108497071880bfddcfaf6408ad3a5c27e195548982f2d75a41ca5"
     }
   ],
   "version": "V198"
