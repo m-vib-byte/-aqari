@@ -80,6 +80,7 @@ test('template picker and manager translate UI in five languages without transla
   for(const source of ['قوالب العقود — اعتماد المدير العام','العودة للعقود','اعتماد ونشر نسخة جديدة','إضافة بند','عنوان القالب']){
    assert.ok(hasTranslation(source,locale));assert.ok(all(f.target).some(x=>x.textContent===t(source,locale)),locale+': '+source);
   }
+  for(const source of ['نقل البند للأعلى','نقل البند للأسفل','{count} بند في هذا القالب'])assert.ok(hasTranslation(source,locale),locale+': '+source);
   assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0,'rendering translations must never publish a legal template');
  }}finally{setLocale('ar',null);}
 });
@@ -94,4 +95,22 @@ test('publication requires a full preview after the latest edit',async()=>{
  assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0);
  preview.onclick();approve.checked=true;await manager.form.onsubmit({preventDefault(){}});
  assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,1);
+});
+
+test('manager can reorder clauses and the published snapshot keeps the reviewed order',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{suggestion:[{title:'الأول',text:'نص أول'},{title:'الثاني',text:'نص ثان'}]});
+ const fields=all(manager.form),title=fields.find(x=>x.tag==='input'&&x.maxLength===200),reason=fields.find(x=>x.tag==='textarea'&&x.maxLength===500),approve=fields.find(x=>x.type==='checkbox');
+ assert.ok(fields.some(x=>x.textContent==='2 بند في هذا القالب'));
+ const down=fields.find(x=>x.tag==='button'&&x.textContent==='↓'&&!x.disabled);down.onclick();
+ title.value='قالب مرتب';reason.value='اعتماد ترتيب البنود';fields.find(x=>x.textContent===t('معاينة نص النسخة قبل الاعتماد')).onclick();approve.checked=true;
+ await manager.form.onsubmit({preventDefault(){}});
+ const published=f.state.calls.find(x=>x.p_action==='publish').p_data;
+ assert.deepEqual(published.clauses.map(x=>x.title),['الثاني','الأول']);
+});
+
+test('whitespace-only clause text is rejected locally before any publication request',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{suggestion:[{title:'بند',text:'   '}]});const fields=all(manager.form);
+ fields.find(x=>x.tag==='input'&&x.maxLength===200).value='قالب ناقص';fields.find(x=>x.tag==='textarea'&&x.maxLength===500).value='سبب اعتماد كاف';fields.find(x=>x.type==='checkbox').checked=true;
+ await assert.rejects(manager.form.onsubmit({preventDefault(){}}),/أكمل نوع القالب/);
+ assert.equal(f.state.calls.filter(x=>x.p_action==='publish').length,0);
 });
