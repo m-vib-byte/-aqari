@@ -4159,6 +4159,11 @@
       "path": "tests/property-record-navigation.test.mjs",
       "size": 3317,
       "sha256": "e1ec31634899ca554a389ea35eb8fc1438b1d5dd6d7d086275c4a65be05677e9"
+    },
+    {
+      "path": "staging-database/sql/import-dhahawi-source-units.sql",
+      "size": 4098,
+      "sha256": "cb2234a905c6f2723d587c800bf21100f279780f0c053be539ee3accc27406d6"
     }
   ],
   "version": "V198"
