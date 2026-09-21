@@ -257,9 +257,9 @@
       const created = !script;
       if(!script){
         script = document.createElement('script');
-        script.src = '/vendor/supabase-js-2.114.0.js';
+        script.src = '/vendor/supabase-js-2.116.0.js';
         script.async = true;
-        script.integrity = 'sha384-0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
+        script.integrity = 'sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp';
         script.crossOrigin = 'anonymous';
         script.dataset.aqariSupabase = 'true';
         script.dataset.aqariState = 'loading';
