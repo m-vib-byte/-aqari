@@ -164,7 +164,7 @@ export function openRentalContracts(initial={}){
 
  function clear(title){urls.clear();d.body.replaceChildren(node('h3',title));}
  async function documentCycle(contractId){if(!selectedPropertyId)throw Error('اختر العقار أولًا.');if(contractId)boundContract(contractId);const m=await guardPageImport(()=>import('./rental-document-cycle.js'));d.session.check();d.close();return m.openRentalDocumentCycle({propertyId:selectedPropertyId,contractId,onBack:()=>openRentalContracts({propertyId:selectedPropertyId,...(contractId?{id:contractId}:{})})});}
- async function manageTemplates(){const m=await guardPageImport(()=>import('./contract-templates.js'));d.session.check();d.close();return m.openContractTemplates({propertyId:selectedPropertyId,onBack:()=>openRentalContracts({propertyId:selectedPropertyId})});}
+ async function manageTemplates(){if(d.session.bound.role!=='general_manager')throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});const m=await guardPageImport(()=>import('./contract-templates.js'));d.session.check();d.close();return m.openContractTemplates({propertyId:selectedPropertyId,onBack:()=>openRentalContracts({propertyId:selectedPropertyId})});}
  async function trackContract(id){
   clear(translateStatic('متابعة العقد'));d.body.append(button(translateStatic('إعادة المحاولة'),()=>trackContract(id)),backButton());await load();
   const {contract:c}=boundContract(id);
@@ -184,7 +184,9 @@ export function openRentalContracts(initial={}){
  }
  async function home(){
   if(initial.mode==='approval'&&d.session.bound.role!=='general_manager')throw Error('اعتماد المدير العام مطلوب.');
-  selectedPropertyId=null;selectedUnitId=null;clear(translateStatic('عقود الإيجار حسب العقار'));d.body.append(button(translateStatic('تحديث العقود / Refresh'),home));await load();
+  selectedPropertyId=null;selectedUnitId=null;clear(translateStatic('عقود الإيجار حسب العقار'));d.body.append(button(translateStatic('تحديث العقود / Refresh'),home));
+  if(d.session.bound.role==='general_manager'){const library=node('section');library.className='aq267-contract-library-entry';library.append(node('h2',translateStatic('مكتبة نماذج الإيجار')),node('p',translateStatic('تحرير صفحات A4 كبيرة، وإضافة حقولك بالعربية أو الإنجليزية، وفتح مسودات الوصل والاستلام والإخلاء وبراءة الذمة.')),button(translateStatic('فتح مكتبة النماذج والحقول الخاصة'),manageTemplates));d.body.append(library);}
+  await load();
   d.body.append(node('p',translateStatic('اختر العقار أولًا لعرض وحداته وعقوده ومستأجريه ومستنداته.')));
   const cards=node('section');cards.className='aq267-property-contract-grid';
   for(const group of index.groups){

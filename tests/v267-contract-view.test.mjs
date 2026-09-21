@@ -23,6 +23,9 @@ function fixture({imported=false,closedAfterRead=false,status='signed',role='sta
 test('the first contracts page shows property cards with counts and no mixed contracts list',async()=>{
  const f=fixture({secondBuilding:true});await f.open({});const cards=f.all().filter(x=>x.dataset?.propertyId);assert.equal(cards.length,2);assert.equal(f.all().some(x=>x.textContent.includes('C-123')),false);assert.equal(f.all().some(x=>x.textContent.includes('OTHER-456')),false);assert.equal(f.all().some(x=>x.tag==='input'),false);
 });
+test('the contracts home library entry is visible only to the general manager',async()=>{
+ for(const role of ['staff','property_manager','general_manager']){const f=fixture({role,secondBuilding:true});await f.open({});assert.equal(f.all().some(x=>x.tag==='button'&&x.textContent==='فتح مكتبة النماذج والحقول الخاصة'),role==='general_manager');assert.equal(f.all().filter(x=>x.dataset?.propertyId).length,2);assert.equal(f.calls.includes('saveLease'),false);}
+});
 test('selected contract resolves its property and unit before showing any record',async()=>{
  const f=fixture();await f.open({id:123});assert.ok(f.all().some(x=>x.innerHTML==='<p>saved contract</p>'));assert.equal(f.calls.includes('aqari_documents'),false);assert.equal(f.calls.includes('aqari_contract_history'),false);assert.equal(f.calls.includes('aqari_units'),true);
 });

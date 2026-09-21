@@ -1,7 +1,7 @@
 import {installExperimentalInvestmentApartmentContractShortcut,openExperimentalInvestmentApartmentContract} from './experimental-investment-apartment-contract.js';
 
 // Keep legacy navigation and property shortcuts on the same guarded V267 contract entry.
-export function installContractRoutes(target,open){
+export function installContractRoutes(target,open,openTemplates){
  const previous=target.go;
  installExperimentalInvestmentApartmentContractShortcut(target);
  function installExecutionGuard(){
@@ -31,10 +31,12 @@ export function installContractRoutes(target,open){
  }
  installExecutionGuard();
  target.AQARI_V267_OPEN_CONTRACTS=route;
+ target.AQARI_V267_OPEN_TEMPLATES=()=>typeof openTemplates==='function'?openTemplates():false;
  target.AQARI_V267_OPEN_EXPERIMENTAL_INVESTMENT_APARTMENT_CONTRACT=()=>openExperimentalInvestmentApartmentContract(target);
  target.go=function(page,...args){
   installExecutionGuard();
   if(page==='experimentalInvestmentApartmentContract')return openExperimentalInvestmentApartmentContract(target);
+  if(page==='contractTemplatePage')return target.AQARI_V267_OPEN_TEMPLATES();
   if(page==='smartContractsPage')return route({create:true});
   if(page==='leases')return route();
   return previous?.call(this,page,...args);

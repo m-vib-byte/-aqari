@@ -23,7 +23,27 @@ test('workspace re-checks session scope and contract read permission around lazy
  assert.match(source,/const bound=directoryScope\(\),m=await guardPageImport\(\(\)=>import\('\.\/pages\/rental-contracts\.js'\)/);
  assert.match(source,/bound!==directoryScope\(\)/);
  assert.match(source,/openRentalContracts\(initial\)/);
- assert.match(source,/installContractRoutes\(window,openContracts\)/);
+ assert.match(source,/installContractRoutes\(window,openContracts,\(\)=>contractTemplates\.onclick\(\)\)/);
+});
+
+test('legacy template navigation opens the current guarded library instead of the old preview screen',async()=>{
+ const legacy=[],calls=[];
+ const target={go:(...args)=>{legacy.push(args);return 'legacy';}};
+ installContractRoutes(target,()=>{throw Error('Templates must not open the contract list');},async()=>{calls.push('library');return 'current-library';});
+ assert.equal(await target.go('contractTemplatePage'),'current-library');
+ assert.equal(await target.AQARI_V267_OPEN_TEMPLATES(),'current-library');
+ assert.deepEqual(calls,['library','library']);
+ assert.deepEqual(legacy,[]);
+ assert.equal(target.go('documentsHub'),'legacy');
+ assert.deepEqual(legacy,[['documentsHub']]);
+});
+
+test('a denied library entry cannot fall back to the old unguarded template screen',async()=>{
+ const legacy=[];
+ const target={go:page=>legacy.push(page)};
+ installContractRoutes(target,()=>true,()=>false);
+ assert.equal(await target.go('contractTemplatePage'),false);
+ assert.deepEqual(legacy,[]);
 });
 
 
