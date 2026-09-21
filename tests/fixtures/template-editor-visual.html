@@ -43,9 +43,43 @@ if(!embedded){
   panel.append(title,note,controls,metrics);area.append(frame);document.body.append(panel,area);
   window.addEventListener('message',event=>{if(event.origin!==fixtureOrigin||event.source!==frame.contentWindow||event.data?.type!=='aqari-editor-fixture-metrics')return;metrics.textContent=JSON.stringify(event.data.metrics,null,2);window.templateEditorFixtureMetrics=event.data.metrics;});
 }else{
-  document.body.className='aq-owner-exact-ready aq-owner-reference aq-unified-experience aq267-page-open';
-  // Use the actual competing owner-theme and editor CSS, in production order.
-  for(const [id,name] of [['fixture-owner-reference','owner-reference'],['fixture-luxury-warm','luxury-warm-beige'],['aq267-semantic-colors-css','semantic-colors'],['aq267-ultra-luxury-css','ultra-luxury'],['aq267-contract-pages-css','contract-pages'],['aq267-contract-template-css','contract-template-studio']]){
+  document.body.className='aq-owner-exact-ready aq-owner-reference aq-owner-final-beige aq-unified-experience aq-live-stable aq-v267 aq267-page-open';
+  // Exact generic defaults from index.html (base, V130–132, V167, V169).
+  // Keep them scoped to this embedded document; no app bootstrap is loaded.
+  const legacyDefaults=make('style');legacyDefaults.id='fixture-production-generic-css';legacyDefaults.textContent=`
+    :root{--g:#b88927;--l:#eadfc8;--bg:#f7f6f2}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial;background:var(--bg);color:#26221b}
+    header{background:#fff;border-bottom:1px solid var(--l);padding:14px;position:sticky;top:0;z-index:4}
+    button,input,select{padding:9px;border:1px solid var(--l);border-radius:10px;background:#fff}
+    header{background:rgba(255,255,255,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 8px 28px rgba(74,50,11,.06)}
+    header{border-bottom:1px solid rgba(202,158,63,.24)!important}
+    header{background:rgba(255,255,255,.94)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 8px 32px rgba(72,48,10,.06)}
+    html,body{max-width:100%;overflow-x:hidden}html{scroll-behavior:smooth}body{overscroll-behavior-y:none}
+    @media(max-width:760px){
+      body{padding-bottom:calc(92px + env(safe-area-inset-bottom))!important}
+      main{padding-bottom:calc(190px + env(safe-area-inset-bottom))!important}
+      header{position:sticky;top:0!important;z-index:220!important;padding:10px 12px!important;padding-top:calc(9px + env(safe-area-inset-top))!important;border-radius:0 0 24px 24px!important;box-shadow:0 12px 30px rgba(77,52,8,.08)!important}
+      header button,header select{min-width:0!important;width:100%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    }
+  `;document.head.append(legacyDefaults);
+  // Actual presentation files include the competing live-stability/dialog rules.
+  // Their scripts (and therefore account sessions, startup and DB) are omitted.
+  for(const [id,name] of [
+    ['aq267-workspace-css','workspace'],
+    ['aq267-service-directory-css','service-directory'],
+    ['aq267-semantic-colors-css','semantic-colors'],
+    ['aq267-ultra-luxury-css','ultra-luxury'],
+    ['aqari-v267-owner-reference-css','owner-reference'],
+    ['aqari-owner-feedback-css','owner-feedback-reference'],
+    ['aqari-v267-unified-layout-css','unified-layout'],
+    ['aqari-v267-unified-virtual-css','unified-layout-virtual'],
+    ['aqari-v267-premium-refinement-css','premium-refinement'],
+    ['aqari-v267-luxury-warm-css','luxury-warm-beige'],
+    ['aqari-owner-final-beige-css','owner-final-beige'],
+    ['aqari-live-stability-css','live-stability'],
+    ['aq267-contract-pages-css','contract-pages'],
+    ['aq267-contract-template-css','contract-template-studio']
+  ]){
     const css=make('link');css.id=id;css.rel='stylesheet';css.href='/src/v267/styles/'+name+'.css?release=V267';document.head.append(css);
   }
   await Promise.all(Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(link=>new Promise(resolve=>{if(link.sheet)resolve();else{link.onload=resolve;link.onerror=resolve;}})));
