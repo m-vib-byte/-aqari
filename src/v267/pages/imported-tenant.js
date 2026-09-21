@@ -6,14 +6,15 @@ const contactOptions=()=>[['both',translateStatic('البريد والواتسا
 export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  const d=createDialog(translateStatic('تعديل المستأجر المستورد'));if(!d)return;
  const {body,status,session,run}=d,inputs={};let current=null,uncertain=false;
+ const portfolio=node('section');portfolio.className='aq267-property-master-section';
  body.append(node('p',translateStatic('التعديل يحدّث ملف المستأجر ودليل الاتصال ويحفظ المصدر والتاريخ. لا يغيّر العقود أو الوصول السابقة. يمكن ترك البيانات غير المتوفرة فارغة؛ يلزم اسم واحد على الأقل.')));
+ body.append(portfolio);
  for(const [key,label]of fields()){const input=node('input');input.maxLength=300;input.type=key==='email'?'email':'text';if(key==='civilId'||key==='phone')input.inputMode='tel';inputs[key]=input;body.append(field(label,input));}
  const preferredContact=node('select');for(const [value,label]of contactOptions()){const option=node('option',label);option.value=value;preferredContact.append(option);}inputs.preferredContact=preferredContact;body.append(field(translateStatic('وسيلة التواصل المفضلة'),preferredContact));
  const reason=node('textarea');reason.maxLength=500;
- const save=node('button',translateStatic('حفظ التعديل والتحقق')),draftButton=node('button',translateStatic('حفظ مسودة واستكمال لاحقاً')),reload=node('button',translateStatic('تحديث الملف من السحابة')),portfolio=node('section'),history=node('div');
+ const save=node('button',translateStatic('حفظ التعديل والتحقق')),draftButton=node('button',translateStatic('حفظ مسودة واستكمال لاحقاً')),reload=node('button',translateStatic('تحديث الملف من السحابة')),history=node('div');
  for(const button of [save,draftButton,reload])button.type='button';
- portfolio.className='aq267-property-master-section';
- body.append(field(translateStatic('سبب التعديل أو مرجع التصحيح'),reason),save,draftButton,reload,portfolio,node('h3',translateStatic('آخر التعديلات الموثقة')),history);
+ body.append(field(translateStatic('سبب التعديل أو مرجع التصحيح (اختياري)'),reason),save,draftButton,reload,node('h3',translateStatic('آخر التعديلات الموثقة')),history);
  function show(value,initial=false){
   current=value;for(const [key]of fields())inputs[key].value=String((initial&&draft?draft:value.profile)?.[key]||'');preferredContact.value=String((initial&&draft?draft:value.profile)?.preferredContact||'both');
   history.replaceChildren();
@@ -47,14 +48,13 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  });
  save.onclick=()=>execute(async()=>{
   if(uncertain||!current)throw Error('حدّث الملف للتحقق من الحفظ السابق.');
-  if(reason.value.trim().length<3)throw Error('أدخل سبب التعديل أو مرجع التصحيح.');
+  const saveReason=reason.value.trim()||'تحديث بيانات المستأجر';
   const patch=collect();delete patch.id;
   uncertain=true;
-  const saved=await session.request(session.client.rpc('aqari_imported_tenant_save',{p_workspace_id:session.bound.workspace,p_ref:ref,p_patch:patch,p_expected_revision:current.revision,p_reason:reason.value.trim()}));
+  const saved=await session.request(session.client.rpc('aqari_imported_tenant_save',{p_workspace_id:session.bound.workspace,p_ref:ref,p_patch:patch,p_expected_revision:current.revision,p_reason:saveReason}));
   const confirmed=await read();
   if(JSON.stringify(saved.profile)!==JSON.stringify(confirmed.profile)||saved.revision!==confirmed.revision)throw Error('حدّث الملف للتحقق من نتيجة الحفظ السابق؛ لا تكرر الإرسال.');
   await onSaved();session.check();show(confirmed);reason.value='';uncertain=false;status.textContent=translateStatic('تم حفظ التعديل وإعادة قراءته وتوثيق تاريخه. المصدر والعقود السابقة محفوظة.');
  });
  await execute(async()=>{const [record,context]=await Promise.all([read(),readPortfolio()]);show(record,true);showPortfolio(context);status.textContent=draft?translateStatic('تم تحميل الملف مع مسودتك المحفوظة.'):translateStatic('تم تحميل الملف المحفوظ وسجل التعديلات.');});
 }
-
