@@ -33,6 +33,66 @@ async function openContractStatements(d,c){
  d.close();return module.openPropertyStatements({propertyId:c.propertyId,propertyName:c.property,period:currentMonth(),onBack:()=>openRentalContracts({propertyId:c.propertyId,id:c.id})});
 }
 function select(rows,value){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}if(value!==undefined)x.value=String(value);return x;}
+function savedContractStyles(){
+ if(typeof document==='undefined'||!document.head)return null;
+ let css=document.getElementById('aq267-saved-contract-viewer-css');
+ if(!css){css=document.createElement('link');css.id='aq267-saved-contract-viewer-css';css.rel='stylesheet';css.href='/src/v267/styles/saved-contract-viewer.css?release=V267';document.head.append(css);}
+ return css;
+}
+function splitContractBlock(block,offset){
+ const doc=block.ownerDocument,walker=doc.createTreeWalker(block,4);let current,remaining=offset;
+ while((current=walker.nextNode())){if(remaining<=current.textContent.length)break;remaining-=current.textContent.length;}
+ if(!current)return [block.cloneNode(true),null];
+ const first=doc.createRange(),last=doc.createRange();first.selectNodeContents(block);first.setEnd(current,remaining);last.selectNodeContents(block);last.setStart(current,remaining);
+ const before=block.cloneNode(false),after=block.cloneNode(false);before.append(first.cloneContents());after.append(last.cloneContents());return [before,after];
+}
+// Paginate copies of the saved rendering. The contract and its clauses are never edited.
+export function paginateSavedContract(source,stage){
+ const articles=[...source.children];if(!articles.length)return false;
+ stage.replaceChildren();let content;
+ const page=()=>{const sheet=node('article');sheet.className='aq267-contract-paper';content=node('div');content.className='aq267-contract-paper-content';const footer=node('footer');footer.className='aq267-contract-paper-footer';sheet.append(content,footer);stage.append(sheet);return content;};
+ const fits=()=>content.scrollHeight<=content.clientHeight+1;
+ for(const article of articles){
+  const blocks=article.classList?.contains('v267-contract-copy')?[...article.children]:[article];page();
+  if(!content.clientHeight){stage.replaceChildren();return false;}
+  for(const original of blocks){
+   let block=original.cloneNode(true);
+   while(block){
+    const occupied=content.children.length>0;content.append(block);
+    if(fits())break;
+    block.remove();if(occupied){page();continue;}
+    const length=block.textContent.length;let low=1,high=length-1,best=0;
+    while(low<=high){const mid=Math.floor((low+high)/2),[part]=splitContractBlock(block,mid);content.append(part);const ok=fits();part.remove();if(ok){best=mid;low=mid+1;}else high=mid-1;}
+    if(!best){content.append(block);content.style.height='auto';content.parentElement.dataset.overflow='true';break;}
+    const prefix=block.textContent.slice(0,best),word=prefix.search(/\s+\S*$/u);if(word>0)best=word+1;
+    const [part,rest]=splitContractBlock(block,best);content.append(part);block=rest;if(block?.textContent.length)page();else block=null;
+   }
+  }
+ }
+ const pages=[...stage.children];pages.forEach((sheet,i)=>{sheet.lastElementChild.textContent=translateStatic('صفحة ')+(i+1)+' / '+pages.length;});return true;
+}
+export function mountSavedContractViewer(d,target,html){
+ const viewer=node('section');viewer.className='aq267-saved-contract-viewer';viewer.setAttribute('aria-label',translateStatic('العقد المحفوظ — عرض صفحات A4'));viewer.dataset.focus='false';
+ const toolbar=node('div');toolbar.className='aq267-contract-viewer-toolbar';toolbar.setAttribute('role','toolbar');toolbar.setAttribute('aria-label',translateStatic('حجم عرض العقد'));
+ const reading=node('p',translateStatic('نص العقد المحفوظ للقراءة. تغيير حجم العرض لا يغيّر البنود أو البيانات.'));reading.className='aq267-contract-viewer-note';
+ const viewport=node('div');viewport.className='aq267-contract-viewer-viewport';viewport.tabIndex=0;viewport.setAttribute('aria-label',translateStatic('صفحات العقد المحفوظ'));
+ const stage=node('div');stage.className='aq267-contract-zoom-stage';const source=node('div');source.className='aq267-contract-viewer-source';source.innerHTML=html;
+ const zoomLabel=node('output');zoomLabel.setAttribute('aria-live','polite');let zoom=1,mode='actual',focused=false,disposed=false;
+ const actions=[];
+ const action=(label,fn)=>{const b=node('button',translateStatic(label));b.type='button';b.onclick=()=>{d.session.check();fn();};actions.push(b);toolbar.append(b);return b;};
+ const updateZoom=()=>{if(mode==='fit')zoom=Math.max(.25,Math.min(2,((viewport.clientWidth||826)-32)/794));stage.style.zoom=String(zoom);source.style.zoom=String(zoom);zoomLabel.textContent=Math.round(zoom*100)+'%';fit.setAttribute('aria-pressed',String(mode==='fit'));actual.setAttribute('aria-pressed',String(mode==='actual'));larger.disabled=zoom>=2;};
+ const fit=action('ملاءمة العرض',()=>{mode='fit';updateZoom();}),actual=action('100% — الحجم الأصلي',()=>{mode='actual';zoom=1;updateZoom();}),larger=action('تكبير +',()=>{mode='custom';zoom=Math.min(2,zoom+.25);updateZoom();});
+ const setFocus=value=>{focused=value;viewer.dataset.focus=String(value);focus.textContent=translateStatic(value?'إنهاء وضع القراءة':'قراءة بملء الشاشة');focus.setAttribute('aria-pressed',String(value));updateZoom();};
+ const focus=action('قراءة بملء الشاشة',()=>setFocus(!focused));focus.setAttribute('aria-pressed','false');toolbar.append(zoomLabel);viewer.onkeydown=event=>{if(event.key==='Escape'&&focused){event.preventDefault();event.stopPropagation();setFocus(false);focus.focus?.();}};
+ viewport.append(stage,source);viewer.append(toolbar,reading,viewport);target.append(viewer);updateZoom();
+ const layout=()=>{if(disposed||viewer.isConnected===false)return;d.session.check();stage.style.zoom='1';if(paginateSavedContract(source,stage)){source.hidden=true;source.setAttribute('aria-hidden','true');viewer.dataset.pages=String(stage.children.length);}updateZoom();};
+ const schedule=()=>{if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{layout();}catch{}});};
+ const css=savedContractStyles();if(css?.sheet)schedule();else css?.addEventListener('load',schedule,{once:true});
+ if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(()=>{if(!disposed&&viewer.isConnected!==false)updateZoom();});observer.observe(viewport);d.onDispose?.(()=>observer.disconnect());}
+ if(typeof document!=='undefined')document.fonts?.ready.then(schedule).catch(()=>{});
+ d.onDispose?.(()=>{disposed=true;css?.removeEventListener('load',schedule);viewer.onkeydown=null;for(const b of actions)b.onclick=null;});
+ return viewer;
+}
 function printControls(d,api,urls,id,choices){
  const output=node('div');let previousUrl;
  async function prepare(count,mode){
@@ -230,7 +290,7 @@ export function openRentalContracts(initial={}){
   if(existing&&d.session.bound.role==='general_manager'){const enable=input('checkbox'),effective=input('month',currentMonth()),discount=input('text'),why=input('text');controls.adjustment={enable,effective,discount,why};f.append(field(translateStatic('إضافة تعديل خصم مؤرخ — يحفظ القيم السابقة'),enable),field(translateStatic('شهر سريان الخصم الجديد'),effective),field(translateStatic('الخصم الجديد من الإيجار الأصلي — د.ك'),discount),field(translateStatic('سبب اعتماد الخصم'),why));}
   const save=node('button',translateStatic('حفظ العقد والتحقق من الربط / Save contract'));save.type='submit';save.disabled=!existing;f.append(save);d.body.append(f);d.status.textContent=translateStatic('أكمل شروط العقد. البيانات المسحوبة تُراجع في ملف المستأجر؛ المبالغ الاختيارية الفارغة تعني عدم وجودها.');const id=existing?.id||Date.now()*1024+crypto.getRandomValues(new Uint16Array(1))[0]%1024;
   f.onsubmit=event=>{event.preventDefault();const fields=Object.fromEntries(Object.entries(controls).filter(([k])=>k!=='adjustment').map(([k,c])=>[k,c.value]));d.run(async()=>{if(property.value!==selectedPropertyId)throw Error('العقار المحدد لا يطابق نطاق الصفحة.');const savedUnit=units.find(row=>String(row.id)===unit.value&&String(row.property_id)===selectedPropertyId);if(!savedUnit)throw Error('الوحدة لا تخص العقار المحدد.');if(sourceBinding&&(savedUnit.id!==sourceBinding.unitId||tenant.value!==String(existing?.tenantId||renewal?.source.tenant_ref)))throw Error('لا يمكن تغيير ربط العقد أثناء التعديل أو التجديد.');await refreshTemplateSource();if(!existing)requireContractIdentity(profiles.find(p=>p.id===tenant.value));const template=existing?{}:templateForContract(selectedTemplate,templatePicker?.values());const c={...existing,...fields,...template,id,tenantId:tenant.value,propertyId:selectedPropertyId,unitId:savedUnit.id,property:existing?.property||chosenProperty.name,unit:existing?.unit||savedUnit.unit_no,rent:fields.contractRent,writtenOn:existing?.writtenOn||api.kuwaitDate(),rentalTermsVersion:1,contractReceived:received.value,freeMonthApproved:free.checked,freeMonthPeriod:freePeriod.value,evictionNotice:eviction.value,changeReason:reason.value.trim(),status:existing?.status||'draft',rentAdjustments:[...(existing?.rentAdjustments||[])],clauses:existing?.clauses||template.clauses,language:existing?.language||'ar'};if(includeEntitlement)c.rentEntitlement={version:1,startDate:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null};if(renewal)c.renewalSource=renewal.source;const a=controls.adjustment;if(a?.enable.checked)c.rentAdjustments.push({effectiveMonth:a.effective.value,discount:a.discount.value,reason:a.why.value.trim()});await api.saveLease(c);d.session.check();await show(id);d.status.textContent=translateStatic('حُفظ العقد وربطه بالمستأجر والوحدة والعقار، مع سجل التغيير.');});};
-  if(existing){templateBox.append(node('p',existing.contractTemplate?translateStatic('قالب العقد المحفوظ: ')+existing.contractTemplate.title+translateStatic(' · الإصدار ')+existing.contractTemplate.version:translateStatic('عقد تاريخي محفوظ دون ربطه بقالب جديد بأثر رجعي.')));}
+  if(existing){templateBox.append(node('p',existing.contractTemplate?translateStatic('قالب العقد المحفوظ: ')+existing.contractTemplate.title+translateStatic(' · الإصدار ')+existing.contractTemplate.version:translateStatic('عقد تاريخي محفوظ دون ربطه بقالب جديد بأثر رجعي.')));d.body.append(node('h3',translateStatic('نص العقد المحفوظ — للقراءة أثناء تعديل البيانات')));mountSavedContractViewer(d,d.body,api.contractMarkup(existing,1));}
   else {await refreshTemplateSource();templatePicker=await mountRentalTemplatePicker(d,templateBox,{getValues:templateSourceValues,onChange:value=>{selectedTemplate=value;save.disabled=!value;},onManage:manageTemplates});}
   for(const control of [tenant,property,unit,...Object.values(controls).filter(c=>c?.addEventListener)]){control.addEventListener('input',()=>d.run(refreshTemplateSource));control.addEventListener('change',()=>d.run(refreshTemplateSource));}
  }
@@ -242,7 +302,7 @@ export function openRentalContracts(initial={}){
   if(d.session.bound.role==='general_manager'&&['approved','signed','expired'].includes(c.status))d.body.append(button(translateStatic('تجديد بعقد جديد'),async()=>form(null,await loadLeaseRenewal(d,String(c.id)))));
   if(d.session.bound.role==='general_manager'&&c.renewalSource&&(['draft','ready'].includes(c.status)||d.session.bound.role==='general_manager'&&['approved','signing'].includes(c.status))){const cancelForm=node('form'),why=node('textarea'),cancel=node('button',['approved','signing'].includes(c.status)?translateStatic('إلغاء تجديد غير موقّع'):translateStatic('إلغاء مسودة التجديد'));why.required=true;why.minLength=3;why.maxLength=500;cancel.type='submit';cancelForm.append(field(translateStatic('سبب إلغاء التجديد غير الموقّع — يبقى الأصل والربط والسجل محفوظين'),why),cancel);cancelForm.onsubmit=event=>{event.preventDefault();if(!cancelForm.reportValidity())return;d.run(async()=>{await api.saveLease({...c,status:'cancelled',changeReason:why.value.trim()});d.session.check();await show(id);d.status.textContent=translateStatic('ألغيت مسودة التجديد مع حفظ أصلها وسبب الإلغاء.');});};d.body.append(cancelForm);}
   if(d.session.bound.role!=='general_manager')mountContractChangeRequest(d,d.body,c.id);
-  const markup=node('div');markup.innerHTML=api.contractMarkup(c,1);d.body.append(markup);
+  mountSavedContractViewer(d,d.body,api.contractMarkup(c,1));
   printControls(d,api,urls,id,[[1,'draft',translateStatic('مسودة للمراجعة فقط / Review draft')],[1,'official',translateStatic('تجهيز نسخة معتمدة للطباعة / Prepare approved copy')],[2,'official',translateStatic('تجهيز نسختين معتمدتين مع الملاحق / Prepare two approved sets')]]);
   if(d.session.bound.role==='general_manager'&&c.rentalTermsVersion===1)d.body.append(button(translateStatic('تعديل معتمد مع حفظ السجل السابق'),async()=>form(c)));
   d.body.append(button(translateStatic('جدول الاستحقاقات والتحصيل'),async()=>{const lease=await d.session.request(d.session.client.from('aqari_leases').select('id').eq('workspace_id',d.session.bound.workspace).eq('external_ref',String(c.id)).single());const schedule=await rpc('aqari_rent_due_schedule',{p_workspace_id:d.session.bound.workspace,p_lease_id:lease.id});if(!Array.isArray(schedule?.periods))throw Error('تعذر تأكيد جدول الاستحقاق.');const box=node('section'),table=node('table'),head=node('tr');for(const label of [translateStatic('الفترة'),translateStatic('تاريخ الاستحقاق'),translateStatic('صافي المستحق'),translateStatic('المحصل'),translateStatic('الرصيد الدائن المخصص'),translateStatic('رصيد الفترة')])head.append(node('th',label));table.append(head);for(const row of schedule.periods){if(row.lease_id!==lease.id)throw Error('جدول استحقاق لا يخص العقد.');const tr=node('tr');for(const value of [row.period,row.due_on||translateStatic('لا استحقاق'),...['due_amount','paid_amount','credit_amount','balance'].map(key=>api.amount(row[key]).toFixed(3))])tr.append(node('td',String(value??translateStatic('غير مدون'))));table.append(tr);}const scroll=node('div');scroll.style.overflowX='auto';scroll.style.maxWidth='100%';scroll.append(table);box.append(node('h3',translateStatic('جدول الاستحقاقات المحفوظ للعقد')),node('p',translateStatic('رصيد الفترة المستقبلية ليس متأخرًا قبل تاريخ استحقاقها. لا يشمل الجدول تحويل التأمين أو العربون تلقائيًا.')),scroll);d.body.append(box);}));

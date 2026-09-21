@@ -1,0 +1,22 @@
+.aq267-saved-contract-viewer{width:100%;margin:24px 0;border:1px solid #d7c6aa;border-radius:16px;background:#e9e2d7;color:#382c22;box-sizing:border-box}
+.aq267-contract-viewer-toolbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:14px;background:#f9f5ed;border-bottom:1px solid #d7c6aa;border-radius:16px 16px 0 0}
+.aq267-page .aq267-contract-viewer-toolbar button{background:#fffdf8;color:#654b31;min-height:46px;padding:10px 18px}
+.aq267-page .aq267-contract-viewer-toolbar button[aria-pressed=true]{background:#715033;color:#fffdf7}
+.aq267-contract-viewer-toolbar output{margin-inline-start:auto;min-width:70px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.aq267-contract-viewer-note{margin:0;padding:12px 18px;font-size:1rem;line-height:1.6;color:#65543f;background:#f5efe5}
+.aq267-contract-viewer-viewport{width:100%;overflow:auto;padding:24px 16px;box-sizing:border-box;direction:ltr;overscroll-behavior-x:contain}
+.aq267-contract-zoom-stage{width:210mm;margin-inline:auto;display:grid;gap:18px;direction:rtl;transform-origin:top center}
+.aq267-contract-paper,.aq267-contract-viewer-source>.v267-contract-copy{position:relative;width:210mm!important;min-height:297mm;box-sizing:border-box!important;padding:20mm!important;margin:0!important;background:#fff!important;color:#161616!important;border:1px solid #ded8cd!important;border-radius:0!important;box-shadow:0 5px 16px #5e4b3024;direction:rtl;overflow-wrap:anywhere;text-align:start;font:16px/1.8 Arial,Tahoma,sans-serif!important}
+.aq267-contract-paper{height:297mm}
+.aq267-contract-paper[data-overflow=true]{height:auto}
+.aq267-contract-paper-content{height:calc(257mm - 2px);overflow:visible;color:#161616;direction:rtl;display:flow-root}
+.aq267-contract-paper-content p,.aq267-contract-viewer-source>.v267-contract-copy p{font:inherit!important;margin:0 0 12px!important;color:inherit!important;white-space:pre-wrap}
+.aq267-contract-paper-content h2,.aq267-contract-viewer-source>.v267-contract-copy h2{font:700 24px/1.6 Arial,Tahoma,sans-serif!important;margin:0 0 20px!important;color:#161616!important}
+.aq267-contract-paper-content b{font-weight:700}
+.aq267-contract-paper-footer{position:absolute;inset-inline:20mm;bottom:8mm;text-align:center;font:12px/1.4 Arial,Tahoma,sans-serif;color:#766a5d}
+.aq267-contract-viewer-source{width:210mm;margin-inline:auto;direction:rtl}
+.aq267-contract-viewer-source[hidden]{display:none!important}
+.aq267-saved-contract-viewer[data-focus=true]{position:fixed;inset:0;z-index:2147480003;width:100%;height:100dvh;margin:0;border:0;border-radius:0;overflow:auto;overscroll-behavior:contain}
+.aq267-saved-contract-viewer[data-focus=true] .aq267-contract-viewer-toolbar{border-radius:0}
+@media(max-width:640px){.aq267-contract-viewer-toolbar{gap:7px;padding:10px}.aq267-page .aq267-contract-viewer-toolbar button{flex:1 1 42%;padding:10px}.aq267-contract-viewer-toolbar output{width:100%;margin:0}.aq267-contract-viewer-viewport{padding:14px 8px}.aq267-contract-viewer-note{padding:10px;font-size:.95rem}}
+@media print{.aq267-contract-viewer-toolbar,.aq267-contract-viewer-note{display:none!important}.aq267-saved-contract-viewer,.aq267-saved-contract-viewer[data-focus=true]{position:static;height:auto;overflow:visible;border:0;background:#fff}.aq267-contract-viewer-viewport{padding:0;overflow:visible}.aq267-contract-zoom-stage{zoom:1!important;display:block}.aq267-contract-paper{break-after:page;box-shadow:none;border:0!important}.aq267-contract-paper:last-child{break-after:auto}}

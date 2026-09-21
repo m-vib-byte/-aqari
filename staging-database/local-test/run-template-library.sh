@@ -18,4 +18,5 @@ node staging-database/local-test/run-isolated.mjs \
  staging-database/supabase/migrations/20260920193000_v267_contract_template_studio.sql \
  staging-database/tests/template_library_legacy_fixture.sql \
  staging-database/supabase/migrations/20260921090251_v267_template_families_a4_archive.sql \
- staging-database/tests/template_library_archive.sql
+ staging-database/tests/template_library_archive.sql \
+ staging-database/tests/template_library_custom_fields.sql
