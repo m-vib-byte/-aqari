@@ -902,8 +902,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "95a7fdada10cd5da66551e43499ecd4e672009a9d3bbb32a67933adf2c6a6f60",
-      "size": 8287
+      "sha256": "d951f74aaf944caa2874906f1e8f80c5677985efae79c3e6fe60d38cd331e9c2",
+      "size": 8510
     },
     {
       "path": "scripts/check.mjs",
@@ -4152,8 +4152,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "size": 26655,
-      "sha256": "b4a6f509505f73b90de67f405f441303607c291ad9fee9725c85b2fee16db5b3"
+      "sha256": "8ac84de55a3c495be734eea82a84db96d05f7a98c819b6029d36c1f36224afc0",
+      "size": 27886
     },
     {
       "path": "tests/property-record-navigation.test.mjs",
@@ -4374,6 +4374,21 @@
       "path": "docs/verification/contracts-workspace-20260921.md",
       "sha256": "b735648af9a5cefd6193103b025f525d362e963d457c2917c1acf7b0aed093dd",
       "size": 4401
+    },
+    {
+      "path": "src/v267/pages/property-portfolio-additions.js",
+      "sha256": "6147566496934c62b9ee8c7c6504e818554db102b21216fcf58d7e297d874855",
+      "size": 11827
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260921123000_v267_property_portfolio_additions.sql",
+      "sha256": "0672deed67b2fdae5a618d575b4d691bca529d64d26b39c442a8be36130748a6",
+      "size": 15992
+    },
+    {
+      "path": "tests/v267-property-portfolio-additions.test.mjs",
+      "sha256": "4a504fe77b694b14b0497dc703e5633fa52629b7bec0b912848b5d45d5160c7d",
+      "size": 2691
     }
   ],
   "version": "V198"
