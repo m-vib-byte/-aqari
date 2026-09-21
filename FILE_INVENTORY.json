@@ -812,8 +812,8 @@
     },
     {
       "path": "final-release-ui.js",
-      "sha256": "4ef3ee3cf81170f85bf85fbb2cee0bd3ca55e6f18491e8f20fc565699b66860a",
-      "size": 18458
+      "sha256": "7ae855f164516944fbf5c7cffa4ecee5a8d7607bf4d57c373c0035cb4222bb98",
+      "size": 18497
     },
     {
       "path": "first-run-migration.css",
@@ -4497,8 +4497,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "33adb01acc901fd625d4b1645118abb45fbe2c5178a0322a4d53ba2de08be8be",
-      "size": 4718
+      "sha256": "c80cc78abb8fe430da017d2050b3b92c26c9a93af57e0bdd81a339d73984c0da",
+      "size": 4846
     }
   ],
   "version": "V198"

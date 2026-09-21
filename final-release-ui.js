@@ -374,7 +374,7 @@
     if(!document.getElementById('aqari-v202-property-os-js')){
       const propertyOS = document.createElement('script');
       propertyOS.id = 'aqari-v202-property-os-js';
-      propertyOS.src = '/v202-property-os.js';
+      propertyOS.src = '/v202-property-os.js?release=V267-contract-archive-20260921';
       propertyOS.dataset.aqariUiNextBound='true';
       propertyOS.addEventListener('load', installV205SimplifiedShell, { once:true });
       document.body.appendChild(propertyOS);
