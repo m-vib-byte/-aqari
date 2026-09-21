@@ -1307,8 +1307,8 @@
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 83788,
-      "sha256": "6089eb073bdc1c6bd1d3473876ccecb9dd20f8869f8ffa2daa4a8c4b4f643a83"
+      "size": 84586,
+      "sha256": "c887b19a5df2c6a8d99687d5243d61ee502045f6ed43100f3bcd7728cc9725c2"
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "src/v267/pages/contract-archive.js",
-      "sha256": "bc67a6ca347d5fb7ba75cdf85b4932a735d2cf20a53b6d212a547d28565c2bad",
-      "size": 6107
+      "size": 6238,
+      "sha256": "4afe944e9896a3f2e6a39f821e2f612938fae026c399d6cd737a7377d2a8244e"
     },
     {
       "path": "src/v267/pages/contract-change-requests.js",
@@ -3982,8 +3982,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "84e0a24842c03c541e623d30857a1e6ea6993742e5622f3b24a9665c63d15824",
-      "size": 7192
+      "size": 8010,
+      "sha256": "2708e21a921eb40eeb041266ce5738effec2bb8fca7708b0e96ab54bed0b428b"
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
@@ -4222,8 +4222,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "91ed2c3e369e96cfa62ebeb37c734c77a492591c77bb3e6419bbc59fe8e7cf65",
-      "size": 283403
+      "size": 285059,
+      "sha256": "ee7dccf893caf28c3c4daa657f02f5e99c73919fac92e12e73cd1ed32c1f4729"
     },
     {
       "path": "v205-simple.css",
