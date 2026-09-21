@@ -26,7 +26,6 @@ export function installPropertyExperience({readable,writable}){
  async function openCompleteFileByName(name,options={}){
   if(!readable())return false;const bridge=window.AQARI_SUPABASE,workspace=bridge?.context?.workspace?.id;if(!workspace||typeof bridge?.getClient!=='function')throw Error('الجلسة غير جاهزة.');
   const client=await bridge.getClient();let query=client.from('aqari_properties').select('id,name').eq('workspace_id',workspace);
-  if(options.section!=='sender')query=query.or('metadata->>source_only.is.null,metadata->>source_only.neq.true');
   const {data,error}=await query.eq('name',String(name||'').trim()).limit(2);if(error)throw error;
   if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد. افتح السجل باستخدام معرفه.':'لم يتم ربط هذا العقار بالسجل الخادمي بعد.');
   const m=await import('../pages/property-hub.js');return m.openPropertyHub(data[0].id,options);

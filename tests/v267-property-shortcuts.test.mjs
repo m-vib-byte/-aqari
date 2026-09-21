@@ -35,7 +35,7 @@ test('rendered property card consumes the click and uses the named file action',
  assert.ok(owner.includes("else if(special==='property_create')return openPropertyAction();"));
 });
 
-test('source property contact entry preserves normal property filtering and rejects ambiguous names',async()=>{
+test('source properties open the same complete file as every other property and ambiguous names are rejected',async()=>{
  const experience=read('src/v267/components/property-experience.js');
  const code=experience.slice(experience.indexOf(' async function openCompleteFileByName'),experience.indexOf(' async function openAuthoritativeStatement')).replace("import('../pages/property-hub.js')",'loadHub()');
  const calls=[];let manager=true,records=[{id:'source-property-id'}];
@@ -43,7 +43,7 @@ test('source property contact entry preserves normal property filtering and reje
  const context={readable:()=>true,manager:()=>manager,window:{AQARI_SUPABASE:{context:{workspace:{id:'w'}},getClient:async()=>({from:()=>query})}},loadHub:async()=>({openPropertyHub:(id,options)=>calls.push(['open',id,options.section])})};
  vm.runInNewContext(code+';this.open=openSenderSettingsByName;this.full=openCompleteFileByName;',context);
  await context.open('برج ضحاوي');assert.ok(calls.some(x=>x[0]==='open'&&x[1]==='source-property-id'&&x[2]==='sender'));assert.equal(calls.some(x=>x[0]==='filter'),false);
- calls.length=0;await context.full('برج ضحاوي');assert.equal(calls.some(x=>x[0]==='filter'),true);
+ calls.length=0;await context.full('برج ضحاوي');assert.ok(calls.some(x=>x[0]==='open'&&x[1]==='source-property-id'));assert.equal(calls.some(x=>x[0]==='filter'),false);
  calls.length=0;manager=false;await assert.rejects(context.open('برج ضحاوي'),/مدير العام/);assert.equal(calls.length,0);
  manager=true;records=[{id:'a'},{id:'b'}];await assert.rejects(context.open('برج ضحاوي'),/غير فريد/);assert.equal(calls.some(x=>x[0]==='open'),false);
 });
