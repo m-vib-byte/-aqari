@@ -1,6 +1,7 @@
 /* Full document workspaces. The native dialog remains for small legacy actions. */
 body.aq267-page-open{overflow:hidden!important}
-body .aq267-page.aq267-dialog{position:fixed!important;inset:0!important;display:block!important;width:100%!important;max-width:none!important;height:100dvh!important;max-height:none!important;margin:0!important;padding:clamp(18px,3vw,42px)!important;border:0!important;border-radius:0!important;overflow:auto!important;overscroll-behavior:contain;box-sizing:border-box!important;background:#f8f4ed!important;color:#382c22!important;color-scheme:light;z-index:2147480000;box-shadow:none!important;-webkit-overflow-scrolling:touch}
+body.aq267-page-open #aqari-exp-investment-apartment-shortcut{display:none!important}
+body.aq267-page-open main.aq267-page.aq267-dialog{position:fixed!important;inset:0!important;display:block!important;width:100%!important;max-width:none!important;height:100dvh!important;max-height:none!important;margin:0!important;padding:clamp(18px,3vw,42px)!important;border:0!important;border-radius:0!important;overflow:auto!important;overscroll-behavior:contain;box-sizing:border-box!important;background:#f8f4ed!important;color:#382c22!important;color-scheme:light;z-index:2147480000;box-shadow:none!important;-webkit-overflow-scrolling:touch}
 .aq267-page .aq267-dialog-title{font-size:clamp(1.4rem,3vw,2.15rem);line-height:1.4;margin:12px 0 0;color:#493421}
 .aq267-page .aq267-dialog-body{max-width:1440px;margin:0 auto;padding-bottom:max(32px,env(safe-area-inset-bottom));min-height:65vh}
 .aq267-page>.aq267-dialog-title,.aq267-page>[role=status]{max-width:1440px;margin-inline:auto}
@@ -29,5 +30,5 @@ body .aq267-page .aq267-page-back{position:static!important;display:inline-flex!
 .aq267-contract-card-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px}
 .aq267-contract-card-actions button{flex:1 1 150px}
 .aq267-page .aq267-document-pdf{width:100%;height:78vh;min-height:420px;border:1px solid #d5c5ad;background:#ece7df;border-radius:12px}
-@media(max-width:760px){body .aq267-page.aq267-dialog{padding:14px 12px max(20px,env(safe-area-inset-bottom))!important}.aq267-page .aq267-dialog-body{min-height:70vh}.aq267-property-contract-grid{grid-template-columns:1fr;gap:15px}.aq267-page .aq267-property-contract-card{min-height:190px;padding:22px}.aq267-page .aq267-dialog-title{margin-top:18px}.aq267-page button{min-height:48px}.aq267-page .aq267-document-pdf{height:70dvh}}
-@media print{body .aq267-page.aq267-dialog{position:static!important;height:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}.aq267-page-back{display:none!important}}
+@media(max-width:760px){body.aq267-page-open main.aq267-page.aq267-dialog{padding:14px 12px max(20px,env(safe-area-inset-bottom))!important}.aq267-page .aq267-dialog-body{min-height:70vh}.aq267-property-contract-grid{grid-template-columns:1fr;gap:15px}.aq267-page .aq267-property-contract-card{min-height:190px;padding:22px}.aq267-page .aq267-dialog-title{margin-top:18px}.aq267-page button{min-height:48px}.aq267-page .aq267-document-pdf{height:70dvh}}
+@media print{body.aq267-page-open main.aq267-page.aq267-dialog{position:static!important;height:auto!important;overflow:visible!important;padding:0!important;background:#fff!important}.aq267-page-back{display:none!important}}

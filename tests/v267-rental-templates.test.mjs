@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {groupRentalContractsByProperty} from '../src/v267/domain/rental-document-cycle.js';
 import {documentTemplateBlueprints,mountRentalTemplatePicker,mountRentalTemplateManager,mountTemplateFields,createTemplateDraftSaver,readTemplateEditorText,templateForContract,requireContractIdentity,validTemplate} from '../src/v267/components/rental-templates.js';
 
 class El{
- constructor(tag){this.tag=tag;this.children=[];this.value='';this.disabled=false;this.checked=false;this.hidden=false;this.textContent='';this.className='';this.style={};}
+ constructor(tag){this.tag=tag;this.children=[];this.value='';this.disabled=false;this.checked=false;this.hidden=false;this.textContent='';this.className='';this.style={};this.dataset={};this.classList={add:name=>{this.className+=' '+name;}};}
  append(...children){for(const child of children){child.parent=this;this.children.push(child);}}
  prepend(...children){for(const child of children.reverse()){child.parent=this;this.children.unshift(child);}}
  replaceChildren(...children){this.children=[];this.append(...children);}
@@ -16,6 +18,8 @@ class El{
  querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
  querySelectorAll(selector){const matches=(el,s)=>s.startsWith('.')?el.className.split(' ').includes(s.slice(1)):s==='[contenteditable]'?el.contentEditable!==undefined:el.tag===s;return all(this).slice(1).filter(el=>selector.split(',').some(s=>matches(el,s)));}
  reportValidity(){return true;}
+ focus(){globalThis.document.activeElement=this;}
+ scrollIntoView(){this.scrolled=true;}
  click(){this.clicked=true;}
 }
 const all=e=>[e,...e.children.flatMap(all)];
@@ -175,4 +179,29 @@ test('clearing a custom label never queues an invalid draft and valid refill sav
  const rpc=f.d.session.client.rpc;f.d.session.client.rpc=async(name,args)=>{if(args.p_action==='save_draft')assert.ok(args.p_data.fields.every(spec=>spec.label.trim()),'No invalid label reaches autosave');return rpc(name,args);};
  for(const invalid of ['','   ']){label.value=invalid;label.oninput();assert.ok(label.validationMessage);assert.equal(manager.current.data().fields[0].label,original.fields[0].label);assert.equal(manager.current.saver.dirty,false);await manager.current.saver.flush();}
  assert.equal(f.state.calls.some(x=>x.p_action==='save_draft'),false);label.value='  الاسم الجديد / New name  ';label.oninput();assert.equal(label.validationMessage,'');await manager.current.saver.flush();const saved=f.state.drafts.find(x=>x.id===original.id);assert.equal(saved.fields[0].key,'custom_stable_label');assert.equal(saved.fields[0].label,'  الاسم الجديد / New name  ');assert.deepEqual(saved.clauses,original.clauses);assert.equal(manager.current.saver.dirty,false);assert.equal(f.state.calls.filter(x=>x.p_action==='save_draft').length,1);manager.current.saver.dispose();
+});
+
+test('contracts home opens the real library, starter A4 editor and custom field entry without writing',async()=>{
+ const original={id:'preserved-owner-draft',revision:4,kind:'custom-original',title:'الأصل',fields:[],clauses:[{title:'محفوظ',text:'النص الأصلي الكامل'}]},f=setup({manager:true,items:[],drafts:[original]});
+ globalThis.document.head=new El('head');globalThis.document.getElementById=()=>null;f.d.el=new El('main');f.d.body=f.target;f.d.session.bound.role='general_manager';f.d.close=()=>{};
+ let libraryTask,contractTask,closed=false,opened=0;
+ f.d.run=fn=>{libraryTask=Promise.resolve().then(fn);return libraryTask;};
+ const rows={aqari_properties:[{id:'property-a',workspace_id:'test-workspace',name:'العقار الأصلي'}],aqari_units:[],aqari_leases:[],aqari_tenants:[]};
+ const contracts={el:new El('main'),body:new El('div'),status:new El('p'),close(){closed=true;},run(fn){contractTask=Promise.resolve().then(fn);return contractTask;},navigate(fn){return this.run(fn);},session:{bound:{...f.d.session.bound},check(){assert.equal(closed,false);},request:async p=>p,client:{rpc(name){assert.equal(name,'aqari_read_state_v267');return {workspace_id:'test-workspace',payload:{contractsV202:[]}};},from(table){const query={select(){return this;},eq(){return this;},order(){return this;},range(){return Promise.resolve(rows[table]);}};return query;}}}};
+ const node=(tag,text)=>{const el=globalThis.document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
+ const context={crypto,window:{AQARI_RENTAL_RECORDS:{primary:value=>value}},document:globalThis.document,node,translateStatic:value=>value,t:value=>value,groupRentalContractsByProperty,mountRentalTemplateManager,createPage:()=>++opened===1?contracts:f.d,createPrivateUrls:()=>({clear(){}}),guardPageImport:fn=>fn(),loadTemplates:async()=>({openContractTemplates:context.openContractTemplates})};
+ const clean=file=>readFileSync(new URL(file,import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
+ vm.runInNewContext(clean('../src/v267/pages/contract-templates.js'),context);
+ vm.runInNewContext(clean('../src/v267/pages/rental-contracts.js').replace("import('./contract-templates.js')",'loadTemplates()'),context);
+ context.openRentalContracts({});await contractTask;
+ const entry=button(contracts.body,'فتح مكتبة النماذج والحقول الخاصة');assert.ok(entry);assert.ok(all(contracts.body).some(el=>el.textContent.includes('تحرير صفحات A4 كبيرة')));assert.equal(all(contracts.body).filter(el=>el.dataset.propertyId).length,1);
+ await entry.onclick();await libraryTask;assert.equal(closed,true);assert.equal(all(f.target).filter(el=>el.className==='aq267-template-starter-card').length,4);
+ button(all(f.target).find(el=>el.className==='aq267-template-starter-card'),'فتح مسودة مستقلة').onclick();
+ const form=all(f.target).find(el=>el.tag==='form'),paper=all(form).find(el=>el.className==='aq267-a4-sheet'),label=all(form).find(el=>el.name==='custom_field_label');assert.ok(form.className.includes('is-paper-focused'));assert.equal(paper.style.transform,'scale(1)');
+ button(f.target,'إضافة حقل خاص — عربي / English').onclick();assert.equal(form.className.includes('is-paper-focused'),false);assert.equal(document.activeElement,label);assert.equal(label.scrolled,true);assert.equal(all(form).find(el=>el.className==='aq267-a4-sheet'),paper);
+ button(f.target,'إضافة حقل خاص — عربي / English').onclick();assert.equal(form.className.includes('is-paper-focused'),false);await f.d.beforeClose();assert.deepEqual(f.state.drafts,[original]);assert.equal(f.state.calls.some(call=>call.p_action!=='context'),false);
+});
+
+test('read-only template views do not offer the custom field editing shortcut',async()=>{
+ const f=setup({manager:true}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(template,{readonly:true});assert.equal(button(f.target,'إضافة حقل خاص — عربي / English'),undefined);await manager.current.saver.flush();assert.equal(f.state.calls.some(call=>call.p_action!=='context'),false);manager.current.saver.dispose();
 });

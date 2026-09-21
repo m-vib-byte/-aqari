@@ -147,8 +147,8 @@ body.aq-owner-exact-ready :is(.card,.panel,.box,fieldset,details,.aq267-card,.aq
 body.aq-unified-experience :is(.card,.panel,.box,fieldset,details,.aq267-card,.aq-owner-report-card,.aq-owner-approval-card,.aq-owner-timeline-event){
  border-color:#ddcbb4!important;border-radius:15px!important;background:#fffdf8!important;color:var(--aq-lx-ink)!important;box-shadow:none!important;
 }
-body.aq-owner-exact-ready :is(.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant,dialog:not(.aq-unified-more)),
-body.aq-unified-experience :is(.aq267-dialog,.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant,dialog:not(.aq-unified-more)){
+body.aq-owner-exact-ready :is(.aq267-dialog:where(:not(.aq267-page)),.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant,dialog:not(.aq-unified-more)),
+body.aq-unified-experience :is(.aq267-dialog:where(:not(.aq267-page)),.aq-owner-modal,.aq-owner-center-dialog,.aq-exact-assistant,dialog:not(.aq-unified-more)){
  width:min(860px,calc(100vw - 24px))!important;max-height:min(88dvh,900px)!important;border:1px solid #c9ad87!important;border-radius:22px!important;
  background:#fffaf3!important;color:var(--aq-lx-ink)!important;box-shadow:0 30px 90px rgba(70,47,36,.23)!important;
 }

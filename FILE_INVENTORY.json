@@ -957,8 +957,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "123b69f3cbdbb48109377400491b102b6bff415cc74624cdf154df1a954932cc",
-      "size": 8600
+      "sha256": "ba8d1081e5ddc0d126ba746c5c03bbff7df0191ba8410b4b39d2db1201ccc310",
+      "size": 8803
     },
     {
       "path": "scripts/check.mjs",
@@ -1132,8 +1132,8 @@
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
-      "sha256": "55c0633ce29e8eae5f24916e89a62a73ec07665c65114c5fd8ce0e040303d136",
-      "size": 79322
+      "sha256": "46230c34f889d1523f89bfc6fc04500fd4eb1bc617c254c4b56e17fc464d465d",
+      "size": 81397
     },
     {
       "path": "src/v267/components/data-quality.mjs",
@@ -1277,8 +1277,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "8dff1af81cede27d59684d61642e3cb464dd6df0ad7b8be390193d69eed334af",
-      "size": 47518
+      "sha256": "03fc1da08fc62479e0fbc1091867b265748ab079aecde12fc61fca060124491a",
+      "size": 47867
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1592,8 +1592,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "1d2d5fecd574fe12596c1cfb4e13300cad9b4ae9fd7511debd1787a63680853c",
-      "size": 55435
+      "sha256": "600ca4159cc6722452a178ea7cea1b4d2167c2949435b5835d14a8a7f4dc33b6",
+      "size": 56109
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -1662,8 +1662,8 @@
     },
     {
       "path": "src/v267/styles/contract-pages.css",
-      "sha256": "e2032d8d0aecc1b7ae7fdc8345b5e5b77fc93dc81d1ccb1abcc14d686bac09c3",
-      "size": 5193
+      "sha256": "547041d706ff02421e5372be157f09dfb6395e0c343180fc065f74efa6f522ed",
+      "size": 5339
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
@@ -1712,8 +1712,8 @@
     },
     {
       "path": "src/v267/workspace.js",
-      "sha256": "ed3d4ffa92c11d992e2040206695efae191c1b47743ac64296dbd408a1b3ce07",
-      "size": 32454
+      "sha256": "d74473cf46150a0d03b5e2b1b3f2878590f6407d0d1dbf289ef27e9c8ef59e75",
+      "size": 32486
     },
     {
       "path": "staging-database/hosted-test/completion/01-maintenance_workflow.sql",
@@ -3537,8 +3537,8 @@
     },
     {
       "path": "tests/v267-contract-entry-routing.test.mjs",
-      "size": 2120,
-      "sha256": "9b4e4123b52ebba524e52add7dad2f337a3374d8f558f5e5c46abb3e606ebd3d"
+      "size": 3154,
+      "sha256": "341638d598588f783bd8207d2165b3449aa8c1efa67add8c18798271ce3bbf92"
     },
     {
       "path": "tests/v267-contract-load.test.mjs",
@@ -3562,8 +3562,8 @@
     },
     {
       "path": "tests/v267-contract-view.test.mjs",
-      "sha256": "372fa8fb305d346cb16017a47339038a04e69fffc6c50700044e35301bccb60f",
-      "size": 21580
+      "sha256": "df96c4e74efaff97b94d06d1a454529bf9595c96ab99c87e4ccc3e70550423c3",
+      "size": 22071
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
@@ -4042,8 +4042,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "893bdd3a02a0094858f40c3974542958fc18a2d0f2c0995a507cd22dc8b6120c",
-      "size": 31198
+      "sha256": "410c58e8dc9315ff5eea99941578960e30dbc37e9ed19c6d7fb104f9b563b6b3",
+      "size": 35686
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4417,13 +4417,48 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "686795f7eaf01aca669766820c9789c5bfa94b298802bcc4c57b0572f105c26b",
-      "size": 4596
+      "sha256": "33adb01acc901fd625d4b1645118abb45fbe2c5178a0322a4d53ba2de08be8be",
+      "size": 4718
     },
     {
       "path": "VERSION.json",
       "sha256": "a8bece4d1f536b2af865a993826f3a683bd7b883501296aee58c3f6fe3b63e4f",
       "size": 2022
+    },
+    {
+      "path": "src/v267/components/contract-routing.js",
+      "sha256": "754b238f0b4e7efffd2760d26a4347423224e11d7b69956c8e7de02848901967",
+      "size": 2338
+    },
+    {
+      "path": "src/v267/components/experimental-investment-apartment-contract.js",
+      "sha256": "19196d28892679ece87df55314d132d5637a7f28ee604ee2173d773d5ec3cb67",
+      "size": 20814
+    },
+    {
+      "path": "src/v267/styles/luxury-warm-beige.css",
+      "sha256": "d4be3ce935410510716ab574a1cf3d938189f3e4bd2e4c264a3781c43f10e8bd",
+      "size": 31192
+    },
+    {
+      "path": "tests/v267-luxury-warm-beige.test.mjs",
+      "sha256": "9374730da5d98015066f5ce2e28dce886acdedb0cbbaad772ca062ae54cb6d3c",
+      "size": 3462
+    },
+    {
+      "path": "tests/v267-contract-template-legacy-entry.test.mjs",
+      "sha256": "20f7cf9b936f6ac56f09c3aa491e7056570e6711850cfdca30e4eb6a8c3b5b01",
+      "size": 1620
+    },
+    {
+      "path": "tests/v267-mutable-asset-delivery.test.mjs",
+      "sha256": "7fe916aa76927dc31cda6614f2203ee473ac3afe1acdb244be0efddf59b47acc",
+      "size": 3356
+    },
+    {
+      "path": "docs/verification/contract-visibility-20260921.md",
+      "sha256": "c7453f9de7f2c4d1ff7d51c8fbf78b54caf6b63033e57c282bdc4c94db19092c",
+      "size": 3427
     }
   ],
   "version": "V198"

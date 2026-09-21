@@ -55,3 +55,12 @@ test('luxury layer is additive and the successful iPhone startup blocker remains
  assert.match(installer,/await import\('\.\/install-v267-iphone-startup-fix\.mjs'\)/);
  assert.match(installer,/v267-luxury-warm-beige\.test\.mjs/);
 });
+
+test('the legacy 860px modal rule excludes full document pages',()=>{
+ const modalRule=css.match(/([^{}]+)\{\s*width:min\(860px,[^{}]+\}/);
+ assert.ok(modalRule,'the ordinary modal size remains available');
+ assert.equal((modalRule[1].match(/\.aq267-dialog:where\(:not\(\.aq267-page\)\)/g)||[]).length,2);
+ assert.doesNotMatch(modalRule[1],/\.aq267-dialog[,)]/);
+ const pages=read('src/v267/styles/contract-pages.css');
+ assert.match(pages,/body\.aq267-page-open main\.aq267-page\.aq267-dialog\{[^}]*width:100%!important[^}]*height:100dvh!important[^}]*max-height:none!important/);
+});
