@@ -52,3 +52,20 @@ test('unavailable saved properties remain selected and block employee saving unt
  const form=f.all().find(x=>x.tag==='form');form.onsubmit({preventDefault(){}});await f.d.pending;assert.equal(f.calls.filter(x=>x.p_action==='save_employee').length,0);assert.match(f.d.status.textContent,/غير متاح/);
  missing.checked=false;missing.onchange();assert.equal(missing.disabled,true);form.onsubmit({preventDefault(){}});await f.d.pending;assert.deepEqual(Array.from(f.calls.find(x=>x.p_action==='save_employee').p_data.property_ids),['available']);
 });
+
+test('document shortcuts select an employee and read only that employee without creating records',async()=>{
+ for(const [icon,label] of [['📄','عقد عمل / Employment contract'],['🧾','سند راتب / Salary voucher'],['📁','مستندات الموظف / Employee documents'],['📅','السلف والإجازات / Advances and leave']]){
+  const f=fixture([employee()]);await f.d.pending;
+  await f.button(icon+' '+locale.t(label)).onclick();
+  f.find('الموظف').value='employee-one';
+  await f.button('فتح ملف الموظف').onclick();
+  assert.deepEqual(f.calls.map(x=>x.p_action),['list','get']);
+  assert.equal(f.calls[1].p_data.employee_id,'employee-one');
+  assert.doesNotMatch(f.d.status.textContent,/not defined|Cannot read/);
+ }
+});
+test('empty directory shortcuts offer adding an employee without making a document',async()=>{
+ const f=fixture([]);await f.d.pending;
+ await f.button('📄 '+locale.t('عقد عمل / Employment contract')).onclick();
+ assert.ok(f.button('إضافة موظف / Add employee'));assert.equal(f.calls.length,1);
+});
