@@ -2103,14 +2103,25 @@
     }
     if(action==='payment')return openPayment(trigger,undefined,activePropertyPeriod);
     if(action==='statement')return openStatementDocument(activePropertyPeriod||undefined,trigger);
-    closeWorkspace(false);
     if(action==='contract'){
+      closeWorkspace(false);
       window.go?.('smartContractsPage');
       return selectPropertyOnPage('contractPropertyV55','loadContractsV55');
     }
     if(action==='profile'){
-      window.go?.('property360Page');
-      return selectPropertyOnPage('property360SelectV58','renderProperty360V58');
+      const propertyName=activeProperty;
+      const legacyProfile=function(){
+        closeWorkspace(false);
+        window.go?.('property360Page');
+        return selectPropertyOnPage('property360SelectV58','renderProperty360V58');
+      };
+      const openComplete=window.AQARI_PROPERTY_EXPERIENCE?.openCompleteFileByName;
+      if(typeof openComplete!=='function')return legacyProfile();
+      return Promise.resolve(openComplete(propertyName)).then(function(result){
+        if(result===false)return legacyProfile();
+        closeWorkspace(false);
+        return result;
+      }).catch(legacyProfile);
     }
   }
 
