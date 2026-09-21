@@ -62,6 +62,10 @@ test('legacy tenant screen exposes the complete property-scoped file and upload 
  assert.match(tenantEditor,/مسح\/تصوير مستند/);
  assert.match(tenantEditor,/رفع ملف/);
  assert.match(tenantEditor,/openTenantCompleteFile/);
+ assert.ok(tenantEditor.indexOf('body.append(portfolio)')<tenantEditor.indexOf('for(const [key,label]of fields()'));
+ assert.match(tenantEditor,/سبب التعديل أو مرجع التصحيح \(اختياري\)/);
+ assert.match(tenantEditor,/reason\.value\.trim\(\)\|\|'تحديث بيانات المستأجر'/);
+ assert.doesNotMatch(tenantEditor,/أدخل سبب التعديل أو مرجع التصحيح/);
 });
 
 test('property save does not reject its own intended local edit before authoritative compare',()=>{
