@@ -11,7 +11,7 @@ for(const [page,open,loader]of [
   class Element{constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];}append(...items){this.children.push(...items);}replaceChildren(...items){this.children=items;}}
   const node=(tag,text)=>new Element(tag,text),pending=[];let calls=0,failConnection=connectionFailure;
   const d={el:{classList:{add(){}}},body:node('div'),status:node('p'),session:{bound:{role:'general_manager'}},run(task){const result=Promise.resolve().then(()=>{if(failConnection){failConnection=false;throw Error('connection unavailable');}return task();});pending.push(result);return result;}};
-  const context={document:{getElementById(){return null;},createElement(){return {};},head:{append(){}}},t:x=>x,node,createDialog:()=>d,createPrivateUrls:()=>({clear(){}}),[loader]:async()=>{calls++;if(!connectionFailure&&calls===1)throw Error('read unavailable');return [];}};
+  const context={document:{getElementById(){return null;},createElement(){return {};},head:{append(){}}},t:x=>x,node,createDialog:()=>d,createPage:()=>d,createPrivateUrls:()=>({clear(){}}),[loader]:async()=>{calls++;if(!connectionFailure&&calls===1)throw Error('read unavailable');return [];}};
   const source=readFileSync(new URL(`../src/v267/pages/${page}.js`,import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
   vm.runInNewContext(source,context);context[open]();await assert.rejects(pending.at(-1),/unavailable/);
   const all=e=>[e,...e.children.flatMap(all)],retry=all(d.body).find(e=>e.tag==='button'&&e.textContent==='إعادة المحاولة');assert.ok(retry);

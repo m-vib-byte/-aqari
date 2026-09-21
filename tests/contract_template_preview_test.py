@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import unittest
+from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 from lib.contract_template_pdf import render_document_template
 from lib.rental_document_context import resolve_document_values
@@ -111,6 +112,38 @@ class PreviewTest(unittest.TestCase):
         self.f['cancelled'] = True
         with self.assertRaises(PermissionError):
             api.export_preview(self.body(), AUTH, self.rpc, self.read)
+
+    def test_optional_preview_property_logo_scope_and_no_side_effects(self):
+        ident='76610000-0000-4000-8000-000000000011'
+        self.f['property_row']['id']=ident
+        self.f['master']['property']['id']=ident
+        body={'workspaceId':W,'template':self.f['template'],'previewPropertyId':ident}
+        pdf,digest=api.prepare_preview(body,AUTH,self.rpc,self.read)
+        self.assertTrue(pdf.startswith(b'%PDF-'))
+        self.assertTrue(any(name=='aqari_property_contract_context' and args['p_unit_id'] is None for name,args in self.calls))
+        body['previewPropertyId']='https://untrusted.invalid/logo.png'
+        with self.assertRaises(ValueError):api.prepare_preview(body,AUTH,self.rpc,self.read)
+        body['previewPropertyId']='76610000-0000-4000-8000-000000000012'
+        with self.assertRaises(PermissionError):api.prepare_preview(body,AUTH,self.rpc,self.read)
+
+    def test_published_preview_uses_authorized_canonical_issue_source(self):
+        self.context['items']=[copy.deepcopy(self.f['template'])]
+        f=self.f
+        source={'template':copy.deepcopy(f['template']),'contract':f['payload']['contractsV202'][0],'lease':f['lease'],'tenant':f['tenant'],'property_row':f['property_row'],'unit_row':f['unit'],'property':f['master']['property'],'unit':f['master']['unit'],'receipt':None}
+        def source_rpc(name,args,auth):
+            if name=='aqari_rental_document_source':
+                self.calls.append((name,args))
+                return {'workspace_id':W,'user_id':'user1','source':source}
+            return self.rpc(name,args,auth)
+        pdf,digest=api.prepare_preview(self.body(),AUTH,source_rpc,self.read)
+        expected=api.render_source_preview(source,{},W,AUTH,self.read)
+        self.assertEqual(pdf,expected['pdf']);self.assertEqual(digest,expected['digest'])
+        body=self.body();body['template']=copy.deepcopy(body['template']);body['template']['title']='Changed after publication'
+        with self.assertRaisesRegex(ValueError,'DOCUMENT_PREVIEW_CHANGED'):api.prepare_preview(body,AUTH,source_rpc,self.read)
+        def denied(name,args,auth):
+            if name=='aqari_rental_document_source':raise PermissionError('TEMPLATE_PROPERTY_SCOPE_MISMATCH')
+            return self.rpc(name,args,auth)
+        with self.assertRaises(PermissionError):api.prepare_preview(self.body(),AUTH,denied,self.read)
 
     def test_python_browser_resolver_render_and_digest_parity(self):
         f = self.f

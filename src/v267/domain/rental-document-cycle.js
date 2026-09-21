@@ -1,5 +1,6 @@
 // Pure document structure and binding helpers. These functions never save,
 // approve, seed or publish templates, documents, payments or signatures.
+import {validateTemplatePresentation} from './rental-document-layout.js';
 const scalar=value=>typeof value==='string'||typeof value==='number'?String(value).trim():'';
 const first=(...values)=>values.map(scalar).find(Boolean)||'';
 const object=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:{};
@@ -30,13 +31,16 @@ export const documentTemplateBlueprints=Object.freeze([
  {kind:'owner_final_clearance',label:'براءة ذمة ومخالصة نهائية من مالك العقار',fields:fieldSpecs([...common,'owner_name','document_no','issued_at','start_date','end_date','settlement_reference','net_balance']),signers:[ownerSigner,tenantSigner]}
 ]);
 
-export function resolveDocumentSigners(kind,values={}){
+export function resolveDocumentSigners(kind,values={},presentation=null){
  // Existing apartment/house/shop/custom contract kinds remain lease kinds.
  const blueprint=documentTemplateBlueprints.find(item=>item.kind===kind)||documentTemplateBlueprints[0];
- return (blueprint?.signers||[]).map(item=>{
+ const settings=presentation?.signers,available=[ownerSigner,tenantSigner,signer('receiver','المستلم','receiver_name'),signer('accountant','المحاسب','accountant_name')];
+ const selected=settings?available.filter(item=>settings[item.role]&&['name','signature','fingerprint'].some(key=>settings[item.role][key]===true)):(blueprint?.signers||[]);
+ return selected.map(item=>{
   const useRepresentative=item.role==='owner'&&fieldValue(values,'representative_name');
   const signer=useRepresentative?{...item,label:'وكيل المالك المفوض',nameKey:'representative_name'}:{...item};
-  return {...signer,name:fieldValue(values,signer.nameKey),signature:'',fingerprint:''};
+  const flags=settings?.[item.role]||{name:true,signature:true,fingerprint:true};
+  return {...signer,name:flags.name?fieldValue(values,signer.nameKey):'',signature:'',fingerprint:'',showName:flags.name,showSignature:flags.signature,showFingerprint:flags.fingerprint};
  });
 }
 
@@ -47,6 +51,7 @@ export function fieldValue(values,key){
  if(new Set(present).size>1)fail('تعارض في قيمة الحقل '+(documentFieldCatalog[canonical]?.label||canonical)+'؛ صحح القيمة في المصدر.');
  return present[0]||'';
 }
+export const canonicalDocumentFieldKey=key=>aliases[key]||key;
 export function normalizeDocumentValues(values={}){
  const result={...object(values)};
  for(const [alias,canonical]of Object.entries(aliases)){const value=fieldValue(values,canonical);if(own(values,alias)||own(values,canonical)){result[alias]=value;result[canonical]=value;}}
@@ -58,23 +63,24 @@ export function validateTemplateFields(template){
  const fields=template.fields||[],keys=new Set(),canonicalKeys=new Set();
  for(const spec of fields){
   const key=spec?.key;
-  if(typeof key!=='string'||!/^[a-z][a-z0-9_]{1,49}$/.test(key)||['field_name','constructor','prototype','__proto__'].includes(key))fail('استبدل رمز الحقل العام أو غير الصحيح بحقل مستقل، مثل tenant_name أو owner_name.');
-  if(!scalar(spec.label)||!['text','number','date','money'].includes(spec.type||'text'))fail('أكمل اسم الحقل ونوعه: '+key);
+  if(typeof key!=='string'||!/^[a-z][a-z0-9_]{1,49}$/.test(key)||['field_name','constructor','prototype','__proto__'].includes(key))fail('يوجد حقل يحتاج تحديد؛ اختر المعلومة الصحيحة من قائمة الحقول.');
+  if(!scalar(spec.label)||!['text','number','date','money'].includes(spec.type||'text'))fail('أكمل اسم الحقل ونوعه من قائمة الحقول.');
   const canonical=aliases[key]||key;
-  if(keys.has(key)||canonicalKeys.has(canonical))fail('رمز الحقل مكرر: '+key+'؛ استخدم تعريفًا واحدًا لكل معلومة.');
+  if(keys.has(key)||canonicalKeys.has(canonical))fail('الحقل مكرر: '+spec.label+'؛ استخدم تعريفًا واحدًا لكل معلومة.');
   keys.add(key);canonicalKeys.add(canonical);
  }
  for(const clause of [{title:template.title||'',text:''},...template.clauses]){
   if(!clause||typeof clause.title!=='string'||typeof clause.text!=='string')fail('راجع عنوان البند ونصه.');
   for(const text of [clause.title,clause.text]){
    const remaining=text.replace(/\{\{([a-z][a-z0-9_]{1,49})\}\}/g,(token,key)=>{
-    if(key==='field_name')fail('استبدل {{field_name}} بالرمز الصحيح لكل معلومة.');
-    if(!keys.has(key))fail('الحقل '+key+' غير معرّف؛ أضفه إلى حقول النموذج أو صحح رمزه.');
+    if(key==='field_name')fail('يوجد حقل يحتاج تحديد؛ اختر المعلومة الصحيحة من قائمة الحقول.');
+    if(!keys.has(key))fail('يوجد حقل غير معرّف؛ حدده داخل النص واختر المعلومة الصحيحة من قائمة الحقول.');
     return '';
    });
-   if(/[{}]/.test(remaining))fail('يوجد رمز حقل غير مكتمل؛ استخدم الصيغة {{tenant_name}} دون مسافات داخل القوسين.');
+   if(/[{}]/.test(remaining))fail('يوجد حقل غير مكتمل؛ حدده داخل النص واختر المعلومة من قائمة الحقول.');
   }
  }
+ validateTemplatePresentation(template.presentation,fields);
  return fields;
 }
 function displayValue(value,spec){
@@ -103,7 +109,18 @@ export function renderDocumentTemplate(template,providedValues={}, {requireValue
  for(const key of ['tenant_name','owner_name','representative_name','receiver_name','accountant_name'])values[key]=safeValue(key,documentFieldCatalog[key]?.label||key);
  // Replace each source token once; no replacement output is scanned again.
  const substitute=text=>text.replace(/\{\{([a-z][a-z0-9_]{1,49})\}\}/g,(_,key)=>display[key]);
- return {title:substitute(template.title||''),fields,values,clauses:template.clauses.map(c=>({title:substitute(c.title),text:substitute(c.text)}))};
+ const presentation=validateTemplatePresentation(template.presentation,fields);
+ return {title:substitute(template.title||''),fields,values,clauses:template.clauses.map(c=>({title:substitute(c.title),text:substitute(c.text)})),...(presentation?{presentation}:{})};
+}
+
+export function rentalDocumentDigestPayload(template,rendered){
+ const presentation=validateTemplatePresentation(template?.presentation,template?.fields||[]);
+ const signers=resolveDocumentSigners(template?.kind,rendered.values,presentation);
+ const value=[rendered.title,template.kind,template.kind_label||'',rendered.clauses.map(clause=>[clause.title,clause.text]),Object.entries(rendered.values).sort(([a],[b])=>a<b?-1:a>b?1:0),signers.map(signer=>[signer.role,signer.label,signer.name])];
+ // Old models retain their exact prior digest material. New visual settings
+ // participate in verification and cannot change between preview and PDF.
+ if(presentation)value.push(presentation);
+ return value;
 }
 
 function primary(payload){
@@ -124,6 +141,78 @@ const propRef=row=>first(row?.propertyId,row?.property_id,row?.property_ref);
 const unitRef=row=>first(row?.unitId,row?.unit_id);
 const tenantRef=row=>first(row?.tenantId,row?.tenant_id,row?.tenant_ref);
 function checkScope(record,workspaceId){if(record?.workspace_id&&workspaceId&&record.workspace_id!==workspaceId)fail('تغيّرت مساحة العمل؛ أعد فتح المستند.');}
+
+/** Identify the property for lists and filters independently of whether an old
+ * tenant profile has been completed. Display names are never join keys.
+ * Missing references are visible as unbound; contradictions throw and are
+ * reported separately by the grouping helper, never silently reclassified.
+ */
+export function resolveContractPropertyBinding(contract,sources={}){
+ const c=object(contract),missing=reason=>({status:'unbound',propertyId:'',unitId:'',leaseId:'',property:null,unit:null,lease:null,reason});
+ const contractIds=[...identities(c),scalar(c.contractId)].filter(Boolean);
+ if(!contractIds.length)return missing('السجل لا يحمل معرّف عقد؛ راجع ربط المصدر.');
+ const leaseRows=rows(sources.leases).filter(row=>identities(row).some(id=>contractIds.includes(id))||contractIds.includes(scalar(row.snapshot?.id)));
+ if(leaseRows.length>1)fail('تعارض معرّفات العقد؛ لا يمكن تحديد عقاره بأمان.');
+ const lease=leaseRows[0]||null;
+ checkScope(c,sources.workspaceId);checkScope(lease,sources.workspaceId);
+ if(lease){
+  const known=new Set(identities(lease)),snapshotId=scalar(lease.snapshot?.id),externalIds=[lease.external_ref,lease.externalRef].map(scalar).filter(Boolean);
+  if(snapshotId&&externalIds.length&&!known.has(snapshotId))fail('تعارض مرجع العقد المستورد مع السجل الخادمي.');
+  if(snapshotId)known.add(snapshotId);
+  if(contractIds.some(ref=>!known.has(ref)))fail('تعارض مرجع العقد المستورد مع السجل الخادمي.');
+ }
+ const unitRefs=[c.unitId,c.unit_id,c.metadata?.unitId,c.metadata?.unit_id,lease?.unitId,lease?.unit_id].map(scalar).filter(Boolean);
+ let unit=null;
+ for(const ref of unitRefs){
+  const found=matchById(sources.units,ref,'الوحدة');
+  if(!found)fail('معرّف الوحدة المحفوظ غير موجود في مساحة العمل؛ صحح الربط.');
+  if(unit&&scalar(unit.id)!==scalar(found.id))fail('تعارض ربط الوحدة بالعقد.');
+  unit=found;
+ }
+ checkScope(unit,sources.workspaceId);
+ const propertyRefs=[c.propertyId,c.property_id,c.property_ref,c.propertyRef,c.metadata?.propertyId,c.metadata?.property_id,c.metadata?.property_ref,lease?.property_id,lease?.property_ref,unit?.property_id,unit?.propertyId].map(scalar).filter(Boolean);
+ let property=null;
+ for(const ref of propertyRefs){
+  const found=matchById(sources.properties,ref,'العقار');
+  if(!found)fail('معرّف العقار المحفوظ غير موجود في مساحة العمل؛ صحح الربط.');
+  if(property&&scalar(property.id)!==scalar(found.id))fail('تعارض ربط العقار بالعقد.');
+  property=found;
+ }
+ checkScope(property,sources.workspaceId);
+ if(own(sources,'tenants')&&lease?.tenant_id){
+  const tenant=matchById(sources.tenants,lease.tenant_id,'المستأجر');
+  if(!tenant)fail('تعذر تأكيد مستأجر العقد من السجل المرتبط.');
+  checkScope(tenant,sources.workspaceId);
+  for(const ref of [c.tenantId,c.tenant_id,c.tenant_ref].map(scalar).filter(Boolean))checkId(ref,tenant,'المستأجر');
+ }
+ if(!property)return missing('العقد غير مربوط بمعرّف عقار محفوظ؛ استكمل ربط المصدر.');
+ return {status:'bound',propertyId:scalar(property.id),unitId:scalar(unit?.id),leaseId:scalar(lease?.id),property,unit,lease,reason:''};
+}
+
+export function groupRentalContractsByProperty(contracts,sources={}){
+ const properties=rows(sources.properties),groups=[],map=new Map(),unbound=[],conflicts=[];
+ for(const property of properties){
+  const id=scalar(property.id);if(!id)continue;
+  checkScope(property,sources.workspaceId);
+  if(map.has(id))fail('تكرر معرّف العقار في النتائج؛ حدّث القائمة.');
+  const group={propertyId:id,property,contracts:[],count:0};map.set(id,group);groups.push(group);
+ }
+ for(const contract of rows(contracts)){
+  try{
+   const binding=resolveContractPropertyBinding(contract,sources);
+   if(binding.status!=='bound'){unbound.push({contract,reason:binding.reason});continue;}
+   const group=map.get(binding.propertyId);if(!group)fail('العقار المرتبط غير موجود في قائمة مساحة العمل.');
+   group.contracts.push(contract);group.count++;
+  }catch(error){conflicts.push({contract,reason:error.message});}
+ }
+ return {groups,unbound,conflicts};
+}
+
+export function assertContractProperty(contract,expectedPropertyId,sources={}){
+ const expected=matchById(sources.properties,expectedPropertyId,'العقار',{required:true}),binding=resolveContractPropertyBinding(contract,sources);
+ if(binding.status!=='bound'||binding.propertyId!==scalar(expected.id))fail('العقد لا يتبع العقار المحدد؛ اختر العقد من ملف العقار الصحيح.');
+ return binding;
+}
 
 /** Resolve read-only source records by stable identifiers, never display names.
  * Normalized tables must be fetched under the current user's workspace scope.

@@ -11,7 +11,7 @@ test('property contract opens the saved reference after scoped lookup and module
  const f=fixture();let initial;
  await openPropertyContract(f.d,'property',{id:'lease'},async()=>{f.events.push('loaded');return {openRentalContracts(x){initial=x;f.events.push('open');}};});
  assert.deepEqual(f.filters,{'workspace_id':'workspace',id:'lease','aqari_units.property_id':'property'});
- assert.deepEqual(initial,{id:'saved-contract'});assert.deepEqual(f.events,['check','loaded','check','close','open']);
+ assert.deepEqual(initial,{id:'saved-contract',propertyId:'property'});assert.deepEqual(f.events,['check','loaded','check','close','open']);
 });
 test('missing or ambiguous contracts do not close the property file',async()=>{
  for(const rows of [[],[{external_ref:''}],[{external_ref:'a'},{external_ref:'b'}]]){

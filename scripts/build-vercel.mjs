@@ -11,7 +11,7 @@ if(process.env.VERCEL_ENV==='production'){
   else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-rental-document-cycle.test.mjs','tests/v267-rental-document-composer.test.mjs','tests/v267-contract-template-prefill.test.mjs','tests/v267-rental-templates.test.mjs','tests/v267-rental-records.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-rental-document-cycle.test.mjs','tests/v267-rental-document-layout.test.mjs','tests/v267-rental-document-composer.test.mjs','tests/v267-contract-template-prefill.test.mjs','tests/v267-rental-templates.test.mjs','tests/v267-rental-records.test.cjs','tests/v267-full-page-workspace.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-session-activity-routing.test.cjs','tests/v267-session-idle-restore.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
@@ -49,8 +49,7 @@ execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.
 execFileSync(process.execPath,['--test','tests/v267-dialog-progress.test.mjs','tests/v267-management-counters.test.mjs','tests/v267-management-counters-runtime.test.mjs','tests/v267-kpi-dashboard.test.cjs','tests/v267-utility-history-runtime.test.mjs','tests/v267-unit-meter-runtime.test.mjs','tests/payment-proof.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-unit-handover-bundle.test.mjs','tests/v267-unit-handover-pdf-archive.test.mjs','tests/v267-unit-handover-renderer-contract.test.mjs','tests/v267-unit-handover-hosted-contract.test.mjs'],{stdio:'inherit'});
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
-try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test','tests.contract_template_pdf_test','tests.contract_template_preview_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
+try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test','tests.contract_template_pdf_test','tests.contract_template_preview_test','tests.rental_document_layout_test','tests.rental_document_issue_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
 await import('./check.mjs');
-
 
 

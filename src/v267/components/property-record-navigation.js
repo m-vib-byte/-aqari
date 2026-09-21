@@ -6,7 +6,7 @@ export async function openPropertyContract(d,propertyId,contract,loader=()=>guar
  if(rows?.length!==1||!rows[0].external_ref)throw Error('تعذر تأكيد ربط العقد بالعقار.');
  const page=await loader();d.session.check();
  if(typeof page.openRentalContracts!=='function')throw Error('تعذر فتح العقد.');
- d.close();return page.openRentalContracts({id:rows[0].external_ref});
+ d.close();return page.openRentalContracts({id:rows[0].external_ref,propertyId});
 }
 
 export async function openPropertySavedStatements(d,propertyId,loader=()=>guardPageImport(()=>import('../pages/property-statements.js'))){
