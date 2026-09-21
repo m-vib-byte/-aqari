@@ -148,8 +148,8 @@ test('catalog civil ID insertion reuses legacy alias without duplicate semantic 
 });
 
 
-test('A4 opens at readable 100 percent with tools collapsed; zoom and focus never edit or save',async()=>{
- const original={id:'a4-preserved',revision:2,kind:'rental_agreement',title:'محفوظ',fields:[],clauses:[{title:'بند أصلي',text:'نص ثابت لا يتغير'}]},f=setup({manager:true,items:[],drafts:[original]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(original);const before=clone(manager.current.data()),paper=all(manager.form).find(x=>x.className==='aq267-a4-sheet'),text=all(manager.form).find(x=>x.className==='aq267-a4-clause-text'),zoom=all(f.target).find(x=>x.name==='paper_zoom');assert.equal(zoom.value,'actual');assert.equal(paper.style.transform,'scale(1)');assert.ok(manager.form.className.includes('is-paper-focused'));assert.ok(button(f.target,'إظهار أدوات التحرير'));
+test('A4 fits the available width with tools collapsed; zoom and focus never edit or save',async()=>{
+ const original={id:'a4-preserved',revision:2,kind:'rental_agreement',title:'محفوظ',fields:[],clauses:[{title:'بند أصلي',text:'نص ثابت لا يتغير'}]},f=setup({manager:true,items:[],drafts:[original]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(original);const before=clone(manager.current.data()),paper=all(manager.form).find(x=>x.className==='aq267-a4-sheet'),text=all(manager.form).find(x=>x.className==='aq267-a4-clause-text'),zoom=all(f.target).find(x=>x.name==='paper_zoom');assert.equal(zoom.value,'fit');assert.equal(paper.style.transform,'scale(1)');assert.ok(manager.form.className.includes('is-paper-focused'));assert.ok(button(f.target,'إظهار أدوات التحرير'));
  for(const value of ['125','150','fit','actual']){zoom.value=value;zoom.onchange();assert.strictEqual(all(manager.form).find(x=>x.className==='aq267-a4-clause-text'),text);assert.deepEqual(manager.current.data(),before);}
  button(f.target,'إظهار أدوات التحرير').onclick();assert.equal(manager.form.className.includes('is-paper-focused'),false);button(f.target,'تكبير مساحة العقد').onclick();assert.ok(manager.form.className.includes('is-paper-focused'));assert.equal(manager.current.saver.dirty,false);await manager.current.saver.flush();assert.equal(f.state.calls.some(x=>x.p_action!=='context'),false);manager.current.saver.dispose();
 });
@@ -204,4 +204,26 @@ test('contracts home opens the real library, starter A4 editor and custom field 
 
 test('read-only template views do not offer the custom field editing shortcut',async()=>{
  const f=setup({manager:true}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(template,{readonly:true});assert.equal(button(f.target,'إضافة حقل خاص — عربي / English'),undefined);await manager.current.saver.flush();assert.equal(f.state.calls.some(call=>call.p_action!=='context'),false);manager.current.saver.dispose();
+});
+
+
+test('format controls persist typography and reopen it without rewriting 36 original provisions',async()=>{
+ const clauses=[{title:'عقد محفوظ',text:Array.from({length:36},(_,i)=>`${i+1}- البند الأصلي رقم ${i+1}\n`).join('')}],original={id:'format-preserve',revision:7,kind:'rental_agreement',title:'الأصل',fields:[],clauses},f=setup({manager:true,items:[],drafts:[original]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(original);
+ const initial=clone(manager.current.data());assert.equal(initial.presentation,undefined);assert.equal(manager.current.saver.dirty,false);
+ const controls=Object.fromEntries(all(manager.form).filter(x=>x.name?.startsWith('document_')).map(x=>[x.name,x]));
+ for(const [key,value]of Object.entries({document_font:'16',document_leading:'2',document_alignment:'justify',document_margins:'25'})){controls[key].value=value;controls[key].onchange();}
+ assert.deepEqual(manager.current.data().clauses,clauses);assert.deepEqual(manager.current.data().fields,[]);await manager.current.saver.flush();
+ const saved=clone(f.state.drafts[0]);assert.deepEqual(saved.presentation.typography,{font_pt:16,line_height:2,alignment:'justify',margin_mm:25});assert.deepEqual(saved.clauses,clauses);
+ manager.openEditor(saved);for(const [key,value]of Object.entries({document_font:'16',document_leading:'2',document_alignment:'justify',document_margins:'25'}))assert.equal(all(manager.form).find(x=>x.name===key).value,value);
+ assert.equal(manager.current.saver.dirty,false);assert.equal(f.state.calls.some(x=>x.p_action==='publish'),false);manager.current.saver.dispose();
+});
+
+test('editor actions precede the sheets and repagination preserves long text and unresolved fields without saving',async()=>{
+ const text=Array.from({length:36},(_,i)=>`${i+1}- نص أصلي {{field_name}} عربي English `.repeat(4)).join('\n'),f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'محل',fields:[],clauses:[{title:'العقد',text}]});
+ const form=manager.form,actions=form.children.findIndex(x=>x.className==='aq267-template-actions'),work=form.children.findIndex(x=>x.className==='aq267-template-workbench');assert.ok(actions<work);assert.ok(all(form).filter(x=>x.className==='aq267-a4-sheet').length>1);
+ assert.equal(all(form).filter(x=>x.className==='aq267-a4-clause-text').map(readTemplateEditorText).join(''),text);button(form,'توزيع الصفحات').onclick();assert.equal(manager.current.data().clauses[0].text,text);assert.equal(manager.current.saver.dirty,false);assert.equal(f.state.calls.length,1);manager.current.saver.dispose();
+});
+
+test('readonly versions allow display zoom and page arrangement but disable stored typography edits',async()=>{
+ const f=setup({manager:true}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(template,{readonly:true});assert.equal(all(manager.form).find(x=>x.name==='paper_zoom').disabled,false);assert.equal(button(manager.form,'توزيع الصفحات').disabled,false);assert.equal(all(manager.form).find(x=>x.name==='document_font').disabled,true);manager.current.saver.dispose();
 });

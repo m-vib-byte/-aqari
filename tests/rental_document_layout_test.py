@@ -8,6 +8,9 @@ import unittest
 from unittest.mock import patch
 from PIL import Image
 from reportlab.pdfgen import canvas
+from reportlab.pdfgen.textobject import PDFTextObject
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
 from lib.contract_template_pdf import render_contract_template, render_document_template, sanitized_logo
 from lib.rental_document_layout import normalize_presentation
 from tests.contract_template_preview_test import fixture, api, W, AUTH
@@ -24,6 +27,83 @@ def placement(key='tenant_name',ident='test-field',page=1):
 
 
 class RentalDocumentLayoutTest(unittest.TestCase):
+    def test_typography_is_optional_and_rejects_unsafe_or_ambiguous_values(self):
+        legacy=presentation();before=copy.deepcopy(legacy)
+        self.assertEqual(normalize_presentation(legacy),legacy)
+        self.assertEqual(legacy,before)
+        typography={'font_pt':12.0,'line_height':1.85,'alignment':'start','margin_mm':18.0}
+        formatted={**legacy,'typography':typography}
+        normalized=normalize_presentation(formatted)
+        self.assertEqual(normalized['typography'],{'font_pt':12,'line_height':1.85,'alignment':'start','margin_mm':18})
+        self.assertEqual(formatted['typography'],typography)
+        for invalid in [None, {}, {**typography,'unknown':1}, {**typography,'font_pt':9}, {**typography,'font_pt':19}, {**typography,'font_pt':True}, {**typography,'font_pt':'12'}, {**typography,'line_height':float('nan')}, {**typography,'line_height':float('inf')}, {**typography,'line_height':1.19}, {**typography,'line_height':2.21}, {**typography,'alignment':'left'}, {**typography,'alignment':{}}, {**typography,'margin_mm':11}, {**typography,'margin_mm':26}]:
+            with self.subTest(invalid=invalid):
+                with self.assertRaisesRegex(ValueError,'INVALID_DOCUMENT_TYPOGRAPHY'):
+                    normalize_presentation({**legacy,'typography':invalid})
+
+    def test_explicit_typography_has_browser_digest_parity_without_changing_legal_text(self):
+        template=fixture()['template'];template['presentation']=presentation('en')
+        template['presentation']['typography']={'font_pt':14.0,'line_height':1.8,'alignment':'justify','margin_mm':22.5}
+        before=copy.deepcopy(template)
+        values={'tenant_name':'Test Tenant','civil_id':'123456789012','owner_name':'Test Owner','monthly_rent':'350.125','deposit_amount':'0','contract_start_date':'2026-09-01'}
+        resolved=render_document_template(template,values)
+        script="""import fs from 'node:fs';import {createHash} from 'node:crypto';import {renderDocumentTemplate,rentalDocumentDigestPayload} from './src/v267/domain/rental-document-cycle.js';const f=JSON.parse(fs.readFileSync(0,'utf8'));const r=renderDocumentTemplate(f.template,f.values);process.stdout.write(JSON.stringify({presentation:r.presentation,digest:createHash('sha256').update(JSON.stringify(rentalDocumentDigestPayload(f.template,r))).digest('hex')}));"""
+        browser=json.loads(subprocess.run(['node','--input-type=module','-e',script],cwd=ROOT,input=json.dumps({'template':template,'values':values}),capture_output=True,text=True,check=True).stdout)
+        self.assertEqual(browser['presentation'],resolved['presentation'])
+        self.assertEqual(browser['digest'],api.document_digest(resolved))
+        self.assertEqual(template,before)
+        unformatted=copy.deepcopy(template);del unformatted['presentation']['typography']
+        self.assertEqual(resolved['clauses'],render_document_template(unformatted,values)['clauses'])
+        self.assertNotEqual(api.document_digest(resolved),api.document_digest(render_document_template(unformatted,values)))
+
+    def test_explicit_font_leading_margin_and_direction_are_drawn_in_pdf(self):
+        template=fixture()['template'];template['clauses']=[{'title':'Heading','text':'FORMAT_FIRST_LINE\nFORMAT_SECOND_LINE'}]
+        for language,alignment,method,expected_x in [('en','start','drawString',25*mm),('en','end','drawRightString',A4[0]-25*mm),('ar','start','drawRightString',A4[0]-25*mm),('ar','end','drawString',25*mm),('bilingual','center','drawCentredString',A4[0]/2)]:
+            with self.subTest(language=language,alignment=alignment):
+                template['presentation']=presentation(language)
+                template['presentation']['typography']={'font_pt':17,'line_height':1.9,'alignment':alignment,'margin_mm':25}
+                drawn=[];real=getattr(canvas.Canvas,method)
+                def track(pdf,x,y,text,*args,**kwargs):
+                    if text.startswith('FORMAT_'):drawn.append((x,y,pdf._fontsize,text))
+                    return real(pdf,x,y,text,*args,**kwargs)
+                with patch.object(canvas.Canvas,method,track):
+                    result=render_contract_template(template)
+                self.assertTrue(result.startswith(b'%PDF-'))
+                self.assertEqual([line[3] for line in drawn],['FORMAT_FIRST_LINE','FORMAT_SECOND_LINE'])
+                self.assertTrue(all(abs(line[0]-expected_x)<.00001 and line[2]==17 for line in drawn))
+                self.assertAlmostEqual(drawn[0][1]-drawn[1][1],17*1.9)
+
+    def test_justification_stretches_wrapped_lines_but_not_paragraph_endings(self):
+        template=fixture()['template'];template['presentation']=presentation('en')
+        template['presentation']['typography']={'font_pt':14,'line_height':1.6,'alignment':'justify','margin_mm':18}
+        template['clauses']=[{'title':'Heading','text':('A full justified paragraph with all words retained. '*18)+'\nPARAGRAPH_END'}]
+        spaces=[];ends=[];set_space=PDFTextObject.setWordSpace;draw_string=canvas.Canvas.drawString
+        def track_space(obj,value):
+            spaces.append(value);return set_space(obj,value)
+        def track_end(pdf,x,y,text,*args,**kwargs):
+            if text=='PARAGRAPH_END':ends.append((x,pdf._fontsize))
+            return draw_string(pdf,x,y,text,*args,**kwargs)
+        with patch.object(PDFTextObject,'setWordSpace',track_space),patch.object(canvas.Canvas,'drawString',track_end):
+            first=render_contract_template(template)
+        self.assertTrue(any(value>0 for value in spaces))
+        self.assertEqual(ends,[(18*mm,14)])
+        self.assertEqual(first,render_contract_template(template))
+
+    def test_large_typography_keeps_all_36_original_clauses_inside_page_margins(self):
+        template=fixture()['template'];template['presentation']=presentation('en')
+        template['presentation']['signers']={r:dict.fromkeys(['name','signature','fingerprint'],False) for r in ['owner','tenant']}
+        template['presentation']['typography']={'font_pt':18,'line_height':2.2,'alignment':'start','margin_mm':25}
+        original='\n'.join('CLAUSE_%02d '%i+'Unchanged original legal text. '*12 for i in range(1,37))
+        template['clauses']=[{'title':'Heading','text':original}]
+        drawn=[];real=canvas.Canvas.drawString
+        def track(pdf,x,y,text,*args,**kwargs):
+            drawn.append((x,y,text));return real(pdf,x,y,text,*args,**kwargs)
+        with patch.object(canvas.Canvas,'drawString',track):result=render_contract_template(template)
+        self.assertGreater(len(re.findall(rb'/Type\s*/Page\b',result)),3)
+        self.assertTrue(all(x==25*mm and y>=25*mm for x,y,_ in drawn))
+        for index in range(1,37):self.assertTrue(any('CLAUSE_%02d'%index in text for _,_,text in drawn),index)
+        self.assertEqual(render_document_template(template)['clauses'][0]['text'],original)
+
     def test_layout_digest_exact_browser_parity_including_languages_flags_and_float_positions(self):
         template=fixture()['template'];template['presentation']=presentation('en')
         template['presentation']['placements']=[{**placement(), 'x_mm':20.0,'y_mm':75.5}]
