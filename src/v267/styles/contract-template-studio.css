@@ -95,7 +95,7 @@ body:is(.aq-owner-exact-ready,.aq-owner-reference) .aq267-dialog:has(.aq267-temp
 .aq267-template-editor .aq267-template-actions button:disabled{opacity:.42}
 .aq267-template-editor .aq267-template-save-error{position:static;margin:0;padding:10px 20px;border:0;border-bottom:1px solid #dfb3a1;background:#fff3ed;color:#863f29;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
 .aq267-template-editor .aq267-template-format-tools{
- display:flex;flex-wrap:nowrap;align-items:center;gap:12px;min-height:60px;box-sizing:border-box;
+ display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;min-height:60px;box-sizing:border-box;
  padding:7px 20px;margin:0;border:0;border-bottom:1px solid #dce0e2;border-radius:0;
  background:#fafbfc;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#c4c8cb transparent;
 }
@@ -253,12 +253,13 @@ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-t
 body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group .aq267-field>label{font-size:12px!important;line-height:1.4!important;margin:0!important}
 body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group :is(input:not([type=checkbox]),select){width:100%!important;min-width:0;min-height:44px!important;box-sizing:border-box;font-size:14px!important;padding:7px 9px!important}
 .aq267-template-editor .aq267-editor-tool-group input[type=checkbox]{width:18px!important;height:18px;min-height:18px!important;align-self:center}
-.aq267-template-editor .aq267-editor-history-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0;padding:0}
+.aq267-template-editor .aq267-editor-history-tools{display:flex;flex:0 0 auto;flex-wrap:wrap;align-items:center;gap:6px;width:max-content;max-width:100%;margin:0;padding:0}
 body .aq267-dialog.aq267-document-editing .aq267-template-editor :is(.aq267-editor-tool-group,.aq267-editor-history-tools,.aq267-template-logo-tools,.aq267-template-field-popover) button{
  width:auto!important;min-width:0!important;min-height:44px!important;margin:0!important;
  padding:8px 11px!important;font-size:12px!important;line-height:1.4!important;border-radius:7px!important;
  white-space:normal;display:inline-flex;align-items:center;justify-content:center;gap:6px;
 }
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-history-tools button{flex:0 0 auto;white-space:nowrap}
 body:is(.aq-owner-exact-ready,.aq-owner-reference) .aq267-dialog:has(.aq267-template-studio) .aq267-template-studio .aq267-template-editor :is(.aq267-editor-tool-group,.aq267-editor-history-tools,.aq267-template-logo-tools,.aq267-template-field-popover) button{
  background:#fff!important;color:#59472f!important;-webkit-text-fill-color:#59472f!important;border-color:#d8cbb6!important;box-shadow:none!important;
 }
