@@ -300,9 +300,12 @@ async function openRecord(module,index){
  const bound=scope(),existing=Number.isInteger(index)?copy(data()[module]?.[index]):null,labels=mods[module][1];
  let propertyForm,propertyFields;
  if(module==='properties'){
-  if(root.AQARI_PROPERTY_EXPERIENCE?.canWrite()!==true){root.alert('إضافة العقارات وتعديلها غير متاح لصلاحية حسابك.');return false;}
+  const experience=root.AQARI_PROPERTY_EXPERIENCE;
+  if(experience?.canWrite()!==true){root.alert('إضافة العقارات وتعديلها غير متاح لصلاحية حسابك.');return false;}
+  if(existing&&typeof experience.openCompleteFileByName==='function')return experience.openCompleteFileByName(existing[0],{section:'edit'});
+  if(!existing&&typeof experience.openOnboarding==='function')return experience.openOnboarding();
   ({propertyFields}=await import('./src/v267/components/property-form.js'));
-  if(!same(bound,scope())||root.AQARI_PROPERTY_EXPERIENCE?.canWrite()!==true)return false;
+  if(!same(bound,scope())||experience?.canWrite()!==true)return false;
  }
  const modal=byId('modal');byId('mt').textContent=(existing?'تعديل ':'إضافة ')+mods[module][0];
  if(propertyFields){
