@@ -50,7 +50,10 @@ test('source properties open the same complete file as every other property and 
 });
 
 test('legacy property workspace opens the authoritative complete file and keeps property 360 as fallback',()=>{
- assert.match(propertyOs,/const openComplete=window\.AQARI_PROPERTY_EXPERIENCE\?\.openCompleteFileByName/);
+ assert.match(propertyOs,/async function openAuthoritativePropertyFile\(name\)/);
+ assert.match(propertyOs,/from\('aqari_properties'\)\.select\('id,name'\)\.eq\('workspace_id',workspace\)\.eq\('name',propertyName\)\.limit\(2\)/);
+ assert.doesNotMatch(propertyOs,/openAuthoritativePropertyFile[\s\S]{0,900}source_only/);
+ assert.match(propertyOs,/const openComplete=window\.AQARI_PROPERTY_EXPERIENCE\?\.openCompleteFileByName\|\|openAuthoritativePropertyFile/);
  assert.match(propertyOs,/Promise\.resolve\(openComplete\(propertyName\)\)/);
  assert.match(propertyOs,/if\(result===false\)return legacyProfile\(\)/);
  assert.match(propertyOs,/\.catch\(legacyProfile\)/);
