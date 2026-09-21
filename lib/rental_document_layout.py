@@ -10,7 +10,7 @@ LANGUAGES = {'ar', 'en', 'bilingual'}
 def normalize_presentation(value, fields=()):
     if value is None:
         return None
-    if not isinstance(value, dict) or set(value) - {'version', 'paper', 'language', 'logo', 'signers', 'placements'}:
+    if not isinstance(value, dict) or set(value) - {'version', 'paper', 'language', 'logo', 'signers', 'placements', 'typography'}:
         raise ValueError('INVALID_DOCUMENT_PRESENTATION')
     if type(value.get('version')) not in (int, float) or value.get('version') != 1 or value.get('paper') != 'A4' or value.get('language') not in LANGUAGES:
         raise ValueError('INVALID_DOCUMENT_PRESENTATION')
@@ -53,4 +53,18 @@ def normalize_presentation(value, fields=()):
             raise ValueError('LAYOUT_DISABLED_SIGNER')
         ids.add(item['id'])
         placed.append({k: (int(item[k]) if isinstance(item[k], (int, float)) and float(item[k]).is_integer() else item[k]) for k in ['id', 'field_key', 'page', 'x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt', 'language']})
-    return {'version': 1, 'paper': 'A4', 'language': value['language'], 'logo': {'enabled': logo['enabled'], 'source': 'property'}, 'signers': normalized_signers, 'placements': placed}
+    normalized = {'version': 1, 'paper': 'A4', 'language': value['language'], 'logo': {'enabled': logo['enabled'], 'source': 'property'}, 'signers': normalized_signers, 'placements': placed}
+    # Optional by design: opening an older draft must not change its digest or
+    # the PDF bytes approved before document-wide formatting was introduced.
+    if 'typography' in value:
+        typography = value['typography']
+        keys = {'font_pt', 'line_height', 'alignment', 'margin_mm'}
+        if not isinstance(typography, dict) or set(typography) != keys:
+            raise ValueError('INVALID_DOCUMENT_TYPOGRAPHY')
+        for key, lower, upper in [('font_pt', 10, 18), ('line_height', 1.2, 2.2), ('margin_mm', 12, 25)]:
+            if type(typography[key]) not in (int, float) or not math.isfinite(typography[key]) or not lower <= typography[key] <= upper:
+                raise ValueError('INVALID_DOCUMENT_TYPOGRAPHY')
+        if typography['alignment'] not in ('start', 'center', 'end', 'justify'):
+            raise ValueError('INVALID_DOCUMENT_TYPOGRAPHY')
+        normalized['typography'] = {key: (int(typography[key]) if type(typography[key]) in (int, float) and float(typography[key]).is_integer() else typography[key]) for key in ['font_pt', 'line_height', 'alignment', 'margin_mm']}
+    return normalized

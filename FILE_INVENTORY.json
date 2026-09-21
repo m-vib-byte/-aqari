@@ -712,8 +712,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "f7c78367dc4c58b4d526f00b173021778804e2cd28b67081a1f49b86b912f58f",
-      "size": 19528
+      "sha256": "3cdd19faf2ecf92ced498fc270c8ffbdbfd757487afc5a3809d0af53389e722e",
+      "size": 20945
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -772,8 +772,8 @@
     },
     {
       "path": "lib/rental_document_layout.py",
-      "sha256": "8b66e5fe081b959c03405fb31e01054e80cc24f297149a015d532aeaf88b8343",
-      "size": 3757
+      "sha256": "8e997f4b36a212007c3236dda363dac7502fdd97df3cc3a695740962c9fd45cd",
+      "size": 4905
     },
     {
       "path": "lib/supabase-probe.js",
@@ -957,8 +957,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "ba8d1081e5ddc0d126ba746c5c03bbff7df0191ba8410b4b39d2db1201ccc310",
-      "size": 8803
+      "sha256": "a9f20d3c245f89e1251e2d7cca4c657f48c52176bda9eb027aadfc44b211ece2",
+      "size": 8979
     },
     {
       "path": "scripts/check.mjs",
@@ -1132,8 +1132,8 @@
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
-      "sha256": "46230c34f889d1523f89bfc6fc04500fd4eb1bc617c254c4b56e17fc464d465d",
-      "size": 81397
+      "sha256": "f15ff8b5cc9da2493a5563cfdae148a07154fef8aa62f013ce1074db9c51d75e",
+      "size": 91280
     },
     {
       "path": "src/v267/components/data-quality.mjs",
@@ -1277,8 +1277,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "03fc1da08fc62479e0fbc1091867b265748ab079aecde12fc61fca060124491a",
-      "size": 47867
+      "sha256": "2e5033d98fba42f7ac2b47865731313ae9d4028be3fc5c9d2ac2c60cb3fb2290",
+      "size": 49684
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1392,8 +1392,8 @@
     },
     {
       "path": "src/v267/domain/rental-document-layout.js",
-      "sha256": "6e495f74ee96a0872c7c430449e149dde6f5eb2b8a6f6443342c337b0a4903e0",
-      "size": 8401
+      "sha256": "4004ee8caa5293e97e7b6fe648bcdb57645d79563a519bf408db6a18449e1c97",
+      "size": 9306
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
@@ -1667,8 +1667,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "67501828c21af64068b532159211a081f4c2d37de4fb9f48c03ba3192980bb01",
-      "size": 19884
+      "sha256": "d4a3ae2492c8ecfa89f4aecfed7e14a86c4bbd231ef9a78da14c25210bb482a5",
+      "size": 28901
     },
     {
       "path": "src/v267/styles/live-stability.css",
@@ -1877,8 +1877,8 @@
     },
     {
       "path": "staging-database/local-test/run-template-library.sh",
-      "sha256": "bb19775cf316ae6e0bf574cba10c3a4cc0ea0edd6f09889f72f138959b7cbbf7",
-      "size": 1260
+      "sha256": "eb4f0f348c2e8d23c176e2d6c841173125027fd16ae0ead15415dcb41640de75",
+      "size": 1478
     },
     {
       "path": "staging-database/RELEASE_GATE_2026_09_09.md",
@@ -3232,8 +3232,8 @@
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "sha256": "e27a015866ead0ee6ce72f73f5730b10045173a07943cccdc5730045ffdb5458",
-      "size": 3633
+      "sha256": "d4177c3e25c0862d083c968a386b7c6bdb71bba1360b854c61b4da6d9a54b047",
+      "size": 3668
     },
     {
       "path": "tests/login-navigation.test.cjs",
@@ -3337,8 +3337,8 @@
     },
     {
       "path": "tests/rental_document_layout_test.py",
-      "sha256": "3d4a3e70e33aa25b3b11d8d5a8872484184f8e9ea5c7bc9107c16a10f98f9e69",
-      "size": 9287
+      "sha256": "decfde15a74601ef164f53498f33766e6957b47fe8a27cd0969adf27ae18b1df",
+      "size": 16278
     },
     {
       "path": "tests/root-entry-middleware.test.cjs",
@@ -3947,8 +3947,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "dfee0b769e10a573c8dde079b04f1e48475b02ccb02bfbe038252c85303a3bd4",
-      "size": 11067
+      "sha256": "22981440825ec2d87e7ac3e66be41b961e47ffebae4fbfb34baa06d696ee10e5",
+      "size": 11084
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",
@@ -4027,8 +4027,8 @@
     },
     {
       "path": "tests/v267-rental-document-layout.test.mjs",
-      "sha256": "679e6167bff57931599381dfcb19071c4195a9809f37aefb078024c65ee45e87",
-      "size": 10704
+      "sha256": "90be5ec2394aa6e9c69e9419546bb979bacf0becfdca2278afd99af9796049e4",
+      "size": 13679
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
@@ -4042,8 +4042,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "410c58e8dc9315ff5eea99941578960e30dbc37e9ed19c6d7fb104f9b563b6b3",
-      "size": 35686
+      "sha256": "b9479158a506ea5711ddb80ad807045a729c1990d55784912c510f26689bf672",
+      "size": 38878
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4459,6 +4459,41 @@
       "path": "docs/verification/contract-visibility-20260921.md",
       "sha256": "c7453f9de7f2c4d1ff7d51c8fbf78b54caf6b63033e57c282bdc4c94db19092c",
       "size": 3427
+    },
+    {
+      "path": "src/v267/domain/template-draft-saver.js",
+      "sha256": "111f5620f62cedd9a8ca87d87aa1fa2b43410a78b90bd9d948e273734124f733",
+      "size": 3817
+    },
+    {
+      "path": "src/v267/domain/template-editor-pagination.js",
+      "sha256": "b6881be7a36d8163b99815b9c1bab43131fc7be469aac67ee8b93f0d892ad6f4",
+      "size": 2996
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260921123822_v267_template_typography.sql",
+      "sha256": "f2abb6babbbabced8b117d8bf35323853b88e35e7c09a81006c2a43ac1f890a0",
+      "size": 2138
+    },
+    {
+      "path": "staging-database/tests/template_typography.sql",
+      "sha256": "a6d536b932624dd74abf5549d1fb186186299e2b45b066ce46de71e28761c3da",
+      "size": 7739
+    },
+    {
+      "path": "tests/v267-template-draft-saver.test.mjs",
+      "sha256": "21ad2033c8f1151c625d671a69e8a45822e6ab2b272c109e535c55b9d57bf453",
+      "size": 5624
+    },
+    {
+      "path": "tests/v267-template-editor-pagination.test.mjs",
+      "sha256": "8147ff8680a2bb4be5e55941bcec205e078b5db51b17473112fa41aa91d7f8d9",
+      "size": 3580
+    },
+    {
+      "path": "docs/verification/contract-writing-layout-20260921.md",
+      "sha256": "215f7badbc7975cb5b526ac32f4844747d6990a6e2e3fc6c44e3b6198f94aceb",
+      "size": 3354
     }
   ],
   "version": "V198"

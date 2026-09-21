@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {defaultTemplatePresentation,validateTemplatePresentation,tokenizeTemplateText,serializeTemplateTokens,createTemplateFieldToken,replaceTemplateFieldToken,humanTemplateText,templateTextFromHuman} from '../src/v267/domain/rental-document-layout.js';
+import {defaultTemplatePresentation,defaultTemplateTypography,validateTemplatePresentation,tokenizeTemplateText,serializeTemplateTokens,createTemplateFieldToken,replaceTemplateFieldToken,humanTemplateText,templateTextFromHuman} from '../src/v267/domain/rental-document-layout.js';
 import {renderDocumentTemplate,resolveDocumentSigners,rentalDocumentDigestPayload,resolveContractPropertyBinding,groupRentalContractsByProperty,assertContractProperty,canonicalDocumentFieldKey,validateTemplateFields} from '../src/v267/domain/rental-document-cycle.js';
 
 const fields=[{key:'tenant_name',label:'اسم المستأجر',type:'text',required:true},{key:'owner_name',label:'اسم المالك',type:'text',required:true}];
@@ -18,6 +18,41 @@ test('presentation is optional, additive and validated without changing any lega
  assert.deepEqual(validateTemplatePresentation(source.presentation,fields),source.presentation);
  assert.equal(JSON.stringify(source),saved);
  assert.equal(renderDocumentTemplate(source,{tenant_name:'مستأجر',owner_name:'مالك'}).clauses[0].text,'  السيد مستأجر\n\nمالك\r\n  لا يغيّر النص.  ');
+});
+
+test('optional typography preserves legacy shape, source bytes and explicit presentation digest',()=>{
+ const model=template(),values={tenant_name:'مستأجر',owner_name:'مالك'};
+ model.presentation=defaultTemplatePresentation();
+ const source=JSON.stringify(model),before=rentalDocumentDigestPayload(model,renderDocumentTemplate(model,values));
+ assert.ok(!Object.hasOwn(validateTemplatePresentation(model.presentation,fields),'typography'));
+ assert.equal(JSON.stringify(model),source);
+ const typography=defaultTemplateTypography();
+ assert.deepEqual(typography,{font_pt:12,line_height:1.85,alignment:'start',margin_mm:18});
+ typography.font_pt=14;assert.equal(defaultTemplateTypography().font_pt,12);
+ model.presentation.typography=typography;
+ const rendered=renderDocumentTemplate(model,values),after=rentalDocumentDigestPayload(model,rendered);
+ assert.deepEqual(rendered.presentation.typography,typography);
+ assert.notEqual(JSON.stringify(after),JSON.stringify(before));
+ assert.deepEqual(after.slice(0,6),before.slice(0,6));
+ assert.deepEqual(model.clauses,JSON.parse(source).clauses);
+ assert.deepEqual(model.fields,JSON.parse(source).fields);
+ assert.equal(model.title,JSON.parse(source).title);
+ const saved=JSON.stringify(model.presentation);assert.equal(JSON.stringify(validateTemplatePresentation(model.presentation,fields)),saved);
+ delete model.presentation.typography;
+ assert.equal(JSON.stringify(rentalDocumentDigestPayload(model,renderDocumentTemplate(model,values))),JSON.stringify(before));
+});
+
+test('typography accepts numeric boundaries and all supported alignments; rejects invalid or unsafe values',()=>{
+ for(const alignment of ['start','center','end','justify'])for(const [font_pt,line_height,margin_mm] of [[10,1.2,12],[18,2.2,25],[12.5,1.85,18.5]]){
+  const p=defaultTemplatePresentation();p.typography={font_pt,line_height,alignment,margin_mm};
+  assert.deepEqual(validateTemplatePresentation(p,fields).typography,p.typography);
+ }
+ for(const value of [null,[],{},'12',{...defaultTemplateTypography(),font_pt:9.9},{...defaultTemplateTypography(),font_pt:18.1},{...defaultTemplateTypography(),font_pt:'12'},{...defaultTemplateTypography(),font_pt:NaN},{...defaultTemplateTypography(),line_height:1.19},{...defaultTemplateTypography(),line_height:2.21},{...defaultTemplateTypography(),line_height:Infinity},{...defaultTemplateTypography(),margin_mm:11.99},{...defaultTemplateTypography(),margin_mm:25.01},{...defaultTemplateTypography(),margin_mm:false},{...defaultTemplateTypography(),alignment:'rtl'},{...defaultTemplateTypography(),css:'color:red'}]){
+  const p=defaultTemplatePresentation();p.typography=value;assert.throws(()=>validateTemplatePresentation(p,fields));
+ }
+ for(const key of Object.keys(defaultTemplateTypography())){
+  const p=defaultTemplatePresentation();p.typography=defaultTemplateTypography();delete p.typography[key];assert.throws(()=>validateTemplatePresentation(p,fields));
+ }
 });
 
 test('untouched shop model with all 36 paragraphs, mixed languages and whitespace round trips byte for byte',()=>{

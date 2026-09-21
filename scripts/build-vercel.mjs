@@ -27,7 +27,7 @@ execFileSync(process.execPath,['--check','src/v267/pages/bank-reconciliation.js'
 execFileSync(process.execPath,['--check','src/v267/api/partner-session.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','v267-partner-portal.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/components/partner-property-finance-view.js'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-rental-templates.test.mjs','tests/v267-template-draft-saver.test.mjs','tests/v267-template-editor-pagination.test.mjs','tests/v267-rental-document-layout.test.mjs','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs','tests/v267-bank-reconciliation-current.test.mjs'],{stdio:'inherit'});

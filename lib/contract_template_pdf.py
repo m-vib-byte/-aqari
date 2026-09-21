@@ -242,6 +242,7 @@ def render_contract_template(template, values=None, logo_bytes=None):
     resolved = render_document_template(template, values)
     presentation = resolved['presentation']
     language = presentation['language'] if presentation else 'ar'
+    typography = presentation.get('typography') if presentation else None
     logo = sanitized_logo(logo_bytes) if presentation and presentation['logo']['enabled'] else None
     placements = presentation['placements'] if presentation else []
     pages = {1: []}
@@ -259,10 +260,11 @@ def render_contract_template(template, values=None, logo_bytes=None):
                 raise ValueError('LAYOUT_FIELDS_OVERLAP')
         if logo and a['page']==1 and a['y_mm']<36 and a['y_mm']+a['height_mm']>8:
             raise ValueError('LAYOUT_LOGO_OVERLAP')
-    current_page, y = 1, 18*mm
+    margin = typography['margin_mm']*mm if typography else 18*mm
+    current_page, y = 1, margin
     width, height = A4
-    content_width = width-36*mm
-    bottom = 279*mm
+    content_width = width-2*margin
+    bottom = height-margin if typography else 279*mm
 
     def available(block_height):
         nonlocal current_page, y
@@ -276,17 +278,29 @@ def render_contract_template(template, values=None, logo_bytes=None):
                 continue
             if y+block_height > bottom:
                 current_page += 1
-                y = 18*mm
+                y = margin
                 continue
             return
 
     def add_text(value, font=10.5, leading=17, alignment=None, color='#2f2924', gap=0):
         nonlocal y
         alignment = alignment or ('left' if language == 'en' else 'right')
-        lines=logical_lines(value, content_width, font)
-        for line in lines:
+        direction_start = 'left' if language == 'en' else 'right'
+        if alignment == 'start':
+            alignment = direction_start
+        elif alignment == 'end':
+            alignment = 'right' if language == 'en' else 'left'
+        lines=[]
+        for paragraph in str(value).split('\n'):
+            wrapped=logical_lines(paragraph, content_width, font)
+            for index,line in enumerate(wrapped):
+                # Justify complete wrapped lines only. The final line of each
+                # paragraph retains the logical start for its document language.
+                line_alignment = direction_start if alignment == 'justify' and index == len(wrapped)-1 else alignment
+                lines.append((line,line_alignment))
+        for line,line_alignment in lines:
             available(leading)
-            pages[current_page].append(('text',line,18*mm,y+font,content_width,font,alignment,color))
+            pages[current_page].append(('text',line,margin,y+font,content_width,font,line_alignment,color))
             y+=leading
         y+=gap
 
@@ -298,7 +312,10 @@ def render_contract_template(template, values=None, logo_bytes=None):
         add_text(meta_text,9,15,'center','#765b43',5*mm)
     for clause in resolved['clauses']:
         add_text(clause['title'],12,19,color='#56391f',gap=2*mm)
-        add_text(clause['text'],10.5,17,gap=4*mm)
+        if typography:
+            add_text(clause['text'],typography['font_pt'],typography['font_pt']*typography['line_height'],typography['alignment'],gap=4*mm)
+        else:
+            add_text(clause['text'],10.5,17,gap=4*mm)
 
     placed_keys={p['field_key'] for p in placements}
     # The explicitly selected signer fields are blank spaces; no mark is invented.
@@ -361,6 +378,12 @@ def render_contract_template(template, values=None, logo_bytes=None):
                 visual=_visual(line)
                 if alignment=='right':pdf.drawRightString(x+w,height-top,visual)
                 elif alignment=='center':pdf.drawCentredString(x+w/2,height-top,visual)
+                elif alignment=='justify' and ' ' in visual:
+                    text=pdf.beginText(x,height-top)
+                    text.setFont(FONT,font)
+                    text.setWordSpace(max(0,(w-pdfmetrics.stringWidth(visual,FONT,font))/visual.count(' ')))
+                    text.textOut(visual)
+                    pdf.drawText(text)
                 else:pdf.drawString(x,height-top,visual)
         pdf.setFillColor(colors.HexColor('#765b43'));pdf.setFont(FONT,8)
         pdf.drawCentredString(width/2,5*mm,_visual(localized('page',language)+' '+str(page)+' / '+str(count)+' - A4'))

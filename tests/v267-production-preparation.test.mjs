@@ -110,7 +110,7 @@ test('production imported-tenant edits omit the unsupported preference and confi
   vm.runInNewContext(patch.get('src/v267/pages/imported-tenant.js').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
   await context.openImportedTenant({ref:'tenant-a',onSaved:async()=>{saved++;},onDraft:async()=>{}});
   assert.equal(controls['وسيلة التواصل المفضلة'],undefined);
-  controls['رقم الجواز'].value='UPDATED';controls['سبب التعديل أو مرجع التصحيح'].value='مرجع تصحيح محفوظ';
+  controls['رقم الجواز'].value='UPDATED';controls['سبب التعديل أو مرجع التصحيح (اختياري)'].value='مرجع تصحيح محفوظ';
   await d.body.children.find(x=>x.tag==='button'&&x.textContent==='حفظ التعديل والتحقق').onclick();
   assert.equal(profile.passportNo,'UPDATED');assert.equal(saved,1);assert.equal(revision,5);
   assert.equal(calls.at(-1).name,'aqari_imported_tenant_read');

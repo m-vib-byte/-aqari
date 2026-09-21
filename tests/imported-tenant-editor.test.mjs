@@ -18,7 +18,7 @@ async function fixture(){
 test('imported editor refreshes revision and saves passport plus preferred contact',async()=>{
  const f=await fixture();f.fields['الاسم بالعربية'].value='اسم مصحح';f.fields['رقم الجواز'].value='NEW-PASSPORT';f.fields['وسيلة التواصل المفضلة'].value='whatsapp';
  await f.button('حفظ مسودة واستكمال لاحقاً').onclick();
- f.fields['سبب التعديل أو مرجع التصحيح'].value='مراجعة المرجع الأصلي';
+ f.fields['سبب التعديل أو مرجع التصحيح (اختياري)'].value='مراجعة المرجع الأصلي';
  await f.button('حفظ التعديل والتحقق').onclick();
  const save=f.calls.find(c=>c.name.endsWith('_save'));
  assert.equal(f.refreshed(),1);assert.equal(save.args.p_expected_revision,2);
@@ -26,7 +26,7 @@ test('imported editor refreshes revision and saves passport plus preferred conta
  assert.equal(f.fields['الاسم بالعربية'].value,'اسم مصحح');assert.equal(f.fields['وسيلة التواصل المفضلة'].value,'whatsapp');assert.match(f.d.status.textContent,/تم حفظ التعديل/);
 });
 test('failed save locks repeat submission until authoritative reload',async()=>{
- const f=await fixture();f.fields['سبب التعديل أو مرجع التصحيح'].value='سبب موثق';f.failSave();
+ const f=await fixture();f.fields['سبب التعديل أو مرجع التصحيح (اختياري)'].value='سبب موثق';f.failSave();
  await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
  await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.calls.filter(c=>c.name.endsWith('_save')).length,1);assert.equal(f.refreshed(),0);
 });

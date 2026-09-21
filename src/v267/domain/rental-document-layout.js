@@ -16,6 +16,10 @@ const finite=(value,min,max,label)=>{if(typeof value!=='number'||!Number.isFinit
 const language=value=>{if(!languages.includes(value))fail('اختر العربية أو الإنجليزية أو اللغتين للصفحة.');return value;};
 const signerSettings=enabled=>({name:enabled,signature:enabled,fingerprint:enabled});
 
+export function defaultTemplateTypography(){
+ return {font_pt:12,line_height:1.85,alignment:'start',margin_mm:18};
+}
+
 export function defaultTemplatePresentation(kind='rental_agreement'){
  return {version:1,paper:'A4',language:'bilingual',logo:{enabled:false,source:'property'},signers:{owner:signerSettings(true),tenant:signerSettings(true),...(kind==='rent_receipt'?{receiver:signerSettings(true),accountant:signerSettings(true)}:{})},placements:[]};
 }
@@ -27,7 +31,7 @@ export function defaultTemplatePresentation(kind='rental_agreement'){
  */
 export function validateTemplatePresentation(presentation,fields=[]){
  if(presentation===undefined||presentation===null)return null;
- keys(presentation,['version','paper','language','logo','signers','placements']);
+ keys(presentation,['version','paper','language','logo','signers','placements','typography'],['version','paper','language','logo','signers','placements']);
  if(presentation.version!==1||presentation.paper!=='A4')fail('اختر تنسيق صفحة A4 المدعوم.');
  keys(presentation.logo,['enabled','source']);if(presentation.logo.source!=='property')fail('اختر شعار العقار المحفوظ من ملف العقار.');
  const logo={enabled:bool(presentation.logo.enabled),source:'property'};
@@ -51,7 +55,15 @@ export function validateTemplatePresentation(presentation,fields=[]){
   if(x+width>202+1e-8||y+height>289+1e-8)fail('الحقل يتجاوز مساحة صفحة A4؛ حرّكه أو صغّره داخل الهوامش.');
   return {id:item.id,field_key:key,page:item.page,x_mm:x,y_mm:y,width_mm:width,height_mm:height,font_pt:finite(item.font_pt,8,36,'حجم خط الحقل'),language:language(item.language)};
  });
- return {version:1,paper:'A4',language:language(presentation.language),logo,signers,placements};
+ const result={version:1,paper:'A4',language:language(presentation.language),logo,signers,placements};
+ // Typography is saved only after an explicit formatting choice. Old templates
+ // retain exactly their original presentation shape and digest material.
+ if(own(presentation,'typography')){
+  const value=presentation.typography;keys(value,['font_pt','line_height','alignment','margin_mm']);
+  if(!['start','center','end','justify'].includes(value.alignment))fail('اختر محاذاة النص من أدوات تنسيق الصفحة.');
+  result.typography={font_pt:finite(value.font_pt,10,18,'حجم خط العقد'),line_height:finite(value.line_height,1.2,2.2,'تباعد السطور'),alignment:value.alignment,margin_mm:finite(value.margin_mm,12,25,'هوامش الصفحة')};
+ }
+ return result;
 }
 
 export function presentationDigestValue(template){
