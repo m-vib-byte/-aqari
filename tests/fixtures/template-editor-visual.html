@@ -23,20 +23,25 @@
 <script type="module">
 // TEST FIXTURE ONLY: no login client, credentials, database URL, persistent
 // browser storage, production template, PDF endpoint or publication is used.
-const embedded=new URL(location.href).searchParams.get('embedded')==='1';
+const embedded=document.documentElement.dataset.fixtureEmbedded==='true'||new URL(location.href).searchParams.get('embedded')==='1';
+const fixtureOrigin=new URL(document.baseURI).origin;
 const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
 if(!embedded){
   document.body.className='fixture-host';
+  // Clone this trusted static fixture before adding its host controls. srcdoc
+  // needs no framed HTTP response and leaves the site's DENY header unchanged.
+  // Reuse the same initial snapshot on reset, never a document containing frames.
+  const embeddedDocument=document.documentElement.cloneNode(true);embeddedDocument.dataset.fixtureEmbedded='true';const embeddedSource='<!doctype html>'+embeddedDocument.outerHTML;
   const panel=make('header'),title=make('h1','اختبار مرئي لمحرر العقود — بيانات اصطناعية فقط'),note=make('p','الحفظ في ذاكرة هذه الصفحة فقط. لا دخول للحساب، ولا تعديل لأي عقد قائم، ولا معاينة PDF أو اعتماد. القياسات تحاكي عرض الشاشة وليست اختبار جهاز فعلي.'),controls=make('div'),metrics=make('pre','جارٍ تحميل المحرر الحقيقي…'),area=make('div'),frame=make('iframe');
   panel.className='fixture-panel';controls.className='fixture-controls';metrics.className='fixture-metrics';metrics.id='fixture-metrics';metrics.setAttribute('aria-live','polite');area.className='fixture-frame-area';frame.className='fixture-frame';frame.id='template-editor-frame';frame.title='المحرر الحقيقي ببيانات اختبار محلية';
-  const url=new URL(location.href);url.searchParams.set('embedded','1');frame.src=url.href;
+  frame.srcdoc=embeddedSource;
   for(const [label,width,height] of [['Desktop 1348 × 936',1348,936],['iPad width 1024 × 768',1024,768],['Mobile width 430 × 932',430,932]]){
     const button=make('button',label);button.type='button';button.dataset.width=String(width);button.setAttribute('aria-pressed',String(width===1348));
     button.onclick=()=>{frame.style.width=width+'px';frame.style.height=height+'px';for(const item of controls.querySelectorAll('[data-width]'))item.setAttribute('aria-pressed',String(item===button));};controls.append(button);
   }
-  const reset=make('button','إعادة الاختبار'),close=make('button','اختبار حفظ قبل الإغلاق');reset.type=close.type='button';reset.onclick=()=>{frame.src=url.href;};close.onclick=()=>frame.contentWindow.postMessage({type:'aqari-editor-fixture-close'},location.origin);controls.append(reset,close);
+  const reset=make('button','إعادة الاختبار'),close=make('button','اختبار حفظ قبل الإغلاق');reset.type=close.type='button';reset.onclick=()=>{frame.srcdoc=embeddedSource;};close.onclick=()=>frame.contentWindow.postMessage({type:'aqari-editor-fixture-close'},fixtureOrigin);controls.append(reset,close);
   panel.append(title,note,controls,metrics);area.append(frame);document.body.append(panel,area);
-  window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==frame.contentWindow||event.data?.type!=='aqari-editor-fixture-metrics')return;metrics.textContent=JSON.stringify(event.data.metrics,null,2);window.templateEditorFixtureMetrics=event.data.metrics;});
+  window.addEventListener('message',event=>{if(event.origin!==fixtureOrigin||event.source!==frame.contentWindow||event.data?.type!=='aqari-editor-fixture-metrics')return;metrics.textContent=JSON.stringify(event.data.metrics,null,2);window.templateEditorFixtureMetrics=event.data.metrics;});
 }else{
   document.body.className='aq-owner-exact-ready aq-owner-reference aq-unified-experience aq267-page-open';
   // Use the actual competing owner-theme and editor CSS, in production order.
@@ -71,10 +76,10 @@ if(!embedded){
     run:async task=>{try{await task();lastError='';}catch(error){lastError=String(error?.message||error);status.textContent=lastError;}finally{publishMetrics();}},
     onDispose:callback=>{cleanup.add(callback);return ()=>cleanup.delete(callback);},setBeforeClose:callback=>{beforeClose=callback;return ()=>{if(beforeClose===callback)beforeClose=null;};}};
   const metrics=()=>{const current=manager?.current?.data?.(),text=current?.clauses?.[0]?.text??originalText;return {testFixture:true,persistence:'memory only',viewport:{width:innerWidth,height:innerHeight},memorySaveCount:saveCount,originalSourcePreserved:JSON.stringify(source)===originalBytes,currentClauseExactOriginal:text===originalText,originalClauseTextLength:originalText.length,currentClauseTextLength:text.length,currentClauseCount:current?.clauses?.length??1,currentFieldCount:current?.fields?.length??2,currentRevision:current?.revision??1,currentTypography:current?.presentation?.typography??null,pageCount:page.querySelectorAll('.aq267-a4-sheet').length,fragmentCount:page.querySelectorAll('.aq267-a4-clause-text').length,dirty:manager?.current?.saver?.dirty??false,closed,lastAction,lastError};};
-  function publishMetrics(){const value=metrics();window.templateEditorFixtureMetrics=value;if(parent!==window)parent.postMessage({type:'aqari-editor-fixture-metrics',metrics:value},location.origin);}
+  function publishMetrics(){const value=metrics();window.templateEditorFixtureMetrics=value;if(parent!==window)parent.postMessage({type:'aqari-editor-fixture-metrics',metrics:value},fixtureOrigin);}
   async function closeFixture(){if(closed)return;try{if(beforeClose&&await beforeClose()===false)return;manager?.current?.saver?.dispose();manager?.current?.revoke();closed=true;for(const callback of cleanup)callback();clearInterval(timer);status.textContent='أُغلق الاختبار؛ جميع التغييرات كانت في الذاكرة فقط.';target.hidden=true;}catch(error){lastError=String(error?.message||error);status.textContent=lastError;}publishMetrics();}
   back.onclick=closeFixture;
-  window.addEventListener('message',event=>{if(event.origin===location.origin&&event.source===parent&&event.data?.type==='aqari-editor-fixture-close')closeFixture();});
+  window.addEventListener('message',event=>{if(event.origin===fixtureOrigin&&event.source===parent&&event.data?.type==='aqari-editor-fixture-close')closeFixture();});
   try{manager=await mountRentalTemplateManager(d,target);manager.openEditor(structuredClone(source));window.templateEditorFixture={metrics,getCurrent:()=>structuredClone(manager.current.data()),getMemory:()=>[...memory.values()].map(row=>structuredClone(row)),close:closeFixture};timer=setInterval(publishMetrics,350);publishMetrics();}catch(error){lastError=String(error?.stack||error);status.textContent=lastError;publishMetrics();}
 }
 </script>

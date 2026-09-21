@@ -1342,8 +1342,8 @@
     },
     {
       "path": "src/v267/components/property-experience.js",
-      "sha256": "fb494d8c98d4d9ab707178137f24233916fc077a87ed11f4abf61b795d19a003",
-      "size": 11935
+      "sha256": "2f4c8f95025abc4095a84b0f250db7d50bdbf44f6f9096a551e96ba792578dd0",
+      "size": 12170
     },
     {
       "path": "src/v267/components/property-form.js",
@@ -3317,8 +3317,8 @@
     },
     {
       "path": "tests/fixtures/template-editor-visual.html",
-      "sha256": "a9040d3d5d745697ec109ff61aceb3428ca8da4812e823e1a11d1a243e131bcd",
-      "size": 11181
+      "sha256": "40f2f544c3011d42796e155f0fe848b491fae7519195174f32943e1c8f19a38d",
+      "size": 11657
     },
     {
       "path": "tests/github-preview-oidc.mjs",
@@ -4102,8 +4102,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "a07d6c0d214d92b5cb4069fc1e0116914a807accec2bbea767bb7cb1d72c666a",
-      "size": 6791
+      "sha256": "84e0a24842c03c541e623d30857a1e6ea6993742e5622f3b24a9665c63d15824",
+      "size": 7192
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
@@ -4462,8 +4462,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "b1f855845c91916de527719a75f9241f9bccfe14cf3ddcc67eab682e749a4cf7",
-      "size": 45399
+      "sha256": "244c201c927fcc9ac077899ed121213193ebb5da4fa6d219662229d257c787e3",
+      "size": 46539
     },
     {
       "path": "v267-requirements.html",
