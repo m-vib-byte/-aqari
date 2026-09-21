@@ -1342,8 +1342,8 @@
     },
     {
       "path": "src/v267/components/property-experience.js",
-      "sha256": "2f4c8f95025abc4095a84b0f250db7d50bdbf44f6f9096a551e96ba792578dd0",
-      "size": 12170
+      "sha256": "ad14dac8a19c6e8f5cce33f9a1aa97df541067c1d85814335be1bdd55595e274",
+      "size": 12429
     },
     {
       "path": "src/v267/components/property-form.js",
@@ -1757,8 +1757,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "e7a6c9bbcd43293de01cf78905a5c8170cf45c63991cf59eadd198cafd1c09bf",
-      "size": 32492
+      "sha256": "55702797c2efdd525f893e71aad36d89568c5b222eb67844af89c2f71b5e17d0",
+      "size": 32649
     },
     {
       "path": "src/v267/styles/live-stability.css",
@@ -4102,8 +4102,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "84e0a24842c03c541e623d30857a1e6ea6993742e5622f3b24a9665c63d15824",
-      "size": 7192
+      "sha256": "51f7e5f8b3ac4dd5aec0615983e032c696adecabbce36608f5873f36d5eadf56",
+      "size": 7448
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",

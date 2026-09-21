@@ -138,6 +138,8 @@ body .aq267-dialog .aq267-template-studio .aq267-template-editor .aq267-template
  box-shadow:0 1px 3px #26323814,0 8px 24px #26323812;
 }
 .aq267-template-editor .aq267-a4-content{display:flow-root;height:auto;min-height:0}
+/* A4 content geometry follows the paper, not the device viewport. */
+.aq267-a4-sheet .aq267-template-signers{grid-template-columns:repeat(2,minmax(0,1fr))}
 .aq267-template-editor .aq267-a4-page-label{color:#a0a09a;font-size:10px;line-height:1.5}
 .aq267-template-editor .aq267-a4-clause-text{font-size:var(--aq-document-font-size,12pt);line-height:var(--aq-document-line-height,1.85);text-align:var(--aq-document-align,start)}
 .aq267-template-editor .aq267-a4-clause-title{text-align:var(--aq-document-align,start)}
