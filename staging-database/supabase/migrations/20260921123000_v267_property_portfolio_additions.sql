@@ -51,6 +51,11 @@ create table if not exists private.aqari_portfolio_addition_audit(
 );
 alter table private.aqari_portfolio_addition_audit enable row level security;
 revoke all on private.aqari_portfolio_addition_audit from public,anon,authenticated,service_role;
+create index if not exists aqari_property_responsibles_updated_by_idx on private.aqari_property_responsibles(updated_by);
+create index if not exists aqari_tenant_family_details_updated_by_idx on private.aqari_tenant_family_details(updated_by);
+create index if not exists aqari_portfolio_addition_audit_workspace_idx on private.aqari_portfolio_addition_audit(workspace_id);
+create index if not exists aqari_portfolio_addition_audit_property_idx on private.aqari_portfolio_addition_audit(workspace_id,property_id);
+create index if not exists aqari_portfolio_addition_audit_actor_idx on private.aqari_portfolio_addition_audit(actor_id);
 drop trigger if exists aqari_portfolio_addition_audit_immutable on private.aqari_portfolio_addition_audit;
 create trigger aqari_portfolio_addition_audit_immutable before update or delete on private.aqari_portfolio_addition_audit
  for each row execute function private.aqari_reject_immutable_change();
