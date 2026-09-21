@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>اختبار محرر العقود — بيانات اصطناعية في الذاكرة فقط</title>
+  <style>
+    html,body{margin:0;min-height:100%;font-family:Arial,sans-serif}
+    .fixture-host{background:#eef1f4;color:#18212b}
+    .fixture-panel{padding:14px 20px;background:#fff;border-bottom:1px solid #bbc5cf}
+    .fixture-panel h1{font-size:18px;margin:0 0 8px}
+    .fixture-panel p{font-size:13px;margin:7px 0}
+    .fixture-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .fixture-controls button{border:1px solid #63768a;border-radius:7px;padding:8px 13px;color:#18212b;background:#fff;cursor:pointer;font:inherit}
+    .fixture-controls button[aria-pressed=true]{background:#182f48;color:#fff}
+    .fixture-metrics{white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;font:12px/1.5 monospace;max-height:190px;overflow:auto;background:#f4f7fa;padding:8px}
+    .fixture-frame-area{direction:ltr;overflow:auto;padding:14px;min-height:500px;text-align:center}
+    .fixture-frame{display:block;box-sizing:content-box;margin:0 auto;border:1px solid #aebac7;background:#fff;width:1348px;height:936px}
+  </style>
+</head>
+<body>
+<script type="module">
+// TEST FIXTURE ONLY: no login client, credentials, database URL, persistent
+// browser storage, production template, PDF endpoint or publication is used.
+const embedded=new URL(location.href).searchParams.get('embedded')==='1';
+const make=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
+if(!embedded){
+  document.body.className='fixture-host';
+  const panel=make('header'),title=make('h1','اختبار مرئي لمحرر العقود — بيانات اصطناعية فقط'),note=make('p','الحفظ في ذاكرة هذه الصفحة فقط. لا دخول للحساب، ولا تعديل لأي عقد قائم، ولا معاينة PDF أو اعتماد. القياسات تحاكي عرض الشاشة وليست اختبار جهاز فعلي.'),controls=make('div'),metrics=make('pre','جارٍ تحميل المحرر الحقيقي…'),area=make('div'),frame=make('iframe');
+  panel.className='fixture-panel';controls.className='fixture-controls';metrics.className='fixture-metrics';metrics.id='fixture-metrics';metrics.setAttribute('aria-live','polite');area.className='fixture-frame-area';frame.className='fixture-frame';frame.id='template-editor-frame';frame.title='المحرر الحقيقي ببيانات اختبار محلية';
+  const url=new URL(location.href);url.searchParams.set('embedded','1');frame.src=url.href;
+  for(const [label,width,height] of [['Desktop 1348 × 936',1348,936],['iPad width 1024 × 768',1024,768],['Mobile width 430 × 932',430,932]]){
+    const button=make('button',label);button.type='button';button.dataset.width=String(width);button.setAttribute('aria-pressed',String(width===1348));
+    button.onclick=()=>{frame.style.width=width+'px';frame.style.height=height+'px';for(const item of controls.querySelectorAll('[data-width]'))item.setAttribute('aria-pressed',String(item===button));};controls.append(button);
+  }
+  const reset=make('button','إعادة الاختبار'),close=make('button','اختبار حفظ قبل الإغلاق');reset.type=close.type='button';reset.onclick=()=>{frame.src=url.href;};close.onclick=()=>frame.contentWindow.postMessage({type:'aqari-editor-fixture-close'},location.origin);controls.append(reset,close);
+  panel.append(title,note,controls,metrics);area.append(frame);document.body.append(panel,area);
+  window.addEventListener('message',event=>{if(event.origin!==location.origin||event.source!==frame.contentWindow||event.data?.type!=='aqari-editor-fixture-metrics')return;metrics.textContent=JSON.stringify(event.data.metrics,null,2);window.templateEditorFixtureMetrics=event.data.metrics;});
+}else{
+  document.body.className='aq-owner-exact-ready aq-owner-reference aq-unified-experience aq267-page-open';
+  // Use the actual competing owner-theme and editor CSS, in production order.
+  for(const [id,name] of [['fixture-owner-reference','owner-reference'],['fixture-luxury-warm','luxury-warm-beige'],['aq267-semantic-colors-css','semantic-colors'],['aq267-ultra-luxury-css','ultra-luxury'],['aq267-contract-pages-css','contract-pages'],['aq267-contract-template-css','contract-template-studio']]){
+    const css=make('link');css.id=id;css.rel='stylesheet';css.href='/src/v267/styles/'+name+'.css?release=V267';document.head.append(css);
+  }
+  await Promise.all(Array.from(document.querySelectorAll('link[rel=stylesheet]')).map(link=>new Promise(resolve=>{if(link.sheet)resolve();else{link.onload=resolve;link.onerror=resolve;}})));
+  const {mountRentalTemplateManager}=await import('/src/v267/components/rental-templates.js');
+  const originalText=Array.from({length:36},(_,index)=>`${index+1}- بند اصطناعي لاختبار ترتيب الصفحات والكتابة فقط. `+
+    'هذا نص عربي تجريبي لفحص التفاف السطور وتوزيع الفقرات داخل ورقة العقد، مع المحافظة على الفراغات والكلمات كما كُتبت. '.repeat(5)+
+    'English layout verification keeps this original paragraph unchanged. '+(index===0?'اسم المستأجر {{tenant_name}}، ووصف الملحق {{custom_annex}}. ':'')).join('\n\n');
+  const source={id:'89910000-0000-4000-8000-000000000101',family_id:'89910000-0000-4000-8000-000000000101',kind:'shop',kind_label:'محل تجريبي',title:'عقد تجريبي — ترتيب ٣٦ فقرة',revision:1,status:'draft',fields:[{key:'tenant_name',label:'اسم المستأجر',type:'text',required:true},{key:'custom_annex',label:'وصف الملحق / Annex description',type:'text',required:false}],clauses:[{title:'عقد اصطناعي للتحقق من تنسيق الصفحات',text:originalText}]};
+  const originalBytes=JSON.stringify(source),memory=new Map([[source.id,structuredClone(source)]]),history=new Map([[source.id,[structuredClone(source)]]]);
+  let saveCount=0,beforeClose=null,manager=null,closed=false,lastAction='mount',lastError='',timer;
+  const cleanup=new Set(),workspace='89910000-0000-4000-8000-000000000001',user='89910000-0000-4000-8000-000000000002';
+  const page=make('main'),back=make('button','إغلاق الاختبار'),heading=make('h1','محرر تجريبي — لا توجد بيانات حقيقية'),status=make('p'),target=make('div');
+  page.className='aq267-page aq267-dialog';page.dir='rtl';page.lang='ar';page.setAttribute('aria-label','محرر تجريبي بذاكرة مؤقتة');back.type='button';back.className='aq267-close aq267-page-back';heading.className='aq267-dialog-title';target.className='aq267-dialog-body';status.setAttribute('role','status');page.append(back,heading,status,target);document.body.append(page);
+  async function rpc(name,args){
+    if(closed)throw Error('أُغلق الاختبار.');
+    if(name!=='aqari_rental_templates'||args.p_workspace_id!==workspace)throw Error('الاختبار يمنع الطلب غير المحلي.');
+    const action=args.p_action,data=structuredClone(args.p_data||{});lastAction=action;
+    const reply={workspace_id:workspace,user_id:user};
+    if(action==='context')return {...reply,can_publish:true,items:[],drafts:[...memory.values()].map(row=>structuredClone(row)),revisable_ids:[]};
+    if(action==='history')return {...reply,revisions:(history.get(data.id)||[]).map(record=>({revision:record.revision,record:structuredClone(record)}))};
+    if(action!=='save_draft')throw Error('اختبار محلي فقط: الاعتماد والإصدار وPDF غير متاحين.');
+    const previous=memory.get(data.id);if(previous&&previous.revision!==data.revision)throw Error('REVISION_CONFLICT');
+    const record={...data,revision:(previous?.revision||0)+1,status:'draft'};delete record.request_id;
+    memory.set(record.id,structuredClone(record));history.set(record.id,[...(history.get(record.id)||[]),structuredClone(record)]);saveCount+=1;
+    return {...reply,record:structuredClone(record)};
+  }
+  const d={el:page,body:target,status,session:{bound:{workspace,user},client:{rpc,auth:{getSession:async()=>{throw Error('PDF غير متاح في هذا الاختبار المحلي.');}}},request:async result=>await result,check:()=>{if(closed)throw Error('أُغلق الاختبار.');},operation:async operation=>operation(new AbortController().signal)},
+    run:async task=>{try{await task();lastError='';}catch(error){lastError=String(error?.message||error);status.textContent=lastError;}finally{publishMetrics();}},
+    onDispose:callback=>{cleanup.add(callback);return ()=>cleanup.delete(callback);},setBeforeClose:callback=>{beforeClose=callback;return ()=>{if(beforeClose===callback)beforeClose=null;};}};
+  const metrics=()=>{const current=manager?.current?.data?.(),text=current?.clauses?.[0]?.text??originalText;return {testFixture:true,persistence:'memory only',viewport:{width:innerWidth,height:innerHeight},memorySaveCount:saveCount,originalSourcePreserved:JSON.stringify(source)===originalBytes,currentClauseExactOriginal:text===originalText,originalClauseTextLength:originalText.length,currentClauseTextLength:text.length,currentClauseCount:current?.clauses?.length??1,currentFieldCount:current?.fields?.length??2,currentRevision:current?.revision??1,currentTypography:current?.presentation?.typography??null,pageCount:page.querySelectorAll('.aq267-a4-sheet').length,fragmentCount:page.querySelectorAll('.aq267-a4-clause-text').length,dirty:manager?.current?.saver?.dirty??false,closed,lastAction,lastError};};
+  function publishMetrics(){const value=metrics();window.templateEditorFixtureMetrics=value;if(parent!==window)parent.postMessage({type:'aqari-editor-fixture-metrics',metrics:value},location.origin);}
+  async function closeFixture(){if(closed)return;try{if(beforeClose&&await beforeClose()===false)return;manager?.current?.saver?.dispose();manager?.current?.revoke();closed=true;for(const callback of cleanup)callback();clearInterval(timer);status.textContent='أُغلق الاختبار؛ جميع التغييرات كانت في الذاكرة فقط.';target.hidden=true;}catch(error){lastError=String(error?.message||error);status.textContent=lastError;}publishMetrics();}
+  back.onclick=closeFixture;
+  window.addEventListener('message',event=>{if(event.origin===location.origin&&event.source===parent&&event.data?.type==='aqari-editor-fixture-close')closeFixture();});
+  try{manager=await mountRentalTemplateManager(d,target);manager.openEditor(structuredClone(source));window.templateEditorFixture={metrics,getCurrent:()=>structuredClone(manager.current.data()),getMemory:()=>[...memory.values()].map(row=>structuredClone(row)),close:closeFixture};timer=setInterval(publishMetrics,350);publishMetrics();}catch(error){lastError=String(error?.stack||error);status.textContent=lastError;publishMetrics();}
+}
+</script>
+</body>
+</html>
