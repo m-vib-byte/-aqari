@@ -7,7 +7,7 @@ import {resolveRentalDocumentContext,linkedDocumentFieldKeys} from '../src/v267/
 const source=readFileSync(new URL('../src/v267/pages/rental-contracts.js',import.meta.url),'utf8');
 const block=source.slice(source.indexOf('  function templateSourceValues(){'),source.indexOf('  async function refreshTemplateSource()'));
 function fixture(){
- const context={resolveRentalDocumentContext,linkedDocumentFieldKeys,templateMaster:null,existing:null,id:'new-contract',tenant:{value:'tenant-a'},property:{value:'Property'},unit:{value:'1'},api:{kuwaitDate:()=> '2026-09-20'},properties:[{id:'property-a',name:'Property',metadata:{source_owner:'Stored owner'}}],units:[{id:'unit-a',property_id:'property-a',unit_no:'1'}],data:{tenantProfilesV267:[{id:'tenant-a',nameAr:'Tenant A',civilId:'123456789012',nationality:'Country A'},{id:'tenant-b',nameAr:'Tenant B',civilId:'212345678901',nationality:'Country B'}]},controls:{contract_no:{value:'C-1'},contractRent:{value:'350.125'},start_date:{value:'2026-09-01'},end_date:{value:'2027-08-31'},floor:{value:'0'}}};
+ const context={resolveRentalDocumentContext,linkedDocumentFieldKeys,templateMaster:null,existing:null,id:'new-contract',tenant:{value:'tenant-a'},selectedPropertyId:'property-a',property:{value:'property-a'},unit:{value:'unit-a'},api:{kuwaitDate:()=> '2026-09-20'},properties:[{id:'property-a',name:'Property',metadata:{source_owner:'Stored owner'}}],units:[{id:'unit-a',property_id:'property-a',unit_no:'1'}],data:{tenantProfilesV267:[{id:'tenant-a',nameAr:'Tenant A',civilId:'123456789012',nationality:'Country A'},{id:'tenant-b',nameAr:'Tenant B',civilId:'212345678901',nationality:'Country B'}]},controls:{contract_no:{value:'C-1'},contractRent:{value:'350.125'},start_date:{value:'2026-09-01'},end_date:{value:'2027-08-31'},floor:{value:'0'}}};
  vm.createContext(context);vm.runInContext(block+';this.read=templateSourceValues',context);return context;
 }
 test('new contract template pulls current main-form identity, dates, original rent and saved owner',()=>{
@@ -18,8 +18,8 @@ test('switching tenant or clearing unit cannot retain prior identity in template
  const f=fixture();f.read();f.tenant.value='tenant-b';let values=f.read();assert.equal(values.tenant_name,'Tenant B');assert.equal(values.civil_id,'212345678901');
  f.unit.value='';values=f.read();assert.equal(values.tenant_name,'');assert.equal(values.unit_no,'');assert.equal(values.monthly_rent,'');
 });
-test('ambiguous property option and absent saved tenant do not guess bindings',()=>{
- const f=fixture();f.properties.push({id:'property-b',name:'Property'});assert.equal(f.read().owner_name,'');f.properties.pop();f.tenant.value='missing';assert.equal(f.read().tenant_name,'');
+test('same property name cannot change UUID binding and a forged property or absent tenant is rejected',()=>{
+ const f=fixture();f.properties.push({id:'property-b',name:'Property'});assert.equal(f.read().owner_name,'Stored owner');f.property.value='property-b';assert.equal(f.read().owner_name,'');f.property.value='property-a';f.tenant.value='missing';assert.equal(f.read().tenant_name,'');
 });
 
 test('saved owner and automatic unit data from the authoritative property master prefill the model',()=>{

@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {createVerifiedUpload} from '../src/v267/components/verified-upload.js';
 import * as payroll from '../src/v267/domain/payroll.js';
+import {groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding} from '../src/v267/domain/rental-document-cycle.js';
 
 const file=()=>new File(['%PDF-1.4\nfixture-A'],'signed.pdf',{type:'application/pdf'});
 function fixture(mode){
@@ -31,7 +32,7 @@ function fixture(mode){
  }
  const rpc=(name,args)=>{
   calls.push({name,args});
-  if(name==='aqari_read_state_v267')return {payload:{contractsV202:[lease]}};
+  if(name==='aqari_read_state_v267')return {workspace_id:'w',payload:{contractsV202:[lease]}};
   if(name==='aqari_contract_history')return [];
   if(name==='aqari_reserve_document')return reserve(args,false);
   if(name==='aqari_finalize_document'){const doc=docs.find(x=>x.id===args.p_document_id);doc.status='uploaded';doc.checksum_sha256=args.p_checksum;return doc.id;}
@@ -44,8 +45,9 @@ function fixture(mode){
   }
   throw Error('Unexpected RPC '+name);
  };
+ const db={aqari_properties:[{id:'property-1',workspace_id:'w',name:lease.property}],aqari_units:[{id:'unit-1',workspace_id:'w',property_id:'property-1',unit_no:lease.unit}],aqari_leases:[{id:'lease-1',workspace_id:'w',external_ref:'123',unit_id:'unit-1',tenant_id:'db-tenant-1'}],aqari_tenants:[{id:'db-tenant-1',workspace_id:'w',external_ref:lease.tenantId}]};
  const from=name=>{
-  const filters={},query={select(){return query;},eq(k,v){filters[k]=v;return query;},order(){return name==='aqari_documents'?structuredClone(docs.filter(x=>x.status==='uploaded')):[];},single(){return state.readbackMissing?null:structuredClone(docs.find(x=>x.id===filters.id));}};return query;
+  const filters={},query={select(){return query;},eq(k,v){filters[k]=v;return query;},order(){return name==='aqari_documents'?structuredClone(docs.filter(x=>x.status==='uploaded')):query;},range(start,end){return (db[name]||[]).filter(row=>Object.entries(filters).every(([key,value])=>row[key]===value)).slice(start,end+1);},single(){return state.readbackMissing?null:structuredClone(docs.find(x=>x.id===filters.id));}};return query;
  };
  const session={bound:{workspace:'w',user:'u',role:'general_manager'},check(){},client:{rpc,from},request:async value=>value,async storage(method,path,blob,bucket){
   calls.push({name:method,path,bucket});
@@ -55,13 +57,13 @@ function fixture(mode){
  }};
  const d={el:node('dialog'),body:node('div'),status:node('p'),session,disposers:[],onDispose(fn){this.disposers.push(fn);},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  const api={primary:x=>x,contractMarkup:()=>'<p>Saved fixture contract</p>'};
- const context={mountContractChangeRequest:()=>{},mountSignatureReview:async()=>{},translateStatic,visibleText,visibleMessage,dateLocale,...payroll,node,field,createDialog:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
+ const context={groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding,mountContractChangeRequest:()=>{},mountSignatureReview:async()=>{},translateStatic,visibleText,visibleMessage,dateLocale,...payroll,node,field,createDialog:()=>d,createPage:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
  vm.createContext(context);const source=fs.readFileSync('src/v267/pages/'+(mode==='hr'?'employees':'rental-contracts')+'.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');vm.runInContext(source,context);
  const find=(tag,label)=>all(d.body).find(e=>e.tag===tag&&e.textContent===label);
  const uploadForm=()=>all(d.body).find(e=>e.tag==='form'&&all(e).some(c=>c.type==='file'));
  const input=type=>all(uploadForm()).find(e=>e.type===type);
  return {d,state,calls,docs,objects,uploadForm,input,
-  async start(chosen=file()){context[mode==='hr'?'openEmployees':'openRentalContracts']();await d.pending;const button=mode==='hr'?find('button','فتح ملف موظف اختبار'):all(d.body).find(e=>e.tag==='button'&&e.attributes['aria-label']===translateStatic('عرض العقد')+' — C-123');assert.ok(button,d.status.textContent);await button.onclick();await d.pending;input('file').files=[chosen];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
+  async start(chosen=file()){if(mode==='hr'){context.openEmployees();await d.pending;const button=find('button','فتح ملف موظف اختبار');assert.ok(button,d.status.textContent);await button.onclick();await d.pending;}else{context.openRentalContracts({propertyId:'property-1',id:123});await d.pending;}assert.ok(uploadForm(),d.status.textContent);input('file').files=[chosen];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
   async save(){uploadForm().onsubmit({preventDefault(){}});await d.pending;},
   finalized:()=>calls.filter(c=>c.name==='aqari_finalize_document'||c.name==='aqari_hr'&&c.args.p_action==='finalize'),
   reservations:()=>calls.filter(c=>c.name==='aqari_reserve_document'||c.name==='aqari_hr'&&c.args.p_action==='reserve')

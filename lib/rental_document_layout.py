@@ -1,0 +1,56 @@
+"""Canonical bounded A4 layout. Coordinates use millimetres from the top left."""
+import math
+import re
+
+ROLES = ('owner', 'tenant', 'receiver', 'accountant')
+PARTS = ('name', 'signature', 'fingerprint')
+LANGUAGES = {'ar', 'en', 'bilingual'}
+
+
+def normalize_presentation(value, fields=()):
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) - {'version', 'paper', 'language', 'logo', 'signers', 'placements'}:
+        raise ValueError('INVALID_DOCUMENT_PRESENTATION')
+    if type(value.get('version')) not in (int, float) or value.get('version') != 1 or value.get('paper') != 'A4' or value.get('language') not in LANGUAGES:
+        raise ValueError('INVALID_DOCUMENT_PRESENTATION')
+    logo = value.get('logo')
+    if not isinstance(logo, dict) or set(logo) != {'enabled', 'source'} or type(logo.get('enabled')) is not bool or logo.get('source') != 'property':
+        raise ValueError('INVALID_DOCUMENT_LOGO')
+    signers = value.get('signers')
+    if not isinstance(signers, dict) or set(signers) - set(ROLES) or not {'owner', 'tenant'} <= set(signers):
+        raise ValueError('INVALID_DOCUMENT_SIGNERS')
+    normalized_signers = {}
+    for role in ROLES:
+        if role not in signers:
+            continue
+        flags = signers[role]
+        if not isinstance(flags, dict) or set(flags) != set(PARTS) or any(type(flags[p]) is not bool for p in PARTS):
+            raise ValueError('INVALID_DOCUMENT_SIGNERS')
+        normalized_signers[role] = {p: flags[p] for p in PARTS}
+    placements = value.get('placements')
+    if not isinstance(placements, list) or len(placements) > 120:
+        raise ValueError('INVALID_DOCUMENT_PLACEMENTS')
+    allowed = {f.get('key') for f in fields if isinstance(f, dict)} | {r+'_'+p for r in ROLES for p in PARTS}
+    ids, placed = set(), []
+    for item in placements:
+        if not isinstance(item, dict) or set(item) != {'id', 'field_key', 'page', 'x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt', 'language'}:
+            raise ValueError('INVALID_DOCUMENT_PLACEMENT')
+        if not isinstance(item['id'], str) or not 1 <= len(item['id']) <= 64 or not re.fullmatch(r'[a-zA-Z0-9_-]+', item['id']) or item['id'] in ids:
+            raise ValueError('INVALID_DOCUMENT_PLACEMENT_ID')
+        if item['field_key'] not in allowed or item['language'] not in LANGUAGES:
+            raise ValueError('INVALID_DOCUMENT_PLACEMENT_FIELD')
+        if type(item['page']) is not int or not 1 <= item['page'] <= 50:
+            raise ValueError('INVALID_DOCUMENT_PLACEMENT_PAGE')
+        for key in ['x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt']:
+            if type(item[key]) not in (int, float) or not math.isfinite(item[key]):
+                raise ValueError('INVALID_DOCUMENT_PLACEMENT_SIZE')
+        x, y, w, h, font = (item[k] for k in ['x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt'])
+        if x < 8 or y < 8 or w < 8 or h < 4 or x+w > 202+1e-8 or y+h > 289+1e-8 or not 8 <= font <= 36:
+            raise ValueError('INVALID_DOCUMENT_PLACEMENT_SIZE')
+        role, _, part = item['field_key'].rpartition('_')
+        if item['field_key'] not in {f.get('key') for f in fields if isinstance(f, dict)} and role in ROLES and not normalized_signers.get(role, {}).get(part):
+            raise ValueError('LAYOUT_DISABLED_SIGNER')
+        ids.add(item['id'])
+        placed.append({k: (int(item[k]) if isinstance(item[k], (int, float)) and float(item[k]).is_integer() else item[k]) for k in ['id', 'field_key', 'page', 'x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt', 'language']})
+    return {'version': 1, 'paper': 'A4', 'language': value['language'], 'logo': {'enabled': logo['enabled'], 'source': 'property'}, 'signers': normalized_signers, 'placements': placed}

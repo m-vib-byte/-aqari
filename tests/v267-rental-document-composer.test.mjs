@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mountRentalDocumentCycle} from '../src/v267/pages/rental-document-cycle.js';
 import {createSession} from '../src/v267/api/session.js';
-import {documentTemplateBlueprints} from '../src/v267/domain/rental-document-cycle.js';
+import {documentTemplateBlueprints,renderDocumentTemplate,rentalDocumentDigestPayload} from '../src/v267/domain/rental-document-cycle.js';
 
 // Real composer, binding, substitution and scoped session; local DOM/network
 // fixtures do not claim hosted or physical-device verification.
@@ -18,15 +18,16 @@ class Element{
  click(){this.clicked=true;}
 }
 const all=element=>[element,...element.children.flatMap(all)];
-async function fixture({initial={},role='general_manager',emptyTemplates=false,missingOwner=false,badTemplate=false,wrongScope=false,holdPdf=false,responseStatus=200,badDigest=false,representative=false}={}){
+async function fixture({initial={},role='general_manager',emptyTemplates=false,missingOwner=false,badTemplate=false,wrongScope=false,holdPdf=false,responseStatus=200,badDigest=false,representative=false,failIssueOnce=false}={}){
  const original={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},calls=[],downloads=[];
- const workspace='fixture-workspace',user='fixture-user';let activeUser=user,releaseBody=null;
+ const workspace='fixture-workspace',user='fixture-user';let activeUser=user,releaseBody=null,bodyEnteredResolve;const bodyEntered=new Promise(resolve=>{bodyEnteredResolve=resolve;});const archived=[];
  const profile={id:'tenant-1',nameAr:'مستأجر <script>اختبار</script>',nameEn:'Fixture Tenant',civilId:'123456789012',nationality:'اختبار'};
  const base={tenantId:profile.id,tenant:profile.nameAr,property:'عقار اختبار',unit:'1',floor:'3',start_date:'2026-01-01',end_date:'2026-12-31',writtenOn:'2025-12-15',contractRent:350.125,accountant:'محاسب اختبار'};
  const contracts=[{...base,id:'contract-1',contract_no:'C-1'},{...base,id:'contract-2',contract_no:'C-2',unit:'2'},{...base,id:'contract-3',contract_no:'C-3',tenantId:'tenant-2',tenant:'مستأجر آخر',unit:'3'}];
  const data={contractsV202:contracts,tenantProfilesV267:[profile,{...profile,id:'tenant-2',nameAr:'مستأجر آخر'}],rentReceiptsV267:[],rentLedgerV202:[]};
  const db={aqari_leases:contracts.map((c,i)=>({id:'lease-'+(i+1),workspace_id:workspace,external_ref:c.id,tenant_id:i===2?'db-tenant-2':'db-tenant-1',unit_id:'unit-'+(i+1),snapshot:c})),aqari_units:contracts.map((_,i)=>({id:'unit-'+(i+1),workspace_id:workspace,property_id:'property-1',unit_no:String(i+1)})),aqari_tenants:data.tenantProfilesV267.map((p,i)=>({id:'db-tenant-'+(i+1),workspace_id:workspace,external_ref:p.id,full_name:p.nameAr,civil_id:p.civilId,profile:p})),aqari_properties:[{id:'property-1',workspace_id:workspace,name:'عقار اختبار',external_ref:'legacy-property',metadata:{}}],aqari_rent_payments:[{id:'payment-1',workspace_id:workspace,lease_id:'lease-1',reference:'R-1',status:'paid',amount:'350.125',period:'2026-08-01',paid_at:'2026-08-02',payment_method:'K-Net',record:{transactionNo:'REF-1',receiverName:'مستلم اختبار',accountant:'محاسب الوصل'},receipt:{record:['R-1',profile.nameAr,'350.125','paid','عقار اختبار','2026-08-02','1','','2026-08','K-Net']}}]};
  const templates=emptyTemplates?[]:documentTemplateBlueprints.map((b,i)=>({id:'template-'+i,kind:b.kind,title:b.label,version:1,published_at:'2026-09-20T00:00:00Z',content_sha256:'a'.repeat(64),fields:clone(b.fields),clauses:[{title:'اختبار {{contract_no}}',text:'المستأجر {{tenant_name}} — وحدة {{unit_no}}'}]}));
+ const other={...base,id:'contract-4',contract_no:'OTHER-4',tenantId:'tenant-3',tenant:'مستأجر العقار الآخر',property:'اسم قديم للعقار الآخر',unit:'1'};data.contractsV202.push(other);data.tenantProfilesV267.push({...profile,id:'tenant-3',nameAr:other.tenant});db.aqari_properties.push({id:'property-2',workspace_id:workspace,name:'العقار الآخر',metadata:{}});db.aqari_units.push({id:'unit-4',workspace_id:workspace,property_id:'property-2',unit_no:'1'});db.aqari_leases.push({id:'lease-4',workspace_id:workspace,external_ref:other.id,tenant_id:'db-tenant-3',unit_id:'unit-4'});db.aqari_tenants.push({id:'db-tenant-3',workspace_id:workspace,external_ref:'tenant-3'});
  if(badTemplate)templates[0].clauses[0].text='{{field_name}}';
  const response=result=>({abortSignal:async()=>({data:clone(result)})});
  const client={
@@ -35,18 +36,27 @@ async function fixture({initial={},role='general_manager',emptyTemplates=false,m
    if(name==='aqari_rental_templates'){assert.equal(args.p_action,'context','composer must never mutate templates');return response({workspace_id:workspace,user_id:user,can_publish:true,items:templates});}
    if(name==='aqari_property_contract_context')return response({workspace_id:workspace,user_id:user,property:{id:'property-1',name:'عقار اختبار',owners:missingOwner?[]:[{name:'مالك اختبار'}],...(representative?{representative:{name:'وكيل اختبار'}}:{})},unit:{id:args.p_unit_id,propertyId:'property-1',floor:'3',unitNo:args.p_unit_id.split('-').at(-1)}});
    if(name==='aqari_official_document_context')return response({workspace_id:workspace,user_id:user,kind:'rent_receipt',entity_id:args.p_entity_id,source_id:null,sources:db.aqari_rent_payments.filter(p=>p.lease_id===args.p_entity_id).map(p=>({id:p.id,label:p.reference}))});
+   if(name==='aqari_rental_document_archive'){assert.equal(args.p_action,'list');return response({workspace_id:workspace,user_id:user,items:archived.filter(row=>row.property_id===args.p_data.property_id&&(!args.p_data.lease_id||row.lease_id===args.p_data.lease_id))});}
    throw Error('Unexpected or mutating RPC '+name);
   },
-  from(table){const query={table,filters:[],columns:'',count:null};calls.push(query);const builder={select(columns){query.columns=columns;return builder;},eq(name,value){query.filters.push([name,value]);return builder;},limit(count){query.count=count;return builder;},abortSignal:async()=>{assert.ok(query.filters.some(([name,value])=>name==='workspace_id'&&value===workspace));assert.ok(query.filters.some(([name])=>name!=='workspace_id'),'must query exact linked record');return {data:clone(db[table].filter(row=>query.filters.every(([name,value])=>row[name]===value)).slice(0,query.count))};}};return builder;},
+  from(table){const query={table,filters:[],columns:'',count:null,start:0,inFilters:[]};calls.push(query);const builder={select(columns){query.columns=columns;return builder;},eq(name,value){query.filters.push([name,value]);return builder;},in(name,values){query.inFilters.push([name,values]);return builder;},limit(count){query.count=count;return builder;},order(){return builder;},range(start,end){query.start=start;query.count=end-start+1;return builder;},abortSignal:async()=>{assert.ok(query.filters.some(([name,value])=>name==='workspace_id'&&value===workspace));assert.ok(query.filters.some(([name])=>name!=='workspace_id')||query.inFilters.length,'must query scoped linked records');return {data:clone(db[table].filter(row=>query.filters.every(([name,value])=>name==='aqari_units.property_id'?db.aqari_units.some(unit=>unit.id===row.unit_id&&unit.property_id===value):row[name]===value)&&query.inFilters.every(([name,values])=>values.includes(row[name]))).slice(query.start,query.start+(query.count??Infinity)))};}};return builder;},
   auth:{getSession:async()=>({data:{session:{access_token:'fixture-token',user:{id:activeUser}}}})}
  };
  globalThis.document={createElement:tag=>{const el=new Element(tag);if(tag==='a')el.click=()=>downloads.push(el.download);return el;},documentElement:{classList:{contains:()=>true}}};
  globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role}}}};
- globalThis.fetch=async(url,options)=>{calls.push({url,options});const body=JSON.parse(options.body);return {ok:responseStatus===200,status:responseStatus,headers:new Headers({'content-type':'application/pdf','X-Aqari-Document-SHA256':badDigest?'0'.repeat(64):body.document.previewDigest}),blob:async()=>{if(holdPdf)await new Promise(resolve=>{releaseBody=resolve;});return new Blob(['%PDF-1.7 fixture'],{type:'application/pdf'});}};};
+ globalThis.fetch=async(url,options)=>{
+  calls.push({url,options});const body=JSON.parse(options.body),bytes='%PDF-1.7 fixture';let documentId=null,previewDigest=body.document?.previewDigest||body.previewDigest;
+  const hash=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(bytes))).toString('hex');
+  if(url==='/api/rental-document'){
+   if(body.action==='get'){const record=archived.find(row=>row.id===body.documentId&&row.property_id===body.propertyId);assert.ok(record,'archive must remain scoped to property');documentId=record.id;previewDigest=record.previewDigest;}
+   else{assert.equal(body.approved,true);documentId=body.requestId;if(!archived.some(row=>row.id===documentId))archived.push({id:documentId,title:'نسخة صادرة ثابتة',template_version:1,property_id:body.propertyId,lease_id:body.leaseId,pdf_sha256:hash,issued_at:'2026-09-21',previewDigest});if(failIssueOnce){failIssueOnce=false;throw Error('lost issue reply');}}
+  }
+  return {ok:responseStatus===200,status:responseStatus,headers:new Headers({'content-type':'application/pdf','X-Aqari-Document-SHA256':badDigest?'0'.repeat(64):previewDigest,...(documentId?{'X-Aqari-Document-Id':documentId,'X-Aqari-Archived-SHA256':hash}:{})}),blob:async()=>{if(holdPdf)await new Promise(resolve=>{releaseBody=resolve;bodyEnteredResolve();});return new Blob([bytes],{type:'application/pdf'});}};
+ };
  const dispose=[],session=createSession();await session.connect();
  const d={session,body:new Element('main'),status:new Element('p'),closed:false,onDispose:fn=>dispose.push(fn),run:task=>Promise.resolve().then(()=>{session.check();return task();}),close(){this.closed=true;session.close();for(const fn of dispose)fn();}};
- const f={d,calls,data,templates,db,downloads,all:()=>all(d.body),control:name=>all(d.body).find(el=>el.name===name),button:label=>all(d.body).find(el=>el.tagName==='button'&&el.textContent===label),setUser:value=>{activeUser=value;},release:()=>releaseBody?.(),cleanup(){if(!d.closed)d.close();Object.assign(globalThis,original);}};
- try{await mountRentalDocumentCycle(d,d.body,initial);}catch(error){f.mountError=error;}
+ const f={d,calls,data,templates,db,downloads,archived,all:()=>all(d.body),control:name=>all(d.body).find(el=>el.name===name),button:label=>all(d.body).find(el=>el.tagName==='button'&&el.textContent===label),setUser:value=>{activeUser=value;},release:()=>releaseBody?.(),waitBody:()=>bodyEntered,cleanup(){if(!d.closed)d.close();Object.assign(globalThis,original);}};
+ try{await mountRentalDocumentCycle(d,d.body,{propertyId:'property-1',...initial});}catch(error){f.mountError=error;}
  return f;
 }
 async function choose(f,kind='rental_agreement'){
@@ -65,7 +75,7 @@ test('opening the five document structures reads saved data and never seeds or w
 
 test('a tenant with multiple contracts requires explicit contract selection; a unique contract auto-binds',async()=>{
  const f=await fixture();try{
-  f.control('tenant_id').value='tenant-1';await f.control('tenant_id').onchange();assert.equal(f.control('contract_id').value,'');assert.equal(f.calls.some(x=>x.table),false);
+  f.control('tenant_id').value='tenant-1';await f.control('tenant_id').onchange();assert.equal(f.control('contract_id').value,'');assert.equal(f.calls.some(x=>x.name==='aqari_property_contract_context'),false);
   f.control('tenant_id').value='tenant-2';await f.control('tenant_id').onchange();assert.equal(f.control('contract_id').value,'contract-3');
   await choose(f);assert.equal(f.control('tenant_name').value,'مستأجر آخر');assert.equal(f.control('unit_no').value,'3');assert.equal(f.control('tenant_name').readOnly,true);
  }finally{f.cleanup();}
@@ -100,7 +110,7 @@ test('missing canonical data stays locked and prevents final preview rather than
 
 test('generic and unknown placeholders block final preview and PDF',async()=>{
  const f=await fixture({initial:{contractId:'contract-1'},badTemplate:true});try{
-  await choose(f);await assert.rejects(f.button('معاينة نهائية').onclick(),/field_name/);await assert.rejects(f.button('فتح وتحميل PDF').onclick(),/المعاينة النهائية/);assert.equal(f.calls.some(x=>x.url),false);
+  await choose(f);await assert.rejects(f.button('معاينة نهائية').onclick(),/حقل يحتاج تحديد/);await assert.rejects(f.button('فتح وتحميل PDF').onclick(),/المعاينة النهائية/);assert.equal(f.calls.some(x=>x.url),false);
  }finally{f.cleanup();}
 });
 
@@ -118,27 +128,41 @@ test('manager-only access and mismatched saved workspace stop before records are
 });
 
 test('auth changes before PDF prevent the request and auth changes during the body prevent the download',async()=>{
- let f=await fixture({initial:{contractId:'contract-1'}});try{await choose(f);await f.button('معاينة نهائية').onclick();f.setUser('another-user');await assert.rejects(f.button('فتح وتحميل PDF').onclick(),/جلسة الدخول/);assert.equal(f.calls.some(x=>x.url),false);}finally{f.cleanup();}
- f=await fixture({initial:{contractId:'contract-1'},holdPdf:true});try{await choose(f);await f.button('معاينة نهائية').onclick();const promise=f.button('فتح وتحميل PDF').onclick();await new Promise(setImmediate);f.setUser('another-user');f.release();await assert.rejects(promise,/جلسة الدخول/);assert.equal(f.downloads.length,0);}finally{f.cleanup();}
+ let f=await fixture({initial:{contractId:'contract-1'}});try{await choose(f);f.setUser('another-user');await assert.rejects(f.button('معاينة نهائية').onclick(),/جلسة الدخول/);assert.equal(f.calls.some(x=>x.url),false);}finally{f.cleanup();}
+ f=await fixture({initial:{contractId:'contract-1'},holdPdf:true});try{await choose(f);const promise=f.button('معاينة نهائية').onclick();await f.waitBody();f.setUser('another-user');f.release();await assert.rejects(promise,/جلسة الدخول/);assert.equal(f.downloads.length,0);}finally{f.cleanup();}
 });
 
 test('closing the dialog aborts a hanging PDF read and discards its late result',async()=>{
  const f=await fixture({initial:{contractId:'contract-1'},holdPdf:true});try{
-  await choose(f);await f.button('معاينة نهائية').onclick();const promise=f.button('فتح وتحميل PDF').onclick();await new Promise(setImmediate);const call=f.calls.find(x=>x.url);f.d.close();await assert.rejects(promise,/جلسة الدخول/);assert.equal(call.options.signal.aborted,true);f.release();await new Promise(setImmediate);assert.equal(f.downloads.length,0);
+  await choose(f);const promise=f.button('معاينة نهائية').onclick();await f.waitBody();const call=f.calls.find(x=>x.url);f.d.close();await assert.rejects(promise,/جلسة الدخول/);assert.equal(call.options.signal.aborted,true);f.release();await new Promise(setImmediate);assert.equal(f.downloads.length,0);
  }finally{f.cleanup();}
 });
 
 test('changed saved data and a mismatched PDF digest cannot download an unreviewed snapshot',async()=>{
  for(const setting of [{responseStatus:409},{badDigest:true}]){
   const f=await fixture({initial:{contractId:'contract-1'},...setting});try{
-   await choose(f);await f.button('معاينة نهائية').onclick();await assert.rejects(f.button('فتح وتحميل PDF').onclick(),/تغيرت البيانات|لم يطابق/);assert.equal(f.downloads.length,0);
+   await choose(f);await assert.rejects(f.button('معاينة نهائية').onclick(),/تغيرت البيانات|لم يطابق/);assert.equal(f.downloads.length,0);
    if(setting.responseStatus)assert.equal(f.button('فتح وتحميل PDF').disabled,true);
   }finally{f.cleanup();}
  }
 });
 
-test('explicit property representative appears by his own role without generating a signature',async()=>{
+test('the final preview embeds the actual PDF and the download uses the identical object URL',async()=>{
  const f=await fixture({initial:{contractId:'contract-1'},representative:true});try{
-  await choose(f);await f.button('معاينة نهائية').onclick();assert.ok(f.all().some(x=>x.textContent==='وكيل المالك المفوض'));assert.ok(f.all().some(x=>x.textContent==='الاسم: وكيل اختبار'));assert.ok(f.all().some(x=>x.textContent==='التوقيع: ……………………'));assert.equal(f.control('owner_name').value,'مالك اختبار');
+  await choose(f);await f.button('معاينة نهائية').onclick();const frame=f.all().find(x=>x.tagName==='iframe');assert.ok(frame);assert.match(frame.title,/PDF/);const download=f.all().find(x=>x.tagName==='a'&&x.download);assert.equal(frame.src,download.href);assert.equal(f.calls.filter(x=>x.url).length,1);await f.button('فتح وتحميل PDF').onclick();assert.equal(f.calls.filter(x=>x.url).length,1);assert.equal(f.control('owner_name').value,'مالك اختبار');
  }finally{f.cleanup();}
 });
+
+ test('same unit number in another property is absent from all selectors and forged deep links fail',async()=>{
+  let f=await fixture();try{assert.equal(f.mountError,undefined);assert.equal(f.control('contract_id').children.some(x=>x.value==='contract-4'),false);assert.equal(f.control('tenant_id').children.some(x=>x.value==='tenant-3'),false);f.control('contract_id').value='contract-4';await f.control('contract_id').onchange();assert.equal(f.control('tenant_name'),undefined);assert.equal(f.button('معاينة نهائية').disabled,true);}finally{f.cleanup();}
+  f=await fixture({initial:{propertyId:'property-1',contractId:'contract-4'}});try{assert.match(f.mountError.message,/لا يخص العقار/);assert.equal(f.control('tenant_name'),undefined);}finally{f.cleanup();}
+ });
+
+ test('issuance requires explicit review and retries the same request; archived PDF remains fixed',async()=>{
+  const f=await fixture({initial:{contractId:'contract-1'},failIssueOnce:true});try{
+   await choose(f);await f.button('معاينة نهائية').onclick();const issue=f.button('إصدار المستند وحفظ نسخته النهائية');assert.equal(issue.disabled,true);assert.equal(f.calls.some(x=>x.url==='/api/rental-document'),false);await assert.rejects(issue.onclick(),/أكد الإصدار/);
+   f.control('confirm_document_issue').checked=true;f.control('document_issue_reason').value='إصدار بعد مراجعة النسخة';f.control('confirm_document_issue').onchange();await assert.rejects(issue.onclick(),/lost issue reply/);const first=f.calls.filter(x=>x.url==='/api/rental-document').at(-1);assert.equal(f.control('contract_id').disabled,true);await issue.onclick();const second=f.calls.filter(x=>x.url==='/api/rental-document').at(-1);assert.equal(first.options.body,second.options.body);assert.equal(f.archived.length,1);assert.equal(issue.disabled,true);
+   const request=JSON.parse(first.options.body);assert.equal(request.propertyId,'property-1');assert.equal(request.leaseId,'lease-1');assert.equal(request.templateId,'template-0');assert.match(request.reviewedPdfSha256,/^[a-f0-9]{64}$/);assert.equal('template' in request,false);assert.equal('pdf' in request,false);
+   f.templates[0].clauses[0].text='نص جديد بعد الإصدار';await f.button('عرض النسخة المحفوظة').onclick();const get=JSON.parse(f.calls.filter(x=>x.url==='/api/rental-document').at(-1).options.body);assert.deepEqual(get,{action:'get',workspaceId:'fixture-workspace',documentId:f.archived[0].id,propertyId:'property-1'});assert.equal(f.all().filter(x=>x.tagName==='iframe').length,2);
+  }finally{f.cleanup();}
+ });

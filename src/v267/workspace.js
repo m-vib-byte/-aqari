@@ -105,7 +105,7 @@ export function install(){
  const contractFoundation=directPage('aq267-contract-foundation','عقد جديد — التأسيس الكامل','./pages/contract-foundation.js','openContractFoundation','contracts',true);
  const contractPreview=directPage('aq267-contract-preview','◉ معاينة العقود والملاحق','./pages/rental-contracts.js','openContractPreview','contracts',true);
  const contractApprovals=directPage('aq267-contract-approvals','✓ اعتماد العقود الجديدة','./pages/rental-contracts.js','openContractApprovals','contracts',true);
- const rentalDocumentCycle=directPage('aq267-rental-document-cycle','دورة مستندات الإيجار','./pages/rental-document-cycle.js','openRentalDocumentCycle','contracts',true);
+ const rentalDocumentCycle=directPage('aq267-rental-document-cycle','دورة مستندات الإيجار','./pages/rental-contracts.js','openRentalContracts','contracts',true);
  const contractTemplates=directPage('aq267-contract-templates','نماذج العقود — المدير العام','./pages/contract-templates.js','openContractTemplates','contracts',true);
  const contractArchive=directPage('aq267-contract-archive','أرشيف العقود السابقة','./pages/contract-archive.js','openContractArchive','contracts',true);
  const contractRequests=directPage('aq267-contract-change-requests','طلبات تعديل العقود','./pages/contract-change-requests.js','openContractChangeRequests','contracts');

@@ -1,7 +1,8 @@
-import {createDialog,node,field} from '../components/dialog.js';
+import {node,field} from '../components/dialog.js';
+import {createPage} from '../components/page.js';
 import {t} from '../components/locale.js';
 import {validTemplate} from '../components/rental-templates.js';
-import {documentTemplateBlueprints,documentFieldCatalog,linkedDocumentFieldKeys,fieldValue,resolveRentalDocumentContext,renderDocumentTemplate,resolveDocumentSigners} from '../domain/rental-document-cycle.js';
+import {documentTemplateBlueprints,documentFieldCatalog,linkedDocumentFieldKeys,fieldValue,resolveRentalDocumentContext,renderDocumentTemplate,rentalDocumentDigestPayload,assertContractProperty} from '../domain/rental-document-cycle.js';
 
 const copy=value=>JSON.parse(JSON.stringify(value));
 const key=value=>String(value??'');
@@ -12,32 +13,35 @@ const nonLeaseKinds=new Set(['apartment_handover','rent_receipt','eviction','own
 const templateMatches=(template,kind)=>kind==='rental_agreement'?!nonLeaseKinds.has(template.kind):template.kind===kind;
 const tenantRef=contract=>key(contract?.tenantId||contract?.tenant_id||contract?.tenant_ref);
 const identities=record=>[record?.id,record?.external_ref,record?.externalRef].filter(x=>x!=null).map(key);
-const fingerprint=({rendered,template})=>JSON.stringify([rendered.title,template.kind,template.kind_label||'',rendered.clauses.map(c=>[c.title,c.text]),Object.entries(rendered.values).sort(([a],[b])=>a<b?-1:a>b?1:0),resolveDocumentSigners(template.kind,rendered.values).map(signer=>[signer.role,signer.label,signer.name])]);
-const previewTemplate=template=>({id:template.id,kind:template.kind,...(template.kind_label?{kind_label:template.kind_label}:{}),title:template.title,fields:(template.fields||[]).map(({key,label,type='text',required=false})=>({key,label,type,required})),clauses:template.clauses.map(({title,text})=>({title,text}))});
+const fingerprint=({rendered,template})=>JSON.stringify(rentalDocumentDigestPayload(template,rendered));
+const previewTemplate=template=>({id:template.id,kind:template.kind,...(template.kind_label?{kind_label:template.kind_label}:{}),title:template.title,...(template.family_id?{family_id:template.family_id}:{}),...(template.presentation?{presentation:copy(template.presentation)}:{}),fields:(template.fields||[]).map(({key,label,type='text',required=false})=>({key,label,type,required})),clauses:template.clauses.map(({title,text})=>({title,text}))});
 async function digest(value){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(x=>x.toString(16).padStart(2,'0')).join('');}
 
-// Read-only document composition. No template, document, payment or signature
-// is written by this page; the owner controls his templates in the studio.
-export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}={}){
+// Page opening and preview never write. Issuance requires the owner's explicit
+// review of the exact PDF, confirmation and reason; the server archives it.
+export async function mountRentalDocumentCycle(d,target,{propertyId=null,contractId=null,onBack}={}){
  if(d.session.bound.role!=='general_manager')throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
  target.className='aq267-template-studio';
- let payload=null,data=null,templates=[],tables=null,context=null,fields=new Map(),reviewed=null,epoch=0,pdfUrl=null;
+ let payload=null,data=null,templates=[],tables=null,context=null,fields=new Map(),reviewed=null,epoch=0,pdfUrl=null,pdfBlob=null,pendingIssue=null,issuedId=null,selectedPropertyId=propertyId?key(propertyId):null;const archiveUrls=new Set();
  const kind=node('select'),tenant=node('select'),contract=node('select'),template=node('select'),receipt=node('select');
  kind.name='document_kind';tenant.name='tenant_id';contract.name='contract_id';template.name='template_id';receipt.name='receipt_id';
  for(const spec of documentTemplateBlueprints)kind.append(option(spec.kind,t(spec.label)));
  kind.value='rental_agreement';
  const header=node('header'),heading=node('div'),intro=node('p',t('اختر العقد لربط المستند بنفس العقار والوحدة والمستأجر. هذه معاينة للمراجعة؛ لا تعتمد نموذجًا أو مستندًا ولا تسجل دفعة.'));
- heading.append(node('h3',t('دورة مستندات الإيجار')),intro);header.append(heading);
+ const propertyHeading=node('h3',t('دورة مستندات الإيجار'));heading.append(propertyHeading,intro);header.append(heading);
  if(onBack){const back=node('button',t('العودة'));back.type='button';back.onclick=()=>{d.session.check();d.close();return onBack();};header.prepend(back);}
  const form=node('form'),selectors=node('section'),editor=node('section'),preview=node('section'),note=node('p'),binding=node('p'),actions=node('div'),receiptField=field(t('الوصل المحفوظ المرتبط بالعقد'),receipt);
  form.className='aq267-template-form';selectors.className='aq267-template-identity';preview.className='aq267-template-preview';actions.className='aq267-template-actions';receiptField.hidden=true;
  selectors.append(field(t('نوع المستند'),kind),field(t('المستأجر'),tenant),field(t('العقد'),contract),field(t('النموذج المعتمد'),template),receiptField);
- const show=node('button',t('معاينة نهائية')),pdf=node('button',t('فتح وتحميل PDF')),manage=node('button',t('فتح إدارة النماذج'));
+ const show=node('button',t('معاينة نهائية')),pdf=node('button',t('فتح وتحميل PDF')),manage=node('button',t('فتح إدارة النماذج')),archive=node('section'),issueSection=node('section'),issue=node('button',t('إصدار المستند وحفظ نسخته النهائية')),approval=node('input'),issueReason=node('textarea');
+ issue.type='button';approval.type='checkbox';approval.name='confirm_document_issue';issueReason.name='document_issue_reason';issueReason.minLength=6;issueReason.maxLength=500;issueSection.hidden=true;issueSection.className='aq267-template-approval';archive.className='aq267-issued-document-archive';
+ issueSection.append(node('h4',t('إصدار نسخة نهائية محفوظة')),field(t('راجعت PDF وأطلب إصدار هذه النسخة وحفظها كما هي'),approval),field(t('سبب الإصدار'),issueReason),issue);
+ const archiveButton=node('button',t('عرض مستندات العقار والعقد الصادرة'));archiveButton.type='button';archiveButton.onclick=()=>run(loadArchive);
  for(const button of [show,pdf,manage])button.type='button';
- actions.append(show,pdf,manage);form.append(selectors,note,binding,editor,actions,preview);target.replaceChildren(header,form);
+ actions.append(show,pdf,manage);form.append(selectors,note,binding,editor,actions,preview,issueSection,archiveButton,archive);target.replaceChildren(header,form);
  form.onsubmit=event=>event.preventDefault();
- function resetPreview(){reviewed=null;preview.replaceChildren();if(pdfUrl){URL.revokeObjectURL(pdfUrl);pdfUrl=null;}pdf.disabled=true;}
- function clearDocument(){epoch++;resetPreview();fields.clear();editor.replaceChildren();context=null;binding.textContent='';}
+ function resetPreview(){reviewed=null;pdfBlob=null;preview.replaceChildren();if(pdfUrl){URL.revokeObjectURL(pdfUrl);pdfUrl=null;}pdf.disabled=true;approval.checked=false;issueReason.value='';issueSection.hidden=true;issuedId=null;}
+ function clearDocument(){if(pendingIssue)throw Error('تحقق من نتيجة الإصدار السابق قبل تغيير المستند.');epoch++;resetPreview();fields.clear();editor.replaceChildren();archive.replaceChildren();context=null;binding.textContent='';}
  function check(){d.session.check();if(d.closed)throw Error('أغلقت الصفحة؛ افتح المستند من جديد.');}
  function scoped(result,withUser=true){check();if(result?.workspace_id!==d.session.bound.workspace||(withUser&&result?.user_id!==d.session.bound.user))throw Error('تعذر تأكيد مساحة العمل والمستخدم للمستند.');return result;}
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
@@ -52,11 +56,36 @@ export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}
   template.replaceChildren(option('',t('اختر النموذج المعتمد')),...matching.map(row=>option(row.id,`${row.title} · ${t('الإصدار')} ${row.version}`)));template.value='';
   template.disabled=matching.length===0;note.textContent=t(matching.length?'اختر نسخة النموذج التي اعتمدتها ثم راجع البيانات قبل PDF.':'لم تعتمد نموذجًا لهذا النوع بعد. أدخل نصك الأصلي وراجعه في إدارة النماذج؛ هذه الصفحة لا تنشئ نموذجًا تلقائيًا.');
  }
- function controls(){show.disabled=!selectedTemplate()||!context||(kind.value==='rent_receipt'&&!receipt.value);pdf.disabled=!reviewed;}
+ function controls(){const locked=!!pendingIssue||!!issuedId;show.disabled=locked||!selectedTemplate()||!context||(kind.value==='rent_receipt'&&!receipt.value);pdf.disabled=!reviewed||!pdfBlob;issue.disabled=!!issuedId||!reviewed||!pdfBlob||!approval.checked||issueReason.value.trim().length<6;for(const control of [kind,tenant,contract,receipt])control.disabled=locked;template.disabled=locked||!templates.some(row=>templateMatches(row,kind.value));for(const [name,control]of fields)control.readOnly=locked||linkedKeys.has(name);manage.disabled=locked;}
  async function rows(table,columns,column,value){
   const result=await d.session.request(d.session.client.from(table).select(columns).eq('workspace_id',d.session.bound.workspace).eq(column,value).limit(2));check();
   if(!Array.isArray(result)||result.some(row=>row.workspace_id!==d.session.bound.workspace)||result.length!==1)throw Error('تعذر تأكيد السجل المرتبط؛ راجع ربط العقد والمستأجر والعقار والوحدة.');
   return result;
+ }
+ async function list(factory){
+  const result=[];for(let start=0;start<100000;start+=500){const batch=await d.session.request(factory().order('id').range(start,start+499));check();if(!Array.isArray(batch)||batch.some(row=>row.workspace_id!==d.session.bound.workspace))throw Error('تعذر تأكيد نطاق سجلات العقار.');result.push(...batch);if(batch.length<500)return result;}
+  throw Error('تعذر تأكيد اكتمال قائمة عقود العقار.');
+ }
+ async function loadPropertyScope(){
+  if(contractId){
+   const [lease]=await rows('aqari_leases','id,workspace_id,external_ref,tenant_id,unit_id','external_ref',key(contractId));
+   const [unit]=await rows('aqari_units','id,workspace_id,property_id,unit_no','id',lease.unit_id);
+   if(selectedPropertyId&&key(unit.property_id)!==selectedPropertyId)throw Error('العقد لا يخص العقار المحدد.');selectedPropertyId=key(unit.property_id);
+  }
+  if(!selectedPropertyId)throw Error('اختر العقار من صفحة العقود أولًا.');
+  const [property]=await rows('aqari_properties','id,workspace_id,name,external_ref,metadata','id',selectedPropertyId);
+  const [propertyUnits,propertyLeases]=await Promise.all([
+   list(()=>d.session.client.from('aqari_units').select('id,workspace_id,property_id,unit_no').eq('workspace_id',d.session.bound.workspace).eq('property_id',selectedPropertyId)),
+   list(()=>d.session.client.from('aqari_leases').select('id,workspace_id,external_ref,tenant_id,unit_id,aqari_units!inner(property_id)').eq('workspace_id',d.session.bound.workspace).eq('aqari_units.property_id',selectedPropertyId))
+  ]);
+  const tenantIds=[...new Set(propertyLeases.map(row=>row.tenant_id))],propertyTenants=[];
+  for(let start=0;start<tenantIds.length;start+=100){const ids=tenantIds.slice(start,start+100);propertyTenants.push(...await list(()=>d.session.client.from('aqari_tenants').select('id,workspace_id,external_ref').eq('workspace_id',d.session.bound.workspace).in('id',ids)));}
+  const source={workspaceId:d.session.bound.workspace,properties:[property],units:propertyUnits,leases:propertyLeases,tenants:propertyTenants},refs=new Set(propertyLeases.flatMap(row=>identities(row))),allowed=[];
+  let conflicts=0;
+  for(const c of data.contractsV202){if(!refs.has(key(c.id)))continue;try{assertContractProperty(c,selectedPropertyId,source);allowed.push(c);}catch{conflicts++;}}
+  if(contractId&&!allowed.some(c=>key(c.id)===key(contractId)))throw Error('تعذر تأكيد ربط العقد بالعقار والمستأجر الصحيحين.');
+  data={...data,contractsV202:allowed};propertyHeading.textContent=t('مستندات الإيجار — ')+property.name;
+  if(conflicts)intro.textContent=t('توجد سجلات تحتاج تصحيح معرّفات الربط قبل استخدامها: ')+conflicts;
  }
  async function readBindings(){
   const c=selectedContract();if(!c){tables=null;return;}
@@ -66,7 +95,7 @@ export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}
    rows('aqari_units','id,workspace_id,property_id,unit_no','id',lease.unit_id),
    rows('aqari_tenants','id,workspace_id,external_ref,full_name,civil_id,phone,email,profile','id',lease.tenant_id)
   ]);
-  const unit=units[0];
+  const unit=units[0];if(key(unit.property_id)!==selectedPropertyId)throw Error('العقد أو الوحدة لا يخصان العقار المحدد.');
   const [properties,master]=await Promise.all([
    rows('aqari_properties','id,workspace_id,name,external_ref,metadata','id',unit.property_id),
    rpc('aqari_property_contract_context',{p_workspace_id:d.session.bound.workspace,p_property_id:unit.property_id,p_unit_id:unit.id})
@@ -84,7 +113,7 @@ export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}
  }
  function resolve(){
   if(!tables||!contract.value)return null;
-  return resolveRentalDocumentContext(payload,{contractId:contract.value,...(tenant.value?{tenantId:tenant.value}:{}),...(receipt.value?{receiptId:receipt.value}:{})},tables);
+  const resolved=resolveRentalDocumentContext(payload,{contractId:contract.value,...(tenant.value?{tenantId:tenant.value}:{}),...(receipt.value?{receiptId:receipt.value}:{})},tables);if(key(resolved.links.propertyId)!==selectedPropertyId)throw Error('المستند لا يخص العقار المحدد.');return resolved;
  }
  function drawFields(){
   resetPreview();fields.clear();editor.replaceChildren();context=resolve();
@@ -116,42 +145,68 @@ export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}
  kind.onchange=()=>run(async()=>{clearDocument();drawTemplates();await loadReceiptOptions();drawFields();});
  template.onchange=()=>run(()=>drawFields());
  receipt.onchange=()=>run(async()=>{clearDocument();if(tables)tables.receipts=receipt.value?await rows('aqari_rent_payments','id,workspace_id,lease_id,reference,paid_at,period,amount,payment_method,status,record,receipt','id',receipt.value):[];drawFields();});
- manage.onclick=()=>run(async()=>{const module=await import('./contract-templates.js');check();d.close();return module.openContractTemplates();});
+ manage.onclick=()=>run(async()=>{const module=await import('./contract-templates.js');check();d.close();return module.openContractTemplates({propertyId:selectedPropertyId,onBack:()=>openRentalDocumentCycle({propertyId:selectedPropertyId,contractId:contract.value||null,onBack})});});
  function documentValues(){return Object.fromEntries([...fields].filter(([name])=>!linkedKeys.has(name)).map(([name,control])=>[name,control.value]));}
  function candidate(){
   check();const selected=selectedTemplate();if(!context||!selected)throw Error('اختر العقد والنموذج المعتمد أولًا.');
   if(kind.value==='rent_receipt'&&!receipt.value)throw Error('اختر وصلًا محفوظًا مرتبطًا بالعقد أولًا.');
   const values={...documentValues(),...context.values},rendered=renderDocumentTemplate(selected,values,{requireValues:true});
-  return {template:previewTemplate(copy(selected)),document:{contractId:contract.value,...(tenant.value?{tenantId:tenant.value}:{}),...(receipt.value?{receiptId:receipt.value}:{}),values:documentValues()},rendered,values,epoch};
+  return {template:previewTemplate(copy(selected)),document:{propertyId:selectedPropertyId,contractId:contract.value,...(tenant.value?{tenantId:tenant.value}:{}),...(receipt.value?{receiptId:receipt.value}:{}),values:documentValues()},rendered,values,epoch};
  }
- show.onclick=()=>run(async()=>{
-  resetPreview();const snapshot=candidate(),hash=await digest(fingerprint(snapshot));check();if(snapshot.epoch!==epoch)return;
-  const paper=node('section');paper.className='aq267-template-paper';paper.append(node('h3',snapshot.rendered.title||snapshot.template.title),node('p',t('معاينة للمراجعة فقط — غير معتمدة وغير موقعة')));
-  for(const clause of snapshot.rendered.clauses){const article=node('article');article.append(node('h4',clause.title),node('p',clause.text));paper.append(article);}
-  const signers=node('section');signers.className='aq267-template-signers';
-  for(const signer of resolveDocumentSigners(snapshot.template.kind,snapshot.rendered.values)){const card=node('section');card.append(node('strong',t(signer.label)),node('p',t('الاسم')+': '+(signer.name||'……………………')),node('p',t('التوقيع')+': ……………………'));if(signer.fingerprintKey)card.append(node('p',t('البصمة')+': ……………………'));signers.append(card);}
-  paper.append(signers);preview.append(paper);reviewed={...snapshot,digest:hash};controls();d.status.textContent=t('عُرض النص بعد تعبئة الحقول. راجعه ثم افتح PDF؛ لم يُعتمد أو يُحفظ أي مستند.');
- });
- pdf.onclick=()=>run(async()=>{
-  if(!reviewed)throw Error('اعرض المعاينة النهائية بعد آخر تعديل أولًا.');
-  const snapshot=reviewed,current=candidate();if(fingerprint(current)!==fingerprint(snapshot)||current.epoch!==snapshot.epoch){resetPreview();throw Error('تغيرت بيانات المستند؛ أعد المعاينة النهائية.');}
-  const blob=await d.session.operation(async signal=>{
+ async function authenticatedPdf(url,body,{expectedDigest=null,expectedPdfHash=null,archived=false}={}){
+  return d.session.operation(async signal=>{
    const auth=await d.session.client.auth.getSession();check();const session=auth?.data?.session;
    if(!session?.access_token||session.user?.id!==d.session.bound.user)throw Error('تغيرت جلسة الدخول؛ أعد فتح المستند.');
-   const response=await fetch('/api/contract-template-preview',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({workspaceId:d.session.bound.workspace,template:snapshot.template,document:{...snapshot.document,previewDigest:snapshot.digest}}),signal,cache:'no-store',credentials:'same-origin',redirect:'error'});
-   check();if(response.status===409){resetPreview();throw Error('تغيرت البيانات المحفوظة بعد المعاينة؛ أعد فتح المستند ومعاينته.');}
-   if(!response.ok||response.headers.get('content-type')?.split(';')[0]!=='application/pdf')throw Error('تعذر إنشاء PDF للمعاينة.');
-   if(response.headers.get('X-Aqari-Document-SHA256')!==snapshot.digest)throw Error('لم يطابق PDF بيانات المعاينة. أعد فتح المستند.');
-   const result=await response.blob();check();if(result.size<5||result.size>10485760||await result.slice(0,5).text()!=='%PDF-')throw Error('ملف المعاينة ليس PDF صالحًا.');
-   const final=await d.session.client.auth.getSession();check();if(final?.data?.session?.user?.id!==d.session.bound.user||!final?.data?.session?.access_token)throw Error('تغيرت جلسة الدخول؛ لم يتم تنزيل الملف.');return result;
+   const response=await fetch(url,{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify(body),signal,cache:'no-store',credentials:'same-origin',redirect:'error'});
+   check();if(response.status===409)throw Error('تغيرت البيانات المحفوظة بعد المعاينة؛ أعد فتح المستند ومعاينته.');
+   if(!response.ok||response.headers.get('content-type')?.split(';')[0]!=='application/pdf')throw Error(archived?'تعذر تأكيد إصدار المستند أو استرجاع نسخته؛ أعد التحقق بنفس الطلب.':'تعذر إنشاء PDF للمعاينة.');
+   if(expectedDigest&&response.headers.get('X-Aqari-Document-SHA256')!==expectedDigest)throw Error('لم يطابق PDF بيانات المعاينة. أعد فتح المستند.');
+   const blob=await response.blob();check();if(blob.size<5||blob.size>10485760||await blob.slice(0,5).text()!=='%PDF-')throw Error('ملف المعاينة ليس PDF صالحًا.');
+   const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()))].map(x=>x.toString(16).padStart(2,'0')).join('');check();
+   if(expectedPdfHash&&hash!==expectedPdfHash||archived&&response.headers.get('X-Aqari-Archived-SHA256')!==hash)throw Error('لم تتطابق بصمة PDF المحفوظ مع النسخة التي راجعتها.');
+   const final=await d.session.client.auth.getSession();check();if(final?.data?.session?.user?.id!==d.session.bound.user||!final?.data?.session?.access_token)throw Error('تغيرت جلسة الدخول؛ لم يتم تنزيل الملف.');
+   return {blob,hash,documentId:response.headers.get('X-Aqari-Document-Id')};
   });
-  check();if(reviewed!==snapshot)throw Error('تغيرت المعاينة؛ أعد المحاولة بعد مراجعتها.');
-  if(pdfUrl)URL.revokeObjectURL(pdfUrl);pdfUrl=URL.createObjectURL(blob);
-  const open=node('a',t('فتح PDF للمراجعة')),download=node('a',t('تنزيل PDF للمراجعة'));
-  open.href=download.href=pdfUrl;open.target='_blank';open.rel='noopener';download.download='rental-document-'+kind.value+'-preview.pdf';download.rel='noopener';preview.prepend(open,download);download.click();
-  d.status.textContent=t('PDF مطابق للمعاينة وجاهز للمراجعة. لم يُنشأ أو يُعتمد نموذج، ولم يُصدر مستند رسمي.');
+ }
+ function displayPdf(target,url,title,filename){
+  const frame=node('iframe');frame.className='aq267-document-pdf';frame.title=title;frame.src=url;frame.setAttribute('aria-label',title);
+  const open=node('a',t('فتح PDF')),download=node('a',t('تنزيل PDF'));open.href=download.href=url;open.target='_blank';open.rel=download.rel='noopener';download.download=filename;target.append(frame,open,download);return download;
+ }
+ show.onclick=()=>run(async()=>{
+  if(pendingIssue||issuedId)throw Error('النسخة الصادرة ثابتة؛ افتح دورة جديدة لإنشاء مستند آخر.');
+  resetPreview();const snapshot=candidate(),hash=await digest(fingerprint(snapshot));check();if(snapshot.epoch!==epoch)return;
+  const prepared=await authenticatedPdf('/api/contract-template-preview',{workspaceId:d.session.bound.workspace,template:snapshot.template,document:{...snapshot.document,previewDigest:hash}},{expectedDigest:hash});check();if(snapshot.epoch!==epoch)return;
+  pdfBlob=prepared.blob;pdfUrl=URL.createObjectURL(pdfBlob);reviewed={...snapshot,digest:hash,pdfHash:prepared.hash,leaseId:context.links.leaseId};
+  preview.append(node('h3',snapshot.rendered.title||snapshot.template.title),node('p',t('معاينة PDF الفعلية — الملف المعروض هو نفسه ملف التنزيل')));displayPdf(preview,pdfUrl,t('معاينة المستند بصيغة PDF — A4'),'rental-document-'+kind.value+'-preview.pdf');
+  const text=node('details');text.append(node('summary',t('قراءة نص المستند')));for(const clause of snapshot.rendered.clauses){const article=node('article');article.append(node('h4',clause.title),node('p',clause.text));text.append(article);}preview.append(text);
+  issueSection.hidden=false;controls();d.status.textContent=t('PDF جاهز للمراجعة. لم يُصدر المستند؛ الإصدار يحتاج اختيارك الصريح أدناه.');
  });
- d.onDispose(()=>{epoch++;resetPreview();fields.clear();payload=data=tables=context=null;templates=[];});
+ pdf.onclick=()=>run(async()=>{
+  if(!reviewed||!pdfBlob||!pdfUrl)throw Error('اعرض المعاينة النهائية بعد آخر تعديل أولًا.');
+  if(fingerprint(candidate())!==fingerprint(reviewed)){resetPreview();throw Error('تغيرت بيانات المستند؛ أعد المعاينة النهائية.');}
+  const download=node('a');download.href=pdfUrl;download.download='rental-document-'+kind.value+(issuedId?'-issued':'-preview')+'.pdf';download.rel='noopener';download.click();
+  d.status.textContent=t('نُزّل نفس PDF المعروض دون تغيير.');
+ });
+ approval.onchange=issueReason.oninput=controls;
+ issue.onclick=()=>run(async()=>{
+  if(issuedId)throw Error('المستند صادر ومحفوظ؛ افتحه من الأرشيف.');
+  if(!reviewed||!pdfBlob||!approval.checked||issueReason.value.trim().length<6)throw Error('راجع PDF وأكد الإصدار وأدخل سببه.');
+  if(fingerprint(candidate())!==fingerprint(reviewed))throw Error('تغيرت بيانات المستند؛ أعد المعاينة قبل الإصدار.');
+  pendingIssue||={workspaceId:d.session.bound.workspace,requestId:crypto.randomUUID(),templateId:reviewed.template.id,leaseId:reviewed.leaseId,propertyId:selectedPropertyId,...(reviewed.document.receiptId?{receiptId:reviewed.document.receiptId}:{}),values:copy(reviewed.document.values),previewDigest:reviewed.digest,reviewedPdfSha256:reviewed.pdfHash,approved:true,reason:issueReason.value.trim()};controls();
+  const result=await authenticatedPdf('/api/rental-document',pendingIssue,{expectedDigest:reviewed.digest,expectedPdfHash:reviewed.pdfHash,archived:true});check();
+  if(!result.documentId)throw Error('لم يتأكد رقم المستند الصادر؛ أعد التحقق بنفس الطلب.');
+  issuedId=result.documentId;pendingIssue=null;issueSection.hidden=true;controls();await loadArchive();d.status.textContent=t('صدر المستند بطلبك وحُفظت نسخته النهائية ثابتة في أرشيف العقار والعقد.');
+ });
+ async function loadArchive(){
+  const result=scoped(await rpc('aqari_rental_document_archive',{p_workspace_id:d.session.bound.workspace,p_action:'list',p_data:{property_id:selectedPropertyId,...(context?.links.leaseId?{lease_id:context.links.leaseId}:{})}}));
+  if(!Array.isArray(result.items)||result.items.some(item=>key(item.property_id)!==selectedPropertyId||context?.links.leaseId&&item.lease_id!==context.links.leaseId))throw Error('تعذر تأكيد نطاق أرشيف العقار والعقد.');
+  for(const url of archiveUrls)URL.revokeObjectURL(url);archiveUrls.clear();archive.replaceChildren(node('h3',t('النسخ النهائية الصادرة — للقراءة فقط')));
+  if(!result.items.length)archive.append(node('p',t('لا توجد مستندات صادرة في هذا النطاق.')));
+  for(const item of result.items){const card=node('article'),open=node('button',t('عرض النسخة المحفوظة')),output=node('section');open.type='button';card.append(node('h4',item.title),node('p',t('إصدار النموذج: ')+item.template_version+' · '+item.issued_at),open,output);archive.append(card);
+   open.onclick=()=>run(async()=>{const result=await authenticatedPdf('/api/rental-document',{action:'get',workspaceId:d.session.bound.workspace,documentId:item.id,propertyId:selectedPropertyId},{expectedPdfHash:item.pdf_sha256,archived:true});check();if(result.documentId!==item.id)throw Error('نسخة الأرشيف لا تطابق المستند المطلوب.');const url=URL.createObjectURL(result.blob);archiveUrls.add(url);output.replaceChildren();displayPdf(output,url,t('النسخة النهائية المحفوظة'),'rental-document-'+item.id+'.pdf');});
+  }
+ }
+ d.onDispose(()=>{epoch++;resetPreview();for(const url of archiveUrls)URL.revokeObjectURL(url);archiveUrls.clear();fields.clear();pendingIssue=null;payload=data=tables=context=null;templates=[];});
  const [saved,templateContext]=await Promise.all([
   rpc('aqari_read_state_v267',{p_workspace_id:d.session.bound.workspace}),
   rpc('aqari_rental_templates',{p_workspace_id:d.session.bound.workspace,p_action:'context',p_data:{}})
@@ -159,6 +214,7 @@ export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}
  scoped(saved,false);scoped(templateContext);
  if(templateContext.can_publish!==true||!Array.isArray(templateContext.items)||!templateContext.items.every(validTemplate))throw Error('تعذر تأكيد صلاحية المدير والنماذج المعتمدة.');
  payload=saved.payload;data=primary(payload);if(!data||!Array.isArray(data.contractsV202))throw Error('تعذر قراءة العقود المحفوظة.');templates=templateContext.items;
+ await loadPropertyScope();
  const tenantMap=new Map();for(const c of data.contractsV202){const id=tenantRef(c);if(!id)continue;const profile=(data.tenantProfilesV267||[]).find(row=>identities(row).includes(id));tenantMap.set(id,profile?.nameAr||profile?.nameEn||c.tenant||id);}
  tenant.replaceChildren(option('',t('كل المستأجرين')),...[...tenantMap].map(([id,label])=>option(id,label)));tenant.value='';
  drawContracts(contractId?key(contractId):'');drawTemplates();controls();
@@ -167,7 +223,8 @@ export async function mountRentalDocumentCycle(d,target,{contractId=null,onBack}
 }
 
 export function openRentalDocumentCycle(options={}){
- const d=createDialog(t('دورة مستندات الإيجار'));if(!d)return false;
+ if(!options.propertyId&&!options.contractId)return import('./rental-contracts.js').then(module=>module.openRentalContracts());
+ const d=createPage(t('دورة مستندات الإيجار'));if(!d)return false;
  d.el.classList.add('aq267-contract-template-dialog');
  if(!document.getElementById('aq267-contract-template-css')){const css=node('link');css.id='aq267-contract-template-css';css.rel='stylesheet';css.href='/src/v267/styles/contract-template-studio.css?release=V267';document.head.append(css);}
  d.run(()=>mountRentalDocumentCycle(d,d.body,options));return true;
