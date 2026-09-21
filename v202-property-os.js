@@ -2082,6 +2082,21 @@
     },140);
   }
 
+  async function openAuthoritativePropertyFile(name){
+    if(!protectedAccessReady())return false;
+    const bridge=window.AQARI_SUPABASE;
+    const workspace=bridge?.context?.workspace?.id;
+    const propertyName=String(name||'').trim();
+    if(!workspace||!propertyName||typeof bridge?.getClient!=='function')return false;
+    const client=await bridge.getClient();
+    const {data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).eq('name',propertyName).limit(2);
+    if(error)throw error;
+    if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد.':'لم يتم ربط العقار بالسجل الخادمي.');
+    const page=await import('./src/v267/pages/property-hub.js');
+    if(!protectedAccessReady())return false;
+    return page.openPropertyHub(data[0].id);
+  }
+
   function routeAction(action,trigger){
     if(!protectedAccessReady())return false;
     if(action==='sender-settings'){
@@ -2115,8 +2130,7 @@
         window.go?.('property360Page');
         return selectPropertyOnPage('property360SelectV58','renderProperty360V58');
       };
-      const openComplete=window.AQARI_PROPERTY_EXPERIENCE?.openCompleteFileByName;
-      if(typeof openComplete!=='function')return legacyProfile();
+      const openComplete=window.AQARI_PROPERTY_EXPERIENCE?.openCompleteFileByName||openAuthoritativePropertyFile;
       return Promise.resolve(openComplete(propertyName)).then(function(result){
         if(result===false)return legacyProfile();
         closeWorkspace(false);
@@ -4085,4 +4099,3 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
 })();
-
