@@ -4492,8 +4492,8 @@
     },
     {
       "path": "v267-unified.css",
-      "sha256": "adeb9615037a76983ad39144fbd978c2608dd5fb792cb15b34937f300391e827",
-      "size": 9202
+      "sha256": "db5069ae3c95cd7bf56b6669565c5392e40b417cb1594504e2d62e11aa51a32f",
+      "size": 10730
     },
     {
       "path": "vercel.json",
