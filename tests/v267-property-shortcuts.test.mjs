@@ -86,3 +86,15 @@ test('property cards hydrate from canonical server rows and mount on the propert
  assert.match(experience,/installed=\{refresh,api:propertyApi\}/);
  assert.match(experience,/window\.AQARI_PROPERTY_EXPERIENCE=installed\.api/);
 });
+
+test('operational property file exposes the historical contract archive and preserves property scope',()=>{
+ assert.match(propertyOs,/data-v202-action="contract-archive"/);
+ assert.match(propertyOs,/رفع عقد قديم/);
+ assert.match(propertyOs,/role==='general_manager'/);
+ assert.match(propertyOs,/import\('\.\/src\/v267\/pages\/contract-archive\.js'\)/);
+ assert.match(propertyOs,/openContractArchive\(\{property_id:data\[0\]\.id\}\)/);
+ const archive=read('src/v267/pages/contract-archive.js');
+ assert.match(archive,/filters\.property_id&&properties\.some\(r=>r\.id===filters\.property_id\)/);
+ assert.match(archive,/property\.value=filters\.property_id;property\.onchange\(\)/);
+ assert.match(archive,/أرشيف فقط: لا ينشئ عقدًا جديدًا أو إشغالًا أو تحصيلًا/);
+});
