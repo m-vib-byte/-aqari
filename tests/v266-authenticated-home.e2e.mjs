@@ -11,10 +11,10 @@ import { checkV267AuthenticatedPresentation } from './v267-presentation-checks.m
 // interception in WebKit. No production account, token or tenant data is used.
 const root=process.cwd(),out=path.join(root,'test-results','authenticated-home');
 fs.mkdirSync(out,{recursive:true});
-const response=await fetch('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js');
+const response=await fetch('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js');
 assert.ok(response.ok);
 const sdk=Buffer.from(await response.arrayBuffer());
-assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'),'0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi');
+assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'),'JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp');
 const base='http://127.0.0.1:4173';
 const isolatedOrigin='https://ofgmcsmxmdswlovsckqs.supabase.co';
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
@@ -93,7 +93,7 @@ const server=http.createServer((req,res)=>{
     };
     res.writeHead(200,{'content-type':'text/javascript'});res.end('window.AQARI_PUBLIC_CONFIG='+JSON.stringify({releaseStage:'preview',supabaseUrl:isolatedOrigin,supabasePublishableKey:'sb_publishable_synthetic',supabaseAuthStorageKey:'aqari-supabase-auth-v198'})+';('+localTransport.toString()+')('+JSON.stringify(isolatedOrigin)+','+JSON.stringify(base)+');');return;
   }
-  if(name==='vendor/supabase-js-2.114.0.js'){res.writeHead(200,{'content-type':'text/javascript'});res.end(sdk);return;}
+  if(name==='vendor/supabase-js-2.116.0.js'){res.writeHead(200,{'content-type':'text/javascript'});res.end(sdk);return;}
   const file=path.resolve(root,name);
   if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.writeHead(404);res.end('Not found');return;}
   const type={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'}[path.extname(name)]||'application/octet-stream';
