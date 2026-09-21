@@ -18,8 +18,8 @@ assert.equal(config.rewrites.filter(item => item.source === '/').length, 1);
 assert.equal(rewrite('/login')?.destination, '/login.html');
 assert.equal(rewrite('/app')?.destination, '/index.html');
 assert.equal(
-  rewrite('/vendor/supabase-js-2.114.0.js')?.destination,
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js'
+  rewrite('/vendor/supabase-js-2.116.0.js')?.destination,
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js'
 );
 
 const rootHeaders = config.headers.find((item) => item.source === '/')?.headers || [];
