@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const owner=read('src/v267/owner-feedback-runtime.js');
 const live=read('src/v267/live-stability-runtime.js');
+const propertyOs=read('v202-property-os.js');
 function action({active=true,writable=true,fail=false}={}){
  const calls=[],errors=[];
  const box={scope:()=>active?{user:'u',workspace:'w'}:null,t:x=>x,setStatus:x=>errors.push(x),window:{AQARI_PROPERTY_EXPERIENCE:{canWrite:()=>writable,openOnboarding:async()=>{calls.push(['create']);return true;},openCompleteFileByName:async name=>{calls.push(['file',name]);if(fail)throw Error('private backend detail');return true;}}}};
@@ -46,4 +47,12 @@ test('source properties open the same complete file as every other property and 
  calls.length=0;await context.full('برج ضحاوي');assert.ok(calls.some(x=>x[0]==='open'&&x[1]==='source-property-id'));assert.equal(calls.some(x=>x[0]==='filter'),false);
  calls.length=0;manager=false;await assert.rejects(context.open('برج ضحاوي'),/مدير العام/);assert.equal(calls.length,0);
  manager=true;records=[{id:'a'},{id:'b'}];await assert.rejects(context.open('برج ضحاوي'),/غير فريد/);assert.equal(calls.some(x=>x[0]==='open'),false);
+});
+
+test('legacy property workspace opens the authoritative complete file and keeps property 360 as fallback',()=>{
+ assert.match(propertyOs,/const openComplete=window\.AQARI_PROPERTY_EXPERIENCE\?\.openCompleteFileByName/);
+ assert.match(propertyOs,/Promise\.resolve\(openComplete\(propertyName\)\)/);
+ assert.match(propertyOs,/if\(result===false\)return legacyProfile\(\)/);
+ assert.match(propertyOs,/\.catch\(legacyProfile\)/);
+ assert.match(propertyOs,/window\.go\?\.\('property360Page'\)/);
 });
