@@ -3982,8 +3982,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "d5c214c21d9a7723e7d1f14e5cae88f2428ce4e608c12524e4d63bc50873cacd",
-      "size": 5135
+      "sha256": "0fec8196078c3c3af710348ee25ec5ec54b2adfa6601efc9d44b88368222d2e9",
+      "size": 5488
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
@@ -4222,8 +4222,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "6a18bbcc45d7ff2cc88597f73802261a2a370325d5ecb5af8b665801fb315167",
-      "size": 282569
+      "sha256": "91ed2c3e369e96cfa62ebeb37c734c77a492591c77bb3e6419bbc59fe8e7cf65",
+      "size": 283403
     },
     {
       "path": "v205-simple.css",
