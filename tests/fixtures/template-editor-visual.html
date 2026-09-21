@@ -40,6 +40,7 @@ if(!embedded){
     button.onclick=()=>{frame.style.width=width+'px';frame.style.height=height+'px';for(const item of controls.querySelectorAll('[data-width]'))item.setAttribute('aria-pressed',String(item===button));};controls.append(button);
   }
   const reset=make('button','إعادة الاختبار'),close=make('button','اختبار حفظ قبل الإغلاق');reset.type=close.type='button';reset.onclick=()=>{frame.srcdoc=embeddedSource;};close.onclick=()=>frame.contentWindow.postMessage({type:'aqari-editor-fixture-close'},fixtureOrigin);controls.append(reset,close);
+  for(const [label,action] of [['فتح نسخة للقراءة فقط','readonly'],['فتح المسودة التجريبية','draft'],['اختيار ملف شعار TEST A','file-a'],['اختيار ملف شعار TEST B','file-b']]){const button=make('button',label);button.type='button';button.onclick=()=>frame.contentWindow.postMessage({type:'aqari-editor-fixture-action',action},fixtureOrigin);controls.append(button);}
   panel.append(title,note,controls,metrics);area.append(frame);document.body.append(panel,area);
   window.addEventListener('message',event=>{if(event.origin!==fixtureOrigin||event.source!==frame.contentWindow||event.data?.type!=='aqari-editor-fixture-metrics')return;metrics.textContent=JSON.stringify(event.data.metrics,null,2);window.templateEditorFixtureMetrics=event.data.metrics;});
 }else{
@@ -86,16 +87,44 @@ if(!embedded){
   const {mountRentalTemplateManager}=await import('/src/v267/components/rental-templates.js');
   const originalText=Array.from({length:36},(_,index)=>`${index+1}- بند اصطناعي لاختبار ترتيب الصفحات والكتابة فقط. `+
     'هذا نص عربي تجريبي لفحص التفاف السطور وتوزيع الفقرات داخل ورقة العقد، مع المحافظة على الفراغات والكلمات كما كُتبت. '.repeat(5)+
-    'English layout verification keeps this original paragraph unchanged. '+(index===0?'اسم المستأجر {{tenant_name}}، ووصف الملحق {{custom_annex}}. ':'')).join('\n\n');
-  const source={id:'89910000-0000-4000-8000-000000000101',family_id:'89910000-0000-4000-8000-000000000101',kind:'shop',kind_label:'محل تجريبي',title:'عقد تجريبي — ترتيب ٣٦ فقرة',revision:1,status:'draft',fields:[{key:'tenant_name',label:'اسم المستأجر',type:'text',required:true},{key:'custom_annex',label:'وصف الملحق / Annex description',type:'text',required:false}],clauses:[{title:'عقد اصطناعي للتحقق من تنسيق الصفحات',text:originalText}]};
+    'English layout verification keeps this original paragraph unchanged. '+(index===0?'اسم المستأجر {{tenant_name}}، ووصف الملحق {{custom_annex}}. وحقل قديم يحتاج تحديد {{field_name}}. ':'')).join('\n\n');
+  const source={id:'89910000-0000-4000-8000-000000000101',family_id:'89910000-0000-4000-8000-000000000101',kind:'shop',kind_label:'محل تجريبي',title:'عقد تجريبي — ترتيب ٣٦ فقرة',revision:1,status:'draft',fields:[{key:'tenant_name',label:'اسم المستأجر',type:'text',required:true},{key:'custom_annex',label:'وصف الملحق / Annex description',type:'text',required:false}],clauses:[{title:'عقد اصطناعي للتحقق من تنسيق الصفحات',text:originalText},{title:'ملحق تجريبي أ',text:'فقرة قصيرة اصطناعية لاختبار نقل البنود والتراجع عن ترتيبها. Synthetic annex A.'},{title:'ملحق تجريبي ب',text:'فقرة ثانية اصطناعية لاختبار الترتيب دون فقدان الكلمات. Synthetic annex B.'}]};
   const originalBytes=JSON.stringify(source),memory=new Map([[source.id,structuredClone(source)]]),history=new Map([[source.id,[structuredClone(source)]]]);
-  let saveCount=0,beforeClose=null,manager=null,closed=false,lastAction='mount',lastError='',timer;
+  let saveCount=0,propertySaveCount=0,uploadCount=0,storageReadCount=0,readonlyOpened=false,readonlySaveBaseline=0,beforeClose=null,manager=null,closed=false,lastAction='mount',lastError='',timer;
   const cleanup=new Set(),workspace='89910000-0000-4000-8000-000000000001',user='89910000-0000-4000-8000-000000000002';
+  const properties=new Map(),documents=new Map(),storageObjects=new Map(),fixtureFiles=new Map();
+  const hashBlob=async blob=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer())),byte=>byte.toString(16).padStart(2,'0')).join('');
+  // Synthetic PNGs contain only TEST A/B. They are not uploaded user logos.
+  for(const [letter,suffix,color] of [['A','011','#806128'],['B','012','#235878']]){
+    const canvas=make('canvas');canvas.width=360;canvas.height=160;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,360,160);ctx.strokeStyle=color;ctx.lineWidth=8;ctx.strokeRect(7,7,346,146);ctx.fillStyle=color;ctx.font='bold 54px Arial';ctx.textAlign='center';ctx.fillText('TEST '+letter,180,88);ctx.font='18px Arial';ctx.fillText('SYNTHETIC PROPERTY '+letter,180,127);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw Error('تعذر تجهيز صورة الاختبار.');
+    const file=new File([blob],'fixture-test-'+letter.toLowerCase()+'.png',{type:'image/png'});fixtureFiles.set(letter,file);
+    const id='89910000-0000-4000-8000-000000000'+suffix,documentId='89910000-0000-4000-8000-000000000'+(letter==='A'?'021':'022'),externalRef='fixture-property-'+letter.toLowerCase(),path=workspace+'/fixture/'+documentId+'.png';
+    properties.set(id,{id,workspace_id:workspace,external_ref:externalRef,externalRef,name:'عقار اختباري '+letter+' — TEST '+letter,revision:1,address:'عنوان اصطناعي '+letter,type:'building',status:'active',statedIncome:null,owners:[],email:'',phone:'',whatsapp:'',description:'بيانات اختبار فقط',assets:{logo:documentId,titleDeed:null,photos:[],plans:[],documents:[]}});
+    documents.set(documentId,{id:documentId,workspace_id:workspace,created_by:user,status:'uploaded',entity_type:'property',entity_ref:externalRef,document_type:'supporting_document',metadata:{category:'property_logo',asset_role:'property_logo',original_bytes:true},storage_bucket:'aqari-documents',storage_path:path,mime_type:blob.type,size_bytes:blob.size,checksum_sha256:await hashBlob(blob)});storageObjects.set(path,blob);
+  }
+  const propertyBaseline=JSON.stringify(Array.from(properties.values()));
   const page=make('main'),back=make('button','إغلاق الاختبار'),heading=make('h1','محرر تجريبي — لا توجد بيانات حقيقية'),status=make('p'),target=make('div');
   page.className='aq267-page aq267-dialog';page.dir='rtl';page.lang='ar';page.setAttribute('aria-label','محرر تجريبي بذاكرة مؤقتة');back.type='button';back.className='aq267-close aq267-page-back';heading.className='aq267-dialog-title';target.className='aq267-dialog-body';status.setAttribute('role','status');page.append(back,heading,status,target);document.body.append(page);
   async function rpc(name,args){
     if(closed)throw Error('أُغلق الاختبار.');
-    if(name!=='aqari_rental_templates'||args.p_workspace_id!==workspace)throw Error('الاختبار يمنع الطلب غير المحلي.');
+    if(name==='aqari_finalize_document'){
+      const doc=documents.get(args.p_document_id),blob=doc&&storageObjects.get(doc.storage_path);if(!doc||!blob||blob.size!==args.p_size_bytes||await hashBlob(blob)!==args.p_checksum)throw Error('تعذر تأكيد ملف الاختبار.');
+      Object.assign(doc,{status:'uploaded',mime_type:args.p_mime_type,size_bytes:args.p_size_bytes,checksum_sha256:args.p_checksum});lastAction='finalize_document';return {id:doc.id,status:doc.status};
+    }
+    if(args.p_workspace_id!==workspace)throw Error('الاختبار يمنع الطلب خارج مساحة الاختبار.');
+    const envelope={workspace_id:workspace,user_id:user};
+    if(name==='aqari_workspace_access')return {...envelope,role:'general_manager',permissions:{properties:{read:true,write:true},documents:{read:true,write:true}}};
+    if(name==='aqari_property_full_file'){const property=properties.get(args.p_property_id);if(!property)throw Error('عقار الاختبار غير موجود.');lastAction='read_property';return {...envelope,property:structuredClone(property),documents:Array.from(documents.values()).filter(doc=>doc.entity_ref===property.externalRef).map(doc=>structuredClone(doc))};}
+    if(name==='aqari_property_master_save'){
+      const property=properties.get(args.p_property_id);if(!property||property.revision!==args.p_expected_revision)throw Error('PROPERTY_REVISION_CONFLICT');
+      const data=structuredClone(args.p_data),logoDoc=documents.get(data.assets?.logo);if(!logoDoc||logoDoc.status!=='uploaded'||logoDoc.entity_ref!==property.externalRef)throw Error('شعار الاختبار لا يتبع هذا العقار.');Object.assign(property,data,{revision:property.revision+1});propertySaveCount+=1;lastAction='save_property_logo';return {...envelope,property:structuredClone(property)};
+    }
+    if(name==='aqari_reserve_document'){
+      if(args.p_entity_type!=='property'||!Array.from(properties.values()).some(property=>property.externalRef===args.p_entity_ref)||args.p_metadata?.category!=='property_logo')throw Error('حجز المستند محصور بشعار عقار الاختبار.');
+      const id=crypto.randomUUID(),path=workspace+'/fixture/'+id+'.png',doc={id,workspace_id:workspace,created_by:user,status:'reserved',entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata),storage_bucket:'aqari-documents',storage_path:path,mime_type:args.p_mime_type};documents.set(id,doc);lastAction='reserve_document';return [{document_id:id,storage_bucket:doc.storage_bucket,storage_path:path}];
+    }
+    if(name!=='aqari_rental_templates')throw Error('الاختبار يمنع RPC غير المحلي.');
     const action=args.p_action,data=structuredClone(args.p_data||{});lastAction=action;
     const reply={workspace_id:workspace,user_id:user};
     if(action==='context')return {...reply,can_publish:true,items:[],drafts:[...memory.values()].map(row=>structuredClone(row)),revisable_ids:[]};
@@ -106,15 +135,37 @@ if(!embedded){
     memory.set(record.id,structuredClone(record));history.set(record.id,[...(history.get(record.id)||[]),structuredClone(record)]);saveCount+=1;
     return {...reply,record:structuredClone(record)};
   }
-  const d={el:page,body:target,status,session:{bound:{workspace,user},client:{rpc,auth:{getSession:async()=>{throw Error('PDF غير متاح في هذا الاختبار المحلي.');}}},request:async result=>await result,check:()=>{if(closed)throw Error('أُغلق الاختبار.');},operation:async operation=>operation(new AbortController().signal)},
+  function from(table){
+    if(!['aqari_properties','aqari_documents'].includes(table))throw Error('جدول غير متاح في الاختبار.');
+    const filters=[],query={select(){return query;},eq(key,value){filters.push([key,value]);return query;},order(){return query;},range(start,end){query.bounds=[start,end];return query;},single(){return Promise.resolve(read(true));},then(resolve,reject){return Promise.resolve().then(()=>read(false)).then(resolve,reject);}};
+    function read(single){if(closed)throw Error('أُغلق الاختبار.');if(!filters.some(([key,value])=>key==='workspace_id'&&value===workspace))throw Error('يجب تحديد مساحة الاختبار.');let rows=Array.from((table==='aqari_properties'?properties:documents).values()).filter(row=>filters.every(([key,value])=>row[key]===value));rows.sort((a,b)=>a.id.localeCompare(b.id));if(query.bounds)rows=rows.slice(query.bounds[0],query.bounds[1]+1);if(single&&rows.length!==1)throw Error('سجل الاختبار غير محدد.');return structuredClone(single?rows[0]:rows);}
+    return query;
+  }
+  async function storage(method,path,blob,bucket='aqari-documents'){
+    if(closed||bucket!=='aqari-documents'||!path.startsWith(workspace+'/fixture/'))throw Error('التخزين محصور بذاكرة الاختبار.');
+    if(method==='GET'){const found=storageObjects.get(path);if(!found)throw Object.assign(Error('ملف الاختبار غير موجود.'),{status:404});storageReadCount+=1;return found.slice(0,found.size,found.type);}
+    if(method==='POST'){if(storageObjects.has(path))throw Object.assign(Error('ملف الاختبار موجود.'),{status:409});if(!(blob instanceof Blob))throw Error('ملف الاختبار غير صالح.');storageObjects.set(path,blob.slice(0,blob.size,blob.type));uploadCount+=1;return {};}
+    throw Error('عملية التخزين غير متاحة في الاختبار.');
+  }
+  const d={el:page,body:target,status,session:{bound:{workspace,user,role:'general_manager'},client:{rpc,from,auth:{getSession:async()=>{throw Error('PDF غير متاح في هذا الاختبار المحلي.');}}},request:async result=>await result,storage,check:()=>{if(closed)throw Error('أُغلق الاختبار.');},operation:async operation=>operation(new AbortController().signal)},
     run:async task=>{try{await task();lastError='';}catch(error){lastError=String(error?.message||error);status.textContent=lastError;}finally{publishMetrics();}},
     onDispose:callback=>{cleanup.add(callback);return ()=>cleanup.delete(callback);},setBeforeClose:callback=>{beforeClose=callback;return ()=>{if(beforeClose===callback)beforeClose=null;};}};
-  const metrics=()=>{const current=manager?.current?.data?.(),text=current?.clauses?.[0]?.text??originalText;return {testFixture:true,persistence:'memory only',viewport:{width:innerWidth,height:innerHeight},memorySaveCount:saveCount,originalSourcePreserved:JSON.stringify(source)===originalBytes,currentClauseExactOriginal:text===originalText,originalClauseTextLength:originalText.length,currentClauseTextLength:text.length,currentClauseCount:current?.clauses?.length??1,currentFieldCount:current?.fields?.length??2,currentRevision:current?.revision??1,currentTypography:current?.presentation?.typography??null,pageCount:page.querySelectorAll('.aq267-a4-sheet').length,fragmentCount:page.querySelectorAll('.aq267-a4-clause-text').length,dirty:manager?.current?.saver?.dirty??false,closed,lastAction,lastError};};
+  const metrics=()=>{const current=manager?.current?.data?.(),clauses=current?.clauses??source.clauses,text=clauses.find(clause=>clause.title===source.clauses[0].title)?.text??'';return {testFixture:true,persistence:'memory only',viewport:{width:innerWidth,height:innerHeight},memorySaveCount:saveCount,originalSourcePreserved:JSON.stringify(source)===originalBytes,currentClauseExactOriginal:text===originalText,allOriginalClauseTextsPreserved:source.clauses.every(original=>clauses.some(clause=>clause.title===original.title&&clause.text===original.text)),originalOrderPreserved:JSON.stringify(clauses.map(clause=>clause.title))===JSON.stringify(source.clauses.map(clause=>clause.title)),originalClauseTextLength:originalText.length,currentClauseTextLength:text.length,currentClauseCount:clauses.length,currentFieldCount:current?.fields?.length??2,currentRevision:current?.revision??1,currentTypography:current?.presentation?.typography??null,currentEditor:current?.presentation?.editor??null,currentPlacements:current?.presentation?.placements??[],propertyLogoMemorySaves:propertySaveCount,uploadedFilesInMemory:uploadCount,logoStorageReads:storageReadCount,propertyDataUnchanged:JSON.stringify(Array.from(properties.values()))===propertyBaseline,propertyLogos:Array.from(properties.values()).map(property=>({id:property.id,name:property.name,revision:property.revision,logo:property.assets.logo})),readonlyOpened,readonlyRendered:!!page.querySelector('[contenteditable]')&&!page.querySelector('[contenteditable="true"]'),readonlyAdditionalSaves:readonlyOpened?saveCount-readonlySaveBaseline:0,pageCount:page.querySelectorAll('.aq267-a4-sheet').length,fragmentCount:page.querySelectorAll('.aq267-a4-clause-text').length,unresolvedChips:page.querySelectorAll('.aq267-template-chip.is-unresolved').length,dirty:manager?.current?.saver?.dirty??false,closed,lastAction,lastError};};
   function publishMetrics(){const value=metrics();window.templateEditorFixtureMetrics=value;if(parent!==window)parent.postMessage({type:'aqari-editor-fixture-metrics',metrics:value},fixtureOrigin);}
   async function closeFixture(){if(closed)return;try{if(beforeClose&&await beforeClose()===false)return;manager?.current?.saver?.dispose();manager?.current?.revoke();closed=true;for(const callback of cleanup)callback();clearInterval(timer);status.textContent='أُغلق الاختبار؛ جميع التغييرات كانت في الذاكرة فقط.';target.hidden=true;}catch(error){lastError=String(error?.message||error);status.textContent=lastError;}publishMetrics();}
   back.onclick=closeFixture;
-  window.addEventListener('message',event=>{if(event.origin===fixtureOrigin&&event.source===parent&&event.data?.type==='aqari-editor-fixture-close')closeFixture();});
-  try{manager=await mountRentalTemplateManager(d,target);manager.openEditor(structuredClone(source));window.templateEditorFixture={metrics,getCurrent:()=>structuredClone(manager.current.data()),getMemory:()=>[...memory.values()].map(row=>structuredClone(row)),close:closeFixture};timer=setInterval(publishMetrics,350);publishMetrics();}catch(error){lastError=String(error?.stack||error);status.textContent=lastError;publishMetrics();}
+  async function fixtureAction(action){
+    if(!manager||closed)return;
+    if(action==='readonly'||action==='draft'){
+      if(manager.current?.saver?.dirty)await manager.current.saver.flush();readonlyOpened=action==='readonly';readonlySaveBaseline=saveCount;
+      manager.openEditor(structuredClone(readonlyOpened?history.get(source.id)[0]:memory.get(source.id)),{readonly:readonlyOpened});lastAction=readonlyOpened?'open_readonly':'open_draft';
+    }else if(action==='file-a'||action==='file-b'){
+      const input=page.querySelector('input[name="template_logo_file"]');if(!input||input.disabled)throw Error('افتح أدوات الشعار وحدد العقار أولًا.');const transfer=new DataTransfer();transfer.items.add(fixtureFiles.get(action==='file-a'?'A':'B'));input.files=transfer.files;input.dispatchEvent(new Event('change',{bubbles:true}));lastAction='select_fixture_logo_file';
+    }
+    publishMetrics();
+  }
+  window.addEventListener('message',event=>{if(event.origin!==fixtureOrigin||event.source!==parent)return;if(event.data?.type==='aqari-editor-fixture-close')closeFixture();else if(event.data?.type==='aqari-editor-fixture-action')d.run(()=>fixtureAction(event.data.action));});
+  try{manager=await mountRentalTemplateManager(d,target);manager.openEditor(structuredClone(source));window.templateEditorFixture={metrics,getCurrent:()=>structuredClone(manager.current.data()),getMemory:()=>[...memory.values()].map(row=>structuredClone(row)),getProperties:()=>Array.from(properties.values()).map(row=>structuredClone(row)),fixtureAction,close:closeFixture};timer=setInterval(publishMetrics,350);publishMetrics();}catch(error){lastError=String(error?.stack||error);status.textContent=lastError;publishMetrics();}
 }
 </script>
 </body>

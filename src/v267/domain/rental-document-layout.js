@@ -1,5 +1,7 @@
 // Additive presentation metadata. Legal titles, clauses and field definitions
 // are never normalized or rewritten by this module.
+import {validateTemplateEditor,templateFieldTokenPattern} from './template-editor-metadata.js';
+export {validateTemplateEditor,isTemplateSourceBoundary} from './template-editor-metadata.js';
 const roles=Object.freeze(['owner','tenant','receiver','accountant']);
 const languages=Object.freeze(['ar','en','bilingual']);
 const identifier=/^[a-z][a-z0-9_]{1,49}$/;
@@ -29,9 +31,9 @@ export function defaultTemplatePresentation(kind='rental_agreement'){
  * Logo content is resolved from the selected property's protected assets;
  * presentation never accepts an image URL, path, HTML or embedded image data.
  */
-export function validateTemplatePresentation(presentation,fields=[]){
+export function validateTemplatePresentation(presentation,fields=[],clauses){
  if(presentation===undefined||presentation===null)return null;
- keys(presentation,['version','paper','language','logo','signers','placements','typography'],['version','paper','language','logo','signers','placements']);
+ keys(presentation,['version','paper','language','logo','signers','placements','typography','editor'],['version','paper','language','logo','signers','placements']);
  if(presentation.version!==1||presentation.paper!=='A4')fail('اختر تنسيق صفحة A4 المدعوم.');
  keys(presentation.logo,['enabled','source']);if(presentation.logo.source!=='property')fail('اختر شعار العقار المحفوظ من ملف العقار.');
  const logo={enabled:bool(presentation.logo.enabled),source:'property'};
@@ -47,9 +49,9 @@ export function validateTemplatePresentation(presentation,fields=[]){
   keys(item,['id','field_key','page','x_mm','y_mm','width_mm','height_mm','font_pt','language']);
   if(typeof item.id!=='string'||!/^[a-zA-Z0-9_-]{1,64}$/.test(item.id)||ids.has(item.id))fail('تكرر معرّف موضع الحقل؛ احذف الموضع المكرر وأعد إضافته.');
   ids.add(item.id);
-  const key=item.field_key,signer=/^(owner|tenant|receiver|accountant)_(name|signature|fingerprint)$/.exec(key||'');
+  const key=item.field_key,signer=/^(owner|tenant|receiver|accountant)_(name|signature|fingerprint|civil_id|nationality)$/.exec(key||'');
   if(typeof key!=='string'||!identifier.test(key)||forbidden.has(key)||!declared.has(key)&&!signer)fail('اختر حقلًا معرّفًا في النموذج قبل وضعه على الصفحة.');
-  if(signer&&!declared.has(key)&&presentation.signers[signer[1]]?.[signer[2]]!==true)fail('فعّل خانة الطرف المطلوبة قبل وضعها على الصفحة.');
+  if(signer&&!declared.has(key)&&(['civil_id','nationality'].includes(signer[2])?presentation.editor?.signers?.details?.[signer[1]]?.[signer[2]]:presentation.signers[signer[1]]?.[signer[2]])!==true)fail('فعّل خانة الطرف المطلوبة قبل وضعها على الصفحة.');
   if(!Number.isInteger(item.page)||item.page<1||item.page>50)fail('اختر رقم صفحة بين ١ و٥٠.');
   const x=finite(item.x_mm,8,194,'موضع الحقل الأفقي'),y=finite(item.y_mm,8,285,'موضع الحقل الرأسي'),width=finite(item.width_mm,8,194,'عرض الحقل'),height=finite(item.height_mm,4,281,'ارتفاع الحقل');
   if(x+width>202+1e-8||y+height>289+1e-8)fail('الحقل يتجاوز مساحة صفحة A4؛ حرّكه أو صغّره داخل الهوامش.');
@@ -63,11 +65,12 @@ export function validateTemplatePresentation(presentation,fields=[]){
   if(!['start','center','end','justify'].includes(value.alignment))fail('اختر محاذاة النص من أدوات تنسيق الصفحة.');
   result.typography={font_pt:finite(value.font_pt,10,18,'حجم خط العقد'),line_height:finite(value.line_height,1.2,2.2,'تباعد السطور'),alignment:value.alignment,margin_mm:finite(value.margin_mm,12,25,'هوامش الصفحة')};
  }
+ if(own(presentation,'editor'))result.editor=validateTemplateEditor(presentation.editor,fields,clauses);
  return result;
 }
 
 export function presentationDigestValue(template){
- return validateTemplatePresentation(template?.presentation,template?.fields||[]);
+ return validateTemplatePresentation(template?.presentation,template?.fields||[],template?.clauses);
 }
 
 function fieldDefinition(key,fields){
@@ -82,7 +85,7 @@ function chip(raw,key,fields){
 }
 // Include broken legacy variants in human chips while preserving their original
 // bytes. They remain invalid for final preview until the user replaces them.
-const tokenPattern=/\{\{[^{}\r\n]*\}\}|\{\([^{}\r\n]*\}\}|\{\{[a-zA-Z0-9_ \t-]*(?:\}|(?=[^a-zA-Z0-9_ \t-]|$))|\{[a-zA-Z0-9_]+\}\}/g;
+const tokenPattern=templateFieldTokenPattern;
 export function tokenizeTemplateText(text,fields=[]){
  if(typeof text!=='string')fail('نص البند غير صالح.');
  const tokens=[];let cursor=0;

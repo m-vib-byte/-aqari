@@ -121,7 +121,7 @@ def render_document_template(template, values=None):
             raise ValueError('INVALID_TEMPLATE_TOKEN')
         return TOKEN.sub(replace, text)
 
-    presentation = normalize_presentation(template.get('presentation'), fields)
+    presentation = normalize_presentation(template.get('presentation'), fields, clauses)
     normalized = []
     if sum(len(str(c)) for c in clauses) > 100000:
         raise ValueError('INVALID_TEMPLATE')
@@ -133,7 +133,9 @@ def render_document_template(template, values=None):
         normalized.append({key: substitute(clause[key]) for key in ['title', 'text']})
     # Never render user supplied signature/biometric data as an executed signature.
     signatures = []
-    signer_roles = [(r, dict(SIGNERS['rental_agreement'] + SIGNERS['rent_receipt'])[r]) for r in ROLES if any(presentation['signers'].get(r, {}).values())] if presentation else SIGNERS.get(template.get('kind'), SIGNERS['rental_agreement'])
+    editor_signers = (presentation or {}).get('editor',{}).get('signers',{})
+    signer_order = editor_signers.get('order',[]) + [role for role in ROLES if role not in editor_signers.get('order',[])]
+    signer_roles = [(r, dict(SIGNERS['rental_agreement'] + SIGNERS['rent_receipt'])[r]) for r in signer_order if any(presentation['signers'].get(r, {}).values()) or any(editor_signers.get('details',{}).get(r,{}).values())] if presentation else SIGNERS.get(template.get('kind'), SIGNERS['rental_agreement'])
     if presentation is None and values is None:
         signer_roles = SIGNERS['rental_agreement'] + (SIGNERS['rent_receipt'] if template.get('kind') == 'rent_receipt' else [])
     for role, label in signer_roles:
@@ -142,7 +144,19 @@ def render_document_template(template, values=None):
             name_key = 'representative_name'
             label = 'وكيل المالك المفوض'
         name = format_field((values or {}).get(name_key), {'type': 'text'}) if not presentation or presentation['signers'].get(role, {}).get('name') else ''
-        signatures.append({'role': role, 'label': label, 'name': name})
+        signature={'role': role, 'label': label, 'name': name}
+        details=editor_signers.get('details',{}).get(role)
+        if details is not None:
+            value_role='representative' if role=='owner' and (values or {}).get('representative_name') else role
+            for part,display_key,show_key in [('civil_id','civilId','showCivilId'),('nationality','nationality','showNationality')]:
+                signature[show_key]=details[part]
+                key=value_role+'_'+part
+                candidates=[(values or {}).get(k) for k in [key]+[alias for alias,canonical in ALIASES.items() if canonical==key] if (values or {}).get(k) is not None and (values or {}).get(k)!='']
+                if details[part] and len({str(item).strip() for item in candidates})>1:raise ValueError('FIELD_ALIAS_CONFLICT')
+                selected=format_field(candidates[0] if candidates else None,{'type':'text'}) if details[part] else ''
+                signature[display_key]=selected
+                if details[part]:raw_values[key]=selected
+        signatures.append(signature)
     for key in ['tenant_name', 'owner_name', 'representative_name', 'receiver_name', 'accountant_name']:
         raw_values[key] = next((str((values or {})[k]).strip() for k in [key] + [a for a, c in ALIASES.items() if c == key] if (values or {}).get(k) is not None and (values or {}).get(k) != ''), '')
     return {'presentation': presentation, 'kind': template.get('kind', ''), 'values': raw_values, 'title': substitute(title), 'kind_label': substitute(kind), 'clauses': normalized,
@@ -174,6 +188,7 @@ LABELS = {
     'tenant': ('المستأجر', 'Tenant'), 'receiver': ('المستلم', 'Receiver'),
     'accountant': ('المحاسب', 'Accountant'), 'name': ('الاسم', 'Name'),
     'signature': ('التوقيع', 'Signature'), 'fingerprint': ('البصمة', 'Fingerprint'),
+    'civil_id': ('الرقم المدني', 'Civil ID'), 'nationality': ('الجنسية', 'Nationality'),
     'draft': ('معاينة غير معتمدة', 'Unapproved preview'),
     'footer': ('معاينة فقط؛ لا تثبت دفعاً أو توقيعاً أو اعتماداً.', 'Preview only; no payment, signature or approval is recorded.'),
     'page': ('صفحة', 'Page'),
@@ -217,15 +232,17 @@ def logical_lines(value, width, font_size):
     return lines
 
 
-def sanitized_logo(raw):
+def sanitized_logo(raw, mime_type=None):
     """Only a small decoded raster is accepted; no SVG, URLs or embedded scripts."""
     if raw is None:
         return None
-    if not isinstance(raw, bytes) or not 1 <= len(raw) <= 2*1024*1024:
+    if not isinstance(raw, bytes) or not 1 <= len(raw) <= 25*1024*1024:
         raise ValueError('INVALID_PROPERTY_LOGO')
     try:
         with Image.open(BytesIO(raw)) as source:
-            if source.format not in {'PNG', 'JPEG'} or getattr(source, 'n_frames', 1) != 1:
+            if source.format not in {'PNG', 'JPEG', 'WEBP'} or getattr(source, 'n_frames', 1) != 1:
+                raise ValueError('INVALID_PROPERTY_LOGO')
+            if mime_type is not None and mime_type != {'PNG':'image/png','JPEG':'image/jpeg','WEBP':'image/webp'}[source.format]:
                 raise ValueError('INVALID_PROPERTY_LOGO')
             if source.width < 1 or source.height < 1 or source.width > 4096 or source.height > 4096 or source.width*source.height > 8000000:
                 raise ValueError('INVALID_PROPERTY_LOGO')
@@ -241,6 +258,9 @@ def sanitized_logo(raw):
 def render_contract_template(template, values=None, logo_bytes=None):
     resolved = render_document_template(template, values)
     presentation = resolved['presentation']
+    if presentation and 'editor' in presentation:
+        from lib.rental_document_editor_pdf import render_editor_pdf
+        return render_editor_pdf(template,resolved,sanitized_logo(logo_bytes) if presentation['logo']['enabled'] else None)
     language = presentation['language'] if presentation else 'ar'
     typography = presentation.get('typography') if presentation else None
     logo = sanitized_logo(logo_bytes) if presentation and presentation['logo']['enabled'] else None

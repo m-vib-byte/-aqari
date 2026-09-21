@@ -212,3 +212,111 @@ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-claus
  .aq267-template-editor .aq267-template-sheets{padding:0!important;border:0!important;background:#fff!important;overflow:visible!important}
  .aq267-template-editor .aq267-a4-sheet{box-shadow:none!important}
 }
+
+/* Optional authoring tools. Existing templates keep their current typography. */
+@font-face{font-family:AqariDocumentSans;src:url('/lib/pdf_fonts/AqariSans.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:AqariDocumentSans;src:url('/lib/pdf_fonts/AqariSans-Bold.ttf') format('truetype');font-style:normal;font-weight:700;font-display:swap}
+@font-face{font-family:AqariDocumentMono;src:url('/lib/pdf_fonts/AqariMono.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:AqariDocumentMono;src:url('/lib/pdf_fonts/AqariMono-Bold.ttf') format('truetype');font-style:normal;font-weight:700;font-display:swap}
+.aq267-template-editor .aq267-a4-sheet[data-font-family=sans]{font-family:AqariDocumentSans,Arial,sans-serif}
+.aq267-template-editor .aq267-a4-sheet[data-font-family=mono]{font-family:AqariDocumentMono,monospace}
+.aq267-template-editor .aq267-a4-sheet[data-editor-bold=true] .aq267-a4-clause-text{font-weight:700}
+.aq267-template-editor .aq267-a4-sheet[data-editor-bold=false] .aq267-a4-clause-text{font-weight:400}
+.aq267-template-editor .aq267-a4-sheet[data-editor-underline=true] :is(.aq267-a4-clause-text,.aq267-a4-clause-title)>span{text-decoration:underline}
+.aq267-template-editor .aq267-a4-sheet[data-editor-underline=false] :is(.aq267-a4-clause-text,.aq267-a4-clause-title)>span{text-decoration:none}
+.aq267-template-editor .aq267-a4-sheet[data-editor-direction=rtl]{direction:rtl!important}
+.aq267-template-editor .aq267-a4-sheet[data-editor-direction=ltr]{direction:ltr!important}
+.aq267-template-editor .aq267-a4-sheet[data-editor-spacing] .aq267-a4-clause{padding-block-start:var(--aq-clause-before,0mm)!important;padding-block-end:var(--aq-clause-after,8mm)!important}
+
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-advanced-tools{
+ position:static;margin:0;padding:0;border:0!important;border-bottom:1px solid #dce0e2!important;
+ border-radius:0!important;background:#fafbfc!important;color:#594d3d!important;box-shadow:none!important;
+}
+.aq267-template-editor .aq267-editor-advanced-tools>summary{
+ display:flex;align-items:center;gap:8px;min-height:44px;box-sizing:border-box;padding:8px 20px;
+ list-style:none;cursor:pointer;font-size:12px;line-height:1.5;font-weight:600;
+}
+.aq267-template-editor .aq267-editor-advanced-tools>summary::-webkit-details-marker{display:none}
+.aq267-template-editor .aq267-editor-advanced-tools>summary::after{content:'⌄';font-size:16px;line-height:1;margin-inline-start:auto}
+.aq267-template-editor .aq267-editor-advanced-tools[open]>summary::after{transform:rotate(180deg)}
+.aq267-template-editor .aq267-editor-advanced-tools>summary:focus-visible{outline:2px solid #b68e4a;outline-offset:-3px}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;
+ margin:10px 20px;padding:12px;border:1px solid #ded7ca!important;border-radius:9px!important;
+ background:#fff!important;min-width:0;
+}
+.aq267-template-editor .aq267-editor-tool-group>legend{padding:0 6px;font-size:12px;font-weight:650;color:#756047}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group .aq267-field{
+ display:grid!important;grid-template-columns:minmax(0,1fr);grid-column:auto;gap:5px!important;
+ margin:0!important;padding:0;min-width:0;align-content:start;
+}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group .aq267-field>label{font-size:12px!important;line-height:1.4!important;margin:0!important}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group :is(input:not([type=checkbox]),select){width:100%!important;min-width:0;min-height:44px!important;box-sizing:border-box;font-size:14px!important;padding:7px 9px!important}
+.aq267-template-editor .aq267-editor-tool-group input[type=checkbox]{width:18px!important;height:18px;min-height:18px!important;align-self:center}
+.aq267-template-editor .aq267-editor-history-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0;padding:0}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor :is(.aq267-editor-tool-group,.aq267-editor-history-tools,.aq267-template-logo-tools,.aq267-template-field-popover) button{
+ width:auto!important;min-width:0!important;min-height:44px!important;margin:0!important;
+ padding:8px 11px!important;font-size:12px!important;line-height:1.4!important;border-radius:7px!important;
+ white-space:normal;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+}
+body:is(.aq-owner-exact-ready,.aq-owner-reference) .aq267-dialog:has(.aq267-template-studio) .aq267-template-studio .aq267-template-editor :is(.aq267-editor-tool-group,.aq267-editor-history-tools,.aq267-template-logo-tools,.aq267-template-field-popover) button{
+ background:#fff!important;color:#59472f!important;-webkit-text-fill-color:#59472f!important;border-color:#d8cbb6!important;box-shadow:none!important;
+}
+body:is(.aq-owner-exact-ready,.aq-owner-reference) .aq267-dialog:has(.aq267-template-studio) .aq267-template-studio .aq267-template-editor :is(.aq267-editor-tool-group,.aq267-editor-history-tools,.aq267-template-logo-tools,.aq267-template-field-popover) button[aria-pressed=true]{
+ background:#f4e6c4!important;color:#573e1f!important;-webkit-text-fill-color:#573e1f!important;border-color:#b28a47!important;
+}
+.aq267-template-editor :is(.aq267-editor-history-tools,.aq267-editor-tool-group) button:disabled{opacity:.45;cursor:default}
+.aq267-template-editor :is(.aq267-editor-history-tools,.aq267-editor-tool-group) button svg{width:17px;height:17px;flex:none;stroke:currentColor}
+
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-template-logo-tools{
+ position:static;min-width:0;margin:0;padding:10px;border:1px solid #d8cbb6!important;
+ border-radius:9px!important;background:#fffdf8!important;box-shadow:none!important;
+}
+.aq267-template-editor .aq267-template-logo-tools>summary{min-height:30px;cursor:pointer;font-size:12px;line-height:1.6;font-weight:650;color:#6b5030}
+.aq267-template-editor .aq267-template-logo-tools>.aq267-field{margin-block:10px}
+.aq267-template-editor .aq267-template-logo-preview{display:block;max-width:100%;width:auto;height:auto;max-height:110px;margin:10px auto;object-fit:contain;border:1px solid #e3d8c8;border-radius:6px;background:#fff;padding:6px;box-sizing:border-box}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-template-field-popover{
+ position:relative;display:grid;gap:8px;min-width:0;margin:8px 0;padding:12px;
+ border:1px solid #c6a66e;border-radius:9px;background:#fffdf8;box-shadow:0 3px 12px #5d442414;
+}
+.aq267-template-editor .aq267-template-field-popover :is(h4,p){margin:0}
+.aq267-template-editor .aq267-template-field-popover h4{font-size:13px}
+.aq267-template-editor .aq267-template-field-popover p{font-size:11px;line-height:1.6;color:#79684f}
+.aq267-template-editor .aq267-template-field-popover .aq267-field{margin:0!important}
+.aq267-template-editor .aq267-template-field-popover :is(input,select){width:100%;min-width:0;box-sizing:border-box}
+
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-logo-object{
+ position:absolute;display:grid;place-items:center;box-sizing:border-box;min-width:0;
+ max-width:none!important;max-height:none;margin:0!important;padding:0!important;
+ border:1px solid transparent!important;border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;pointer-events:auto;touch-action:none;cursor:move;overflow:visible;
+}
+.aq267-template-editor .aq267-a4-logo-object>img{display:block;width:100%!important;height:100%!important;max-width:none!important;max-height:none;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-logo-object:is(:hover,:focus-visible){border-color:#ba9357!important}
+body:is(.aq-owner-exact-ready,.aq-owner-reference) .aq267-dialog:has(.aq267-template-studio) .aq267-template-studio .aq267-template-editor .aq267-a4-logo-object{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+body:is(.aq-owner-exact-ready,.aq-owner-reference) .aq267-dialog:has(.aq267-template-studio) .aq267-template-studio .aq267-template-editor .aq267-a4-logo-object:is(:hover,:focus-visible){border-color:#ba9357!important}
+.aq267-template-editor .aq267-a4-logo-object[disabled]{cursor:default}
+.aq267-template-editor .aq267-a4-logo-object>.aq267-a4-resize-handle{pointer-events:auto;inset-inline-end:0;inset-block-end:0}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-blank-page{
+ position:absolute;inset-inline:20mm;inset-block-start:42%;display:grid;justify-items:center;gap:10px;
+ margin:0!important;padding:12px;border:1px dashed #ddd2c1;border-radius:8px;
+ background:#fffdf8;color:#9a8b74;font:12px/1.7 system-ui;text-align:center;
+}
+.aq267-template-editor .aq267-a4-blank-page :is(p,span){margin:0}
+body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-blank-page button{width:auto!important;min-height:36px!important;padding:7px 12px!important;font:12px/1.5 system-ui!important}
+.aq267-template-editor .aq267-a4-editor.is-preview :is(.aq267-template-workbench,.aq267-template-format-tools,.aq267-template-page-guide,.aq267-editor-advanced-tools){display:none!important}
+.aq267-template-editor .aq267-a4-editor.is-preview>.aq267-template-preview{margin:0;padding:16px;border:0;border-radius:0;background:#eceef0}
+
+@media(max-width:760px){
+ .aq267-template-editor .aq267-editor-advanced-tools>summary{padding-inline:12px}
+ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 10px;padding:10px}
+ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-tool-group :is(input:not([type=checkbox]),select){font-size:16px!important}
+ .aq267-template-editor .aq267-editor-history-tools{gap:4px}
+ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-editor-history-tools button{padding-inline:8px!important}
+ .aq267-template-editor .aq267-a4-editor.is-preview>.aq267-template-preview{padding:10px}
+}
+@media print{
+ .aq267-template-editor :is(.aq267-editor-advanced-tools,.aq267-editor-history-tools,.aq267-template-logo-tools,.aq267-template-field-popover,.aq267-a4-blank-page){display:none!important}
+ .aq267-template-editor .aq267-a4-logo-object{border-color:transparent!important}
+ .aq267-template-editor .aq267-a4-logo-object>.aq267-a4-resize-handle{display:none!important}
+}
