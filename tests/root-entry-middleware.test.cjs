@@ -16,7 +16,7 @@ test('root-only middleware selects the public static form and keeps query parame
 });
 test('app, login, API and static assets never change their existing handlers',async()=>{
   const {default:middleware}=await modulePromise;
-  for(const url of ['/app?release=V267','/login?manual=1','/index.html','/api/db/status','/supabase-adapter.js','/vendor/supabase-js-2.114.0.js']){
+  for(const url of ['/app?release=V267','/login?manual=1','/index.html','/api/db/status','/supabase-adapter.js','/vendor/supabase-js-2.116.0.js']){
     const response=middleware(new Request('https://myaqari.com'+url));
     assert.equal(response.headers.get('x-middleware-next'),'1');
     assert.equal(response.headers.get('x-middleware-rewrite'),null);
