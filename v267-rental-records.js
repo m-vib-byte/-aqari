@@ -301,9 +301,19 @@ async function openRecord(module,index){
  let propertyForm,propertyFields;
  if(module==='properties'){
   const experience=root.AQARI_PROPERTY_EXPERIENCE;
-  if(experience?.canWrite()!==true){root.alert('إضافة العقارات وتعديلها غير متاح لصلاحية حسابك.');return false;}
-  if(existing&&typeof experience.openCompleteFileByName==='function')return experience.openCompleteFileByName(existing[0],{section:'edit'});
-  if(!existing&&typeof experience.openOnboarding==='function')return experience.openOnboarding();
+  if(experience?.canWrite()===false){root.alert('إضافة العقارات وتعديلها غير متاح لصلاحية حسابك.');return false;}
+  try{
+   if(existing){
+    if(typeof experience?.openCompleteFileByName==='function')return experience.openCompleteFileByName(existing[0],{section:'edit'});
+    const bridge=root.AQARI_SUPABASE,workspace=bridge?.context?.workspace?.id,client=await bridge?.getClient?.();
+    if(!workspace||!client||!same(bound,scope()))throw Error('الجلسة غير جاهزة. أعد فتح صفحة العقارات.');
+    const response=await client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).eq('name',existing[0]).limit(2);
+    if(response.error)throw response.error;if(!Array.isArray(response.data)||response.data.length!==1)throw Error(response.data?.length?'اسم العقار غير فريد.':'لم يتم ربط هذا العقار بالسجل الخادمي بعد.');
+    const page=await import('./src/v267/pages/property-hub.js');if(!same(bound,scope()))throw Error('تغيرت جلسة الدخول.');return page.openPropertyHub(response.data[0].id,{section:'edit'});
+   }
+   if(typeof experience?.openOnboarding==='function')return experience.openOnboarding();
+   const page=await import('./src/v267/pages/property-onboarding.js');if(!same(bound,scope()))throw Error('تغيرت جلسة الدخول.');return page.openPropertyOnboarding();
+  }catch(error){root.alert(error?.message||'تعذر فتح حفظ العقار.');return false;}
   ({propertyFields}=await import('./src/v267/components/property-form.js'));
   if(!same(bound,scope())||experience?.canWrite()!==true)return false;
  }
