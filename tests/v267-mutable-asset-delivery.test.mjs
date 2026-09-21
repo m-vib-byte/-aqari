@@ -27,10 +27,10 @@ test('every mutable V267 module and stylesheet receives no-store including neste
 });
 
 test('versioned vendor caching and global security headers remain intact',()=>{
- const vendor=headersFor('/vendor/supabase-js-2.114.0.js');
+ const vendor=headersFor('/vendor/supabase-js-2.116.0.js');
  assert.equal(vendor['cache-control'],'public, max-age=31536000, immutable');assert.equal(vendor['x-vercel-enable-rewrite-caching'],'1');
  assert.equal(vendor['x-content-type-options'],'nosniff');assert.equal(vendor['referrer-policy'],'strict-origin-when-cross-origin');assert.equal(vendor['permissions-policy'],'camera=(), microphone=(), geolocation=()');assert.equal(vendor['x-frame-options'],'DENY');
- assert.equal(config.rewrites.find(rule=>rule.source==='/vendor/supabase-js-2.114.0.js').destination,'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js');
+ assert.equal(config.rewrites.find(rule=>rule.source==='/vendor/supabase-js-2.116.0.js').destination,'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js');
 });
 
 test('delivery hardening keeps the app route and does not clear data, cookies or force navigation',()=>{
