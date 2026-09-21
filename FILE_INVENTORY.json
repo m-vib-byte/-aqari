@@ -2697,8 +2697,8 @@
     },
     {
       "path": "staging-database/supabase/migrations/20260921123000_v267_property_portfolio_additions.sql",
-      "sha256": "a2c2c6cb118a6e83b7e853751ff5cec0f544d857fee46598ec0fbc5749c879a3",
-      "size": 15358
+      "sha256": "0672deed67b2fdae5a618d575b4d691bca529d64d26b39c442a8be36130748a6",
+      "size": 15992
     },
     {
       "path": "staging-database/tests/collection_account_management.sql",
