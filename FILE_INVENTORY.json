@@ -1357,8 +1357,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "81afb1a68f2adcfdde27edafba13f4fb395e09ebd023c49226a12d191b2e9300",
-      "size": 52680
+      "sha256": "8120cdb3eb37267c26e7c2c268ee9d7b56b0e27558c84b29d6099acfeb58ca52",
+      "size": 52737
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1757,8 +1757,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "55702797c2efdd525f893e71aad36d89568c5b222eb67844af89c2f71b5e17d0",
-      "size": 32649
+      "sha256": "4dc121c863c37c6e098efb073cfa23ee4175017d50b1df992ff15d8901e9ede9",
+      "size": 34158
     },
     {
       "path": "src/v267/styles/live-stability.css",
@@ -3317,8 +3317,8 @@
     },
     {
       "path": "tests/fixtures/template-editor-visual.html",
-      "sha256": "40f2f544c3011d42796e155f0fe848b491fae7519195174f32943e1c8f19a38d",
-      "size": 11657
+      "sha256": "2be83269c001e9682735007e039f77be10813f4e16ff11e222a35907f46b7309",
+      "size": 14027
     },
     {
       "path": "tests/github-preview-oidc.mjs",
