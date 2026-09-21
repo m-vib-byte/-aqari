@@ -154,7 +154,7 @@ body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36
   background:linear-gradient(180deg,#fbf5e9,#f4ead6)!important;
  }
  body.aq-v199.aq-v267 main>.p tbody tr:nth-child(even) td {background:#fffaf2}
- body.aq-v199.aq-v267 main>.p tbody tr:hover td {background:#f8efddu!important}
+ body.aq-v199.aq-v267 main>.p tbody tr:hover td {background:#f8efdd!important}
  body.aq-v267 :is(.aq267-dialog,.modal>.box) {
   border:1px solid var(--aq-line)!important;
   background:linear-gradient(155deg,#fffefa,#fbf6ec)!important;
