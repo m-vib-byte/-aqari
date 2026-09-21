@@ -25,6 +25,7 @@ export function openContractArchive(filters={}){
   const tenant=select(tenants.map(r=>[r.id,r.full_name])),property=select(properties.map(r=>[r.id,r.name])),unit=select([]),reference=node('input'),originalDate=node('input'),file=node('input'),form=node('form'),save=node('button',t('حفظ في الأرشيف فقط'));
   let pending=null;const upload=createOriginalDocumentUpload(d.session);reference.required=true;reference.maxLength=200;originalDate.type='date';originalDate.required=true;file.type='file';file.accept='application/pdf,image/jpeg,image/png,image/webp';file.required=true;save.type='submit';
   property.onchange=()=>{unit.replaceChildren();for(const [value,label]of [['',t('اختر الوحدة')],...units.filter(r=>r.property_id===property.value).map(r=>[r.id,r.unit_no])]){const o=node('option',label);o.value=value;unit.append(o);}};
+  if(filters.property_id&&properties.some(r=>r.id===filters.property_id)){property.value=filters.property_id;property.onchange();}
   d.body.replaceChildren(button('العودة للأرشيف',home),node('p',t('اربط الأصل بالسجلات الموجودة. لا يُحجز رقم عقد جديد ولا تُسجل مبالغ.')));
   form.append(field(t('المستأجر'),tenant),field(t('العقار'),property),field(t('الوحدة'),unit),field(t('رقم أو وصف العقد السابق'),reference),field(t('تاريخ العقد الأصلي'),originalDate),field(t('نسخة العقد السابق'),file),save);d.body.append(form);
   form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
