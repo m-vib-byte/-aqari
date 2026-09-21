@@ -1507,8 +1507,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "a96226e65b3e18fcc44ae4f70e6802156828480cd56a3657b783d382d9751630",
-      "size": 7675
+      "sha256": "877d6e9b454586b7093c8cf18d1d74b363e6ef18311834451be7e2f72a529d81",
+      "size": 7676
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -3967,8 +3967,8 @@
     },
     {
       "path": "tests/v267-property-portfolio-additions.test.mjs",
-      "sha256": "0e857e885a1c7214db6e74aefa46546206412aab15e22e0931ef132ef7e9aea0",
-      "size": 4252
+      "sha256": "593acf89c6c2fb9fcaac9641c969f35452053b941acb310877dfa8a87efa7d85",
+      "size": 4669
     },
     {
       "path": "tests/v267-property-presentation.test.mjs",
