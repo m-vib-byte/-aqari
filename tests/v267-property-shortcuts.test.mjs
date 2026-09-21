@@ -64,8 +64,10 @@ test('legacy property workspace opens the authoritative complete file and keeps 
 
 
 test('legacy property edit and add actions delegate to the authoritative property workflows',()=>{
- assert.match(rentalRecords,/if\(existing&&typeof experience\.openCompleteFileByName==='function'\)return experience\.openCompleteFileByName\(existing\[0\],\{section:'edit'\}\)/);
- assert.match(rentalRecords,/if\(!existing&&typeof experience\.openOnboarding==='function'\)return experience\.openOnboarding\(\)/);
+ assert.match(rentalRecords,/if\(typeof experience\?\.openCompleteFileByName==='function'\)return experience\.openCompleteFileByName\(existing\[0\],\{section:'edit'\}\)/);
+ assert.match(rentalRecords,/from\('aqari_properties'\)\.select\('id,name'\)\.eq\('workspace_id',workspace\)\.eq\('name',existing\[0\]\)\.limit\(2\)/);
+ assert.match(rentalRecords,/openPropertyHub\(response\.data\[0\]\.id,\{section:'edit'\}\)/);
+ assert.match(rentalRecords,/import\('\.\/src\/v267\/pages\/property-onboarding\.js'\)/);
  assert.match(propertyHub,/await read\(\);if\(!canWrite\(\)\)throw Error\('تعديل العقار غير متاح لصلاحية حسابك\.'/);
  assert.match(propertyHub,/options\.section==='sender'\?senderSettings:options\.section==='edit'\?editProperty:render/);
 });
@@ -76,4 +78,7 @@ test('property cards hydrate from canonical server rows and mount on the propert
  assert.match(experience,/\.\.\.legacy,\.\.\.serverRows/);
  assert.match(experience,/propertyTitle\?\.textContent\?\.trim\(\)==='العقارات'/);
  assert.match(experience,/head\.after\(region\)/);
+ assert.match(experience,/\[data-exact-key="properties"\]/);
+ assert.match(experience,/installed=\{refresh,api:propertyApi\}/);
+ assert.match(experience,/window\.AQARI_PROPERTY_EXPERIENCE=installed\.api/);
 });
