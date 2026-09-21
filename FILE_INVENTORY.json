@@ -1507,7 +1507,7 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "a9622646cb0afebcb07087fdbb4c5311f939b002ebdfe0e204bf8b5e809c1630",
+      "sha256": "a96226e65b3e18fcc44ae4f70e6802156828480cd56a3657b783d382d9751630",
       "size": 7675
     },
     {
@@ -1572,7 +1572,7 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "b9f2c5b396c454287f1a888e89518916714381057590f3907d662839067b578c",
+      "sha256": "b9f2c583fe5474076c7b34508ecf20121017ea060053f5c9f163fe45be53578c",
       "size": 28702
     },
     {
@@ -1582,7 +1582,7 @@
     },
     {
       "path": "src/v267/pages/property-portfolio-additions.js",
-      "sha256": "66ba3bf8506a776397d24a20b448679f38a5bbd76c419843c883de07d8b9e20f",
+      "sha256": "66ba3b263d8c5a6bafbeb9ac8d8c0775898edd1d860552a3a38efc6a4bf7e20f",
       "size": 12512
     },
     {
@@ -2717,7 +2717,7 @@
     },
     {
       "path": "staging-database/supabase/migrations/20260921143000_v267_property_portfolio_live_ui.sql",
-      "sha256": "4b15dcaf259085235e2233798a2f7deefc60b0f09d5e8a9a822f9337ddc4b04e",
+      "sha256": "4b15dca4c9f8a337092e48c885631eaf36a5d60306ae622dbf6f6ad7feb9b04e",
       "size": 6281
     },
     {
@@ -3967,7 +3967,7 @@
     },
     {
       "path": "tests/v267-property-portfolio-additions.test.mjs",
-      "sha256": "0e857e2f15a5d4311b4c65f5c9945f26f8a5112540419369b5bf06402218aea0",
+      "sha256": "0e857e885a1c7214db6e74aefa46546206412aab15e22e0931ef132ef7e9aea0",
       "size": 4252
     },
     {
@@ -4382,7 +4382,7 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "f37a5b0b855622cc07560ffce92f78fa679b5e7a05f63f8174a2ca74b8b612db",
+      "sha256": "f37a5b0b89b1ee8497a0f362879969a4298744dbdadd59cf92d22b9bdfef12db",
       "size": 45149
     },
     {
