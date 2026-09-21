@@ -6,6 +6,8 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const owner=read('src/v267/owner-feedback-runtime.js');
 const live=read('src/v267/live-stability-runtime.js');
 const propertyOs=read('v202-property-os.js');
+const rentalRecords=read('v267-rental-records.js');
+const propertyHub=read('src/v267/pages/property-hub.js');
 function action({active=true,writable=true,fail=false}={}){
  const calls=[],errors=[];
  const box={scope:()=>active?{user:'u',workspace:'w'}:null,t:x=>x,setStatus:x=>errors.push(x),window:{AQARI_PROPERTY_EXPERIENCE:{canWrite:()=>writable,openOnboarding:async()=>{calls.push(['create']);return true;},openCompleteFileByName:async name=>{calls.push(['file',name]);if(fail)throw Error('private backend detail');return true;}}}};
@@ -58,4 +60,20 @@ test('legacy property workspace opens the authoritative complete file and keeps 
  assert.match(propertyOs,/if\(result===false\)return legacyProfile\(\)/);
  assert.match(propertyOs,/\.catch\(legacyProfile\)/);
  assert.match(propertyOs,/window\.go\?\.\('property360Page'\)/);
+});
+
+
+test('legacy property edit and add actions delegate to the authoritative property workflows',()=>{
+ assert.match(rentalRecords,/if\(existing&&typeof experience\.openCompleteFileByName==='function'\)return experience\.openCompleteFileByName\(existing\[0\],\{section:'edit'\}\)/);
+ assert.match(rentalRecords,/if\(!existing&&typeof experience\.openOnboarding==='function'\)return experience\.openOnboarding\(\)/);
+ assert.match(propertyHub,/await read\(\);if\(!canWrite\(\)\)throw Error\('تعديل العقار غير متاح لصلاحية حسابك\.'/);
+ assert.match(propertyHub,/options\.section==='sender'\?senderSettings:options\.section==='edit'\?editProperty:render/);
+});
+
+test('property cards hydrate from canonical server rows and mount on the properties page',()=>{
+ const experience=read('src/v267/components/property-experience.js');
+ assert.match(experience,/from\('aqari_properties'\)\.select\('id,name,metadata'\)\.eq\('workspace_id',workspace\)\.order\('name'\)/);
+ assert.match(experience,/\.\.\.legacy,\.\.\.serverRows/);
+ assert.match(experience,/propertyTitle\?\.textContent\?\.trim\(\)==='العقارات'/);
+ assert.match(experience,/head\.after\(region\)/);
 });
