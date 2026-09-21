@@ -294,6 +294,7 @@ class IssueTests(unittest.TestCase):
             if path.startswith("/rest/v1/aqari_documents?"):
                 return [{"id": OTHER, "workspace_id": W, "status": "uploaded", "entity_type": "property",
                          "entity_ref": PROPERTY, "mime_type": "image/png", "size_bytes": len(logo[0]),
+                         "document_type": "supporting_document", "metadata": {"category": "property_logo"},
                          "checksum_sha256": hashlib.sha256(logo[0]).hexdigest()}]
             return self.read(path, auth, body)
         def render(source, values, workspace, auth, read):

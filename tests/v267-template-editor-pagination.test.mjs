@@ -113,3 +113,16 @@ test('invalid dimensions and invalid measurement results fail explicitly',()=>{
  for(const change of [{firstPageHeight:-1},{firstPageHeight:Infinity},{pageHeight:0},{pageHeight:NaN},{tolerance:-1},{measure:null}])assert.throws(()=>paginateTemplateTextMeasured('text',[],{firstPageHeight:100,pageHeight:100,measure:raw=>raw.length,...change}));
  for(const value of [NaN,Infinity,-1,'10',Promise.resolve(10)])assert.throws(()=>paginateTemplateTextMeasured('text',[],{firstPageHeight:100,pageHeight:100,measure:()=>value}),RangeError);
 });
+
+test('measurement receives exact UTF-16 source offsets for repeated text and styled fragments',()=>{
+ const text='😀 aa {{tenant_name}} '.repeat(30),fields=[field('tenant_name','المستأجر')],seen=[];
+ const fragments=paginateTemplateTextMeasured(text,fields,{firstPageHeight:50,pageHeight:50,tolerance:0,measure:(raw,context)=>{
+  assert.equal(text.slice(context.sourceOffset,context.sourceOffset+raw.length),raw);
+  seen.push({...context,raw});return raw.length*(context.sourceOffset>=100?2:1);
+ }});
+ let offset=0;
+ for(const part of fragments){assert.ok(seen.some(call=>call.sourceOffset===offset&&call.raw===part.text));offset+=part.text.length;}
+ assert.equal(offset,text.length);assert.ok(new Set(seen.map(call=>call.sourceOffset)).size>3);
+ const empty=[];paginateTemplateTextMeasured('',[],{firstPageHeight:0,pageHeight:50,measure:(raw,context)=>{empty.push(context);return 20;}});
+ assert.deepEqual(empty.map(call=>call.sourceOffset),[0,0]);
+});

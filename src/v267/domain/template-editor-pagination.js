@@ -64,9 +64,11 @@ export function fragmentTemplateText(text,fields=[],{columns=68,lines=24}={}){
 
 /**
  * Partition display fragments using the editor's real, unscaled DOM height.
- * `measure(rawText, {firstFragment, pageOffset})` must synchronously return the
+ * `measure(rawText, {firstFragment, pageOffset, sourceOffset})` must synchronously return the
  * height of that fragment, including its title/padding when firstFragment is
  * true. Measure in a probe with the same width, fonts and chips as the sheet.
+ * sourceOffset is the raw UTF-16 start offset for applying source-indexed styles;
+ * identical text on different pages must not be located with string searching.
  *
  * firstPageHeight is the remaining space on the current sheet; pageHeight is
  * the full usable height on following sheets. A first result at pageOffset 1
@@ -83,12 +85,12 @@ export function paginateTemplateTextMeasured(text,fields=[],{measure,firstPageHe
  const atoms=atomsFor(text,fields),fragments=[];let start=0,pageOffset=0,previousFit=128;
  const measured=(raw,context)=>{const height=measure(raw,context);if(typeof height!=='number'||!Number.isFinite(height)||height<0)throw new RangeError('measure must return a finite nonnegative height');return height;};
  if(!atoms.length){
-  let context={firstFragment:true,pageOffset},height=measured('',context);
-  if(height>firstPageHeight+tolerance&&firstPageHeight<pageHeight){pageOffset=1;context={firstFragment:true,pageOffset};height=measured('',context);}
+  let context={firstFragment:true,pageOffset,sourceOffset:0},height=measured('',context);
+  if(height>firstPageHeight+tolerance&&firstPageHeight<pageHeight){pageOffset=1;context={firstFragment:true,pageOffset,sourceOffset:0};height=measured('',context);}
   return [{text:'',pageOffset,height,overflow:height>(pageOffset?pageHeight:firstPageHeight)+tolerance}];
  }
  while(start<atoms.length){
-  const available=pageOffset?pageHeight:firstPageHeight,context={firstFragment:fragments.length===0,pageOffset},cache=new Map();
+  const available=pageOffset?pageHeight:firstPageHeight,context={firstFragment:fragments.length===0,pageOffset,sourceOffset:atoms[start].start},cache=new Map();
   const source=end=>text.slice(atoms[start].start,atoms[end-1].end);
   const heightAt=end=>{if(!cache.has(end))cache.set(end,measured(source(end),context));return cache.get(end);};
   const fits=end=>heightAt(end)<=available+tolerance;

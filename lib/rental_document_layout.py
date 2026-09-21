@@ -1,16 +1,17 @@
 """Canonical bounded A4 layout. Coordinates use millimetres from the top left."""
 import math
 import re
+from lib.rental_document_editor import normalize_editor
 
 ROLES = ('owner', 'tenant', 'receiver', 'accountant')
 PARTS = ('name', 'signature', 'fingerprint')
 LANGUAGES = {'ar', 'en', 'bilingual'}
 
 
-def normalize_presentation(value, fields=()):
+def normalize_presentation(value, fields=(), clauses=None):
     if value is None:
         return None
-    if not isinstance(value, dict) or set(value) - {'version', 'paper', 'language', 'logo', 'signers', 'placements', 'typography'}:
+    if not isinstance(value, dict) or set(value) - {'version', 'paper', 'language', 'logo', 'signers', 'placements', 'typography', 'editor'}:
         raise ValueError('INVALID_DOCUMENT_PRESENTATION')
     if type(value.get('version')) not in (int, float) or value.get('version') != 1 or value.get('paper') != 'A4' or value.get('language') not in LANGUAGES:
         raise ValueError('INVALID_DOCUMENT_PRESENTATION')
@@ -29,9 +30,11 @@ def normalize_presentation(value, fields=()):
             raise ValueError('INVALID_DOCUMENT_SIGNERS')
         normalized_signers[role] = {p: flags[p] for p in PARTS}
     placements = value.get('placements')
+    editor = normalize_editor(value['editor'],clauses) if 'editor' in value else None
     if not isinstance(placements, list) or len(placements) > 120:
         raise ValueError('INVALID_DOCUMENT_PLACEMENTS')
-    allowed = {f.get('key') for f in fields if isinstance(f, dict)} | {r+'_'+p for r in ROLES for p in PARTS}
+    extra_parts = ('civil_id','nationality')
+    allowed = {f.get('key') for f in fields if isinstance(f, dict)} | {r+'_'+p for r in ROLES for p in PARTS+extra_parts}
     ids, placed = set(), []
     for item in placements:
         if not isinstance(item, dict) or set(item) != {'id', 'field_key', 'page', 'x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt', 'language'}:
@@ -48,8 +51,9 @@ def normalize_presentation(value, fields=()):
         x, y, w, h, font = (item[k] for k in ['x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt'])
         if x < 8 or y < 8 or w < 8 or h < 4 or x+w > 202+1e-8 or y+h > 289+1e-8 or not 8 <= font <= 36:
             raise ValueError('INVALID_DOCUMENT_PLACEMENT_SIZE')
-        role, _, part = item['field_key'].rpartition('_')
-        if item['field_key'] not in {f.get('key') for f in fields if isinstance(f, dict)} and role in ROLES and not normalized_signers.get(role, {}).get(part):
+        role, part = next(((r,item['field_key'][len(r)+1:]) for r in ROLES if item['field_key'].startswith(r+'_')),('',''))
+        flags = (editor or {}).get('signers',{}).get('details',{}).get(role,{}) if part in extra_parts else normalized_signers.get(role,{})
+        if item['field_key'] not in {f.get('key') for f in fields if isinstance(f, dict)} and role in ROLES and not flags.get(part):
             raise ValueError('LAYOUT_DISABLED_SIGNER')
         ids.add(item['id'])
         placed.append({k: (int(item[k]) if isinstance(item[k], (int, float)) and float(item[k]).is_integer() else item[k]) for k in ['id', 'field_key', 'page', 'x_mm', 'y_mm', 'width_mm', 'height_mm', 'font_pt', 'language']})
@@ -67,4 +71,5 @@ def normalize_presentation(value, fields=()):
         if typography['alignment'] not in ('start', 'center', 'end', 'justify'):
             raise ValueError('INVALID_DOCUMENT_TYPOGRAPHY')
         normalized['typography'] = {key: (int(typography[key]) if type(typography[key]) in (int, float) and float(typography[key]).is_integer() else typography[key]) for key in ['font_pt', 'line_height', 'alignment', 'margin_mm']}
+    if editor is not None:normalized['editor']=editor
     return normalized

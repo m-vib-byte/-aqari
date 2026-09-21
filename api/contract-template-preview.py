@@ -46,13 +46,14 @@ def document_digest(resolved):
 def storage_logo_bytes(row, auth):
     """Only the configured Supabase bucket is accessed, using the caller's token."""
     path = row.get('storage_path')
-    if (row.get('storage_bucket', 'aqari-documents') != 'aqari-documents' or not isinstance(path, str)
+    if (row.get('storage_bucket') != 'aqari-documents' or not isinstance(path, str)
             or not 1 <= len(path) <= 1024 or path.startswith('/') or '\\' in path
+            or not isinstance(row.get('workspace_id'),str) or not common.UUID.fullmatch(row['workspace_id']) or not path.startswith(row['workspace_id']+'/')
             or any(part in {'', '.', '..'} for part in path.split('/'))
             or any(ord(c) < 32 or ord(c) == 127 for c in path)):
         raise ValueError('INVALID_PROPERTY_LOGO_PATH')
     size = row.get('size_bytes')
-    if type(size) is not int or not 1 <= size <= 2*1024*1024 or row.get('mime_type') not in {'image/png', 'image/jpeg'}:
+    if type(size) is not int or not 1 <= size <= 25*1024*1024 or row.get('mime_type') not in {'image/png', 'image/jpeg', 'image/webp'}:
         raise ValueError('INVALID_PROPERTY_LOGO')
     url, key = common.config()
     encoded = '/'.join(quote(part, safe='') for part in path.split('/'))
@@ -74,12 +75,15 @@ def load_property_logo(workspace, property_row, master, auth, read=common.upstre
         raise ValueError('INVALID_PROPERTY_LOGO')
     row = _record('aqari_documents', workspace, 'id', logo_id, auth, read)
     property_refs = {str(property_row.get(k, '')) for k in ['id', 'external_ref', 'externalRef']} - {''}
-    if row.get('status') != 'uploaded' or row.get('entity_type') != 'property' or str(row.get('entity_ref')) not in property_refs:
+    metadata=row.get('metadata')
+    if (row.get('id')!=logo_id or row.get('status') != 'uploaded' or row.get('entity_type') != 'property' or str(row.get('entity_ref')) not in property_refs
+            or row.get('document_type')!='supporting_document' or not isinstance(metadata,dict)
+            or metadata.get('category')!='property_logo' or metadata.get('asset_role') not in (None,'property_logo')):
         raise PermissionError('PROPERTY_LOGO_SCOPE_MISMATCH')
-    if row.get('mime_type') not in {'image/png', 'image/jpeg'}:
-        return None, None
+    if row.get('mime_type') not in {'image/png', 'image/jpeg', 'image/webp'}:
+        raise ValueError('INVALID_PROPERTY_LOGO')
     raw = storage(row, auth)
-    sanitized = sanitized_logo(raw)
+    sanitized = sanitized_logo(raw,row['mime_type'])
     return sanitized, {'id': logo_id, 'checksum_sha256': row.get('checksum_sha256'), 'size_bytes': row.get('size_bytes'), 'mime_type': row.get('mime_type')}
 
 
@@ -236,17 +240,32 @@ def export_preview(data, auth, rpc_call=rpc, read=common.upstream):
     return prepare_preview(data, auth, rpc_call, read)[0]
 
 
+def generated_pdf_page_count(pdf):
+    """Read the page tree emitted by our renderer, never the editor estimate.
+
+    ReportLab emits a single uncompressed Pages node. Check its declared count
+    against its object references; no external PDF or browser page plan is used.
+    """
+    nodes=re.findall(rb'(?m)^\d+\s+0\s+obj\s*<<\s*/Count\s+(\d+)\s*/Kids\s*\[((?:\s*\d+\s+0\s+R\s*)+)\]\s*/Type\s*/Pages\s*>>\s*endobj',pdf)
+    if len(nodes)!=1:raise ValueError('INVALID_GENERATED_PDF')
+    count=int(nodes[0][0]);refs=re.findall(rb'\d+\s+0\s+R',nodes[0][1])
+    if count<1 or count!=len(refs):raise ValueError('INVALID_GENERATED_PDF')
+    return count
+
+
 class handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
     def respond(self, status, body, mime='application/json; charset=utf-8', digest=None):
+        page_count=generated_pdf_page_count(body) if mime=='application/pdf' else None
         self.send_response(status)
         for key, value in [('Content-Type', mime), ('Cache-Control', 'private, no-store, max-age=0'), ('Vercel-CDN-Cache-Control', 'no-store'), ('Vary', 'Authorization'), ('X-Content-Type-Options', 'nosniff')]:
             self.send_header(key, value)
         if mime == 'application/pdf':
             self.send_header('Content-Disposition', 'inline; filename="aqari-rental-document-preview.pdf"')
             self.send_header('X-Aqari-PDF-SHA256', hashlib.sha256(body).hexdigest())
+            self.send_header('X-Aqari-PDF-Pages', str(page_count))
         if digest:
             self.send_header('X-Aqari-Document-SHA256', digest)
         self.send_header('Content-Length', str(len(body)))

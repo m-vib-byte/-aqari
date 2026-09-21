@@ -222,8 +222,8 @@
     },
     {
       "path": "api/contract-template-preview.py",
-      "sha256": "de5fc4ba3362db5551a938fb773cd4942c8255bf23ee293adfb4024de9664e50",
-      "size": 18586
+      "sha256": "ceece5662e912d8fb111ee620e48823348bb0a1fd2928b2a847f54b28b3a8f8c",
+      "size": 19876
     },
     {
       "path": "api/final-release-status.js",
@@ -832,8 +832,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "3cdd19faf2ecf92ced498fc270c8ffbdbfd757487afc5a3809d0af53389e722e",
-      "size": 20945
+      "sha256": "c2e374911c02f070be155e5c70cc0a01774dd97efa3f671099b7e7ef43561e0b",
+      "size": 22789
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -892,8 +892,8 @@
     },
     {
       "path": "lib/rental_document_layout.py",
-      "sha256": "8e997f4b36a212007c3236dda363dac7502fdd97df3cc3a695740962c9fd45cd",
-      "size": 4905
+      "sha256": "5f952034e494bca199e14d9d2e66a16b824ea5cd460c9d03757485ab27066221",
+      "size": 5361
     },
     {
       "path": "lib/supabase-probe.js",
@@ -1027,8 +1027,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "a9f20d3c245f89e1251e2d7cca4c657f48c52176bda9eb027aadfc44b211ece2",
-      "size": 8979
+      "sha256": "23da26584d0f23e7a401b3015548970adf6454a6878ed0911ef28e70c7e3956e",
+      "size": 9311
     },
     {
       "path": "scripts/check.mjs",
@@ -1357,8 +1357,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "8120cdb3eb37267c26e7c2c268ee9d7b56b0e27558c84b29d6099acfeb58ca52",
-      "size": 52737
+      "sha256": "0717cae6bfe66fda230a0c8dedcda71098d3013df7cdb9ecd9e7718f439b6ea8",
+      "size": 86044
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1467,13 +1467,13 @@
     },
     {
       "path": "src/v267/domain/rental-document-cycle.js",
-      "sha256": "c0b19ed11c32461ca0644d3f887a0605fc6cb7b8d929903affa3a9b68e09746d",
-      "size": 30203
+      "sha256": "9e518e34d56c80994d3ea2ed3a11a98ef3de8cab218d411abc008d2e594f6d48",
+      "size": 31323
     },
     {
       "path": "src/v267/domain/rental-document-layout.js",
-      "sha256": "4004ee8caa5293e97e7b6fe648bcdb57645d79563a519bf408db6a18449e1c97",
-      "size": 9306
+      "sha256": "292948f9cd8a0135356066ba06ca92ab31e70b95be2b93fe87604f367d94f02f",
+      "size": 9684
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
@@ -1487,13 +1487,13 @@
     },
     {
       "path": "src/v267/domain/template-draft-saver.js",
-      "sha256": "111f5620f62cedd9a8ca87d87aa1fa2b43410a78b90bd9d948e273734124f733",
-      "size": 3817
+      "sha256": "fbc72171cda9a4f96a1b58850bdac28a62c67d233610da6d997d3df22b008104",
+      "size": 3929
     },
     {
       "path": "src/v267/domain/template-editor-pagination.js",
-      "sha256": "7ffdc815af0f78ca8cc6a0bca86a9f45f6aa69a45e6852909f4a391f0bf9b27b",
-      "size": 6720
+      "sha256": "98fd304003f08204a1c36a9c0d56d9bd6dc208202764e756b8c9e084ec35add1",
+      "size": 6959
     },
     {
       "path": "src/v267/domain/vacating-review.js",
@@ -1757,8 +1757,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "4dc121c863c37c6e098efb073cfa23ee4175017d50b1df992ff15d8901e9ede9",
-      "size": 34158
+      "sha256": "df540f529ac82c24ed788775430242471bb66b56a097c3dba61700070347dceb",
+      "size": 44947
     },
     {
       "path": "src/v267/styles/live-stability.css",
@@ -1987,8 +1987,8 @@
     },
     {
       "path": "staging-database/local-test/run-template-library.sh",
-      "sha256": "eb4f0f348c2e8d23c176e2d6c841173125027fd16ae0ead15415dcb41640de75",
-      "size": 1478
+      "sha256": "b92f9ceebccf6c080b2ca877af9f6948a132ed4558278dc9d1fdddb7efdeafcd",
+      "size": 1711
     },
     {
       "path": "staging-database/sql/collection-account-management.sql",
@@ -3317,8 +3317,8 @@
     },
     {
       "path": "tests/fixtures/template-editor-visual.html",
-      "sha256": "2be83269c001e9682735007e039f77be10813f4e16ff11e222a35907f46b7309",
-      "size": 14027
+      "sha256": "417079842ea7355202118138de3b1df604406e3db3a38b4445cfb4140201b04e",
+      "size": 23964
     },
     {
       "path": "tests/github-preview-oidc.mjs",
@@ -3437,13 +3437,13 @@
     },
     {
       "path": "tests/rental_document_issue_test.py",
-      "sha256": "90de0821a11829104452b521b4d02c2d758ed7c6d063d9601ce65f60af18b47c",
-      "size": 18035
+      "sha256": "e3ed4b7bf2b66e16201f0acc7e1b90b8d04074058f05cfacfb4bda1ff560454d",
+      "size": 18143
     },
     {
       "path": "tests/rental_document_layout_test.py",
-      "sha256": "decfde15a74601ef164f53498f33766e6957b47fe8a27cd0969adf27ae18b1df",
-      "size": 16278
+      "sha256": "9df18018ddf3227f68b8facaf7bddc031cb865c5d1b927c1807c11038b1aa187",
+      "size": 16356
     },
     {
       "path": "tests/root-entry-middleware.test.cjs",
@@ -4227,8 +4227,8 @@
     },
     {
       "path": "tests/v267-template-editor-pagination.test.mjs",
-      "sha256": "ba701fa560505723889f45b52f72f232babceb646cc5363e2463efbd7a3aeffa",
-      "size": 8576
+      "sha256": "487c65e7c8e2a739d10ca5d98d57f83d5211331d5996e38f150916fb60e2a74a",
+      "size": 9541
     },
     {
       "path": "tests/v267-tenant-attachment-form.test.cjs",
@@ -4499,6 +4499,86 @@
       "path": "vercel.json",
       "sha256": "c80cc78abb8fe430da017d2050b3b92c26c9a93af57e0bdd81a339d73984c0da",
       "size": 4846
+    },
+    {
+      "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
+      "sha256": "3a3c502eeff669a231549e80df9f7c49de109bafe303170409e905d0b31a38fe",
+      "size": 334268
+    },
+    {
+      "path": "lib/pdf_fonts/AqariMono.ttf",
+      "sha256": "c805f9436dbc268644c1d9584f01a601a653e028e08fd74b9b949f6cf8304d88",
+      "size": 343140
+    },
+    {
+      "path": "lib/pdf_fonts/AqariSans-Bold.ttf",
+      "sha256": "5c1247acef7f2b8522a31742c76d6adcb5569bacc0be7ceaa4dc39dd252ce895",
+      "size": 708920
+    },
+    {
+      "path": "lib/rental_document_editor.py",
+      "sha256": "79adda2e02b27ba8df56f7c058b8566459baef63e851f620f16ca22eb04fa07b",
+      "size": 6020
+    },
+    {
+      "path": "lib/rental_document_editor_pdf.py",
+      "sha256": "0738e781b25b46ccd7db87177b0b5eddfe7135dab9ba6164dba81a469930e2d0",
+      "size": 15431
+    },
+    {
+      "path": "src/v267/components/template-property-logo.js",
+      "sha256": "b906aca19788afa2127ea7c5f7b5a48c59ce833346020678a2cdfc0b94bb849e",
+      "size": 13888
+    },
+    {
+      "path": "src/v267/domain/template-editor-metadata.js",
+      "sha256": "c23c12adf263d93761f15b2e18ce9b3024682e34c3127ec3c3ed14c9f703f018",
+      "size": 5376
+    },
+    {
+      "path": "src/v267/domain/template-editor-state.js",
+      "sha256": "4f751a645aa05fec946e5ac8e6c45b8f048ba3dd9ad679c1de12756998bf217a",
+      "size": 5677
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260921155101_v267_optional_document_editor.sql",
+      "sha256": "f16ce3a87d8c00475a65c8d97fb0cc1d29e8987004c65265d52c886618e43527",
+      "size": 12036
+    },
+    {
+      "path": "staging-database/tests/template_optional_editor.sql",
+      "sha256": "dfcac532008f3670cf256392d187b82d539be0b561d03674e110b7349f5ec5dc",
+      "size": 15776
+    },
+    {
+      "path": "tests/rental_document_editor_pdf_test.py",
+      "sha256": "6840c5380bbc9cade8dead35e39495eb27ebb93ecbd82237c5c358c33d6123ae",
+      "size": 15762
+    },
+    {
+      "path": "tests/v267-template-draft-saver-restore.test.mjs",
+      "sha256": "2e2449ea2ba46eef6204b8e71bab3664155d7f289afd3d61dc76b5f790d970ab",
+      "size": 3918
+    },
+    {
+      "path": "tests/v267-template-editor-metadata.test.mjs",
+      "sha256": "799670af22effdb03ea8aa9bfda2237603091f0c58cb6941f941e7b31f05b508",
+      "size": 8287
+    },
+    {
+      "path": "tests/v267-template-editor-state.test.mjs",
+      "sha256": "f915adb795567a871296c6f4aa6e8e7b5ebfe7b7ea3ee0251c2d8de124e9a3ed",
+      "size": 5588
+    },
+    {
+      "path": "tests/v267-template-editor-tools.test.mjs",
+      "sha256": "798477f2f6c848051d82d6c1e02e76cb554aeaef6bd33eb6b7cecad818db38b3",
+      "size": 30594
+    },
+    {
+      "path": "tests/v267-template-property-logo.test.mjs",
+      "sha256": "76dfd88c5238f88b96b8b09e5228495c7226afe116863f34282dbd56f28c5b28",
+      "size": 20057
     }
   ],
   "version": "V198"

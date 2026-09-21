@@ -175,7 +175,7 @@ class RentalDocumentLayoutTest(unittest.TestCase):
     def test_property_logo_must_be_same_scope_and_raster_hash_changes_pdf(self):
         f=fixture();f['master']['property']['assets']={'logo':'76610000-0000-4000-8000-000000000010'}
         logo=BytesIO();Image.new('RGB',(120,80),'#b59968').save(logo,format='PNG');raw=logo.getvalue()
-        row={'workspace_id':W,'id':f['master']['property']['assets']['logo'],'status':'uploaded','entity_type':'property','entity_ref':f['property_row']['id'],'mime_type':'image/png','size_bytes':len(raw),'checksum_sha256':'a'*64}
+        row={'workspace_id':W,'id':f['master']['property']['assets']['logo'],'status':'uploaded','entity_type':'property','entity_ref':f['property_row']['id'],'document_type':'supporting_document','metadata':{'category':'property_logo'},'mime_type':'image/png','size_bytes':len(raw),'checksum_sha256':'a'*64}
         read=lambda path,auth:[row]
         safe,snapshot=api.load_property_logo(W,f['property_row'],f['master'],AUTH,read,lambda row,auth:raw)
         self.assertEqual(snapshot['id'],row['id'])

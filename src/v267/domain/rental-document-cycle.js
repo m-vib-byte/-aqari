@@ -14,7 +14,7 @@ const definitions=[
  ['property_name','اسم العقار'],['property_address','عنوان العقار'],['property_area','المنطقة'],['property_block','القطعة'],['property_street','الشارع'],['property_building_no','رقم البناية'],['property_automatic_no','الرقم الآلي للعقار'],['unit_no','رقم الوحدة'],['unit_automatic_no','الرقم الآلي للوحدة'],['floor_no','الدور'],
  ['start_date','تاريخ بداية العقد','date'],['end_date','تاريخ نهاية العقد','date'],['contract_date','تاريخ تحرير العقد','date'],['monthly_rent','الإيجار الأصلي عند كتابة العقد','money'],['deposit_amount','مبلغ التأمين','money'],['advance_amount','مبلغ العربون','money'],['cleaning_fee','رسوم النظافة','money'],['accountant_name','اسم المحاسب'],
  ['receipt_no','رقم الوصل'],['receipt_date','تاريخ الوصل','date'],['rent_period','فترة الإيجار'],['amount','المبلغ المدفوع','money'],['payment_method','طريقة الدفع'],['payment_reference','رقم مرجع الدفع'],['receiver_name','اسم المستلم'],
- ['document_no','رقم المستند','text','document'],['issued_at','تاريخ الإصدار','date','document'],['handover_date','تاريخ استلام الوحدة','date','document'],['key_count','عدد المفاتيح','number','document'],['unit_condition','حالة الوحدة','text','document'],['vacate_date','تاريخ الإخلاء','date','document'],['key_return_date','تاريخ تسليم المفاتيح','date','document'],['settlement_reference','مرجع التسوية النهائية','text','document'],['net_balance','الرصيد النهائي','money','document']
+ ['document_no','رقم المستند','text','document'],['issued_at','تاريخ الإصدار','date','document'],['handover_date','تاريخ استلام الوحدة','date','document'],['key_count','عدد المفاتيح','number','document'],['unit_condition','حالة الوحدة','text','document'],['vacate_date','تاريخ الإخلاء','date','document'],['key_return_date','تاريخ تسليم المفاتيح','date','document'],['settlement_reference','مرجع التسوية النهائية','text','document'],['net_balance','الرصيد النهائي','money','document'],['business_activity','النشاط التجاري','text','document']
 ];
 export const documentFieldCatalog=Object.freeze(Object.fromEntries(definitions.map(([key,label,type='text',source='linked'])=>[key,Object.freeze({key,label,type,source})])));
 export const linkedDocumentFieldKeys=Object.freeze([...definitions.filter(x=>x[3]!=='document').map(x=>x[0]),...Object.keys(aliases)]);
@@ -35,12 +35,13 @@ export function resolveDocumentSigners(kind,values={},presentation=null){
  // Existing apartment/house/shop/custom contract kinds remain lease kinds.
  const blueprint=documentTemplateBlueprints.find(item=>item.kind===kind)||documentTemplateBlueprints[0];
  const settings=presentation?.signers,available=[ownerSigner,tenantSigner,signer('receiver','المستلم','receiver_name'),signer('accountant','المحاسب','accountant_name')];
- const selected=settings?available.filter(item=>settings[item.role]&&['name','signature','fingerprint'].some(key=>settings[item.role][key]===true)):(blueprint?.signers||[]);
+ const extra=presentation?.editor?.signers,selected=settings?available.filter(item=>['name','signature','fingerprint'].some(key=>settings[item.role]?.[key]===true)||['civil_id','nationality'].some(key=>extra?.details?.[item.role]?.[key]===true)):(blueprint?.signers||[]);
+ if(extra?.order)selected.sort((a,b)=>{const rank=role=>extra.order.includes(role)?extra.order.indexOf(role):extra.order.length+available.findIndex(item=>item.role===role);return rank(a.role)-rank(b.role);});
  return selected.map(item=>{
   const useRepresentative=item.role==='owner'&&fieldValue(values,'representative_name');
   const signer=useRepresentative?{...item,label:'وكيل المالك المفوض',nameKey:'representative_name'}:{...item};
-  const flags=settings?.[item.role]||{name:true,signature:true,fingerprint:true};
-  return {...signer,name:flags.name?fieldValue(values,signer.nameKey):'',signature:'',fingerprint:'',showName:flags.name,showSignature:flags.signature,showFingerprint:flags.fingerprint};
+  const flags=settings?.[item.role]||(settings?{name:false,signature:false,fingerprint:false}:{name:true,signature:true,fingerprint:true}),details=extra?.details?.[item.role],prefix=useRepresentative?'representative':item.role;
+  return {...signer,name:flags.name?fieldValue(values,signer.nameKey):'',signature:'',fingerprint:'',showName:flags.name,showSignature:flags.signature,showFingerprint:flags.fingerprint,...(details?{civilId:details.civil_id?fieldValue(values,prefix+'_civil_id'):'',nationality:details.nationality?fieldValue(values,prefix+'_nationality'):'',showCivilId:details.civil_id,showNationality:details.nationality}:{})};
  });
 }
 
@@ -80,7 +81,7 @@ export function validateTemplateFields(template){
    if(/[{}]/.test(remaining))fail('يوجد حقل غير مكتمل؛ حدده داخل النص واختر المعلومة من قائمة الحقول.');
   }
  }
- validateTemplatePresentation(template.presentation,fields);
+ validateTemplatePresentation(template.presentation,fields,template.clauses);
  return fields;
 }
 function displayValue(value,spec){
@@ -107,14 +108,15 @@ export function renderDocumentTemplate(template,providedValues={}, {requireValue
  }
  if(missing.length)fail('أكمل الحقول المطلوبة قبل المعاينة النهائية: '+missing.join('، ')+'؛ صحح بيانات العقد أو المستأجر المرتبطة أو أدخل بيانات المستند.');
  for(const key of ['tenant_name','owner_name','representative_name','receiver_name','accountant_name'])values[key]=safeValue(key,documentFieldCatalog[key]?.label||key);
+ for(const [role,flags]of Object.entries(template.presentation?.editor?.signers?.details||{}))for(const part of ['civil_id','nationality'])if(flags[part]){const prefix=role==='owner'&&values.representative_name?'representative':role,key=prefix+'_'+part;values[key]=safeValue(key,documentFieldCatalog[key]?.label||key);}
  // Replace each source token once; no replacement output is scanned again.
  const substitute=text=>text.replace(/\{\{([a-z][a-z0-9_]{1,49})\}\}/g,(_,key)=>display[key]);
- const presentation=validateTemplatePresentation(template.presentation,fields);
+ const presentation=validateTemplatePresentation(template.presentation,fields,template.clauses);
  return {title:substitute(template.title||''),fields,values,clauses:template.clauses.map(c=>({title:substitute(c.title),text:substitute(c.text)})),...(presentation?{presentation}:{})};
 }
 
 export function rentalDocumentDigestPayload(template,rendered){
- const presentation=validateTemplatePresentation(template?.presentation,template?.fields||[]);
+ const presentation=validateTemplatePresentation(template?.presentation,template?.fields||[],template?.clauses);
  const signers=resolveDocumentSigners(template?.kind,rendered.values,presentation);
  const value=[rendered.title,template.kind,template.kind_label||'',rendered.clauses.map(clause=>[clause.title,clause.text]),Object.entries(rendered.values).sort(([a],[b])=>a<b?-1:a>b?1:0),signers.map(signer=>[signer.role,signer.label,signer.name])];
  // Old models retain their exact prior digest material. New visual settings

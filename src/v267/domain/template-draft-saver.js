@@ -49,5 +49,5 @@ export function createTemplateDraftSaver({read,write,onSaved=()=>{},onStatus=()=
   })();
   try{return await running;}finally{running=null;}
  }
- return {changed,flush,get dirty(){return dirty||!!pending;},dispose(){disposed=true;clearTimeout(timer);}};
+ return {changed,flush,get dirty(){return dirty||!!pending;},get saving(){return !!running;},get uncertain(){return !!pending;},get canDiscard(){return !running&&!pending;},dispose(){disposed=true;clearTimeout(timer);}};
 }
