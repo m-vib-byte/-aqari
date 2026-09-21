@@ -5,8 +5,8 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 
-const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js';
-const SDK_SHA384 = '0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi';
+const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js';
+const SDK_SHA384 = 'JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp';
 const XSS_TENANT = '<img src=x onerror=alert(1)>';
 const SNAPSHOT_PATH = '/rest/v1/rpc/aqari_startup_snapshot_v266';
 const CONFIRMATION_PATH = '/api/workspace-confirmation';
@@ -89,7 +89,7 @@ export async function createRecoveryFixture({ root = process.cwd(), sdk = Buffer
         res.writeHead(200, { 'content-type':'text/javascript' });
         return res.end('window.AQARI_PUBLIC_CONFIG=' + JSON.stringify({ supabaseUrl:base, supabasePublishableKey:'sb_publishable_synthetic', supabaseAuthStorageKey:'aqari-supabase-auth-v198' }) + ';');
       }
-      if (url.pathname === '/vendor/supabase-js-2.114.0.js') {
+      if (url.pathname === '/vendor/supabase-js-2.116.0.js') {
         res.writeHead(200, { 'content-type':'text/javascript' });
         return res.end(sdk);
       }

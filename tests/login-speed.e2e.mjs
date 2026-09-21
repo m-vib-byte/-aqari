@@ -12,11 +12,11 @@ fs.mkdirSync(output, { recursive:true });
 const html = fs.readFileSync('login.html', 'utf8');
 const baseline = html.replace(/^  <link rel="preload"[^>]+>\n/gm, '');
 const adapter = fs.readFileSync('supabase-adapter.js', 'utf8');
-const sdkResponse = await fetch('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.min.js', { signal:AbortSignal.timeout(20000) });
+const sdkResponse = await fetch('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js', { signal:AbortSignal.timeout(20000) });
 assert.ok(sdkResponse.ok);
 const sdk = Buffer.from(await sdkResponse.arrayBuffer());
-assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'), '0UK+HVlz5Y7F//atDpPysyocv/PjGXQoBX+XSaL/eEotARW8rPFh+lL5sO0Ljzfi');
-const paths = ['/public-config.js', '/vendor/supabase-js-2.114.0.js', '/supabase-adapter.js'];
+assert.equal(crypto.createHash('sha384').update(sdk).digest('base64'), 'JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp');
+const paths = ['/public-config.js', '/vendor/supabase-js-2.116.0.js', '/supabase-adapter.js'];
 const config = "window.AQARI_PUBLIC_CONFIG={supabaseUrl:'https://example.invalid',supabasePublishableKey:'synthetic-public-key'};";
 const files = new Map([[paths[0], config], [paths[1], sdk], [paths[2], adapter], ['/v267-login-locale.js', fs.readFileSync('v267-login-locale.js','utf8')]]);
 const server = http.createServer((req, res) => {
