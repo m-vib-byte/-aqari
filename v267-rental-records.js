@@ -117,14 +117,14 @@ function primary(payload){
 }
 function createStore(options){
  let busy=false,uncertain=false;
- return {async change(keys,mutate,verify){
+ return {async change(keys,mutate,verify,{compare=keys}={}){
   if(busy||uncertain)fail(uncertain?'تحديث الصفحة مطلوب للتحقق من نتيجة الحفظ السابقة.':'انتظر اكتمال الحفظ الحالي.');
   const scope=options.scope();if(!scope)fail('صلاحية الكتابة غير متاحة.');
   const check=()=>{if(!same(scope,options.scope()))fail('تغيّرت جلسة الدخول. لم يتم عرض بيانات الحساب السابق.');};
   let sent=false;busy=true;
   try{
    const cloud=await options.load(scope);check();const payload=copy(cloud.payload),data=primary(payload),local=options.local();
-   for(const k of keys)if(!same(data[k]||[],local[k]||[]))fail('تغيّرت البيانات أو توجد تعديلات محلية. حدّث الصفحة قبل الحفظ.');
+   for(const k of compare)if(!same(data[k]||[],local[k]||[]))fail('تغيّرت البيانات أو توجد تعديلات محلية. حدّث الصفحة قبل الحفظ.');
    const expected=mutate(data);check();sent=true;
    await options.save(payload,Number(cloud.revision),scope);check();
    const confirmed=primary((await options.load(scope)).payload);check();
@@ -215,7 +215,7 @@ function openTenant(index,draftId){
  if(existing?.source==='statement-import'){
   import('./src/v267/pages/imported-tenant.js').then(m=>m.openImportedTenant({ref:p.id,draft:savedDraft,
    onDraft:async values=>{const pending=tenantDraft(values);await store.change(['tenantPreparationDraftsV267','audit'],cloud=>{cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==pending.id).concat([pending]);cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ مسودة بيانات مستأجر',pending.id,new Date().toISOString()]]);return pending;},(cloud,saved)=>(cloud.tenantPreparationDraftsV267||[]).some(x=>same(x,saved)));},
-   onSaved:async()=>{const bound=scope();if(!bound)fail('انتهت الجلسة.');const cloud=await bounded(()=>root.AQARI_SUPABASE.loadAppState(bound));if(!same(bound,scope()))fail('تغيّرت الجلسة.');const confirmed=primary(cloud.payload);for(const key of ['tenants','tenantProfilesV267','tenantDirectoryV202','tenantPreparationDraftsV267'])data()[key]=copy(confirmed[key]||[]);try{if(typeof persist==='function')persist()}catch(_){}if(typeof render==='function')render();}
+   onSaved:async()=>{const bound=scope();if(!bound)fail('انتهت الجلسة.');const cloud=await bounded(()=>root.AQARI_SUPABASE.loadAppState(bound));if(!same(bound,scope()))fail('تغيّرت الجلسة.');const confirmed=primary(cloud.payload);for(const key of ['tenants','tenantProfilesV267','tenantDirectoryV202','tenantPreparationDraftsV267'])data()[key]=copy(confirmed[key]||[]);if(typeof render==='function')render();}
   })).catch(()=>window.alert('تعذر فتح ملف المستأجر المستورد. حدّث الصفحة وأعد المحاولة.'));
   return true;
  }
@@ -324,7 +324,7 @@ async function openRecord(module,index){
     const saved=propertyForm?row:existing?existing.map((v,i)=>i<row.length?row[i]:v):row;
     if(existing)rows[index]=saved;else rows.push(saved);cloud[module]=rows;
     cloud.audit=(cloud.audit||[]).concat([[bound.userId,existing?'تعديل سجل':'إضافة سجل',module,new Date().toISOString()]]);return {row:saved,index:existing?index:rows.length-1};
-   },(cloud,saved)=>same(cloud[module]?.[saved.index],saved.row));
+   },(cloud,saved)=>same(cloud[module]?.[saved.index],saved.row),module==='properties'?{compare:[]}:{compare:[module,'audit']});
    modal.classList.remove('on');if(typeof render==='function')render();
    if(propertyForm){propertyForm.dispose();root.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:row[0]}}));}
   }catch(e){status.textContent=e.message||'تعذر تأكيد الحفظ.'}finally{button.disabled=false;saving=false;}

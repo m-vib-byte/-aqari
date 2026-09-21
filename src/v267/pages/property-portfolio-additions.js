@@ -42,11 +42,14 @@ export function openTenantCompleteFile(propertyId,tenantId){
   const leases=node('section');leases.className='aq267-property-master-section';leases.append(node('h3','العقود والوحدات المرتبطة بهذا العقار'));
   for(const lease of file.leases||[]){const card=node('article');card.append(info('العقد',lease.contractNo),info('الوحدة',lease.unitNo),info('الفترة',`${lease.startDate} — ${lease.endDate}`),info('الإيجار',money(lease.monthlyRent)),info('الحالة',lease.status),button('رفع عقد قديم للأرشفة فقط',()=>{d.close();scanner({type:'lease',ref:lease.id,category:'lease_contract',title:`عقد قديم — ${lease.contractNo}`});}),button('مسح/تصوير مستند',()=>{d.close();scanner({type:'lease',ref:lease.id});}),button('رفع ملف',()=>{d.close();scanner({type:'lease',ref:lease.id});}));leases.append(card);}
   if(!(file.leases||[]).length)leases.append(node('p','لا توجد عقود لهذا المستأجر داخل العقار المحدد.'));
+  const receipts=node('section');receipts.className='aq267-property-master-section';receipts.append(node('h3','الوصولات والتحصيلات المرتبطة'));
+  for(const receipt of file.receipts||[]){receipts.append(info('الوصل '+receipt.reference,`${money(receipt.amount)} · ${receipt.paidAt} · ${receipt.paymentMethod} · ${receipt.status}`));}
+  if(file.receipts===null)receipts.append(node('p','الوصولات غير متاحة لصلاحية هذا الحساب.'));else if(!(file.receipts||[]).length)receipts.append(node('p','لا توجد وصولات محفوظة لعقود هذا المستأجر داخل العقار.'));
   const docs=node('section');docs.className='aq267-property-master-section';docs.append(node('h3','الجوازات وعقد الزواج والاستلام والإخلاء وبقية المستندات'));
   for(const documentRow of file.documents||[]){docs.append(info(documentCategory(documentRow),`${documentRow.title} · ${documentRow.documentNo} · ${documentRow.status}`));}
   if(file.documents===null)docs.append(node('p','المستندات غير متاحة لصلاحية هذا الحساب.'));else if(!(file.documents||[]).length)docs.append(node('p','لا توجد مستندات محفوظة لهذا المستأجر وعقوده في هذا العقار.'));
   if(file.documents!==null)docs.append(button('مسح/تصوير مستند للمستأجر',()=>{d.close();scanner({type:'tenant',ref:tenantId});}),button('رفع ملف للمستأجر',()=>{d.close();scanner({type:'tenant',ref:tenantId});}));
-  d.body.append(identity,leases,docs);d.status.textContent='هذا الملف مقصور على العقار المحدد، ولا يعرض عقود أو وحدات عقار آخر.';
+  d.body.append(identity,leases,receipts,docs);d.status.textContent='هذا الملف مقصور على العقار المحدد، ولا يعرض عقود أو وحدات عقار آخر.';
  }
  d.run(render);return true;
 }
@@ -67,7 +70,7 @@ export function openPropertyMonthlyRent(propertyId){
 
 export async function mountPropertyPortfolioAdditions(dialog,propertyId,file,access){
  const response=await dialog.session.request(dialog.session.client.rpc('aqari_property_responsible',{p_workspace_id:dialog.session.bound.workspace,p_property_id:propertyId,p_action:'context',p_data:{}}));dialog.session.check();if(response?.record?.propertyId!==propertyId)throw Error('تعذر تأكيد مسؤول العقار.');
- const box=node('section');box.className='aq267-property-master-section';box.dataset.presentationKey='portfolio_additions';box.append(node('h3','المسؤول وملفات المستأجرين وكشف الإيجار'),info('المسؤول عن العقار',response.record.name),info('الصفة',response.record.title));
+ const box=node('section');box.className='aq267-property-master-section';box.dataset.presentationKey='portfolio_additions';box.style.order='5';box.append(node('h3','المسؤول وملفات المستأجرين وكشف الإيجار'),info('المسؤول عن العقار',response.record.name),info('الصفة',response.record.title));
  if(access?.permissions?.properties?.write===true)box.append(button('حفظ/تعديل مسؤول العقار',()=>{dialog.close();openPropertyResponsible(propertyId);}));
  if(file.permissions?.collections!==false)box.append(button('كشف الإيجار الشهري — مدفوع وغير مدفوع وخصم',()=>{dialog.close();openPropertyMonthlyRent(propertyId);}));
  if(file.permissions?.contracts!==false){for(const lease of file.contracts||[]){const row=node('article');row.append(info('العقد',lease.contractNo),button('ملف المستأجر الكامل',()=>{dialog.close();openTenantCompleteFile(propertyId,lease.tenantId);}),button('رفع عقد قديم للأرشفة فقط',()=>{dialog.close();scanner({type:'lease',ref:lease.id,category:'lease_contract',title:`عقد قديم — ${lease.contractNo}`});}),button('مسح/تصوير مستند',()=>{dialog.close();scanner({type:'lease',ref:lease.id});}),button('رفع ملف',()=>{dialog.close();scanner({type:'lease',ref:lease.id});}));box.append(row);}}
