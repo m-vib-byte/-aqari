@@ -1841,6 +1841,7 @@
       '</div>'+
       '</details><nav class="v202-actions" aria-label="إجراءات العقار">'+
         '<button type="button" data-v202-action="contract">'+icon('contract')+'<span><strong>'+(protectedOnly?'عقود العقار':'إبرام عقد')+'</strong><small>'+(protectedOnly?'عرض العقود المرتبطة':'إنشاء وربط العقد')+'</small></span></button>'+
+        (window.AQARI_SUPABASE?.context?.membership?.role==='general_manager'&&window.AQARI_DOCUMENTS?.allowed()?'<button type="button" data-v202-action="contract-archive">'+icon('contract')+'<span><strong>رفع عقد قديم</strong><small>أرشفة وربط دون إنشاء عقد جديد</small></span></button>':'')+
         '<button type="button" data-v202-action="payment">'+icon('wallet')+'<span><strong>'+(canWrite?'تسجيل إيجار':'التحصيل')+'</strong><small>'+(canWrite?'تحصيل وإصدار وصل':'عرض الدفعات والوصولات')+'</small></span></button>'+ 
         '<button type="button" data-v202-action="statement">'+icon('chart')+'<span><strong>كشف الإيجار</strong><small>كشف تفصيلي PDF</small></span></button>'+ 
         '<button type="button" data-v202-action="profile">'+icon('building')+'<span><strong>'+(protectedOnly?'ملخص العقار':'الملف الكامل')+'</strong><small>'+(protectedOnly?'داخل الملف المحمي':'العقار 360°')+'</small></span></button>'+ 
@@ -2102,6 +2103,21 @@
     if(action==='sender-settings'){
       if(!window.AQARI_PROPERTY_EXPERIENCE?.canManageSender?.())return false;
       return Promise.resolve(window.AQARI_PROPERTY_EXPERIENCE.openSenderSettingsByName(activeProperty)).catch(function(){window.alert('تعذر فتح إعدادات العقار. تحقق من ربط العقار بالسجل وصلاحية المدير.');});
+    }
+    if(action==='contract-archive'){
+      if(window.AQARI_SUPABASE?.context?.membership?.role!=='general_manager'||!window.AQARI_DOCUMENTS?.allowed())return false;
+      const name=activeProperty,bridge=window.AQARI_SUPABASE,workspace=bridge?.context?.workspace?.id;
+      return Promise.resolve().then(async function(){
+        if(!workspace||!name||typeof bridge?.getClient!=='function')throw Error('الجلسة غير جاهزة.');
+        const client=await bridge.getClient();
+        const {data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).eq('name',name).limit(2);
+        if(error)throw error;
+        if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد.':'لم يتم ربط العقار بالسجل الخادمي.');
+        const page=await import('./src/v267/pages/contract-archive.js');
+        if(!protectedAccessReady()||window.AQARI_SUPABASE?.context?.membership?.role!=='general_manager'||!window.AQARI_DOCUMENTS?.allowed())return false;
+        closeWorkspace(false);
+        return page.openContractArchive({property_id:data[0].id});
+      }).catch(function(){window.alert('تعذر فتح أرشيف العقود القديمة. تحقق من ربط العقار وصلاحية المدير.');});
     }
     if(action==='documents'){
       if(!window.AQARI_DOCUMENTS?.allowed())return false;
