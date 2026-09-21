@@ -79,8 +79,9 @@ test('property cards hydrate from canonical server rows and mount on the propert
  assert.match(experience,/propertyTitle\?\.textContent\?\.trim\(\)==='العقارات'/);
  assert.match(experience,/head\.after\(region\)/);
  assert.match(experience,/\[data-exact-key="properties"\]/);
- assert.match(experience,/getElementById\('v201PageTitle-list'\)/);
- assert.match(experience,/new MutationObserver\(\(\)=>queueMicrotask\(\(\)=>\{window\.AQARI_PROPERTY_EXPERIENCE=propertyApi;refresh\(\);\}\)\)/);
+ assert.match(experience,/const routeRoot=document\.getElementById\('list'\)/);
+ assert.match(experience,/new MutationObserver\(syncRoute\)\.observe\(routeRoot,/);
+ assert.match(experience,/if\(next===routeState\)return/);
  assert.match(experience,/let limit=12/);
  assert.match(experience,/installed=\{refresh,api:propertyApi\}/);
  assert.match(experience,/window\.AQARI_PROPERTY_EXPERIENCE=installed\.api/);
