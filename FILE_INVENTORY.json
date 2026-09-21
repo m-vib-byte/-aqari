@@ -902,8 +902,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "d951f74aaf944caa2874906f1e8f80c5677985efae79c3e6fe60d38cd331e9c2",
-      "size": 8510
+      "sha256": "123b69f3cbdbb48109377400491b102b6bff415cc74624cdf154df1a954932cc",
+      "size": 8600
     },
     {
       "path": "scripts/check.mjs",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "edc787565f83a576a5c9a2afc17c3238f40ee8f0a250d7deef1f18b7c3f183ea",
-      "size": 43195
+      "sha256": "8dff1af81cede27d59684d61642e3cb464dd6df0ad7b8be390193d69eed334af",
+      "size": 47518
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1472,8 +1472,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "12525ed399153d15aa2d9f3b7f6a6bdf9315fbb386e59de5ede6c33835c15f60",
-      "size": 48794
+      "sha256": "1d2d5fecd574fe12596c1cfb4e13300cad9b4ae9fd7511debd1787a63680853c",
+      "size": 55435
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3762,8 +3762,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "ec57344e67cdf785df38c519d6042bb4e893ea2ed65d8ac143cb2278e14a320e",
-      "size": 22727
+      "sha256": "893bdd3a02a0094858f40c3974542958fc18a2d0f2c0995a507cd22dc8b6120c",
+      "size": 31198
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4247,8 +4247,8 @@
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
-      "sha256": "4d9c64032cbad843331652b48d52a2e20e7d08457bbe5c0ff4cfeb9a2cdafe49",
-      "size": 72934
+      "sha256": "55c0633ce29e8eae5f24916e89a62a73ec07665c65114c5fd8ce0e040303d136",
+      "size": 79322
     },
     {
       "path": "src/v267/domain/rental-document-cycle.js",
@@ -4262,8 +4262,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "90648ad6050a025c3ab8cb72c0466a525834286b65d0ef812eb2c01e472d2b55",
-      "size": 15922
+      "sha256": "67501828c21af64068b532159211a081f4c2d37de4fb9f48c03ba3192980bb01",
+      "size": 19884
     },
     {
       "path": "tests/contract_template_pdf_test.py",
@@ -4322,8 +4322,8 @@
     },
     {
       "path": "staging-database/local-test/run-template-library.sh",
-      "sha256": "32f338ae93ac734a1bed76225f6cd4ce0b80875d4ab88293b76455f529b10452",
-      "size": 1199
+      "sha256": "bb19775cf316ae6e0bf574cba10c3a4cc0ea0edd6f09889f72f138959b7cbbf7",
+      "size": 1260
     },
     {
       "path": "staging-database/supabase/migrations/20260921090251_v267_template_families_a4_archive.sql",
@@ -4389,6 +4389,36 @@
       "path": "tests/v267-property-portfolio-additions.test.mjs",
       "sha256": "4a504fe77b694b14b0497dc703e5633fa52629b7bec0b912848b5d45d5160c7d",
       "size": 2691
+    },
+    {
+      "path": "src/v267/domain/rental-template-starters.js",
+      "sha256": "b16ab88f5e5434a29e463831244d6eaf0fd8a3aec27267e23d8be67a339772a5",
+      "size": 7453
+    },
+    {
+      "path": "src/v267/styles/saved-contract-viewer.css",
+      "sha256": "34120ccd9fb252b68011c9e5c36750cab43f0b0955b8f7c4d55c56205b80bff1",
+      "size": 3566
+    },
+    {
+      "path": "staging-database/tests/template_library_custom_fields.sql",
+      "sha256": "cfef5ce1e205a3f228a84200caf747819ee70210fc05981b8f080c53caa725b6",
+      "size": 4457
+    },
+    {
+      "path": "tests/v267-rental-template-starters.test.mjs",
+      "sha256": "4070c5d984633b6e621323ba30e38390350f3f16d0648fd59990c3c060458f2a",
+      "size": 5272
+    },
+    {
+      "path": "tests/v267-saved-contract-viewer.test.mjs",
+      "sha256": "f1ba199db1e8b33ba506d9f6415eb8afbde8dd0d85c7e1b784baffad5e08274e",
+      "size": 8613
+    },
+    {
+      "path": "docs/verification/a4-starter-additions-20260921.md",
+      "sha256": "c2f31e5269c22fa7689bec8b5dee8c67085e5d03f46f4618a617bba063f5a6f1",
+      "size": 3516
     }
   ],
   "version": "V198"
