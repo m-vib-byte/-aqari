@@ -80,3 +80,22 @@
 @media screen {
 body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36px;box-shadow:0 16px 70px #65502008}body.v267-login-page .login-brand{border:0;margin-bottom:30px;padding:0}body.v267-login-page .login-monogram{display:grid;place-items:center;width:52px;height:52px;background:#f6efdf;border-radius:16px;font-size:32px!important}body.v267-login-page h1{font-size:30px;margin-bottom:12px}body.v267-login-page .subtitle{margin-bottom:30px}body.v267-login-page input{min-height:56px;border-radius:14px;background:#fff}body.v267-login-page button.primary{min-height:56px;border-radius:14px}body.v267-login-page .status{background:#faf6ec;color:#6b5735}@media(max-width:460px){body.v267-login-page{align-items:start;padding-top:max(36px,env(safe-area-inset-top))}body.v267-login-page main{padding:26px 22px}body.v267-login-page .secondary{grid-template-columns:1fr 1fr}body.v267-login-page .secondary button{font-size:12px;padding:8px;min-height:52px}}
 }
+
+
+/* AQARI unified premium palette — warm white, honey, gold and refined brown. */
+@media screen {
+ :root {
+  --aq-surface:#fffdf9;--aq-canvas:#f8f3e8;--aq-ink:#35291d;--aq-muted:#746554;
+  --aq-gold:#a37a32;--aq-gold-strong:#7a541d;--aq-honey:#e8d3a6;
+  --aq-brown:#5b3b22;--aq-line:#ddcba8;--aq-danger:#8b251f;
+ }
+ body.aq-v199.aq-v267 {background:var(--aq-canvas)!important;color:var(--aq-ink)!important}
+ body.aq-v199.aq-v267 :is(input,select,textarea) {background:#fff!important;color:var(--aq-ink)!important;border-color:#cdb98e!important}
+ body.aq-v199.aq-v267 :is(input,select,textarea)::placeholder {color:#806f5c!important;opacity:1}
+ body.aq-v199.aq-v267 :is(button,.btn,[role="button"]) {border-color:var(--aq-gold)!important}
+ body.aq-v199.aq-v267 :is(button.primary,.primary,.btn-primary,[data-primary="true"]) {background:var(--aq-brown)!important;color:#fff!important;border-color:var(--aq-brown)!important}
+ body.aq-v199.aq-v267 :is(button.secondary,.secondary,.btn-secondary) {background:var(--aq-surface)!important;color:var(--aq-brown)!important;border-color:var(--aq-gold)!important}
+ body.aq-v199.aq-v267 :is(a,.link,[data-link]) {color:var(--aq-gold-strong)}
+ body.aq-v199.aq-v267 :is(.danger,.destructive,[data-danger="true"]) {background:var(--aq-danger)!important;color:#fff!important;border-color:var(--aq-danger)!important}
+ body.aq-v199.aq-v267 :is(.card,.box,.panel,.modal>.box,.v202-workspace,.v267-property-card) {background:var(--aq-surface)!important;border-color:var(--aq-line)!important}
+}
