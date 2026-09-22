@@ -55,13 +55,16 @@ function syncActive(route){
  document.querySelectorAll('[data-exact-key]').forEach(button=>{const mapped=ROUTE_KEYS[button.dataset.exactKey];button.classList.toggle('active',mapped===route);});
  document.querySelectorAll('[data-v199-go]').forEach(button=>{button.classList.toggle('is-active',button.dataset.v199Go===route);if(button.dataset.v199Go===route)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
 }
-async function callRouters(route){
+async function callRouters(route,current=()=>true){
  let called=false;
+ if(!current())return false;
  try{if(typeof window.go==='function'){window.go(route);called=true;}}catch{}
  await waitPaint();
+ if(!current())return false;
  if(!routeContextReady(route)){
   try{if(typeof window.AQARI_V199_BASE_GO==='function'){window.AQARI_V199_BASE_GO(route);called=true;}}catch{}
   await waitPaint();
+  if(!current())return false;
  }
  if(['home','properties','tenants','collectionProPage','maintenanceProPage'].includes(route)&&window.AQARI_V205&&document.body.getAttribute('data-v205-route')!==route){
   try{window.AQARI_V205.navigate?.(route);called=true;}catch{}
@@ -69,18 +72,19 @@ async function callRouters(route){
  }
  return called;
 }
-export async function navigateOwnerFinal(route){
+export async function navigateOwnerFinal(route,parentCurrent=()=>true){
  const token=++flight;const s=scope();if(!s)return false;status('');
+ const current=()=>token===flight&&scope()?.key===s.key&&parentCurrent();
  try{
-  const a=await access();if(token!==flight)return false;
+  const a=await access();if(!current())return false;
   if(!routeAllowed(route,a)){status('هذا القسم غير متاح لصلاحيات حسابك الحالية.',true);return false;}
-  await callRouters(route);if(token!==flight)return false;
+  await callRouters(route,current);if(!current())return false;
   if(!visible(page(route))){status('تعذر فتح صفحة '+sectionTitle(route)+'. لم يتم تنفيذ تمرير وهمي للأعلى.',true);return false;}
   directPageCommit(route);decorate(route);syncActive(route);
   const target=page(route);target?.scrollIntoView?.({block:'start',behavior:'auto'});
   window.dispatchEvent(new CustomEvent('aqari:owner-final-route',{detail:{route}}));
   return true;
- }catch(error){status(error?.message==='ACCESS_DENIED'?'انتهت صلاحية الجلسة أو تغيرت. أعد تسجيل الدخول.':'تعذر فتح القسم بأمان.',true);return false;}
+ }catch(error){if(current())status(error?.message==='ACCESS_DENIED'?'انتهت صلاحية الجلسة أو تغيرت. أعد تسجيل الدخول.':'تعذر فتح القسم بأمان.',true);return false;}
 }
 function routeFromElement(el){
  const direct=el.closest?.('[data-owner-final-route]')?.dataset.ownerFinalRoute;if(direct)return direct;

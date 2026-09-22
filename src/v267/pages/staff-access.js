@@ -2,6 +2,7 @@ import {dateLocale} from '../components/locale.js';
 import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
+import {createStaffAccountPreparations} from '../components/staff-account-preparations.js';
 
 const roles={get collector(){return visibleText('موظف تحصيل');},get accountant(){return visibleText('محاسب');},get maintenance(){return visibleText('مسؤول صيانة');},get property_manager(){return visibleText('مدير عقار');},get viewer(){return visibleText('عرض فقط');}};
 const roleCeilings={accountant:['collector','accountant','viewer'],property_manager:['collector','maintenance','property_manager','viewer'],viewer:['viewer']};
@@ -20,13 +21,14 @@ const rejectedBeforeSave=error=>[400,404,409,422].includes(Number(error?.status)
 
 export function openStaffAccess(){
  const d=createDialog(translateStatic('صلاحيات حسابات الموظفين والعقارات'));if(!d)return;
- let directory={properties:[],members:[],assignments:[],audit:[]},revision=0,pendingSave=null,selectedUser='',baseline='';
+ let directory={properties:[],members:[],assignments:[],audit:[]},revision=0,pendingSave=null,selectedUser='',baseline='',accountPreparations=null;
  const reload=node('button',translateStatic('تحديث الصلاحيات من قاعدة البيانات')),form=node('form'),user=node('select'),role=node('select'),active=node('input'),properties=node('fieldset'),reason=node('textarea'),description=node('p'),save=node('button',translateStatic('حفظ الصلاحيات والتحقق منها')),list=node('section'),audit=node('section');
  reload.type='button';save.type='submit';active.type='checkbox';user.required=role.required=reason.required=true;reason.minLength=3;reason.maxLength=500;reason.rows=3;form.hidden=true;
+ const prepareAccount=node('button',translateStatic('تجهيز حساب موظف مستقل')),preparationPanel=node('section');prepareAccount.type='button';prepareAccount.hidden=true;
  const discard=node('button',translateStatic('تحميل الصلاحيات المحفوظة وترك التعديلات'));discard.type='button';
  form.append(field(translateStatic('حساب الموظف'),user),field(translateStatic('الدور الوظيفي'),role),description,field(translateStatic('تفعيل الوصول إلى العقارات المحددة'),active),properties,field(translateStatic('سبب منح الصلاحيات أو تعديلها أو إيقافها'),reason),save);
  form.append(discard);
- d.body.append(node('p',translateStatic('إدارة وصول حسابات الموظفين الموجودة. يتطلب التفعيل اختيار عقار واحد على الأقل. تحدد الأدوار الحد الأعلى للصلاحيات، وتظل قيود الأقسام والاعتمادات الخاصة سارية.')),reload,form,list,audit);
+ d.body.append(node('p',translateStatic('إدارة وصول حسابات الموظفين الموجودة. يتطلب التفعيل اختيار عقار واحد على الأقل. تحدد الأدوار الحد الأعلى للصلاحيات، وتظل قيود الأقسام والاعتمادات الخاصة سارية.')),prepareAccount,reload,form,list,audit,preparationPanel);
  const values=()=>({user_id:selectedUser,operational_role:role.value,property_ids:[...properties.querySelectorAll('input:checked')].map(control=>control.value).sort(),is_active:active.checked,revision,reason:reason.value});
  const dirty=()=>Boolean(selectedUser)&&JSON.stringify(values())!==baseline;
  const canDiscard=()=>!dirty()||window.confirm(visibleText('توجد تعديلات صلاحيات غير محفوظة. هل تريد تركها وتحميل السجل المحفوظ؟'));
@@ -37,7 +39,7 @@ export function openStaffAccess(){
   role.value=allowedRoles().includes(selected)?selected:'';
  }
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_staff_access',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
- function clear(){directory={properties:[],members:[],assignments:[],audit:[]};revision=0;pendingSave=null;selectedUser='';baseline='';form.hidden=true;user.replaceChildren();properties.replaceChildren();list.replaceChildren();audit.replaceChildren();reason.value='';role.replaceChildren();active.checked=false;description.textContent='';}
+ function clear(){accountPreparations?.clear();accountPreparations=null;prepareAccount.hidden=true;preparationPanel.replaceChildren();directory={properties:[],members:[],assignments:[],audit:[]};revision=0;pendingSave=null;selectedUser='';baseline='';form.hidden=true;user.replaceChildren();properties.replaceChildren();list.replaceChildren();audit.replaceChildren();reason.value='';role.replaceChildren();active.checked=false;description.textContent='';}
  function labelProperties(ids){return (ids||[]).map(id=>directory.properties.find(property=>property.id===id)?.name||visibleText('عقار غير متاح حالياً')).join('، ')||visibleText('لا توجد عقارات محددة');}
  function describeRole(){description.textContent=limits[role.value]||visibleText('اختر الدور لعرض حدود الوصول.');}
  function populateProperties(ids=[]){
@@ -59,7 +61,7 @@ export function openStaffAccess(){
  function render(preserved=null){
   const selected=user.value;user.replaceChildren();const placeholder=node('option',translateStatic('اختر حساب الموظف'));placeholder.value='';user.append(placeholder);
   for(const member of directory.members){const option=node('option',(member.display_name||visibleText('حساب موظف'))+(member.is_active===false?visibleText(' — حساب غير نشط'):''));option.value=member.user_id;option.disabled=member.is_active===false;user.append(option);}
-  if(directory.members.some(member=>member.user_id===selected&&member.is_active!==false))user.value=selected;else user.value='';populate();form.hidden=false;
+  if(directory.members.some(member=>member.user_id===selected&&member.is_active!==false))user.value=selected;else user.value='';populate();form.hidden=false;prepareAccount.hidden=false;
   if(preserved&&selectedUser===preserved.user_id){revision=preserved.revision;role.value=allowedRoles().includes(preserved.operational_role)?preserved.operational_role:'';active.checked=preserved.is_active;reason.value=preserved.reason;populateProperties(preserved.property_ids);describeRole();}
   list.replaceChildren(node('h3',translateStatic('الصلاحيات المحفوظة')));if(!directory.assignments.length)list.append(node('p',translateStatic('لا توجد صلاحيات تشغيلية مسندة من هذا القسم.')));
   for(const assignment of directory.assignments){const member=directory.members.find(record=>record.user_id===assignment.user_id),card=node('article');card.append(node('h4',member?.display_name||visibleText('حساب موظف محفوظ')),node('p',(roles[assignment.operational_role]||visibleText('دور غير معروف'))+' • '+(assignment.is_active?visibleText('الوصول مفعل'):visibleText('الوصول موقوف'))),node('p',translateStatic('العقارات: ')+labelProperties(assignment.property_ids)),node('p',translateStatic('آخر تعديل: ')+timestamp(assignment.updated_at)));
@@ -99,6 +101,8 @@ export function openStaffAccess(){
   if(!matches(verified.assignments.find(record=>record.user_id===values.user_id),values))throw Error('لم تتأكد مطابقة الصلاحيات المحفوظة. حدّث السجلات قبل إعادة المحاولة.');
   pendingSave=null;directory=verified;render();d.status.textContent=values.is_active?visibleText('تم حفظ الصلاحيات والتحقق من الدور والعقارات بإعادة القراءة.'):visibleText('تم إيقاف الوصول والتحقق من حفظ الإيقاف وسجل التعديل.');
  });};
+ prepareAccount.onclick=()=>d.run(async()=>{if(!accountPreparations){accountPreparations=createStaffAccountPreparations(d);preparationPanel.append(accountPreparations.el);}await accountPreparations.load();preparationPanel.scrollIntoView?.({block:'start'});});
+ d.setBeforeClose?.(()=>pendingSave||accountPreparations?.uncertain?window.confirm(visibleText('لم يتأكد حفظ تعديل الصلاحيات بعد. هل تريد إغلاق النافذة؟ عند العودة حدّث السجل وتحقق من العملية قبل إعادة الحفظ.')):accountPreparations?.dirty?window.confirm(visibleText('توجد بيانات تجهيز حساب غير محفوظة. هل تريد تركها وإغلاق النافذة؟'))&&canDiscard():canDiscard());
  d.onDispose(clear);d.run(load);
 }
 

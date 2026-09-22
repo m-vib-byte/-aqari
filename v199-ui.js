@@ -224,7 +224,7 @@
     });
 
     const signup=card.querySelector('[onclick="cloudSignupV168()"]');
-    if(signup)signup.textContent='إنشاء حساب المدير لأول مرة';
+    if(signup)signup.textContent='إنشاء حسابي المصرح به لأول مرة';
     const recovery=card.querySelector('[onclick="cloudRecoveryV168()"]');
     if(recovery)recovery.textContent='نسيت كلمة المرور؟';
     const message=document.getElementById('cloudGateMsgV168');

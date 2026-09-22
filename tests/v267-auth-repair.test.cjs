@@ -26,7 +26,10 @@ test('SDK callback session remains available for normal membership verification'
 test('canonical V267 styles are inline on the app entry and login identity is present before any script',()=>{
  const css=fs.readFileSync('v267-unified.css','utf8'),html=fs.readFileSync('index.html','utf8'),login=fs.readFileSync('login.html','utf8');
  assert.ok(html.includes('<style data-aqari-unified-source="/v267-unified.css">\n'+css+'\n</style>'));
- assert.ok(login.slice(0,login.indexOf('</head>')).includes(css.slice(css.lastIndexOf('@media screen {'))));
+ // Later app-only media blocks must not change which login identity is checked.
+ const loginIdentity=css.match(/@media screen \{\nbody\.v267-login-page[\s\S]*?\n\}/)?.[0];
+ assert.ok(loginIdentity,'the reviewed login identity block must be present');
+ assert.ok(login.slice(0,login.indexOf('</head>')).includes(loginIdentity));
  assert.doesNotMatch(html.split('</head>')[0],/<link[^>]+rel=["']stylesheet["'][^>]*>/i);
  const allowed=new Set(['owner-reference-login','unified-portal','premium-portal-refinement','luxury-warm-beige','owner-final-login','professional-login']);
  for(const match of login.split('</head>')[0].matchAll(/<link[^>]+rel=["']stylesheet["'][^>]*>/gi)){

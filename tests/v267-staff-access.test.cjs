@@ -25,7 +25,7 @@ function fixture(initial=[]){
   if(!state.skipSave){const updated={...values,revision:values.revision+1,updated_at:'2026-09-09T11:00:00Z'};if(row)Object.assign(row,updated);else assignments.push(updated);audit.push({actor_name:'مدير <اختبار>',recorded_at:updated.updated_at,reason:values.reason,before_snapshot:null,after_snapshot:updated});}
   if(state.failReadAfterSave)state.failRead=true;if(state.lostSaveReply)throw Error('انقطع الرد بعد الحفظ');return {...values,revision:values.revision+1};
  };
- const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},onDispose(fn){cleanup=fn;},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
+ const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-fixture'},client:{rpc},request:query=>query},onDispose(fn){cleanup=fn;},setBeforeClose(check){d.beforeClose=check;},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  // Imports are stripped by this isolated permissions harness. Supply the Arabic
  // locale boundary while leaving the real authorization/write/readback code intact.
  const context={node,field,translateStatic:value=>value,visibleText:value=>value,dateLocale:()=> 'ar-KW',createDialog:()=>d,window:{confirm:()=>state.confirm}};vm.createContext(context);vm.runInContext(source+'\nopenStaffAccess();',context);
@@ -121,4 +121,15 @@ test('returning property remains selected while changed membership ceilings stil
  const f=fixture();await f.d.pending;f.choose();f.control('برج <أ>').checked=true;f.control('تفعيل الوصول إلى العقارات المحددة').checked=true;f.state.properties=[{id:'property-b',name:'برج ب'}];await f.button('تحديث الصلاحيات من قاعدة البيانات').onclick();
  f.state.properties.push({id:'property-a',name:'برج أ محدث'});f.members[0].role='viewer';await f.button('تحديث الصلاحيات من قاعدة البيانات').onclick();assert.equal(f.control('برج أ محدث').checked,true);assert.equal(f.control('الدور الوظيفي').value,'');assert.deepEqual(f.control('الدور الوظيفي').children.map(option=>option.value),['','viewer']);assert.equal(f.control('سبب منح الصلاحيات أو تعديلها أو إيقافها').value,'إسناد التحصيل لهذا العقار');
  f.control('الدور الوظيفي').value='collector';await f.submit();assert.match(f.d.status.textContent,/يتجاوز حدود/);assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
+});
+
+test('closing staff permissions preserves an unsaved grant unless the manager explicitly discards it',async()=>{
+ const f=fixture();await f.d.pending;assert.equal(f.d.beforeClose(),true);f.choose();f.control('برج <أ>').checked=true;
+ f.state.confirm=false;assert.equal(f.d.beforeClose(),false);assert.equal(f.control('برج <أ>').checked,true);assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
+ f.state.confirm=true;assert.equal(f.d.beforeClose(),true);assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
+});
+test('an uncertain permission save needs explicit close confirmation and sends no duplicate request',async()=>{
+ const f=fixture();await f.d.pending;f.choose();f.control('برج <أ>').checked=true;f.control('تفعيل الوصول إلى العقارات المحددة').checked=true;f.state.lostSaveReply=true;await f.submit();
+ f.state.confirm=false;assert.equal(f.d.beforeClose(),false);f.state.confirm=true;assert.equal(f.d.beforeClose(),true);assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);
+ await f.button('تحديث الصلاحيات من قاعدة البيانات').onclick();assert.equal(f.d.beforeClose(),true);assert.equal(f.calls.filter(call=>call.p_action==='save').length,1);
 });

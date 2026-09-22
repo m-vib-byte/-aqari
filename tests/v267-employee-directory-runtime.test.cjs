@@ -13,10 +13,10 @@ function fixture(employees,options={}){
   set textContent(value){this._text=value;this.children=[];}
  }
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const group=node('div');group.label=label;group.append(control);return group;};
- const d={body:node('div'),status:node('p'),closed:false,onDispose:fn=>callbacks.push(fn),session:{bound:{workspace:'w'},client:{rpc(name,args){assert.equal(name,'aqari_hr');calls.push(args);return structuredClone(options.rpc?options.rpc(args):args.p_action==='get'?{employee:employee({id:args.p_data.employee_id,revision:1,property_ids:[],profile:{name_ar:'محفوظ',name_en:'Saved'}}),permissions:{},payroll:[],events:[],documents:[],audit:[]}:{employees,properties:[],manager:false});}},request:query=>query},run(work){if(d.closed)return;d.pending=Promise.resolve().then(work).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
- vm.runInNewContext(source+'\nopenEmployees();',{translateStatic:locale.t,visibleMessage:locale.message,createDialog:()=>d,node,field,createPrivateUrls:()=>({clear(){}}),console,crypto:{randomUUID:()=> 'new-employee'},PROFILE_FIELDS:[['name_ar','الاسم']],money:Number,currentMonth:()=> '2026-09'});
+ const d={body:node('div'),status:node('p'),closed:false,onDispose:fn=>callbacks.push(fn),setBeforeClose(check){d.beforeClose=check;},session:{bound:{workspace:'w'},client:{rpc(name,args){assert.equal(name,'aqari_hr');calls.push(args);return structuredClone(options.rpc?options.rpc(args):args.p_action==='get'?{employee:employee({id:args.p_data.employee_id,revision:1,property_ids:[],profile:{name_ar:'محفوظ',name_en:'Saved'}}),permissions:{},payroll:[],events:[],documents:[],audit:[]}:{employees,properties:[],manager:false});}},request:query=>query},run(work){if(d.closed)return;d.pending=Promise.resolve().then(work).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
+ vm.runInNewContext(source+'\nopenEmployees();',{translateStatic:locale.t,visibleMessage:locale.message,createDialog:()=>d,node,field,createPrivateUrls:()=>({clear(){}}),console,window:{confirm:()=>options.confirm!==false},crypto:{randomUUID:()=> 'new-employee'},PROFILE_FIELDS:[['name_ar','الاسم']],money:Number,currentMonth:()=> '2026-09'});
  const descendants=el=>[el,...el.children.flatMap(descendants)];
- return {d,calls,find:label=>descendants(d.body).find(x=>x.label===locale.t(label))?.children[0],button:label=>descendants(d.body).find(x=>x.tag==='button'&&x.textContent===locale.t(label)),all:()=>descendants(d.body),search:()=>descendants(d.body).find(x=>x.tag==='input'&&x.type==='search'),cards:()=>descendants(d.body).filter(x=>x.tag==='article'),dispose(){d.closed=true;callbacks.forEach(fn=>fn());}};
+ return {d,calls,confirm:value=>{options.confirm=value;},find:label=>descendants(d.body).find(x=>x.label===locale.t(label))?.children[0],button:label=>descendants(d.body).find(x=>x.tag==='button'&&x.textContent===locale.t(label)),all:()=>descendants(d.body),search:()=>descendants(d.body).find(x=>x.tag==='input'&&x.type==='search'),cards:()=>descendants(d.body).filter(x=>x.tag==='article'),dispose(){d.closed=true;callbacks.forEach(fn=>fn());}};
 }
 const employee=overrides=>({id:'employee-one',status:'active',profile:{name_ar:'أحْمَد سالم',name_en:'Ahmed Salem',phone:'00965 5555-1234',job_ar:'محاسب'},...overrides});
 test('employee search accepts Arabic digits, diacritics and formatted phone fragments without extra requests',async()=>{
@@ -68,4 +68,19 @@ test('empty directory shortcuts offer adding an employee without making a docume
  const f=fixture([]);await f.d.pending;
  await f.button('📄 '+locale.t('عقد عمل / Employment contract')).onclick();
  assert.ok(f.button('إضافة موظف / Add employee'));assert.equal(f.calls.length,1);
+});
+
+test('closing an employee editor protects raw unsaved input and discard clears the obsolete guard',async()=>{
+ const f=await editor();assert.equal(f.d.beforeClose(),true);f.find('الاسم').value='  تعديل لم يحفظ  ';
+ f.confirm(false);assert.equal(f.d.beforeClose(),false);assert.equal(f.find('الاسم').value,'  تعديل لم يحفظ  ');assert.equal(f.calls.length,1);f.confirm(true);assert.equal(f.d.beforeClose(),true);assert.equal(f.calls.length,1);
+ await f.button('تجاهل التعديلات والرجوع للدليل / Discard and return').onclick();assert.equal(f.d.beforeClose,null);assert.ok(f.search());assert.equal(f.calls.filter(call=>call.p_action==='save_employee').length,0);
+});
+
+test('an unavailable linked account is retained until the manager explicitly changes or removes it',async()=>{
+ const saved=employee({revision:2,user_id:'inactive-account',property_ids:['available']});
+ const f=fixture([saved],{rpc:args=>args.p_action==='list'?{employees:[saved],properties:[{id:'available',name:'عقار متاح'}],members:[{user_id:'other-account',name:'حساب نشط'}],manager:true}:{employee:saved,permissions:{edit:true},payroll:[],events:[],documents:[],audit:[]}});await f.d.pending;
+ await f.button('فتح ملف أحْمَد سالم').onclick();await f.button('تعديل بيانات الموظف / Edit employee').onclick();
+ const account=f.find('ربط حساب الموظف / Linked login account');assert.equal(account.value,'inactive-account');assert.match(account.children.find(option=>option.value==='inactive-account').textContent,/غير متاح/);
+ f.find('الاسم').value='اسم مصحح';const form=f.all().find(x=>x.tag==='form');form.onsubmit({preventDefault(){}});await f.d.pending;assert.equal(f.calls.filter(call=>call.p_action==='save_employee').length,0);assert.match(f.d.status.textContent,/إلغاء الربط صراحة/);assert.equal(account.value,'inactive-account');
+ account.value='';form.onsubmit({preventDefault(){}});await f.d.pending;assert.equal(f.calls.find(call=>call.p_action==='save_employee').p_data.user_id,null);
 });

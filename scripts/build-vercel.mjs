@@ -11,11 +11,15 @@ if(process.env.VERCEL_ENV==='production'){
   else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-unified-inline-sync.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/sync-unified-styles.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-template-legacy-entry.test.mjs','tests/v267-mutable-asset-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-property-portfolio-additions.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/property-portfolio-additions.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rental-document-cycle.test.mjs','tests/v267-rental-document-layout.test.mjs','tests/v267-rental-template-starters.test.mjs','tests/v267-saved-contract-viewer.test.mjs','tests/v267-rental-document-composer.test.mjs','tests/v267-contract-template-prefill.test.mjs','tests/v267-rental-templates.test.mjs','tests/v267-rental-records.test.cjs','tests/v267-full-page-workspace.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-session-activity-routing.test.cjs','tests/v267-session-idle-restore.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-contract-execution-pdf.test.mjs','tests/v267-contract-foundation-prefill.test.mjs','tests/v267-document-cycle-entry.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-navigation-maintenance.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-bank-reconciliation.mjs'],{stdio:'inherit'});
@@ -29,7 +33,7 @@ execFileSync(process.execPath,['--check','v267-partner-portal.js'],{stdio:'inher
 execFileSync(process.execPath,['--check','src/v267/components/partner-property-finance-view.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rental-templates.test.mjs','tests/v267-template-draft-saver.test.mjs','tests/v267-template-editor-pagination.test.mjs','tests/v267-rental-document-layout.test.mjs','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-template-editor-metadata.test.mjs','tests/v267-template-editor-state.test.mjs','tests/v267-template-draft-saver-restore.test.mjs','tests/v267-template-property-logo.test.mjs','tests/v267-template-editor-tools.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs','tests/v267-staff-account-preparations.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs','tests/v267-bank-reconciliation-current.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-partner-current-authorization.test.mjs'],{stdio:'inherit'});

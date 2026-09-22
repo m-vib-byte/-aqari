@@ -1,3 +1,5 @@
+import {resolveRentalDocumentContext,linkedDocumentFieldKeys} from './rental-document-cycle.js';
+
 const text=value=>String(value??'').normalize('NFKC').trim();
 const digits=value=>text(value).replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776));
 const key=value=>digits(value).toLocaleLowerCase('ar');
@@ -8,6 +10,18 @@ const fils=value=>{
  if(!Number.isSafeInteger(minor)||minor<0)throw Error('أدخل مبلغاً صحيحاً.');
  return minor;
 };
+
+export const isFoundationContractTemplate=template=>!['apartment_handover','eviction','rent_receipt','owner_final_clearance'].includes(template?.kind);
+
+export function foundationTemplateValues(data,preparation,values,sources){
+ if(!preparation?.id||!preparation.tenantId||!preparation.propertyId||!preparation.unitId)throw Error('احفظ ربط المستأجر والعقار والوحدة قبل اختيار حقول العقد.');
+ const candidate={...values,id:preparation.id,contract_no:preparation.contractNo,tenantId:preparation.tenantId,propertyId:preparation.propertyId,unitId:preparation.unitId,property:preparation.property,unit:preparation.unit};
+ const masterUnits=(sources.propertyMasters||[]).filter(row=>row?.property?.id===preparation.propertyId&&row?.unit?.id===preparation.unitId&&row.unit.propertyId===preparation.propertyId).map(row=>row.unit);
+ if(masterUnits.length>1)throw Error('تعارض بيانات الوحدة المرتبطة؛ أعد قراءة الربط قبل المتابعة.');
+ const units=(sources.units||[]).map(row=>masterUnits[0]?.id===row.id?{...row,...masterUnits[0]}:row);
+ const resolved=resolveRentalDocumentContext({...data,contractsV202:[candidate]},{contractId:candidate.id},{...sources,units}).values;
+ return {...Object.fromEntries(linkedDocumentFieldKeys.map(key=>[key,''])),...resolved};
+}
 
 export function nextContractSerial(year,contracts=[],preparations=[]){
  const y=String(year||'').trim();
