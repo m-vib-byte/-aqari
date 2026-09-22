@@ -8,7 +8,7 @@ const info=(label,value)=>{const row=node('p');row.append(node('strong',label+':
 
 async function scanner(initial){
  const page=await import('./document-scanner.js');
- return page.openDocumentScanner(initial);
+ return page.openDocumentScanner({...initial,referenceKey:'id'});
 }
 
 export function openPropertyResponsible(propertyId){
