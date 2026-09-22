@@ -16,10 +16,12 @@ export function openMaintenancePlans(){
  const rpc=(action,payload={})=>d.session.request(d.session.client.rpc('aqari_maintenance_plans',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload}));
  async function load(proof){const fresh=await rpc('list');if(!Array.isArray(fresh?.plans)||!Array.isArray(fresh.tasks)||!Array.isArray(fresh.alerts)||!Array.isArray(fresh.properties)||!Array.isArray(fresh.documents)||(fresh.workflow_version===2&&(!Array.isArray(fresh.vendors)||!Array.isArray(fresh.contracts))))throw Error('تعذر استرجاع سجل الصيانة الدورية.');data=fresh;if(proof&&!proof(fresh))throw Error('تعذر مطابقة العملية بعد إعادة القراءة؛ لا تكررها قبل المراجعة.');render();}
  async function write(action,payload,proof){
-  if(pending||uncertain)throw Error('حدّث السجل وتحقق من العملية السابقة أولًا.');pending=true;render();
+  if(pending||uncertain)throw Error('حدّث السجل وتحقق من العملية السابقة أولًا.');pending=true;
   try{await rpc(action,payload);await load(proof);editing=null;d.status.textContent=translateStatic('تم الحفظ والتحقق بإعادة القراءة.');}
   catch(error){uncertain=true;if(error?.code==='42501'||[401,403].includes(error?.status))throw error;throw Error(errors[error?.message]||'لم يتأكد الحفظ. حدّث السجل وراجع العملية قبل إعادة المحاولة.');}
-  finally{pending=false;render();}
+  // d.run already locks the current form. Keep its entered values if a write
+  // fails; rebuilding it from data here would discard the unconfirmed draft.
+  finally{pending=false;if(uncertain){reload.disabled=false;prepare.disabled=true;for(const section of [editor,plans,tasks])for(const control of section.querySelectorAll('button,input,select'))control.disabled=true;}else render();}
  }
  const proofTask=(task,state,extra=()=>true)=>x=>x.tasks.some(t=>t.id===task.id&&t.revision===task.revision+1&&t.status===state&&extra(t));
  function renderEditor(){
@@ -84,4 +86,3 @@ export function openMaintenancePlans(){
  d.onDispose(()=>{data=null;editing=null;pending=false;uncertain=false;for(const x of [summary,editor,plans,tasks,alerts])x.replaceChildren();});
  d.run(load);
 }
-

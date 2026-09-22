@@ -13,6 +13,8 @@ if(process.env.VERCEL_ENV==='production'){
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-unified-inline-sync.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/sync-unified-styles.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','--test-concurrency=4','tests/v267-stored-original.test.mjs','tests/v267-contract-archive-recovery.test.mjs','tests/v267-scanner-workflow.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-security-center-lifecycle.test.mjs','tests/v267-owner-settings-recovery.test.mjs','tests/v267-maintenance-plan-draft.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-contract-entry-routing.test.mjs','tests/v267-contract-template-legacy-entry.test.mjs','tests/v267-mutable-asset-delivery.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-property-portfolio-additions.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/property-portfolio-additions.js'],{stdio:'inherit'});
@@ -33,7 +35,7 @@ execFileSync(process.execPath,['--check','v267-partner-portal.js'],{stdio:'inher
 execFileSync(process.execPath,['--check','src/v267/components/partner-property-finance-view.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rental-templates.test.mjs','tests/v267-template-draft-saver.test.mjs','tests/v267-template-editor-pagination.test.mjs','tests/v267-rental-document-layout.test.mjs','tests/v267-document-stored-visual-review.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-template-editor-metadata.test.mjs','tests/v267-template-editor-state.test.mjs','tests/v267-template-draft-saver-restore.test.mjs','tests/v267-template-property-logo.test.mjs','tests/v267-template-editor-tools.test.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs','tests/v267-staff-account-preparations.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs','tests/v267-staff-account-preparations.test.mjs','tests/v267-hr-permissions-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs','tests/v267-bank-reconciliation-current.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-partner-current-authorization.test.mjs'],{stdio:'inherit'});

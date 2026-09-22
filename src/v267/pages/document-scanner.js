@@ -1,3 +1,4 @@
+import {readStoredOriginal,originalDocumentExtension} from '../components/stored-original.js';
 import {createPrivateUrls} from '../components/private-urls.js';
 import {t,dateLocale} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -34,7 +35,6 @@ const DOCUMENT_CATALOG={
 };
 const IMAGE_MIMES=new Set(['image/jpeg','image/png','image/webp','image/heic','image/heif']);
 const SUPPORTED_MIMES=new Set([...IMAGE_MIMES,'application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document']);
-const extension=mime=>mime==='application/pdf'?'.pdf':mime==='application/vnd.openxmlformats-officedocument.wordprocessingml.document'?'.docx':'.jpg';
 const categoryLabel=value=>{const source=Object.values(DOCUMENT_CATALOG).flat().find(([key])=>key===value)?.[1];return source?t(source):value||'';};
 
 export async function openDocumentScanner(initial={}){
@@ -51,7 +51,7 @@ export async function openDocumentScanner(initial={}){
  const reviewed=node('input'),reviewField=field(t('راجعت الصفحات وهي العقد الموقّع الفعلي لهذا السجل'),reviewed);reviewed.type='checkbox';
  camera.type='file';camera.accept='image/jpeg,image/png,image/webp,image/heic,image/heif';camera.setAttribute('capture','environment');
  selection.setAttribute('role','status');pagesList.className='aq267-scan-pages';
- const back=initial.onBack;if(typeof back==='function'){const b=node('button',t('العودة إلى الملف'));b.onclick=()=>{dialog.close();back();};body.append(b);}
+ const back=initial.onBack;if(typeof back==='function'){const b=node('button',t('العودة إلى الملف'));b.onclick=async()=>{await dialog.requestClose();if(dialog.closed)back();};body.append(b);}
  dialog.el?.classList.add('aq267-scanner');
  for(const [value,text]of [['property',t('العقار')],['tenant',t('المستأجر')],['lease',t('العقد')]]){const o=node('option',text);o.value=value;type.append(o);}
  type.value=['property','tenant','lease'].includes(initial.type)?initial.type:'property';
@@ -84,31 +84,39 @@ export async function openDocumentScanner(initial={}){
  }
  function keepPage(){if(!img||!blob)return;if(pages.length>=MAX_SCAN_PAGES)throw Error('الحد الأقصى ٢٠ صفحة.');if(pages.reduce((n,p)=>n+p.blob.size,blob.size)>MAX_SCAN_BYTES-65536)throw Error('حجم الصفحات يتجاوز ٢٥ ميجابايت.');pages.push(currentPage());img=null;blob=null;pending=null;preview.hidden=true;drawPages();}
  addPage.onclick=()=>run(async()=>{keepPage();file.value=camera.value='';status.textContent=t('أُضيفت الصفحة. صوّر التالية أو احفظ المستند.');});
- async function choose(chosen){
-  pending=null;reviewed.checked=false;img=null;blob=null;uploadMime='';uploadName='';preview.hidden=true;rotate.disabled=true;cropBox.hidden=true;
-  if(!chosen)return;
+ async function readCandidate(chosen){
   if(!chosen.size||chosen.size>MAX_SOURCE_BYTES)throw Error('اختر ملفاً بحجم لا يتجاوز ٢٥ ميجابايت.');
   if(!SUPPORTED_MIMES.has(chosen.type))throw Error('نوع الملف غير مدعوم. استخدم صورة أو PDF أو DOCX.');
-  uploadName=chosen.name||'document';
+  const name=chosen.name||'document';
   if(IMAGE_MIMES.has(chosen.type)){
-   const decoded=await decodeImage(chosen);session.check();if(dialog.closed)return;img=decoded;rotation=0;
-   for(const edge of Object.keys(crop))crop[edge]=0;for(const input of cropBox.querySelectorAll('input'))input.value='0';
-   rotate.disabled=false;cropBox.hidden=false;uploadName=uploadName.replace(/\.[^.]+$/,'')+'.jpg';await prepare();
-  }else{
-   const header=new Uint8Array(await chosen.slice(0,5).arrayBuffer());session.check();
-   if(uploadName.toLowerCase().endsWith('.pdf')&&chosen.type!=='application/pdf')throw Error('صيغة الملف لا تطابق اسمه.');
-   if(chosen.type==='application/pdf'?String.fromCharCode(...header)!=='%PDF-':header[0]!==80||header[1]!==75||header[2]!==3||header[3]!==4)throw Error('تعذر قراءة الملف. اختر PDF أو DOCX صالحاً.');
-   blob=chosen;uploadMime=chosen.type;status.textContent=t('تم اختيار الملف. راجع التصنيف والعنوان والسجل ثم ارفع النسخة.');
+   const image=await decodeImage(chosen);session.check();
+   const imageBlob=await renderScan(image,0,{top:0,bottom:0,left:0,right:0});session.check();
+   const geometry=scanGeometry(image.naturalWidth,image.naturalHeight);
+   return {image,blob:imageBlob,mime:'image/jpeg',name:name.replace(/\.[^.]+$/,'')+'.jpg',width:geometry.width,height:geometry.height};
   }
-  selection.textContent=uploadName+(img?t(' — راجع الصورة أدناه'):'');
+  const header=new Uint8Array(await chosen.slice(0,5).arrayBuffer());session.check();
+  if(name.toLowerCase().endsWith('.pdf')&&chosen.type!=='application/pdf')throw Error('صيغة الملف لا تطابق اسمه.');
+  if(chosen.type==='application/pdf'?String.fromCharCode(...header)!=='%PDF-':header[0]!==80||header[1]!==75||header[2]!==3||header[3]!==4)throw Error('تعذر قراءة الملف. اختر PDF أو DOCX صالحاً.');
+  return {image:null,blob:chosen,mime:chosen.type,name};
  }
  async function chooseFiles(files){
   if(!files.length)return;
   const images=files.every(f=>IMAGE_MIMES.has(f.type));
   if(!images&&(files.length>1||pages.length))throw Error('ارفع PDF أو DOCX منفرداً. احفظ الصفحات المصورة أولاً أو أزلها.');
   if(images&&pages.length+files.length+(img?1:0)>MAX_SCAN_PAGES)throw Error('الحد الأقصى ٢٠ صفحة.');
-  if(images&&img)keepPage();
-  for(let i=0;i<files.length;i++){await choose(files[i]);if(dialog.closed)return;if(images&&i<files.length-1)keepPage();}
+  // Decode the entire selection before changing the existing scan or retry.
+  const nextPages=[...pages,...(images&&img?[currentPage()]:[])];let selected;
+  let totalBytes=nextPages.reduce((total,p)=>total+p.blob.size,0);
+  for(let i=0;i<files.length;i++){
+   selected=await readCandidate(files[i]);session.check();if(dialog.closed)return;
+   if(images){totalBytes+=selected.blob.size;if(totalBytes>MAX_SCAN_BYTES-65536)throw Error('حجم الصفحات يتجاوز ٢٥ ميجابايت.');}
+   if(images&&i<files.length-1)nextPages.push({blob:selected.blob,width:selected.width,height:selected.height});
+  }
+  renderId++;pages.splice(0,pages.length,...nextPages);img=selected.image;blob=selected.blob;uploadMime=selected.mime;uploadName=selected.name;rotation=0;pending=null;reviewed.checked=false;
+  for(const edge of Object.keys(crop))crop[edge]=0;for(const input of cropBox.querySelectorAll('input'))input.value='0';
+  drawPages();if(img)setPreview(blob);else{if(previewUrl)urls.release(previewUrl);previewUrl=null;preview.removeAttribute('src');preview.hidden=true;}
+  selection.textContent=uploadName+(img?t(' — راجع الصورة أدناه'):'');
+  status.textContent=t(img?'راجع وضوح الصورة والعنوان والسجل، ثم ارفع النسخة.':'تم اختيار الملف. راجع التصنيف والعنوان والسجل ثم ارفع النسخة.');
  }
  file.onchange=()=>run(()=>chooseFiles([...file.files||[]]));camera.onchange=()=>run(()=>chooseFiles([...camera.files||[]]));
  rotate.onclick=()=>run(async()=>{if(!img)return;rotation=(rotation+90)%360;await prepare();});
@@ -118,7 +126,7 @@ export async function openDocumentScanner(initial={}){
  async function loadDocuments(){downloads.clear();list.replaceChildren();previous.hidden=true;next.hidden=true;if(!records.value)return;
   const rows=await session.request(session.client.rpc('aqari_document_listing',{p_workspace_id:session.bound.workspace,p_entity_type:type.value,p_entity_ref:records.value,p_page:page}));
   for(const row of rows){const card=node('article'),cat=categoryLabel(row.metadata?.document_category);card.append(node('h3',row.title),node('p',[cat,row.document_no].filter(Boolean).join(' • ')),node('p',new Date(row.created_at).toLocaleString(dateLocale())+' • '+(row.status==='uploaded'?t('محفوظ'):row.status==='draft'?t('لم يكتمل تأكيد الرفع'):t('ملغى'))),node('p',t('رفع بواسطة: ')+(row.author_name||t('مستخدم محفوظ'))));
-   if(row.status==='uploaded'){const download=node('button',t('تحميل النسخة الأصلية'));download.onclick=()=>run(async()=>{const data=await session.storage('GET',row.storage_path);session.check();const url=downloads.create(data),a=node('a',t('تحميل الملف'));a.href=url;a.download=row.document_no+extension(row.mime_type);card.append(a);a.click();status.textContent=t('تم استرجاع الملف المحفوظ.');});card.append(download);}
+   if(row.status==='uploaded'){const download=node('button',t('تحميل النسخة الأصلية'));download.onclick=()=>run(async()=>{const {blob:data,note}=await readStoredOriginal(session,{id:row.id,storagePath:row.storage_path,entityType:type.value,entityRef:records.value});session.check();const url=downloads.create(data),a=node('a',t('تحميل الملف'));a.href=url;a.download=row.document_no+originalDocumentExtension(row.mime_type);card.append(a);a.click();status.textContent=t(note);});card.append(download);}
    list.append(card);}
   if(!rows.length)list.append(node('p',t('لا توجد مستندات لهذا السجل.')));previous.hidden=page===0;next.hidden=rows.length<20;}
  type.onchange=()=>run(async()=>{refreshCategories();await loadRecords();});
@@ -143,7 +151,7 @@ export async function openDocumentScanner(initial={}){
   blob=null;img=null;pending=null;reviewed.checked=false;pages.length=0;drawPages();uploadMime='';uploadName='';file.value=camera.value='';preview.hidden=true;rotate.disabled=true;cropBox.hidden=true;page=0;await loadDocuments();status.textContent=t('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.');
  });
  next.onclick=()=>run(async()=>{page++;await loadDocuments();status.textContent=t('المستندات الأقدم.');});previous.onclick=()=>run(async()=>{if(page>0)page--;await loadDocuments();status.textContent=t('المستندات الأحدث.');});
+ dialog.setBeforeClose(()=>pending?window.confirm(t('لم يتأكد إقفال المستند المرفوع. هل تريد إغلاق الماسح؟ تحقق من المستندات المحفوظة عند العودة قبل إعادة الرفع.')):blob||pages.length?window.confirm(t('توجد صورة أو صفحات أو ملف لم يُحفظ بعد. هل تريد تجاهله وإغلاق الماسح؟')):true);
  dialog.onDispose(()=>{renderId++;img=null;blob=null;pending=null;pages.length=0;file.value=camera.value='';pagesList.replaceChildren();preview.removeAttribute('src');previewUrl=null;});
  rotate.disabled=addPage.disabled=true;cropBox.hidden=true;refreshCategories();await run(loadRecords);
 }
-

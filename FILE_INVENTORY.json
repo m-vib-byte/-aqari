@@ -1647,8 +1647,8 @@
     },
     {
       "path": "src/v267/pages/original-documents.js",
-      "sha256": "a59dc063defd553202fc6bb00cd8dfca9521d02a53abba46acaf47db874f369c",
-      "size": 5111
+      "sha256": "63ab91342af21e6c3cb25007094f0da43a2594f41fd52fbc41e321edeed33e60",
+      "size": 5252
     },
     {
       "path": "src/v267/pages/partner-access.js",
@@ -1682,8 +1682,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "600ca4159cc6722452a178ea7cea1b4d2167c2949435b5835d14a8a7f4dc33b6",
-      "size": 56109
+      "sha256": "63caa84e2a2d7d1c2de40ed2e75e0880d6005782cdd2f304ccebceb6aafe0d02",
+      "size": 56210
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
