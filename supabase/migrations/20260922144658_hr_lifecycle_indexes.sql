@@ -1,0 +1,11 @@
+begin;
+create index if not exists aqari_hr_cost_allocations_workspace on private.aqari_hr_cost_allocations(workspace_id);
+create index if not exists aqari_hr_cost_allocations_property on private.aqari_hr_cost_allocations(property_id);
+create index if not exists aqari_hr_records_property_fk on private.aqari_hr_records(property_id) where property_id is not null;
+create index if not exists aqari_hr_document_metadata_workspace on private.aqari_hr_document_metadata(workspace_id);
+create index if not exists aqari_hr_document_metadata_employee on private.aqari_hr_document_metadata(employee_id);
+create index if not exists aqari_hr_months_property on private.aqari_hr_months(property_id);
+create index if not exists aqari_hr_exit_workspace on private.aqari_hr_exit_settlements(workspace_id);
+create index if not exists aqari_hr_salary_workspace on private.aqari_hr_salary_registry(workspace_id);
+create index if not exists aqari_hr_salary_replaces on private.aqari_hr_salary_registry(replaces_id) where replaces_id is not null;
+commit;
