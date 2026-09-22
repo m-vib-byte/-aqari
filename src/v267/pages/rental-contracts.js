@@ -1,3 +1,4 @@
+import {readStoredOriginal} from '../components/stored-original.js';
 import {resolveRentalDocumentContext,linkedDocumentFieldKeys,groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding} from '../domain/rental-document-cycle.js';
 import {mountSignatureReview,mountContractChangeRequest} from '../components/contract-administration.js';
 import {guardPageImport} from '../components/navigation-import.js';
@@ -158,7 +159,7 @@ export function openRentalContracts(initial={}){
   target.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));
   if(!docs.length){target.append(node('p',translateStatic('لا توجد نسخة أصلية مرفوعة لهذا العقد حتى الآن. استخدم «مسح أو رفع العقد ومرفقاته» لإضافة الملف وربطه بهذا العقد.')));return;}
   for(const doc of docs){const row=node('section'),output=node('div');
-   row.append(button(doc.original_filename||doc.id,async()=>{const blob=await d.session.storage('GET',doc.storage_path);d.session.check();const preview=node('iframe');preview.title=doc.original_filename||translateStatic('أصل العقد');preview.setAttribute('sandbox','');preview.src=urls.create(blob);preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.replaceChildren(preview);d.status.textContent=translateStatic('المستند معروض داخل عقاري.');}),output);row.append(button(translateStatic('حالة المستند والتواقيع'),async()=>{output.replaceChildren();await mountSignatureReview(d,output,doc.id);}));target.append(row);
+   row.append(button(doc.original_filename||doc.id,async()=>{const {blob,note}=await readStoredOriginal(d.session,{id:doc.id,storagePath:doc.storage_path,entityType:'lease',entityRef:String(id)});d.session.check();const preview=node('iframe');preview.title=doc.original_filename||translateStatic('أصل العقد');preview.setAttribute('sandbox','');preview.src=urls.create(blob);preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.replaceChildren(preview);d.status.textContent=translateStatic(note);}),output);row.append(button(translateStatic('حالة المستند والتواقيع'),async()=>{output.replaceChildren();await mountSignatureReview(d,output,doc.id);}));target.append(row);
   }
  }
 

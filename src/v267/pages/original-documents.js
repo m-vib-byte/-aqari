@@ -1,3 +1,4 @@
+import {readStoredOriginal,originalDocumentExtension} from '../components/stored-original.js';
 import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -15,7 +16,7 @@ export function openOriginalDocuments(){
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,{p_workspace_id:d.session.bound.workspace,...args}));
  let page=0;
  async function load(){urls.clear();list.replaceChildren();if(!records.value)return;const rows=await rpc('aqari_document_listing',{p_entity_type:type.value,p_entity_ref:records.value,p_page:page});
-  for(const r of rows){const a=node('article');a.append(node('h3',r.title),node('p',r.document_no));if(r.status==='uploaded')a.append(button(visibleText('تحميل الملف المحفوظ'),()=>d.run(async()=>{const blob=await d.session.storage('GET',r.storage_path);d.session.check();const link=node('a',translateStatic('فتح أو تحميل الملف الأصلي'));link.href=urls.create(blob);link.download=r.document_no+(r.mime_type==='application/pdf'?'.pdf':r.mime_type==='image/png'?'.png':r.mime_type==='image/webp'?'.webp':'.jpg');a.append(link);})));list.append(a);}
+  for(const r of rows){const a=node('article');a.append(node('h3',r.title),node('p',r.document_no));if(r.status==='uploaded')a.append(button(visibleText('تحميل الملف المحفوظ'),()=>d.run(async()=>{const {blob,note}=await readStoredOriginal(d.session,{id:r.id,storagePath:r.storage_path,entityType:type.value,entityRef:records.value});d.session.check();const link=node('a',translateStatic('فتح أو تحميل الملف الأصلي'));link.href=urls.create(blob);link.download=r.document_no+originalDocumentExtension(r.mime_type);a.append(link);d.status.textContent=translateStatic(note);})));list.append(a);}
   for(const [i,r] of rows.entries())if(r.status==='uploaded')mountDocumentHandovers(d,list.children[i],r.id);
   if(!rows.length)list.append(node('p',translateStatic('لا توجد مستندات في هذه الصفحة.')));previous.disabled=page===0;next.disabled=rows.length<20;
  }
