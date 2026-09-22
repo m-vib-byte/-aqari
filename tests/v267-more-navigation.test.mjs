@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
-const source=readFileSync(new URL('../src/v267/premium-navigation-runtime.js',import.meta.url),'utf8').replace(/^import .*;\n/,'');
+const source=readFileSync(new URL('../src/v267/premium-navigation-runtime.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'');
 function setup({inside=true,authorized=true}={}){
  const calls=[];let listener;
  const menu={open:true,close(){this.open=false;calls.push('close');}};
@@ -13,7 +13,7 @@ function setup({inside=true,authorized=true}={}){
  const window={AQARI_SUPABASE:{context},AQARI_DATA_GATE:{scope},AQARI_EARLY_STORAGE_GATE:{scope},getComputedStyle:()=>({display:'block'}),addEventListener(name,fn){listener=fn;},AQARI_UNIFIED_EXPERIENCE:{openSection(key){calls.push(key);}}};
  const service={hidden:false,disabled:false,getAttribute:()=>null,click(){calls.push('service');assert.equal(menu.open,!inside);}};
  const document={documentElement:{classList:{contains:()=>authorized}},body:{dataset:{}},getElementById:()=>status,querySelectorAll:()=>[service]};
- vm.runInNewContext(source,{window,document});
+ vm.runInNewContext(source,{window,document,cancelPendingNavigation(){}});
  const click=key=>{const trigger={dataset:{unifiedSection:key},closest:()=>inside?menu:null};const event={target:{closest:()=>trigger},preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;}};listener(event);return event;};
  return {click,calls,menu,status};
 }

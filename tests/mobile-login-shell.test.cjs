@@ -31,7 +31,12 @@ for (const id of ['loginForm','email','password','loginButton','recoveryButton',
 assert.ok(html.indexOf('<main') < html.indexOf('<script>'), 'login UI must precede JavaScript');
 assert.match(html, /membership\.is_active === true/);
 assert.match(html, /AQARI_SUPABASE\.signIn/);
-assert.match(html, /sha384-0UK\+HVlz5Y7F\/\/atDpPysyocv/);
+// Keep the login preload and both loaders pinned to the reviewed SDK asset.
+const sdkIntegrity = 'sha384-JBR+x8blGwjDRO63aHCGiZMD4VNiTR4ZUGA+N6ZKLf3zNt1fK8IBpcgPaMrxqWBp';
+assert.ok(html.includes('href="/vendor/supabase-js-2.116.0.js"'));
+assert.ok(html.includes('integrity="' + sdkIntegrity + '"'));
+assert.match(html, /var SUPABASE_VERSION\s*=\s*'2\.116\.0'/);
+assert.ok(html.includes("var SUPABASE_INTEGRITY = '" + sdkIntegrity + "'"));
 assert.match(html, /AQARI • V267/);
 assert.match(html, /window\.location\.replace\('\/app\?release='/);
 assert.match(html, /var context = window\.AQARI_SUPABASE\.context/);
@@ -97,8 +102,8 @@ assert.equal(elements.loginButton.disabled, false, 'manual preparation must not 
 assert.equal(elements.recoveryButton.disabled, false, 'manual preparation must not block recovery');
 assert.equal(elements.retryButton.disabled, true, 'duplicate preparation is blocked');
 
-assert.match(adapter, /script\.src = '\/vendor\/supabase-js-2\.114\.0\.js'/);
-assert.match(adapter, /script\.integrity = 'sha384-/);
+assert.match(adapter, /script\.src = '\/vendor\/supabase-js-2\.116\.0\.js'/);
+assert.ok(adapter.includes("script.integrity = '" + sdkIntegrity + "'"));
 assert.match(adapter, /new Set\(\['general_manager', 'property_manager', 'accountant'\]\)/);
 assert.doesNotMatch(adapter, /service_role/i);
 assert.ok(Buffer.byteLength(html) < 19_000, 'the complete reference login, locale loader and bounded worker retirement must stay under 19 KB');

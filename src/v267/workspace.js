@@ -49,6 +49,7 @@ function updateFeatureTools(){
   ['aq267-bank-reconciliation','finance',false],
   ['aq267-contract-foundation','contracts',true],
   ['aq267-contract-templates','contracts',true],
+  ['aq267-rental-document-cycle','contracts',true],
   ['aq267-contract-preview','contracts',true],
   ['aq267-contract-approvals','contracts',true],
   ['aq267-contract-archive','contracts',true],

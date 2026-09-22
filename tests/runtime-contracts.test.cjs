@@ -176,7 +176,8 @@ test('V204 tenant rent statement preserves the V198 secure runtime', () => {
   assert.match(loader, /easy\.href = releaseAsset\('\/v201-easy\.css'\)/);
   assert.match(loader, /experience\.src = releaseAsset\('\/v201-experience\.js'\)/);
   assert.match(loader, /prestige\.href = '\/v202-prestige\.css'/);
-  assert.match(loader, /propertyOS\.src = '\/v202-property-os\.js'/);
+  // The archive repair deliberately invalidates the previous cached runtime.
+  assert.match(loader, /propertyOS\.src = '\/v202-property-os\.js\?release=V267-contract-archive-20260921'/);
   assert.match(loader, /script\.addEventListener\('load', installV201Experience/);
   assert.match(loader, /experience\.addEventListener\('load', installV202PropertyOS/);
   assert.match(loader, /DOMContentLoaded', installV199Preview/);

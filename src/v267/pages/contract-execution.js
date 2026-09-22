@@ -8,6 +8,30 @@ const money=value=>Number(value||0).toFixed(3)+translateStatic(' د.ك');
 function select(rows,value=''){const el=node('select');for(const [key,label]of rows){const option=node('option',label);option.value=key;el.append(option);}el.value=value??'';return el;}
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 
+export async function readContractExecutionPdf(session,path,body){
+ session.check();
+ if(!['/api/official-document','/api/rent-receipt'].includes(path)||body?.workspaceId!==session.bound.workspace)throw Error('تعذر تأكيد نطاق المستند.');
+ const result=await session.operation(async signal=>{
+  const auth=await session.client.auth.getSession();session.check();
+  const current=auth?.data?.session;if(auth?.error||!current?.access_token||current.user?.id!==session.bound.user)throw Error('تعذر تأكيد جلسة الدخول.');
+  const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+current.access_token},body:JSON.stringify(body),signal,credentials:'same-origin',cache:'no-store',redirect:'error'});session.check();
+  if(!response.ok)throw Object.assign(Error('تعذر تأكيد ملف PDF المؤرشف.'),{status:response.status});
+  const blob=await response.blob();session.check();
+  if(blob.type!=='application/pdf'||blob.size<5||blob.size>2097152)throw Error('استجابة المستند ليست PDF موثوقًا.');
+  const signature=await blob.slice(0,5).text();session.check();if(signature!=='%PDF-')throw Error('استجابة المستند ليست PDF موثوقًا.');
+  const archivedHash=response.headers.get('X-Aqari-Archived-SHA256')||'';
+  if(!/^[a-f0-9]{64}$/i.test(archivedHash))throw Error('لم يتأكد أرشيف PDF من الخادم.');
+  const bytes=await blob.arrayBuffer();session.check();
+  const digest=await crypto.subtle.digest('SHA-256',bytes);session.check();
+  const actual=[...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+  if(actual!==archivedHash.toLowerCase())throw Error('لم تتطابق بصمة الملف مع الأرشيف. لم يتم التنزيل.');
+  const latest=await session.client.auth.getSession();session.check();
+  if(latest?.error||!latest?.data?.session?.access_token||latest.data.session.user?.id!==session.bound.user)throw Error('تغيرت جلسة الدخول. لم يتم تنزيل الملف.');
+  return {blob,archivedHash:actual};
+ });
+ session.check();return result;
+}
+
 export function openContractExecution(contractId,{onDone}={}){
  const d=createDialog(translateStatic('اعتماد دفعة الإبرام وإصدار المستندات'));if(!d)return false;
  const api=window.AQARI_RENTAL_RECORDS;if(!api)throw Error('تعذر تحميل محرك العقود.');
@@ -25,20 +49,8 @@ export function openContractExecution(contractId,{onDone}={}){
   currentContract=contract;currentProfile=profile;currentDue=executionDue(api,contract);return {cloud,db};
  }
 
- async function accessToken(){
-  const result=await d.session.client.auth.getSession();d.session.check();
-  const session=result?.data?.session;if(result?.error||!session?.access_token||session.user?.id!==d.session.bound.user)throw Error('تعذر تأكيد جلسة الدخول.');
-  return session.access_token;
- }
- async function pdf(path,body,{mustBeArchived=false}={}){
-  const token=await accessToken(),response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify(body),cache:'no-store',redirect:'error'});d.session.check();
-  if(!response.ok)throw Object.assign(Error('تعذر تأكيد ملف PDF.'),{status:response.status});
-  const blob=await response.blob();if(blob.type!=='application/pdf')throw Error('استجابة المستند ليست PDF.');
-  const archivedHash=response.headers.get('X-Aqari-Archived-SHA256')||'';
-  if(mustBeArchived&&!/^[a-f0-9]{64}$/i.test(archivedHash))throw Error('لم يتأكد أرشيف PDF من الخادم.');
-  return {blob,archivedHash};
- }
- function downloadLink(label,blob,name){const url=URL.createObjectURL(blob);urls.add(url);const a=node('a',label);a.href=url;a.download=name;a.rel='noopener';a.className='is-primary';return a;}
+ const pdf=(path,body)=>readContractExecutionPdf(d.session,path,body);
+ function downloadLink(label,blob,name){d.session.check();const url=URL.createObjectURL(blob);urls.add(url);const a=node('a',label);a.href=url;a.download=name;a.rel='noopener';a.className='is-primary';return a;}
 
  async function finalize({method,transactionNo,onDate,zeroReason}){
   const bound=scope(),cloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
@@ -96,9 +108,9 @@ export function openContractExecution(contractId,{onDone}={}){
    d.body.replaceChildren(node('h3',translateStatic('تم إبرام العقد وتأكيد السجل')),node('p',translateStatic('العقد ')+result.contract.contract_no+translateStatic(' أصبح موقّعًا، وتسوية الإبرام محفوظة وغير قابلة للحذف.')));
    if(result.receiptNo)d.body.append(node('p',translateStatic('وصل الإيجار الرسمي: ')+result.receiptNo+translateStatic(' · تسلسله داخل هذا العقد: ')+result.contractReceiptSequence));
    const documentBox=node('section');documentBox.append(node('h3',translateStatic('المستندات الرسمية')));d.body.append(documentBox);let documentErrors=[];
-   try{const tenantPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.tenant_document_id,version:1},{mustBeArchived:true});documentBox.append(downloadLink(translateStatic('نسخة المستأجر — PDF رسمي مؤرشف'),tenantPdf.blob,'contract-'+result.contract.contract_no+'-tenant.pdf'));}catch(error){documentErrors.push(translateStatic('نسخة المستأجر PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المستأجر، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
-   try{const ownerPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.owner_document_id,version:1},{mustBeArchived:true});documentBox.append(downloadLink(translateStatic('نسخة المالك / الإدارة — PDF رسمي مؤرشف'),ownerPdf.blob,'contract-'+result.contract.contract_no+'-owner.pdf'));}catch(error){documentErrors.push(translateStatic('نسخة المالك PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المالك / الإدارة، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
-   if(result.receiptNo){try{const receiptPdf=await pdf('/api/rent-receipt',{workspaceId:d.session.bound.workspace,receiptNo:result.receiptNo});documentBox.append(downloadLink(translateStatic('وصل الإيجار الرسمي رقم ')+result.receiptNo,receiptPdf.blob,'rent-receipt-'+result.receiptNo+'.pdf'));}catch(error){documentErrors.push(translateStatic('وصل الإيجار PDF'));documentBox.append(node('p',translateStatic('وصل الإيجار محفوظ ومربوط بالحركة، لكن لم يتأكد تصدير PDF في هذه الجلسة.')));}}
+   try{const tenantPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.tenant_document_id,version:1});documentBox.append(downloadLink(translateStatic('نسخة المستأجر — PDF رسمي مؤرشف'),tenantPdf.blob,'contract-'+result.contract.contract_no+'-tenant.pdf'));}catch(error){d.session.check();documentErrors.push(translateStatic('نسخة المستأجر PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المستأجر، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
+   try{const ownerPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.owner_document_id,version:1});documentBox.append(downloadLink(translateStatic('نسخة المالك / الإدارة — PDF رسمي مؤرشف'),ownerPdf.blob,'contract-'+result.contract.contract_no+'-owner.pdf'));}catch(error){d.session.check();documentErrors.push(translateStatic('نسخة المالك PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المالك / الإدارة، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
+   if(result.receiptNo){try{const receiptPdf=await pdf('/api/rent-receipt',{workspaceId:d.session.bound.workspace,receiptNo:result.receiptNo});documentBox.append(downloadLink(translateStatic('وصل الإيجار الرسمي رقم ')+result.receiptNo,receiptPdf.blob,'rent-receipt-'+result.receiptNo+'.pdf'));}catch(error){d.session.check();documentErrors.push(translateStatic('وصل الإيجار PDF'));documentBox.append(node('p',translateStatic('وصل الإيجار محفوظ ومربوط بالحركة، لكن لم يتأكد تصدير PDF في هذه الجلسة.')));}}
    else documentBox.append(node('p',translateStatic('لا يوجد وصل إيجار لأن مبلغ الإيجار عند الإبرام صفر؛ لم يُنشأ أي وصل أو دفعة وهمية.')));
    d.status.textContent=documentErrors.length?translateStatic('تم الإبرام وتحديث الاستحقاقات، وبقي التحقق المستضاف من: ')+documentErrors.join(translateStatic(' و ')):translateStatic('تم الإبرام، وتأكد تحديث الاستحقاقات ونسختا العقد الرسميتان والوصل عند وجوده.');
    const done=node('button',translateStatic('العودة إلى العقد'));done.type='button';done.onclick=()=>{d.close();if(typeof onDone==='function')onDone(result.contract);};d.body.append(done);
