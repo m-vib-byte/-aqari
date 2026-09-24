@@ -120,8 +120,8 @@ export async function openDocumentScanner(initial={}){
  }
  file.onchange=()=>run(()=>chooseFiles([...file.files||[]]));camera.onchange=()=>run(()=>chooseFiles([...camera.files||[]]));
  rotate.onclick=()=>run(async()=>{if(!img)return;rotation=(rotation+90)%360;await prepare();});
- async function loadRecords(){records.replaceChildren();const placeholder=node('option',t('اختر السجل الصحيح'));placeholder.value='';records.append(placeholder);const rows=initial.ref?[await documentTarget(session,type.value,String(initial.ref))]:await session.request(session.client.rpc('aqari_document_entities',{p_workspace_id:session.bound.workspace,p_type:type.value,p_query:query.value.trim()}));
-  for(const row of rows){const option=node('option',row.title);option.value=row.entity_ref;records.append(option);}if(initial.ref&&rows.some(r=>r.entity_ref===String(initial.ref)))records.value=String(initial.ref);
+ async function loadRecords(){records.replaceChildren();const placeholder=node('option',t('اختر السجل الصحيح'));placeholder.value='';records.append(placeholder);const rows=initial.ref?[await documentTarget(session,type.value,String(initial.ref),initial.referenceKey)]:await session.request(session.client.rpc('aqari_document_entities',{p_workspace_id:session.bound.workspace,p_type:type.value,p_query:query.value.trim()}));
+  for(const row of rows){const option=node('option',row.title);option.value=row.entity_ref;records.append(option);}if(initial.ref&&rows.length===1)records.value=rows[0].entity_ref;
   page=0;await loadDocuments();status.textContent=rows.length?(initial.ref?t('المستندات مرتبطة بالملف المفتوح. اختر التصنيف ثم صوّر الورق أو ارفع الملف.'):t('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.')):t('لا توجد سجلات محفوظة مطابقة. احفظ السجل أولاً قبل رفع المستند.');}
  async function loadDocuments(){downloads.clear();list.replaceChildren();previous.hidden=true;next.hidden=true;if(!records.value)return;
   const rows=await session.request(session.client.rpc('aqari_document_listing',{p_workspace_id:session.bound.workspace,p_entity_type:type.value,p_entity_ref:records.value,p_page:page}));
