@@ -1,3 +1,4 @@
+import {client as tenantClient} from '../../v267-tenant-portal.js';
 import {uiText,setText} from './components/ui-text.js';
 import {normalizeTenantPropertySupport} from './domain/tenant-property-technicians.js';
 
@@ -6,7 +7,7 @@ const list=document.getElementById('tenantTechnicians');
 const status=document.getElementById('tenantTechniciansStatus');
 const cfg=window.AQARI_PUBLIC_CONFIG;
 const previewReady=Boolean(section&&list&&status&&window.supabase&&cfg?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co'&&cfg?.releaseStage==='preview'&&cfg?.supabasePublishableKey&&cfg?.supabaseAuthStorageKey);
-const client=previewReady?window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}}):null;
+const client=previewReady?tenantClient:null;
 let generation=0;
 function clear(){generation++;if(list)list.replaceChildren();if(status)status.textContent='';if(section)section.hidden=true;}
 function text(tag,value,className=''){const n=document.createElement(tag);if(className)n.className=className;n.textContent=value;return n;}
