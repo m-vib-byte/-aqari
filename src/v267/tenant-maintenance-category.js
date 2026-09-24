@@ -1,3 +1,4 @@
+import {client} from '../../v267-tenant-portal.js';
 import {t} from './components/locale.js';
 import {setText} from './components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG;
@@ -21,7 +22,7 @@ const CATEGORY_LABELS={
 
 if(!cfg||cfg.releaseStage!=='preview'||!form||!category||!leaseSelect||!description||!requestList)throw Error('MAINTENANCE_CATEGORY_UI_REQUIRED');
 
-const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
+
 let submitting=false,decorating=false,timer=null;
 
 function status(text,values){if(notice)setText(notice,text,values);}
