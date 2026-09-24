@@ -1237,8 +1237,8 @@
     },
     {
       "path": "src/v267/components/document-target.js",
-      "sha256": "2a41b3a4fa9b4fdd3eaab94a7f93f702c2aa5e7fca89e39983a1dd88ececb0ce",
-      "size": 759
+      "sha256": "6aae427ec16e0e4024fdbf094ddfed819d51757aaaa96e7d4ed03cc8f6347cae",
+      "size": 891
     },
     {
       "path": "src/v267/components/exit-translations.js",
@@ -1562,8 +1562,8 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "d10f44eb1d2a9e1ea3d7367097df3cc6acc6402d6148924d0d183dd257a8fc4b",
-      "size": 18681
+      "sha256": "f2d0b66088920bf8948c283ebd7922d42e78c61a3d459022bed563c06ebfd1a4",
+      "size": 20011
     },
     {
       "path": "src/v267/pages/employees.js",
@@ -1597,8 +1597,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "877d6e9b454586b7093c8cf18d1d74b363e6ef18311834451be7e2f72a529d81",
-      "size": 7676
+      "sha256": "2348a8e2f498cad28c0c54942a48e632b253e379f1e15dc300ec9c4192ff4e29",
+      "size": 7699
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -1662,8 +1662,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "0db7581d7975ed9243deab9780978038a53a0a1283cda44d288a7c80fcfe2405",
-      "size": 28740
+      "sha256": "e98368d54bbd4a0a7559b1ab36cd2e943fef30fb55040c17e0ab8f8088b01bc0",
+      "size": 28763
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1672,8 +1672,8 @@
     },
     {
       "path": "src/v267/pages/property-portfolio-additions.js",
-      "sha256": "66ba3b263d8c5a6bafbeb9ac8d8c0775898edd1d860552a3a38efc6a4bf7e20f",
-      "size": 12512
+      "sha256": "b3180677479a4a4693d4010de8773e1197e5ce3e39697a5991a1e1175def91fd",
+      "size": 12535
     },
     {
       "path": "src/v267/pages/property-statements.js",
@@ -4177,8 +4177,8 @@
     },
     {
       "path": "tests/v267-scanner-workflow.test.mjs",
-      "sha256": "245a129b0b9ba201e4e8e1d45c5de71dbdee83d0b14fd1a34012201ac3d80b03",
-      "size": 11180
+      "sha256": "a922a8d501953f035f57931737e826b8c531e9d5aee24373d471f3c60d90eeb6",
+      "size": 19143
     },
     {
       "path": "tests/v267-scoped-render.test.cjs",
