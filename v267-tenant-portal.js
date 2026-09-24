@@ -7,7 +7,7 @@ if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseSta
 const recoveryCallback=portalRecoveryCallback(window.location);
 if(recoveryCallback)window.location.replace(recoveryCallback);
 let accountRecovery;
-const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
+export const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,engagementVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set(),attachmentDisposers=new Set();
 const safeError=e=>hasTranslation(e?.message,'en')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
