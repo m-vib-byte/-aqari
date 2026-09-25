@@ -113,7 +113,9 @@ begin
  end if;
 
  if p_action='month_action' then
-  period:=(d->>'month')::date;property:=(d->>'property_id')::uuid;
+  period:=(d->>'month')::date;
+  if nullif(btrim(d->>'property_id'),'') is null then raise exception 'PROPERTY_REQUIRED' using errcode='22023';end if;
+  begin property:=(d->>'property_id')::uuid;exception when invalid_text_representation then raise exception 'INVALID_PROPERTY_ID' using errcode='22023';end;
   if not private.aqari_hr_can(w,array[property],case when d->>'state'='closed' then 'approve_chairman' else 'approve_admin' end) then raise insufficient_privilege using message='ACCESS_DENIED';end if;
   if d->>'state' not in ('reviewed','approved','closed') or length(btrim(coalesce(d->>'reason',''))) not between 3 and 1000 then raise exception 'MONTH_ACTION_REASON_REQUIRED';end if;
   if d->>'state'='closed' and exists(select 1 from private.aqari_hr_payroll x join private.aqari_hr_employees q on q.id=x.employee_id where x.workspace_id=w and x.month=period and property=any(q.property_ids) and x.state<>'paid') then raise exception 'UNPAID_PAYROLL_EXISTS';end if;
