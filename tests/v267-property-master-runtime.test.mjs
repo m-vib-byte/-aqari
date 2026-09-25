@@ -43,7 +43,9 @@ function fixture(options={}) {
     if(name==='aqari_property_full_file'){
      return Promise.resolve(nextReadError?{error:nextReadError,status:400}:{data:record,status:200});
     }
-    if(name==='aqari_workspace_access')return Promise.resolve({data:{workspace_id:scope.workspace,user_id:scope.user,role:scope.role,permissions:{properties:{write:true},documents:{write:true}}},status:200});
+    if(name==='aqari_workspace_access')return Promise.resolve({data:{workspace_id:scope.workspace,user_id:scope.user,role:scope.role,permissions:{properties:{write:true},documents:{write:true},finance:{write:options.financeWritable===true}}},status:200});
+    if(name==='aqari_property_financial_summary')return Promise.resolve({data:{workspace_id:scope.workspace,property_id:'property-a',available:true,month:{},year:{}},status:200});
+    if(name==='aqari_property_cost_allocation')return Promise.resolve({data:{workspace_id:scope.workspace,user_id:scope.user,properties:[{id:'property-a',name:'عقار الاختبار'}],sources:[],manager:true},status:200});
     if(name==='aqari_property_tenant_ledger')return Promise.resolve({error:{code:'PGRST202',message:'Could not find the function public.aqari_property_tenant_ledger'},status:404});
     throw Error('Unexpected RPC: '+name);
    }
@@ -56,7 +58,7 @@ function fixture(options={}) {
  const dialog=body.children[0];
  const descendants=el=>[el,...el.children.flatMap(descendants)];
  return {
-  calls,dialog,
+  calls,dialog,body,descendants,
   status:()=>dialog.children[2].textContent,
   text:()=>descendants(dialog).map(el=>el.textContent).join('\n'),
   tables:()=>calls.filter(c=>c.kind==='table'),
@@ -64,10 +66,31 @@ function fixture(options={}) {
   button:label=>descendants(dialog).find(el=>el.tagName==='button'&&el.textContent===label),
   failNextRead(error){nextReadError=error;},
   async settled(){for(let i=0;i<10&&dialog.attrs['aria-busy']==='true';i++)await new Promise(setImmediate);assert.equal(dialog.attrs['aria-busy'],'false');},
-  async cleanup(){await dialog.children[0].onclick();Object.assign(globalThis,original);}
+  async cleanup(){for(const el of [...body.children])if(el.tagName==='dialog')await el.children[0].onclick();Object.assign(globalThis,original);}
  };
 }
 const missingCategory={code:'42703',message:'column aqari_maintenance_requests.category_code does not exist'};
+
+test('cost allocation replaces the property dialog and preserves its property filter',async()=>{
+ const f=fixture({permissions:{collections:true,finance:true},financeWritable:true});try{
+  await f.settled();await f.button('توزيع الرواتب والمصاريف على العقارات').onclick();
+  for(let i=0;i<10&&f.body.children[0]?.attrs['aria-busy']==='true';i++)await new Promise(setImmediate);
+  const allocation=f.body.children[0];assert.equal(f.body.children.length,1);
+  assert.equal(allocation.attrs['aria-label'],'توزيع التكاليف حسب العقار');
+  assert.equal(allocation.attrs['aria-busy'],'false');
+  assert.equal(f.descendants(allocation).find(el=>el.tagName==='select').value,'property-a');
+  assert.deepEqual(f.calls.filter(c=>c.name==='aqari_property_cost_allocation').map(c=>c.args),[{p_workspace_id:'test-workspace',p_action:'list',p_data:{}}]);
+ }finally{await f.cleanup();}
+});
+
+test('cost allocation rejects a changed session before opening another dialog',async()=>{
+ const f=fixture({permissions:{collections:true,finance:true},financeWritable:true});try{
+  await f.settled();window.AQARI_DATA_GATE.scope.userId='other-user';
+  await assert.doesNotReject(async()=>await f.button('توزيع الرواتب والمصاريف على العقارات').onclick());
+  assert.equal(f.body.children[0],f.dialog);assert.match(f.status(),/تغيرت جلسة الدخول/);
+  assert.equal(f.calls.filter(c=>c.name==='aqari_property_cost_allocation').length,0);
+ }finally{await f.cleanup();}
+});
 
 test('missing optional category still renders the property and maintenance without inventing a category',async()=>{
  const f=fixture({error:missingCategory});try{
