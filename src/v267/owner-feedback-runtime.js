@@ -70,7 +70,7 @@ async function navigateRoute(route){
  if(!exactRouteReady(route)){setStatus(message('تعذر فتح صفحة {section}. أعد المحاولة.',{section:t(sectionLabel(route))}),true);return false;}
  document.body.dataset.aqExactRoute=route;decoratePage(route);syncActive();const page=routePage(route);page?.scrollIntoView?.({block:'start',behavior:'auto'});window.dispatchEvent(new CustomEvent('aqari:owner-final-route',{detail:{route}}));return true;
 }
-function serviceButton(def){if(def.id){const e=document.getElementById(def.id);if(visible(e))return e;}if(def.service){const e=[...document.querySelectorAll(`[data-aq267-label="${CSS?.escape?.(def.service)||def.service}"]`)].find(visible);if(e)return e;}return null;}
+function serviceButton(def){if(def.id){const e=document.getElementById(def.id);if(visible(e))return e;}if(def.service){const candidates=[...document.querySelectorAll(`[data-aq267-label="${CSS?.escape?.(def.service)||def.service}"]`)];const e=candidates.find(visible)||((def.service==='rental_contracts'||def.service==='employees_payroll')?candidates.find(button=>!button.disabled&&!button.hidden):null);if(e)return e;}return null;}
 async function waitForRuntimeMount(check,timeout=1800){
  const deadline=Date.now()+timeout;
  while(scope()&&Date.now()<deadline){
