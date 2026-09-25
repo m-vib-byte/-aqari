@@ -21,6 +21,7 @@ function ensureCss(){if(document.getElementById('aqari-professional-login-css'))
 async function guestEnabled(){
  try{
   const cfg=window.AQARI_PUBLIC_CONFIG,url=String(cfg?.supabaseUrl||''),key=String(cfg?.supabasePublishableKey||'');
+  if(cfg?.releaseStage==='production')return false;
   if(!/^https:\/\/[a-z0-9]+\.supabase\.co$/.test(url)||!key.startsWith('sb_publishable_'))return false;
   const response=await fetch(url+'/rest/v1/rpc/aqari_guest_mode_status',{method:'POST',headers:{apikey:key,'Content-Type':'application/json',Accept:'application/json'},body:'{}',cache:'no-store',credentials:'omit',redirect:'error'});
   if(!response.ok)return false;const data=await response.json();return data?.enabled===true&&data?.data_access===false;
