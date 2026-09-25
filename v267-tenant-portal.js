@@ -3,11 +3,12 @@ import {LANGUAGES,bindLocale,getLocale,setLocale,direction,t,dateLocale,hasTrans
 import {restorePortalLocale,savePortalLocale,refreshPortalLabels} from './src/v267/components/portal-locale.js';
 import {uiText,setText,refreshText} from './src/v267/components/ui-text.js';
 const cfg=window.AQARI_PUBLIC_CONFIG,$=id=>document.getElementById(id),notice=source=>setText($('notice'),source);
-if(cfg?.supabaseUrl!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||cfg.releaseStage!=='preview')throw Error('STAGING_REQUIRED');
+const releaseSource=Object.freeze({preview:'https://ofgmcsmxmdswlovsckqs.supabase.co',production:'https://djkpkkgoibruaezdrchb.supabase.co'});
+if(!cfg||releaseSource[cfg.releaseStage]!==cfg.supabaseUrl||!cfg.supabasePublishableKey||!cfg.supabaseAuthStorageKey)throw Error('TENANT_PORTAL_TARGET_REQUIRED');
 const recoveryCallback=portalRecoveryCallback(window.location);
 if(recoveryCallback)window.location.replace(recoveryCallback);
 let accountRecovery;
-const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
+export const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:!recoveryCallback,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}});
 let snapshot=null,epoch=0,busy=false,operation=0,readVersion=0,noticeVersion=0,engagementVersion=0,userId=null,saveUncertain=false;
 const receiptUrls=new Set(),jobs=new Set(),attachmentDisposers=new Set();
 const safeError=e=>hasTranslation(e?.message,'en')?e.message:'تعذر إكمال العملية أو تأكيدها. أعد تحميل الصفحة وتحقق من السجلات.';
