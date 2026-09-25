@@ -3232,8 +3232,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "eb0ca88d009577dc4839eadd6e38e5e6f90c25ec610afea8a1f977d402e1b115",
-      "size": 27663
+      "sha256": "a186a252d73f70e554e7e6ea1bd0cad89bf4650776e55bb6716e1972e32919d3",
+      "size": 27811
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
