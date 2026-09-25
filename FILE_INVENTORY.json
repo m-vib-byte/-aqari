@@ -1107,8 +1107,8 @@
     },
     {
       "path": "scripts/verify-deployment-target.mjs",
-      "sha256": "e8770533d2f7ccec9ea103648d30ee0648278834640d35ecfba6ff6601f3e885",
-      "size": 3969
+      "sha256": "4a79212602e68255c4c06e7b7b08a8ee59a01b54c1e7dbd41a8a2e325e022ab7",
+      "size": 3968
     },
     {
       "path": "scripts/verify-deployment.mjs",
