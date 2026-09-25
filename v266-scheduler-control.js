@@ -38,6 +38,11 @@
     return live;
   }
 
+  function missingSchedulerBackend(error){
+    const code=String(error?.code||''),raw=String(error?.message||error||'');
+    return ['PGRST205','42P01'].includes(code)&&/\baqari_scheduler_(?:config|runs)\b/i.test(raw);
+  }
+
   function friendlyError(error){
     const raw=String(error?.message||error||'');
     if(error?.code==='AQARI_V266_SUPERSEDED')return '';
@@ -282,6 +287,11 @@
       setMessage(configResult.data?'الحالة محدثة من السحابة.':'لم تُهيأ الجدولة لمساحة العمل الحالية.','ready');
       return {config:configResult.data,runs:runsResult.data||[]};
     }catch(error){
+      if(missingSchedulerBackend(error)&&epoch===state.epoch){
+        state.config=null;state.runs=[];renderConfig(null);renderRuns([]);
+        setMessage('التشغيل الآلي غير مهيأ لبيئة البيانات الحالية.','wait');
+        return null;
+      }
       const message=friendlyError(error);
       if(message&&epoch===state.epoch)setMessage(message,'bad');
       return null;
