@@ -4,7 +4,7 @@ import {currentMonth,kuwaitTime,money,ADDITIONS,DEDUCTIONS,METHODS,salaryTotals}
 import {RECORD_LABELS,SELF_SERVICE_KINDS,RECORD_STATES,MONTH_STATES,EXPIRY_LABELS,expiryState,validateAllocations,csv} from '../domain/hr-lifecycle.js';
 
 const input=(type='text',value='')=>{const el=node('input');el.type=type;el.value=value??'';return el;};
-const select=(rows,value='')=>{const el=node('select');for(const [key,label]of rows){const option=node('option',t(label));option.value=key;el.append(option);}el.value=value;return el;};
+const select=(rows,value)=>{const el=node('select');for(const [key,label]of rows){const option=node('option',t(label));option.value=key;el.append(option);}if(value!==undefined)el.value=value;return el;};
 const download=(blob,name)=>{const url=URL.createObjectURL(blob),a=node('a',t('تحميل / Download'));a.href=url;a.download=name;setTimeout(()=>URL.revokeObjectURL(url),60000);return a;};
 const employeeName=e=>[e?.profile?.name_ar,e?.profile?.name_en].filter(Boolean).join(' / ')||t('موظف / Employee');
 
