@@ -98,6 +98,18 @@ export function openPropertyHub(propertyId,options={}){
   await mountPropertyPortfolioAdditions(d,propertyId,file,access);
   d.status.textContent=translateStatic('الملف الكامل يقرأ البيانات الخادمة الفعلية. تخصيص المسميات والأيقونات والترتيب هو عرض فقط ولا يغير المفاتيح التقنية.');
  }
- d.run(options.section==='sender'?senderSettings:options.section==='edit'?editProperty:render);return true;
+ d.run(async()=>{
+  try{await (options.section==='sender'?senderSettings:options.section==='edit'?editProperty:render)();}
+  catch(error){
+   const missingExtension=['PGRST202','42883'].includes(error?.code)&&/aqari_property_(dashboard_header|channel_settings)\b/.test(String(error?.message||''));
+   if(!missingExtension)throw error;
+   d.body.replaceChildren(node('p',translateStatic('بعض وظائف ملف العقار غير متاحة في قاعدة البيانات الحالية.')));
+   d.body.append(button(translateStatic('فتح ملف العقار الأساسي'),()=>d.run(async()=>{
+    const page=await import('./property-master-file.js');
+    d.session.check();d.close();page.openPropertyMasterFile(propertyId);
+   })));
+   d.status.textContent=translateStatic('يلزم استكمال تحديث قاعدة البيانات لتشغيل الملف الكامل.');
+  }
+ });return true;
 }
 
