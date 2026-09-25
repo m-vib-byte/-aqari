@@ -12,7 +12,9 @@ test('release verification checks out the preview head and checks identity befor
   assert.match(verify,/AQARI_EXPECTED_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
   assert.match(verify,/ref: \$\{\{ env\.AQARI_EXPECTED_SHA \}\}/);
   assert.match(verify,/persist-credentials: false/);
-  assert.ok(verify.indexOf('node scripts/verify-release-source.mjs')<verify.indexOf('node --test'));
+ const regressions=verify.indexOf('node scripts/test-release-regressions.mjs');
+ assert.ok(regressions>=0,'prepared regression suite must run');
+ assert.ok(verify.indexOf('node scripts/verify-release-source.mjs')<regressions);
   const exported=verify.slice(verify.indexOf('name: Export tracked source'));
   assert.ok(exported.indexOf('node scripts/verify-release-source.mjs')>=0);
   assert.ok(exported.indexOf('node scripts/verify-release-source.mjs')<exported.indexOf('git archive'));
