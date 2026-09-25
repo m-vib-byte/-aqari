@@ -21,8 +21,8 @@
     if(!cfg.supabaseAuthRedirectUrl) return location.origin;
     const target = new URL(cfg.supabaseAuthRedirectUrl);
     if(target.protocol !== 'https:' || target.username || target.password || target.hash ||
-       !['aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app',
-         'aqari-git-preview-hr-contract-acceptance-301-20260925-m-vib-5421.vercel.app'].includes(target.hostname) ||
+       (target.hostname !== 'aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app' &&
+        !(cfg.releaseStage === 'preview' && target.hostname === 'aqari-git-preview-hr-contract-acceptance-301-20260925-m-vib-5421.vercel.app')) ||
        target.pathname !== '/login.html' || target.search !== '?release=V267'){
       throw new Error('AQARI_STAGING_REDIRECT_INVALID');
     }
