@@ -62,6 +62,7 @@ test('actual standalone login receives black-gold skin and manager-controlled ze
  assert.match(loginJs,/لا تتصل بقاعدة البيانات ولا تعرض أي سجل حقيقي/);
  assert.match(loginJs,/body\.v267-login-page main/);
  assert.match(loginJs,/aqari_guest_mode_status/);
+ assert.match(loginJs,/releaseStage==='production'/);
  assert.match(loginJs,/data_access===false/);
  assert.match(loginJs,/return false/);
  assert.doesNotMatch(loginJs,/service_role|SUPABASE_SERVICE|AQARI_SUPABASE_SERVICE_ROLE_KEY/i);
