@@ -31,6 +31,9 @@ test('production preparation is separate and leaves isolated source unchanged',(
   assert.equal(cfg.supabaseAuthRedirectUrl,PRODUCTION_REDIRECT);
   const backend=patch.get('lib/release-config.js');
   assert.match(backend,/RELEASE_STAGE = 'production'/);
+  assert.equal(patch.get('v267-tenant-portal.js'),read('v267-tenant-portal.js'));
+  assert.match(patch.get('v267-tenant-portal.js'),/preview:'https:\/\/ofgmcsmxmdswlovsckqs\.supabase\.co'/);
+  assert.match(patch.get('v267-tenant-portal.js'),/production:'https:\/\/djkpkkgoibruaezdrchb\.supabase\.co'/);
   assert.deepEqual(deploymentTargetErrors('production',cfg,{PRODUCT_VERSION:'V267',RELEASE_STAGE:'production',SUPABASE_PUBLIC_CONFIG:{url:cfg.supabaseUrl,publishableKey:cfg.supabasePublishableKey}}),[]);
 });
 test('preparation refuses another database, private keys and unreviewed source drift',()=>{
