@@ -1077,8 +1077,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "a317900323c565d4aa8d57d7040023f8b9b1026c1eabfa1a81140d33d0649f67",
-      "size": 9270
+      "sha256": "5b194ab67b2854845278fc22f4b032787b9648b252ab534376ad6ae2d502cd76",
+      "size": 9427
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -4067,8 +4067,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "22981440825ec2d87e7ac3e66be41b961e47ffebae4fbfb34baa06d696ee10e5",
-      "size": 11084
+      "sha256": "d6f1e6c158c80721b920eef538c56cf5e71d24889d766fbf0137d57283cb9add",
+      "size": 11387
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",

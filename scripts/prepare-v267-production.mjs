@@ -79,8 +79,10 @@ export function productionPatch(read,{projectRef,publishableKey}){
      original.supabaseAuthStorageKey!==`sb-${PREVIEW_PROJECT}-auth-token`)throw Error('ISOLATED_SOURCE_REQUIRED');
   const patch=new Map();
   for(const [path,count] of Object.entries(runtimeReferences)){
-    let source=replaceExact(read(path),PREVIEW_PROJECT,PRODUCTION_PROJECT,count,path);
-    if(path==='v267-tenant-portal.js'||path==='v267-partner-portal.js'){
+    // Tenant portal source is now release-aware and validates the exact
+    // preview/production mapping itself. Preserve it byte-for-byte here.
+    let source=path==='v267-tenant-portal.js'?read(path):replaceExact(read(path),PREVIEW_PROJECT,PRODUCTION_PROJECT,count,path);
+    if(path==='v267-partner-portal.js'){
       source=replaceExact(source,"cfg.releaseStage!=='preview'","cfg.releaseStage!=='production'",1,path);
     }
     if(path==='v267-partner-portal.js'){
