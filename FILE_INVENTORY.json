@@ -4647,8 +4647,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 32432,
-      "sha256": "2089daf8bb55753f60bd923038b61fbc97ce4b479baa546302a20fec060d03b3"
+      "size": 32664,
+      "sha256": "dece871a43aced3485a8ac5a537dce9620b286d285b77acef1c3459ef4bec151"
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
@@ -4657,8 +4657,8 @@
     },
     {
       "path": "tests/v267-property-maintenance-compat.test.mjs",
-      "size": 4938,
-      "sha256": "0ff36a3f902b8d040baafe9b7711a2c3b300d822ad07e4bbc5346ad1f91131a6"
+      "size": 5370,
+      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa"
     },
     {
       "path": "docs/verification/pr321-property-runtime-20260925.md",
