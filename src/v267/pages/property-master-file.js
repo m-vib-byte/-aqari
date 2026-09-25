@@ -31,7 +31,7 @@ export async function openPropertyMasterFileByName(name){
 
 export function openPropertyMasterFile(propertyId,options={}){
  const d=createDialog(translateStatic('الملف الكامل للعقار'));if(!d)return false;
- const production=window.AQARI_PUBLIC_CONFIG?.releaseStage==='production';
+ const production=globalThis.window?.AQARI_PUBLIC_CONFIG?.releaseStage==='production';
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  let file=null,access=null,financialSummary=null,tenantLedger=null,maintenanceRows=[],employeeRows=[];
  async function read(){
@@ -66,7 +66,7 @@ export function openPropertyMasterFile(propertyId,options={}){
  }
  function masterPayload(p,assets=p.assets){return {name:p.name,address:p.address||'',type:p.type||'',status:p.status||'active',statedIncome:p.statedIncome??null,owners:Array.isArray(p.owners)?p.owners:[],email:p.email||'',phone:p.phone||'',whatsapp:p.whatsapp||'',assets:assets||{logo:null,photos:[],titleDeed:null,plans:[],documents:[]}};}
  async function editProperty(){
-  if(!propertyWritable())throw Error('تعديل العقار غير متاح لصلاحية حسابك.');await read();const p=file.property;d.body.replaceChildren(node('h3',translateStatic('تعديل بيانات العقار الرئيسية')));
+  await read();if(!propertyWritable())throw Error('تعديل العقار غير متاح لصلاحية حسابك.');const p=file.property;d.body.replaceChildren(node('h3',translateStatic('تعديل بيانات العقار الرئيسية')));
   const form=node('form'),name=input('text',p.name),address=node('textarea'),type=input('text',p.type),status=input('text',p.status||'active'),income=input('text',p.statedIncome??''),email=input('email',p.email),phone=input('tel',p.phone),whatsapp=input('tel',p.whatsapp),reason=node('textarea');address.value=p.address||'';name.required=status.required=reason.required=true;reason.minLength=3;income.inputMode='decimal';
   for(const [label,control]of [[translateStatic('اسم العقار'),name],[translateStatic('العنوان'),address],[translateStatic('نوع العقار'),type],[translateStatic('حالة العقار'),status],[translateStatic('الدخل المعلن — لا يستخدم بدل التحصيل الفعلي'),income],[translateStatic('البريد الرسمي للعقار'),email],[translateStatic('الهاتف'),phone],[translateStatic('واتساب'),whatsapp]])form.append(field(label,control));
   const ownersBox=section(translateStatic('الملاك والحصص — يجب أن يكون المجموع 100% عند وجود ملاك'));form.append(ownersBox);const owners=ownerEditor(ownersBox,Array.isArray(p.owners)?p.owners:[]);
