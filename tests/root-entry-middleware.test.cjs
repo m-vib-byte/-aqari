@@ -6,6 +6,7 @@ const modulePromise=import(pathToFileURL(path.resolve(__dirname,'../middleware.j
 test('root-only middleware selects the public static form and keeps query parameters',async()=>{
   const {default:middleware,config}=await modulePromise;
   assert.equal(config.matcher,'/');
+  assert.equal(config.runtime,'nodejs');
   for(const method of ['GET','HEAD']){
     const response=middleware(new Request('https://myaqari.com/?manual=1&release=V267',{method}));
     assert.equal(response.status,200);
