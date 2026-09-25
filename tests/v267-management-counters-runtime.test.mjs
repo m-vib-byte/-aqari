@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountKpiDashboard} from '../src/v267/pages/kpi-dashboard.js';
 
@@ -26,7 +27,7 @@ async function fixture(){
  }}}};
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),documentElement:{lang:'ar',classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
  const d=createDialog('مؤشرات الأداء'),view=mountKpiDashboard(d);await d.run(view.load);
  const elements=()=>d.el.querySelectorAll(),counts=()=>elements().filter(x=>x.dataset.counter);
  return {d,view,calls,elements,counts,bad:()=>bad=true,deny:()=>denied=true,good:()=>bad=false,cleanup(){if(!d.closed)d.close();Object.assign(globalThis,original);}};

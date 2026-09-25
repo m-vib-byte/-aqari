@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountUtilityMeters} from '../src/v267/pages/utility-meters.js';
 
@@ -42,7 +43,7 @@ async function fixture({entryCount=121,propertyCount=1,meterCount=1,undated=fals
  const client={from:table=>new Query(table),rpc(name){assert.equal(name,'aqari_workspace_access');return {abortSignal:async()=>({data:{workspace_id:'w',user_id:'u',role:'general_manager',features:{unit_meter_readings:false}}})};}};
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:t=>new Element(t),documentElement:{lang:'ar',classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}}},addEventListener(){},removeEventListener(){}};
  const d=createDialog('اختبار سجل المرافق'),view=mountUtilityMeters(d);await d.run(view.init);
  const elements=()=>d.el.querySelectorAll(),button=text=>elements().find(x=>x.tagName==='button'&&x.textContent===text);
  const control=label=>elements().find(x=>x.children[0]?.tagName==='label'&&x.children[0].textContent===label).children[1];

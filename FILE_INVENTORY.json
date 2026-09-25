@@ -3702,8 +3702,8 @@
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
-      "sha256": "40936f5e75a85ecd86f8b8b0caacf548c4a30c0f636d559d5a28ac47dfde41a7",
-      "size": 6762
+      "sha256": "7f83af33a71fbcf38a5e0a0bd385bdebee98239afd2ea5a5af80c20b9b6d4f13",
+      "size": 6811
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
@@ -4212,8 +4212,8 @@
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",
-      "sha256": "733077f6fc12a1f843186d2246d0c26afa5751af0841b3890db12a155b0c65ca",
-      "size": 12118
+      "sha256": "1ef02da857df62122eeda5f8752b1c4d58e1232a07b0cdb8b5cb81827b5d9af0",
+      "size": 12167
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -4252,8 +4252,8 @@
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
-      "sha256": "e407cab3d55854492d199b39b3e01f39e6c85d53fc1c2541b576302c82afe041",
-      "size": 7191
+      "sha256": "356720575727d020ea5bb5d576df595a1ca2194122afad126e6698d25d77e367",
+      "size": 7240
     },
     {
       "path": "tests/v267-unit-readiness-runtime.test.mjs",

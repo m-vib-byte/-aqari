@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountStaffCirculars,mountAvailableStaffCirculars} from '../src/v267/pages/staff-circulars.js';
 
@@ -43,7 +44,7 @@ async function fixture({manager=true,incomplete=false,discovery}={}){
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:t=>new Element(t),documentElement:{lang:'ar',classList:{contains:()=>true}}};
  const role=manager?'general_manager':'accountant';
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role}}},addEventListener(){},removeEventListener(){}};
  const d=createDialog('تعاميم الاختبار');
  if(discovery!==undefined)await d.run(()=>mountAvailableStaffCirculars(d));else{const view=mountStaffCirculars(d);await d.run(view.load);}
  const elements=()=>d.el.querySelectorAll();

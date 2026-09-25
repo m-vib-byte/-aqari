@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createDialog,node} from '../src/v267/components/dialog.js';
 
 // Exercise the actual dialog and session modules without a network or real accounts.
@@ -17,7 +18,7 @@ function fixture(trigger=null){
  }
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:trigger,createElement:t=>new Element(t),documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'test-user',workspaceId:'test-workspace'}},AQARI_SUPABASE:{getClient:async()=>({}),context:{user:{id:'test-user'},workspace:{id:'test-workspace'},membership:{user_id:'test-user',workspace_id:'test-workspace',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:'test-user',workspaceId:'test-workspace'}},AQARI_SUPABASE:{getClient:async()=>({}),context:{user:{id:'test-user'},workspace:{id:'test-workspace'},membership:{user_id:'test-user',workspace_id:'test-workspace',role:'general_manager',is_active:true}}},addEventListener(){},removeEventListener(){}};
  const d=createDialog('اختبار حالة الاتصال'),enabled=node('input'),disabled=node('button');disabled.disabled=true;d.body.append(enabled,disabled);
  return {d,enabled,disabled,close:()=>d.el.children[0].onclick(),cleanup(){if(!d.closed)d.el.children[0].onclick();Object.assign(globalThis,original);}};
 }

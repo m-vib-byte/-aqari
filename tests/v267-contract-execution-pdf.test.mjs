@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createHash} from 'node:crypto';
 import {createSession} from '../src/v267/api/session.js';
 import {readContractExecutionPdf} from '../src/v267/pages/contract-execution.js';
@@ -14,7 +15,7 @@ async function fixture(t,{content='%PDF-1.7\nfixture archive\n%%EOF',mime='appli
  const expected=hash??createHash('sha256').update(Buffer.from(await blob.arrayBuffer())).digest('hex');
  const client={auth:{async getSession(){authReads++;return {data:{session:{access_token:'fixture-token',user:{id:authReads>1&&finalUser?finalUser:user}}}};}}};
  globalThis.document={documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role:'general_manager'}}}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role:'general_manager'}}}};
  globalThis.fetch=async(url,options)=>{calls.push({url,options});return {ok:status===200,status,headers:new Headers({'X-Aqari-Archived-SHA256':expected}),async blob(){reached();if(holdBody)await new Promise(resolve=>{release=resolve;});afterBody?.(session);return blob;}};};
  session=createSession();await session.connect();
  t.after(async()=>{session.close();release?.();await new Promise(setImmediate);Object.assign(globalThis,originals);});

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountUnitMeterReadings,mountAvailableUnitMeterReadings} from '../src/v267/components/unit-meter-readings.js';
 import {createUnitMeterPhoto} from '../src/v267/components/unit-meter-photo.js';
@@ -24,7 +25,7 @@ async function fixture({incomplete=false,rejectOnce=false,canWrite=true,discover
  }};}};
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:t=>new Element(t),documentElement:{lang:'ar',classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}}},addEventListener(){},removeEventListener(){}};
  const d=createDialog('اختبار القراءات');if(discovery!==undefined)await d.run(()=>mountAvailableUnitMeterReadings(d));else mountUnitMeterReadings(d);const elements=()=>d.el.querySelectorAll();
  const control=label=>{const group=elements().find(x=>x.children?.[0]?.tagName==='label'&&x.children[0].textContent===label);assert.ok(group,label);return group.children[1];};
  const load=elements().find(x=>x.textContent==='تحميل قراءات دخول وإخلاء الوحدات');if(load)await load.onclick();
