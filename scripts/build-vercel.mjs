@@ -62,3 +62,20 @@ execFileSync(process.execPath,['--test','tests/v267-unit-handover-bundle.test.mj
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
 try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test','tests.salary_voucher_pdf_test','tests.contract_template_pdf_test','tests.contract_template_preview_test','tests.rental_document_layout_test','tests.rental_document_issue_test','tests.rental_document_editor_pdf_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
 await import('./check.mjs');
+
+// Isolate this acceptance branch from the current site database after source checks.
+if (process.env.VERCEL_ENV === 'preview' && process.env.VERCEL_GIT_COMMIT_REF === 'preview/hr-contract-acceptance-301-20260925') {
+  for (const path of ['public-config.js', 'lib/release-config.js']) {
+    const url = new URL('../' + path, import.meta.url);
+    const before = readFileSync(url, 'utf8');
+    if (!before.includes('ofgmcsmxmdswlovsckqs')) throw Error('Expected preview source reference absent: ' + path);
+    let after = before.replaceAll('ofgmcsmxmdswlovsckqs', 'djkpkkgoibruaezdrchb')
+      .replace(/sb_publishable_[A-Za-z0-9_-]+/g, 'sb_publishable_IZsu-9m2XQCyzDFo1-R3Gw_sfSHHBLL');
+    if (path === 'public-config.js') after = after.replace(
+      'https://aqari-git-design-v267-premium-workspace-m-vib-5421.vercel.app/login.html?release=V267',
+      'https://aqari-git-preview-hr-contract-acceptance-301-20260925-m-vib-5421.vercel.app/login.html?release=V267'
+    );
+    writeFileSync(url, after);
+  }
+  console.log('Prepared isolated PR 301 acceptance preview against staging.');
+}
