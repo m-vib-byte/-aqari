@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {mountRentalDocumentCycle} from '../src/v267/pages/rental-document-cycle.js';
 import {createSession} from '../src/v267/api/session.js';
 import {documentTemplateBlueprints,renderDocumentTemplate,rentalDocumentDigestPayload} from '../src/v267/domain/rental-document-cycle.js';
@@ -43,7 +44,7 @@ async function fixture({initial={},role='general_manager',emptyTemplates=false,m
   auth:{getSession:async()=>({data:{session:{access_token:'fixture-token',user:{id:activeUser}}}})}
  };
  globalThis.document={createElement:tag=>{const el=new Element(tag);if(tag==='a')el.click=()=>downloads.push(el.download);return el;},documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role}}}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:user,workspaceId:workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:user},workspace:{id:workspace},membership:{user_id:user,workspace_id:workspace,is_active:true,role}}}};
  globalThis.fetch=async(url,options)=>{
   calls.push({url,options});const body=JSON.parse(options.body),bytes='%PDF-1.7 fixture';let documentId=null,previewDigest=body.document?.previewDigest||body.previewDigest;
   const hash=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(bytes))).toString('hex');
