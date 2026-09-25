@@ -1027,8 +1027,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "3148b9456ca46076b42129eeb7d907b567c4895f4b31fdd936c74ef7742334ea",
-      "size": 10525
+      "sha256": "dc3c16eb600a0778744fee028dc7759e080d68541ce5710679f61eb412eabdd6",
+      "size": 10712
     },
     {
       "path": "scripts/check.mjs",
@@ -4647,8 +4647,23 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 32354,
-      "sha256": "0a183be41c2f228603d93614cc9fb9ebc9cd9d713c3a5fc0715d754f78dd2ef9"
+      "size": 32432,
+      "sha256": "2089daf8bb55753f60bd923038b61fbc97ce4b479baa546302a20fec060d03b3"
+    },
+    {
+      "path": "tests/v267-property-master-runtime.test.mjs",
+      "size": 9121,
+      "sha256": "23d5d84ae9b9a5d79d7f66000a877a2360e0a5a60c795589b8048c5fd060505a"
+    },
+    {
+      "path": "tests/v267-property-maintenance-compat.test.mjs",
+      "size": 4938,
+      "sha256": "0ff36a3f902b8d040baafe9b7711a2c3b300d822ad07e4bbc5346ad1f91131a6"
+    },
+    {
+      "path": "docs/verification/pr321-property-runtime-20260925.md",
+      "size": 2684,
+      "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6"
     }
   ],
   "version": "V198"

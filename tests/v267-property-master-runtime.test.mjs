@@ -1,0 +1,121 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {openPropertyMasterFile} from '../src/v267/pages/property-master-file.js';
+import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
+
+// Run the real page, dialog and session modules against a synthetic DOM and
+// controlled server replies. These are regression tests, not hosted acceptance.
+function fixture(options={}) {
+ const original={window:globalThis.window,document:globalThis.document};
+ class Element {
+  constructor(tag,text=''){this.tagName=tag;this.textContent=text;this.children=[];this.attrs={};this.classList={add(){},remove(){}};}
+  append(...nodes){for(const n of nodes){this.children.push(n);n.parent=this;}}
+  replaceChildren(...nodes){this.children=[];this.append(...nodes);}
+  setAttribute(k,v){this.attrs[k]=v;}
+  addEventListener(){} showModal(){} close(){}
+  remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);}
+ }
+ const body=new Element('body'),calls=[],scope={user:'test-user',workspace:'test-workspace',role:'general_manager'};
+ const record={workspace_id:scope.workspace,property:{id:'property-a',name:'عقار الاختبار'},permissions:{collections:false,finance:false,employees:false,...options.permissions},contracts:options.contracts??[{id:'lease-a'},{id:'lease-b'}],units:[]};
+ const row={id:'request-a',request_no:21,lease_id:'lease-a',description:'صيانة الاختبار',status:'open',cost:12,category_code:'plumbing'};
+ let maintenanceReads=0;
+ let nextReadError=null;
+ function query(kind,name,args){
+  const call={kind,name,args,filters:[]};
+  return {
+   select(columns){call.columns=columns;return this;},
+   eq(key,value){call.filters.push([key,value]);return this;},
+   in(key,value){call.filters.push([key,value]);return this;},
+   order(key,value){call.order=[key,value];return this;},
+   limit(value){call.limit=value;return this;},
+   abortSignal(){
+    calls.push(call);
+    if(kind==='table'){
+     maintenanceReads++;
+     if(maintenanceReads===1&&options.error){
+      if(options.changeScope)window.AQARI_DATA_GATE.scope.userId='other-user';
+      return Promise.resolve({error:options.error,status:options.status??400});
+     }
+     if(maintenanceReads>1&&options.retryError)return Promise.resolve({error:options.retryError,status:400});
+     const selected={...row};if(!call.columns.includes('category_code'))delete selected.category_code;
+     return Promise.resolve({data:[selected],status:200});
+    }
+    if(name==='aqari_property_full_file'){
+     return Promise.resolve(nextReadError?{error:nextReadError,status:400}:{data:record,status:200});
+    }
+    if(name==='aqari_workspace_access')return Promise.resolve({data:{workspace_id:scope.workspace,user_id:scope.user,role:scope.role,permissions:{properties:{write:true},documents:{write:true}}},status:200});
+    if(name==='aqari_property_tenant_ledger')return Promise.resolve({error:{code:'PGRST202',message:'Could not find the function public.aqari_property_tenant_ledger'},status:404});
+    throw Error('Unexpected RPC: '+name);
+   }
+  };
+ }
+ const client={rpc:(name,args)=>query('rpc',name,args),from:name=>query('table',name)};
+ globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),createTextNode:text=>new Element('#text',text),documentElement:{classList:{contains:()=>true}}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:scope.user,workspaceId:scope.workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:scope.user},workspace:{id:scope.workspace},membership:{user_id:scope.user,workspace_id:scope.workspace,role:scope.role,is_active:true}}},addEventListener(){},removeEventListener(){}};
+ assert.equal(openPropertyMasterFile('property-a'),true);
+ const dialog=body.children[0];
+ const descendants=el=>[el,...el.children.flatMap(descendants)];
+ return {
+  calls,dialog,
+  status:()=>dialog.children[2].textContent,
+  text:()=>descendants(dialog).map(el=>el.textContent).join('\n'),
+  tables:()=>calls.filter(c=>c.kind==='table'),
+  button:label=>descendants(dialog).find(el=>el.tagName==='button'&&el.textContent===label),
+  failNextRead(error){nextReadError=error;},
+  async settled(){for(let i=0;i<10&&dialog.attrs['aria-busy']==='true';i++)await new Promise(setImmediate);assert.equal(dialog.attrs['aria-busy'],'false');},
+  async cleanup(){await dialog.children[0].onclick();Object.assign(globalThis,original);}
+ };
+}
+const missingCategory={code:'42703',message:'column aqari_maintenance_requests.category_code does not exist'};
+
+test('missing optional category still renders the property and maintenance without inventing a category',async()=>{
+ const f=fixture({error:missingCategory});try{
+  await f.settled();assert.match(f.text(),/عقار الاختبار/);assert.match(f.text(),/صيانة الاختبار/);assert.match(f.text(),/غير متاح/);
+  const reads=f.tables();assert.equal(reads.length,2);assert.ok(reads[0].columns.includes('category_code'));assert.ok(!reads[1].columns.includes('category_code'));
+  for(const q of reads){assert.equal(q.name,'aqari_maintenance_requests');assert.deepEqual(q.filters,[['workspace_id','test-workspace'],['lease_id',['lease-a','lease-b']]]);assert.deepEqual(q.order,['created_at',{ascending:false}]);assert.equal(q.limit,100);}
+  assert.match(f.status(),/المصادر الخادمة الفعلية/);
+ }finally{await f.cleanup();}
+});
+test('a modern schema keeps the stored category and performs a single scoped read',async()=>{
+ const f=fixture();try{await f.settled();assert.equal(f.tables().length,1);assert.match(f.text(),/plumbing/);}finally{await f.cleanup();}
+});
+for(const permissions of [{maintenance:false},{contracts:false}])test('permission-denied details never read the maintenance table: '+JSON.stringify(permissions),async()=>{
+ const f=fixture({permissions});try{await f.settled();assert.equal(f.tables().length,0);assert.doesNotMatch(f.text(),/صيانة الاختبار/);}finally{await f.cleanup();}
+});
+test('a property with no leases does not issue an unscoped maintenance read',async()=>{
+ const f=fixture({contracts:[]});try{await f.settled();assert.equal(f.tables().length,0);}finally{await f.cleanup();}
+});
+for(const error of [
+ {code:'42703',message:'column aqari_maintenance_requests.cost does not exist'},
+ {code:'42703',message:'column another_table.category_code does not exist'},
+ {code:'PGRST000',message:'Database connection unavailable'},
+ {code:'42501',message:'ACCESS_DENIED'}
+])test('other read errors are not hidden or retried: '+error.message,async()=>{
+ const f=fixture({error});try{await new Promise(setImmediate);assert.equal(f.tables().length,1);assert.doesNotMatch(f.text(),/صيانة الاختبار/);assert.doesNotMatch(f.status(),/المصادر الخادمة الفعلية/);}finally{await f.cleanup();}
+});
+test('a failed compatibility read stays an error instead of an empty success',async()=>{
+ const f=fixture({error:missingCategory,retryError:{code:'PGRST000',message:'Database connection unavailable'}});try{await f.settled();assert.equal(f.tables().length,2);assert.doesNotMatch(f.status(),/المصادر الخادمة الفعلية/);assert.doesNotMatch(f.text(),/صيانة الاختبار/);}finally{await f.cleanup();}
+});
+test('changing the session while reading never retries with another user scope',async()=>{
+ const f=fixture({error:missingCategory,changeScope:true});try{await f.settled();assert.equal(f.tables().length,1);assert.match(f.status(),/تغيرت جلسة الدخول/);}finally{await f.cleanup();}
+});
+for(const label of ['تعديل بيانات العقار','+ إضافة وحدة وربط الدور','+ رفع وأرشفة مرفق'])test('property action reports read failure through the dialog: '+label,async()=>{
+ const f=fixture();try{
+  await f.settled();f.failNextRead({code:'P0001',message:'تعذر قراءة بيانات العقار للاختبار.'});
+  const button=f.button(label);assert.ok(button,'action must exist');
+  await assert.doesNotReject(async()=>await button.onclick());await f.settled();
+  assert.equal(f.status(),'تعذر قراءة بيانات العقار للاختبار.');
+ }finally{await f.cleanup();}
+});
+for(const [label,heading] of [
+ ['تعديل بيانات العقار','تعديل بيانات العقار الرئيسية'],
+ ['+ إضافة وحدة وربط الدور','إضافة وحدة إلى عقار الاختبار'],
+ ['+ رفع وأرشفة مرفق','إضافة مستند أو صورة إلى عقار الاختبار']
+])test('property form opens and cancel reports a read failure: '+label,async()=>{
+ const f=fixture();try{
+  await f.settled();await f.button(label).onclick();await f.settled();assert.ok(f.text().includes(heading));
+  f.failNextRead({code:'P0001',message:'تعذر تحديث الملف للاختبار.'});
+  await assert.doesNotReject(async()=>await f.button('إلغاء').onclick());await f.settled();
+  assert.equal(f.status(),'تعذر تحديث الملف للاختبار.');
+ }finally{await f.cleanup();}
+});
