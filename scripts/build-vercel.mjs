@@ -5,6 +5,8 @@ import {join,delimiter} from 'node:path';
 import {productionPatch,domainTrialPatch} from './prepare-v267-production.mjs';
 
 execFileSync(process.execPath,['--test','tests/v267-contract-admin-recovery.test.mjs','tests/v267-contract-archive.test.mjs','tests/operational-report-request.test.mjs','tests/v267-contract-view.test.mjs','tests/v267-more-navigation.test.mjs','tests/exact-navigation-events.test.mjs','tests/search-events.test.mjs','tests/assistant-request.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs'],{stdio:'inherit'});
+// Run isolated session fixtures before production URLs are substituted into the runtime.
+execFileSync(process.execPath,['--test','tests/v267-contract-execution-pdf.test.mjs','tests/v267-contract-foundation-prefill.test.mjs','tests/v267-document-cycle-entry.test.mjs'],{stdio:'inherit'});
 if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
   if(trial?.enabled===true && process.env.AQARI_ENABLE_DOMAIN_TRIAL==='1'){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
@@ -20,7 +22,6 @@ execFileSync(process.execPath,['--test','tests/v267-property-portfolio-additions
 execFileSync(process.execPath,['--check','src/v267/pages/property-portfolio-additions.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-rental-document-cycle.test.mjs','tests/v267-rental-document-layout.test.mjs','tests/v267-rental-template-starters.test.mjs','tests/v267-saved-contract-viewer.test.mjs','tests/v267-rental-document-composer.test.mjs','tests/v267-contract-template-prefill.test.mjs','tests/v267-rental-templates.test.mjs','tests/v267-rental-records.test.cjs','tests/v267-full-page-workspace.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-session-activity-routing.test.cjs','tests/v267-session-idle-restore.test.cjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-contract-execution-pdf.test.mjs','tests/v267-contract-foundation-prefill.test.mjs','tests/v267-document-cycle-entry.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-navigation-maintenance.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-property-ownership.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-maintenance-evidence.mjs'],{stdio:'inherit'});
