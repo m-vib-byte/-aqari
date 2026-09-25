@@ -5,7 +5,8 @@ const section=document.getElementById('tenantTechniciansSection');
 const list=document.getElementById('tenantTechnicians');
 const status=document.getElementById('tenantTechniciansStatus');
 const cfg=window.AQARI_PUBLIC_CONFIG;
-const previewReady=Boolean(section&&list&&status&&window.supabase&&cfg?.supabaseUrl==='https://ofgmcsmxmdswlovsckqs.supabase.co'&&cfg?.releaseStage==='preview'&&cfg?.supabasePublishableKey&&cfg?.supabaseAuthStorageKey);
+const releaseSource={preview:'https://ofgmcsmxmdswlovsckqs.supabase.co',production:'https://djkpkkgoibruaezdrchb.supabase.co'};
+const previewReady=Boolean(section&&list&&status&&window.supabase&&releaseSource[cfg?.releaseStage]===cfg?.supabaseUrl&&cfg?.supabasePublishableKey&&cfg?.supabaseAuthStorageKey);
 const client=previewReady?window.supabase.createClient(cfg.supabaseUrl,cfg.supabasePublishableKey,{auth:{persistSession:true,autoRefreshToken:false,detectSessionInUrl:false,storageKey:cfg.supabaseAuthStorageKey+'-tenant'}}):null;
 let generation=0;
 function clear(){generation++;if(list)list.replaceChildren();if(status)status.textContent='';if(section)section.hidden=true;}
