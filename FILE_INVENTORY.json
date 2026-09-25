@@ -3312,8 +3312,8 @@
     },
     {
       "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
-      "sha256": "2e7a22fee1bfa91a7e1d60fc4d65d816501e5e22318d4f15b4f55b22545c0729",
-      "size": 22846
+      "sha256": "36a8371b241d175bcefc60f59cac955867c15c8982bb6bd8ee503ddd8eabc795",
+      "size": 23087
     },
     {
       "path": "sw.js",
@@ -3872,8 +3872,8 @@
     },
     {
       "path": "tests/v267-hr-lifecycle-source.test.mjs",
-      "sha256": "7670275025e369e24e9f31e0e45d396506b2dee9c9104693a511d8b3153a0805",
-      "size": 2410
+      "sha256": "9863d4cfa2a8c2a23524bb1965f04f542876cdcd03a01e035815c06aba5590af",
+      "size": 2591
     },
     {
       "path": "tests/v267-hr-lifecycle.test.mjs",
