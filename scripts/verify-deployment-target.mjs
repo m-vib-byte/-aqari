@@ -66,6 +66,7 @@ export function verifyDeploymentTarget(environment = process.env.VERCEL_ENV) {
   } catch {
     if (environment === 'production') throw new Error('Invalid deployment target:\nDomain trial target configuration is unreadable.');
   }
-  if (environment === 'production' && process.env.AQARI_ENABLE_DOMAIN_TRIAL !== '1' && trial) trial = {...trial, enabled:false};\n  const errors = deploymentTargetErrors(environment, context.window.AQARI_PUBLIC_CONFIG || {}, server, trial);
+  if (environment === 'production' && process.env.AQARI_ENABLE_DOMAIN_TRIAL !== '1' && trial) trial = {...trial, enabled:false};
+  const errors = deploymentTargetErrors(environment, context.window.AQARI_PUBLIC_CONFIG || {}, server, trial);
   if (errors.length) throw new Error('Invalid deployment target:\n' + errors.join('\n'));
 }
