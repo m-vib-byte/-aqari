@@ -39,4 +39,17 @@ class ContractTemplatePdfTest(unittest.TestCase):
         self.assertEqual(result['signatures'][0],{'role':'owner','label':'وكيل المالك المفوض','name':'الوكيل'})
         self.assertFalse(any('forged' in str(s) for s in result['signatures']))
 
+    def test_bound_fields_reject_non_scalar_values_before_string_conversion(self):
+        template=self.template()
+        template['fields']=[{'key':'property_name','label':'Property','type':'text','required':True}]
+        template['clauses'][0]['text']='Property: {{property_name}}'
+        for value in [True, False, [], ['Tower'], {}, {'name':'Tower'}]:
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, 'INVALID_FIELD_VALUE'):
+                    render_document_template(template, {'property_name':value})
+        for value, expected in [('Tower', 'Tower'), (0, '0'), (12.5, '12.5')]:
+            with self.subTest(value=value):
+                result=render_document_template(template, {'property_name':value})
+                self.assertEqual(result['clauses'][0]['text'], 'Property: '+expected)
+
 if __name__=='__main__':unittest.main()

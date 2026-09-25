@@ -28,7 +28,7 @@ jobs:
       - name: Complete JavaScript regression suite
         run: |
           mkdir -p /tmp/aqari-verification
-          node --test tests/*.test.cjs tests/*.test.mjs | tee /tmp/aqari-verification/node-tests.log
+          node scripts/test-release-regressions.mjs | tee /tmp/aqari-verification/node-tests.log
       - name: Install locked isolated SQL runtime
         run: npm ci --prefix staging-database/local-test --ignore-scripts --no-audit --no-fund
       - name: Existing SQL acceptance suites

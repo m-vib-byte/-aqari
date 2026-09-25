@@ -20,6 +20,7 @@ export function openEmployees(){
  async function loadDirectory(){directory=await rpc('list');}
  async function home(){await loadDirectory();clear(translateStatic('دليل الموظفين / Employee directory'));d.body.append(node('p',translateStatic('تُجهز مسودات الرواتب تلقائياً يوم 28 الساعة 9 صباحاً بتوقيت الكويت. تتم المراجعة والإصدار والاعتماد والصرف بشكل منفصل.')));
   d.body.append(button(translateStatic('تحديث من قاعدة البيانات / Refresh'),home),button(translateStatic('إضافة موظف / Add employee'),async()=>editEmployee(null)));
+  d.body.append(button(translateStatic('دورة الموظفين والرواتب الكاملة / Complete HR lifecycle'),async()=>{d.close();const module=await import('./hr-lifecycle.js');module.openHrLifecycle();}));
   if(directory.manager)d.body.append(button(translateStatic('صلاحيات حسابات الموظفين / Account permissions'),access));
   const shortcuts=grid();shortcuts.setAttribute?.('aria-label',translateStatic('مستندات الموظفين والرواتب'));
   for(const [icon,title,section] of [['📄','عقد عمل / Employment contract','contract'],['🧾','سند راتب / Salary voucher','salary'],['📁','مستندات الموظف / Employee documents','documents'],['📅','السلف والإجازات / Advances and leave','events']]){
