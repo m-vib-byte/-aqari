@@ -4652,8 +4652,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 32664,
-      "sha256": "dece871a43aced3485a8ac5a537dce9620b286d285b77acef1c3459ef4bec151"
+      "size": 32799,
+      "sha256": "fde93267d49c5b61863e4ecadcc9e61d39e791094c38f6382a3b98cc0db9bf91"
     },
     {
       "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
@@ -4667,8 +4667,13 @@
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "size": 9121,
-      "sha256": "23d5d84ae9b9a5d79d7f66000a877a2360e0a5a60c795589b8048c5fd060505a"
+      "size": 11192,
+      "sha256": "e41822e78fb63f36a2c13ecb5e9f0c3e33f52450a02e84be07ec96762893f0e3"
+    },
+    {
+      "path": "docs/verification/property-allocation-navigation-20260925.md",
+      "sha256": "53ae040d17d1bc1b8899be28905d6c695f50ddc95aa44b604d71b22e38623cc6",
+      "size": 2996
     }
   ],
   "version": "V198"
