@@ -2,6 +2,8 @@
 -- Source: staging-database/tests/collection_account_management.sql
 -- Primary workspace: 76f10000-0000-4000-8000-000000000008 / hosted-completion-collection-account-management
 -- Run this entire file as one query; never extract setup statements.
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated acceptance/rejection test; all synthetic data rolls back.
 begin;
 select set_config('hosted.test.workspace','76f10000-0000-4000-8000-000000000008',true);
@@ -10,7 +12,7 @@ insert into public.aqari_app_state(workspace_id,payload) values('76f10000-0000-4
 
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug)values('account-manager@example.invalid','مدير اختبار الفجوات','general_manager','hosted-completion-collection-account-management'),('account-accountant@example.invalid','محاسب اختبار الفجوات','accountant','hosted-completion-collection-account-management'),('account-tenant@example.invalid','مستأجر اختبار الفجوات','viewer','hosted-completion-collection-account-management');
 insert into auth.users(id,email,email_confirmed_at)values('76590000-0000-4000-8000-000000000001','account-manager@example.invalid',now()),('76590000-0000-4000-8000-000000000002','account-accountant@example.invalid',now()),('76590000-0000-4000-8000-000000000003','account-tenant@example.invalid',now());
-select set_config('request.jwt.claim.sub','76590000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claim.sub','76590000-0000-4000-8000-000000000001',true);select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('account.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)values('76590000-0000-4000-8000-000000000010',current_setting('account.w')::uuid,'gap-property','عقار اختبار الفجوات','{}');
 insert into public.aqari_units(id,workspace_id,property_id,unit_no)values('76590000-0000-4000-8000-000000000011',current_setting('account.w')::uuid,'76590000-0000-4000-8000-000000000010','GAP-1');

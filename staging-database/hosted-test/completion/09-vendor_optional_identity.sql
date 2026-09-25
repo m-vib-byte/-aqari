@@ -2,6 +2,8 @@
 -- Source: staging-database/tests/vendor_optional_identity.sql
 -- Primary workspace: 76f10000-0000-4000-8000-000000000009 / hosted-completion-vendor-optional-identity
 -- Run this entire file as one query; never extract setup statements.
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated PostgreSQL tests only; all synthetic vendors and accounts roll back.
 begin;
 select set_config('hosted.test.workspace','76f10000-0000-4000-8000-000000000009',true);
@@ -19,7 +21,7 @@ insert into auth.users(id,email,email_confirmed_at)values
  ('76920000-0000-4000-8000-000000000003','vendor-identity-accountant@example.invalid',now());
 select set_config('vendor.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76920000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76920000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 
 set local role authenticated;
 do $$declare w uuid:=current_setting('vendor.test.workspace')::uuid;a jsonb;b jsonb;r jsonb;s jsonb;begin

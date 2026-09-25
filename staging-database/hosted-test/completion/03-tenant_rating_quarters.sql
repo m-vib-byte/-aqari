@@ -2,6 +2,8 @@
 -- Source: staging-database/tests/tenant_rating_quarters.sql
 -- Primary workspace: 76f10000-0000-4000-8000-000000000003 / hosted-completion-tenant-rating-quarters
 -- Run this entire file as one query; never extract setup statements.
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated synthetic PostgreSQL acceptance. Every fixture write rolls back.
 -- Apply after tenant-rating-quarter-hardening.sql (also run twice for retry).
 begin;
@@ -18,7 +20,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76520000-0000-4000-8000-000000000002','rating-accountant@example.invalid',now()),
  ('76520000-0000-4000-8000-000000000003','rating-tenant@example.invalid',now());
 select set_config('request.jwt.claim.sub','76520000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('rating.w',(select workspace_id::text from public.aqari_memberships where user_id=auth.uid() and is_active),true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata) values
  ('76520000-0000-4000-8000-000000000010',current_setting('rating.w')::uuid,'rating-property','عقار اختبار التقييم','{}');
@@ -1092,7 +1094,7 @@ select set_config('request.jwt.claims','{"aal":"aal1"}',true);
 do $$begin
  begin perform public.aqari_final_gap_register(current_setting('rating.w')::uuid,'rate',jsonb_build_object('tenant_id',md5('rating-tenant-discount')::uuid,'year',2024));raise exception 'RATING_WITHOUT_MFA';exception when insufficient_privilege then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
 end $$;
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('request.jwt.claim.sub','76520000-0000-4000-8000-000000000002',true);
 do $$begin
  begin perform public.aqari_final_gap_register(current_setting('rating.w')::uuid,'rate',jsonb_build_object('tenant_id',md5('rating-tenant-discount')::uuid,'year',2024));raise exception 'ACCOUNTANT_RATED_TENANT';exception when insufficient_privilege then null;end;

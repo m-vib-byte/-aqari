@@ -2,6 +2,8 @@
 -- Source: staging-database/tests/work_order_request_link.sql
 -- Primary workspace: 76f10000-0000-4000-8000-000000000005 / hosted-completion-work-order-request-link
 -- Run this entire file as one query; never extract setup statements.
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated PostgreSQL acceptance/rejection; all synthetic records roll back.
 begin;
 select set_config('hosted.test.workspace','76f10000-0000-4000-8000-000000000005',true);
@@ -16,7 +18,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76910000-0000-4000-8000-000000000002','order-link-accountant@example.invalid',now());
 select set_config('order.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76910000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76910000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('76910000-0000-4000-8000-000000000099','order-link-other','Other isolated workspace');
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
  ('order-link-other-manager@example.invalid','مدير مساحة اختبار مستقلة','general_manager','order-link-other');
@@ -109,7 +111,7 @@ do $$begin
  begin perform public.aqari_operations_register(current_setting('order.test.workspace')::uuid,'work_orders','create',(jsonb_build_object('id',('76910000-0000-4000-8000-00000000080'||(2))::uuid,'property_id','76910000-0000-4000-8000-000000000101','unit_id','76910000-0000-4000-8000-000000000201',
   'maintenance_request_id',('76910000-0000-4000-8000-00000000050'||(5))::uuid,'request_revision',1,'vendor_id','76910000-0000-4000-8000-000000000601','order_no','ORDER-LINK-'||(2),'description','إصلاح اصطناعي مرتبط بالبلاغ','approved_amount','25.125')));raise exception 'MFA_BYPASSED';exception when insufficient_privilege then if sqlerrm<>'MFA_REQUIRED' then raise;end if;end;
 end $$;
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 select set_config('request.jwt.claim.sub','76910000-0000-4000-8000-000000000002',true);
 do $$begin
  begin perform public.aqari_operations_register(current_setting('order.test.workspace')::uuid,'work_orders','list');raise exception 'ACCOUNTANT_ACCESS_ALLOWED';exception when insufficient_privilege then null;end;

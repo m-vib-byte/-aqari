@@ -2,6 +2,8 @@
 -- Source: staging-database/tests/maintenance_workflow.sql
 -- Primary workspace: 76f10000-0000-4000-8000-000000000001 / hosted-completion-maintenance-workflow
 -- Run this entire file as one query; never extract setup statements.
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Isolated synthetic acceptance only; no real paper, signature, provider or hosted storage claim.
 -- Run after maintenance-workflow.sql. Every fixture write rolls back.
 begin;
@@ -17,7 +19,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76580000-0000-4000-8000-000000000002','maintenance-flow-staff@example.invalid',now());
 select set_config('maintenance.test.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76580000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76580000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_workspaces(id,slug,name) values('76580000-0000-4000-8000-000000000099','maintenance-flow-other','Other isolated workspace');
 do $$declare w uuid:=current_setting('maintenance.test.workspace')::uuid;n integer;begin
  for n in 1..3 loop
