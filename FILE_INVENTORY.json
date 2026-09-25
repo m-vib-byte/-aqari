@@ -1027,8 +1027,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "c0184ec6bea426096ef8cfb8878367a17fdaa57927be6fc11087caaf0d6d1798",
-      "size": 10478
+      "sha256": "fcf9facc5d87e72a34cb903978628945b2edfcb3f94514d40e6f06a682c36f44",
+      "size": 10525
     },
     {
       "path": "scripts/check.mjs",
@@ -1107,8 +1107,8 @@
     },
     {
       "path": "scripts/verify-deployment-target.mjs",
-      "sha256": "9027fc678e6d34da7cf11d6d3f44594acb05483d5b63f6996213f5b0f5f50e30",
-      "size": 3839
+      "sha256": "e8770533d2f7ccec9ea103648d30ee0648278834640d35ecfba6ff6601f3e885",
+      "size": 3969
     },
     {
       "path": "scripts/verify-deployment.mjs",
