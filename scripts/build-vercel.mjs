@@ -38,6 +38,7 @@ execFileSync(process.execPath,['--test','tests/v267-rental-templates.test.mjs','
 execFileSync(process.execPath,['--test','tests/v267-template-editor-metadata.test.mjs','tests/v267-template-editor-state.test.mjs','tests/v267-template-draft-saver-restore.test.mjs','tests/v267-template-property-logo.test.mjs','tests/v267-template-editor-tools.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-access.test.cjs','tests/v267-employee-directory-runtime.test.cjs','tests/v267-staff-account-preparations.test.mjs','tests/v267-hr-permissions-runtime.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-hr-lifecycle.test.mjs','tests/v267-hr-lifecycle-source.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v266-scheduler-control.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-staff-circulars-runtime.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-financial-register.test.cjs','tests/v267-bank-reconciliation-current.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-partner-current-authorization.test.mjs'],{stdio:'inherit'});
