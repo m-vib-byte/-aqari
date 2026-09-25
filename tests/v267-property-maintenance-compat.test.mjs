@@ -6,6 +6,7 @@ import vm from 'node:vm';
 const source=readFileSync(new URL('../src/v267/pages/property-master-file.js',import.meta.url),'utf8')
  .replace(/^import .*;\n/gm,'').replace(/^export /gm,'');
 const missingCategory={code:'42703',message:'column aqari_maintenance_requests.category_code does not exist'};
+const missingCategoryFromDataApi={code:'PGRST204',message:"Could not find the 'category_code' column of 'aqari_maintenance_requests' in the schema cache"};
 const row={id:'request-1',request_no:'17',lease_id:'lease-1',description:'Fixture maintenance',status:'open',cost:12};
 function node(tag,text=''){
  return {tag,text:String(text),children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;}};
@@ -33,17 +34,19 @@ function fixture({failure,secondFailure,category='plumbing',changeScope=false,pe
   translateMessage:(s,args)=>s.replace(/\{(\w+)\}/g,(_,key)=>args[key]),document:{createTextNode:t=>String(t)},Intl,Date};
  vm.runInNewContext(source,box);box.openPropertyMasterFile('property-1');return {d,calls};
 }
-test('missing category column does not prevent the property and maintenance rows rendering',async()=>{
- const {d,calls}=fixture({failure:missingCategory});await d.pending;
- assert.equal(calls.length,2);assert.match(textOf(d.body),/Fixture property/);assert.match(textOf(d.body),/Fixture maintenance/);
- assert.match(textOf(d.body),/#17 · open · غير متاح/);
- for(const q of calls){assert.equal(q.table,'aqari_maintenance_requests');assert.deepEqual(JSON.parse(JSON.stringify(q.filters)),[['eq','workspace_id','workspace-1'],['in','lease_id',['lease-1']]]);assert.equal(q.max,100);}
- assert.ok(calls[0].columns.includes('category_code'));assert.ok(!calls[1].columns.includes('category_code'));
-});
+for(const missingColumnFailure of [missingCategory,missingCategoryFromDataApi]){
+ test('missing category column '+missingColumnFailure.code+' does not prevent the property and maintenance rows rendering',async()=>{
+  const {d,calls}=fixture({failure:missingColumnFailure});await d.pending;
+  assert.equal(calls.length,2);assert.match(textOf(d.body),/Fixture property/);assert.match(textOf(d.body),/Fixture maintenance/);
+  assert.match(textOf(d.body),/#17 · open · غير متاح/);
+  for(const q of calls){assert.equal(q.table,'aqari_maintenance_requests');assert.deepEqual(JSON.parse(JSON.stringify(q.filters)),[['eq','workspace_id','workspace-1'],['in','lease_id',['lease-1']]]);assert.equal(q.max,100);}
+  assert.ok(calls[0].columns.includes('category_code'));assert.ok(!calls[1].columns.includes('category_code'));
+ });
+}
 test('new schema retains the actual category without a retry',async()=>{
  const {d,calls}=fixture();await d.pending;assert.equal(calls.length,1);assert.match(textOf(d.body),/#17 · open · plumbing/);
 });
-for(const [name,failure] of [['permission',{code:'42501',message:'ACCESS_DENIED'}],['network',{message:'Failed to fetch'}],['unrelated column',{code:'42703',message:'column aqari_maintenance_requests.cost does not exist'}]]){
+for(const [name,failure] of [['permission',{code:'42501',message:'ACCESS_DENIED'}],['network',{message:'Failed to fetch'}],['unrelated postgres column',{code:'42703',message:'column aqari_maintenance_requests.cost does not exist'}],['unrelated Data API column',{code:'PGRST204',message:"Could not find the 'cost' column of 'aqari_maintenance_requests' in the schema cache"}]]){
  test(name+' errors remain failures and do not retry',async()=>{const {d,calls}=fixture({failure});await assert.rejects(d.pending,e=>e===failure);assert.equal(calls.length,1);assert.doesNotMatch(textOf(d.body),/Fixture property/);});
 }
 test('an expired session stops fallback before a second request',async()=>{
