@@ -1,6 +1,6 @@
 // The physical index.html is the protected app shell. Route only the public
 // root before filesystem matching, without a browser redirect or backend call.
-export const config = { matcher: '/' };
+export const config = { matcher: '/', runtime: 'nodejs' };
 
 export default function middleware(request) {
   const target = new URL(request.url);
