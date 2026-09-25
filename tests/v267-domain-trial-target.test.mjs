@@ -6,15 +6,22 @@ import {domainTrialPatch,PREVIEW_PROJECT,PRODUCTION_PROJECT,DOMAIN_TRIAL_REDIREC
 import {deploymentTargetErrors} from '../scripts/verify-deployment-target.mjs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const target=JSON.parse(read('config/domain-trial-target.json'));
+const repositoryTarget=JSON.parse(read('config/domain-trial-target.json'));
+const trialTarget={...repositoryTarget,enabled:true};
 
 function patchedTrial(){
- const patch=domainTrialPatch(read,target);
+ const patch=domainTrialPatch(read,trialTarget);
  const context={window:{}};runInNewContext(patch.get('public-config.js'),context);
  return {patch,browser:context.window.AQARI_PUBLIC_CONFIG,backend:{
-  PRODUCT_VERSION:'V267',RELEASE_STAGE:'preview',SUPABASE_PUBLIC_CONFIG:{url:`https://${PREVIEW_PROJECT}.supabase.co`,publishableKey:target.publishableKey}
+  PRODUCT_VERSION:'V267',RELEASE_STAGE:'preview',SUPABASE_PUBLIC_CONFIG:{url:`https://${PREVIEW_PROJECT}.supabase.co`,publishableKey:trialTarget.publishableKey}
  }};
 }
+
+test('repository production target disables the temporary single-domain trial',()=>{
+ assert.equal(repositoryTarget.enabled,false);
+ assert.equal(repositoryTarget.hostname,'myaqari.com');
+ assert.equal(repositoryTarget.projectRef,PREVIEW_PROJECT);
+});
 
 test('single-domain trial keeps isolated staging data and only moves auth return to myaqari',()=>{
  const {patch,browser:cfg}=patchedTrial();
@@ -32,15 +39,15 @@ test('single-domain trial keeps isolated staging data and only moves auth return
 });
 
 test('trial target fails closed if production data project is supplied',()=>{
- assert.throws(()=>domainTrialPatch(read,{...target,projectRef:PRODUCTION_PROJECT}),/ISOLATED_TRIAL_PROJECT_REQUIRED/);
- assert.throws(()=>domainTrialPatch(read,{...target,enabled:false}),/DOMAIN_TRIAL_TARGET_REQUIRED/);
+ assert.throws(()=>domainTrialPatch(read,{...trialTarget,projectRef:PRODUCTION_PROJECT}),/ISOLATED_TRIAL_PROJECT_REQUIRED/);
+ assert.throws(()=>domainTrialPatch(read,{...trialTarget,enabled:false}),/DOMAIN_TRIAL_TARGET_REQUIRED/);
 });
 
-test('production Vercel target accepts only the reviewed isolated-domain trial',()=>{
+test('production Vercel target accepts only the reviewed isolated-domain trial when explicitly enabled',()=>{
  const {browser,backend}=patchedTrial();
- assert.deepEqual(deploymentTargetErrors('production',browser,backend,target),[]);
- assert.match(deploymentTargetErrors('production',browser,backend,{...target,projectRef:PRODUCTION_PROJECT}).join('\n'),/reviewed isolated myaqari target/);
- assert.match(deploymentTargetErrors('production',{...browser,supabaseUrl:`https://${PRODUCTION_PROJECT}.supabase.co`},backend,target).join('\n'),/isolated V267 data source/);
- assert.match(deploymentTargetErrors('production',{...browser,supabaseAuthRedirectUrl:'https://example.test/login.html'},backend,target).join('\n'),/myaqari\.com/);
- assert.match(deploymentTargetErrors('production',browser,backend,{...target,enabled:false}).join('\n'),/explicit isolated domain-trial target|current domain data source/);
+ assert.deepEqual(deploymentTargetErrors('production',browser,backend,trialTarget),[]);
+ assert.match(deploymentTargetErrors('production',browser,backend,{...trialTarget,projectRef:PRODUCTION_PROJECT}).join('\n'),/reviewed isolated myaqari target/);
+ assert.match(deploymentTargetErrors('production',{...browser,supabaseUrl:`https://${PRODUCTION_PROJECT}.supabase.co`},backend,trialTarget).join('\n'),/isolated V267 data source/);
+ assert.match(deploymentTargetErrors('production',{...browser,supabaseAuthRedirectUrl:'https://example.test/login.html'},backend,trialTarget).join('\n'),/myaqari\.com/);
+ assert.match(deploymentTargetErrors('production',browser,backend,{...trialTarget,enabled:false}).join('\n'),/explicit isolated domain-trial target|current domain data source/);
 });
