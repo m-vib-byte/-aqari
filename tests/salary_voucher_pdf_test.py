@@ -1,8 +1,9 @@
 import importlib.util
-from io import BytesIO
+import re
 from pathlib import Path
 import unittest
-from pypdf import PdfReader
+from unittest.mock import patch
+import lib.salary_voucher_pdf as renderer
 
 ROOT=Path(__file__).resolve().parents[1]
 SPEC=importlib.util.spec_from_file_location('salary_voucher',ROOT/'api'/'salary-voucher.py')
@@ -23,9 +24,14 @@ class SalaryVoucherTest(unittest.TestCase):
   payload['snapshot']['passport']='Passport <font>'
   payload['reference']='PAY <b>draft &lt;1&gt;'
   registry['voucher_no']='Voucher <i>number'
-  pdf=PdfReader(BytesIO(API.render_salary_voucher(payload,registry)))
-  self.assertEqual(len(pdf.pages),1)
-  text=' '.join(page.extract_text() for page in pdf.pages)
+  texts=[];paragraph=renderer.Paragraph
+  def capture(*args,**kwargs):
+   result=paragraph(*args,**kwargs);texts.append(result.getPlainText());return result
+  with patch.object(renderer,'Paragraph',side_effect=capture):
+   pdf=API.render_salary_voucher(payload,registry)
+  self.assertTrue(pdf.startswith(b'%PDF-'))
+  self.assertEqual(len(re.findall(rb'/Type\s*/Page\b',pdf)),1)
+  text=' '.join(texts)
   for value in ['Tower <b>name','Street &lt;A&gt; & B','Employee <b>literal</b>',
                 'Job <i>draft','Passport <font>','PAY <b>draft &lt;1&gt;','Voucher <i>number']:
    with self.subTest(value=value):self.assertIn(value,text)

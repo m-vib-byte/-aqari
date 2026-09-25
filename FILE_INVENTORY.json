@@ -4632,8 +4632,8 @@
     },
     {
       "path": "tests/salary_voucher_pdf_test.py",
-      "sha256": "79c7e18711e95291cbc8fead5ef12349281e7fc15b2d6032dbee4ee0da11d5f3",
-      "size": 3257
+      "sha256": "d16d1466fc83cb13416e6f0cb21f279c1f665a8d37acf2808f720f963efc21c4",
+      "size": 3525
     },
     {
       "path": "tests/v267-hr-lifecycle-source.test.mjs",
