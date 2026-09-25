@@ -1662,8 +1662,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "2499ee70a23138814ee6d19c8ea70cd2c7b8856054db6b0701dde264c2a109db",
-      "size": 30295
+      "sha256": "10f67c911281540a4adc0de2d7c4b3786364ecfb815102eb89365a43d1cb7cc3",
+      "size": 29894
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -4102,8 +4102,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "f930d6b09927a1bb8bd4638619758faa8a94b5ecfbd5e50c9b1791ca36a8de20",
-      "size": 8916
+      "sha256": "4cafab5e1e1b541e1d7c814b3ef72acb30de2f9931ed94f745d5df7bef58ff48",
+      "size": 8963
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",

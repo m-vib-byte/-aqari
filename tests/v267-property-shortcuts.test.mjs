@@ -66,8 +66,8 @@ test('legacy property workspace opens the authoritative complete file and keeps 
 test('production property hub bypasses unavailable advanced RPCs before reading them',()=>{
  assert.match(propertyHub,/AQARI_PUBLIC_CONFIG\?\.releaseStage==='production'/);
  assert.match(propertyHub,/import\('\.\/property-master-file\.js'\)/);
- assert.match(propertyHub,/openPropertyMasterFile\(propertyId,options\)/);
- assert.match(propertyHub,/options\.section==='sender'/);
+ assert.match(propertyHub,/openPropertyMasterFile\(propertyId,basicOptions\)/);
+ assert.match(propertyHub,/options\.section==='sender'\?\{\.\.\.options,section:'edit'\}:options/);
  const guard=propertyHub.indexOf("releaseStage==='production'");
  for(const rpc of ['aqari_property_dashboard_header','aqari_property_channel_settings'])assert.ok(guard>=0&&guard<propertyHub.indexOf(rpc),rpc+' must be behind production compatibility guard');
 });
