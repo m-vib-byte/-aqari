@@ -4102,8 +4102,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "c3a1ba63ab1e6a256982965323275ca8b036b03876e0f586f1e0e407f84b93f9",
-      "size": 8958
+      "sha256": "4cafab5e1e1b541e1d7c814b3ef72acb30de2f9931ed94f745d5df7bef58ff48",
+      "size": 8963
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
