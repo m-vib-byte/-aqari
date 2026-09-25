@@ -42,18 +42,18 @@
     },
     {
       "path": ".github/workflows/release-gate.yml",
-      "sha256": "c6b029d54f4e1d97ecd0dec27f722330462613b3929c0987c2a5840dd96422de",
-      "size": 3620
+      "sha256": "2c53f913cca20c5c3a60bda93f7d540471d885e737a632b966b972332eb64151",
+      "size": 3616
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "c3505ed4d26870fd30711990859a8dd1fa5be0cbe9910f670029d4f3a60892a5",
-      "size": 8438
+      "sha256": "98e26fc6a48050743de469858cba0143e9b994c8d2e8867ef8dfd795b08e936c",
+      "size": 8434
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "04a4e570fc7c82d12d3900cd8a65a2167ff7fc58abf730ebb1d6bc2e009ff1a6",
-      "size": 7408
+      "sha256": "3a19b28393ad670d06bfaede36d090f92100ff72ac6eec08420bc24e698f12ff",
+      "size": 7438
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -832,8 +832,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "c2e374911c02f070be155e5c70cc0a01774dd97efa3f671099b7e7ef43561e0b",
-      "size": 22789
+      "sha256": "0dfeb4d5fa6e7f22bb76addfaa0a42895a00a1347178819c1483c9d8dc627de6",
+      "size": 22898
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -1827,48 +1827,48 @@
     },
     {
       "path": "staging-database/hosted-test/completion/01-maintenance_workflow.sql",
-      "sha256": "df341faca48d721c3f3004b2e8b045af893e380bb26f72f6bc1e5f169966421a",
-      "size": 21612
+      "sha256": "6a1827fec391c101b1a4d502a0f4978d93643c520dd9e6800e48c14c3792608a",
+      "size": 21927
     },
     {
       "path": "staging-database/hosted-test/completion/02-maintenance_attachments.sql",
-      "sha256": "0d058a7f046ee7b55982abbc4edf972cfcaf24d9aecda7c960881085f60cc4ee",
-      "size": 18276
+      "sha256": "6f0ab3d839558bf4c971359d68cc64bba86809581e3b1641a2a0252783b45147",
+      "size": 18591
     },
     {
       "path": "staging-database/hosted-test/completion/03-tenant_rating_quarters.sql",
-      "sha256": "4370af5ca15aa2acc8fb78105dfbf95c731a9f4a1f8d46fa09a6184b3eb4d464",
-      "size": 114121
+      "sha256": "271d3460475019c4ad420e54d55eba835eae87cdc7c284bb7c26fd098d60434a",
+      "size": 114588
     },
     {
       "path": "staging-database/hosted-test/completion/04-tenant_contact_unification.sql",
-      "sha256": "d4faddd1f1748e7c5005a17344cfa247734f17bc8c01d28a50be61ac5795a295",
-      "size": 15925
+      "sha256": "bb9bcc0527759864707f9af808768c21d766a300dc570116e55120597378ef6f",
+      "size": 16240
     },
     {
       "path": "staging-database/hosted-test/completion/05-work_order_request_link.sql",
-      "sha256": "c3bb1c7bad3c697bcf8446e531bbbec992b6e28c96342a4d11c03cd96e49fdb0",
-      "size": 16943
+      "sha256": "88fe3c7ea3b6e197838bcae1ecb31df66e910cd16ff900bbe06f74744fb1de81",
+      "size": 17410
     },
     {
       "path": "staging-database/hosted-test/completion/06-commercial_sales.sql",
-      "sha256": "000b1afc3592acba11c211a19f2ff7e1bb33ea8a37c161e7cc11139c0f659ff3",
-      "size": 23602
+      "sha256": "45ae338e20dd6d362610d23f23c05b78d1a07e0acb2033ea1d7ed308a1a726c4",
+      "size": 24221
     },
     {
       "path": "staging-database/hosted-test/completion/07-commercial_sales_vacating.sql",
-      "sha256": "504dc50e26af3cc3511f4a8087730cdda4728eaf653ac939c41f68041aa1cabe",
-      "size": 12539
+      "sha256": "ae06fbdfae390a9ca3291f8f28db9c0129a50c8c02264bb5ea4018e4ab88c54d",
+      "size": 12854
     },
     {
       "path": "staging-database/hosted-test/completion/08-collection_account_management.sql",
-      "sha256": "e13aa240b0f33374896d5a24846e8c765416acbf94a593382596b0fecfabae18",
-      "size": 16518
+      "sha256": "92bc53221cec665e17bc6db22902c6611b796e3654d21c92b0a07d23a37533d4",
+      "size": 16833
     },
     {
       "path": "staging-database/hosted-test/completion/09-vendor_optional_identity.sql",
-      "sha256": "63e2f4aa865dd6e1ce3f15e946a0324dc08e21fd33333b44a0d87210fa7e89af",
-      "size": 8228
+      "sha256": "e3e302473def7976ce16c84805a0b493e84aece1783fe1aa26e3b85dedc717fc",
+      "size": 8543
     },
     {
       "path": "staging-database/hosted-test/completion/README.md",
@@ -1877,7 +1877,7 @@
     },
     {
       "path": "staging-database/hosted-test/completion/manifest.json",
-      "sha256": "c46889a7c4c6aeccd607c44d17e70d013353a703543c4d2484860021110815fd",
+      "sha256": "7862e353bacf2b4cf6ed8c642fd5f7f79df47fc32d67a52b64cde6be1e0a4d30",
       "size": 3798
     },
     {
@@ -2912,8 +2912,8 @@
     },
     {
       "path": "staging-database/tests/financial_close_cancellations.sql",
-      "sha256": "8ef35ee89860275468a2a5038b5245297bf4986a5012a001afeaf44a6512ad41",
-      "size": 9291
+      "sha256": "2dcd007c3a342cab29c2aff35b5e952cdc3f35a3481ca23fbcb9a32888c6d352",
+      "size": 10063
     },
     {
       "path": "staging-database/tests/financial_register.sql",
@@ -3282,8 +3282,8 @@
     },
     {
       "path": "tests/contract_template_pdf_test.py",
-      "sha256": "396d49b841a15eae313643a9dacf235d9135d9aaec2781a64a715884d55f8a26",
-      "size": 2996
+      "sha256": "0afda57a5be19b22dc0e36aafcf48a53254a5575583661c10a3263779bc1c1c5",
+      "size": 3853
     },
     {
       "path": "tests/contract_template_preview_test.py",
@@ -4122,8 +4122,8 @@
     },
     {
       "path": "tests/v267-release-source-identity.test.mjs",
-      "sha256": "acb26b0c1626b3f80106dfbda5542d3256563a0c58a5ebc5b14569ab56413bab",
-      "size": 3828
+      "sha256": "1c18a5e4bee681fab7d58e91af9badd9627441282cd74af8323a2252adc32995",
+      "size": 3954
     },
     {
       "path": "tests/v267-rent-entitlement-payments.test.cjs",
@@ -4592,8 +4592,8 @@
     },
     {
       "path": "lib/salary_voucher_pdf.py",
-      "sha256": "1bfdd50ad52cd47a890cb7cffedbbb120c1089d00c00dce80f81005315ffa6c8",
-      "size": 7531
+      "sha256": "4bb27756136c2e3ea9727acb0383d5e8916f98a63b6eb0b324906a40c4b1b54e",
+      "size": 7745
     },
     {
       "path": "src/v267/domain/hr-lifecycle.js",
@@ -4632,8 +4632,8 @@
     },
     {
       "path": "tests/salary_voucher_pdf_test.py",
-      "sha256": "522e3ea268df6ee65f1e598578c8806f6beed88dea0478f01b0987be69265f8f",
-      "size": 2316
+      "sha256": "d16d1466fc83cb13416e6f0cb21f279c1f665a8d37acf2808f720f963efc21c4",
+      "size": 3525
     },
     {
       "path": "tests/v267-hr-lifecycle-source.test.mjs",

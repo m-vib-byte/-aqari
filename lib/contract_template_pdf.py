@@ -98,7 +98,8 @@ def render_document_template(template, values=None):
         catalog[field['key']] = field
         canonical = ALIASES.get(field['key'], field['key'])
         canonical_keys.add(canonical)
-        candidates = [str((values or {})[k]).strip() for k in [canonical] + [a for a, c in ALIASES.items() if c == canonical] if (values or {}).get(k) is not None and (values or {}).get(k) != '']
+        # Validate original types before coercion can turn objects or booleans into text.
+        candidates = [format_field((values or {})[k], {'type': 'text'}) for k in [canonical] + [a for a, c in ALIASES.items() if c == canonical] if (values or {}).get(k) is not None and (values or {}).get(k) != '']
         if len(set(candidates)) > 1:
             raise ValueError('FIELD_ALIAS_CONFLICT')
         value = candidates[0] if candidates else ''
