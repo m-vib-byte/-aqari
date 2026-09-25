@@ -10,7 +10,7 @@ const money=v=>v==null?translateStatic('غير متاح'):Number(v).toFixed(3)+t
 const pct=v=>`${Number(v||0).toFixed(0)}%`;
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 function button(label,fn){const b=node('button',label);b.type='button';b.onclick=fn;return b;}
-async function scanner(initial){const page=await import('./document-scanner.js');return page.openDocumentScanner(initial);}
+async function scanner(initial){const page=await import('./document-scanner.js');return page.openDocumentScanner({...initial,referenceKey:'id'});}
 function section(title){const s=node('section');s.className='aq267-property-master-section';s.append(node('h3',title));return s;}
 function metric(label,value){const a=node('article');a.className='aq267-property-master-metric';a.append(node('span',label),node('strong',value));return a;}
 function select(rows,value=''){const x=node('select');let found=false;for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);if(String(v)===String(value))found=true;}if(value&&!found){const o=node('option',String(value));o.value=value;x.append(o);}x.value=value??'';return x;}

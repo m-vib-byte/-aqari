@@ -29,7 +29,7 @@ function fixture(initial={}){
    if(name==='aqari_finalize_document'){const row=rows.find(r=>r.id===args.p_document_id);row.status='uploaded';row.checksum_sha256=args.p_checksum;row.size_bytes=args.p_size_bytes;return row.id;}
    throw Error(name);
   },
-  from(table){const filters={},q={select(){return q;},eq(k,v){filters[k]=v;return q;},single(){calls.push({name:'select',table,filters});if(table!=='aqari_documents')return {external_ref:filters.external_ref,name:'Linked property',contract_no:'Linked contract'};const row=rows.find(r=>r.id===filters.id);return state.wrongId?{...row,id:'wrong'}:row;}};return q;}
+  from(table){const filters={},q={select(){return q;},eq(k,v){filters[k]=v;return q;},single(){calls.push({name:'select',table,filters});if(table!=='aqari_documents')return {id:filters.id||'id-'+filters.external_ref,external_ref:filters.id?'external-'+filters.id:filters.external_ref,name:'Linked property',full_name:'Linked tenant',contract_no:'Linked contract'};const row=rows.find(r=>r.id===filters.id);return state.wrongId?{...row,id:'wrong'}:row;}};return q;}
  },async storage(method,path,blob){calls.push({name:method,path});this.check();if(method==='POST'){if(objects.has(path))throw Object.assign(Error('exists'),{status:409});objects.set(path,state.corrupt?new Blob(['corrupt']):blob);if(state.lost)throw Error('lost');return {};}
   if(state.denied)throw Object.assign(Error('denied'),{status:403});if(!objects.has(path))throw Object.assign(Error('missing'),{status:404});return objects.get(path);}};
  const d={el:node('dialog'),body:node('div'),status:node('p'),session,get closed(){return disposed;},onDispose(f){cleanups.push(f);},setBeforeClose(fn){this.beforeClose=fn;},async requestClose(){if(this.beforeClose&&await this.beforeClose()===false)return;this.close();},close(){disposed=true;for(const f of cleanups)f();},async run(task){const controls=nodes.filter(n=>['button','input','select'].includes(n.tag)),before=controls.map(n=>n.disabled);controls.forEach(n=>n.disabled=true);try{await task();}catch(e){d.status.textContent=e.message;}finally{controls.forEach((n,i)=>n.disabled=before[i]);}}};
@@ -83,6 +83,36 @@ test('PDF writer uses byte-accurate xref offsets, orientation and bounded input'
 });
 test('linked entity cannot accept a different reference returned by the database',async()=>{
  const q={select(){return q;},eq(){return q;},single(){return {external_ref:'other'};}};await assert.rejects(documentTarget({bound:{workspace:'w'},check(){},request:async x=>x,client:{from:()=>q}},'property','expected'));
+});
+
+test('property and tenant file shortcuts resolve row IDs before listing or uploading documents',async()=>{
+ for(const type of ['property','tenant','lease']){
+  const f=fixture({type,ref:'row-uuid',referenceKey:'id'});await f.start();
+  assert.equal(f.control('السجل المرتبط').value,'external-row-uuid');
+  assert.equal(f.control('السجل المرتبط').disabled,true);
+  const lookup=f.calls.find(c=>c.name==='select');
+  assert.deepEqual(lookup.filters,{workspace_id:'w',id:'row-uuid'});
+  assert.equal(f.calls.find(c=>c.name==='aqari_document_listing').args.p_entity_ref,'external-row-uuid');
+  await f.choose([source(1)]);f.control('راجعت الصفحات وهي العقد الموقّع الفعلي لهذا السجل').checked=true;await f.save();
+  assert.equal(f.rows[0].entity_ref,'external-row-uuid');assert.equal(f.rows[0].entity_type,type);
+  assert.equal(f.rows[0].status,'uploaded');assert.match(f.d.status.textContent,/تم حفظ النسخة/);
+ }
+});
+
+test('ID resolution rejects mismatched, missing or inaccessible targets without fallback',async()=>{
+ for(const row of [null,{id:'other',external_ref:'expected'},{id:'expected',external_ref:null}]){
+  let queries=0;const q={select(){return q;},eq(){return q;},single(){queries++;return row;}};
+  const session={bound:{workspace:'w'},check(){},request:async x=>x,client:{from:()=>q}};
+  await assert.rejects(documentTarget(session,'lease','expected','id'));
+  assert.equal(queries,1);await assert.rejects(documentTarget(session,'lease','expected','contract_no'));assert.equal(queries,1);
+ }
+});
+
+test('complete-file scanner entry points explicitly identify canonical row IDs',()=>{
+ for(const file of ['property-hub','property-portfolio-additions','imported-tenant']){
+  const source=fs.readFileSync('src/v267/pages/'+file+'.js','utf8');
+  assert.match(source,/openDocumentScanner\(\{\.\.\.initial,referenceKey:'id'\}\)/);
+ }
 });
 
 test('invalid replacement files preserve the current image and its reviewed signed-contract state',async()=>{

@@ -26,7 +26,7 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  }
  const read=()=>session.request(session.client.rpc('aqari_imported_tenant_read',{p_workspace_id:session.bound.workspace,p_ref:ref}));
  const readPortfolio=()=>session.request(session.client.rpc('aqari_tenant_portfolio_context',{p_workspace_id:session.bound.workspace,p_tenant_ref:ref}));
- const scan=async initial=>{d.close();const page=await import('./document-scanner.js');return page.openDocumentScanner(initial);};
+ const scan=async initial=>{d.close();const page=await import('./document-scanner.js');return page.openDocumentScanner({...initial,referenceKey:'id'});};
  function showPortfolio(value){
   portfolio.replaceChildren(node('h3','العقود والمستندات والوصولات'));
   if(!value?.tenantId){portfolio.append(node('p','تعذر ربط هذا الملف بسجل المستأجر المحفوظ.'));return;}
