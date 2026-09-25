@@ -166,3 +166,13 @@ test('opening account recovery clears tenant data and blocks reloads until retur
  f.emit('SIGNED_OUT',null);await tick();assert.equal(f.$('auth').hidden,true);assert.equal(f.$('content').hidden,true);
  await f.$('tenantRecovery').children.at(-1).onclick();assert.equal(f.$('tenantRecovery').hidden,true);assert.equal(f.$('auth').hidden,false);
 });
+
+
+test('tenant portal accepts the exact preview or production source and owns the shared auth client',()=>{
+ const raw=fs.readFileSync('v267-tenant-portal.js','utf8');
+ assert.match(raw,/preview:'https:\/\/ofgmcsmxmdswlovsckqs\.supabase\.co'/);
+ assert.match(raw,/production:'https:\/\/djkpkkgoibruaezdrchb\.supabase\.co'/);
+ assert.match(raw,/releaseSource\[cfg\.releaseStage\]!==cfg\.supabaseUrl/);
+ assert.match(raw,/export const client=window\.supabase\.createClient/);
+ assert.doesNotMatch(raw,/STAGING_REQUIRED/);
+});

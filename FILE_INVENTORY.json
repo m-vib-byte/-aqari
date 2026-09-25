@@ -3262,7 +3262,7 @@
     },
     {
       "path": "tenant.html",
-      "sha256": "6013422a265e35e93e8aa2d95b99d1d2a63ec0ab69160637bfdc5881d9a1c2a9",
+      "sha256": "49e8f38f9dd12cd87e422f214162599fc854cad87cf6d6e4a1918513d272ae8c",
       "size": 6308
     },
     {
@@ -4242,8 +4242,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
-      "sha256": "ada57fc4097403efc7f15ee2a8c57f2a7acf23f6ecd3843b44d277a496786ac3",
-      "size": 23227
+      "sha256": "b0065c8b88fdcea7f94e8b0904de2109e5662ede3f98cba9d064cc13f9e80a04",
+      "size": 23751
     },
     {
       "path": "tests/v267-unit-create-validation.test.mjs",
@@ -4487,8 +4487,8 @@
     },
     {
       "path": "v267-tenant-portal.js",
-      "sha256": "53608356dd6666adcb92bb455b3b8ebdbc78a9548f36700c87b6c3f7f67d760a",
-      "size": 22490
+      "sha256": "e06358cbeb13bb16c3e5507e492a1fcf8c3ca853688e6f25095c2dd7cccb0da4",
+      "size": 22675
     },
     {
       "path": "v267-unified.css",

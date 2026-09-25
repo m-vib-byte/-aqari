@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 
 const html=readFileSync(new URL('../tenant.html',import.meta.url),'utf8');
 const ui=readFileSync(new URL('../src/v267/tenant-maintenance-category.js',import.meta.url),'utf8');
+const portal=readFileSync(new URL('../v267-tenant-portal.js',import.meta.url),'utf8');
 const desk=readFileSync(new URL('../v267-service-desk.js',import.meta.url),'utf8');
 const sql=readFileSync(new URL('../staging-database/sql/maintenance-request-category.sql',import.meta.url),'utf8');
 const executorSql=readFileSync(new URL('../staging-database/sql/maintenance-executor-summary.sql',import.meta.url),'utf8');
@@ -14,7 +15,7 @@ const categories=['electrical','plumbing','air_conditioning','elevator','doors_w
 test('tenant maintenance form exposes an explicit required category selector',()=>{
  assert.match(html,/id="maintenanceCategory" required/);
  for(const code of categories)assert.match(html,new RegExp(`value="${code}"`));
- assert.ok(html.indexOf('/src/v267/tenant-maintenance-category.js')<html.indexOf('/v267-tenant-portal.js'));
+ assert.ok(html.indexOf('/v267-tenant-portal.js')<html.indexOf('/src/v267/tenant-maintenance-category.js'));
 });
 
 test('category layer intercepts the old submit path and writes the selected category',()=>{
@@ -22,7 +23,10 @@ test('category layer intercepts the old submit path and writes the selected cate
  assert.match(ui,/category_code:categoryCode/);
  assert.match(ui,/value!=='legacy_unclassified'/);
  assert.match(ui,/saved\.category_code!==categoryCode/);
- assert.match(ui,/detectSessionInUrl:false/);
+ assert.match(ui,/import \{client\} from '\.\.\/\.\.\/v267-tenant-portal\.js'/);
+ assert.doesNotMatch(ui,/supabase\.createClient/);
+ assert.match(ui,/production:'https:\/\/djkpkkgoibruaezdrchb\.supabase\.co'/);
+ assert.match(portal,/export const client=window\.supabase\.createClient/);
 });
 
 test('tenant history distinguishes old unclassified requests',()=>{
