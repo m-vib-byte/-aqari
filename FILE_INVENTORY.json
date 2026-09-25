@@ -4602,8 +4602,8 @@
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
-      "sha256": "59e17ec2bbce3913ec75de0a5dcdc55527b2fca743109b864e6b9be460458637",
-      "size": 19167
+      "sha256": "d3daf8c4041b32e7ec2df83be5a356ccacc938f54d5ac57433b0b2b4522acdd6",
+      "size": 19185
     },
     {
       "path": "staging-database/tests/hr_lifecycle_cycle.sql",
