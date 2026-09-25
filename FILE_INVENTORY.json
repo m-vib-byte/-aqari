@@ -1027,8 +1027,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "dc3c16eb600a0778744fee028dc7759e080d68541ce5710679f61eb412eabdd6",
-      "size": 10712
+      "sha256": "1ad7e108d1d0332a306895830ab74e984bdaacb1e47050810e475227f1c71672",
+      "size": 10813
     },
     {
       "path": "scripts/check.mjs",
@@ -3552,8 +3552,8 @@
     },
     {
       "path": "tests/v266-scheduler-control.test.cjs",
-      "sha256": "62e61cd9f4534b7b4d3e0855e70b423c4817dab7affbdaea97dc73ec7a4b014b",
-      "size": 3441
+      "sha256": "858f25199ed1cf0bf60106bcc3d79a1e8e08d98ac5f47a6e49dc50399b005394",
+      "size": 4004
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
@@ -4437,8 +4437,8 @@
     },
     {
       "path": "v266-scheduler-control.js",
-      "sha256": "ce19aff03ee964318b7eea7cace33176c90eda48a1f25d5ccd438f0fecfda1b1",
-      "size": 18700
+      "sha256": "f8f8ed084e085bf856440b7097e6015b2e6a2f9d148c36e9ca48c785e8cbd00b",
+      "size": 19207
     },
     {
       "path": "v267-login-locale.js",
