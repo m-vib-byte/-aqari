@@ -22,6 +22,15 @@ const unitStates=[['available',translateStatic('شاغرة')],['ready',translate
 
 export function openPropertyHub(propertyId,options={}){
  const d=createDialog(translateStatic('الملف الكامل للعقار'));if(!d)return false;
+ if(window.AQARI_PUBLIC_CONFIG?.releaseStage==='production'){
+  if(options.section==='sender'){
+   d.body.replaceChildren(node('p',translateStatic('إعدادات قنوات الإرسال المتقدمة غير مركبة في قاعدة البيانات الحالية. استخدم البريد وواتساب المحفوظين داخل ملف العقار الأساسي.')));
+   d.status.textContent=translateStatic('تم منع استدعاء خدمة غير مركبة حفاظًا على استقرار المنصة.');
+   return true;
+  }
+  d.run(async()=>{const page=await import('./property-master-file.js');d.session.check();d.close();page.openPropertyMasterFile(propertyId,options);});
+  return true;
+ }
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  let file,header,access,channels,presentationState;
  async function read(){
