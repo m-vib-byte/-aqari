@@ -63,6 +63,15 @@ test('legacy property workspace opens the authoritative complete file and keeps 
 });
 
 
+test('production property hub bypasses unavailable advanced RPCs before reading them',()=>{
+ assert.match(propertyHub,/AQARI_PUBLIC_CONFIG\?\.releaseStage==='production'/);
+ assert.match(propertyHub,/import\('\.\/property-master-file\.js'\)/);
+ assert.match(propertyHub,/openPropertyMasterFile\(propertyId,options\)/);
+ assert.match(propertyHub,/options\.section==='sender'/);
+ const guard=propertyHub.indexOf("releaseStage==='production'");
+ for(const rpc of ['aqari_property_dashboard_header','aqari_property_channel_settings'])assert.ok(guard>=0&&guard<propertyHub.indexOf(rpc),rpc+' must be behind production compatibility guard');
+});
+
 test('legacy property edit and add actions delegate to the authoritative property workflows',()=>{
  assert.match(rentalRecords,/if\(typeof experience\?\.openCompleteFileByName==='function'\)return experience\.openCompleteFileByName\(existing\[0\],\{section:'edit'\}\)/);
  assert.match(rentalRecords,/from\('aqari_properties'\)\.select\('id,name'\)\.eq\('workspace_id',workspace\)\.eq\('name',existing\[0\]\)\.limit\(2\)/);

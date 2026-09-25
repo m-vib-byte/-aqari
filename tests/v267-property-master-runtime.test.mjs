@@ -51,8 +51,8 @@ function fixture(options={}) {
  }
  const client={rpc:(name,args)=>query('rpc',name,args),from:name=>query('table',name)};
  globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),createTextNode:text=>new Element('#text',text),documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:scope.user,workspaceId:scope.workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:scope.user},workspace:{id:scope.workspace},membership:{user_id:scope.user,workspace_id:scope.workspace,role:scope.role,is_active:true}}},addEventListener(){},removeEventListener(){}};
- assert.equal(openPropertyMasterFile('property-a'),true);
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url,releaseStage:options.releaseStage||'preview'},AQARI_DATA_GATE:{scope:{userId:scope.user,workspaceId:scope.workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:scope.user},workspace:{id:scope.workspace},membership:{user_id:scope.user,workspace_id:scope.workspace,role:scope.role,is_active:true}}},addEventListener(){},removeEventListener(){}};
+ assert.equal(openPropertyMasterFile('property-a',options.openOptions||{}),true);
  const dialog=body.children[0];
  const descendants=el=>[el,...el.children.flatMap(descendants)];
  return {
@@ -60,6 +60,7 @@ function fixture(options={}) {
   status:()=>dialog.children[2].textContent,
   text:()=>descendants(dialog).map(el=>el.textContent).join('\n'),
   tables:()=>calls.filter(c=>c.kind==='table'),
+  rpcs:()=>calls.filter(c=>c.kind==='rpc'),
   button:label=>descendants(dialog).find(el=>el.tagName==='button'&&el.textContent===label),
   failNextRead(error){nextReadError=error;},
   async settled(){for(let i=0;i<10&&dialog.attrs['aria-busy']==='true';i++)await new Promise(setImmediate);assert.equal(dialog.attrs['aria-busy'],'false');},
@@ -78,6 +79,20 @@ test('missing optional category still renders the property and maintenance witho
 });
 test('a modern schema keeps the stored category and performs a single scoped read',async()=>{
  const f=fixture();try{await f.settled();assert.equal(f.tables().length,1);assert.match(f.text(),/plumbing/);}finally{await f.cleanup();}
+});
+test('production basic property file skips known-missing optional RPC and category column',async()=>{
+ const f=fixture({releaseStage:'production'});try{
+  await f.settled();
+  const reads=f.tables();assert.equal(reads.length,1);assert.ok(!reads[0].columns.includes('category_code'));
+  assert.equal(f.rpcs().some(call=>call.name==='aqari_property_tenant_ledger'),false);
+  assert.match(f.text(),/غير متاح/);
+ }finally{await f.cleanup();}
+});
+test('production property edit opens directly through the basic file',async()=>{
+ const f=fixture({releaseStage:'production',openOptions:{section:'edit'}});try{
+  await f.settled();assert.match(f.text(),/تعديل بيانات العقار الرئيسية/);
+  assert.equal(f.rpcs().some(call=>call.name==='aqari_property_tenant_ledger'),false);
+ }finally{await f.cleanup();}
 });
 for(const permissions of [{maintenance:false},{contracts:false}])test('permission-denied details never read the maintenance table: '+JSON.stringify(permissions),async()=>{
  const f=fixture({permissions});try{await f.settled();assert.equal(f.tables().length,0);assert.doesNotMatch(f.text(),/صيانة الاختبار/);}finally{await f.cleanup();}

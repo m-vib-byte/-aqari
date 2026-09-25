@@ -29,8 +29,9 @@ export async function openPropertyMasterFileByName(name){
  return openPropertyMasterFile(data[0].id);
 }
 
-export function openPropertyMasterFile(propertyId){
+export function openPropertyMasterFile(propertyId,options={}){
  const d=createDialog(translateStatic('الملف الكامل للعقار'));if(!d)return false;
+ const production=globalThis.window?.AQARI_PUBLIC_CONFIG?.releaseStage==='production';
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  let file=null,access=null,financialSummary=null,tenantLedger=null,maintenanceRows=[],employeeRows=[];
  async function read(){
@@ -43,10 +44,12 @@ export function openPropertyMasterFile(propertyId){
    catch(error){if(!missingRpc(error))throw error;financialSummary=null;}
   }
   tenantLedger=null;
-  try{tenantLedger=await rpc('aqari_property_tenant_ledger',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_as_of:asOf});d.session.check();if(tenantLedger?.workspace_id!==d.session.bound.workspace||tenantLedger?.property_id!==propertyId)throw Error('تعذر تأكيد نطاق المستأجرين واستحقاقات الإيجار.');}
-  catch(error){if(!missingRpc(error))throw error;tenantLedger=null;}
+  if(!production){
+   try{tenantLedger=await rpc('aqari_property_tenant_ledger',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_as_of:asOf});d.session.check();if(tenantLedger?.workspace_id!==d.session.bound.workspace||tenantLedger?.property_id!==propertyId)throw Error('تعذر تأكيد نطاق المستأجرين واستحقاقات الإيجار.');}
+   catch(error){if(!missingRpc(error))throw error;tenantLedger=null;}
+  }
   maintenanceRows=[];
-  if(result.permissions?.maintenance!==false&&result.permissions?.contracts!==false){const leaseIds=(result.contracts||[]).map(x=>x.id).filter(Boolean);if(leaseIds.length){const readMaintenance=columns=>d.session.request(d.session.client.from('aqari_maintenance_requests').select(columns).eq('workspace_id',d.session.bound.workspace).in('lease_id',leaseIds).order('created_at',{ascending:false}).limit(100));try{maintenanceRows=await readMaintenance('id,request_no,lease_id,tenant_id,description,status,cost,category_code,created_at');}catch(error){if(!missingMaintenanceCategory(error))throw error;d.session.check();maintenanceRows=(await readMaintenance('id,request_no,lease_id,tenant_id,description,status,cost,created_at')).map(row=>({...row,category_code:translateStatic('غير متاح')}));}d.session.check();}}
+  if(result.permissions?.maintenance!==false&&result.permissions?.contracts!==false){const leaseIds=(result.contracts||[]).map(x=>x.id).filter(Boolean);if(leaseIds.length){const readMaintenance=columns=>d.session.request(d.session.client.from('aqari_maintenance_requests').select(columns).eq('workspace_id',d.session.bound.workspace).in('lease_id',leaseIds).order('created_at',{ascending:false}).limit(100));if(production){maintenanceRows=(await readMaintenance('id,request_no,lease_id,tenant_id,description,status,cost,created_at')).map(row=>({...row,category_code:translateStatic('غير متاح')}));}else{try{maintenanceRows=await readMaintenance('id,request_no,lease_id,tenant_id,description,status,cost,category_code,created_at');}catch(error){if(!missingMaintenanceCategory(error))throw error;d.session.check();maintenanceRows=(await readMaintenance('id,request_no,lease_id,tenant_id,description,status,cost,created_at')).map(row=>({...row,category_code:translateStatic('غير متاح')}));}}d.session.check();}}
   employeeRows=[];
   if(result.permissions?.employees!==false){try{const directory=await rpc('aqari_hr',{p_workspace_id:d.session.bound.workspace,p_action:'list',p_data:{}});d.session.check();employeeRows=(directory?.employees||[]).filter(row=>Array.isArray(row.property_ids)&&row.property_ids.includes(propertyId));}catch(error){if(!missingRpc(error))throw error;}}
   file=result;return result;
@@ -63,7 +66,7 @@ export function openPropertyMasterFile(propertyId){
  }
  function masterPayload(p,assets=p.assets){return {name:p.name,address:p.address||'',type:p.type||'',status:p.status||'active',statedIncome:p.statedIncome??null,owners:Array.isArray(p.owners)?p.owners:[],email:p.email||'',phone:p.phone||'',whatsapp:p.whatsapp||'',assets:assets||{logo:null,photos:[],titleDeed:null,plans:[],documents:[]}};}
  async function editProperty(){
-  if(!propertyWritable())throw Error('تعديل العقار غير متاح لصلاحية حسابك.');await read();const p=file.property;d.body.replaceChildren(node('h3',translateStatic('تعديل بيانات العقار الرئيسية')));
+  await read();if(!propertyWritable())throw Error('تعديل العقار غير متاح لصلاحية حسابك.');const p=file.property;d.body.replaceChildren(node('h3',translateStatic('تعديل بيانات العقار الرئيسية')));
   const form=node('form'),name=input('text',p.name),address=node('textarea'),type=input('text',p.type),status=input('text',p.status||'active'),income=input('text',p.statedIncome??''),email=input('email',p.email),phone=input('tel',p.phone),whatsapp=input('tel',p.whatsapp),reason=node('textarea');address.value=p.address||'';name.required=status.required=reason.required=true;reason.minLength=3;income.inputMode='decimal';
   for(const [label,control]of [[translateStatic('اسم العقار'),name],[translateStatic('العنوان'),address],[translateStatic('نوع العقار'),type],[translateStatic('حالة العقار'),status],[translateStatic('الدخل المعلن — لا يستخدم بدل التحصيل الفعلي'),income],[translateStatic('البريد الرسمي للعقار'),email],[translateStatic('الهاتف'),phone],[translateStatic('واتساب'),whatsapp]])form.append(field(label,control));
   const ownersBox=section(translateStatic('الملاك والحصص — يجب أن يكون المجموع 100% عند وجود ملاك'));form.append(ownersBox);const owners=ownerEditor(ownersBox,Array.isArray(p.owners)?p.owners:[]);
@@ -115,7 +118,7 @@ export function openPropertyMasterFile(propertyId){
   const audit=section(translateStatic('سجل التعديلات'));renderRows(audit,file.audit,translateStatic('لا توجد تعديلات Master Data بعد.'),r=>node('p',`${r.at} · ${r.actor} · ${r.action} · ${r.reason}`));d.body.append(audit);
   d.status.textContent=translateStatic('هذا الملف يعرض المصادر الخادمة الفعلية؛ القيم غير المتاحة أو غير الموزعة لا تتحول إلى أصفار مفترضة.');
  }
- d.run(render);return true;
+ d.run(options.section==='edit'?editProperty:render);return true;
 }
 
 

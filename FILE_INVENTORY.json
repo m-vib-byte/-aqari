@@ -1662,8 +1662,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "23725116baca89e9ede80211cba734ac60cf4d818a6d6ac9fe5932e10573c7c1",
-      "size": 29564
+      "sha256": "2499ee70a23138814ee6d19c8ea70cd2c7b8856054db6b0701dde264c2a109db",
+      "size": 30295
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -4102,8 +4102,8 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "ee12ffb01452b4768948c45b75d20a1101af02ae590caecd1bb2736eec3b6211",
-      "size": 8275
+      "sha256": "f930d6b09927a1bb8bd4638619758faa8a94b5ecfbd5e50c9b1791ca36a8de20",
+      "size": 8916
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
@@ -4652,8 +4652,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 32664,
-      "sha256": "dece871a43aced3485a8ac5a537dce9620b286d285b77acef1c3459ef4bec151"
+      "size": 33028,
+      "sha256": "36339ae435ce6f2596a49befe323d31f69e3590655acef9ecae55986ab5f5b5f"
     },
     {
       "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
@@ -4667,8 +4667,8 @@
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "size": 9121,
-      "sha256": "23d5d84ae9b9a5d79d7f66000a877a2360e0a5a60c795589b8048c5fd060505a"
+      "size": 10065,
+      "sha256": "2414d1d0f75834e43262499f1390f2aff4e13247da4d2b2f0795e66521b6ad9d"
     }
   ],
   "version": "V198"
