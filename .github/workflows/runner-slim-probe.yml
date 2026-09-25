@@ -1,0 +1,19 @@
+name: Runner slim probe
+
+on:
+  push:
+    branches:
+      - diag/runner-slim-probe-20260925
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-slim
+    timeout-minutes: 2
+    steps:
+      - name: Confirm runner allocation
+        run: |
+          echo "runner-ok"
+          uname -a
