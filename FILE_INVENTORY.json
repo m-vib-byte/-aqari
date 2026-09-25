@@ -1027,8 +1027,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "3148b9456ca46076b42129eeb7d907b567c4895f4b31fdd936c74ef7742334ea",
-      "size": 10525
+      "sha256": "1ad7e108d1d0332a306895830ab74e984bdaacb1e47050810e475227f1c71672",
+      "size": 10813
     },
     {
       "path": "scripts/check.mjs",
@@ -3552,8 +3552,8 @@
     },
     {
       "path": "tests/v266-scheduler-control.test.cjs",
-      "sha256": "62e61cd9f4534b7b4d3e0855e70b423c4817dab7affbdaea97dc73ec7a4b014b",
-      "size": 3441
+      "sha256": "858f25199ed1cf0bf60106bcc3d79a1e8e08d98ac5f47a6e49dc50399b005394",
+      "size": 4004
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
@@ -4437,8 +4437,8 @@
     },
     {
       "path": "v266-scheduler-control.js",
-      "sha256": "ce19aff03ee964318b7eea7cace33176c90eda48a1f25d5ccd438f0fecfda1b1",
-      "size": 18700
+      "sha256": "f8f8ed084e085bf856440b7097e6015b2e6a2f9d148c36e9ca48c785e8cbd00b",
+      "size": 19207
     },
     {
       "path": "v267-login-locale.js",
@@ -4602,8 +4602,8 @@
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
-      "sha256": "d3daf8c4041b32e7ec2df83be5a356ccacc938f54d5ac57433b0b2b4522acdd6",
-      "size": 19185
+      "sha256": "f24a15910d7b510f3638333b7017619aacfc8fe83feabfc7f76c56dae82f4a83",
+      "size": 19442
     },
     {
       "path": "staging-database/tests/hr_lifecycle_cycle.sql",
@@ -4637,13 +4637,38 @@
     },
     {
       "path": "tests/v267-hr-lifecycle-source.test.mjs",
-      "sha256": "257a62a808f4b4aa49b6aaeb610b5fab9a2cb54fd5c323a1703f1ced7ed501de",
-      "size": 1737
+      "sha256": "9863d4cfa2a8c2a23524bb1965f04f542876cdcd03a01e035815c06aba5590af",
+      "size": 2591
     },
     {
       "path": "tests/v267-hr-lifecycle.test.mjs",
       "sha256": "89c2886b8d265df038df262e004662860d4fb440ae482f3bc5cc6720e3fc189d",
       "size": 1731
+    },
+    {
+      "path": "docs/verification/pr321-property-runtime-20260925.md",
+      "size": 2684,
+      "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6"
+    },
+    {
+      "path": "src/v267/pages/property-master-file.js",
+      "size": 32664,
+      "sha256": "dece871a43aced3485a8ac5a537dce9620b286d285b77acef1c3459ef4bec151"
+    },
+    {
+      "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
+      "sha256": "36a8371b241d175bcefc60f59cac955867c15c8982bb6bd8ee503ddd8eabc795",
+      "size": 23087
+    },
+    {
+      "path": "tests/v267-property-maintenance-compat.test.mjs",
+      "size": 5370,
+      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa"
+    },
+    {
+      "path": "tests/v267-property-master-runtime.test.mjs",
+      "size": 9121,
+      "sha256": "23d5d84ae9b9a5d79d7f66000a877a2360e0a5a60c795589b8048c5fd060505a"
     }
   ],
   "version": "V198"
