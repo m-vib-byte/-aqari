@@ -67,3 +67,12 @@ test('V266 stays usable on mobile and bypasses stale cache',()=>{
     assert.match(rule.headers.find((header)=>header.key==='Cache-Control')?.value||'',/no-store/);
   }
 });
+
+test('V266 fails closed when scheduler backend tables are not installed',()=>{
+  assert.match(source,/function missingSchedulerBackend\(error\)/);
+  assert.match(source,/\['PGRST205','42P01'\]/);
+  assert.match(source,/aqari_scheduler_\(\?:config\|runs\)/);
+  assert.match(source,/if\(missingSchedulerBackend\(error\)&&epoch===state\.epoch\)/);
+  assert.match(source,/state\.config=null;state\.runs=\[\];renderConfig\(null\);renderRuns\(\[\]\)/);
+  assert.match(source,/التشغيل الآلي غير مهيأ لبيئة البيانات الحالية/);
+});
