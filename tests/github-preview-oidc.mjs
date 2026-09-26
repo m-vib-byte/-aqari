@@ -27,8 +27,9 @@ export function createGitHubOidcTokenProvider({
     endpoint.searchParams.set('audience', audience);
     let response;
     try {
+      const authorization = ['Bearer', env.ACTIONS_ID_TOKEN_REQUEST_TOKEN].join(' ');
       response = await fetchToken(endpoint, {
-        headers: { authorization: `Bearer ${env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}` },
+        headers: { authorization },
         redirect: 'error', signal: AbortSignal.timeout(10_000)
       });
     } catch {
@@ -76,4 +77,119 @@ export function githubPreviewAccess(base, getToken = createGitHubOidcTokenProvid
       return previewAccess(base, '', await getToken()).headersFor(target, original);
     }
   };
+}
+
+function parseSha(value) {
+  const sha = String(value || '').trim().toLowerCase();
+  if (!/^[a-f0-9]{40}$/.test(sha)) throw new Error('AQARI_EXPECTED_SHA is missing or invalid.');
+  return sha;
+}
+
+function parseApiBase(apiBase) {
+  let parsed;
+  try { parsed = new URL(String(apiBase || 'https://api.github.com')); } catch {
+    throw new Error('GitHub API endpoint is missing or invalid.');
+  }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.search || parsed.hash || parsed.pathname !== '/') {
+    throw new Error('GitHub API endpoint must be a clean HTTPS origin.');
+  }
+  return parsed;
+}
+
+async function readJson(response) {
+  const body = await response.text();
+  if (body.length > 1_000_000) throw new Error('GitHub API response exceeded the size limit.');
+  return JSON.parse(body);
+}
+
+function selectPreviewUrl(urlCandidate, project, team) {
+  if (typeof urlCandidate !== 'string' || !urlCandidate.trim()) return null;
+  let url;
+  try { url = new URL(urlCandidate); } catch { return null; }
+  if (url.protocol !== 'https:' || url.username || url.password || url.port || url.search || url.hash || url.pathname !== '/') {
+    return null;
+  }
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === 'myaqari.com' || hostname === 'www.myaqari.com' || hostname === `${project}.vercel.app`) return null;
+  if (!hostname.startsWith(`${project}-git-`) || !hostname.endsWith(`-${team}.vercel.app`)) return null;
+  return url.toString();
+}
+
+export async function resolveGitHubPreviewDeploymentUrl({
+  env = process.env, fetchApi = globalThis.fetch
+} = {}) {
+  const expectedSha = parseSha(env.AQARI_EXPECTED_SHA);
+  const repository = String(env.GITHUB_REPOSITORY || '').trim();
+  const token = String(env.GITHUB_TOKEN || '').trim();
+  const project = String(env.AQARI_PROJECT_SLUG || '').trim().toLowerCase();
+  const team = String(env.AQARI_TEAM_SLUG || '').trim().toLowerCase();
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repository) || !token || !/^[a-z0-9-]+$/.test(project) || !/^[a-z0-9-]+$/.test(team)) {
+    throw new Error('Preview deployment resolver configuration is incomplete.');
+  }
+  const apiBase = parseApiBase(env.GITHUB_API_URL);
+  const deploymentsUrl = new URL(`/repos/${repository}/deployments`, apiBase);
+  deploymentsUrl.searchParams.set('sha', expectedSha);
+  deploymentsUrl.searchParams.set('per_page', '100');
+  deploymentsUrl.searchParams.set('page', '1');
+  const response = await fetchApi(deploymentsUrl, {
+    headers: {
+      accept: 'application/vnd.github+json',
+      authorization: ['Bearer', token].join(' '),
+      'x-github-api-version': '2022-11-28'
+    },
+    redirect: 'error',
+    signal: AbortSignal.timeout(10_000)
+  });
+  if (response.status !== 200) throw new Error(`GitHub deployments lookup failed (HTTP ${response.status}).`);
+  let deployments;
+  try { deployments = await readJson(response); } catch {
+    throw new Error('GitHub deployments payload is invalid.');
+  }
+  if (!Array.isArray(deployments) || deployments.length === 0) {
+    throw new Error('No GitHub deployment is registered for the exact SHA.');
+  }
+  const matching = deployments.filter(deployment => String(deployment?.sha || '').toLowerCase() === expectedSha);
+  if (!matching.length) throw new Error('GitHub deployments were found, but none match the exact SHA.');
+  let foundStatusEndpoint = false;
+  let foundStatusUrl = false;
+  for (const deployment of matching) {
+    const statusesUrl = String(deployment?.statuses_url || '').trim();
+    if (!statusesUrl) continue;
+    foundStatusEndpoint = true;
+    let statusResponse;
+    try {
+      statusResponse = await fetchApi(new URL(statusesUrl), {
+        headers: {
+          accept: 'application/vnd.github+json',
+          authorization: ['Bearer', token].join(' '),
+          'x-github-api-version': '2022-11-28'
+        },
+        redirect: 'error',
+        signal: AbortSignal.timeout(10_000)
+      });
+    } catch {
+      throw new Error('GitHub deployment status lookup failed.');
+    }
+    if (statusResponse.status !== 200) {
+      throw new Error(`GitHub deployment status lookup failed (HTTP ${statusResponse.status}).`);
+    }
+    let statuses;
+    try { statuses = await readJson(statusResponse); } catch {
+      throw new Error('GitHub deployment statuses payload is invalid.');
+    }
+    if (!Array.isArray(statuses)) throw new Error('GitHub deployment statuses payload is invalid.');
+    for (const status of statuses) {
+      const candidate = status?.environment_url ?? status?.target_url;
+      if (typeof candidate === 'string' && candidate.trim()) foundStatusUrl = true;
+      const previewUrl = selectPreviewUrl(candidate, project, team);
+      if (previewUrl) return previewUrl;
+    }
+  }
+  if (!foundStatusEndpoint) {
+    throw new Error('Matching GitHub deployment found, but no deployment status endpoint is available.');
+  }
+  if (!foundStatusUrl) {
+    throw new Error('Matching GitHub deployment found, but statuses do not expose a Preview URL.');
+  }
+  throw new Error('Matching GitHub deployment found, but the Preview URL is invalid or non-Preview.');
 }

@@ -7,6 +7,14 @@ const env = {
   ACTIONS_ID_TOKEN_REQUEST_URL: 'https://pipelines.actions.githubusercontent.com/oidc?api-version=2',
   ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'synthetic-runner-credential'
 };
+const previewResolverEnv = {
+  AQARI_EXPECTED_SHA: 'a'.repeat(40),
+  GITHUB_REPOSITORY: 'm-vib-byte/-aqari',
+  GITHUB_TOKEN: 'synthetic-github-token',
+  AQARI_PROJECT_SLUG: 'aqari',
+  AQARI_TEAM_SLUG: 'm-vib-5421',
+  GITHUB_API_URL: 'https://api.github.com'
+};
 function identity(exp, overrides = {}) {
   return 'eyJhbGciOiJSUzI1NiJ9.' + Buffer.from(JSON.stringify({
     iss: 'https://token.actions.githubusercontent.com', aud: 'https://github.com/m-vib-byte',
@@ -15,6 +23,9 @@ function identity(exp, overrides = {}) {
 }
 function response(value, status = 200) {
   return { status, text: async () => JSON.stringify({ value }) };
+}
+function jsonResponse(value, status = 200) {
+  return { status, text: async () => JSON.stringify(value) };
 }
 
 test('GitHub identities are masked, coalesced and renewed before expiration', async () => {
@@ -90,4 +101,98 @@ test('OIDC request headers stay on the exact Preview origin and never survive a 
   assert.deepEqual(fetched.headers, { accept: 'application/json', 'x-vercel-trusted-oidc-idp-token': 'synthetic-oidc' });
   assert.equal(fulfilled.response, redirect);
   assert.throws(() => previewAccess('https://preview.example/?x-vercel-trusted-oidc-idp-token=synthetic'));
+});
+
+test('resolver accepts exact-SHA deployment status environment_url', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  const calls = [];
+  const resolved = await resolveGitHubPreviewDeploymentUrl({
+    env: previewResolverEnv,
+    fetchApi: async url => {
+      calls.push(url.toString());
+      if (url.pathname.endsWith('/deployments')) {
+        assert.equal(url.searchParams.get('sha'), previewResolverEnv.AQARI_EXPECTED_SHA);
+        return jsonResponse([{
+          sha: previewResolverEnv.AQARI_EXPECTED_SHA,
+          statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses'
+        }]);
+      }
+      assert.equal(url.pathname, '/repos/m-vib-byte/-aqari/deployments/1/statuses');
+      return jsonResponse([{ environment_url: 'https://aqari-git-main-m-vib-5421.vercel.app' }]);
+    }
+  });
+  assert.equal(resolved, 'https://aqari-git-main-m-vib-5421.vercel.app/');
+  assert.equal(calls.length, 2);
+});
+
+test('resolver accepts exact-SHA deployment status target_url', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  const resolved = await resolveGitHubPreviewDeploymentUrl({
+    env: previewResolverEnv,
+    fetchApi: async url => url.pathname.endsWith('/deployments')
+      ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/statuses' }])
+      : jsonResponse([{ environment_url: null, target_url: 'https://aqari-git-pr-350-m-vib-5421.vercel.app' }])
+  });
+  assert.equal(resolved, 'https://aqari-git-pr-350-m-vib-5421.vercel.app/');
+});
+
+test('resolver rejects deployments that do not match the expected SHA', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  await assert.rejects(
+    resolveGitHubPreviewDeploymentUrl({
+      env: previewResolverEnv,
+      fetchApi: async () => jsonResponse([{ sha: 'b'.repeat(40), statuses_url: 'https://api.github.com/statuses' }])
+    }),
+    /none match the exact SHA/
+  );
+});
+
+test('resolver reports statuses without URL on exact-SHA deployment', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  await assert.rejects(
+    resolveGitHubPreviewDeploymentUrl({
+      env: previewResolverEnv,
+      fetchApi: async url => url.pathname.endsWith('/deployments')
+        ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/statuses' }])
+        : jsonResponse([{ state: 'success' }, { environment_url: '' }, { target_url: null }])
+    }),
+    /statuses do not expose a Preview URL/
+  );
+});
+
+test('resolver reports missing deployment status endpoint on exact-SHA deployment', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  await assert.rejects(
+    resolveGitHubPreviewDeploymentUrl({
+      env: previewResolverEnv,
+      fetchApi: async () => jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA }])
+    }),
+    /no deployment status endpoint is available/
+  );
+});
+
+test('resolver rejects invalid or production URLs on exact-SHA deployment statuses', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  for (const invalid of ['https://myaqari.com', 'https://aqari.vercel.app', 'https://example.com']) {
+    await assert.rejects(
+      resolveGitHubPreviewDeploymentUrl({
+        env: previewResolverEnv,
+        fetchApi: async url => url.pathname.endsWith('/deployments')
+          ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/statuses' }])
+          : jsonResponse([{ environment_url: invalid }])
+      }),
+      /Preview URL is invalid or non-Preview/
+    );
+  }
+});
+
+test('resolver reports clear error when no exact-SHA deployment exists', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  await assert.rejects(
+    resolveGitHubPreviewDeploymentUrl({
+      env: previewResolverEnv,
+      fetchApi: async () => jsonResponse([])
+    }),
+    /No GitHub deployment is registered for the exact SHA/
+  );
 });
