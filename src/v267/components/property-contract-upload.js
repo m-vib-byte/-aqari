@@ -2,6 +2,7 @@ import {node,field} from './dialog.js';
 import {t} from './locale.js';
 import {createOriginalDocumentUpload,originalDocument} from './original-document-upload.js';
 import {createTemplateLogoContext} from './template-property-logo.js';
+import {listPropertyContractArchive,readPropertyContractArchive} from './property-contract-archive.js';
 
 const CONTRACT_TITLE='ملف عقد العقار';
 const propertyChoice=(rows,value='')=>{
@@ -19,12 +20,31 @@ export async function mountPropertyContractUpload(d,target,{propertyId=null,onBa
  if(!properties.length)throw Error('لا توجد عقارات متاحة لربط العقد بها.');
  const selected=propertyId?properties.find(property=>property.id===propertyId):null;
  if(propertyId&&!selected)throw Error('العقار المحدد غير متاح ضمن مساحة العمل الحالية.');
- const property=propertyChoice(properties,selected?.id||''),file=node('input'),form=node('form'),save=node('button',t('رفع وحفظ عقد PDF'));
+ const property=propertyChoice(properties,selected?.id||''),file=node('input'),form=node('form'),save=node('button',t('رفع وحفظ عقد PDF')),
+  archive=node('section'),archiveRows=node('div'),refresh=node('button',t('عرض عقود PDF المحفوظة')),
+  viewer=node('section');
  file.type='file';file.name='contract_pdf';file.accept='application/pdf,.pdf';file.required=true;save.type='submit';
- form.append(node('h3',t('رفع عقد العقار')),node('p',t('ارفع ملف PDF مباشرة. يُحفظ كملف أصلي خاص بالعقار المحدد ولا ينشئ عقد إيجار أو تحصيلًا تلقائيًا.')),field(t('العقار'),property),field(t('ملف العقد PDF'),file),save);
+ refresh.type='button';archive.append(node('h4',t('أرشيف عقود PDF للعقار')),refresh,archiveRows,viewer);
+ form.append(node('h3',t('رفع عقد العقار')),node('p',t('ارفع ملف PDF مباشرة. يُحفظ كملف أصلي خاص بالعقار المحدد ولا ينشئ عقد إيجار أو تحصيلًا تلقائيًا.')),field(t('العقار'),property),field(t('ملف العقد PDF'),file),save,archive);
  if(selected)property.disabled=true;
  if(onBack){const back=node('button',t('رجوع'));back.type='button';back.onclick=onBack;form.prepend(back);}
  const upload=createOriginalDocumentUpload(d.session);
+ let openedUrl=null,archiveEpoch=0;
+ function clearViewer(){if(openedUrl){URL.revokeObjectURL(openedUrl);openedUrl=null;}viewer.replaceChildren();}
+ function selectedProperty(){return properties.find(item=>item.id===property.value)||null;}
+ async function showArchive(){const current=selectedProperty(),epoch=++archiveEpoch;clearViewer();archiveRows.replaceChildren();
+  if(!current){archiveRows.append(node('p',t('اختر العقار لعرض عقوده المحفوظة.')));return;}
+  const rows=await listPropertyContractArchive(d.session,current);if(epoch!==archiveEpoch)return;
+  if(!rows.length){archiveRows.append(node('p',t('لا توجد ملفات عقود PDF محفوظة لهذا العقار.')));return;}
+  for(const row of rows){const open=node('button',t('عرض PDF المحفوظ')),entry=node('div');open.type='button';
+   open.onclick=()=>d.run(async()=>{const currentProperty=selectedProperty();if(!currentProperty||currentProperty.id!==current.id)throw Error('تغير العقار المحدد. حدّث الأرشيف.');
+    const blob=await readPropertyContractArchive(d.session,currentProperty,row.id);if(epoch!==archiveEpoch)return;
+    clearViewer();openedUrl=URL.createObjectURL(blob);const frame=node('iframe');frame.title=t('ملف PDF المحفوظ للعقار');frame.src=openedUrl;frame.style.width='100%';frame.style.minHeight='70vh';viewer.append(frame);
+    d.status.textContent=t('هذه النسخة المسترجعة من التخزين بعد التحقق من بصمتها وربطها بالعقار.');});
+   entry.append(node('span',`${row.title||t('ملف عقد العقار')} · ${new Date(row.created_at).toLocaleDateString('ar-KW')}`),open);archiveRows.append(entry);}
+ }
+ refresh.onclick=()=>d.run(showArchive);property.onchange=()=>{archiveEpoch++;clearViewer();archiveRows.replaceChildren();};
+ d.onDispose(()=>{archiveEpoch++;clearViewer();});
  form.onsubmit=event=>{event.preventDefault();d.run(async()=>{
   const chosen=file.files?.[0];if(!chosen)throw Error('اختر ملف عقد PDF.');
   const blob=await originalDocument(chosen);if(blob.type!=='application/pdf')throw Error('اختر ملف PDF صالحًا لعقد العقار.');
@@ -33,7 +53,9 @@ export async function mountPropertyContractUpload(d,target,{propertyId=null,onBa
   try{
    const row=await upload(chosen,{type:'property',ref:current.externalRef,category:'property_contract',title:CONTRACT_TITLE,propertyId:current.id});
    if(row.metadata?.property_id!==current.id)throw Error('لم يتأكد ربط العقد بمعرّف العقار.');
-   file.value='';d.status.textContent=t('تم رفع عقد PDF والتحقق من حفظه وربطه بالعقار المحدد.');
+   file.value='';try{await showArchive();d.status.textContent=t('تم رفع عقد PDF والتحقق من حفظه وربطه بالعقار المحدد.');}
+   catch{archiveRows.replaceChildren(node('p',t('حُفظ الملف، لكن تعذر تحديث قائمة الأرشيف الآن. اضغط عرض عقود PDF المحفوظة للمحاولة مجددًا.')));
+    d.status.textContent=t('تم حفظ عقد PDF وربطه بالعقار. تعذر تحديث قائمة الأرشيف؛ لا ترفع الملف مرة أخرى.');}
   }finally{save.disabled=false;file.disabled=false;property.disabled=!!selected;}
  });};
  target.replaceChildren(form);

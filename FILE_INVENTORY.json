@@ -1342,8 +1342,8 @@
     },
     {
       "path": "src/v267/components/property-contract-upload.js",
-      "size": 3358,
-      "sha256": "bd3e763c1bd785da3bcbca1123af5e71b1a67165cdd1340377bafcae65e085b2"
+      "size": 6052,
+      "sha256": "d0033799e9fe4da99306318a50e83223b23478bf9a0bd5f628249bf9df33fb88"
     },
     {
       "path": "src/v267/components/property-experience.js",
@@ -4674,6 +4674,16 @@
       "path": "tests/v267-property-master-runtime.test.mjs",
       "size": 12136,
       "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9"
+    },
+    {
+      "path": "src/v267/components/property-contract-archive.js",
+      "size": 2619,
+      "sha256": "993c4bd67980cf0a8d325326ee45d59d4335e866338e045d663323a3085a2a59"
+    },
+    {
+      "path": "tests/v267-property-contract-archive.test.mjs",
+      "size": 2923,
+      "sha256": "500c3e331552ae5358a92555f45861190be4ded9530d1377bf2f31b20e029d9a"
     }
   ],
   "version": "V198"
