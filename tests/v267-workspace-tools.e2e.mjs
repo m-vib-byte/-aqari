@@ -424,7 +424,7 @@ try{
      document.addEventListener('click',event=>{if(event.target.closest('.aq267-dialog a[download]'))event.preventDefault();});
     });
     await page.getByRole('dialog').getByRole('button',{name:'تحميل النسخة الأصلية',exact:true}).click();
-    await page.getByText('تم استرجاع الملف المحفوظ.',{exact:true}).waitFor();
+    await page.getByText('تم استرجاع الملف الأصلي والتحقق من مطابقته للبصمة المحفوظة.',{exact:true}).waitFor();
     const privateUrl=await page.getByRole('dialog').locator('a[download]').getAttribute('href');assert.ok(privateUrl?.startsWith('blob:'));
     assert.equal(await page.evaluate(async url=>(await (await fetch(url)).blob()).size,privateUrl),storageBytes.length,'download URL contains the saved private document');
     const uploadsBeforeDenial=storageAttempts;
