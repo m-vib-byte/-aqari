@@ -43,19 +43,14 @@ jobs:
           import { resolveGitHubPreviewDeploymentUrl } from './tests/github-preview-oidc.mjs';
           const deadline = Date.now() + 450_000;
           let lastError = 'not checked';
-          function retryable(message) {
-            return ![
-              'AQARI_EXPECTED_SHA is missing or invalid.',
-              'Preview deployment resolver configuration is incomplete.',
-              'GitHub API endpoint is missing or invalid.',
-              'GitHub API endpoint must be a clean HTTPS origin.',
-              'GitHub deployments payload is invalid.',
-              'GitHub deployment statuses payload is invalid.',
-              'Matching GitHub deployment found, but its status endpoint is invalid.',
-              'Matching GitHub deployment found, but its status endpoint is not an approved GitHub API host.',
-              'Matching GitHub deployment found, but its status endpoint is not an approved deployments statuses URL.',
-              'Matching GitHub deployment found, but the Preview URL is invalid or non-Preview.'
-            ].includes(message);
+          const retryableCodes = new Set([
+            'LOOKUP_DEPLOYMENTS_FAILED',
+            'LOOKUP_DEPLOYMENTS_HTTP',
+            'LOOKUP_STATUSES_FAILED',
+            'LOOKUP_STATUSES_HTTP'
+          ]);
+          function retryable(error) {
+            return retryableCodes.has(error?.code);
           }
           for (let attempt = 1; attempt <= 45 && Date.now() < deadline; attempt++) {
             try {
@@ -65,9 +60,9 @@ jobs:
               process.stdout.write(`AQARI_PREVIEW_RESOLVED_ATTEMPTS=${attempt}\n`);
               process.exit(0);
             } catch (error) {
-              lastError = error?.message || String(error);
+              lastError = `${error?.code || 'UNKNOWN'}: ${error?.message || String(error)}`;
               console.log(`Preview deployment resolver attempt ${attempt}: ${lastError}`);
-              if (!retryable(lastError)) throw error;
+              if (!retryable(error)) throw error;
               const remaining = deadline - Date.now();
               if (attempt < 45 && remaining > 0) {
                 await new Promise(resolve => setTimeout(resolve, Math.min(10_000, remaining)));

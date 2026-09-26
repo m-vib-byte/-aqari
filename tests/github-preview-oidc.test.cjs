@@ -108,8 +108,11 @@ test('resolver accepts exact-SHA deployment status environment_url', async () =>
   const calls = [];
   const resolved = await resolveGitHubPreviewDeploymentUrl({
     env: previewResolverEnv,
-    fetchApi: async url => {
+    fetchApi: async (url, options = {}) => {
       calls.push(url.toString());
+      assert.equal(options.headers.accept, 'application/vnd.github+json');
+      assert.equal(options.headers.authorization, ['Bearer', previewResolverEnv.GITHUB_TOKEN].join(' '));
+      assert.equal(options.headers['x-github-api-version'], '2022-11-28');
       if (url.pathname.endsWith('/deployments')) {
         assert.equal(url.searchParams.get('sha'), previewResolverEnv.AQARI_EXPECTED_SHA);
         assert.equal(url.searchParams.get('per_page'), '100');
@@ -229,5 +232,16 @@ test('resolver reports clear error when no exact-SHA deployment exists', async (
       fetchApi: async () => jsonResponse([])
     }),
     /No GitHub deployment is registered for the exact SHA/
+  );
+});
+
+test('resolver exposes machine-readable error codes', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  await assert.rejects(
+    resolveGitHubPreviewDeploymentUrl({
+      env: { ...previewResolverEnv, AQARI_EXPECTED_SHA: 'invalid' },
+      fetchApi: async () => assert.fail('invalid SHA should fail before network access')
+    }),
+    error => error.code === 'CONFIG_EXPECTED_SHA_INVALID'
   );
 });
