@@ -4,10 +4,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
+import {registeredUnitCount} from '../src/v267/components/live-dashboard-data.js';
 const source=readFileSync(new URL('../src/v267/live-stability-runtime.js',import.meta.url),'utf8');
 
 function runtime(document){
- const box={workspaceIcon,t,document:{readyState:'loading',addEventListener(){},...document},window:{},requestAnimationFrame(){}};
+ const box={workspaceIcon,t,registeredUnitCount,document:{readyState:'loading',addEventListener(){},documentElement:{lang:'ar'},...document},window:{},requestAnimationFrame(){}};
  vm.createContext(box);vm.runInContext(source.replace(/^import .*;$/gm,''),box);return box;
 }
 test('a paid amount mentioning due in its description is not reported as due',()=>{
@@ -41,4 +42,20 @@ test('opening a section deactivates home along with other pages',()=>{
  const box={workspaceIcon,t,document:{readyState:'loading',addEventListener(){},querySelectorAll:()=>states.map(s=>({classList:{remove:c=>s.delete(c)}}))}};
  vm.createContext(box);vm.runInContext(src,box);vm.runInContext('hideNativePages()',box);
  assert.ok(states.every(s=>!s.has('on')));
+});
+
+test('legacy property rows use canonical registered unit counts',()=>{
+ const dhahawi={textContent:'118 وحدة',dataset:{}},kabd={textContent:'5 وحدة',dataset:{}};
+ const row=(name,units)=>({closest:()=>null,querySelector:s=>s==='strong'?{textContent:name}:s==='.v199-property-units'?units:null});
+ const rows=[row('برج ضحاوي',dhahawi),row('برج كبد',kabd)];
+ const box=runtime({querySelectorAll:s=>s==='.v199-property-row'?rows:[]});
+ box.referenceReport={properties:[
+  {name:'برج ضحاوي',aqari_units:[{count:110}]},
+  {name:'برج كبد',aqari_units:[{count:0}]}
+ ]};
+ vm.runInContext('reconcileLegacyPropertyUnitCounts()',box);
+ assert.equal(dhahawi.textContent,'110 وحدة');
+ assert.equal(kabd.textContent,'0 وحدة');
+ assert.equal(dhahawi.dataset.aqCanonicalUnits,'true');
+ assert.equal(kabd.dataset.aqCanonicalUnits,'true');
 });

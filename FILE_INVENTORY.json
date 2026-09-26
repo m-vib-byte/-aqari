@@ -1507,8 +1507,8 @@
     },
     {
       "path": "src/v267/live-stability-runtime.js",
-      "sha256": "e727afcedc5a5943cc0fc8f24c99efc04938dbad881f4bbc2eb4c44deffda2db",
-      "size": 26232
+      "sha256": "31c8f5df63545335b09c034aa09f4183765faca24e67fe08c0f271fa03df7123",
+      "size": 26839
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
