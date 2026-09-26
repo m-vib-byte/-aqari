@@ -133,15 +133,20 @@ export async function resolveGitHubPreviewDeploymentUrl({
   deploymentsUrl.searchParams.set('sha', expectedSha);
   deploymentsUrl.searchParams.set('per_page', '100');
   deploymentsUrl.searchParams.set('page', '1');
-  const response = await fetchApi(deploymentsUrl, {
-    headers: {
-      accept: 'application/vnd.github+json',
-      authorization: ['Bearer', token].join(' '),
-      'x-github-api-version': '2022-11-28'
-    },
-    redirect: 'error',
-    signal: AbortSignal.timeout(10_000)
-  });
+  let response;
+  try {
+    response = await fetchApi(deploymentsUrl, {
+      headers: {
+        accept: 'application/vnd.github+json',
+        authorization: ['Bearer', token].join(' '),
+        'x-github-api-version': '2022-11-28'
+      },
+      redirect: 'error',
+      signal: AbortSignal.timeout(10_000)
+    });
+  } catch {
+    throw new Error('GitHub deployments lookup failed.');
+  }
   if (response.status !== 200) throw new Error(`GitHub deployments lookup failed (HTTP ${response.status}).`);
   let deployments;
   try { deployments = await readJson(response); } catch {

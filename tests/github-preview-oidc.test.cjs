@@ -112,6 +112,8 @@ test('resolver accepts exact-SHA deployment status environment_url', async () =>
       calls.push(url.toString());
       if (url.pathname.endsWith('/deployments')) {
         assert.equal(url.searchParams.get('sha'), previewResolverEnv.AQARI_EXPECTED_SHA);
+        assert.equal(url.searchParams.get('per_page'), '100');
+        assert.equal(url.searchParams.get('page'), '1');
         return jsonResponse([{
           sha: previewResolverEnv.AQARI_EXPECTED_SHA,
           statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses'
