@@ -4307,8 +4307,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "5fcf6b83f149d072afa23914a142dcd68ea0f82c2b72e95b1a4b3a0535b73d09",
-      "size": 58371
+      "sha256": "387b5b1eb82af5caffa6603d25d559e60cbd0be6a1fd9cff4a9d61a26b18db08",
+      "size": 58926
     },
     {
       "path": "tests/verified-upload.test.mjs",
