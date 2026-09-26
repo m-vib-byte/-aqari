@@ -3322,13 +3322,13 @@
     },
     {
       "path": "tests/github-preview-oidc.mjs",
-      "sha256": "1330699d5edb5551bfb901f67341237ab5a6235bd5435cfed8b473fa487ef8f9",
-      "size": 11811
+      "sha256": "a029685a0b1c7bd906eeb9816aa73d9691bbf0df58177c8f0698d50a1c4a3d60",
+      "size": 11835
     },
     {
       "path": "tests/github-preview-oidc.test.cjs",
-      "sha256": "facc28875c1df88c85a0f178fe42dba08bc349dcd0daed4a315f242523d437bd",
-      "size": 14536
+      "sha256": "022b4577c71e8fe50ba4a9031a3fcd3cec18bd2486a90e11a2e3269cb6665e2d",
+      "size": 14623
     },
     {
       "path": "tests/helpers/locale-vm.cjs",
