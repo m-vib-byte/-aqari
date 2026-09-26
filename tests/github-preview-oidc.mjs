@@ -96,7 +96,8 @@ const retryableResolverCodes = new Set([
   'LOOKUP_DEPLOYMENTS_HTTP',
   'LOOKUP_STATUSES_FAILED',
   'LOOKUP_STATUSES_HTTP',
-  'NO_EXACT_SHA_DEPLOYMENT'
+  'NO_EXACT_SHA_DEPLOYMENT',
+  'STATUS_URL_MISSING'
 ]);
 
 export function shouldRetryPreviewResolverError(error) {
