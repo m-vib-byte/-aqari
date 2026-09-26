@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 
 for(const [page,open,loader]of [
  ['contract-archive','openContractArchive','contractAdministration'],
- ['contract-templates','openContractTemplates','mountPropertyContractUpload']
+ ['contract-templates','openContractTemplates','mountRentalTemplateManager']
 ]){
  for(const connectionFailure of [false,true])test(`${page} recovers ${connectionFailure?'connection':'read'} failure from its own retry control`,async()=>{
   class Element{constructor(tag,text=''){this.tag=tag;this.textContent=text;this.children=[];}append(...items){this.children.push(...items);}replaceChildren(...items){this.children=items;}}
