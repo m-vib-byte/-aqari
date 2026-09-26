@@ -3677,8 +3677,8 @@
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
-      "sha256": "2a1b418aeb42f92d7eddcdb542b7c5a9acdea9615c23e8b1eb7a7c20a20de060",
-      "size": 4273
+      "sha256": "99dbffbfd25ac7b65cff20c7f1ae1b62dd7864bab75d8b40b5b9b8bda494d75b",
+      "size": 4259
     },
     {
       "path": "tests/v267-deposit-ledger.e2e.mjs",
@@ -4067,8 +4067,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "d6f1e6c158c80721b920eef538c56cf5e71d24889d766fbf0137d57283cb9add",
-      "size": 11387
+      "sha256": "a6211f90bb6a4a893aae0780c57743936bbcf8b63874741258da71a689efb7fd",
+      "size": 11776
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",
