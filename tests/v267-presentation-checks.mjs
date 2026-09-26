@@ -190,13 +190,16 @@ export async function checkV267AuthenticatedPresentation(page, { populated = fal
     assert.ok(stableFocus, 'quick-create focus must survive repeated presentation refreshes');
     await page.waitForFunction(() => window.AQARI_PROPERTY_EXPERIENCE?.canWrite() === true);
     await page.locator('#v201CreateMenu [data-v201-create="properties"]').click();
-    await page.waitForSelector('#modal.on[role="dialog"][aria-modal="true"]', { state:'visible' });
-    await page.waitForFunction(() => {
-      const controls=Array.from(document.querySelectorAll('#fields input,#fields select,#fields textarea'));
+    const propertyDialog='dialog.aq267-dialog[open][aria-label="إضافة عقار — ملف متكامل"]';
+    await page.waitForSelector(propertyDialog, { state:'visible' });
+    await page.waitForFunction(selector => {
+      const root=document.querySelector(selector);
+      if(!root)return false;
+      const controls=Array.from(root.querySelectorAll('.aq267-dialog-body input,.aq267-dialog-body select,.aq267-dialog-body textarea'));
       return controls.length > 0 && controls.every(control => Array.from(control.labels || []).some(label => label.textContent.trim()));
-    });
+    },propertyDialog);
     await page.keyboard.press('Escape');
-    await page.waitForSelector('#modal.on', { state:'hidden' });
+    await page.waitForSelector(propertyDialog, { state:'detached' });
     if(setPropertyWrite){
       setPropertyWrite(false);
       await page.evaluate(() => window.dispatchEvent(new Event('aqari:v267-controls-changed')));
