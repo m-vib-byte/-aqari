@@ -193,7 +193,6 @@ export async function resolveGitHubPreviewDeploymentUrl({
   deploymentsUrl.searchParams.set('sha', expectedSha);
   deploymentsUrl.searchParams.set('per_page', String(perPage));
   const matching = [];
-  let sawAnyDeployment = false;
   for (let page = 1; ; page++) {
     deploymentsUrl.searchParams.set('page', String(page));
     let response;
@@ -211,15 +210,11 @@ export async function resolveGitHubPreviewDeploymentUrl({
       throw resolverError('PAYLOAD_DEPLOYMENTS_INVALID', 'GitHub deployments payload is invalid.');
     }
     if (!deployments.length) break;
-    sawAnyDeployment = true;
     for (const deployment of deployments) {
       if (String(deployment?.sha || '').toLowerCase() === expectedSha) matching.push(deployment);
     }
     if (matching.length) break;
     if (deployments.length < perPage) break;
-  }
-  if (!sawAnyDeployment) {
-    throw resolverError('NO_EXACT_SHA_DEPLOYMENT', 'No GitHub deployment is registered for the exact SHA.');
   }
   if (!matching.length) throw resolverError('NO_EXACT_SHA_DEPLOYMENT', 'No GitHub deployment is registered for the exact SHA.');
   let foundStatusEndpoint = false;
