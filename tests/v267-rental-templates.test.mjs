@@ -181,25 +181,20 @@ test('clearing a custom label never queues an invalid draft and valid refill sav
  assert.equal(f.state.calls.some(x=>x.p_action==='save_draft'),false);label.value='  الاسم الجديد / New name  ';label.oninput();assert.equal(label.validationMessage,'');await manager.current.saver.flush();const saved=f.state.drafts.find(x=>x.id===original.id);assert.equal(saved.fields[0].key,'custom_stable_label');assert.equal(saved.fields[0].label,'  الاسم الجديد / New name  ');assert.deepEqual(saved.clauses,original.clauses);assert.equal(manager.current.saver.dirty,false);assert.equal(f.state.calls.filter(x=>x.p_action==='save_draft').length,1);manager.current.saver.dispose();
 });
 
-test('contracts home opens the real library, starter A4 editor and custom field entry without writing',async()=>{
- const original={id:'preserved-owner-draft',revision:4,kind:'custom-original',title:'الأصل',fields:[],clauses:[{title:'محفوظ',text:'النص الأصلي الكامل'}]},f=setup({manager:true,items:[],drafts:[original]});
+test('contracts home opens the property-scoped PDF contract uploader without template writes',async()=>{
+ const f=setup({manager:true,items:[]});
  globalThis.document.head=new El('head');globalThis.document.getElementById=()=>null;f.d.el=new El('main');f.d.body=f.target;f.d.session.bound.role='general_manager';f.d.close=()=>{};
- let libraryTask,contractTask,closed=false,opened=0;
- f.d.run=fn=>{libraryTask=Promise.resolve().then(fn);return libraryTask;};
- const rows={aqari_properties:[{id:'property-a',workspace_id:'test-workspace',name:'العقار الأصلي'}],aqari_units:[],aqari_leases:[],aqari_tenants:[]};
- const contracts={el:new El('main'),body:new El('div'),status:new El('p'),close(){closed=true;},run(fn){contractTask=Promise.resolve().then(fn);return contractTask;},navigate(fn){return this.run(fn);},session:{bound:{...f.d.session.bound},check(){assert.equal(closed,false);},request:async p=>p,client:{rpc(name){assert.equal(name,'aqari_read_state_v267');return {workspace_id:'test-workspace',payload:{contractsV202:[]}};},from(table){const query={select(){return this;},eq(){return this;},order(){return this;},range(){return Promise.resolve(rows[table]);}};return query;}}}};
+ let uploadTask,contractTask,closed=false,opened=0,received=null;
+ f.d.run=fn=>{uploadTask=Promise.resolve().then(fn);return uploadTask;};
+ const contracts={el:new El('main'),body:new El('div'),status:new El('p'),close(){closed=true;},run(fn){contractTask=Promise.resolve().then(fn);return contractTask;},navigate(fn){return this.run(fn);},session:{bound:{...f.d.session.bound},check(){assert.equal(closed,false);},request:async p=>p,client:{rpc(name){assert.equal(name,'aqari_read_state_v267');return {workspace_id:'test-workspace',payload:{contractsV202:[]}};},from(){return {select(){return this;},eq(){return this;},order(){return this;},range(){return Promise.resolve([]);}};}}}};
  const node=(tag,text)=>{const el=globalThis.document.createElement(tag);if(text!==undefined)el.textContent=text;return el;};
- const context={crypto,window:{AQARI_RENTAL_RECORDS:{primary:value=>value}},document:globalThis.document,node,translateStatic:value=>value,t:value=>value,groupRentalContractsByProperty,mountRentalTemplateManager,createPage:()=>++opened===1?contracts:f.d,createPrivateUrls:()=>({clear(){}}),guardPageImport:fn=>fn(),loadTemplates:async()=>({openContractTemplates:context.openContractTemplates})};
+ const context={crypto,window:{AQARI_RENTAL_RECORDS:{primary:value=>value}},document:globalThis.document,node,translateStatic:value=>value,t:value=>value,groupRentalContractsByProperty,mountPropertyContractUpload:async(_d,_target,options)=>{received=options;},createPage:()=>++opened===1?contracts:f.d,createPrivateUrls:()=>({clear(){}}),guardPageImport:fn=>fn(),loadTemplates:async()=>({openContractTemplates:context.openContractTemplates})};
  const clean=file=>readFileSync(new URL(file,import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
  vm.runInNewContext(clean('../src/v267/pages/contract-templates.js'),context);
  vm.runInNewContext(clean('../src/v267/pages/rental-contracts.js').replace("import('./contract-templates.js')",'loadTemplates()'),context);
  context.openRentalContracts({});await contractTask;
- const entry=button(contracts.body,'فتح مكتبة النماذج والحقول الخاصة');assert.ok(entry);assert.ok(all(contracts.body).some(el=>el.textContent.includes('تحرير صفحات A4 كبيرة')));assert.equal(all(contracts.body).filter(el=>el.dataset.propertyId).length,1);
- await entry.onclick();await libraryTask;assert.equal(closed,true);assert.equal(all(f.target).filter(el=>el.className==='aq267-template-starter-card').length,4);
- button(all(f.target).find(el=>el.className==='aq267-template-starter-card'),'فتح مسودة مستقلة').onclick();
- const form=all(f.target).find(el=>el.tag==='form'),paper=all(form).find(el=>el.className==='aq267-a4-sheet'),picker=all(form).find(el=>el.tag==='select'&&el.children.some(x=>x.textContent==='اختر المعلومة'));assert.ok(form.className.includes('is-paper-focused'));assert.equal(paper.style.transform,'scale(1)');
- button(f.target,'إدراج حقل').onclick();assert.equal(form.className.includes('is-paper-focused'),false);assert.equal(document.activeElement,picker);assert.equal(all(form).find(el=>el.className==='aq267-a4-sheet'),paper);
- button(f.target,'إدراج حقل').onclick();assert.equal(form.className.includes('is-paper-focused'),false);await f.d.beforeClose();assert.deepEqual(f.state.drafts,[original]);assert.equal(f.state.calls.some(call=>call.p_action!=='context'),false);
+ const entry=button(contracts.body,'فتح مكتبة النماذج والحقول الخاصة');assert.ok(entry);await entry.onclick();await uploadTask;
+ assert.equal(closed,true);assert.equal(received.propertyId,null);assert.equal(typeof received.onBack,'function');assert.equal(f.state.calls.some(call=>call.p_action!=='context'),false);
 });
 
 test('read-only template views do not offer the custom field editing shortcut',async()=>{

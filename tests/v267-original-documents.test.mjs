@@ -43,6 +43,12 @@ test('original upload verifies stored bytes and authoritative category before li
  assert.equal(f.calls.filter(x=>x.name==='POST').length,1);assert.equal(f.calls.filter(x=>x.name==='aqari_reserve_document').length,1);
  assert.equal(f.calls[0].args.p_document_type,'supporting_document');assert.ok(f.calls.findIndex(x=>x.name==='GET')<f.calls.findIndex(x=>x.name==='aqari_finalize_document'));
 });
+test('property contract PDFs retain the selected property ID in verified document metadata',async()=>{
+ const f=fixture(),save=createOriginalDocumentUpload(f.s),file=new File(['%PDF-1.7\\ncontract'],'property-contract.pdf');
+ const row=await save(file,{type:'property',ref:'property-reference',category:'property_contract',title:'ملف عقد العقار',propertyId:'property-id'});
+ assert.equal(row.metadata.property_id,'property-id');assert.equal(f.calls[0].args.p_metadata.property_id,'property-id');
+ await assert.rejects(save(file,{type:'property',ref:'property-reference',category:'property_contract',title:'ملف عقد العقار'}),/معرّف العقار/);
+});
 test('a saved record with another category or identity cannot confirm the original',async()=>{
  const f=fixture(),request=f.s.request;f.s.request=async q=>{const r=await request(q);return r?.status==='uploaded'?{...r,metadata:{category:'signed_lease'}}:r;};
  await assert.rejects(createOriginalDocumentUpload(f.s)(new File(['%PDF-1.7'],'x.pdf'),target));
