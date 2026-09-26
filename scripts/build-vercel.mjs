@@ -30,7 +30,8 @@ execFileSync(process.execPath,['scripts/install-v267-partner-owner-fields.mjs'],
 execFileSync(process.execPath,['scripts/install-v267-partner-property-finance.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-today-payments.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/install-v267-today-knet-details.mjs'],{stdio:'inherit'});
-execFileSync(process.execPath,['--test','tests/v267-today-payments.test.mjs','tests/v267-today-knet-details.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-knet-range-filters.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-today-payments.test.mjs','tests/v267-today-knet-details.test.mjs','tests/v267-knet-range-filters.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/property-ownership.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/maintenance-evidence.js'],{stdio:'inherit'});
 execFileSync(process.execPath,['--check','src/v267/pages/bank-reconciliation.js'],{stdio:'inherit'});
