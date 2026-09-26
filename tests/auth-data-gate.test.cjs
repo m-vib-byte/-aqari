@@ -942,7 +942,7 @@ test('first paint stays closed until the login shell exists and only unlock reve
   assert.ok(gateIndex > bodyIndex && readyIndex > gateIndex && legacyGateIndex > readyIndex && publicConfigIndex > legacyGateIndex && bridgeIndex > publicConfigIndex);
   assert.match(html, /html:not\(\.aqari-shell-ready\) body\{visibility:hidden!important\}/);
   assert.match(html, /html\.aqari-shell-ready:not\(\.aqari-auth-unlocked\) #aqariCloudGateV168\{visibility:visible!important;display:flex!important\}/);
-  assert.equal((html.match(/<script defer src="\//g) || []).length, 10);
+  assert.equal((html.match(/<script defer src="\//g) || []).length, 7);
   assert.match(html, /<script defer id="aqari-v198-secure-cloud-js" src="\/secure-auth-bridge\.js"><\/script>/);
   assert.match(bridge, /function showGate[\s\S]*?classList\.remove\('aqari-auth-unlocked'\)/);
   assert.match(bridge, /function safelySeal\(action\)\{[\s\S]*?try\{ action\(\); \}catch/);

@@ -86,7 +86,7 @@ body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36
 @media screen {
  :root {
   --aq-surface:#fffdf9;--aq-canvas:#f8f3e8;--aq-ink:#35291d;--aq-muted:#746554;
-  --aq-gold:#a37a32;--aq-gold-strong:#7a541d;--aq-honey:#e8d3a6;
+  --aq-gold:#74511c;--aq-gold-strong:#5d4013;--aq-honey:#e8d3a6;
   --aq-brown:#5b3b22;--aq-line:#ddcba8;--aq-danger:#8b251f;
  }
  body.aq-v199.aq-v267 {background:var(--aq-canvas)!important;color:var(--aq-ink)!important}
