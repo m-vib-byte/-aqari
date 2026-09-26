@@ -117,3 +117,18 @@ jobs:
           python -m unittest discover -s tests -p financial_archive_xlsx_test.py -v
           python -m unittest discover -s tests -p provider_webhook_test.py -v
           python -m unittest discover -s tests -p outbound_adapters_test.py -v
+
+  preview-build-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Exact Vercel preview build command
+        env:
+          VERCEL_ENV: preview
+        run: node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs && node scripts/install-botid-client.mjs
