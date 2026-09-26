@@ -36,13 +36,32 @@ jobs:
           node-version: 22
       - name: Verify Preview credential boundaries
         run: node --test tests/preview-access.test.cjs tests/github-preview-oidc.test.cjs
-      - name: Resolve branch Preview URL
+      - name: Resolve exact-SHA Preview URL from GitHub Deployments
         shell: bash
         run: |
-          branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
-          slug=$(printf '%s' "$branch" | tr '[:upper:]' '[:lower:]' | sed -E 's#[/_]+#-#g; s#[^a-z0-9-]+#-#g; s#-+#-#g; s#^-##; s#-$##')
-          test -n "$slug"
-          echo "AQARI_BASE_URL=https://${AQARI_PROJECT_SLUG}-git-${slug}-${AQARI_TEAM_SLUG}.vercel.app" >> "$GITHUB_ENV"
+          node --input-type=module <<'NODE' | tee -a "$GITHUB_ENV"
+          import { resolveGitHubPreviewDeploymentUrl, shouldRetryPreviewResolverError } from './tests/github-preview-oidc.mjs';
+          const deadline = Date.now() + 450_000;
+          let lastError = 'not checked';
+          for (let attempt = 1; attempt <= 45 && Date.now() < deadline; attempt++) {
+            try {
+              const resolved = await resolveGitHubPreviewDeploymentUrl();
+              console.log(`Resolved exact-SHA Preview URL: ${resolved}`);
+              process.stdout.write(`AQARI_BASE_URL=${resolved}\n`);
+              process.stdout.write(`AQARI_PREVIEW_RESOLVED_ATTEMPTS=${attempt}\n`);
+              process.exit(0);
+            } catch (error) {
+              lastError = `${error?.code || 'UNKNOWN'}: ${error?.message || String(error)}`;
+              console.log(`Preview deployment resolver attempt ${attempt}: ${lastError}`);
+              if (!shouldRetryPreviewResolverError(error)) throw error;
+              const remaining = deadline - Date.now();
+              if (attempt < 45 && remaining > 0) {
+                await new Promise(resolve => setTimeout(resolve, Math.min(10_000, remaining)));
+              }
+            }
+          }
+          throw new Error(`No Vercel Preview deployment URL is registered for the exact SHA. ${lastError}`);
+          NODE
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
       - name: Require protected Preview access

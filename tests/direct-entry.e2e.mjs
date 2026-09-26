@@ -4,7 +4,11 @@ import fs from 'node:fs';
 import { previewAccess, routePreviewRequest } from './preview-access.mjs';
 import { githubPreviewAccess } from './github-preview-oidc.mjs';
 
-const base = new URL(process.env.AQARI_BASE_URL || 'https://myaqari.com');
+const baseUrl = String(process.env.AQARI_BASE_URL || '').trim();
+if (!baseUrl) {
+  throw new Error('AQARI_BASE_URL is required; production fallback is not allowed.');
+}
+const base = new URL(baseUrl);
 assert.equal(base.protocol, 'https:');
 const access = process.env.AQARI_PREVIEW_AUTH === 'github-oidc'
   ? githubPreviewAccess(base)
