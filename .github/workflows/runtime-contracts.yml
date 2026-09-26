@@ -104,6 +104,7 @@ jobs:
           node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
           npm run test:completion --prefix staging-database/local-test
+          npm run test:completion:contracts --prefix staging-database/local-test
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
