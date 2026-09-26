@@ -191,7 +191,7 @@ test('resolver rejects deployment status endpoint path/query outside deployments
   const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
   for (const statusesUrl of [
     'https://api.github.com/user',
-    'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses?per_page=100',
+    'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses?state=success',
     'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/extra/statuses'
   ]) {
     let calls = 0;
@@ -207,6 +207,17 @@ test('resolver rejects deployment status endpoint path/query outside deployments
     );
     assert.equal(calls, 1, 'path/query validation must fail before requesting deployment statuses');
   }
+});
+
+test('resolver accepts deployment status endpoint with safe paging query', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  const resolved = await resolveGitHubPreviewDeploymentUrl({
+    env: previewResolverEnv,
+    fetchApi: async url => url.pathname.endsWith('/deployments')
+      ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/5/statuses?per_page=100&page=1' }])
+      : jsonResponse([{ environment_url: 'https://aqari-git-safe-query-m-vib-5421.vercel.app' }])
+  });
+  assert.equal(resolved, 'https://aqari-git-safe-query-m-vib-5421.vercel.app/');
 });
 
 test('resolver rejects invalid or production URLs on exact-SHA deployment statuses', async () => {
@@ -236,7 +247,7 @@ test('resolver reports clear error when no exact-SHA deployment exists', async (
 });
 
 test('resolver exposes machine-readable error codes', async () => {
-  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  const { resolveGitHubPreviewDeploymentUrl, shouldRetryPreviewResolverError } = await import('./github-preview-oidc.mjs');
   await assert.rejects(
     resolveGitHubPreviewDeploymentUrl({
       env: { ...previewResolverEnv, AQARI_EXPECTED_SHA: 'invalid' },
@@ -244,4 +255,6 @@ test('resolver exposes machine-readable error codes', async () => {
     }),
     error => error.code === 'CONFIG_EXPECTED_SHA_INVALID'
   );
+  assert.equal(shouldRetryPreviewResolverError({ code: 'NO_EXACT_SHA_DEPLOYMENT' }), true);
+  assert.equal(shouldRetryPreviewResolverError({ code: 'CONFIG_INCOMPLETE' }), false);
 });

@@ -91,6 +91,19 @@ function resolverError(code, message) {
   return new PreviewResolverError(code, message);
 }
 
+const retryableResolverCodes = new Set([
+  'LOOKUP_DEPLOYMENTS_FAILED',
+  'LOOKUP_DEPLOYMENTS_HTTP',
+  'LOOKUP_STATUSES_FAILED',
+  'LOOKUP_STATUSES_HTTP',
+  'NO_EXACT_SHA_DEPLOYMENT',
+  'NO_EXACT_SHA_MATCH'
+]);
+
+export function shouldRetryPreviewResolverError(error) {
+  return retryableResolverCodes.has(error?.code);
+}
+
 function parseSha(value) {
   const sha = String(value || '').trim().toLowerCase();
   if (!/^[a-f0-9]{40}$/.test(sha)) throw resolverError('CONFIG_EXPECTED_SHA_INVALID', 'AQARI_EXPECTED_SHA is missing or invalid.');
@@ -125,6 +138,13 @@ function selectPreviewUrl(urlCandidate, project, team) {
   if (hostname === 'myaqari.com' || hostname === 'www.myaqari.com' || hostname === `${project}.vercel.app`) return null;
   if (!hostname.startsWith(`${project}-git-`) || !hostname.endsWith(`-${team}.vercel.app`)) return null;
   return url.toString();
+}
+
+function hasSafeStatusesQuery(searchParams) {
+  for (const [key, value] of searchParams) {
+    if (!['page', 'per_page'].includes(key) || !/^\d+$/.test(value)) return false;
+  }
+  return true;
 }
 
 export async function resolveGitHubPreviewDeploymentUrl({
@@ -187,7 +207,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
         statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.hash) {
       throw resolverError('STATUS_ENDPOINT_UNAPPROVED_HOST', 'Matching GitHub deployment found, but its status endpoint is not an approved GitHub API host.');
     }
-    if (statusesEndpoint.search || !statusesPathPattern.test(statusesEndpoint.pathname)) {
+    if (!hasSafeStatusesQuery(statusesEndpoint.searchParams) || !statusesPathPattern.test(statusesEndpoint.pathname)) {
       throw resolverError('STATUS_ENDPOINT_UNAPPROVED_URL', 'Matching GitHub deployment found, but its status endpoint is not an approved deployments statuses URL.');
     }
     let statusResponse;
