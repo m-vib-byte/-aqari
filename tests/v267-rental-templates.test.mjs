@@ -222,3 +222,8 @@ test('editor actions precede the sheets and repagination preserves long text and
 test('readonly versions allow display zoom and page arrangement but disable stored typography edits',async()=>{
  const f=setup({manager:true}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(template,{readonly:true});assert.equal(all(manager.form).find(x=>x.name==='paper_zoom').disabled,false);assert.equal(button(manager.form,'توزيع الصفحات').disabled,false);assert.equal(button(manager.form,'مكتبة النماذج').disabled,false);assert.equal(button(manager.form,'إظهار أدوات التحرير').disabled,false);assert.equal(all(manager.form).find(x=>x.name==='document_font').disabled,true);manager.current.saver.dispose();
 });
+
+test('mobile preview activation is deduplicated and offers an inline retry after a failed PDF request',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});let requests=0;globalThis.fetch=async()=>{requests++;if(requests===1)return new Response('unavailable',{status:503});return new Response(new Blob(['%PDF-1.7 retry'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};
+ const preview=button(manager.form,'معاينة النسخة النهائية');await assert.rejects(preview.onpointerup({type:'pointerup',pointerType:'touch'}),/تعذر إنشاء PDF/);await preview.onclick({type:'click'});assert.equal(requests,1);const retry=button(manager.form,'إعادة محاولة المعاينة');assert.ok(retry);await retry.onclick();assert.equal(requests,2);assert.ok(all(manager.form).find(el=>el.tag==='iframe'));manager.current.saver.dispose();
+});
