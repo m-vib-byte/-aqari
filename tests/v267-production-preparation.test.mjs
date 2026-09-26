@@ -67,7 +67,10 @@ test('production Auth callbacks allow only the exact myaqari.com login callback'
   }
 });
 test('tenant, partner and password recovery retain explicit production project and stage guards',()=>{
-  for(const path of ['v267-tenant-portal.js','v267-partner-portal.js','v267-reset-password.js']){
+  const tenant=patch.get('v267-tenant-portal.js');
+  assert.match(tenant,/releaseSource=Object\.freeze\(\{preview:'https:\/\/ofgmcsmxmdswlovsckqs\.supabase\.co',production:'https:\/\/djkpkkgoibruaezdrchb\.supabase\.co'\}\)/);
+  assert.match(tenant,/releaseSource\[cfg\.releaseStage\]!==cfg\.supabaseUrl/);
+  for(const path of ['v267-partner-portal.js','v267-reset-password.js']){
     assert.ok(patch.get(path).includes(PRODUCTION_PROJECT));assert.ok(!patch.get(path).includes(PREVIEW_PROJECT));assert.match(patch.get(path),/releaseStage!==?'production'/);
   }
   assert.ok(patch.get('v267-partner-portal.js').includes("redirect!=='"+PRODUCTION_REDIRECT+"'"));
@@ -83,7 +86,7 @@ test('Vercel preparation stage selects production only when domain trial is disa
     try{
       const paths=new Set(['tests/exact-navigation-events.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs','src/v267/components/exact-navigation-events.js','src/v267/components/touch-navigation.js','v209-global-search.js',...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
       for(const path of paths){const target=join(dir,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,read(path));}
-      writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary));
+      writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary).replace("execFileSync(process.execPath,['--test','tests/bot-protection.test.mjs'],{stdio:'inherit'});",''));
       const trial=JSON.parse(read('config/domain-trial-target.json'));trial.enabled=false;
       writeFileSync(join(dir,'config/domain-trial-target.json'),JSON.stringify(trial));
       const result=spawnSync(process.execPath,['scripts/build-vercel.mjs'],{cwd:dir,encoding:'utf8',env:{...process.env,VERCEL_ENV:environment}});
