@@ -1302,8 +1302,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "7467ef13eaa15e309b5d493d84751b539c47b1db53f5628b255e4b8a427aa012",
-      "size": 5021
+      "sha256": "7a3e9b6741680b7182cd1104adf850a0ca5d9f970052ccc21ab38d333613e73a",
+      "size": 5019
     },
     {
       "path": "src/v267/components/page.js",
