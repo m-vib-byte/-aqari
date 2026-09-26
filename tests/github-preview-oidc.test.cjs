@@ -277,5 +277,6 @@ test('resolver exposes machine-readable error codes', async () => {
     error => error.code === 'CONFIG_EXPECTED_SHA_INVALID'
   );
   assert.equal(shouldRetryPreviewResolverError({ code: 'NO_EXACT_SHA_DEPLOYMENT' }), true);
+  assert.equal(shouldRetryPreviewResolverError({ code: 'STATUS_URL_MISSING' }), true);
   assert.equal(shouldRetryPreviewResolverError({ code: 'CONFIG_INCOMPLETE' }), false);
 });
