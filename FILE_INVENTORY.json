@@ -32,8 +32,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "db60196ccb6056596fe2f3d2dde206b3cb82acddcba6804841a9692bd956dbc3",
-      "size": 7881
+      "sha256": "41fc65a7251e300e952a62023313d8334b4e17631d59c7ac76acc7a47d15dbbe",
+      "size": 7805
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
@@ -3302,8 +3302,8 @@
     },
     {
       "path": "tests/direct-entry.e2e.mjs",
-      "sha256": "45b2f6a7093de47a42abec0faf9e44e622802c93e8a85e72706018fcc90ea08a",
-      "size": 3631
+      "sha256": "c1ac1e9522d7187ce1e28c8c1eaf36e19ae1a0861359af97581180ae02608dcd",
+      "size": 3756
     },
     {
       "path": "tests/financial-evidence.test.mjs",
@@ -3322,13 +3322,13 @@
     },
     {
       "path": "tests/github-preview-oidc.mjs",
-      "sha256": "ab859d3b8da76bf72cc50b52562dfd966bfa585e732260fa1cb62d584260415a",
-      "size": 3699
+      "sha256": "1330699d5edb5551bfb901f67341237ab5a6235bd5435cfed8b473fa487ef8f9",
+      "size": 11811
     },
     {
       "path": "tests/github-preview-oidc.test.cjs",
-      "sha256": "3d193619ec40d44c0e30b5355811a9de88e138070acb25032e83f1b06f89b2fb",
-      "size": 5419
+      "sha256": "facc28875c1df88c85a0f178fe42dba08bc349dcd0daed4a315f242523d437bd",
+      "size": 14536
     },
     {
       "path": "tests/helpers/locale-vm.cjs",
