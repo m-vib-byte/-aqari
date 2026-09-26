@@ -4,9 +4,6 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [main]
-  push:
-    branches:
-      - fix/v267-jsonb-readback
 
 concurrency:
   group: aqari-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -17,16 +14,15 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
+      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       AQARI_PROJECT_SLUG: aqari
       AQARI_TEAM_SLUG: m-vib-5421
-      AQARI_PREVIEW_AUTH: automation-bypass
-      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      AQARI_RELEASE_BRANCH: fix/property-contract-pdf-document-type-20260926
-      AQARI_RELEASE_BRANCH_URL: https://aqari-git-fix-property-contract-pdf-document-9e3969-m-vib-5421.vercel.app/
+      AQARI_PREVIEW_AUTH: github-oidc
+      AQARI_PREVIEW_OIDC_DIAGNOSTICS: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,26 +36,31 @@ jobs:
           node-version: 22
       - name: Verify Preview credential boundaries
         run: node --test tests/preview-access.test.cjs tests/github-preview-oidc.test.cjs
-      - name: Resolve Vercel Preview URL
+      - name: Resolve exact-SHA Preview URL from GitHub Deployments
         shell: bash
         run: |
-          node --input-type=module <<'NODE'
-          import { appendFileSync } from 'node:fs';
-          const branch=process.env.GITHUB_HEAD_REF||process.env.GITHUB_REF_NAME||'';
-          const project=process.env.AQARI_PROJECT_SLUG,team=process.env.AQARI_TEAM_SLUG;
-          let base='';
-          if(branch===process.env.AQARI_RELEASE_BRANCH)base=process.env.AQARI_RELEASE_BRANCH_URL||'';
-          if(!base){
-            const slug=branch.toLowerCase().replace(/[\/_]+/g,'-').replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
-            if(!slug)throw Error('Preview branch slug is empty.');
-            base=`https://${project}-git-${slug}-${team}.vercel.app/`;
+          node --input-type=module <<'NODE' | tee -a "$GITHUB_ENV"
+          import { resolveGitHubPreviewDeploymentUrl, shouldRetryPreviewResolverError } from './tests/github-preview-oidc.mjs';
+          const deadline = Date.now() + 450_000;
+          let lastError = 'not checked';
+          for (let attempt = 1; attempt <= 45 && Date.now() < deadline; attempt++) {
+            try {
+              const resolved = await resolveGitHubPreviewDeploymentUrl();
+              console.log(`Resolved exact-SHA Preview URL: ${resolved}`);
+              process.stdout.write(`AQARI_BASE_URL=${resolved}\n`);
+              process.stdout.write(`AQARI_PREVIEW_RESOLVED_ATTEMPTS=${attempt}\n`);
+              process.exit(0);
+            } catch (error) {
+              lastError = `${error?.code || 'UNKNOWN'}: ${error?.message || String(error)}`;
+              console.log(`Preview deployment resolver attempt ${attempt}: ${lastError}`);
+              if (!shouldRetryPreviewResolverError(error)) throw error;
+              const remaining = deadline - Date.now();
+              if (attempt < 45 && remaining > 0) {
+                await new Promise(resolve => setTimeout(resolve, Math.min(10_000, remaining)));
+              }
+            }
           }
-          let url;try{url=new URL(base);}catch{throw Error('Resolved Preview URL is invalid.');}
-          if(url.protocol!=='https:'||url.username||url.password||url.port||url.search||url.hash||url.pathname!=='/'||
-             !url.hostname.startsWith(project+'-')||!url.hostname.endsWith('-'+team+'.vercel.app'))
-            throw Error('Resolved Preview URL is outside the approved Vercel project scope.');
-          appendFileSync(process.env.GITHUB_ENV,'AQARI_BASE_URL='+url.origin+'/\n');
-          console.log('Resolved Vercel Preview URL for branch '+branch+'.');
+          throw new Error(`No Vercel Preview deployment URL is registered for the exact SHA. ${lastError}`);
           NODE
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
@@ -67,19 +68,19 @@ jobs:
         run: |
           test -n "$AQARI_BASE_URL"
           test -n "$AQARI_EXPECTED_SHA"
-          test "$AQARI_PREVIEW_AUTH" = 'automation-bypass'
-          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
+          test "$AQARI_PREVIEW_AUTH" = 'github-oidc'
+          node --input-type=module -e "import { createGitHubOidcTokenProvider } from './tests/github-preview-oidc.mjs'; await createGitHubOidcTokenProvider()(); console.log('Short-lived GitHub Preview identity acquired.');"
       - name: Wait for matching Vercel Preview
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          import { previewAccess } from './tests/preview-access.mjs';
+          import { githubPreviewAccess } from './tests/github-preview-oidc.mjs';
           // Keep this gate fail-closed: never follow an authentication redirect,
           // print the automation credential, or accept an unrelated SHA in JSON.
           async function waitForMatchingPreview() {
             const { AQARI_BASE_URL: base, AQARI_EXPECTED_SHA: expectedSha,
               AQARI_PROJECT_SLUG: project, AQARI_TEAM_SLUG: team } = process.env;
-            if (process.env.AQARI_PREVIEW_AUTH !== 'automation-bypass' || !process.env.VERCEL_AUTOMATION_BYPASS_SECRET || !/^[a-f0-9]{40}$/.test(expectedSha || '')) {
+            if (process.env.AQARI_PREVIEW_AUTH !== 'github-oidc' || !/^[a-f0-9]{40}$/.test(expectedSha || '')) {
               throw new Error('Preview gate configuration is incomplete.');
             }
             let url;
@@ -88,12 +89,12 @@ jobs:
             }
             if (!project || !team || url.protocol !== 'https:' || url.username ||
                 url.password || url.port || url.search || url.hash || url.pathname !== '/' ||
-                !url.hostname.startsWith(`${project}-`) ||
+                !url.hostname.startsWith(`${project}-git-`) ||
                 !url.hostname.endsWith(`-${team}.vercel.app`)) {
               throw new Error('Preview gate requires this project branch Preview URL.');
             }
             url.pathname = '/api/production-meta';
-            const access = previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
+            const access = githubPreviewAccess(base);
             const deadline = Date.now() + 450_000;
             let lastState = 'not checked';
             for (let attempt = 1; attempt <= 45 && Date.now() < deadline; attempt++) {
@@ -111,7 +112,7 @@ jobs:
                 const status = response.status;
                 console.log(`Preview metadata attempt ${attempt}: HTTP ${status}.`);
                 if ((status >= 300 && status < 400) || status === 401 || status === 403) {
-                  throw new Error(`Preview access not authorized (HTTP ${status}). Check the repository's Vercel automation bypass secret and Preview environment; no redirect was followed.`);
+                  throw new Error(`Preview access not authorized (HTTP ${status}). Check this workflow's GitHub OIDC trusted-source claims and Preview environment; no redirect was followed.`);
                 }
                 if (status === 200) {
                   let metadata;
