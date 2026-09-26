@@ -227,3 +227,8 @@ test('editor actions precede the sheets and repagination preserves long text and
 test('readonly versions allow display zoom and page arrangement but disable stored typography edits',async()=>{
  const f=setup({manager:true}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor(template,{readonly:true});assert.equal(all(manager.form).find(x=>x.name==='paper_zoom').disabled,false);assert.equal(button(manager.form,'توزيع الصفحات').disabled,false);assert.equal(button(manager.form,'مكتبة النماذج').disabled,false);assert.equal(button(manager.form,'إظهار أدوات التحرير').disabled,false);assert.equal(all(manager.form).find(x=>x.name==='document_font').disabled,true);manager.current.saver.dispose();
 });
+
+test('final preview exposes a retry action after a transient mobile-safe preview failure',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});let attempts=0;globalThis.fetch=async()=>{attempts++;if(attempts===1)throw Error('temporary network failure');return new Response(new Blob(['%PDF-1.7 retry'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};
+ await assert.rejects(button(manager.form,'معاينة النسخة النهائية').onclick(),/temporary network failure/);const retry=button(manager.form,'إعادة محاولة المعاينة');assert.ok(retry);await retry.onclick();assert.equal(attempts,2);assert.ok(all(manager.form).some(item=>item.tag==='iframe'));manager.current.saver.dispose();
+});

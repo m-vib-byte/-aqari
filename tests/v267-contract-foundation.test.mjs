@@ -57,3 +57,22 @@ test('historical statement-import drafts do not reserve the operational unit',()
  const ordinary={...historical,id:'draft-2',source:'v267-cloud',contract_no:'DRAFT-2'};
  assert.equal(activeUnitConflict([ordinary],candidate)?.contract_no,'DRAFT-2');
 });
+
+
+test('contract foundation uses a responsive workspace and queues draft autosaves without bypassing final validation',()=>{
+ const source=readFileSync(new URL('../src/v267/pages/contract-foundation.js',import.meta.url),'utf8');
+ assert.match(source,/aq267-contract-foundation-workspace/);
+ assert.match(source,/form\.noValidate=true/);
+ assert.match(source,/const scheduleAutosave=/);
+ assert.match(source,/await patchPreparation\(patch,'حفظ تلقائي لمسودة تأسيس العقد'\)/);
+ assert.match(source,/await verifyBinding\(floor\.value\)/);
+ assert.match(source,/if\(!preparation\.tenantId/);
+});
+
+test('signed-contract uploads provide a PDF drag-and-drop surface while keeping verified upload flow',()=>{
+ const source=readFileSync(new URL('../src/v267/pages/rental-contracts.js',import.meta.url),'utf8');
+ assert.match(source,/aq267-contract-upload-dropzone/);
+ assert.match(source,/drop\.ondrop=/);
+ assert.match(source,/validateDocument\(chosen,26214400\)/);
+ assert.match(source,/createVerifiedUpload\(d\.session/);
+});
