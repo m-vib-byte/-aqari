@@ -92,7 +92,7 @@ jobs:
             }
             if (!project || !team || url.protocol !== 'https:' || url.username ||
                 url.password || url.port || url.search || url.hash || url.pathname !== '/' ||
-                !url.hostname.startsWith(`${project}-git-`) ||
+                !url.hostname.startsWith(`${project}-`) ||
                 !url.hostname.endsWith(`-${team}.vercel.app`)) {
               throw new Error('Preview gate requires this project branch Preview URL.');
             }
