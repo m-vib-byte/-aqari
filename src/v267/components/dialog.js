@@ -30,8 +30,10 @@ export function createDialog(title,{localized=true,page=false}={}){
  const boundary=()=>{try{session.check();}catch{closeDialog();}};
  window.addEventListener('aqari:auth-boundary',boundary);
  const escape=event=>{if(!page&&event.key==='Escape'&&!event.defaultPrevented){event.preventDefault();requestClose();}};
- document.addEventListener('keydown',escape,true);
- onDispose(()=>document.removeEventListener('keydown',escape,true));
+ if(typeof document.addEventListener==='function'){
+  document.addEventListener('keydown',escape,true);
+  onDispose(()=>document.removeEventListener?.('keydown',escape,true));
+ }
  el.addEventListener('close',dispose,{once:true});
  el.addEventListener('cancel',event=>{event.preventDefault();requestClose();});
  document.body.append(el);if(page){document.body.classList.add('aq267-page-open');el.focus?.({preventScroll:true});}else el.showModal();active=el;
