@@ -127,6 +127,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
     throw new Error('Preview deployment resolver configuration is incomplete.');
   }
   const apiBase = parseApiBase(env.GITHUB_API_URL);
+  const expectedStatusesPath = `/repos/${repository}/deployments/`;
   const deploymentsUrl = new URL(`/repos/${repository}/deployments`, apiBase);
   deploymentsUrl.searchParams.set('sha', expectedSha);
   deploymentsUrl.searchParams.set('per_page', '100');
@@ -161,7 +162,9 @@ export async function resolveGitHubPreviewDeploymentUrl({
       throw new Error('Matching GitHub deployment found, but its status endpoint is invalid.');
     }
     if (statusesEndpoint.origin !== apiBase.origin || statusesEndpoint.protocol !== 'https:' ||
-        statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.hash) {
+        statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.search ||
+        statusesEndpoint.hash || !statusesEndpoint.pathname.startsWith(expectedStatusesPath) ||
+        !statusesEndpoint.pathname.endsWith('/statuses')) {
       throw new Error('Matching GitHub deployment found, but its status endpoint is not an approved GitHub API host.');
     }
     let statusResponse;

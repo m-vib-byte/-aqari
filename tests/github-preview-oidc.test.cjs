@@ -130,7 +130,7 @@ test('resolver accepts exact-SHA deployment status target_url', async () => {
   const resolved = await resolveGitHubPreviewDeploymentUrl({
     env: previewResolverEnv,
     fetchApi: async url => url.pathname.endsWith('/deployments')
-      ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/statuses' }])
+      ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/2/statuses' }])
       : jsonResponse([{ environment_url: null, target_url: 'https://aqari-git-pr-350-m-vib-5421.vercel.app' }])
   });
   assert.equal(resolved, 'https://aqari-git-pr-350-m-vib-5421.vercel.app/');
@@ -153,7 +153,7 @@ test('resolver reports statuses without URL on exact-SHA deployment', async () =
     resolveGitHubPreviewDeploymentUrl({
       env: previewResolverEnv,
       fetchApi: async url => url.pathname.endsWith('/deployments')
-        ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/statuses' }])
+        ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/3/statuses' }])
         : jsonResponse([{ state: 'success' }, { environment_url: '' }, { target_url: null }])
     }),
     /statuses do not expose a Preview URL/
@@ -182,6 +182,19 @@ test('resolver rejects deployment status endpoint outside approved GitHub API ho
   );
 });
 
+test('resolver rejects deployment status endpoint path/query outside deployments statuses API', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  for (const statusesUrl of ['https://api.github.com/user', 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses?per_page=100']) {
+    await assert.rejects(
+      resolveGitHubPreviewDeploymentUrl({
+        env: previewResolverEnv,
+        fetchApi: async () => jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: statusesUrl }])
+      }),
+      /status endpoint is not an approved GitHub API host/
+    );
+  }
+});
+
 test('resolver rejects invalid or production URLs on exact-SHA deployment statuses', async () => {
   const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
   for (const invalid of ['https://myaqari.com', 'https://aqari.vercel.app', 'https://example.com']) {
@@ -189,7 +202,7 @@ test('resolver rejects invalid or production URLs on exact-SHA deployment status
       resolveGitHubPreviewDeploymentUrl({
         env: previewResolverEnv,
         fetchApi: async url => url.pathname.endsWith('/deployments')
-          ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/statuses' }])
+          ? jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/4/statuses' }])
           : jsonResponse([{ environment_url: invalid }])
       }),
       /Preview URL is invalid or non-Preview/
