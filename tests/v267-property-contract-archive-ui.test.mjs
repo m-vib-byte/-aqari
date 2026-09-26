@@ -15,7 +15,7 @@ test('archive offers the next 100 contracts without replacing the first page',as
  const context={node,field,t:x=>x,createOriginalDocumentUpload:()=>()=>{},originalDocument:()=>{},
   createTemplateLogoContext:()=>({getAccess:async()=>({canUpload:true}),listProperties:async()=>[property]}),
   listPropertyContractArchive:async(_session,_property,offset)=>{offsets.push(offset);const count=offset===0?100:5;
-   return {items:Array.from({length:count},(_,index)=>({id:String(index+offset),title:'عقد',created_at:'2026-09-26T00:00:00Z'})),hasMore:offset===0,nextOffset:offset+100};},
+   return {items:Array.from({length:count},(_,index)=>({id:String(index+offset),title:'عقد',original_filename:'عقد صوري.pdf',created_at:'2026-09-26T00:00:00Z'})),hasMore:offset===0,nextOffset:offset+100};},
   readPropertyContractArchive:async()=>new Blob(['%PDF-1.7']),URL};
  vm.createContext(context);
  const source=fs.readFileSync('src/v267/components/property-contract-upload.js','utf8')
@@ -28,6 +28,7 @@ test('archive offers the next 100 contracts without replacing the first page',as
  refresh.onclick();await d.pending;
  assert.equal(children(target).filter(element=>element.tag==='button'&&element._text==='عرض PDF المحفوظ').length,100);
  assert.equal(more.hidden,false);
+ assert.ok(children(target).some(element=>element.tag==='span'&&element.textContent.includes('عقد صوري.pdf')));
  more.onclick();await d.pending;
  assert.equal(children(target).filter(element=>element.tag==='button'&&element._text==='عرض PDF المحفوظ').length,105);
  assert.equal(more.hidden,true);assert.deepEqual(offsets,[0,100]);
