@@ -169,7 +169,7 @@ test('resolver rejects deployments that do not match the expected SHA', async ()
       env: previewResolverEnv,
       fetchApi: async () => jsonResponse([{ sha: 'b'.repeat(40), statuses_url: 'https://api.github.com/statuses' }])
     }),
-    /none match the exact SHA/
+    /No GitHub deployment is registered for the exact SHA/
   );
 });
 

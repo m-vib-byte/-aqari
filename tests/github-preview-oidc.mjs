@@ -96,8 +96,7 @@ const retryableResolverCodes = new Set([
   'LOOKUP_DEPLOYMENTS_HTTP',
   'LOOKUP_STATUSES_FAILED',
   'LOOKUP_STATUSES_HTTP',
-  'NO_EXACT_SHA_DEPLOYMENT',
-  'NO_EXACT_SHA_MATCH'
+  'NO_EXACT_SHA_DEPLOYMENT'
 ]);
 
 export function shouldRetryPreviewResolverError(error) {
@@ -221,7 +220,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
   if (!sawAnyDeployment) {
     throw resolverError('NO_EXACT_SHA_DEPLOYMENT', 'No GitHub deployment is registered for the exact SHA.');
   }
-  if (!matching.length) throw resolverError('NO_EXACT_SHA_MATCH', 'GitHub deployments were found, but none match the exact SHA.');
+  if (!matching.length) throw resolverError('NO_EXACT_SHA_DEPLOYMENT', 'No GitHub deployment is registered for the exact SHA.');
   let foundStatusEndpoint = false;
   let foundStatusUrl = false;
   for (const deployment of matching) {
