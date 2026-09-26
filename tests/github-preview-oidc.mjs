@@ -147,6 +147,20 @@ function hasSafeStatusesQuery(searchParams) {
   return true;
 }
 
+function isApprovedStatusesPath(pathname, owner, repo) {
+  const segments = pathname.split('/').filter(Boolean);
+  if (segments.length !== 6 || segments[0] !== 'repos' || segments[3] !== 'deployments' || segments[5] !== 'statuses') {
+    return false;
+  }
+  try {
+    return decodeURIComponent(segments[1]) === owner &&
+      decodeURIComponent(segments[2]) === repo &&
+      /^\d+$/.test(segments[4]);
+  } catch {
+    return false;
+  }
+}
+
 function githubApiRequestOptions(token) {
   return {
     headers: {
@@ -175,8 +189,6 @@ export async function resolveGitHubPreviewDeploymentUrl({
   const encodedOwner = encodeURIComponent(owner);
   const encodedRepo = encodeURIComponent(repo);
   const apiBase = parseApiBase(env.GITHUB_API_URL);
-  const escapedRepository = `${owner}/${repo}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const statusesPathPattern = new RegExp(`^/repos/${escapedRepository}/deployments/\\d+/statuses$`);
   const perPage = 100;
   const deploymentsUrl = new URL(`/repos/${encodedOwner}/${encodedRepo}/deployments`, apiBase);
   deploymentsUrl.searchParams.set('sha', expectedSha);
@@ -224,7 +236,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
         statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.hash) {
       throw resolverError('STATUS_ENDPOINT_UNAPPROVED_HOST', 'Matching GitHub deployment found, but its status endpoint is not an approved GitHub API host.');
     }
-    if (!hasSafeStatusesQuery(statusesEndpoint.searchParams) || !statusesPathPattern.test(statusesEndpoint.pathname)) {
+    if (!hasSafeStatusesQuery(statusesEndpoint.searchParams) || !isApprovedStatusesPath(statusesEndpoint.pathname, owner, repo)) {
       throw resolverError('STATUS_ENDPOINT_UNAPPROVED_URL', 'Matching GitHub deployment found, but its status endpoint is not an approved deployments statuses URL.');
     }
     let statusResponse;
