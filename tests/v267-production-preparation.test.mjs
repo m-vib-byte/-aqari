@@ -88,7 +88,9 @@ test('Vercel preparation stage selects production only when domain trial is disa
       for(const path of paths){const target=join(dir,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,read(path));}
       writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary)
         .replace("execFileSync(process.execPath,['--test','tests/bot-protection.test.mjs'],{stdio:'inherit'});",'')
-        .replace("execFileSync(process.execPath,['--test','tests/v267-property-contract-archive.test.mjs','tests/v267-property-contract-archive-ui.test.mjs'],{stdio:'inherit'});",''));
+        .replace("execFileSync(process.execPath,['--test','tests/v267-property-contract-archive.test.mjs','tests/v267-property-contract-archive-ui.test.mjs'],{stdio:'inherit'});",'')
+        .replace("execFileSync(process.execPath,['--test','tests/v267-contract-admin-recovery.test.mjs','tests/v267-contract-archive.test.mjs','tests/operational-report-request.test.mjs','tests/v267-contract-view.test.mjs','tests/v267-more-navigation.test.mjs','tests/exact-navigation-events.test.mjs','tests/search-events.test.mjs','tests/assistant-request.test.mjs','tests/v267-domain-trial-target.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs'],{stdio:'inherit'});",'')
+        .replace("execFileSync(process.execPath,['--test','tests/v267-contract-execution-pdf.test.mjs','tests/v267-contract-foundation-prefill.test.mjs','tests/v267-document-cycle-entry.test.mjs'],{stdio:'inherit'});",''));
       const trial=JSON.parse(read('config/domain-trial-target.json'));trial.enabled=false;
       writeFileSync(join(dir,'config/domain-trial-target.json'),JSON.stringify(trial));
       const result=spawnSync(process.execPath,['scripts/build-vercel.mjs'],{cwd:dir,encoding:'utf8',env:{...process.env,VERCEL_ENV:environment}});
