@@ -4067,8 +4067,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "42b8f43b80c20ec240f1a7a8f3ee96fb00caa05e2159a65d424ec393b4089896",
-      "size": 11968
+      "sha256": "615354bd9c5eb836c5a38a0368ea1960a42de58480df82565483760b5344bcb9",
+      "size": 12739
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",
