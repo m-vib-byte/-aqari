@@ -257,8 +257,8 @@
     },
     {
       "path": "api/owner-assistant.js",
-      "size": 9370,
-      "sha256": "6d7f973c742a4bb236a2ee76a78c3f97f3aaf797cae7db010137386f47bf0534"
+      "size": 9477,
+      "sha256": "278134322259e3bb19b57fc9f21d05d4718399bb44e30ac1d7d756a3b0ee4017"
     },
     {
       "path": "api/owner-report-delivery.js",
@@ -922,8 +922,8 @@
     },
     {
       "path": "package.json",
-      "sha256": "a71d4ab7a0e56224b80dffb55b5ceeec2a25c4c4554b48cfce655891ba714259",
-      "size": 1055
+      "sha256": "736fc743590d4f9ce38f67ea6d707166827522c4f58e4841b9ade5ad4ef429d7",
+      "size": 1102
     },
     {
       "path": "partner.html",
@@ -1022,8 +1022,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "1ad7e108d1d0332a306895830ab74e984bdaacb1e47050810e475227f1c71672",
-      "size": 10813
+      "sha256": "c8e23da5248452918a10ba06a81798f4ffb770798882c125cb26845e2306b40a",
+      "size": 11841
     },
     {
       "path": "scripts/check.mjs",
@@ -1122,8 +1122,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "71e2c70f2d813f1c5e5178fac02a964f40b3ea206485bfa8ec99ab5711a414ee",
-      "size": 3491
+      "sha256": "cad8b91f0cd51adcd08c3fe3eaf0704ec9b1c0cf20c5d335b2559f460648c316",
+      "size": 3341
     },
     {
       "path": "secure-auth-bridge.js",
@@ -1202,8 +1202,8 @@
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
-      "sha256": "f15ff8b5cc9da2493a5563cfdae148a07154fef8aa62f013ce1074db9c51d75e",
-      "size": 91280
+      "sha256": "d52233ee97b12fdf009dcf15d94b6949f014f67c246f90adb7698c385ae0eb3e",
+      "size": 96353
     },
     {
       "path": "src/v267/components/data-quality.mjs",
@@ -1337,8 +1337,8 @@
     },
     {
       "path": "src/v267/components/property-contract-upload.js",
-      "size": 3358,
-      "sha256": "bd3e763c1bd785da3bcbca1123af5e71b1a67165cdd1340377bafcae65e085b2"
+      "size": 6645,
+      "sha256": "9f53b55b667e85bd87a82d9d2d14acbecc7d661c1c8e895ac999b7ee13e35382"
     },
     {
       "path": "src/v267/components/property-experience.js",
@@ -1507,8 +1507,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "7976e76734495c175f3e79147df017d3dbc4fa17ecbd0351e5ae951746f32e27",
-      "size": 34662
+      "sha256": "3053e24ac8fc0b111964369132049e88102b16b60fe8a5473c19e6534d1cfab5",
+      "size": 34922
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -1662,7 +1662,7 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "10f67c911281540a4adc0de2d7c4b3786364ecfb815102eb89365a43d1cb7cc3",
+      "sha256": "22866b546d64b56ca5f970b0031baaa659399768968f56f4509365dfaf1f5f30",
       "size": 29894
     },
     {
@@ -1917,8 +1917,8 @@
     },
     {
       "path": "staging-database/hosted-test/unit_meter_readings.sql",
-      "sha256": "636352f1614ee355908e9ba095718d18a90d6b4b4129c6c3d98e70ec2a0d54af",
-      "size": 9902
+      "sha256": "34063fb4b1b1963a6deb20e1f6e4f807b3c2dbd8ceed992e1852cee583589916",
+      "size": 10217
     },
     {
       "path": "staging-database/hosted-test/unit_readiness_activation.sql",
@@ -3542,8 +3542,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "25a7b5ebec31043ba081f94dbd9e2cbf26df8dcf7c641edc0fbd7b4a364e1de7",
-      "size": 15196
+      "sha256": "914451aa87134972e8e7c4c8ffd69209d8e6d472131ce57b544040f0c032a1a2",
+      "size": 15152
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -3677,8 +3677,8 @@
     },
     {
       "path": "tests/v267-deployment-target.test.mjs",
-      "sha256": "bb2cfc9e24cb22f3b264327b9d77dc222caad3ce5bfe1014f8b10815373abcdd",
-      "size": 4228
+      "sha256": "2a1b418aeb42f92d7eddcdb542b7c5a9acdea9615c23e8b1eb7a7c20a20de060",
+      "size": 4273
     },
     {
       "path": "tests/v267-deposit-ledger.e2e.mjs",
@@ -3792,8 +3792,8 @@
     },
     {
       "path": "tests/v267-full-page-workspace.test.mjs",
-      "sha256": "228ce0a82a43a37ef0aa4680b4f337648ec845ae37b2e7225f7bd75f34bc374d",
-      "size": 3782
+      "sha256": "43e67bb2ad91e28b262b375e87155c75696a1920d5dc1b91f53078c68cc31fd2",
+      "size": 3831
     },
     {
       "path": "tests/v267-hero-record-search.test.mjs",
@@ -3992,13 +3992,13 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "sha256": "330abf5277686040fa5e144bc9c04a0d39423c9daf30cd5ba38d054bea8519f6",
-      "size": 8080
+      "sha256": "c7195056026309b4d028b644365ab778b47f83010217fe1247351624d609baaf",
+      "size": 8268
     },
     {
       "path": "tests/v267-owner-feedback-batch.test.mjs",
-      "sha256": "d564c2b569879d0fa4c59afde2e03699ae61ffa92dfa43441475b7d7c248f5d9",
-      "size": 6675
+      "sha256": "ae5ecb4b4cab1aee8effc5ffb18c6869dc23ac9ca97731a522665bf970701916",
+      "size": 6716
     },
     {
       "path": "tests/v267-owner-route-race.test.mjs",
@@ -4102,7 +4102,7 @@
     },
     {
       "path": "tests/v267-property-shortcuts.test.mjs",
-      "sha256": "4cafab5e1e1b541e1d7c814b3ef72acb30de2f9931ed94f745d5df7bef58ff48",
+      "sha256": "98042954956dddbd4c1cefb1d7d80ae7ca423752a7fb20aac09a7fd7d8dd1c38",
       "size": 8963
     },
     {
@@ -4137,8 +4137,8 @@
     },
     {
       "path": "tests/v267-rental-document-composer.test.mjs",
-      "sha256": "335344805379ca393433ea7fd24cd7ad827300664b71085f75cedde7163f60a5",
-      "size": 22217
+      "sha256": "1eee3772ed3270fe1fdccc52700b21bfa5bd504bf7f15d7560b36bfc2baa5667",
+      "size": 22266
     },
     {
       "path": "tests/v267-rental-document-cycle.test.mjs",
@@ -4217,8 +4217,8 @@
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
-      "sha256": "e8d9e17f37a6114869fa6c51773435154adf96061f6b018e722cd88fa67ba389",
-      "size": 2208
+      "sha256": "85e1aa1104f18fcc0cd5fa78cf42336313b81328ff657e80bcdd3634b59d0e22",
+      "size": 2691
     },
     {
       "path": "tests/v267-template-draft-saver.test.mjs",
@@ -4497,8 +4497,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "fb9501493380694f5a9dd76612ce5c13373020a55c3ac56a4469aae7ff5c24b4",
-      "size": 4846
+      "sha256": "5db3c030d624bb59c5d646c0cc96257d6ae3220252d5d4da1aa7a00aa035b14e",
+      "size": 7570
     },
     {
       "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
