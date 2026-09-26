@@ -34,8 +34,8 @@ test('today payments integration is idempotent and fails closed when required an
  const once=patchTodayPayments(current);
  assert.equal(patchTodayPayments(once),once);
  assert.ok(once.includes(TODAY_PAYMENTS_MARKER));
- const withoutAnchor=current.replace('<span>تحصيل اليوم</span>','<span>تحصيل منقول</span>');
- assert.throws(()=>patchTodayPayments(withoutAnchor),/anchor not found/);
+ const missingHeroAnchor=`    const dailyRows=propertyNames(scope).map(function(name){return window.AQARI_V202?.dailyCollectionSummary?.(name,day)});\n    const daily=dailyRows.length&&dailyRows.every(function(row){return row&&row.day===day})?dailyRows.reduce(function(out,row){out.paid+=Math.round(row.paid*1000);out.undated+=row.undated;return out},{paid:0,undated:0}):null;\n  function markup(state){\n<span>تحصيل منقول</span>`;
+ assert.throws(()=>patchTodayPayments(missingHeroAnchor),/hero label anchor not found/);
 });
 
 test('today payments support JavaScript parses',()=>{
