@@ -213,9 +213,8 @@ export async function runRecoveryE2E() {
           assert.equal(await page.evaluate(() => window.AQARI_RECOVERY?.readOnly), true);
           assert.equal(await page.locator('script[src*="v202-property-os"], script[src*="final-release-ui"], script[src*="secure-auth-bridge"]').count(), 0);
           assert.equal(fixture.requests.some(item => /\/(?:v\d+[^/]*|final-release-ui|secure-auth-bridge)\.js$/.test(item.path)), false, 'no full-app presentation or auth scripts may load');
-          const beats = await page.evaluate(() => window.__recoveryHeartbeats);
-          await page.waitForTimeout(300);
-          assert.ok(await page.evaluate(() => window.__recoveryHeartbeats) > beats, 'recovery must remain responsive');
+          const beats = await page.evaluate(() => window.__recoveryHeartbeats || 0);
+          await page.waitForFunction(previous => (window.__recoveryHeartbeats || 0) > previous, beats, { timeout:3000 });
           await page.screenshot({ path:path.join(out, name + '.png') });
           if (scenario === 'populated') {
             await page.click('#logoutButton');
