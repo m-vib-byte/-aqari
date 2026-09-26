@@ -3427,8 +3427,8 @@
     },
     {
       "path": "tests/recovery.e2e.mjs",
-      "sha256": "7a78d2adc20aae4fa98ccebfa2115aea757c1073e5b1b63b5f941b1b180268c1",
-      "size": 17226
+      "sha256": "a32e07724be2adde6f9505cd0073bc7fe7087c8a14f66249a4349ff394f40c37",
+      "size": 17191
     },
     {
       "path": "tests/rent_pdf_test.py",
