@@ -34,8 +34,8 @@ test('today payments integration is idempotent and fails closed when required an
  const once=patchTodayPayments(current);
  assert.equal(patchTodayPayments(once),once);
  assert.ok(once.includes(TODAY_PAYMENTS_MARKER));
- const withoutMarker=current.replaceAll(TODAY_PAYMENTS_MARKER,'movedTodayPayments');
- assert.throws(()=>patchTodayPayments(withoutMarker),/anchor not found/);
+ const withoutAnchor=current.replace('<span>تحصيل اليوم</span>','<span>تحصيل منقول</span>');
+ assert.throws(()=>patchTodayPayments(withoutAnchor),/anchor not found/);
 });
 
 test('today payments support JavaScript parses',()=>{
