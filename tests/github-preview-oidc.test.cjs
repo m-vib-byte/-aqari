@@ -184,7 +184,11 @@ test('resolver rejects deployment status endpoint outside approved GitHub API ho
 
 test('resolver rejects deployment status endpoint path/query outside deployments statuses API', async () => {
   const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
-  for (const statusesUrl of ['https://api.github.com/user', 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses?per_page=100']) {
+  for (const statusesUrl of [
+    'https://api.github.com/user',
+    'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses?per_page=100',
+    'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/extra/statuses'
+  ]) {
     let calls = 0;
     await assert.rejects(
       resolveGitHubPreviewDeploymentUrl({
