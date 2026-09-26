@@ -141,6 +141,27 @@ test('resolver accepts exact-SHA deployment status target_url', async () => {
   assert.equal(resolved, 'https://aqari-git-pr-350-m-vib-5421.vercel.app/');
 });
 
+test('resolver follows deployments pagination until exact-SHA match is found', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  const pages = [];
+  const resolved = await resolveGitHubPreviewDeploymentUrl({
+    env: previewResolverEnv,
+    fetchApi: async (url, options = {}) => {
+      assert.equal(options.headers.accept, 'application/vnd.github+json');
+      if (url.pathname.endsWith('/deployments')) {
+        pages.push(url.searchParams.get('page'));
+        if (url.searchParams.get('page') === '1') {
+          return jsonResponse(Array.from({ length: 100 }, () => ({ sha: 'b'.repeat(40), statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/99/statuses' })));
+        }
+        return jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/6/statuses' }]);
+      }
+      return jsonResponse([{ environment_url: 'https://aqari-git-page2-m-vib-5421.vercel.app' }]);
+    }
+  });
+  assert.equal(resolved, 'https://aqari-git-page2-m-vib-5421.vercel.app/');
+  assert.deepEqual(pages, ['1', '2']);
+});
+
 test('resolver rejects deployments that do not match the expected SHA', async () => {
   const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
   await assert.rejects(

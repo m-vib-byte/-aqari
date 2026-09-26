@@ -147,6 +147,18 @@ function hasSafeStatusesQuery(searchParams) {
   return true;
 }
 
+function githubApiRequestOptions(token) {
+  return {
+    headers: {
+      accept: 'application/vnd.github+json',
+      authorization: ['Bearer', token].join(' '),
+      'x-github-api-version': '2022-11-28'
+    },
+    redirect: 'error',
+    signal: AbortSignal.timeout(10_000)
+  };
+}
+
 export async function resolveGitHubPreviewDeploymentUrl({
   env = process.env, fetchApi = globalThis.fetch
 } = {}) {
@@ -165,33 +177,39 @@ export async function resolveGitHubPreviewDeploymentUrl({
   const apiBase = parseApiBase(env.GITHUB_API_URL);
   const escapedRepository = `${encodedOwner}/${encodedRepo}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const statusesPathPattern = new RegExp(`^/repos/${escapedRepository}/deployments/\\d+/statuses$`);
+  const perPage = 100;
+  const maxPages = 10;
   const deploymentsUrl = new URL(`/repos/${encodedOwner}/${encodedRepo}/deployments`, apiBase);
   deploymentsUrl.searchParams.set('sha', expectedSha);
-  deploymentsUrl.searchParams.set('per_page', '100');
-  deploymentsUrl.searchParams.set('page', '1');
-  let response;
-  try {
-    response = await fetchApi(deploymentsUrl, {
-      headers: {
-        accept: 'application/vnd.github+json',
-        authorization: ['Bearer', token].join(' '),
-        'x-github-api-version': '2022-11-28'
-      },
-      redirect: 'error',
-      signal: AbortSignal.timeout(10_000)
-    });
-  } catch {
-    throw resolverError('LOOKUP_DEPLOYMENTS_FAILED', 'GitHub deployments lookup failed.');
+  deploymentsUrl.searchParams.set('per_page', String(perPage));
+  const matching = [];
+  let sawAnyDeployment = false;
+  for (let page = 1; page <= maxPages; page++) {
+    deploymentsUrl.searchParams.set('page', String(page));
+    let response;
+    try {
+      response = await fetchApi(deploymentsUrl, githubApiRequestOptions(token));
+    } catch {
+      throw resolverError('LOOKUP_DEPLOYMENTS_FAILED', 'GitHub deployments lookup failed.');
+    }
+    if (response.status !== 200) throw resolverError('LOOKUP_DEPLOYMENTS_HTTP', `GitHub deployments lookup failed (HTTP ${response.status}).`);
+    let deployments;
+    try { deployments = await readJson(response); } catch {
+      throw resolverError('PAYLOAD_DEPLOYMENTS_INVALID', 'GitHub deployments payload is invalid.');
+    }
+    if (!Array.isArray(deployments)) {
+      throw resolverError('PAYLOAD_DEPLOYMENTS_INVALID', 'GitHub deployments payload is invalid.');
+    }
+    if (!deployments.length) break;
+    sawAnyDeployment = true;
+    for (const deployment of deployments) {
+      if (String(deployment?.sha || '').toLowerCase() === expectedSha) matching.push(deployment);
+    }
+    if (deployments.length < perPage) break;
   }
-  if (response.status !== 200) throw resolverError('LOOKUP_DEPLOYMENTS_HTTP', `GitHub deployments lookup failed (HTTP ${response.status}).`);
-  let deployments;
-  try { deployments = await readJson(response); } catch {
-    throw resolverError('PAYLOAD_DEPLOYMENTS_INVALID', 'GitHub deployments payload is invalid.');
-  }
-  if (!Array.isArray(deployments) || deployments.length === 0) {
+  if (!sawAnyDeployment) {
     throw resolverError('NO_EXACT_SHA_DEPLOYMENT', 'No GitHub deployment is registered for the exact SHA.');
   }
-  const matching = deployments.filter(deployment => String(deployment?.sha || '').toLowerCase() === expectedSha);
   if (!matching.length) throw resolverError('NO_EXACT_SHA_MATCH', 'GitHub deployments were found, but none match the exact SHA.');
   let foundStatusEndpoint = false;
   let foundStatusUrl = false;
@@ -213,13 +231,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
     let statusResponse;
     try {
       statusResponse = await fetchApi(statusesEndpoint, {
-        headers: {
-          accept: 'application/vnd.github+json',
-          authorization: ['Bearer', token].join(' '),
-          'x-github-api-version': '2022-11-28'
-        },
-        redirect: 'error',
-        signal: AbortSignal.timeout(10_000)
+        ...githubApiRequestOptions(token)
       });
     } catch {
       throw resolverError('LOOKUP_STATUSES_FAILED', 'GitHub deployment status lookup failed.');
