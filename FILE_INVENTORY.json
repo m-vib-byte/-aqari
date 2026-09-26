@@ -3397,8 +3397,8 @@
     },
     {
       "path": "tests/preview.e2e.mjs",
-      "sha256": "1b59d6e0a58576136336265b3312742998e86fb498b859531d0f5ade6c1eadd1",
-      "size": 19528
+      "sha256": "558bf848d09ee066521c5e03184a313c820c9b79a6bf4f60a3163b919e106ab0",
+      "size": 21207
     },
     {
       "path": "tests/property-record-navigation.test.mjs",
