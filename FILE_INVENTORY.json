@@ -1307,8 +1307,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "f97d9a731ef742fe5f224f1acd04846627c274a98a7998246658d03149000ee2",
-      "size": 4193
+      "sha256": "2f58a9005e8e40cab9f651a6e40a34c08a9790601034b8c393c69f308e9fb7fc",
+      "size": 4641
     },
     {
       "path": "src/v267/components/page.js",
@@ -1339,6 +1339,11 @@
       "path": "src/v267/components/private-urls.js",
       "sha256": "58c6234c12380ecd1e442a9413d8fca66e07759d9414cc9a6d3e2228df2b4782",
       "size": 510
+    },
+    {
+      "path": "src/v267/components/property-contract-upload.js",
+      "size": 3225,
+      "sha256": "bbbdd47258a8cf748535b26c893d6893ae0a2f8dc9f3829f079e36865f54d410"
     },
     {
       "path": "src/v267/components/property-experience.js",
@@ -1542,8 +1547,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "2d3ae20f49841ef96905c630482fdab8e398ceab9f9b525d2a88f9813442cc43",
-      "size": 1217
+      "sha256": "f8a805bebfe455c4767a21a7b7d1687c0ea3ac22ecbe188325a2fd6f5d5c5c57",
+      "size": 1915
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -3992,8 +3997,8 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "sha256": "33934e0e0e79745dd72e3d75a66db51b1e39f9d06d22ad8f27ee0b43b70e5c3e",
-      "size": 7166
+      "sha256": "42e5c932abff89c06811da7f0f56095465868325ae074fbc73844f1fff9e58ba",
+      "size": 7846
     },
     {
       "path": "tests/v267-owner-feedback-batch.test.mjs",
@@ -4162,8 +4167,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "a4d2d93eb77e21f5fcd7868883cd61cea7aa65f0610e225b5271abe5399942ca",
-      "size": 39284
+      "sha256": "74d438f1ad33864a37699d27071b4390b237e567df6348d1383a81208eb991af",
+      "size": 38326
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
