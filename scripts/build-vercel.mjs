@@ -17,6 +17,9 @@ if(process.env.VERCEL_ENV==='production'){
   else{const target=JSON.parse(readFileSync(new URL('../config/production-target.json',import.meta.url),'utf8'));const changes=productionPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),target);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared V267 production configuration for the preserved domain data source.');}
 }
 execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-multi-source-hydration.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['scripts/install-v267-multi-source-hydration.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v202-property-os.test.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','tests/v267-unified-inline-sync.test.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['scripts/sync-unified-styles.mjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['--test','--test-concurrency=4','tests/v267-stored-original.test.mjs','tests/v267-contract-archive-recovery.test.mjs','tests/v267-scanner-workflow.test.mjs'],{stdio:'inherit'});
