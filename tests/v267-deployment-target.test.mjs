@@ -23,7 +23,7 @@ test('raw preview configuration cannot pass production validation before deliber
     cwd:new URL('..',import.meta.url), encoding:'utf8', env:{...process.env,VERCEL_ENV:'production'}
   });
   assert.notEqual(result.status,0);
-  assert.match(result.stderr,/Single-domain trial Auth callbacks must return only to myaqari.com/);
+  assert.match(result.stderr,/Production Auth callbacks must return to myaqari.com/);
   // The authorized domain trial does not waive the separate production-data guard.
   const context={window:{}};
   runInNewContext(readFileSync(new URL('../public-config.js',import.meta.url),'utf8'),context);
