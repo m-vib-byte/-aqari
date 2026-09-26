@@ -1307,8 +1307,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "2f58a9005e8e40cab9f651a6e40a34c08a9790601034b8c393c69f308e9fb7fc",
-      "size": 4641
+      "sha256": "7467ef13eaa15e309b5d493d84751b539c47b1db53f5628b255e4b8a427aa012",
+      "size": 5021
     },
     {
       "path": "src/v267/components/page.js",
@@ -3997,8 +3997,8 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "sha256": "42e5c932abff89c06811da7f0f56095465868325ae074fbc73844f1fff9e58ba",
-      "size": 7846
+      "sha256": "330abf5277686040fa5e144bc9c04a0d39423c9daf30cd5ba38d054bea8519f6",
+      "size": 8080
     },
     {
       "path": "tests/v267-owner-feedback-batch.test.mjs",

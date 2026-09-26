@@ -32,7 +32,7 @@ test('original PDF accepts the private bucket limit and refuses excess before re
 });
 function fixture(){
  let row,bytes;const calls=[],s={bound:{workspace:'w',user:'u'},check(){},request:async q=>q,
-  client:{rpc(name,args){calls.push({name,args});if(name==='aqari_reserve_document'){row={id:'d',entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,document_type:args.p_document_type,metadata:args.p_metadata,created_by:'u'};return {document_id:'d',storage_bucket:'aqari-documents',storage_path:'w/d.pdf'};}row.status='uploaded';row.checksum_sha256=args.p_checksum;return 'd';},from(){const q={select(){return q;},eq(){return q;},single(){return row;}};return q;}},
+  client:{rpc(name,args){calls.push({name,args});if(name==='aqari_reserve_document'){if(args.p_metadata.category==='property_contract')throw Object.assign(Error('INVALID_DOCUMENT_CATEGORY'),{code:'22023'});row={id:'d',entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,document_type:args.p_document_type,metadata:args.p_metadata,created_by:'u'};return {document_id:'d',storage_bucket:'aqari-documents',storage_path:'w/d.pdf'};}row.status='uploaded';row.checksum_sha256=args.p_checksum;return 'd';},from(){const q={select(){return q;},eq(){return q;},single(){return row;}};return q;}},
   async storage(method,path,b){calls.push({name:method});if(method==='POST'){bytes=b;return {};}return bytes;}};
  return {s,calls,get row(){return row;}};
 }
@@ -46,6 +46,7 @@ test('original upload verifies stored bytes and authoritative category before li
 test('property contract PDFs retain the selected property ID in verified document metadata',async()=>{
  const f=fixture(),save=createOriginalDocumentUpload(f.s),file=new File(['%PDF-1.7\\ncontract'],'property-contract.pdf');
  const row=await save(file,{type:'property',ref:'property-reference',category:'property_contract',title:'ملف عقد العقار',propertyId:'property-id'});
+ assert.equal(row.metadata.category,'property_other');assert.equal(row.metadata.asset_role,'property_contract');
  assert.equal(row.metadata.property_id,'property-id');assert.equal(f.calls[0].args.p_metadata.property_id,'property-id');
  await assert.rejects(save(file,{type:'property',ref:'property-reference',category:'property_contract',title:'ملف عقد العقار'}),/معرّف العقار/);
 });
