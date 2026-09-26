@@ -10,7 +10,7 @@ function belongsToProperty(row,session,property){
   &&metadata?.asset_role==='property_contract'&&metadata?.property_id===property.id;
 }
 
-const columns='id,title,created_at,status,entity_type,entity_ref,document_type,metadata,storage_bucket,storage_path,mime_type,size_bytes,checksum_sha256';
+const columns='id,title,original_filename,created_at,status,entity_type,entity_ref,document_type,metadata,storage_bucket,storage_path,mime_type,size_bytes,checksum_sha256';
 
 /** List only uploaded contract originals bound to this property's stable ID. */
 export async function listPropertyContractArchive(session,property,offset=0){
