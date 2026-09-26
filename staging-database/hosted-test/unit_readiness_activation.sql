@@ -5,6 +5,7 @@ set local statement_timeout='45s';
 set local lock_timeout='3s';
 insert into public.aqari_workspaces(id,slug,name) values('7f6c0000-0000-4000-8000-000000000098','aqari-v267-readiness-acceptance-20260912','اختبار جاهزية مؤقت — يتراجع بالكامل');
 insert into public.aqari_app_state(workspace_id,payload) values('7f6c0000-0000-4000-8000-000000000098','{}');
+-- Positive local fixture carries current MFA evidence; production guards remain enabled.
 -- Local isolated runner only. Existing signed lease predates the new readiness guard.
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
  ('readiness-manager@example.invalid','مدير اختبار الجاهزية','general_manager','aqari-v267-readiness-acceptance-20260912'),
@@ -16,7 +17,7 @@ insert into auth.users(id,email,email_confirmed_at) values
  ('76620000-0000-4000-8000-000000000003','readiness-viewer@example.invalid',now());
 select set_config('aqari.test.readiness.workspace',(select workspace_id::text from public.aqari_memberships where user_id='76620000-0000-4000-8000-000000000001' and is_active),true);
 select set_config('request.jwt.claim.sub','76620000-0000-4000-8000-000000000001',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 insert into public.aqari_properties(id,workspace_id,external_ref,name,metadata)
  select ('76620000-0000-4000-8000-00000000010'||n)::uuid,current_setting('aqari.test.readiness.workspace')::uuid,'readiness-property-'||n,'عقار اختبار الجاهزية '||n,'{}' from generate_series(1,2)n;
 insert into public.aqari_units(id,workspace_id,property_id,unit_no)
@@ -205,10 +206,12 @@ reset role;
 rollback to savepoint unit_readiness;
 select 'PASS: readiness, new lease denial, unchanged legacy UPSERT, extensions, progression, overlap, property scope, immutable history, retry and MFA';
 
+-- Positive synthetic MFA fixture: include a current supported second-factor event.
+-- Negative AAL1/expired-MFA cases and all production guards remain unchanged.
 -- Regression on the real application state RPC, after the readiness migration.
 savepoint unit_readiness_projection;
 select set_config('request.jwt.claim.sub','76620000-0000-4000-8000-000000000004',true);
-select set_config('request.jwt.claims','{"aal":"aal2"}',true);
+select set_config('request.jwt.claims',jsonb_build_object('aal','aal2','amr',jsonb_build_array(jsonb_build_object('method','totp','timestamp',floor(extract(epoch from statement_timestamp()))::bigint)))::text,true);
 set local role authenticated;
 do $$declare w uuid:='76620000-0000-4000-8000-000000000900';state jsonb;d jsonb;c jsonb;r jsonb;row_data jsonb;receipt jsonb;p uuid;prior jsonb;begin
  state:=public.aqari_read_state_v267(w);d:=state->'payload';c:=d->'contractsV202'->0;prior:=c;
