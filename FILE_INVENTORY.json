@@ -4057,8 +4057,8 @@
     },
     {
       "path": "tests/v267-presentation-checks.mjs",
-      "sha256": "275b7d2cdb9c1796818c1f31e3f6e687e3f2584c44c6e828bb2cc51eb327aaeb",
-      "size": 16616
+      "sha256": "e66a3dcffdb4c8778c24fc36ab7366381e1e6e9b06886892382d64c2e4273f05",
+      "size": 16832
     },
     {
       "path": "tests/v267-private-files.test.mjs",
