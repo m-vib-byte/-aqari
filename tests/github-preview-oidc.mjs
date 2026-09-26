@@ -215,6 +215,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
     for (const deployment of deployments) {
       if (String(deployment?.sha || '').toLowerCase() === expectedSha) matching.push(deployment);
     }
+    if (matching.length) break;
     if (deployments.length < perPage) break;
   }
   if (!sawAnyDeployment) {
