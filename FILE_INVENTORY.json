@@ -921,11 +921,6 @@
       "size": 435
     },
     {
-      "path": "middleware.js",
-      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029",
-      "size": 639
-    },
-    {
       "path": "package.json",
       "sha256": "a71d4ab7a0e56224b80dffb55b5ceeec2a25c4c4554b48cfce655891ba714259",
       "size": 1055
@@ -3452,8 +3447,8 @@
     },
     {
       "path": "tests/root-entry-middleware.test.cjs",
-      "sha256": "68ad01c104208609fb73f0e537bbbe3c90dfb1ed4e87dd024eb46ac7274742ce",
-      "size": 1928
+      "sha256": "e3706b5599a4a04dee49b7608acfee742848aaeae8ad8e210ece5e728413a125",
+      "size": 1038
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
