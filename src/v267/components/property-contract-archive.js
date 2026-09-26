@@ -17,6 +17,8 @@ export async function listPropertyContractArchive(session,property){
  if(!property?.id||!property?.externalRef)throw Error('اختر عقارًا محفوظًا.');
  const rows=await session.request(session.client.from('aqari_documents').select(columns)
   .eq('workspace_id',session.bound.workspace).eq('entity_type','property').eq('entity_ref',property.externalRef)
+  .eq('status','uploaded').eq('document_type','supporting_document').eq('mime_type','application/pdf')
+  .contains('metadata',{category:'property_other',asset_role:'property_contract',property_id:property.id})
   .order('created_at',{ascending:false}).limit(100));
  session.check();
  if(!Array.isArray(rows))throw Error('تعذر قراءة أرشيف عقود العقار.');
