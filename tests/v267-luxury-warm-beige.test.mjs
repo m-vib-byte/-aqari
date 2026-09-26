@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const css=read('src/v267/styles/luxury-warm-beige.css');
 const installer=read('scripts/install-v267-owner-feedback.mjs');
+const login=read('login.html');
 
 test('final owner visual system is warm beige brown gold and explicitly light',()=>{
  assert.match(css,/--aq-lx-canvas:#f2e8dc/);
@@ -48,6 +49,14 @@ test('login tenant and partner portals receive the same final luxury layer',()=>
  assert.match(installer,/aqari-v267-luxury-warm-css/);
  assert.match(installer,/luxury-warm-beige\.css/);
  assert.match(installer,/V267_LUXURY_PORTAL_STYLE_ANCHOR_MISSING/);
+});
+
+test('login preloads its luxury layer and uses the requested accessible colors',()=>{
+ assert.match(login,/meta name="robots" content="index, follow"/);
+ assert.match(login,/meta name="description" content="منصة عقاري لإدارة الأملاك، دخول المستأجرين، ومتابعة الشركاء في الكويت\."/);
+ assert.match(login,/id="aqari-v267-luxury-warm-css" rel="preload" href="\/src\/v267\/styles\/luxury-warm-beige\.css\?release=V267" as="style"/);
+ assert.match(css,/body\.v267-login-page \.login-brand>span:last-child\{color:#8A6D3B!important\}/);
+ assert.match(css,/body\.v267-login-page \.aq-login-role-icon\{color:#5E491F!important\}/);
 });
 
 test('luxury layer is additive and the successful iPhone startup blocker remains chained',()=>{
