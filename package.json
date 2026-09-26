@@ -23,5 +23,8 @@
   },
   "devDependencies": {
     "playwright": "^1.63.0"
+  },
+  "dependencies": {
+    "botid": "^1.5.11"
   }
 }
