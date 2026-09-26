@@ -175,7 +175,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
   const encodedOwner = encodeURIComponent(owner);
   const encodedRepo = encodeURIComponent(repo);
   const apiBase = parseApiBase(env.GITHUB_API_URL);
-  const escapedRepository = `${encodedOwner}/${encodedRepo}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedRepository = `${owner}/${repo}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const statusesPathPattern = new RegExp(`^/repos/${escapedRepository}/deployments/\\d+/statuses$`);
   const perPage = 100;
   const deploymentsUrl = new URL(`/repos/${encodedOwner}/${encodedRepo}/deployments`, apiBase);
