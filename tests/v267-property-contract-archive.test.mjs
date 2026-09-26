@@ -12,8 +12,8 @@ const original={id:docId,title:'ملف عقد العقار',created_at:'2026-09-
  storage_bucket:'aqari-documents',storage_path:'workspace/verified.pdf',mime_type:'application/pdf',size_bytes:bytes.size,checksum_sha256:digest};
 
 function fixture(rows=[original],blob=bytes){
- const calls=[];const session={bound:{workspace:'workspace'},check(){},request:async q=>q,
-  client:{from(table){assert.equal(table,'aqari_documents');return {select(columns){assert.match(columns,/checksum_sha256/);return this;},eq(key,value){calls.push([key,value]);return this;},order(){return this;},limit(){return rows;},single(){return rows[0];}};}},
+ const calls=[];let metadataFilter=null;const session={bound:{workspace:'workspace'},check(){},request:async q=>q,
+  client:{from(table){assert.equal(table,'aqari_documents');return {select(columns){assert.match(columns,/checksum_sha256/);return this;},eq(key,value){calls.push([key,value]);return this;},contains(key,value){assert.equal(key,'metadata');calls.push([key,value]);metadataFilter=value;return this;},order(){return this;},limit(count){return rows.filter(row=>!metadataFilter||Object.entries(metadataFilter).every(([key,value])=>row.metadata?.[key]===value)).slice(0,count);},single(){return rows[0];}};}},
   async storage(method,path){calls.push([method,path]);return blob;}};
  return {session,calls};
 }
@@ -35,4 +35,12 @@ test('opening archive rechecks record scope and exact private bytes',async()=>{
  await assert.rejects(readPropertyContractArchive(fixture().session,property,'bad-id'));
  const tampered=fixture([original],new Blob(['%PDF-1.7\ntampered']));
  await assert.rejects(readPropertyContractArchive(tampered.session,property,docId),/بصمة/);
+});
+
+
+test('contract PDFs remain visible behind 100 unrelated property documents',async()=>{
+ const other=Array.from({length:110},(_,i)=>({...original,id:`photo-${i}`,metadata:{category:'property_other',asset_role:'property_photo',property_id:property.id}}));
+ const f=fixture([...other,original]);
+ assert.deepEqual((await listPropertyContractArchive(f.session,property)).map(row=>row.id),[docId]);
+ assert.deepEqual(f.calls.find(([key])=>key==='metadata'),['metadata',{category:'property_other',asset_role:'property_contract',property_id:property.id}]);
 });
