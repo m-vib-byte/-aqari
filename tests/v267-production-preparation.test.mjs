@@ -6,6 +6,7 @@ import {join,dirname} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import vm from 'node:vm';
 import {productionPatch,PRODUCTION_PROJECT,PREVIEW_PROJECT,PRODUCTION_REDIRECT} from '../scripts/prepare-v267-production.mjs';
+import {PRE_VERIFY_TEST_COMMANDS} from '../scripts/build-vercel-preverify-tests.mjs';
 import {deploymentTargetErrors} from '../scripts/verify-deployment-target.mjs';
 import {t as translateStatic} from '../src/v267/components/locale.js';
 import {isUiError} from '../src/v267/components/ui-error.js';
@@ -86,12 +87,12 @@ test('Vercel preparation stage selects production only when domain trial is disa
   const boundary=build.indexOf("execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs']");
   assert.ok(boundary>0,'execute the real target-preparation stage before independent build installers');
   const stage=build.slice(0,boundary);
-  const preVerifyTests=['tests/bot-protection.test.mjs','tests/v267-property-contract-archive.test.mjs','tests/v267-property-contract-archive-ui.test.mjs','tests/v267-contract-admin-recovery.test.mjs','tests/v267-contract-archive.test.mjs','tests/operational-report-request.test.mjs','tests/v267-contract-view.test.mjs','tests/v267-more-navigation.test.mjs','tests/exact-navigation-events.test.mjs','tests/search-events.test.mjs','tests/assistant-request.test.mjs','tests/v267-domain-trial-target.test.mjs','tests/v267-hero-record-search.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs','tests/v267-contract-execution-pdf.test.mjs','tests/v267-contract-foundation-prefill.test.mjs','tests/v267-document-cycle-entry.test.mjs'];
-  for(const path of preVerifyTests)assert.ok(stage.includes("'"+path+"'"),'keep pre-verify fixture in sync with build stage: '+path);
+  const preVerifyTests=PRE_VERIFY_TEST_COMMANDS.flat();
+  assert.ok(stage.includes('PRE_VERIFY_TEST_COMMANDS'),'pre-verify tests should come from shared build command source');
   for(const environment of ['preview','production']){
     const dir=mkdtempSync(join(tmpdir(),'aqari-target-build-'));
     try{
-      const paths=new Set([...preVerifyTests,'src/v267/components/exact-navigation-events.js','src/v267/components/touch-navigation.js','v209-global-search.js',...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
+      const paths=new Set([...preVerifyTests,'src/v267/components/exact-navigation-events.js','src/v267/components/touch-navigation.js','v209-global-search.js',...patch.keys(),'scripts/build-vercel.mjs','scripts/build-vercel-preverify-tests.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
       for(const path of paths){const target=join(dir,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,read(path));}
       writeFileSync(join(dir,'scripts/build-vercel.mjs'),stage);
       const trial=JSON.parse(read('config/domain-trial-target.json'));trial.enabled=false;
