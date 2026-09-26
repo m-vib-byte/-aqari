@@ -83,7 +83,7 @@ test('Vercel preparation stage selects production only when domain trial is disa
   const boundary=build.indexOf("execFileSync(process.execPath,['scripts/verify-staging-runtime.mjs']");
   const stage=build.slice(0,boundary);
   const stageTests=[];
-  for(const [,args] of stage.matchAll(/execFileSync\(process\.execPath,\[([^\]]*)\],\{stdio:'inherit'\}\);/g)){
+  for(const [,args] of stage.matchAll(/execFileSync\(\s*process\.execPath\s*,\s*\[([\s\S]*?)\]\s*,\s*\{[\s\S]*?\}\s*\)/g)){
     for(const [,path] of args.matchAll(/['"`](tests\/[^'"`]+\.test\.(?:cjs|mjs))['"`]/g))stageTests.push(path);
   }
   assert.ok(boundary>0,'execute the real target-preparation stage before independent build installers');
