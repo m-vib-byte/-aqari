@@ -47,13 +47,13 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "98e26fc6a48050743de469858cba0143e9b994c8d2e8867ef8dfd795b08e936c",
-      "size": 8434
+      "sha256": "08b91540f038cab9757d04ae66158c7463a37a4cfc40aab12793fdcff1c15131",
+      "size": 8644
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "3a19b28393ad670d06bfaede36d090f92100ff72ac6eec08420bc24e698f12ff",
-      "size": 7438
+      "sha256": "8cbd02fd687966738c0c76f7b9f8054ebfdb6984ada68977256ab909201ab430",
+      "size": 7519
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1022,8 +1022,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "c8e23da5248452918a10ba06a81798f4ffb770798882c125cb26845e2306b40a",
-      "size": 11841
+      "sha256": "bf3d7451e3d39f14234e1bff662f7e05cd980399e421107c9efccc8d4ab2ddb2",
+      "size": 10968
     },
     {
       "path": "scripts/check.mjs",
@@ -1977,8 +1977,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "a581fae1ef2e5e333d910f9777c3fd53afe5794d429cd60d74f33a4d81079722",
-      "size": 10205
+      "sha256": "e954907fc55d3a309f8b18465ea4bcc69ddff8518448b0e7945aaa4c5d33c4ab",
+      "size": 10315
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
@@ -4067,8 +4067,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "615354bd9c5eb836c5a38a0368ea1960a42de58480df82565483760b5344bcb9",
-      "size": 12739
+      "sha256": "b6d298a96ab0a3239a48b477f8917abdbf8239f652d1e66f5ab91bcc983aa4d7",
+      "size": 11901
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",
@@ -4669,6 +4669,16 @@
       "path": "tests/v267-property-master-runtime.test.mjs",
       "size": 12136,
       "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9"
+    },
+    {
+      "path": "scripts/build-vercel-preverify-tests.mjs",
+      "size": 807,
+      "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb"
+    },
+    {
+      "path": "staging-database/local-test/run-manager-contract-workflow.sh",
+      "size": 556,
+      "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de"
     }
   ],
   "version": "V198"
