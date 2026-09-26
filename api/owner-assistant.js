@@ -1,4 +1,5 @@
 import {SUPABASE_PUBLIC_CONFIG,validSupabasePublicConfig} from '../lib/release-config.js';
+import { requireHumanBotId } from '../lib/bot-protection.js';
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const JWT=/^Bearer [A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
@@ -40,6 +41,7 @@ export function createOwnerAssistantHandler({fetchImpl=globalThis.fetch,env=proc
   res.setHeader('Cache-Control','private, no-store, max-age=0');res.setHeader('Vary','Authorization');
   const fail=(status,code)=>res.status(status).json({error:code});
   if(req.method!=='POST'){res.setHeader('Allow','POST');return fail(405,'METHOD_NOT_ALLOWED');}
+  if(!await requireHumanBotId(req,res)) return;
   const origin=req.headers?.origin,host=req.headers?.host;if(origin&&origin!=='https://'+host)return fail(403,'ORIGIN_REJECTED');
   const auth=req.headers?.authorization;if(typeof auth!=='string'||auth.length>8192||!JWT.test(auth))return fail(401,'AUTH_REQUIRED');
   let input=req.body;if(typeof input==='string'){if(input.length>16384)return fail(413,'BODY_TOO_LARGE');try{input=JSON.parse(input);}catch{return fail(400,'INVALID_REQUEST');}}
