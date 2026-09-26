@@ -1,8 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs",
+  "buildCommand": "node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs && node scripts/install-botid-client.mjs",
   "outputDirectory": ".",
   "rewrites": [
+    {"source": "/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/a-4-a/c.js", "destination": "https://api.vercel.com/bot-protection/v1/challenge"},
+    {"source": "/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/(.*)", "destination": "https://api.vercel.com/bot-protection/v1/proxy/$1"},
     {"source": "/", "destination": "/login.html"},
     {"source": "/login", "destination": "/login.html"},
     {"source": "/app", "destination": "/index.html"},
@@ -10,6 +12,7 @@
     {"source": "/api/db/status", "destination": "/api/supabase-status"}
   ],
   "headers": [
+    {"source": "/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/(.*)", "headers": [{"key": "X-Frame-Options", "value": "SAMEORIGIN"}]},
     {"source": "/secure-auth-bridge.js", "headers": [{"key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate"}]},
     {"source": "/(.*)", "headers": [
       {"key": "X-Content-Type-Options", "value": "nosniff"},
