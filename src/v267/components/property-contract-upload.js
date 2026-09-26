@@ -43,7 +43,7 @@ export async function mountPropertyContractUpload(d,target,{propertyId=null,onBa
      const blob=await readPropertyContractArchive(d.session,currentProperty,row.id);if(epoch!==archiveEpoch)return;
      clearViewer();openedUrl=URL.createObjectURL(blob);const frame=node('iframe');frame.title=t('ملف PDF المحفوظ للعقار');frame.src=openedUrl;frame.style.width='100%';frame.style.minHeight='70vh';viewer.append(frame);
      d.status.textContent=t('هذه النسخة المسترجعة من التخزين بعد التحقق من بصمتها وربطها بالعقار.');});
-    entry.append(node('span',`${row.title||t('ملف عقد العقار')} · ${new Date(row.created_at).toLocaleDateString('ar-KW')}`),open);archiveRows.append(entry);}
+    entry.append(node('span',`${String(row.original_filename||'').trim()||row.title||t('ملف عقد العقار')} · ${new Date(row.created_at).toLocaleDateString('ar-KW')}`),open);archiveRows.append(entry);}
   }finally{more.disabled=false;}
  }
  async function showArchive(){const current=selectedProperty(),epoch=++archiveEpoch;archiveOffset=0;clearViewer();archiveRows.replaceChildren();more.hidden=true;
