@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://myaqari.com/sitemap.xml
