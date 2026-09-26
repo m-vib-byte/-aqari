@@ -13,14 +13,14 @@ const original={id:docId,title:'ملف عقد العقار',created_at:'2026-09-
 
 function fixture(rows=[original],blob=bytes){
  const calls=[];let metadataFilter=null;const session={bound:{workspace:'workspace'},check(){},request:async q=>q,
-  client:{from(table){assert.equal(table,'aqari_documents');return {select(columns){assert.match(columns,/checksum_sha256/);return this;},eq(key,value){calls.push([key,value]);return this;},contains(key,value){assert.equal(key,'metadata');calls.push([key,value]);metadataFilter=value;return this;},order(){return this;},limit(count){return rows.filter(row=>!metadataFilter||Object.entries(metadataFilter).every(([key,value])=>row.metadata?.[key]===value)).slice(0,count);},single(){return rows[0];}};}},
+  client:{from(table){assert.equal(table,'aqari_documents');return {select(columns){assert.match(columns,/checksum_sha256/);return this;},eq(key,value){calls.push([key,value]);return this;},contains(key,value){assert.equal(key,'metadata');calls.push([key,value]);metadataFilter=value;return this;},order(){return this;},range(start,end){calls.push(['range',start,end]);return rows.filter(row=>!metadataFilter||Object.entries(metadataFilter).every(([key,value])=>row.metadata?.[key]===value)).slice(start,end+1);},single(){return rows[0];}};}},
   async storage(method,path){calls.push([method,path]);return blob;}};
  return {session,calls};
 }
 
 test('archive list omits unrelated documents and keeps workspace and property filters',async()=>{
  const f=fixture([original,{...original,id:'other',metadata:{...original.metadata,property_id:'another'}},{...original,id:'not-a-contract',metadata:{...original.metadata,asset_role:'property_photo'}}]);
- assert.deepEqual((await listPropertyContractArchive(f.session,property)).map(x=>x.id),[docId]);
+ assert.deepEqual((await listPropertyContractArchive(f.session,property)).items.map(x=>x.id),[docId]);
  assert.deepEqual(f.calls.slice(0,3),[['workspace_id','workspace'],['entity_type','property'],['entity_ref',property.externalRef]]);
 });
 
@@ -41,6 +41,17 @@ test('opening archive rechecks record scope and exact private bytes',async()=>{
 test('contract PDFs remain visible behind 100 unrelated property documents',async()=>{
  const other=Array.from({length:110},(_,i)=>({...original,id:`photo-${i}`,metadata:{category:'property_other',asset_role:'property_photo',property_id:property.id}}));
  const f=fixture([...other,original]);
- assert.deepEqual((await listPropertyContractArchive(f.session,property)).map(row=>row.id),[docId]);
+ assert.deepEqual((await listPropertyContractArchive(f.session,property)).items.map(row=>row.id),[docId]);
  assert.deepEqual(f.calls.find(([key])=>key==='metadata'),['metadata',{category:'property_other',asset_role:'property_contract',property_id:property.id}]);
+});
+
+
+test('archive loads the 101st contract on the next page without duplicates',async()=>{
+ const rows=Array.from({length:105},(_,i)=>({...original,id:`document-${i}`}));
+ const f=fixture(rows),first=await listPropertyContractArchive(f.session,property),second=await listPropertyContractArchive(f.session,property,first.nextOffset);
+ assert.equal(first.items.length,100);assert.equal(first.hasMore,true);
+ assert.equal(second.items.length,5);assert.equal(second.hasMore,false);
+ assert.equal(second.items[0].id,'document-100');
+ assert.deepEqual(f.calls.filter(([key])=>key==='range'),[['range',0,100],['range',100,200]]);
+ await assert.rejects(listPropertyContractArchive(f.session,property,-1),/صفحة/);
 });
