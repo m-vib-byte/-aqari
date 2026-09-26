@@ -156,9 +156,17 @@ export async function resolveGitHubPreviewDeploymentUrl({
     const statusesUrl = String(deployment?.statuses_url || '').trim();
     if (!statusesUrl) continue;
     foundStatusEndpoint = true;
+    let statusesEndpoint;
+    try { statusesEndpoint = new URL(statusesUrl); } catch {
+      throw new Error('Matching GitHub deployment found, but its status endpoint is invalid.');
+    }
+    if (statusesEndpoint.origin !== apiBase.origin || statusesEndpoint.protocol !== 'https:' ||
+        statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.hash) {
+      throw new Error('Matching GitHub deployment found, but its status endpoint is not an approved GitHub API host.');
+    }
     let statusResponse;
     try {
-      statusResponse = await fetchApi(new URL(statusesUrl), {
+      statusResponse = await fetchApi(statusesEndpoint, {
         headers: {
           accept: 'application/vnd.github+json',
           authorization: ['Bearer', token].join(' '),

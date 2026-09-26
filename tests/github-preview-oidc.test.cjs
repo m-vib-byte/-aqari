@@ -171,6 +171,17 @@ test('resolver reports missing deployment status endpoint on exact-SHA deploymen
   );
 });
 
+test('resolver rejects deployment status endpoint outside approved GitHub API host', async () => {
+  const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
+  await assert.rejects(
+    resolveGitHubPreviewDeploymentUrl({
+      env: previewResolverEnv,
+      fetchApi: async () => jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: 'https://attacker.example/statuses' }])
+    }),
+    /status endpoint is not an approved GitHub API host/
+  );
+});
+
 test('resolver rejects invalid or production URLs on exact-SHA deployment statuses', async () => {
   const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
   for (const invalid of ['https://myaqari.com', 'https://aqari.vercel.app', 'https://example.com']) {
