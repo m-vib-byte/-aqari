@@ -127,7 +127,16 @@ async function readJson(response) {
   return JSON.parse(body);
 }
 
-function selectPreviewUrl(urlCandidate, project, team) {
+function isExplicitPreviewDeployment(deployment) {
+  if (deployment?.production_environment === true) return false;
+  const environment = String(deployment?.environment || '').trim().toLowerCase();
+  if (environment.includes('production')) return false;
+  return deployment?.production_environment === false ||
+    deployment?.transient_environment === true ||
+    environment.includes('preview');
+}
+
+function selectPreviewUrl(urlCandidate, project, team, deployment) {
   if (typeof urlCandidate !== 'string' || !urlCandidate.trim()) return null;
   let url;
   try { url = new URL(urlCandidate); } catch { return null; }
@@ -136,8 +145,12 @@ function selectPreviewUrl(urlCandidate, project, team) {
   }
   const hostname = url.hostname.toLowerCase();
   if (hostname === 'myaqari.com' || hostname === 'www.myaqari.com' || hostname === `${project}.vercel.app`) return null;
-  if (!hostname.startsWith(`${project}-git-`) || !hostname.endsWith(`-${team}.vercel.app`)) return null;
-  return url.toString();
+  const suffix = `-${team}.vercel.app`;
+  if (!hostname.startsWith(`${project}-`) || !hostname.endsWith(suffix)) return null;
+  if (hostname.startsWith(`${project}-git-`)) return url.toString();
+  const deploymentIdPart = hostname.slice((project + '-').length, -suffix.length);
+  if (/^[a-z0-9]+$/.test(deploymentIdPart) && isExplicitPreviewDeployment(deployment)) return url.toString();
+  return null;
 }
 
 function hasSafeStatusesQuery(searchParams) {
@@ -254,7 +267,7 @@ export async function resolveGitHubPreviewDeploymentUrl({
     for (const status of statuses) {
       const candidate = status?.environment_url ?? status?.target_url;
       if (typeof candidate === 'string' && candidate.trim()) foundStatusUrl = true;
-      const previewUrl = selectPreviewUrl(candidate, project, team);
+      const previewUrl = selectPreviewUrl(candidate, project, team, deployment);
       if (previewUrl) return previewUrl;
     }
   }
