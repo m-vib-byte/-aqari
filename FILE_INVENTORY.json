@@ -4684,6 +4684,11 @@
       "path": "tests/github-preview-unique-url.test.cjs",
       "size": 1582,
       "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a"
+    },
+    {
+      "path": "src/v267/components/stored-visual-review.js",
+      "size": 6075,
+      "sha256": "c33855b5b19eefe478574cafe120042ccf914404c76d52ea398a50479a448f68"
     }
   ],
   "version": "V198"
