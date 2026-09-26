@@ -6,6 +6,7 @@ import {createTemplateLogoContext} from './template-property-logo.js';
 const CONTRACT_TITLE='ملف عقد العقار';
 const propertyChoice=(rows,value='')=>{
  const input=node('select');input.name='property_id';input.required=true;
+ if(!value){const placeholder=node('option',t('اختر العقار'));placeholder.value='';placeholder.disabled=true;input.append(placeholder);}
  for(const property of rows){const option=node('option',property.name);option.value=property.id;input.append(option);}
  input.value=value;return input;
 };
@@ -18,7 +19,7 @@ export async function mountPropertyContractUpload(d,target,{propertyId=null,onBa
  if(!properties.length)throw Error('لا توجد عقارات متاحة لربط العقد بها.');
  const selected=propertyId?properties.find(property=>property.id===propertyId):null;
  if(propertyId&&!selected)throw Error('العقار المحدد غير متاح ضمن مساحة العمل الحالية.');
- const property=propertyChoice(properties,selected?.id||properties[0].id),file=node('input'),form=node('form'),save=node('button',t('رفع وحفظ عقد PDF'));
+ const property=propertyChoice(properties,selected?.id||''),file=node('input'),form=node('form'),save=node('button',t('رفع وحفظ عقد PDF'));
  file.type='file';file.name='contract_pdf';file.accept='application/pdf,.pdf';file.required=true;save.type='submit';
  form.append(node('h3',t('رفع عقد العقار')),node('p',t('ارفع ملف PDF مباشرة. يُحفظ كملف أصلي خاص بالعقار المحدد ولا ينشئ عقد إيجار أو تحصيلًا تلقائيًا.')),field(t('العقار'),property),field(t('ملف العقد PDF'),file),save);
  if(selected)property.disabled=true;
