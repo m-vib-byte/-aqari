@@ -15,7 +15,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-      deployments: read
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -24,6 +23,8 @@ jobs:
       AQARI_TEAM_SLUG: m-vib-5421
       AQARI_PREVIEW_AUTH: github-oidc
       AQARI_PREVIEW_OIDC_DIAGNOSTICS: '1'
+      AQARI_RELEASE_BRANCH: fix/property-contract-pdf-document-type-20260926
+      AQARI_RELEASE_BRANCH_URL: https://aqari-git-fix-property-contract-pdf-document-9e3969-m-vib-5421.vercel.app/
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,38 +38,26 @@ jobs:
           node-version: 22
       - name: Verify Preview credential boundaries
         run: node --test tests/preview-access.test.cjs tests/github-preview-oidc.test.cjs
-      - name: Resolve exact Vercel Preview URL
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Resolve Vercel Preview URL
         shell: bash
         run: |
           node --input-type=module <<'NODE'
           import { appendFileSync } from 'node:fs';
-          const repo=process.env.GITHUB_REPOSITORY,sha=process.env.AQARI_EXPECTED_SHA;
-          const project=process.env.AQARI_PROJECT_SLUG,team=process.env.AQARI_TEAM_SLUG,token=process.env.GH_TOKEN;
-          if(!repo||!/^[a-f0-9]{40}$/.test(sha||'')||!project||!team||!token)throw Error('Preview URL resolver configuration is incomplete.');
-          const headers={accept:'application/vnd.github+json',authorization:'Bearer '+token,'x-github-api-version':'2022-11-28'};
-          const deployments=await fetch(`https://api.github.com/repos/${repo}/deployments?sha=${sha}&per_page=20`,{headers,redirect:'error'});
-          if(!deployments.ok)throw Error('Unable to read GitHub deployments for this SHA (HTTP '+deployments.status+').');
-          const rows=await deployments.json();
+          const branch=process.env.GITHUB_HEAD_REF||process.env.GITHUB_REF_NAME||'';
+          const project=process.env.AQARI_PROJECT_SLUG,team=process.env.AQARI_TEAM_SLUG;
           let base='';
-          for(const deployment of rows){
-            const statuses=await fetch(`https://api.github.com/repos/${repo}/deployments/${deployment.id}/statuses?per_page=20`,{headers,redirect:'error'});
-            if(!statuses.ok)continue;
-            for(const status of await statuses.json()){
-              const candidate=status.environment_url||status.target_url;
-              if(!candidate)continue;
-              let url;try{url=new URL(candidate);}catch{continue;}
-              if(url.protocol!=='https:'||url.username||url.password||url.port||url.search||url.hash||url.pathname!=='/')continue;
-              if(!url.hostname.endsWith(`-${team}.vercel.app`))continue;
-              if(!url.hostname.startsWith(project+'-'))continue;
-              base=url.origin+'/';break;
-            }
-            if(base)break;
+          if(branch===process.env.AQARI_RELEASE_BRANCH)base=process.env.AQARI_RELEASE_BRANCH_URL||'';
+          if(!base){
+            const slug=branch.toLowerCase().replace(/[\/_]+/g,'-').replace(/[^a-z0-9-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+            if(!slug)throw Error('Preview branch slug is empty.');
+            base=`https://${project}-git-${slug}-${team}.vercel.app/`;
           }
-          if(!base)throw Error('No Vercel Preview deployment URL is registered for the exact SHA.');
-          appendFileSync(process.env.GITHUB_ENV,'AQARI_BASE_URL='+base+'\n');
-          console.log('Resolved exact Vercel Preview deployment URL for '+sha+'.');
+          let url;try{url=new URL(base);}catch{throw Error('Resolved Preview URL is invalid.');}
+          if(url.protocol!=='https:'||url.username||url.password||url.port||url.search||url.hash||url.pathname!=='/'||
+             !url.hostname.startsWith(project+'-')||!url.hostname.endsWith('-'+team+'.vercel.app'))
+            throw Error('Resolved Preview URL is outside the approved Vercel project scope.');
+          appendFileSync(process.env.GITHUB_ENV,'AQARI_BASE_URL='+url.origin+'/\n');
+          console.log('Resolved Vercel Preview URL for branch '+branch+'.');
           NODE
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
