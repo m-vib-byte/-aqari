@@ -84,5 +84,5 @@ test('owner package installs after the fixed navigation build and permits the ad
  assert.match(installer,/aqari-v267-owner-login-js/);
  assert.match(installer,/login-owner-reference\.js/);
  assert.ok(build.includes("scripts/install-v267-section-target-navigation.mjs"),'navigation blocker installer must remain in build');
- assert.match(vercel.buildCommand,/^node scripts\/build-vercel\.mjs && node scripts\/install-v267-owner-reference-package\.mjs(?: && node scripts\/install-v267-owner-feedback\.mjs)?(?: && node scripts\/install-v267-iphone-startup-fix\.mjs)?$/);
+ assert.match(vercel.buildCommand,/^node scripts\/build-vercel\.mjs && node scripts\/install-v267-owner-reference-package\.mjs(?: && node scripts\/install-v267-owner-feedback\.mjs)?(?: && node scripts\/install-v267-iphone-startup-fix\.mjs)?(?: && node scripts\/install-botid-client\.mjs)?$/);
 });

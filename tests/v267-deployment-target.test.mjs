@@ -41,7 +41,8 @@ test('the Vercel build prepares its target before invoking the package check', (
   assert.deepEqual(config.buildCommand.split(' && '),[
     'node scripts/build-vercel.mjs',
     'node scripts/install-v267-owner-reference-package.mjs',
-    'node scripts/install-v267-owner-feedback.mjs'
+    'node scripts/install-v267-owner-feedback.mjs',
+    'node scripts/install-botid-client.mjs'
   ]);
   assert.equal(config.outputDirectory,'.');
   const build=readFileSync(new URL('../scripts/build-vercel.mjs',import.meta.url),'utf8');
