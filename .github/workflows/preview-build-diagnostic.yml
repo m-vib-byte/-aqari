@@ -1,0 +1,20 @@
+name: Preview build diagnostic
+on:
+  push:
+    branches:
+      - fix/property-contract-pdf-document-type-20260926
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run exact Vercel preview build command
+        env:
+          VERCEL_ENV: preview
+        run: node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs && node scripts/install-botid-client.mjs
