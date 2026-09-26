@@ -86,7 +86,9 @@ test('Vercel preparation stage selects production only when domain trial is disa
     try{
       const paths=new Set(['tests/exact-navigation-events.test.mjs','tests/v209-property-search.test.cjs','tests/touch-navigation.test.mjs','src/v267/components/exact-navigation-events.js','src/v267/components/touch-navigation.js','v209-global-search.js',...patch.keys(),'scripts/build-vercel.mjs','scripts/check.mjs','scripts/prepare-v267-production.mjs','scripts/verify-deployment-target.mjs','config/production-target.json','config/domain-trial-target.json','package.json','index.html','vercel.json','api/health.js','api/release.js','api/config-status.js','.env.example']);
       for(const path of paths){const target=join(dir,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,read(path));}
-      writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary).replace("execFileSync(process.execPath,['--test','tests/bot-protection.test.mjs'],{stdio:'inherit'});",''));
+      writeFileSync(join(dir,'scripts/build-vercel.mjs'),build.slice(0,boundary)
+        .replace("execFileSync(process.execPath,['--test','tests/bot-protection.test.mjs'],{stdio:'inherit'});",'')
+        .replace("execFileSync(process.execPath,['--test','tests/v267-property-contract-archive.test.mjs','tests/v267-property-contract-archive-ui.test.mjs'],{stdio:'inherit'});",''));
       const trial=JSON.parse(read('config/domain-trial-target.json'));trial.enabled=false;
       writeFileSync(join(dir,'config/domain-trial-target.json'),JSON.stringify(trial));
       const result=spawnSync(process.execPath,['scripts/build-vercel.mjs'],{cwd:dir,encoding:'utf8',env:{...process.env,VERCEL_ENV:environment}});
