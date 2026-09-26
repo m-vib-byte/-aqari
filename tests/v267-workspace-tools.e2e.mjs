@@ -396,7 +396,11 @@ try{
     assert.equal(storageAttempts,1,'unavailable reread cannot retry the upload');assert.equal(docs[0].status,'draft');
     storageReadUnavailable=false;storageLoseReply=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
-    await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتصنيفه وارتباطه بالسجل.',{exact:true}).waitFor();
+    const storedReview=page.locator('.aq267-stored-visual-review:not([hidden])');
+    await storedReview.waitFor({state:'visible'});
+    await storedReview.getByRole('checkbox',{name:'راجعت النسخة المرفوعة فعلياً وجميع صفحاتها وأؤكد وضوح النصوص والصور وعدم فقدان الجودة.',exact:true}).check();
+    await storedReview.getByRole('button',{name:'اعتماد النسخة المرفوعة وإقفال المستند',exact:true}).click();
+    await page.getByText('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.',{exact:true}).waitFor();
     assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
     assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.equal(docs[0].metadata.document_category,'ownership_deed','selected category survives upload and canonical readback');
