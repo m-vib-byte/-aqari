@@ -49,11 +49,10 @@ test('legacy property rows use canonical registered unit counts',()=>{
  const row=(name,units)=>({closest:()=>null,querySelector:s=>s==='strong'?{textContent:name}:s==='.v199-property-units'?units:null});
  const rows=[row('برج ضحاوي',dhahawi),row('برج كبد',kabd)];
  const box=runtime({querySelectorAll:s=>s==='.v199-property-row'?rows:[]});
- box.referenceReport={properties:[
+ vm.runInContext(`referenceReport={properties:[
   {name:'برج ضحاوي',aqari_units:[{count:110}]},
   {name:'برج كبد',aqari_units:[{count:0}]}
- ]};
- vm.runInContext('reconcileLegacyPropertyUnitCounts()',box);
+ ]};reconcileLegacyPropertyUnitCounts()`,box);
  assert.equal(dhahawi.textContent,'110 وحدة');
  assert.equal(kabd.textContent,'0 وحدة');
  assert.equal(dhahawi.dataset.aqCanonicalUnits,'true');
