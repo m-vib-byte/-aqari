@@ -67,6 +67,9 @@ test('production Auth callbacks allow only the exact myaqari.com login callback'
   }
 });
 test('tenant, partner and password recovery retain explicit production project and stage guards',()=>{
+  const tenant=patch.get('v267-tenant-portal.js');
+  assert.match(tenant,/releaseSource\[cfg\.releaseStage\]!==cfg\.supabaseUrl/);
+  assert.match(tenant,/TENANT_PORTAL_TARGET_REQUIRED/);
   for(const path of ['v267-tenant-portal.js','v267-partner-portal.js','v267-reset-password.js']){
     assert.ok(patch.get(path).includes(PRODUCTION_PROJECT));
     if(path!=='v267-tenant-portal.js'){
