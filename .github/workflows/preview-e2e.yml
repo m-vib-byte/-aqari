@@ -47,7 +47,9 @@ jobs:
             'LOOKUP_DEPLOYMENTS_FAILED',
             'LOOKUP_DEPLOYMENTS_HTTP',
             'LOOKUP_STATUSES_FAILED',
-            'LOOKUP_STATUSES_HTTP'
+            'LOOKUP_STATUSES_HTTP',
+            'NO_EXACT_SHA_DEPLOYMENT',
+            'NO_EXACT_SHA_MATCH'
           ]);
           function retryable(error) {
             return retryableCodes.has(error?.code);
