@@ -34,7 +34,7 @@ test('owner delivery is direct Meta WhatsApp plus independent Email and live own
 });
 
 test('feedback installer runs direct provider functional test after existing navigation and owner layers',()=>{
- const installer=read('scripts/install-v267-owner-feedback.mjs'),build=read('scripts/build-vercel.mjs'),vercel=JSON.parse(read('vercel.json'));assert.match(build,/install-v267-section-target-navigation\.mjs/);assert.match(installer,/owner-final-runtime\.js/);assert.match(installer,/v267-owner-delivery-meta\.test\.mjs/);assert.equal(vercel.buildCommand,'node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs');
+ const installer=read('scripts/install-v267-owner-feedback.mjs'),build=read('scripts/build-vercel.mjs'),vercel=JSON.parse(read('vercel.json'));assert.match(build,/install-v267-section-target-navigation\.mjs/);assert.match(installer,/owner-final-runtime\.js/);assert.match(installer,/v267-owner-delivery-meta\.test\.mjs/);assert.equal(vercel.buildCommand,'node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs && node scripts/install-botid-client.mjs');
 });
 
 
