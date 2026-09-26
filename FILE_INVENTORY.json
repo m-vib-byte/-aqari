@@ -1217,8 +1217,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "f09c5ce06aa8a7799578f2d8e7e1f5d386bdbb6ae097139c3ee853ada88df83f",
-      "size": 4904
+      "sha256": "e6dbb0ab93bf582a213300fa5a78c322474231287bada33e38cccfac2ba08f17",
+      "size": 4963
     },
     {
       "path": "src/v267/components/document-catalog.js",
