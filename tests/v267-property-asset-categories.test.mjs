@@ -12,7 +12,9 @@ test('property visual assets are accepted only for property records and supporti
   assert.match(upload,new RegExp(`${category}:\\{documentType:'supporting_document'`));
  }
  assert.match(sql,/and kind=case category when 'signed_lease' then 'signed_contract' else 'supporting_document' end/);
- assert.match(upload,/p_metadata:\{category:target\.category,asset_role:/);
+ assert.match(upload,/const category=target\.category==='property_contract'\?'property_other':target\.category/);
+ assert.match(upload,/const metadata=\{category,asset_role:/);
+ assert.match(upload,/p_metadata:metadata/);
 });
 
 test('integrated property onboarding routes deed plans logo photos and general attachments through archived originals',()=>{

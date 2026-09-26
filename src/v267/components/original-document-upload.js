@@ -8,7 +8,8 @@ const PROPERTY_ASSETS=Object.freeze({
  property_license:{documentType:'supporting_document',label:'رخصة العقار'},
  property_certificate:{documentType:'supporting_document',label:'شهادة العقار'},
  property_insurance:{documentType:'supporting_document',label:'تأمين العقار'},
- property_other:{documentType:'supporting_document',label:'مستند عام للعقار'}
+ property_other:{documentType:'supporting_document',label:'مستند عام للعقار'},
+ property_contract:{documentType:'supporting_document',label:'ملف عقد العقار'}
 });
 function uploadCategory(category,entity){
  const asset=PROPERTY_ASSETS[category];
@@ -30,16 +31,23 @@ export function createOriginalDocumentUpload(session){
   if(['property_logo','property_main_photo','property_photo'].includes(target.category)){
    if(!['image/jpeg','image/png','image/webp'].includes(blob.type))throw Error('شعار وصور العقار يجب أن تكون صور JPEG أو PNG أو WebP.');
   }
-  const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash]);
+  const propertyId=target.propertyId===undefined?null:String(target.propertyId||'').trim();
+  if(target.category==='property_contract'&&!propertyId)throw Error('حدد معرّف العقار قبل رفع العقد.');
+  // The reserve RPC accepts property_other for property PDFs. Keep the
+  // document's more specific purpose in metadata without sending an unknown
+  // category that the database rejects before Storage can accept the file.
+  const category=target.category==='property_contract'?'property_other':target.category;
+  const metadata={category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267',...(propertyId?{property_id:propertyId}:{})};
+  const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash,propertyId]);
   if(!pending||pending.key!==key){
-   const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:spec.documentType,p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title.trim(),p_original_filename:file.name,p_mime_type:blob.type,p_metadata:{category:target.category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267'}}));
+   const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:spec.documentType,p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title.trim(),p_original_filename:file.name,p_mime_type:blob.type,p_metadata:metadata}));
    const doc=Array.isArray(rows)?rows[0]:rows;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path?.startsWith(session.bound.workspace+'/'))throw Error('تعذر حجز نسخة المستند.');
    pending={key,doc,upload:createVerifiedUpload(session,{path:doc.storage_path,blob})};
   }
   const doc=pending.doc;await pending.upload();
   await session.request(session.client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:blob.size,p_mime_type:blob.type,p_checksum:hash}));
   const row=await session.request(session.client.from('aqari_documents').select('id,status,entity_type,entity_ref,document_type,metadata,created_by,checksum_sha256').eq('workspace_id',session.bound.workspace).eq('id',doc.document_id).single());
-  if(row?.id!==doc.document_id||row.status!=='uploaded'||row.entity_type!==target.type||row.entity_ref!==target.ref||row.created_by!==session.bound.user||row.checksum_sha256!==hash||row.document_type!==spec.documentType||row.metadata?.category!==target.category)throw Error('لم تتأكد إعادة قراءة سجل المستند.');
+  if(row?.id!==doc.document_id||row.status!=='uploaded'||row.entity_type!==target.type||row.entity_ref!==target.ref||row.created_by!==session.bound.user||row.checksum_sha256!==hash||row.document_type!==spec.documentType||row.metadata?.category!==category||(target.category==='property_contract'&&row.metadata?.asset_role!=='property_contract')||row.metadata?.property_id!==(propertyId||undefined))throw Error('لم تتأكد إعادة قراءة سجل المستند.');
   return row;
  };
 }
