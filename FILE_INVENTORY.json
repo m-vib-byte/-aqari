@@ -912,18 +912,13 @@
     },
     {
       "path": "login.html",
-      "sha256": "5cf047f5265676427ca73739a46b8cadc1cf59fd5d98117a028c3a434b226ddb",
-      "size": 17377
+      "sha256": "5f1d3101165e30faf3b3afdab9a6d6a5149660cf42e5d272092e9fb5a6272990",
+      "size": 17716
     },
     {
       "path": "manifest.webmanifest",
       "sha256": "e3a407d4d17a3193ce20874ceca13deecca578f9b4c1533722414a427b31570b",
       "size": 435
-    },
-    {
-      "path": "middleware.js",
-      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029",
-      "size": 639
     },
     {
       "path": "package.json",
@@ -1362,8 +1357,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "0717cae6bfe66fda230a0c8dedcda71098d3013df7cdb9ecd9e7718f439b6ea8",
-      "size": 86044
+      "sha256": "eedb6164755852173c36ddc01e8d27b0833c04440734b34e596af5d0bfa899c8",
+      "size": 87066
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1542,8 +1537,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "sha256": "ce790ab1fcb9987c670d28cebedf85fec3d7b093106b2b6d43a4a4404fe6eee5",
-      "size": 35310
+      "sha256": "0482b63fd1dba60f5ea93185e33b312d242263d300996182d9eb85c8f37f1b5a",
+      "size": 37773
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -1687,8 +1682,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "63caa84e2a2d7d1c2de40ed2e75e0880d6005782cdd2f304ccebceb6aafe0d02",
-      "size": 56210
+      "sha256": "a8d06464fb59ffdcd6c183fcbaa6b7417ad32366b81bae66536d90f143e7499e",
+      "size": 57010
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -1757,8 +1752,8 @@
     },
     {
       "path": "src/v267/styles/contract-pages.css",
-      "sha256": "547041d706ff02421e5372be157f09dfb6395e0c343180fc065f74efa6f522ed",
-      "size": 5339
+      "sha256": "9fdbb237fcc5f11c19e191da7b8c01a629d9f893f50ffb183d10881daf875d72",
+      "size": 6904
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
@@ -1772,8 +1767,8 @@
     },
     {
       "path": "src/v267/styles/luxury-warm-beige.css",
-      "sha256": "d4be3ce935410510716ab574a1cf3d938189f3e4bd2e4c264a3781c43f10e8bd",
-      "size": 31192
+      "sha256": "8aabe4200384031f5d4910c4711871449904e2c21010ac9a0dcc8fec9f265757",
+      "size": 31335
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -3452,8 +3447,8 @@
     },
     {
       "path": "tests/root-entry-middleware.test.cjs",
-      "sha256": "68ad01c104208609fb73f0e537bbbe3c90dfb1ed4e87dd024eb46ac7274742ce",
-      "size": 1928
+      "sha256": "e3706b5599a4a04dee49b7608acfee742848aaeae8ad8e210ece5e728413a125",
+      "size": 1038
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -3862,8 +3857,8 @@
     },
     {
       "path": "tests/v267-luxury-warm-beige.test.mjs",
-      "sha256": "9374730da5d98015066f5ce2e28dce886acdedb0cbbaad772ca062ae54cb6d3c",
-      "size": 3462
+      "sha256": "ab582e27cfbcb4c9aab16d8d1f1248d68bfdd0319d022122969c1286279e6ffe",
+      "size": 4181
     },
     {
       "path": "tests/v267-maintenance-attachment-panel.test.mjs",
@@ -4167,8 +4162,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "74d438f1ad33864a37699d27071b4390b237e567df6348d1383a81208eb991af",
-      "size": 38326
+      "sha256": "9f7aa5241a332db796b0299e7c8046170d0e43b2ead6262b6a63e091c22493d8",
+      "size": 39342
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
