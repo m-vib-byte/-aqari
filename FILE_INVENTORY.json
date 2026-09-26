@@ -1902,13 +1902,13 @@
     },
     {
       "path": "staging-database/hosted-test/official_document_pdf_archive.sql",
-      "sha256": "c85e373ccc239ce3dc34b23be89ff2cd2aecb6f074433f0901d3d983aaa97f51",
-      "size": 12880
+      "sha256": "092ff09459a2d2e6b1f91938a815c7086351489cb3d6e23dcd7899ad9fc68150",
+      "size": 13195
     },
     {
       "path": "staging-database/hosted-test/official_document_source_binding.sql",
-      "sha256": "26d0f234f16aeafcfccbfd02f9176100bdc5d11c214060e4642230ecebed42c3",
-      "size": 21077
+      "sha256": "debf650693f1d547766c84e59e9df1b28ebd9cba94cd08b52bc62788b7c04ae8",
+      "size": 21544
     },
     {
       "path": "staging-database/hosted-test/test-generate-completion.py",
