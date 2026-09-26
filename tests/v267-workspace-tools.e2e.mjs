@@ -65,7 +65,7 @@ const server=http.createServer((req,res)=>{
   if(name==='aqari_document_entities')return reply(res,[{entity_ref:'p1',title:'عقار اختبار مستقل'}]);
   if(name==='aqari_document_listing')return reply(res,docs.map(d=>({...d,author_name:'مدير اختبار'})));
   if(name==='aqari_reserve_document'){
-   const d={id:'33333333-3333-4333-8333-333333333333',document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_path:wid+'/33333333-3333-4333-8333-333333333333.pdf',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
+   const d={id:'33333333-3333-4333-8333-333333333333',workspace_id:wid,document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_bucket:'aqari-documents',storage_path:wid+'/33333333-3333-4333-8333-333333333333.pdf',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
    docs.push(d);return reply(res,[{document_id:d.id,document_no:d.document_no,storage_bucket:'aqari-documents',storage_path:d.storage_path}]);
   }
   if(name==='aqari_finalize_document'){const d=docs.find(d=>d.id===args.p_document_id);assert.ok(storageBytes?.length);d.status='uploaded';d.checksum_sha256=args.p_checksum;d.size_bytes=args.p_size_bytes;return reply(res,d.id);}
