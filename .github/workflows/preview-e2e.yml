@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: 22
       - name: Verify Preview credential boundaries
-        run: node --test tests/preview-access.test.cjs tests/github-preview-oidc.test.cjs
+        run: node --test tests/preview-access.test.cjs tests/github-preview-oidc.test.cjs tests/github-preview-unique-url.test.cjs
       - name: Resolve exact-SHA Preview URL from GitHub Deployments
         shell: bash
         run: |
