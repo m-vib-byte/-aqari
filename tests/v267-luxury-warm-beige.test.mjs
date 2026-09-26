@@ -52,6 +52,7 @@ test('login tenant and partner portals receive the same final luxury layer',()=>
 });
 
 test('login preloads its luxury layer and uses the requested accessible colors',()=>{
+ assert.match(login,/meta name="robots" content="index, follow"/);
  assert.match(login,/meta name="description" content="منصة عقاري لإدارة الأملاك، دخول المستأجرين، ومتابعة الشركاء في الكويت\."/);
  assert.match(login,/id="aqari-v267-luxury-warm-css" rel="preload" href="\/src\/v267\/styles\/luxury-warm-beige\.css\?release=V267" as="style"/);
  assert.match(css,/body\.v267-login-page \.login-brand>span:last-child\{color:#8A6D3B!important\}/);
