@@ -1922,8 +1922,8 @@
     },
     {
       "path": "staging-database/hosted-test/unit_readiness_activation.sql",
-      "sha256": "38954052463223df2b9f8c0d71490651b46667774600f6017a51b7a40869d5ba",
-      "size": 26585
+      "sha256": "b033c9df4c04bfb734a776351c31248787a3e7a17d8673dc682c90d3b36c2f25",
+      "size": 27142
     },
     {
       "path": "staging-database/hosted-test/workspace_feature_discovery.sql",
