@@ -255,6 +255,8 @@ body.aq-owner-exact-ready .aq-exact-bottom button.active,body.aq-unified-experie
  body.v267-login-page main,body:has(>main>#partnerAuth)>main,body:has(>main>#auth)>main{max-width:880px!important}
  body.v267-login-page main{border:1px solid #d6c0a2!important;border-top:4px solid var(--aq-lx-gold)!important;border-radius:24px!important;background:#fffaf3!important;box-shadow:0 24px 70px rgba(76,52,39,.1)!important}
  body.v267-login-page .login-monogram{background:linear-gradient(145deg,#d6b36f,#a47b3f)!important;color:#fffaf1!important;box-shadow:0 10px 26px rgba(94,65,44,.12)!important}
+ body.v267-login-page .login-brand>span:last-child{color:#8A6D3B!important}
+ body.v267-login-page .aq-login-role-icon{color:#5E491F!important}
  body.v267-login-page h1{color:#463229!important}
  body.v267-login-page .subtitle,body.v267-login-page .note{color:#766659!important}
  body.v267-login-page input,body.v267-login-page select{background:#fffdf9!important;border-color:#cdb494!important;color:#342820!important}
