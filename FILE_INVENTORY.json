@@ -1537,8 +1537,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "sha256": "ce790ab1fcb9987c670d28cebedf85fec3d7b093106b2b6d43a4a4404fe6eee5",
-      "size": 35310
+      "sha256": "0482b63fd1dba60f5ea93185e33b312d242263d300996182d9eb85c8f37f1b5a",
+      "size": 37773
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -1682,8 +1682,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "63caa84e2a2d7d1c2de40ed2e75e0880d6005782cdd2f304ccebceb6aafe0d02",
-      "size": 56210
+      "sha256": "a8d06464fb59ffdcd6c183fcbaa6b7417ad32366b81bae66536d90f143e7499e",
+      "size": 57010
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -1752,8 +1752,8 @@
     },
     {
       "path": "src/v267/styles/contract-pages.css",
-      "sha256": "547041d706ff02421e5372be157f09dfb6395e0c343180fc065f74efa6f522ed",
-      "size": 5339
+      "sha256": "9fdbb237fcc5f11c19e191da7b8c01a629d9f893f50ffb183d10881daf875d72",
+      "size": 6904
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
