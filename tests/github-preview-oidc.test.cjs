@@ -185,13 +185,18 @@ test('resolver rejects deployment status endpoint outside approved GitHub API ho
 test('resolver rejects deployment status endpoint path/query outside deployments statuses API', async () => {
   const { resolveGitHubPreviewDeploymentUrl } = await import('./github-preview-oidc.mjs');
   for (const statusesUrl of ['https://api.github.com/user', 'https://api.github.com/repos/m-vib-byte/-aqari/deployments/1/statuses?per_page=100']) {
+    let calls = 0;
     await assert.rejects(
       resolveGitHubPreviewDeploymentUrl({
         env: previewResolverEnv,
-        fetchApi: async () => jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: statusesUrl }])
+        fetchApi: async () => {
+          calls++;
+          return jsonResponse([{ sha: previewResolverEnv.AQARI_EXPECTED_SHA, statuses_url: statusesUrl }]);
+        }
       }),
-      /status endpoint is not an approved GitHub API host/
+      /status endpoint is not an approved deployments statuses URL/
     );
+    assert.equal(calls, 1, 'path/query validation must fail before requesting deployment statuses');
   }
 });
 

@@ -162,10 +162,12 @@ export async function resolveGitHubPreviewDeploymentUrl({
       throw new Error('Matching GitHub deployment found, but its status endpoint is invalid.');
     }
     if (statusesEndpoint.origin !== apiBase.origin || statusesEndpoint.protocol !== 'https:' ||
-        statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.search ||
-        statusesEndpoint.hash || !statusesEndpoint.pathname.startsWith(expectedStatusesPath) ||
-        !statusesEndpoint.pathname.endsWith('/statuses')) {
+        statusesEndpoint.username || statusesEndpoint.password || statusesEndpoint.hash) {
       throw new Error('Matching GitHub deployment found, but its status endpoint is not an approved GitHub API host.');
+    }
+    if (statusesEndpoint.search || !statusesEndpoint.pathname.startsWith(expectedStatusesPath) ||
+        !statusesEndpoint.pathname.endsWith('/statuses')) {
+      throw new Error('Matching GitHub deployment found, but its status endpoint is not an approved deployments statuses URL.');
     }
     let statusResponse;
     try {
