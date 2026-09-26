@@ -178,13 +178,12 @@ export async function resolveGitHubPreviewDeploymentUrl({
   const escapedRepository = `${encodedOwner}/${encodedRepo}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const statusesPathPattern = new RegExp(`^/repos/${escapedRepository}/deployments/\\d+/statuses$`);
   const perPage = 100;
-  const maxPages = 10;
   const deploymentsUrl = new URL(`/repos/${encodedOwner}/${encodedRepo}/deployments`, apiBase);
   deploymentsUrl.searchParams.set('sha', expectedSha);
   deploymentsUrl.searchParams.set('per_page', String(perPage));
   const matching = [];
   let sawAnyDeployment = false;
-  for (let page = 1; page <= maxPages; page++) {
+  for (let page = 1; ; page++) {
     deploymentsUrl.searchParams.set('page', String(page));
     let response;
     try {
