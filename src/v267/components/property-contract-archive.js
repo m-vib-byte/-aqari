@@ -13,16 +13,19 @@ function belongsToProperty(row,session,property){
 const columns='id,title,created_at,status,entity_type,entity_ref,document_type,metadata,storage_bucket,storage_path,mime_type,size_bytes,checksum_sha256';
 
 /** List only uploaded contract originals bound to this property's stable ID. */
-export async function listPropertyContractArchive(session,property){
+export async function listPropertyContractArchive(session,property,offset=0){
  if(!property?.id||!property?.externalRef)throw Error('اختر عقارًا محفوظًا.');
+ if(!Number.isSafeInteger(offset)||offset<0||offset>100000)throw Error('صفحة أرشيف العقود غير صالحة.');
+ const pageSize=100;
  const rows=await session.request(session.client.from('aqari_documents').select(columns)
   .eq('workspace_id',session.bound.workspace).eq('entity_type','property').eq('entity_ref',property.externalRef)
   .eq('status','uploaded').eq('document_type','supporting_document').eq('mime_type','application/pdf')
   .contains('metadata',{category:'property_other',asset_role:'property_contract',property_id:property.id})
-  .order('created_at',{ascending:false}).limit(100));
+  .order('created_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+pageSize));
  session.check();
  if(!Array.isArray(rows))throw Error('تعذر قراءة أرشيف عقود العقار.');
- return rows.filter(row=>belongsToProperty(row,session,property));
+ return {items:rows.slice(0,pageSize).filter(row=>belongsToProperty(row,session,property)),
+  hasMore:rows.length>pageSize,nextOffset:offset+pageSize};
 }
 
 /** Re-read the authoritative row and bytes before opening an archived PDF. */
