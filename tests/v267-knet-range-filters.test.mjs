@@ -27,6 +27,10 @@ test('range layer keeps protected KNET API parseable and is idempotent',()=>{
  const once=patchKnetRangeFilters(current);assert.equal(patchKnetRangeFilters(once),once);
 });
 
-test('range layer fails closed when KNET UI has not been installed',()=>{
- assert.throws(()=>patchKnetRangeFilters(read('v210-daily-command-center.js')),/anchor not found/);
+test('range layer fails closed when its required KNET UI anchor is stale',()=>{
+ const installed=patchKnetRangeFilters(patchTodayKnetUi(patchTodayPayments(read('v210-daily-command-center.js'))));
+ const stale=installed
+  .replaceAll(KNET_RANGE_MARKER,'movedKnetRangeFilters')
+  .replace('  function todayKnetMarkup(knet){','  function movedTodayKnetMarkup(knet){');
+ assert.throws(()=>patchKnetRangeFilters(stale),/anchor not found/);
 });
