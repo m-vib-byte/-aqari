@@ -188,7 +188,20 @@ async function loadOwnerShares(propertyId){
  }catch{if(token===ownerFlight&&scope())empty(host,'البيانات غير متاحة.');}finally{session?.close();}
 }
 
+function reconcileLegacyPropertyUnitCounts(){
+ if(!Array.isArray(referenceReport?.properties))return;
+ for(const row of sourceNodes('.v199-property-row')){
+  const name=clean(row.querySelector('strong')?.textContent),units=row.querySelector('.v199-property-units');
+  if(!name||!units)continue;
+  const count=registeredUnitCount(referenceReport.properties,name);
+  if(count===null)continue;
+  const next=String(count)+' '+ui('وحدة');
+  if(clean(units.textContent)!==clean(next))units.textContent=next;
+  if(units.dataset)units.dataset.aqCanonicalUnits='true';
+ }
+}
 function refreshPropertyCards(){
+ reconcileLegacyPropertyUnitCounts();
  const host=document.getElementById('aqLiveProperties');if(!host)return;
  const rows=sourceNodes('.v199-property-row').slice(0,3);
  const signature=JSON.stringify([referenceReport?.properties,rows.map(row=>[row.textContent,row.querySelector('img')?.getAttribute('src')])]);if(host.dataset.signature===signature)return;host.dataset.signature=signature;
