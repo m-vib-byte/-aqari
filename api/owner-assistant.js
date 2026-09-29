@@ -39,7 +39,7 @@ function responseText(data){
 export function createOwnerAssistantHandler({fetchImpl=globalThis.fetch,env=process.env}={}){
  return async function handler(req,res){
   res.setHeader('Cache-Control','private, no-store, max-age=0');res.setHeader('Vary','Authorization');
-  const fail=(status,code)=>res.status(status).json({error:code});
+  const fail=(status,code)=>{if(status>=500)console.warn('[owner-assistant]',JSON.stringify({status,code}));return res.status(status).json({error:code});};
   if(req.method!=='POST'){res.setHeader('Allow','POST');return fail(405,'METHOD_NOT_ALLOWED');}
   if(!await requireHumanBotId(req,res))return;
   const origin=req.headers?.origin,host=req.headers?.host;if(origin&&origin!=='https://'+host)return fail(403,'ORIGIN_REJECTED');
@@ -51,7 +51,7 @@ export function createOwnerAssistantHandler({fetchImpl=globalThis.fetch,env=proc
   const visibleSummary=Array.isArray(input.visible_summary)?input.visible_summary.slice(0,12).map(v=>clean(v,180)).filter(Boolean):[];
   if(question.length<2)return fail(400,'QUESTION_REQUIRED');
   if(!validSupabasePublicConfig()||typeof fetchImpl!=='function')return fail(503,'ASSISTANT_UNAVAILABLE');
-  const upstream=async(path,body)=>{const response=await fetchImpl(new URL(path,SUPABASE_PUBLIC_CONFIG.url),{method:body?'POST':'GET',headers:{apikey:SUPABASE_PUBLIC_CONFIG.publishableKey,Authorization:auth,Accept:'application/json',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',redirect:'error'});if(!response.ok){const e=Error('ACCESS_CHANGED');e.status=response.status;throw e;}return readJson(response);};
+  const upstream=async(path,body)=>{const response=await fetchImpl(new URL(path,SUPABASE_PUBLIC_CONFIG.url),{method:body?'POST':'GET',headers:{apikey:SUPABASE_PUBLIC_CONFIG.publishableKey,Authorization:auth,Accept:'application/json',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store',redirect:'error'});if(!response.ok){console.warn('[owner-assistant upstream]',JSON.stringify({path,status:response.status}));const e=Error('ACCESS_CHANGED');e.status=response.status;throw e;}return readJson(response);};
   try{
    const [user,access,status]=await Promise.all([
     upstream('/auth/v1/user'),
@@ -77,7 +77,7 @@ export function createOwnerAssistantHandler({fetchImpl=globalThis.fetch,env=proc
    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
    try{
     const response=await fetchImpl(OPENAI_URL,{method:'POST',headers:{Authorization:'Bearer '+provider.key,'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({model:provider.model,instructions,input:[{role:'user',content:[{type:'input_text',text:question}]}],max_output_tokens:700,store:false,text:{verbosity:'low'}}),signal:controller.signal,cache:'no-store',redirect:'error'});
-    if(!response.ok)return fail(response.status===429?429:502,response.status===429?'OPENAI_RATE_LIMITED':'OPENAI_FAILED');
+    if(!response.ok){console.warn('[owner-assistant provider]',JSON.stringify({status:response.status,model:provider.model}));return fail(response.status===429?429:502,response.status===429?'OPENAI_RATE_LIMITED':'OPENAI_FAILED');}
     const data=await readJson(response),answer=responseText(data);if(!answer)return fail(502,'OPENAI_INVALID_RESPONSE');
     return res.status(200).json({answer,provider:'openai',model:provider.model,read_only:true,allowed_sections:allowed});
    }finally{clearTimeout(timer);}
