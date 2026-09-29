@@ -3447,8 +3447,8 @@
     },
     {
       "path": "tests/root-entry-middleware.test.cjs",
-      "sha256": "e3706b5599a4a04dee49b7608acfee742848aaeae8ad8e210ece5e728413a125",
-      "size": 1038
+      "sha256": "f5d85cfabb5e206e86f318b9a77b8308ce71f35d48de0f9c778f11420310ad25",
+      "size": 2338
     },
     {
       "path": "tests/runtime-contracts.test.cjs",
@@ -4689,6 +4689,11 @@
       "path": "src/v267/components/stored-visual-review.js",
       "size": 6075,
       "sha256": "c33855b5b19eefe478574cafe120042ccf914404c76d52ea398a50479a448f68"
+    },
+    {
+      "path": "middleware.js",
+      "size": 639,
+      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029"
     }
   ],
   "version": "V198"
