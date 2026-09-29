@@ -163,7 +163,7 @@ async function verifyFinancialPanels(page,locale,name){
  await page.locator('#financeSuitePage').getByRole('heading',{name:fmt('التحصيل الفعلي خلال {month}: {amount} د.ك',{month:'2026-08',amount:'125.750'}),exact:true}).waitFor();
  assert.equal(calls.length,before,'translating loaded financial panels does not read or write business data');
  assert.equal(await page.locator('#financeSuitePage').getByLabel(tr('شهر التحصيل الفعلي'),{exact:true}).inputValue(),'2026-08','language preserves selected financial month');
- const box=await page.locator('#financeSuitePage').evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.scroll<=box.client+1,'financial translation fits viewport');
+ const box=await page.locator('#financeSuitePage').evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.scroll<=box.client+1,`financial translation fits viewport (${name}/${locale}: scroll=${box.scroll}, client=${box.client})`);
  await page.locator('#financeSuitePage').screenshot({path:path.join(out,name+'-'+locale+'-finance.png')});
 }
 async function verifyLocalizedForms(page,locale,name,viewport){

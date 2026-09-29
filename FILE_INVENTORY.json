@@ -1797,8 +1797,8 @@
     },
     {
       "path": "src/v267/styles/workspace.css",
-      "sha256": "16eb3da093984d437f94ff1309b646f7eee112fbc47c7f5f84d62fcf355279f9",
-      "size": 3662
+      "sha256": "27407cfc036d5ff5780be6b43c7c579ebace852f8911f874990fb37dca64a9ca",
+      "size": 3778
     },
     {
       "path": "src/v267/unified-layout-runtime.js",
@@ -4307,8 +4307,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "e011c021535552c23656bd0125684a7dcecc4cdef68a2833cdc444aa82b6df2a",
-      "size": 59933
+      "sha256": "753dd95787c97fb6a535b956df1be24fa15caa99e7e633b10f9f7dc866b1eef5",
+      "size": 59997
     },
     {
       "path": "tests/verified-upload.test.mjs",
