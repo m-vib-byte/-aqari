@@ -41,7 +41,12 @@ export async function mountPropertyContractUpload(d,target,{propertyId=null,onBa
    for(const row of page.items){const open=node('button',t('عرض PDF المحفوظ')),entry=node('div');open.type='button';
     open.onclick=()=>d.run(async()=>{const currentProperty=selectedProperty();if(!currentProperty||currentProperty.id!==current.id)throw Error('تغير العقار المحدد. حدّث الأرشيف.');
      const blob=await readPropertyContractArchive(d.session,currentProperty,row.id);if(epoch!==archiveEpoch)return;
-     clearViewer();openedUrl=URL.createObjectURL(blob);const frame=node('iframe');frame.title=t('ملف PDF المحفوظ للعقار');frame.src=openedUrl;frame.style.width='100%';frame.style.minHeight='70vh';viewer.append(frame);
+     clearViewer();openedUrl=URL.createObjectURL(blob);
+     const full=node('a',t('فتح جميع صفحات PDF في تبويب مستقل')),download=node('a',t('تحميل ملف PDF الأصلي'));
+     full.href=download.href=openedUrl;full.target='_blank';full.rel='noopener noreferrer';
+     download.download=String(row.original_filename||'contract.pdf').replace(/[\\/]/g,'_');
+     for(const link of [full,download]){link.style.display='block';link.style.padding='14px';link.style.marginBlock='10px';link.style.overflowWrap='anywhere';}
+     viewer.append(node('p',t('افتح الملف في تبويب مستقل لتصفح جميع صفحاته والتكبير، أو حمّل النسخة الأصلية.')),full,download);
      d.status.textContent=t('هذه النسخة المسترجعة من التخزين بعد التحقق من بصمتها وربطها بالعقار.');});
     entry.append(node('span',`${String(row.original_filename||'').trim()||row.title||t('ملف عقد العقار')} · ${new Date(row.created_at).toLocaleDateString('ar-KW')}`),open);archiveRows.append(entry);}
   }finally{more.disabled=false;}

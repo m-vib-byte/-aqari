@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 test('archive offers the next 100 contracts without replacing the first page',async()=>{
  const children=element=>[element,...element.children.flatMap(children)];
- const node=(tag,text='')=>({tag,_text:text,children:[],append(...parts){this.children.push(...parts);},prepend(...parts){this.children.unshift(...parts);},
+ const node=(tag,text='')=>({tag,_text:text,style:{},children:[],append(...parts){this.children.push(...parts);},prepend(...parts){this.children.unshift(...parts);},
   replaceChildren(...parts){this.children=parts;},get textContent(){return this._text+this.children.map(part=>part.textContent).join('');},
   set textContent(value){this._text=value;this.children=[];}});
  const field=(label,control)=>{const wrapper=node('label',label);wrapper.append(control);return wrapper;};
@@ -32,4 +32,12 @@ test('archive offers the next 100 contracts without replacing the first page',as
  more.onclick();await d.pending;
  assert.equal(children(target).filter(element=>element.tag==='button'&&element._text==='عرض PDF المحفوظ').length,105);
  assert.equal(more.hidden,true);assert.deepEqual(offsets,[0,100]);
+ find('عرض PDF المحفوظ').onclick();await d.pending;
+ const links=children(target).filter(element=>element.tag==='a');
+ const full=links.find(element=>element.target==='_blank');
+ const download=links.find(element=>element.download==='عقد صوري.pdf');
+ assert.ok(full);assert.ok(download);assert.equal(full.href,download.href);
+ assert.equal(await (await fetch(full.href)).text(),'%PDF-1.7');
+ assert.equal(children(target).some(element=>element.tag==='iframe'),false);
+ URL.revokeObjectURL(full.href);
 });
