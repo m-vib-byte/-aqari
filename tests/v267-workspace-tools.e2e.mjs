@@ -253,17 +253,17 @@ async function verifyServiceDesk(page,locale,name,viewport){
  assert.deepEqual(await closedState.locator('option').evaluateAll(options=>options.map(option=>option.value)),['completed']);
  const closedBefore=structuredClone(maintenanceRows.find(row=>row.id==='request2')),closedWritesBefore=maintenanceWrites,attachmentCallsBefore=maintenanceAttachmentCalls.length,attachmentReadsBefore=maintenanceAttachmentReads;
  await completed.getByRole('button',{name:tr('صور البلاغ ومرفقاته'),exact:true}).click();
- await completed.getByText('يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.',{exact:true}).waitFor();
+ await completed.getByText(tr('يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.'),{exact:true}).waitFor();
  assert.equal(await completed.locator('input[type=file]:visible').count(),0,'closed attachments expose no file or camera input');
- const upload=completed.getByRole('button',{name:'رفع المرفقات والتحقق منها',exact:true,includeHidden:true});
+ const upload=completed.getByRole('button',{name:tr('رفع المرفقات والتحقق منها'),exact:true,includeHidden:true});
  assert.equal(await upload.isVisible(),false,'closed attachments expose no upload action');
  assert.equal(await upload.isDisabled(),true);
  // Even a synthetic change to the hidden input cannot invoke reserve/finalize or Storage POST.
  await completed.locator('input[type=file]').first().setInputFiles({name:'blocked.jpg',mimeType:'image/jpeg',buffer:maintenanceAttachmentBytes});
  assert.equal(await upload.isDisabled(),true);
  await upload.evaluate(button=>button.onclick());
- await completed.getByRole('button',{name:'استرجاع المرفق',exact:true}).click();
- const originalLink=completed.getByRole('link',{name:'فتح / تحميل الملف المحفوظ',exact:true});await originalLink.waitFor();
+ await completed.getByRole('button',{name:tr('استرجاع المرفق'),exact:true}).click();
+ const originalLink=completed.getByRole('link',{name:tr('فتح / تحميل الملف المحفوظ'),exact:true});await originalLink.waitFor();
  const downloaded=await originalLink.evaluate(async link=>Array.from(new Uint8Array(await (await fetch(link.href)).arrayBuffer())));
  assert.deepEqual(Buffer.from(downloaded),maintenanceAttachmentBytes,'closed request retrieves the unchanged original bytes');
  assert.equal(await originalLink.getAttribute('download'),maintenanceAttachment.filename);
