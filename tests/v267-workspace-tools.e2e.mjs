@@ -92,6 +92,11 @@ const server=http.createServer((req,res)=>{
    if(args._single)return reply(res,maintenanceRows.find(x=>x.id===args.id));
    return reply(res,maintenanceRows.slice(args._range[0],args._range[1]+1));
   }
+  if(name==='aqari_maintenance_executor_summary'){
+   assert.equal(args.p_workspace_id,wid,'maintenance executors stay workspace scoped');
+   assert.deepEqual(args.p_request_ids,['request1','request2']);
+   return reply(res,args.p_request_ids.map(request_id=>({request_id,work_order_id:null})));
+  }
   if(name==='aqari_maintenance_locations'){
    assert.equal(args.p_workspace_id,wid);assert.deepEqual(args.p_request_ids,['request1','request2']);
    if(maintenanceLocationDenied)return reply(res,{message:'ACCESS_DENIED'},403);
