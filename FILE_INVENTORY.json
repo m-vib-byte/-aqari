@@ -4047,8 +4047,8 @@
     },
     {
       "path": "tests/v267-pearl-gold-review.test.cjs",
-      "sha256": "90635797938c47c2ab9d2b55722fa3b55a607684eaac457c6fefc852ed35bdb2",
-      "size": 3547
+      "sha256": "5711e9abbaff0a1735e9c842467ac20f23dfc9fa3372cbe7b25ca165ed85eace",
+      "size": 3640
     },
     {
       "path": "tests/v267-portal-account-recovery.test.mjs",
@@ -4237,8 +4237,8 @@
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
-      "sha256": "4d3124c95a7612bd898486e2478e7a49af81f6588671c222af5a7bc9d76412ff",
-      "size": 7190
+      "sha256": "fa8708c3c75734bd9711dfec4199004759295e944d953f5657effe989865da92",
+      "size": 7343
     },
     {
       "path": "tests/v267-tenant-portal.test.cjs",
