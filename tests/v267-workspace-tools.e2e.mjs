@@ -25,7 +25,7 @@ const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="r
  'window.AQARI_PUBLIC_CONFIG={supabaseUrl:"https://ofgmcsmxmdswlovsckqs.supabase.co",supabasePublishableKey:"sb_publishable_synthetic"};'+
  'window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};'+
  'const nativeFetch=window.fetch.bind(window);window.fetch=(input,options)=>{const url=new URL(input,location.origin);if(url.origin==="https://ofgmcsmxmdswlovsckqs.supabase.co"&&url.pathname.startsWith("/storage/v1/object/"))return nativeFetch("/storage-fixture"+url.pathname,options);return nativeFetch(input,options);};'+
- 'function query(name,args={}){const x={args};for(const k of ["select","eq","order","range","single","maybeSingle","limit","not","insert","update"])x[k]=(...a)=>{if(k==="select")args._select=a[0];if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="maybeSingle")args._maybeSingle=true;if(k==="update")args._update=a[0];if(k==="range")args._range=a;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status});return x;}'+
+ 'function query(name,args={}){const x={args};for(const k of ["select","eq","neq","order","range","single","maybeSingle","limit","not","insert","update"])x[k]=(...a)=>{if(k==="select")args._select=a[0];if(k==="eq")args[a[0]]=a[1];if(k==="single")args._single=true;if(k==="maybeSingle")args._maybeSingle=true;if(k==="update")args._update=a[0];if(k==="range")args._range=a;if(k==="insert")args._insert=a[0];return x;};x.abortSignal=signal=>fetch("/fixture/"+name,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(args),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status});return x;}'+
  'window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:"general_manager",is_active:true}},getClient:async()=>({rpc:query,from:name=>query(name,{})}),getSession:async()=>({user:{id:uid},access_token:"synthetic-not-a-real-token"})};'+
  'const {install}=await import("/src/v267/workspace.js");install();await import("/src/v267/pages/automation-status.js");document.getElementById("fixtureMaintenance").onclick=async()=>{const {openDesk}=await import("/v267-service-desk.js");await openDesk();};</script></body></html>';
 const server=http.createServer((req,res)=>{
@@ -65,7 +65,7 @@ const server=http.createServer((req,res)=>{
   if(name==='aqari_document_entities')return reply(res,[{entity_ref:'p1',title:'عقار اختبار مستقل'}]);
   if(name==='aqari_document_listing')return reply(res,docs.map(d=>({...d,author_name:'مدير اختبار'})));
   if(name==='aqari_reserve_document'){
-   const d={id:'33333333-3333-4333-8333-333333333333',document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_path:wid+'/33333333-3333-4333-8333-333333333333.pdf',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
+   const d={id:'33333333-3333-4333-8333-333333333333',workspace_id:wid,document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_bucket:'aqari-documents',storage_path:wid+'/33333333-3333-4333-8333-333333333333.pdf',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
    docs.push(d);return reply(res,[{document_id:d.id,document_no:d.document_no,storage_bucket:'aqari-documents',storage_path:d.storage_path}]);
   }
   if(name==='aqari_finalize_document'){const d=docs.find(d=>d.id===args.p_document_id);assert.ok(storageBytes?.length);d.status='uploaded';d.checksum_sha256=args.p_checksum;d.size_bytes=args.p_size_bytes;return reply(res,d.id);}
@@ -92,6 +92,11 @@ const server=http.createServer((req,res)=>{
    if(args._single)return reply(res,maintenanceRows.find(x=>x.id===args.id));
    return reply(res,maintenanceRows.slice(args._range[0],args._range[1]+1));
   }
+  if(name==='aqari_maintenance_executor_summary'){
+   assert.equal(args.p_workspace_id,wid,'maintenance executors stay workspace scoped');
+   assert.deepEqual(args.p_request_ids,['request1','request2']);
+   return reply(res,args.p_request_ids.map(request_id=>({request_id,work_order_id:null})));
+  }
   if(name==='aqari_maintenance_locations'){
    assert.equal(args.p_workspace_id,wid);assert.deepEqual(args.p_request_ids,['request1','request2']);
    if(maintenanceLocationDenied)return reply(res,{message:'ACCESS_DENIED'},403);
@@ -106,6 +111,12 @@ const server=http.createServer((req,res)=>{
    assert.equal(args.p_workspace_id,wid);assert.equal(args.p_grace_day,5);assert.match(args.p_as_of,/^\d{4}-\d{2}-\d{2}$/);prepareCalls++;return reply(res,prepareCalls===1?1:0);
   }
   if(name==='aqari_read_state_v267')return reply(res,{revision:1});
+  if(name==='aqari_unit_readiness_register'){
+   assert.equal(args.p_workspace_id,wid,'readiness remains workspace scoped');
+   assert.equal(args.p_action,'list','statement reads must not change readiness');
+   assert.deepEqual(args.p_data,{});
+   return reply(res,{units:[statement,secondStatement].flatMap(s=>s.content.rows.map(row=>({property_id:s.property_id,unit_no:row.unit,state:'review_required'})))});
+  }
   if(name==='aqari_review_source_lease'){reviewWrites++;return reply(res,{message:'UNEXPECTED_REVIEW_WRITE'},400);}
   if(['aqari_properties','aqari_utility_meters','aqari_utility_entries','aqari_property_statements','aqari_statement_links','aqari_leases','aqari_units','aqari_tenants','aqari_rent_payments'].includes(name)){
    assert.equal(args.workspace_id??args._insert?.workspace_id,wid,'all form queries are workspace scoped');
@@ -152,7 +163,7 @@ async function verifyFinancialPanels(page,locale,name){
  await page.locator('#financeSuitePage').getByRole('heading',{name:fmt('التحصيل الفعلي خلال {month}: {amount} د.ك',{month:'2026-08',amount:'125.750'}),exact:true}).waitFor();
  assert.equal(calls.length,before,'translating loaded financial panels does not read or write business data');
  assert.equal(await page.locator('#financeSuitePage').getByLabel(tr('شهر التحصيل الفعلي'),{exact:true}).inputValue(),'2026-08','language preserves selected financial month');
- const box=await page.locator('#financeSuitePage').evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.scroll<=box.client+1,'financial translation fits viewport');
+ const box=await page.locator('#financeSuitePage').evaluate(el=>({scroll:el.scrollWidth,client:el.clientWidth}));assert.ok(box.scroll<=box.client+1,`financial translation fits viewport (${name}/${locale}: scroll=${box.scroll}, client=${box.client})`);
  await page.locator('#financeSuitePage').screenshot({path:path.join(out,name+'-'+locale+'-finance.png')});
 }
 async function verifyLocalizedForms(page,locale,name,viewport){
@@ -196,7 +207,7 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  assert.ok(!(await dialog.textContent()).includes('402'),'no hardcoded unit conflicts leak between properties');
  await fit('statements');
  await field('الشهر').fill('2026-09');await field('الشهر').press('Tab');
- await page.getByText(tr('لا يوجد كشف محفوظ لهذا الشهر.'),{exact:true}).waitFor();
+ await page.getByText(tr('لا يوجد كشف مصدر محفوظ لهذا الشهر. يمكنك عرض كشف التحصيل الفعلي أو تقرير موظفي التحصيل من العقود والدفعات المحفوظة.'),{exact:true}).waitFor();
  assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true);
  assert.equal(await dialog.locator('details').count(),0,'missing month clears previous statement');
  await field('الشهر').fill('2026-08');await field('الشهر').press('Tab');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
@@ -242,17 +253,17 @@ async function verifyServiceDesk(page,locale,name,viewport){
  assert.deepEqual(await closedState.locator('option').evaluateAll(options=>options.map(option=>option.value)),['completed']);
  const closedBefore=structuredClone(maintenanceRows.find(row=>row.id==='request2')),closedWritesBefore=maintenanceWrites,attachmentCallsBefore=maintenanceAttachmentCalls.length,attachmentReadsBefore=maintenanceAttachmentReads;
  await completed.getByRole('button',{name:tr('صور البلاغ ومرفقاته'),exact:true}).click();
- await completed.getByText('يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.',{exact:true}).waitFor();
+ await completed.getByText(tr('يمكنك استرجاع المرفقات المحفوظة. إضافة مرفقات جديدة غير متاحة لهذا البلاغ.'),{exact:true}).waitFor();
  assert.equal(await completed.locator('input[type=file]:visible').count(),0,'closed attachments expose no file or camera input');
- const upload=completed.getByRole('button',{name:'رفع المرفقات والتحقق منها',exact:true,includeHidden:true});
+ const upload=completed.getByRole('button',{name:tr('رفع المرفقات والتحقق منها'),exact:true,includeHidden:true});
  assert.equal(await upload.isVisible(),false,'closed attachments expose no upload action');
  assert.equal(await upload.isDisabled(),true);
  // Even a synthetic change to the hidden input cannot invoke reserve/finalize or Storage POST.
  await completed.locator('input[type=file]').first().setInputFiles({name:'blocked.jpg',mimeType:'image/jpeg',buffer:maintenanceAttachmentBytes});
  assert.equal(await upload.isDisabled(),true);
  await upload.evaluate(button=>button.onclick());
- await completed.getByRole('button',{name:'استرجاع المرفق',exact:true}).click();
- const originalLink=completed.getByRole('link',{name:'فتح / تحميل الملف المحفوظ',exact:true});await originalLink.waitFor();
+ await completed.getByRole('button',{name:tr('استرجاع المرفق'),exact:true}).click();
+ const originalLink=completed.getByRole('link',{name:tr('فتح / تحميل الملف المحفوظ'),exact:true});await originalLink.waitFor();
  const downloaded=await originalLink.evaluate(async link=>Array.from(new Uint8Array(await (await fetch(link.href)).arrayBuffer())));
  assert.deepEqual(Buffer.from(downloaded),maintenanceAttachmentBytes,'closed request retrieves the unchanged original bytes');
  assert.equal(await originalLink.getAttribute('download'),maintenanceAttachment.filename);
@@ -396,7 +407,11 @@ try{
     assert.equal(storageAttempts,1,'unavailable reread cannot retry the upload');assert.equal(docs[0].status,'draft');
     storageReadUnavailable=false;storageLoseReply=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
-    await page.getByText('تم حفظ النسخة وإعادة قراءة الملف ومطابقة بصمته وتصنيفه وارتباطه بالسجل.',{exact:true}).waitFor();
+    const storedReview=page.locator('.aq267-stored-visual-review:not([hidden])');
+    await storedReview.waitFor({state:'visible'});
+    await storedReview.getByRole('checkbox',{name:'راجعت النسخة المرفوعة فعلياً وجميع صفحاتها وأؤكد وضوح النصوص والصور وعدم فقدان الجودة.',exact:true}).check();
+    await storedReview.getByRole('button',{name:'اعتماد النسخة المرفوعة وإقفال المستند',exact:true}).click();
+    await page.getByText('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.',{exact:true}).waitFor();
     assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
     assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.equal(docs[0].metadata.document_category,'ownership_deed','selected category survives upload and canonical readback');
@@ -420,7 +435,7 @@ try{
      document.addEventListener('click',event=>{if(event.target.closest('.aq267-dialog a[download]'))event.preventDefault();});
     });
     await page.getByRole('dialog').getByRole('button',{name:'تحميل النسخة الأصلية',exact:true}).click();
-    await page.getByText('تم استرجاع الملف المحفوظ.',{exact:true}).waitFor();
+    await page.getByText('تم استرجاع الملف الأصلي والتحقق من مطابقته للبصمة المحفوظة.',{exact:true}).waitFor();
     const privateUrl=await page.getByRole('dialog').locator('a[download]').getAttribute('href');assert.ok(privateUrl?.startsWith('blob:'));
     assert.equal(await page.evaluate(async url=>(await (await fetch(url)).blob()).size,privateUrl),storageBytes.length,'download URL contains the saved private document');
     const uploadsBeforeDenial=storageAttempts;

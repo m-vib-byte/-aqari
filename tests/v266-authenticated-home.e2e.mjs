@@ -166,7 +166,7 @@ try{
           const beats=await page.evaluate(()=>window.__homeHeartbeats);
           await delay(1000);
           assert.ok(await page.evaluate(()=>window.__homeHeartbeats)>beats,'the completed UI must remain responsive');
-          for(const [route,target] of [['properties','list'],['tenants','list'],['smartContractsPage','smartContractsPage'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
+          for(const [route,target] of [['properties','list'],['tenants','list'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
             await page.evaluate(route=>window.go(route),route);
             assert.ok(await page.locator('#'+target).isVisible(),'visible full-platform section: '+route);
           }

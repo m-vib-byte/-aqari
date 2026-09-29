@@ -33,6 +33,8 @@ jobs:
         run: npm ci --prefix staging-database/local-test --ignore-scripts --no-audit --no-fund
       - name: Existing SQL acceptance suites
         run: npm run test:completion --prefix staging-database/local-test | tee /tmp/aqari-verification/sql-existing.log
+      - name: Contract archive and official issue/archive isolated SQL suites
+        run: npm run test:completion:contracts --prefix staging-database/local-test | tee /tmp/aqari-verification/sql-contracts.log
       - name: Reproduce cancelled-receipt close bug then verify repair
         run: node scripts/verify-financial-close-regression.mjs | tee /tmp/aqari-verification/sql-close-regression.log
       - name: Document handover persistence and access boundaries

@@ -65,8 +65,35 @@ await check('Root opens the dedicated V267 login on every device', async () => {
     if(finalUrl.pathname !== '/' || response.request().redirectedFrom() || response.headers().location){
       throw new Error('root must serve the login directly without redirecting');
     }
-    await loginPage.waitForSelector('#email:not([disabled])', { state:'visible', timeout:12000 });
-    await loginPage.waitForSelector('#password:not([disabled])', { state:'visible', timeout:12000 });
+    await loginPage.waitForSelector('#email', { state:'attached', timeout:12000 }).catch(async error => {
+      const snapshot=await loginPage.evaluate(() => ({
+        title:document.title,
+        pathname:location.pathname,
+        contentType:document.contentType,
+        bodyText:String(document.body?.innerText||'').slice(0,500),
+        hasLoginForm:Boolean(document.getElementById('loginForm')),
+        htmlClass:document.documentElement.className,
+        bodyClass:document.body?.className||''
+      })).catch(()=>({unreadable:true}));
+      throw new Error('root login email is absent: '+JSON.stringify(snapshot)+'; '+error.message);
+    });
+    await loginPage.waitForSelector('#password', { state:'attached', timeout:12000 });
+    const loginVisibility=await loginPage.evaluate(() => {
+      const inspect=id=>{const el=document.getElementById(id),style=el&&getComputedStyle(el),rect=el?.getBoundingClientRect();return {
+        exists:Boolean(el),disabled:Boolean(el?.disabled),hidden:Boolean(el?.hidden),
+        display:style?.display||'',visibility:style?.visibility||'',opacity:style?.opacity||'',
+        width:rect?.width||0,height:rect?.height||0
+      };};
+      return {email:inspect('email'),password:inspect('password'),form:inspect('loginForm')};
+    });
+    if(loginVisibility.email.disabled||loginVisibility.password.disabled||
+       loginVisibility.email.hidden||loginVisibility.password.hidden||
+       loginVisibility.email.display==='none'||loginVisibility.password.display==='none'||
+       loginVisibility.email.visibility==='hidden'||loginVisibility.password.visibility==='hidden'||
+       loginVisibility.email.width<=0||loginVisibility.email.height<=0||
+       loginVisibility.password.width<=0||loginVisibility.password.height<=0){
+      throw new Error('root login controls are not interactable: '+JSON.stringify(loginVisibility));
+    }
   }finally{
     await loginPage.close();
   }

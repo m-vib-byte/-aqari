@@ -9,7 +9,7 @@ const PROPERTY_ASSETS=Object.freeze({
  property_certificate:{documentType:'supporting_document',label:'شهادة العقار'},
  property_insurance:{documentType:'supporting_document',label:'تأمين العقار'},
  property_other:{documentType:'supporting_document',label:'مستند عام للعقار'},
- property_contract:{documentType:'supporting_document',label:'ملف عقد العقار'}
+ property_contract:{documentType:'property_document',label:'ملف عقد العقار'}
 });
 function uploadCategory(category,entity){
  const asset=PROPERTY_ASSETS[category];

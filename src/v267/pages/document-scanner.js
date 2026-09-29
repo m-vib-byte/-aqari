@@ -41,7 +41,21 @@ export async function openDocumentScanner(initial={}){
  const dialog=createDialog(t('مسح المستندات ورفع الوثائق'),{localized:true});if(!dialog)return;
  const {session,body,status,run:runDialog}=dialog;
  let scannerBusy=false;
- async function run(task){if(scannerBusy||dialog.closed)return;scannerBusy=true;try{await runDialog(task);}finally{scannerBusy=false;if(!dialog.closed){rotate.disabled=!img;cropBox.hidden=!img;addPage.disabled=!img;}}}
+ async function run(task){
+  if(scannerBusy||dialog.closed)return;
+  scannerBusy=true;
+  if(typeof save!=='undefined')save.disabled=true;
+  try{await runDialog(task);}
+  finally{
+   scannerBusy=false;
+   if(!dialog.closed){
+    save.disabled=false;
+    rotate.disabled=!img;
+    cropBox.hidden=!img;
+    addPage.disabled=!img;
+   }
+  }
+ }
  const urls=createPrivateUrls(dialog),downloads=createPrivateUrls(dialog),pageUrls=createPrivateUrls(dialog);
  const type=node('select'),category=node('select'),query=node('input'),search=node('button',t('بحث السجلات المحفوظة')),records=node('select'),title=node('input'),file=node('input'),rotate=node('button',t('تدوير الصورة')),preview=node('img'),save=node('button',t('رفع نسخة جديدة والتحقق منها')),reload=node('button',t('تحديث المستندات')),list=node('div'),next=node('button',t('مستندات أقدم')),previous=node('button',t('مستندات أحدث'));
  query.maxLength=100;title.maxLength=180;preview.alt=t('معاينة صورة المستند قبل الرفع');file.type='file';

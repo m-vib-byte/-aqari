@@ -45,7 +45,7 @@ try{
      await page.screenshot({path:path.join(out,`${engine}-${viewport.width}-${code}.png`),fullPage:true});
     }
     assert.equal(reads,before);assert.equal(writes,0);await page.reload();await page.locator('#content').waitFor({state:'visible'});assert.equal(await page.locator('html').getAttribute('lang'),'ml');
-    await page.locator('#tenantLogout').click();await page.locator('#auth').waitFor({state:'visible'});assert.equal(await page.locator('#tenantName').textContent(),'');assert.equal(await page.locator('#tenantPayments').textContent(),'');assert.equal(await page.locator('html').getAttribute('lang'),'ar');
+    await page.locator('#tenantLogout').click();await page.locator('#auth').waitFor({state:'visible'});assert.equal(await page.locator('#tenantName').textContent(),'');assert.equal(await page.locator('#tenantPayments').textContent(),'');assert.equal(await page.locator('html').getAttribute('lang'),'ml','sign-out preserves the public language preference while clearing private records');assert.equal(await page.locator('#tenantLanguage').inputValue(),'ml');
     await page.locator('#tenantEmail').fill('fixture@example.test');await page.locator('#tenantPassword').fill('synthetic-password');
     for(const code of Object.keys(LANGUAGES)){await page.locator('#tenantLanguage').selectOption(code);assert.equal(await page.locator('#tenantEmail').inputValue(),'fixture@example.test');assert.equal(await page.locator('#tenantPassword').inputValue(),'synthetic-password');assert.equal(await page.locator('#tenantLogin button').textContent(),t('دخول',code));}
     assert.deepEqual(errors,[]);console.log(`PASS tenant ${engine} ${viewport.width}: five languages, unchanged records/draft/links, persisted preference, sign-out clearing`);

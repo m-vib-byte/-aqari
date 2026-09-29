@@ -1,5 +1,5 @@
 // Test the prepared application in a disposable copy; keep the checkout pristine.
-import {cpSync,mkdtempSync,readdirSync,rmSync} from 'node:fs';
+import {cpSync,existsSync,mkdirSync,mkdtempSync,readdirSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,relative,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -17,6 +17,8 @@ const excluded=new Set(['.git','node_modules','__pycache__','.venv']);
 try{
  cpSync(root,prepared,{recursive:true,filter:source=>
   !relative(root,source).split(sep).some(part=>excluded.has(part))});
+ const botid=join(root,'node_modules','botid');
+ if(existsSync(botid)){mkdirSync(join(prepared,'node_modules'),{recursive:true});cpSync(botid,join(prepared,'node_modules','botid'),{recursive:true});}
  const run=args=>{
   const result=spawnSync(process.execPath,args,{cwd:prepared,stdio:'inherit'});
   if(result.error)throw result.error;

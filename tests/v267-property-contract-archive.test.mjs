@@ -8,7 +8,7 @@ const docId='99999999-9999-4999-9999-999999999999';
 const bytes=new Blob(['%PDF-1.7\nverified']);
 const digest=createHash('sha256').update('%PDF-1.7\nverified').digest('hex');
 const original={id:docId,title:'ملف عقد العقار',original_filename:'عقد صوري.pdf',created_at:'2026-09-26T00:00:00Z',status:'uploaded',entity_type:'property',entity_ref:property.externalRef,
- document_type:'supporting_document',metadata:{category:'property_other',asset_role:'property_contract',property_id:property.id},
+ document_type:'property_document',metadata:{category:'property_other',asset_role:'property_contract',property_id:property.id},
  storage_bucket:'aqari-documents',storage_path:'workspace/verified.pdf',mime_type:'application/pdf',size_bytes:bytes.size,checksum_sha256:digest};
 
 function fixture(rows=[original],blob=bytes){
@@ -23,6 +23,7 @@ test('archive list omits unrelated documents and keeps workspace and property fi
  assert.deepEqual((await listPropertyContractArchive(f.session,property)).items.map(x=>x.id),[docId]);
  assert.equal((await listPropertyContractArchive(f.session,property)).items[0].original_filename,'عقد صوري.pdf');
  assert.deepEqual(f.calls.slice(0,3),[['workspace_id','workspace'],['entity_type','property'],['entity_ref',property.externalRef]]);
+ assert.ok(f.calls.some(([key,value])=>key==='document_type'&&value==='property_document'));
 });
 
 test('opening archive rechecks record scope and exact private bytes',async()=>{

@@ -11,18 +11,24 @@ function stableBlob(blob,mime){
 }
 
 export function createStoredVisualReview(dialog,{parent,controls=[]}={}){
- const {session}=dialog,urls=createPrivateUrls(dialog),box=node('section'),notice=node('p'),viewer=node('div');
+ const {session,body}=dialog,urls=createPrivateUrls(dialog),box=node('section'),notice=node('p'),viewer=node('div');
  const confirmed=node('input'),confirmField=field('راجعت النسخة المرفوعة فعلياً وجميع صفحاتها وأؤكد وضوح النصوص والصور وعدم فقدان الجودة.',confirmed);
  const confirm=node('button','اعتماد النسخة المرفوعة وإقفال المستند'),abort=node('button','إغلاق المراجعة دون اعتماد');
  confirmed.type='checkbox';box.hidden=true;box.className='aq267-stored-visual-review';notice.setAttribute('role','status');
  box.append(node('h3','مراجعة الجودة من النسخة المرفوعة فعلياً'),notice,viewer,confirmField,confirm,abort);parent.append(box);
- let rejectActive=null,priorDisabled=null,reviewUrl=null,docxOpened=false;
+ let rejectActive=null,priorDisabled=null,priorBodyInert=null,reviewUrl=null,docxOpened=false;
 
  function lock(){
   priorDisabled=new Map();
   for(const control of controls){if(!control||!('disabled' in control)||priorDisabled.has(control))continue;priorDisabled.set(control,control.disabled);control.disabled=true;}
  }
- function unlock(){if(!priorDisabled)return;for(const [control,disabled]of priorDisabled)control.disabled=disabled;priorDisabled=null;}
+ function enableReviewInteraction(){
+  if(body&&priorBodyInert===null){priorBodyInert=body.inert;body.inert=false;}
+ }
+ function unlock(){
+  if(priorDisabled){for(const [control,disabled]of priorDisabled)control.disabled=disabled;priorDisabled=null;}
+  if(body&&priorBodyInert!==null){body.inert=priorBodyInert;priorBodyInert=null;}
+ }
  function clear(){
   rejectActive=null;confirmed.checked=false;docxOpened=false;viewer.replaceChildren();notice.textContent='';box.hidden=true;
   if(reviewUrl){urls.release(reviewUrl);reviewUrl=null;}unlock();
@@ -56,7 +62,7 @@ export function createStoredVisualReview(dialog,{parent,controls=[]}={}){
     confirm.onclick=async()=>{
      if(!confirmed.checked){notice.textContent='يجب تأكيد مراجعة النسخة المرفوعة فعلياً وجميع صفحاتها قبل الإقفال.';return;}
      if(target.mime===DOCX_MIME&&!docxOpened){notice.textContent='افتح أو نزّل نسخة DOCX المسترجعة من Storage وراجعها قبل الإقفال.';return;}
-     confirm.disabled=true;abort.disabled=true;
+     confirm.disabled=true;abort.disabled=true;if(body)body.inert=true;
      try{
       const second=await fetchVerified(doc,expectedHash,expectedSize,target.mime);
       clear();resolve({hash:second.storedHash,size:second.downloaded.size});
@@ -64,10 +70,12 @@ export function createStoredVisualReview(dialog,{parent,controls=[]}={}){
      finally{confirm.disabled=false;abort.disabled=false;}
     };
     abort.onclick=()=>{const error=Error('أُغلقت مراجعة الجودة دون اعتماد. بقي المستند غير مقفل.');clear();reject(error);};
-    // dialog.run disables existing controls while the upload is in progress.
-    // The verified-copy review now waits for the user, so only its controls
-    // must become interactive; the upload inputs remain locked until it ends.
-    confirmed.disabled=false;confirm.disabled=false;abort.disabled=false;
+    // dialog.run keeps the body inert while an async task owns the dialog.
+    // This review intentionally waits for a user decision, so temporarily
+    // release the body only after the verified stored copy is rendered.
+    // Scanner actions remain serialized by scannerBusy and the passed
+    // business controls stay disabled until review completion.
+    confirmed.disabled=false;confirm.disabled=false;abort.disabled=false;enableReviewInteraction();
    });
   }catch(error){clear();throw error;}
  }
