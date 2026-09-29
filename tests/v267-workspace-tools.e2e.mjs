@@ -106,6 +106,12 @@ const server=http.createServer((req,res)=>{
    assert.equal(args.p_workspace_id,wid);assert.equal(args.p_grace_day,5);assert.match(args.p_as_of,/^\d{4}-\d{2}-\d{2}$/);prepareCalls++;return reply(res,prepareCalls===1?1:0);
   }
   if(name==='aqari_read_state_v267')return reply(res,{revision:1});
+  if(name==='aqari_unit_readiness_register'){
+   assert.equal(args.p_workspace_id,wid,'readiness remains workspace scoped');
+   assert.equal(args.p_action,'list','statement reads must not change readiness');
+   assert.deepEqual(args.p_data,{});
+   return reply(res,{units:[statement,secondStatement].flatMap(s=>s.content.rows.map(row=>({property_id:s.property_id,unit_no:row.unit,state:'review_required'})))});
+  }
   if(name==='aqari_review_source_lease'){reviewWrites++;return reply(res,{message:'UNEXPECTED_REVIEW_WRITE'},400);}
   if(['aqari_properties','aqari_utility_meters','aqari_utility_entries','aqari_property_statements','aqari_statement_links','aqari_leases','aqari_units','aqari_tenants','aqari_rent_payments'].includes(name)){
    assert.equal(args.workspace_id??args._insert?.workspace_id,wid,'all form queries are workspace scoped');
@@ -196,7 +202,7 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  assert.ok(!(await dialog.textContent()).includes('402'),'no hardcoded unit conflicts leak between properties');
  await fit('statements');
  await field('الشهر').fill('2026-09');await field('الشهر').press('Tab');
- await page.getByText(tr('لا يوجد كشف محفوظ لهذا الشهر.'),{exact:true}).waitFor();
+ await page.getByText(tr('لا يوجد كشف مصدر محفوظ لهذا الشهر. يمكنك عرض كشف التحصيل الفعلي أو تقرير موظفي التحصيل من العقود والدفعات المحفوظة.'),{exact:true}).waitFor();
  assert.equal(await button('تحميل PDF / طباعة').isDisabled(),true);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').isDisabled(),true);
  assert.equal(await dialog.locator('details').count(),0,'missing month clears previous statement');
  await field('الشهر').fill('2026-08');await field('الشهر').press('Tab');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
