@@ -1197,8 +1197,8 @@
     },
     {
       "path": "src/v267/components/contract-routing.js",
-      "sha256": "754b238f0b4e7efffd2760d26a4347423224e11d7b69956c8e7de02848901967",
-      "size": 2338
+      "sha256": "0175d2015248316fb4799aa87586021b3ffc6374eed2c65b6fe46670bb43e88f",
+      "size": 2456
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
@@ -4337,13 +4337,13 @@
     },
     {
       "path": "v201-easy.css",
-      "sha256": "944fa996e663121241fdc290ba1754ab4fadf462b9a1965a03d1c80b76738d3d",
-      "size": 26062
+      "sha256": "6aaf26d444f2aa7daf0c1317d2dd2c9b6010bbb6a5cb01c70b5b7295322f022f",
+      "size": 25690
     },
     {
       "path": "v201-experience.js",
-      "sha256": "447db02713788611eca2908e3ecf190ae08344cb43403c728c60ebd96857aef0",
-      "size": 36115
+      "sha256": "4562bf6f099750a1a47649641edb9aa2ad53a4eda1f35a50cb9b928c0fdc7763",
+      "size": 36310
     },
     {
       "path": "v202-prestige.css",
