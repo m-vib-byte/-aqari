@@ -177,7 +177,7 @@ async function verifyLocalizedForms(page,locale,name,viewport){
   assert.ok(box.width<=viewport.width&&box.scroll<=box.client+1,section+' fits '+locale);
   await page.screenshot({path:path.join(out,name+'-'+locale+'-'+section+'.png'),fullPage:true});
  }
- await page.getByRole('button',{name:tr('الإعدادات والخدمات — عدادات العقارات'),exact:true}).click();
+ await page.getByRole('button',{name:navLabel('maintenance_utilities',locale),exact:true}).click();
  await page.getByText(tr('تم استرجاع العدادات والسجلات من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(await field('العقار').getByRole('option',{name:propertyName,exact:true}).count(),1,'property name is literal');
  await field('نوع السجل').selectOption('bill');
@@ -198,7 +198,7 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  assert.equal(await dialog.locator('article').count(),0,'another property cannot display the previous property bills');
  await field('العقار').selectOption('p1');await page.getByText(tr('تم استرجاع العدادات والسجلات من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(await dialog.locator('article').count(),entries.length,'saved invoices reload');await close();
- await page.getByRole('button',{name:tr('كشوف العقارات — برج شيخة'),exact:true}).click();
+ await page.getByRole('button',{name:navLabel('property_statements',locale),exact:true}).click();
  await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(await dialog.getByRole('heading',{name:propertyName+' — 2026-08',exact:true}).count(),1);
  const row=dialog.locator('details');await row.locator('summary').click();
@@ -214,19 +214,19 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  statementReadDenied=true;await button('عرض الكشف').click();await dialog.waitFor({state:'detached'});
  assert.equal(await dialog.locator('details').count(),0,'denied reread removes private statement rows');
  assert.equal(await button('تحميل PDF / طباعة').count(),0);assert.equal(await button('ربط الكشف بملفات المستأجرين والعقود').count(),0,'failed reread cannot leave a printable or linkable candidate');
- statementReadDenied=false;await page.getByRole('button',{name:tr('كشوف العقارات — برج شيخة'),exact:true}).click();
+ statementReadDenied=false;await page.getByRole('button',{name:navLabel('property_statements',locale),exact:true}).click();
  await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(await dialog.getByRole('heading',{name:propertyName+' — 2026-08',exact:true}).count(),1,'restored access reloads the saved statement');
  await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  await dialog.locator('details summary').click();assert.equal(await dialog.getByText(tr('التأمين')+': 100.000',{exact:true}).count(),1,'confirmed deposit is not labelled pending');
  assert.equal(await dialog.getByRole('heading',{name:'عقار آخر — 2026-08',exact:true}).count(),1);
  await close();
- await page.getByRole('button',{name:tr('اعتماد عقود المصدر'),exact:true}).click();
+ await page.getByRole('button',{name:navLabel('lease_review',locale),exact:true}).click();
  await page.getByText(tr('راجع المستند قبل تنفيذ المرحلة التالية.'),{exact:true}).waitFor();
  assert.equal(await dialog.getByText(fmt('العقار: {property} • الوحدة: {unit} • المستأجر: {tenant}',{property:propertyName,unit:'101',tenant:tenantName}),{exact:true}).count(),1);
  await button('اعتماد العقد').click();await page.getByText(tr('حدد المستند والتأمين ومرجع المطابقة وأكد المراجعة.'),{exact:true}).waitFor();assert.equal(reviewWrites,0,'incomplete approval cannot write');
  await fit('leases');await close();
- await page.getByRole('button',{name:tr('مركز جودة البيانات'),exact:true}).click();
+ await page.getByRole('button',{name:navLabel('data_quality',locale),exact:true}).click();
  await page.getByText(tr('اكتمل الفحص للقراءة فقط. التعارضات المصدرية المعروفة تبقى معلقة دون تغيير.'),{exact:true}).waitFor();
  assert.equal(await dialog.getByText(fmt('تمت قراءة {units} وحدة و{tenants} ملف مستأجر و{leases} عقداً من مساحة العمل الحالية.',{units:2,tenants:1,leases:1}),{exact:true}).count(),1);
  assert.equal(await dialog.locator('summary').filter({hasText:tr('رقم وحدة مكرر داخل العقار — يحتاج مراجعة')}).count(),1);
