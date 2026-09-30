@@ -485,23 +485,9 @@ body.aq-v201 td{padding:14px 13px!important;color:var(--v201-ink);font-size:13px
   }
   body.aq-v201 .mobilebar .v199-bottom-button{color:#685f52!important;font-size:11px!important;line-height:1.2!important}
   body.aq-v201 .mobilebar .v199-bottom-button.is-active{background:var(--v201-gold-dark)!important;color:#fff!important}
-  .v201-mobile-create{
-    position:fixed!important;
-    z-index:1001;
-    inset-inline-end:calc(18px + env(safe-area-inset-right));
-    inset-block-end:calc(94px + env(safe-area-inset-bottom));
-    display:grid!important;
-    place-items:center;
-    width:54px!important;
-    height:54px!important;
-    padding:0!important;
-    border:1px solid #4f3411!important;
-    border-radius:18px!important;
-    background:var(--v201-gold-dark)!important;
-    color:#fff!important;
-    box-shadow:0 14px 34px rgba(70,45,14,.28)!important;
-  }
-  .v201-mobile-create svg{width:23px;height:23px}
+  /* Global floating create control is intentionally disabled on mobile.
+     Use the shared topbar/overview create actions so nothing overlays bottom navigation. */
+  .v201-mobile-create{display:none!important}
   .v201-create-overlay{padding:calc(14px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
   .v201-property-overlay,.v201-statement-overlay{padding:calc(14px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
   .v201-create-sheet{max-height:calc(100dvh - 26px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:18px;border-radius:22px;overflow:auto}
