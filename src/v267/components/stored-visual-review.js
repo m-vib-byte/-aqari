@@ -1,3 +1,4 @@
+import {appendPdfViewer} from './pdf-viewer.js';
 import {createPrivateUrls} from './private-urls.js';
 import {node,field} from './dialog.js';
 import {checksum} from './scan-image.js';
@@ -47,7 +48,7 @@ export function createStoredVisualReview(dialog,{parent,controls=[]}={}){
    const image=node('img');image.src=reviewUrl;image.alt='النسخة المرفوعة فعلياً بعد استرجاعها من التخزين';viewer.append(image);return;
   }
   if(target.mime==='application/pdf'){
-   const frame=node('iframe');frame.src=reviewUrl;frame.title='مراجعة PDF المرفوع فعلياً';viewer.append(frame);return;
+   appendPdfViewer(viewer,reviewUrl,{title:'مراجعة PDF المرفوع فعلياً',filename:target.name||'document.pdf'});return;
   }
   const link=node('a','فتح أو تنزيل النسخة المرفوعة فعلياً للمراجعة');link.href=reviewUrl;link.download=target.name||'document.docx';
   link.onclick=()=>{docxOpened=true;notice.textContent='تم فتح/تنزيل نسخة DOCX المسترجعة من Storage. راجعها ثم فعّل تأكيد الجودة.';};viewer.append(link);

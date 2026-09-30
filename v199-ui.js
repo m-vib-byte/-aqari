@@ -401,9 +401,23 @@
     });
   }
 
+  function routeNode(target){
+    const id=target==='properties'||target==='tenants'?'list':target;
+    return document.getElementById(id);
+  }
+
+  function routeVisible(target){
+    const page=routeNode(target);
+    if(!page)return null;
+    if(page.hidden||page.getAttribute('aria-hidden')==='true')return false;
+    const style=window.getComputedStyle?.(page);
+    return !style||(style.display!=='none'&&style.visibility!=='hidden');
+  }
+
   function installNavigationHook(){
     const original=window.go;
     if(typeof original!=='function'||original.__v199Presentation)return;
+    if(typeof window.AQARI_V199_BASE_GO!=='function')window.AQARI_V199_BASE_GO=original;
     const wrapped=function(target){
       const result=original.apply(this,arguments);
       markActive(target);
@@ -415,10 +429,46 @@
 
   function navigate(target){
     closeLayers(false);
-    if(typeof window.go==='function')window.go(target);
+    const stableTargets=['home','properties','tenants','collectionProPage','maintenanceProPage'];
+    const current=window.go;
+    const stable=window.AQARI_V199_BASE_GO;
+    const primary=stableTargets.includes(target);
+    const v205=primary&&window.AQARI_V205&&typeof window.AQARI_V205.navigate==='function'?window.AQARI_V205:null;
+    let runner=v205?v205.navigate:current;
+    let result;
+    try{if(typeof runner==='function')result=runner.call(v205||window,target);}
+    catch(error){
+      if(primary&&typeof stable==='function'&&stable!==runner){runner=stable;result=stable.call(window,target);}
+      else if(typeof current==='function'&&current!==runner){runner=current;result=current.call(window,target);}
+      else throw error;
+    }
     markActive(target);
-    const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
+    const shellReady=function(){
+      if(!primary||!window.AQARI_V205)return true;
+      return document.body?.getAttribute('data-v205-route')===target;
+    };
+    const routeReady=function(){return routeVisible(target)===true&&shellReady();};
+    const verify=function(){
+      if(routeReady()===false&&primary&&typeof stable==='function'&&runner!==stable){
+        try{stable.call(window,target);runner=stable}catch(_error){}
+      }else if(routeVisible(target)===false&&typeof current==='function'&&runner!==current){
+        try{current.call(window,target);runner=current}catch(_error){}
+      }
+      requestAnimationFrame(function(){
+        const page=routeNode(target);
+        if(routeReady()===true&&page){
+          if(typeof page.scrollIntoView==='function')page.scrollIntoView({block:'start',behavior:'auto'});
+          else if(typeof window.scrollTo==='function'){
+            const rect=page.getBoundingClientRect?.();
+            const top=Math.max(0,(Number(rect?.top)||0)+(Number(window.scrollY)||0));
+            window.scrollTo({top,behavior:'auto'});
+          }
+        }
+      });
+    };
+    if(result&&typeof result.then==='function')Promise.resolve(result).finally(function(){requestAnimationFrame(verify)});
+    else requestAnimationFrame(verify);
+    return result;
   }
 
   function quickAdd(target){

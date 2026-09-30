@@ -3141,6 +3141,135 @@ html.aqari-production-mode .aq-v171-commandbar{
 body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36px;box-shadow:0 16px 70px #65502008}body.v267-login-page .login-brand{border:0;margin-bottom:30px;padding:0}body.v267-login-page .login-monogram{display:grid;place-items:center;width:52px;height:52px;background:#f6efdf;border-radius:16px;font-size:32px!important}body.v267-login-page h1{font-size:30px;margin-bottom:12px}body.v267-login-page .subtitle{margin-bottom:30px}body.v267-login-page input{min-height:56px;border-radius:14px;background:#fff}body.v267-login-page button.primary{min-height:56px;border-radius:14px}body.v267-login-page .status{background:#faf6ec;color:#6b5735}@media(max-width:460px){body.v267-login-page{align-items:start;padding-top:max(36px,env(safe-area-inset-top))}body.v267-login-page main{padding:26px 22px}body.v267-login-page .secondary{grid-template-columns:1fr 1fr}body.v267-login-page .secondary button{font-size:12px;padding:8px;min-height:52px}}
 }
 
+
+/* AQARI unified premium palette — warm white, honey, gold and refined brown. */
+@media screen {
+ :root {
+  --aq-surface:#fffdf9;--aq-canvas:#f8f3e8;--aq-ink:#35291d;--aq-muted:#746554;
+  --aq-gold:#a37a32;--aq-gold-strong:#7a541d;--aq-honey:#e8d3a6;
+  --aq-brown:#5b3b22;--aq-line:#ddcba8;--aq-danger:#8b251f;
+ }
+ body.aq-v199.aq-v267 {background:var(--aq-canvas)!important;color:var(--aq-ink)!important}
+ body.aq-v199.aq-v267 :is(input,select,textarea) {background:#fff!important;color:var(--aq-ink)!important;border-color:#cdb98e!important}
+ body.aq-v199.aq-v267 :is(input,select,textarea)::placeholder {color:#806f5c!important;opacity:1}
+ body.aq-v199.aq-v267 :is(button,.btn,[role="button"]) {border-color:var(--aq-gold)!important}
+ body.aq-v199.aq-v267 :is(button.primary,.primary,.btn-primary,[data-primary="true"]) {background:var(--aq-brown)!important;color:#fff!important;border-color:var(--aq-brown)!important}
+ body.aq-v199.aq-v267 :is(button.secondary,.secondary,.btn-secondary) {background:var(--aq-surface)!important;color:var(--aq-brown)!important;border-color:var(--aq-gold)!important}
+ body.aq-v199.aq-v267 :is(a,.link,[data-link]) {color:var(--aq-gold-strong)}
+ body.aq-v199.aq-v267 :is(.danger,.destructive,[data-danger="true"]) {background:var(--aq-danger)!important;color:#fff!important;border-color:var(--aq-danger)!important}
+ body.aq-v199.aq-v267 :is(.card,.box,.panel,.modal>.box,.v202-workspace,.v267-property-card) {background:var(--aq-surface)!important;border-color:var(--aq-line)!important}
+}
+
+
+/* AQARI signature polish — clearer hierarchy, premium depth and contract focus. */
+@media screen {
+ body.aq-v199.aq-v267 {
+  --aq-elevated:#fffefa;
+  --aq-soft:#f4ead6;
+  --aq-shadow-soft:0 10px 28px rgba(76,50,25,.07);
+  --aq-shadow-card:0 18px 50px rgba(76,50,25,.09);
+ }
+ body.aq-v199.aq-v267 main.w {padding-block:clamp(14px,2vw,26px)}
+ body.aq-v199.aq-v267 main>.p :is(h1,h2),
+ body.aq-v267 :is(.aq267-dialog-title,.v202-workspace-head h2,.v202-workspace-header h2) {
+  position:relative;letter-spacing:-.025em;line-height:1.35;
+ }
+ body.aq-v199.aq-v267 main>.p :is(h1,h2)::after,
+ body.aq-v267 .aq267-dialog-title::after {
+  content:"";display:block;width:48px;height:3px;margin-top:9px;border-radius:999px;
+  background:linear-gradient(90deg,var(--aq-brown),var(--aq-gold),var(--aq-honey));
+ }
+ body.aq-v199.aq-v267 main>.p :is(.c,.card,.box,.panel),
+ body.aq-v267 :is(.v202-workspace,.v202-panel,.v206-ledger,.v211-card,.v266-card) {
+  border:1px solid color-mix(in srgb,var(--aq-line) 78%,#fff)!important;
+  box-shadow:var(--aq-shadow-soft)!important;
+ }
+ body.aq-v199.aq-v267 main>.p :is(.c,.card,.panel):hover {
+  border-color:var(--aq-line)!important;box-shadow:var(--aq-shadow-card)!important;
+ }
+ body.aq-v199.aq-v267 :is(button,.btn,[role="button"]) {
+  font-weight:720;letter-spacing:0;box-shadow:0 5px 14px rgba(91,59,34,.07);
+  transition:transform .16s ease,box-shadow .16s ease,background-color .16s ease;
+ }
+ body.aq-v199.aq-v267 :is(button,.btn,[role="button"]):not(:disabled):active {
+  transform:translateY(1px);box-shadow:0 2px 8px rgba(91,59,34,.09);
+ }
+ body.aq-v199.aq-v267 :is(button.primary,.primary,.btn-primary,[data-primary="true"]) {
+  background:linear-gradient(145deg,#4d301d,var(--aq-brown) 58%,#744d2b)!important;
+  box-shadow:0 9px 22px rgba(91,59,34,.18)!important;
+ }
+ body.aq-v199.aq-v267 :is(input,select,textarea) {
+  box-shadow:inset 0 1px 2px rgba(91,59,34,.035);
+ }
+ body.aq-v199.aq-v267 :is(input,select,textarea):focus {
+  outline:0!important;border-color:var(--aq-gold)!important;
+  box-shadow:0 0 0 4px rgba(163,122,50,.13)!important;
+ }
+ body.aq-v199.aq-v267 main>.p table {
+  border:1px solid var(--aq-line)!important;border-radius:16px;overflow:hidden;
+  box-shadow:0 8px 24px rgba(76,50,25,.045);
+ }
+ body.aq-v199.aq-v267 main>.p th {
+  padding-block:14px!important;font-weight:800!important;
+  background:linear-gradient(180deg,#fbf5e9,#f4ead6)!important;
+ }
+ body.aq-v199.aq-v267 main>.p tbody tr:nth-child(even) td {background:#fffaf2}
+ body.aq-v199.aq-v267 main>.p tbody tr:hover td {background:#f8efdd!important}
+ body.aq-v267 :is(.aq267-dialog,.modal>.box) {
+  border:1px solid var(--aq-line)!important;
+  background:linear-gradient(155deg,#fffefa,#fbf6ec)!important;
+  box-shadow:0 30px 90px rgba(43,29,16,.24)!important;
+ }
+ body.aq-v267 :is(.aq267-contract-card,.aq267-property-contract-card,.aq267-unit-contract-card) {
+  border:1px solid var(--aq-line)!important;border-radius:18px!important;
+  background:linear-gradient(155deg,#fffefa,#fbf7ef)!important;
+  box-shadow:var(--aq-shadow-soft)!important;overflow:hidden;
+ }
+ body.aq-v267 :is(.aq267-contract-card-actions,.aq267-contract-viewer-toolbar) {
+  display:flex;flex-wrap:wrap;gap:8px;padding:12px;
+  border:1px solid var(--aq-line);border-radius:14px;
+  background:linear-gradient(180deg,#fffdf8,#f6ecd9);
+ }
+ body.aq-v267 .aq267-saved-contract-viewer {
+  border:1px solid var(--aq-line);border-radius:22px;
+  background:linear-gradient(150deg,#efe5d2,#f8f2e8);overflow:hidden;
+ }
+ body.aq-v267 .aq267-contract-viewer-viewport {
+  padding:clamp(12px,2vw,24px);background:
+   radial-gradient(circle at 50% 0,rgba(255,255,255,.7),transparent 24rem),#eee4d3;
+ }
+ body.aq-v267 .aq267-contract-paper {
+  background:#fff!important;border:1px solid #d8c7a8!important;border-radius:4px!important;
+  box-shadow:0 22px 60px rgba(64,43,22,.18)!important;
+ }
+ body.aq-v267 .aq267-contract-paper-content {color:#1f1a14;line-height:1.85}
+ body.aq-v267 .aq267-contract-paper-content :is(h1,h2,h3) {
+  color:#3f2919;text-align:center;letter-spacing:0;line-height:1.5;
+ }
+ body.aq-v267 .aq267-contract-paper-content h1 {
+  padding-bottom:12px;border-bottom:2px solid #a37a32;
+ }
+ body.aq-v267 .aq267-contract-paper-footer {
+  color:#746554;border-top:1px solid #ddcba8;background:#fffaf1;
+ }
+ body.aq-v267 .aq267-contract-viewer-note {
+  border-inline-start:4px solid var(--aq-gold);border-radius:12px;
+  background:#fff8e9;color:#654a28;padding:12px 14px;
+ }
+}
+@media screen and (max-width:600px) {
+ body.aq-v199.aq-v267 main.w {padding-inline:12px!important;padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+ body.aq-v199.aq-v267 main>.p :is(.c,.card,.box,.panel) {border-radius:18px!important}
+ body.aq-v267 :is(.aq267-contract-card-actions,.aq267-contract-viewer-toolbar) {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+ body.aq-v267 :is(.aq267-contract-card-actions,.aq267-contract-viewer-toolbar)>* {
+  width:100%;min-width:0;white-space:normal;
+ }
+ body.aq-v267 .aq267-contract-viewer-viewport {padding:10px;overflow:auto}
+ body.aq-v267 .aq267-contract-paper {transform-origin:top center}
+}
+
 </style></head><body>
 <style id="aqari-v198-cloud-css">
 .aq-v168-gate{position:fixed;inset:0;z-index:90000;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at top,#4a391a 0,#17130d 58%,#090806 100%)}.aq-v168-gate.on{display:flex}.aq-v168-login{width:min(440px,96vw);background:#fff;border:1px solid #d9bd7d;border-radius:24px;padding:24px;box-shadow:0 28px 90px #000a}.aq-v168-logo{text-align:center}.aq-v168-logo h1{margin:0;color:#a77920;font-size:34px}.aq-v168-logo p{margin:7px 0 18px;color:#746b5d}.aq-v168-login label,.aq-v168-dialog label{display:block;margin-top:10px;font-weight:700}.aq-v168-login input,.aq-v168-dialog input{width:100%;margin-top:6px}.aq-v168-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.aq-v168-actions button{flex:1;min-width:125px}.aq-v168-note{font-size:12px;line-height:1.7;color:#6d6456;background:#fbf5e9;border:1px solid #ead9b6;border-radius:12px;padding:10px;margin-top:12px}.aq-v168-msg{padding:10px;border-radius:11px;background:#f7f6f2;margin-top:10px;white-space:pre-wrap;font-size:12px;line-height:1.6}.aq-v168-msg.ready{background:#e7f7ed;color:#17673a}.aq-v168-msg.bad{background:#fde8e8;color:#922828}.aq-v168-msg.wait{background:#fff5d9;color:#725400}.aq-v168-cloud{border:1px solid #d8bd80;background:linear-gradient(145deg,#fff,#fbf5e9);border-radius:18px;padding:15px;margin:12px 0}.aq-v168-head,.aq-v168-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.aq-v168-badge,.aq-v168-state{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}.aq-v168-badge{background:#1f2937;color:#f4cf77}.aq-v168-state.ready{background:#e4f6eb;color:#17673a}.aq-v168-state.wait{background:#fff2cc;color:#805d00}.aq-v168-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}.aq-v168-card{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:12px}.aq-v168-modal{display:none;position:fixed;inset:0;background:#0009;z-index:91000;align-items:center;justify-content:center;padding:15px}.aq-v168-modal.on{display:flex}.aq-v168-dialog{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:17px}@media(max-width:760px){.aq-v168-grid{grid-template-columns:1fr 1fr}.aq-v168-actions button{min-width:100%}}

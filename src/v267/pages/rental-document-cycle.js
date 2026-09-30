@@ -1,3 +1,4 @@
+import {appendPdfViewer} from '../components/pdf-viewer.js';
 import {node,field} from '../components/dialog.js';
 import {createPage} from '../components/page.js';
 import {t} from '../components/locale.js';
@@ -169,8 +170,7 @@ export async function mountRentalDocumentCycle(d,target,{propertyId=null,contrac
   });
  }
  function displayPdf(target,url,title,filename){
-  const frame=node('iframe');frame.className='aq267-document-pdf';frame.title=title;frame.src=url;frame.setAttribute('aria-label',title);
-  const open=node('a',t('فتح PDF')),download=node('a',t('تنزيل PDF'));open.href=download.href=url;open.target='_blank';open.rel=download.rel='noopener';download.download=filename;target.append(frame,open,download);return download;
+  return appendPdfViewer(target,url,{title,filename,frameClass:'aq267-document-pdf'}).download;
  }
  show.onclick=()=>run(async()=>{
   if(pendingIssue||issuedId)throw Error('النسخة الصادرة ثابتة؛ افتح دورة جديدة لإنشاء مستند آخر.');

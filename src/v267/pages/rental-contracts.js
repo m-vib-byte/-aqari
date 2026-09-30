@@ -1,3 +1,4 @@
+import {appendPdfViewer} from '../components/pdf-viewer.js';
 import {readStoredOriginal} from '../components/stored-original.js';
 import {resolveRentalDocumentContext,linkedDocumentFieldKeys,groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding} from '../domain/rental-document-cycle.js';
 import {mountSignatureReview,mountContractChangeRequest} from '../components/contract-administration.js';
@@ -159,7 +160,7 @@ export function openRentalContracts(initial={}){
   target.append(node('h3',translateStatic('العقد الموقّع والملاحق المرتبطة')));
   if(!docs.length){target.append(node('p',translateStatic('لا توجد نسخة أصلية مرفوعة لهذا العقد حتى الآن. استخدم «مسح أو رفع العقد ومرفقاته» لإضافة الملف وربطه بهذا العقد.')));return;}
   for(const doc of docs){const row=node('section'),output=node('div');
-   row.append(button(doc.original_filename||doc.id,async()=>{const {blob,note}=await readStoredOriginal(d.session,{id:doc.id,storagePath:doc.storage_path,entityType:'lease',entityRef:String(id)});d.session.check();const preview=node('iframe');preview.title=doc.original_filename||translateStatic('أصل العقد');preview.setAttribute('sandbox','');preview.src=urls.create(blob);preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.replaceChildren(preview);d.status.textContent=translateStatic(note);}),output);row.append(button(translateStatic('حالة المستند والتواقيع'),async()=>{output.replaceChildren();await mountSignatureReview(d,output,doc.id);}));target.append(row);
+   row.append(button(doc.original_filename||doc.id,async()=>{const {blob,note}=await readStoredOriginal(d.session,{id:doc.id,storagePath:doc.storage_path,entityType:'lease',entityRef:String(id)});d.session.check();output.replaceChildren();if(blob.type==='application/pdf'||/\.pdf$/i.test(doc.original_filename||'')){appendPdfViewer(output,urls.create(blob),{title:doc.original_filename||translateStatic('أصل العقد'),filename:doc.original_filename||'contract.pdf'});}else{const preview=node('iframe');preview.title=doc.original_filename||translateStatic('أصل العقد');preview.setAttribute('sandbox','');preview.src=urls.create(blob);preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.append(preview);}d.status.textContent=translateStatic(note);}),output);row.append(button(translateStatic('حالة المستند والتواقيع'),async()=>{output.replaceChildren();await mountSignatureReview(d,output,doc.id);}));target.append(row);
   }
  }
 

@@ -44,5 +44,5 @@ test('UI shows official area, share area, evidence, unlimited add rows and readb
 
 test('Property Hub exposes ownership entry after bounded build install',()=>{
  assert.match(hub,/الملكية والمساحات والورثة/);
- assert.match(hub,/openPropertyOwnership\(propertyId\)/);
+ assert.match(hub,/openPropertyPage\(d,[^;]+'openPropertyOwnership',propertyId\)/);
 });
