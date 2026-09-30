@@ -1,3 +1,4 @@
+import {previousKuwaitMonth} from '../src/v267/domain/kuwait-calendar.js';
 import {t as translateStatic,t as visibleText,message as visibleMessage,dateLocale} from '../src/v267/components/locale.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -34,12 +35,16 @@ function fixture(){
   throw Error('unexpected action');
  }}};
  const d={body:node('div'),status:node('p'),session,onDispose:f=>cleanups.push(f),async run(task){try{await task();}catch(e){d.status.textContent=e.message;}},close(){closed=true;cleanups.forEach(f=>f());}};
- const context={translateStatic,visibleText,visibleMessage,dateLocale,node,field,Date,Error,BigInt,crypto:{randomUUID:()=> 'request-'+(++id)}};vm.createContext(context);
+ const context={previousKuwaitMonth,translateStatic,visibleText,visibleMessage,dateLocale,node,field,Date,Error,BigInt,crypto:{randomUUID:()=> 'request-'+(++id)}};vm.createContext(context);
  vm.runInContext(fs.readFileSync('src/v267/pages/partner-distributions.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);context.mountPartnerDistributions(d,d.body);
  const control=label=>nodes.find(x=>x.isConnected&&x.tag==='label'&&x._text===label)?.children[0],button=text=>nodes.find(x=>x.isConnected&&x.tag==='button'&&x.textContent===text);
  const submit=async()=>{const btn=button('حفظ مراجعة المصدر الموثقة'),form=nodes.find(x=>x.isConnected&&x.tag==='form'&&x.children.includes(btn));await form.onsubmit({preventDefault(){}});};
  return {d,context,flags,calls,approvals,entries,control,button,submit,async start(){control('شهر المصدر المقفل').value='2026-01';await button('عرض دفتر الشهر').onclick();control('العقار').value='p';control('سجل الحصص').value='key';await button('عرض المصدر والحصص للمراجعة').onclick();},fill(){control('المقبوض المطابق للمستند د.ك').value='100';control('المصروف المطابق للمستند د.ك، أدخل 0 إن لم يوجد').value='30';control('صافي الاحتياطي المطابق د.ك، أدخل 0 إن لم يوجد').value='20';control('مستند مطابقة العقار').value='doc';control('حساب Owner A').value='ua';control('حساب Owner B').value='offline';control('سبب المطابقة واعتماد الحصص للفترة').value='مطابقة مالية موثقة';}};
 }
+test('partner source defaults to the completed Kuwait month at the year boundary',t=>{
+ t.mock.timers.enable({apis:['Date'],now:Date.parse('2026-12-31T21:30:00Z')});
+ assert.equal(fixture().control('شهر المصدر المقفل').value,'2026-12');
+});
 test('explicit reconciliation parses fils exactly, never silently rounds, and displays server signed fils',()=>{
  const f=fixture();assert.equal(f.context.partnerFils('٥١٫٠٠١'),'51001');assert.equal(f.context.partnerFils('0'),'0');assert.equal(f.context.partnerFils('-1.001'),'-1001');assert.equal(f.context.partnerMoney('-51001'),'-51.001 د.ك');assert.throws(()=>f.context.partnerFils(''));assert.throws(()=>f.context.partnerFils('1.0001'));assert.throws(()=>f.context.partnerFils('1e2'));
 });

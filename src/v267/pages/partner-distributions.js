@@ -1,10 +1,10 @@
 import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
+import {previousKuwaitMonth} from '../domain/kuwait-calendar.js';
 
 const option=(value,label)=>{const el=node('option',label);el.value=value;return el;};
 const input=(type='text')=>{const el=node('input');el.type=type;return el;};
-const previousMonth=()=>{const now=new Date();return new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-1,1)).toISOString().slice(0,7);};
 // Format server fils, or encode the manager's explicit reconciliation amount.
 // Distribution amounts and shares are never calculated by this page.
 export function partnerFils(value){
@@ -38,7 +38,7 @@ const messages={
 export function mountPartnerDistributions(d,container){
  let state=null,preview=null,pending=null,disposed=false;
  const month=input('month'),loadButton=node('button',translateStatic('عرض دفتر الشهر')),retry=node('button',translateStatic('إعادة محاولة الحفظ والتحقق')),content=node('div');
- month.value=previousMonth();loadButton.type=retry.type='button';retry.hidden=true;
+ month.value=previousKuwaitMonth();loadButton.type=retry.type='button';retry.hidden=true;
  container.append(node('p',translateStatic('استحقاقات من المقبوض الإيجاري المؤكد، والمصروف المعتمد، وحركة الاحتياطي فقط. لا يشمل هذا المصدر التحصيل التجاري أو الافتتاح أو الودائع، ولا ينفذ تحويل أموال.')),field(translateStatic('شهر المصدر المقفل'),month),loadButton,retry,content);
  const call=async(action,data)=>{d.session.check();const response=await d.session.request(d.session.client.rpc('aqari_partner_distribution_register',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));d.session.check();return response;};
  const execute=task=>d.run(task).then(()=>{if(!disposed){month.disabled=loadButton.disabled=!!pending;retry.hidden=!pending;}});
@@ -125,4 +125,3 @@ export function mountPartnerDistributions(d,container){
  return {load:()=>execute(load)};
 }
 export async function openPartnerDistributions(){const d=createDialog(translateStatic('دفتر استحقاقات الشركاء'));if(!d)return;await mountPartnerDistributions(d,d.body).load();}
-

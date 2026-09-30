@@ -1,3 +1,4 @@
+import {previousKuwaitMonth} from '../src/v267/domain/kuwait-calendar.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -36,12 +37,16 @@ function fixture(){
   throw Error('unexpected action');
  }}};
  const d={body:node('div'),status:node('p'),session,onDispose:f=>cleanups.push(f),async run(task){try{await task();}catch(error){d.status.textContent=error.message;}},close(){closed=true;cleanups.forEach(f=>f());}};
- const context={translateStatic,node,field,mountCommercialPaymentAllocations(d,container,{leases}){const desk={leases,disposed:false};paymentDesks.push(desk);return {dispose(){desk.disposed=true;container.replaceChildren();}};},mountCommercialCollections(){return {load:async()=>{}};},crypto:{randomUUID:()=> 'request-'+(++id)},Date,Error,BigInt};vm.createContext(context);
+ const context={previousKuwaitMonth,translateStatic,node,field,mountCommercialPaymentAllocations(d,container,{leases}){const desk={leases,disposed:false};paymentDesks.push(desk);return {dispose(){desk.disposed=true;container.replaceChildren();}};},mountCommercialCollections(){return {load:async()=>{}};},crypto:{randomUUID:()=> 'request-'+(++id)},Date,Error,BigInt};vm.createContext(context);
  vm.runInContext(fs.readFileSync('src/v267/pages/commercial-sales.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);context.mountCommercialSales(d,d.body);
  const button=label=>nodes.find(x=>x.isConnected&&x.tag==='button'&&x.textContent===label),control=label=>nodes.find(x=>x.isConnected&&x.tag==='label'&&x._text===label).children[0];
  const submit=async label=>{const btn=button(label),form=nodes.find(x=>x.isConnected&&x.tag==='form'&&x.children.includes(btn));await form.onsubmit({preventDefault(){}});};
  return {d,flags,calls,rows,control,button,submit,context,paymentDesks,async start(){control('شهر المبيعات').value='2026-08';await button('عرض استحقاقات الشهر').onclick();},fill(leaseId='l1'){control('العقد التجاري').value=leaseId;control('العقد التجاري').onchange();control('مبيعات الفترة د.ك').value='555.555';control('مبيعات الفترة د.ك').oninput();control('تقرير المبيعات المحفوظ').value=leaseId==='l1'?'d1':'d2';control('مرجع تقرير المبيعات').value='Synthetic report';control('راجعت تقرير المبيعات ونص العقد وأساس الاحتساب المعتمد.').checked=true;}};
 }
+test('commercial sales defaults to the completed Kuwait month at the month boundary',t=>{
+ t.mock.timers.enable({apis:['Date'],now:Date.parse('2026-09-30T21:30:00Z')});
+ assert.equal(fixture().control('شهر المبيعات').value,'2026-09');
+});
 test('commercial sales uses exact fils arithmetic, including Arabic digits and half-up rounding',()=>{
  const f=fixture();assert.equal(vm.runInContext("salesAmount('555.555','7.5')",f.context),'41.667');
  assert.equal(vm.runInContext("salesAmount('٠٫٠٠٥','10')",f.context),'0.001');
