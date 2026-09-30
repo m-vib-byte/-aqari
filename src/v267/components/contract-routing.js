@@ -1,9 +1,11 @@
-import {installExperimentalInvestmentApartmentContractShortcut,openExperimentalInvestmentApartmentContract} from './experimental-investment-apartment-contract.js';
+import {openExperimentalInvestmentApartmentContract} from './experimental-investment-apartment-contract.js';
 
 // Keep legacy navigation and property shortcuts on the same guarded V267 contract entry.
+// The experimental apartment contract remains reachable only through its explicit
+// contracts route. Do not install a fixed global shortcut into document.body,
+// because that shortcut appears above the mobile navigation on every page.
 export function installContractRoutes(target,open,openTemplates){
  const previous=target.go;
- installExperimentalInvestmentApartmentContractShortcut(target);
  function installExecutionGuard(){
   const records=target.AQARI_RENTAL_RECORDS;
   if(!records?.saveLease||records.__aqariExecutionGuardInstalled)return;
