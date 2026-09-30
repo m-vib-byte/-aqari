@@ -143,7 +143,7 @@ begin
   if not manager then raise insufficient_privilege using message='PROPERTY_CONTROLS_MANAGER_ONLY';end if;
   return jsonb_build_object(
    'workspace_id',w,'user_id',auth.uid(),'manager',true,
-   'properties',coalesce((select jsonb_agg(jsonb_build_object('id',p.id,'name',p.name,'type',coalesce(m.type,'')) order by p.name,p.id) from public.aqari_properties p left join private.aqari_property_master m on m.workspace_id=p.workspace_id and m.property_id=p.id where p.workspace_id=w),'[]'::jsonb),
+   'properties',coalesce((select jsonb_agg(jsonb_build_object('id',p.id,'name',p.name,'type',coalesce(m.property_type,'')) order by p.name,p.id) from public.aqari_properties p left join private.aqari_property_master m on m.workspace_id=p.workspace_id and m.property_id=p.id where p.workspace_id=w),'[]'::jsonb),
    'fields',coalesce((select jsonb_agg(jsonb_build_object('id',f.id,'key',f.field_key,'labelAr',f.label_ar,'labelEn',f.label_en,'type',f.field_type,'visibility',f.visibility,'propertyIds',to_jsonb(f.property_ids),'active',f.is_active,'revision',f.revision) order by f.label_ar,f.id) from private.aqari_property_custom_fields f where f.workspace_id=w),'[]'::jsonb),
    'values',coalesce((select jsonb_agg(jsonb_build_object('propertyId',v.property_id,'fieldId',v.field_id,'value',v.value,'revision',v.revision) order by v.property_id,v.field_id) from private.aqari_property_custom_values v where v.workspace_id=w),'[]'::jsonb),
    'features',coalesce((select jsonb_agg(jsonb_build_object('propertyId',s.property_id,'settings',s.settings,'revision',s.revision) order by s.property_id) from private.aqari_property_feature_settings s where s.workspace_id=w),'[]'::jsonb),
@@ -280,7 +280,7 @@ begin
  if tg_op='UPDATE' and new.unit_id=old.unit_id and coalesce(new.snapshot#>>'{contractTemplate,id}','')=coalesce(old.snapshot#>>'{contractTemplate,id}','') and coalesce(new.snapshot->>'contractKind','')=coalesce(old.snapshot->>'contractKind','') then return new;end if;
  select u.property_id into prop from public.aqari_units u where u.workspace_id=new.workspace_id and u.id=new.unit_id;
  if prop is null then return new;end if;
- select coalesce(m.type,'') into ptype from private.aqari_property_master m where m.workspace_id=new.workspace_id and m.property_id=prop;
+ select coalesce(m.property_type,'') into ptype from private.aqari_property_master m where m.workspace_id=new.workspace_id and m.property_id=prop;
  ptype:=coalesce(ptype,'');contract_kind:=coalesce(nullif(new.snapshot->>'contractKind',''),nullif(new.snapshot#>>'{contractTemplate,kind}',''));
  if contract_kind is null then return new;end if;
  select exists(select 1 from private.aqari_property_template_scopes s where s.workspace_id=new.workspace_id and s.kind=contract_kind and s.is_active and ((s.scope_kind='property' and s.property_id=prop) or (s.scope_kind='property_type' and lower(s.property_type)=lower(ptype)))) into scoped;

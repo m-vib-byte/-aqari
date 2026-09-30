@@ -2,6 +2,7 @@ import {t as visibleText,message as visibleMessage} from '../components/locale.j
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {mountRentalTemplateManager} from '../components/rental-templates.js';
+import {serviceReadinessError} from '../components/service-readiness.js';
 
 // Localized form hints keep their original persisted default until the user edits them.
 const formDefaults=new WeakMap();
@@ -21,7 +22,7 @@ function reasonField(source='تحديث إعدادات العقار',suffix=''){
 
 export function openPropertyControls(initialPropertyId=null){
  const d=createDialog(translateStatic('إدارة خصائص العقارات — المدير العام'));if(!d)return false;
- const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_property_controls',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
+ const rpc=async(action,data={})=>{try{return await d.session.request(d.session.client.rpc('aqari_property_controls',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));}catch(error){d.session.check();throw serviceReadinessError(error,'aqari_property_controls');}};
  let state=null,externalRefs=new Map(),propertyId=initialPropertyId;
  async function load(){
   const result=await rpc('context',{});d.session.check();if(result?.workspace_id!==d.session.bound.workspace||result?.user_id!==d.session.bound.user||result?.manager!==true)throw Error('إدارة خصائص العقارات متاحة للمدير العام فقط.');
@@ -85,6 +86,5 @@ export function openPropertyControls(initialPropertyId=null){
   const technicians=section(visibleText('الفنيون المرتبطون بالعقار'));renderTechnicians(technicians);d.body.append(technicians);
   d.status.textContent=translateStatic('هذه الإعدادات خادمية، لها Revision وسجل تدقيق ولا تُحذف فعليًا.');
  }
- d.run(chooseProperty);return true;
+ d.body.append(button(visibleText('إعادة المحاولة'),()=>d.run(chooseProperty)));d.run(chooseProperty);return true;
 }
-

@@ -74,6 +74,8 @@ jobs:
       - run: node scripts/test-release-regressions.mjs tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
       - name: Session activity survives intercepted navigation and preserves idle locking
         run: node --test tests/v267-session-activity-routing.test.cjs tests/v267-session-idle-restore.test.cjs
+      - name: Service setup errors preserve authorization and allow explicit recovery
+        run: node --test tests/v267-service-readiness.test.mjs tests/v267-owner-settings-recovery.test.mjs tests/v267-contract-admin-recovery.test.mjs
       - name: Document scanner upload and multipage PDF
         run: node --test tests/v267-scanner-workflow.test.mjs tests/v267-original-documents.test.mjs tests/v267-document-upload-pages.test.mjs tests/v267-contract-scanner-entry.test.cjs
       - name: V267 workspace isolation and image processing
@@ -103,6 +105,7 @@ jobs:
           node --test tests/v267-staff-access.test.cjs tests/v267-financial-register.test.cjs tests/v267-workspace-features.test.cjs tests/v267-unit-meter-runtime.test.mjs tests/v267-unit-readiness-runtime.test.mjs tests/v267-staff-circulars-runtime.test.mjs tests/v267-service-directory.test.mjs tests/v267-lease-expiry-runtime.test.mjs tests/v267-maintenance-report-runtime.test.mjs
           node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
+          node staging-database/local-test/run-service-schema-regression.mjs
           npm run test:completion --prefix staging-database/local-test
           npm run test:completion:contracts --prefix staging-database/local-test
       - uses: actions/setup-python@v5

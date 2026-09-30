@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "8cbd02fd687966738c0c76f7b9f8054ebfdb6984ada68977256ab909201ab430",
-      "size": 7519
+      "sha256": "11a635949cbc6c97b2723a15a520cd502cfefe1211f79f4aa73c698cffa41a6b",
+      "size": 7833
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1192,8 +1192,8 @@
     },
     {
       "path": "src/v267/components/contract-administration.js",
-      "sha256": "d759874c59e4deacac49f2fbdb13f24d64873f32b79c5adceecb1705630faa2a",
-      "size": 4322
+      "sha256": "8efd560f6d3ed7dc37501c675e304f3f2d41d80722efa39f6a241bddc4511f1c",
+      "size": 4501
     },
     {
       "path": "src/v267/components/contract-routing.js",
@@ -1402,8 +1402,8 @@
     },
     {
       "path": "src/v267/components/translations.js",
-      "sha256": "364f02ca7e2ef94a02fc33687a1ad260b3f04cb855ff0f039e1cb671f7196cde",
-      "size": 168420
+      "sha256": "5f091b4c8ef5a49d1d189544147400237b6e9460a1471c88f4abfdc3a65a0a44",
+      "size": 169425
     },
     {
       "path": "src/v267/components/ui-text.js",
@@ -1532,8 +1532,8 @@
     },
     {
       "path": "src/v267/pages/contract-change-requests.js",
-      "sha256": "154b4ec5c771a78cf379d9ca06bc7190e16ec4cebdb87ce43d77b8464c3d5f08",
-      "size": 1619
+      "sha256": "a71909ae73a4feb18e0bcd05c20e75ea641d4a73e297376fb37a51d3ce525779",
+      "size": 1752
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
@@ -4709,6 +4709,61 @@
       "path": "tests/v267-pdf-viewer.test.mjs",
       "size": 1241,
       "sha256": "e065a3880056f152adf77f779c2e04be432bec617f6ae43e2dc3a27ddde51d40"
+    },
+    {
+      "path": "src/v267/pages/owner-experience-settings.js",
+      "size": 13032,
+      "sha256": "009e4e633c970cc180dee5d6800d2689ef9019cecb71b3fbd826e61e57b107c4"
+    },
+    {
+      "path": "src/v267/pages/property-controls.js",
+      "size": 17647,
+      "sha256": "71daeac3fc37fdd05c75b3a5c25674248245eed3fc2e1b13f053780a84d5b3bc"
+    },
+    {
+      "path": "src/v267/pages/property-cost-allocation.js",
+      "size": 11746,
+      "sha256": "ebf0b8970caa5ca6e36008a9c36b11a4f6a5ada5cb622256f0d1b4352049b1ec"
+    },
+    {
+      "path": "staging-database/sql/finance-owner-controls-b3.sql",
+      "size": 34405,
+      "sha256": "abd655e84a65593fb6d511457460fe867ae9e38281a02c1922d299511310aa57"
+    },
+    {
+      "path": "staging-database/sql/property-owner-controls-property-type-fix.sql",
+      "size": 844,
+      "sha256": "336ad7e7fcd219f562fc1adfb16da5b812f185c4572fa122a730d3abe0c586d7"
+    },
+    {
+      "path": "staging-database/sql/property-owner-controls.sql",
+      "size": 32419,
+      "sha256": "f74c45cde69fe29ca26e3e193afe65bdb783e0feabe04e0259908bdbdab2faa0"
+    },
+    {
+      "path": "tests/v267-property-controls-sql-fix.test.mjs",
+      "size": 1398,
+      "sha256": "eafe854e2cd914adc8265446f70e02a31f68975c6f088694c60cab890e9fde2e"
+    },
+    {
+      "path": "src/v267/components/service-readiness.js",
+      "size": 888,
+      "sha256": "3d9ab87f5cf8e81e280a893fc85122716f485513d01852b0e83a662592b466f3"
+    },
+    {
+      "path": "tests/v267-service-readiness.test.mjs",
+      "size": 4478,
+      "sha256": "aa57901a7232a3a6bd4d4a2fa764071f1c69a05bac5f0b2d78533acf290afaab"
+    },
+    {
+      "path": "staging-database/local-test/run-service-schema-regression.mjs",
+      "size": 2434,
+      "sha256": "089285769d04874f2878ec1a1e1fbd4600f8b71518a26020700e8cec8b3a22d8"
+    },
+    {
+      "path": "docs/verification/service-audit-2026-10-01.md",
+      "size": 6376,
+      "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b"
     }
   ],
   "version": "V198"
