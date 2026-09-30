@@ -3,6 +3,7 @@ import {contractAdministration} from '../components/contract-administration.js';
 import {t} from '../components/locale.js';
 export function openContractChangeRequests(){
  const d=createDialog(t('طلبات تعديل العقود'));if(!d)return false;
+ const retry=node('button',t('إعادة المحاولة'));retry.type='button';retry.onclick=()=>d.run(load);d.body.append(retry);
  async function load(){
   const rows=await contractAdministration(d,'requests');d.body.replaceChildren(node('p',t('اعتماد الطلب يسجل قرار المدير. تنفيذ التعديل يتم من ملف العقد مع بقاء السجل السابق.')));
   if(!rows.length)d.body.append(node('p',t('لا توجد طلبات تعديل.')));

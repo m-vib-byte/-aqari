@@ -2,6 +2,16 @@
 -- Additive/revisioned. Original financial/payroll/utility rows remain authoritative and are never expanded into fake monthly movements.
 begin;
 
+-- Fail before changing any function if the A2 unit-area dependency is absent.
+-- Otherwise the migration succeeds but the first cost-allocation read fails.
+do $prerequisite$
+begin
+ if not exists(select 1 from information_schema.columns where table_schema='private'
+  and table_name='aqari_unit_master' and column_name='area_sqm' and data_type='numeric') then
+  raise exception 'PROPERTY_COST_AREA_PREREQUISITE_REQUIRED';
+ end if;
+end $prerequisite$;
+
 alter table private.aqari_property_cost_allocation_heads
  add column if not exists allocation_method text not null default 'amount',
  add column if not exists analysis_frequency text not null default 'one_time',

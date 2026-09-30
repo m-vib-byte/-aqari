@@ -1,6 +1,7 @@
 import {t as visibleText,message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
+import {serviceReadinessError} from '../components/service-readiness.js';
 const labels={get financial_expense(){return visibleText('مصروف مالي معتمد');},get payroll(){return visibleText('راتب مصروف');},get utility(){return visibleText('كهرباء / ماء / خدمة مدفوعة');}};
 const methods={get amount(){return visibleText('مبالغ ثابتة');},get percentage(){return visibleText('نسب مئوية');},get unit_count(){return visibleText('حسب عدد الوحدات');},get area(){return visibleText('حسب المساحة');},get custom(){return visibleText('قاعدة/وزن مخصص');}};
 const frequencies={get one_time(){return visibleText('مرة واحدة');},get monthly(){return visibleText('شهري');},get annual(){return visibleText('سنوي — تأثير تحليلي ÷ 12');},get invoice(){return visibleText('حسب الفاتورة');}};
@@ -13,7 +14,7 @@ function select(rows,value=''){const el=node('select');for(const [v,label]of row
 export function openPropertyCostAllocation(options={}){
  const d=createDialog(translateStatic('توزيع التكاليف حسب العقار'));if(!d)return false;
  const initialPropertyId=options?.propertyId||null;
- const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_property_cost_allocation',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
+ const rpc=async(action,data={})=>{try{return await d.session.request(d.session.client.rpc('aqari_property_cost_allocation',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));}catch(error){d.session.check();throw serviceReadinessError(error,'aqari_property_cost_allocation');}};
  let state={properties:[],sources:[],manager:false};
  const clear=title=>d.body.replaceChildren(node('h3',title));
  const propertyName=id=>state.properties.find(p=>p.id===id)?.name||id;
@@ -45,6 +46,5 @@ export function openPropertyCostAllocation(options={}){
   const filter=select([['',visibleText('كل العقارات')],...state.properties.map(p=>[p.id,p.name])],initialPropertyId||''),kind=select([['',visibleText('كل المصادر')],...Object.entries(labels)]),list=node('div'),owners=node('section');owners.append(node('h3',translateStatic('كشوف الملاك المحسوبة')));for(const p of state.properties)owners.append(button(visibleText('كشف ')+p.name,()=>d.run(()=>ownerStatement(p))));d.body.append(field(translateStatic('العقار'),filter),field(translateStatic('نوع المصدر'),kind),list,owners);
   function draw(){list.replaceChildren();const sources=(state.sources||[]).filter(s=>(!kind.value||s.kind===kind.value)&&sourceMatchesProperty(s,filter.value));for(const source of sources){const card=node('article');card.append(node('h4',(labels[source.kind]||source.kind)+' — '+(source.label||source.id)),node('p',source.date+' · '+money(source.total)),node('p',automaticText(source)));if(state.manager)card.append(button(visibleText('فتح / تعديل التوزيع'),()=>d.run(()=>edit(source))));list.append(card);}if(!sources.length)list.append(node('p',translateStatic('لا توجد مصادر مالية نهائية مطابقة.')));}filter.onchange=kind.onchange=draw;draw();d.status.textContent=translateStatic('تمت قراءة مصادر التكاليف وتوزيعاتها من الخادم.');
  }
- d.run(home);return true;
+ d.body.append(button(visibleText('إعادة المحاولة'),()=>d.run(home)));d.run(home);return true;
 }
-

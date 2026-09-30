@@ -1,6 +1,7 @@
 import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
+import {serviceReadinessError} from '../components/service-readiness.js';
 
 const option=(value,label)=>{const o=node('option',label);o.value=value;return o;};
 const checkbox=()=>{const x=node('input');x.type='checkbox';return x;};
@@ -19,7 +20,7 @@ export function openOwnerExperienceSettings(){
 
  let settingsRevision=0,targetRevision=0,properties=[],owners=[],targets=[],ready=false,uncertain=false;
  const settingsRpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_owner_experience_settings',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
- const targetsRpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_owner_report_targets',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
+ const targetsRpc=async(action,data={})=>{try{return await d.session.request(d.session.client.rpc('aqari_owner_report_targets',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));}catch(error){d.session.check();throw serviceReadinessError(error,'aqari_owner_report_targets');}};
  function blankTarget(){return {id:uuid(),owner_name:'',owner_user_id:'',property_ids:[],channels:['whatsapp'],email:'',whatsapp:'',schedule:'monthly',hour:8,enabled:true};}
  function allowedProperties(ownerUserId){const owner=owners.find(x=>x.user_id===ownerUserId);if(!owner)return properties;const ids=new Set(owner.property_ids||[]);return properties.filter(x=>ids.has(x.id));}
  function targetCard(target,index){
@@ -84,4 +85,3 @@ export function openOwnerExperienceSettings(){
  });
  d.run(load);return true;
 }
-

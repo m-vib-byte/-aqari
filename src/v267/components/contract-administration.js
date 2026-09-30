@@ -1,7 +1,11 @@
 import {node,field} from './dialog.js';
 import {t} from './locale.js';
+import {serviceReadinessError} from './service-readiness.js';
 export async function contractAdministration(d,action,data={}){
- const response=await d.session.request(d.session.client.rpc('aqari_contract_administration',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));d.session.check();
+ let response;
+ try{response=await d.session.request(d.session.client.rpc('aqari_contract_administration',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));}
+ catch(error){d.session.check();throw serviceReadinessError(error,'aqari_contract_administration');}
+ d.session.check();
  if(response?.workspace_id!==d.session.bound.workspace||response?.user_id!==d.session.bound.user)throw Error('تعذر تأكيد صلاحية ونتيجة العملية.');
  return response.result;
 }
