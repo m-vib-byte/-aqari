@@ -17,7 +17,7 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "3c817dfbbef48d04b905b6f9242737b5cd9347040c8f0918872fd5e1417a9a8f",
+      "sha256": "23bde7eca979339db327903bcfc9c2ff60df0dbda35a34bac4a8f1e424d69668",
       "size": 1390
     },
     {
@@ -4337,13 +4337,13 @@
     },
     {
       "path": "v201-easy.css",
-      "sha256": "944fa996e663121241fdc290ba1754ab4fadf462b9a1965a03d1c80b76738d3d",
-      "size": 26062
+      "sha256": "6aaf26d444f2aa7daf0c1317d2dd2c9b6010bbb6a5cb01c70b5b7295322f022f",
+      "size": 25690
     },
     {
       "path": "v201-experience.js",
-      "sha256": "447db02713788611eca2908e3ecf190ae08344cb43403c728c60ebd96857aef0",
-      "size": 36115
+      "sha256": "6d118f9cf20b2c8e92d9fb3b7136ebc1f3c3a437e607a92c20d3719f1c040488",
+      "size": 36308
     },
     {
       "path": "v202-prestige.css",

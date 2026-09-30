@@ -672,7 +672,9 @@
     createMenu();
     propertyCenter();
     businessMenu();
-    mobileCreateTrigger();
+    // Keep quick-create inside the shared topbar/overview controls.
+    // A body-level fixed FAB leaked onto every mobile route and overlapped the bottom nav.
+    document.getElementById('v201MobileCreate')?.remove();
     installCreateTriggers(document);
     searchExperience();
     skipLink();
