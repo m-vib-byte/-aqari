@@ -34,3 +34,15 @@ No production records, approvals, payment transactions, settings or SQL were
 changed during the inspection. Physical iPhone/iPad acceptance remains separate
 from automated browser tests. Backup/restore gate #197 and the Preview E2E
 Deployment Protection authorization blocker remain open.
+
+## Concurrent release integration
+
+PR #356 removed the global experimental contract shortcut while this repair was
+being verified. Its main SHA `03f0e9331be7732972c02332460459b1563b886e` failed
+Follow-up Center Gate run `36789401897` because `FILE_INVENTORY.json` still held
+the previous checksum for `src/v267/components/contract-routing.js`.
+This branch incorporates that removal and refreshes its inventory entry; it
+does not restore the shortcut or weaken checksum validation. The combined
+revision is subject to the same release and authenticated browser checks.
+The combined local revision passed release-freeze checksum validation and all
+62 targeted calendar, financial-form, export and guarded contract-route tests.
