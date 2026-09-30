@@ -1662,8 +1662,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "3071b35de1c2f389b2fd5a3a95f13b06297c62be7c269d6e3691baf2c23cc8d0",
-      "size": 30137
+      "sha256": "2a6ae0931cf532d5402c621d3619776a22ea00139c2a6c2b5d166b7620ff4adc",
+      "size": 30138
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -4697,8 +4697,8 @@
     },
     {
       "path": "tests/v267-property-ownership-area.test.mjs",
-      "size": 2418,
-      "sha256": "d0a4a7634bb81921e4dafb151da9f1e9030c8c9745bc74c425fdcf8ed47b21b6"
+      "size": 2392,
+      "sha256": "492091d329d3cf443e6501859a6889b1756950e634d183a449757efa87e56be9"
     },
     {
       "path": "src/v267/components/pdf-viewer.js",
