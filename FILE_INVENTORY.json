@@ -1426,6 +1426,11 @@
       "size": 1335
     },
     {
+      "path": "src/v267/components/visible-translations-a.js",
+      "size": 173442,
+      "sha256": "fde150a57b65fbecaa8291edcb01034d6e9c78d6cea5218beac5b7cfe6f278a4"
+    },
+    {
       "path": "src/v267/components/visible-translations-b2.js",
       "size": 96911,
       "sha256": "5549a9a89f7108497071880bfddcfaf6408ad3a5c27e195548982f2d75a41ca5"
@@ -3266,6 +3271,16 @@
       "size": 6308
     },
     {
+      "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
+      "size": 6311,
+      "sha256": "01796ca7bc46e1e51430380645f3c45b7e92bb77b67dafa7f51a8f3371014ecd"
+    },
+    {
+      "path": "tests/v267-stage-c-storage-backup.test.mjs",
+      "size": 6720,
+      "sha256": "6d74309fc1b1d7995c16e0c161eddd61ea7c26a03addb3e359acefa75b304fcc"
+    },
+    {
       "path": "tests/app-first-paint.e2e.mjs",
       "sha256": "f912130cc9836952ba02e415d63ff066dec21772d47bc6b19d0827d57de6210b",
       "size": 4224
@@ -4712,8 +4727,8 @@
     },
     {
       "path": "src/v267/pages/owner-experience-settings.js",
-      "size": 13032,
-      "sha256": "009e4e633c970cc180dee5d6800d2689ef9019cecb71b3fbd826e61e57b107c4"
+      "size": 16196,
+      "sha256": "43c2216921915b5bbe451c148369d3ad1652a200a11357faf3a27652299ccbb5"
     },
     {
       "path": "src/v267/pages/property-controls.js",
@@ -4789,6 +4804,16 @@
       "path": "tests/authenticated-home-heartbeat.test.cjs",
       "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
       "size": 2220
+    },
+    {
+      "path": "supabase/migrations/20261001121500_stage_c_server_backup_export.sql",
+      "sha256": "0035e3abfaa0cd23b6e8e0d25167365c6cf6aecee21c2ce2df269a9a0267636c",
+      "size": 4916
+    },
+    {
+      "path": "staging-database/local-test/stage-c-backup-selftest.mjs",
+      "sha256": "c84642426bcee9532520dfea568bb0a03aca05ccfda30f91da3c24bada9b5659",
+      "size": 2366
     }
   ],
   "version": "V198"
