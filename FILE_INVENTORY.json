@@ -3132,8 +3132,8 @@
     },
     {
       "path": "staging-database/tests/template_library_setup.sql",
-      "sha256": "f39382610e1112aa34f270435138a57bc14b8f7e396c0b8e8953fa1d297f0b21",
-      "size": 184
+      "sha256": "d60c8d47f04783fb075bd31e2cf567d0e2c883f2805f5a8a8057044adb0e6889",
+      "size": 300
     },
     {
       "path": "staging-database/tests/template_typography.sql",
