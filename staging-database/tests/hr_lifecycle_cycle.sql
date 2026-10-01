@@ -1,4 +1,6 @@
 -- Synthetic HR lifecycle acceptance. Run after the lifecycle SQL in one transaction; always ROLLBACK.
+begin;
+
 insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values
  ('cycle-manager@example.invalid','Synthetic cycle manager','general_manager','aqari-v267-staging'),
  ('cycle-employee@example.invalid','Synthetic cycle employee','viewer','aqari-v267-staging');
