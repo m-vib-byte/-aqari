@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "dea08089fdf2f08d477cadfbae652d2c1de8eca0b4f0d810da278dba10e9cceb",
-      "size": 8058
+      "sha256": "6f11446b62e6a7e8df32a825c46c4bb455ee8d4c7a5d971145854cb31d30ad31",
+      "size": 8203
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -3282,13 +3282,13 @@
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 9187,
-      "sha256": "d5786eb6da2787230c43b6fd844da53bdfdebd4ef8695e1a8f856a0a5070b284"
+      "size": 9209,
+      "sha256": "2d3894c3f2204b28c1371d8b76529aae369680fbb5ac1926ddb519133ad983ef"
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 9192,
-      "sha256": "bc1be99477ff566d3f2a3e8b50bc4e837b5207e186a8718e0b97c5a57ea8ede9"
+      "size": 15618,
+      "sha256": "016a549011f76e4830c0f04f3bf05ab150662271aac107d09706f8480c5964ab"
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",

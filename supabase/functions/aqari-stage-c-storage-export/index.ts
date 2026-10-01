@@ -69,7 +69,7 @@ async function finalizeRestore(authorization:string,count:number,bytes:number){
   return result.summary;
 }
 
-const fetch=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
+const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:originHeaders(req)});
   if(req.method!=="POST")return json(req,405,{ok:false,error:"METHOD_NOT_ALLOWED"});
   if(Number(req.headers.get("content-length")||"0")>8192)return json(req,413,{ok:false,error:"REQUEST_TOO_LARGE"});
@@ -164,4 +164,4 @@ const fetch=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   }
   return new Response(zip,{status:200,headers});
 });
-export default {fetch};
+export default {fetch:handleRequest};
