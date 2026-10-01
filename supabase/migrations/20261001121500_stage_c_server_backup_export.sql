@@ -87,3 +87,31 @@ revoke all on function public.v267_stage_c_backup_catalog() from public,anon,aut
 revoke all on function public.v267_stage_c_backup_table(text,text,integer,integer) from public,anon,authenticated;
 grant execute on function public.v267_stage_c_backup_catalog() to service_role;
 grant execute on function public.v267_stage_c_backup_table(text,text,integer,integer) to service_role;
+
+
+create or replace function public.v267_stage_c_backup_snapshot()
+returns jsonb
+language plpgsql
+stable security definer
+set search_path=''
+as $$
+declare catalog jsonb; item jsonb; page jsonb; pages jsonb:='[]'::jsonb;
+begin
+ if current_setting('role',true) is distinct from 'service_role' then
+  raise insufficient_privilege using message='SERVER_ONLY';
+ end if;
+ catalog:=public.v267_stage_c_backup_catalog();
+ for item in select value from jsonb_array_elements(catalog->'tables')
+ loop
+  if coalesce((item->>'rows')::bigint,0)>0 then
+   page:=public.v267_stage_c_backup_table(item->>'schema',item->>'table',0,1000);
+   pages:=pages||jsonb_build_array(
+    page||jsonb_build_object('fingerprint_md5',md5((page->'rows')::text))
+   );
+  end if;
+ end loop;
+ return jsonb_build_object('catalog',catalog,'pages',pages);
+end $$;
+
+revoke all on function public.v267_stage_c_backup_snapshot() from public,anon,authenticated;
+grant execute on function public.v267_stage_c_backup_snapshot() to service_role;
