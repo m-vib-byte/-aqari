@@ -24,7 +24,10 @@ do $$declare n integer;w uuid;p uuid;t uuid;u uuid;l uuid;begin
   insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot)
    values(l,w,'DOC-L-'||n,t,u,'DOC-L-'||n,'2026-01-01','2026-12-31',100,50,'signed','{}');
   insert into public.aqari_rent_payments(id,workspace_id,lease_id,reference,amount,period,paid_at,status,payment_method,record,receipt)
-   values(('7f680000-0000-4000-8000-00000000050'||n)::uuid,w,l,'DOC-PAY-'||n,12.345,'2026-09-01','2026-09-05','paid','cash','{}','{"collectorName":"محصل الاختبار"}');
+   values(('7f680000-0000-4000-8000-00000000050'||n)::uuid,w,l,'DOC-PAY-'||n,12.345,'2026-09-01','2026-09-05','paid','cash',
+    jsonb_build_object('method','cash','transactionNo','DOC-PAY-'||n),
+    jsonb_build_object('collectorName','محصل الاختبار','transactionNo','DOC-PAY-'||n,
+     'record',jsonb_build_array(null,null,null,null,null,null,null,null,null,'cash')));
  end loop;
  insert into private.aqari_staff_assignments(workspace_id,user_id,operational_role,property_ids,is_active,updated_by)values
  (current_setting('aqari.test.official_source.workspace')::uuid,'7f680000-0000-4000-8000-000000000002','accountant',array['7f680000-0000-4000-8000-000000000101']::uuid[],true,'7f680000-0000-4000-8000-000000000001');
