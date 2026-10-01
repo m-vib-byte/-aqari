@@ -4,7 +4,16 @@ import {createDialog,node,field} from '../components/dialog.js';
 
 const text=(tag,value)=>node(tag,String(value??''));
 function codeInput(){const input=node('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.pattern='[0-9]{6}';input.maxLength=6;input.required=true;return input;}
-function result(value){if(value?.error)throw value.error;return value?.data;}
+function result(value){
+ if(value?.error){
+  const messages={mfa_factor_name_conflict:'يوجد تسجيل مصادقة سابق بهذا الاسم. أغلق النافذة وافتح مركز الأمان لاستكماله أو إلغاء التسجيل غير المكتمل.',mfa_verification_failed:'رمز التحقق غير صحيح أو انتهت صلاحيته. أدخل الرمز الحالي من تطبيق المصادقة المرتبط بهذا التسجيل.'};
+  if(messages[value.error.code])throw Error(messages[value.error.code]);
+  throw value.error;
+ }
+ return value?.data;
+}
+const allFactors=listed=>Array.isArray(listed?.all)?listed.all:[...(listed?.totp||[]),...(listed?.phone||[])];
+const pendingFactors=listed=>allFactors(listed).filter(f=>f.factor_type==='totp'&&f.status==='unverified'&&f.id);
 
 export function openSecurityCenter(){
  const d=createDialog(translateStatic('الأمان والتوثيق الثنائي'));if(!d)return;
@@ -25,7 +34,19 @@ export function openSecurityCenter(){
   if(disposed)return;
   state.replaceChildren(text('h2',visibleText('حالة الجلسة')),text('p',level.currentLevel==='aal2'?visibleText('الجلسة محمية بعاملين.'):visibleText('الجلسة الحالية بعامل واحد.')),text('p',level.nextLevel==='aal2'&&level.currentLevel!=='aal2'?visibleText('يوجد عامل موثق؛ أدخل الرمز لترقية الجلسة قبل العمليات الحساسة.'):''));
   factors.replaceChildren(text('h2',visibleText('أجهزة المصادقة')));
-  const verified=[...(listed?.totp||[]),...(listed?.phone||[])].filter(item=>item.status==='verified');
+  const verified=allFactors(listed).filter(item=>item.status==='verified');
+  for(const factor of pendingFactors(listed)){
+   const card=node('article'),resume=node('button',translateStatic('استكمال التفعيل')),cancel=node('button',translateStatic('إلغاء التسجيل غير المكتمل'));
+   resume.type=cancel.type='button';
+   card.append(text('h3',factor.friendly_name||visibleText('تطبيق المصادقة')),text('p',visibleText('تسجيل غير مكتمل. إذا أضفته إلى تطبيق المصادقة، استكمل التفعيل بالرمز الحالي. إذا لم تحتفظ بالربط، ألغ هذا التسجيل ثم أضف التطبيق من جديد.')),resume,cancel);
+   resume.onclick=()=>d.run(()=>challenge(factor.id));
+   cancel.onclick=()=>d.run(async()=>{
+    if(!window.confirm(visibleText('إلغاء تسجيل المصادقة غير المكتمل؟ لن تتم إزالة أي جهاز موثق.')))return;
+    const latest=await authRequest(()=>auth().listFactors());
+    if(!pendingFactors(latest).some(item=>item.id===factor.id))throw Error('تغيرت حالة التسجيل. أغلق النافذة وافتحها من جديد.');
+    await authRequest(()=>auth().unenroll({factorId:factor.id}));await list();d.status.textContent=translateStatic('تم إلغاء التسجيل غير المكتمل. يمكنك إضافة تطبيق مصادقة من جديد.');
+   });factors.append(card);
+  }
   if(!verified.length)factors.append(text('p',visibleText('لا يوجد عامل ثانٍ موثق لهذا الحساب.')));
   for(const factor of verified){
    const card=node('article'),verify=node('button',translateStatic('التحقق بهذا الجهاز')),remove=node('button',translateStatic('إزالة الجهاز'));
@@ -39,7 +60,10 @@ export function openSecurityCenter(){
   form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{if(!/^\d{6}$/.test(code.value))throw Error('أدخل رمز تحقق صحيحاً من 6 أرقام.');await authRequest(()=>auth().verify({factorId,challengeId,code:code.value}));clearEnrollment();await list();showEnrollmentAction();d.status.textContent=translateStatic('تم توثيق العامل الثاني وترقية الجلسة.');});};actions.replaceChildren(text('h2',visibleText('التحقق من الجلسة')),form);code.focus();
  }
  async function enroll(){
-  clearEnrollment();const enrolled=await authRequest(()=>auth().enroll({factorType:'totp',friendlyName:'AQARI V267'}));
+  clearEnrollment();
+  const listed=await authRequest(()=>auth().listFactors());
+  if(pendingFactors(listed).length){await list();d.status.textContent=translateStatic('يوجد تسجيل مصادقة غير مكتمل. اختر استكمال التفعيل أو إلغاء التسجيل غير المكتمل أدناه.');return;}
+  const enrolled=await authRequest(()=>auth().enroll({factorType:'totp',friendlyName:'AQARI V267'}));
   factorId=enrolled?.id;secret=enrolled?.totp?.secret;const qrCode=enrolled?.totp?.qr_code;
   if(!factorId||!qrCode)throw Error('تعذر بدء تسجيل تطبيق المصادقة.');
   qr=node('img');qr.alt=visibleText('رمز QR لإضافة AQARI V267 إلى تطبيق المصادقة');qr.src=qrCode;qr.width=220;qr.height=220;

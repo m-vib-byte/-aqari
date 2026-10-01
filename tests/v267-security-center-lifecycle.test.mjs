@@ -79,3 +79,25 @@ test('successful aal1 to aal2 token refresh keeps the same account session valid
  try{await f.button('التحقق بهذا الجهاز').onclick();const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';await form.onsubmit({preventDefault(){}});assert.ok(f.dialog.isConnected);assert.match(f.status(),/تم توثيق العامل الثاني/);assert.ok(f.elements().some(x=>x.textContent==='الجلسة محمية بعاملين.'));assert.equal(f.calls.filter(x=>x.method==='verify').length,1);}
  finally{f.cleanup();}
 });
+
+test('unfinished enrollment is visible from all and blocks duplicate enrollment',async()=>{
+ const f=await fixture({listFactors:async()=>({data:{all:[{id:'pending',status:'unverified',factor_type:'totp',friendly_name:'AQARI V267'}],totp:[],phone:[]}})});
+ try{assert.ok(f.button('استكمال التفعيل'));await f.button('إضافة تطبيق مصادقة').onclick();assert.equal(f.calls.some(x=>x.method==='enroll'),false);assert.match(f.status(),/غير مكتمل/);await f.button('استكمال التفعيل').onclick();assert.deepEqual(f.calls.find(x=>x.method==='challenge').args,[{factorId:'pending'}]);}
+ finally{f.cleanup();}
+});
+test('cancel pending enrollment rechecks state and preserves verified factors',async()=>{
+ let pending=true;
+ const f=await fixture({listFactors:async()=>({data:{all:[{id:'verified',status:'verified',factor_type:'totp'},...(pending?[{id:'pending',status:'unverified',factor_type:'totp'}]:[])]}}),unenroll:async()=>{pending=false;return {data:{}};}});
+ try{await f.button('إلغاء التسجيل غير المكتمل').onclick();assert.deepEqual(f.calls.filter(x=>x.method==='unenroll').map(x=>x.args),[[{factorId:'pending'}]]);assert.ok(f.button('التحقق بهذا الجهاز'));assert.equal(f.button('استكمال التفعيل'),undefined);}
+ finally{f.cleanup();}
+});
+test('a pending factor verified elsewhere is not removed by stale cancellation',async()=>{
+ let status='unverified';const f=await fixture({listFactors:async()=>({data:{all:[{id:'pending',status,factor_type:'totp'}]}})});
+ try{status='verified';await f.button('إلغاء التسجيل غير المكتمل').onclick();assert.equal(f.calls.some(x=>x.method==='unenroll'),false);assert.match(f.status(),/تغيرت حالة التسجيل/);}
+ finally{f.cleanup();}
+});
+test('invalid TOTP leaves the form available and reports a useful error',async()=>{
+ const f=await fixture({verify:async()=>({error:{code:'mfa_verification_failed',message:'Invalid TOTP'}})});
+ try{await f.button('التحقق بهذا الجهاز').onclick();const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';await form.onsubmit({preventDefault(){}});assert.match(f.status(),/رمز التحقق غير صحيح/);assert.ok(form.isConnected);}
+ finally{f.cleanup();}
+});
