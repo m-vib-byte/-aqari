@@ -5,6 +5,7 @@ import fs from 'node:fs';
 const edge=fs.readFileSync('supabase/functions/aqari-stage-c-storage-export/index.ts','utf8');
 const ui=fs.readFileSync('src/v267/pages/owner-experience-settings.js','utf8');
 const translations=fs.readFileSync('src/v267/components/visible-translations-a.js','utf8');
+const dbExport=fs.readFileSync('supabase/migrations/20261001121500_stage_c_server_backup_export.sql','utf8');
 
 test('Stage C Storage export is user-authenticated, manager-only and AAL2-only',()=>{
   assert.match(edge,/withSupabase\(\{auth:"user"\},/);
@@ -48,4 +49,14 @@ test('Storage backup controls are translated in all five supported interface lan
     '"ur": "اصل فائلوں کا بیک اپ ڈاؤن لوڈ کریں"',
     '"ml": "അസൽ ഫയലുകളുടെ ബാക്കപ്പ് ഡൗൺലോഡ് ചെയ്യുക"'
   ])assert.ok(translations.includes(value),value);
+});
+
+test('Database and Auth export helpers remain server-only',()=>{
+  assert.match(dbExport,/current_setting\('role',true\).*service_role/s);
+  assert.match(dbExport,/n\.nspname='auth'/);
+  assert.match(dbExport,/left\(c\.relname,6\)='aqari_'/);
+  assert.match(dbExport,/revoke all on function public\.v267_stage_c_backup_catalog\(\) from public,anon,authenticated/);
+  assert.match(dbExport,/revoke all on function public\.v267_stage_c_backup_table\(text,text,integer,integer\) from public,anon,authenticated/);
+  assert.match(dbExport,/grant execute on function public\.v267_stage_c_backup_catalog\(\) to service_role/);
+  assert.match(dbExport,/grant execute on function public\.v267_stage_c_backup_table\(text,text,integer,integer\) to service_role/);
 });
