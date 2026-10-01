@@ -2,6 +2,7 @@ import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {mountCommercialCollections,requireCommercialCollectionsAccess} from '../components/commercial-collections.js';
 import {mountCommercialPaymentAllocations} from '../components/commercial-payment-allocations.js';
+import {previousKuwaitMonth} from '../domain/kuwait-calendar.js';
 
 const option=(value,text)=>{const el=node('option',text);el.value=value;return el;};
 const input=(type='text')=>{const el=node('input');el.type=type;return el;};
@@ -14,7 +15,6 @@ const formatted=n=>String(n/1000n)+'.'+String(n%1000n).padStart(3,'0');
 export const salesAmount=(gross,percentage)=>formatted((decimal(gross,3)*decimal(percentage,4)+500000n)/1000000n);
 export const salesAdjustment=(gross,percentage,basis,baseRent='0')=>{const percentageRent=decimal(salesAmount(gross,percentage),3);if(basis!=='greater_of_base_or_percentage')return formatted(percentageRent);const base=decimal(baseRent,3);return formatted(percentageRent>base?percentageRent-base:0n);};
 const moneyEqual=(a,b)=>decimal(a,3)===decimal(b,3);
-const previousMonth=()=>{const now=new Date();return new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-1,1)).toISOString().slice(0,7);};
 const errorText=error=>({
  SALES_MONTH_ALREADY_POSTED:'يوجد استحقاق معتمد لهذا العقد في الشهر نفسه. اعكسه أولًا إذا كان يحتاج تصحيحًا.',
  SALES_RETRY_CONFLICT:'بيانات محاولة الحفظ لا تطابق العملية السابقة. أعد قراءة سجل الشهر.',
@@ -33,7 +33,7 @@ const errorText=error=>({
 export function mountCommercialSales(d,container){
  let state=null,pending=null,disposed=false,paymentDeskDispose=()=>{};
  const month=input('month'),loadButton=node('button',translateStatic('عرض استحقاقات الشهر')),content=node('div'),retry=node('button',translateStatic('إعادة محاولة الحفظ والتحقق'));
- month.value=previousMonth();loadButton.type=retry.type='button';retry.hidden=true;
+ month.value=previousKuwaitMonth();loadButton.type=retry.type='button';retry.hidden=true;
  container.append(node('h2',translateStatic('استحقاقات نسبة المبيعات')),node('p',translateStatic('سجّل مبيعات الشهر من تقرير محفوظ. يحتسب النظام الشرط المعتمد للعقد: نسبة إضافية فوق الإيجار، أو الفرق فقط عندما تكون نسبة المبيعات أعلى من الإيجار الأساسي.')),field(translateStatic('شهر المبيعات'),month),loadButton,retry,content);
  month.onchange=()=>{if(pending){month.value=pending.payload.month;return;}paymentDeskDispose();paymentDeskDispose=()=>{};state=null;content.replaceChildren();};
  const call=async(action,payload)=>{d.session.check();const value=await d.session.request(d.session.client.rpc('aqari_commercial_sales',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload}));d.session.check();return value;};
@@ -75,4 +75,3 @@ export function openCommercialSales(){
  const d=createDialog(translateStatic('التحصيل التجاري والمستحقات'));if(!d)return;
  d.run(async()=>{await requireCommercialCollectionsAccess(d);const view=mountCommercialSales(d,d.body);await view.collections.load();});
 }
-
