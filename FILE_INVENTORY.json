@@ -1982,8 +1982,8 @@
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
-      "sha256": "19c06ca7806af9e64099d2ab84453f80649149b2a8f7f1c759eb010e3b637880",
-      "size": 5710
+      "sha256": "11912b86225a5d6f7b2386d0827ea4b902483bf6a7406d02408cf45fc6e77221",
+      "size": 5918
     },
     {
       "path": "staging-database/local-test/run-template-library.sh",
@@ -4607,8 +4607,8 @@
     },
     {
       "path": "staging-database/tests/hr_lifecycle_cycle.sql",
-      "sha256": "cf9ec0cfb96c7190bd14bfb7f15adca9cfbc972139cc7de720d9beaa5cf6268f",
-      "size": 10172
+      "sha256": "9950f37e10d7765acbdf7cbbb55cea46908dddde203f3c64ea05d80744d4d77f",
+      "size": 10180
     },
     {
       "path": "supabase/migrations/20260922144456_hr_lifecycle_cycle.sql",
