@@ -15,15 +15,14 @@ jobs:
     permissions:
       contents: read
       deployments: read
-      id-token: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       AQARI_PROJECT_SLUG: aqari
       AQARI_TEAM_SLUG: m-vib-5421
-      AQARI_PREVIEW_AUTH: github-oidc
-      AQARI_PREVIEW_OIDC_DIAGNOSTICS: '1'
+      AQARI_PREVIEW_AUTH: automation-bypass
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       GITHUB_TOKEN: ${{ github.token }}
       GITHUB_API_URL: ${{ github.api_url }}
     steps:
@@ -71,19 +70,20 @@ jobs:
         run: |
           test -n "$AQARI_BASE_URL"
           test -n "$AQARI_EXPECTED_SHA"
-          test "$AQARI_PREVIEW_AUTH" = 'github-oidc'
-          node --input-type=module -e "import { createGitHubOidcTokenProvider } from './tests/github-preview-oidc.mjs'; await createGitHubOidcTokenProvider()(); console.log('Short-lived GitHub Preview identity acquired.');"
+          test "$AQARI_PREVIEW_AUTH" = 'automation-bypass'
+          test -n "$VERCEL_AUTOMATION_BYPASS_SECRET"
+          echo 'Protected Preview automation credential is configured.'
       - name: Wait for matching Vercel Preview
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          import { githubPreviewAccess } from './tests/github-preview-oidc.mjs';
+          import { previewAccess } from './tests/preview-access.mjs';
           // Keep this gate fail-closed: never follow an authentication redirect,
           // print the automation credential, or accept an unrelated SHA in JSON.
           async function waitForMatchingPreview() {
             const { AQARI_BASE_URL: base, AQARI_EXPECTED_SHA: expectedSha,
               AQARI_PROJECT_SLUG: project, AQARI_TEAM_SLUG: team } = process.env;
-            if (process.env.AQARI_PREVIEW_AUTH !== 'github-oidc' || !/^[a-f0-9]{40}$/.test(expectedSha || '')) {
+            if (process.env.AQARI_PREVIEW_AUTH !== 'automation-bypass' || !process.env.VERCEL_AUTOMATION_BYPASS_SECRET || !/^[a-f0-9]{40}$/.test(expectedSha || '')) {
               throw new Error('Preview gate configuration is incomplete.');
             }
             let url;
@@ -97,7 +97,7 @@ jobs:
               throw new Error('Preview gate requires this project branch Preview URL.');
             }
             url.pathname = '/api/production-meta';
-            const access = githubPreviewAccess(base);
+            const access = previewAccess(base, process.env.VERCEL_AUTOMATION_BYPASS_SECRET);
             const deadline = Date.now() + 450_000;
             let lastState = 'not checked';
             for (let attempt = 1; attempt <= 45 && Date.now() < deadline; attempt++) {
@@ -115,7 +115,7 @@ jobs:
                 const status = response.status;
                 console.log(`Preview metadata attempt ${attempt}: HTTP ${status}.`);
                 if ((status >= 300 && status < 400) || status === 401 || status === 403) {
-                  throw new Error(`Preview access not authorized (HTTP ${status}). Check this workflow's GitHub OIDC trusted-source claims and Preview environment; no redirect was followed.`);
+                  throw new Error(`Preview access not authorized (HTTP ${status}). Check the configured Vercel Automation Bypass secret for this protected Preview; no redirect was followed.`);
                 }
                 if (status === 200) {
                   let metadata;
