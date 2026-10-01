@@ -86,6 +86,8 @@ jobs:
         run: node --test tests/v267-property-presentation.test.mjs
       - name: Commercial sales and payment reconciliation readback
         run: node --test tests/v267-commercial-sales-workflow.test.mjs tests/v267-commercial-payment-allocations.test.mjs
+      - name: Kuwait accounting month boundaries and partner defaults
+        run: node --test tests/v267-kuwait-calendar.test.mjs tests/v267-partner-distributions-workflow.test.mjs tests/v267-commercial-collections.test.mjs
       - name: Official document sources, immutable readback and shared PDF catalogue
         run: |
           node scripts/build-official-form-sql.mjs --check

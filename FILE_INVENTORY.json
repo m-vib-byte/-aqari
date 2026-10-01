@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "11a635949cbc6c97b2723a15a520cd502cfefe1211f79f4aa73c698cffa41a6b",
-      "size": 7833
+      "sha256": "dea08089fdf2f08d477cadfbae652d2c1de8eca0b4f0d810da278dba10e9cceb",
+      "size": 8058
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1517,8 +1517,8 @@
     },
     {
       "path": "src/v267/pages/commercial-sales.js",
-      "sha256": "e46b06af29c09ed3788edd50e90e6f1265210bfa5c54d4221ca0fb2da3678c7a",
-      "size": 13662
+      "sha256": "5400bbbf7f654c70f7985a53056445d86cf991f36804cd50261352607064fd2c",
+      "size": 13589
     },
     {
       "path": "src/v267/pages/compliance-center.js",
@@ -1657,8 +1657,8 @@
     },
     {
       "path": "src/v267/pages/partner-distributions.js",
-      "sha256": "0e5fc95f0b5a3457721c0869b1d6d39a3c37effaacf6d65769c475b552816f30",
-      "size": 17410
+      "sha256": "d1625590424860a541d8379b79de868c7edf21d00c024a699dc7813bce6b757e",
+      "size": 17337
     },
     {
       "path": "src/v267/pages/property-hub.js",
@@ -1677,8 +1677,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "c32fb57abca85673636d6de87357280eaee0a6510183cd667253b734ab767a66",
-      "size": 22372
+      "sha256": "82dcf8adf7b3dbd1602500122de8a341a2306ff8b57dcb71f55b961614c49641",
+      "size": 22408
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -3587,8 +3587,8 @@
     },
     {
       "path": "tests/v267-commercial-collections.test.mjs",
-      "sha256": "dfc2731a4dbaabe709f40df6bd8b041b990135a87a1be1b25afa5f0b09ad6b66",
-      "size": 27308
+      "sha256": "72daaf8b30e7c6234b67eb28245bc5581a60eb63c3681b8aaf56cdc589e5a81a",
+      "size": 27403
     },
     {
       "path": "tests/v267-commercial-payment-allocations.test.mjs",
@@ -3597,8 +3597,8 @@
     },
     {
       "path": "tests/v267-commercial-sales-workflow.test.mjs",
-      "sha256": "5d405e3e418b2b3f5868841e72cfb770223b0244bc7200836989e2772d2ead6d",
-      "size": 11306
+      "sha256": "f0160e567bb08687151a5eb47792d19f65f072e2abe0abc298fa6816575909de",
+      "size": 11651
     },
     {
       "path": "tests/v267-completion.fixture.html",
@@ -4012,8 +4012,8 @@
     },
     {
       "path": "tests/v267-partner-distributions-workflow.test.mjs",
-      "sha256": "811dddbddcfb52484708d597a093ed84f9ee0fc6adbafc5235eb6d049f800b17",
-      "size": 10092
+      "sha256": "075ac68e2bf91f2a096820ed1d6ae22e9d4a90efeda8aa1de9a616f30d44d37b",
+      "size": 10443
     },
     {
       "path": "tests/v267-partner-portal-recovery.test.mjs",
@@ -4764,6 +4764,21 @@
       "path": "docs/verification/service-audit-2026-10-01.md",
       "size": 6376,
       "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b"
+    },
+    {
+      "path": "src/v267/domain/kuwait-calendar.js",
+      "sha256": "4e114ace66a6cc8ef921ca61cff5828440451cbbdc15865e673b746c19af751e",
+      "size": 593
+    },
+    {
+      "path": "tests/v267-kuwait-calendar.test.mjs",
+      "sha256": "f9043801d478d31a046fd1958c867c32548d5aa80ea42c3fb4b51f3c5c6dc030",
+      "size": 1170
+    },
+    {
+      "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
+      "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
+      "size": 2753
     }
   ],
   "version": "V198"
