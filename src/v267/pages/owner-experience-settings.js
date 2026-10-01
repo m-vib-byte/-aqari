@@ -37,7 +37,7 @@ export function openOwnerExperienceSettings(){
    throw Error('تعذر تنزيل النسخة الاحتياطية للملفات.');
   }
   const restoreVerified=response.headers.get('x-aqari-restore-verified')==='true';
-  if(!restoreVerified)throw Error('لم تتأكد الاستعادة المعزولة للملفات؛ لم تُعتمد النسخة بعد.');
+  if(!restoreVerified)throw Error(translateStatic('لم تتأكد الاستعادة المعزولة للملفات؛ لم تُعتمد النسخة بعد.'));
   const blob=await response.blob();d.session.check();
   if(!(blob instanceof Blob)||blob.size<1||blob.size>70*1024*1024)throw Error('تعذر التحقق من ملف النسخة الاحتياطية.');
   const disposition=response.headers.get('content-disposition')||'',savedName=disposition.match(/filename="([A-Za-z0-9._-]+)"/)?.[1]||'aqari-storage-backup.zip';
