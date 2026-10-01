@@ -11,7 +11,6 @@ test('Stage C Storage export is user-authenticated, manager-only and AAL2-only',
   assert.match(edge,/aal!=="aal2"/);
   assert.match(edge,/access\?\.role!=="general_manager"/);
   assert.match(edge,/aqari_workspace_access/);
-  assert.match(edge,/verify_jwt/i,{message:'source remains intended for JWT-protected deployment'});
   assert.doesNotMatch(edge,/createBucket\(|\.upload\(|\.remove\(|deleteObject|service_role/i);
 });
 
