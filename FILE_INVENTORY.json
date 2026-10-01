@@ -3277,8 +3277,8 @@
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 2669,
-      "sha256": "44b269920730f908c1075ba90b525b4047160aeb51bb27bf1b9f47a71a63a9be"
+      "size": 3537,
+      "sha256": "b9c06a9215edf9e7053c1db51112526d460579f2dcc3624fee16dc480eca27b1"
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
