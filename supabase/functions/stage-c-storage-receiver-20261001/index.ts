@@ -13,20 +13,35 @@ async function sha256(bytes:Uint8Array){const d=new Uint8Array(await crypto.subt
 function safeName(name:string){return name.startsWith(WORKSPACE+'/')&&name.length<=1024&&!name.includes('..')&&!/[\u0000-\u001f\u007f]/.test(name)}
 function claims(token:string){try{let v=token.split('.')[1].replaceAll('-','+').replaceAll('_','/');while(v.length%4)v+='=';return JSON.parse(atob(v))}catch{return null}}
 
+// Retry only transient failures in read-only authorization calls. Never cache
+// authorization or retry a definitive rejection; both checks remain mandatory.
+async function sourceJson(url:string,init:RequestInit,deadline:number){
+ for(let attempt=0;attempt<2;attempt++){
+  const remaining=deadline-Date.now();
+  if(remaining<=0)throw Error('SOURCE_AUTH_UNAVAILABLE');
+  try{
+   const response=await fetch(url,{...init,redirect:'error',signal:AbortSignal.timeout(Math.min(10000,remaining))});
+   if(response.status===200)return {status:200,data:await response.json()};
+   if(![502,503,504].includes(response.status))return {status:response.status,data:null};
+   await response.body?.cancel();
+  }catch{}
+ }
+ throw Error('SOURCE_AUTH_UNAVAILABLE');
+}
 async function verifySourceManager(req:Request){
  const authorization=req.headers.get('authorization')||'';
  if(!authorization.startsWith('Bearer '))return null;
- const token=authorization.slice(7),claim=claims(token);
- const userRes=await fetch(SOURCE_URL+'/auth/v1/user',{headers:{apikey:SOURCE_KEY,authorization},redirect:'error',signal:AbortSignal.timeout(10000)});
+ const token=authorization.slice(7),claim=claims(token),deadline=Date.now()+25000;
+ const userRes=await sourceJson(SOURCE_URL+'/auth/v1/user',{headers:{apikey:SOURCE_KEY,authorization}},deadline);
  if(userRes.status!==200)return null;
- const user=await userRes.json().catch(()=>null);
+ const user=userRes.data;
  if(!user?.id||claim?.sub!==user.id||claim?.aal!=='aal2')return null;
- const accessRes=await fetch(SOURCE_URL+'/rest/v1/rpc/aqari_workspace_access',{
+ const accessRes=await sourceJson(SOURCE_URL+'/rest/v1/rpc/aqari_workspace_access',{
   method:'POST',headers:{apikey:SOURCE_KEY,authorization,'content-type':'application/json'},
-  body:JSON.stringify({p_workspace_id:WORKSPACE}),redirect:'error',signal:AbortSignal.timeout(10000)
- });
+  body:JSON.stringify({p_workspace_id:WORKSPACE})
+ },deadline);
  if(accessRes.status!==200)return null;
- const access=await accessRes.json().catch(()=>null);
+ const access=accessRes.data;
  if(access?.workspace_id!==WORKSPACE||access?.user_id!==user.id||access?.role!=='general_manager')return null;
  return {authorization,userId:user.id};
 }
@@ -34,7 +49,9 @@ async function verifySourceManager(req:Request){
 Deno.serve(async(req:Request)=>{
  if(req.method!=='POST')return reply(405,{ok:false,error:'METHOD_NOT_ALLOWED'});
  if(Number(req.headers.get('content-length')||'0')>8*1024*1024)return reply(413,{ok:false,error:'REQUEST_TOO_LARGE'});
- const caller=await verifySourceManager(req);if(!caller)return reply(403,{ok:false,error:'ACCESS_DENIED'});
+ let caller;
+ try{caller=await verifySourceManager(req)}catch{return reply(503,{ok:false,error:'SOURCE_AUTH_UNAVAILABLE'})}
+ if(!caller)return reply(403,{ok:false,error:'ACCESS_DENIED'});
  let body:any;try{body=await req.json()}catch{return reply(400,{ok:false,error:'INVALID_JSON'})}
  if(String(body?.runId||'')!==RUN_ID)return reply(409,{ok:false,error:'RUN_MISMATCH'});
  const url=Deno.env.get('SUPABASE_URL')||'',key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
