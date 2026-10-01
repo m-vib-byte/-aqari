@@ -1,30 +1,52 @@
 -- Stage C server-only backup helpers for the current AQARI project.
--- Raw database/Auth rows must never be exposed to browser roles.
+-- Raw browser access is forbidden. Active session/token rows are intentionally
+-- not exported; their counts are recorded so recovery can require re-login.
 create or replace function public.v267_stage_c_backup_catalog()
 returns jsonb
 language plpgsql
 stable security definer
 set search_path=''
 as $$
-declare out jsonb:='[]'::jsonb; r record; n bigint;
+declare out jsonb:='[]'::jsonb; r record; n bigint; transient jsonb;
 begin
  if current_setting('role',true) is distinct from 'service_role' then
   raise insufficient_privilege using message='SERVER_ONLY';
  end if;
+
  for r in
   select n.nspname as schema_name,c.relname as table_name
   from pg_class c join pg_namespace n on n.oid=c.relnamespace
-  where c.relkind='r'
-    and ((n.nspname in('public','private') and left(c.relname,6)='aqari_') or n.nspname='auth')
+  where c.relkind='r' and (
+    (n.nspname in('public','private') and left(c.relname,6)='aqari_')
+    or (n.nspname='auth' and c.relname in('users','identities','mfa_factors'))
+  )
   order by n.nspname,c.relname
  loop
   execute format('select count(*) from %I.%I',r.schema_name,r.table_name) into n;
   out:=out||jsonb_build_array(jsonb_build_object('schema',r.schema_name,'table',r.table_name,'rows',n));
  end loop;
+
+ select coalesce(jsonb_object_agg(relname,row_count),'{}'::jsonb) into transient
+ from (
+  select c.relname,
+   (xpath('/row/c/text()',query_to_xml(
+     format('select count(*) c from auth.%I',c.relname),false,true,''
+   )))[1]::text::bigint row_count
+  from pg_class c join pg_namespace n on n.oid=c.relnamespace
+  where c.relkind='r' and n.nspname='auth'
+    and c.relname in(
+      'refresh_tokens','sessions','one_time_tokens','flow_state',
+      'mfa_challenges','webauthn_challenges','saml_relay_states','oauth_client_states'
+    )
+ ) q;
+
  return jsonb_build_object(
   'tables',out,
-  'migrations',coalesce((select jsonb_agg(to_jsonb(m) order by version)
-    from supabase_migrations.schema_migrations m),'[]'::jsonb)
+  'auth_transient_counts',transient,
+  'migrations',coalesce((
+    select jsonb_agg(jsonb_build_object('version',m.version,'name',m.name) order by version)
+    from supabase_migrations.schema_migrations m
+  ),'[]'::jsonb)
  );
 end $$;
 
@@ -44,12 +66,16 @@ begin
  if p_offset<0 or p_limit<1 or p_limit>1000 then
   raise invalid_parameter_value using message='INVALID_PAGE';
  end if;
+
  select exists(
   select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
-  where c.relkind='r' and n.nspname=p_schema and c.relname=p_table
-    and ((n.nspname in('public','private') and left(c.relname,6)='aqari_') or n.nspname='auth')
+  where c.relkind='r' and n.nspname=p_schema and c.relname=p_table and (
+    (n.nspname in('public','private') and left(c.relname,6)='aqari_')
+    or (n.nspname='auth' and c.relname in('users','identities','mfa_factors'))
+  )
  ) into allowed;
  if not allowed then raise insufficient_privilege using message='TABLE_NOT_ALLOWED'; end if;
+
  execute format(
   'select coalesce(jsonb_agg(to_jsonb(t)),''[]''::jsonb) from (select * from %I.%I order by ctid offset $1 limit $2) t',
   p_schema,p_table
