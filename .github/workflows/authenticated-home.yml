@@ -13,6 +13,11 @@ jobs:
   home:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    # Match package-lock.json. The image already contains the browser binaries
+    # and system libraries, so a slow Ubuntu mirror cannot consume the test job.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --user 1001 --ipc=host
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,8 +25,9 @@ jobs:
           node-version: 22
       - name: Heartbeat initialization and frozen-counter regression
         run: node --test tests/authenticated-home-heartbeat.test.cjs
-      - run: npm install
-      - run: npx playwright install --with-deps chromium webkit
+      - run: npm ci
+      - name: Verify browser image matches the locked Playwright version
+        run: node -e "if (require('playwright/package.json').version !== '1.63.0') throw new Error('Update the Playwright container tag to match package-lock.json')"
       - name: Real authenticated renderer with synthetic backend
         run: node tests/v266-authenticated-home.e2e.mjs
       - name: V267 multilingual control, scanner and operational form flows

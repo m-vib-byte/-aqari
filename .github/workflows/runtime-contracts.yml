@@ -76,6 +76,8 @@ jobs:
         run: node --test tests/v267-session-activity-routing.test.cjs tests/v267-session-idle-restore.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
         run: node --test tests/v267-service-readiness.test.mjs tests/v267-owner-settings-recovery.test.mjs tests/v267-contract-admin-recovery.test.mjs
+      - name: Stage C Storage export and isolated restore runtime regression
+        run: node --test tests/v267-stage-c-storage-backup.test.mjs
       - name: Document scanner upload and multipage PDF
         run: node --test tests/v267-scanner-workflow.test.mjs tests/v267-original-documents.test.mjs tests/v267-document-upload-pages.test.mjs tests/v267-contract-scanner-entry.test.cjs
       - name: V267 workspace isolation and image processing

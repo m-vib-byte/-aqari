@@ -13,14 +13,19 @@ jobs:
   speed:
     runs-on: ubuntu-latest
     timeout-minutes: 6
+    # Browser binaries and OS dependencies are pinned to package-lock.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --user 1001 --ipc=host
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
+      - run: npm ci
       - run: node --test tests/mobile-login-shell.test.cjs tests/login-navigation.test.cjs tests/v266-startup-snapshot.test.cjs
-      - run: npx playwright install --with-deps chromium webkit
+      - name: Verify browser image matches the locked Playwright version
+        run: node -e "if (require('playwright/package.json').version !== '1.63.0') throw new Error('Update the Playwright container tag to match package-lock.json')"
       - run: node tests/login-speed.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()

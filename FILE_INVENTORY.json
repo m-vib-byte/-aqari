@@ -7,8 +7,8 @@
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
-      "sha256": "0f5ff0abecc1f093bf3c9386e441b66003b284bda8a69ba51b74c2c30805789e",
-      "size": 746
+      "sha256": "835a823c9fe5ca0998af0d6a7a8e9bdb1751448deae4e48897114529fb8fc8d9",
+      "size": 1173
     },
     {
       "path": ".github/workflows/archive-integrity.yml",
@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "c05cbb4df5228e9ab03c1c34213c36e305053a16a11736bef71efbbebb4a8a68",
-      "size": 1528
+      "sha256": "22a4d1ba03ac6d6cdc5bca066de13bdbb11536a45e58ba2e3c4460cba4db5640",
+      "size": 2039
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -27,18 +27,18 @@
     },
     {
       "path": ".github/workflows/login-speed.yml",
-      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
-      "size": 887
+      "sha256": "a7e18b4a4335e31f2fab3afb65688d79d8e21004e92b67eb92cc43d5794f4458",
+      "size": 1314
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "2b34f97781a1a06b9957f3b29680d31bfaa27672b2435428adc3f8187d0f2bd2",
-      "size": 7957
+      "sha256": "97b8a1857630ff576d446865ecbd97827c1798f238a02230a3e5e6f3a145c227",
+      "size": 8308
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
-      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
-      "size": 878
+      "sha256": "4ca66870a6cfc837ed0255ef7f71d62f4274dbc7bff9fc485877c997ff44a65b",
+      "size": 1305
     },
     {
       "path": ".github/workflows/release-gate.yml",
@@ -47,13 +47,13 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "08b91540f038cab9757d04ae66158c7463a37a4cfc40aab12793fdcff1c15131",
-      "size": 8644
+      "size": 9128,
+      "sha256": "5b7635e9ded3110d7bfb50ffd5e77f8b1a60509131ffb100a38161a226254214"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "dea08089fdf2f08d477cadfbae652d2c1de8eca0b4f0d810da278dba10e9cceb",
-      "size": 8058
+      "sha256": "6f11446b62e6a7e8df32a825c46c4bb455ee8d4c7a5d971145854cb31d30ad31",
+      "size": 8203
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -3282,13 +3282,13 @@
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 9187,
-      "sha256": "d5786eb6da2787230c43b6fd844da53bdfdebd4ef8695e1a8f856a0a5070b284"
+      "size": 11343,
+      "sha256": "fcc8d57ea470591381f4cc55fc1f389526c21733e9076d2a43e1a1b98c5b4365"
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 9192,
-      "sha256": "bc1be99477ff566d3f2a3e8b50bc4e837b5207e186a8718e0b97c5a57ea8ede9"
+      "size": 20685,
+      "sha256": "821739d7cd0be4acc2c5542e2a8aaba0fc278522699fa30b2352e167232f0281"
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
