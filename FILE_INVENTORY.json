@@ -3272,13 +3272,13 @@
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 5539,
-      "sha256": "ba3b3d7d429cf058ed6574890377c591da6bae6114050f2f40db76857fdb0d56"
+      "size": 6311,
+      "sha256": "01796ca7bc46e1e51430380645f3c45b7e92bb77b67dafa7f51a8f3371014ecd"
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 3537,
-      "sha256": "b9c06a9215edf9e7053c1db51112526d460579f2dcc3624fee16dc480eca27b1"
+      "size": 6720,
+      "sha256": "6d74309fc1b1d7995c16e0c161eddd61ea7c26a03addb3e359acefa75b304fcc"
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
@@ -4804,6 +4804,16 @@
       "path": "tests/authenticated-home-heartbeat.test.cjs",
       "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
       "size": 2220
+    },
+    {
+      "path": "supabase/migrations/20261001121500_stage_c_server_backup_export.sql",
+      "sha256": "0035e3abfaa0cd23b6e8e0d25167365c6cf6aecee21c2ce2df269a9a0267636c",
+      "size": 4916
+    },
+    {
+      "path": "staging-database/local-test/stage-c-backup-selftest.mjs",
+      "sha256": "c84642426bcee9532520dfea568bb0a03aca05ccfda30f91da3c24bada9b5659",
+      "size": 2366
     }
   ],
   "version": "V198"

@@ -51,15 +51,26 @@ const fetch=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   if(accessError||access?.workspace_id!==workspaceId||access?.user_id!==caller||access?.role!=="general_manager"){
     return json(req,403,{ok:false,error:"ACCESS_DENIED"});
   }
-  const {data:rows,error:listError}=await admin.schema("storage").from("objects")
-    .select("bucket_id,name,metadata,created_at,updated_at")
+  const objects:any[]=[];
+  let expectedCount:number|null=null;
+  while(expectedCount===null||objects.length<expectedCount){
+  const {data:rows,error:listError,count}=await admin.schema("storage").from("objects")
+    .select("bucket_id,name,metadata,created_at,updated_at",{count:"exact"})
     .in("bucket_id",BUCKETS)
     .like("name",workspaceId+"/%")
     .order("bucket_id",{ascending:true})
-    .order("name",{ascending:true});
+    .order("name",{ascending:true})
+    .range(objects.length,objects.length+499);
   if(listError)return json(req,500,{ok:false,error:"STORAGE_CATALOG_FAILED"});
-  const objects=Array.isArray(rows)?rows:[];
-  if(objects.length>MAX_OBJECTS)return json(req,409,{ok:false,error:"BACKUP_OBJECT_LIMIT"});
+  if(!Number.isSafeInteger(count)||count<0||!Array.isArray(rows))return json(req,500,{ok:false,error:"STORAGE_CATALOG_FAILED"});
+  if(count>MAX_OBJECTS)return json(req,409,{ok:false,error:"BACKUP_OBJECT_LIMIT"});
+  if(expectedCount!==null&&count!==expectedCount)return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
+  expectedCount=count;
+  if((rows.length===0&&objects.length<count)||objects.length+rows.length>count)return json(req,409,{ok:false,error:"STORAGE_CATALOG_INCOMPLETE"});
+  objects.push(...rows);
+  }
+  const objectKeys=new Set(objects.map(row=>JSON.stringify([row.bucket_id,row.name])));
+  if(objectKeys.size!==objects.length)return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
   const files:Record<string,Uint8Array>={};
   const manifestObjects:any[]=[];
   let totalBytes=0;

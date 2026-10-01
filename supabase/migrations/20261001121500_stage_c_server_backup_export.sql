@@ -96,6 +96,7 @@ stable security definer
 set search_path=''
 as $$
 declare catalog jsonb; item jsonb; page jsonb; pages jsonb:='[]'::jsonb;
+ expected bigint; exported integer; page_count integer;
 begin
  if current_setting('role',true) is distinct from 'service_role' then
   raise insufficient_privilege using message='SERVER_ONLY';
@@ -103,12 +104,19 @@ begin
  catalog:=public.v267_stage_c_backup_catalog();
  for item in select value from jsonb_array_elements(catalog->'tables')
  loop
-  if coalesce((item->>'rows')::bigint,0)>0 then
-   page:=public.v267_stage_c_backup_table(item->>'schema',item->>'table',0,1000);
+  expected:=coalesce((item->>'rows')::bigint,0);
+  exported:=0;
+  while exported<expected loop
+   page:=public.v267_stage_c_backup_table(item->>'schema',item->>'table',exported,1000);
+   page_count:=jsonb_array_length(page->'rows');
+   if page_count=0 or exported::bigint+page_count>expected then
+    raise exception 'BACKUP_ROW_COUNT_MISMATCH';
+   end if;
    pages:=pages||jsonb_build_array(
     page||jsonb_build_object('fingerprint_md5',md5((page->'rows')::text))
    );
-  end if;
+   exported:=exported+page_count;
+  end loop;
  end loop;
  return jsonb_build_object('catalog',catalog,'pages',pages);
 end $$;
