@@ -114,6 +114,8 @@ try{
         await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
         await context.addInitScript(value=>{
           localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));
+          // A fast renderer may be sampled before the first interval fires.
+          window.__homeHeartbeats=0;
           setInterval(()=>{window.__homeHeartbeats=(window.__homeHeartbeats||0)+1;},100);
           window.__earlyAuthenticatedScripts=[];
           window.__authenticatedScriptLoads=[];
