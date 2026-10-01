@@ -32,8 +32,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "2b34f97781a1a06b9957f3b29680d31bfaa27672b2435428adc3f8187d0f2bd2",
-      "size": 7957
+      "sha256": "c8753284abe040b67e9003383ffe91a876187d6db5d7bf2f53479131091a387a",
+      "size": 7974
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
