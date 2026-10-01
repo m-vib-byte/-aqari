@@ -16,7 +16,7 @@ export function openOwnerExperienceSettings(){
  save.type=reload.type=addTarget.type=storageBackup.type='button';save.disabled=true;storageBackup.disabled=true;note.className='aq-owner-settings-note';targetsHost.className='aq-owner-final-targets';addTarget.className='aq-owner-final-add-target';
  const global=node('section');global.className='aq-owner-settings-grid';
  global.append(field(translateStatic('وضع الضيف الاختياري — مغلق افتراضيًا وبدون بيانات حقيقية'),guest),field(translateStatic('مساعد OpenAI التوليدي — قراءة فقط'),assistant),field(translateStatic('إرسال تقرير المالك تلقائيًا'),report),save,reload,note);
- const backupSection=node('section');backupSection.className='aq-owner-settings-grid';backupSection.append(node('h3',translateStatic('نسخة احتياطية لملفات Storage')),node('p',translateStatic('ينزّل المدير العام نسخة ZIP من الملفات الأصلية في Storage مع manifest وبصمات SHA-256. يلزم التوثيق الثنائي AAL2 ولا يتم تعديل أي ملف.')),storageBackup);
+ const backupSection=node('section');backupSection.className='aq-owner-settings-grid';backupSection.append(node('h3',translateStatic('نسخة احتياطية لملفات Storage')),node('p',translateStatic('ينزّل المدير العام نسخة ZIP من الملفات الأصلية في Storage مع manifest وبصمات SHA-256، ثم يعيد نفس البايتات إلى بيئة الاستعادة المعزولة ويتحقق منها. يلزم التوثيق الثنائي AAL2 ولا يتم تعديل ملفات الإنتاج.')),storageBackup);
  d.body.append(node('p',translateStatic('المدير العام فقط يدير هذه الخيارات. تقارير الملاك تحترم نطاق العقارات المحفوظ، وإذا ربطت المستلم بحساب مالك فعلي فلن يتجاوز التقرير العقارات المصرح بها لذلك الحساب.')),global,backupSection,node('h3',translateStatic('ملاك ومستلمو التقارير')),node('p',translateStatic('WhatsApp عبر Meta Cloud API هو المسار الأساسي، ويمكن إضافة Email بصورة مستقلة. اختر عقارًا واحدًا أو مجموعة عقارات لكل مستلم.')),targetsHost,addTarget);
 
  let settingsRevision=0,targetRevision=0,properties=[],owners=[],targets=[],ready=false,uncertain=false;
@@ -28,7 +28,7 @@ export function openOwnerExperienceSettings(){
   if(!auth?.access_token||auth.user?.id!==d.session.bound.user)throw Error('تغيرت جلسة الدخول. افتح الصفحة من جديد.');
   const cfg=window.AQARI_PUBLIC_CONFIG||{},base=new URL(String(cfg.supabaseUrl||'')),endpoint=new URL('/functions/v1/aqari-stage-c-storage-export',base);
   if(base.protocol!=='https:'||endpoint.origin!==base.origin||!cfg.supabasePublishableKey)throw Error('تعذر التحقق من إعداد خدمة النسخة الاحتياطية.');
-  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',apikey:cfg.supabasePublishableKey,Authorization:'Bearer '+auth.access_token},body:JSON.stringify({workspaceId:d.session.bound.workspace}),cache:'no-store',credentials:'omit',redirect:'error'});
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',apikey:cfg.supabasePublishableKey,Authorization:'Bearer '+auth.access_token},body:JSON.stringify({workspaceId:d.session.bound.workspace,restoreToIsolated:true}),cache:'no-store',credentials:'omit',redirect:'error'});
   d.session.check();
   if(!response.ok){
    let code='';try{code=String((await response.clone().json())?.error||'')}catch{}
@@ -36,12 +36,14 @@ export function openOwnerExperienceSettings(){
    if(code==='ACCESS_DENIED')throw Error('لا تملك صلاحية هذه العملية.');
    throw Error('تعذر تنزيل النسخة الاحتياطية للملفات.');
   }
+  const restoreVerified=response.headers.get('x-aqari-restore-verified')==='true';
+  if(!restoreVerified)throw Error(translateStatic('لم تتأكد الاستعادة المعزولة للملفات؛ لم تُعتمد النسخة بعد.'));
   const blob=await response.blob();d.session.check();
   if(!(blob instanceof Blob)||blob.size<1||blob.size>70*1024*1024)throw Error('تعذر التحقق من ملف النسخة الاحتياطية.');
   const disposition=response.headers.get('content-disposition')||'',savedName=disposition.match(/filename="([A-Za-z0-9._-]+)"/)?.[1]||'aqari-storage-backup.zip';
   const href=URL.createObjectURL(blob),link=document.createElement('a');link.href=href;link.download=savedName;link.rel='noopener';link.hidden=true;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),30000);
   const hash=response.headers.get('x-aqari-backup-sha256')||'',count=response.headers.get('x-aqari-backup-object-count')||'—';
-  d.status.textContent=translateStatic('تم تنزيل النسخة الاحتياطية للملفات. عدد الملفات: ')+count+(hash?translateStatic(' — بصمة SHA-256: ')+hash:'');
+  d.status.textContent=translateStatic('تم تنزيل النسخة الاحتياطية للملفات والتحقق من الاستعادة المعزولة. عدد الملفات: ')+count+(hash?translateStatic(' — بصمة SHA-256: ')+hash:'');
  }
  function blankTarget(){return {id:uuid(),owner_name:'',owner_user_id:'',property_ids:[],channels:['whatsapp'],email:'',whatsapp:'',schedule:'monthly',hour:8,enabled:true};}
  function allowedProperties(ownerUserId){const owner=owners.find(x=>x.user_id===ownerUserId);if(!owner)return properties;const ids=new Set(owner.property_ids||[]);return properties.filter(x=>ids.has(x.id));}
