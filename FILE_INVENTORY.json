@@ -32,8 +32,8 @@
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
-      "sha256": "2b34f97781a1a06b9957f3b29680d31bfaa27672b2435428adc3f8187d0f2bd2",
-      "size": 7957
+      "sha256": "97b8a1857630ff576d446865ecbd97827c1798f238a02230a3e5e6f3a145c227",
+      "size": 8308
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
@@ -47,8 +47,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "08b91540f038cab9757d04ae66158c7463a37a4cfc40aab12793fdcff1c15131",
-      "size": 8644
+      "sha256": "27865447bfd62b924b6049a2614af718c5d581c3c2d9c8822b985d5e708a993f",
+      "size": 8910
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",

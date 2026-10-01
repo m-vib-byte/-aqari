@@ -12,6 +12,9 @@ defaults:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --ipc=host
     timeout-minutes: 10
     env:
       AQARI_EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -60,8 +63,8 @@ jobs:
           python -m unittest discover -s tests -p '*_test.py' -v 2>&1 | tee /tmp/aqari-verification/python-tests.log
       - name: Install browser test runtime
         run: |
-          npm install --ignore-scripts --no-audit --no-fund
-          npx playwright install --with-deps chromium webkit
+          npm ci --ignore-scripts --no-audit --no-fund
+          node -e "if (require('playwright/package.json').version !== '1.63.0') throw new Error('Update the Playwright container tag to match package-lock.json')"
       - name: Native dialog and session-boundary browser checks
         env:
           AQARI_BROWSER_EVIDENCE: /tmp/aqari-verification/browser
