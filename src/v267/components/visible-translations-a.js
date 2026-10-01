@@ -1537,6 +1537,13 @@ export const VISIBLE_MESSAGES_A = {
   "ml": "തൊഴിൽ കരാർ",
   "ar": "عقد عمل"
  },
+ "عقد راتب / Salary contract": {
+  "en": "Salary contract",
+  "hi": "वेतन अनुबंध",
+  "ur": "تنخواہ کا معاہدہ",
+  "ml": "ശമ്പള കരാർ",
+  "ar": "عقد راتب"
+ },
  "مستند / Document": {
   "en": "Document",
   "hi": "दस्तावेज़",
