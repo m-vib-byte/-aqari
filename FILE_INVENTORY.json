@@ -1902,13 +1902,13 @@
     },
     {
       "path": "staging-database/hosted-test/official_document_pdf_archive.sql",
-      "sha256": "092ff09459a2d2e6b1f91938a815c7086351489cb3d6e23dcd7899ad9fc68150",
-      "size": 13195
+      "sha256": "de02b8dbce2ea423eabbce10be1bf22efee06b8e8e2bc85ad8fe3239720de779",
+      "size": 13398
     },
     {
       "path": "staging-database/hosted-test/official_document_source_binding.sql",
-      "sha256": "debf650693f1d547766c84e59e9df1b28ebd9cba94cd08b52bc62788b7c04ae8",
-      "size": 21544
+      "sha256": "3fd818e2043c2c4acd0dc0a5b9601e88ae9d745dfa2f1498f06586eead0fb99c",
+      "size": 21754
     },
     {
       "path": "staging-database/hosted-test/test-generate-completion.py",
@@ -2977,8 +2977,8 @@
     },
     {
       "path": "staging-database/tests/official_document_pdf_archive.sql",
-      "sha256": "d80678ad08e39fc7c10756459f037b9bebc1200b197b1328860d735f0a33dd38",
-      "size": 12138
+      "sha256": "31a0479059584de1096d6b76ff78f6906d5952b39131fac9beecd305a5b857b5",
+      "size": 12341
     },
     {
       "path": "staging-database/tests/official_document_register.sql",
@@ -2987,8 +2987,8 @@
     },
     {
       "path": "staging-database/tests/official_document_source_binding.sql",
-      "sha256": "e0e0069db91ffc89c715b89b599e6fa231d9c88197898bbb55e03e2fc1ab39e2",
-      "size": 20487
+      "sha256": "c28cf576ccffc4a388f410abf113fe63a9788edef8c0dc612b36fbbcdd7e16f7",
+      "size": 20697
     },
     {
       "path": "staging-database/tests/opening_balance_reconciliation.sql",
@@ -4779,6 +4779,11 @@
       "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
       "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
       "size": 2753
+    },
+    {
+      "path": "docs/verification/official-archive-acceptance-2026-10-01.md",
+      "sha256": "61f9d660b3b637ef2e00eaf2f6c75bdd97cc7a1bba5caa5dc6a60a7b4bffc792",
+      "size": 3197
     }
   ],
   "version": "V198"
