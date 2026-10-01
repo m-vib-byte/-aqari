@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "23bde7eca979339db327903bcfc9c2ff60df0dbda35a34bac4a8f1e424d69668",
-      "size": 1390
+      "sha256": "c05cbb4df5228e9ab03c1c34213c36e305053a16a11736bef71efbbebb4a8a68",
+      "size": 1528
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -3542,8 +3542,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "914451aa87134972e8e7c4c8ffd69209d8e6d472131ce57b544040f0c032a1a2",
-      "size": 15152
+      "sha256": "857b28fc3802d891a2b248e1ce0ce0449e8f4055565543749f37138231decc66",
+      "size": 15266
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -4784,6 +4784,11 @@
       "path": "docs/verification/official-archive-acceptance-2026-10-01.md",
       "sha256": "61f9d660b3b637ef2e00eaf2f6c75bdd97cc7a1bba5caa5dc6a60a7b4bffc792",
       "size": 3197
+    },
+    {
+      "path": "tests/authenticated-home-heartbeat.test.cjs",
+      "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
+      "size": 2220
     }
   ],
   "version": "V198"
