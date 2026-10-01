@@ -1697,8 +1697,8 @@
     },
     {
       "path": "src/v267/pages/security-center.js",
-      "sha256": "9b605cb37f6295ffbe1111bbd80697f3c4bfe50ffda6c1c26e35865d0eb77096",
-      "size": 6736
+      "sha256": "ae41f58e435b7436e118e688381bf35f7c3ce127fec813792242162e49facbc1",
+      "size": 9179
     },
     {
       "path": "src/v267/pages/staff-access.js",
