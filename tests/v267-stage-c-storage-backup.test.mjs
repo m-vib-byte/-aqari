@@ -7,7 +7,7 @@ const ui=fs.readFileSync('src/v267/pages/owner-experience-settings.js','utf8');
 const translations=fs.readFileSync('src/v267/components/visible-translations-a.js','utf8');
 
 test('Stage C Storage export is user-authenticated, manager-only and AAL2-only',()=>{
-  assert.match(edge,/withSupabase\(\{auth:"user"\}\)/);
+  assert.match(edge,/withSupabase\(\{auth:"user"\},/);
   assert.match(edge,/aal!=="aal2"/);
   assert.match(edge,/access\?\.role!=="general_manager"/);
   assert.match(edge,/aqari_workspace_access/);
