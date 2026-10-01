@@ -59,4 +59,10 @@ test('Database and Auth export helpers remain server-only',()=>{
   assert.match(dbExport,/revoke all on function public\.v267_stage_c_backup_table\(text,text,integer,integer\) from public,anon,authenticated/);
   assert.match(dbExport,/grant execute on function public\.v267_stage_c_backup_catalog\(\) to service_role/);
   assert.match(dbExport,/grant execute on function public\.v267_stage_c_backup_table\(text,text,integer,integer\) to service_role/);
+  assert.match(dbExport,/c\.relname in\('users','identities','mfa_factors'\)/);
+  assert.match(dbExport,/auth_transient_counts/);
+  for(const transient of ['refresh_tokens','sessions','one_time_tokens','mfa_challenges']){
+    assert.ok(dbExport.includes(transient),transient+' count must remain visible for recovery comparison');
+  }
+  assert.doesNotMatch(dbExport,/c\.relname in\('users','identities','mfa_factors','sessions'/);
 });
