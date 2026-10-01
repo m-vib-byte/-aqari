@@ -6,6 +6,8 @@ const edge=fs.readFileSync('supabase/functions/aqari-stage-c-storage-export/inde
 const ui=fs.readFileSync('src/v267/pages/owner-experience-settings.js','utf8');
 const translations=fs.readFileSync('src/v267/components/visible-translations-a.js','utf8');
 const dbExport=fs.readFileSync('supabase/migrations/20261001121500_stage_c_server_backup_export.sql','utf8');
+const receiver=fs.readFileSync('supabase/functions/stage-c-storage-receiver-20261001/index.ts','utf8');
+const restoreSql=fs.readFileSync('staging-database/supabase/migrations/20261001153500_stage_c_storage_restore_finalize.sql','utf8');
 
 test('Stage C Storage export is user-authenticated, manager-only and AAL2-only',()=>{
   assert.match(edge,/withSupabase\(\{auth:"user"\},/);
@@ -34,7 +36,8 @@ test('Manager UI invokes only the authenticated project function and downloads t
   assert.match(ui,/apikey:cfg\.supabasePublishableKey/);
   assert.match(ui,/credentials:'omit'/);
   assert.match(ui,/redirect:'error'/);
-  assert.match(ui,/workspaceId:d\.session\.bound\.workspace/);
+  assert.match(ui,/workspaceId:d\.session\.bound\.workspace,restoreToIsolated:true/);
+  assert.match(ui,/x-aqari-restore-verified/);
   assert.match(ui,/URL\.createObjectURL\(blob\)/);
   assert.match(ui,/link\.download=savedName/);
   assert.match(ui,/MFA_REQUIRED/);
@@ -65,6 +68,43 @@ test('Database and Auth export helpers remain server-only',()=>{
     assert.ok(dbExport.includes(transient),transient+' count must remain visible for recovery comparison');
   }
   assert.doesNotMatch(dbExport,/c\.relname in\('users','identities','mfa_factors','sessions'/);
+});
+
+test('one-click Storage restore forwards only the signed manager JWT and requires verified target completion',()=>{
+  assert.match(edge,/RESTORE_TARGET/);
+  assert.match(edge,/restoreToIsolated/);
+  assert.match(edge,/headers:\{"content-type":"application\/json",authorization\}/);
+  assert.match(edge,/ISOLATED_STORAGE_RESTORE_FAILED/);
+  assert.match(edge,/ISOLATED_STORAGE_FINALIZE_FAILED/);
+  assert.match(edge,/x-aqari-restore-verified/);
+  assert.doesNotMatch(edge,/SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(edge,/x-aqari-stage-c-token/);
+});
+
+test('isolated receiver validates the source session, AAL2 and general manager role before writing',()=>{
+  assert.match(receiver,/SOURCE_URL\+'\/auth\/v1\/user'/);
+  assert.match(receiver,/aqari_workspace_access/);
+  assert.match(receiver,/claim\?\.aal!=='aal2'/);
+  assert.match(receiver,/access\?\.role!=='general_manager'/);
+  assert.match(receiver,/readHash!==claimedSha/);
+  assert.match(receiver,/v267_stage_c_restore_storage_record/);
+  assert.match(receiver,/v267_stage_c_restore_storage_finalize/);
+  assert.doesNotMatch(receiver,/x-aqari-stage-c-token/);
+  assert.doesNotMatch(receiver,/const TOKEN=/);
+});
+
+test('isolated restore SQL is service-role-only and cannot finalize before DB/Auth verification',()=>{
+  assert.match(restoreSql,/current_setting\('role',true\) is distinct from 'service_role'/);
+  assert.match(restoreSql,/DATABASE_AUTH_NOT_VERIFIED/);
+  assert.match(restoreSql,/STORAGE_RESTORE_MISMATCH/);
+  assert.match(restoreSql,/storage_bytes_restored',true/);
+  assert.match(restoreSql,/revoke all on function public\.v267_stage_c_restore_storage_finalize/);
+  assert.match(restoreSql,/grant execute on function public\.v267_stage_c_restore_storage_finalize.*service_role/);
+});
+
+test('one-click recovery success and failure copy are localized',()=>{
+  assert.match(translations,/"تم تنزيل النسخة الاحتياطية للملفات والتحقق من الاستعادة المعزولة\. عدد الملفات: "/);
+  assert.match(translations,/"لم تتأكد الاستعادة المعزولة للملفات؛ لم تُعتمد النسخة بعد\."/);
 });
 
 // Run the actual Edge handler with synthetic Supabase/ZIP adapters.
