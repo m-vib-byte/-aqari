@@ -7,8 +7,8 @@
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
-      "sha256": "0f5ff0abecc1f093bf3c9386e441b66003b284bda8a69ba51b74c2c30805789e",
-      "size": 746
+      "sha256": "835a823c9fe5ca0998af0d6a7a8e9bdb1751448deae4e48897114529fb8fc8d9",
+      "size": 1173
     },
     {
       "path": ".github/workflows/archive-integrity.yml",
@@ -27,8 +27,8 @@
     },
     {
       "path": ".github/workflows/login-speed.yml",
-      "sha256": "7ed19ff60f86f1b939b26721e4d22e6b4bcacfddfa96564461983589b175c361",
-      "size": 887
+      "sha256": "a7e18b4a4335e31f2fab3afb65688d79d8e21004e92b67eb92cc43d5794f4458",
+      "size": 1314
     },
     {
       "path": ".github/workflows/preview-e2e.yml",
@@ -37,8 +37,8 @@
     },
     {
       "path": ".github/workflows/recovery-entry.yml",
-      "sha256": "889d75972d7fba9bb44115c73261f742d4dd886d83e75417a3de756ddf71e48f",
-      "size": 878
+      "sha256": "4ca66870a6cfc837ed0255ef7f71d62f4274dbc7bff9fc485877c997ff44a65b",
+      "size": 1305
     },
     {
       "path": ".github/workflows/release-gate.yml",
