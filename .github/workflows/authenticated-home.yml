@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Heartbeat initialization and frozen-counter regression
+        run: node --test tests/authenticated-home-heartbeat.test.cjs
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
       - name: Real authenticated renderer with synthetic backend
