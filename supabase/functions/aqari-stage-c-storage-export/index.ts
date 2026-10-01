@@ -6,6 +6,7 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]
 const BUCKETS=["aqari-documents","aqari-hr-private","aqari-maintenance-private"];
 const MAX_OBJECTS=5000;
 const MAX_BYTES=64*1024*1024;
+const MAX_CATALOG_ENTRIES=10000;
 const ALLOWED_ORIGINS=new Set(["https://myaqari.com","https://www.myaqari.com"]);
 const RESTORE_TARGET="https://ofgmcsmxmdswlovsckqs.supabase.co/functions/v1/stage-c-storage-receiver-20261001";
 const RESTORE_RUN_ID="08ea462d-64b7-4901-a817-d9f827571035";
@@ -35,6 +36,59 @@ function safePath(name:string,workspaceId:string){
   if(!name.startsWith(workspaceId+"/")||name.startsWith("/")||name.includes("\\")||/[\u0000-\u001f\u007f]/.test(name))return false;
   const parts=name.split("/");
   return parts.every(part=>part&&part!=="."&&part!=="..");
+}
+// Storage's API can list private objects without exposing its internal schema
+// through PostgREST. Walk every folder and continue past server-capped pages.
+async function storageCatalog(admin:any,workspaceId:string){
+  const objects:any[]=[];
+  const seen=new Set<string>();
+  for(const bucket of BUCKETS){
+    const pending=[workspaceId];
+    while(pending.length){
+      const prefix=pending.pop()!;
+      let offset=0;
+      while(true){
+        const {data:rows,error}=await admin.storage.from(bucket).list(prefix,{
+          limit:500,offset,sortBy:{column:"name",order:"asc"}
+        });
+        if(error||!Array.isArray(rows)||rows.length>500)throw Error("STORAGE_CATALOG_FAILED");
+        if(rows.length===0)break;
+        for(const row of rows){
+          if(typeof row?.name!=="string"||row.name.includes("/"))throw Error("INVALID_STORAGE_PATH");
+          const name=prefix+"/"+row.name;
+          if(!safePath(name,workspaceId))throw Error("INVALID_STORAGE_PATH");
+          const key=JSON.stringify([bucket,name]);
+          if(seen.has(key))throw Error("STORAGE_CATALOG_CHANGED");
+          seen.add(key);
+          if(seen.size>MAX_CATALOG_ENTRIES||name.split("/").length>64)throw Error("BACKUP_CATALOG_LIMIT");
+          if(row.id===null&&row.metadata==null){
+            pending.push(name);
+          }else{
+            const size=Number(row.metadata?.size);
+            if(typeof row.id!=="string"||!row.id||row.metadata?.size==null||!Number.isSafeInteger(size)||size<0){
+              throw Error("STORAGE_CATALOG_FAILED");
+            }
+            objects.push({...row,bucket_id:bucket,name});
+            if(objects.length>MAX_OBJECTS)throw Error("BACKUP_OBJECT_LIMIT");
+          }
+        }
+        offset+=rows.length;
+      }
+    }
+  }
+  return objects.sort((a,b)=>a.bucket_id<b.bucket_id?-1:a.bucket_id>b.bucket_id?1:a.name<b.name?-1:a.name>b.name?1:0);
+}
+function catalogFingerprint(objects:any[]){
+  return JSON.stringify(objects.map(row=>[
+    row.bucket_id,row.name,row.id,Number(row.metadata.size),
+    row.metadata.eTag||row.metadata.etag||"",row.metadata.mimetype||"",
+    row.created_at||null,row.updated_at||null
+  ]));
+}
+function catalogFailure(req:Request,error:any){
+  const reason=String(error?.message||"");
+  const conflicts=["INVALID_STORAGE_PATH","STORAGE_CATALOG_CHANGED","BACKUP_OBJECT_LIMIT","BACKUP_CATALOG_LIMIT"];
+  return json(req,conflicts.includes(reason)?409:500,{ok:false,error:conflicts.includes(reason)?reason:"STORAGE_CATALOG_FAILED"});
 }
 function b64encode(bytes:Uint8Array){
   let raw="";const chunk=0x8000;
@@ -88,26 +142,11 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   if(accessError||access?.workspace_id!==workspaceId||access?.user_id!==caller||access?.role!=="general_manager"){
     return json(req,403,{ok:false,error:"ACCESS_DENIED"});
   }
-  const objects:any[]=[];
-  let expectedCount:number|null=null;
-  while(expectedCount===null||objects.length<expectedCount){
-  const {data:rows,error:listError,count}=await admin.schema("storage").from("objects")
-    .select("bucket_id,name,metadata,created_at,updated_at",{count:"exact"})
-    .in("bucket_id",BUCKETS)
-    .like("name",workspaceId+"/%")
-    .order("bucket_id",{ascending:true})
-    .order("name",{ascending:true})
-    .range(objects.length,objects.length+499);
-  if(listError)return json(req,500,{ok:false,error:"STORAGE_CATALOG_FAILED"});
-  if(!Number.isSafeInteger(count)||count<0||!Array.isArray(rows))return json(req,500,{ok:false,error:"STORAGE_CATALOG_FAILED"});
-  if(count>MAX_OBJECTS)return json(req,409,{ok:false,error:"BACKUP_OBJECT_LIMIT"});
-  if(expectedCount!==null&&count!==expectedCount)return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
-  expectedCount=count;
-  if((rows.length===0&&objects.length<count)||objects.length+rows.length>count)return json(req,409,{ok:false,error:"STORAGE_CATALOG_INCOMPLETE"});
-  objects.push(...rows);
+  let objects:any[];
+  try{objects=await storageCatalog(admin,workspaceId)}catch(error){return catalogFailure(req,error)}
+  if(objects.reduce((bytes,row)=>bytes+Number(row.metadata.size),0)>MAX_BYTES){
+    return json(req,409,{ok:false,error:"BACKUP_SIZE_LIMIT"});
   }
-  const objectKeys=new Set(objects.map(row=>JSON.stringify([row.bucket_id,row.name])));
-  if(objectKeys.size!==objects.length)return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
   const files:Record<string,Uint8Array>={};
   const manifestObjects:any[]=[];
   let totalBytes=0;
@@ -116,7 +155,9 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
     if(!BUCKETS.includes(bucket)||!safePath(name,workspaceId))return json(req,409,{ok:false,error:"INVALID_STORAGE_PATH"});
     const {data:blob,error:downloadError}=await admin.storage.from(bucket).download(name);
     if(downloadError||!blob)return json(req,500,{ok:false,error:"STORAGE_DOWNLOAD_FAILED",bucket,name});
+    if(blob.size!==Number(row.metadata.size))return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
     const bytes=new Uint8Array(await blob.arrayBuffer());
+    if(bytes.length!==Number(row.metadata.size))return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
     totalBytes+=bytes.length;
     if(totalBytes>MAX_BYTES)return json(req,409,{ok:false,error:"BACKUP_SIZE_LIMIT"});
     const hash=await sha256(bytes);
@@ -134,6 +175,12 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
       catch{return json(req,502,{ok:false,error:"ISOLATED_STORAGE_RESTORE_FAILED",bucket,name})}
     }
   }
+  // Do not finalize or label the ZIP complete if objects were added, removed,
+  // replaced or changed while reading the original bytes.
+  try{
+    const current=await storageCatalog(admin,workspaceId);
+    if(catalogFingerprint(current)!==catalogFingerprint(objects))return json(req,409,{ok:false,error:"STORAGE_CATALOG_CHANGED"});
+  }catch(error){return catalogFailure(req,error)}
   let restoreSummary:any=null;
   if(restoreToIsolated){
     try{restoreSummary=await finalizeRestore(authorization,manifestObjects.length,totalBytes)}

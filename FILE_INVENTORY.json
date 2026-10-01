@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "c05cbb4df5228e9ab03c1c34213c36e305053a16a11736bef71efbbebb4a8a68",
-      "size": 1528
+      "sha256": "22a4d1ba03ac6d6cdc5bca066de13bdbb11536a45e58ba2e3c4460cba4db5640",
+      "size": 2039
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -3282,13 +3282,13 @@
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 9209,
-      "sha256": "2d3894c3f2204b28c1371d8b76529aae369680fbb5ac1926ddb519133ad983ef"
+      "size": 11343,
+      "sha256": "fcc8d57ea470591381f4cc55fc1f389526c21733e9076d2a43e1a1b98c5b4365"
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 15618,
-      "sha256": "016a549011f76e4830c0f04f3bf05ab150662271aac107d09706f8480c5964ab"
+      "size": 20685,
+      "sha256": "821739d7cd0be4acc2c5542e2a8aaba0fc278522699fa30b2352e167232f0281"
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
