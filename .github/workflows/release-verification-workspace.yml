@@ -23,6 +23,9 @@ jobs:
         with:
           ref: ${{ env.AQARI_EXPECTED_SHA }}
           persist-credentials: false
+      - name: Trust checked-out workspace in job container
+        # Checkout's temporary Git config does not persist into container run steps.
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Verify exact release source identity
         run: node scripts/verify-release-source.mjs /tmp/aqari-verification/source-provenance.json
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020

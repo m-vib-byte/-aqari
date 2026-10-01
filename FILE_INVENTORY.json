@@ -47,8 +47,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "27865447bfd62b924b6049a2614af718c5d581c3c2d9c8822b985d5e708a993f",
-      "size": 8910
+      "size": 9128,
+      "sha256": "5b7635e9ded3110d7bfb50ffd5e77f8b1a60509131ffb100a38161a226254214"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
