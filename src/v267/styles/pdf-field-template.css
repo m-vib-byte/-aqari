@@ -1,0 +1,10 @@
+.aq267-pdf-map .aq267-pdf-map-page{position:relative;width:100%;max-width:1000px;margin:16px auto;direction:ltr;background:#eee;line-height:0;}
+.aq267-pdf-map-page>img{display:block;width:100%;height:auto;pointer-events:none;}
+.aq267-pdf-map-layer{position:absolute;inset:0;}
+.aq267-pdf-map .aq267-pdf-map-field{position:absolute!important;min-height:0!important;min-width:0!important;margin:0!important;padding:0 2px!important;border:1px solid #997020!important;border-radius:2px!important;background:#fff2baba!important;color:#3c2918!important;box-shadow:none!important;font-size:10px!important;line-height:1!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;touch-action:none;cursor:move;}
+.aq267-pdf-map .aq267-pdf-map-field.is-selected{outline:2px solid #583a16;background:#ffe289df!important;}
+.aq267-pdf-map-actions{display:flex;flex-wrap:wrap;gap:8px;}
+.aq267-pdf-map-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+.aq267-pdf-map-controls h4{grid-column:1/-1;}
+.aq267-pdf-map input,.aq267-pdf-map select{box-sizing:border-box;max-width:100%;}
+.aq267-pdf-map form{display:grid;gap:12px;}
