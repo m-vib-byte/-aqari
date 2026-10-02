@@ -10,7 +10,7 @@ const key=value=>String(value??'');
 const linkedKeys=new Set(linkedDocumentFieldKeys);
 const option=(value,label)=>Object.assign(node('option',label),{value:key(value)});
 const primary=payload=>payload?.format==='aqari-cloud-state-v1'?payload.snapshot?.values?.aqari_v30:payload?.schema==='aqari-local-snapshot-v1'?payload.values?.aqari_v30:payload;
-const nonLeaseKinds=new Set(['apartment_handover','rent_receipt','eviction','owner_final_clearance']);
+const nonLeaseKinds=new Set(['apartment_handover','rent_receipt','eviction','owner_final_clearance','tenant_final_release']);
 const templateMatches=(template,kind)=>kind==='rental_agreement'?!nonLeaseKinds.has(template.kind):template.kind===kind;
 const tenantRef=contract=>key(contract?.tenantId||contract?.tenant_id||contract?.tenant_ref);
 const identities=record=>[record?.id,record?.external_ref,record?.externalRef].filter(x=>x!=null).map(key);

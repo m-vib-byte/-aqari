@@ -13,7 +13,7 @@ import {rentalTemplateStarters,cloneRentalTemplateStarter} from '../domain/renta
 import {documentTemplateBlueprints,documentFieldCatalog,validateTemplateFields,renderDocumentTemplate,fieldValue,normalizeDocumentValues,canonicalDocumentFieldKey} from '../domain/rental-document-cycle.js';
 export {documentTemplateBlueprints};
 export const rentalTemplateKinds=documentTemplateBlueprints.map(({kind,label})=>[kind,label]);
-const nonLeaseDocumentKinds=new Set(['apartment_handover','eviction','rent_receipt','owner_final_clearance']);
+const nonLeaseDocumentKinds=new Set(['apartment_handover','eviction','rent_receipt','owner_final_clearance','tenant_final_release']);
 const builtinKind=k=>rentalTemplateKinds.find(x=>x[0]===k)?.[1]||'';
 const blueprintForKind=k=>documentTemplateBlueprints.find(x=>x.kind===k)||null;
 const isLeaseTemplate=r=>!nonLeaseDocumentKinds.has(r?.kind);

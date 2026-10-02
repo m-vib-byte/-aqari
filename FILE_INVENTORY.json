@@ -352,13 +352,13 @@
     },
     {
       "path": "docs/AQARI-OWNER-IMPLEMENTATION-2026-10-02.md",
-      "size": 6762,
-      "sha256": "606f97e05c1614f4c560ae8011ffb4daf8cc285fb57a748cff3a3ada853b78b5"
+      "size": 7603,
+      "sha256": "33d774996f5995c74e845ef7d269a81dbd3dcf0960897333223d5142286b6902"
     },
     {
       "path": "docs/AQARI-OWNER-REQUIREMENTS-2026-10-02.json",
-      "sha256": "a453de8bdefebd3bd962e108c8d2f1e014079297070398ea7439cd96ca60b0a6",
-      "size": 105452
+      "size": 105844,
+      "sha256": "f0fe65fd1af60e6c850625af89c620d3d19a728912726c2d7c897cee39ba0d68"
     },
     {
       "path": "docs/CONTRACT-ADMINISTRATION-2026-09-20.md",
@@ -1442,8 +1442,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "size": 87296,
-      "sha256": "930e4137374ceff67f760213081329ef92f7e02015a2f7c5a3a2586884d229de"
+      "size": 87319,
+      "sha256": "8fd926fd7dd3db59d420fb9a0bdf393dc604ade6e980d659ff58e6ae8c6e3805"
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1597,8 +1597,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "size": 8560,
-      "sha256": "887653ca0a21c838408fedf5211e161c369ff9efc6aa3e1f05e4376512f2bfba"
+      "size": 8665,
+      "sha256": "a65e623cfc4c4a0af2993b67c78107c887c59c4eada5cd223cc746f836b550e7"
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1624,6 +1624,11 @@
       "path": "src/v267/domain/template-editor-state.js",
       "sha256": "4f751a645aa05fec946e5ac8e6c45b8f048ba3dd9ad679c1de12756998bf217a",
       "size": 5677
+    },
+    {
+      "path": "src/v267/domain/tenant-final-release-starter.js",
+      "size": 7690,
+      "sha256": "38e4be810d8515cfefc0979ee8a02239c555cb01eb3b4678bedb8f24b1c450e8"
     },
     {
       "path": "src/v267/domain/vacating-review.js",
@@ -1847,8 +1852,8 @@
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
-      "sha256": "e29570b063f4325c6e98dc412fe0ff0a6596f5b0475fb780de4e184b7ad2851f",
-      "size": 28334
+      "size": 28357,
+      "sha256": "b7dc973e9bcf699906e951506d54ce3bd5dfca34a0e0a151d586952a0601b909"
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -4482,13 +4487,13 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "size": 6094,
-      "sha256": "2769b985c96712c687a70a60ee1dc0c43b912595c46e292fc3f64d01eedc0a09"
+      "size": 6970,
+      "sha256": "5fd2219be921b326f6660941e8c3d027f97a538f8a5cbf04234386b4c7051a0a"
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "8a43cf90061e14f3743459bb6e02a5896bc0272f521ce13471c995e4f4cd5783",
-      "size": 39569
+      "size": 39766,
+      "sha256": "9a43be4282a1c2b26e3453d5e3994a925339ea1ea619ce54ff61efaeff9ba9b5"
     },
     {
       "path": "tests/v267-retired-home.test.cjs",

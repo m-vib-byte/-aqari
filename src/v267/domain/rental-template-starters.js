@@ -1,6 +1,7 @@
 // Read-only starting structures, not approved legal forms or saved records.
 // A library card creates an independent in-memory draft; persistence remains
 // the editor's responsibility after the owner edits or explicitly saves it.
+import {tenantFinalReleaseStarter} from './tenant-final-release-starter.js';
 import {documentFieldCatalog} from './rental-document-cycle.js';
 import {defaultTemplatePresentation} from './rental-document-layout.js';
 
@@ -26,6 +27,7 @@ const starter=(starterId,kind,kind_label,title,fields,clauses)=>({starterId,kind
  * promises, acknowledgements, signature marks or approval are prefilled.
  */
 export const rentalTemplateStarters=freeze([
+ tenantFinalReleaseStarter,
  ...[
   ['starter-investment-apartment-v1','investment_apartment','عقد شقة استثمارية'],
   ['starter-commercial-shop-v1','commercial_shop','عقد محل'],

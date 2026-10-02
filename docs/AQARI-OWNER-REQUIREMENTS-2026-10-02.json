@@ -1360,8 +1360,12 @@
     {
       "key": "release_document",
       "requirement": "تنسيق إقرار الإخلاء والمخالصة الثنائي وربطه بدورة المستندات",
-      "status": "not_implemented_in_this_change",
-      "files": []
+      "status": "editable_owner_supplied_draft_implemented_issuance_pending",
+      "files": [
+        "src/v267/domain/tenant-final-release-starter.js",
+        "src/v267/domain/rental-template-starters.js"
+      ],
+      "note": "نص المالك العربي والإنجليزي كمسودة غير موقعة، مستقلة عن براءة ذمة المالك. الإصدار والأرشفة والربط بدورة المستندات لم تُغلق."
     },
     {
       "key": "authenticated_acceptance",
