@@ -14,6 +14,7 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
  let logoUrl=null,epoch=0;d.onDispose(()=>{epoch++;if(logoUrl)URL.revokeObjectURL(logoUrl);});
  const retry=node('button',t('إعادة المحاولة'));retry.type='button';
  async function load(){
+  try{
   if(d.session.bound.role!=='general_manager')throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
   const service=createTemplateLogoContext(d.session),properties=await service.listProperties();d.session.check();
   if(propertyId&&!properties.some(p=>p.id===propertyId))throw Error('العقار المحدد غير متاح ضمن مساحة العمل الحالية.');
@@ -41,6 +42,7 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
   logo.onclick=()=>logoInput.click();logoInput.onchange=()=>d.run(async()=>{const file=logoInput.files?.[0],id=propertyId;if(!file||!id)return;logo.disabled=select.disabled=true;try{await service.uploadLogo(id,file);logoInput.value='';await refreshIdentity();d.status.textContent=t('تم حفظ شعار العقار.');}finally{logo.disabled=!propertyId;select.disabled=false;}});
   upload.onclick=()=>d.run(()=>show('upload'));archive.onclick=()=>d.run(()=>show('archive'));
   await refreshIdentity();await show(initialSection==='documents'?'documents':'contracts');if(initialDocumentKind)manager.openStarter(initialDocumentKind);
+  }catch(error){if(!Array.from(d.body.children).includes(retry))d.body.prepend(retry);throw error;}
  }
  retry.onclick=()=>d.run(load);d.body.append(retry);d.run(load);return true;
 }

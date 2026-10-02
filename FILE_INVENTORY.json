@@ -1337,8 +1337,8 @@
     },
     {
       "path": "src/v267/components/property-contract-upload.js",
-      "size": 7152,
-      "sha256": "84f2fe52b21751f0ca61e4d48301b45b156466b3b894fe5f06db56ce31d3158c"
+      "size": 10341,
+      "sha256": "b22c7b18c68eb1a112720185505e055ba2be2fe68acc5756f5dabf4923bf32c9"
     },
     {
       "path": "src/v267/components/property-experience.js",
@@ -1357,8 +1357,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "9294549f5a3dd7ef4f6e404b1a899e267ff8a3fba5315a5933fbae06612a7078",
-      "size": 86958
+      "sha256": "4465f1134324585a3da68e1df1054d030a4d263e0a6a479884380a3898ac7227",
+      "size": 88125
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1482,8 +1482,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "sha256": "b16ab88f5e5434a29e463831244d6eaf0fd8a3aec27267e23d8be67a339772a5",
-      "size": 7453
+      "sha256": "845f020f647bc1c2cf73575371319061013ca4032b2f82d0e6fda87ec2b82fca",
+      "size": 10288
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1547,8 +1547,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "f8a805bebfe455c4767a21a7b7d1687c0ea3ac22ecbe188325a2fd6f5d5c5c57",
-      "size": 1915
+      "sha256": "45c6907b423f760dc48e852ab6ea7be37bf3736a52759fdb8a762c88c2b0e48b",
+      "size": 5762
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -1667,8 +1667,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "2a6ae0931cf532d5402c621d3619776a22ea00139c2a6c2b5d166b7620ff4adc",
-      "size": 30138
+      "sha256": "529e74a1678489288697728826976355f3863fe524bcf8ebe47770053a60d8b1",
+      "size": 30624
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1692,8 +1692,8 @@
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
-      "sha256": "e29570b063f4325c6e98dc412fe0ff0a6596f5b0475fb780de4e184b7ad2851f",
-      "size": 28334
+      "sha256": "39773f9c6df52d534f6ffb9be05e4c388cacf58b1883ffaf61d97e61a11aeee1",
+      "size": 28373
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -3652,8 +3652,8 @@
     },
     {
       "path": "tests/v267-contract-admin-recovery.test.mjs",
-      "size": 1843,
-      "sha256": "8ee3d6b7f3e2de14ccd769939e4e9b9556e777f187ff6e37698ddd9480d4ef07"
+      "size": 2128,
+      "sha256": "0cba0ec989d0a6d3a8c8b3fb06cd685c7ae047c9a9947993482aff638c791303"
     },
     {
       "path": "tests/v267-contract-administration.test.mjs",
@@ -4182,13 +4182,13 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "sha256": "4070c5d984633b6e621323ba30e38390350f3f16d0648fd59990c3c060458f2a",
-      "size": 5272
+      "sha256": "5e5e967c969da0a3a8587f1bd5fbf9d59f98cdd756d2f805f48643fbedaa4413",
+      "size": 5479
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "9f7aa5241a332db796b0299e7c8046170d0e43b2ead6262b6a63e091c22493d8",
-      "size": 39342
+      "sha256": "c0a70447c49e3d57b1721ad873948ff1baaf4852f70019f978661d8b186420ba",
+      "size": 39407
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4677,8 +4677,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 33090,
-      "sha256": "74304e3809b740edd0f3fbff8f627d9dbc160a33137d8ff72e146ca7e192b33a"
+      "size": 33583,
+      "sha256": "37b641d3e83435d0ad8975c63bc725a4384cc9ce4a01a8ca30ef39eefe7292ef"
     },
     {
       "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
@@ -4824,6 +4824,26 @@
       "path": "staging-database/local-test/stage-c-backup-selftest.mjs",
       "sha256": "c84642426bcee9532520dfea568bb0a03aca05ccfda30f91da3c24bada9b5659",
       "size": 2366
+    },
+    {
+      "path": "docs/verification/contracts-workspace-20261002.md",
+      "sha256": "1d0a45d7dc60bdafd7b4a18d5912d216752098e3bff35ae751408da34f8c92e0",
+      "size": 1488
+    },
+    {
+      "path": "src/v267/domain/contract-foundation.js",
+      "sha256": "7ce3a30902aa1d7ff87643f4f1c1cdc9b52187bb419a720163570e02c740cc1f",
+      "size": 4258
+    },
+    {
+      "path": "src/v267/styles/contract-workspace.css",
+      "sha256": "4777892f7a3b7f92330928c08550c15f1fe67c734b17d8833cb210434845120c",
+      "size": 6942
+    },
+    {
+      "path": "tests/v267-property-contract-archive-ui.test.mjs",
+      "sha256": "1b6a97cc7a8089de450cbd547063f7aa71fa1bc1dc30a297cab1c0a45239a93c",
+      "size": 3528
     }
   ],
   "version": "V198"
