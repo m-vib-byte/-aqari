@@ -17,8 +17,11 @@ export function openPropertyChannels(propertyId){
   for(const [value,title] of [['active','مفعّل'],['hidden','مخفي'],['archived','مؤرشف']]){const option=node('option',title);option.value=value;status.append(option);}status.value=current?.status||'active';reason.value=current?'تعديل قناة العقار':'إضافة قناة العقار';reason.required=true;reason.minLength=3;reason.maxLength=1000;
   form.append(field('نوع القناة',kind),field('اسم القناة',label),field('الرابط أو رقم التواصل',url),field('يظهر للمستأجر',visible),field('الحالة',status),field('سبب التعديل',reason));const save=node('button','حفظ القناة');save.type='submit';form.append(save);
   d.body.replaceChildren(button('رجوع',render),form);
+  let saveAttempted=false;
   form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
+   if(saveAttempted)throw Error('سبق إرسال الحفظ. ارجع للقائمة للتحقق قبل أي تعديل جديد.');
    const wanted={id:current?.id||null,revision:Number(current?.revision||0),kind:kind.value,label:label.value.trim(),url:propertyContactUrl(url.value,kind.value),tenantVisible:visible.checked&&status.value==='active',status:status.value,sortOrder:current?.sortOrder??100,managementReference:current?.managementReference||'',reason:reason.value.trim()};
+   saveAttempted=true;save.disabled=true;
    const result=await rpc('save',wanted);d.session.check();if(!result?.record?.id)throw Error('لم يتأكد حفظ القناة.');
    await read();const saved=state.items.find(x=>x.id===result.record.id);
    if(!saved||saved.revision!==wanted.revision+1||['kind','label','url','tenantVisible','status'].some(k=>saved[k]!==wanted[k]))throw Error('لم تتطابق القناة بعد إعادة القراءة. لا تكرر الحفظ قبل تحديث القائمة.');

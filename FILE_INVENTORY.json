@@ -1802,8 +1802,8 @@
     },
     {
       "path": "src/v267/pages/property-channels.js",
-      "sha256": "abe765bccd3a3844be832e0a543b6ffe87ebf40d8ca5e17ff21f9f255a7ff8f5",
-      "size": 5114
+      "sha256": "35084f88f2db4b381464ed08a312e8747e55061b0398ce11e55723cd13a502ce",
+      "size": 5319
     },
     {
       "path": "src/v267/pages/property-controls.js",
@@ -4372,8 +4372,8 @@
     },
     {
       "path": "tests/v267-property-contact-links.test.mjs",
-      "sha256": "84d7427954da13aca30e1081b0639c97cb1d604021abee983e963ff825c889e9",
-      "size": 5698
+      "sha256": "3b8740e593565db5a8154314ba5b61db5d56f96a5da679e420ea92167172df74",
+      "size": 5898
     },
     {
       "path": "tests/v267-property-controls-sql-fix.test.mjs",
