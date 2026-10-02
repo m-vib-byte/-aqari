@@ -52,4 +52,13 @@ class ContractTemplatePdfTest(unittest.TestCase):
                 result=render_document_template(template, {'property_name':value})
                 self.assertEqual(result['clauses'][0]['text'], 'Property: '+expected)
 
+    def test_employment_preview_uses_employment_parties(self):
+        template=self.template()
+        template['kind']='employment_contract'
+        result=render_document_template(template)
+        self.assertEqual([s['label'] for s in result['signatures']], ['صاحب العمل','الموظف'])
+        result=render_document_template(template, {'tenant_name':'legacy','employee_name':'Employee','employer_name':'Employer','representative_name':'Landlord agent'})
+        self.assertEqual([s['name'] for s in result['signatures']], ['Employer','Employee'])
+        self.assertTrue(render_contract_template(template).startswith(b'%PDF-'))
+
 if __name__=='__main__':unittest.main()

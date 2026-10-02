@@ -25,6 +25,7 @@ FIELD_KEY = re.compile(r'^[a-z][a-z0-9_]{1,49}$')
 TOKEN = re.compile(r'\{\{([a-z][a-z0-9_]{1,49})\}\}')
 ALIASES = {'civil_id': 'tenant_civil_id', 'nationality': 'tenant_nationality', 'floor': 'floor_no', 'tenant_passport': 'tenant_passport_no', 'contract_start_date': 'start_date', 'contract_end_date': 'end_date', 'owner_representative_name': 'representative_name'}
 SIGNERS = {
+    'employment_contract': [('owner', 'صاحب العمل'), ('tenant', 'الموظف')],
     'rental_agreement': [('owner', 'المالك / الوكيل المفوض'), ('tenant', 'المستأجر')],
     'apartment_handover': [('tenant', 'المستأجر')],
     'rent_receipt': [('receiver', 'المستلم'), ('accountant', 'المحاسب')],
@@ -136,19 +137,21 @@ def render_document_template(template, values=None):
     signatures = []
     editor_signers = (presentation or {}).get('editor',{}).get('signers',{})
     signer_order = editor_signers.get('order',[]) + [role for role in ROLES if role not in editor_signers.get('order',[])]
-    signer_roles = [(r, dict(SIGNERS['rental_agreement'] + SIGNERS['rent_receipt'])[r]) for r in signer_order if any(presentation['signers'].get(r, {}).values()) or any(editor_signers.get('details',{}).get(r,{}).values())] if presentation else SIGNERS.get(template.get('kind'), SIGNERS['rental_agreement'])
+    labels = dict(SIGNERS['rental_agreement'] + SIGNERS['rent_receipt'] + SIGNERS.get(template.get('kind'), []))
+    signer_roles = [(r, labels[r]) for r in signer_order if any(presentation['signers'].get(r, {}).values()) or any(editor_signers.get('details',{}).get(r,{}).values())] if presentation else SIGNERS.get(template.get('kind'), SIGNERS['rental_agreement'])
     if presentation is None and values is None:
-        signer_roles = SIGNERS['rental_agreement'] + (SIGNERS['rent_receipt'] if template.get('kind') == 'rent_receipt' else [])
+        signer_roles = (SIGNERS['employment_contract'] if template.get('kind') == 'employment_contract' else SIGNERS['rental_agreement']) + (SIGNERS['rent_receipt'] if template.get('kind') == 'rent_receipt' else [])
     for role, label in signer_roles:
-        name_key = role + '_name'
-        if role == 'owner' and (values or {}).get('representative_name'):
+        employment = template.get('kind') == 'employment_contract'
+        name_key = ({'owner':'employer_name','tenant':'employee_name'}.get(role, role + '_name') if employment else role + '_name')
+        if not employment and role == 'owner' and (values or {}).get('representative_name'):
             name_key = 'representative_name'
             label = 'وكيل المالك المفوض'
         name = format_field((values or {}).get(name_key), {'type': 'text'}) if not presentation or presentation['signers'].get(role, {}).get('name') else ''
         signature={'role': role, 'label': label, 'name': name}
         details=editor_signers.get('details',{}).get(role)
         if details is not None:
-            value_role='representative' if role=='owner' and (values or {}).get('representative_name') else role
+            value_role=({'owner':'employer','tenant':'employee'}.get(role,role) if employment else 'representative' if role=='owner' and (values or {}).get('representative_name') else role)
             for part,display_key,show_key in [('civil_id','civilId','showCivilId'),('nationality','nationality','showNationality')]:
                 signature[show_key]=details[part]
                 key=value_role+'_'+part

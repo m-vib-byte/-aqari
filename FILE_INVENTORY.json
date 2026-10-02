@@ -801,6 +801,11 @@
       "size": 1488
     },
     {
+      "path": "docs/verification/employment-starter-20261002.md",
+      "sha256": "304dbcc9523c0e0923926cc85bceccd9b0a7abbc4511cdec0b5ee258d8d77340",
+      "size": 988
+    },
+    {
       "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
       "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
       "size": 2753
@@ -887,8 +892,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "0dfeb4d5fa6e7f22bb76addfaa0a42895a00a1347178819c1483c9d8dc627de6",
-      "size": 22898
+      "sha256": "8b1c510b0727e80b201a58f00f38e89f6c807b29ee12345c544437ac3f650c34",
+      "size": 23397
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -1462,8 +1467,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "7bb90f92754d98178fc0cfce7933fcafed7b6fa96400ea1d837a07b73cdea5b4",
-      "size": 94063
+      "sha256": "ee29a0d0754fca7855d4cd7310177ca37095457d7df0f40eddee023deed74afe",
+      "size": 94190
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1607,8 +1612,8 @@
     },
     {
       "path": "src/v267/domain/rental-document-cycle.js",
-      "sha256": "9e518e34d56c80994d3ea2ed3a11a98ef3de8cab218d411abc008d2e594f6d48",
-      "size": 31323
+      "sha256": "b8dc2fdb77311dd52c5471c3c013e628856d0306ddd2ea2ff271ab8c8c0df3c8",
+      "size": 31653
     },
     {
       "path": "src/v267/domain/rental-document-layout.js",
@@ -1617,8 +1622,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "sha256": "845f020f647bc1c2cf73575371319061013ca4032b2f82d0e6fda87ec2b82fca",
-      "size": 10288
+      "sha256": "de9175745746ff8029cd3b068d06d209185337b53e48ff30473e92ba64ee969b",
+      "size": 11354
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -3557,8 +3562,8 @@
     },
     {
       "path": "tests/contract_template_pdf_test.py",
-      "sha256": "0afda57a5be19b22dc0e36aafcf48a53254a5575583661c10a3263779bc1c1c5",
-      "size": 3853
+      "sha256": "948a51ed8e7cb36276a730e898fda94b3a424f1e27aa6c8284170e471f337b7f",
+      "size": 4499
     },
     {
       "path": "tests/contract_template_preview_test.py",
@@ -4492,13 +4497,13 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "sha256": "5e5e967c969da0a3a8587f1bd5fbf9d59f98cdd756d2f805f48643fbedaa4413",
-      "size": 5479
+      "sha256": "8579f24b938ba229cc10700aac143d10d0ff2fb3995868cf64041b34e0500d14",
+      "size": 5854
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "847a4775dca13815931dca9290fe75cc4865106cb50a9bc3739cbe25f1023385",
-      "size": 45689
+      "sha256": "f63ef2f930d173e352a8c111caf712b5838a1b5fd2efd247c5fae747dfa26a3c",
+      "size": 46810
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
