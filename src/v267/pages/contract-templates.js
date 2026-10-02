@@ -4,6 +4,7 @@ import {mountRentalTemplateManager} from '../components/rental-templates.js';
 import {mountPropertyContractUpload} from '../components/property-contract-upload.js';
 import {createTemplateLogoContext} from '../components/template-property-logo.js';
 import {t} from '../components/locale.js';
+import {guardPageImport} from '../components/navigation-import.js';
 
 export function openContractTemplates({propertyId=null,onBack,initialSection='contracts',initialDocumentKind=null}={}){
  const d=createPage(t('العقود والمستندات'));if(!d)return false;
@@ -21,11 +22,24 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
   const chrome=node('section'),identity=node('header'),names=node('div'),name=node('h3',t('اختر العقار')),select=node('select'),logo=node('button'),logoInput=node('input'),tabs=node('nav'),upload=node('button',t('رفع عقد جاهز')),hint=node('p',t('حفظ نسخة في الأرشيف · PDF أو صور')),area=node('section'),files=node('section'),archive=node('button',t('العقود المحفوظة'));
   chrome.className='aq267-contract-chrome';identity.className='aq267-contract-identity';names.className='aq267-contract-property';select.name='contract_property';logo.className='aq267-contract-logo';logo.type='button';logo.textContent=t('إضافة شعار العقار');logoInput.type='file';logoInput.accept='image/png,image/jpeg,image/webp';logoInput.hidden=true;
   for(const p of [{id:'',name:t('اختر العقار')},...properties]){const option=node('option',p.name);option.value=p.id;select.append(option);}select.value=propertyId||'';const propertyChoice=field(t('العقار'),select);propertyChoice.className+=' aq267-contract-property-choice';names.append(name,propertyChoice);identity.append(logo,names,logoInput);tabs.className='aq267-contract-tabs';tabs.setAttribute('aria-label',t('العقود والمستندات'));upload.type=archive.type='button';upload.className='aq267-contract-upload';hint.className='aq267-contract-upload-hint';archive.className='aq267-contract-archive-link';files.className='aq267-contract-files';files.hidden=true;
-  chrome.append(identity,tabs,upload,hint);d.body.replaceChildren(chrome,area,files,archive);
+  const entry=node('section');entry.className='aq267-contract-entry';
+  const action=(label,description,run)=>{const button=node('button'),title=node('strong',t(label)),help=node('span',t(description));button.type='button';button.append(title,help);button.onclick=()=>d.run(run);entry.append(button);};
+  async function openContracts(intent){
+   if(!propertyId){select.focus();throw Error('اختر العقار أولًا.');}
+   const selected=properties.find(p=>p.id===propertyId);if(!selected)throw Error('العقار المحدد غير متاح.');
+   const module=await guardPageImport(()=>intent==='new'?import('./contract-foundation.js'):import('./rental-contracts.js'));d.session.check();
+   d.close();
+   if(intent==='new')return module.openContractFoundation({propertyId,property:selected.name,openContracts:async initial=>{const next=await guardPageImport(()=>import('./rental-contracts.js'));return next.openRentalContracts({...initial,propertyId});}});
+   return module.openRentalContracts({propertyId,intent:'existing'});
+  }
+  action('عقد جديد','اختر النموذج واربط المستأجر والوحدة',()=>openContracts('new'));
+  action('عقد قائم','اربط النسخة بعقد مسجّل أو سجّل بياناته الأصلية',()=>openContracts('existing'));
+  action('كتابة نموذج','اكتب أو الصق نصك ثم راجعه واعتمده',()=>manager.openEditor(null,{write:true}));
+  chrome.append(identity,tabs,entry,upload,hint);d.body.replaceChildren(chrome,area,files,archive);
   const manager=await mountRentalTemplateManager(d,area,{propertyId,section:'contracts',referenceLayout:true,onBack:onBack?()=>{d.close();return onBack();}:undefined});
   let mode='contracts';const tabButtons=[];
   const show=async(value)=>{
-   mode=value;identity.hidden=tabs.hidden=value==='upload';upload.hidden=hint.hidden=value!=='contracts';for(const button of tabButtons)button.setAttribute('aria-current',button.dataset.section===value?'page':'false');
+   mode=value;identity.hidden=tabs.hidden=value==='upload';entry.hidden=upload.hidden=hint.hidden=value!=='contracts';for(const button of tabButtons)button.setAttribute('aria-current',button.dataset.section===value?'page':'false');
    area.hidden=value==='archive'||value==='upload';files.hidden=!area.hidden;archive.hidden=area.hidden;
    if(!area.hidden){manager.setSection(value);return;}
    const ticket=++epoch;files.replaceChildren(node('p',t('جارٍ التحميل…')));
