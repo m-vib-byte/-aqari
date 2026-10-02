@@ -268,10 +268,47 @@ test('direct print reserves a mobile viewer, closes it on failure and permits re
 test('blank shop draft explains the missing clause before PDF or save calls and directs editing',async()=>{
  const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({kind:'commercial_lease',kind_label:'عقد محل',title:'عقد محل'});let requests=0;globalThis.fetch=async()=>{requests++;throw Error('empty preview must not reach server');};
  const before=clone(manager.current.data());await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/عنوان البند رقم 1/);assert.equal(requests,0);assert.equal(f.state.calls.some(x=>x.p_action!=='context'),false);assert.deepEqual(manager.current.data(),before);
- button(manager.form,'إكمال نص النموذج').onclick();assert.equal(document.activeElement._templateSource.part,'title');assert.equal(button(manager.form,'تحميل PDF').disabled,false);manager.current.saver.dispose();
+ button(manager.form,'كتابة عنوان البند').onclick();assert.equal(document.activeElement.name,'quick_clause_title');assert.equal(button(manager.form,'تحميل PDF').disabled,false);manager.current.saver.dispose();
 });
 
 test('a missing clause body is identified and API validation errors retain an actionable explanation',async()=>{
  const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'عنوان',text:''}]});await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/نص البند رقم 1/);manager.current.saver.dispose();
  manager.openEditor({title:'نموذج',clauses:[{title:'عنوان',text:'نص تجريبي'}]});globalThis.fetch=async()=>new Response(JSON.stringify({error:'LAYOUT_COLLISION'}),{status:400,headers:{'content-type':'application/json'}});await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/مواضع الحقول/);assert.ok(button(manager.form,'إعادة محاولة المعاينة'));manager.current.saver.dispose();
+});
+
+
+
+test('plain writing completes a blank employment draft and preserves exact text through save and PDF',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({kind:'employment_contract',title:'عقد العمل'});
+ button(manager.form,'كتابة نص النموذج').onclick();assert.ok(f.state.calls.every(call=>call.p_action==='context'));
+ const title=all(manager.form).find(el=>el.name==='quick_clause_title'),body=all(manager.form).find(el=>el.name==='quick_clause_text');
+ title.value='بيانات العمل';title.oninput();body.value='نص المستخدم الأصلي\nUser supplied text';body.oninput();
+ assert.deepEqual(manager.current.data().clauses,[{title:title.value,text:body.value}]);
+ await button(manager.form,'حفظ الآن').onclick();assert.deepEqual(f.state.drafts[0].clauses,manager.current.data().clauses);
+ let sent;globalThis.fetch=async(_url,options)=>{sent=JSON.parse(options.body);return new Response(new Blob(['%PDF-1.7 completed'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};
+ await button(manager.form,'تحميل PDF').onclick();assert.deepEqual(sent.template.clauses,f.state.drafts[0].clauses);assert.ok(f.created.some(el=>el.tag==='a'&&el.clicked&&el.download?.endsWith('.pdf')));
+ assert.equal(all(manager.form).find(el=>el.className==='aq267-template-quick-writer').hidden,true);assert.equal(f.state.calls.some(call=>call.p_action==='publish'),false);manager.current.saver.dispose();
+ manager.openEditor(f.state.drafts[0]);button(manager.form,'كتابة نص النموذج').onclick();assert.equal(all(manager.form).find(el=>el.name==='quick_clause_text').value,body.value);manager.current.saver.dispose();
+});
+
+test('quick writing keeps tokens in the chip editor and is absent for read-only templates',async()=>{
+ const f=setup({manager:true}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'{{tenant_name}}'}]});
+ button(manager.form,'كتابة نص النموذج').onclick();assert.equal(all(manager.form).some(el=>el.name==='quick_clause_text'),false);assert.equal(document.activeElement._templateSource.part,'title');assert.equal(manager.current.saver.dirty,false);manager.current.saver.dispose();
+ manager.openEditor(template,{readonly:true});assert.equal(button(manager.form,'كتابة نص النموذج'),undefined);manager.current.saver.dispose();
+});
+test('employee create opens populated employment draft and supports save and direct PDF',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{section:'employees',referenceLayout:true});
+ button(f.target,'إضافة نموذج').onclick();
+ const draft=manager.current.data();
+ assert.equal(draft.kind,'employment_contract');assert.ok(draft.clauses.length>=6);
+ assert.ok(draft.clauses.every(c=>c.title.trim()&&c.text.trim()));
+ assert.ok(draft.fields.some(f=>f.key==='basic_salary'));
+ assert.ok(all(manager.form).some(el=>el.textContent==='الطرف الأول / صاحب العمل'));
+ assert.ok(!all(manager.form).some(el=>el.textContent==='الطرف الثاني / المستأجر'));
+ assert.ok(f.state.calls.every(call=>call.p_action==='context'));
+ await button(manager.form,'حفظ الآن').onclick();
+ assert.ok(f.state.calls.some(call=>call.p_action==='save_draft'));
+ await button(manager.form,'تحميل PDF').onclick();
+ assert.ok(f.created.some(el=>el.tag==='a'&&el.clicked&&el.download?.endsWith('.pdf')));
+ manager.current.saver.dispose();
 });

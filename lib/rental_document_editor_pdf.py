@@ -190,7 +190,7 @@ def render_editor_pdf(template,resolved,logo):
         if not parts:continue
         # An entire signature block stays together; no signature is invented.
         available((8+len(parts)*11)*mm)
-        label_role='representative' if role=='owner' and signer['label']=='وكيل المالك المفوض' else role
+        label_role=({'owner':'employer','tenant':'employee'}.get(role,role) if resolved.get('kind')=='employment_contract' else 'representative' if role=='owner' and signer['label']=='وكيل المالك المفوض' else role)
         plain(localized(label_role,language),{**base,'font_pt':11,'bold':True},leading=18,gap=2*mm,color='#56391f')
         for part in parts:
             value=signer.get('name' if part=='name' else 'civilId' if part=='civil_id' else 'nationality','') if part in ('name','civil_id','nationality') else ''
@@ -202,7 +202,7 @@ def render_editor_pdf(template,resolved,logo):
         match=re.fullmatch(r'(owner|tenant|receiver|accountant)_(name|civil_id|nationality|signature|fingerprint)',key)
         if match and key not in specs:
             role,part=match.groups();signer=signers.get(role,{})
-            label_role='representative' if role=='owner' and signer.get('label')=='وكيل المالك المفوض' else role
+            label_role=({'owner':'employer','tenant':'employee'}.get(role,role) if resolved.get('kind')=='employment_contract' else 'representative' if role=='owner' and signer.get('label')=='وكيل المالك المفوض' else role)
             value=signer.get('name' if part=='name' else 'civilId' if part=='civil_id' else 'nationality','') if part in ('name','civil_id','nationality') else ''
             content=localized(label_role,lang)+' - '+localized(part,lang)+(': '+value if part in ('name','civil_id','nationality') else '')
         else:content=fields[key]

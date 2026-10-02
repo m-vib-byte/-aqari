@@ -128,11 +128,14 @@ export const rentalTemplateStarters=freeze([
   {title:'التواقيع / Signatures',text:'توقيع الموظف: {{employee_signature}}\nتوقيع المسؤول: {{employer_signature}}'}
  ]),
  starter('starter-employment-contract-v1','employment_contract','عقد العمل','مسودة عقد العمل',[
-  field('property_name'),field('document_no'),field('issued_at'),field('owner_name'),
-  detail('employee_name','اسم الموظف'),detail('employee_civil_id','الرقم المدني للموظف'),detail('job_title','المسمى الوظيفي'),detail('employment_start','تاريخ بدء العمل'),detail('employment_terms','بنود عقد العمل'),detail('employee_signature','توقيع الموظف'),detail('employer_signature','توقيع صاحب العمل')
+  field('property_name'),field('document_no'),field('issued_at'),detail('employer_name','اسم صاحب العمل'),
+  detail('employee_name','اسم الموظف'),detail('employee_civil_id','الرقم المدني للموظف'),detail('job_title','المسمى الوظيفي'),detail('employment_start','تاريخ بدء العمل'),detail('employment_duration','نوع العقد ومدته'),detail('work_location','مكان العمل'),{key:'basic_salary',label:'الراتب الأساسي',type:'money',required:true},detail('salary_allowances','البدلات المتفق عليها'),detail('salary_payment','موعد وطريقة دفع الراتب'),detail('work_schedule','ساعات العمل والراحة'),detail('leave_terms','الإجازات المتفق عليها'),detail('employment_terms','الشروط الإضافية للمراجعة'),detail('employee_signature','توقيع الموظف'),detail('employer_signature','توقيع صاحب العمل')
  ],[
-  section('عقد العمل / Employment Contract',[['property_name','Property'],['document_no','Document No.'],['issued_at','Date'],['owner_name','Employer']]),
-  {title:'بيانات الموظف والعمل / Employee and Work Details',text:'اسم الموظف: {{employee_name}}\nالرقم المدني: {{employee_civil_id}}\nالمسمى الوظيفي: {{job_title}}\nتاريخ بدء العمل: {{employment_start}}'},
+  section('عقد العمل / Employment Contract',[['property_name','Property'],['document_no','Document No.'],['issued_at','Date']]),
+  {title:'أطراف عقد العمل / Employment Parties',text:'اسم صاحب العمل: {{employer_name}}\nاسم الموظف: {{employee_name}}\nالرقم المدني: {{employee_civil_id}}'},
+  {title:'الوظيفة والمدة / Job and Duration',text:'المسمى الوظيفي: {{job_title}}\nمكان العمل: {{work_location}}\nتاريخ بدء العمل: {{employment_start}}\nنوع العقد ومدته: {{employment_duration}}'},
+  {title:'الراتب والبدلات / Salary and Allowances',text:'الراتب الأساسي: {{basic_salary}}\nالبدلات: {{salary_allowances}}\nموعد وطريقة الدفع: {{salary_payment}}'},
+  {title:'أوقات العمل والإجازات / Work Schedule and Leave',text:'ساعات العمل والراحة: {{work_schedule}}\nالإجازات: {{leave_terms}}'},
   details('بنود عقد العمل / Employment Terms','employment_terms'),
   {title:'التواقيع / Signatures',text:'توقيع الموظف: {{employee_signature}}\nتوقيع صاحب العمل: {{employer_signature}}'}
  ])

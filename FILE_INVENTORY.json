@@ -811,6 +811,11 @@
       "size": 1488
     },
     {
+      "path": "docs/verification/employment-starter-20261002.md",
+      "sha256": "304dbcc9523c0e0923926cc85bceccd9b0a7abbc4511cdec0b5ee258d8d77340",
+      "size": 988
+    },
+    {
       "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
       "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
       "size": 2753
@@ -897,8 +902,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "0dfeb4d5fa6e7f22bb76addfaa0a42895a00a1347178819c1483c9d8dc627de6",
-      "size": 22898
+      "sha256": "92dc8071bce87e8e30147043c6c527bf631192d64ed99dbf12d8eda3e2ae22f1",
+      "size": 23712
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -977,8 +982,8 @@
     },
     {
       "path": "lib/rental_document_editor_pdf.py",
-      "sha256": "0738e781b25b46ccd7db87177b0b5eddfe7135dab9ba6164dba81a469930e2d0",
-      "size": 15431
+      "sha256": "04e74a4ee1f58b5f7c885224f0571f247de3ddb65e09af8e6d9a906cfad84dbb",
+      "size": 15651
     },
     {
       "path": "lib/rental_document_layout.py",
@@ -1312,8 +1317,8 @@
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
-      "sha256": "d52233ee97b12fdf009dcf15d94b6949f014f67c246f90adb7698c385ae0eb3e",
-      "size": 96353
+      "sha256": "7900c55cc9a93133a9b352dc741bab39a980cc35595224c1e7d13f31a27af264",
+      "size": 96896
     },
     {
       "path": "src/v267/components/data-quality.mjs",
@@ -1472,8 +1477,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "size": 94412,
-      "sha256": "07f8815f459b9c27b7f328ee2667b0646b2f33fbcf6836e5e286183f3b520b4b"
+      "size": 97217,
+      "sha256": "12d9d1ecb7a9568d7ef6cc535b27e8d69d985dd6b8718e0ac736457be49d291c"
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1622,8 +1627,8 @@
     },
     {
       "path": "src/v267/domain/rental-document-cycle.js",
-      "sha256": "9e518e34d56c80994d3ea2ed3a11a98ef3de8cab218d411abc008d2e594f6d48",
-      "size": 31323
+      "sha256": "b8dc2fdb77311dd52c5471c3c013e628856d0306ddd2ea2ff271ab8c8c0df3c8",
+      "size": 31653
     },
     {
       "path": "src/v267/domain/rental-document-layout.js",
@@ -1632,8 +1637,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "size": 11500,
-      "sha256": "7e39e0eea350d50d8dd4d19e31c25daecd7cbed3ef9dc501496c8126fc8a6eb5"
+      "size": 12566,
+      "sha256": "5475715493ff226a0f507419fd858eeeb1487452dbdac10be663a02cc032a598"
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1957,8 +1962,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "c1453f7b657fd9cdd5293a09583cdb0c09c8368e323f06240669e0c71f996e99",
-      "size": 45567
+      "sha256": "c2f91fcf5ce9d2403faf473dd7bdc9cebcce79e3543c49f0ac5599b46243df1f",
+      "size": 46301
     },
     {
       "path": "src/v267/styles/contract-workspace.css",
@@ -3597,8 +3602,8 @@
     },
     {
       "path": "tests/contract_template_pdf_test.py",
-      "sha256": "0afda57a5be19b22dc0e36aafcf48a53254a5575583661c10a3263779bc1c1c5",
-      "size": 3853
+      "sha256": "948a51ed8e7cb36276a730e898fda94b3a424f1e27aa6c8284170e471f337b7f",
+      "size": 4499
     },
     {
       "path": "tests/contract_template_preview_test.py",
@@ -4537,13 +4542,13 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "size": 7199,
-      "sha256": "9e2c3f08b3c2514397e35a958673650657c35c592c0f6dea5cfed47028986307"
+      "size": 7574,
+      "sha256": "e6b15e275f1f206a22ca00340b15d45343a2326a1ec63934aa61fc1d43a09a34"
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "size": 45887,
-      "sha256": "d331591f4893a65f00af1f8e286afee76833e59a57ad1079287aab8a6845fed8"
+      "size": 49500,
+      "sha256": "32250145585424129aab858cbc3f2af7928b80bae239762e4d72dd11c3c0cb84"
     },
     {
       "path": "tests/v267-retired-home.test.cjs",

@@ -98,3 +98,8 @@ test('owner supplied tenant release stays unsigned and distinct from owner clear
  assert.equal(draft.clauses.length,15);assert.deepEqual(resolveDocumentSigners(draft.kind,{},draft.presentation).map(s=>s.role),['tenant']);
  assert.ok(!Object.hasOwn(draft,'approved_at'));assert.ok(!Object.hasOwn(draft,'signature'));
 });
+
+test('employment signers use employee identities without landlord representative substitution',()=>{
+ const signers=resolveDocumentSigners('employment_contract',{employer_name:'Employer',employee_name:'Employee',representative_name:'Landlord agent'});
+ assert.deepEqual(signers.map(s=>[s.label,s.name]),[['صاحب العمل','Employer'],['الموظف','Employee']]);
+});
