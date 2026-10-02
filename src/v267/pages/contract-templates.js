@@ -10,7 +10,9 @@ export function openContractTemplates({propertyId=null,onBack}={}){
  d.el.classList.add('aq267-contract-template-dialog');
  if(!document.getElementById('aq267-contract-template-css')){const css=document.createElement('link');css.id='aq267-contract-template-css';css.rel='stylesheet';css.href='/src/v267/styles/contract-template-studio.css?release=V267';document.head.append(css);}
  const retry=node('button',t('إعادة المحاولة'));retry.type='button';
+ let currentMode='home';
  const load=async(mode='home')=>{
+  currentMode=mode;
   if(d.session.bound.role!=='general_manager')throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
   const area=node('section');
   if(mode==='home'){
@@ -35,5 +37,5 @@ export function openContractTemplates({propertyId=null,onBack}={}){
    await mountRentalTemplateManager(d,area,{propertyId,starterId:mode==='handover'?'starter-apartment-handover-v1':null,onBack:()=>d.run(()=>load('home'))});
   }
  };
- retry.onclick=()=>d.run(()=>load());d.body.append(retry);d.run(()=>load());return true;
+ retry.onclick=()=>d.run(()=>load(currentMode));d.body.append(retry);d.run(()=>load());return true;
 }

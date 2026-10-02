@@ -13,8 +13,16 @@ for(const [page,open,loader]of [
   const d={el:{classList:{add(){}}},body:node('div'),status:node('p'),session:{bound:{role:'general_manager'}},run(task){const result=Promise.resolve().then(()=>{if(failConnection){failConnection=false;throw Error('connection unavailable');}return task();});pending.push(result);return result;}};
   const context={document:{getElementById(){return null;},createElement(){return {};},head:{append(){}}},t:x=>x,node,createDialog:()=>d,createPage:()=>d,createPrivateUrls:()=>({clear(){}}),[loader]:async()=>{calls++;if(!connectionFailure&&calls===1)throw Error('read unavailable');return [];}};
   const source=readFileSync(new URL(`../src/v267/pages/${page}.js`,import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
-  vm.runInNewContext(source,context);context[open]();await assert.rejects(pending.at(-1),/unavailable/);
-  const all=e=>[e,...e.children.flatMap(all)],retry=all(d.body).find(e=>e.tag==='button'&&e.textContent==='إعادة المحاولة');assert.ok(retry);
-  await retry.onclick();assert.equal(calls,connectionFailure?1:2);
+  const all=e=>[e,...e.children.flatMap(all)];
+  const library=()=>all(d.body).find(e=>e.tag==='button'&&e.textContent==='نماذج العقود');
+  vm.runInNewContext(source,context);context[open]();
+  if(page==='contract-templates'&&!connectionFailure){
+   await pending.at(-1);assert.equal(calls,0);
+   await assert.rejects(library().onclick(),/read unavailable/);
+  }else await assert.rejects(pending.at(-1),/unavailable/);
+  const retry=all(d.body).find(e=>e.tag==='button'&&e.textContent==='إعادة المحاولة');assert.ok(retry);
+  await retry.onclick();
+  if(page==='contract-templates'&&connectionFailure){assert.equal(calls,0);await library().onclick();}
+  assert.equal(calls,connectionFailure?1:2);
  });
 }

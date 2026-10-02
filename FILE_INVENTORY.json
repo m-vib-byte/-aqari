@@ -352,8 +352,8 @@
     },
     {
       "path": "docs/AQARI-OWNER-IMPLEMENTATION-2026-10-02.md",
-      "sha256": "ba565e43b8a27c0b960fbda3c83c272a6ad213665f9e9f587302ee047faa0bb6",
-      "size": 4067
+      "sha256": "3f38747ab3867547f952deba68794cd8f9453e6f332f3807ad7b13d85de5b505",
+      "size": 4753
     },
     {
       "path": "docs/AQARI-OWNER-REQUIREMENTS-2026-10-02.json",
@@ -1672,8 +1672,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "2ad7da6a252be40ea6319240a421865d70822444f737994244d8386bfdd7191f",
-      "size": 2979
+      "sha256": "f95e5767be51dc4b2b446a12f823ec64902185e5a403ee223f78e6218f3ab367",
+      "size": 3035
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -2124,6 +2124,11 @@
       "path": "staging-database/local-test/fixtures/payment-method-reference-existing.sql",
       "sha256": "5145037660a6731f8fe1e273bde34d21b8c3182106a7c06b50a562a1de777b16",
       "size": 5569
+    },
+    {
+      "path": "staging-database/local-test/fixtures/property-location-channels.sql",
+      "sha256": "af6cfc339bcbf5938237ae93ec72a73b911c4c6d6cca7da1a5862d2a33787b95",
+      "size": 4866
     },
     {
       "path": "staging-database/local-test/fixtures/rating-vacating-history.sql",
@@ -3897,8 +3902,8 @@
     },
     {
       "path": "tests/v267-contract-admin-recovery.test.mjs",
-      "size": 1843,
-      "sha256": "8ee3d6b7f3e2de14ccd769939e4e9b9556e777f187ff6e37698ddd9480d4ef07"
+      "sha256": "accd7db92c53c32d90cd009c73f1bcb32c095ff80b4f5e51f17052361fabb18f",
+      "size": 2236
     },
     {
       "path": "tests/v267-contract-administration.test.mjs",
