@@ -26,6 +26,15 @@ const starter=(starterId,kind,kind_label,title,fields,clauses)=>({starterId,kind
  * promises, acknowledgements, signature marks or approval are prefilled.
  */
 export const rentalTemplateStarters=freeze([
+ ...[
+  ['starter-investment-apartment-v1','investment_apartment','عقد شقة استثمارية'],
+  ['starter-commercial-shop-v1','commercial_shop','عقد محل'],
+  ['starter-house-apartment-v1','house_apartment','عقد شقة داخل بيت']
+ ].map(([id,kind,label])=>starter(id,kind,label,'مسودة '+label,
+  ['property_name','unit_no','owner_name','tenant_name','tenant_civil_id','start_date','end_date','monthly_rent'].filter(key=>documentFieldCatalog[key]).map(key=>field(key)).concat(detail('contract_terms','بنود العقد / Contract terms')),
+  [{title:'بيانات العقد / Contract details',text:'اسم العقار: {{property_name}}\nالوحدة: {{unit_no}}\nالمالك: {{owner_name}}\nالمستأجر: {{tenant_name}}'},
+   {title:'بنود العقد / Contract terms',text:'{{contract_terms}}'}]
+ )),
  starter('starter-rent-receipt-v1','rent_receipt','وصل إيجار','مسودة وصل إيجار',[
   ...['receipt_no','receipt_date','tenant_name','property_name','unit_no','contract_no','rent_period','amount','payment_method'].map(key=>field(key)),
   ...['payment_reference','receiver_name','accountant_name'].map(key=>field(key,false))

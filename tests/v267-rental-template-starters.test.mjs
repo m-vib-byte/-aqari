@@ -4,9 +4,9 @@ import {rentalTemplateStarters,cloneRentalTemplateStarter} from '../src/v267/dom
 import {documentFieldCatalog,validateTemplateFields,renderDocumentTemplate,resolveDocumentSigners} from '../src/v267/domain/rental-document-cycle.js';
 import {validateTemplatePresentation} from '../src/v267/domain/rental-document-layout.js';
 
-test('the four reusable starters have independent stable catalog IDs and no saved or approved identity',()=>{
- assert.deepEqual(rentalTemplateStarters.map(item=>item.kind),['rent_receipt','eviction','apartment_handover','owner_final_clearance']);
- assert.equal(new Set(rentalTemplateStarters.map(item=>item.starterId)).size,4);
+test('the seven reusable starters have independent stable catalog IDs and no saved or approved identity',()=>{
+ assert.deepEqual(rentalTemplateStarters.map(item=>item.kind),['investment_apartment','commercial_shop','house_apartment','rent_receipt','eviction','apartment_handover','owner_final_clearance']);
+ assert.equal(new Set(rentalTemplateStarters.map(item=>item.starterId)).size,7);
  for(const item of rentalTemplateStarters){
   assert.match(item.starterId,/^starter-[a-z-]+-v1$/);
   assert.match(item.title,/^مسودة /);
