@@ -4587,8 +4587,8 @@
     },
     {
       "path": "tests/v267-template-editor-tools.test.mjs",
-      "sha256": "798477f2f6c848051d82d6c1e02e76cb554aeaef6bd33eb6b7cecad818db38b3",
-      "size": 30594
+      "sha256": "8f70f7b2fd68fbac54115e6d01d66a591fd82bf343ee675e02b4e2bc215c4f1b",
+      "size": 30634
     },
     {
       "path": "tests/v267-template-property-logo.test.mjs",
