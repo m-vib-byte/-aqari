@@ -892,8 +892,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "8b1c510b0727e80b201a58f00f38e89f6c807b29ee12345c544437ac3f650c34",
-      "size": 23397
+      "sha256": "92dc8071bce87e8e30147043c6c527bf631192d64ed99dbf12d8eda3e2ae22f1",
+      "size": 23712
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -972,8 +972,8 @@
     },
     {
       "path": "lib/rental_document_editor_pdf.py",
-      "sha256": "0738e781b25b46ccd7db87177b0b5eddfe7135dab9ba6164dba81a469930e2d0",
-      "size": 15431
+      "sha256": "04e74a4ee1f58b5f7c885224f0571f247de3ddb65e09af8e6d9a906cfad84dbb",
+      "size": 15651
     },
     {
       "path": "lib/rental_document_layout.py",

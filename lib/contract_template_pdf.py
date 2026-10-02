@@ -187,6 +187,7 @@ def _paragraph(value, style, width):
 
 
 LABELS = {
+    'employer': ('صاحب العمل', 'Employer'), 'employee': ('الموظف', 'Employee'),
     'owner': ('المالك / الوكيل المفوض', 'Owner / authorized agent'),
     'representative': ('وكيل المالك المفوض', 'Authorized owner agent'),
     'tenant': ('المستأجر', 'Tenant'), 'receiver': ('المستلم', 'Receiver'),
@@ -351,7 +352,7 @@ def render_contract_template(template, values=None, logo_bytes=None):
             continue
         required_height=(8+len(parts)*11)*mm
         available(required_height)
-        label_role='representative' if role=='owner' and signer['label']=='وكيل المالك المفوض' else role
+        label_role=({'owner':'employer','tenant':'employee'}.get(role,role) if resolved.get('kind')=='employment_contract' else 'representative' if role=='owner' and signer['label']=='وكيل المالك المفوض' else role)
         add_text(localized(label_role,language),11,18,color='#56391f',gap=2*mm)
         for part in parts:
             value=signer['name'] if part=='name' else ''
@@ -370,7 +371,7 @@ def render_contract_template(template, values=None, logo_bytes=None):
             if not flags.get(part):
                 raise ValueError('LAYOUT_DISABLED_SIGNER')
             signer=names.get(role,{})
-            role_label='representative' if role=='owner' and signer.get('label')=='وكيل المالك المفوض' else role
+            role_label=({'owner':'employer','tenant':'employee'}.get(role,role) if resolved.get('kind')=='employment_contract' else 'representative' if role=='owner' and signer.get('label')=='وكيل المالك المفوض' else role)
             value=signer.get('name','') if part=='name' else ''
             label=localized(role_label,lang)+' - '+localized(part,lang)
             content=label+': '+value if part=='name' else label
