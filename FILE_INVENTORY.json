@@ -301,6 +301,16 @@
       "size": 17458
     },
     {
+      "path": "api/salary-verify.py",
+      "sha256": "829adc359c63ef6850eb41cf1d5fc7960c109be2b82ec6e02e62d607469749ba",
+      "size": 2555
+    },
+    {
+      "path": "api/salary-voucher.py",
+      "sha256": "424af34efbaba7f3f2b844f3340c5c695e00ddb9cd055e33da399e13cc6b86bd",
+      "size": 3496
+    },
+    {
       "path": "api/startup-diagnostic.js",
       "sha256": "3046055a6f3db48ac7acbb1ed95825b8b63294882b1f88d4d338a12b7b0209e9",
       "size": 1972
@@ -761,9 +771,39 @@
       "size": 3354
     },
     {
+      "path": "docs/verification/contracts-reference-correction-20261002.md",
+      "sha256": "259fc5ec90a4253e859058cdf4db6258f7bccb61a12d4c6b491539cc6a7d0dfe",
+      "size": 1189
+    },
+    {
+      "path": "docs/verification/contracts-reference-mobile-20261002.png",
+      "sha256": "4f4f5ce997e00c0d1bdc2771f6f83217d0822474c7b062b2aa79be73cbce5a10",
+      "size": 87298
+    },
+    {
+      "path": "docs/verification/contracts-sections-pdf-20261002.md",
+      "sha256": "3e162d68bda856ceff3cdad4cf0ca410947f2619e5b697450c4a8d49701dff40",
+      "size": 1421
+    },
+    {
       "path": "docs/verification/contracts-workspace-20260921.md",
       "sha256": "b735648af9a5cefd6193103b025f525d362e963d457c2917c1acf7b0aed093dd",
       "size": 4401
+    },
+    {
+      "path": "docs/verification/contracts-workspace-20261002.md",
+      "sha256": "1d0a45d7dc60bdafd7b4a18d5912d216752098e3bff35ae751408da34f8c92e0",
+      "size": 1488
+    },
+    {
+      "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
+      "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
+      "size": 2753
+    },
+    {
+      "path": "docs/verification/official-archive-acceptance-2026-10-01.md",
+      "sha256": "61f9d660b3b637ef2e00eaf2f6c75bdd97cc7a1bba5caa5dc6a60a7b4bffc792",
+      "size": 3197
     },
     {
       "path": "docs/verification/pr200-active-navigation-session-20260918.md",
@@ -801,9 +841,19 @@
       "size": 6893
     },
     {
+      "path": "docs/verification/pr321-property-runtime-20260925.md",
+      "size": 2684,
+      "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6"
+    },
+    {
       "path": "docs/verification/rental-document-cycle-20260920.md",
       "sha256": "830cf88613efed494cb436cd14f9615df7fb79b71f8500b78af143dc08e9d792",
       "size": 4688
+    },
+    {
+      "path": "docs/verification/service-audit-2026-10-01.md",
+      "size": 6376,
+      "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b"
     },
     {
       "path": "final-release-ui.css",
@@ -851,6 +901,21 @@
       "size": 4664
     },
     {
+      "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
+      "sha256": "3a3c502eeff669a231549e80df9f7c49de109bafe303170409e905d0b31a38fe",
+      "size": 334268
+    },
+    {
+      "path": "lib/pdf_fonts/AqariMono.ttf",
+      "sha256": "c805f9436dbc268644c1d9584f01a601a653e028e08fd74b9b949f6cf8304d88",
+      "size": 343140
+    },
+    {
+      "path": "lib/pdf_fonts/AqariSans-Bold.ttf",
+      "sha256": "5c1247acef7f2b8522a31742c76d6adcb5569bacc0be7ceaa4dc39dd252ce895",
+      "size": 708920
+    },
+    {
       "path": "lib/pdf_fonts/AqariSans.ttf",
       "sha256": "0bdf67d95aa8018c83492274191e75a81387537d59c388245e8fd3b4c7fad177",
       "size": 80280
@@ -891,9 +956,24 @@
       "size": 11576
     },
     {
+      "path": "lib/rental_document_editor.py",
+      "sha256": "79adda2e02b27ba8df56f7c058b8566459baef63e851f620f16ca22eb04fa07b",
+      "size": 6020
+    },
+    {
+      "path": "lib/rental_document_editor_pdf.py",
+      "sha256": "0738e781b25b46ccd7db87177b0b5eddfe7135dab9ba6164dba81a469930e2d0",
+      "size": 15431
+    },
+    {
       "path": "lib/rental_document_layout.py",
       "sha256": "5f952034e494bca199e14d9d2e66a16b824ea5cd460c9d03757485ab27066221",
       "size": 5361
+    },
+    {
+      "path": "lib/salary_voucher_pdf.py",
+      "sha256": "4bb27756136c2e3ea9727acb0383d5e8916f98a63b6eb0b324906a40c4b1b54e",
+      "size": 7745
     },
     {
       "path": "lib/supabase-probe.js",
@@ -919,6 +999,11 @@
       "path": "manifest.webmanifest",
       "sha256": "e3a407d4d17a3193ce20874ceca13deecca578f9b4c1533722414a427b31570b",
       "size": 435
+    },
+    {
+      "path": "middleware.js",
+      "size": 639,
+      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029"
     },
     {
       "path": "package.json",
@@ -1019,6 +1104,11 @@
       "path": "scripts/build-official-form-sql.mjs",
       "sha256": "db006e20f58d981abb5f1116d34d41c05bf124ed65beef55d5a27e725517bb6d",
       "size": 5293
+    },
+    {
+      "path": "scripts/build-vercel-preverify-tests.mjs",
+      "size": 807,
+      "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb"
     },
     {
       "path": "scripts/build-vercel.mjs",
@@ -1159,6 +1249,11 @@
       "path": "src/v267/app-login-locale.js",
       "sha256": "7a124b6029121f4c2666c64b8d1bcaeac0d37a091b33617091d0da34453c738d",
       "size": 4135
+    },
+    {
+      "path": "src/v267/assets/contracts-skyline.svg",
+      "sha256": "9056a1ae6be04ba6876887c17fe7c47296659a72c77c914e416648fce520e4bc",
+      "size": 1743
     },
     {
       "path": "src/v267/assets/dashboard-hero.png",
@@ -1326,6 +1421,11 @@
       "size": 2401
     },
     {
+      "path": "src/v267/components/pdf-viewer.js",
+      "size": 1194,
+      "sha256": "2ed15466ea96994d6dd27d6c960811fd6a0452bd2856663eb11f62fedd2870c5"
+    },
+    {
       "path": "src/v267/components/portal-account-recovery.js",
       "sha256": "2dd1843ef493260d4a9f00b6e0fd931a5378dd3dfff674ce00ca017c77737f7b",
       "size": 23152
@@ -1357,8 +1457,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "575732724c481d1a207ef0a929864ab14d47122acb5ab508e59f76f8944e3167",
-      "size": 90560
+      "sha256": "105afdd7bccc6b2daf97d53a89040debe032f7f5483dad163a6b9e9e6e8c57ef",
+      "size": 92041
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1386,9 +1486,24 @@
       "size": 1520
     },
     {
+      "path": "src/v267/components/service-readiness.js",
+      "size": 888,
+      "sha256": "3d9ab87f5cf8e81e280a893fc85122716f485513d01852b0e83a662592b466f3"
+    },
+    {
       "path": "src/v267/components/shell-translations.js",
       "size": 84586,
       "sha256": "c887b19a5df2c6a8d99687d5243d61ee502045f6ed43100f3bcd7728cc9725c2"
+    },
+    {
+      "path": "src/v267/components/stored-visual-review.js",
+      "size": 6123,
+      "sha256": "28e29bdbb3368be2d7f0cb715a6f9e9923334cf4f915fc1f038a9dfdbb19677e"
+    },
+    {
+      "path": "src/v267/components/template-property-logo.js",
+      "sha256": "b906aca19788afa2127ea7c5f7b5a48c59ce833346020678a2cdfc0b94bb849e",
+      "size": 13888
     },
     {
       "path": "src/v267/components/tenant-attachment-upload.js",
@@ -1446,6 +1561,11 @@
       "size": 70982
     },
     {
+      "path": "src/v267/domain/contract-foundation.js",
+      "sha256": "7ce3a30902aa1d7ff87643f4f1c1cdc9b52187bb419a720163570e02c740cc1f",
+      "size": 4258
+    },
+    {
       "path": "src/v267/domain/deposit-ledger.js",
       "sha256": "d6b8782625ccef87e896d36a7331991a7de7c93aed7d5107bfff4aecec601c57",
       "size": 10204
@@ -1454,6 +1574,16 @@
       "path": "src/v267/domain/exit-review.js",
       "sha256": "efe13f1ad819a8080fc59e651c4ded2a3b133672f4366923e4e585b474e3282e",
       "size": 7516
+    },
+    {
+      "path": "src/v267/domain/hr-lifecycle.js",
+      "sha256": "dc4d5f7b7e52882bc9b924075f0b0c2858d1d5a386a9bc7cb81538fbd518f4ec",
+      "size": 2955
+    },
+    {
+      "path": "src/v267/domain/kuwait-calendar.js",
+      "sha256": "4e114ace66a6cc8ef921ca61cff5828440451cbbdc15865e673b746c19af751e",
+      "size": 593
     },
     {
       "path": "src/v267/domain/lease-dates.js",
@@ -1496,9 +1626,19 @@
       "size": 3929
     },
     {
+      "path": "src/v267/domain/template-editor-metadata.js",
+      "sha256": "c23c12adf263d93761f15b2e18ce9b3024682e34c3127ec3c3ed14c9f703f018",
+      "size": 5376
+    },
+    {
       "path": "src/v267/domain/template-editor-pagination.js",
       "sha256": "98fd304003f08204a1c36a9c0d56d9bd6dc208202764e756b8c9e084ec35add1",
       "size": 6959
+    },
+    {
+      "path": "src/v267/domain/template-editor-state.js",
+      "sha256": "4f751a645aa05fec946e5ac8e6c45b8f048ba3dd9ad679c1de12756998bf217a",
+      "size": 5677
     },
     {
       "path": "src/v267/domain/vacating-review.js",
@@ -1547,8 +1687,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "5155753fab57f3388a981a69d742efc24f244064a21daf991448b094a1138e94",
-      "size": 5879
+      "sha256": "13e0bae89cbd43dc4d72d1638c592f7ef3854c0eb379e1df1ae94fbe1503d5e6",
+      "size": 6086
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -1599,6 +1739,11 @@
       "path": "src/v267/pages/financial-register.js",
       "sha256": "cfc6805beda052a5e46a5a177a3fb610f60e8771dfe3118a12ce12c00f0525dd",
       "size": 28432
+    },
+    {
+      "path": "src/v267/pages/hr-lifecycle.js",
+      "sha256": "f24a15910d7b510f3638333b7017619aacfc8fe83feabfc7f76c56dae82f4a83",
+      "size": 19442
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -1656,6 +1801,11 @@
       "size": 5252
     },
     {
+      "path": "src/v267/pages/owner-experience-settings.js",
+      "size": 16649,
+      "sha256": "89886004abf828d78b83ae2bfcaa39657647a872402affe0f640dfd409716800"
+    },
+    {
       "path": "src/v267/pages/partner-access.js",
       "sha256": "ec63b84a287ca70e4bfeb2d217933afe72a9cefa4cb078fe98d47c9cc3cea604",
       "size": 3620
@@ -1666,9 +1816,24 @@
       "size": 17337
     },
     {
+      "path": "src/v267/pages/property-controls.js",
+      "size": 17647,
+      "sha256": "71daeac3fc37fdd05c75b3a5c25674248245eed3fc2e1b13f053780a84d5b3bc"
+    },
+    {
+      "path": "src/v267/pages/property-cost-allocation.js",
+      "size": 11746,
+      "sha256": "ebf0b8970caa5ca6e36008a9c36b11a4f6a5ada5cb622256f0d1b4352049b1ec"
+    },
+    {
       "path": "src/v267/pages/property-hub.js",
       "sha256": "529e74a1678489288697728826976355f3863fe524bcf8ebe47770053a60d8b1",
       "size": 30624
+    },
+    {
+      "path": "src/v267/pages/property-master-file.js",
+      "size": 33583,
+      "sha256": "37b641d3e83435d0ad8975c63bc725a4384cc9ce4a01a8ca30ef39eefe7292ef"
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1764,6 +1929,11 @@
       "path": "src/v267/styles/contract-template-studio.css",
       "sha256": "cea7480ab509dc4f5b6ab923a3fd9892e22c2072592fc45ccd78defb8b0a594a",
       "size": 45130
+    },
+    {
+      "path": "src/v267/styles/contract-workspace.css",
+      "sha256": "3791d7c313a64e8cbb7dcde3e8bf42246b2e82396a41137f1374f5b8ae1fc593",
+      "size": 29274
     },
     {
       "path": "src/v267/styles/live-stability.css",
@@ -1991,9 +2161,24 @@
       "size": 5710
     },
     {
+      "path": "staging-database/local-test/run-manager-contract-workflow.sh",
+      "size": 556,
+      "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de"
+    },
+    {
+      "path": "staging-database/local-test/run-service-schema-regression.mjs",
+      "size": 2434,
+      "sha256": "089285769d04874f2878ec1a1e1fbd4600f8b71518a26020700e8cec8b3a22d8"
+    },
+    {
       "path": "staging-database/local-test/run-template-library.sh",
       "sha256": "b92f9ceebccf6c080b2ca877af9f6948a132ed4558278dc9d1fdddb7efdeafcd",
       "size": 1711
+    },
+    {
+      "path": "staging-database/local-test/stage-c-backup-selftest.mjs",
+      "sha256": "c84642426bcee9532520dfea568bb0a03aca05ccfda30f91da3c24bada9b5659",
+      "size": 2366
     },
     {
       "path": "staging-database/sql/collection-account-management.sql",
@@ -2064,6 +2249,11 @@
       "path": "staging-database/sql/final-gap-register.sql",
       "sha256": "1ca1522e09136fe2c775dc1d9d47baac2f27a99a6e387397a018a04f342aa0ba",
       "size": 18012
+    },
+    {
+      "path": "staging-database/sql/finance-owner-controls-b3.sql",
+      "size": 34405,
+      "sha256": "abd655e84a65593fb6d511457460fe867ae9e38281a02c1922d299511310aa57"
     },
     {
       "path": "staging-database/sql/financial-archive.sql",
@@ -2259,6 +2449,16 @@
       "path": "staging-database/sql/property-notices.sql",
       "sha256": "05d1b92ad4f7973ec382d43bf010fabb00284a05b7a92677730fca0a979dda22",
       "size": 11883
+    },
+    {
+      "path": "staging-database/sql/property-owner-controls-property-type-fix.sql",
+      "size": 844,
+      "sha256": "336ad7e7fcd219f562fc1adfb16da5b812f185c4572fa122a730d3abe0c586d7"
+    },
+    {
+      "path": "staging-database/sql/property-owner-controls.sql",
+      "size": 32419,
+      "sha256": "f74c45cde69fe29ca26e3e193afe65bdb783e0feabe04e0259908bdbdab2faa0"
     },
     {
       "path": "staging-database/sql/reminder-contract-balance.sql",
@@ -2826,6 +3026,16 @@
       "size": 6281
     },
     {
+      "path": "staging-database/supabase/migrations/20260921155101_v267_optional_document_editor.sql",
+      "sha256": "f16ce3a87d8c00475a65c8d97fb0cc1d29e8987004c65265d52c886618e43527",
+      "size": 12036
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261001153500_stage_c_storage_restore_finalize.sql",
+      "size": 4336,
+      "sha256": "0596ff8acd3a65559280ec92ca9327e21e53cdb912fc74436312ec25ef825a8e"
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -2924,6 +3134,11 @@
       "path": "staging-database/tests/financial_register.sql",
       "sha256": "f8f3f54dfa57a8c66741b5a227526d0b45246e3ea708bcd21cda3901ef1c97ed",
       "size": 10386
+    },
+    {
+      "path": "staging-database/tests/hr_lifecycle_cycle.sql",
+      "sha256": "cf9ec0cfb96c7190bd14bfb7f15adca9cfbc972139cc7de720d9beaa5cf6268f",
+      "size": 10172
     },
     {
       "path": "staging-database/tests/imported_tenant_edit.sql",
@@ -3141,6 +3356,11 @@
       "size": 184
     },
     {
+      "path": "staging-database/tests/template_optional_editor.sql",
+      "sha256": "dfcac532008f3670cf256392d187b82d539be0b561d03674e110b7349f5ec5dc",
+      "size": 15776
+    },
+    {
       "path": "staging-database/tests/template_typography.sql",
       "sha256": "a6d536b932624dd74abf5549d1fb186186299e2b45b066ce46de71e28761c3da",
       "size": 7739
@@ -3241,6 +3461,16 @@
       "size": 27663
     },
     {
+      "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
+      "size": 11343,
+      "sha256": "fcc8d57ea470591381f4cc55fc1f389526c21733e9076d2a43e1a1b98c5b4365"
+    },
+    {
+      "path": "supabase/functions/stage-c-storage-receiver-20261001/index.ts",
+      "size": 5644,
+      "sha256": "71cb84ac5b860869dbf44945d4f5e670eb7d7f4cd7492b6584377563a6cefe25"
+    },
+    {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
       "sha256": "1b3d52655173aa38a46947531aa975d1fe21f604e488fcaec9e066253c4a8611",
       "size": 7486
@@ -3261,6 +3491,36 @@
       "size": 2221
     },
     {
+      "path": "supabase/migrations/20260922144456_hr_lifecycle_cycle.sql",
+      "sha256": "c338cd192b61824cb18890ca4f8500f512174470729143a47beecdc14bb47ee8",
+      "size": 34039
+    },
+    {
+      "path": "supabase/migrations/20260922144658_hr_lifecycle_indexes.sql",
+      "sha256": "a64cceff7427bd065ff3da728fb8e8158d7cd6a1360f068acfaba7a4eec1da2d",
+      "size": 1035
+    },
+    {
+      "path": "supabase/migrations/20260922145409_hr_payroll_lifecycle_guard.sql",
+      "sha256": "08a4168a8aed9b36730eef2290e284bf9b7a4ab41eef7be6b71c54adafd36ff4",
+      "size": 5706
+    },
+    {
+      "path": "supabase/migrations/20260922145534_hr_month_transition_trigger_fix.sql",
+      "sha256": "3ef728c4029f1d240cb4bccf1ae6383d7708a5a8619a5f08a924e821a9094757",
+      "size": 573
+    },
+    {
+      "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
+      "sha256": "36a8371b241d175bcefc60f59cac955867c15c8982bb6bd8ee503ddd8eabc795",
+      "size": 23087
+    },
+    {
+      "path": "supabase/migrations/20261001121500_stage_c_server_backup_export.sql",
+      "sha256": "0035e3abfaa0cd23b6e8e0d25167365c6cf6aecee21c2ce2df269a9a0267636c",
+      "size": 4916
+    },
+    {
       "path": "sw.js",
       "sha256": "469e24f34e5310e52f31c5d2c6c701cba5f4320ef2b883fcdd2d45f250b61889",
       "size": 887
@@ -3269,26 +3529,6 @@
       "path": "tenant.html",
       "sha256": "49e8f38f9dd12cd87e422f214162599fc854cad87cf6d6e4a1918513d272ae8c",
       "size": 6308
-    },
-    {
-      "path": "staging-database/supabase/migrations/20261001153500_stage_c_storage_restore_finalize.sql",
-      "size": 4336,
-      "sha256": "0596ff8acd3a65559280ec92ca9327e21e53cdb912fc74436312ec25ef825a8e"
-    },
-    {
-      "path": "supabase/functions/stage-c-storage-receiver-20261001/index.ts",
-      "size": 5644,
-      "sha256": "71cb84ac5b860869dbf44945d4f5e670eb7d7f4cd7492b6584377563a6cefe25"
-    },
-    {
-      "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 11343,
-      "sha256": "fcc8d57ea470591381f4cc55fc1f389526c21733e9076d2a43e1a1b98c5b4365"
-    },
-    {
-      "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 20685,
-      "sha256": "821739d7cd0be4acc2c5542e2a8aaba0fc278522699fa30b2352e167232f0281"
     },
     {
       "path": "tests/app-first-paint.e2e.mjs",
@@ -3304,6 +3544,11 @@
       "path": "tests/auth-data-gate.test.cjs",
       "sha256": "868ec717b14f1504819290ced89fc7f7272dc543f154ef027d7e81c7f4d30603",
       "size": 45757
+    },
+    {
+      "path": "tests/authenticated-home-heartbeat.test.cjs",
+      "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
+      "size": 2220
     },
     {
       "path": "tests/contract_template_pdf_test.py",
@@ -3354,6 +3599,11 @@
       "path": "tests/github-preview-oidc.test.cjs",
       "sha256": "022b4577c71e8fe50ba4a9031a3fcd3cec18bd2486a90e11a2e3269cb6665e2d",
       "size": 14623
+    },
+    {
+      "path": "tests/github-preview-unique-url.test.cjs",
+      "size": 1582,
+      "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a"
     },
     {
       "path": "tests/helpers/locale-vm.cjs",
@@ -3461,6 +3711,11 @@
       "size": 17677
     },
     {
+      "path": "tests/rental_document_editor_pdf_test.py",
+      "sha256": "6840c5380bbc9cade8dead35e39495eb27ebb93ecbd82237c5c358c33d6123ae",
+      "size": 15762
+    },
+    {
       "path": "tests/rental_document_issue_test.py",
       "sha256": "e3ed4b7bf2b66e16201f0acc7e1b90b8d04074058f05cfacfb4bda1ff560454d",
       "size": 18143
@@ -3479,6 +3734,11 @@
       "path": "tests/runtime-contracts.test.cjs",
       "sha256": "a0182e3a874c1a82eddcc4c4dbf0f06491474b01c720d4136ba88489f495e1d0",
       "size": 24985
+    },
+    {
+      "path": "tests/salary_voucher_pdf_test.py",
+      "sha256": "d16d1466fc83cb13416e6f0cb21f279c1f665a8d37acf2808f720f963efc21c4",
+      "size": 3525
     },
     {
       "path": "tests/search-events.test.mjs",
@@ -3826,6 +4086,16 @@
       "sha256": "1528491f28e7658cfb22ab06f4fcb95d315e588adfff998dd5848757431e288f"
     },
     {
+      "path": "tests/v267-hr-lifecycle-source.test.mjs",
+      "sha256": "9863d4cfa2a8c2a23524bb1965f04f542876cdcd03a01e035815c06aba5590af",
+      "size": 2591
+    },
+    {
+      "path": "tests/v267-hr-lifecycle.test.mjs",
+      "sha256": "89c2886b8d265df038df262e004662860d4fb440ae482f3bc5cc6720e3fc189d",
+      "size": 1731
+    },
+    {
       "path": "tests/v267-integration-center-workflow.test.cjs",
       "sha256": "628468b8e614d479bee2f2ecbf84d936ad98ee3ad16105fe278fe70e5cde38ed",
       "size": 7373
@@ -3839,6 +4109,11 @@
       "path": "tests/v267-kpi-dashboard.test.cjs",
       "sha256": "689d50e268417e1bd161b0edb17f46690d4d8be7dd5909d314164bcf2a7ba8b9",
       "size": 1093
+    },
+    {
+      "path": "tests/v267-kuwait-calendar.test.mjs",
+      "sha256": "f9043801d478d31a046fd1958c867c32548d5aa80ea42c3fb4b51f3c5c6dc030",
+      "size": 1170
     },
     {
       "path": "tests/v267-lease-dates.test.mjs",
@@ -4071,6 +4346,11 @@
       "size": 6133
     },
     {
+      "path": "tests/v267-pdf-viewer.test.mjs",
+      "size": 1241,
+      "sha256": "e065a3880056f152adf77f779c2e04be432bec617f6ae43e2dc3a27ddde51d40"
+    },
+    {
       "path": "tests/v267-pearl-gold-review.test.cjs",
       "sha256": "5711e9abbaff0a1735e9c842467ac20f23dfc9fa3372cbe7b25ca165ed85eace",
       "size": 3640
@@ -4101,14 +4381,39 @@
       "size": 1668
     },
     {
+      "path": "tests/v267-property-contract-archive-ui.test.mjs",
+      "sha256": "1b6a97cc7a8089de450cbd547063f7aa71fa1bc1dc30a297cab1c0a45239a93c",
+      "size": 3528
+    },
+    {
+      "path": "tests/v267-property-controls-sql-fix.test.mjs",
+      "size": 1398,
+      "sha256": "eafe854e2cd914adc8265446f70e02a31f68975c6f088694c60cab890e9fde2e"
+    },
+    {
       "path": "tests/v267-property-experience.fixture.html",
       "sha256": "49f55ea3c627dd5415b911c72f3e6bba9973fbff117edcb1b825dec98cc4c7b0",
       "size": 4576
     },
     {
+      "path": "tests/v267-property-maintenance-compat.test.mjs",
+      "size": 5370,
+      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa"
+    },
+    {
+      "path": "tests/v267-property-master-runtime.test.mjs",
+      "size": 12136,
+      "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9"
+    },
+    {
       "path": "tests/v267-property-notices.test.cjs",
       "sha256": "bcc61852aaac16e376799ab75b5056846048d5d099e4be69d830f9448454f08f",
       "size": 7566
+    },
+    {
+      "path": "tests/v267-property-ownership-area.test.mjs",
+      "size": 2392,
+      "sha256": "492091d329d3cf443e6501859a6889b1756950e634d183a449757efa87e56be9"
     },
     {
       "path": "tests/v267-property-portfolio-additions.test.mjs",
@@ -4187,8 +4492,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "123f43bc85ed40c0bd3d98b65be27de13cc6e5234cf944de755f74d1fea73116",
-      "size": 40303
+      "sha256": "3792574145f1b72dc9bb0d3eb219ef728a67cc3233b2039cdad79bb7686808aa",
+      "size": 43895
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4226,6 +4531,11 @@
       "size": 16131
     },
     {
+      "path": "tests/v267-service-readiness.test.mjs",
+      "size": 4478,
+      "sha256": "aa57901a7232a3a6bd4d4a2fa764071f1c69a05bac5f0b2d78533acf290afaab"
+    },
+    {
       "path": "tests/v267-session-activity-routing.test.cjs",
       "sha256": "70dba6c459d368d3dd78ee41bdab214e565d627d99c93869697bb4cae57b4b66",
       "size": 4382
@@ -4241,9 +4551,19 @@
       "size": 12167
     },
     {
+      "path": "tests/v267-stage-c-storage-backup.test.mjs",
+      "size": 20685,
+      "sha256": "821739d7cd0be4acc2c5542e2a8aaba0fc278522699fa30b2352e167232f0281"
+    },
+    {
       "path": "tests/v267-staging-isolation.test.cjs",
       "sha256": "85e1aa1104f18fcc0cd5fa78cf42336313b81328ff657e80bcdd3634b59d0e22",
       "size": 2691
+    },
+    {
+      "path": "tests/v267-template-draft-saver-restore.test.mjs",
+      "sha256": "2e2449ea2ba46eef6204b8e71bab3664155d7f289afd3d61dc76b5f790d970ab",
+      "size": 3918
     },
     {
       "path": "tests/v267-template-draft-saver.test.mjs",
@@ -4251,9 +4571,29 @@
       "size": 5624
     },
     {
+      "path": "tests/v267-template-editor-metadata.test.mjs",
+      "sha256": "799670af22effdb03ea8aa9bfda2237603091f0c58cb6941f941e7b31f05b508",
+      "size": 8287
+    },
+    {
       "path": "tests/v267-template-editor-pagination.test.mjs",
       "sha256": "487c65e7c8e2a739d10ca5d98d57f83d5211331d5996e38f150916fb60e2a74a",
       "size": 9541
+    },
+    {
+      "path": "tests/v267-template-editor-state.test.mjs",
+      "sha256": "f915adb795567a871296c6f4aa6e8e7b5ebfe7b7ea3ee0251c2d8de124e9a3ed",
+      "size": 5588
+    },
+    {
+      "path": "tests/v267-template-editor-tools.test.mjs",
+      "sha256": "798477f2f6c848051d82d6c1e02e76cb554aeaef6bd33eb6b7cecad818db38b3",
+      "size": 30594
+    },
+    {
+      "path": "tests/v267-template-property-logo.test.mjs",
+      "sha256": "76dfd88c5238f88b96b8b09e5228495c7226afe116863f34282dbd56f28c5b28",
+      "size": 20057
     },
     {
       "path": "tests/v267-tenant-attachment-form.test.cjs",
@@ -4524,341 +4864,6 @@
       "path": "vercel.json",
       "sha256": "5db3c030d624bb59c5d646c0cc96257d6ae3220252d5d4da1aa7a00aa035b14e",
       "size": 7570
-    },
-    {
-      "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
-      "sha256": "3a3c502eeff669a231549e80df9f7c49de109bafe303170409e905d0b31a38fe",
-      "size": 334268
-    },
-    {
-      "path": "lib/pdf_fonts/AqariMono.ttf",
-      "sha256": "c805f9436dbc268644c1d9584f01a601a653e028e08fd74b9b949f6cf8304d88",
-      "size": 343140
-    },
-    {
-      "path": "lib/pdf_fonts/AqariSans-Bold.ttf",
-      "sha256": "5c1247acef7f2b8522a31742c76d6adcb5569bacc0be7ceaa4dc39dd252ce895",
-      "size": 708920
-    },
-    {
-      "path": "lib/rental_document_editor.py",
-      "sha256": "79adda2e02b27ba8df56f7c058b8566459baef63e851f620f16ca22eb04fa07b",
-      "size": 6020
-    },
-    {
-      "path": "lib/rental_document_editor_pdf.py",
-      "sha256": "0738e781b25b46ccd7db87177b0b5eddfe7135dab9ba6164dba81a469930e2d0",
-      "size": 15431
-    },
-    {
-      "path": "src/v267/components/template-property-logo.js",
-      "sha256": "b906aca19788afa2127ea7c5f7b5a48c59ce833346020678a2cdfc0b94bb849e",
-      "size": 13888
-    },
-    {
-      "path": "src/v267/domain/template-editor-metadata.js",
-      "sha256": "c23c12adf263d93761f15b2e18ce9b3024682e34c3127ec3c3ed14c9f703f018",
-      "size": 5376
-    },
-    {
-      "path": "src/v267/domain/template-editor-state.js",
-      "sha256": "4f751a645aa05fec946e5ac8e6c45b8f048ba3dd9ad679c1de12756998bf217a",
-      "size": 5677
-    },
-    {
-      "path": "staging-database/supabase/migrations/20260921155101_v267_optional_document_editor.sql",
-      "sha256": "f16ce3a87d8c00475a65c8d97fb0cc1d29e8987004c65265d52c886618e43527",
-      "size": 12036
-    },
-    {
-      "path": "staging-database/tests/template_optional_editor.sql",
-      "sha256": "dfcac532008f3670cf256392d187b82d539be0b561d03674e110b7349f5ec5dc",
-      "size": 15776
-    },
-    {
-      "path": "tests/rental_document_editor_pdf_test.py",
-      "sha256": "6840c5380bbc9cade8dead35e39495eb27ebb93ecbd82237c5c358c33d6123ae",
-      "size": 15762
-    },
-    {
-      "path": "tests/v267-template-draft-saver-restore.test.mjs",
-      "sha256": "2e2449ea2ba46eef6204b8e71bab3664155d7f289afd3d61dc76b5f790d970ab",
-      "size": 3918
-    },
-    {
-      "path": "tests/v267-template-editor-metadata.test.mjs",
-      "sha256": "799670af22effdb03ea8aa9bfda2237603091f0c58cb6941f941e7b31f05b508",
-      "size": 8287
-    },
-    {
-      "path": "tests/v267-template-editor-state.test.mjs",
-      "sha256": "f915adb795567a871296c6f4aa6e8e7b5ebfe7b7ea3ee0251c2d8de124e9a3ed",
-      "size": 5588
-    },
-    {
-      "path": "tests/v267-template-editor-tools.test.mjs",
-      "sha256": "798477f2f6c848051d82d6c1e02e76cb554aeaef6bd33eb6b7cecad818db38b3",
-      "size": 30594
-    },
-    {
-      "path": "tests/v267-template-property-logo.test.mjs",
-      "sha256": "76dfd88c5238f88b96b8b09e5228495c7226afe116863f34282dbd56f28c5b28",
-      "size": 20057
-    },
-    {
-      "path": "api/salary-verify.py",
-      "sha256": "829adc359c63ef6850eb41cf1d5fc7960c109be2b82ec6e02e62d607469749ba",
-      "size": 2555
-    },
-    {
-      "path": "api/salary-voucher.py",
-      "sha256": "424af34efbaba7f3f2b844f3340c5c695e00ddb9cd055e33da399e13cc6b86bd",
-      "size": 3496
-    },
-    {
-      "path": "lib/salary_voucher_pdf.py",
-      "sha256": "4bb27756136c2e3ea9727acb0383d5e8916f98a63b6eb0b324906a40c4b1b54e",
-      "size": 7745
-    },
-    {
-      "path": "src/v267/domain/hr-lifecycle.js",
-      "sha256": "dc4d5f7b7e52882bc9b924075f0b0c2858d1d5a386a9bc7cb81538fbd518f4ec",
-      "size": 2955
-    },
-    {
-      "path": "src/v267/pages/hr-lifecycle.js",
-      "sha256": "f24a15910d7b510f3638333b7017619aacfc8fe83feabfc7f76c56dae82f4a83",
-      "size": 19442
-    },
-    {
-      "path": "staging-database/tests/hr_lifecycle_cycle.sql",
-      "sha256": "cf9ec0cfb96c7190bd14bfb7f15adca9cfbc972139cc7de720d9beaa5cf6268f",
-      "size": 10172
-    },
-    {
-      "path": "supabase/migrations/20260922144456_hr_lifecycle_cycle.sql",
-      "sha256": "c338cd192b61824cb18890ca4f8500f512174470729143a47beecdc14bb47ee8",
-      "size": 34039
-    },
-    {
-      "path": "supabase/migrations/20260922144658_hr_lifecycle_indexes.sql",
-      "sha256": "a64cceff7427bd065ff3da728fb8e8158d7cd6a1360f068acfaba7a4eec1da2d",
-      "size": 1035
-    },
-    {
-      "path": "supabase/migrations/20260922145409_hr_payroll_lifecycle_guard.sql",
-      "sha256": "08a4168a8aed9b36730eef2290e284bf9b7a4ab41eef7be6b71c54adafd36ff4",
-      "size": 5706
-    },
-    {
-      "path": "supabase/migrations/20260922145534_hr_month_transition_trigger_fix.sql",
-      "sha256": "3ef728c4029f1d240cb4bccf1ae6383d7708a5a8619a5f08a924e821a9094757",
-      "size": 573
-    },
-    {
-      "path": "tests/salary_voucher_pdf_test.py",
-      "sha256": "d16d1466fc83cb13416e6f0cb21f279c1f665a8d37acf2808f720f963efc21c4",
-      "size": 3525
-    },
-    {
-      "path": "tests/v267-hr-lifecycle-source.test.mjs",
-      "sha256": "9863d4cfa2a8c2a23524bb1965f04f542876cdcd03a01e035815c06aba5590af",
-      "size": 2591
-    },
-    {
-      "path": "tests/v267-hr-lifecycle.test.mjs",
-      "sha256": "89c2886b8d265df038df262e004662860d4fb440ae482f3bc5cc6720e3fc189d",
-      "size": 1731
-    },
-    {
-      "path": "docs/verification/pr321-property-runtime-20260925.md",
-      "size": 2684,
-      "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6"
-    },
-    {
-      "path": "src/v267/pages/property-master-file.js",
-      "size": 33583,
-      "sha256": "37b641d3e83435d0ad8975c63bc725a4384cc9ce4a01a8ca30ef39eefe7292ef"
-    },
-    {
-      "path": "supabase/migrations/20260925173100_hr_month_report_property_guard.sql",
-      "sha256": "36a8371b241d175bcefc60f59cac955867c15c8982bb6bd8ee503ddd8eabc795",
-      "size": 23087
-    },
-    {
-      "path": "tests/v267-property-maintenance-compat.test.mjs",
-      "size": 5370,
-      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa"
-    },
-    {
-      "path": "tests/v267-property-master-runtime.test.mjs",
-      "size": 12136,
-      "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9"
-    },
-    {
-      "path": "scripts/build-vercel-preverify-tests.mjs",
-      "size": 807,
-      "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb"
-    },
-    {
-      "path": "staging-database/local-test/run-manager-contract-workflow.sh",
-      "size": 556,
-      "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de"
-    },
-    {
-      "path": "tests/github-preview-unique-url.test.cjs",
-      "size": 1582,
-      "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a"
-    },
-    {
-      "path": "src/v267/components/stored-visual-review.js",
-      "size": 6123,
-      "sha256": "28e29bdbb3368be2d7f0cb715a6f9e9923334cf4f915fc1f038a9dfdbb19677e"
-    },
-    {
-      "path": "middleware.js",
-      "size": 639,
-      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029"
-    },
-    {
-      "path": "tests/v267-property-ownership-area.test.mjs",
-      "size": 2392,
-      "sha256": "492091d329d3cf443e6501859a6889b1756950e634d183a449757efa87e56be9"
-    },
-    {
-      "path": "src/v267/components/pdf-viewer.js",
-      "size": 1194,
-      "sha256": "2ed15466ea96994d6dd27d6c960811fd6a0452bd2856663eb11f62fedd2870c5"
-    },
-    {
-      "path": "tests/v267-pdf-viewer.test.mjs",
-      "size": 1241,
-      "sha256": "e065a3880056f152adf77f779c2e04be432bec617f6ae43e2dc3a27ddde51d40"
-    },
-    {
-      "path": "src/v267/pages/owner-experience-settings.js",
-      "size": 16649,
-      "sha256": "89886004abf828d78b83ae2bfcaa39657647a872402affe0f640dfd409716800"
-    },
-    {
-      "path": "src/v267/pages/property-controls.js",
-      "size": 17647,
-      "sha256": "71daeac3fc37fdd05c75b3a5c25674248245eed3fc2e1b13f053780a84d5b3bc"
-    },
-    {
-      "path": "src/v267/pages/property-cost-allocation.js",
-      "size": 11746,
-      "sha256": "ebf0b8970caa5ca6e36008a9c36b11a4f6a5ada5cb622256f0d1b4352049b1ec"
-    },
-    {
-      "path": "staging-database/sql/finance-owner-controls-b3.sql",
-      "size": 34405,
-      "sha256": "abd655e84a65593fb6d511457460fe867ae9e38281a02c1922d299511310aa57"
-    },
-    {
-      "path": "staging-database/sql/property-owner-controls-property-type-fix.sql",
-      "size": 844,
-      "sha256": "336ad7e7fcd219f562fc1adfb16da5b812f185c4572fa122a730d3abe0c586d7"
-    },
-    {
-      "path": "staging-database/sql/property-owner-controls.sql",
-      "size": 32419,
-      "sha256": "f74c45cde69fe29ca26e3e193afe65bdb783e0feabe04e0259908bdbdab2faa0"
-    },
-    {
-      "path": "tests/v267-property-controls-sql-fix.test.mjs",
-      "size": 1398,
-      "sha256": "eafe854e2cd914adc8265446f70e02a31f68975c6f088694c60cab890e9fde2e"
-    },
-    {
-      "path": "src/v267/components/service-readiness.js",
-      "size": 888,
-      "sha256": "3d9ab87f5cf8e81e280a893fc85122716f485513d01852b0e83a662592b466f3"
-    },
-    {
-      "path": "tests/v267-service-readiness.test.mjs",
-      "size": 4478,
-      "sha256": "aa57901a7232a3a6bd4d4a2fa764071f1c69a05bac5f0b2d78533acf290afaab"
-    },
-    {
-      "path": "staging-database/local-test/run-service-schema-regression.mjs",
-      "size": 2434,
-      "sha256": "089285769d04874f2878ec1a1e1fbd4600f8b71518a26020700e8cec8b3a22d8"
-    },
-    {
-      "path": "docs/verification/service-audit-2026-10-01.md",
-      "size": 6376,
-      "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b"
-    },
-    {
-      "path": "src/v267/domain/kuwait-calendar.js",
-      "sha256": "4e114ace66a6cc8ef921ca61cff5828440451cbbdc15865e673b746c19af751e",
-      "size": 593
-    },
-    {
-      "path": "tests/v267-kuwait-calendar.test.mjs",
-      "sha256": "f9043801d478d31a046fd1958c867c32548d5aa80ea42c3fb4b51f3c5c6dc030",
-      "size": 1170
-    },
-    {
-      "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
-      "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
-      "size": 2753
-    },
-    {
-      "path": "docs/verification/official-archive-acceptance-2026-10-01.md",
-      "sha256": "61f9d660b3b637ef2e00eaf2f6c75bdd97cc7a1bba5caa5dc6a60a7b4bffc792",
-      "size": 3197
-    },
-    {
-      "path": "tests/authenticated-home-heartbeat.test.cjs",
-      "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
-      "size": 2220
-    },
-    {
-      "path": "supabase/migrations/20261001121500_stage_c_server_backup_export.sql",
-      "sha256": "0035e3abfaa0cd23b6e8e0d25167365c6cf6aecee21c2ce2df269a9a0267636c",
-      "size": 4916
-    },
-    {
-      "path": "staging-database/local-test/stage-c-backup-selftest.mjs",
-      "sha256": "c84642426bcee9532520dfea568bb0a03aca05ccfda30f91da3c24bada9b5659",
-      "size": 2366
-    },
-    {
-      "path": "docs/verification/contracts-workspace-20261002.md",
-      "sha256": "1d0a45d7dc60bdafd7b4a18d5912d216752098e3bff35ae751408da34f8c92e0",
-      "size": 1488
-    },
-    {
-      "path": "src/v267/domain/contract-foundation.js",
-      "sha256": "7ce3a30902aa1d7ff87643f4f1c1cdc9b52187bb419a720163570e02c740cc1f",
-      "size": 4258
-    },
-    {
-      "path": "src/v267/styles/contract-workspace.css",
-      "sha256": "a5607602f284b6f0b006bc9f13580a7e9ba9648692cd81b7b9e320990d334890",
-      "size": 29143
-    },
-    {
-      "path": "tests/v267-property-contract-archive-ui.test.mjs",
-      "sha256": "1b6a97cc7a8089de450cbd547063f7aa71fa1bc1dc30a297cab1c0a45239a93c",
-      "size": 3528
-    },
-    {
-      "path": "docs/verification/contracts-reference-correction-20261002.md",
-      "sha256": "259fc5ec90a4253e859058cdf4db6258f7bccb61a12d4c6b491539cc6a7d0dfe",
-      "size": 1189
-    },
-    {
-      "path": "docs/verification/contracts-reference-mobile-20261002.png",
-      "sha256": "4f4f5ce997e00c0d1bdc2771f6f83217d0822474c7b062b2aa79be73cbce5a10",
-      "size": 87298
-    },
-    {
-      "path": "src/v267/assets/contracts-skyline.svg",
-      "sha256": "9056a1ae6be04ba6876887c17fe7c47296659a72c77c914e416648fce520e4bc",
-      "size": 1743
     }
   ],
   "version": "V198"

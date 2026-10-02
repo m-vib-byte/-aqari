@@ -25,13 +25,13 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
   const manager=await mountRentalTemplateManager(d,area,{propertyId,section:'contracts',referenceLayout:true,onBack:onBack?()=>{d.close();return onBack();}:undefined});
   let mode='contracts';const tabButtons=[];
   const show=async(value)=>{
-   mode=value;for(const button of tabButtons)button.setAttribute('aria-current',button.dataset.section===value?'page':'false');
+   mode=value;upload.hidden=hint.hidden=!['contracts','upload'].includes(value);for(const button of tabButtons)button.setAttribute('aria-current',button.dataset.section===value?'page':'false');
    area.hidden=value==='archive'||value==='upload';files.hidden=!area.hidden;archive.hidden=area.hidden;
    if(!area.hidden){manager.setSection(value);return;}
    const ticket=++epoch;files.replaceChildren(node('p',t('جارٍ التحميل…')));
    const content=node('div');await mountPropertyContractUpload(d,content,{propertyId,archiveOnly:value==='archive',onBack:()=>d.run(()=>show('contracts'))});d.session.check();if(ticket===epoch)files.replaceChildren(content);
   };
-  for(const [value,label]of [['contracts','العقود'],['documents','المستندات'],['archive','الأرشيف']]){const button=node('button',t(label));button.type='button';button.dataset.section=value;button.onclick=()=>d.run(()=>show(value));tabs.append(button);tabButtons.push(button);}
+  for(const [value,label]of [['contracts','العقود'],['documents','المستندات'],['employees','الموظفون'],['archive','الأرشيف']]){const button=node('button',t(label));button.type='button';button.dataset.section=value;button.onclick=()=>d.run(()=>show(value));tabs.append(button);tabButtons.push(button);}
   async function refreshIdentity(){
    const ticket=++epoch;name.textContent=properties.find(p=>p.id===propertyId)?.name||t('اختر العقار');logo.replaceChildren(node('span',t('إضافة شعار العقار')));logo.disabled=!propertyId;
    if(logoUrl){URL.revokeObjectURL(logoUrl);logoUrl=null;}if(!propertyId)return;
@@ -41,7 +41,7 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
   select.onchange=()=>d.run(async()=>{propertyId=select.value||null;manager.setProperty(propertyId);await refreshIdentity();await show(mode);});
   logo.onclick=()=>logoInput.click();logoInput.onchange=()=>d.run(async()=>{const file=logoInput.files?.[0],id=propertyId;if(!file||!id)return;logo.disabled=select.disabled=true;try{await service.uploadLogo(id,file);logoInput.value='';await refreshIdentity();d.status.textContent=t('تم حفظ شعار العقار.');}finally{logo.disabled=!propertyId;select.disabled=false;}});
   upload.onclick=()=>d.run(()=>show('upload'));archive.onclick=()=>d.run(()=>show('archive'));
-  await refreshIdentity();await show(initialSection==='documents'?'documents':'contracts');if(initialDocumentKind)manager.openStarter(initialDocumentKind);
+  await refreshIdentity();await show(['salary_voucher','employment_contract'].includes(initialDocumentKind)?'employees':['documents','employees'].includes(initialSection)?initialSection:'contracts');if(initialDocumentKind)manager.openStarter(initialDocumentKind);
   }catch(error){if(!Array.from(d.body.children).includes(retry))d.body.prepend(retry);throw error;}
  }
  retry.onclick=()=>d.run(load);d.body.append(retry);d.run(load);return true;
