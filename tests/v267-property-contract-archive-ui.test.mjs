@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 test('archive offers the next 100 contracts without replacing the first page',async()=>{
  const children=element=>[element,...element.children.flatMap(children)];
- const node=(tag,text='')=>({tag,_text:text,style:{},children:[],append(...parts){this.children.push(...parts);},prepend(...parts){this.children.unshift(...parts);},
+ const node=(tag,text='')=>({tag,_text:text,style:{},children:[],append(...parts){for(const part of parts)part.parentElement=this;this.children.push(...parts);},setAttribute(key,value){this[key]=value;},insertBefore(part,before){part.parentElement=this;this.children.splice(this.children.indexOf(before),0,part);},prepend(...parts){this.children.unshift(...parts);},
   replaceChildren(...parts){this.children=parts;},get textContent(){return this._text+this.children.map(part=>part.textContent).join('');},
   set textContent(value){this._text=value;this.children=[];}});
  const field=(label,control)=>{const wrapper=node('label',label);wrapper.append(control);return wrapper;};

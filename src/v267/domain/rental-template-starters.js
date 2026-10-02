@@ -19,7 +19,7 @@ const freeze=value=>{
  }
  return value;
 };
-const starter=(starterId,kind,kind_label,title,fields,clauses)=>({starterId,kind,kind_label,title,fields,clauses,presentation:defaultTemplatePresentation(kind)});
+const starter=(starterId,kind,kind_label,title,fields,clauses)=>{const presentation=defaultTemplatePresentation(kind);if(['salary_voucher','employment_contract'].includes(kind)){for(const role of Object.keys(presentation.signers))presentation.signers[role]={name:false,signature:false,fingerprint:false};}return {starterId,kind,kind_label,title,fields,clauses,presentation};};
 
 /** Only headings and empty labelled slots are provided. The owner supplies
  * and reviews the legal wording; no names, addresses, balances, quantities,
@@ -103,6 +103,25 @@ export const rentalTemplateStarters=freeze([
   section('بيانات التسوية / Settlement Details',[
    ['settlement_reference','Settlement Reference'],['net_balance','Final Balance']
   ])
+ ]),
+ starter('starter-salary-voucher-v1','salary_voucher','سند راتب','مسودة سند راتب',[
+  field('property_name'),field('document_no'),field('issued_at'),
+  detail('employee_name','اسم الموظف'),detail('employee_civil_id','الرقم المدني للموظف'),detail('job_title','المسمى الوظيفي'),detail('salary_period','فترة الراتب'),
+  {key:'salary_amount',label:'مبلغ الراتب',type:'money',required:true},field('payment_method',false),field('payment_reference',false),detail('employee_signature','توقيع الموظف'),detail('employer_signature','توقيع المسؤول')
+ ],[
+  section('سند راتب / Salary Voucher',[['property_name','Property'],['document_no','Document No.'],['issued_at','Date']]),
+  {title:'بيانات الموظف / Employee Details',text:'اسم الموظف: {{employee_name}}\nالرقم المدني: {{employee_civil_id}}\nالمسمى الوظيفي: {{job_title}}'},
+  {title:'بيانات الراتب / Salary Details',text:'فترة الراتب: {{salary_period}}\nالمبلغ: {{salary_amount}}\nطريقة الدفع: {{payment_method}}\nمرجع الدفع: {{payment_reference}}'},
+  {title:'التواقيع / Signatures',text:'توقيع الموظف: {{employee_signature}}\nتوقيع المسؤول: {{employer_signature}}'}
+ ]),
+ starter('starter-employment-contract-v1','employment_contract','عقد العمل','مسودة عقد العمل',[
+  field('property_name'),field('document_no'),field('issued_at'),field('owner_name'),
+  detail('employee_name','اسم الموظف'),detail('employee_civil_id','الرقم المدني للموظف'),detail('job_title','المسمى الوظيفي'),detail('employment_start','تاريخ بدء العمل'),detail('employment_terms','بنود عقد العمل'),detail('employee_signature','توقيع الموظف'),detail('employer_signature','توقيع صاحب العمل')
+ ],[
+  section('عقد العمل / Employment Contract',[['property_name','Property'],['document_no','Document No.'],['issued_at','Date'],['owner_name','Employer']]),
+  {title:'بيانات الموظف والعمل / Employee and Work Details',text:'اسم الموظف: {{employee_name}}\nالرقم المدني: {{employee_civil_id}}\nالمسمى الوظيفي: {{job_title}}\nتاريخ بدء العمل: {{employment_start}}'},
+  details('بنود عقد العمل / Employment Terms','employment_terms'),
+  {title:'التواقيع / Signatures',text:'توقيع الموظف: {{employee_signature}}\nتوقيع صاحب العمل: {{employer_signature}}'}
  ])
 ]);
 

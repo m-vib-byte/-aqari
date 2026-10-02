@@ -11,7 +11,7 @@ const fils=value=>{
  return minor;
 };
 
-export const isFoundationContractTemplate=template=>!['apartment_handover','eviction','rent_receipt','owner_final_clearance'].includes(template?.kind);
+export const isFoundationContractTemplate=template=>!['apartment_handover','eviction','rent_receipt','owner_final_clearance','salary_voucher','employment_contract'].includes(template?.kind);
 
 export function foundationTemplateValues(data,preparation,values,sources){
  if(!preparation?.id||!preparation.tenantId||!preparation.propertyId||!preparation.unitId)throw Error('احفظ ربط المستأجر والعقار والوحدة قبل اختيار حقول العقد.');

@@ -4,9 +4,9 @@ import {rentalTemplateStarters,cloneRentalTemplateStarter} from '../src/v267/dom
 import {documentFieldCatalog,validateTemplateFields,renderDocumentTemplate,resolveDocumentSigners} from '../src/v267/domain/rental-document-cycle.js';
 import {validateTemplatePresentation} from '../src/v267/domain/rental-document-layout.js';
 
-test('the four reusable starters have independent stable catalog IDs and no saved or approved identity',()=>{
- assert.deepEqual(rentalTemplateStarters.map(item=>item.kind),['rent_receipt','eviction','apartment_handover','owner_final_clearance']);
- assert.equal(new Set(rentalTemplateStarters.map(item=>item.starterId)).size,4);
+test('the six reusable starters have independent stable catalog IDs and no saved or approved identity',()=>{
+ assert.deepEqual(rentalTemplateStarters.map(item=>item.kind),['rent_receipt','eviction','apartment_handover','owner_final_clearance','salary_voucher','employment_contract']);
+ assert.equal(new Set(rentalTemplateStarters.map(item=>item.starterId)).size,6);
  for(const item of rentalTemplateStarters){
   assert.match(item.starterId,/^starter-[a-z-]+-v1$/);
   assert.match(item.title,/^مسودة /);
@@ -29,7 +29,7 @@ test('all starters validate with exact saved field schema and render an empty us
   assert.throws(()=>renderDocumentTemplate(item,{}),/أكمل الحقول المطلوبة/);
   const presentation=validateTemplatePresentation(item.presentation,item.fields);
   assert.equal(presentation.paper,'A4');assert.equal(presentation.language,'bilingual');
-  for(const role of ['owner','tenant'])assert.deepEqual(presentation.signers[role],{name:true,signature:true,fingerprint:true});
+  const leaseSigners=!['salary_voucher','employment_contract'].includes(item.kind);for(const role of ['owner','tenant'])assert.deepEqual(presentation.signers[role],{name:leaseSigners,signature:leaseSigners,fingerprint:leaseSigners});
   const signers=resolveDocumentSigners(item.kind,{},presentation);
   assert.ok(signers.every(signer=>signer.name===''&&signer.signature===''&&signer.fingerprint===''));
  }
@@ -63,8 +63,8 @@ test('opening each starter clones mutable fields and presentation into a fresh i
    assert.equal(draft.revision,0);assert.equal(draft.status,'draft');assert.equal(draft._unsaved,true);
    assert.ok(!Object.hasOwn(draft,'starterId'));assert.ok(!ids.has(draft.id));ids.add(draft.id);
   }
-  a.fields[0].label='تعديل المستخدم';a.clauses[0].text='نص يكتبه المستخدم';a.presentation.signers.owner.name=false;
-  assert.equal(b.fields[0].label,item.fields[0].label);assert.equal(b.clauses[0].text,item.clauses[0].text);assert.equal(b.presentation.signers.owner.name,true);
+  a.fields[0].label='تعديل المستخدم';a.clauses[0].text='نص يكتبه المستخدم';a.presentation.signers.owner.name=!item.presentation.signers.owner.name;
+  assert.equal(b.fields[0].label,item.fields[0].label);assert.equal(b.clauses[0].text,item.clauses[0].text);assert.equal(b.presentation.signers.owner.name,item.presentation.signers.owner.name);
  }
  assert.equal(JSON.stringify(rentalTemplateStarters),original);
 });
