@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "6681dc2ea3bd0678fe0243d0566bbc0a0e0d1b5e5e281d84484e2a2b7c58111d",
-      "size": 8706
+      "sha256": "092f4affdd2f427f076f9b9bdae0f310f32d6b1671fe076d4beefd97a809a5d2",
+      "size": 8786
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -264,6 +264,11 @@
       "path": "api/owner-report-delivery.js",
       "size": 10467,
       "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6"
+    },
+    {
+      "path": "api/pdf-field-template.py",
+      "sha256": "a3562e0ee4ac4f382b4a7a8d71f630215cc07929a689004848fd217ef91bc896",
+      "size": 5843
     },
     {
       "path": "api/production-meta.js",
@@ -931,6 +936,11 @@
       "size": 4664
     },
     {
+      "path": "lib/pdf_field_template.py",
+      "sha256": "4ae4bc85731ea3fff74abd0b38b252bf0ee6741ca4edb23b65739b92f5ee1b14",
+      "size": 7237
+    },
+    {
       "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
       "sha256": "3a3c502eeff669a231549e80df9f7c49de109bafe303170409e905d0b31a38fe",
       "size": 334268
@@ -1087,8 +1097,8 @@
     },
     {
       "path": "requirements.txt",
-      "sha256": "b9d81172ecc68a2073de7fac95c36312f7c54c0227b7c0e231def495d1550f4c",
-      "size": 59
+      "sha256": "1002f5bdc2f113a748ad9f46d56ecd6184589f332e1408bb338214764fabffda",
+      "size": 90
     },
     {
       "path": "reset-password.html",
@@ -1427,8 +1437,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "7a3e9b6741680b7182cd1104adf850a0ca5d9f970052ccc21ab38d333613e73a",
-      "size": 5019
+      "sha256": "02f3ce7afad968931ff46698d5a4b34f6b000be5a17a9d060d9a76979aca4461",
+      "size": 5392
     },
     {
       "path": "src/v267/components/page.js",
@@ -1727,8 +1737,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "8ce0d68d2d287465df96ca06ca9f69474a8e155432f677759196544debf72404",
-      "size": 7715
+      "sha256": "40d478db3a7c75b51a315c35633af75ad120f48520f0bbf6c9f2b46faba68155",
+      "size": 8037
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -1854,6 +1864,11 @@
       "path": "src/v267/pages/partner-distributions.js",
       "sha256": "d1625590424860a541d8379b79de868c7edf21d00c024a699dc7813bce6b757e",
       "size": 17337
+    },
+    {
+      "path": "src/v267/pages/pdf-field-template.js",
+      "sha256": "bec8ae5e7eab4fb98e8ec9e9e0c0db2a9239c88a3029f4e5bebe8780b8913366",
+      "size": 15701
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -1989,6 +2004,11 @@
       "path": "src/v267/styles/luxury-warm-beige.css",
       "sha256": "8aabe4200384031f5d4910c4711871449904e2c21010ac9a0dcc8fec9f265757",
       "size": 31335
+    },
+    {
+      "path": "src/v267/styles/pdf-field-template.css",
+      "sha256": "06d64b14e6bfb367d15f99a72ee24869d8c68284af8f45c2c33457c5e639fe4a",
+      "size": 1156
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -3721,6 +3741,11 @@
       "size": 4009
     },
     {
+      "path": "tests/pdf_field_template_test.py",
+      "sha256": "da22dba44e1bb8f95ba541e967075684777216148e8ded74599eca776f5d00c1",
+      "size": 6722
+    },
+    {
       "path": "tests/preview-access.mjs",
       "sha256": "6ecb65fd837cc8d8bb3c1880941e95678435f57f519613dd4b50b420a647886b",
       "size": 1814
@@ -4357,8 +4382,8 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "sha256": "c7195056026309b4d028b644365ab778b47f83010217fe1247351624d609baaf",
-      "size": 8268
+      "sha256": "18a8083972bcbb20d4720e8aeb82f6ba45751546471848d00282c0654fb0e4ce",
+      "size": 9151
     },
     {
       "path": "tests/v267-owner-feedback-batch.test.mjs",

@@ -32,6 +32,7 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
    if(intent==='new')return module.openContractFoundation({propertyId,property:selected.name,openContracts:async initial=>{const next=await guardPageImport(()=>import('./rental-contracts.js'));return next.openRentalContracts({...initial,propertyId});}});
    return module.openRentalContracts({propertyId,intent:'existing'});
   }
+  action('نموذج PDF بحقول','ارفع الملف وحدد أماكن الكتابة عليه',async()=>{const module=await guardPageImport(()=>import('./pdf-field-template.js'));d.session.check();d.close();return module.openPdfFieldTemplate({propertyId,onBack:()=>openContractTemplates({propertyId,onBack})});});
   action('عقد جديد','اختر النموذج واربط المستأجر والوحدة',()=>openContracts('new'));
   action('عقد قائم','اربط النسخة بعقد مسجّل أو سجّل بياناته الأصلية',()=>openContracts('existing'));
   action('كتابة نموذج','اكتب أو الصق نصك ثم راجعه واعتمده',()=>manager.openEditor(null,{write:true}));

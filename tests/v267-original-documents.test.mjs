@@ -80,3 +80,11 @@ test('scanner rotation follows the selected image after dialog controls are rest
   assert.equal(rotate.disabled,true,'PDF must not inherit image rotation controls');
  }finally{delete globalThis.__scannerControlTest;}
 });
+
+ test('PDF field templates retain the marker and fail closed on changed readback',async()=>{
+ const file=new File(['%PDF-1.7\nmap'],'template.pdf'),mapped={type:'property',ref:'p',propertyId:'76610000-0000-4000-8000-000000000002',category:'property_contract',title:'Fields',pdfFieldTemplate:true};
+ const f=fixture();const row=await createOriginalDocumentUpload(f.s)(file,mapped);assert.equal(row.metadata.pdf_field_template,true);
+ const bad=fixture(),request=bad.s.request;bad.s.request=async q=>{const r=await request(q);return r?.status==='uploaded'?{...r,metadata:{...r.metadata,pdf_field_template:false}}:r;};
+ await assert.rejects(createOriginalDocumentUpload(bad.s)(file,mapped),/إعادة قراءة/);
+ const invalid=fixture();await assert.rejects(createOriginalDocumentUpload(invalid.s)(file,{...target,pdfFieldTemplate:true}));assert.equal(invalid.calls.length,0);
+});
