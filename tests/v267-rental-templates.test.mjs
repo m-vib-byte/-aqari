@@ -115,7 +115,7 @@ test('field placement, language, logo and signer changes are additive and preser
 });
 
 test('final preview embeds the same PDF blob used for download and edit invalidates approval',async()=>{
- const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'النص الأصلي'}]});let requests=0;globalThis.fetch=async()=>{requests++;return new Response(new Blob(['%PDF-1.7 exact'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};await button(manager.form,'معاينة النسخة النهائية').onclick();const frame=all(manager.form).find(x=>x.tag==='iframe');assert.ok(frame.src.startsWith('blob:'));button(manager.form,'تحميل PDF').onclick();const downloaded=f.created.find(x=>x.tag==='a'&&x.download?.endsWith('.pdf'));assert.equal(downloaded.href,frame.src);assert.equal(requests,1);assert.ok(button(manager.form,'اعتماد هذا النموذج نهائيًا'));const name=namedInput(manager.form);name.value='تعديل';name.oninput();assert.equal(all(manager.form).find(x=>x.className==='aq267-template-approval').hidden,true);assert.equal(button(manager.form,'تحميل PDF').disabled,true);assert.equal(f.state.calls.some(x=>x.p_action==='publish'),false);manager.current.saver.dispose();
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'النص الأصلي'}]});let requests=0;globalThis.fetch=async()=>{requests++;return new Response(new Blob(['%PDF-1.7 exact'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};await button(manager.form,'معاينة النسخة النهائية').onclick();const frame=all(manager.form).find(x=>x.tag==='iframe');assert.ok(frame.src.startsWith('blob:'));await button(manager.form,'تحميل PDF').onclick();const downloaded=f.created.find(x=>x.tag==='a'&&x.download?.endsWith('.pdf'));assert.equal(downloaded.href,frame.src);assert.equal(requests,1);assert.ok(button(manager.form,'اعتماد هذا النموذج نهائيًا'));const name=namedInput(manager.form);name.value='تعديل';name.oninput();assert.equal(all(manager.form).find(x=>x.className==='aq267-template-approval').hidden,true);assert.equal(button(manager.form,'تحميل PDF').disabled,false);assert.equal(f.state.calls.some(x=>x.p_action==='publish'),false);manager.current.saver.dispose();
 });
 
 test('independent copies get a new identity and family without rewriting original clauses',async()=>{
@@ -231,10 +231,35 @@ test('mobile preview activation is deduplicated and offers an inline retry after
 
 test('reference workspace reuses a published template without editing the stored original or inventing saved placeholders',async()=>{
  const f=setup({manager:true}),before=clone(f.state.items),manager=await mountRentalTemplateManager(f.d,f.target,{section:'contracts',referenceLayout:true});
- assert.equal(all(f.target).filter(x=>x.className==='aq267-linked-document-row').length,6);
- assert.equal(all(f.target).filter(x=>x.className==='aq267-state-active').length,1);
+ assert.equal(all(f.target).filter(x=>x.className==='aq267-linked-document-row').length,0);
+ assert.equal(all(f.target).filter(x=>x.className==='aq267-state-approved').length,1);
+ assert.ok(all(f.target).every(x=>!x.textContent.includes('فعّال')));
  assert.equal(all(f.target).filter(x=>x.className.includes('aq267-template-card-empty')).length,1);
  button(f.target,'استخدام النموذج').onclick();
  assert.notEqual(manager.current.data().id,template.id);assert.deepEqual(manager.current.data().clauses,template.clauses);
  assert.deepEqual(f.state.items,before);assert.ok(f.state.calls.every(call=>call.p_action==='context'));manager.current.saver.dispose();
+});
+
+
+test('reference sections separate document and employee starters and stored models',async()=>{
+ const employee={...template,id:'salary-id',kind:'salary_voucher',title:'سند محفوظ'},document={...template,id:'receipt-id',kind:'rent_receipt',title:'وصل محفوظ'};
+ const f=setup({manager:true,items:[template,employee,document]}),manager=await mountRentalTemplateManager(f.d,f.target,{section:'contracts',referenceLayout:true});
+ const titles=()=>all(f.target).filter(x=>x.tag==='h4'||x.tag==='h5').map(x=>x.textContent);
+ assert.ok(titles().includes(template.title));assert.ok(!titles().includes(employee.title));assert.ok(!titles().includes(document.title));
+ manager.setSection('documents');assert.equal(all(f.target).filter(x=>x.className==='aq267-linked-document-row').length,4);assert.ok(titles().includes(document.title));assert.ok(!titles().includes(employee.title));assert.ok(!titles().includes('عقد العمل'));
+ manager.setSection('employees');assert.equal(all(f.target).filter(x=>x.className==='aq267-linked-document-row').length,2);assert.ok(titles().includes(employee.title));assert.ok(titles().includes('عقد العمل'));assert.ok(!titles().includes(document.title));
+ assert.ok(f.state.calls.every(call=>call.p_action==='context'));
+});
+
+test('download prepares PDF directly and rebuilds after edits without requiring preview',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});let requests=0;
+ globalThis.fetch=async()=>{requests++;return new Response(new Blob(['%PDF-1.7 direct '+requests],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};
+ assert.equal(button(manager.form,'تحميل PDF').disabled,false);await button(manager.form,'تحميل PDF').onclick();assert.equal(requests,1);const first=f.created.find(x=>x.tag==='a'&&x.clicked&&x.download?.endsWith('.pdf'));assert.ok(first);
+ const name=namedInput(manager.form);name.value='تعديل';name.oninput();await button(manager.form,'تحميل PDF').onclick();assert.equal(requests,2);const downloads=f.created.filter(x=>x.tag==='a'&&x.clicked&&x.download?.endsWith('.pdf'));assert.equal(downloads.length,2);assert.notEqual(downloads[0].href,downloads[1].href);assert.equal(f.state.calls.some(x=>x.p_action==='publish'),false);manager.current.saver.dispose();
+});
+
+test('direct print reserves a mobile viewer, closes it on failure and permits retry',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});const popups=[];window.open=()=>{const popup={document:{body:{}},location:{replace(url){popup.url=url;}},close(){this.closed=true;}};popups.push(popup);return popup;};
+ globalThis.fetch=async()=>new Response('unavailable',{status:503});await assert.rejects(button(manager.form,'طباعة PDF').onclick(),/تعذر إنشاء PDF/);assert.equal(popups[0].closed,true);assert.equal(button(manager.form,'طباعة PDF').disabled,false);
+ globalThis.fetch=async()=>new Response(new Blob(['%PDF-1.7 print'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});await button(manager.form,'طباعة PDF').onclick();assert.ok(popups[1].url.startsWith('blob:'));assert.equal(popups[1].opener,null);assert.equal(f.state.calls.some(x=>x.p_action==='publish'),false);manager.current.saver.dispose();
 });
