@@ -1357,8 +1357,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "bfc7721069da281176a85dd446c002bef786790034c2663039b1e45b86f92204",
-      "size": 90177
+      "sha256": "575732724c481d1a207ef0a929864ab14d47122acb5ab508e59f76f8944e3167",
+      "size": 90560
     },
     {
       "path": "src/v267/components/scan-image.js",
