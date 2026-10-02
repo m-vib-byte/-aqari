@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "6f11446b62e6a7e8df32a825c46c4bb455ee8d4c7a5d971145854cb31d30ad31",
-      "size": 8203
+      "sha256": "ee9679c6bd446ce28965f6e99242329d738fdb11a0f4772e9e0f4b3923f51522",
+      "size": 8464
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -856,6 +856,11 @@
       "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6"
     },
     {
+      "path": "docs/verification/property-contract-open-20261002.md",
+      "sha256": "f93590155cc24293a699c4317d88a260dda5a52851f78f23715779b9e3a4ccda",
+      "size": 1591
+    },
+    {
       "path": "docs/verification/rental-document-cycle-20260920.md",
       "sha256": "830cf88613efed494cb436cd14f9615df7fb79b71f8500b78af143dc08e9d792",
       "size": 4688
@@ -1307,8 +1312,8 @@
     },
     {
       "path": "src/v267/components/contract-template-studio-translations.js",
-      "sha256": "7900c55cc9a93133a9b352dc741bab39a980cc35595224c1e7d13f31a27af264",
-      "size": 96896
+      "sha256": "bcee017a88bc824f7f61e65c9e556e885f7a62f348c64f9afb1cdec0491e14fa",
+      "size": 99243
     },
     {
       "path": "src/v267/components/data-quality.mjs",
@@ -1447,8 +1452,8 @@
     },
     {
       "path": "src/v267/components/property-contract-upload.js",
-      "size": 10341,
-      "sha256": "b22c7b18c68eb1a112720185505e055ba2be2fe68acc5756f5dabf4923bf32c9"
+      "size": 12083,
+      "sha256": "e71d9bd56cff3e1ad8a06165f6667cf454099445758146eabea4c5e25f77edf6"
     },
     {
       "path": "src/v267/components/property-experience.js",
@@ -4394,6 +4399,11 @@
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
       "sha256": "1b6a97cc7a8089de450cbd547063f7aa71fa1bc1dc30a297cab1c0a45239a93c",
       "size": 3528
+    },
+    {
+      "path": "tests/v267-property-contract-open.test.mjs",
+      "sha256": "5442d7db0ded281e5160f76de02b091c5684910457e7ba1317492a2f74422260",
+      "size": 6058
     },
     {
       "path": "tests/v267-property-controls-sql-fix.test.mjs",
