@@ -21,11 +21,11 @@ test('archive offers the next 100 contracts without replacing the first page',as
  const source=fs.readFileSync('src/v267/components/property-contract-upload.js','utf8')
   .replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
  const mount=vm.runInContext(source+'\nmountPropertyContractUpload',context);
- await mount(d,target,{propertyId:property.id});
+ await mount(d,target,{propertyId:property.id,archiveOnly:true});
  const find=label=>children(target).find(element=>element.tag==='button'&&element._text===label);
  const refresh=find('عرض عقود PDF المحفوظة'),more=find('عرض المزيد من العقود');
- assert.ok(refresh);assert.ok(more);assert.equal(more.hidden,true);
- refresh.onclick();await d.pending;
+ assert.ok(refresh);assert.ok(more);assert.equal(more.hidden,false);
+ assert.equal(children(target).find(element=>element.tag==='h3').parentElement.hidden,true);
  assert.equal(children(target).filter(element=>element.tag==='button'&&element._text==='عرض PDF المحفوظ').length,100);
  assert.equal(more.hidden,false);
  assert.ok(children(target).some(element=>element.tag==='span'&&element.textContent.includes('عقد صوري.pdf')));

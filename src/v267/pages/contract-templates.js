@@ -18,18 +18,18 @@ export function openContractTemplates({propertyId=null,onBack,initialSection='co
   if(d.session.bound.role!=='general_manager')throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
   const service=createTemplateLogoContext(d.session),properties=await service.listProperties();d.session.check();
   if(propertyId&&!properties.some(p=>p.id===propertyId))throw Error('العقار المحدد غير متاح ضمن مساحة العمل الحالية.');
-  const chrome=node('section'),identity=node('header'),names=node('div'),name=node('h3',t('اختر العقار')),select=node('select'),logo=node('button'),logoInput=node('input'),tabs=node('nav'),upload=node('button',t('رفع عقد جاهز')),hint=node('p',t('تصوير أو صور أو PDF')),area=node('section'),files=node('section'),archive=node('button',t('العقود المحفوظة'));
+  const chrome=node('section'),identity=node('header'),names=node('div'),name=node('h3',t('اختر العقار')),select=node('select'),logo=node('button'),logoInput=node('input'),tabs=node('nav'),upload=node('button',t('رفع عقد جاهز')),hint=node('p',t('حفظ نسخة في الأرشيف · PDF أو صور')),area=node('section'),files=node('section'),archive=node('button',t('العقود المحفوظة'));
   chrome.className='aq267-contract-chrome';identity.className='aq267-contract-identity';names.className='aq267-contract-property';select.name='contract_property';logo.className='aq267-contract-logo';logo.type='button';logo.textContent=t('إضافة شعار العقار');logoInput.type='file';logoInput.accept='image/png,image/jpeg,image/webp';logoInput.hidden=true;
   for(const p of [{id:'',name:t('اختر العقار')},...properties]){const option=node('option',p.name);option.value=p.id;select.append(option);}select.value=propertyId||'';const propertyChoice=field(t('العقار'),select);propertyChoice.className+=' aq267-contract-property-choice';names.append(name,propertyChoice);identity.append(logo,names,logoInput);tabs.className='aq267-contract-tabs';tabs.setAttribute('aria-label',t('العقود والمستندات'));upload.type=archive.type='button';upload.className='aq267-contract-upload';hint.className='aq267-contract-upload-hint';archive.className='aq267-contract-archive-link';files.className='aq267-contract-files';files.hidden=true;
   chrome.append(identity,tabs,upload,hint);d.body.replaceChildren(chrome,area,files,archive);
   const manager=await mountRentalTemplateManager(d,area,{propertyId,section:'contracts',referenceLayout:true,onBack:onBack?()=>{d.close();return onBack();}:undefined});
   let mode='contracts';const tabButtons=[];
   const show=async(value)=>{
-   mode=value;upload.hidden=hint.hidden=!['contracts','upload'].includes(value);for(const button of tabButtons)button.setAttribute('aria-current',button.dataset.section===value?'page':'false');
+   mode=value;identity.hidden=tabs.hidden=value==='upload';upload.hidden=hint.hidden=value!=='contracts';for(const button of tabButtons)button.setAttribute('aria-current',button.dataset.section===value?'page':'false');
    area.hidden=value==='archive'||value==='upload';files.hidden=!area.hidden;archive.hidden=area.hidden;
    if(!area.hidden){manager.setSection(value);return;}
    const ticket=++epoch;files.replaceChildren(node('p',t('جارٍ التحميل…')));
-   const content=node('div');await mountPropertyContractUpload(d,content,{propertyId,archiveOnly:value==='archive',onBack:()=>d.run(()=>show('contracts'))});d.session.check();if(ticket===epoch)files.replaceChildren(content);
+   const content=node('div');await mountPropertyContractUpload(d,content,{propertyId,archiveOnly:value==='archive',onArchive:()=>d.run(()=>show('archive')),onBack:()=>d.run(()=>show('contracts'))});d.session.check();if(ticket===epoch)files.replaceChildren(content);
   };
   for(const [value,label]of [['contracts','العقود'],['documents','المستندات'],['employees','الموظفون'],['archive','الأرشيف']]){const button=node('button',t(label));button.type='button';button.dataset.section=value;button.onclick=()=>d.run(()=>show(value));tabs.append(button);tabButtons.push(button);}
   async function refreshIdentity(){

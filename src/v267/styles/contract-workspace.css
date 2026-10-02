@@ -91,3 +91,16 @@ html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-d
 html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-contract-logo:not(:has(img))::before{flex-shrink:0;width:25px;height:25px;}
 html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-contract-archive-link::after{margin-right:auto!important;margin-left:0!important;}
 html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace[dir=ltr] .aq267-contract-archive-link::after{margin-left:auto!important;margin-right:0!important;}
+
+/* A focused upload: choose a source, review its name, then save. */
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-simple-upload{padding:20px!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-simple-upload h3{margin:0 0 8px!important;font-size:22px!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-simple-upload p{font-size:15px!important;line-height:1.7!important;overflow-wrap:anywhere;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-simple-upload .aq267-contract-source-choices{display:grid!important;grid-template-columns:1fr 1fr;gap:10px!important;margin:18px 0 10px!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-simple-upload .aq267-upload-pick{grid-column:1/-1;min-height:58px!important;margin:0!important;font-size:19px!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-simple-upload .aq267-upload-secondary{min-height:44px!important;margin:0!important;padding:9px 12px!important;font-size:15px!important;line-height:1.5!important;background:#fffdf9!important;border:1px solid #d8c6a6!important;color:#735126!important;box-shadow:none!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-upload-selection{background:#f8f4ec;border:1px dashed #d8c6a6;padding:12px;border-radius:10px;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-upload-save{width:100%!important;min-height:50px!important;font-size:18px!important;margin-top:12px!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-upload-success{padding:16px!important;margin-top:18px!important;background:#f1f7ed!important;border:1px solid #cbdcbd!important;border-radius:12px!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-upload-success h4{color:#37622c!important;margin:0!important;}
+html body.aq267-page-open main.aq267-page.aq267-dialog.aq267-contract-template-dialog.aq267-contract-workspace .aq267-upload-success>.aq267-upload-secondary{display:block;width:100%!important;margin-top:8px!important;}
