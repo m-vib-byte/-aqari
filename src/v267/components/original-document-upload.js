@@ -38,7 +38,7 @@ export function createOriginalDocumentUpload(session){
   // category that the database rejects before Storage can accept the file.
   const category=target.category==='property_contract'?'property_other':target.category;
   const pdfFieldTemplate=target.pdfFieldTemplate===true;if(pdfFieldTemplate&&(target.category!=='property_contract'||blob.type!=='application/pdf'))throw Error('نموذج الحقول يجب أن يكون PDF مرتبطًا بالعقار.');
-  const metadata={...(pdfFieldTemplate?{pdf_field_template:true}:{}),category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267',...(propertyId?{property_id:propertyId}:{})};
+  const metadata={category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267',...(propertyId?{property_id:propertyId}:{}),...(pdfFieldTemplate?{pdf_field_template:true}:{})};
   const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash,propertyId,pdfFieldTemplate]);
   if(!pending||pending.key!==key){
    const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:spec.documentType,p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title.trim(),p_original_filename:file.name,p_mime_type:blob.type,p_metadata:metadata}));
