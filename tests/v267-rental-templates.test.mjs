@@ -296,3 +296,20 @@ test('quick writing keeps tokens in the chip editor and is absent for read-only 
  button(manager.form,'كتابة نص النموذج').onclick();assert.equal(all(manager.form).some(el=>el.name==='quick_clause_text'),false);assert.equal(document.activeElement._templateSource.part,'title');assert.equal(manager.current.saver.dirty,false);manager.current.saver.dispose();
  manager.openEditor(template,{readonly:true});assert.equal(button(manager.form,'كتابة نص النموذج'),undefined);manager.current.saver.dispose();
 });
+test('employee create opens populated employment draft and supports save and direct PDF',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{section:'employees',referenceLayout:true});
+ button(f.target,'إضافة نموذج').onclick();
+ const draft=manager.current.data();
+ assert.equal(draft.kind,'employment_contract');assert.ok(draft.clauses.length>=6);
+ assert.ok(draft.clauses.every(c=>c.title.trim()&&c.text.trim()));
+ assert.ok(draft.fields.some(f=>f.key==='basic_salary'));
+ assert.ok(all(manager.form).some(el=>el.textContent==='الطرف الأول / صاحب العمل'));
+ assert.ok(!all(manager.form).some(el=>el.textContent==='الطرف الثاني / المستأجر'));
+ assert.ok(f.state.calls.every(call=>call.p_action==='context'));
+ await button(manager.form,'حفظ الآن').onclick();
+ assert.ok(f.state.calls.some(call=>call.p_action==='save_draft'));
+ await button(manager.form,'تحميل PDF').onclick();
+ assert.ok(f.created.some(el=>el.tag==='a'&&el.clicked&&el.download?.endsWith('.pdf')));
+ manager.current.saver.dispose();
+});
+
