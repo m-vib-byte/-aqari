@@ -1,0 +1,7 @@
+# Empty editor PDF preview validation — 2026-10-02
+
+Production logs show eight HTTP 400 responses from /api/contract-template-preview around 02:33 UTC. The supplied image shows a new shop draft with empty clause title/body. The browser validated tokens but did not validate required clause content, whereas the Python renderer rejects empty titles and bodies. The client discarded the response error and displayed a generic PDF failure.
+
+Changes: validate clause title/body and length before saving or HTTP; show clause number and an explicit editing action; add UI-only placeholders to the blank A4 fields; distinguish validation, layout, authorization, conflict and temporary service errors using fixed client messages. Stored contract text, approval, database and renderer restrictions are unchanged.
+
+Verification: 39 template tests and 37 editor/state/metadata/restore tests pass. 28 Python PDF/preview/editor-renderer tests pass. Browser integration at 390x844 uses the actual editor, actual HTTP request parser, validation and Python renderer; only auth/property/RPC storage boundaries are synthetic. Existing template direct download and mobile print both receive HTTP 200 PDF. A new blank draft is blocked before HTTP, correction focuses the missing clause, and completing title/body produces a real downloadable PDF with no approval. Physical iPhone printing and the owner's private session were not tested.
