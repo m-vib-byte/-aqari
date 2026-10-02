@@ -275,3 +275,20 @@ test('a missing clause body is identified and API validation errors retain an ac
  const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'عنوان',text:''}]});await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/نص البند رقم 1/);manager.current.saver.dispose();
  manager.openEditor({title:'نموذج',clauses:[{title:'عنوان',text:'نص تجريبي'}]});globalThis.fetch=async()=>new Response(JSON.stringify({error:'LAYOUT_COLLISION'}),{status:400,headers:{'content-type':'application/json'}});await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/مواضع الحقول/);assert.ok(button(manager.form,'إعادة محاولة المعاينة'));manager.current.saver.dispose();
 });
+
+test('employee create opens populated employment draft and supports save and direct PDF',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target,{section:'employees',referenceLayout:true});
+ button(f.target,'إضافة نموذج').onclick();
+ const draft=manager.current.data();
+ assert.equal(draft.kind,'employment_contract');assert.ok(draft.clauses.length>=6);
+ assert.ok(draft.clauses.every(c=>c.title.trim()&&c.text.trim()));
+ assert.ok(draft.fields.some(f=>f.key==='basic_salary'));
+ assert.ok(all(manager.form).some(el=>el.textContent==='الطرف الأول / صاحب العمل'));
+ assert.ok(!all(manager.form).some(el=>el.textContent==='الطرف الثاني / المستأجر'));
+ assert.ok(f.state.calls.every(call=>call.p_action==='context'));
+ await button(manager.form,'حفظ الآن').onclick();
+ assert.ok(f.state.calls.some(call=>call.p_action==='save_draft'));
+ await button(manager.form,'تحميل PDF').onclick();
+ assert.ok(f.created.some(el=>el.tag==='a'&&el.clicked&&el.download?.endsWith('.pdf')));
+ manager.current.saver.dispose();
+});

@@ -33,14 +33,15 @@ export const documentTemplateBlueprints=Object.freeze([
 
 export function resolveDocumentSigners(kind,values={},presentation=null){
  // Existing apartment/house/shop/custom contract kinds remain lease kinds.
- const blueprint=documentTemplateBlueprints.find(item=>item.kind===kind)||documentTemplateBlueprints[0];
- const settings=presentation?.signers,available=[ownerSigner,tenantSigner,signer('receiver','المستلم','receiver_name'),signer('accountant','المحاسب','accountant_name')];
+ const employment=kind==='employment_contract',employmentSigners=[signer('owner','صاحب العمل','employer_name'),signer('tenant','الموظف','employee_name')];
+ const blueprint=employment?{signers:employmentSigners}:documentTemplateBlueprints.find(item=>item.kind===kind)||documentTemplateBlueprints[0];
+ const settings=presentation?.signers,available=[...(employment?employmentSigners:[ownerSigner,tenantSigner]),signer('receiver','المستلم','receiver_name'),signer('accountant','المحاسب','accountant_name')];
  const extra=presentation?.editor?.signers,selected=settings?available.filter(item=>['name','signature','fingerprint'].some(key=>settings[item.role]?.[key]===true)||['civil_id','nationality'].some(key=>extra?.details?.[item.role]?.[key]===true)):(blueprint?.signers||[]);
  if(extra?.order)selected.sort((a,b)=>{const rank=role=>extra.order.includes(role)?extra.order.indexOf(role):extra.order.length+available.findIndex(item=>item.role===role);return rank(a.role)-rank(b.role);});
  return selected.map(item=>{
-  const useRepresentative=item.role==='owner'&&fieldValue(values,'representative_name');
+  const useRepresentative=!employment&&item.role==='owner'&&fieldValue(values,'representative_name');
   const signer=useRepresentative?{...item,label:'وكيل المالك المفوض',nameKey:'representative_name'}:{...item};
-  const flags=settings?.[item.role]||(settings?{name:false,signature:false,fingerprint:false}:{name:true,signature:true,fingerprint:true}),details=extra?.details?.[item.role],prefix=useRepresentative?'representative':item.role;
+  const flags=settings?.[item.role]||(settings?{name:false,signature:false,fingerprint:false}:{name:true,signature:true,fingerprint:true}),details=extra?.details?.[item.role],prefix=employment?({owner:'employer',tenant:'employee'}[item.role]||item.role):useRepresentative?'representative':item.role;
   return {...signer,name:flags.name?fieldValue(values,signer.nameKey):'',signature:'',fingerprint:'',showName:flags.name,showSignature:flags.signature,showFingerprint:flags.fingerprint,...(details?{civilId:details.civil_id?fieldValue(values,prefix+'_civil_id'):'',nationality:details.nationality?fieldValue(values,prefix+'_nationality'):'',showCivilId:details.civil_id,showNationality:details.nationality}:{})};
  });
 }

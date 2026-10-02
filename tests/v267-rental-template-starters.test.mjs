@@ -78,3 +78,8 @@ test('catalog is deeply immutable and cloning refuses unknown starters or non-UU
  const id='b435aa4a-d83a-44ec-bf84-a3fb0292cae3';
  assert.equal(cloneRentalTemplateStarter(rentalTemplateStarters[0].starterId,{createId:()=>id}).family_id,id);
 });
+
+test('employment signers use employee identities without landlord representative substitution',()=>{
+ const signers=resolveDocumentSigners('employment_contract',{employer_name:'Employer',employee_name:'Employee',representative_name:'Landlord agent'});
+ assert.deepEqual(signers.map(s=>[s.label,s.name]),[['صاحب العمل','Employer'],['الموظف','Employee']]);
+});
