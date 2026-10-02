@@ -351,6 +351,16 @@
       "size": 16865
     },
     {
+      "path": "docs/AQARI-OWNER-IMPLEMENTATION-2026-10-02.md",
+      "size": 9109,
+      "sha256": "3dcb87a9d54b275dcde2ee000628e0461ba9b4487568059422aea0e318e09c39"
+    },
+    {
+      "path": "docs/AQARI-OWNER-REQUIREMENTS-2026-10-02.json",
+      "size": 105844,
+      "sha256": "f0fe65fd1af60e6c850625af89c620d3d19a728912726c2d7c897cee39ba0d68"
+    },
+    {
       "path": "docs/CONTRACT-ADMINISTRATION-2026-09-20.md",
       "sha256": "c57702b04390be7fcf266ccdb20fe8befbe5d95b14b807ee05363a106568c8aa",
       "size": 6022
@@ -1477,8 +1487,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "7f1a178cf5ffefb0fd5018fc0239be932636d9304e241aaae76d19aaab17f388",
-      "size": 96996
+      "sha256": "349151cd753b95d1862fccfa5d5f37d93b8336df162f0bdd65c14a6a07b096e2",
+      "size": 97344
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1616,6 +1626,11 @@
       "size": 7065
     },
     {
+      "path": "src/v267/domain/property-contact-links.js",
+      "sha256": "a6f7bc786e5c4d8aec98a9fa353ee9999151686b7491752ae5dbf126a9435593",
+      "size": 1788
+    },
+    {
       "path": "src/v267/domain/property-presentation.js",
       "size": 4947,
       "sha256": "521d12d925a7b4f9b090b4c08c37aaf04a6b7d0a47acc202cd7a1f998cf1f6a9"
@@ -1632,8 +1647,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "sha256": "de9175745746ff8029cd3b068d06d209185337b53e48ff30473e92ba64ee969b",
-      "size": 11354
+      "size": 12566,
+      "sha256": "5475715493ff226a0f507419fd858eeeb1487452dbdac10be663a02cc032a598"
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1659,6 +1674,11 @@
       "path": "src/v267/domain/template-editor-state.js",
       "sha256": "4f751a645aa05fec946e5ac8e6c45b8f048ba3dd9ad679c1de12756998bf217a",
       "size": 5677
+    },
+    {
+      "path": "src/v267/domain/tenant-final-release-starter.js",
+      "size": 7690,
+      "sha256": "38e4be810d8515cfefc0979ee8a02239c555cb01eb3b4678bedb8f24b1c450e8"
     },
     {
       "path": "src/v267/domain/vacating-review.js",
@@ -1733,7 +1753,7 @@
     {
       "path": "src/v267/pages/employees.js",
       "sha256": "bf948115fed3fe9b48285f9f746524c6e648b6165cd096dc54f02deb6dbd3a2a",
-      "size": 36441
+      "size": 36853
     },
     {
       "path": "src/v267/pages/exit-review.js",
@@ -1836,6 +1856,11 @@
       "size": 17337
     },
     {
+      "path": "src/v267/pages/property-channels.js",
+      "sha256": "35084f88f2db4b381464ed08a312e8747e55061b0398ce11e55723cd13a502ce",
+      "size": 5319
+    },
+    {
       "path": "src/v267/pages/property-controls.js",
       "size": 17647,
       "sha256": "71daeac3fc37fdd05c75b3a5c25674248245eed3fc2e1b13f053780a84d5b3bc"
@@ -1852,8 +1877,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 33583,
-      "sha256": "37b641d3e83435d0ad8975c63bc725a4384cc9ce4a01a8ca30ef39eefe7292ef"
+      "size": 35362,
+      "sha256": "adeed4517545d40875070890b3ec63d17d2446aea5cdc09975d8dd089354bc0f"
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1877,8 +1902,8 @@
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
-      "sha256": "39773f9c6df52d534f6ffb9be05e4c388cacf58b1883ffaf61d97e61a11aeee1",
-      "size": 28373
+      "size": 28396,
+      "sha256": "f27ddd54970d538d433604c881a171392d82606cc1f95091c09b3a4659ae57d9"
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -2159,6 +2184,11 @@
       "path": "staging-database/local-test/fixtures/payment-method-reference-existing.sql",
       "sha256": "5145037660a6731f8fe1e273bde34d21b8c3182106a7c06b50a562a1de777b16",
       "size": 5569
+    },
+    {
+      "path": "staging-database/local-test/fixtures/property-location-channels.sql",
+      "sha256": "acee7d259b05a489bb2a1ab154d54b1b7982c5aa3977601c0dc8ef9773759761",
+      "size": 5100
     },
     {
       "path": "staging-database/local-test/fixtures/rating-vacating-history.sql",
@@ -2464,6 +2494,16 @@
       "path": "staging-database/sql/payment-method-reference-guard.sql",
       "sha256": "ce978e2f4c575ed3ca625cafcb263c767dd88ea69a60e17b2b8e129e6d8c02fb",
       "size": 2472
+    },
+    {
+      "path": "staging-database/sql/property-location-channels-candidate.sql",
+      "size": 10188,
+      "sha256": "9c416c86e54d3188eed3e58837f8b1f7537e3f4b3f6814e1fad50d746738bf5e"
+    },
+    {
+      "path": "staging-database/sql/property-location-channels-rpc-rollback.sql",
+      "sha256": "d9f0abf7e53f0c910ffc2f891240c7dd59a605b1899b67895c274e1ec4a5546b",
+      "size": 6053
     },
     {
       "path": "staging-database/sql/property-notices.sql",
@@ -3932,8 +3972,8 @@
     },
     {
       "path": "tests/v267-contract-admin-recovery.test.mjs",
-      "size": 2128,
-      "sha256": "0cba0ec989d0a6d3a8c8b3fb06cd685c7ae047c9a9947993482aff638c791303"
+      "sha256": "0cba0ec989d0a6d3a8c8b3fb06cd685c7ae047c9a9947993482aff638c791303",
+      "size": 2128
     },
     {
       "path": "tests/v267-contract-administration.test.mjs",
@@ -4401,6 +4441,11 @@
       "size": 1668
     },
     {
+      "path": "tests/v267-property-contact-links.test.mjs",
+      "sha256": "3b8740e593565db5a8154314ba5b61db5d56f96a5da679e420ea92167172df74",
+      "size": 5898
+    },
+    {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
       "sha256": "f41f46fe63ad5c197d52bf95eca6ccd53be619c8bdb9cda3668047c8da9ca054",
       "size": 3603
@@ -4512,13 +4557,13 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "sha256": "8579f24b938ba229cc10700aac143d10d0ff2fb3995868cf64041b34e0500d14",
-      "size": 5854
+      "size": 7574,
+      "sha256": "e6b15e275f1f206a22ca00340b15d45343a2326a1ec63934aa61fc1d43a09a34"
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "d6aef1f827945e9dd6dc7bd3382afd3d0aaedca2bd4fc0a64277d26678c90f16",
-      "size": 49303
+      "size": 49500,
+      "sha256": "32250145585424129aab858cbc3f2af7928b80bae239762e4d72dd11c3c0cb84"
     },
     {
       "path": "tests/v267-retired-home.test.cjs",

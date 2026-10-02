@@ -4,9 +4,9 @@ import {rentalTemplateStarters,cloneRentalTemplateStarter} from '../src/v267/dom
 import {documentFieldCatalog,validateTemplateFields,renderDocumentTemplate,resolveDocumentSigners} from '../src/v267/domain/rental-document-cycle.js';
 import {validateTemplatePresentation} from '../src/v267/domain/rental-document-layout.js';
 
-test('the six reusable starters have independent stable catalog IDs and no saved or approved identity',()=>{
- assert.deepEqual(rentalTemplateStarters.map(item=>item.kind),['rent_receipt','eviction','apartment_handover','owner_final_clearance','salary_voucher','employment_contract']);
- assert.equal(new Set(rentalTemplateStarters.map(item=>item.starterId)).size,6);
+test('the ten reusable starters have independent stable catalog IDs and no saved or approved identity',()=>{
+ assert.deepEqual(rentalTemplateStarters.map(item=>item.kind),['tenant_final_release','investment_apartment','commercial_shop','house_apartment','rent_receipt','eviction','apartment_handover','owner_final_clearance','salary_voucher','employment_contract']);
+ assert.equal(new Set(rentalTemplateStarters.map(item=>item.starterId)).size,10);
  for(const item of rentalTemplateStarters){
   assert.match(item.starterId,/^starter-[a-z-]+-v1$/);
   assert.match(item.title,/^مسودة /);
@@ -29,14 +29,14 @@ test('all starters validate with exact saved field schema and render an empty us
   assert.throws(()=>renderDocumentTemplate(item,{}),/أكمل الحقول المطلوبة/);
   const presentation=validateTemplatePresentation(item.presentation,item.fields);
   assert.equal(presentation.paper,'A4');assert.equal(presentation.language,'bilingual');
-  const leaseSigners=!['salary_voucher','employment_contract'].includes(item.kind);for(const role of ['owner','tenant'])assert.deepEqual(presentation.signers[role],{name:leaseSigners,signature:leaseSigners,fingerprint:leaseSigners});
+  const leaseSigners=!['salary_voucher','employment_contract'].includes(item.kind);for(const role of ['owner','tenant'])assert.deepEqual(presentation.signers[role],{name:leaseSigners&&(role!=='owner'||item.kind!=='tenant_final_release'),signature:leaseSigners&&(role!=='owner'||item.kind!=='tenant_final_release'),fingerprint:leaseSigners&&(role!=='owner'||item.kind!=='tenant_final_release')});
   const signers=resolveDocumentSigners(item.kind,{},presentation);
   assert.ok(signers.every(signer=>signer.name===''&&signer.signature===''&&signer.fingerprint===''));
  }
 });
 
-test('scaffolds contain headings and empty slots only, without manufactured legal prose or fixed source values',()=>{
- for(const item of rentalTemplateStarters){
+test('blank scaffolds contain headings and empty slots only, without manufactured legal prose or fixed source values',()=>{
+ for(const item of rentalTemplateStarters.filter(x=>x.kind!=='tenant_final_release')){
   for(const clause of item.clauses){
    assert.match(clause.title,/\p{Script=Arabic}/u);assert.match(clause.title,/[A-Za-z]/);
    for(const line of clause.text.split('\n')){
@@ -77,6 +77,26 @@ test('catalog is deeply immutable and cloning refuses unknown starters or non-UU
  assert.throws(()=>cloneRentalTemplateStarter(rentalTemplateStarters[0].starterId,{createId:()=>rentalTemplateStarters[0].starterId}),/معرّف مستقل/);
  const id='b435aa4a-d83a-44ec-bf84-a3fb0292cae3';
  assert.equal(cloneRentalTemplateStarter(rentalTemplateStarters[0].starterId,{createId:()=>id}).family_id,id);
+});
+
+
+test('lease starters print every declared identity, date and money field without silently dropping entered values',()=>{
+ for(const item of rentalTemplateStarters.filter(row=>['investment_apartment','commercial_shop','house_apartment'].includes(row.kind))){
+  const values=Object.fromEntries(item.fields.map(f=>[f.key,f.type==='date'?'2026-10-02':f.type==='money'?'350.125':'TEST-'+f.key]));
+  const result=renderDocumentTemplate(item,values);
+  const text=result.clauses.map(c=>c.text).join('\n');
+  for(const key of ['tenant_civil_id','start_date','end_date','monthly_rent'])assert.ok(item.clauses.some(c=>c.text.includes('{{'+key+'}}')),key+' must reach printed clauses');
+  assert.match(text,/TEST-tenant_civil_id/);assert.match(text,/350[.,]125/);
+ }
+});
+
+
+test('owner supplied tenant release stays unsigned and distinct from owner clearance',()=>{
+ const draft=cloneRentalTemplateStarter('starter-tenant-final-release-v1');
+ assert.equal(draft.kind,'tenant_final_release');assert.equal(draft.status,'draft');assert.equal(draft._unsaved,true);
+ const text=draft.clauses.map(x=>x.text).join('\n');assert.match(text,/أقر وأعترف/);assert.match(text,/I hereby acknowledge/);
+ assert.equal(draft.clauses.length,15);assert.deepEqual(resolveDocumentSigners(draft.kind,{},draft.presentation).map(s=>s.role),['tenant']);
+ assert.ok(!Object.hasOwn(draft,'approved_at'));assert.ok(!Object.hasOwn(draft,'signature'));
 });
 
 test('employment signers use employee identities without landlord representative substitution',()=>{
