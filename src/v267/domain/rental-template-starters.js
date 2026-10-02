@@ -33,6 +33,8 @@ export const rentalTemplateStarters=freeze([
  ].map(([id,kind,label])=>starter(id,kind,label,'مسودة '+label,
   ['property_name','unit_no','owner_name','tenant_name','tenant_civil_id','start_date','end_date','monthly_rent'].filter(key=>documentFieldCatalog[key]).map(key=>field(key)).concat(detail('contract_terms','بنود العقد / Contract terms')),
   [{title:'بيانات العقد / Contract details',text:'اسم العقار: {{property_name}}\nالوحدة: {{unit_no}}\nالمالك: {{owner_name}}\nالمستأجر: {{tenant_name}}'},
+   section('بيانات المستأجر / Tenant identity',[['tenant_civil_id','Civil ID']]),
+   section('مدة العقد والإيجار / Lease term and rent',[['start_date','Start Date'],['end_date','End Date'],['monthly_rent','Monthly Rent (KWD)']]),
    {title:'بنود العقد / Contract terms',text:'{{contract_terms}}'}]
  )),
  starter('starter-rent-receipt-v1','rent_receipt','وصل إيجار','مسودة وصل إيجار',[

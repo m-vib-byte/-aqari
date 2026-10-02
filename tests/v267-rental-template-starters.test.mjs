@@ -78,3 +78,14 @@ test('catalog is deeply immutable and cloning refuses unknown starters or non-UU
  const id='b435aa4a-d83a-44ec-bf84-a3fb0292cae3';
  assert.equal(cloneRentalTemplateStarter(rentalTemplateStarters[0].starterId,{createId:()=>id}).family_id,id);
 });
+
+
+test('lease starters print every declared identity, date and money field without silently dropping entered values',()=>{
+ for(const item of rentalTemplateStarters.filter(row=>['investment_apartment','commercial_shop','house_apartment'].includes(row.kind))){
+  const values=Object.fromEntries(item.fields.map(f=>[f.key,f.type==='date'?'2026-10-02':f.type==='money'?'350.125':'TEST-'+f.key]));
+  const result=renderDocumentTemplate(item,values);
+  const text=result.clauses.map(c=>c.text).join('\n');
+  for(const key of ['tenant_civil_id','start_date','end_date','monthly_rent'])assert.ok(item.clauses.some(c=>c.text.includes('{{'+key+'}}')),key+' must reach printed clauses');
+  assert.match(text,/TEST-tenant_civil_id/);assert.match(text,/350[.,]125/);
+ }
+});

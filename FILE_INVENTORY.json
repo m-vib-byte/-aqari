@@ -352,8 +352,8 @@
     },
     {
       "path": "docs/AQARI-OWNER-IMPLEMENTATION-2026-10-02.md",
-      "sha256": "3f38747ab3867547f952deba68794cd8f9453e6f332f3807ad7b13d85de5b505",
-      "size": 4753
+      "size": 6762,
+      "sha256": "606f97e05c1614f4c560ae8011ffb4daf8cc285fb57a748cff3a3ada853b78b5"
     },
     {
       "path": "docs/AQARI-OWNER-REQUIREMENTS-2026-10-02.json",
@@ -1442,8 +1442,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "51b714c070371ddef72b792fc6806668790dfaa0dad5865c2d1e92946abbd713",
-      "size": 87191
+      "size": 87296,
+      "sha256": "930e4137374ceff67f760213081329ef92f7e02015a2f7c5a3a2586884d229de"
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1597,8 +1597,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "sha256": "d658d70e89cd66225abf2ec8ce0817df2a195f4093faaf866362f934fedec4d2",
-      "size": 8300
+      "size": 8560,
+      "sha256": "887653ca0a21c838408fedf5211e161c369ff9efc6aa3e1f05e4376512f2bfba"
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1822,8 +1822,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 34816,
-      "sha256": "f89fc095e76339c20270c90e997c6c74e71b0a8a920be1b96da96e1dd2b144d1"
+      "size": 34869,
+      "sha256": "fa40d33ef11a94b0a93a92413e00a4de49693cbe8c0d26c141ec12e9eaa0cb30"
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -2434,6 +2434,11 @@
       "path": "staging-database/sql/payment-method-reference-guard.sql",
       "sha256": "ce978e2f4c575ed3ca625cafcb263c767dd88ea69a60e17b2b8e129e6d8c02fb",
       "size": 2472
+    },
+    {
+      "path": "staging-database/sql/property-location-channels-candidate.sql",
+      "size": 10117,
+      "sha256": "87f884d16b4b75bf24b1b1e1e712b3a20fe7c0d8d4e99859eef42f67948def5e"
     },
     {
       "path": "staging-database/sql/property-notices.sql",
@@ -4477,8 +4482,8 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "sha256": "4302822a35982ee8e7a2d083506c5d1e8140684de9e84b3720555e729f2d416f",
-      "size": 5332
+      "size": 6094,
+      "sha256": "2769b985c96712c687a70a60ee1dc0c43b912595c46e292fc3f64d01eedc0a09"
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
