@@ -771,6 +771,11 @@
       "size": 3354
     },
     {
+      "path": "docs/verification/contracts-empty-preview-20261002.md",
+      "sha256": "e1f5e2b6168ee096c2e8aeca7e081e75215b517d731caec4016d49e441ee1e7f",
+      "size": 1420
+    },
+    {
       "path": "docs/verification/contracts-reference-correction-20261002.md",
       "sha256": "259fc5ec90a4253e859058cdf4db6258f7bccb61a12d4c6b491539cc6a7d0dfe",
       "size": 1189
@@ -1457,8 +1462,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "105afdd7bccc6b2daf97d53a89040debe032f7f5483dad163a6b9e9e6e8c57ef",
-      "size": 92041
+      "sha256": "7bb90f92754d98178fc0cfce7933fcafed7b6fa96400ea1d837a07b73cdea5b4",
+      "size": 94063
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1927,8 +1932,8 @@
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
-      "sha256": "cea7480ab509dc4f5b6ab923a3fd9892e22c2072592fc45ccd78defb8b0a594a",
-      "size": 45130
+      "sha256": "c1453f7b657fd9cdd5293a09583cdb0c09c8368e323f06240669e0c71f996e99",
+      "size": 45567
     },
     {
       "path": "src/v267/styles/contract-workspace.css",
@@ -4492,8 +4497,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "3792574145f1b72dc9bb0d3eb219ef728a67cc3233b2039cdad79bb7686808aa",
-      "size": 43895
+      "sha256": "847a4775dca13815931dca9290fe75cc4865106cb50a9bc3739cbe25f1023385",
+      "size": 45689
     },
     {
       "path": "tests/v267-retired-home.test.cjs",

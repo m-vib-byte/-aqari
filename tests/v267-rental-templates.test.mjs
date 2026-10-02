@@ -263,3 +263,15 @@ test('direct print reserves a mobile viewer, closes it on failure and permits re
  globalThis.fetch=async()=>new Response('unavailable',{status:503});await assert.rejects(button(manager.form,'طباعة PDF').onclick(),/تعذر إنشاء PDF/);assert.equal(popups[0].closed,true);assert.equal(button(manager.form,'طباعة PDF').disabled,false);
  globalThis.fetch=async()=>new Response(new Blob(['%PDF-1.7 print'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});await button(manager.form,'طباعة PDF').onclick();assert.ok(popups[1].url.startsWith('blob:'));assert.equal(popups[1].opener,null);assert.equal(f.state.calls.some(x=>x.p_action==='publish'),false);manager.current.saver.dispose();
 });
+
+
+test('blank shop draft explains the missing clause before PDF or save calls and directs editing',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({kind:'commercial_lease',kind_label:'عقد محل',title:'عقد محل'});let requests=0;globalThis.fetch=async()=>{requests++;throw Error('empty preview must not reach server');};
+ const before=clone(manager.current.data());await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/عنوان البند رقم 1/);assert.equal(requests,0);assert.equal(f.state.calls.some(x=>x.p_action!=='context'),false);assert.deepEqual(manager.current.data(),before);
+ button(manager.form,'إكمال نص النموذج').onclick();assert.equal(document.activeElement._templateSource.part,'title');assert.equal(button(manager.form,'تحميل PDF').disabled,false);manager.current.saver.dispose();
+});
+
+test('a missing clause body is identified and API validation errors retain an actionable explanation',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'عنوان',text:''}]});await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/نص البند رقم 1/);manager.current.saver.dispose();
+ manager.openEditor({title:'نموذج',clauses:[{title:'عنوان',text:'نص تجريبي'}]});globalThis.fetch=async()=>new Response(JSON.stringify({error:'LAYOUT_COLLISION'}),{status:400,headers:{'content-type':'application/json'}});await assert.rejects(button(manager.form,'تحميل PDF').onclick(),/مواضع الحقول/);assert.ok(button(manager.form,'إعادة محاولة المعاينة'));manager.current.saver.dispose();
+});

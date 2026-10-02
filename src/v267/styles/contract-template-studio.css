@@ -321,3 +321,8 @@ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-blank
  .aq267-template-editor .aq267-a4-logo-object{border-color:transparent!important}
  .aq267-template-editor .aq267-a4-logo-object>.aq267-a4-resize-handle{display:none!important}
 }
+
+/* Guidance is UI-only and never becomes stored clause text or PDF content. */
+.aq267-a4-clause-title[contenteditable=true][data-empty=true]::before,
+.aq267-a4-clause-text[contenteditable=true][data-empty=true]::before{content:attr(data-placeholder);color:#8b7960;font-weight:400;pointer-events:none;}
+@media print{.aq267-a4-clause-title[data-empty=true]::before,.aq267-a4-clause-text[data-empty=true]::before{content:none!important;}}
