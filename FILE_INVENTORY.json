@@ -1867,8 +1867,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "959277a328f293192731d3666905885d17422361f8e834f49887e7a356291f70",
-      "size": 15965
+      "sha256": "accef6a6a30af255df6ebaa13c87980937d4f83bd236773042811c6a5fdfead7",
+      "size": 16057
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2007,8 +2007,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "8c4b1f8c11a18b5df78947453fb238bbdae6b6af7a697e6c05c25aa4bef6343d",
-      "size": 1199
+      "sha256": "bf3de5326b7ffa5ff65c20178726d79a02fd49d7338e38e3c53db74917b23d23",
+      "size": 1386
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
