@@ -227,3 +227,14 @@ test('mobile preview activation is deduplicated and offers an inline retry after
  const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});let requests=0;globalThis.fetch=async()=>{requests++;if(requests===1)return new Response('unavailable',{status:503});return new Response(new Blob(['%PDF-1.7 retry'],{type:'application/pdf'}),{headers:{'content-type':'application/pdf'}});};
  const preview=button(manager.form,'معاينة النسخة النهائية');await assert.rejects(preview.onpointerup({type:'pointerup',pointerType:'touch'}),/تعذر إنشاء PDF/);await preview.onclick({type:'click'});assert.equal(requests,1);const retry=button(manager.form,'إعادة محاولة المعاينة');assert.ok(retry);await retry.onclick();assert.equal(requests,2);assert.ok(all(manager.form).find(el=>el.tag==='iframe'));manager.current.saver.dispose();
 });
+
+
+test('reference workspace reuses a published template without editing the stored original or inventing saved placeholders',async()=>{
+ const f=setup({manager:true}),before=clone(f.state.items),manager=await mountRentalTemplateManager(f.d,f.target,{section:'contracts',referenceLayout:true});
+ assert.equal(all(f.target).filter(x=>x.className==='aq267-linked-document-row').length,6);
+ assert.equal(all(f.target).filter(x=>x.className==='aq267-state-active').length,1);
+ assert.equal(all(f.target).filter(x=>x.className.includes('aq267-template-card-empty')).length,1);
+ button(f.target,'استخدام النموذج').onclick();
+ assert.notEqual(manager.current.data().id,template.id);assert.deepEqual(manager.current.data().clauses,template.clauses);
+ assert.deepEqual(f.state.items,before);assert.ok(f.state.calls.every(call=>call.p_action==='context'));manager.current.saver.dispose();
+});

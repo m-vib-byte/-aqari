@@ -1357,8 +1357,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "4465f1134324585a3da68e1df1054d030a4d263e0a6a479884380a3898ac7227",
-      "size": 88125
+      "sha256": "575732724c481d1a207ef0a929864ab14d47122acb5ab508e59f76f8944e3167",
+      "size": 90560
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1547,8 +1547,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "45c6907b423f760dc48e852ab6ea7be37bf3736a52759fdb8a762c88c2b0e48b",
-      "size": 5762
+      "sha256": "5155753fab57f3388a981a69d742efc24f244064a21daf991448b094a1138e94",
+      "size": 5879
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -4187,8 +4187,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "c0a70447c49e3d57b1721ad873948ff1baaf4852f70019f978661d8b186420ba",
-      "size": 39407
+      "sha256": "123f43bc85ed40c0bd3d98b65be27de13cc6e5234cf944de755f74d1fea73116",
+      "size": 40303
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4837,13 +4837,28 @@
     },
     {
       "path": "src/v267/styles/contract-workspace.css",
-      "sha256": "4777892f7a3b7f92330928c08550c15f1fe67c734b17d8833cb210434845120c",
-      "size": 6942
+      "sha256": "a5607602f284b6f0b006bc9f13580a7e9ba9648692cd81b7b9e320990d334890",
+      "size": 29143
     },
     {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
       "sha256": "1b6a97cc7a8089de450cbd547063f7aa71fa1bc1dc30a297cab1c0a45239a93c",
       "size": 3528
+    },
+    {
+      "path": "docs/verification/contracts-reference-correction-20261002.md",
+      "sha256": "259fc5ec90a4253e859058cdf4db6258f7bccb61a12d4c6b491539cc6a7d0dfe",
+      "size": 1189
+    },
+    {
+      "path": "docs/verification/contracts-reference-mobile-20261002.png",
+      "sha256": "4f4f5ce997e00c0d1bdc2771f6f83217d0822474c7b062b2aa79be73cbce5a10",
+      "size": 87298
+    },
+    {
+      "path": "src/v267/assets/contracts-skyline.svg",
+      "sha256": "9056a1ae6be04ba6876887c17fe7c47296659a72c77c914e416648fce520e4bc",
+      "size": 1743
     }
   ],
   "version": "V198"
