@@ -866,6 +866,11 @@
       "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b"
     },
     {
+      "path": "docs/verification/simple-contract-upload-20261002.md",
+      "sha256": "5227429c861d92887711816d9fbed26a3b41394da95f1aca633a66f9d268673f",
+      "size": 1326
+    },
+    {
       "path": "final-release-ui.css",
       "sha256": "fffb866afb4baaa75a930e68f1dbf4ff80d1cedaaff9b44457ce6a301af4b353",
       "size": 756
@@ -1447,8 +1452,8 @@
     },
     {
       "path": "src/v267/components/property-contract-upload.js",
-      "size": 10341,
-      "sha256": "b22c7b18c68eb1a112720185505e055ba2be2fe68acc5756f5dabf4923bf32c9"
+      "sha256": "8405be2cc19a0a49e9df408231911a6ee344ad950f1cd4dff1d57acca8973377",
+      "size": 11832
     },
     {
       "path": "src/v267/components/property-experience.js",
@@ -1467,8 +1472,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "d28a0aad32fc8d5554c89f7a0b7d80ece71e1dc817e8a1d2ad414fd885fadfdf",
-      "size": 96869
+      "sha256": "7f1a178cf5ffefb0fd5018fc0239be932636d9304e241aaae76d19aaab17f388",
+      "size": 96996
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1697,8 +1702,8 @@
     },
     {
       "path": "src/v267/pages/contract-templates.js",
-      "sha256": "13e0bae89cbd43dc4d72d1638c592f7ef3854c0eb379e1df1ae94fbe1503d5e6",
-      "size": 6086
+      "sha256": "70e6a9b49b66b91e6a356bdf2abd51af07ff6355fbdd20ed52e4480f2c07c28a",
+      "size": 6175
     },
     {
       "path": "src/v267/pages/control-center.js",
@@ -1942,8 +1947,8 @@
     },
     {
       "path": "src/v267/styles/contract-workspace.css",
-      "sha256": "3791d7c313a64e8cbb7dcde3e8bf42246b2e82396a41137f1374f5b8ae1fc593",
-      "size": 29274
+      "sha256": "eed1a8c1ca9740a3640abea115d97bc70fc60addd3785aea3058eae3ae215e51",
+      "size": 31920
     },
     {
       "path": "src/v267/styles/live-stability.css",
@@ -4392,8 +4397,8 @@
     },
     {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
-      "sha256": "1b6a97cc7a8089de450cbd547063f7aa71fa1bc1dc30a297cab1c0a45239a93c",
-      "size": 3528
+      "sha256": "f41f46fe63ad5c197d52bf95eca6ccd53be619c8bdb9cda3668047c8da9ca054",
+      "size": 3603
     },
     {
       "path": "tests/v267-property-controls-sql-fix.test.mjs",
@@ -4554,6 +4559,11 @@
       "path": "tests/v267-session-idle-restore.test.cjs",
       "size": 6977,
       "sha256": "1882fbff1c6c1cdf81ef8ca1bd08e134f4c2f166d1f6708f1bb2eacddf30820e"
+    },
+    {
+      "path": "tests/v267-simple-contract-upload.test.mjs",
+      "sha256": "b94ed5d7b527131e592590688d184d10bfb4978e1e332e958fe7e199607f1945",
+      "size": 4191
     },
     {
       "path": "tests/v267-staff-circulars-runtime.test.mjs",

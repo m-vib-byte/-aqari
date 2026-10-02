@@ -101,6 +101,7 @@ export async function mountRentalTemplateManager(d,target,{suggestion=[],onBack,
  const referenceOrder=row=>/apartment|rental_agreement|شقة/.test(row.kind+' '+row.title)?0:/shop|commercial|محل/.test(row.kind+' '+row.title)?1:2;
  function copySource(row,{revision=false}={}){const id=crypto.randomUUID();return {...copy(row),id,revision:0,status:'draft',family_id:revision?family(row):id,title:revision?row.title:row.title+' — '+t('نسخة'),_unsaved:true};}
  function drawBoard(){
+  create.textContent=t(referenceLayout&&section==='contracts'?'إنشاء نموذج للتعبئة':'إضافة نموذج');
   heading.children[0].textContent=t(section==='employees'?'نماذج الموظفين':section==='documents'?'نماذج المستندات':'نماذج العقود');
   heading.children[1].textContent=t('نماذج مشتركة لإعادة الاستخدام؛ الملفات المرفوعة تخص العقار المحدد.');
   starters.replaceChildren();const starterGrid=node('div');starterGrid.className=referenceLayout?'aq267-linked-document-list':'aq267-template-starter-grid';
