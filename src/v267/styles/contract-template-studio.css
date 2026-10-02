@@ -326,3 +326,12 @@ body .aq267-dialog.aq267-document-editing .aq267-template-editor .aq267-a4-blank
 .aq267-a4-clause-title[contenteditable=true][data-empty=true]::before,
 .aq267-a4-clause-text[contenteditable=true][data-empty=true]::before{content:attr(data-placeholder);color:#8b7960;font-weight:400;pointer-events:none;}
 @media print{.aq267-a4-clause-title[data-empty=true]::before,.aq267-a4-clause-text[data-empty=true]::before{content:none!important;}}
+
+
+/* Direct text entry at readable phone size, independent of A4 zoom. */
+.aq267-template-quick-writer{padding:20px;border:1px solid #d9c5a2;border-radius:16px;background:#fffaf1;display:grid;gap:12px;margin-block:14px;}
+.aq267-template-quick-writer[hidden]{display:none!important}
+.aq267-template-quick-writer input,.aq267-template-quick-writer textarea{box-sizing:border-box;width:100%;min-width:0;font-size:16px;line-height:1.7;padding:12px;border:1px solid #c6aa74;border-radius:10px;background:#fff;color:#493b2e;}
+.aq267-template-quick-writer textarea{min-height:210px;resize:vertical;}
+.aq267-template-quick-writer h4,.aq267-template-quick-writer p{margin:0;}
+@media print{.aq267-template-quick-writer{display:none!important}}
