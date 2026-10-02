@@ -325,3 +325,13 @@ for(const [ar,en,hi,ur,ml] of [
  ['حُفظ الملف، لكن تعذر تحديث قائمة الأرشيف الآن. اضغط عرض عقود PDF المحفوظة للمحاولة مجددًا.','The file was saved, but the archive list could not refresh. Choose Show saved contract PDFs to retry.','फ़ाइल सहेजी गई, लेकिन संग्रह सूची रीफ़्रेश नहीं हुई। फिर प्रयास करने के लिए सहेजे गए अनुबंध PDF दिखाएँ चुनें।','فائل محفوظ ہوگئی، لیکن محفوظ خانہ تازہ نہیں ہوسکا۔ دوبارہ کوشش کے لیے محفوظ شدہ معاہدوں کے PDF دکھائیں دبائیں۔','ഫയൽ സൂക്ഷിച്ചു, പക്ഷേ ആർക്കൈവ് പട്ടിക പുതുക്കാനായില്ല. വീണ്ടും ശ്രമിക്കാൻ സൂക്ഷിച്ച കരാർ PDFകൾ കാണിക്കുക തിരഞ്ഞെടുക്കുക.'],
  ['تم حفظ عقد PDF وربطه بالعقار. تعذر تحديث قائمة الأرشيف؛ لا ترفع الملف مرة أخرى.','The contract PDF was saved and linked to the property. The archive list could not refresh; do not upload the file again.','अनुबंध PDF सहेजकर संपत्ति से जोड़ दिया गया। संग्रह सूची रीफ़्रेश नहीं हुई; फ़ाइल दोबारा अपलोड न करें।','معاہدہ PDF محفوظ کرکے جائیداد سے منسلک کردیا گیا۔ محفوظ خانہ تازہ نہیں ہوسکا؛ فائل دوبارہ اپ لوڈ نہ کریں۔','കരാർ PDF സൂക്ഷിച്ച് വസ്തുവുമായി ബന്ധിപ്പിച്ചു. ആർക്കൈവ് പട്ടിക പുതുക്കാനായില്ല; ഫയൽ വീണ്ടും അപ്‌ലോഡ് ചെയ്യരുത്.']
 ])WORKSPACE_MESSAGES[ar]={en,hi,ur,ml};
+
+
+Object.assign(WORKSPACE_MESSAGES,{
+"كتابة نص النموذج":{en:"Write template text"},
+"كتابة عنوان البند":{en:"Write clause title"},
+"كتابة نص البند":{en:"Write clause text"},
+"كتابة البند {number}":{en:"Write clause {number}"},
+"العودة إلى ورقة A4":{en:"Return to A4 page"},
+"اكتب عنوان البند والصق نصك هنا، ثم اضغط معاينة النسخة النهائية.":{en:"Enter the clause title and paste your text here, then select Final preview."}
+});
