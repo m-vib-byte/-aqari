@@ -3952,8 +3952,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "size": 7947,
-      "sha256": "0967fb0dd9116c8ceed00c1c67e953f7e7c955d08b9b5ae03cd7a3b43e3299e7"
+      "size": 8308,
+      "sha256": "ee4597686ed1b07b7d5814265bba99ffa7e5b1298a39ebbb5a64f57dcfe059b9"
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
@@ -4972,8 +4972,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "size": 17917,
-      "sha256": "7515b2424e102945501303c8fa82f24020e574a34dce2425083d86cb8bb824e6"
+      "size": 17949,
+      "sha256": "619ae71b35f73f88472254d962117d6bdbada85701ae7675232b5030daa1dc57"
     },
     {
       "path": "v211-follow-up-center-core.js",
