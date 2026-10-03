@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "deb3a6c1a8e95b9cb6c9621f4728bffa512d4a344ae8863bcff885da1e4179c4",
-      "size": 8976
+      "sha256": "cd7f1317a61af28fdced01c8fe4d1e96e31272c1528837870ccc2a0d82ea36a3",
+      "size": 9014
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1276,6 +1276,11 @@
       "size": 4119
     },
     {
+      "path": "src/v267/api/pdf-field-request.js",
+      "sha256": "70082db6ac3c7e6c46cc72429d1ecd1b35b316052f446abc0ed2d14d48cd6564",
+      "size": 2524
+    },
+    {
       "path": "src/v267/api/protected-pdf.js",
       "sha256": "a3dc7202eb27184178397e21ad8b90b0484adeab5ace4afbe83cbe2f990ca3de",
       "size": 1577
@@ -1882,8 +1887,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "106c36ec9ad3a5d8619745073e857820c1644819ddfe57f761f9d4793b2d3efe",
-      "size": 24825
+      "sha256": "a40b173024091b0429cfe7dcdc86b2e60566071c75cbd9b5ca7db75b66fd94ad",
+      "size": 23715
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -4454,6 +4459,11 @@
       "path": "tests/v267-pdf-contract-print.test.mjs",
       "sha256": "b2e65ca2cb891b94e392a02c484d98680843f5d17c000287fe583aacd2fc466b",
       "size": 2897
+    },
+    {
+      "path": "tests/v267-pdf-field-request.test.mjs",
+      "sha256": "e9f7a429b91778dab6693eb250136095e7db5428d12785b87ef133a31178f1d5",
+      "size": 4581
     },
     {
       "path": "tests/v267-pdf-local-ocr.test.mjs",
