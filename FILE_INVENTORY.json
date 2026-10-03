@@ -26,6 +26,11 @@
       "size": 1152
     },
     {
+      "path": ".github/workflows/home-diagnostics.yml",
+      "sha256": "b5327e1490384dada256ccf9c5aded8764e46e68cde085f1ea00fd4b1aa1e629",
+      "size": 926
+    },
+    {
       "path": ".github/workflows/login-speed.yml",
       "sha256": "a7e18b4a4335e31f2fab3afb65688d79d8e21004e92b67eb92cc43d5794f4458",
       "size": 1314
@@ -3736,6 +3741,11 @@
       "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a"
     },
     {
+      "path": "tests/helpers/home-responsiveness-diagnostics.mjs",
+      "sha256": "9f8be0b8e6d1fde31b260b6d42561430bc1a7de599aedcbfb8e390fae782096c",
+      "size": 2068
+    },
+    {
       "path": "tests/helpers/locale-vm.cjs",
       "sha256": "57eca76fa068bd59041628de0631c87a5ac278ef191718bd6660c90e790d3f09",
       "size": 1387
@@ -3962,8 +3972,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "857b28fc3802d891a2b248e1ce0ce0449e8f4055565543749f37138231decc66",
-      "size": 15266
+      "sha256": "5a2ecf5a54011490a64f97d5b564d2c40f3ccb7f7f3b703649425f4a4cfdc32c",
+      "size": 16340
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
