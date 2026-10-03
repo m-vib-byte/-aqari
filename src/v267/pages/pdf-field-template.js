@@ -4,6 +4,7 @@ import {createTemplateLogoContext} from '../components/template-property-logo.js
 import {createOriginalDocumentUpload,originalDocument} from '../components/original-document-upload.js';
 import {listPropertyContractArchive} from '../components/property-contract-archive.js';
 import {appendPdfViewer} from '../components/pdf-viewer.js';
+import {appendPdfPagePreview} from '../components/pdf-page-preview.js';
 import {documentFieldCatalog} from '../domain/rental-document-cycle.js';
 import {t} from '../components/locale.js';
 import {recognizePdfPage} from '../components/pdf-local-ocr.js';
@@ -15,22 +16,22 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  d.el.id='aq267-pdf-field-workspace';
  if(!document.getElementById('aq267-pdf-map-css')){const css=node('link');css.id='aq267-pdf-map-css';css.rel='stylesheet';css.href='/src/v267/styles/pdf-field-template.css';document.head.append(css);}
  let property=null,documentId=null,mapping=null,pages=[],page=1,selected=null,dirty=false,epoch=0,imageUrl=null,previewUrl=null,filled=null;
- let stopText=()=>{},stopEditor=()=>{},invalidatePreview=()=>{},values={},valuesDirty=false;
+ let stopText=()=>{},stopEditor=()=>{},stopPreview=()=>{},invalidatePreview=()=>{},values={},valuesDirty=false;
  const uploader=createOriginalDocumentUpload(d.session),templateUploader=createOriginalDocumentUpload(d.session),filledUploader=createOriginalDocumentUpload(d.session);
  const button=(text,fn)=>{const b=node('button',t(text));b.type='button';b.onclick=()=>d.run(fn);return b;};
  const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value;return el;};
  const choose=(pairs,value)=>{const el=node('select');for(const [v,label]of pairs){const o=node('option',t(label));o.value=v;el.append(o);}el.value=value;return el;};
- const clearPreview=()=>{filled=null;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=null;};
+ const clearPreview=()=>{stopPreview();stopPreview=()=>{};filled=null;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=null;};
  d.onDispose(()=>{stopText();stopEditor();values={};epoch++;if(imageUrl)URL.revokeObjectURL(imageUrl);clearPreview();});
  const canLeave=()=>!(dirty||valuesDirty)||window.confirm(t('يوجد تعديل أو بيانات تعبئة غير محفوظة. هل تريد الخروج؟'));
  d.setBeforeClose(canLeave);
- async function request(action,extra={}){
+ async function request(action,extra={},signal){
   d.session.check();const session=(await d.session.client.auth.getSession())?.data?.session;
   if(!session?.access_token||session.user?.id!==d.session.bound.user)throw Error(t('أعد تسجيل الدخول.'));
-  const response=await fetch('/api/pdf-field-template',{method:'POST',credentials:'same-origin',redirect:'error',cache:'no-store',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({workspaceId:d.session.bound.workspace,propertyId:property.id,documentId,action,...extra})});d.session.check();
+  const response=await fetch('/api/pdf-field-template',{method:'POST',credentials:'same-origin',redirect:'error',cache:'no-store',signal,headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({workspaceId:d.session.bound.workspace,propertyId:property.id,documentId,action,...extra})});d.session.check();
   if(!response.ok){let info={};try{info=await response.json();}catch{}throw Error(t(errors[info.error]||'تعذر معالجة النموذج. راجع الملف والحقول ثم أعد المحاولة.'));}
   const latest=(await d.session.client.auth.getSession())?.data?.session;d.session.check();if(latest?.user?.id!==d.session.bound.user)throw Error(t('تغيرت جلسة الدخول.'));
-  const expected=['inspect','text'].includes(action)?'application/json':action==='page'?'image/png':'application/pdf';if(response.headers.get('Content-Type')?.split(';')[0]!==expected)throw Error(t('استجابة الملف غير صالحة.'));
+  const expected=['inspect','text'].includes(action)?'application/json':['page','filled_page'].includes(action)?'image/png':'application/pdf';if(response.headers.get('Content-Type')?.split(';')[0]!==expected)throw Error(t('استجابة الملف غير صالحة.'));
   return ['inspect','text'].includes(action)?response.json():response.blob();
  }
  function target(title,pdfFieldTemplate=false){return {type:'property',ref:property.externalRef,propertyId:property.id,category:'property_contract',title,pdfFieldTemplate};}
@@ -127,7 +128,9 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    const blob=await request('fill',{values:entered});
    if(snapshot!==JSON.stringify([mapping,Object.fromEntries(mapping.fields.map(f=>[f.id,values[f.id]||'']))]))throw Error(t('تغيرت البيانات؛ أعد المعاينة.'));
    clearPreview();filled=blob;previewUrl=URL.createObjectURL(blob);preview.replaceChildren(node('h3',t('معاينة العقد المعبأ')),node('p',t('راجع البيانات ومواضعها ثم احفظ النسخة. يمكنك تعديل الحقول والبيانات أعلاه.')));
-   appendPdfViewer(preview,previewUrl,{title:mapping.title,filename:'filled-contract.pdf'});
+   const previewDocumentId=documentId;
+   const viewer=appendPdfPagePreview(preview,{pageCount:pages.length,renderPage:(number,signal)=>request('filled_page',{documentId:previewDocumentId,page:number,values:entered},signal)});stopPreview=viewer.dispose;
+   appendPdfViewer(preview,previewUrl,{title:mapping.title,filename:'filled-contract.pdf',embed:false,downloadLabel:'تحميل العقد المعبأ PDF'});
    preview.append(button('حفظ نسخة العقد في الأرشيف',async()=>{
     if(!filled)throw Error(t('أعد معاينة النسخة.'));
     const current=filled;await filledUploader(new File([current],'filled-contract.pdf',{type:'application/pdf'}),target((mapping.title+' — نسخة معبأة للمراجعة').slice(0,180)));

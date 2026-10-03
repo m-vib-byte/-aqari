@@ -31,3 +31,9 @@
 #aq267-pdf-field-workspace .aq267-pdf-map-entry{grid-column:1/-1;}
 #aq267-pdf-field-workspace .aq267-pdf-map-entry input{border:2px solid #3976b8!important;min-height:48px;}
 #aq267-pdf-field-workspace .aq267-pdf-map-preview:empty{display:none;}
+#aq267-pdf-field-workspace .aq267-pdf-preview-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:12px;}
+#aq267-pdf-field-workspace .aq267-pdf-preview-tools button{width:auto!important;flex:1 1 110px;padding:10px!important;}
+#aq267-pdf-field-workspace .aq267-pdf-preview-tools select{flex:1 1 130px;width:auto!important;min-height:44px;}
+#aq267-pdf-field-workspace .aq267-pdf-preview-image{display:block;max-width:none!important;height:auto;margin:0;background:white;}
+#aq267-pdf-field-workspace .aq267-pdf-preview-image:not([src]){display:none;}
+#aq267-pdf-field-workspace .aq267-pdf-page-preview [hidden]{display:none!important;}
