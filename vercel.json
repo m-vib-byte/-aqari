@@ -30,6 +30,26 @@
     {
       "source": "/api/db/status",
       "destination": "/api/supabase-status"
+    },
+    {
+      "source": "/vendor/ocr/tesseract.min.js",
+      "destination": "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js"
+    },
+    {
+      "source": "/vendor/ocr/worker.min.js",
+      "destination": "https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/worker.min.js"
+    },
+    {
+      "source": "/vendor/ocr/core/:file",
+      "destination": "https://cdn.jsdelivr.net/npm/tesseract.js-core@6.0.0/:file"
+    },
+    {
+      "source": "/vendor/ocr/lang/ara.traineddata.gz",
+      "destination": "https://cdn.jsdelivr.net/npm/@tesseract.js-data/ara@1.0.0/4.0.0_best_int/ara.traineddata.gz"
+    },
+    {
+      "source": "/vendor/ocr/lang/eng.traineddata.gz",
+      "destination": "https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int/eng.traineddata.gz"
     }
   ],
   "headers": [

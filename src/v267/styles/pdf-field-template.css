@@ -1,10 +1,28 @@
-.aq267-pdf-map .aq267-pdf-map-page{position:relative;width:100%;max-width:1000px;margin:16px auto;direction:ltr;background:#eee;line-height:0;}
-.aq267-pdf-map-page>img{display:block;width:100%;height:auto;pointer-events:none;}
-.aq267-pdf-map-layer{position:absolute;inset:0;cursor:crosshair;touch-action:manipulation;}
-#aq267-pdf-field-workspace .aq267-pdf-map-field{position:absolute!important;width:var(--pdf-field-width)!important;height:var(--pdf-field-height)!important;max-width:none!important;max-height:none!important;box-sizing:border-box!important;min-height:0!important;min-width:0!important;margin:0!important;padding:0 2px!important;border:1px solid #997020!important;border-radius:2px!important;background:#fff2baba!important;color:#3c2918!important;box-shadow:none!important;font-size:10px!important;line-height:1!important;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;touch-action:none;cursor:move;}
-#aq267-pdf-field-workspace .aq267-pdf-map-field.is-selected{outline:2px solid #583a16;background:#ffe289df!important;}
-.aq267-pdf-map-actions{display:flex;flex-wrap:wrap;gap:8px;}
-.aq267-pdf-map-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
-.aq267-pdf-map-controls h4{grid-column:1/-1;}
-.aq267-pdf-map input,.aq267-pdf-map select{box-sizing:border-box;max-width:100%;}
-.aq267-pdf-map form{display:grid;gap:12px;}
+/* Keep document tools independent of the site's global button treatment. */
+#aq267-pdf-field-workspace{background:#f5f7fa!important;color:#24364b!important;}
+#aq267-pdf-field-workspace .aq267-dialog-body{background:#f5f7fa!important;color:#24364b!important;}
+#aq267-pdf-field-workspace :is(h1,h2,h3,h4,p,label,summary){color:#33465c!important;}
+#aq267-pdf-field-workspace button:not(.aq267-close){background:#233e60!important;color:#fff!important;border:1px solid #233e60!important;border-radius:10px!important;box-shadow:none!important;min-height:44px!important;touch-action:manipulation;}
+#aq267-pdf-field-workspace button:not(.aq267-close):hover{background:#31547e!important;}
+#aq267-pdf-field-workspace button:disabled{opacity:.5;cursor:wait;}
+#aq267-pdf-field-workspace :is(input,select,textarea){box-sizing:border-box;max-width:100%;background:#fff!important;color:#24364b!important;border:1px solid #aab8c9!important;border-radius:8px!important;}
+#aq267-pdf-field-workspace .aq267-pdf-map-viewport{overflow:auto;direction:ltr;width:100%;max-height:78vh;background:#e6ebf1;border:1px solid #c8d2df;border-radius:8px;overscroll-behavior:contain;}
+#aq267-pdf-field-workspace .aq267-pdf-map-page{position:relative;width:100%;max-width:none;margin:0;direction:ltr;background:#fff;line-height:0;}
+#aq267-pdf-field-workspace .aq267-pdf-map-page>img{display:block;width:100%;height:auto;pointer-events:none;user-select:none;-webkit-user-select:none;}
+#aq267-pdf-field-workspace .aq267-pdf-map-layer{position:absolute;inset:0;cursor:crosshair;touch-action:pan-x pan-y;}
+#aq267-pdf-field-workspace .aq267-pdf-map-field{position:absolute!important;width:var(--pdf-field-width)!important;height:var(--pdf-field-height)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;box-sizing:border-box!important;margin:0!important;padding:0!important;border:1px solid #3976b8!important;border-radius:2px!important;background:rgba(57,118,184,.035)!important;color:#174576!important;box-shadow:none!important;font-size:10px!important;line-height:1!important;touch-action:none;cursor:grab;user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none;}
+#aq267-pdf-field-workspace .aq267-pdf-map-field.is-selected{border-color:#155caa!important;background:rgba(57,118,184,.07)!important;outline:1px solid #155caa;z-index:2;}
+#aq267-pdf-field-workspace .aq267-pdf-map-field:focus-visible{outline:2px solid #155caa;}
+#aq267-pdf-field-workspace .aq267-pdf-map-label{position:absolute;bottom:100%;right:0;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;line-height:1.2;font-size:10px;color:#174576;pointer-events:none;}
+#aq267-pdf-field-workspace .aq267-pdf-map-resize{position:absolute;right:-12px;bottom:-12px;width:24px;height:24px;cursor:nwse-resize;touch-action:none;display:none;}
+#aq267-pdf-field-workspace .is-selected>.aq267-pdf-map-resize{display:block;}
+#aq267-pdf-field-workspace .aq267-pdf-map-resize::after{content:'';position:absolute;inset:7px;border:1px solid white;border-radius:50%;background:#155caa;box-shadow:0 0 0 1px #155caa;}
+#aq267-pdf-field-workspace .aq267-pdf-map-actions{display:flex;flex-wrap:wrap;gap:8px;margin-block:12px;}
+#aq267-pdf-field-workspace .aq267-pdf-map-zoom{align-items:center;position:sticky;top:0;z-index:3;padding:8px;background:#f5f7fa;border-bottom:1px solid #c8d2df;}
+#aq267-pdf-field-workspace .aq267-pdf-map-zoom button{width:auto!important;flex:1;padding:8px!important;}
+#aq267-pdf-field-workspace .aq267-pdf-map-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;background:#fff!important;border:1px solid #c8d2df;border-radius:12px;padding:16px!important;margin-top:16px;}
+#aq267-pdf-field-workspace .aq267-pdf-map-controls h4,#aq267-pdf-field-workspace .aq267-pdf-map-advanced{grid-column:1/-1;}
+#aq267-pdf-field-workspace .aq267-pdf-map-text{margin-block:16px;padding:16px;border:1px solid #c8d2df;border-radius:12px;background:#fff;}
+#aq267-pdf-field-workspace summary{cursor:pointer;padding:10px;font-weight:700;}
+#aq267-pdf-field-workspace textarea{width:100%;line-height:1.7;}
+#aq267-pdf-field-workspace form{display:grid;gap:12px;}

@@ -88,8 +88,16 @@ def render_page(reader,page_number):
     raw=BytesIO();writer.write(raw)
     pdf=pdfium.PdfDocument(raw.getvalue());page=pdf[0];bitmap=None
     try:
-        w,h=page.get_size();bitmap=page.render(scale=min(1400/w,1900/h))
-        image=bitmap.to_pil();out=BytesIO();image.save(out,format='PNG');image.close();return out.getvalue()
+        w,h=page.get_size();bitmap=page.render(scale=min(2400/w,3400/h))
+        image=bitmap.to_pil()
+        try:
+            while True:
+                out=BytesIO();image.save(out,format='PNG')
+                if len(out.getvalue())<=4*1024*1024:return out.getvalue()
+                if image.width<800:raise ValueError('PDF_OUTPUT_LIMIT')
+                resized=image.resize((int(image.width*.8),int(image.height*.8)))
+                image.close();image=resized
+        finally:image.close()
     finally:
         if bitmap:bitmap.close()
         page.close();pdf.close()

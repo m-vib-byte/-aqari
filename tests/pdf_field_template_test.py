@@ -75,6 +75,23 @@ class PdfFieldsTest(unittest.TestCase):
         calls=[]
         def rpc(*args):calls.append(1);return {'workspace_id':W,'can_publish':True,'user_id':'a' if len(calls)==1 else 'b'}
         with self.assertRaises(PermissionError):api.process({'workspaceId':W,'propertyId':P,'documentId':D,'action':'fill','values':{'tenant':'Test','date':'2026-10-03'}},'Bearer test.token',rpc,read,lambda *a:raw)
+    def test_text_extraction_obeys_page_and_manager_scope(self):
+        row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P}}
+        def read(path,auth):return [{'id':P,'workspace_id':W,'external_ref':'p'}] if '/aqari_properties?' in path else [row]
+        ctx={'workspace_id':W,'can_publish':True,'user_id':'manager'}
+        data={'workspaceId':W,'propertyId':P,'documentId':D,'action':'text','page':2}
+        result,mime=api.process(data,'Bearer test.token',lambda *a:ctx,read,lambda *a:original())
+        self.assertEqual(json.loads(result)['text'].strip(),'SECOND PAGE')
+        for page in [0,3,True,'1']:
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD_PAGE'):api.process(dict(data,page=page),'Bearer test.token',lambda *a:ctx,read,lambda *a:original())
+        ctx['can_publish']=False
+        with self.assertRaises(PermissionError):api.process(data,'Bearer test.token',lambda *a:ctx,read,lambda *a:original())
+    def test_preview_is_high_resolution_without_changing_pdf_pages(self):
+        from PIL import Image
+        reader=open_pdf(original());image=Image.open(BytesIO(render_page(reader,1)))
+        self.assertGreaterEqual(image.width,2399)
+        self.assertLessEqual(image.height,3401)
+        self.assertEqual(page_sizes(reader),[{'width':595.,'height':842.}]*2)
     def test_bad_storage_paths_rejected_before_network(self):
         for path in [W+'/../secret','other/file',W+'//file',W+'/a\\b']:
             with self.assertRaises(PermissionError):api.storage_pdf({'workspace_id':W,'storage_path':path},'Bearer test.token')

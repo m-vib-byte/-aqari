@@ -39,9 +39,13 @@ def process(data,auth,rpc_call=preview.rpc,read=common.upstream,storage=storage_
     metadata=row.get('metadata',{})
     if row.get('id')!=data['documentId'] or prop.get('id')!=property_id or row.get('entity_type')!='property' or row.get('entity_ref')!=prop.get('external_ref') or row.get('document_type')!='property_document' or row.get('status')!='uploaded' or not isinstance(metadata,dict) or metadata.get('category')!='property_other' or metadata.get('asset_role')!='property_contract' or metadata.get('property_id')!=property_id:raise PermissionError('PDF_PROPERTY_MISMATCH')
     action=data.get('action')
-    if action not in ['inspect','page','save','fill']:raise ValueError('INVALID_REQUEST')
+    if action not in ['inspect','page','text','save','fill']:raise ValueError('INVALID_REQUEST')
     reader=open_pdf(storage(row,auth));sizes=page_sizes(reader);mapping=saved_map(reader,property_id)
     if action=='inspect':body=json.dumps({'pages':sizes,'mapping':mapping},ensure_ascii=False).encode();mime='application/json; charset=utf-8'
+    elif action=='text':
+        number=data.get('page')
+        if type(number) is not int or not 1<=number<=len(reader.pages):raise ValueError('INVALID_FIELD_PAGE')
+        body=json.dumps({'text':(reader.pages[number-1].extract_text() or '')[:100000]},ensure_ascii=False).encode();mime='application/json; charset=utf-8'
     elif action=='page':body=render_page(reader,data.get('page'));mime='image/png'
     elif action=='save':
         mapping=validate_map(data.get('mapping'),sizes,property_id);body=write_template(reader,mapping);mime='application/pdf'

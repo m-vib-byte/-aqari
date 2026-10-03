@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "092f4affdd2f427f076f9b9bdae0f310f32d6b1671fe076d4beefd97a809a5d2",
-      "size": 8786
+      "sha256": "d5331854ba6368f3f96040f93887f7fdf7b8e69c3d5078c426a5c36dd82f2217",
+      "size": 8900
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -267,8 +267,8 @@
     },
     {
       "path": "api/pdf-field-template.py",
-      "sha256": "a3562e0ee4ac4f382b4a7a8d71f630215cc07929a689004848fd217ef91bc896",
-      "size": 5843
+      "sha256": "e15a2404d4584cd3b40cd781d57c9b469636d13639ae7866b2d4601ffd02e69e",
+      "size": 6173
     },
     {
       "path": "api/production-meta.js",
@@ -937,8 +937,8 @@
     },
     {
       "path": "lib/pdf_field_template.py",
-      "sha256": "4ae4bc85731ea3fff74abd0b38b252bf0ee6741ca4edb23b65739b92f5ee1b14",
-      "size": 7237
+      "sha256": "6a595347d7ef349cd69a5330109e65e9e130d627425805cd4710f9409029598e",
+      "size": 7555
     },
     {
       "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
@@ -1461,6 +1461,11 @@
       "size": 2401
     },
     {
+      "path": "src/v267/components/pdf-local-ocr.js",
+      "sha256": "2abe86e54ed2755c0106901511eecb03a1d7a01784fd70ed1a33244d8ff490aa",
+      "size": 1810
+    },
+    {
       "path": "src/v267/components/pdf-viewer.js",
       "size": 1194,
       "sha256": "2ed15466ea96994d6dd27d6c960811fd6a0452bd2856663eb11f62fedd2870c5"
@@ -1867,8 +1872,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "accef6a6a30af255df6ebaa13c87980937d4f83bd236773042811c6a5fdfead7",
-      "size": 16057
+      "sha256": "1711641020aa826333d2dea180c27c13c8afce8c33ef30c846146f180199ac8c",
+      "size": 21194
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2007,8 +2012,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "bf3de5326b7ffa5ff65c20178726d79a02fd49d7338e38e3c53db74917b23d23",
-      "size": 1386
+      "sha256": "ba2a5110cb03a86cd31af2ec0f93101e613e03febe733de4a9a689f6a52d64c0",
+      "size": 4218
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -3742,8 +3747,8 @@
     },
     {
       "path": "tests/pdf_field_template_test.py",
-      "sha256": "da22dba44e1bb8f95ba541e967075684777216148e8ded74599eca776f5d00c1",
-      "size": 6722
+      "sha256": "8edcd2dfedebecb2c5c06eca3868d48b289ed983a650b8070fa09f9e929e7833",
+      "size": 8194
     },
     {
       "path": "tests/preview-access.mjs",
@@ -4436,6 +4441,11 @@
       "size": 6133
     },
     {
+      "path": "tests/v267-pdf-local-ocr.test.mjs",
+      "sha256": "c0cc1ac65ac025ef4007b7e0ebb03355abfbda0f488fa42db8c06b35c25377c4",
+      "size": 2262
+    },
+    {
       "path": "tests/v267-pdf-viewer.test.mjs",
       "size": 1241,
       "sha256": "e065a3880056f152adf77f779c2e04be432bec617f6ae43e2dc3a27ddde51d40"
@@ -4967,8 +4977,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "5db3c030d624bb59c5d646c0cc96257d6ae3220252d5d4da1aa7a00aa035b14e",
-      "size": 7570
+      "sha256": "30d1b41481bb74baa59fad215f7fedf376f253b3b79cf690a3d0fabb4efae5a9",
+      "size": 8375
     }
   ],
   "version": "V198"
