@@ -1,7 +1,7 @@
 /* Keep document tools independent of the site's global button treatment. */
 #aq267-pdf-field-workspace{background:#f5f7fa!important;color:#24364b!important;}
 #aq267-pdf-field-workspace .aq267-dialog-body{background:#f5f7fa!important;color:#24364b!important;}
-#aq267-pdf-field-workspace :is(h3,h4,p,label,summary){color:#33465c!important;}
+#aq267-pdf-field-workspace :is(h1,h2,h3,h4,p,label,summary){color:#33465c!important;}
 #aq267-pdf-field-workspace button:not(.aq267-close){background:#233e60!important;color:#fff!important;border:1px solid #233e60!important;border-radius:10px!important;box-shadow:none!important;min-height:44px!important;touch-action:manipulation;}
 #aq267-pdf-field-workspace button:not(.aq267-close):hover{background:#31547e!important;}
 #aq267-pdf-field-workspace button:disabled{opacity:.5;cursor:wait;}
