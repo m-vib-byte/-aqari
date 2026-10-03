@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "cd7f1317a61af28fdced01c8fe4d1e96e31272c1528837870ccc2a0d82ea36a3",
-      "size": 9014
+      "sha256": "26b465ba6d7bb85650a014e950a08b0ea028bcf6f18dbc574479ffb7565cceae",
+      "size": 9053
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1656,6 +1656,11 @@
       "size": 7065
     },
     {
+      "path": "src/v267/domain/pdf-editor-history.js",
+      "sha256": "d8801e8a7c07d97be475e861158ba31bf36f548a53989db6c33c06eb6adfa125",
+      "size": 1322
+    },
+    {
       "path": "src/v267/domain/property-contact-links.js",
       "sha256": "a6f7bc786e5c4d8aec98a9fa353ee9999151686b7491752ae5dbf126a9435593",
       "size": 1788
@@ -1887,8 +1892,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "a40b173024091b0429cfe7dcdc86b2e60566071c75cbd9b5ca7db75b66fd94ad",
-      "size": 23715
+      "sha256": "b62ddd58580fc5b0ea273afbfb01ab7053d26aa249dd9a0ffe459ff44d95ad80",
+      "size": 26077
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -4459,6 +4464,11 @@
       "path": "tests/v267-pdf-contract-print.test.mjs",
       "sha256": "b2e65ca2cb891b94e392a02c484d98680843f5d17c000287fe583aacd2fc466b",
       "size": 2897
+    },
+    {
+      "path": "tests/v267-pdf-editor-history.test.mjs",
+      "sha256": "8b4507b056978861f8f57a1e4953d032575a9349de1f707ce5369dd774997283",
+      "size": 3110
     },
     {
       "path": "tests/v267-pdf-field-request.test.mjs",
