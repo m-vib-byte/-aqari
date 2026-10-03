@@ -14,14 +14,14 @@ const mappings=new Map([[original,baseMapping]]);
 function png(){const chunk=(name,body)=>{const bytes=Buffer.concat([Buffer.from(name),body]);let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let j=0;j<8;j++)crc=(crc>>>1)^(crc&1?0xedb88320:0);}const size=Buffer.alloc(4),end=Buffer.alloc(4);size.writeUInt32BE(body.length);end.writeUInt32BE((crc^0xffffffff)>>>0);return Buffer.concat([size,bytes,end]);};const header=Buffer.alloc(13);header.writeUInt32BE(595);header.writeUInt32BE(842,4);header[8]=8;header[9]=2;const pixels=Buffer.alloc((595*3+1)*842,250);for(let y=0;y<842;y++)pixels[y*(595*3+1)]=0;return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(pixels)),chunk('IEND',Buffer.alloc(0))]);}
 const pageImage=png();
 const reply=(res,data,status=200,type='application/json')=>{res.writeHead(status,{'content-type':type,'cache-control':'no-store'});res.end(type==='application/json'?JSON.stringify(data):data);};
-const html=`<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body class="aq-v267"><button id="open">فتح المحرر التجريبي</button><script type="module">
+const html=`<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body class="aq-v267"><button id="open" disabled>فتح المحرر التجريبي</button><script type="module">
 const uid=${JSON.stringify(uid)},wid=${JSON.stringify(wid)};
 window.AQARI_PUBLIC_CONFIG={supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
 window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};
 const auth={user:{id:uid},access_token:'synthetic-token'};
 const client={auth:{getSession:async()=>({data:{session:auth}})},rpc:(name,args)=>({abortSignal:signal=>fetch('/fixture/rpc',{method:'POST',body:JSON.stringify({name,args}),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status})})};
 window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:'general_manager',is_active:true}},getClient:async()=>client};
-const {openPdfFieldTemplate}=await import('/src/v267/pages/pdf-field-template.js');document.querySelector('#open').onclick=()=>openPdfFieldTemplate({propertyId:${JSON.stringify(propertyId)}});
+const {openPdfFieldTemplate}=await import('/src/v267/pages/pdf-field-template.js');document.querySelector('#open').onclick=()=>openPdfFieldTemplate({propertyId:${JSON.stringify(propertyId)}});document.querySelector('#open').disabled=false;
 </script></body></html>`;
 const overrides={
  '/src/v267/components/template-property-logo.js':`export const createTemplateLogoContext=()=>({listProperties:async()=>[{id:${JSON.stringify(propertyId)},externalRef:'synthetic',name:'عقار تجريبي'}]});`,
@@ -90,6 +90,6 @@ else{
    // Server-side revocation clears the private editor immediately.
    deny=true;await page.getByLabel('بيانات الحقل',{exact:true}).fill('صلاحية مسحوبة');await page.locator('#aq267-pdf-field-workspace').waitFor({state:'detached'});
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
-  }finally{await browser.close();}
+  }catch(error){console.error('PDF_DRAFT_UI_FAILURE',name,JSON.stringify({errors,body:await page.locator('body').innerText()}));throw error;}finally{await browser.close();}
  }}finally{server.close();}
 }
