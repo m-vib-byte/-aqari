@@ -82,6 +82,8 @@ jobs:
         run: node --test tests/v267-scanner-workflow.test.mjs tests/v267-original-documents.test.mjs tests/v267-document-upload-pages.test.mjs tests/v267-contract-scanner-entry.test.cjs
       - name: Contract intake preserves property scope and avoids duplicate attachment records
         run: node --test tests/v267-contract-intake.test.mjs tests/v267-contract-entry-routing.test.mjs tests/v267-simple-contract-upload.test.mjs
+      - name: Local PDF OCR lifecycle and cancellation
+        run: node --test tests/v267-pdf-local-ocr.test.mjs
       - name: Saved property contract opening and verified archive
         run: node --test tests/v267-property-contract-open.test.mjs tests/v267-property-contract-archive.test.mjs tests/v267-property-contract-archive-ui.test.mjs tests/v267-pdf-viewer.test.mjs
       - name: V267 workspace isolation and image processing
