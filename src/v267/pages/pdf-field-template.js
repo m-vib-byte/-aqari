@@ -8,6 +8,7 @@ import {appendPdfPagePreview} from '../components/pdf-page-preview.js';
 import {documentFieldCatalog} from '../domain/rental-document-cycle.js';
 import {t} from '../components/locale.js';
 import {recognizePdfPage} from '../components/pdf-local-ocr.js';
+import {requestPdfField} from '../api/pdf-field-request.js';
 
 const errors={ACCESS_DENIED:'تعذر التحقق من صلاحية الملف. أعد فتح الصفحة.',PDF_LIMIT:'اختر PDF غير محمي من صفحة إلى ٣٠ صفحة.',PDF_EXISTING_FORM:'الملف يحتوي حقولًا أو توقيعًا إلكترونيًا. ارفع نموذجًا فارغًا بدون توقيع إلكتروني.',PDF_PAGE_SIZE:'أبعاد صفحات الملف غير مدعومة.',FIELD_OVERLAP:'يوجد تداخل بين الحقول. حرّك الحقول أو قلّل حجمها.',FIELD_TEXT_TOO_LONG:'النص أكبر من مساحة أحد الحقول. وسّع الحقل أو قلّل حجم الخط.',FIELD_VALUES_REQUIRED:'أكمل جميع الحقول قبل المعاينة.',FIELDS_REQUIRED:'حدد حقلًا واحدًا على الأقل.',TEMPLATE_TITLE_REQUIRED:'اكتب اسم النموذج.',PDF_OUTPUT_LIMIT:'النسخة الناتجة كبيرة. استخدم PDF أصغر من ٤ ميجابايت.',INVALID_FIELD_VALUE:'راجع القيم المدخلة والتواريخ والمبالغ.'};
 export function openPdfFieldTemplate({propertyId=null,onBack}={}){
@@ -25,15 +26,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  d.onDispose(()=>{stopText();stopEditor();values={};epoch++;if(imageUrl)URL.revokeObjectURL(imageUrl);clearPreview();});
  const canLeave=()=>!(dirty||valuesDirty)||window.confirm(t('يوجد تعديل أو بيانات تعبئة غير محفوظة. هل تريد الخروج؟'));
  d.setBeforeClose(canLeave);
- async function request(action,extra={},signal){
-  d.session.check();const session=(await d.session.client.auth.getSession())?.data?.session;
-  if(!session?.access_token||session.user?.id!==d.session.bound.user)throw Error(t('أعد تسجيل الدخول.'));
-  const response=await fetch('/api/pdf-field-template',{method:'POST',credentials:'same-origin',redirect:'error',cache:'no-store',signal,headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({workspaceId:d.session.bound.workspace,propertyId:property.id,documentId,action,...extra})});d.session.check();
-  if(!response.ok){let info={};try{info=await response.json();}catch{}throw Error(t(errors[info.error]||'تعذر معالجة النموذج. راجع الملف والحقول ثم أعد المحاولة.'));}
-  const latest=(await d.session.client.auth.getSession())?.data?.session;d.session.check();if(latest?.user?.id!==d.session.bound.user)throw Error(t('تغيرت جلسة الدخول.'));
-  const expected=['inspect','text'].includes(action)?'application/json':['page','filled_page'].includes(action)?'image/png':'application/pdf';if(response.headers.get('Content-Type')?.split(';')[0]!==expected)throw Error(t('استجابة الملف غير صالحة.'));
-  return ['inspect','text'].includes(action)?response.json():response.blob();
- }
+ const request=(action,extra={},signal)=>requestPdfField(d,{body:{workspaceId:d.session.bound.workspace,propertyId:property.id,documentId,action,...extra},signal,errors,translate:t});
  function target(title,pdfFieldTemplate=false){return {type:'property',ref:property.externalRef,propertyId:property.id,category:'property_contract',title,pdfFieldTemplate};}
  function change(){dirty=true;clearPreview();invalidatePreview();d.status.textContent=t('مواضع الحقول لم تُحفظ بعد.');}
  async function openDocument(id){values={};valuesDirty=false;clearPreview();documentId=id;const info=await request('inspect');pages=info.pages;if(!Array.isArray(pages)||!pages.length)throw Error(t('تعذر قراءة صفحات الملف.'));mapping=info.mapping||{version:1,title:'',propertyId:property.id,fields:[]};page=1;selected=null;dirty=false;await editor();}
@@ -82,7 +75,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   cancel.onclick=()=>{stopText();extract.disabled=false;ocr.disabled=false;cancel.hidden=true;textStatus.textContent=t('أُلغيت القراءة.');};
   async function readText(forceOcr){
    stopText();const controller=new AbortController();textController=controller;const readingPage=page;extract.disabled=true;ocr.disabled=true;cancel.hidden=false;textResult.value='';textStatus.textContent=t('جارٍ قراءة الصفحة…');
-   try{d.session.check();let text='';if(!forceOcr){const result=await request('text',{page:readingPage});text=result.text||'';}if(controller.signal.aborted)return;
+   try{d.session.check();let text='';if(!forceOcr){const result=await request('text',{page:readingPage},controller.signal);text=result.text||'';}if(controller.signal.aborted)return;
     if(!text.trim()){if(!image.complete||!image.naturalWidth)throw Error('IMAGE_NOT_READY');text=await recognizePdfPage(image,{signal:controller.signal,onProgress:n=>{if(!controller.signal.aborted)textStatus.textContent=t('قراءة الصورة على جهازك: ')+n+'%';}});}
     d.session.check();if(controller.signal.aborted||page!==readingPage)return;textResult.value=text;textStatus.textContent=t(text.trim()?'اكتملت القراءة. راجع النص قبل نسخه أو استخدامه.':'لم يُعثر على نص واضح في هذه الصفحة.');
    }catch(error){if(!controller.signal.aborted)textStatus.textContent=t('تعذرت القراءة. حاول مجددًا أو استخدم صورة أوضح.');}
