@@ -11,9 +11,10 @@ class Element{
 }
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 test('touch preview renders pages, zooms, retries, and drops stale responses after disposal',async t=>{
+ const oldWindow=globalThis.window;globalThis.window={addEventListener(){},removeEventListener(){}};
  const oldDocument=globalThis.document,oldCreate=URL.createObjectURL,oldRevoke=URL.revokeObjectURL;
- t.after(()=>{globalThis.document=oldDocument;URL.createObjectURL=oldCreate;URL.revokeObjectURL=oldRevoke;});
- globalThis.document={createElement:tag=>new Element(tag)};
+ t.after(()=>{globalThis.window=oldWindow;globalThis.document=oldDocument;URL.createObjectURL=oldCreate;URL.revokeObjectURL=oldRevoke;});
+ globalThis.document={createElement:tag=>new Element(tag),body:{classList:{remove(){}}}};
  const revoked=[];let serial=0;URL.createObjectURL=()=>`blob:page-${++serial}`;URL.revokeObjectURL=u=>revoked.push(u);
  const calls=[];let fail=false,resolvePending;
  const view=appendPdfPagePreview(new Element('div'),{pageCount:3,renderPage:async(number,signal)=>{calls.push({number,signal});if(fail)throw Error('NETWORK');if(number===3)return new Promise(resolve=>resolvePending=resolve);return new Blob(['png'],{type:'image/png'});}});

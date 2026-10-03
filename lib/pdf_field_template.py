@@ -54,14 +54,15 @@ def validate_map(value,sizes,property_id):
     if not isinstance(fields,list) or not 1<=len(fields)<=MAX_FIELDS:raise ValueError('FIELDS_REQUIRED')
     ids=set()
     for f in fields:
-        if not isinstance(f,dict) or set(f)!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
+        if not isinstance(f,dict) or set(f)-{'color'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
         if not isinstance(f['id'],str) or not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',f['id']) or f['id'] in ids:raise ValueError('INVALID_FIELD')
         ids.add(f['id'])
+        if 'color' in f and (not isinstance(f['color'],str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',f['color'])):raise ValueError('INVALID_FIELD')
         if not isinstance(f['label'],str) or not 1<=len(f['label'].strip())<=100 or f['type'] not in ['text','date','number','money'] or f['align'] not in ['right','left','center']:raise ValueError('INVALID_FIELD')
         if type(f['page']) is not int or not 1<=f['page']<=len(sizes):raise ValueError('INVALID_FIELD_PAGE')
         for k in ['x','y','width','height','fontSize']:
             if type(f[k]) not in [int,float] or not math.isfinite(f[k]):raise ValueError('INVALID_FIELD_POSITION')
-        if not(0<=f['x']<1 and 0<=f['y']<1 and .01<=f['width']<=1 and .006<=f['height']<=1 and f['x']+f['width']<=1.000001 and f['y']+f['height']<=1.000001 and 6<=f['fontSize']<=30):raise ValueError('INVALID_FIELD_POSITION')
+        if not(0<=f['x']<1 and 0<=f['y']<1 and .01<=f['width']<=1 and .006<=f['height']<=1 and f['x']+f['width']<=1.000001 and f['y']+f['height']<=1.000001 and 6<=f['fontSize']<=48):raise ValueError('INVALID_FIELD_POSITION')
         for old in fields[:fields.index(f)]:
             if old['page']==f['page'] and min(old['x']+old['width'],f['x']+f['width'])-max(old['x'],f['x'])>0.00001 and min(old['y']+old['height'],f['y']+f['height'])-max(old['y'],f['y'])>0.00001:raise ValueError('FIELD_OVERLAP')
     return {'version':1,'title':title.strip(),'propertyId':property_id,'fields':fields}
@@ -124,7 +125,7 @@ def fill_template(reader,mapping,values):
             size=min(f['fontSize'],h*.75)
             while size>=6 and pdfmetrics.stringWidth(text,FONT,size)>w-4:size-=.25
             if size<6:raise ValueError('FIELD_TEXT_TOO_LONG')
-            c.setFont(FONT,size);c.setFillColorRGB(0,0,0)
+            c.setFont(FONT,size);color=f.get('color','#000000');c.setFillColorRGB(*(int(color[i:i+2],16)/255 for i in [1,3,5]))
             baseline=height-y-(h+size*.7)/2
             if f['align']=='right':c.drawRightString(x+w-2,baseline,text)
             elif f['align']=='center':c.drawCentredString(x+w/2,baseline,text)

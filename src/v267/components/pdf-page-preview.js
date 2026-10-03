@@ -1,5 +1,6 @@
 import {node} from './dialog.js';
 import {t} from './locale.js';
+import {appendContractPrint} from './pdf-contract-print.js';
 
 // Render the filled PDF on every device, without depending on a browser PDF plugin.
 // URLs and requests are private to this preview and disposed when its values change.
@@ -30,6 +31,7 @@ export function appendPdfPagePreview(target,{pageCount,renderPage}){
   finally{clearTimeout(timer);if(!disposed&&ticket===version&&current.signal.aborted)failed();}
  }
  choice.onchange=()=>load(Number(choice.value));
+ const printer=appendContractPrint(root,{pageCount,renderPage});
  const ready=load(1);
- return {root,image,ready,dispose(){disposed=true;version++;controller?.abort();image.onload=null;image.onerror=null;image.removeAttribute('src');for(const url of urls.values())URL.revokeObjectURL(url);urls.clear();root.remove();}};
+ return {root,image,ready,dispose(){printer.dispose();disposed=true;version++;controller?.abort();image.onload=null;image.onerror=null;image.removeAttribute('src');for(const url of urls.values())URL.revokeObjectURL(url);urls.clear();root.remove();}};
 }

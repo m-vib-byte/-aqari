@@ -37,3 +37,18 @@
 #aq267-pdf-field-workspace .aq267-pdf-preview-image{display:block;max-width:none!important;height:auto;margin:0;background:white;}
 #aq267-pdf-field-workspace .aq267-pdf-preview-image:not([src]){display:none;}
 #aq267-pdf-field-workspace .aq267-pdf-page-preview [hidden]{display:none!important;}
+
+#aq267-pdf-field-workspace .aq267-pdf-map-controls input[type=color]{width:100%;height:48px;padding:4px!important;cursor:pointer;}
+#aq267-pdf-field-workspace.is-pdf-previewing>.aq267-dialog-body>:not(.aq267-pdf-map-preview){display:none!important;}
+#aq267-pdf-field-workspace.is-pdf-previewing .aq267-pdf-map-preview{display:block!important;}
+#aq267-pdf-field-workspace .aq267-pdf-print-button{width:100%!important;margin-block:12px;}
+.aq267-pdf-print-surface{display:none!important;}
+@media print{
+ @page aqari-filled-contract{size:A4;margin:0;}
+ body.aq267-printing-contract{margin:0!important;padding:0!important;overflow:visible!important;background:white!important;}
+ body.aq267-printing-contract #aq267-pdf-field-workspace,body.aq267-printing-contract>*:not(.aq267-pdf-print-surface){display:none!important;}
+ body.aq267-printing-contract>.aq267-pdf-print-surface{display:block!important;position:static!important;margin:0!important;padding:0!important;width:100%!important;}
+ .aq267-pdf-print-sheet{page:aqari-filled-contract;display:block!important;width:210mm;height:297mm;margin:0!important;padding:0!important;break-after:page;page-break-after:always;overflow:hidden;}
+ .aq267-pdf-print-sheet:last-child{break-after:auto;page-break-after:auto;}
+ .aq267-pdf-print-sheet img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+}
