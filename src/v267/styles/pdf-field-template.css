@@ -52,3 +52,5 @@
  .aq267-pdf-print-sheet:last-child{break-after:auto;page-break-after:auto;}
  .aq267-pdf-print-sheet img{display:block!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
 }
+
+.aq267-pdf-map .aq267-pdf-draft-status{min-height:3.6em;margin-block:.5rem;overflow-wrap:anywhere;}
