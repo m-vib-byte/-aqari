@@ -21,6 +21,15 @@ jobs:
         run: node tests/v266-authenticated-home.e2e.mjs
         env:
           AQARI_HOME_DIAGNOSTICS: '1'
+      - name: Apply the deployed today-payment and KNET overlays
+        run: |
+          node scripts/install-v267-today-payments.mjs
+          node scripts/install-v267-today-knet-details.mjs
+          node scripts/install-v267-knet-range-filters.mjs
+      - name: Verify three WebKit runs with the deployed financial overlays
+        run: node tests/v266-authenticated-home.e2e.mjs
+        env:
+          AQARI_HOME_DIAGNOSTICS: '1'
       - uses: actions/upload-artifact@v4
         if: always()
         with:

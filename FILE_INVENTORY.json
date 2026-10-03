@@ -27,8 +27,8 @@
     },
     {
       "path": ".github/workflows/home-diagnostics.yml",
-      "sha256": "b5327e1490384dada256ccf9c5aded8764e46e68cde085f1ea00fd4b1aa1e629",
-      "size": 926
+      "size": 1362,
+      "sha256": "946d582d76f73e8a6174a42d42c25bebb2807ac2a3b490259051e0b674d50249"
     },
     {
       "path": ".github/workflows/login-speed.yml",
