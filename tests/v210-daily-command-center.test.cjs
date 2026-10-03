@@ -112,3 +112,28 @@ test('V267 incomplete source contracts prevent a portfolio being treated as fina
  assert.equal(result.unreviewed,1,'zero operational dues must not imply a fully reviewed property');
  assert.equal(result.collected,0,'source rent must not become received cash');
 });
+
+
+test('summary reuses only an unchanged authorized source and refreshes edits, month, day and access',()=>{
+ let revision=1,calls=0,day='2026-10-03',value=40;
+ const access={user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}};
+ const window={AQARI_SUPABASE:{context:access},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_EARLY_STORAGE_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_V202:{
+  rentOfficeRevision:()=>revision,rentOfficeProperties:()=>['Tower'],
+  rentOfficeData:(name,period)=>{calls++;return {property:name,period,totalCollected:value,records:[]}},
+  dailyCollectionSummary:(name,date)=>({day:date,paid:value,undated:0})
+ }};
+ const document={readyState:'loading',addEventListener(){},getElementById(){return null},querySelector(){return null}};
+ const context={window,document,MutationObserver:class{observe(){}},Intl:{DateTimeFormat:function(){return {format:()=>day}}},Date,console};
+ vm.runInNewContext(js.replace('  const observer=new MutationObserver(schedule);','  window.testSnapshot=snapshot;window.testPeriod=value=>{period=value};\n  const observer=new MutationObserver(schedule);'),context);
+ const read=window.testSnapshot;
+ assert.equal(read().summary.collected,40);
+ for(let i=0;i<20;i++)assert.equal(read().summary.collected,40);
+ assert.equal(calls,1,'cosmetic DOM refreshes must not recalculate financial summaries');
+ value=50;revision++;assert.equal(read().summary.collected,50);assert.equal(calls,2);
+ window.testPeriod('2026-11');read();assert.equal(calls,3);
+ day='2026-10-04';read();assert.equal(calls,4);
+ access.membership.role='accountant';read();assert.equal(calls,5);
+ window.AQARI_DATA_GATE.scope=null;assert.equal(read(),null);
+ window.AQARI_DATA_GATE.scope={userId:'u',workspaceId:'w'};read();assert.equal(calls,6);
+ revision=null;read();read();assert.equal(calls,8,'unavailable revision must always read fresh data');
+});

@@ -3917,8 +3917,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "03ee26254d67a557080b6702cc3aed54f078ed25dc990d3a09260727ec611d2f",
-      "size": 185964
+      "size": 186824,
+      "sha256": "0e86c68b1958fae5210ae6ef1536f14c60af78107229e6cff24656b13250473a"
     },
     {
       "path": "tests/v205-click-routing.test.cjs",
@@ -3952,8 +3952,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "sha256": "82be11ac76104a7d151e235d09e04c4622b181e72da739fc0d8022ef21b1c2b3",
-      "size": 6001
+      "size": 7947,
+      "sha256": "0967fb0dd9116c8ceed00c1c67e953f7e7c955d08b9b5ae03cd7a3b43e3299e7"
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
@@ -4917,8 +4917,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "ee7dccf893caf28c3c4daa657f02f5e99c73919fac92e12e73cd1ed32c1f4729",
-      "size": 285059
+      "size": 286086,
+      "sha256": "7d01fdd13901279fdf57c016b39be7283c7aedfb2bdf3ea05645c5e9d957bc50"
     },
     {
       "path": "v205-simple.css",
@@ -4972,8 +4972,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "sha256": "e58b30307decdacd6870052c44aa192df3c4619b685d9859a746c5c0e2bd2429",
-      "size": 17245
+      "size": 17917,
+      "sha256": "7515b2424e102945501303c8fa82f24020e574a34dce2425083d86cb8bb824e6"
     },
     {
       "path": "v211-follow-up-center-core.js",

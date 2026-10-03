@@ -282,6 +282,23 @@
     catch(_){return date.toLocaleDateString('ar-KW')}
   }
 
+  let rentSourceSignature='';
+  let rentSourceRevision=0;
+
+  // Compare the actual read sources, including in-place edits. Only an opaque
+  // revision escapes this closure; no identity or financial rows are exposed.
+  function rentOfficeRevision(){
+    if(!protectedAccessReady()){rentSourceSignature='';return null}
+    try{
+      const scope=activeAccessScope();
+      const local=typeof localContractsV55==='function'?localContractsV55():[];
+      const signature=JSON.stringify([scope,window.AQARI_SUPABASE?.context?.membership?.role,appData(),local,protectedImportGeneration,protectedCacheUsable(),protectedImportCache]);
+      if(!protectedAccessReady()||!sameAccessScope(scope,activeAccessScope())){rentSourceSignature='';return null}
+      if(signature!==rentSourceSignature){rentSourceSignature=signature;rentSourceRevision+=1}
+      return rentSourceRevision;
+    }catch(_){rentSourceSignature='';return null}
+  }
+
   function appData(){
     try{return typeof db!=='undefined'&&db?db:{}}
     catch(_){return {}}
@@ -452,6 +469,7 @@
   }
 
   function clearProtectedImport(){
+    rentSourceSignature='';
     protectedImportGeneration+=1;
     protectedImportCache=Object.create(null);
     protectedPropertyNames=new Set();
@@ -461,6 +479,7 @@
   }
 
   function suspendProtectedImport(dropCache){
+    rentSourceSignature='';
     protectedImportGeneration+=1;
     protectedImportValidated=false;
     if(dropCache){
@@ -4061,6 +4080,7 @@
           return row.slice(0,4).concat(metadata?[{aqariPropertyPresentation:1,location:metadata.location,price:metadata.price,purpose:metadata.purpose,phone:metadata.phone,photos:Array.isArray(metadata.photos)?metadata.photos.slice(0,4):[]}]:[]);
         });
       },
+      rentOfficeRevision:rentOfficeRevision,
       rentOfficeProperties:function(){return secureRentOfficeProperties()},
       rentOfficeData:function(name,period){return secureRentOfficeData(name,period)},
       dailyCollectionSummary:dailyCollectionSummary,

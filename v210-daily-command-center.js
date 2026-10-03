@@ -8,6 +8,8 @@
   let authListenerInstalled=false;
   let timer=0;
   let lastSignature='';
+  let lastSnapshot=null;
+  let lastSnapshotKey='';
 
   function currentPeriod(){
     const date=new Date();
@@ -124,8 +126,13 @@
 
   function snapshot(){
     const scope=scopeKey();
-    if(!scope)return null;
-    const items=propertyNames(scope).map(function(name){
+    if(!scope){lastSnapshot=null;lastSnapshotKey='';return null}
+    const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    const revision=window.AQARI_V202?.rentOfficeRevision?.();
+    const key=Number.isSafeInteger(revision)?JSON.stringify([scope,period,day,revision]):'';
+    if(key&&key===lastSnapshotKey&&scopeKey()===scope)return lastSnapshot;
+    const names=propertyNames(scope);
+    const items=names.map(function(name){
       const data=officeData(name,scope);
       if(!data)return {name:name,valid:false};
       const records=Array.isArray(data.records)?data.records:[];
@@ -137,11 +144,15 @@
       };
     });
     if(scopeKey()!==scope)return null;
-    const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuwait',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-    const dailyRows=propertyNames(scope).map(function(name){return window.AQARI_V202?.dailyCollectionSummary?.(name,day)});
+    const dailyRows=names.map(function(name){return window.AQARI_V202?.dailyCollectionSummary?.(name,day)});
     const daily=dailyRows.length&&dailyRows.every(function(row){return row&&row.day===day})?dailyRows.reduce(function(out,row){out.paid+=Math.round(row.paid*1000);out.undated+=row.undated;return out},{paid:0,undated:0}):null;
     if(scopeKey()!==scope)return null;
-    return {scope:scope,period:period,summary:aggregate(items),daily:daily,day:day};
+    const result={scope:scope,period:period,summary:aggregate(items),daily:daily,day:day};
+    // A missing revision API keeps the previous fresh-read behavior. Never
+    // retain a result if its source changed while computing the snapshot.
+    lastSnapshotKey=key&&window.AQARI_V202?.rentOfficeRevision?.()===revision?key:'';
+    lastSnapshot=lastSnapshotKey?result:null;
+    return result;
   }
 
   function priorityMarkup(items){
@@ -173,7 +184,7 @@
     '</section>';
   }
 
-  function clear(){document.getElementById('v210DailyCommandCenter')?.remove();lastSignature=''}
+  function clear(){document.getElementById('v210DailyCommandCenter')?.remove();lastSignature='';lastSnapshot=null;lastSnapshotKey=''}
 
   function render(){
     // Do not rebuild portfolio summaries behind an active entry or document dialog.
