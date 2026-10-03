@@ -75,6 +75,25 @@ class PdfFieldsTest(unittest.TestCase):
         calls=[]
         def rpc(*args):calls.append(1);return {'workspace_id':W,'can_publish':True,'user_id':'a' if len(calls)==1 else 'b'}
         with self.assertRaises(PermissionError):api.process({'workspaceId':W,'propertyId':P,'documentId':D,'action':'fill','values':{'tenant':'Test','date':'2026-10-03'}},'Bearer test.token',rpc,read,lambda *a:raw)
+    def test_filled_page_matches_downloaded_pdf_on_every_page_and_obeys_scope(self):
+        raw=write_template(open_pdf(original()),mapping())
+        row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P}}
+        def read(path,auth):return [{'id':P,'workspace_id':W,'external_ref':'p'}] if '/aqari_properties?' in path else [row]
+        ctx={'workspace_id':W,'can_publish':True,'user_id':'manager'}
+        data={'workspaceId':W,'propertyId':P,'documentId':D,'action':'fill','values':{'tenant':'مستأجر تجريبي','date':'2026-10-03'}}
+        def call(data):return api.process(data,'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        pdf,_=call(data)
+        for page in [1,2]:
+            png,mime=call(dict(data,action='filled_page',page=page))
+            self.assertEqual(mime,'image/png')
+            self.assertEqual(png,render_page(open_pdf(pdf),page))
+            self.assertNotEqual(png,render_page(open_pdf(raw),page))
+        for page in [0,3,True,'1']:
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD_PAGE'):call(dict(data,action='filled_page',page=page))
+        ctx['can_publish']=False
+        with self.assertRaises(PermissionError):call(dict(data,action='filled_page',page=1))
+        ctx['can_publish']=True;row['metadata']['property_id']=W
+        with self.assertRaises(PermissionError):call(dict(data,action='filled_page',page=1))
     def test_text_extraction_obeys_page_and_manager_scope(self):
         row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P}}
         def read(path,auth):return [{'id':P,'workspace_id':W,'external_ref':'p'}] if '/aqari_properties?' in path else [row]

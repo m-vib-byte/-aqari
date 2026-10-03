@@ -39,7 +39,7 @@ def process(data,auth,rpc_call=preview.rpc,read=common.upstream,storage=storage_
     metadata=row.get('metadata',{})
     if row.get('id')!=data['documentId'] or prop.get('id')!=property_id or row.get('entity_type')!='property' or row.get('entity_ref')!=prop.get('external_ref') or row.get('document_type')!='property_document' or row.get('status')!='uploaded' or not isinstance(metadata,dict) or metadata.get('category')!='property_other' or metadata.get('asset_role')!='property_contract' or metadata.get('property_id')!=property_id:raise PermissionError('PDF_PROPERTY_MISMATCH')
     action=data.get('action')
-    if action not in ['inspect','page','text','save','fill']:raise ValueError('INVALID_REQUEST')
+    if action not in ['inspect','page','text','save','fill','filled_page']:raise ValueError('INVALID_REQUEST')
     reader=open_pdf(storage(row,auth));sizes=page_sizes(reader);mapping=saved_map(reader,property_id)
     if action=='inspect':body=json.dumps({'pages':sizes,'mapping':mapping},ensure_ascii=False).encode();mime='application/json; charset=utf-8'
     elif action=='text':
@@ -52,6 +52,7 @@ def process(data,auth,rpc_call=preview.rpc,read=common.upstream,storage=storage_
     else:
         if not mapping:raise ValueError('SAVED_TEMPLATE_REQUIRED')
         body=fill_template(reader,mapping,data.get('values'));mime='application/pdf'
+        if action=='filled_page':body=render_page(open_pdf(body),data.get('page'));mime='image/png'
     if len(body)>4*1024*1024:raise ValueError('PDF_OUTPUT_LIMIT')
     final=preview._context(workspace,auth,rpc_call)
     if final.get('user_id')!=context.get('user_id'):raise PermissionError('ACCESS_DENIED')

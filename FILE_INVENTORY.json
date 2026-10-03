@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "d5331854ba6368f3f96040f93887f7fdf7b8e69c3d5078c426a5c36dd82f2217",
-      "size": 8900
+      "sha256": "dc8a2da6966888f7220e35660758b0563964ceac9d99ca6d963c5559b856412a",
+      "size": 8937
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -267,8 +267,8 @@
     },
     {
       "path": "api/pdf-field-template.py",
-      "sha256": "e15a2404d4584cd3b40cd781d57c9b469636d13639ae7866b2d4601ffd02e69e",
-      "size": 6173
+      "sha256": "b1eb0eeef24a27354f78ac5df7aa66fbd1678562aecb10893b65b8e07dd5e750",
+      "size": 6287
     },
     {
       "path": "api/production-meta.js",
@@ -1466,9 +1466,14 @@
       "size": 1810
     },
     {
+      "path": "src/v267/components/pdf-page-preview.js",
+      "sha256": "8c14d1342b18fe2299e2d208428248e26d985d5ebd943aadf29260f1bfbd9437",
+      "size": 3569
+    },
+    {
       "path": "src/v267/components/pdf-viewer.js",
-      "size": 1194,
-      "sha256": "2ed15466ea96994d6dd27d6c960811fd6a0452bd2856663eb11f62fedd2870c5"
+      "sha256": "2150d7a05d33afdf278ebe3fb222d24068088bb1d33aed0a2a441cacc2b1bd9b",
+      "size": 1240
     },
     {
       "path": "src/v267/components/portal-account-recovery.js",
@@ -1872,8 +1877,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "cd2d4362c78440fc21c4c67fabd8e23cd25748be607d935b5a86a13684329c9b",
-      "size": 22970
+      "sha256": "d1a4e866873f2bdfc7ab99d977078ce9163bdffa2531d5c736f00cbcab1b1041",
+      "size": 23453
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2012,8 +2017,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "d0a577f1185f0ccc0432223d1665519556fb5919ad5a1b070fddd7d7ada498bd",
-      "size": 4772
+      "sha256": "b35f542c9bcc91d8213654733a7507fc1df4a6cd68d56a635741087df4e1d666",
+      "size": 5426
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -3747,8 +3752,8 @@
     },
     {
       "path": "tests/pdf_field_template_test.py",
-      "sha256": "8edcd2dfedebecb2c5c06eca3868d48b289ed983a650b8070fa09f9e929e7833",
-      "size": 8194
+      "sha256": "5af62dfb8cc64839e07cef20f2a844135664dc0b9b2ed66c51a68d49a9f582b9",
+      "size": 9749
     },
     {
       "path": "tests/preview-access.mjs",
@@ -4444,6 +4449,11 @@
       "path": "tests/v267-pdf-local-ocr.test.mjs",
       "sha256": "c0cc1ac65ac025ef4007b7e0ebb03355abfbda0f488fa42db8c06b35c25377c4",
       "size": 2262
+    },
+    {
+      "path": "tests/v267-pdf-page-preview.test.mjs",
+      "sha256": "a56d0102732c1f9ac3f7995071fb63763a1f1d8bf2739d92de7a9a166a0d2423",
+      "size": 2325
     },
     {
       "path": "tests/v267-pdf-viewer.test.mjs",
