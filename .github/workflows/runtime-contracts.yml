@@ -85,7 +85,7 @@ jobs:
       - name: Local PDF OCR lifecycle and cancellation
         run: node --test tests/v267-pdf-local-ocr.test.mjs
       - name: Saved property contract opening and verified archive
-        run: node --test tests/v267-property-contract-open.test.mjs tests/v267-property-contract-archive.test.mjs tests/v267-property-contract-archive-ui.test.mjs tests/v267-pdf-viewer.test.mjs tests/v267-pdf-page-preview.test.mjs
+        run: node --test tests/v267-property-contract-open.test.mjs tests/v267-property-contract-archive.test.mjs tests/v267-property-contract-archive-ui.test.mjs tests/v267-pdf-viewer.test.mjs tests/v267-pdf-page-preview.test.mjs tests/v267-pdf-contract-print.test.mjs
       - name: V267 workspace isolation and image processing
         run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs tests/v267-rental-records.test.cjs tests/imported-tenant-editor.test.mjs tests/v267-payroll.test.mjs
       - name: Verify complete Staging runtime against release inventory

@@ -27,6 +27,20 @@ class PdfFieldsTest(unittest.TestCase):
         filled=fill_template(r,m,{'tenant':'مستأجر تجريبي','date':'2026-10-03'});result=PdfReader(BytesIO(filled))
         self.assertEqual(len(result.pages),2);self.assertIn('ORIGINAL TERMS',result.pages[0].extract_text());self.assertIn('SECOND PAGE',result.pages[1].extract_text());self.assertIn('2026-10-03',result.pages[1].extract_text());self.assertNotIn(MAP_KEY,result.metadata)
         self.assertTrue(render_page(open_pdf(filled),1).startswith(b'\x89PNG'))
+    def test_field_colors_and_font_sizes_survive_template_and_pdf_rendering(self):
+        from PIL import Image
+        m=mapping();m['fields'][0].update(color='#ff0000',fontSize=24,height=.08)
+        valid=validate_map(m,page_sizes(open_pdf(original())),P)
+        raw=write_template(open_pdf(original()),valid)
+        self.assertEqual(saved_map(open_pdf(raw),P)['fields'][0]['color'],'#ff0000')
+        filled=fill_template(open_pdf(raw),valid,{'tenant':'COLOR TEST','date':'2026-10-03'})
+        image=Image.open(BytesIO(render_page(open_pdf(filled),1))).convert('RGB')
+        self.assertGreater(sum(r>180 and g<80 and b<80 for r,g,b in image.getdata()),100)
+        legacy=mapping();self.assertEqual(validate_map(legacy,page_sizes(open_pdf(original())),P),legacy)
+        for color in [None,'red','#fff','#zz0000','url(x)',123]:
+            bad=mapping();bad['fields'][0]['color']=color
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(bad,page_sizes(open_pdf(original())),P)
+        m['fields'][0]['fontSize']=48;validate_map(m,page_sizes(open_pdf(original())),P)
     def test_rotated_cropped_template_keeps_field_coordinates_on_reopen(self):
         source=PdfReader(BytesIO(original()));writer=PdfWriter()
         p=writer.add_page(source.pages[0]);p.cropbox=RectangleObject([30,40,560,800]);p.rotate(90)
