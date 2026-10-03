@@ -9,7 +9,7 @@ import {pathToFileURL} from 'node:url';
 const root=process.cwd(),propertyId='22222222-2222-4222-8222-222222222222',wid='11111111-1111-4111-8111-111111111111',uid='44444444-4444-4444-8444-444444444444';
 const original='33333333-3333-4333-8333-333333333333';
 const baseMapping={version:1,title:'نموذج اختبار معزول',propertyId,fields:[{id:'name',label:'اسم المستأجر',type:'text',page:1,x:.2,y:.2,width:.55,height:.04,fontSize:10,align:'right',color:'#000000'}]};
-let drafts=new Map(),writes=[],loseReply=false,deny=false,templateSaves=0;
+let drafts=new Map(),writes=[],loseReply=false,deny=false,templateSaves=0,propertiesEmpty=false;
 const mappings=new Map([[original,baseMapping]]);
 function png(){const chunk=(name,body)=>{const bytes=Buffer.concat([Buffer.from(name),body]);let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let j=0;j<8;j++)crc=(crc>>>1)^(crc&1?0xedb88320:0);}const size=Buffer.alloc(4),end=Buffer.alloc(4);size.writeUInt32BE(body.length);end.writeUInt32BE((crc^0xffffffff)>>>0);return Buffer.concat([size,bytes,end]);};const header=Buffer.alloc(13);header.writeUInt32BE(595);header.writeUInt32BE(842,4);header[8]=8;header[9]=2;const pixels=Buffer.alloc((595*3+1)*842,250);for(let y=0;y<842;y++)pixels[y*(595*3+1)]=0;return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(pixels)),chunk('IEND',Buffer.alloc(0))]);}
 const pageImage=png();
@@ -21,15 +21,16 @@ window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};
 const auth={user:{id:uid},access_token:'synthetic-token'};
 const client={auth:{getSession:async()=>({data:{session:auth}})},rpc:(name,args)=>({abortSignal:signal=>fetch('/fixture/rpc',{method:'POST',body:JSON.stringify({name,args}),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status})})};
 window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:'general_manager',is_active:true}},getClient:async()=>client};
-const {openPdfFieldTemplate}=await import('/src/v267/pages/pdf-field-template.js');document.querySelector('#open').onclick=()=>openPdfFieldTemplate({propertyId:${JSON.stringify(propertyId)}});document.querySelector('#open').disabled=false;
+const {openPdfFieldTemplate}=await import('/src/v267/pages/pdf-field-template.js');document.querySelector('#open').onclick=()=>openPdfFieldTemplate({propertyId:new URLSearchParams(location.search).has('unselected')?null:${JSON.stringify(propertyId)}});document.querySelector('#open').disabled=false;
 </script></body></html>`;
 const overrides={
- '/src/v267/components/template-property-logo.js':`export const createTemplateLogoContext=()=>({listProperties:async()=>[{id:${JSON.stringify(propertyId)},externalRef:'synthetic',name:'عقار تجريبي'}]});`,
+ '/src/v267/components/template-property-logo.js':`export const createTemplateLogoContext=()=>({listProperties:async()=>fetch('/fixture/properties').then(r=>r.json())});`,
  '/src/v267/components/property-contract-archive.js':`export const listPropertyContractArchive=async()=>({items:[{id:${JSON.stringify(original)},title:'نموذج تجريبي',metadata:{pdf_field_template:true}}],nextOffset:100,hasMore:false});`,
  '/src/v267/components/original-document-upload.js':`export const originalDocument=async f=>f;export const createOriginalDocumentUpload=()=>async()=>({id:'template-version'});`,
 };
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');let text='';if(req.method==='POST')for await(const part of req)text+=part;const body=text?JSON.parse(text):{};
+ if(url.pathname==='/fixture/properties')return reply(res,propertiesEmpty?[]:[{id:propertyId,externalRef:'synthetic',name:'عقار تجريبي'}]);
  if(url.pathname==='/fixture/rpc'){
   assert.equal(body.name,'aqari_pdf_editor_drafts');assert.equal(body.args.p_workspace_id,wid);const {p_action:action,p_data:data}=body.args;assert.equal(data.property_id,propertyId);
   if(deny)return reply(res,{message:'ACCESS_DENIED',code:'42501'},403);
@@ -68,6 +69,23 @@ else{
   const loaded=async p=>p.waitForFunction(()=>document.querySelector('.aq267-pdf-map-page>img')?.naturalWidth>0);
   const saved=async p=>p.waitForFunction(()=>document.querySelector('.aq267-pdf-draft-status')?.textContent.startsWith('حُفظت المسودة'));
   try{
+   // File-first entry must survive a property change; no re-upload selection.
+   await page.goto(url+'?unselected=1');await button(page,'فتح المحرر التجريبي').click();
+   const uploadButton=button(page,'رفع النموذج وتحديد الحقول');await uploadButton.waitFor();assert.equal(await uploadButton.isDisabled(),true);
+   await page.locator('input[type=file]').setInputFiles({name:'contract.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.7\nsynthetic-upload')});
+   await page.getByLabel('العقار',{exact:true}).selectOption(propertyId);await button(page,'فتح النموذج وتعبئته').waitFor();
+   assert.equal(await page.locator('input[type=file]').evaluate(el=>el.files[0]?.name),'contract.pdf');assert.equal(await uploadButton.isDisabled(),false);
+   await page.getByLabel('العقار',{exact:true}).selectOption('');await page.waitForFunction(()=>!document.querySelector('.aq267-dialog-body').inert);
+   assert.equal(await uploadButton.isDisabled(),true);assert.equal(await page.locator('input[type=file]').evaluate(el=>el.files[0]?.name),'contract.pdf');
+   await page.getByLabel('العقار',{exact:true}).selectOption(propertyId);await button(page,'فتح النموذج وتعبئته').waitFor();await uploadButton.click();await loaded(page);
+   await button(page,'العودة للمنصة').click();
+   // Empty authorized property results are recoverable, not a silent dead end.
+   propertiesEmpty=true;await page.goto(url+'?unselected=1');await button(page,'فتح المحرر التجريبي').click();await button(page,'إعادة تحميل العقارات').waitFor();
+   assert.equal(await uploadButton.isDisabled(),true);assert.match(await page.locator('.aq267-pdf-upload-status').innerText(),/لا توجد عقارات/);
+   propertiesEmpty=false;await button(page,'إعادة تحميل العقارات').click();await page.waitForFunction(()=>document.querySelectorAll('.aq267-dialog-body select option').length===2);
+   await page.getByLabel('العقار',{exact:true}).selectOption(propertyId);await button(page,'فتح النموذج وتعبئته').waitFor();
+   assert.equal(await uploadButton.isDisabled(),true);assert.match(await page.locator('.aq267-pdf-upload-status').innerText(),/اختر ملف/);
+   console.log('PASS '+name+': file-first selection retained across property changes, upload opens, empty properties recover, required inputs gate upload');
    await open(page);await button(page,'فتح النموذج وتعبئته').click();await loaded(page);
    await page.getByLabel('بيانات الحقل',{exact:true}).fill('اسم تجريبي طويل');await saved(page);assert.equal(drafts.size,1);assert.equal(writes.at(-1).snapshot.values.name,'اسم تجريبي طويل');
    assert.equal(await page.locator('.aq267-dialog-body').evaluate(el=>el.inert),false);

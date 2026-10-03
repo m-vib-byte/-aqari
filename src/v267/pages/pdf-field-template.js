@@ -25,6 +25,9 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  const uploader=createOriginalDocumentUpload(d.session),templateUploader=createOriginalDocumentUpload(d.session),filledUploader=createOriginalDocumentUpload(d.session);
  const button=(text,fn)=>{const b=node('button',t(text));b.type='button';b.onclick=()=>d.run(fn);return b;};
  const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value;return el;};
+ // Keep the same native file control when the property selection reloads home.
+ // Recreating it silently discards the user's selected file on mobile.
+ const uploadFile=input('file');uploadFile.accept='application/pdf';
  const choose=(pairs,value)=>{const el=node('select');for(const [v,label]of pairs){const o=node('option',t(label));o.value=v;el.append(o);}el.value=value;return el;};
  const clearPreview=()=>{stopPreview();stopPreview=()=>{};filled=null;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=null;};
  d.onDispose(()=>{draft?.dispose();window.removeEventListener('beforeunload',warnUnsaved);history?.clear();stopText();stopEditor();values={};epoch++;if(imageUrl)URL.revokeObjectURL(imageUrl);clearPreview();});
@@ -64,9 +67,13 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   if(d.session.bound.role!=='general_manager')throw Error(t('اعتماد المدير العام مطلوب.'));
   const props=await createTemplateLogoContext(d.session).listProperties();d.session.check();property=props.find(p=>p.id===propertyId)||null;
   const choice=choose([['','اختر العقار'],...props.map(p=>[p.id,p.name])],propertyId||'');choice.onchange=()=>d.run(async()=>{propertyId=choice.value;await home();});
-  const file=input('file');file.accept='application/pdf';const title=node('h3',t('١. ارفع النموذج الأصلي'));
+  const file=uploadFile;const title=node('h3',t('١. ارفع النموذج الأصلي'));
   const upload=button('رفع النموذج وتحديد الحقول',async()=>{if(!property)throw Error(t('اختر العقار أولًا.'));const f=file.files?.[0];if(!f||f.size>4*1024*1024)throw Error(t('اختر ملف PDF بحجم حتى ٤ ميجابايت.'));const blob=await originalDocument(f);if(blob.type!=='application/pdf')throw Error(t('اختر ملف PDF.'));const row=await uploader(f,target(f.name.slice(0,160)));await openDocument(row.id);});
-  d.body.replaceChildren(field(t('العقار'),choice),title,node('p',t('ترفع النموذج مرة، ثم تضغط على أماكن الفراغات لتسمية الحقول. يحفظ الأصل دون تغيير.')),field(t('ملف PDF — حتى ٣٠ صفحة و٤ ميجابايت'),file),upload);
+  const uploadStatus=node('p');uploadStatus.className='aq267-pdf-upload-status';uploadStatus.setAttribute('role','status');
+  function updateUpload(){const f=file.files?.[0];upload.disabled=!property||!f||f.size>4*1024*1024;uploadStatus.textContent=t(!props.length?'لا توجد عقارات متاحة لهذا الحساب. أعد تحميل القائمة أو راجع صلاحيات العقارات.':!property?'اختر العقار للمتابعة.':!f?'اختر ملف العقد من جهازك للمتابعة.':f.size>4*1024*1024?'اختر ملف PDF بحجم حتى ٤ ميجابايت.':'الملف جاهز. اضغط رفع النموذج وتحديد الحقول.');}
+  file.onchange=updateUpload;updateUpload();
+  d.body.replaceChildren(field(t('العقار'),choice),title,node('p',t('ترفع النموذج مرة، ثم تضغط على أماكن الفراغات لتسمية الحقول. يحفظ الأصل دون تغيير.')),field(t('ملف PDF — حتى ٣٠ صفحة و٤ ميجابايت'),file),uploadStatus,upload);
+  if(!props.length)d.body.append(button('إعادة تحميل العقارات',home));
   if(onBack)d.body.prepend(button('العودة للعقود',()=>{d.close();return onBack();}));
   if(!property)return;
   const drafts=node('section'),draftList=node('div'),draftListStatus=node('p');draftListStatus.setAttribute('role','status');let draftOffset=0;
