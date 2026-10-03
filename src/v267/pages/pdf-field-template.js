@@ -59,7 +59,13 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   const pageChoice=choose(pages.map((_,i)=>[String(i+1),t('صفحة ')+(i+1)]),String(page));
   const canvas=node('div'),image=node('img'),layer=node('div'),controls=node('section'),allFields=node('div');canvas.className='aq267-pdf-map-page';image.alt=t('صفحة النموذج الأصلي');image.draggable=false;layer.className='aq267-pdf-map-layer';canvas.append(image,layer);const viewport=node('div');viewport.className='aq267-pdf-map-viewport';viewport.append(canvas);controls.className='aq267-pdf-map-controls';
   const preview=node('section');preview.className='aq267-pdf-map-preview';
-  const previewMode=active=>{d.el.classList.toggle('is-pdf-previewing',active);d.el.scrollTop=0;};
+  let editorScrollTop=0;
+  const previewMode=active=>{
+   if(d.el.classList.contains('is-pdf-previewing')===active)return;
+   if(active)editorScrollTop=d.el.scrollTop;
+   d.el.classList.toggle('is-pdf-previewing',active);
+   d.el.scrollTop=active?0:editorScrollTop;
+  };
   invalidatePreview=()=>{previewMode(false);preview.replaceChildren();};
   d.onDispose(()=>d.el.classList.remove('is-pdf-previewing'));
   const updateScale=()=>canvas.style.setProperty('--pdf-page-scale',String(canvas.clientWidth/pages[page-1].width));

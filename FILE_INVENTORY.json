@@ -1882,8 +1882,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "af296d46f5a82a9a49c7e115c375c5f8d4a6aaf3ec0ff98807188481bc7069e5",
-      "size": 24653
+      "sha256": "106c36ec9ad3a5d8619745073e857820c1644819ddfe57f761f9d4793b2d3efe",
+      "size": 24825
     },
     {
       "path": "src/v267/pages/property-channels.js",
