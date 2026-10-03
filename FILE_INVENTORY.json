@@ -1902,8 +1902,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "c6f4ee015bb99c320736364fc22f30413e4bc7866226590336f348d497c275f2",
-      "size": 31070
+      "size": 33090,
+      "sha256": "a1ee5c4b44856864e5f2d4ab5851a0a020057b9ab6ad2517c2b3f22e87db1d25"
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2042,8 +2042,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "9de6c7cf604efcbe35fd7b40bfa1d594152381100212c49d533ce1845b5e3221",
-      "size": 6985
+      "size": 7296,
+      "sha256": "8bc4dd804d56fc36235bb7d0b5355498ccd44dbe9f607a6162ee681af8218c22"
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -4502,8 +4502,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "sha256": "be04f912336d401ee941042bf4dbf79554cd18e24e8abc7a6d0f110d42eeee56",
-      "size": 11537
+      "size": 14016,
+      "sha256": "57fac03c54c69f04ab23684207afed0be5ab3ae2e368af45248eec4f48e4ccb3"
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",

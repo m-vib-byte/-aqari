@@ -54,3 +54,7 @@
 }
 
 .aq267-pdf-map .aq267-pdf-draft-status{min-height:3.6em;margin-block:.5rem;overflow-wrap:anywhere;}
+
+#aq267-pdf-field-workspace .aq267-pdf-field-navigation{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1;}
+#aq267-pdf-field-workspace .aq267-pdf-field-navigation button{flex:1 1 130px;width:auto!important;min-height:44px;}
+#aq267-pdf-field-workspace .aq267-pdf-field-navigation p{flex-basis:100%;margin:0;}

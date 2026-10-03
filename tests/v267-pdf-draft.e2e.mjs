@@ -89,6 +89,28 @@ else{
    assert.equal(await page.evaluate(()=>Object.keys(localStorage).some(k=>/draft|pdf/i.test(k))),false);
    // Server-side revocation clears the private editor immediately.
    deny=true;await page.getByLabel('بيانات الحقل',{exact:true}).fill('صلاحية مسحوبة');await page.locator('#aq267-pdf-field-workspace').waitFor({state:'detached'});
+   // Mobile filling follows visual page order and retains text across page loads.
+   deny=false;const navigationMapping=structuredClone(baseMapping);
+   navigationMapping.fields.push({...baseMapping.fields[0],id:'last',label:'الحقل الأخير',page:2,y:.4},{...baseMapping.fields[0],id:'middle',label:'الحقل الأوسط',page:1,y:.4});
+   mappings.set(original,navigationMapping);await open(page);await button(page,'فتح النموذج وتعبئته').click();await loaded(page);
+   const entry=page.getByLabel('بيانات الحقل',{exact:true});
+   assert.equal(await button(page,'الحقل السابق').isDisabled(),true);
+   assert.equal(await entry.getAttribute('enterkeyhint'),'next');
+   await entry.fill('قيمة الصفحة الأولى');await entry.press('Enter');
+   await page.waitForFunction(()=>document.querySelector('.aq267-pdf-field-navigation p')?.textContent.includes('2 / 3'));
+   assert.equal(await page.getByLabel('اسم الحقل',{exact:true}).inputValue(),'الحقل الأوسط');
+   await button(page,'الحقل التالي').click();await loaded(page);
+   assert.equal(await page.getByLabel('الصفحة',{exact:true}).inputValue(),'2');
+   assert.equal(await button(page,'الحقل التالي').isDisabled(),true);assert.equal(await entry.getAttribute('enterkeyhint'),'done');
+   await entry.fill('قيمة الصفحة الثانية');await button(page,'الحقل السابق').click();await loaded(page);
+   assert.equal(await page.getByLabel('الصفحة',{exact:true}).inputValue(),'1');
+   await button(page,'الحقل السابق').click();assert.equal(await entry.inputValue(),'قيمة الصفحة الأولى');
+   await button(page,'أول حقل غير معبأ').click();assert.equal(await page.getByLabel('اسم الحقل',{exact:true}).inputValue(),'الحقل الأوسط');
+   await entry.fill('اكتملت الحقول');assert.equal(await button(page,'أول حقل غير معبأ').isDisabled(),true);await saved(page);
+   assert.deepEqual(writes.at(-1).snapshot.values,{name:'قيمة الصفحة الأولى',last:'قيمة الصفحة الثانية',middle:'اكتملت الحقول'});
+   await button(page,'حفظ ومعاينة العقد').click();await page.locator('.aq267-pdf-preview-image').waitFor();
+   mappings.set(original,baseMapping);
+   console.log('PASS '+name+': previous/next, Enter, page order, required-field jump, retained values and filled preview');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
   }catch(error){console.error('PDF_DRAFT_UI_FAILURE',name,JSON.stringify({errors,body:await page.locator('body').innerText()}));throw error;}finally{await browser.close();}
  }}finally{server.close();}
