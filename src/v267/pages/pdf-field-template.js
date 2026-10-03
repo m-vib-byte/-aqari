@@ -185,7 +185,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    const move=direction=>{const ordered=orderedFields(),index=ordered.findIndex(item=>item.id===f.id);return selectField(ordered[index+direction]);};
    const previous=button('الحقل السابق',()=>move(-1)),next=button('الحقل التالي',()=>move(1));
    const missing=button('أول حقل غير معبأ',()=>selectField(orderedFields().find(item=>!(values[item.id]||'').trim())));
-   refreshFieldNavigation=()=>{const ordered=orderedFields(),index=ordered.findIndex(item=>item.id===f.id),remaining=ordered.filter(item=>!(values[item.id]||'').trim()).length;previous.disabled=index<=0;next.disabled=index<0||index>=ordered.length-1;missing.disabled=!remaining;value.enterKeyHint=next.disabled?'done':'next';progress.textContent=t('الحقل')+' '+(index+1)+' / '+ordered.length+' · '+t('غير معبأ')+': '+remaining;};
+   refreshFieldNavigation=()=>{const ordered=orderedFields(),index=ordered.findIndex(item=>item.id===f.id),remaining=ordered.filter(item=>!(values[item.id]||'').trim()).length;previous.disabled=index<=0;next.disabled=index<0||index>=ordered.length-1;missing.disabled=!remaining;value.setAttribute('enterkeyhint',next.disabled?'done':'next');progress.textContent=t('الحقل')+' '+(index+1)+' / '+ordered.length+' · '+t('غير معبأ')+': '+remaining;};
    refreshFieldNavigation();navigation.append(previous,next,missing,progress);
    value.onkeydown=event=>{if(event.key!=='Enter'||event.isComposing)return;event.preventDefault();if(!next.disabled)d.run(()=>move(1));else value.blur();};
    const valueField=field(t('بيانات الحقل'),value);valueField.classList.add('aq267-pdf-map-entry');
