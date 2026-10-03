@@ -26,6 +26,11 @@
       "size": 1152
     },
     {
+      "path": ".github/workflows/home-diagnostics.yml",
+      "size": 1362,
+      "sha256": "946d582d76f73e8a6174a42d42c25bebb2807ac2a3b490259051e0b674d50249"
+    },
+    {
       "path": ".github/workflows/login-speed.yml",
       "sha256": "a7e18b4a4335e31f2fab3afb65688d79d8e21004e92b67eb92cc43d5794f4458",
       "size": 1314
@@ -3736,6 +3741,11 @@
       "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a"
     },
     {
+      "path": "tests/helpers/home-responsiveness-diagnostics.mjs",
+      "sha256": "9f8be0b8e6d1fde31b260b6d42561430bc1a7de599aedcbfb8e390fae782096c",
+      "size": 2068
+    },
+    {
       "path": "tests/helpers/locale-vm.cjs",
       "sha256": "57eca76fa068bd59041628de0631c87a5ac278ef191718bd6660c90e790d3f09",
       "size": 1387
@@ -3907,8 +3917,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "03ee26254d67a557080b6702cc3aed54f078ed25dc990d3a09260727ec611d2f",
-      "size": 185964
+      "size": 186824,
+      "sha256": "0e86c68b1958fae5210ae6ef1536f14c60af78107229e6cff24656b13250473a"
     },
     {
       "path": "tests/v205-click-routing.test.cjs",
@@ -3942,8 +3952,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "sha256": "82be11ac76104a7d151e235d09e04c4622b181e72da739fc0d8022ef21b1c2b3",
-      "size": 6001
+      "size": 8308,
+      "sha256": "ee4597686ed1b07b7d5814265bba99ffa7e5b1298a39ebbb5a64f57dcfe059b9"
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
@@ -3962,8 +3972,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "857b28fc3802d891a2b248e1ce0ce0449e8f4055565543749f37138231decc66",
-      "size": 15266
+      "sha256": "5a2ecf5a54011490a64f97d5b564d2c40f3ccb7f7f3b703649425f4a4cfdc32c",
+      "size": 16340
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -4907,8 +4917,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "ee7dccf893caf28c3c4daa657f02f5e99c73919fac92e12e73cd1ed32c1f4729",
-      "size": 285059
+      "size": 286086,
+      "sha256": "7d01fdd13901279fdf57c016b39be7283c7aedfb2bdf3ea05645c5e9d957bc50"
     },
     {
       "path": "v205-simple.css",
@@ -4962,8 +4972,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "sha256": "e58b30307decdacd6870052c44aa192df3c4619b685d9859a746c5c0e2bd2429",
-      "size": 17245
+      "size": 17949,
+      "sha256": "619ae71b35f73f88472254d962117d6bdbada85701ae7675232b5030daa1dc57"
     },
     {
       "path": "v211-follow-up-center-core.js",

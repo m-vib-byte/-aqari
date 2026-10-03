@@ -5,6 +5,8 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { checkV267AuthenticatedPresentation } from './v267-presentation-checks.mjs';
+import {installHomeResponsivenessDiagnostics} from './helpers/home-responsiveness-diagnostics.mjs';
+const diagnostics=process.env.AQARI_HOME_DIAGNOSTICS==='1';
 
 // Exercise the actual renderer and pinned SDK. The local HTTP backend also
 // serves requests initiated by service workers, which bypass Playwright route
@@ -103,15 +105,17 @@ await new Promise(resolve=>server.listen(4173,'127.0.0.1',resolve));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let failed=false;
 try{
-  for(const [engineName,engine] of [['chromium',chromium],['webkit',webkit]]){
-    for(const scenario of ['empty','populated','manual','timeout','confirmation-timeout']){
-      const name=engineName+'-'+scenario;
+  let diagnosticRun=0;
+  for(const [engineName,engine] of (diagnostics?[['webkit',webkit]]:[['chromium',chromium],['webkit',webkit]])){
+    for(const scenario of (diagnostics?['populated','populated','populated']:['empty','populated','manual','timeout','confirmation-timeout'])){
+      const name=engineName+'-'+scenario+(diagnostics?'-'+(++diagnosticRun):'');
       fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';propertyWritable=true;requests=[];
       const browser=await engine.launch({headless:true});
-      const errors=[];
+      const errors=[];let page,before;
       try{
         const context=await browser.newContext({viewport:{width:1473,height:850}});
         await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
+        if(diagnostics)await context.addInitScript(installHomeResponsivenessDiagnostics);
         await context.addInitScript(value=>{
           localStorage.setItem('aqari-supabase-auth-v198',JSON.stringify(value));
           // A fast renderer may be sampled before the first interval fires.
@@ -138,7 +142,7 @@ try{
             return append.call(this,node);
           };
         },session);
-        const page=await context.newPage();
+        page=await context.newPage();
         page.on('pageerror',error=>errors.push(error.stack));
         page.on('dialog',dialog=>dialog.dismiss());
         if(scenario==='manual'){
@@ -165,6 +169,7 @@ try{
           assert.equal(await page.locator('#aqari-v266-scheduler-control-js').count(),0,'isolated V267 must not load the production scheduler');
           const loadedVersions=await page.evaluate(()=>window.__authenticatedScriptLoads.map(item=>item.id.match(/^aqari-v(\d+)-/)[1]));
           for(const version of [...presentationVersions,'267'])assert.ok(loadedVersions.includes(version),'authenticated script boundary was not observed: V'+version);
+          if(diagnostics)before=await page.evaluate(()=>window.__homeDiagnostics?.read());
           const beats=await page.evaluate(()=>window.__homeHeartbeats);
           await delay(1000);
           assert.ok(await page.evaluate(()=>window.__homeHeartbeats)>beats,'the completed UI must remain responsive');
@@ -181,7 +186,8 @@ try{
         fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify({name,passed:true,state,requests},null,2));
         await page.screenshot({path:path.join(out,name+'.png')});
         console.log('PASS',name,JSON.stringify(state));
-      }catch(error){failed=true;console.error('FAIL',name,error.stack);fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify({name,passed:false,error:error.stack,requests,errors},null,2));}
+        if(diagnostics){const diagnostic={before,after:await page.evaluate(()=>window.__homeDiagnostics?.read())};fs.writeFileSync(path.join(out,name+'-diagnostic.json'),JSON.stringify(diagnostic,null,2));console.log('HOME_DIAGNOSTIC',name,JSON.stringify(diagnostic));}
+      }catch(error){failed=true;let diagnostic;if(diagnostics){diagnostic={before,after:await Promise.race([page?.evaluate(()=>window.__homeDiagnostics?.read()).catch(e=>({error:e.message})),delay(2000).then(()=>({error:'Diagnostic evaluation timed out'}))])};console.error('HOME_DIAGNOSTIC',name,JSON.stringify(diagnostic));}console.error('FAIL',name,error.stack);fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify({name,passed:false,error:error.stack,requests,errors,diagnostic},null,2));}
       finally{await Promise.race([browser.close(),delay(2000)]);}
     }
   }

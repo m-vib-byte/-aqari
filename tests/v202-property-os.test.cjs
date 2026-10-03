@@ -70,6 +70,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
       secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
       dailyCollectionSummary,
+      rentOfficeRevision,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
       paymentDialogMarkup,
@@ -3431,4 +3432,22 @@ test('approved free month and dated discounts affect only the selected billing p
  const context=runtime.contextFor('SYNTHETIC TEST PROPERTY');context.official=null;
  const record=runtime.unitDirectoryRecords(context,'2026-09').find(x=>x.contractId==='contract-a');
  assert.equal(record.freeMonth,'نعم — 2026-09');assert.equal(record.currentRent,100);
+});
+
+
+test('rent source revision detects in-place data edits, legacy contracts and access changes without exposing rows', () => {
+ const data=fixture(), local=[], win=activeRuntimeWindow();
+ const runtime=loadRuntime(data,local,win);
+ const first=runtime.rentOfficeRevision();
+ assert.equal(typeof first,'number');
+ assert.equal(runtime.rentOfficeRevision(),first);
+ data.rentLedgerV202[0].paid=41;
+ const paid=runtime.rentOfficeRevision();assert.notEqual(paid,first);
+ assert.equal(runtime.rentOfficeRevision(),paid);
+ local.push({id:'new-local-contract'});
+ const contract=runtime.rentOfficeRevision();assert.notEqual(contract,paid);
+ win.AQARI_SUPABASE.context.membership.role='accountant';
+ assert.notEqual(runtime.rentOfficeRevision(),contract);
+ win.AQARI_DATA_GATE.scope=null;
+ assert.equal(runtime.rentOfficeRevision(),null);
 });
