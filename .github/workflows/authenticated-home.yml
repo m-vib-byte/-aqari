@@ -28,6 +28,8 @@ jobs:
       - run: npm ci
       - name: Verify browser image matches the locked Playwright version
         run: node -e "if (require('playwright/package.json').version !== '1.63.0') throw new Error('Update the Playwright container tag to match package-lock.json')"
+      - name: PDF working-copy autosave and restore on desktop and mobile
+        run: node tests/v267-pdf-draft.e2e.mjs
       - name: Real authenticated renderer with synthetic backend
         run: node tests/v266-authenticated-home.e2e.mjs
       - name: V267 multilingual control, scanner and operational form flows

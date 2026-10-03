@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "22a4d1ba03ac6d6cdc5bca066de13bdbb11536a45e58ba2e3c4460cba4db5640",
-      "size": 2039
+      "sha256": "179af8084100dc0e9d4539d09a1360e28a0708ac9f9dec5ee49cc00437c46c12",
+      "size": 2160
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "26b465ba6d7bb85650a014e950a08b0ea028bcf6f18dbc574479ffb7565cceae",
-      "size": 9053
+      "sha256": "2daecbcd566a0071942bd38ac090952e240d68418908f6d0807adc69884e847d",
+      "size": 9159
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1656,6 +1656,11 @@
       "size": 7065
     },
     {
+      "path": "src/v267/domain/pdf-editor-draft.js",
+      "sha256": "49d81c8ed9b88a5f14440c60c10b58d56714d408b62d0eb99510d9ad3a820a91",
+      "size": 2643
+    },
+    {
       "path": "src/v267/domain/pdf-editor-history.js",
       "sha256": "d8801e8a7c07d97be475e861158ba31bf36f548a53989db6c33c06eb6adfa125",
       "size": 1322
@@ -1892,8 +1897,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "b62ddd58580fc5b0ea273afbfb01ab7053d26aa249dd9a0ffe459ff44d95ad80",
-      "size": 26077
+      "sha256": "c6f4ee015bb99c320736364fc22f30413e4bc7866226590336f348d497c275f2",
+      "size": 31070
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2032,8 +2037,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "b8743d79fda4a1f370f89680424b64368186329fd79995e084fca8c50260f04a",
-      "size": 6884
+      "sha256": "9de6c7cf604efcbe35fd7b40bfa1d594152381100212c49d533ce1845b5e3221",
+      "size": 6985
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -2259,6 +2264,11 @@
       "path": "staging-database/local-test/run-manager-contract-workflow.sh",
       "size": 556,
       "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de"
+    },
+    {
+      "path": "staging-database/local-test/run-pdf-editor-drafts.mjs",
+      "sha256": "e07f4a4d3ca151e836c4fdb88db7f0f40e9a955e0c666e0200e44a2d16014c79",
+      "size": 7035
     },
     {
       "path": "staging-database/local-test/run-service-schema-regression.mjs",
@@ -2539,6 +2549,11 @@
       "path": "staging-database/sql/payment-method-reference-guard.sql",
       "sha256": "ce978e2f4c575ed3ca625cafcb263c767dd88ea69a60e17b2b8e129e6d8c02fb",
       "size": 2472
+    },
+    {
+      "path": "staging-database/sql/pdf-editor-drafts.sql",
+      "sha256": "5976c3cc0f54a2babe8514aa98039386ced89f1c249891995bc702f4dd4a2b31",
+      "size": 9029
     },
     {
       "path": "staging-database/sql/property-location-channels-candidate.sql",
@@ -3141,6 +3156,11 @@
       "sha256": "0596ff8acd3a65559280ec92ca9327e21e53cdb912fc74436312ec25ef825a8e"
     },
     {
+      "path": "staging-database/supabase/migrations/20261003165942_v267_pdf_editor_drafts.sql",
+      "sha256": "5976c3cc0f54a2babe8514aa98039386ced89f1c249891995bc702f4dd4a2b31",
+      "size": 9029
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -3359,6 +3379,11 @@
       "path": "staging-database/tests/payment_method_reference_hosted.sql",
       "sha256": "3239fdad983365c294daf18e2b9c861f13939dc9d76d1669989d25aaa5334ae1",
       "size": 9715
+    },
+    {
+      "path": "staging-database/tests/pdf-editor-drafts-hosted.sql",
+      "sha256": "68f3d27b92e9e982e5fbe70061b831ccb08c9b8b625f127e346f316b022bfdd3",
+      "size": 2388
     },
     {
       "path": "staging-database/tests/property_notices.sql",
@@ -4464,6 +4489,16 @@
       "path": "tests/v267-pdf-contract-print.test.mjs",
       "sha256": "b2e65ca2cb891b94e392a02c484d98680843f5d17c000287fe583aacd2fc466b",
       "size": 2897
+    },
+    {
+      "path": "tests/v267-pdf-draft.e2e.mjs",
+      "sha256": "be04f912336d401ee941042bf4dbf79554cd18e24e8abc7a6d0f110d42eeee56",
+      "size": 11537
+    },
+    {
+      "path": "tests/v267-pdf-editor-draft.test.mjs",
+      "sha256": "7f84c9448c8a01c3a68d4e746beadc5cb23472cb63c19ca6d12ff3c8055ff052",
+      "size": 5967
     },
     {
       "path": "tests/v267-pdf-editor-history.test.mjs",
