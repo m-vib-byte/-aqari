@@ -1872,8 +1872,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "1711641020aa826333d2dea180c27c13c8afce8c33ef30c846146f180199ac8c",
-      "size": 21194
+      "sha256": "cd2d4362c78440fc21c4c67fabd8e23cd25748be607d935b5a86a13684329c9b",
+      "size": 22970
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2012,8 +2012,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "ba2a5110cb03a86cd31af2ec0f93101e613e03febe733de4a9a689f6a52d64c0",
-      "size": 4218
+      "sha256": "d0a577f1185f0ccc0432223d1665519556fb5919ad5a1b070fddd7d7ada498bd",
+      "size": 4772
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
