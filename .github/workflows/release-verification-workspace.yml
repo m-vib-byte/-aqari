@@ -39,6 +39,8 @@ jobs:
         run: npm ci --prefix staging-database/local-test --ignore-scripts --no-audit --no-fund
       - name: Salary voucher numbering and immutable history
         run: node staging-database/local-test/run-salary-numeric-vouchers.mjs | tee /tmp/aqari-verification/sql-salary-numbers.log
+      - name: Corrected salary numbering and version linkage
+        run: node staging-database/local-test/run-salary-numeric-corrections.mjs | tee /tmp/aqari-verification/sql-salary-corrections.log
       - name: Existing SQL acceptance suites
         run: npm run test:completion --prefix staging-database/local-test | tee /tmp/aqari-verification/sql-existing.log
       - name: Contract archive and official issue/archive isolated SQL suites
