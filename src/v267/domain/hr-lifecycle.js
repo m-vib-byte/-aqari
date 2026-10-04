@@ -32,7 +32,7 @@ export function validateAllocations(rows,allowed){
  if(total!==10000)throw Error('ALLOCATIONS_MUST_TOTAL_100');return rows.map(row=>({property_id:row.property_id,share:Number(row.share).toFixed(2)}));
 }
 export function csv(rows){
- const keys=['month','employee_name','property_name','state','net','share','allocated_cost'];
+ const keys=['month','employee_name','property_name','state','net','share','allocated_cost','cost_basis'];
  const cell=value=>'"'+String(value??'').replaceAll('"','""')+'"';
  return '\uFEFF'+[keys.join(','),...(rows||[]).map(row=>keys.map(k=>cell(row[k])).join(','))].join('\r\n');
 }
