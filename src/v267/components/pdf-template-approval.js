@@ -19,7 +19,7 @@ export async function mountPdfTemplateApprovals(d,target,property,{manager,onOpe
  async function load(){
   const result=await rpc('list',{offset});
   for(const item of result.items.slice(0,20)){
-   const card=node('article');card.append(node('strong',item.title),node('p',t(item.is_active?'معتمد للتعبئة':'موقوف للتعبئة')));
+   const card=node('article');card.append(node('strong',item.title),node('p',t(item.is_active?'معتمد للتعبئة':'موقوف للتعبئة')+(item.revision?' · '+t('الإصدار')+' '+item.revision:'')));
    if(item.is_active)card.append(button('تعبئة النموذج المعتمد',()=>onOpen(item.document_id)));
    if(manager&&item.is_active)card.append(button('إيقاف تعبئة هذا النموذج',async()=>{await rpc('revoke',{document_id:item.document_id});offset=0;cards.replaceChildren();await load();d.status.textContent=t('أوقفت التعبئة الجديدة لهذا النموذج؛ الأصل والبيانات المحفوظة باقية.');}));
    cards.append(card);

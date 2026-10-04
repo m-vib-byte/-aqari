@@ -148,6 +148,37 @@ try{
  console.log('PASS staff PDF: manager approval, immutable map, own drafts, role/property isolation, revocation, checksum binding, change requests, immutable response, retries, RLS and no business writes');
  await actor();
 
+
+ // Template lineage: two managers retain candidates; one base can advance once.
+ await db.exec('reset role');
+ const versionSql=readFileSync(new URL('../sql/pdf-template-versions.sql',import.meta.url),'utf8');
+ assert.equal(versionSql,readFileSync(new URL('../supabase/migrations/20261004075240_v267_pdf_template_versions.sql',import.meta.url),'utf8'));
+ await db.exec('begin');await db.exec(versionSql);await db.exec('rollback');
+ assert.equal((await db.query("select to_regclass('private.aqari_pdf_template_versions') r")).rows[0].r,null);
+ await db.exec(versionSql);await db.exec(versionSql);await actor();
+ assert.equal((await templates('context',{document_id:doc})).template_version.revision,1);
+ const nextDoc='20000000-0000-4000-8000-000000000001',competing='20000000-0000-4000-8000-000000000002',copyDoc='20000000-0000-4000-8000-000000000003',targetP='20000000-0000-4000-8000-000000000004';
+ await db.exec('reset role');
+ await db.query('insert into public.aqari_properties values($1,$2,$3)',[targetP,w,'target-property']);
+ for(const [d,prop,ref] of [[nextDoc,p,'property'],[competing,p,'property'],[copyDoc,targetP,'target-property']])await db.query('insert into public.aqari_documents values($1,$2,$3,$4,$5,$6,$7,$8,$9)',[d,w,'uploaded','application/pdf','property',ref,'property_document',{category:'property_other',asset_role:'property_contract',property_id:prop,pdf_field_template:true},'a'.repeat(64)]);
+ await actor();const origin={kind:'revision',document_id:doc,revision:1};
+ assert.equal((await templates('publish',{document_id:nextDoc,mapping:published.mapping,origin})).revision,2);
+ assert.equal((await templates('publish',{document_id:nextDoc,mapping:published.mapping,origin})).revision,2);
+ await actor(other);await assert.rejects(templates('publish',{document_id:competing,mapping:published.mapping,origin}),/PDF_TEMPLATE_REVISION_CONFLICT/);
+ assert.equal((await templates('context',{document_id:competing})).approved,false);
+ const history=(await templates('history',{document_id:doc})).items;assert.deepEqual(history.map(v=>v.revision),[2,1]);assert.equal(history[0].is_latest,true);assert.equal(history[1].is_latest,false);
+ assert.deepEqual((await templates('list',{})).items.map(v=>v.document_id),[nextDoc]);
+ await actor(staff);assert.equal((await templates('context',{document_id:doc})).approved,true,'old staff drafts remain on their exact approved version');
+ await assert.rejects(templates('history',{document_id:doc}),/ACCESS_DENIED/);
+ await assert.rejects(templates('publish',{document_id:competing,mapping:published.mapping,origin}),/ACCESS_DENIED/);
+ await assert.rejects(db.query('select * from private.aqari_pdf_template_versions'),/permission denied/);
+ await assert.rejects(db.query('select private.aqari_pdf_templates_v400($1,$2,$3)',[w,'publish',{property_id:p,document_id:competing,mapping:published.mapping}]),/permission denied/);
+ await actor();
+ assert.equal((await templates('publish',{property_id:targetP,document_id:copyDoc,mapping:{...published.mapping,propertyId:targetP},origin:{kind:'copy',document_id:nextDoc,property_id:p}})).revision,1);
+ const copied=(await templates('history',{property_id:targetP,document_id:copyDoc})).items;assert.equal(copied.length,1);assert.equal(copied[0].copied_from_document_id,nextDoc);
+ await templates('revoke',{document_id:nextDoc});await actor(staff);assert.equal((await templates('list',{})).items.length,0,'revoking head does not silently restore an old version');
+ await db.exec('reset role;set role anon');await assert.rejects(templates('history',{document_id:doc}),/permission denied/);await actor();
+ console.log('PASS PDF versions: migration rollback/idempotency, immutable history, two-manager stale-base rejection, exact retry, latest-only list, old draft access, cross-property independent family, direct/anonymous/staff denial');
  await db.exec('reset role');await db.query('update public.aqari_memberships set is_active=false where user_id=$1',[owner]);await actor();await assert.rejects(rpc('get',{id,property_id:p}),/ACCESS_DENIED/);await assert.rejects(rpc('save',next),/ACCESS_DENIED/);
  await db.exec('reset role;set role anon');await assert.rejects(rpc('list',{property_id:p}),/permission denied/);
  await db.exec('reset role');assert.equal((await db.query('select count(*)::int as n from private.aqari_pdf_editor_drafts')).rows[0].n,2);assert.equal((await db.query('select payload from public.aqari_app_state')).rows[0].payload.payments[0],'untouched');assert.equal((await db.query('select count(*)::int n from public.aqari_leases')).rows[0].n,1);
