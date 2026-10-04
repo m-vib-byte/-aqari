@@ -270,7 +270,7 @@ else{
    await page.getByLabel('راجعت البيانات وهي تخص هذا العقد والمستأجر والوحدة',{exact:true}).check();await button(page,'حفظ نسخة مرتبطة بالعقد').click();
    await page.getByText(/حُفظت النسخة وربطت بالعقد 0001/).waitFor();assert.equal(bindings.size,1);assert.equal([...bindings.values()][0].template_document_id,original);assert.equal([...bindings.values()][0].template_revision,1);
    await button(page,'العودة للمنصة').click();
-   await page.evaluate(async propertyId=>{const {createPage}=await import('/src/v267/components/page.js');const {mountBoundContractPdfs}=await import('/src/v267/components/pdf-contract-binding.js');const d=createPage('نسخ العقد التجريبي');await mountBoundContractPdfs(d,d.body,{property:{id:propertyId,externalRef:'synthetic'},contractRef:'lease-ref'});},propertyId);
+   await page.evaluate(async propertyId=>{const {createPage}=await import('/src/v267/components/page.js');const {mountBoundContractPdfs}=await import('/src/v267/components/pdf-contract-binding.js');const d=createPage('نسخ العقد التجريبي');await d.run(()=>mountBoundContractPdfs(d,d.body,{property:{id:propertyId,externalRef:'synthetic'},contractRef:'lease-ref'}));},propertyId);
    await button(page,'فتح النسخة المرتبطة').click();await page.getByRole('link',{name:'تحميل النسخة المرتبطة PDF',exact:true}).waitFor();
    assert.match(await page.getByRole('link',{name:'تحميل النسخة المرتبطة PDF',exact:true}).getAttribute('href'),/^blob:/);
    console.log('PASS '+name+': approved source version, lease selection, explicit manager confirmation, archived artifact binding readback and exact archived download');
