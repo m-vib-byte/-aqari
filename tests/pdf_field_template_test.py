@@ -3,6 +3,8 @@ import hashlib
 import importlib.util
 import json
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlsplit,parse_qs
@@ -20,6 +22,51 @@ def original():
 def mapping():
     return {'version':1,'title':'Test template','propertyId':P,'fields':[{'id':'tenant','label':'اسم المستأجر','type':'text','page':1,'x':.1,'y':.12,'width':.6,'height':.04,'fontSize':12,'align':'right'},{'id':'date','label':'تاريخ العقد','type':'date','page':2,'x':.1,'y':.2,'width':.3,'height':.04,'fontSize':12,'align':'left'}]}
 class PdfFieldsTest(unittest.TestCase):
+    def test_large_option_maps_are_rejected_before_save_and_valid_maps_reopen(self):
+        m=mapping();template=copy.deepcopy(m['fields'][0]);m['fields']=[]
+        for i in range(21):
+            field=copy.deepcopy(template);field.update(id='f'+str(i),type='select',options=[str(j).zfill(2)+'x'*98 for j in range(50)],y=i*.04,height=.02)
+            m['fields'].append(field)
+        reader=open_pdf(original())
+        with self.assertRaisesRegex(ValueError,'FIELD_MAP_TOO_LARGE'):validate_map(m,page_sizes(reader),P)
+        with self.assertRaisesRegex(ValueError,'FIELD_MAP_TOO_LARGE'):write_template(reader,m)
+        m['fields']=m['fields'][:18]
+        valid=validate_map(m,page_sizes(reader),P)
+        self.assertEqual(saved_map(open_pdf(write_template(reader,valid)),P),valid)
+    def test_input_errors_survive_http_handler_without_exposing_internal_errors(self):
+        for error in ['INVALID_FIELD_OPTIONS','INVALID_FIELD_OPTION','INVALID_CIVIL_ID_FORMAT','FIELD_LINK_CONFLICT','FIELD_MAP_TOO_LARGE','private internal detail']:
+            responses=[]
+            request=SimpleNamespace(headers={'Content-Length':'2'},rfile=BytesIO(b'{}'),respond=lambda *args:responses.append(args))
+            with patch.object(api,'process',side_effect=ValueError(error)):
+                api.handler.do_POST(request)
+            self.assertEqual(responses[0][0],400)
+            self.assertEqual(json.loads(responses[0][1])['error'],error if error!='private internal detail' else 'INVALID_PDF_TEMPLATE')
+
+    def test_select_civil_id_and_optional_fields_roundtrip_and_render(self):
+        m=mapping();m['fields'][0].update(type='select',options=['Residential','Commercial']);m['fields'][1].update(type='civil_id',required=False)
+        validate_map(m,page_sizes(open_pdf(original())),P)
+        saved=write_template(open_pdf(original()),m);self.assertEqual(saved_map(open_pdf(saved),P),m)
+        result=PdfReader(BytesIO(fill_template(open_pdf(saved),m,{'tenant':'Residential','date':''})))
+        self.assertIn('Residential',result.pages[0].extract_text());self.assertIn('SECOND PAGE',result.pages[1].extract_text())
+        for civil in ['123456789012','١٢٣٤٥٦٧٨٩٠١٢','۱۲۳۴۵۶۷۸۹۰۱۲']:
+            fill_template(open_pdf(saved),m,{'tenant':'Commercial','date':civil})
+        for civil in ['123','1234567890123','12345678901x']:
+            with self.assertRaisesRegex(ValueError,'INVALID_CIVIL_ID_FORMAT'):fill_template(open_pdf(saved),m,{'tenant':'Commercial','date':civil})
+        with self.assertRaisesRegex(ValueError,'INVALID_FIELD_OPTION'):fill_template(open_pdf(saved),m,{'tenant':'Other','date':''})
+        with self.assertRaisesRegex(ValueError,'FIELD_VALUES_REQUIRED'):fill_template(open_pdf(saved),m,{'tenant':'','date':''})
+        legacy=mapping()
+        with self.assertRaisesRegex(ValueError,'FIELD_VALUES_REQUIRED'):fill_template(open_pdf(original()),legacy,{'tenant':'Test','date':''})
+    def test_invalid_field_options_and_required_flags_rejected(self):
+        for opts in [None,{},[],['a','a'],[' a'],['a\n'],[1],['x'*101],list(map(str,range(51)))]:
+            m=mapping();m['fields'][0].update(type='select',options=opts)
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD_OPTIONS'):validate_map(m,page_sizes(open_pdf(original())),P)
+        for required in [None,0,1,'false',[],{}]:
+            m=mapping();m['fields'][0]['required']=required
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(m,page_sizes(open_pdf(original())),P)
+        m=mapping();m['fields'][0]['options']=['a']
+        with self.assertRaisesRegex(ValueError,'INVALID_FIELD_OPTIONS'):validate_map(m,page_sizes(open_pdf(original())),P)
+        m=mapping();m['fields'][0].update(type='select',options=['a','b'],dataKey='shared');m['fields'][1].update(type='select',options=['a','c'],dataKey='shared')
+        with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(m,page_sizes(open_pdf(original())),P)
     def test_position_lock_roundtrips_and_does_not_change_printed_content(self):
         m=mapping();m['fields'][0]['locked']=True;m['fields'][1]['locked']=False
         valid=validate_map(m,page_sizes(open_pdf(original())),P)

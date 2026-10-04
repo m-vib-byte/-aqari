@@ -13,6 +13,7 @@ from lib.rent_pdf import FONT, FONT_PATH, shaped
 MAP_KEY = '/AqariFieldTemplateV1'
 MAX_PAGES = 30
 MAX_FIELDS = 100
+MAX_MAP_CHARS = 100000
 if FONT not in pdfmetrics.getRegisteredFontNames():
     pdfmetrics.registerFont(TTFont(FONT, str(FONT_PATH)))
 
@@ -54,34 +55,47 @@ def validate_map(value,sizes,property_id):
     if not isinstance(fields,list) or not 1<=len(fields)<=MAX_FIELDS:raise ValueError('FIELDS_REQUIRED')
     ids=set()
     for f in fields:
-        if not isinstance(f,dict) or set(f)-{'color','dataKey','locked'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
+        if not isinstance(f,dict) or set(f)-{'color','dataKey','locked','required','options'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
         if not isinstance(f['id'],str) or not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',f['id']) or f['id'] in ids:raise ValueError('INVALID_FIELD')
         ids.add(f['id'])
         if 'locked' in f and type(f['locked']) is not bool:raise ValueError('INVALID_FIELD')
+        if 'required' in f and type(f['required']) is not bool:raise ValueError('INVALID_FIELD')
+        if f['type']=='select':
+            opts=f.get('options')
+            if not isinstance(opts,list) or not 1<=len(opts)<=50 or any(not isinstance(v,str) or not 1<=len(v)<=100 or v!=v.strip() or any(ord(ch)<32 or ord(ch)==127 for ch in v) for v in opts) or len(set(opts))!=len(opts):raise ValueError('INVALID_FIELD_OPTIONS')
+        elif 'options' in f:raise ValueError('INVALID_FIELD_OPTIONS')
         if 'dataKey' in f and (not isinstance(f['dataKey'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',f['dataKey'])):raise ValueError('INVALID_FIELD')
-        if f.get('dataKey') and any(old.get('dataKey')==f['dataKey'] and old['type']!=f['type'] for old in fields[:fields.index(f)]):raise ValueError('INVALID_FIELD')
+        if f.get('dataKey') and any(old.get('dataKey')==f['dataKey'] and (old['type']!=f['type'] or old.get('options')!=f.get('options')) for old in fields[:fields.index(f)]):raise ValueError('INVALID_FIELD')
         if 'color' in f and (not isinstance(f['color'],str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',f['color'])):raise ValueError('INVALID_FIELD')
-        if not isinstance(f['label'],str) or not 1<=len(f['label'].strip())<=100 or f['type'] not in ['text','date','number','money'] or f['align'] not in ['right','left','center']:raise ValueError('INVALID_FIELD')
+        if not isinstance(f['label'],str) or not 1<=len(f['label'].strip())<=100 or f['type'] not in ['text','date','number','money','civil_id','select'] or f['align'] not in ['right','left','center']:raise ValueError('INVALID_FIELD')
         if type(f['page']) is not int or not 1<=f['page']<=len(sizes):raise ValueError('INVALID_FIELD_PAGE')
         for k in ['x','y','width','height','fontSize']:
             if type(f[k]) not in [int,float] or not math.isfinite(f[k]):raise ValueError('INVALID_FIELD_POSITION')
         if not(0<=f['x']<1 and 0<=f['y']<1 and .01<=f['width']<=1 and .006<=f['height']<=1 and f['x']+f['width']<=1.000001 and f['y']+f['height']<=1.000001 and 6<=f['fontSize']<=48):raise ValueError('INVALID_FIELD_POSITION')
         for old in fields[:fields.index(f)]:
             if old['page']==f['page'] and min(old['x']+old['width'],f['x']+f['width'])-max(old['x'],f['x'])>0.00001 and min(old['y']+old['height'],f['y']+f['height'])-max(old['y'],f['y'])>0.00001:raise ValueError('FIELD_OVERLAP')
-    return {'version':1,'title':title.strip(),'propertyId':property_id,'fields':fields}
+    result={'version':1,'title':title.strip(),'propertyId':property_id,'fields':fields}
+    encoded_map(result)
+    return result
 
 
 def saved_map(reader,property_id):
     raw=(reader.metadata or {}).get(MAP_KEY)
     if raw is None:return None
-    if not isinstance(raw,str) or len(raw)>100000:raise ValueError('INVALID_FIELD_MAP')
+    if not isinstance(raw,str) or len(raw)>MAX_MAP_CHARS:raise ValueError('INVALID_FIELD_MAP')
     return validate_map(json.loads(raw),page_sizes(reader),property_id)
+
+
+def encoded_map(mapping):
+    raw=json.dumps(mapping,ensure_ascii=False,separators=(',',':'))
+    if len(raw)>MAX_MAP_CHARS:raise ValueError('FIELD_MAP_TOO_LARGE')
+    return raw
 
 
 def write_template(reader,mapping):
     writer=PdfWriter()
     for p in reader.pages:writer.add_page(p,excluded_keys=['/Annots','/AA'])
-    writer.add_metadata({MAP_KEY:json.dumps(mapping,ensure_ascii=False,separators=(',',':')),'/Title':mapping['title']})
+    writer.add_metadata({MAP_KEY:encoded_map(mapping),'/Title':mapping['title']})
     out=BytesIO();writer.write(out);return out.getvalue()
 
 
@@ -121,9 +135,13 @@ def fill_template(reader,mapping,values):
         buf=BytesIO();c=canvas.Canvas(buf,pagesize=(width,height))
         for f in [f for f in fields if f['page']==n]:
             value=values[f['id']]
-            if not isinstance(value,str) or len(value)>1000 or any(ord(ch)<32 for ch in value):raise ValueError('INVALID_FIELD_VALUE')
+            if not isinstance(value,str) or len(value)>1000 or any(ord(ch)<32 or ord(ch)==127 for ch in value):raise ValueError('INVALID_FIELD_VALUE')
             value=value.strip()
-            if not value:raise ValueError('FIELD_VALUES_REQUIRED')
+            if not value:
+                if f.get('required',True):raise ValueError('FIELD_VALUES_REQUIRED')
+                continue
+            if f['type']=='select' and value not in f['options']:raise ValueError('INVALID_FIELD_OPTION')
+            if f['type']=='civil_id' and not re.fullmatch(r'[0-9٠-٩۰-۹]{12}',value):raise ValueError('INVALID_CIVIL_ID_FORMAT')
             if f['type']=='date':
                 from datetime import date
                 date.fromisoformat(value)

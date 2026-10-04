@@ -37,7 +37,12 @@ try{
  assert.equal(lockSql,readFileSync(new URL('../supabase/migrations/20261004022050_v267_pdf_field_position_lock.sql',import.meta.url),'utf8'));
  await db.exec('begin');await db.exec(lockSql);await db.exec('rollback');
  assert.equal((await db.query("select strpos(pg_get_functiondef('private.aqari_pdf_editor_drafts(uuid,text,jsonb)'::regprocedure),'''locked''') as position")).rows[0].position,0);
- await db.exec(lockSql);await db.exec(lockSql);await actor();
+ await db.exec(lockSql);await db.exec(lockSql);
+ const inputsSql=readFileSync(new URL('../sql/pdf-field-inputs.sql',import.meta.url),'utf8');
+ assert.equal(inputsSql,readFileSync(new URL('../supabase/migrations/20261004062402_v267_pdf_field_inputs.sql',import.meta.url),'utf8'));
+ const beforeInputs=(await db.query("select md5(pg_get_functiondef('private.aqari_pdf_editor_drafts(uuid,text,jsonb)'::regprocedure)) as hash")).rows[0].hash;
+ await db.exec('begin');await db.exec(inputsSql);await db.exec('rollback');assert.equal((await db.query("select md5(pg_get_functiondef('private.aqari_pdf_editor_drafts(uuid,text,jsonb)'::regprocedure)) as hash")).rows[0].hash,beforeInputs);
+ await db.exec(inputsSql);await db.exec(inputsSql);await actor();
  const first=await rpc('save',data);assert.equal(first.revision,1);assert.deepEqual(first.snapshot,snap);assert.equal(first.created_by,owner);
  assert.equal((await rpc('save',data)).revision,1,'lost-response retry is idempotent');
  await assert.rejects(rpc('save',{...data,snapshot:{...snap,page:2}}),/PDF_DRAFT_RETRY_CONFLICT/);
@@ -65,6 +70,16 @@ try{
   const bad=structuredClone(lockedSnap);bad.mapping.fields[0].locked=invalid;
   await assert.rejects(rpc('save',{...lockedData,expected_revision:4,request_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',snapshot:bad}),/INVALID_PDF_DRAFT/);
  }
+ const inputSnap=structuredClone(lockedSnap);inputSnap.mapping.fields.forEach(f=>{f.type='select';f.options=['A','B'];});inputSnap.mapping.fields[1].required=false;inputSnap.values={f1:'A',f2:'A'};
+ const inputData={...lockedData,expected_revision:4,request_id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',snapshot:inputSnap};
+ assert.deepEqual((await rpc('save',inputData)).snapshot,inputSnap);
+ assert.deepEqual((await rpc('get',{id,property_id:p})).snapshot,inputSnap);
+ for(const mutate of [s=>s.mapping.fields[0].options=[],s=>s.mapping.fields[0].options=null,s=>s.mapping.fields[0].options={},s=>s.mapping.fields[0].options=['a','a'],s=>s.mapping.fields[0].options=[' a'],s=>s.mapping.fields[0].options=[1],s=>s.mapping.fields[0].options=['a'.repeat(101)],s=>s.mapping.fields[0].options=Array.from({length:51},(_,i)=>String(i)),s=>s.mapping.fields[0].required='false',s=>s.mapping.fields[0].required=null,s=>s.mapping.fields[1].options=['A','C']]){
+  const bad=structuredClone(inputSnap);mutate(bad);await assert.rejects(rpc('save',{...inputData,expected_revision:5,request_id:'ffffffff-ffff-4fff-8fff-ffffffffffff',snapshot:bad}),/INVALID_PDF_DRAFT/);
+ }
+ const civilSnap=structuredClone(inputSnap);civilSnap.mapping.fields.forEach(f=>{f.type='civil_id';delete f.options;});civilSnap.values={f1:'123',f2:'123'};
+ assert.deepEqual((await rpc('save',{...inputData,expected_revision:5,request_id:'ffffffff-ffff-4fff-8fff-ffffffffffff',snapshot:civilSnap})).snapshot,civilSnap,'drafts preserve incomplete input for later correction');
+ console.log('PASS PDF input types: optional/select/civil draft roundtrip, options/required/link validation, partial input preserved, rollback and idempotency');
  console.log('PASS PDF position lock: roundtrip, strict boolean validation, migration rollback, idempotency and prior authorization guards');
  console.log('PASS linked PDF drafts: roundtrip, cross-page values, conflicting values/types rejected, migration idempotent');
  await db.exec('reset role');await db.query('update public.aqari_memberships set is_active=false where user_id=$1',[owner]);await actor();await assert.rejects(rpc('get',{id,property_id:p}),/ACCESS_DENIED/);await assert.rejects(rpc('save',next),/ACCESS_DENIED/);
