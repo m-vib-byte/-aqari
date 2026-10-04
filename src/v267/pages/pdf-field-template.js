@@ -1,3 +1,4 @@
+import {duplicatePdfField,alignPdfField} from '../domain/pdf-field-layout.js';
 import {linkedPdfFields,linkPdfField,writeLinkedPdfValue} from '../domain/pdf-linked-fields.js';
 import {createPage} from '../components/page.js';
 import {node,field} from '../components/dialog.js';
@@ -209,6 +210,19 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    const binding=choose([['','حقل مستقل'],...mapping.fields.filter(item=>item.id!==f.id&&item.type===f.type).map(item=>[item.id,item.label+' · '+t('صفحة ')+item.page])],peers.find(item=>item.id!==f.id)?.id||'');
    binding.onchange=()=>{try{linkPdfField(mapping.fields,values,f,binding.value);change();draw();editField(f);}catch(error){binding.value=peers.find(item=>item.id!==f.id)?.id||'';d.status.textContent=t(error.message==='PDF_LINK_CONFLICT'?'القيم مختلفة. وحّد القيم أو أفرغ أحد الحقلين قبل الربط.':'اختر حقلًا من النوع نفسه.');}};
    controls.replaceChildren(node('h4',t('الحقل وبياناته')),navigation,valueField,field(t('تكرار البيانات من حقل'),binding),node('p',t(linked?'تعديل البيانات يحدّث جميع الحقول المرتبطة. افصل الحقل لتغيير نوعه.':'اختر حقلًا لتكرار المعلومة نفسها في هذا الموضع.')),field(t('لون الكتابة'),color),field(t('حجم الخط'),font),field(t('اسم جاهز'),preset),field(t('اسم الحقل'),label),field(t('نوع الحقل'),type),field(t('محاذاة الكتابة'),align));
+   const layout=node('details');layout.append(node('summary',t('نسخ الحقل ومحاذاته')));
+   const layoutStatus=node('p');layoutStatus.setAttribute('role','status');
+   const copyField=button('نسخ هذا الحقل',()=>{
+    try{const copy=duplicatePdfField(mapping.fields,f,crypto.randomUUID());mapping.fields.push(copy);selected=copy.id;change();draw();editField(copy);d.status.textContent=t('نُسخ الحقل في موضع متاح. النسخة مستقلة وبياناتها فارغة.');}
+    catch(error){layoutStatus.textContent=t(error.message==='PDF_FIELD_LIMIT'?'الحد الأقصى ١٠٠ حقل.':'لا توجد مساحة للنسخة في هذه الصفحة. قلّل حجم الحقل أو أضفه في صفحة أخرى.');}
+   });
+   const reference=choose([['','اختر الحقل المرجعي'],...mapping.fields.filter(item=>item.id!==f.id&&item.page===f.page).map(item=>[item.id,item.label])],'');
+   const operation=choose([['right','محاذاة الحافة اليمنى'],['left','محاذاة الحافة اليسرى'],['top','محاذاة الحافة العليا'],['bottom','محاذاة الحافة السفلى'],['size','نفس العرض والارتفاع']],'right');
+   const applyLayout=button('تطبيق المحاذاة أو الحجم',()=>{
+    try{const updated=alignPdfField(mapping.fields,f,mapping.fields.find(item=>item.id===reference.value),operation.value);Object.assign(f,updated);change();draw();editField(f);d.status.textContent=t('تم تحديث موضع الحقل أو حجمه. يمكنك التراجع.');}
+    catch(error){layoutStatus.textContent=t(error.message==='PDF_FIELD_REFERENCE'?'اختر حقلًا مرجعيًا من الصفحة نفسها.':'هذا التغيير يتداخل مع حقل آخر أو يتجاوز الصفحة. حرّك الحقل ثم أعد المحاولة.');}
+   });
+   layout.append(copyField,field(t('الحقل المرجعي للمحاذاة'),reference),field(t('عملية المحاذاة'),operation),applyLayout,layoutStatus);controls.append(layout);
    const advanced=node('details');advanced.className='aq267-pdf-map-advanced';advanced.append(node('summary',t('إعدادات دقيقة (اختياري)')));controls.append(advanced);
    for(const [key,text,min,max]of [['x','المسافة من يسار الصفحة ٪',0,99],['y','المسافة من أعلى الصفحة ٪',0,99],['width','عرض الحقل ٪',1,100],['height','ارتفاع الحقل ٪',.6,100]]){const scale=key==='fontSize'?1:100,c=input('number',Math.round(f[key]*scale*100)/100);c.min=min;c.max=max;c.step=.1;c.onchange=()=>{const value=Number(c.value)/scale;if(!Number.isFinite(value)||value<min/scale||value>max/scale){c.value=f[key]*scale;return;}f[key]=value;f.width=Math.min(f.width,1-f.x);f.height=Math.min(f.height,1-f.y);change();draw();};(key==='fontSize'?controls:advanced).append(field(t(text),c));}
    controls.append(button('حذف هذا الحقل',()=>{mapping.fields=mapping.fields.filter(x=>x.id!==f.id);delete values[f.id];selected=null;change();controls.replaceChildren();draw();}));if(scroll)controls.scrollIntoView?.({block:'nearest',behavior:'smooth'});

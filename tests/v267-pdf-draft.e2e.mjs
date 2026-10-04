@@ -109,7 +109,7 @@ else{
    deny=true;await page.getByLabel('بيانات الحقل',{exact:true}).fill('صلاحية مسحوبة');await page.locator('#aq267-pdf-field-workspace').waitFor({state:'detached'});
    // Mobile filling follows visual page order and retains text across page loads.
    deny=false;const navigationMapping=structuredClone(baseMapping);
-   navigationMapping.fields.push({...baseMapping.fields[0],id:'last',label:'الحقل الأخير',page:2,y:.4},{...baseMapping.fields[0],id:'middle',label:'الحقل الأوسط',page:1,y:.4});
+   navigationMapping.fields.push({...baseMapping.fields[0],id:'last',label:'الحقل الأخير',page:2,y:.4},{...baseMapping.fields[0],id:'middle',label:'الحقل الأوسط',page:1,y:.4,width:.3});
    mappings.set(original,navigationMapping);await open(page);await button(page,'فتح النموذج وتعبئته').click();await loaded(page);
    const entry=page.getByLabel('بيانات الحقل',{exact:true});
    assert.equal(await button(page,'الحقل السابق').isDisabled(),true);
@@ -137,6 +137,21 @@ else{
    await page.getByLabel('تكرار البيانات من حقل',{exact:true}).selectOption('');await entry.fill('قيمة مستقلة');await saved(page);
    assert.equal(writes.at(-1).snapshot.values.name,'قيمة مرتبطة');assert.equal(writes.at(-1).snapshot.values.middle,'قيمة مستقلة');
    console.log('PASS '+name+': explicit field links, conflict refusal, synchronized value, unlink preserves peers');
+   await page.getByText('نسخ الحقل ومحاذاته',{exact:true}).click();await button(page,'نسخ هذا الحقل').click();
+   assert.equal(await entry.inputValue(),'');await entry.fill('بيانات النسخة');await saved(page);
+   const copiedId=writes.at(-1).snapshot.selected;
+   assert.equal(writes.at(-1).snapshot.mapping.fields.length,4);
+   assert.equal(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId).dataKey,undefined);
+   await page.getByText('نسخ الحقل ومحاذاته',{exact:true}).click();
+   await page.getByLabel('الحقل المرجعي للمحاذاة',{exact:true}).selectOption('name');
+   await page.getByLabel('عملية المحاذاة',{exact:true}).selectOption('top');await button(page,'تطبيق المحاذاة أو الحجم').click();
+   await page.getByText('هذا التغيير يتداخل مع حقل آخر أو يتجاوز الصفحة. حرّك الحقل ثم أعد المحاولة.',{exact:true}).waitFor();
+   await page.getByLabel('عملية المحاذاة',{exact:true}).selectOption('size');await button(page,'تطبيق المحاذاة أو الحجم').click();await saved(page);
+   assert.equal(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId).width,.55);
+   await button(page,'تراجع').click();await saved(page);assert.equal(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId).width,.3);
+   await button(page,'إعادة').click();await saved(page);assert.equal(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId).width,.55);
+   assert.equal(writes.at(-1).snapshot.values[copiedId],'بيانات النسخة');
+   console.log('PASS '+name+': duplicate independent blank field, collision refusal, match size, undo/redo and saved values');
    mappings.set(original,baseMapping);
    console.log('PASS '+name+': previous/next, Enter, page order, required-field jump, retained values and filled preview');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
