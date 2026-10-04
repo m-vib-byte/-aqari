@@ -6,7 +6,7 @@ export function validPdfFieldPosition(fields,field){
 export function duplicatePdfField(fields,source,id){
  if(fields.length>=100)throw Error('PDF_FIELD_LIMIT');
  const copy={...source,id,label:(source.label.slice(0,94)+' — نسخ').slice(0,100)};
- delete copy.dataKey;
+ delete copy.dataKey;delete copy.locked;
  const pageFields=fields.filter(field=>field.page===source.page),gap=.008;
  const xs=[source.x,0,1-source.width],ys=[source.y,0,1-source.height];
  for(const field of pageFields){xs.push(field.x+field.width+gap,field.x-source.width-gap);ys.push(field.y+field.height+gap,field.y-source.height-gap);}
@@ -19,6 +19,7 @@ export function duplicatePdfField(fields,source,id){
  return candidates[0];
 }
 export function alignPdfField(fields,source,reference,mode){
+ if(source.locked)throw Error('PDF_FIELD_LOCKED');
  if(!reference||source.id===reference.id||source.page!==reference.page)throw Error('PDF_FIELD_REFERENCE');
  const field={...source};
  if(mode==='left')field.x=reference.x;

@@ -23,3 +23,9 @@ test('alignment and size match reference; collisions and page overflow are atomi
  assert.throws(()=>alignPdfField([a,b],a,{...b,page:2},'left'),/PDF_FIELD_REFERENCE/);
  assert.equal(a.y,.2);
 });
+
+test('locked geometry cannot be aligned, and copies are intentionally unlocked',()=>{
+ const a={...field('a'),locked:true},b=field('b',.5,.5);
+ assert.throws(()=>alignPdfField([a,b],a,b,'left'),/PDF_FIELD_LOCKED/);
+ const copy=duplicatePdfField([a,b],a,'copy');assert.equal(copy.locked,undefined);assert.equal(a.locked,true);
+});

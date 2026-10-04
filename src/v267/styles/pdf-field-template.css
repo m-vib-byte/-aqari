@@ -58,3 +58,6 @@
 #aq267-pdf-field-workspace .aq267-pdf-field-navigation{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1;}
 #aq267-pdf-field-workspace .aq267-pdf-field-navigation button{flex:1 1 130px;width:auto!important;min-height:44px;}
 #aq267-pdf-field-workspace .aq267-pdf-field-navigation p{flex-basis:100%;margin:0;}
+
+#aq267-pdf-field-workspace .aq267-pdf-map-field.is-locked{cursor:default;touch-action:pan-x pan-y;}
+#aq267-pdf-field-workspace .is-locked>.aq267-pdf-map-resize{display:none!important;}
