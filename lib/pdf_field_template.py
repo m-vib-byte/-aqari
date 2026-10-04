@@ -11,6 +11,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from lib.rent_pdf import FONT, FONT_PATH, shaped
 
 MAP_KEY = '/AqariFieldTemplateV1'
+ORIGIN_KEY = '/AqariTemplateOriginV1'
 MAX_PAGES = 30
 MAX_FIELDS = 100
 MAX_MAP_CHARS = 100000
@@ -28,7 +29,8 @@ def open_pdf(raw):
     if reader.get_fields() or any(a.get_object().get('/Subtype')=='/Widget' for p in reader.pages for a in p.get('/Annots',[])):
         raise ValueError('PDF_EXISTING_FORM')
     normalized=PdfWriter()
-    if (reader.metadata or {}).get(MAP_KEY) is not None:normalized.add_metadata({MAP_KEY:reader.metadata[MAP_KEY]})
+    for key in [MAP_KEY,ORIGIN_KEY]:
+        if (reader.metadata or {}).get(key) is not None:normalized.add_metadata({key:reader.metadata[key]})
     for source in reader.pages:
         p=normalized.add_page(source,excluded_keys=['/Annots','/AA'])
         p.transfer_rotation_to_content()
@@ -92,10 +94,28 @@ def encoded_map(mapping):
     return raw
 
 
-def write_template(reader,mapping):
+def template_origin(reader):
+    raw=(reader.metadata or {}).get(ORIGIN_KEY)
+    if raw is None:return None
+    if not isinstance(raw,str) or len(raw)>512:raise ValueError('INVALID_PDF_TEMPLATE_ORIGIN')
+    try:origin=json.loads(raw)
+    except (TypeError,ValueError):raise ValueError('INVALID_PDF_TEMPLATE_ORIGIN') from None
+    if not isinstance(origin,dict):raise ValueError('INVALID_PDF_TEMPLATE_ORIGIN')
+    keys={'revision':{'kind','document_id','revision'},'copy':{'kind','document_id','property_id'}}
+    if set(origin)!=keys.get(origin.get('kind'),set()):raise ValueError('INVALID_PDF_TEMPLATE_ORIGIN')
+    uuid=r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+    for key in ['document_id']+(['property_id'] if origin.get('kind')=='copy' else []):
+        if not isinstance(origin.get(key),str) or not re.fullmatch(uuid,origin[key]):raise ValueError('INVALID_PDF_TEMPLATE_ORIGIN')
+    if origin.get('kind')=='revision' and (type(origin.get('revision')) is not int or not 1<=origin['revision']<=999999999):raise ValueError('INVALID_PDF_TEMPLATE_ORIGIN')
+    return origin
+
+
+def write_template(reader,mapping,origin=None):
     writer=PdfWriter()
     for p in reader.pages:writer.add_page(p,excluded_keys=['/Annots','/AA'])
     writer.add_metadata({MAP_KEY:encoded_map(mapping),'/Title':mapping['title']})
+    if origin is not None:
+        writer.add_metadata({ORIGIN_KEY:json.dumps(origin,separators=(',',':'))});template_origin(writer)
     out=BytesIO();writer.write(out);return out.getvalue()
 
 
@@ -121,7 +141,7 @@ def render_page(reader,page_number):
         page.close();pdf.close()
 
 
-def fill_template(reader,mapping,values):
+def fill_template(reader,mapping,values,source=None):
     fields=mapping['fields']
     if not isinstance(values,dict) or set(values)!={f['id'] for f in fields}:raise ValueError('FIELD_VALUES_REQUIRED')
     linked={}
@@ -159,4 +179,5 @@ def fill_template(reader,mapping,values):
         c.showPage();c.save();overlay=PdfReader(buf);p.merge_page(overlay.pages[0])
     writer.metadata=None
     writer.add_metadata({'/Title':mapping['title'],'/Subject':'Filled copy for review; no lease activation or payment recorded.'})
+    if source:writer.add_metadata({'/AqariSourceTemplateDocument':source['document_id'],'/AqariSourceTemplateRevision':str(source['revision'])})
     out=BytesIO();writer.write(out);return out.getvalue()

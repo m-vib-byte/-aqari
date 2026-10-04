@@ -22,6 +22,54 @@ def original():
 def mapping():
     return {'version':1,'title':'Test template','propertyId':P,'fields':[{'id':'tenant','label':'اسم المستأجر','type':'text','page':1,'x':.1,'y':.12,'width':.6,'height':.04,'fontSize':12,'align':'right'},{'id':'date','label':'تاريخ العقد','type':'date','page':2,'x':.1,'y':.2,'width':.3,'height':.04,'fontSize':12,'align':'left'}]}
 class PdfFieldsTest(unittest.TestCase):
+    def version_fixture(self):
+        m=mapping();raw=write_template(open_pdf(original()),m)
+        ctx={'workspace_id':W,'user_id':'manager','can_publish':True,'template_version':{'document_id':D,'revision':3,'is_latest':True}}
+        row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P,'pdf_field_template':True}}
+        def read(path,auth):
+            if '/aqari_properties?' in path:
+                ident=parse_qs(urlsplit(path).query)['id'][0].removeprefix('eq.')
+                return [{'id':ident,'workspace_id':W,'external_ref':'p'}]
+            return [row]
+        data={'workspaceId':W,'propertyId':P,'documentId':D}
+        return m,raw,ctx,read,data
+    def test_version_save_preserves_base_across_unpublished_saves(self):
+        m,raw,ctx,read,data=self.version_fixture()
+        saved,_=api.process(dict(data,action='save',mapping=m),'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        origin={'kind':'revision','document_id':D,'revision':3}
+        self.assertEqual(template_origin(open_pdf(saved)),origin)
+        self.assertEqual(render_page(open_pdf(raw),1),render_page(open_pdf(saved),1))
+        ctx.pop('template_version');m['title']='Another save before approval'
+        saved2,_=api.process(dict(data,action='save',mapping=m),'Bearer test.token',lambda *a:ctx,read,lambda *a:saved)
+        self.assertEqual(template_origin(open_pdf(saved2)),origin)
+    def test_copy_changes_property_and_title_but_not_original_terms_or_values(self):
+        m,raw,ctx,read,data=self.version_fixture();target='76610000-0000-4000-8000-000000000004'
+        copied,_=api.process(dict(data,action='copy',targetPropertyId=target,title='Copied model',values={'tenant':'MUST NOT COPY'}),'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        reader=open_pdf(copied);new=saved_map(reader,target)
+        self.assertEqual(new['title'],'Copied model');self.assertEqual(new['fields'],m['fields'])
+        self.assertEqual(template_origin(reader),{'kind':'copy','document_id':D,'property_id':P})
+        self.assertEqual(render_page(reader,1),render_page(open_pdf(raw),1))
+        self.assertNotIn('MUST NOT COPY',PdfReader(BytesIO(copied)).pages[0].extract_text())
+        with self.assertRaises(ValueError):saved_map(reader,P)
+    def test_copy_requires_both_property_permissions_and_manager_role(self):
+        m,raw,ctx,read,data=self.version_fixture();target='76610000-0000-4000-8000-000000000004'
+        def rpc(name,payload,auth):return dict(ctx,can_publish=False,can_fill=True) if payload['p_data']['property_id']==target else ctx
+        with self.assertRaises(PermissionError):api.process(dict(data,action='copy',targetPropertyId=target,title='Copy'),'Bearer test.token',rpc,read,lambda *a:raw)
+        with self.assertRaises(PermissionError):api.process(dict(data,action='copy',targetPropertyId=target,title='Copy'),'Bearer test.token',lambda *a:dict(ctx,can_publish=False,can_fill=True),read,lambda *a:raw)
+    def test_final_pdf_binds_exact_source_version_without_editing_metadata(self):
+        m,raw,ctx,read,data=self.version_fixture()
+        filled,_=api.process(dict(data,action='fill',values={'tenant':'Test','date':'2026-10-04'}),'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        meta=PdfReader(BytesIO(filled)).metadata
+        self.assertEqual(meta['/AqariSourceTemplateDocument'],D);self.assertEqual(meta['/AqariSourceTemplateRevision'],'3')
+        self.assertNotIn(MAP_KEY,meta);self.assertNotIn(ORIGIN_KEY,meta)
+    def test_origin_validation_rejects_unknown_keys_and_invalid_revisions(self):
+        for origin in [{},{'kind':'revision','document_id':D,'revision':True},{'kind':'revision','document_id':D,'revision':0},{'kind':'revision','document_id':'bad','revision':1},{'kind':'copy','document_id':D,'property_id':P,'values':{}},[]]:
+            with self.assertRaises(ValueError):write_template(open_pdf(original()),mapping(),origin)
+    def test_upstream_revision_conflict_is_safely_exposed(self):
+        from urllib.error import HTTPError
+        def conflict(*args):raise HTTPError('https://test',400,'bad',{},BytesIO(b'{"message":"PDF_TEMPLATE_REVISION_CONFLICT"}'))
+        with self.assertRaisesRegex(ValueError,'PDF_TEMPLATE_REVISION_CONFLICT'):api.publish_rpc(conflict,'rpc',{},'Bearer test')
+
     def test_staff_fill_uses_only_approved_pdf_mapping_and_rechecks_revocation(self):
         m=mapping();raw=write_template(open_pdf(original()),m)
         row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P,'pdf_field_template':True}}
@@ -51,7 +99,7 @@ class PdfFieldsTest(unittest.TestCase):
             return {'approved':True} if args['p_action']=='publish' else {'workspace_id':W,'user_id':'manager','can_publish':True}
         result,_=api.process({'workspaceId':W,'propertyId':P,'documentId':D,'action':'publish'},'Bearer test.token',rpc,read,lambda *a:raw)
         self.assertEqual(json.loads(result),{'approved':True})
-        self.assertEqual(calls[-1]['p_data'],{'property_id':P,'document_id':D,'mapping':m})
+        self.assertEqual(calls[-1]['p_data'],{'property_id':P,'document_id':D,'mapping':m,'origin':None})
     def test_large_option_maps_are_rejected_before_save_and_valid_maps_reopen(self):
         m=mapping();template=copy.deepcopy(m['fields'][0]);m['fields']=[]
         for i in range(21):

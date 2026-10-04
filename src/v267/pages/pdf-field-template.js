@@ -16,7 +16,7 @@ import {requestPdfField} from '../api/pdf-field-request.js';
 import {createPdfEditorHistory} from '../domain/pdf-editor-history.js';
 import {createPdfEditorDraft,pdfEditorFingerprint} from '../domain/pdf-editor-draft.js';
 
-const errors={FIELD_MAP_TOO_LARGE:'خيارات النموذج كثيرة جدًا. قلّل عدد الخيارات أو طولها ثم أعد الحفظ.',INVALID_FIELD_OPTIONS:'اكتب من خيار واحد إلى ٥٠ خيارًا مختلفًا، كل خيار حتى ١٠٠ حرف.',INVALID_FIELD_OPTION:'اختر قيمة من خيارات الحقل.',INVALID_CIVIL_ID_FORMAT:'اكتب الرقم المدني من ١٢ رقمًا. هذا تحقق من الصيغة فقط.',FIELD_LINK_CONFLICT:'القيم المرتبطة مختلفة. راجع الحقول قبل المعاينة.',ACCESS_DENIED:'تعذر التحقق من صلاحية الملف. أعد فتح الصفحة.',PDF_LIMIT:'اختر PDF غير محمي من صفحة إلى ٣٠ صفحة.',PDF_EXISTING_FORM:'الملف يحتوي حقولًا أو توقيعًا إلكترونيًا. ارفع نموذجًا فارغًا بدون توقيع إلكتروني.',PDF_PAGE_SIZE:'أبعاد صفحات الملف غير مدعومة.',FIELD_OVERLAP:'يوجد تداخل بين الحقول. حرّك الحقول أو قلّل حجمها.',FIELD_TEXT_TOO_LONG:'النص أكبر من مساحة أحد الحقول. وسّع الحقل أو قلّل حجم الخط.',FIELD_VALUES_REQUIRED:'أكمل الحقول المطلوبة قبل المعاينة.',FIELDS_REQUIRED:'حدد حقلًا واحدًا على الأقل.',TEMPLATE_TITLE_REQUIRED:'اكتب اسم النموذج.',PDF_OUTPUT_LIMIT:'النسخة الناتجة كبيرة. استخدم PDF أصغر من ٤ ميجابايت.',INVALID_FIELD_VALUE:'راجع القيم المدخلة والتواريخ والمبالغ.'};
+const errors={PDF_TEMPLATE_REVISION_CONFLICT:'اعتمد مدير آخر إصدارًا أحدث. نسختك وتعديلاتك محفوظة؛ افتح النماذج المحفوظة لمراجعة الإصدار الأحدث قبل اعتماد التعديل.',INVALID_PDF_TEMPLATE_ORIGIN:'تعذر التحقق من مرجع إصدار النموذج. أعد فتح النسخة المحفوظة.',FIELD_MAP_TOO_LARGE:'خيارات النموذج كثيرة جدًا. قلّل عدد الخيارات أو طولها ثم أعد الحفظ.',INVALID_FIELD_OPTIONS:'اكتب من خيار واحد إلى ٥٠ خيارًا مختلفًا، كل خيار حتى ١٠٠ حرف.',INVALID_FIELD_OPTION:'اختر قيمة من خيارات الحقل.',INVALID_CIVIL_ID_FORMAT:'اكتب الرقم المدني من ١٢ رقمًا. هذا تحقق من الصيغة فقط.',FIELD_LINK_CONFLICT:'القيم المرتبطة مختلفة. راجع الحقول قبل المعاينة.',ACCESS_DENIED:'تعذر التحقق من صلاحية الملف. أعد فتح الصفحة.',PDF_LIMIT:'اختر PDF غير محمي من صفحة إلى ٣٠ صفحة.',PDF_EXISTING_FORM:'الملف يحتوي حقولًا أو توقيعًا إلكترونيًا. ارفع نموذجًا فارغًا بدون توقيع إلكتروني.',PDF_PAGE_SIZE:'أبعاد صفحات الملف غير مدعومة.',FIELD_OVERLAP:'يوجد تداخل بين الحقول. حرّك الحقول أو قلّل حجمها.',FIELD_TEXT_TOO_LONG:'النص أكبر من مساحة أحد الحقول. وسّع الحقل أو قلّل حجم الخط.',FIELD_VALUES_REQUIRED:'أكمل الحقول المطلوبة قبل المعاينة.',FIELDS_REQUIRED:'حدد حقلًا واحدًا على الأقل.',TEMPLATE_TITLE_REQUIRED:'اكتب اسم النموذج.',PDF_OUTPUT_LIMIT:'النسخة الناتجة كبيرة. استخدم PDF أصغر من ٤ ميجابايت.',INVALID_FIELD_VALUE:'راجع القيم المدخلة والتواريخ والمبالغ.'};
 export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  const d=createPage(t('رفع نموذج PDF وتحديد الحقول'));if(!d)return false;
  d.el.classList.add('aq267-pdf-map');
@@ -25,10 +25,11 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  const fillOnly=d.session.bound.role!=='general_manager';
  if(fillOnly)d.el.classList.add('is-pdf-fill-only');
  let property=null,documentId=null,mapping=null,pages=[],page=1,selected=null,dirty=false,epoch=0,imageUrl=null,previewUrl=null,filled=null;
+ let templateVersion=null;
  let draft=null,draftStatus=null,draftFork=null;
  let history=null,refreshHistory=()=>{},savedMapping='',savedValues='{}';
  let stopText=()=>{},stopEditor=()=>{},stopPreview=()=>{},invalidatePreview=()=>{},values={},valuesDirty=false;
- const uploader=createOriginalDocumentUpload(d.session),templateUploader=createOriginalDocumentUpload(d.session),filledUploader=createOriginalDocumentUpload(d.session);
+ const uploader=createOriginalDocumentUpload(d.session),templateUploader=createOriginalDocumentUpload(d.session),filledUploader=createOriginalDocumentUpload(d.session),copyUploader=createOriginalDocumentUpload(d.session);
  const button=(text,fn)=>{const b=node('button',t(text));b.type='button';b.onclick=()=>d.run(fn);return b;};
  const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value;return el;};
  // Keep the same native file control when the property selection reloads home.
@@ -59,6 +60,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  async function openDocument(id,restored=null){
   draft?.dispose();draft=null;values={};valuesDirty=false;clearPreview();documentId=id;
   const info=await request('inspect');pages=info.pages;if(!Array.isArray(pages)||!pages.length)throw Error(t('تعذر قراءة صفحات الملف.'));
+  templateVersion=info.template_version||null;
   mapping=info.mapping||{version:1,title:'',propertyId:property.id,fields:[]};page=1;selected=null;dirty=false;savedMapping=pdfEditorFingerprint(mapping);savedValues='{}';
   if(restored){
    const snap=restored.snapshot;
@@ -156,12 +158,34 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   }
   const historyKeys=event=>{if(!(event.ctrlKey||event.metaKey)||event.altKey||event.target.closest?.('input,textarea,select,[contenteditable=true]'))return;const key=event.key.toLowerCase();if(key!=='z'&&key!=='y')return;event.preventDefault();d.run(()=>restoreHistory(key==='y'||event.shiftKey?1:-1));};
   d.el.addEventListener('keydown',historyKeys);const stopObserver=stopEditor;stopEditor=()=>{stopObserver();d.el.removeEventListener('keydown',historyKeys);};
-  const tools=node('div');tools.className='aq267-pdf-map-actions';tools.append(undo,redo,...(fillOnly?[]:[button('إضافة حقل',()=>addField(.4,.2)),button('حفظ النموذج والحقول',save),button('اعتماد النموذج لتعبئة الموظفين',async()=>{if(dirty)await save();await request('publish');d.status.textContent=t('اعتمدت هذه النسخة للتعبئة. الموظف يعبئ القيم ولا يعدل النص أو الحقول.');})]),button('حفظ ومعاينة العقد',previewFilled),button('النماذج المحفوظة',async()=>{if(!await canLeave())return;dirty=false;await home();}));
+  const tools=node('div');tools.className='aq267-pdf-map-actions';tools.append(undo,redo,...(fillOnly?[]:[button('إضافة حقل',()=>addField(.4,.2)),button('حفظ النموذج والحقول',save),button('اعتماد النموذج لتعبئة الموظفين',async()=>{if(dirty)await save();const result=await request('publish');templateVersion={document_id:documentId,revision:result.revision,is_latest:true};refreshVersion();d.status.textContent=t('اعتمدت هذه النسخة للتعبئة. الموظف يعبئ القيم ولا يعدل النص أو الحقول.');})]),button('حفظ ومعاينة العقد',previewFilled),button('النماذج المحفوظة',async()=>{if(!await canLeave())return;dirty=false;await home();}));
   draftStatus=node('p',t(draft.revision?'حُفظت المسودة وبيانات التعبئة. يمكنك استعادتها من مسوداتي المحفوظة.':'يبدأ حفظ المسودة تلقائيًا عند التعديل.'));draftStatus.setAttribute('role','status');draftStatus.className='aq267-pdf-draft-status';
+  const versionStatus=node('p');versionStatus.setAttribute('role','status');
+  const refreshVersion=()=>{versionStatus.textContent=t(templateVersion?'إصدار معتمد':'نسخة محفوظة للعمل — غير معتمدة')+(templateVersion?' '+templateVersion.revision+' · '+t(templateVersion.is_latest?'أحدث إصدار':'إصدار سابق؛ ارجع للأحدث قبل تعديل النموذج'):'');};refreshVersion();
+  const versions=node('details'),versionCards=node('div'),copyPanel=node('section');let versionOffset=0;
+  const moreVersions=button('عرض إصدارات أقدم',loadVersions);moreVersions.hidden=true;
+  versions.append(node('summary',t('الإصدارات ونسخ النموذج')),versionStatus,button('عرض سجل الإصدارات',async()=>{versionOffset=0;versionCards.replaceChildren();await loadVersions();}),versionCards,moreVersions,button('نسخ النموذج لعقار آخر',showCopy),copyPanel);
+  async function loadVersions(){
+   const result=await pdfTemplateAccess(d,property)('history',{document_id:documentId,offset:versionOffset});
+   for(const item of result.items.slice(0,20)){const card=node('div');card.append(node('p',t('الإصدار')+' '+item.revision+' · '+new Date(item.created_at).toLocaleString()+' · '+t(item.is_latest?'الأحدث':'سابق')),button('فتح الإصدار '+item.revision,async()=>{if(await canLeave())await openDocument(item.document_id);}));versionCards.append(card);}
+   versionOffset=result.next_offset;moreVersions.hidden=!result.has_more;if(!versionCards.children.length)versionCards.append(node('p',t('لم تعتمد هذه النسخة بعد. يحتفظ النظام بكل إصدار عند اعتماده.')));
+  }
+  async function showCopy(){
+   const props=(await createTemplateLogoContext(d.session).listProperties()).filter(p=>p.id!==property.id);d.session.check();
+   const destination=choose([['','اختر العقار'],...props.map(p=>[p.id,p.name])],''),copyTitle=input('text',mapping.title);copyTitle.maxLength=160;
+   copyPanel.replaceChildren(node('p',t('تُنسخ الحقول دون بيانات التعبئة. راجع النص الثابت والشعار: سيبقيان كما في الأصل، ويلزم اعتماد النسخة للعقار الجديد.')),field(t('العقار الذي سيستقبل النسخة'),destination),field(t('اسم النسخة الجديدة'),copyTitle),button('حفظ نسخة للعقار المحدد',async()=>{
+    const dest=props.find(p=>p.id===destination.value);if(!dest)throw Error(t('اختر العقار أولًا.'));if(!copyTitle.value.trim())throw Error(t('اكتب اسم النموذج.'));
+    if(dirty)await save();await draft?.flush();
+    const blob=await request('copy',{targetPropertyId:dest.id,title:copyTitle.value.trim()});
+    const row=await copyUploader(new File([blob],'aqari-field-template.pdf',{type:'application/pdf'}),{type:'property',ref:dest.externalRef,propertyId:dest.id,category:'property_contract',title:copyTitle.value.trim(),pdfFieldTemplate:true});
+    copyPanel.replaceChildren(node('p',t('حُفظت نسخة مستقلة ببيانات تعبئة فارغة. راجعها ثم اعتمدها.')),button('فتح النسخة في العقار الجديد',async()=>{if(!await canLeave())return;property=dest;propertyId=dest.id;await openDocument(row.id);}));
+    d.status.textContent=t('حُفظت النسخة الجديدة. نموذج العقار الأصلي وبياناته محفوظان.');
+   }));
+  }
   const draftSave=node('button',t('حفظ المسودة الآن'));draftSave.type='button';draftSave.onclick=()=>draft.flush().catch(()=>{});
   draftFork=node('button',t('حفظ كمسودة مستقلة'));draftFork.type='button';draftFork.hidden=true;draftFork.onclick=()=>draft.fork().catch(()=>{});
   const draftTools=node('div');draftTools.className='aq267-pdf-map-actions';draftTools.append(draftSave,draftFork);
-  d.body.replaceChildren(heading,draftStatus,draftTools,field(t('اسم النموذج'),name),node('p',t(fillOnly?'اضغط على الحقل واكتب بياناته. مواضع الحقول والنصوص المعتمدة ثابتة.':'اضغط على الفراغ لإضافة حقل، ثم اكتب بياناته أسفل العقد. تظهر الكتابة فورًا، ويمكنك سحب الحقل وتغيير حجمه في نفس الشاشة.')),tools,field(t('الصفحة'),pageChoice),zoomTools,viewport,controls,textPanel,node('h4',t('الحقول المحددة')),allFields,preview);
+  d.body.replaceChildren(heading,draftStatus,draftTools,...(fillOnly?[]:[versions]),field(t('اسم النموذج'),name),node('p',t(fillOnly?'اضغط على الحقل واكتب بياناته. مواضع الحقول والنصوص المعتمدة ثابتة.':'اضغط على الفراغ لإضافة حقل، ثم اكتب بياناته أسفل العقد. تظهر الكتابة فورًا، ويمكنك سحب الحقل وتغيير حجمه في نفس الشاشة.')),tools,field(t('الصفحة'),pageChoice),zoomTools,viewport,controls,textPanel,node('h4',t('الحقول المحددة')),allFields,preview);
   if(fillOnly){heading.textContent=t('٢. عبّئ بيانات النموذج المعتمد');textPanel.remove();mountPdfTemplateChangeRequest(d,tools,property,documentId);}
   async function drawPage(){stopText();extract.disabled=false;ocr.disabled=false;cancel.hidden=true;textResult.value='';textStatus.textContent='';const ticket=++epoch;image.removeAttribute('src');layer.replaceChildren();const blob=await request('page',{page});if(ticket!==epoch)return;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(blob);image.src=imageUrl;draw();}
   pageChoice.onchange=()=>d.run(async()=>{page=Number(pageChoice.value);selected=null;controls.replaceChildren();await drawPage();});
@@ -261,7 +285,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    for(const [key,text,min,max]of [['x','المسافة من يسار الصفحة ٪',0,99],['y','المسافة من أعلى الصفحة ٪',0,99],['width','عرض الحقل ٪',1,100],['height','ارتفاع الحقل ٪',.6,100]]){const scale=key==='fontSize'?1:100,c=input('number',Math.round(f[key]*scale*100)/100);c.min=min;c.max=max;c.step=.1;c.disabled=f.locked===true;c.onchange=()=>{if(f.locked)return;const value=Number(c.value)/scale;if(!Number.isFinite(value)||value<min/scale||value>max/scale){c.value=f[key]*scale;return;}f[key]=value;f.width=Math.min(f.width,1-f.x);f.height=Math.min(f.height,1-f.y);change();draw();};(key==='fontSize'?controls:advanced).append(field(t(text),c));}
    controls.append(button('حذف هذا الحقل',()=>{mapping.fields=mapping.fields.filter(x=>x.id!==f.id);delete values[f.id];selected=null;change();controls.replaceChildren();draw();}));if(scroll)controls.scrollIntoView?.({block:'nearest',behavior:'smooth'});
   }
-  async function save(){if(fillOnly)throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});if(!mapping.title.trim())throw Error(t('اكتب اسم النموذج.'));if(!mapping.fields.length)throw Error(t('حدد حقلًا واحدًا على الأقل.'));const snapshot=pdfEditorFingerprint(mapping),blob=await request('save',{mapping});const row=await templateUploader(new File([blob],'aqari-field-template.pdf',{type:'application/pdf'}),target(mapping.title,true));if(snapshot!==pdfEditorFingerprint(mapping))throw Error(t('حُفظت النسخة السابقة؛ احفظ التعديلات الجديدة أيضًا.'));documentId=row.id;draft?.changed();dirty=false;savedMapping=pdfEditorFingerprint(mapping);d.status.textContent=t('تم حفظ النموذج ومواضع الحقول. لحفظ بيانات التعبئة، عاين العقد ثم احفظ نسخته.');}
+  async function save(){if(fillOnly)throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});if(!mapping.title.trim())throw Error(t('اكتب اسم النموذج.'));if(!mapping.fields.length)throw Error(t('حدد حقلًا واحدًا على الأقل.'));const snapshot=pdfEditorFingerprint(mapping),blob=await request('save',{mapping});const row=await templateUploader(new File([blob],'aqari-field-template.pdf',{type:'application/pdf'}),target(mapping.title,true));if(snapshot!==pdfEditorFingerprint(mapping))throw Error(t('حُفظت النسخة السابقة؛ احفظ التعديلات الجديدة أيضًا.'));documentId=row.id;templateVersion=null;refreshVersion();draft?.changed();dirty=false;savedMapping=pdfEditorFingerprint(mapping);d.status.textContent=t('تم حفظ النموذج ومواضع الحقول. لحفظ بيانات التعبئة، عاين العقد ثم احفظ نسخته.');}
   async function previewFilled(){
    if(!mapping.fields.length)throw Error(t('حدد حقلًا واحدًا على الأقل.'));
    const missing=mapping.fields.find(f=>pdfFieldValueError(f,values[f.id]||''));
