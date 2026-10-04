@@ -4647,8 +4647,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "sha256": "3c8bf4ca9830d12216ac276df593ddc67c508717f08731bb94fa08de5b73fff3",
-      "size": 43837
+      "sha256": "5a8caf3ebb08896286c0fdcbbdfa25b844a357828d6596d9e066b17bc1f8a4fa",
+      "size": 44060
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",

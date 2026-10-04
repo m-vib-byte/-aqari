@@ -290,12 +290,14 @@ else{
    await page.getByText('تغيرت بيانات العقد. أعد معاينتها قبل التعبئة.',{exact:true}).waitFor();assert.equal(await entry.inputValue(),'قيمة يدوية قديمة');
    await button(page,'معاينة بيانات العقد للتعبئة').click();await page.getByRole('cell',{name:'مستأجر محدث',exact:true}).waitFor();
    await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();
+   await page.waitForFunction(()=>document.querySelector('.aq267-pdf-map-entry input')?.value==='مستأجر محدث');
    assert.equal(await entry.inputValue(),'مستأجر محدث');await saved(page);assert.equal(writes.at(-1).snapshot.values.name,'مستأجر محدث');assert.equal(writes.at(-1).snapshot.mapping.fields[0].dataKey,'aqari_source_tenant_name');
    await page.reload();await button(page,'فتح المحرر التجريبي').click();await button(page,'استعادة المسودة').click();await loaded(page);
    assert.equal(await entry.inputValue(),'مستأجر محدث');assert.equal(await page.getByLabel('مصدر التعبئة من العقد',{exact:true}).inputValue(),'tenant_name');
    await page.getByText('تعبئة الحقول من عقد محفوظ',{exact:true}).click();await button(page,'تحميل عقود التعبئة').click();await page.getByLabel('العقد مصدر التعبئة',{exact:true}).selectOption('lease-ref');
    sourceTenant='';await button(page,'معاينة بيانات العقد للتعبئة').click();await page.getByRole('cell',{name:'غير موجود — سيُفرغ الحقل',exact:true}).waitFor();
-   await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();assert.equal(await entry.inputValue(),'');await saved(page);
+   await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();
+   await page.waitForFunction(()=>document.querySelector('.aq267-pdf-map-entry input')?.value==='');assert.equal(await entry.inputValue(),'');await saved(page);
    console.log('PASS '+name+': explicit persisted source binding, value preview, manager confirmation, stale-source rejection, saved autofill and missing-source clearing');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
   }catch(error){console.error('PDF_DRAFT_UI_FAILURE',name,JSON.stringify({errors,body:await page.locator('body').innerText()}));throw error;}finally{await browser.close();}
