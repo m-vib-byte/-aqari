@@ -34,7 +34,7 @@ const server=http.createServer(async(req,res)=>{try{
  if(url.pathname==='/fixture/rpc'){
   assert.equal(body.name,'aqari_pdf_editor_drafts');assert.equal(body.args.p_workspace_id,wid);const {p_action:action,p_data:data}=body.args;assert.equal(data.property_id,propertyId);
   if(deny)return reply(res,{message:'ACCESS_DENIED',code:'42501'},403);
-  if(action==='list')return reply(res,{items:[...drafts.values()].map(d=>({id:d.id,document_id:d.document_id,revision:d.revision,title:d.snapshot.mapping.title,updated_at:d.updated_at})),next_offset:20,has_more:false});
+  if(action==='list')return reply(res,{items:[...drafts.values()].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id)).map(d=>({id:d.id,document_id:d.document_id,revision:d.revision,title:d.snapshot.mapping.title,updated_at:d.updated_at})),next_offset:20,has_more:false});
   if(action==='get')return reply(res,drafts.get(data.id));
   if(action==='save'){
    writes.push(structuredClone(data));const old=drafts.get(data.id);
