@@ -249,7 +249,8 @@ else{
    copyMode=true;await button(page,'نسخ النموذج لعقار آخر').click();await page.getByLabel('العقار الذي سيستقبل النسخة',{exact:true}).selectOption(targetProperty);await page.getByLabel('اسم النسخة الجديدة',{exact:true}).fill('نموذج العقار الثاني');
    await button(page,'حفظ نسخة للعقار المحدد').click();await button(page,'فتح النسخة في العقار الجديد').waitFor();
    assert.equal(await entry.inputValue(),'قيمة يجب أن تبقى عند التعارض');assert.equal(approvals.has('copied-template'),false);
-   await button(page,'فتح النسخة في العقار الجديد').click();await loaded(page);
+   await button(page,'فتح النسخة في العقار الجديد').click();
+   await page.waitForFunction(()=>!document.querySelector('.aq267-dialog-body').inert&&document.querySelector('.aq267-dialog-body input[type=text]')?.value==='نموذج العقار الثاني');await loaded(page);
    assert.equal(await entry.inputValue(),'');assert.equal(await page.getByLabel('اسم النموذج',{exact:true}).inputValue(),'نموذج العقار الثاني');
    assert.equal(mappings.get('copied-template').propertyId,targetProperty);assert.equal(mappings.get(original).propertyId,propertyId);
    console.log('PASS '+name+': publication conflict retains inputs, version history opens, cross-property copy saved unapproved with blank values and source unchanged');
