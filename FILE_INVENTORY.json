@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 9320,
-      "sha256": "4127b85fcb09014f6e4e44e73b9496868f0c5819ea2567553c69cd99ab3a3439"
+      "size": 9519,
+      "sha256": "188549c7009bea080213bc239b461a03ec45410c930c9f78cadee1e7c9246d64"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -2307,8 +2307,8 @@
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
-      "sha256": "19c06ca7806af9e64099d2ab84453f80649149b2a8f7f1c759eb010e3b637880",
-      "size": 5710
+      "size": 6032,
+      "sha256": "2e8c326e32244930ef6aa64118fd294239fb2a376bc351d539867c728e2bc5d9"
     },
     {
       "path": "staging-database/local-test/run-manager-contract-workflow.sh",
@@ -5252,8 +5252,23 @@
     },
     {
       "path": "docs/V267-SALARY-NUMERIC-VOUCHERS-2026-10-04.md",
-      "size": 1604,
-      "sha256": "f0d731642bdef9c7f41942f33bda0a01e4fef123c7e3d60ac723200fb74cceb0"
+      "size": 2433,
+      "sha256": "4d59324a2d379e710919a738f105b16446bd38411f4fc186609fa2e9e5709432"
+    },
+    {
+      "path": "staging-database/sql/salary-numeric-corrections.sql",
+      "size": 926,
+      "sha256": "1a9eb5ea0a4230abf29faa0bc98e694bdef899af9bb42046b5035f2fba9e09d2"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004203316_v267_salary_numeric_corrections.sql",
+      "size": 926,
+      "sha256": "1a9eb5ea0a4230abf29faa0bc98e694bdef899af9bb42046b5035f2fba9e09d2"
+    },
+    {
+      "path": "staging-database/local-test/run-salary-numeric-corrections.mjs",
+      "size": 4058,
+      "sha256": "e0776377dabccba41574600c2db7a5d38f7977b7dd13ceef1189057e990f06da"
     }
   ],
   "version": "V198"

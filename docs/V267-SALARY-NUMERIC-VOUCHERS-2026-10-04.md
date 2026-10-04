@@ -24,3 +24,18 @@ Rollback, if needed: replace the new numbering expression with the exact old
 expression using the same fail-closed guard. Do not reset the sequence or rewrite
 issued numeric vouchers. This change does not resolve other document counters or
 the unconfirmed iPhone PDF upload incident.
+
+## Corrected vouchers
+
+The follow-up migration also replaces the correction suffix (for example -C2)
+with a fresh number from the same salary sequence. It preserves the old voucher
+number and snapshot, the replacement link and separate version field. Existing
+corrections retain their historical identifiers. Exporting an existing voucher
+does not allocate a new number.
+
+Run `node staging-database/local-test/run-salary-numeric-corrections.mjs` for the
+full isolated HR lifecycle with real pgcrypto hashing. It first reproduces the
+suffix defect, then tests numeric correction, old-number/snapshot retention,
+version and replacement linkage, export retry, correction retry rejection,
+manager-only access, invalid-total rejection, month close and immutable history.
+The pgcrypto option affects only the disposable test runtime.

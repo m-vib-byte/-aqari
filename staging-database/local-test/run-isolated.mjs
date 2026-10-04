@@ -6,14 +6,19 @@ const runtime=process.env.AQARI_PGLITE_MODULE;
 if(runtime&&!path.isAbsolute(runtime))throw Error('AQARI_PGLITE_MODULE must be an absolute local module path.');
 const {PGlite}=await import(runtime?pathToFileURL(runtime):'@electric-sql/pglite');
 const {btree_gist}=await import(runtime?pathToFileURL(path.join(path.dirname(runtime),'contrib/btree_gist.js')):'@electric-sql/pglite/contrib/btree_gist');
-const db=new PGlite({extensions:{btree_gist}});
+const extensions={btree_gist};
+if(process.env.AQARI_TEST_PGCRYPTO==='1'){
+ const {pgcrypto}=await import(runtime?pathToFileURL(path.join(path.dirname(runtime),'contrib/pgcrypto.js')):'@electric-sql/pglite/contrib/pgcrypto');
+ extensions.pgcrypto=pgcrypto;
+}
+const db=new PGlite({extensions});
 const q=s=>'"'+s.replaceAll('"','""')+'"';
 const catalog=JSON.parse(await fs.readFile(new URL('./schema-catalog-2026-09-09.json',import.meta.url),'utf8'));
 async function exec(sql,label){try{await db.exec(sql);}catch(e){throw Error(label+': '+e.message+'\n'+(e.where||''),{cause:e});}}
 try{
  await exec(`create role anon;create role authenticated;create role service_role bypassrls;
  create schema auth;create schema private;create schema storage;create schema extensions;
- create extension btree_gist;set check_function_bodies=off;
+ create extension btree_gist;${extensions.pgcrypto?'create extension pgcrypto with schema extensions;':''}set check_function_bodies=off;
  create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}',raw_app_meta_data jsonb default '{}');
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb,'{}'::jsonb)$$;
