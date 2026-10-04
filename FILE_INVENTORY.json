@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "b7d3356fdbc05f2753649ee90a136296707daebf79986a87bb968d1a2e7d83cc",
-      "size": 9312
+      "sha256": "43963bf9144aa64517b9c70865a869a872ae9bf28f51628097b0b2d340a12d39",
+      "size": 9385
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1447,8 +1447,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "02f3ce7afad968931ff46698d5a4b34f6b000be5a17a9d060d9a76979aca4461",
-      "size": 5392
+      "sha256": "4581b2099a5843ca35db8bc7d42e20af5e321aca80a7f9658bf945bb48cfdb0d",
+      "size": 5960
     },
     {
       "path": "src/v267/components/page.js",
@@ -1469,6 +1469,11 @@
       "path": "src/v267/components/payment-proof.js",
       "sha256": "68caf25888e4d4cbf3e8e061c70ea55806bd222a95dc9f7fe4bef6efe2630c60",
       "size": 2401
+    },
+    {
+      "path": "src/v267/components/pdf-contract-binding.js",
+      "sha256": "649f3abb5913664cf5d8db8234bd73855001b29c7a275968a238fb213aeb82a2",
+      "size": 6748
     },
     {
       "path": "src/v267/components/pdf-contract-print.js",
@@ -1922,8 +1927,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "62bb97451b0a942973b45d02d9087d322dd20761ed947b528d8b2c28b293962a",
-      "size": 47114
+      "sha256": "556b783a3c4d1795b74ad5d73de7324484c44dfb9740bb8336af840338c6cbe3",
+      "size": 47352
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -1967,8 +1972,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "cd783bc8b89b0fd1846c5f5f52e11635631a94565bbf8729dfabe34a631210ae",
-      "size": 60726
+      "sha256": "1967e25cc170625cfee2c8db96767e283060929cce58ed65df3432c2381d90a0",
+      "size": 61133
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -2291,6 +2296,11 @@
       "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de"
     },
     {
+      "path": "staging-database/local-test/run-pdf-contract-bindings.mjs",
+      "sha256": "15f6c770b9e21d39ab653491dacd18794151bac7bb6d6ab9c13b5e25c5b2ccb9",
+      "size": 6117
+    },
+    {
       "path": "staging-database/local-test/run-pdf-editor-drafts.mjs",
       "sha256": "c9cac211434f988c6a66df175afa9164d02996838e92d111b08eed9b8fd06d1a",
       "size": 23791
@@ -2579,6 +2589,11 @@
       "path": "staging-database/sql/payment-method-reference-guard.sql",
       "sha256": "ce978e2f4c575ed3ca625cafcb263c767dd88ea69a60e17b2b8e129e6d8c02fb",
       "size": 2472
+    },
+    {
+      "path": "staging-database/sql/pdf-contract-bindings.sql",
+      "sha256": "f44813952af8727b37edc5f79e5b3f71707f060497c5c05bfdbb85e516c1696c",
+      "size": 8940
     },
     {
       "path": "staging-database/sql/pdf-editor-drafts.sql",
@@ -3251,6 +3266,11 @@
       "size": 8742
     },
     {
+      "path": "staging-database/supabase/migrations/20261004093424_v267_pdf_contract_bindings.sql",
+      "sha256": "f44813952af8727b37edc5f79e5b3f71707f060497c5c05bfdbb85e516c1696c",
+      "size": 8940
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -3469,6 +3489,11 @@
       "path": "staging-database/tests/payment_method_reference_hosted.sql",
       "sha256": "3239fdad983365c294daf18e2b9c861f13939dc9d76d1669989d25aaa5334ae1",
       "size": 9715
+    },
+    {
+      "path": "staging-database/tests/pdf-contract-bindings-hosted.sql",
+      "sha256": "922708fbf735298f3be21e0df172bd08d6d3b802a56529f6f0a2e50eab286f53",
+      "size": 17812
     },
     {
       "path": "staging-database/tests/pdf-editor-drafts-hosted.sql",
@@ -4537,8 +4562,8 @@
     },
     {
       "path": "tests/v267-original-documents.test.mjs",
-      "sha256": "18a8083972bcbb20d4720e8aeb82f6ba45751546471848d00282c0654fb0e4ce",
-      "size": 9151
+      "sha256": "b673eca57d218d9dfd8a75fea5da75f1bb88d72ea38044c5b08de6b04b337448",
+      "size": 10166
     },
     {
       "path": "tests/v267-owner-feedback-batch.test.mjs",
@@ -4597,8 +4622,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "sha256": "3b2ff9c644afd6b8dd7d5fd8a88c7eefbd38af7a21832586bd3104a07aa974fe",
-      "size": 36454
+      "sha256": "0d49e143cf9c91dc97074dc894cd6f06381f1439eb641fcdafe413ee37dfb2a7",
+      "size": 38642
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",

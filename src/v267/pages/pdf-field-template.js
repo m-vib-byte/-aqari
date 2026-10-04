@@ -1,3 +1,4 @@
+import {mountPdfContractBinding} from '../components/pdf-contract-binding.js';
 import {pdfTemplateAccess,mountPdfTemplateApprovals,mountPdfTemplateChangeRequest} from '../components/pdf-template-approval.js';
 import {pdfFieldRequired,pdfSelectOptions,pdfFieldValueError,pdfFieldsCompatible} from '../domain/pdf-field-values.js';
 import {duplicatePdfField,alignPdfField} from '../domain/pdf-field-layout.js';
@@ -303,6 +304,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
     const current=filled;await filledUploader(new File([current],'filled-contract.pdf',{type:'application/pdf'}),target((mapping.title+' — نسخة معبأة للمراجعة').slice(0,180)));
     if(filled===current){valuesDirty=false;savedValues=pdfEditorFingerprint(values);}d.status.textContent=t('تم حفظ النسخة المعبأة في أرشيف العقار.');
    }));
+   mountPdfContractBinding(d,preview,{property,version:templateVersion,blob,title:mapping.title,isCurrent:()=>filled===blob&&documentId===previewDocumentId});
    d.status.textContent=t('العقد جاهز للمراجعة. احفظ النسخة بعد التأكد من البيانات.');previewMode(true);
   }
   await drawPage();

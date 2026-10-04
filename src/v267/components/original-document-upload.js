@@ -38,8 +38,10 @@ export function createOriginalDocumentUpload(session){
   // category that the database rejects before Storage can accept the file.
   const category=target.category==='property_contract'?'property_other':target.category;
   const pdfFieldTemplate=target.pdfFieldTemplate===true;if(pdfFieldTemplate&&(target.category!=='property_contract'||blob.type!=='application/pdf'))throw Error('نموذج الحقول يجب أن يكون PDF مرتبطًا بالعقار.');
-  const metadata={category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267',...(propertyId?{property_id:propertyId}:{}),...(pdfFieldTemplate?{pdf_field_template:true}:{})};
-  const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash,propertyId,pdfFieldTemplate]);
+  const source=target.pdfSource;
+  if(source&&(target.category!=='property_contract'||pdfFieldTemplate||blob.type!=='application/pdf'||!/^[-0-9a-f]{36}$/i.test(source.document_id||'')||!Number.isSafeInteger(source.revision)||source.revision<1))throw Error('مرجع إصدار النموذج غير صالح.');
+  const metadata={category,asset_role:target.category.startsWith('property_')?target.category:null,original_bytes:true,release:'V267',...(propertyId?{property_id:propertyId}:{}),...(pdfFieldTemplate?{pdf_field_template:true}:{}),...(source?{pdf_source_document_id:source.document_id,pdf_source_revision:source.revision}:{})};
+  const key=JSON.stringify([target.type,target.ref,target.category,target.title.trim(),file.name,hash,propertyId,pdfFieldTemplate,source?.document_id,source?.revision]);
   if(!pending||pending.key!==key){
    const rows=await session.request(session.client.rpc('aqari_reserve_document',{p_workspace_id:session.bound.workspace,p_document_type:spec.documentType,p_entity_type:target.type,p_entity_ref:target.ref,p_title:target.title.trim(),p_original_filename:file.name,p_mime_type:blob.type,p_metadata:metadata}));
    const doc=Array.isArray(rows)?rows[0]:rows;if(!doc?.document_id||doc.storage_bucket!=='aqari-documents'||!doc.storage_path?.startsWith(session.bound.workspace+'/'))throw Error('تعذر حجز نسخة المستند.');
@@ -48,7 +50,7 @@ export function createOriginalDocumentUpload(session){
   const doc=pending.doc;await pending.upload();
   await session.request(session.client.rpc('aqari_finalize_document',{p_document_id:doc.document_id,p_size_bytes:blob.size,p_mime_type:blob.type,p_checksum:hash}));
   const row=await session.request(session.client.from('aqari_documents').select('id,status,entity_type,entity_ref,document_type,metadata,created_by,checksum_sha256').eq('workspace_id',session.bound.workspace).eq('id',doc.document_id).single());
-  if(row?.id!==doc.document_id||row.status!=='uploaded'||row.entity_type!==target.type||row.entity_ref!==target.ref||row.created_by!==session.bound.user||row.checksum_sha256!==hash||row.document_type!==spec.documentType||row.metadata?.category!==category||(target.category==='property_contract'&&row.metadata?.asset_role!=='property_contract')||row.metadata?.property_id!==(propertyId||undefined)||(pdfFieldTemplate&&row.metadata?.pdf_field_template!==true))throw Error('لم تتأكد إعادة قراءة سجل المستند.');
+  if(row?.id!==doc.document_id||row.status!=='uploaded'||row.entity_type!==target.type||row.entity_ref!==target.ref||row.created_by!==session.bound.user||row.checksum_sha256!==hash||row.document_type!==spec.documentType||row.metadata?.category!==category||(target.category==='property_contract'&&row.metadata?.asset_role!=='property_contract')||row.metadata?.property_id!==(propertyId||undefined)||(pdfFieldTemplate&&row.metadata?.pdf_field_template!==true)||(source&&(row.metadata?.pdf_source_document_id!==source.document_id||row.metadata?.pdf_source_revision!==source.revision)))throw Error('لم تتأكد إعادة قراءة سجل المستند.');
   return row;
  };
 }

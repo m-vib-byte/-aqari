@@ -88,3 +88,14 @@ test('scanner rotation follows the selected image after dialog controls are rest
  await assert.rejects(createOriginalDocumentUpload(bad.s)(file,mapped),/إعادة قراءة/);
  const invalid=fixture();await assert.rejects(createOriginalDocumentUpload(invalid.s)(file,{...target,pdfFieldTemplate:true}));assert.equal(invalid.calls.length,0);
 });
+
+test('PDF source version survives verified upload and participates in retry identity',async()=>{
+ const f=fixture(),save=createOriginalDocumentUpload(f.s),file=new File(['%PDF-1.7\nfilled'],'filled.pdf');
+ const source={document_id:'33333333-3333-4333-8333-333333333333',revision:2};
+ const target={type:'property',ref:'property-reference',category:'property_contract',propertyId:'property-id',title:'نسخة مرتبطة',pdfSource:source};
+ const row=await save(file,target);assert.equal(row.metadata.pdf_source_document_id,source.document_id);assert.equal(row.metadata.pdf_source_revision,2);
+ await save(file,target);assert.equal(f.calls.filter(c=>c.name==='aqari_reserve_document').length,1);
+ await save(file,{...target,pdfSource:{...source,revision:3}});assert.equal(f.calls.filter(c=>c.name==='aqari_reserve_document').length,2);
+ await assert.rejects(save(file,{...target,pdfFieldTemplate:true}),/مرجع/);
+ await assert.rejects(save(file,{...target,pdfSource:{...source,revision:0}}),/مرجع/);
+});
