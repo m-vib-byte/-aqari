@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "596a49922d87405f92cb0da83edf031094bf2b0a150067d20a8ac05dbcde6ab8",
-      "size": 11131
+      "sha256": "74f5c4dcaf9bac6a845c6249ff6675bfadf8728b5fa85df5a471451d4ea1fa4b",
+      "size": 11129
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1182,8 +1182,8 @@
     },
     {
       "path": "scripts/build-production-contact-reconciliation.py",
-      "sha256": "ce1c8bb95894af479097798e6b20771776ee5d547c65c5238695df5354341271",
-      "size": 4864
+      "sha256": "bf1aaea5e2982ca35cba862ec8503d204eefc6ebf1b9ed03766836cd7351e7be",
+      "size": 4872
     },
     {
       "path": "scripts/build-production-rating-reconciliation.py",
@@ -2582,7 +2582,7 @@
     },
     {
       "path": "staging-database/reconciliation/tenant-contact/manifest.json",
-      "sha256": "ab893a8b1ccef585bebc9a82bd1fbc75a2afc2cbbeeabc73133a4823d7d902ec",
+      "sha256": "d1343dcad888e077a0e6f848bdcf21d77265b1dff25ffa133cfadd77cbba2bc7",
       "size": 1296
     },
     {
@@ -5529,6 +5529,11 @@
       "path": "vercel.json",
       "sha256": "30d1b41481bb74baa59fad215f7fedf376f253b3b79cf690a3d0fabb4efae5a9",
       "size": 8375
+    },
+    {
+      "path": "scripts/test-tenant-candidate-reproducibility.py",
+      "sha256": "c0a98779ebe820b645054f7aee680c0b21c2aca1fdd247db68e097e33eb3ba04",
+      "size": 996
     }
   ],
   "version": "V198"

@@ -50,7 +50,7 @@ end $patch$;"""
         name = f['signature'].split('(')[0]
         if ('create or replace function ' + name + '(') in first + second:
             signatures.append(f['signature'])
-    expected = {s: hashlib.md5(next(f['definition'] for f in catalog['functions'] if f['signature']==s).encode()).hexdigest() for s in set(signatures)}
+    expected = {s: hashlib.md5(next(f['definition'] for f in catalog['functions'] if f['signature']==s).encode()).hexdigest() for s in sorted(set(signatures))}
     expected['public.aqari_final_gap_register(uuid,text,jsonb)'] = hashlib.md5(rated.encode()).hexdigest()
     checks = '\n or '.join("md5(pg_get_functiondef('"+s+"'::regprocedure))<>'"+h+"'" for s,h in sorted(expected.items()))
     guard = """-- REVIEW ONLY. No existing preferences, consent, audit records or messages are rewritten.
