@@ -1,3 +1,4 @@
+import {pdfFieldsCompatible} from './pdf-field-values.js';
 // Explicit, document-local bindings. Labels alone never link values.
 export function linkedPdfFields(fields,field){
  return field.dataKey?fields.filter(item=>item.dataKey===field.dataKey):[field];
@@ -8,7 +9,7 @@ export function writeLinkedPdfValue(fields,values,field,value){
 export function linkPdfField(fields,values,field,targetId){
  if(!targetId){delete field.dataKey;return;}
  const target=fields.find(item=>item.id===targetId);
- if(!target||target===field||target.type!==field.type)throw Error('PDF_LINK_TYPE');
+ if(!target||target===field||!pdfFieldsCompatible(target,field))throw Error('PDF_LINK_TYPE');
  const group=linkedPdfFields(fields,target);
  const entered=new Set([...group,field].map(item=>values[item.id]||'').filter(value=>value!==''));
  if(entered.size>1)throw Error('PDF_LINK_CONFLICT');

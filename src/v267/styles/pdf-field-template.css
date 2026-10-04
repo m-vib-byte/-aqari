@@ -29,7 +29,7 @@
 
 #aq267-pdf-field-workspace .aq267-pdf-map-value{display:flex;align-items:center;justify-content:inherit;position:absolute;inset:0;padding:0 2px;pointer-events:none;white-space:pre;overflow:hidden;font-size:calc(var(--pdf-field-font) * var(--pdf-page-scale,1));line-height:1.2;color:#17212e;font-weight:400;}
 #aq267-pdf-field-workspace .aq267-pdf-map-entry{grid-column:1/-1;}
-#aq267-pdf-field-workspace .aq267-pdf-map-entry input{border:2px solid #3976b8!important;min-height:48px;}
+#aq267-pdf-field-workspace .aq267-pdf-map-entry input,#aq267-pdf-field-workspace .aq267-pdf-map-entry select{border:2px solid #3976b8!important;min-height:48px;}
 #aq267-pdf-field-workspace .aq267-pdf-map-preview:empty{display:none;}
 #aq267-pdf-field-workspace .aq267-pdf-preview-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:12px;}
 #aq267-pdf-field-workspace .aq267-pdf-preview-tools button{width:auto!important;flex:1 1 110px;padding:10px!important;}

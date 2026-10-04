@@ -942,8 +942,8 @@
     },
     {
       "path": "lib/pdf_field_template.py",
-      "sha256": "c9f25c097950de332453dafa6f2814a3e7740725a8d16f2b44b5cb37c1a8fb19",
-      "size": 8429
+      "sha256": "76ad832157f823f539cde59915122df810e26829e218bab28b2d720263bfc97b",
+      "size": 9332
     },
     {
       "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
@@ -1676,9 +1676,14 @@
       "size": 1988
     },
     {
+      "path": "src/v267/domain/pdf-field-values.js",
+      "size": 1439,
+      "sha256": "c38e7362e1087387f1a5a7c0033cb7ba2ed2046857421204656b1930f8961a3f"
+    },
+    {
       "path": "src/v267/domain/pdf-linked-fields.js",
-      "sha256": "77f2c8b96160f975339b307fafc3c0b6a9e0422a98fd299727cfd2ffe9c5d1c2",
-      "size": 934
+      "sha256": "535a247f9e97f9bb63f6d6a4b01d449046c60cd9a1f4c96c6e01ec7920e8b251",
+      "size": 1003
     },
     {
       "path": "src/v267/domain/property-contact-links.js",
@@ -1912,8 +1917,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "747c6427244ccea75f575f8d20dbd6bfed46052a279d198c1a3739ed33fc1f40",
-      "size": 38601
+      "sha256": "20ffae61092352bb9010fdfa39115d982edd6e20388d65435b25c62f287d9567",
+      "size": 41014
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2052,8 +2057,8 @@
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
-      "sha256": "d4fe1ca9a8052c54db68acd1f8b6ee8cda54d708682f6adb53c02b83823843ea",
-      "size": 7482
+      "sha256": "b601b01c4248f2cfdd12fa6ad4b5e9997f334beebf38e0da93b08768271f1713",
+      "size": 7537
     },
     {
       "path": "src/v267/styles/pearl-gold.css",
@@ -2282,8 +2287,8 @@
     },
     {
       "path": "staging-database/local-test/run-pdf-editor-drafts.mjs",
-      "sha256": "8791b0860daa520323149a4e7c6e36a33fdbc43c86b06fc9f862312c57daad4b",
-      "size": 9591
+      "sha256": "3b2ba0e400c95da9808adf4dac15d80fe4b4ed2986c9036a91ad17b5ac73dd14",
+      "size": 11969
     },
     {
       "path": "staging-database/local-test/run-property-contract-category.mjs",
@@ -2574,6 +2579,11 @@
       "path": "staging-database/sql/pdf-editor-drafts.sql",
       "sha256": "5976c3cc0f54a2babe8514aa98039386ced89f1c249891995bc702f4dd4a2b31",
       "size": 9029
+    },
+    {
+      "path": "staging-database/sql/pdf-field-inputs.sql",
+      "size": 9325,
+      "sha256": "ee5516b19ddb030300ad02589f0b2f94e30fc1bab8f0c09128bc3f3c717cde51"
     },
     {
       "path": "staging-database/sql/pdf-field-position-lock.sql",
@@ -3209,6 +3219,11 @@
       "path": "staging-database/supabase/migrations/20261004022050_v267_pdf_field_position_lock.sql",
       "sha256": "ef6f7e0b2fd58aca4519a7d5faa8eb70d703f38871791b4c90f669cb3b86ea3a",
       "size": 8392
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004062402_v267_pdf_field_inputs.sql",
+      "size": 9325,
+      "sha256": "ee5516b19ddb030300ad02589f0b2f94e30fc1bab8f0c09128bc3f3c717cde51"
     },
     {
       "path": "staging-database/tests/collection_account_management.sql",
@@ -3847,8 +3862,8 @@
     },
     {
       "path": "tests/pdf_field_template_test.py",
-      "sha256": "fa1e5d93ce0e879bbaf44de51cc6ee894d118d9b27ecac0b4efca4da08369aea",
-      "size": 13030
+      "sha256": "5292db13fe984ca980d2962ac3db81563f45823c440d32e6d83b6dc2c31bb1c4",
+      "size": 15513
     },
     {
       "path": "tests/preview-access.mjs",
@@ -4547,8 +4562,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "sha256": "2141f3abca1020460a6893714944565a41243a7f8288c6e08e93afa832974161",
-      "size": 22742
+      "sha256": "72b939191c464e495123653f2e9fb28fcb136a6ebc1e9c4a5988fbbfeeada7c8",
+      "size": 25662
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",
@@ -4572,8 +4587,8 @@
     },
     {
       "path": "tests/v267-pdf-linked-fields.test.mjs",
-      "sha256": "8ed27eb32096e21407cef0dbbb46e0a127ace566cc0fb0b1af88d6c44490e715",
-      "size": 1432
+      "sha256": "69284a8adb4390bd88405e8e86ec876f089cd9195bccbbff005d77fcdce28c1c",
+      "size": 3462
     },
     {
       "path": "tests/v267-pdf-local-ocr.test.mjs",
