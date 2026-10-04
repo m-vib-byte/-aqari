@@ -7,6 +7,11 @@ export function currentScope() {
 }
 const messages={PARTNER_STAFF_CONFLICT:'لا يمكن ربط حساب موظف عام بصلاحية شريك محدودة. استخدم بريداً مستقلاً للشريك.',INVALID_PARTNER_ACCESS:'راجع البريد والاسم والعقار وسبب التعديل.',SOURCE_FIELDS_PENDING:'الاسم أو تواريخ العقد أو بيانات المصدر ما زالت معلقة.',VERIFIED_LEASE_DOCUMENT_REQUIRED:'يلزم عقد موقّع محفوظ ومربوط بالعقد الصحيح.',DOCUMENTED_DEPOSIT_REQUIRED:'أدخل التأمين المثبت بالمستند دون قيمة افتراضية.',APPROVED_DOCUMENT_REQUIRED:'تأكيد التوقيع يتطلب نفس المستند والتأمين المعتمدين.',INVALID_REVIEW_TRANSITION:'تغيرت مرحلة العقد؛ حدّث السجلات.',REVIEW_DETAILS_REQUIRED:'وثّق مرجع المراجعة وسبب الاعتماد.',REVISION_CONFLICT:'تغيرت الإعدادات. حدّث السجلات قبل الحفظ.',ACCESS_DENIED:'لا تملك صلاحية هذه العملية.',SECTION_WRITE_DENIED:'القسم متوقف أو صلاحية الحفظ غير متاحة.',INVALID_LABEL:'راجع المسمى؛ النص يجب ألا يحتوي رموز HTML.',DOCUMENT_ENTITY_NOT_FOUND:'احفظ السجل الصحيح أولاً قبل رفع المستند.',STORED_FILE_NOT_CONFIRMED:'لم يتأكد الملف في التخزين. حدّث السجلات قبل إعادة الرفع.',DOCUMENT_IMMUTABLE:'النسخة الأصلية محفوظة ولا يمكن استبدالها.'};
 Object.assign(messages,{
+ HR_COST_ALLOCATION_REQUIRED:'أكمل توزيع تكلفة الموظفين على عقاراتهم بنسبة إجمالية 100% قبل عرض الكشف أو اعتماد الشهر.',
+ INVALID_ALLOCATION_SHARE:'أدخل نسبة أكبر من صفر ولا تتجاوز 100، بخانتين عشريتين كحد أقصى.',
+ ALLOCATIONS_REQUIRED:'أدخل نسب توزيع تكلفة الموظف على العقارات.',
+ ALLOCATIONS_MUST_TOTAL_100:'يجب أن يكون مجموع نسب توزيع تكلفة الموظف 100% تمامًا.',
+ INVALID_ALLOCATION_PROPERTY:'اختر عقارات الموظف دون تكرار.',
  INVALID_HANDOVER:'أكمل أسماء الأطراف والوقت وعدد النسخ وإثبات التسليم بالقيم الصحيحة.',
  HANDOVER_VERIFIED_DOCUMENT_REQUIRED:'يلزم مستند أصلي محفوظ ومتحقق منه قبل تسجيل التسليم.',
  HANDOVER_VERIFIED_EVIDENCE_REQUIRED:'اختر إثبات تسليم محفوظًا ضمن السجل نفسه.',
