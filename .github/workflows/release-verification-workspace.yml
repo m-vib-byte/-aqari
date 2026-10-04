@@ -51,6 +51,13 @@ jobs:
         run: npm run test:completion:contracts --prefix staging-database/local-test | tee /tmp/aqari-verification/sql-contracts.log
       - name: Reproduce cancelled-receipt close bug then verify repair
         run: node scripts/verify-financial-close-regression.mjs | tee /tmp/aqari-verification/sql-close-regression.log
+      - name: Commercial allocation reconciliation candidate (local only)
+        run: |
+          python3 scripts/build-commercial-allocation-reconciliation.py
+          git diff --exit-code -- staging-database/reconciliation/commercial-allocation
+          node scripts/verify-commercial-allocation-reconciliation.mjs | tee /tmp/aqari-verification/sql-commercial-reconciliation.log
+      - name: Commercial reconciliation against captured Production application DDL
+        run: node scripts/verify-commercial-production-catalog.mjs | tee /tmp/aqari-verification/sql-commercial-production-catalog.log
       - name: Document handover persistence and access boundaries
         run: |
           node staging-database/local-test/run-isolated.mjs \
@@ -68,6 +75,7 @@ jobs:
         run: |
           python staging-database/hosted-test/generate-completion.py --check
           python staging-database/hosted-test/test-generate-completion.py
+          python staging-database/hosted-test/current-fixtures.py --check
       - name: PDF and provider rejection tests
         run: |
           python -m pip install -r requirements.txt pypdf==6.10.0
