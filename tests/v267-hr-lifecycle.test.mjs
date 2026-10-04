@@ -15,10 +15,13 @@ test('cost allocations must be unique, in scope and total exactly 100',()=>{
  assert.deepEqual(validateAllocations([{property_id:'a',share:'40'},{property_id:'b',share:'60'}],['a','b']),[{property_id:'a',share:'40.00'},{property_id:'b',share:'60.00'}]);
  assert.throws(()=>validateAllocations([{property_id:'a',share:90}],['a']),/100/);
  assert.throws(()=>validateAllocations([{property_id:'x',share:100}],['a']),/PROPERTY/);
+ for(const share of [NaN,Infinity,-1,0,100.01,'',null,'NaN','1e2',{},'40.005'])assert.throws(()=>validateAllocations([{property_id:'a',share},{property_id:'b',share:60}],['a','b']),/INVALID_ALLOCATION_SHARE/);
+ assert.throws(()=>validateAllocations([{property_id:'a',share:40.005},{property_id:'b',share:59.995}],['a','b']),/INVALID_ALLOCATION_SHARE/);
+ assert.throws(()=>validateAllocations([{property_id:'a',share:50},{property_id:'a',share:50}],['a']),/PROPERTY/);
+ assert.deepEqual(validateAllocations([{property_id:'a',share:'33.33'},{property_id:'b',share:'66.67'}],['a','b']).map(x=>x.share),['33.33','66.67']);
 });
 
 test('employee self-service exposes request kinds only and CSV escapes cells',()=>{
  assert.deepEqual(SELF_SERVICE_KINDS,['leave_request','advance_request','salary_certificate','document_update','general_request']);
  const text=csv([{month:'2026-09',employee_name:'A, "B"',property_name:'Tower',state:'paid',net:10,share:100,allocated_cost:10}]);assert.ok(text.startsWith('\uFEFFmonth'));assert.ok(text.includes('"A, ""B"""'));
 });
-
