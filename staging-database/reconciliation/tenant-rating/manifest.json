@@ -1,0 +1,9 @@
+{
+  "production_applied": false,
+  "source": "staging-database/sql/tenant-rating-quarter-hardening.sql",
+  "source_sha256": "b36e2e6b075d6548d70b36c3e8c9257f2437dd2104365cc7aa254fb22e3bf921",
+  "original_register_md5": "f8be20ff5f57401e13dc99a950343ebf",
+  "original_register_acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+  "candidate_sha256": "f2fb6f6776a592d6332c8d9d5e080574b40b745163ba394f62056853f9aae2bb",
+  "scope": "Only rating branch and its unused shadowing variable; canonical evidence helper; existing register ACL preserved"
+}

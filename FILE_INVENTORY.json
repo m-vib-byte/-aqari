@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "9aa162f79b66ef37217c3104a0dbbb819454b462fb9deeb37b5f57a61716c746",
-      "size": 10714
+      "sha256": "596a49922d87405f92cb0da83edf031094bf2b0a150067d20a8ac05dbcde6ab8",
+      "size": 11131
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1181,6 +1181,16 @@
       "size": 5293
     },
     {
+      "path": "scripts/build-production-contact-reconciliation.py",
+      "sha256": "ce1c8bb95894af479097798e6b20771776ee5d547c65c5238695df5354341271",
+      "size": 4864
+    },
+    {
+      "path": "scripts/build-production-rating-reconciliation.py",
+      "sha256": "70d4ebacf5d5a4ebe92c254339257f0383250d4f47ebbe5b63e1bbc0254bf8af",
+      "size": 3131
+    },
+    {
       "path": "scripts/build-vercel-preverify-tests.mjs",
       "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb",
       "size": 807
@@ -1289,6 +1299,11 @@
       "path": "scripts/verify-financial-close-regression.mjs",
       "sha256": "50ea44284f9f9273227d4942687f016eb669bdb3af5b92114f00fc168602598c",
       "size": 2550
+    },
+    {
+      "path": "scripts/verify-production-tenant-reconciliation.mjs",
+      "sha256": "36357366b653081a12764d13d359e1e74b8789c002c8dec70033caab209caff0",
+      "size": 2182
     },
     {
       "path": "scripts/verify-release-source.mjs",
@@ -2544,6 +2559,41 @@
       "path": "staging-database/reconciliation/commercial-allocation/manifest.json",
       "sha256": "39afb318d8adc3145a4ea6bd8075ce3afd2f6f527f691a130e506a3348f4cc14",
       "size": 2788
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/README.md",
+      "sha256": "10d92b219303409171e719bb3f552d0605126618db1ce1845cdc458e5ade4ef5",
+      "size": 3038
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/candidate.sql",
+      "sha256": "580323b9e119110edce2b7da5eb7f43f0d7b0cccbb08fb88b86302a99a62f08e",
+      "size": 21953
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/history-after.sql",
+      "sha256": "514b8d890fdb20abacfb016159199253957ebd8a01639d5c0a6bea73f94cedbb",
+      "size": 1150
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/history-before.sql",
+      "sha256": "b22864ef03c4bafb1fd6f6b7651d3b18a9496aa092b918b738b48be5f153a8a9",
+      "size": 1006
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/manifest.json",
+      "sha256": "ab893a8b1ccef585bebc9a82bd1fbc75a2afc2cbbeeabc73133a4823d7d902ec",
+      "size": 1296
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-rating/candidate.sql",
+      "sha256": "f2fb6f6776a592d6332c8d9d5e080574b40b745163ba394f62056853f9aae2bb",
+      "size": 18360
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-rating/manifest.json",
+      "sha256": "bbadc913ad9d8957ef7c0b6c61c9f9668954593ba030f555fe9ef7d846722701",
+      "size": 574
     },
     {
       "path": "staging-database/sql/collection-account-management.sql",

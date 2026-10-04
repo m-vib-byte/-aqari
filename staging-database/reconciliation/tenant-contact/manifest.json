@@ -1,0 +1,26 @@
+{
+  "production_applied": false,
+  "sources": [
+    {
+      "path": "staging-database/sql/tenant-contact-preference.sql",
+      "sha256": "2bab0f8bb1fa6a47188a6d74b712894f303e8af6fcccf3aa111eaf2e4bbc621d"
+    },
+    {
+      "path": "staging-database/sql/tenant-contact-unification.sql",
+      "sha256": "dac597c19726ec673da27db6482f9decb5aa3ea65020eb4c03efbf172927fbc5"
+    }
+  ],
+  "preflight_function_md5": {
+    "private.aqari_v267_prepare_reminders(uuid,date,integer)": "c178d4f1a83dcaf9a264fb8b2447d0f9",
+    "private.aqari_imported_tenant_read(uuid,text)": "86f6fcfe0990486a82e85c9466eb6d6f",
+    "private.aqari_reconcile_reminder_queue(uuid)": "15fbbd4e68d0596e8a0f57be8c967f0c",
+    "private.aqari_v267_project_state()": "c8d1fa2998b11222692fe079db942d6a",
+    "private.aqari_preferred_delivery_channel(jsonb,text,text)": "eedb5e9e9010846a6e5e8c030501a759",
+    "private.aqari_imported_tenant_save(uuid,text,jsonb,bigint,text)": "03b37f1e6940bb53338a7dbfeab70500",
+    "public.aqari_final_gap_register(uuid,text,jsonb)": "27a309a74efe9e6b3578fe776d61de96"
+  },
+  "candidate_sha256": "580323b9e119110edce2b7da5eb7f43f0d7b0cccbb08fb88b86302a99a62f08e",
+  "requires": "tenant-rating/candidate.sql",
+  "installation_backfill": false,
+  "historical_audit_source_route": "NULL, not invented"
+}

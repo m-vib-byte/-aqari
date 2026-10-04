@@ -58,6 +58,11 @@ jobs:
           node scripts/verify-commercial-allocation-reconciliation.mjs | tee /tmp/aqari-verification/sql-commercial-reconciliation.log
       - name: Commercial reconciliation against captured Production application DDL
         run: node scripts/verify-commercial-production-catalog.mjs | tee /tmp/aqari-verification/sql-commercial-production-catalog.log
+      - name: Production tenant rating and contact reconciliation (local only)
+        run: |
+          python3 scripts/build-production-contact-reconciliation.py
+          git diff --exit-code -- staging-database/reconciliation/tenant-rating staging-database/reconciliation/tenant-contact
+          node scripts/verify-production-tenant-reconciliation.mjs | tee /tmp/aqari-verification/sql-tenant-reconciliation.log
       - name: Document handover persistence and access boundaries
         run: |
           node staging-database/local-test/run-isolated.mjs \
