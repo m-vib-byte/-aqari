@@ -1,5 +1,5 @@
 // Bound the entire read/render operation, including auth and response bodies.
-// These API actions only return bytes; document persistence uses verified upload.
+// PDF bytes use verified upload; template approval returns a JSON receipt.
 export async function requestPdfField(dialog,{body,signal,errors={},translate=x=>x,fetcher=fetch},timeoutMs=45000){
  const controller=new AbortController();let timer,timedOut=false;
  const abort=()=>controller.abort();
@@ -21,7 +21,7 @@ export async function requestPdfField(dialog,{body,signal,errors={},translate=x=
    const auth=await getAuth();
    const response=await fetcher('/api/pdf-field-template',{method:'POST',credentials:'same-origin',redirect:'error',cache:'no-store',signal:controller.signal,headers:{Authorization:'Bearer '+auth.access_token,'Content-Type':'application/json'},body:JSON.stringify(body)});check();
    if(!response.ok){let info={};try{info=await response.json();}catch{}check();const error=Error(translate(errors[info.error]||'تعذر معالجة النموذج. راجع الملف والحقول ثم أعد المحاولة.'));error.status=response.status;throw error;}
-   const json=['inspect','text'].includes(body.action),expected=json?'application/json':['page','filled_page'].includes(body.action)?'image/png':'application/pdf';
+   const json=['inspect','text','publish'].includes(body.action),expected=json?'application/json':['page','filled_page'].includes(body.action)?'image/png':'application/pdf';
    if(response.headers.get('Content-Type')?.split(';')[0]!==expected)throw Error(translate('استجابة الملف غير صالحة.'));
    const result=await (json?response.json():response.blob());check();
    await getAuth();check();return result;

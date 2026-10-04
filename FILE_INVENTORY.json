@@ -1282,8 +1282,8 @@
     },
     {
       "path": "src/v267/api/pdf-field-request.js",
-      "sha256": "70082db6ac3c7e6c46cc72429d1ecd1b35b316052f446abc0ed2d14d48cd6564",
-      "size": 2524
+      "size": 2527,
+      "sha256": "5af4705490323d4d55864770f4ecaa20a077ff3da0f9c4af4a9671d392b24a79"
     },
     {
       "path": "src/v267/api/protected-pdf.js",
@@ -3466,6 +3466,11 @@
       "size": 2388
     },
     {
+      "path": "staging-database/tests/pdf-staff-filling-hosted.sql",
+      "size": 8240,
+      "sha256": "df6f3ace37151e8b324321cdfa76036648cb93f2f98562176f6e1ad51864b607"
+    },
+    {
       "path": "staging-database/tests/property_notices.sql",
       "sha256": "94710ae27cbe1d126e05ef7eb6b0a99b2abfca4940561617377c06af60cc027b",
       "size": 10563
@@ -4597,8 +4602,8 @@
     },
     {
       "path": "tests/v267-pdf-field-request.test.mjs",
-      "sha256": "e9f7a429b91778dab6693eb250136095e7db5428d12785b87ef133a31178f1d5",
-      "size": 4581
+      "size": 4611,
+      "sha256": "2b2a1387dc4b9a25a6e6428f113e6f2989bb3ae66c3c6a4c214661c6e3a986aa"
     },
     {
       "path": "tests/v267-pdf-linked-fields.test.mjs",
