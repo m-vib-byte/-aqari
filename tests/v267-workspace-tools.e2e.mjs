@@ -12,12 +12,13 @@ const wid='11111111-1111-4111-8111-111111111111',uid='22222222-2222-4222-8222-22
 const sections=['home','collections','properties','tenants','contracts','maintenance','finance','employees','partners','documents','notifications','reports'];
 let maintenanceReadUnavailable=false,maintenanceReadbackDenied=false,maintenanceLocationDenied=false,maintenanceLocationUnavailable=false,storageFailBefore=false,storageLoseReply=false,storageReadDenied=false,storageReadUnavailable=false,storageAttempts=0;
 let settings={sections:{},permissions:{},labels:{}},revision=0,audit=[],docs=[],storageBytes=null,storageUploads=0,calls=[],failingWrite=false,entries=[],entryWrites=0,reviewWrites=0,statementReadDenied=false,maintenanceRows=[],maintenanceWrites=0,maintenanceWriteDenied=false,maintenanceWriteUnavailable=false,maintenanceReadDenied=false,prepareCalls=0;
+const savedReportFilters=new Map();
 let maintenanceAttachmentCalls=[],maintenanceAttachmentReads=0,maintenanceAttachmentWrites=0;
 const maintenanceAttachmentBytes=Buffer.from([255,216,255,224,1,2,3,4,5,6,7,8]);
 const maintenanceAttachment={id:'44444444-4444-4444-8444-444444444444',workspace_id:wid,request_id:'request2',created_by:uid,filename:'closed-request-original.jpg',mime_type:'image/jpeg',size_bytes:maintenanceAttachmentBytes.length,checksum_sha256:createHash('sha256').update(maintenanceAttachmentBytes).digest('hex'),status:'uploaded',storage_bucket:'aqari-maintenance-private',storage_path:wid+'/request2/44444444-4444-4444-8444-444444444444'};
 const propertyName='ملاحظات <عقار> {unit}',tenantName='مستأجر <سجل> {rent}';
-const statement={workspace_id:wid,property_id:'p1',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
-const secondStatement=structuredClone(statement);secondStatement.property_id='p2';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
+const statement={workspace_id:wid,property_id:'52670000-0000-4000-8000-000000000001',period:'2026-08-01',source_sha256:'synthetic-source',content:{property_name:propertyName,period:'2026-08',summary:{printed_totals:{rent_kd:'125.750',advance_kd:'0.000',cleaning_kd:'5.000'}},rows:[{unit:'101',name_en_raw:tenantName,current_rent_kd:'125.750',contract_no_raw:'C-101',contract_start_raw:'2026-08-01',contract_end_raw:'2027-07-31',contract_rent_kd:'125.750',advance_kd:'0.000',insurance_kd:null,payment_method_raw:'كي نت من المصدر',payment_date_raw:'2026-08-03',payment_operation_raw:'OP-TEST',receipt_no_raw:'R-TEST',accountant_raw:'محاسب المصدر',phone_raw:'00000000',civil_id_raw:'synthetic-civil-id',pending:[]}]}};
+const secondStatement=structuredClone(statement);secondStatement.property_id='52670000-0000-4000-8000-000000000002';secondStatement.content.property_name='عقار آخر';secondStatement.content.rows[0].insurance_kd='100.000';delete secondStatement.content.rows[0].pending;
 const lease={id:'lease1',external_ref:'source1',contract_no:'C-101',start_date:'2026-08-01',end_date:'2027-07-31',monthly_rent:'125.750',deposit:null,status:'draft',snapshot:{property:propertyName,unit:'101',tenant:tenantName,pending:[]}};
 const reply=(res,data,status=200)=>{res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(data));};
 const harness='<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body class="aq-v267"><h1>اختبار مكونات V267 — بيانات اصطناعية</h1><button data-v199-go="home"><span>ملخص</span><span id="fixtureKpi">42</span></button><button id="fixtureMaintenance">Open maintenance fixture</button><div id="home"><section id="v205SimpleHome"></section></div><section id="collectionProPage"></section><section id="financeSuitePage"></section><section id="reports"></section><section id="documentsHub"></section><div id="v199MoreMenu"><button data-v199-action="more" aria-label="إغلاق المزيد">إغلاق ×</button></div><script type="module">'+
@@ -50,10 +51,17 @@ const server=http.createServer((req,res)=>{
  }
  if(url.pathname.startsWith('/fixture/')){let body='';req.on('data',x=>body+=x);req.on('end',()=>{
   const name=url.pathname.slice(9),args=JSON.parse(body||'{}');calls.push(name);
+  if(name==='aqari_report_filters'){
+   assert.equal(args.p_workspace_id,wid);assert.ok(['property_statements','owner_report','hr_monthly','hr_annual'].includes(args.p_report_key));
+   if(args.p_action==='save')savedReportFilters.set(args.p_report_key,structuredClone(args.p_filters));
+   else if(args.p_action==='clear')savedReportFilters.delete(args.p_report_key);
+   else assert.equal(args.p_action,'get');
+   return reply(res,savedReportFilters.get(args.p_report_key)||{});
+  }
   if(name==='aqari_workspace_access')return reply(res,{user_id:uid,workspace_id:wid,role:'general_manager',features:{lease_expiry_report:true},sections:settings.sections,labels:settings.labels,permissions:Object.fromEntries(sections.map(s=>[s,{read:true,write:settings.sections[s]!==false}]))});
   if(name==='aqari_lease_expiry_report'){
    assert.equal(args.p_workspace_id,wid);assert.ok([30,60,90].includes(args.p_days));
-   return reply(res,{as_of:'2026-09-12',timezone:'Asia/Kuwait',status:args.p_status,days:args.p_days,property_id:args.p_property_id,search:args.p_search,offset:args.p_offset,page_size:50,total:1,properties:[{id:'p1',name:propertyName}],rows:[{id:'expiry1',contract_no:'EXP-401',start_date:'2026-01-01',end_date:'2026-09-12',monthly_rent:'125.750',property_name:propertyName,unit_no:'401',tenant_name:tenantName,days_remaining:args.p_status==='expired'?-2:0}]});
+   return reply(res,{as_of:'2026-09-12',timezone:'Asia/Kuwait',status:args.p_status,days:args.p_days,property_id:args.p_property_id,search:args.p_search,offset:args.p_offset,page_size:50,total:1,properties:[{id:'52670000-0000-4000-8000-000000000001',name:propertyName}],rows:[{id:'expiry1',contract_no:'EXP-401',start_date:'2026-01-01',end_date:'2026-09-12',monthly_rent:'125.750',property_name:propertyName,unit_no:'401',tenant_name:tenantName,days_remaining:args.p_status==='expired'?-2:0}]});
   }
   if(name==='aqari_control_center')return reply(res,{control:{workspace_id:wid,settings,revision},members:[{user_id:uid,role:'general_manager',is_active:true,display_name:'مدير اختبار'}]});
   if(name==='aqari_control_audit')return reply(res,audit);
@@ -62,7 +70,7 @@ const server=http.createServer((req,res)=>{
    if(args.p_expected_revision!==revision)return reply(res,{message:'REVISION_CONFLICT'},409);
    audit.push({id:'audit',actor_id:uid,reason:args.p_reason,before_value:settings,after_value:args.p_settings,created_at:new Date().toISOString()});settings=args.p_settings;return reply(res,++revision);
   }
-  if(name==='aqari_document_entities')return reply(res,[{entity_ref:'p1',title:'عقار اختبار مستقل'}]);
+  if(name==='aqari_document_entities')return reply(res,[{entity_ref:'52670000-0000-4000-8000-000000000001',title:'عقار اختبار مستقل'}]);
   if(name==='aqari_document_listing')return reply(res,docs.map(d=>({...d,author_name:'مدير اختبار'})));
   if(name==='aqari_reserve_document'){
    const d={id:'33333333-3333-4333-8333-333333333333',workspace_id:wid,document_no:'DOC-TEST',title:args.p_title,entity_type:args.p_entity_type,entity_ref:args.p_entity_ref,status:'draft',created_by:uid,created_at:new Date().toISOString(),storage_bucket:'aqari-documents',storage_path:wid+'/33333333-3333-4333-8333-333333333333.pdf',mime_type:args.p_mime_type,document_type:args.p_document_type,metadata:structuredClone(args.p_metadata)};
@@ -120,17 +128,17 @@ const server=http.createServer((req,res)=>{
   if(name==='aqari_review_source_lease'){reviewWrites++;return reply(res,{message:'UNEXPECTED_REVIEW_WRITE'},400);}
   if(['aqari_properties','aqari_utility_meters','aqari_utility_entries','aqari_property_statements','aqari_statement_links','aqari_leases','aqari_units','aqari_tenants','aqari_rent_payments'].includes(name)){
    assert.equal(args.workspace_id??args._insert?.workspace_id,wid,'all form queries are workspace scoped');
-   if(name==='aqari_properties')return reply(res,[{id:'p1',name:propertyName,external_ref:'source1'},{id:'p2',name:'عقار آخر',external_ref:'source2'}]);
-   if(name==='aqari_utility_meters')return reply(res,args.property_id==='p1'?[{id:'meter1',property_id:'p1',kind:'electricity',serial_no:'E-001',account_no:'AC-123',unit_no:'101',notes:'قراءة أصلية <محفوظة>'}]:[]);
+   if(name==='aqari_properties')return reply(res,[{id:'52670000-0000-4000-8000-000000000001',name:propertyName,external_ref:'source1'},{id:'52670000-0000-4000-8000-000000000002',name:'عقار آخر',external_ref:'source2'}]);
+   if(name==='aqari_utility_meters')return reply(res,args.property_id==='52670000-0000-4000-8000-000000000001'?[{id:'meter1',property_id:'52670000-0000-4000-8000-000000000001',kind:'electricity',serial_no:'E-001',account_no:'AC-123',unit_no:'101',notes:'قراءة أصلية <محفوظة>'}]:[]);
    if(name==='aqari_utility_entries'){
-    if(args._insert){const row=args._insert;assert.equal(row.property_id,'p1');assert.equal(row.meter_id,'meter1');assert.equal(row.recorded_by,uid);assert.equal(row.entry_type,'bill');assert.equal(row.payment_status,'unpaid');assert.equal(row.amount_due,'12.345');assert.equal(row.amount_paid,'0.000');assert.equal(row.source_ref,'مرجع أصلي <فاتورة> {date}');assert.equal(row.notes,'ملاحظات <أصلية>');assert.ok(!entries.some(x=>x.id===row.id));entries.push({...row,recorded_at:'2026-09-08T12:00:00Z'});entryWrites++;return reply(res,null);}
+    if(args._insert){const row=args._insert;assert.equal(row.property_id,'52670000-0000-4000-8000-000000000001');assert.equal(row.meter_id,'meter1');assert.equal(row.recorded_by,uid);assert.equal(row.entry_type,'bill');assert.equal(row.payment_status,'unpaid');assert.equal(row.amount_due,'12.345');assert.equal(row.amount_paid,'0.000');assert.equal(row.source_ref,'مرجع أصلي <فاتورة> {date}');assert.equal(row.notes,'ملاحظات <أصلية>');assert.ok(!entries.some(x=>x.id===row.id));entries.push({...row,recorded_at:'2026-09-08T12:00:00Z'});entryWrites++;return reply(res,null);}
     const rows=entries.filter(x=>(!args.id||x.id===args.id)&&(!args.meter_id||x.meter_id===args.meter_id)&&(!args.property_id||x.property_id===args.property_id));return reply(res,args._single?rows[0]:rows);
    }
    if(name==='aqari_property_statements')return reply(res,[statement,secondStatement].filter(x=>(!args.period||x.period===args.period)&&(!args.property_id||x.property_id===args.property_id)));
    if(name==='aqari_statement_links')return statementReadDenied?reply(res,{message:'ACCESS_DENIED'},403):reply(res,[]);
    if(name==='aqari_leases')return reply(res,[lease]);
    if(name==='aqari_rent_payments')return reply(res,[{id:'pay1',amount:'120.000',status:'paid',paid_at:'2026-08-02'},{id:'pay2',amount:'5.750',status:'partial',paid_at:'2026-08-03'},{id:'unpaid',amount:'1000.000',status:'draft',paid_at:'2026-08-03'},{id:'other-month',amount:'20.000',status:'paid',paid_at:'2026-07-03'}]);
-   if(name==='aqari_units')return reply(res,[{id:'unit1',property_id:'p1',unit_no:'101'},{id:'unit2',property_id:'p1',unit_no:'101'}]);
+   if(name==='aqari_units')return reply(res,[{id:'unit1',property_id:'52670000-0000-4000-8000-000000000001',unit_no:'101'},{id:'unit2',property_id:'52670000-0000-4000-8000-000000000001',unit_no:'101'}]);
    if(name==='aqari_tenants')return reply(res,[{id:'tenant1',full_name:tenantName,civil_id:'synthetic',phone:'0000'}]);
   }
   return reply(res,{message:'UNKNOWN_TEST_RPC'},400);
@@ -194,9 +202,9 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  assert.equal(entryWrites,before+1);assert.equal(await dialog.getByRole('heading',{name:fmt('فاتورة {invoice}',{invoice:'B-'+locale}),exact:true}).count(),1);
  assert.equal(await dialog.getByText(tr('المصدر: ')+'مرجع أصلي <فاتورة> {date}',{exact:true}).count(),entries.length);
  await fit('utilities');
- await field('العقار').selectOption('p2');await page.getByText(tr('لا توجد عدادات مؤكدة لهذا العقار. الهيكل جاهز؛ لن تُضاف أرقام أو قراءات افتراضية.'),{exact:true}).waitFor();
+ await field('العقار').selectOption('52670000-0000-4000-8000-000000000002');await page.getByText(tr('لا توجد عدادات مؤكدة لهذا العقار. الهيكل جاهز؛ لن تُضاف أرقام أو قراءات افتراضية.'),{exact:true}).waitFor();
  assert.equal(await dialog.locator('article').count(),0,'another property cannot display the previous property bills');
- await field('العقار').selectOption('p1');await page.getByText(tr('تم استرجاع العدادات والسجلات من قاعدة البيانات.'),{exact:true}).waitFor();
+ await field('العقار').selectOption('52670000-0000-4000-8000-000000000001');await page.getByText(tr('تم استرجاع العدادات والسجلات من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(await dialog.locator('article').count(),entries.length,'saved invoices reload');await close();
  await page.getByRole('button',{name:navLabel('property_statements',locale),exact:true}).click();
  await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
@@ -217,9 +225,18 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  statementReadDenied=false;await page.getByRole('button',{name:navLabel('property_statements',locale),exact:true}).click();
  await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  assert.equal(await dialog.getByRole('heading',{name:propertyName+' — 2026-08',exact:true}).count(),1,'restored access reloads the saved statement');
- await field('العقار').selectOption('p2');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ await field('العقار').selectOption('52670000-0000-4000-8000-000000000002');await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
  await dialog.locator('details summary').click();assert.equal(await dialog.getByText(tr('التأمين')+': 100.000',{exact:true}).count(),1,'confirmed deposit is not labelled pending');
  assert.equal(await dialog.getByRole('heading',{name:'عقار آخر — 2026-08',exact:true}).count(),1);
+ await button('حفظ فلاتر التقرير').click();await page.getByText(tr('تم حفظ اختيارات التقرير لحسابك.'),{exact:true}).waitFor();
+ await close();await page.getByRole('button',{name:navLabel('property_statements',locale),exact:true}).click();
+ await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ assert.equal(await field('العقار').inputValue(),'52670000-0000-4000-8000-000000000002','saved property restored after reopening');
+ assert.equal(await field('الشهر').inputValue(),'2026-08','saved period restored');
+ await button('مسح الفلاتر المحفوظة').click();await page.getByText(tr('تم مسح الاختيارات المحفوظة.'),{exact:true}).waitFor();
+ await close();await page.getByRole('button',{name:navLabel('property_statements',locale),exact:true}).click();
+ await page.getByText(tr('تم استرجاع الكشف المحفوظ من قاعدة البيانات.'),{exact:true}).waitFor();
+ assert.equal(await field('العقار').inputValue(),'52670000-0000-4000-8000-000000000001','clearing restores the default on next open');
  await close();
  await page.getByRole('button',{name:navLabel('lease_review',locale),exact:true}).click();
  await page.getByText(tr('راجع المستند قبل تنفيذ المرحلة التالية.'),{exact:true}).waitFor();
@@ -388,7 +405,7 @@ try{
     await scannerDialog.waitFor({state:'visible'});
     assert.equal(await page.getByRole('dialog').count(),1,'home shortcut opens the original scanner once');
     await scannerDialog.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
-    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');
+    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('52670000-0000-4000-8000-000000000001');
     await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     await page.getByLabel('تصنيف المستند',{exact:true}).selectOption('ownership_deed');
     await page.getByLabel('عنوان المستند',{exact:true}).fill('وثيقة اختبار للمسح');
@@ -413,7 +430,7 @@ try{
     await storedReview.getByRole('button',{name:'اعتماد النسخة المرفوعة وإقفال المستند',exact:true}).click();
     await page.getByText('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.',{exact:true}).waitFor();
     assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
-    assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'p1');assert.equal(docs[0].size_bytes,storageBytes.length);
+    assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'52670000-0000-4000-8000-000000000001');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.equal(docs[0].metadata.document_category,'ownership_deed','selected category survives upload and canonical readback');
     assert.equal(docs[0].document_type,'mobile_scan','property evidence cannot become a signed contract');
     assert.equal(storageBytes.subarray(0,5).toString(),'%PDF-','images collected in a PDF');
@@ -425,7 +442,7 @@ try{
     await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
     await page.reload();await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
-    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
+    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('52670000-0000-4000-8000-000000000001');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح'}).count(),1);
     // The server may revoke a section/property scope while the same membership
     // remains locally active. Exercise the real shared dialog and private URLs.
@@ -448,7 +465,7 @@ try{
     assert.equal(storageAttempts,uploadsBeforeDenial,'read denial never starts another upload');
     storageReadDenied=false;await page.getByRole('button',{name:'مسح مستند',exact:true}).click();
     await page.getByText('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',{exact:true}).waitFor();
-    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('p1');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
+    await page.getByLabel('السجل المرتبط',{exact:true}).selectOption('52670000-0000-4000-8000-000000000001');await page.getByText('تم تحديث مستندات السجل المحدد.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),1,'restored access reloads the authoritative document in a fresh dialog');
     assert.equal(storageAttempts,uploadsBeforeDenial,'access recovery only rereads');
     await page.getByRole('dialog').getByRole('button',{name:'إغلاق',exact:true}).click();
@@ -472,7 +489,7 @@ try{
      await localizedDialog.getByRole('button',{name:translate('إغلاق',locale),exact:true}).click();
      await page.getByRole('button',{name:navLabel('scan_document',locale),exact:true}).click();
      await page.getByText(translate('اختر من السجلات المحفوظة. يعرض البحث حتى ٥٠ نتيجة.',locale),{exact:true}).waitFor();
-     await page.getByLabel(translate('السجل المرتبط',locale),{exact:true}).selectOption('p1');
+     await page.getByLabel(translate('السجل المرتبط',locale),{exact:true}).selectOption('52670000-0000-4000-8000-000000000001');
      await page.getByText(translate('تم تحديث مستندات السجل المحدد.',locale),{exact:true}).waitFor();
      assert.equal(await page.getByRole('heading',{name:'وثيقة اختبار للمسح',exact:true}).count(),1,'stored title is never translated');
      assert.equal(await page.getByText(translate('رفع بواسطة: ',locale)+'مدير اختبار',{exact:true}).count(),1,'author stays unchanged');

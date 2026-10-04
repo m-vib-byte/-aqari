@@ -1432,8 +1432,8 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "sha256": "7171b83d7b38a51c82dc490b9eb45f0bc213300679647c121faec5ecfe57e703",
-      "size": 3184
+      "size": 3279,
+      "sha256": "fd73e2450bd065e1a5ee06827ab308314e8d4b0f7a379b93787dfd9bb95fa69d"
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
@@ -5027,8 +5027,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "a546f104c99b4dd5399a55e9e1cb87c74d4da7e9c6c713a307b5f20cf4f2116b",
-      "size": 59918
+      "size": 62275,
+      "sha256": "568c280cd1c394c09b9003ada0c38a7b0231a46cb6d995c2ad2c13da1259505f"
     },
     {
       "path": "tests/verified-upload.test.mjs",
@@ -5302,8 +5302,8 @@
     },
     {
       "path": "src/v267/components/report-filters.js",
-      "size": 1021,
-      "sha256": "08595aff5754a40bc15ddd7675bcfebf103890fec903d87192c75ac5f05f753b"
+      "size": 862,
+      "sha256": "44188e58a6685f100d10d5317f84cf93a66eb5175b6a6553a19377de760c0c50"
     },
     {
       "path": "src/v267/pages/owner-report.js",
@@ -5334,6 +5334,16 @@
       "path": "docs/V267-SAVED-REPORT-FILTERS-2026-10-05.md",
       "size": 2146,
       "sha256": "ee29f31631abf0a1009b2318aee4ad5ca8bb74d3c251509365a5d1d8d6a260c1"
+    },
+    {
+      "path": "src/v267/components/operational-translations.js",
+      "size": 425499,
+      "sha256": "98646b8c0d0c37449226ab1ccea30111388a950e4eb08a18f53cd018f4c5dbb1"
+    },
+    {
+      "path": "src/v267/components/report-filter-translations.js",
+      "size": 2993,
+      "sha256": "bcd1f26c013f4cfa3553d19febe6d3eae79a80ab4ba254de11c290eb5373fb86"
     }
   ],
   "version": "V198"
