@@ -51,6 +51,8 @@ try{
  // The schema catalog contains table ACLs only. Restore the existing column grant
  // from 20260907084949_v267_tenant_portal_identity.sql; never grant table-wide UPDATE.
  await exec('grant update(status,cost) on public.aqari_maintenance_requests to authenticated;','maintenance column ACL');
+ // Existing core membership column grants are also absent from the table ACL catalog.
+ await exec('grant select(workspace_id,user_id,role,is_active,created_at) on public.aqari_memberships to authenticated;','membership column ACL');
  for(const f of catalog.functions)await acl('function',f.signature,f.acl);
  for(const s of catalog.sequences)await acl('sequence',`${q(s.schema)}.${q(s.name)}`,s.acl);
  for(const t of catalog.triggers)await exec(t,'trigger');

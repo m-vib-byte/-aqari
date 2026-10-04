@@ -15,14 +15,14 @@ test('statement navigation isolates months and disables actions after missing da
  }
  const content={property_key:'shaikhah-tower',property_name:'اختبار معزول',period:'2026-08',summary:{printed_totals:{rent_kd:195,advance_kd:50,cleaning_kd:5}},rows:[{unit:'101',current_rent_kd:195,insurance_kd:50},{unit:'102',current_rent_kd:195,insurance_kd:75,insurance_status:'pending_reconciliation'}]};
  const record={workspace_id:'w',property_id:'p',period:'2026-08-01',source_sha256:'fixture',content};
- let duplicateName=false;let omitInitialSource=false;let failReadiness=false;let failLinks=false;let noSource=false;let failLatest=false;let failInitial=false;let readinessPending=false;
+ let savedChoice=null;let duplicateName=false;let omitInitialSource=false;let failReadiness=false;let failLinks=false;let noSource=false;let failLatest=false;let failInitial=false;let readinessPending=false;
  let closeCount=0;const queries=[];
  const dialog={close(){closeCount++;},onDispose(){return ()=>{};},body:new Element('div'),el:new Element('dialog'),status:new Element('p'),session:{bound:{workspace:'w'},client:{from(table){const q={table,filters:{},select(){return q;},eq(k,v){q.filters[k]=v;return q;},order(k,v){q.orderBy={k,...v};return q;},limit(n){q.limitCount=n;return q;}};return q;},rpc(name,args){return {rpc:name,args};}},async request(q){queries.push(q);if(q.rpc==='aqari_unit_readiness_register'&&failReadiness)throw Error('readiness read failed');if(q.rpc==='aqari_unit_readiness_register')return {properties:[{id:'p',name:content.property_name}],units:content.rows.map(row=>({id:'u-'+row.unit,property_id:'p',unit_no:row.unit,state:readinessPending?'review_required':'ready',revision:readinessPending?0:1})),history:[]};if(q.table==='aqari_properties')return duplicateName?[{id:'other',name:content.property_name},{id:'p',name:content.property_name}]:[{id:'p',name:content.property_name}];if(omitInitialSource&&q.limitCount===100)return [];if(failInitial&&q.limitCount===100)throw Error("initial read failed");if(q.table==='aqari_statement_links'){if(failLinks)throw Error('failed');return [];}if(q.table==='aqari_property_statements'&&q.limitCount===1){if(failLatest)throw Error('failed');return noSource?[]:[record];}return !q.filters.period||q.filters.period==='2026-08-01'?[record]:[];}}};
  const tasks=[];
  dialog.run=(fn)=>{const p=Promise.resolve().then(fn).catch(()=>{dialog.status.textContent='read failed';});tasks.push(p);return p;};
- globalThis.__statementFixture={openPropertyPage:(d,_loader,name,initial)=>openPropertyPage(d,async()=>{throw Error('offline');},name,initial),t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
+ globalThis.__statementFixture={reportFilterControls:()=>({bar:new Element('div'),read:async()=>savedChoice}),openPropertyPage:(d,_loader,name,initial)=>openPropertyPage(d,async()=>{throw Error('offline');},name,initial),t,message,createDialog:()=>dialog,node:(...args)=>new Element(...args),field:(_label,el)=>el};
  try{
-  const source=(await readFile(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8')).replace("import {t,message} from '../components/locale.js';","const {t,message}=globalThis.__statementFixture;").replace("import {createDialog,node,field} from '../components/dialog.js';","const {createDialog,node,field}=globalThis.__statementFixture;");
+  const source=(await readFile(new URL('../src/v267/pages/property-statements.js',import.meta.url),'utf8')).replace("import {reportFilterControls} from '../components/report-filters.js';","const {reportFilterControls}=globalThis.__statementFixture;").replace("import {t,message} from '../components/locale.js';","const {t,message}=globalThis.__statementFixture;").replace("import {createDialog,node,field} from '../components/dialog.js';","const {createDialog,node,field}=globalThis.__statementFixture;");
   const guarded=source.replace("import {openPropertyPage} from '../components/property-record-navigation.js';","const {openPropertyPage}=globalThis.__statementFixture;");
   const linked=guarded.replace(/from (['"])(\.\.?\/[^'"]+)\1/g,(_match,_quote,path)=>'from '+JSON.stringify(new URL(path,new URL('../src/v267/pages/property-statements.js',import.meta.url)).href));
   const mod=await import('data:text/javascript;base64,'+Buffer.from(linked).toString('base64'));
@@ -93,5 +93,13 @@ test('statement navigation isolates months and disables actions after missing da
   mod.openPropertyStatements({propertyId:'unavailable',propertyName:content.property_name});await tasks[next];await Promise.resolve();
   assert.equal(dialog.body.children[0].value,'');assert.equal(dialog.body.children[3].disabled,true);
   assert.match(dialog.status.textContent,/لا يوجد عقار مطابق ضمن صلاحيتك/);
+  duplicateName=false;omitInitialSource=false;savedChoice={property_id:'p',month:'2026-09'};
+  dialog.body.replaceChildren();next=tasks.length;mod.openPropertyStatements();await tasks[next];
+  assert.equal(dialog.body.children[0].value,'p');assert.equal(dialog.body.children[1].value,'2026-09');
+  dialog.body.replaceChildren();next=tasks.length;mod.openPropertyStatements({propertyId:'p',period:'2026-08'});await tasks[next];
+  assert.equal(dialog.body.children[1].value,'2026-08','explicit navigation period takes precedence over saved preference');
+  savedChoice={property_id:'not-authorized',month:'2026-09'};
+  dialog.body.replaceChildren();next=tasks.length;mod.openPropertyStatements();await tasks[next];
+  assert.equal(dialog.body.children[0].value,'p');assert.equal(dialog.body.children[1].value,'2026-08','unavailable property preference is ignored');
  }finally{delete globalThis.__statementFixture;}
 });
