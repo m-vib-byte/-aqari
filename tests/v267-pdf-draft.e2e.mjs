@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {deflateSync} from 'node:zlib';
+import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 const root=process.cwd(),propertyId='22222222-2222-4222-8222-222222222222',wid='11111111-1111-4111-8111-111111111111',uid='44444444-4444-4444-8444-444444444444';
 const original='33333333-3333-4333-8333-333333333333';
@@ -39,7 +40,7 @@ const server=http.createServer(async(req,res)=>{try{
   if(body.name==='aqari_pdf_contract_bindings'){
    assert.equal(staff,false);const {p_action:action,p_data:data}=body.args;
    if(action==='leases')return reply(res,{items:[{id:'lease-id',external_ref:'lease-ref',contract_no:'0001',unit_no:'101',tenant:'Synthetic tenant'}],has_more:false,next_offset:50});
-   if(action==='bind'){assert.equal(data.confirmed,true);assert.equal(data.contract_ref,'lease-ref');const row={...data,lease_id:'lease-id'};bindings.set(data.artifact_document_id,row);return reply(res,row);}
+   if(action==='bind'){assert.equal(data.confirmed,true);assert.equal(data.contract_ref,'lease-ref');const row={...data,lease_id:'lease-id',created_at:new Date().toISOString(),artifact_checksum:createHash('sha256').update('%PDF-1.7\nsynthetic-filled').digest('hex')};bindings.set(data.artifact_document_id,row);return reply(res,row);}
    if(action==='list')return reply(res,{items:[...bindings.values()],has_more:false,next_offset:20});
    throw Error('Unexpected binding action');
   }
@@ -268,7 +269,11 @@ else{
    assert.equal(await button(page,'حفظ نسخة مرتبطة بالعقد').isDisabled(),true);
    await page.getByLabel('راجعت البيانات وهي تخص هذا العقد والمستأجر والوحدة',{exact:true}).check();await button(page,'حفظ نسخة مرتبطة بالعقد').click();
    await page.getByText(/حُفظت النسخة وربطت بالعقد 0001/).waitFor();assert.equal(bindings.size,1);assert.equal([...bindings.values()][0].template_document_id,original);assert.equal([...bindings.values()][0].template_revision,1);
-   console.log('PASS '+name+': approved source version, lease selection, explicit manager confirmation, archived artifact binding and readback');
+   await button(page,'العودة للمنصة').click();
+   await page.evaluate(async propertyId=>{const {createPage}=await import('/src/v267/components/page.js');const {mountBoundContractPdfs}=await import('/src/v267/components/pdf-contract-binding.js');const d=createPage('نسخ العقد التجريبي');await mountBoundContractPdfs(d,d.body,{property:{id:propertyId,externalRef:'synthetic'},contractRef:'lease-ref'});},propertyId);
+   await button(page,'فتح النسخة المرتبطة').click();await page.getByRole('link',{name:'تحميل النسخة المرتبطة PDF',exact:true}).waitFor();
+   assert.match(await page.getByRole('link',{name:'تحميل النسخة المرتبطة PDF',exact:true}).getAttribute('href'),/^blob:/);
+   console.log('PASS '+name+': approved source version, lease selection, explicit manager confirmation, archived artifact binding readback and exact archived download');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
   }catch(error){console.error('PDF_DRAFT_UI_FAILURE',name,JSON.stringify({errors,body:await page.locator('body').innerText()}));throw error;}finally{await browser.close();}
  }}finally{server.close();}
