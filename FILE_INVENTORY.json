@@ -302,8 +302,8 @@
     },
     {
       "path": "api/rent-receipt.py",
-      "sha256": "3ab9bffa7ce17fc61bcb9965f02f9a02fd6bf78c4ec8cbc7af53579a8fe6b57e",
-      "size": 15148
+      "sha256": "bb3ed517f67b5dd2f004c716f52e4e43dfafa861090a8eac27a4325efc45d6af",
+      "size": 15161
     },
     {
       "path": "api/rental-document.py",
@@ -921,6 +921,11 @@
       "size": 1122348
     },
     {
+      "path": "lib/arabic_money.py",
+      "sha256": "736f550078b39cf2c9d033968ab78750a5c3cacec09b94b4060dafee059e41c9",
+      "size": 2888
+    },
+    {
       "path": "lib/contract_template_pdf.py",
       "sha256": "92dc8071bce87e8e30147043c6c527bf631192d64ed99dbf12d8eda3e2ae22f1",
       "size": 23712
@@ -972,8 +977,8 @@
     },
     {
       "path": "lib/property_statement_pdf.py",
-      "sha256": "9f52499ce21878fcafcd4d21915a5e042dfa92504c6ccaf7cf959c42bedb36bc",
-      "size": 6817
+      "sha256": "86c2d4504af2a30a9dc9f9fc45d76dd19642ea4000d7f054633d5b76c0cfa855",
+      "size": 7278
     },
     {
       "path": "lib/provider_webhook.py",
@@ -992,8 +997,8 @@
     },
     {
       "path": "lib/rent_pdf.py",
-      "sha256": "51f85dca752761e4a13323a9551edefb51355c7184a81f0b179750fa48af0e13",
-      "size": 14327
+      "sha256": "52bbe3e4fb0ee75547ee216077b77c823ed85e156b7936af66b26b9f28fdc92f",
+      "size": 14426
     },
     {
       "path": "lib/rental_document_context.py",
@@ -3972,8 +3977,8 @@
     },
     {
       "path": "tests/rent_pdf_test.py",
-      "sha256": "1bc675ac1df2c74ebd3a9201f99c8fd341a08b41b46eee30e007fc8994452753",
-      "size": 17677
+      "sha256": "d65248f32cf00c07089286a4d82c80d0f4d6e0dfaa5f6f4f9ced668af84a3c66",
+      "size": 22113
     },
     {
       "path": "tests/rental_document_editor_pdf_test.py",

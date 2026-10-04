@@ -52,6 +52,7 @@ def render_shaikhah_receipt(saved):
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import A4
     from lib.rent_pdf import money
+    from lib.arabic_money import kwd_words
     if FONT not in pdfmetrics.getRegisteredFontNames():pdfmetrics.registerFont(TTFont(FONT,str(FONT_PATH)))
     out=BytesIO();pdf=canvas.Canvas(out,pagesize=A4,invariant=1);w,h=A4;left,right=32,w-32
     row,c=saved['record'],saved['contract']
@@ -67,6 +68,14 @@ def render_shaikhah_receipt(saved):
     text('رقم الوصل: '+saved['id'],h-199,12);text('التاريخ: '+str(row[5]),h-222)
     amount=money(row[2]);text('المبلغ المستلم: '+f'{amount:.3f}'+' د.ك',h-248,15)
     y=h-279
+    # Wrap the full amount instead of shrinking a long phrase beyond legibility.
+    words=('المبلغ بالحروف: '+kwd_words(amount)).split();current=''
+    for word in words:
+        trial=(current+' '+word).strip()
+        if current and pdfmetrics.stringWidth(shaped(trial),FONT,10)>w-64:
+            text(current,y,10);y-=16;current=word
+        else:current=trial
+    if current:text(current,y,10);y-=24
     for title,value in [('وصلني من السيد / السادة',row[1]),('العقار والوحدة',str(row[4])+' — '+str(row[6])),('رقم العقد',c['contract_no']),('وذلك عن إيجار شهر',row[8]),('طريقة الدفع',row[9]),('البيان / مرجع العملية المحفوظ',row[7] or 'غير مدون')]:
         text(title+': '+str(value),y);y-=29
     line(y+8);y-=18

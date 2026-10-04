@@ -11,6 +11,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from lib.arabic_money import kwd_words
 
 FONT = "AqariSans"
 FONT_PATH = Path(__file__).parent / "pdf_fonts" / "AqariSans.ttf"
@@ -212,7 +213,8 @@ def render_receipt(saved):
         ("رقم الوصل", saved["id"]), ("تاريخ التحصيل", row[5]),
         ("المستأجر", row[1]), ("العقار", row[4]), ("رقم الوحدة", row[6]),
         ("رقم العقد", contract["contract_no"]), ("إيجار شهر", row[8]),
-        ("المبلغ المستلم", f"{money(row[2]):.3f} د.ك"), ("طريقة الدفع", row[9]),
+        ("المبلغ المستلم", f"{money(row[2]):.3f} د.ك"),
+        ("المبلغ بالحروف", kwd_words(row[2])), ("طريقة الدفع", row[9]),
     ]:
         y = wrapped(f"{title}: {value}", y, width - margin * 2, 11, 19) - 5
     if breakdown is not None:

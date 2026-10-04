@@ -1,5 +1,7 @@
 """Synthetic data only: authorization, durable receipt links and real PDF output."""
 import copy
+import base64
+import hashlib
 import importlib.util
 import unittest
 from io import BytesIO
@@ -8,6 +10,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 from pypdf import PdfReader
 from lib.rent_pdf import verified_receipt, render_receipt
+from lib.arabic_money import kwd_words
 spec = importlib.util.spec_from_file_location('receipt_api', Path(__file__).parents[1] / 'api/rent-receipt.py')
 api = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(api)
@@ -48,6 +51,67 @@ def entitlement_fixture(manual=False):
     return state
 
 class ReceiptTests(unittest.TestCase):
+    def test_preexisting_archive_survives_amount_words_renderer_upgrade(self):
+        original = b'%PDF-1.4\npreviously archived receipt bytes'
+        artifact = dict(workspace_id=W, receipt_no='TEST-001', payment_id=U,
+                        snapshot_sha256='a'*64, pdf_sha256=hashlib.sha256(original).hexdigest(),
+                        pdf_base64=base64.b64encode(original).decode(), payment_status='paid',
+                        renderer_version='v267-rent-receipt-pdf-archive-1')
+        def read(path, auth, data=None):
+            return {'id': U} if path == '/auth/v1/user' else copy.deepcopy(artifact)
+        with patch.object(api, 'commit_archive') as commit:
+            def no_render(*args):
+                raise AssertionError('Issued archive must not be regenerated')
+            result = api.export_archive(dict(workspaceId=W, receiptNo='TEST-001'),
+                                        'Bearer a.b.c', read, commit, no_render)
+            self.assertEqual(result, original)
+            commit.assert_not_called()
+
+    def test_exact_arabic_dinars_and_fils(self):
+        cases = {
+            '0.001': 'فلس واحد', '0.002': 'فلسان', '0.003': 'ثلاثة فلوس',
+            '0.010': 'عشرة فلوس', '0.011': 'أحد عشر فلسًا', '0.012': 'اثنا عشر فلسًا',
+            '0.020': 'عشرون فلسًا', '0.021': 'واحد وعشرون فلسًا',
+            '0.100': 'مائة فلس', '0.200': 'مائتا فلس', '0.999': 'تسعمائة وتسعة وتسعون فلسًا',
+            '1': 'دينار كويتي واحد', '2': 'ديناران كويتيان', '3': 'ثلاثة دنانير كويتية',
+            '10': 'عشرة دنانير كويتية', '11': 'أحد عشر دينارًا كويتيًا',
+            '100': 'مائة دينار كويتي', '200': 'مائتا دينار كويتي',
+            '1000': 'ألف دينار كويتي', '2000': 'ألفا دينار كويتي',
+            '3000': 'ثلاثة آلاف دينار كويتي', '11000': 'أحد عشر ألف دينار كويتي',
+            '200000': 'مائتا ألف دينار كويتي', '1000000': 'مليون دينار كويتي',
+            '2000000': 'مليونا دينار كويتي',
+            '125.375': 'مائة وخمسة وعشرون دينارًا كويتيًا وثلاثمائة وخمسة وسبعون فلسًا',
+            '1.010': 'دينار كويتي واحد وعشرة فلوس',
+            '2.002': 'ديناران كويتيان وفلسان',
+            '999999999.999': 'تسعمائة وتسعة وتسعون مليونًا وتسعمائة وتسعة وتسعون ألفًا وتسعمائة وتسعة وتسعون دينارًا كويتيًا وتسعمائة وتسعة وتسعون فلسًا',
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assertEqual(kwd_words(value), 'فقط ' + expected + ' لا غير')
+        self.assertEqual(kwd_words(125.375), kwd_words('125.375'))
+
+    def test_words_reject_invalid_amount_without_rounding(self):
+        for value in [True, False, None, '', 'NaN', 'Infinity', '-1', '0', '1.0001', '1000000000']:
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                kwd_words(value)
+
+    def test_words_use_saved_paid_amount_in_both_receipt_layouts(self):
+        from lib import rent_pdf, property_statement_pdf
+        for special in [False, True]:
+            saved = fixture()['rentReceiptsV267'][0]
+            saved['contract']['rent'] = 999
+            if special:
+                saved['contract']['property'] = saved['record'][4] = 'برج شيخة'
+            module = property_statement_pdf if special else rent_pdf
+            with patch.object(module, 'shaped', wraps=module.shaped) as rendered:
+                pdf = render_receipt(saved)
+            text = ' '.join(str(c.args[0]) for c in rendered.call_args_list)
+            self.assertIn('المبلغ بالحروف', text)
+            self.assertIn('مائة وخمسة وعشرون دينارًا كويتيًا', text)
+            self.assertIn('ثلاثمائة وخمسة وسبعون فلسًا', text)
+            self.assertEqual(len(PdfReader(BytesIO(pdf)).pages), 1)
+            self.assertEqual(pdf, render_receipt(saved))
+
     def test_entitlement_pdf_uses_saved_period_due_not_current_monthly_rent(self):
         from lib import rent_pdf
         state = entitlement_fixture()
