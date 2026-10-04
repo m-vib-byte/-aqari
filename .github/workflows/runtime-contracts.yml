@@ -83,7 +83,7 @@ jobs:
       - name: Contract intake preserves property scope and avoids duplicate attachment records
         run: node --test tests/v267-contract-intake.test.mjs tests/v267-contract-entry-routing.test.mjs tests/v267-simple-contract-upload.test.mjs
       - name: Local PDF OCR lifecycle and cancellation
-        run: node --test tests/v267-pdf-local-ocr.test.mjs tests/v267-pdf-field-request.test.mjs tests/v267-pdf-editor-history.test.mjs tests/v267-pdf-editor-draft.test.mjs
+        run: node --test tests/v267-pdf-local-ocr.test.mjs tests/v267-pdf-field-request.test.mjs tests/v267-pdf-editor-history.test.mjs tests/v267-pdf-editor-draft.test.mjs tests/v267-pdf-linked-fields.test.mjs tests/v267-pdf-field-layout.test.mjs
       - name: Saved property contract opening and verified archive
         run: node --test tests/v267-property-contract-open.test.mjs tests/v267-property-contract-archive.test.mjs tests/v267-property-contract-archive-ui.test.mjs tests/v267-pdf-viewer.test.mjs tests/v267-pdf-page-preview.test.mjs tests/v267-pdf-contract-print.test.mjs
       - name: V267 workspace isolation and image processing
@@ -117,6 +117,7 @@ jobs:
           npm ci --prefix staging-database/local-test --ignore-scripts
           node staging-database/local-test/run-service-schema-regression.mjs
           node staging-database/local-test/run-pdf-editor-drafts.mjs
+          node staging-database/local-test/run-property-contract-category.mjs
           npm run test:completion --prefix staging-database/local-test
           npm run test:completion:contracts --prefix staging-database/local-test
       - uses: actions/setup-python@v5

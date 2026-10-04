@@ -29,7 +29,10 @@ try{
  assert.equal(sql,readFileSync(new URL('../supabase/migrations/20261003165942_v267_pdf_editor_drafts.sql',import.meta.url),'utf8'));
  // Installation rollback is transactional and does not affect prior business tables.
  await db.exec('begin');await db.exec(sql);await db.exec('rollback');assert.equal((await db.query("select to_regclass('private.aqari_pdf_editor_drafts') as relation")).rows[0].relation,null);
- await db.exec(sql);await actor();
+ await db.exec(sql);
+ const linkedSql=readFileSync(new URL('../sql/pdf-linked-fields.sql',import.meta.url),'utf8');
+ assert.equal(linkedSql,readFileSync(new URL('../supabase/migrations/20261004013257_v267_pdf_linked_fields.sql',import.meta.url),'utf8'));
+ await db.exec(linkedSql);await db.exec(linkedSql);await actor();
  const first=await rpc('save',data);assert.equal(first.revision,1);assert.deepEqual(first.snapshot,snap);assert.equal(first.created_by,owner);
  assert.equal((await rpc('save',data)).revision,1,'lost-response retry is idempotent');
  await assert.rejects(rpc('save',{...data,snapshot:{...snap,page:2}}),/PDF_DRAFT_RETRY_CONFLICT/);
@@ -43,6 +46,13 @@ try{
  await actor();await assert.rejects(rpc('get',{id,property_id:p},other),/ACCESS_DENIED/);await assert.rejects(rpc('save',{...next,expected_revision:2,document_id:other}),/ACCESS_DENIED/);
  const invalid=[{...snap,values:{f1:'x'.repeat(1001)}},{...snap,values:{unknown:'value'}},{...snap,mapping:{...snap.mapping,fields:[...snap.mapping.fields,...snap.mapping.fields]}},{...snap,mapping:{...snap.mapping,fields:[{...snap.mapping.fields[0],x:.95}]}},{...snap,mapping:{...snap.mapping,propertyId:other}},{...snap,mapping:{...snap.mapping,title:'x'.repeat(161)}},{...snap,page:31}];
  for(const snapshot of invalid)await assert.rejects(rpc('save',{...next,expected_revision:2,snapshot}),/INVALID_PDF_DRAFT/);
+ const linkedSnap=structuredClone(snap);linkedSnap.mapping.fields[0].dataKey='tenant';linkedSnap.mapping.fields.push({...linkedSnap.mapping.fields[0],id:'f2',page:2});linkedSnap.values.f2=linkedSnap.values.f1;
+ const linkedData={...next,expected_revision:2,request_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',snapshot:linkedSnap};
+ assert.deepEqual((await rpc('save',linkedData)).snapshot,linkedSnap);
+ for(const mutate of [s=>s.mapping.fields[0].dataKey=null,s=>s.mapping.fields[0].dataKey='',s=>s.mapping.fields[1].type='date',s=>s.values.f2='conflicting']){
+  const bad=structuredClone(linkedSnap);mutate(bad);await assert.rejects(rpc('save',{...linkedData,expected_revision:3,request_id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',snapshot:bad}),/INVALID_PDF_DRAFT/);
+ }
+ console.log('PASS linked PDF drafts: roundtrip, cross-page values, conflicting values/types rejected, migration idempotent');
  await db.exec('reset role');await db.query('update public.aqari_memberships set is_active=false where user_id=$1',[owner]);await actor();await assert.rejects(rpc('get',{id,property_id:p}),/ACCESS_DENIED/);await assert.rejects(rpc('save',next),/ACCESS_DENIED/);
  await db.exec('reset role;set role anon');await assert.rejects(rpc('list',{property_id:p}),/permission denied/);
  await db.exec('reset role');assert.equal((await db.query('select count(*)::int as n from private.aqari_pdf_editor_drafts')).rows[0].n,1);assert.equal((await db.query('select payload from public.aqari_app_state')).rows[0].payload.payments[0],'untouched');assert.equal((await db.query('select count(*)::int n from public.aqari_leases')).rows[0].n,1);

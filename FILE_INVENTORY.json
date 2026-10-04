@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "2daecbcd566a0071942bd38ac090952e240d68418908f6d0807adc69884e847d",
-      "size": 9159
+      "sha256": "b7d3356fdbc05f2753649ee90a136296707daebf79986a87bb968d1a2e7d83cc",
+      "size": 9312
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -942,8 +942,8 @@
     },
     {
       "path": "lib/pdf_field_template.py",
-      "sha256": "0c7d33c0dd07d3d6c9afe5440ae3ac93c7871e7f30bb550f99e88085bdc28266",
-      "size": 7781
+      "sha256": "563f870e74677c5f1a3d06480bebf310f7462ce1945f28828c927eea4768e600",
+      "size": 8327
     },
     {
       "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
@@ -1671,6 +1671,16 @@
       "size": 1322
     },
     {
+      "path": "src/v267/domain/pdf-field-layout.js",
+      "sha256": "4d07becf5fb1ee17d1c87e9a7742b817d2bff6bf9754bb0252a6d32ed60b7a89",
+      "size": 1918
+    },
+    {
+      "path": "src/v267/domain/pdf-linked-fields.js",
+      "sha256": "77f2c8b96160f975339b307fafc3c0b6a9e0422a98fd299727cfd2ffe9c5d1c2",
+      "size": 934
+    },
+    {
       "path": "src/v267/domain/property-contact-links.js",
       "sha256": "a6f7bc786e5c4d8aec98a9fa353ee9999151686b7491752ae5dbf126a9435593",
       "size": 1788
@@ -1902,8 +1912,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "size": 33090,
-      "sha256": "a1ee5c4b44856864e5f2d4ab5851a0a020057b9ab6ad2517c2b3f22e87db1d25"
+      "sha256": "3d81cd91b973070c3c6c1fa8568a7d70e83661b3885df44c4e12567067dfc086",
+      "size": 37554
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -2272,8 +2282,13 @@
     },
     {
       "path": "staging-database/local-test/run-pdf-editor-drafts.mjs",
-      "sha256": "e07f4a4d3ca151e836c4fdb88db7f0f40e9a955e0c666e0200e44a2d16014c79",
-      "size": 7035
+      "sha256": "e65f11add1f1d138c39237e8c9762dd1c2a7906d304eeecfdb7e6c0f8d3357be",
+      "size": 8216
+    },
+    {
+      "path": "staging-database/local-test/run-property-contract-category.mjs",
+      "sha256": "ec2308ccca57869f5f1ab2fe379066c34af6e857893a1cdb984ac8b734e44d5f",
+      "size": 3145
     },
     {
       "path": "staging-database/local-test/run-service-schema-regression.mjs",
@@ -2559,6 +2574,16 @@
       "path": "staging-database/sql/pdf-editor-drafts.sql",
       "sha256": "5976c3cc0f54a2babe8514aa98039386ced89f1c249891995bc702f4dd4a2b31",
       "size": 9029
+    },
+    {
+      "path": "staging-database/sql/pdf-linked-fields.sql",
+      "sha256": "50035138908c4568d14aa25e906ed7b426cd62024b8af8ff45427b014477979c",
+      "size": 8258
+    },
+    {
+      "path": "staging-database/sql/property-contract-category-compat.sql",
+      "sha256": "3eb6dd0a3e18068e1d0a3ed7dc40c273141972e8ec949d8015a427bbc48a1f74",
+      "size": 1042
     },
     {
       "path": "staging-database/sql/property-location-channels-candidate.sql",
@@ -3164,6 +3189,16 @@
       "path": "staging-database/supabase/migrations/20261003165942_v267_pdf_editor_drafts.sql",
       "sha256": "5976c3cc0f54a2babe8514aa98039386ced89f1c249891995bc702f4dd4a2b31",
       "size": 9029
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004010000_v267_property_contract_category_compat.sql",
+      "sha256": "3eb6dd0a3e18068e1d0a3ed7dc40c273141972e8ec949d8015a427bbc48a1f74",
+      "size": 1042
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004013257_v267_pdf_linked_fields.sql",
+      "sha256": "50035138908c4568d14aa25e906ed7b426cd62024b8af8ff45427b014477979c",
+      "size": 8258
     },
     {
       "path": "staging-database/tests/collection_account_management.sql",
@@ -3802,8 +3837,8 @@
     },
     {
       "path": "tests/pdf_field_template_test.py",
-      "sha256": "d9efedc725f84c157af8d4918c3eed1b7bfa10e8e07a5796416ebb04b7874368",
-      "size": 10854
+      "sha256": "faaba07d88cf6e0578d67046833ed0f6a7c95a31a0d94501781e09a858b9c107",
+      "size": 12066
     },
     {
       "path": "tests/preview-access.mjs",
@@ -4502,8 +4537,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "size": 14016,
-      "sha256": "57fac03c54c69f04ab23684207afed0be5ab3ae2e368af45248eec4f48e4ccb3"
+      "sha256": "e020c06edbd557e515e5abbf3df54b463313f23ddde341b1dff04cf70b025e5d",
+      "size": 19639
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",
@@ -4516,9 +4551,19 @@
       "size": 3110
     },
     {
+      "path": "tests/v267-pdf-field-layout.test.mjs",
+      "sha256": "3413bc77988565f03b44686f29c526d2c5670ca6956f2fd35657badfb4dfc5a4",
+      "size": 1744
+    },
+    {
       "path": "tests/v267-pdf-field-request.test.mjs",
       "sha256": "e9f7a429b91778dab6693eb250136095e7db5428d12785b87ef133a31178f1d5",
       "size": 4581
+    },
+    {
+      "path": "tests/v267-pdf-linked-fields.test.mjs",
+      "sha256": "8ed27eb32096e21407cef0dbbb46e0a127ace566cc0fb0b1af88d6c44490e715",
+      "size": 1432
     },
     {
       "path": "tests/v267-pdf-local-ocr.test.mjs",
