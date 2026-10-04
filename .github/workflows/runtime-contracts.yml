@@ -117,6 +117,7 @@ jobs:
           npm ci --prefix staging-database/local-test --ignore-scripts
           node staging-database/local-test/run-service-schema-regression.mjs
           node staging-database/local-test/run-pdf-editor-drafts.mjs
+          node staging-database/local-test/run-property-contract-category.mjs
           npm run test:completion --prefix staging-database/local-test
           npm run test:completion:contracts --prefix staging-database/local-test
       - uses: actions/setup-python@v5
