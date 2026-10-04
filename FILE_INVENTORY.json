@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 9716,
-      "sha256": "5ecf9598376b3d040769004668aa2390053c4d8205f242c134302ba0d33b0a21"
+      "size": 10037,
+      "sha256": "d9a09241701f71b9015694aa4fbeae6c24a9845e992996fe43b8d7d88ddebd0f"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1302,8 +1302,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "size": 18585,
-      "sha256": "18afe26eaedebb0a78aba63a6908980113fe4506a67bdd3b0ffbb6467a4e5802"
+      "size": 18880,
+      "sha256": "51df36864abd3eb1c7e16003982c316f731d75fb18d1c06716193dd2fe025f4a"
     },
     {
       "path": "src/v267/app-login-locale.js",
@@ -1432,8 +1432,8 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "sha256": "7171b83d7b38a51c82dc490b9eb45f0bc213300679647c121faec5ecfe57e703",
-      "size": 3184
+      "size": 3279,
+      "sha256": "fd73e2450bd065e1a5ee06827ab308314e8d4b0f7a379b93787dfd9bb95fa69d"
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
@@ -1872,8 +1872,8 @@
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
-      "size": 19488,
-      "sha256": "32ac2d528cb5b3dd56259073ec22290de79e8a9eebce54f5dc4b5039e2996754"
+      "size": 20181,
+      "sha256": "b90e1ee05b88d5c831739f286285e0188d51dc143097e0806a371e126b9567f2"
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -1987,8 +1987,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "82dcf8adf7b3dbd1602500122de8a341a2306ff8b57dcb71f55b961614c49641",
-      "size": 22408
+      "size": 22830,
+      "sha256": "fc244779826f65abdf12ed8f52b1e676636a5ef83fb99132b3630d159fb3d766"
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -2307,8 +2307,8 @@
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
-      "size": 6032,
-      "sha256": "2e8c326e32244930ef6aa64118fd294239fb2a376bc351d539867c728e2bc5d9"
+      "size": 6266,
+      "sha256": "f434eeb9814e7129f0e9bdee04bc85ec97a861fd60409c534f5907387dc0a593"
     },
     {
       "path": "staging-database/local-test/run-manager-contract-workflow.sh",
@@ -3967,8 +3967,8 @@
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "sha256": "17933312eddf24596753ca57b082249679b2023dfd22268a45946debd50ca882",
-      "size": 10968
+      "size": 12072,
+      "sha256": "760573861eff907a9fa6d64e9c94b7a99615f0d9ae14eaaf793edd42f7aa9129"
     },
     {
       "path": "tests/property_statement_test.py",
@@ -5027,8 +5027,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "sha256": "a546f104c99b4dd5399a55e9e1cb87c74d4da7e9c6c713a307b5f20cf4f2116b",
-      "size": 59918
+      "size": 62275,
+      "sha256": "568c280cd1c394c09b9003ada0c38a7b0231a46cb6d995c2ad2c13da1259505f"
     },
     {
       "path": "tests/verified-upload.test.mjs",
@@ -5294,6 +5294,56 @@
       "path": "docs/V267-HR-COST-ALLOCATION-2026-10-05.md",
       "size": 2920,
       "sha256": "95ff545e2cd46bb20ee1cf5a5d2d60cc7591b13901a4b83065ab8f24889eeee3"
+    },
+    {
+      "path": "src/v267/api/report-filters.js",
+      "size": 2015,
+      "sha256": "6f68c0fc50c4d7352607d9f3932fe68742d371ac1ee5f1392f02fde8e54ac627"
+    },
+    {
+      "path": "src/v267/components/report-filters.js",
+      "size": 862,
+      "sha256": "44188e58a6685f100d10d5317f84cf93a66eb5175b6a6553a19377de760c0c50"
+    },
+    {
+      "path": "src/v267/pages/owner-report.js",
+      "size": 5270,
+      "sha256": "7329650c04af846dba97ffa553376eb49ad261ef168e47fdc9d4d8498c400729"
+    },
+    {
+      "path": "tests/v267-report-filters.test.mjs",
+      "size": 4189,
+      "sha256": "5d8f46e61c0a43bbf65b2a652dec9ee516449d2d994ea87700d4a485788fe4dd"
+    },
+    {
+      "path": "staging-database/sql/saved-report-filters.sql",
+      "size": 5026,
+      "sha256": "a87df34221cd8cbfd3037e684348bb5d076078403d422dbf547638c68967002e"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004212239_v267_saved_report_filters.sql",
+      "size": 5026,
+      "sha256": "a87df34221cd8cbfd3037e684348bb5d076078403d422dbf547638c68967002e"
+    },
+    {
+      "path": "staging-database/tests/saved_report_filters.sql",
+      "size": 6182,
+      "sha256": "ed5acdd7d4c25d2d09f7403da3dc91783617e1fb5433dfef95126f61d7acb4dc"
+    },
+    {
+      "path": "docs/V267-SAVED-REPORT-FILTERS-2026-10-05.md",
+      "size": 2146,
+      "sha256": "ee29f31631abf0a1009b2318aee4ad5ca8bb74d3c251509365a5d1d8d6a260c1"
+    },
+    {
+      "path": "src/v267/components/operational-translations.js",
+      "size": 425499,
+      "sha256": "98646b8c0d0c37449226ab1ccea30111388a950e4eb08a18f53cd018f4c5dbb1"
+    },
+    {
+      "path": "src/v267/components/report-filter-translations.js",
+      "size": 2993,
+      "sha256": "bcd1f26c013f4cfa3553d19febe6d3eae79a80ab4ba254de11c290eb5373fb86"
     }
   ],
   "version": "V198"

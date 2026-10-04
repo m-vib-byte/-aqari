@@ -1,3 +1,4 @@
+import {reportFilterControls} from '../components/report-filters.js';
 import {dateLocale} from '../components/locale.js';
 import {t as visibleText,message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
@@ -16,7 +17,7 @@ export function openOwnerReport(){
  from.type=to.type='date';from.value=monthStart();to.value=kuwaitDay();from.required=to.required=true;refresh.type='submit';print.type='button';print.className='aq-owner-print';
  filters.className='aq-owner-report-filters';filters.append(field(translateStatic('من'),from),field(translateStatic('إلى'),to),refresh,print);content.className='aq-owner-report-content';d.body.append(text('p',visibleText('يُنشأ التقرير تلقائيًا من السجلات المصرح بها عند فتحه أو تحديث الفترة؛ المتوقع يبقى منفصلًا عن الفعلي.')),filters,content);
  async function load(){
-  const period={from:from.value,to:to.value};if(!period.from||!period.to||period.from>period.to)throw Error('راجع تاريخ البداية والنهاية.');
+  content.replaceChildren();const period={from:from.value,to:to.value};if(!period.from||!period.to||period.from>period.to)throw Error('راجع تاريخ البداية والنهاية.');
   const access=await d.session.request(d.session.client.rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace}));
   if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.role!==d.session.bound.role||access?.role!=='general_manager'||access?.features?.kpi_dashboard!==true||access?.permissions?.finance?.read!==true)throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
   const data=await d.session.request(d.session.client.rpc('aqari_kpi_dashboard',{p_workspace_id:d.session.bound.workspace,p_from:period.from,p_to:period.to}));
@@ -34,6 +35,7 @@ export function openOwnerReport(){
  }
  filters.onsubmit=event=>{event.preventDefault();d.run(load);};
  print.onclick=()=>window.print();
- d.onDispose(()=>content.replaceChildren());d.run(load);return true;
+ const savedFilters=reportFilterControls(d,'owner_report',()=>({from:from.value,to:to.value}));filters.append(savedFilters.bar);
+ d.onDispose(()=>content.replaceChildren());d.run(async()=>{const saved=await savedFilters.read();if(saved){from.value=saved.from;to.value=saved.to;}await load();});return true;
 }
 
