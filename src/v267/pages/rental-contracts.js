@@ -1,3 +1,4 @@
+import {mountBoundContractPdfs} from '../components/pdf-contract-binding.js';
 import {appendPdfViewer} from '../components/pdf-viewer.js';
 import {readStoredOriginal} from '../components/stored-original.js';
 import {resolveRentalDocumentContext,linkedDocumentFieldKeys,groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding} from '../domain/rental-document-cycle.js';
@@ -313,6 +314,7 @@ export function openRentalContracts(initial={}){
  }
  async function show(id,{attach=false}={}){clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(backButton(),button(translateStatic('إعادة المحاولة'),()=>show(id,{attach})));await load();const {contract:c,binding}=boundContract(id);selectedUnitId=binding.unitId;clear(translateStatic('عقد ')+c.contract_no);d.body.append(backButton(),node('p',translateStatic(states[c.status]||c.status)+' · '+binding.property.name+' · '+binding.unit.unit_no));
   const attachmentTarget=node('section');if(attach)d.body.append(attachmentTarget);
+  const boundCopies=node('section');d.body.append(button(translateStatic('نسخ PDF المرتبطة'),async()=>{boundCopies.replaceChildren();await mountBoundContractPdfs(d,boundCopies,{property:{id:selectedPropertyId,externalRef:binding.property.external_ref||binding.property.externalRef},contractRef:c.id});}),boundCopies);
   if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('مستندات هذا العقد — استلام، وصل، إخلاء، براءة ذمة'),()=>documentCycle(c.id)));
   d.body.append(button(translateStatic('كشوف العقارات المحفوظة'),()=>openContractStatements(d,{...c,propertyId:selectedPropertyId,property:propertyRecord().name})));
   d.body.append(button(translateStatic('مسح أو رفع العقد ومرفقاته'),async()=>{const m=await import('./document-scanner.js');d.session.check();d.close();return m.openDocumentScanner({type:'lease',ref:String(c.id),category:'lease_contract',onBack:()=>openRentalContracts({propertyId:selectedPropertyId,id:c.id})});}));
