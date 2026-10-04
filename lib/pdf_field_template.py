@@ -54,9 +54,11 @@ def validate_map(value,sizes,property_id):
     if not isinstance(fields,list) or not 1<=len(fields)<=MAX_FIELDS:raise ValueError('FIELDS_REQUIRED')
     ids=set()
     for f in fields:
-        if not isinstance(f,dict) or set(f)-{'color'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
+        if not isinstance(f,dict) or set(f)-{'color','dataKey'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
         if not isinstance(f['id'],str) or not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',f['id']) or f['id'] in ids:raise ValueError('INVALID_FIELD')
         ids.add(f['id'])
+        if 'dataKey' in f and (not isinstance(f['dataKey'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',f['dataKey'])):raise ValueError('INVALID_FIELD')
+        if f.get('dataKey') and any(old.get('dataKey')==f['dataKey'] and old['type']!=f['type'] for old in fields[:fields.index(f)]):raise ValueError('INVALID_FIELD')
         if 'color' in f and (not isinstance(f['color'],str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',f['color'])):raise ValueError('INVALID_FIELD')
         if not isinstance(f['label'],str) or not 1<=len(f['label'].strip())<=100 or f['type'] not in ['text','date','number','money'] or f['align'] not in ['right','left','center']:raise ValueError('INVALID_FIELD')
         if type(f['page']) is not int or not 1<=f['page']<=len(sizes):raise ValueError('INVALID_FIELD_PAGE')
@@ -107,6 +109,11 @@ def render_page(reader,page_number):
 def fill_template(reader,mapping,values):
     fields=mapping['fields']
     if not isinstance(values,dict) or set(values)!={f['id'] for f in fields}:raise ValueError('FIELD_VALUES_REQUIRED')
+    linked={}
+    for f in fields:
+        key=f.get('dataKey')
+        if key and key in linked and linked[key]!=values[f['id']]:raise ValueError('FIELD_LINK_CONFLICT')
+        if key:linked[key]=values[f['id']]
     writer=reader
     for n,p in enumerate(reader.pages,1):
         width,height=float(p.mediabox.width),float(p.mediabox.height)

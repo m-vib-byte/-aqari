@@ -20,6 +20,21 @@ def original():
 def mapping():
     return {'version':1,'title':'Test template','propertyId':P,'fields':[{'id':'tenant','label':'اسم المستأجر','type':'text','page':1,'x':.1,'y':.12,'width':.6,'height':.04,'fontSize':12,'align':'right'},{'id':'date','label':'تاريخ العقد','type':'date','page':2,'x':.1,'y':.2,'width':.3,'height':.04,'fontSize':12,'align':'left'}]}
 class PdfFieldsTest(unittest.TestCase):
+    def test_linked_fields_roundtrip_and_conflicts(self):
+        m=mapping();m['fields'][0]['dataKey']='tenant_name'
+        second=copy.deepcopy(m['fields'][0]);second.update(id='tenant_copy',page=2,y=.4);m['fields'].append(second)
+        m=validate_map(m,page_sizes(open_pdf(original())),P)
+        saved=write_template(open_pdf(original()),m);self.assertEqual(saved_map(open_pdf(saved),P),m)
+        values={'tenant':'LINKED VALUE','tenant_copy':'LINKED VALUE','date':'2026-10-04'}
+        filled=PdfReader(BytesIO(fill_template(open_pdf(saved),m,values)))
+        for page in filled.pages:self.assertIn('LINKED VALUE',page.extract_text())
+        values['tenant_copy']='DIFFERENT'
+        with self.assertRaisesRegex(ValueError,'FIELD_LINK_CONFLICT'):fill_template(open_pdf(saved),m,values)
+        for key in [None,'','bad key',42,'x'*65]:
+            bad=copy.deepcopy(m);bad['fields'][0]['dataKey']=key
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(bad,page_sizes(open_pdf(original())),P)
+        bad=copy.deepcopy(m);bad['fields'][-1]['type']='date'
+        with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(bad,page_sizes(open_pdf(original())),P)
     def test_roundtrip_preserves_every_page_and_original_terms(self):
         raw=original();reader=open_pdf(raw);m=validate_map(mapping(),page_sizes(reader),P);saved=write_template(reader,m);r=open_pdf(saved)
         self.assertEqual(saved_map(r,P),m);self.assertEqual(len(r.pages),2)

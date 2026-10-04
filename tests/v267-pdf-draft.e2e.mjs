@@ -127,6 +127,16 @@ else{
    await entry.fill('اكتملت الحقول');assert.equal(await button(page,'أول حقل غير معبأ').isDisabled(),true);await saved(page);
    assert.deepEqual(writes.at(-1).snapshot.values,{name:'قيمة الصفحة الأولى',last:'قيمة الصفحة الثانية',middle:'اكتملت الحقول'});
    await button(page,'حفظ ومعاينة العقد').click();await page.locator('.aq267-pdf-preview-image').waitFor();
+   await button(page,'العودة لتعديل البيانات').click();
+   await page.getByLabel('تكرار البيانات من حقل',{exact:true}).selectOption('name');
+   await page.getByText('القيم مختلفة. وحّد القيم أو أفرغ أحد الحقلين قبل الربط.',{exact:true}).waitFor();
+   await entry.fill('');await page.getByLabel('تكرار البيانات من حقل',{exact:true}).selectOption('name');
+   assert.equal(await entry.inputValue(),'قيمة الصفحة الأولى');
+   await entry.fill('قيمة مرتبطة');await saved(page);
+   assert.equal(writes.at(-1).snapshot.values.name,'قيمة مرتبطة');assert.equal(writes.at(-1).snapshot.values.middle,'قيمة مرتبطة');
+   await page.getByLabel('تكرار البيانات من حقل',{exact:true}).selectOption('');await entry.fill('قيمة مستقلة');await saved(page);
+   assert.equal(writes.at(-1).snapshot.values.name,'قيمة مرتبطة');assert.equal(writes.at(-1).snapshot.values.middle,'قيمة مستقلة');
+   console.log('PASS '+name+': explicit field links, conflict refusal, synchronized value, unlink preserves peers');
    mappings.set(original,baseMapping);
    console.log('PASS '+name+': previous/next, Enter, page order, required-field jump, retained values and filled preview');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');

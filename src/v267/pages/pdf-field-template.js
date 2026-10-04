@@ -1,3 +1,4 @@
+import {linkedPdfFields,linkPdfField,writeLinkedPdfValue} from '../domain/pdf-linked-fields.js';
 import {createPage} from '../components/page.js';
 import {node,field} from '../components/dialog.js';
 import {createTemplateLogoContext} from '../components/template-property-logo.js';
@@ -12,7 +13,7 @@ import {requestPdfField} from '../api/pdf-field-request.js';
 import {createPdfEditorHistory} from '../domain/pdf-editor-history.js';
 import {createPdfEditorDraft,pdfEditorFingerprint} from '../domain/pdf-editor-draft.js';
 
-const errors={ACCESS_DENIED:'تعذر التحقق من صلاحية الملف. أعد فتح الصفحة.',PDF_LIMIT:'اختر PDF غير محمي من صفحة إلى ٣٠ صفحة.',PDF_EXISTING_FORM:'الملف يحتوي حقولًا أو توقيعًا إلكترونيًا. ارفع نموذجًا فارغًا بدون توقيع إلكتروني.',PDF_PAGE_SIZE:'أبعاد صفحات الملف غير مدعومة.',FIELD_OVERLAP:'يوجد تداخل بين الحقول. حرّك الحقول أو قلّل حجمها.',FIELD_TEXT_TOO_LONG:'النص أكبر من مساحة أحد الحقول. وسّع الحقل أو قلّل حجم الخط.',FIELD_VALUES_REQUIRED:'أكمل جميع الحقول قبل المعاينة.',FIELDS_REQUIRED:'حدد حقلًا واحدًا على الأقل.',TEMPLATE_TITLE_REQUIRED:'اكتب اسم النموذج.',PDF_OUTPUT_LIMIT:'النسخة الناتجة كبيرة. استخدم PDF أصغر من ٤ ميجابايت.',INVALID_FIELD_VALUE:'راجع القيم المدخلة والتواريخ والمبالغ.'};
+const errors={FIELD_LINK_CONFLICT:'القيم المرتبطة مختلفة. راجع الحقول قبل المعاينة.',ACCESS_DENIED:'تعذر التحقق من صلاحية الملف. أعد فتح الصفحة.',PDF_LIMIT:'اختر PDF غير محمي من صفحة إلى ٣٠ صفحة.',PDF_EXISTING_FORM:'الملف يحتوي حقولًا أو توقيعًا إلكترونيًا. ارفع نموذجًا فارغًا بدون توقيع إلكتروني.',PDF_PAGE_SIZE:'أبعاد صفحات الملف غير مدعومة.',FIELD_OVERLAP:'يوجد تداخل بين الحقول. حرّك الحقول أو قلّل حجمها.',FIELD_TEXT_TOO_LONG:'النص أكبر من مساحة أحد الحقول. وسّع الحقل أو قلّل حجم الخط.',FIELD_VALUES_REQUIRED:'أكمل جميع الحقول قبل المعاينة.',FIELDS_REQUIRED:'حدد حقلًا واحدًا على الأقل.',TEMPLATE_TITLE_REQUIRED:'اكتب اسم النموذج.',PDF_OUTPUT_LIMIT:'النسخة الناتجة كبيرة. استخدم PDF أصغر من ٤ ميجابايت.',INVALID_FIELD_VALUE:'راجع القيم المدخلة والتواريخ والمبالغ.'};
 export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  const d=createPage(t('رفع نموذج PDF وتحديد الحقول'));if(!d)return false;
  d.el.classList.add('aq267-pdf-map');
@@ -186,7 +187,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    }
   }
   function editField(f,scroll=false){
-   const value=input(f.type==='date'?'date':'text',values[f.id]||'');value.maxLength=1000;value.placeholder=t('اكتب البيانات التي ستظهر في العقد');value.inputMode=['number','money'].includes(f.type)?'decimal':'text';value.oninput=()=>{controls.querySelector('[role=alert]')?.remove();values[f.id]=value.value;valuesDirty=pdfEditorFingerprint(values)!==savedValues;remember('value:'+f.id);draft?.changed();clearPreview();invalidatePreview();draw();d.status.textContent=t('البيانات ظاهرة على العقد. اضغط حفظ ومعاينة العقد للمراجعة.');};
+   const value=input(f.type==='date'?'date':'text',values[f.id]||'');value.maxLength=1000;value.placeholder=t('اكتب البيانات التي ستظهر في العقد');value.inputMode=['number','money'].includes(f.type)?'decimal':'text';value.oninput=()=>{controls.querySelector('[role=alert]')?.remove();writeLinkedPdfValue(mapping.fields,values,f,value.value);valuesDirty=pdfEditorFingerprint(values)!==savedValues;remember('value:'+f.id);draft?.changed();clearPreview();invalidatePreview();draw();d.status.textContent=t('البيانات ظاهرة على العقد. اضغط حفظ ومعاينة العقد للمراجعة.');};
    value.required=true;value.setAttribute('aria-required','true');
    const navigation=node('div'),progress=node('p');navigation.className='aq267-pdf-field-navigation';progress.setAttribute('aria-live','polite');
    const move=direction=>{const ordered=orderedFields(),index=ordered.findIndex(item=>item.id===f.id);return selectField(ordered[index+direction]);};
@@ -203,7 +204,11 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    const label=input('text',f.label);label.maxLength=100;label.oninput=()=>{f.label=label.value;change('label:'+f.id);draw();};
    const preset=choose([['','اختر اسم الحقل'],...Object.values(documentFieldCatalog).map(f=>[f.key,f.label])],'');preset.onchange=()=>{const spec=documentFieldCatalog[preset.value];if(spec){f.label=spec.label;f.type=spec.type;label.value=f.label;type.value=f.type;syncValueType();change();draw();}};
    const type=choose([['text','نص'],['date','تاريخ'],['number','رقم'],['money','مبلغ']],f.type);type.onchange=()=>{f.type=type.value;syncValueType();change();draw();};const align=choose([['right','يمين'],['left','يسار'],['center','وسط']],f.align);align.onchange=()=>{f.align=align.value;change();draw();};
-   controls.replaceChildren(node('h4',t('الحقل وبياناته')),navigation,valueField,field(t('لون الكتابة'),color),field(t('حجم الخط'),font),field(t('اسم جاهز'),preset),field(t('اسم الحقل'),label),field(t('نوع الحقل'),type),field(t('محاذاة الكتابة'),align));
+   const peers=linkedPdfFields(mapping.fields,f),linked=peers.length>1;
+   type.disabled=linked;preset.disabled=linked;
+   const binding=choose([['','حقل مستقل'],...mapping.fields.filter(item=>item.id!==f.id&&item.type===f.type).map(item=>[item.id,item.label+' · '+t('صفحة ')+item.page])],peers.find(item=>item.id!==f.id)?.id||'');
+   binding.onchange=()=>{try{linkPdfField(mapping.fields,values,f,binding.value);change();draw();editField(f);}catch(error){binding.value=peers.find(item=>item.id!==f.id)?.id||'';d.status.textContent=t(error.message==='PDF_LINK_CONFLICT'?'القيم مختلفة. وحّد القيم أو أفرغ أحد الحقلين قبل الربط.':'اختر حقلًا من النوع نفسه.');}};
+   controls.replaceChildren(node('h4',t('الحقل وبياناته')),navigation,valueField,field(t('تكرار البيانات من حقل'),binding),node('p',t(linked?'تعديل البيانات يحدّث جميع الحقول المرتبطة. افصل الحقل لتغيير نوعه.':'اختر حقلًا لتكرار المعلومة نفسها في هذا الموضع.')),field(t('لون الكتابة'),color),field(t('حجم الخط'),font),field(t('اسم جاهز'),preset),field(t('اسم الحقل'),label),field(t('نوع الحقل'),type),field(t('محاذاة الكتابة'),align));
    const advanced=node('details');advanced.className='aq267-pdf-map-advanced';advanced.append(node('summary',t('إعدادات دقيقة (اختياري)')));controls.append(advanced);
    for(const [key,text,min,max]of [['x','المسافة من يسار الصفحة ٪',0,99],['y','المسافة من أعلى الصفحة ٪',0,99],['width','عرض الحقل ٪',1,100],['height','ارتفاع الحقل ٪',.6,100]]){const scale=key==='fontSize'?1:100,c=input('number',Math.round(f[key]*scale*100)/100);c.min=min;c.max=max;c.step=.1;c.onchange=()=>{const value=Number(c.value)/scale;if(!Number.isFinite(value)||value<min/scale||value>max/scale){c.value=f[key]*scale;return;}f[key]=value;f.width=Math.min(f.width,1-f.x);f.height=Math.min(f.height,1-f.y);change();draw();};(key==='fontSize'?controls:advanced).append(field(t(text),c));}
    controls.append(button('حذف هذا الحقل',()=>{mapping.fields=mapping.fields.filter(x=>x.id!==f.id);delete values[f.id];selected=null;change();controls.replaceChildren();draw();}));if(scroll)controls.scrollIntoView?.({block:'nearest',behavior:'smooth'});
