@@ -82,8 +82,74 @@ try{
  console.log('PASS PDF input types: optional/select/civil draft roundtrip, options/required/link validation, partial input preserved, rollback and idempotency');
  console.log('PASS PDF position lock: roundtrip, strict boolean validation, migration rollback, idempotency and prior authorization guards');
  console.log('PASS linked PDF drafts: roundtrip, cross-page values, conflicting values/types rejected, migration idempotent');
+
+ // Staff approval and filling: isolated scope fixtures, no production users.
+ await db.exec('reset role');
+ await db.exec(`alter table public.aqari_documents add column checksum_sha256 text;
+ create table private.aqari_staff_assignments(workspace_id uuid,user_id uuid,operational_role text,property_ids uuid[],is_active boolean);
+ create table public.aqari_workspace_controls(workspace_id uuid,settings jsonb);
+ create function private.aqari_section_keys() returns text[] language sql as $$select array['home','properties','tenants','contracts','collections','documents','notifications','reports','finance','employees','maintenance','partners']$$;`);
+ const scopeSql=readFileSync(new URL('../sql/staff-property-scope.sql',import.meta.url),'utf8');
+ const ceiling=scopeSql.slice(scopeSql.indexOf('create function private.aqari_staff_ceiling'),scopeSql.indexOf('revoke all on function private.aqari_staff_ceiling'));
+ const propertyScope=scopeSql.slice(scopeSql.indexOf('create function private.aqari_can_property'),scopeSql.indexOf('create function private.aqari_can_lease'));
+ await db.exec(ceiling);await db.exec(propertyScope);
+ // This fixture limits filling to property managers; hosted acceptance also
+ // exercises the actual current membership and operational-role ceilings.
+ await db.exec(`create or replace function private.aqari_can(w uuid,s text,a text) returns boolean language sql security definer set search_path='' as $$
+ select exists(select 1 from public.aqari_memberships m where m.workspace_id=w and m.user_id=auth.uid() and m.is_active and
+ (m.role='general_manager' or exists(select 1 from private.aqari_staff_assignments x where x.workspace_id=w and x.user_id=auth.uid() and x.is_active and
+ ((m.role='property_manager' and x.operational_role='property_manager') or (m.role='viewer' and x.operational_role='viewer') or (m.role='accountant' and x.operational_role='collector'))
+ and private.aqari_staff_ceiling(x.operational_role,s,a))))$$;`);
+ const staff='10000000-0000-4000-8000-000000000001',viewer='10000000-0000-4000-8000-000000000002',collector='10000000-0000-4000-8000-000000000003',staffDraft='10000000-0000-4000-8000-000000000004',requestId='10000000-0000-4000-8000-000000000005';
+ await db.query("update public.aqari_documents set checksum_sha256=repeat('a',64),metadata=metadata||'{\"pdf_field_template\":true}'::jsonb");
+ for(const [u,role,op]of [[staff,'property_manager','property_manager'],[viewer,'viewer','viewer'],[collector,'accountant','collector']]){
+  await db.query('insert into public.aqari_memberships values($1,$2,$3,true)',[w,u,role]);
+  await db.query('insert into private.aqari_staff_assignments values($1,$2,$3,$4,true)',[w,u,op,[p]]);
+ }
+ const staffSql=readFileSync(new URL('../sql/pdf-staff-filling.sql',import.meta.url),'utf8');
+ assert.equal(staffSql,readFileSync(new URL('../supabase/migrations/20261004065734_v267_pdf_staff_filling.sql',import.meta.url),'utf8'));
+ await db.exec('begin');await db.exec(staffSql);await db.exec('rollback');
+ assert.equal((await db.query("select to_regclass('private.aqari_pdf_template_approvals') as relation")).rows[0].relation,null);
+ await db.exec(staffSql);await db.exec(staffSql);
+ const templates=async(action,payload)=>(await db.query('select public.aqari_pdf_templates($1,$2,$3) as result',[w,action,{property_id:p,...payload}])).rows[0].result;
+ const published=structuredClone(civilSnap);published.mapping.title='Published test model';
+ const staffData={id:staffDraft,property_id:p,document_id:doc,expected_revision:0,request_id:requestId,snapshot:published};
+ await actor(staff);await assert.rejects(templates('context',{document_id:doc}),/ACCESS_DENIED/);await assert.rejects(rpc('save',staffData),/ACCESS_DENIED/);
+ await assert.rejects(templates('publish',{document_id:doc,mapping:published.mapping}),/ACCESS_DENIED/);
+ await actor();assert.equal((await templates('publish',{document_id:doc,mapping:published.mapping})).approved,true);
+ await templates('publish',{document_id:doc,mapping:published.mapping});
+ await assert.rejects(templates('publish',{document_id:doc,mapping:{...published.mapping,title:'Tampered'}}),/PDF_TEMPLATE_IMMUTABLE/);
+ await actor(staff);assert.equal((await templates('context',{document_id:doc})).can_publish,false);
+ assert.equal((await templates('list',{})).items.length,1);
+ assert.deepEqual((await rpc('save',staffData)).snapshot,published);assert.equal((await rpc('save',staffData)).revision,1);
+ assert.deepEqual((await rpc('get',{id:staffDraft,property_id:p})).snapshot,published);
+ for(const mutate of [m=>m.title='Changed',m=>m.fields[0].x=.1,m=>m.fields[0].color='#ff0000',m=>m.fields[0].label='Changed',m=>m.fields[0].required=false,m=>m.fields[0].fontSize=14]){
+  const bad=structuredClone(staffData);mutate(bad.snapshot.mapping);bad.expected_revision=1;bad.request_id='10000000-0000-4000-8000-000000000006';
+  await assert.rejects(rpc('save',bad),/PDF_TEMPLATE_IMMUTABLE/);
+ }
+ await assert.rejects(rpc('get',{id,property_id:p}),/ACCESS_DENIED/);
+ await templates('request',{id:requestId,document_id:doc,reason:'Please enlarge this field'});await templates('request',{id:requestId,document_id:doc,reason:'Please enlarge this field'});
+ await assert.rejects(templates('request',{id:requestId,document_id:doc,reason:'Different request'}),/PDF_TEMPLATE_RETRY_CONFLICT/);
+ await assert.rejects(templates('respond',{id:requestId,response:'Unauthorized response'}),/ACCESS_DENIED/);
+ await assert.rejects(templates('revoke',{document_id:doc}),/ACCESS_DENIED/);
+ for(const u of [viewer,collector]){await actor(u);await assert.rejects(templates('context',{}),/ACCESS_DENIED/);await assert.rejects(rpc('get',{id:staffDraft,property_id:p}),/ACCESS_DENIED/);}
+ await actor();await templates('respond',{id:requestId,response:'Reviewed; publish a new corrected version.'});await assert.rejects(templates('respond',{id:requestId,response:'Overwrite response'}),/PDF_TEMPLATE_RESPONSE_EXISTS/);
+ await actor(staff);assert.match((await templates('requests',{})).items[0].response,/Reviewed/);
+ await db.exec('reset role');await db.query('update private.aqari_staff_assignments set property_ids=$1 where user_id=$2',[[other],staff]);await actor(staff);
+ await assert.rejects(templates('context',{}),/ACCESS_DENIED/);await assert.rejects(rpc('get',{id:staffDraft,property_id:p}),/ACCESS_DENIED/);
+ await db.exec('reset role');await db.query('update private.aqari_staff_assignments set property_ids=$1 where user_id=$2',[[p],staff]);await actor();await templates('revoke',{document_id:doc});
+ await actor(staff);assert.equal((await templates('list',{})).items.length,0);assert.equal((await rpc('list',{property_id:p})).items.length,0);await assert.rejects(rpc('get',{id:staffDraft,property_id:p}),/ACCESS_DENIED/);
+ await actor();await templates('publish',{document_id:doc,mapping:published.mapping});
+ await db.exec('reset role');await db.query("update public.aqari_documents set checksum_sha256=repeat('b',64) where id=$1",[doc]);await actor(staff);await assert.rejects(templates('context',{document_id:doc}),/ACCESS_DENIED/);
+ await db.exec('reset role');await db.query("update public.aqari_documents set checksum_sha256=repeat('a',64) where id=$1",[doc]);
+ for(const table of ['aqari_pdf_template_approvals','aqari_pdf_template_requests','aqari_pdf_template_events']){await actor(staff);await assert.rejects(db.query('select * from private.'+table),/permission denied/);}
+ await db.exec('reset role;set role anon');await assert.rejects(templates('list',{}),/permission denied/);
+ await db.exec('reset role');assert.equal((await db.query('select count(*)::int n from private.aqari_pdf_template_requests')).rows[0].n,1);assert.equal((await db.query('select count(*)::int n from private.aqari_pdf_template_events')).rows[0].n,3);
+ console.log('PASS staff PDF: manager approval, immutable map, own drafts, role/property isolation, revocation, checksum binding, change requests, immutable response, retries, RLS and no business writes');
+ await actor();
+
  await db.exec('reset role');await db.query('update public.aqari_memberships set is_active=false where user_id=$1',[owner]);await actor();await assert.rejects(rpc('get',{id,property_id:p}),/ACCESS_DENIED/);await assert.rejects(rpc('save',next),/ACCESS_DENIED/);
  await db.exec('reset role;set role anon');await assert.rejects(rpc('list',{property_id:p}),/permission denied/);
- await db.exec('reset role');assert.equal((await db.query('select count(*)::int as n from private.aqari_pdf_editor_drafts')).rows[0].n,1);assert.equal((await db.query('select payload from public.aqari_app_state')).rows[0].payload.payments[0],'untouched');assert.equal((await db.query('select count(*)::int n from public.aqari_leases')).rows[0].n,1);
+ await db.exec('reset role');assert.equal((await db.query('select count(*)::int as n from private.aqari_pdf_editor_drafts')).rows[0].n,2);assert.equal((await db.query('select payload from public.aqari_app_state')).rows[0].payload.payments[0],'untouched');assert.equal((await db.query('select count(*)::int n from public.aqari_leases')).rows[0].n,1);
  console.log('PASS PDF draft SQL: create, readback, restore, CAS conflict, retry identity, owner/workspace/document isolation, revoked access, anonymous/direct denial, validation, rollback and zero business writes');
 }finally{await db.close();}

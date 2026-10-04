@@ -1,3 +1,4 @@
+import {pdfTemplateAccess,mountPdfTemplateApprovals,mountPdfTemplateChangeRequest} from '../components/pdf-template-approval.js';
 import {pdfFieldRequired,pdfSelectOptions,pdfFieldValueError,pdfFieldsCompatible} from '../domain/pdf-field-values.js';
 import {duplicatePdfField,alignPdfField} from '../domain/pdf-field-layout.js';
 import {linkedPdfFields,linkPdfField,writeLinkedPdfValue} from '../domain/pdf-linked-fields.js';
@@ -21,6 +22,8 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  d.el.classList.add('aq267-pdf-map');
  d.el.id='aq267-pdf-field-workspace';
  if(!document.getElementById('aq267-pdf-map-css')){const css=node('link');css.id='aq267-pdf-map-css';css.rel='stylesheet';css.href='/src/v267/styles/pdf-field-template.css';document.head.append(css);}
+ const fillOnly=d.session.bound.role!=='general_manager';
+ if(fillOnly)d.el.classList.add('is-pdf-fill-only');
  let property=null,documentId=null,mapping=null,pages=[],page=1,selected=null,dirty=false,epoch=0,imageUrl=null,previewUrl=null,filled=null;
  let draft=null,draftStatus=null,draftFork=null;
  let history=null,refreshHistory=()=>{},savedMapping='',savedValues='{}';
@@ -67,7 +70,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
  async function home(){
   draft?.dispose();draft=null;draftStatus=null;draftFork=null;
   history?.clear();history=null;refreshHistory=()=>{};stopText();stopEditor();clearPreview();values={};valuesDirty=false;invalidatePreview=()=>{};
-  if(d.session.bound.role!=='general_manager')throw Error(t('اعتماد المدير العام مطلوب.'));
+
   const props=await createTemplateLogoContext(d.session).listProperties();d.session.check();property=props.find(p=>p.id===propertyId)||null;
   const choice=choose([['','اختر العقار'],...props.map(p=>[p.id,p.name])],propertyId||'');choice.onchange=()=>d.run(async()=>{propertyId=choice.value;await home();});
   const file=uploadFile;const title=node('h3',t('١. ارفع النموذج الأصلي'));
@@ -77,8 +80,12 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   file.onchange=updateUpload;updateUpload();
   d.body.replaceChildren(field(t('العقار'),choice),title,node('p',t('ترفع النموذج مرة، ثم تضغط على أماكن الفراغات لتسمية الحقول. يحفظ الأصل دون تغيير.')),field(t('ملف PDF — حتى ٣٠ صفحة و٤ ميجابايت'),file),uploadStatus,upload);
   if(!props.length)d.body.append(button('إعادة تحميل العقارات',home));
+  if(fillOnly)d.body.replaceChildren(field(t('العقار'),choice),node('p',t('اختر نموذجًا اعتمده المدير، ثم عبّئ الحقول.')));
   if(onBack)d.body.prepend(button('العودة للعقود',()=>{d.close();return onBack();}));
   if(!property)return;
+  const access=await pdfTemplateAccess(d,property)('context');
+  if(access.workspace_id!==d.session.bound.workspace||access.user_id!==d.session.bound.user||access.can_fill!==true||(!fillOnly&&access.can_publish!==true))throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
+  await mountPdfTemplateApprovals(d,d.body,property,{manager:!fillOnly,onOpen:id=>openDocument(id)});
   const drafts=node('section'),draftList=node('div'),draftListStatus=node('p');draftListStatus.setAttribute('role','status');let draftOffset=0;
   const draftMore=button('عرض مسودات أخرى',loadDrafts);
   const retryDrafts=button('إعادة تحميل المسودات',async()=>{draftOffset=0;draftList.replaceChildren();await loadDrafts();});retryDrafts.hidden=true;
@@ -90,6 +97,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    }catch(error){if(error?.code==='42501'||error?.message==='ACCESS_DENIED'||[401,403].includes(error?.status))throw error;draftMore.hidden=true;retryDrafts.hidden=false;draftListStatus.textContent=t('تعذر تحميل المسودات. أعد المحاولة.');}
   }
   await loadDrafts();
+  if(fillOnly)return;
   const list=node('section');d.body.append(node('h3',t('نماذج PDF المحفوظة')),list);let offset=0;
   const more=button('عرض المزيد',loadMore);d.body.append(more);
   async function loadMore(){const result=await listPropertyContractArchive(d.session,property,offset);for(const row of result.items.filter(r=>r.metadata?.pdf_field_template===true)){const card=node('div');card.append(node('strong',row.title),button('فتح النموذج وتعبئته',()=>openDocument(row.id)));list.append(card);}offset=result.nextOffset;more.hidden=!result.hasMore;if(!list.children.length&&!result.hasMore)list.append(node('p',t('لا توجد نماذج حقول محفوظة لهذا العقار.')));}
@@ -99,6 +107,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   stopText();stopEditor();
   if(!selected){selected=mapping.fields.find(f=>f.page===page)?.id||null;}
   const heading=node('h3',t('٢. حدّد الحقول واكتب بيانات العقد')),name=input('text',mapping.title);name.maxLength=160;name.oninput=()=>{mapping.title=name.value;change('title');};
+  name.readOnly=fillOnly;
   const pageChoice=choose(pages.map((_,i)=>[String(i+1),t('صفحة ')+(i+1)]),String(page));
   const canvas=node('div'),image=node('img'),layer=node('div'),controls=node('section'),allFields=node('div');canvas.className='aq267-pdf-map-page';image.alt=t('صفحة النموذج الأصلي');image.draggable=false;layer.className='aq267-pdf-map-layer';canvas.append(image,layer);const viewport=node('div');viewport.className='aq267-pdf-map-viewport';viewport.append(canvas);controls.className='aq267-pdf-map-controls';
   const preview=node('section');preview.className='aq267-pdf-map-preview';
@@ -147,22 +156,23 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   }
   const historyKeys=event=>{if(!(event.ctrlKey||event.metaKey)||event.altKey||event.target.closest?.('input,textarea,select,[contenteditable=true]'))return;const key=event.key.toLowerCase();if(key!=='z'&&key!=='y')return;event.preventDefault();d.run(()=>restoreHistory(key==='y'||event.shiftKey?1:-1));};
   d.el.addEventListener('keydown',historyKeys);const stopObserver=stopEditor;stopEditor=()=>{stopObserver();d.el.removeEventListener('keydown',historyKeys);};
-  const tools=node('div');tools.className='aq267-pdf-map-actions';tools.append(undo,redo,button('إضافة حقل',()=>addField(.4,.2)),button('حفظ النموذج والحقول',save),button('حفظ ومعاينة العقد',previewFilled),button('النماذج المحفوظة',async()=>{if(!await canLeave())return;dirty=false;await home();}));
+  const tools=node('div');tools.className='aq267-pdf-map-actions';tools.append(undo,redo,...(fillOnly?[]:[button('إضافة حقل',()=>addField(.4,.2)),button('حفظ النموذج والحقول',save),button('اعتماد النموذج لتعبئة الموظفين',async()=>{if(dirty)await save();await request('publish');d.status.textContent=t('اعتمدت هذه النسخة للتعبئة. الموظف يعبئ القيم ولا يعدل النص أو الحقول.');})]),button('حفظ ومعاينة العقد',previewFilled),button('النماذج المحفوظة',async()=>{if(!await canLeave())return;dirty=false;await home();}));
   draftStatus=node('p',t(draft.revision?'حُفظت المسودة وبيانات التعبئة. يمكنك استعادتها من مسوداتي المحفوظة.':'يبدأ حفظ المسودة تلقائيًا عند التعديل.'));draftStatus.setAttribute('role','status');draftStatus.className='aq267-pdf-draft-status';
   const draftSave=node('button',t('حفظ المسودة الآن'));draftSave.type='button';draftSave.onclick=()=>draft.flush().catch(()=>{});
   draftFork=node('button',t('حفظ كمسودة مستقلة'));draftFork.type='button';draftFork.hidden=true;draftFork.onclick=()=>draft.fork().catch(()=>{});
   const draftTools=node('div');draftTools.className='aq267-pdf-map-actions';draftTools.append(draftSave,draftFork);
-  d.body.replaceChildren(heading,draftStatus,draftTools,field(t('اسم النموذج'),name),node('p',t('اضغط على الفراغ لإضافة حقل، ثم اكتب بياناته أسفل العقد. تظهر الكتابة فورًا، ويمكنك سحب الحقل وتغيير حجمه في نفس الشاشة.')),tools,field(t('الصفحة'),pageChoice),zoomTools,viewport,controls,textPanel,node('h4',t('الحقول المحددة')),allFields,preview);
+  d.body.replaceChildren(heading,draftStatus,draftTools,field(t('اسم النموذج'),name),node('p',t(fillOnly?'اضغط على الحقل واكتب بياناته. مواضع الحقول والنصوص المعتمدة ثابتة.':'اضغط على الفراغ لإضافة حقل، ثم اكتب بياناته أسفل العقد. تظهر الكتابة فورًا، ويمكنك سحب الحقل وتغيير حجمه في نفس الشاشة.')),tools,field(t('الصفحة'),pageChoice),zoomTools,viewport,controls,textPanel,node('h4',t('الحقول المحددة')),allFields,preview);
+  if(fillOnly){heading.textContent=t('٢. عبّئ بيانات النموذج المعتمد');textPanel.remove();mountPdfTemplateChangeRequest(d,tools,property,documentId);}
   async function drawPage(){stopText();extract.disabled=false;ocr.disabled=false;cancel.hidden=true;textResult.value='';textStatus.textContent='';const ticket=++epoch;image.removeAttribute('src');layer.replaceChildren();const blob=await request('page',{page});if(ticket!==epoch)return;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(blob);image.src=imageUrl;draw();}
   pageChoice.onchange=()=>d.run(async()=>{page=Number(pageChoice.value);selected=null;controls.replaceChildren();await drawPage();});
-  function addField(x,y){if(!image.complete||!image.naturalWidth){d.status.textContent=t('انتظر اكتمال ظهور صفحة العقد.');return;}if(mapping.fields.length>=100){d.status.textContent=t('الحد الأقصى ١٠٠ حقل.');return;}const f={id:crypto.randomUUID(),label:t('حقل جديد'),type:'text',page,x:Math.max(0,Math.min(.8,x)),y:Math.max(0,Math.min(.975,y)),width:.2,height:.025,fontSize:10,align:'right',color:'#000000'};mapping.fields.push(f);selected=f.id;change();draw();editField(f);}
+  function addField(x,y){if(fillOnly)return;if(!image.complete||!image.naturalWidth){d.status.textContent=t('انتظر اكتمال ظهور صفحة العقد.');return;}if(mapping.fields.length>=100){d.status.textContent=t('الحد الأقصى ١٠٠ حقل.');return;}const f={id:crypto.randomUUID(),label:t('حقل جديد'),type:'text',page,x:Math.max(0,Math.min(.8,x)),y:Math.max(0,Math.min(.975,y)),width:.2,height:.025,fontSize:10,align:'right',color:'#000000'};mapping.fields.push(f);selected=f.id;change();draw();editField(f);}
   // Bind the hit surface itself: touch browsers need a directly interactive target.
   // WebKit can retarget a field gesture released outside its box to the page.
   // Only a gesture that actually started on empty paper may add a field.
   let pointerStartedOnPage=false;
   layer.onpointerdown=event=>{pointerStartedOnPage=event.target===layer&&event.button===0;};
   layer.onpointercancel=()=>{pointerStartedOnPage=false;};
-  layer.onclick=event=>{const add=pointerStartedOnPage;pointerStartedOnPage=false;if(event.target!==layer||!add)return;event.stopPropagation();const r=image.getBoundingClientRect();if(!r.width||!r.height)return;addField((event.clientX-r.left)/r.width-.1,(event.clientY-r.top)/r.height-.0125);};
+  layer.onclick=event=>{const add=pointerStartedOnPage;pointerStartedOnPage=false;if(fillOnly||event.target!==layer||!add)return;event.stopPropagation();const r=image.getBoundingClientRect();if(!r.width||!r.height)return;addField((event.clientX-r.left)/r.width-.1,(event.clientY-r.top)/r.height-.0125);};
 
   let refreshFieldNavigation=()=>{};
   // Read in page order, top to bottom, then right to left on the same line.
@@ -179,16 +189,16 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    layer.replaceChildren();allFields.replaceChildren();
    for(const f of mapping.fields){
     const item=button(f.label+' · '+t('صفحة ')+f.page+' · '+t(pdfFieldRequired(f)?'مطلوب':'اختياري')+((values[f.id]||'').trim()?'':' · '+t('غير معبأ')),()=>selectField(f));allFields.append(item);if(f.page!==page)continue;
-    const box=node('div'),label=node('span',f.label),valueText=node('span',values[f.id]||''),handle=node('span');valueText.className='aq267-pdf-map-value';valueText.dir='auto';valueText.style.color=f.color||'#000000';valueText.style.webkitTextFillColor=f.color||'#000000';valueText.style.textAlign=f.align;valueText.style.justifyContent=f.align;valueText.style.setProperty('--pdf-field-font',f.fontSize+'px');box.tabIndex=0;box.setAttribute('role','button');box.setAttribute('aria-label',f.label);box.className='aq267-pdf-map-field'+(selected===f.id?' is-selected':'')+(f.locked?' is-locked':'');label.className='aq267-pdf-map-label';handle.className='aq267-pdf-map-resize';handle.setAttribute('aria-hidden','true');box.append(label,valueText,handle);
+    const box=node('div'),label=node('span',f.label),valueText=node('span',values[f.id]||''),handle=node('span');valueText.className='aq267-pdf-map-value';valueText.dir='auto';valueText.style.color=f.color||'#000000';valueText.style.webkitTextFillColor=f.color||'#000000';valueText.style.textAlign=f.align;valueText.style.justifyContent=f.align;valueText.style.setProperty('--pdf-field-font',f.fontSize+'px');box.tabIndex=0;box.setAttribute('role','button');box.setAttribute('aria-label',f.label);box.className='aq267-pdf-map-field'+(selected===f.id?' is-selected':'')+(fillOnly||f.locked?' is-locked':'');label.className='aq267-pdf-map-label';handle.className='aq267-pdf-map-resize';handle.setAttribute('aria-hidden','true');box.append(label,valueText,handle);
     const position=()=>{box.style.left=f.x*100+'%';box.style.top=f.y*100+'%';box.style.setProperty('--pdf-field-width',f.width*100+'%');box.style.setProperty('--pdf-field-height',f.height*100+'%');};position();
     let drag=null,suppressClick=false;
     const select=()=>{selected=f.id;layer.querySelectorAll('.is-selected').forEach(e=>e.classList.remove('is-selected'));box.classList.add('is-selected');editField(f);};
     box.onclick=event=>{event.stopPropagation();if(!suppressClick)select();suppressClick=false;};
-    box.onpointerdown=event=>{pointerStartedOnPage=false;if(event.button!==0)return;event.stopPropagation();if(f.locked){select();return;}event.preventDefault();select();drag={x:event.clientX,y:event.clientY,fx:f.x,fy:f.y,w:f.width,h:f.height,resize:event.target===handle,group:crypto.randomUUID()};suppressClick=false;box.setPointerCapture(event.pointerId);};
+    box.onpointerdown=event=>{pointerStartedOnPage=false;if(event.button!==0)return;event.stopPropagation();if(fillOnly||f.locked){select();return;}event.preventDefault();select();drag={x:event.clientX,y:event.clientY,fx:f.x,fy:f.y,w:f.width,h:f.height,resize:event.target===handle,group:crypto.randomUUID()};suppressClick=false;box.setPointerCapture(event.pointerId);};
     box.onpointermove=event=>{if(!drag)return;event.preventDefault();const r=canvas.getBoundingClientRect(),dx=(event.clientX-drag.x)/r.width,dy=(event.clientY-drag.y)/r.height;if(Math.abs(dx)+Math.abs(dy)<.002)return;suppressClick=true;
      if(drag.resize){f.width=Math.max(.01,Math.min(1-f.x,drag.w+dx));f.height=Math.max(.006,Math.min(1-f.y,drag.h+dy));}else{f.x=Math.max(0,Math.min(1-f.width,drag.fx+dx));f.y=Math.max(0,Math.min(1-f.height,drag.fy+dy));}position();change(drag.group);};
     const finish=event=>{if(!drag)return;drag=null;if(box.hasPointerCapture(event.pointerId))box.releasePointerCapture(event.pointerId);editField(f);};box.onpointerup=finish;box.onpointercancel=finish;
-    box.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();return;}const directions={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};const delta=directions[event.key];if(!delta)return;event.preventDefault();if(f.locked)return;const step=event.shiftKey ? .01 : .002;
+    box.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();return;}const directions={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};const delta=directions[event.key];if(!delta)return;event.preventDefault();if(fillOnly||f.locked)return;const step=event.shiftKey ? .01 : .002;
      if(event.altKey){f.width=Math.max(.01,Math.min(1-f.x,f.width+delta[0]*step));f.height=Math.max(.006,Math.min(1-f.y,f.height+delta[1]*step));}else{f.x=Math.max(0,Math.min(1-f.width,f.x+delta[0]*step));f.y=Math.max(0,Math.min(1-f.height,f.y+delta[1]*step));}position();change('geometry:'+f.id);editField(f);};
     layer.append(box);
    }
@@ -208,6 +218,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    value.onkeydown=event=>{if(f.type==='select'||event.key!=='Enter'||event.isComposing)return;event.preventDefault();if(!next.disabled)d.run(()=>move(1));else value.blur();};
    const valueField=field(t('بيانات الحقل'),value);valueField.classList.add('aq267-pdf-map-entry');
    const syncValueType=()=>{if(f.type==='select')f.options??=['خيار 1','خيار 2'];else delete f.options;};
+   if(fillOnly){controls.replaceChildren(node('h4',f.label),navigation,valueField,node('p',t('نموذج معتمد: يمكنك تعديل البيانات فقط.')));if(scroll)controls.scrollIntoView?.({block:'nearest',behavior:'smooth'});return;}
    const color=input('color',f.color||'#000000');color.oninput=()=>{f.color=color.value;change('color:'+f.id);draw();};
    const font=input('number',f.fontSize);font.min=6;font.max=48;font.step=1;
    font.onchange=()=>{const size=Number(font.value);if(!Number.isFinite(size)||size<6||size>48){font.value=f.fontSize;return;}f.fontSize=size;if(!f.locked)f.height=Math.min(1-f.y,Math.max(f.height,size/.75/pages[f.page-1].height));change();draw();};
@@ -250,7 +261,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    for(const [key,text,min,max]of [['x','المسافة من يسار الصفحة ٪',0,99],['y','المسافة من أعلى الصفحة ٪',0,99],['width','عرض الحقل ٪',1,100],['height','ارتفاع الحقل ٪',.6,100]]){const scale=key==='fontSize'?1:100,c=input('number',Math.round(f[key]*scale*100)/100);c.min=min;c.max=max;c.step=.1;c.disabled=f.locked===true;c.onchange=()=>{if(f.locked)return;const value=Number(c.value)/scale;if(!Number.isFinite(value)||value<min/scale||value>max/scale){c.value=f[key]*scale;return;}f[key]=value;f.width=Math.min(f.width,1-f.x);f.height=Math.min(f.height,1-f.y);change();draw();};(key==='fontSize'?controls:advanced).append(field(t(text),c));}
    controls.append(button('حذف هذا الحقل',()=>{mapping.fields=mapping.fields.filter(x=>x.id!==f.id);delete values[f.id];selected=null;change();controls.replaceChildren();draw();}));if(scroll)controls.scrollIntoView?.({block:'nearest',behavior:'smooth'});
   }
-  async function save(){if(!mapping.title.trim())throw Error(t('اكتب اسم النموذج.'));if(!mapping.fields.length)throw Error(t('حدد حقلًا واحدًا على الأقل.'));const snapshot=pdfEditorFingerprint(mapping),blob=await request('save',{mapping});const row=await templateUploader(new File([blob],'aqari-field-template.pdf',{type:'application/pdf'}),target(mapping.title,true));if(snapshot!==pdfEditorFingerprint(mapping))throw Error(t('حُفظت النسخة السابقة؛ احفظ التعديلات الجديدة أيضًا.'));documentId=row.id;draft?.changed();dirty=false;savedMapping=pdfEditorFingerprint(mapping);d.status.textContent=t('تم حفظ النموذج ومواضع الحقول. لحفظ بيانات التعبئة، عاين العقد ثم احفظ نسخته.');}
+  async function save(){if(fillOnly)throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});if(!mapping.title.trim())throw Error(t('اكتب اسم النموذج.'));if(!mapping.fields.length)throw Error(t('حدد حقلًا واحدًا على الأقل.'));const snapshot=pdfEditorFingerprint(mapping),blob=await request('save',{mapping});const row=await templateUploader(new File([blob],'aqari-field-template.pdf',{type:'application/pdf'}),target(mapping.title,true));if(snapshot!==pdfEditorFingerprint(mapping))throw Error(t('حُفظت النسخة السابقة؛ احفظ التعديلات الجديدة أيضًا.'));documentId=row.id;draft?.changed();dirty=false;savedMapping=pdfEditorFingerprint(mapping);d.status.textContent=t('تم حفظ النموذج ومواضع الحقول. لحفظ بيانات التعبئة، عاين العقد ثم احفظ نسخته.');}
   async function previewFilled(){
    if(!mapping.fields.length)throw Error(t('حدد حقلًا واحدًا على الأقل.'));
    const missing=mapping.fields.find(f=>pdfFieldValueError(f,values[f.id]||''));
@@ -263,7 +274,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    const previewDocumentId=documentId;
    const viewer=appendPdfPagePreview(preview,{pageCount:pages.length,renderPage:(number,signal)=>request('filled_page',{documentId:previewDocumentId,page:number,values:entered},signal)});stopPreview=viewer.dispose;
    appendPdfViewer(preview,previewUrl,{title:mapping.title,filename:'filled-contract.pdf',embed:false,downloadLabel:'تحميل العقد المعبأ PDF'});
-   preview.append(button('حفظ نسخة العقد في الأرشيف',async()=>{
+   if(!fillOnly)preview.append(button('حفظ نسخة العقد في الأرشيف',async()=>{
     if(!filled)throw Error(t('أعد معاينة النسخة.'));
     const current=filled;await filledUploader(new File([current],'filled-contract.pdf',{type:'application/pdf'}),target((mapping.title+' — نسخة معبأة للمراجعة').slice(0,180)));
     if(filled===current){valuesDirty=false;savedValues=pdfEditorFingerprint(values);}d.status.textContent=t('تم حفظ النسخة المعبأة في أرشيف العقار.');

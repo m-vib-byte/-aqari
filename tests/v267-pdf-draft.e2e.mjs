@@ -10,17 +10,19 @@ const root=process.cwd(),propertyId='22222222-2222-4222-8222-222222222222',wid='
 const original='33333333-3333-4333-8333-333333333333';
 const baseMapping={version:1,title:'نموذج اختبار معزول',propertyId,fields:[{id:'name',label:'اسم المستأجر',type:'text',page:1,x:.2,y:.2,width:.55,height:.04,fontSize:10,align:'right',color:'#000000'}]};
 let drafts=new Map(),writes=[],loseReply=false,deny=false,templateSaves=0,propertiesEmpty=false;
+const approvals=new Map(),changeRequests=new Map();
+const staffUid='10000000-0000-4000-8000-000000000001';
 const mappings=new Map([[original,baseMapping]]);
 function png(){const chunk=(name,body)=>{const bytes=Buffer.concat([Buffer.from(name),body]);let crc=0xffffffff;for(const byte of bytes){crc^=byte;for(let j=0;j<8;j++)crc=(crc>>>1)^(crc&1?0xedb88320:0);}const size=Buffer.alloc(4),end=Buffer.alloc(4);size.writeUInt32BE(body.length);end.writeUInt32BE((crc^0xffffffff)>>>0);return Buffer.concat([size,bytes,end]);};const header=Buffer.alloc(13);header.writeUInt32BE(595);header.writeUInt32BE(842,4);header[8]=8;header[9]=2;const pixels=Buffer.alloc((595*3+1)*842,250);for(let y=0;y<842;y++)pixels[y*(595*3+1)]=0;return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(pixels)),chunk('IEND',Buffer.alloc(0))]);}
 const pageImage=png();
 const reply=(res,data,status=200,type='application/json')=>{res.writeHead(status,{'content-type':type,'cache-control':'no-store'});res.end(type==='application/json'?JSON.stringify(data):data);};
 const html=`<!doctype html><html class="aqari-auth-unlocked" lang="ar" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><body class="aq-v267"><button id="open" disabled>فتح المحرر التجريبي</button><script type="module">
-const uid=${JSON.stringify(uid)},wid=${JSON.stringify(wid)};
+const staffMode=new URLSearchParams(location.search).has('staff'),uid=staffMode?${JSON.stringify(staffUid)}:${JSON.stringify(uid)},wid=${JSON.stringify(wid)};
 window.AQARI_PUBLIC_CONFIG={supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
 window.AQARI_DATA_GATE={scope:{userId:uid,workspaceId:wid}};
-const auth={user:{id:uid},access_token:'synthetic-token'};
-const client={auth:{getSession:async()=>({data:{session:auth}})},rpc:(name,args)=>({abortSignal:signal=>fetch('/fixture/rpc',{method:'POST',body:JSON.stringify({name,args}),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status})})};
-window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:'general_manager',is_active:true}},getClient:async()=>client};
+const auth={user:{id:uid},access_token:staffMode?'synthetic-staff':'synthetic-token'};
+const client={auth:{getSession:async()=>({data:{session:auth}})},rpc:(name,args)=>({abortSignal:signal=>fetch('/fixture/rpc',{method:'POST',headers:{'x-test-role':staffMode?'staff':'manager'},body:JSON.stringify({name,args}),signal}).then(async r=>r.ok?{data:await r.json(),status:r.status}:{error:await r.json(),status:r.status})})};
+window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{user_id:uid,workspace_id:wid,role:staffMode?'property_manager':'general_manager',is_active:true}},getClient:async()=>client};
 const {openPdfFieldTemplate}=await import('/src/v267/pages/pdf-field-template.js');document.querySelector('#open').onclick=()=>openPdfFieldTemplate({propertyId:new URLSearchParams(location.search).has('unselected')?null:${JSON.stringify(propertyId)}});document.querySelector('#open').disabled=false;
 </script></body></html>`;
 const overrides={
@@ -32,20 +34,35 @@ const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');let text='';if(req.method==='POST')for await(const part of req)text+=part;const body=text?JSON.parse(text):{};
  if(url.pathname==='/fixture/properties')return reply(res,propertiesEmpty?[]:[{id:propertyId,externalRef:'synthetic',name:'عقار تجريبي'}]);
  if(url.pathname==='/fixture/rpc'){
+  const staff=req.headers['x-test-role']==='staff',actor=staff?staffUid:uid;
+  if(body.name==='aqari_pdf_templates'){
+   const {p_action:action,p_data:data}=body.args;
+   if(deny)return reply(res,{message:'ACCESS_DENIED',code:'42501'},403);
+   if(action==='context')return reply(res,{workspace_id:wid,user_id:actor,can_publish:!staff,can_fill:true,approved:approvals.has(data.document_id),mapping:approvals.get(data.document_id)});
+   if(action==='list')return reply(res,{items:[...approvals].map(([document_id,mapping])=>({document_id,title:mapping.title,is_active:true,approved_at:new Date().toISOString()})),next_offset:20,has_more:false});
+   if(action==='requests')return reply(res,{items:[...changeRequests.values()].filter(r=>!staff||r.requested_by===actor),next_offset:20,has_more:false});
+   if(action==='revoke'){assert.equal(staff,false);approvals.delete(data.document_id);return reply(res,{approved:false});}
+   if(action==='request'){changeRequests.set(data.id,{...data,requested_by:actor,requested_at:new Date().toISOString()});return reply(res,{saved:true});}
+   if(action==='respond'){assert.equal(staff,false);changeRequests.get(data.id).response=data.response;return reply(res,{saved:true});}
+   throw Error('Unexpected approval action');
+  }
   assert.equal(body.name,'aqari_pdf_editor_drafts');assert.equal(body.args.p_workspace_id,wid);const {p_action:action,p_data:data}=body.args;assert.equal(data.property_id,propertyId);
   if(deny)return reply(res,{message:'ACCESS_DENIED',code:'42501'},403);
-  if(action==='list')return reply(res,{items:[...drafts.values()].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id)).map(d=>({id:d.id,document_id:d.document_id,revision:d.revision,title:d.snapshot.mapping.title,updated_at:d.updated_at})),next_offset:20,has_more:false});
+  if(action==='list')return reply(res,{items:[...drafts.values()].filter(d=>d.created_by===actor&&(!staff||approvals.has(d.document_id))).sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id)).map(d=>({id:d.id,document_id:d.document_id,revision:d.revision,title:d.snapshot.mapping.title,updated_at:d.updated_at})),next_offset:20,has_more:false});
   if(action==='get')return reply(res,drafts.get(data.id));
   if(action==='save'){
+   if(staff&&!approvals.has(data.document_id))return reply(res,{message:'ACCESS_DENIED',code:'42501'},403);
+   if(staff)assert.deepEqual(data.snapshot.mapping,approvals.get(data.document_id));
    writes.push(structuredClone(data));const old=drafts.get(data.id);
    if(old?.last_request===data.request_id)return reply(res,old);
    if((old?.revision||0)!==data.expected_revision)return reply(res,{message:'PDF_DRAFT_REVISION_CONFLICT',code:'40001'},409);
-   const saved={...data,revision:data.expected_revision+1,last_request:data.request_id,created_by:uid,workspace_id:wid,updated_at:new Date().toISOString()};drafts.set(data.id,saved);
+   const saved={...data,revision:data.expected_revision+1,last_request:data.request_id,created_by:actor,workspace_id:wid,updated_at:new Date().toISOString()};drafts.set(data.id,saved);
    if(loseReply){loseReply=false;return reply(res,{message:'simulated lost response after commit'},503);}return reply(res,saved);
   }throw Error('Unexpected action');
  }
  if(url.pathname==='/api/pdf-field-template'){
   assert.equal(body.workspaceId,wid);assert.equal(body.propertyId,propertyId);
+  if(body.action==='publish'){approvals.set(body.documentId,structuredClone(mappings.get(body.documentId)));return reply(res,{approved:true});}
   if(body.action==='inspect')return reply(res,{pages:[{width:595,height:842},{width:595,height:842}],mapping:mappings.get(body.documentId)});
   if(['page','filled_page'].includes(body.action))return reply(res,pageImage,200,'image/png');
   if(body.action==='save'){templateSaves++;mappings.set('template-version',body.mapping);return reply(res,Buffer.from('%PDF-1.7\nsynthetic-template'),200,'application/pdf');}
@@ -62,7 +79,7 @@ if(process.argv.includes('--serve'))console.log(url);
 else{
  const {chromium,webkit}=await import(process.env.AQARI_PLAYWRIGHT_MODULE?pathToFileURL(process.env.AQARI_PLAYWRIGHT_MODULE):'playwright');
  try{for(const [name,engine,viewport] of [['chromium',chromium,{width:1440,height:1000}],['webkit',webkit,{width:393,height:852}]]){
-  drafts.clear();writes=[];deny=false;templateSaves=0;
+  drafts.clear();approvals.clear();changeRequests.clear();writes=[];deny=false;templateSaves=0;
   const browser=await engine.launch(),context=await browser.newContext({viewport}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   const button=(p,label)=>p.getByRole('button',{name:label,exact:true});
   const open=async p=>{await p.goto(url);await button(p,'فتح المحرر التجريبي').click();await button(p,'فتح النموذج وتعبئته').waitFor();};
@@ -195,6 +212,29 @@ else{
    console.log('PASS '+name+': select options validation, previous value retained, selection and type restored, optional blank preview, invalid Civil ID blocked without truncation, valid Arabic digits preview');
    mappings.set(original,baseMapping);
    console.log('PASS '+name+': previous/next, Enter, page order, required-field jump, retained values and filled preview');
+   // Manager approval is explicit; staff cannot see the manager's sample values.
+   drafts.clear();await open(page);await button(page,'فتح النموذج وتعبئته').click();await loaded(page);
+   await entry.fill('مثال خاص بالمدير');await saved(page);await button(page,'اعتماد النموذج لتعبئة الموظفين').click();
+   await page.getByText('اعتمدت هذه النسخة للتعبئة. الموظف يعبئ القيم ولا يعدل النص أو الحقول.',{exact:true}).waitFor();
+   assert.deepEqual(approvals.get(original),baseMapping);
+   const staffPage=await context.newPage();staffPage.on('pageerror',e=>errors.push(e.message));
+   await staffPage.goto(url+'/?staff=1');await button(staffPage,'فتح المحرر التجريبي').click();
+   assert.equal(await staffPage.locator('input[type=file]').count(),0);assert.equal(await button(staffPage,'استعادة المسودة').count(),0);
+   await button(staffPage,'تعبئة النموذج المعتمد').click();await loaded(staffPage);
+   const staffEntry=staffPage.getByLabel('بيانات الحقل',{exact:true});assert.equal(await staffEntry.inputValue(),'');
+   for(const label of ['إضافة حقل','حفظ النموذج والحقول','اعتماد النموذج لتعبئة الموظفين','حذف هذا الحقل'])assert.equal(await button(staffPage,label).count(),0);
+   for(const label of ['نوع الحقل','حجم الخط','لون الكتابة'])assert.equal(await staffPage.getByLabel(label,{exact:true}).count(),0);
+   assert.equal(await staffPage.getByLabel('اسم النموذج',{exact:true}).getAttribute('readonly'),'');
+   await staffEntry.fill('بيانات الموظف');await saved(staffPage);
+   const staffCopy=[...drafts.values()].find(x=>x.created_by===staffUid);assert.ok(staffCopy);assert.deepEqual(staffCopy.snapshot.mapping,baseMapping);
+   const staffBox=staffPage.locator('.aq267-pdf-map-field');await staffBox.press('ArrowRight');assert.deepEqual(drafts.get(staffCopy.id).snapshot.mapping,baseMapping);
+   await staffPage.reload();await button(staffPage,'فتح المحرر التجريبي').click();await button(staffPage,'استعادة المسودة').click();await loaded(staffPage);assert.equal(await staffEntry.inputValue(),'بيانات الموظف');
+   await button(staffPage,'حفظ ومعاينة العقد').click();await staffPage.locator('.aq267-pdf-preview-image').waitFor();assert.equal(await button(staffPage,'حفظ نسخة العقد في الأرشيف').count(),0);
+   await button(staffPage,'العودة لتعديل البيانات').click();await staffPage.getByText('طلب تعديل النموذج من المدير',{exact:true}).click();await staffPage.getByLabel('التعديل المطلوب في النموذج',{exact:true}).fill('يرجى توسيع مساحة الاسم');await button(staffPage,'حفظ طلب التعديل').click();await staffPage.getByText('حُفظ الطلب للمدير. يمكنك متابعة الرد من النماذج المحفوظة.',{exact:true}).waitFor();assert.equal(changeRequests.size,1);
+   await button(page,'النماذج المحفوظة').click();await page.getByLabel('رد المدير على طلب التعديل',{exact:true}).fill('راجعت الطلب؛ سأعتمد نسخة جديدة بعد التعديل.');await button(page,'حفظ رد المدير').click();await page.getByText('راجعت الطلب؛ سأعتمد نسخة جديدة بعد التعديل.',{exact:true}).waitFor();
+   await button(staffPage,'النماذج المحفوظة').click();await staffPage.getByText('راجعت الطلب؛ سأعتمد نسخة جديدة بعد التعديل.',{exact:true}).waitFor();await button(staffPage,'استعادة المسودة').click();await loaded(staffPage);
+   await button(page,'إيقاف تعبئة هذا النموذج').click();await page.getByText('لا توجد نماذج معتمدة للتعبئة في هذا العقار.',{exact:true}).waitFor();await staffEntry.fill('تعديل بعد الإيقاف');await staffPage.locator('#aq267-pdf-field-workspace').waitFor({state:'detached'});await staffPage.close();
+   console.log('PASS '+name+': approved staff filling, no layout controls/sample values, own draft restore, preview, request/manager response and revoked approval blocks saving');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
   }catch(error){console.error('PDF_DRAFT_UI_FAILURE',name,JSON.stringify({errors,body:await page.locator('body').innerText()}));throw error;}finally{await browser.close();}
  }}finally{server.close();}

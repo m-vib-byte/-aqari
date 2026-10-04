@@ -8,8 +8,8 @@ function fixture(){
  return {dialog,cleanups,close(){closed=true;for(const fn of cleanups)fn();},setUser(value){user=value;}};
 }
 const body={workspaceId:'workspace',propertyId:'property',documentId:'document',action:'fill',values:{name:'test'}};
-const response=(action='fill')=>new Response(['inspect','text'].includes(action)?'{}':'synthetic',{headers:{'Content-Type':['inspect','text'].includes(action)?'application/json':['page','filled_page'].includes(action)?'image/png':'application/pdf'}});
-for(const action of ['inspect','text','page','filled_page','save','fill'])test(`${action} preserves scope, expected content type and complete read`,async()=>{
+const response=(action='fill')=>new Response(['inspect','text','publish'].includes(action)?'{}':'synthetic',{headers:{'Content-Type':['inspect','text','publish'].includes(action)?'application/json':['page','filled_page'].includes(action)?'image/png':'application/pdf'}});
+for(const action of ['inspect','text','publish','page','filled_page','save','fill'])test(`${action} preserves scope, expected content type and complete read`,async()=>{
  const f=fixture();let calls=0;const result=await requestPdfField(f.dialog,{body:{...body,action},fetcher:async(url,options)=>{calls++;assert.equal(url,'/api/pdf-field-template');assert.equal(options.cache,'no-store');assert.equal(options.redirect,'error');assert.deepEqual(JSON.parse(options.body),{...body,action});return response(action);}});
  assert.equal(calls,1);assert.equal(f.cleanups.size,0);assert.ok(result);
 });

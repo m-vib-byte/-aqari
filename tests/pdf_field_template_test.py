@@ -22,6 +22,36 @@ def original():
 def mapping():
     return {'version':1,'title':'Test template','propertyId':P,'fields':[{'id':'tenant','label':'اسم المستأجر','type':'text','page':1,'x':.1,'y':.12,'width':.6,'height':.04,'fontSize':12,'align':'right'},{'id':'date','label':'تاريخ العقد','type':'date','page':2,'x':.1,'y':.2,'width':.3,'height':.04,'fontSize':12,'align':'left'}]}
 class PdfFieldsTest(unittest.TestCase):
+    def test_staff_fill_uses_only_approved_pdf_mapping_and_rechecks_revocation(self):
+        m=mapping();raw=write_template(open_pdf(original()),m)
+        row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P,'pdf_field_template':True}}
+        def read(path,auth):return [{'id':P,'workspace_id':W,'external_ref':'p'}] if '/aqari_properties?' in path else [row]
+        ctx={'workspace_id':W,'user_id':'staff','can_fill':True,'can_publish':False,'approved':True,'mapping':m}
+        data={'workspaceId':W,'propertyId':P,'documentId':D,'action':'fill','values':{'tenant':'STAFF VALUE','date':'2026-10-04'}}
+        result,_=api.process(data,'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        self.assertIn('STAFF VALUE',PdfReader(BytesIO(result)).pages[0].extract_text())
+        for action in ['save','publish','text']:
+            with self.assertRaises(PermissionError):api.process(dict(data,action=action),'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        with self.assertRaises(PermissionError):api.process(dict(data,mapping=m),'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+        for mutate in [lambda c:c.update(approved=False),lambda c:c.update(mapping={}),lambda c:c.update(can_fill=False)]:
+            bad=copy.deepcopy(ctx);mutate(bad)
+            with self.assertRaises(PermissionError):api.process(data,'Bearer test.token',lambda *a:bad,read,lambda *a:raw)
+        calls=[]
+        def revoked(*args):
+            calls.append(1);return ctx if len(calls)==1 else dict(ctx,approved=False)
+        with self.assertRaises(PermissionError):api.process(data,'Bearer test.token',revoked,read,lambda *a:raw)
+        row['metadata']['pdf_field_template']=False
+        with self.assertRaises(PermissionError):api.process(data,'Bearer test.token',lambda *a:ctx,read,lambda *a:raw)
+    def test_manager_approval_is_bound_to_saved_bytes_and_contains_no_values(self):
+        m=mapping();raw=write_template(open_pdf(original()),m);calls=[]
+        row={'id':D,'workspace_id':W,'status':'uploaded','entity_type':'property','entity_ref':'p','document_type':'property_document','metadata':{'category':'property_other','asset_role':'property_contract','property_id':P,'pdf_field_template':True}}
+        def read(path,auth):return [{'id':P,'workspace_id':W,'external_ref':'p'}] if '/aqari_properties?' in path else [row]
+        def rpc(name,args,auth):
+            calls.append(args)
+            return {'approved':True} if args['p_action']=='publish' else {'workspace_id':W,'user_id':'manager','can_publish':True}
+        result,_=api.process({'workspaceId':W,'propertyId':P,'documentId':D,'action':'publish'},'Bearer test.token',rpc,read,lambda *a:raw)
+        self.assertEqual(json.loads(result),{'approved':True})
+        self.assertEqual(calls[-1]['p_data'],{'property_id':P,'document_id':D,'mapping':m})
     def test_large_option_maps_are_rejected_before_save_and_valid_maps_reopen(self):
         m=mapping();template=copy.deepcopy(m['fields'][0]);m['fields']=[]
         for i in range(21):

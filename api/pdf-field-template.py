@@ -1,4 +1,4 @@
-"""Authenticated, read-only PDF field mapping and filling. Never activates leases."""
+"""Authenticated PDF mapping, approval and filling. Never activates leases."""
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import quote
@@ -27,20 +27,36 @@ def storage_pdf(row,auth):
     return raw
 
 
+def pdf_context(workspace,property_id,document_id,auth,rpc_call):
+    context=rpc_call('aqari_pdf_templates',{'p_workspace_id':workspace,'p_action':'context','p_data':{'property_id':property_id,'document_id':document_id}},auth)
+    if not isinstance(context,dict) or context.get('workspace_id')!=workspace or not context.get('user_id') or not (context.get('can_publish') is True or context.get('can_fill') is True):raise PermissionError('ACCESS_DENIED')
+    return context
+
+
 def process(data,auth,rpc_call=preview.rpc,read=common.upstream,storage=storage_pdf):
     if not isinstance(data,dict) or set(data)-{'workspaceId','propertyId','documentId','action','page','mapping','values'}:raise ValueError('INVALID_REQUEST')
     if not isinstance(auth,str) or not re.fullmatch(r'Bearer [A-Za-z0-9_.-]+',auth):raise PermissionError('ACCESS_DENIED')
     for key in ['workspaceId','propertyId','documentId']:
         if not isinstance(data.get(key),str) or not common.UUID.fullmatch(data[key]):raise ValueError('INVALID_REQUEST')
     workspace,property_id=data['workspaceId'],data['propertyId']
-    context=preview._context(workspace,auth,rpc_call)
+    context=pdf_context(workspace,property_id,data['documentId'],auth,rpc_call)
     prop=preview._record('aqari_properties',workspace,'id',property_id,auth,read)
     row=preview._record('aqari_documents',workspace,'id',data['documentId'],auth,read)
     metadata=row.get('metadata',{})
     if row.get('id')!=data['documentId'] or prop.get('id')!=property_id or row.get('entity_type')!='property' or row.get('entity_ref')!=prop.get('external_ref') or row.get('document_type')!='property_document' or row.get('status')!='uploaded' or not isinstance(metadata,dict) or metadata.get('category')!='property_other' or metadata.get('asset_role')!='property_contract' or metadata.get('property_id')!=property_id:raise PermissionError('PDF_PROPERTY_MISMATCH')
     action=data.get('action')
-    if action not in ['inspect','page','text','save','fill','filled_page']:raise ValueError('INVALID_REQUEST')
+    if action not in ['inspect','page','text','save','fill','filled_page','publish']:raise ValueError('INVALID_REQUEST')
+    manager=context.get('can_publish') is True
+    if not manager and (action not in ['inspect','page','fill','filled_page'] or 'mapping' in data):raise PermissionError('ACCESS_DENIED')
     reader=open_pdf(storage(row,auth));sizes=page_sizes(reader);mapping=saved_map(reader,property_id)
+    if not manager and (not mapping or mapping!=context.get('mapping') or context.get('approved') is not True or metadata.get('pdf_field_template') is not True):raise PermissionError('ACCESS_DENIED')
+    if action=='publish':
+        if not mapping or metadata.get('pdf_field_template') is not True:raise ValueError('SAVED_TEMPLATE_REQUIRED')
+        # Bind approval to verified PDF bytes and the map read from those bytes.
+        final=pdf_context(workspace,property_id,data['documentId'],auth,rpc_call)
+        if final.get('user_id')!=context.get('user_id') or final.get('can_publish') is not True:raise PermissionError('ACCESS_DENIED')
+        result=rpc_call('aqari_pdf_templates',{'p_workspace_id':workspace,'p_action':'publish','p_data':{'property_id':property_id,'document_id':data['documentId'],'mapping':mapping}},auth)
+        return json.dumps(result).encode(),'application/json; charset=utf-8'
     if action=='inspect':body=json.dumps({'pages':sizes,'mapping':mapping},ensure_ascii=False).encode();mime='application/json; charset=utf-8'
     elif action=='text':
         number=data.get('page')
@@ -54,8 +70,8 @@ def process(data,auth,rpc_call=preview.rpc,read=common.upstream,storage=storage_
         body=fill_template(reader,mapping,data.get('values'));mime='application/pdf'
         if action=='filled_page':body=render_page(open_pdf(body),data.get('page'));mime='image/png'
     if len(body)>4*1024*1024:raise ValueError('PDF_OUTPUT_LIMIT')
-    final=preview._context(workspace,auth,rpc_call)
-    if final.get('user_id')!=context.get('user_id'):raise PermissionError('ACCESS_DENIED')
+    final=pdf_context(workspace,property_id,data['documentId'],auth,rpc_call)
+    if final.get('user_id')!=context.get('user_id') or (manager and final.get('can_publish') is not True) or (not manager and (final.get('approved') is not True or final.get('mapping')!=mapping)):raise PermissionError('ACCESS_DENIED')
     return body,mime
 
 
