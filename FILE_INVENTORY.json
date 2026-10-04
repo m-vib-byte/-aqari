@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 9128,
-      "sha256": "5b7635e9ded3110d7bfb50ffd5e77f8b1a60509131ffb100a38161a226254214"
+      "size": 9320,
+      "sha256": "4127b85fcb09014f6e4e44e73b9496868f0c5819ea2567553c69cd99ab3a3439"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -5219,6 +5219,41 @@
       "path": "vercel.json",
       "sha256": "30d1b41481bb74baa59fad215f7fedf376f253b3b79cf690a3d0fabb4efae5a9",
       "size": 8375
+    },
+    {
+      "path": "staging-database/sql/salary-numeric-vouchers.sql",
+      "size": 1059,
+      "sha256": "fa30554b42b158ecb84c9437675a5e19323d7b8eae91dc50ceb11d37b9dca3d6"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004202056_v267_salary_numeric_vouchers.sql",
+      "size": 1059,
+      "sha256": "fa30554b42b158ecb84c9437675a5e19323d7b8eae91dc50ceb11d37b9dca3d6"
+    },
+    {
+      "path": "staging-database/local-test/run-salary-numeric-vouchers.mjs",
+      "size": 2988,
+      "sha256": "46b4bcae3a98542f79bdff41831ad50360cbe9c8a4973c5a7173c6f870933d24"
+    },
+    {
+      "path": "staging-database/local-test/fixtures/salary-upgrade-before.sql",
+      "size": 444,
+      "sha256": "11cd4c9eb5c5d242ac1981f7e397bd7d26a1ac7c0a1a107742ed18245bb5a6b1"
+    },
+    {
+      "path": "staging-database/local-test/fixtures/salary-upgrade-after.sql",
+      "size": 1087,
+      "sha256": "3298cb34cce7cdfa8706c8b5762416adb8ef4cee54b755a81924379caf02fc77"
+    },
+    {
+      "path": "staging-database/tests/salary_numeric_vouchers.sql",
+      "size": 2569,
+      "sha256": "fb39b8257df6c518094f43819ff015683695a1e8cf13d70faf49fd380e9f1680"
+    },
+    {
+      "path": "docs/V267-SALARY-NUMERIC-VOUCHERS-2026-10-04.md",
+      "size": 1604,
+      "sha256": "f0d731642bdef9c7f41942f33bda0a01e4fef123c7e3d60ac723200fb74cceb0"
     }
   ],
   "version": "V198"
