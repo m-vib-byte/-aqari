@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 10037,
-      "sha256": "d9a09241701f71b9015694aa4fbeae6c24a9845e992996fe43b8d7d88ddebd0f"
+      "size": 10241,
+      "sha256": "be4b1703a5455ada8be157de308fe809e61847b335acf470480f19c6c24a0233"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1432,8 +1432,8 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "size": 3279,
-      "sha256": "fd73e2450bd065e1a5ee06827ab308314e8d4b0f7a379b93787dfd9bb95fa69d"
+      "size": 3356,
+      "sha256": "ea22d2776ff965f3782f9df8ad4e3270fb676100195c2036df64b4a9106f73b1"
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
@@ -1667,8 +1667,8 @@
     },
     {
       "path": "src/v267/domain/hr-lifecycle.js",
-      "size": 3148,
-      "sha256": "98d4278a7ba5782b960e0e935414ad0ed36a404158f6019a2a5a9268b5a304f2"
+      "size": 3161,
+      "sha256": "f5da2463a5eea61539962526537dfc9f4d6ea82da5484e07d98cc9cd515514c4"
     },
     {
       "path": "src/v267/domain/kuwait-calendar.js",
@@ -1872,8 +1872,8 @@
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
-      "size": 20181,
-      "sha256": "b90e1ee05b88d5c831739f286285e0188d51dc143097e0806a371e126b9567f2"
+      "size": 20547,
+      "sha256": "5d814429eb68578a7db1d37f7aec13b7d146bab401d4688d112334d03fa5d6e8"
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -5344,6 +5344,36 @@
       "path": "src/v267/components/report-filter-translations.js",
       "size": 2993,
       "sha256": "bcd1f26c013f4cfa3553d19febe6d3eae79a80ab4ba254de11c290eb5373fb86"
+    },
+    {
+      "path": "src/v267/components/hr-cost-translations.js",
+      "size": 1364,
+      "sha256": "c67681cb01b0bec89cf477799e95437c47513ef41c52fb64509f348cd48f59dc"
+    },
+    {
+      "path": "staging-database/sql/hr-payroll-allocation-snapshot.sql",
+      "size": 7861,
+      "sha256": "e9bec948d4d582e49e12673538bed535d7afe83b6c0635e7ce756095c11c147a"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004223026_v267_hr_payroll_allocation_snapshot.sql",
+      "size": 7861,
+      "sha256": "e9bec948d4d582e49e12673538bed535d7afe83b6c0635e7ce756095c11c147a"
+    },
+    {
+      "path": "staging-database/tests/hr_payroll_allocation_snapshot.sql",
+      "size": 6006,
+      "sha256": "98384ab457ef5cb201550c75bf16e2c9fe2cce5aa164b301bcea6f07393856c1"
+    },
+    {
+      "path": "staging-database/local-test/run-hr-payroll-snapshot.mjs",
+      "size": 4264,
+      "sha256": "12314d4e9654c4c0a7ff8fea21acae3623e788fe0b0e0b6bd777a7fcbd8b05b2"
+    },
+    {
+      "path": "docs/V267-HR-PAYROLL-SNAPSHOT-2026-10-05.md",
+      "size": 2737,
+      "sha256": "d7129cfa7c1ce25b67a3cc82e6eea6eaf7ffc82c86cf123ed9edbd30f6ead737"
     }
   ],
   "version": "V198"
