@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {pdfContractSources,pdfContractSourceKey,setPdfContractSource,planPdfContractValues} from '../src/v267/domain/pdf-contract-source.js';
 import {createPdfContractSource} from '../src/v267/api/pdf-contract-source.js';
+import {mountPdfContractAutofill} from '../src/v267/components/pdf-contract-autofill.js';
 
 test('sources require explicit persisted bindings; labels and arbitrary data keys do not opt in',()=>{
  const fields=[{id:'a',label:'اسم المستأجر',type:'text'},{id:'b',label:'copy',type:'text',dataKey:'tenant_name'}];
@@ -52,4 +53,30 @@ test('staff and revoked sessions cannot list or read source records',async()=>{
  for(const mutate of [f=>f.session.bound.role='property_manager',f=>f.revoke()]){
   const f=fixture();mutate(f);await assert.rejects(()=>f.source.list());await assert.rejects(()=>f.source.read('contract'));assert.deepEqual(f.calls,[]);
  }
+});
+
+class Element{
+ constructor(tag){this.tagName=tag;this.children=[];this.style={};this.value='';this.checked=false;this.disabled=false;this.textContent='';}
+ append(...nodes){this.children.push(...nodes);}
+ replaceChildren(...nodes){this.children=[...nodes];}
+ setAttribute(k,v){this[k]=v;}
+}
+const walk=el=>[el,...el.children.flatMap(walk)];
+test('review never applies automatically and stale editor/source values require another confirmation',async()=>{
+ const previous=globalThis.document;globalThis.document={createElement:tag=>new Element(tag)};
+ try{
+  const f=fixture(),root=new Element('section'),state={fields:[{id:'name',type:'text',label:'Tenant',dataKey:'aqari_source_tenant_name'}],values:{name:'OLD',manual:'UNCHANGED'}};
+  let applied=0;const dispose=[];const d={session:f.session,closed:false,run:fn=>fn(),onDispose:fn=>dispose.push(fn)};
+  mountPdfContractAutofill(d,root,{property:{id:'p'},read:()=>structuredClone(state),apply:changes=>{applied++;for(const c of changes)state.values[c.id]=c.value;}});
+  const button=text=>walk(root).find(el=>el.tagName==='button'&&el.textContent===text);
+  const control=text=>walk(root).find(el=>el.children.some(c=>c.tagName==='label'&&c.textContent===text)).children[1];
+  await button('تحميل عقود التعبئة').onclick();const select=control('العقد مصدر التعبئة');select.value='contract';select.onchange();
+  const preview=button('معاينة بيانات العقد للتعبئة'),apply=button('تعبئة الحقول من البيانات المعروضة'),confirm=control('راجعت القيم وأوافق على تعبئة الحقول المرتبطة');
+  await preview.onclick();assert.equal(state.values.name,'OLD');assert.equal(applied,0);await apply.onclick();assert.equal(applied,0);
+  confirm.checked=true;confirm.onchange();state.values.manual='EDITED';await assert.rejects(()=>apply.onclick(),/تغيرت الحقول/);assert.equal(applied,0);
+  await preview.onclick();confirm.checked=true;confirm.onchange();f.data.tenantProfilesV267[0].nameAr='UPDATED';await assert.rejects(()=>apply.onclick(),/تغيرت بيانات العقد/);assert.equal(state.values.name,'OLD');
+  await preview.onclick();confirm.checked=true;confirm.onchange();await apply.onclick();assert.equal(applied,1);assert.equal(state.values.name,'UPDATED');assert.equal(state.values.manual,'EDITED');assert.equal(apply.disabled,true);
+  await preview.onclick();confirm.checked=true;confirm.onchange();f.revoke();await assert.rejects(()=>apply.onclick(),/REVOKED/);assert.equal(applied,1);
+  d.closed=true;dispose.forEach(fn=>fn());assert.equal(apply.disabled,true);
+ }finally{globalThis.document=previous;}
 });

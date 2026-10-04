@@ -4642,8 +4642,8 @@
     },
     {
       "path": "tests/v267-pdf-contract-source.test.mjs",
-      "sha256": "84b5fb9729bc66bfc49941a4b499ce8cb409f4b08754c0540744e395d295502a",
-      "size": 5947
+      "sha256": "98fa29cebff615402b7fbf2a920663d5808ec3b5d81057332ac812d30f51d8b1",
+      "size": 8727
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
