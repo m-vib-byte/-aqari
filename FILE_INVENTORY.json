@@ -272,8 +272,8 @@
     },
     {
       "path": "api/pdf-field-template.py",
-      "sha256": "b1eb0eeef24a27354f78ac5df7aa66fbd1678562aecb10893b65b8e07dd5e750",
-      "size": 6287
+      "sha256": "a6b20ce39149784dd8edaaefab0ff77cd90582a33f315104169706f3d653cc77",
+      "size": 6404
     },
     {
       "path": "api/production-meta.js",
@@ -942,8 +942,8 @@
     },
     {
       "path": "lib/pdf_field_template.py",
-      "sha256": "76ad832157f823f539cde59915122df810e26829e218bab28b2d720263bfc97b",
-      "size": 9332
+      "sha256": "820a37a6b9219cc9c1e754579f321133fbcb6235b1d80422526374fd85ab48cf",
+      "size": 9546
     },
     {
       "path": "lib/pdf_fonts/AqariMono-Bold.ttf",
@@ -1917,8 +1917,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "20ffae61092352bb9010fdfa39115d982edd6e20388d65435b25c62f287d9567",
-      "size": 41014
+      "sha256": "0ba07c9917b8ea46e93087e9fc30a21feb89b529fad1c5403e821e0f4e268e04",
+      "size": 41158
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -3862,8 +3862,8 @@
     },
     {
       "path": "tests/pdf_field_template_test.py",
-      "sha256": "5292db13fe984ca980d2962ac3db81563f45823c440d32e6d83b6dc2c31bb1c4",
-      "size": 15513
+      "sha256": "c3cf0729a5f00fb6a2cdbf096f8ddf206f618877426a9f085958e41b9ef5f588",
+      "size": 17090
     },
     {
       "path": "tests/preview-access.mjs",

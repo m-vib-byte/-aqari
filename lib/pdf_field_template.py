@@ -13,6 +13,7 @@ from lib.rent_pdf import FONT, FONT_PATH, shaped
 MAP_KEY = '/AqariFieldTemplateV1'
 MAX_PAGES = 30
 MAX_FIELDS = 100
+MAX_MAP_CHARS = 100000
 if FONT not in pdfmetrics.getRegisteredFontNames():
     pdfmetrics.registerFont(TTFont(FONT, str(FONT_PATH)))
 
@@ -73,20 +74,28 @@ def validate_map(value,sizes,property_id):
         if not(0<=f['x']<1 and 0<=f['y']<1 and .01<=f['width']<=1 and .006<=f['height']<=1 and f['x']+f['width']<=1.000001 and f['y']+f['height']<=1.000001 and 6<=f['fontSize']<=48):raise ValueError('INVALID_FIELD_POSITION')
         for old in fields[:fields.index(f)]:
             if old['page']==f['page'] and min(old['x']+old['width'],f['x']+f['width'])-max(old['x'],f['x'])>0.00001 and min(old['y']+old['height'],f['y']+f['height'])-max(old['y'],f['y'])>0.00001:raise ValueError('FIELD_OVERLAP')
-    return {'version':1,'title':title.strip(),'propertyId':property_id,'fields':fields}
+    result={'version':1,'title':title.strip(),'propertyId':property_id,'fields':fields}
+    encoded_map(result)
+    return result
 
 
 def saved_map(reader,property_id):
     raw=(reader.metadata or {}).get(MAP_KEY)
     if raw is None:return None
-    if not isinstance(raw,str) or len(raw)>100000:raise ValueError('INVALID_FIELD_MAP')
+    if not isinstance(raw,str) or len(raw)>MAX_MAP_CHARS:raise ValueError('INVALID_FIELD_MAP')
     return validate_map(json.loads(raw),page_sizes(reader),property_id)
+
+
+def encoded_map(mapping):
+    raw=json.dumps(mapping,ensure_ascii=False,separators=(',',':'))
+    if len(raw)>MAX_MAP_CHARS:raise ValueError('FIELD_MAP_TOO_LARGE')
+    return raw
 
 
 def write_template(reader,mapping):
     writer=PdfWriter()
     for p in reader.pages:writer.add_page(p,excluded_keys=['/Annots','/AA'])
-    writer.add_metadata({MAP_KEY:json.dumps(mapping,ensure_ascii=False,separators=(',',':')),'/Title':mapping['title']})
+    writer.add_metadata({MAP_KEY:encoded_map(mapping),'/Title':mapping['title']})
     out=BytesIO();writer.write(out);return out.getvalue()
 
 
