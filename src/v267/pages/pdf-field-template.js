@@ -156,7 +156,12 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   pageChoice.onchange=()=>d.run(async()=>{page=Number(pageChoice.value);selected=null;controls.replaceChildren();await drawPage();});
   function addField(x,y){if(!image.complete||!image.naturalWidth){d.status.textContent=t('انتظر اكتمال ظهور صفحة العقد.');return;}if(mapping.fields.length>=100){d.status.textContent=t('الحد الأقصى ١٠٠ حقل.');return;}const f={id:crypto.randomUUID(),label:t('حقل جديد'),type:'text',page,x:Math.max(0,Math.min(.8,x)),y:Math.max(0,Math.min(.975,y)),width:.2,height:.025,fontSize:10,align:'right',color:'#000000'};mapping.fields.push(f);selected=f.id;change();draw();editField(f);}
   // Bind the hit surface itself: touch browsers need a directly interactive target.
-  layer.onclick=event=>{if(event.target!==layer)return;event.stopPropagation();const r=image.getBoundingClientRect();if(!r.width||!r.height)return;addField((event.clientX-r.left)/r.width-.1,(event.clientY-r.top)/r.height-.0125);};
+  // WebKit can retarget a field gesture released outside its box to the page.
+  // Only a gesture that actually started on empty paper may add a field.
+  let pointerStartedOnPage=false;
+  layer.onpointerdown=event=>{pointerStartedOnPage=event.target===layer&&event.button===0;};
+  layer.onpointercancel=()=>{pointerStartedOnPage=false;};
+  layer.onclick=event=>{const add=pointerStartedOnPage;pointerStartedOnPage=false;if(event.target!==layer||!add)return;event.stopPropagation();const r=image.getBoundingClientRect();if(!r.width||!r.height)return;addField((event.clientX-r.left)/r.width-.1,(event.clientY-r.top)/r.height-.0125);};
 
   let refreshFieldNavigation=()=>{};
   // Read in page order, top to bottom, then right to left on the same line.
@@ -178,7 +183,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
     let drag=null,suppressClick=false;
     const select=()=>{selected=f.id;layer.querySelectorAll('.is-selected').forEach(e=>e.classList.remove('is-selected'));box.classList.add('is-selected');editField(f);};
     box.onclick=event=>{event.stopPropagation();if(!suppressClick)select();suppressClick=false;};
-    box.onpointerdown=event=>{if(event.button!==0)return;event.stopPropagation();if(f.locked){select();return;}event.preventDefault();select();drag={x:event.clientX,y:event.clientY,fx:f.x,fy:f.y,w:f.width,h:f.height,resize:event.target===handle,group:crypto.randomUUID()};suppressClick=false;box.setPointerCapture(event.pointerId);};
+    box.onpointerdown=event=>{pointerStartedOnPage=false;if(event.button!==0)return;event.stopPropagation();if(f.locked){select();return;}event.preventDefault();select();drag={x:event.clientX,y:event.clientY,fx:f.x,fy:f.y,w:f.width,h:f.height,resize:event.target===handle,group:crypto.randomUUID()};suppressClick=false;box.setPointerCapture(event.pointerId);};
     box.onpointermove=event=>{if(!drag)return;event.preventDefault();const r=canvas.getBoundingClientRect(),dx=(event.clientX-drag.x)/r.width,dy=(event.clientY-drag.y)/r.height;if(Math.abs(dx)+Math.abs(dy)<.002)return;suppressClick=true;
      if(drag.resize){f.width=Math.max(.01,Math.min(1-f.x,drag.w+dx));f.height=Math.max(.006,Math.min(1-f.y,drag.h+dy));}else{f.x=Math.max(0,Math.min(1-f.width,drag.fx+dx));f.y=Math.max(0,Math.min(1-f.height,drag.fy+dy));}position();change(drag.group);};
     const finish=event=>{if(!drag)return;drag=null;if(box.hasPointerCapture(event.pointerId))box.releasePointerCapture(event.pointerId);editField(f);};box.onpointerup=finish;box.onpointercancel=finish;

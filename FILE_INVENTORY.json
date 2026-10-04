@@ -1912,8 +1912,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "eb2bfb629db1c616e50f52988e375ef44877387c5b0cabffff429274f5b167ee",
-      "size": 38171
+      "sha256": "747c6427244ccea75f575f8d20dbd6bfed46052a279d198c1a3739ed33fc1f40",
+      "size": 38601
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -4547,8 +4547,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "sha256": "f5c41246217f7b2788f78a8aa717747e1c12d3a68a5032a126720486e2b5aa57",
-      "size": 22237
+      "sha256": "2141f3abca1020460a6893714944565a41243a7f8288c6e08e93afa832974161",
+      "size": 22742
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",
