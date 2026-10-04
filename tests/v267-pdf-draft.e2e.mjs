@@ -34,7 +34,7 @@ const server=http.createServer(async(req,res)=>{try{
  if(url.pathname==='/fixture/rpc'){
   assert.equal(body.name,'aqari_pdf_editor_drafts');assert.equal(body.args.p_workspace_id,wid);const {p_action:action,p_data:data}=body.args;assert.equal(data.property_id,propertyId);
   if(deny)return reply(res,{message:'ACCESS_DENIED',code:'42501'},403);
-  if(action==='list')return reply(res,{items:[...drafts.values()].map(d=>({id:d.id,document_id:d.document_id,revision:d.revision,title:d.snapshot.mapping.title,updated_at:d.updated_at})),next_offset:20,has_more:false});
+  if(action==='list')return reply(res,{items:[...drafts.values()].sort((a,b)=>b.updated_at.localeCompare(a.updated_at)||a.id.localeCompare(b.id)).map(d=>({id:d.id,document_id:d.document_id,revision:d.revision,title:d.snapshot.mapping.title,updated_at:d.updated_at})),next_offset:20,has_more:false});
   if(action==='get')return reply(res,drafts.get(data.id));
   if(action==='save'){
    writes.push(structuredClone(data));const old=drafts.get(data.id);
@@ -152,6 +152,28 @@ else{
    await button(page,'إعادة').click();await saved(page);assert.equal(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId).width,.55);
    assert.equal(writes.at(-1).snapshot.values[copiedId],'بيانات النسخة');
    console.log('PASS '+name+': duplicate independent blank field, collision refusal, match size, undo/redo and saved values');
+   const lock=page.getByLabel('تثبيت موضع الحقل وحجمه',{exact:true});await lock.check();await saved(page);
+   const lockedGeometry=structuredClone(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId));
+   assert.equal(lockedGeometry.locked,true);
+   await page.getByText('نسخ الحقل ومحاذاته',{exact:true}).click();assert.equal(await button(page,'تطبيق المحاذاة أو الحجم').isDisabled(),true);
+   await page.getByText('إعدادات دقيقة (اختياري)',{exact:true}).click();assert.equal(await page.getByLabel('المسافة من يسار الصفحة ٪',{exact:true}).isDisabled(),true);
+   const selectedBox=page.locator('.aq267-pdf-map-field.is-selected');await selectedBox.scrollIntoViewIfNeeded();await selectedBox.press('ArrowRight');await selectedBox.press('Alt+ArrowDown');
+   const bounds=await selectedBox.boundingBox();await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height/2);await page.mouse.down();await page.mouse.move(bounds.x+bounds.width/2+25,bounds.y+bounds.height/2+15);await page.mouse.up();
+   assert.equal(await page.locator('.aq267-pdf-map-field').count(),3,'a locked field gesture must not add a field to empty paper');
+   assert.equal(await lock.isChecked(),true);
+   await entry.fill('قيمة داخل حقل ثابت');await page.getByLabel('حجم الخط',{exact:true}).fill('20');await page.getByLabel('حجم الخط',{exact:true}).press('Tab');await saved(page);
+   const afterLocked=writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId);
+   for(const k of ['x','y','width','height'])assert.equal(afterLocked[k],lockedGeometry[k]);
+   assert.equal(afterLocked.fontSize,20);assert.equal(writes.at(-1).snapshot.values[copiedId],'قيمة داخل حقل ثابت');
+   await page.reload();await button(page,'فتح المحرر التجريبي').click();await button(page,'استعادة المسودة').first().click();await loaded(page);
+   assert.equal(await lock.isChecked(),true);assert.equal(await entry.inputValue(),'قيمة داخل حقل ثابت');
+   await lock.uncheck();await saved(page);await button(page,'تراجع').click();await saved(page);assert.equal(await lock.isChecked(),true);
+   await button(page,'إعادة').click();await saved(page);assert.equal(await lock.isChecked(),false);
+   await page.locator('.aq267-pdf-map-field.is-selected').press('ArrowRight');await saved(page);
+   assert.ok(writes.at(-1).snapshot.mapping.fields.find(f=>f.id===copiedId).x>lockedGeometry.x);
+   console.log('PASS '+name+': position lock blocks pointer, keyboard, numeric and alignment changes; editable value/font; reload restore; undo/redo unlock');
+   await page.locator('.aq267-pdf-map-layer').click({position:{x:10,y:10}});await entry.fill('حقل من فراغ الصفحة');await saved(page);
+   assert.equal(writes.at(-1).snapshot.mapping.fields.length,5);assert.equal(writes.at(-1).snapshot.values[writes.at(-1).snapshot.selected],'حقل من فراغ الصفحة');
    mappings.set(original,baseMapping);
    console.log('PASS '+name+': previous/next, Enter, page order, required-field jump, retained values and filled preview');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');

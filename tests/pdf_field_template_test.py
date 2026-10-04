@@ -20,6 +20,19 @@ def original():
 def mapping():
     return {'version':1,'title':'Test template','propertyId':P,'fields':[{'id':'tenant','label':'اسم المستأجر','type':'text','page':1,'x':.1,'y':.12,'width':.6,'height':.04,'fontSize':12,'align':'right'},{'id':'date','label':'تاريخ العقد','type':'date','page':2,'x':.1,'y':.2,'width':.3,'height':.04,'fontSize':12,'align':'left'}]}
 class PdfFieldsTest(unittest.TestCase):
+    def test_position_lock_roundtrips_and_does_not_change_printed_content(self):
+        m=mapping();m['fields'][0]['locked']=True;m['fields'][1]['locked']=False
+        valid=validate_map(m,page_sizes(open_pdf(original())),P)
+        saved=write_template(open_pdf(original()),valid);self.assertEqual(saved_map(open_pdf(saved),P),m)
+        values={'tenant':'LOCK TEST','date':'2026-10-04'}
+        locked_pdf=fill_template(open_pdf(saved),m,values)
+        unlocked=copy.deepcopy(m)
+        for f in unlocked['fields']:f.pop('locked',None)
+        plain_pdf=fill_template(open_pdf(original()),unlocked,values)
+        for n in [1,2]:self.assertEqual(render_page(open_pdf(locked_pdf),n),render_page(open_pdf(plain_pdf),n))
+        for bad in [None,1,0,'true',{},[]]:
+            invalid=copy.deepcopy(m);invalid['fields'][0]['locked']=bad
+            with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(invalid,page_sizes(open_pdf(original())),P)
     def test_linked_fields_roundtrip_and_conflicts(self):
         m=mapping();m['fields'][0]['dataKey']='tenant_name'
         second=copy.deepcopy(m['fields'][0]);second.update(id='tenant_copy',page=2,y=.4);m['fields'].append(second)

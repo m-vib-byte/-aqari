@@ -32,7 +32,12 @@ try{
  await db.exec(sql);
  const linkedSql=readFileSync(new URL('../sql/pdf-linked-fields.sql',import.meta.url),'utf8');
  assert.equal(linkedSql,readFileSync(new URL('../supabase/migrations/20261004013257_v267_pdf_linked_fields.sql',import.meta.url),'utf8'));
- await db.exec(linkedSql);await db.exec(linkedSql);await actor();
+ await db.exec(linkedSql);await db.exec(linkedSql);
+ const lockSql=readFileSync(new URL('../sql/pdf-field-position-lock.sql',import.meta.url),'utf8');
+ assert.equal(lockSql,readFileSync(new URL('../supabase/migrations/20261004022050_v267_pdf_field_position_lock.sql',import.meta.url),'utf8'));
+ await db.exec('begin');await db.exec(lockSql);await db.exec('rollback');
+ assert.equal((await db.query("select strpos(pg_get_functiondef('private.aqari_pdf_editor_drafts(uuid,text,jsonb)'::regprocedure),'''locked''') as position")).rows[0].position,0);
+ await db.exec(lockSql);await db.exec(lockSql);await actor();
  const first=await rpc('save',data);assert.equal(first.revision,1);assert.deepEqual(first.snapshot,snap);assert.equal(first.created_by,owner);
  assert.equal((await rpc('save',data)).revision,1,'lost-response retry is idempotent');
  await assert.rejects(rpc('save',{...data,snapshot:{...snap,page:2}}),/PDF_DRAFT_RETRY_CONFLICT/);
@@ -52,6 +57,15 @@ try{
  for(const mutate of [s=>s.mapping.fields[0].dataKey=null,s=>s.mapping.fields[0].dataKey='',s=>s.mapping.fields[1].type='date',s=>s.values.f2='conflicting']){
   const bad=structuredClone(linkedSnap);mutate(bad);await assert.rejects(rpc('save',{...linkedData,expected_revision:3,request_id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',snapshot:bad}),/INVALID_PDF_DRAFT/);
  }
+ const lockedSnap=structuredClone(linkedSnap);lockedSnap.mapping.fields[0].locked=true;lockedSnap.mapping.fields[1].locked=false;
+ const lockedData={...linkedData,expected_revision:3,request_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',snapshot:lockedSnap};
+ assert.deepEqual((await rpc('save',lockedData)).snapshot,lockedSnap);
+ assert.deepEqual((await rpc('get',{id,property_id:p})).snapshot,lockedSnap);
+ for(const invalid of [null,'true',1,0,{},[]]){
+  const bad=structuredClone(lockedSnap);bad.mapping.fields[0].locked=invalid;
+  await assert.rejects(rpc('save',{...lockedData,expected_revision:4,request_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',snapshot:bad}),/INVALID_PDF_DRAFT/);
+ }
+ console.log('PASS PDF position lock: roundtrip, strict boolean validation, migration rollback, idempotency and prior authorization guards');
  console.log('PASS linked PDF drafts: roundtrip, cross-page values, conflicting values/types rejected, migration idempotent');
  await db.exec('reset role');await db.query('update public.aqari_memberships set is_active=false where user_id=$1',[owner]);await actor();await assert.rejects(rpc('get',{id,property_id:p}),/ACCESS_DENIED/);await assert.rejects(rpc('save',next),/ACCESS_DENIED/);
  await db.exec('reset role;set role anon');await assert.rejects(rpc('list',{property_id:p}),/permission denied/);

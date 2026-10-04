@@ -54,9 +54,10 @@ def validate_map(value,sizes,property_id):
     if not isinstance(fields,list) or not 1<=len(fields)<=MAX_FIELDS:raise ValueError('FIELDS_REQUIRED')
     ids=set()
     for f in fields:
-        if not isinstance(f,dict) or set(f)-{'color','dataKey'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
+        if not isinstance(f,dict) or set(f)-{'color','dataKey','locked'}!={'id','label','type','page','x','y','width','height','fontSize','align'}:raise ValueError('INVALID_FIELD')
         if not isinstance(f['id'],str) or not re.fullmatch(r'[a-zA-Z0-9_-]{1,64}',f['id']) or f['id'] in ids:raise ValueError('INVALID_FIELD')
         ids.add(f['id'])
+        if 'locked' in f and type(f['locked']) is not bool:raise ValueError('INVALID_FIELD')
         if 'dataKey' in f and (not isinstance(f['dataKey'],str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,64}',f['dataKey'])):raise ValueError('INVALID_FIELD')
         if f.get('dataKey') and any(old.get('dataKey')==f['dataKey'] and old['type']!=f['type'] for old in fields[:fields.index(f)]):raise ValueError('INVALID_FIELD')
         if 'color' in f and (not isinstance(f['color'],str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',f['color'])):raise ValueError('INVALID_FIELD')
