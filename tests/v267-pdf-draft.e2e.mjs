@@ -283,6 +283,8 @@ else{
    await page.getByText('تعبئة الحقول من عقد محفوظ',{exact:true}).click();await button(page,'تحميل عقود التعبئة').click();
    await page.getByLabel('العقد مصدر التعبئة',{exact:true}).selectOption('lease-ref');await button(page,'معاينة بيانات العقد للتعبئة').click();
    await page.getByRole('cell',{name:'مستأجر من السجل',exact:true}).waitFor();assert.equal(await entry.inputValue(),'قيمة يدوية قديمة');
+   fs.mkdirSync('test-results/authenticated-home',{recursive:true});
+   await page.getByText('تعبئة الحقول من عقد محفوظ',{exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:'test-results/authenticated-home/pdf-contract-autofill-'+name+'.png'});
    assert.equal(await button(page,'تعبئة الحقول من البيانات المعروضة').isDisabled(),true);
    sourceTenant='مستأجر محدث';await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();
    await page.getByText('تغيرت بيانات العقد. أعد معاينتها قبل التعبئة.',{exact:true}).waitFor();assert.equal(await entry.inputValue(),'قيمة يدوية قديمة');

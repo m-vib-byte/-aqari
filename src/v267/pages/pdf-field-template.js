@@ -189,7 +189,7 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   draftFork=node('button',t('حفظ كمسودة مستقلة'));draftFork.type='button';draftFork.hidden=true;draftFork.onclick=()=>draft.fork().catch(()=>{});
   const draftTools=node('div');draftTools.className='aq267-pdf-map-actions';draftTools.append(draftSave,draftFork);
   const autofill=node('section');
-  mountPdfContractAutofill(d,autofill,{property,read:()=>structuredClone({fields:mapping.fields,values}),apply:changes=>{
+  mountPdfContractAutofill(d,autofill,{property,read:()=>structuredClone({propertyId:property?.id,documentId,fields:mapping.fields,values}),apply:changes=>{
    for(const item of changes)values[item.id]=item.value;
    change('contract-autofill');draw();const current=mapping.fields.find(f=>f.id===selected);if(current)editField(current);
   }});

@@ -25,7 +25,7 @@ export function mountPdfContractAutofill(d,target,{property,read,apply}){
   if(!unchanged()){reset();throw Error(t('تغيرت الحقول أو القيم. أعد معاينة بيانات العقد.'));}
   const fresh=await source.read(current.ref);d.session.check();
   if(!unchanged()||JSON.stringify(fresh)!==current.source){reset();throw Error(t('تغيرت بيانات العقد. أعد معاينتها قبل التعبئة.'));}
-  apply(current.changes);reset();status.textContent=t('عُبئت الحقول المرتبطة. راجع النموذج ثم احفظ ومعاين PDF. المعلومات الناقصة بقيت فارغة.');
+  apply(current.changes);reset();status.textContent=t('عُبئت الحقول المرتبطة. راجع النموذج ثم احفظ وعاين PDF. المعلومات الناقصة بقيت فارغة.');
  });commit.disabled=true;
  const inspect=button('معاينة بيانات العقد للتعبئة',async()=>{
   reset();if(!select.value)throw Error(t('اختر العقد أولًا.'));

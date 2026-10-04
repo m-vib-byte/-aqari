@@ -1482,8 +1482,8 @@
     },
     {
       "path": "src/v267/components/pdf-contract-autofill.js",
-      "sha256": "1f22fdf5e80f30467f4506b6f26dde6e3e1fa27a4acf716bc6aeb7218bd78234",
-      "size": 4436
+      "sha256": "10698dd3ac2fd13fe388c6f630f0fee391659a798ab8269e1a0ef1541fd80a55",
+      "size": 4434
     },
     {
       "path": "src/v267/components/pdf-contract-binding.js",
@@ -1947,8 +1947,8 @@
     },
     {
       "path": "src/v267/pages/pdf-field-template.js",
-      "sha256": "27e96a45f22987f55198488cc70d90a408b102830f07929ffa7ffb5b39e395dd",
-      "size": 48558
+      "sha256": "899dbce78f5b9936a1a6a027b0f99e158964ba5cce4b4cd9255660856f00e728",
+      "size": 48593
     },
     {
       "path": "src/v267/pages/property-channels.js",
@@ -4647,8 +4647,8 @@
     },
     {
       "path": "tests/v267-pdf-draft.e2e.mjs",
-      "sha256": "3641e57cb76dbb340c0a557444411b10d963a1f48ebb74ba899b6e7248a93744",
-      "size": 43556
+      "sha256": "3c8bf4ca9830d12216ac276df593ddc67c508717f08731bb94fa08de5b73fff3",
+      "size": 43837
     },
     {
       "path": "tests/v267-pdf-editor-draft.test.mjs",
