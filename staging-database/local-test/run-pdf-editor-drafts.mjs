@@ -56,7 +56,7 @@ try{
  await actor();await assert.rejects(rpc('get',{id,property_id:p},other),/ACCESS_DENIED/);await assert.rejects(rpc('save',{...next,expected_revision:2,document_id:other}),/ACCESS_DENIED/);
  const invalid=[{...snap,values:{f1:'x'.repeat(1001)}},{...snap,values:{unknown:'value'}},{...snap,mapping:{...snap.mapping,fields:[...snap.mapping.fields,...snap.mapping.fields]}},{...snap,mapping:{...snap.mapping,fields:[{...snap.mapping.fields[0],x:.95}]}},{...snap,mapping:{...snap.mapping,propertyId:other}},{...snap,mapping:{...snap.mapping,title:'x'.repeat(161)}},{...snap,page:31}];
  for(const snapshot of invalid)await assert.rejects(rpc('save',{...next,expected_revision:2,snapshot}),/INVALID_PDF_DRAFT/);
- const linkedSnap=structuredClone(snap);linkedSnap.mapping.fields[0].dataKey='tenant';linkedSnap.mapping.fields.push({...linkedSnap.mapping.fields[0],id:'f2',page:2});linkedSnap.values.f2=linkedSnap.values.f1;
+ const linkedSnap=structuredClone(snap);linkedSnap.mapping.fields[0].dataKey='aqari_source_tenant_name';linkedSnap.mapping.fields.push({...linkedSnap.mapping.fields[0],id:'f2',page:2});linkedSnap.values.f2=linkedSnap.values.f1;
  const linkedData={...next,expected_revision:2,request_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',snapshot:linkedSnap};
  assert.deepEqual((await rpc('save',linkedData)).snapshot,linkedSnap);
  for(const mutate of [s=>s.mapping.fields[0].dataKey=null,s=>s.mapping.fields[0].dataKey='',s=>s.mapping.fields[1].type='date',s=>s.values.f2='conflicting']){

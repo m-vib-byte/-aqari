@@ -159,7 +159,7 @@ class PdfFieldsTest(unittest.TestCase):
             invalid=copy.deepcopy(m);invalid['fields'][0]['locked']=bad
             with self.assertRaisesRegex(ValueError,'INVALID_FIELD'):validate_map(invalid,page_sizes(open_pdf(original())),P)
     def test_linked_fields_roundtrip_and_conflicts(self):
-        m=mapping();m['fields'][0]['dataKey']='tenant_name'
+        m=mapping();m['fields'][0]['dataKey']='aqari_source_tenant_name'
         second=copy.deepcopy(m['fields'][0]);second.update(id='tenant_copy',page=2,y=.4);m['fields'].append(second)
         m=validate_map(m,page_sizes(open_pdf(original())),P)
         saved=write_template(open_pdf(original()),m);self.assertEqual(saved_map(open_pdf(saved),P),m)
