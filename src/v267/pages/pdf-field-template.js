@@ -1,4 +1,6 @@
 import {mountPdfContractBinding} from '../components/pdf-contract-binding.js';
+import {mountPdfContractAutofill} from '../components/pdf-contract-autofill.js';
+import {pdfContractSources,pdfContractSourceKey,setPdfContractSource} from '../domain/pdf-contract-source.js';
 import {pdfTemplateAccess,mountPdfTemplateApprovals,mountPdfTemplateChangeRequest} from '../components/pdf-template-approval.js';
 import {pdfFieldRequired,pdfSelectOptions,pdfFieldValueError,pdfFieldsCompatible} from '../domain/pdf-field-values.js';
 import {duplicatePdfField,alignPdfField} from '../domain/pdf-field-layout.js';
@@ -186,7 +188,12 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
   const draftSave=node('button',t('حفظ المسودة الآن'));draftSave.type='button';draftSave.onclick=()=>draft.flush().catch(()=>{});
   draftFork=node('button',t('حفظ كمسودة مستقلة'));draftFork.type='button';draftFork.hidden=true;draftFork.onclick=()=>draft.fork().catch(()=>{});
   const draftTools=node('div');draftTools.className='aq267-pdf-map-actions';draftTools.append(draftSave,draftFork);
-  d.body.replaceChildren(heading,draftStatus,draftTools,...(fillOnly?[]:[versions]),field(t('اسم النموذج'),name),node('p',t(fillOnly?'اضغط على الحقل واكتب بياناته. مواضع الحقول والنصوص المعتمدة ثابتة.':'اضغط على الفراغ لإضافة حقل، ثم اكتب بياناته أسفل العقد. تظهر الكتابة فورًا، ويمكنك سحب الحقل وتغيير حجمه في نفس الشاشة.')),tools,field(t('الصفحة'),pageChoice),zoomTools,viewport,controls,textPanel,node('h4',t('الحقول المحددة')),allFields,preview);
+  const autofill=node('section');
+  mountPdfContractAutofill(d,autofill,{property,read:()=>structuredClone({fields:mapping.fields,values}),apply:changes=>{
+   for(const item of changes)values[item.id]=item.value;
+   change('contract-autofill');draw();const current=mapping.fields.find(f=>f.id===selected);if(current)editField(current);
+  }});
+  d.body.replaceChildren(heading,draftStatus,draftTools,...(fillOnly?[]:[versions]),field(t('اسم النموذج'),name),node('p',t(fillOnly?'اضغط على الحقل واكتب بياناته. مواضع الحقول والنصوص المعتمدة ثابتة.':'اضغط على الفراغ لإضافة حقل، ثم اكتب بياناته أسفل العقد. تظهر الكتابة فورًا، ويمكنك سحب الحقل وتغيير حجمه في نفس الشاشة.')),autofill,tools,field(t('الصفحة'),pageChoice),zoomTools,viewport,controls,textPanel,node('h4',t('الحقول المحددة')),allFields,preview);
   if(fillOnly){heading.textContent=t('٢. عبّئ بيانات النموذج المعتمد');textPanel.remove();mountPdfTemplateChangeRequest(d,tools,property,documentId);}
   async function drawPage(){stopText();extract.disabled=false;ocr.disabled=false;cancel.hidden=true;textResult.value='';textStatus.textContent='';const ticket=++epoch;image.removeAttribute('src');layer.replaceChildren();const blob=await request('page',{page});if(ticket!==epoch)return;if(imageUrl)URL.revokeObjectURL(imageUrl);imageUrl=URL.createObjectURL(blob);image.src=imageUrl;draw();}
   pageChoice.onchange=()=>d.run(async()=>{page=Number(pageChoice.value);selected=null;controls.replaceChildren();await drawPage();});
@@ -255,6 +262,9 @@ export function openPdfFieldTemplate({propertyId=null,onBack}={}){
    const binding=choose([['','حقل مستقل'],...mapping.fields.filter(item=>item.id!==f.id&&pdfFieldsCompatible(item,f)).map(item=>[item.id,item.label+' · '+t('صفحة ')+item.page])],peers.find(item=>item.id!==f.id)?.id||'');
    binding.onchange=()=>{try{linkPdfField(mapping.fields,values,f,binding.value);change();draw();editField(f);}catch(error){binding.value=peers.find(item=>item.id!==f.id)?.id||'';d.status.textContent=t(error.message==='PDF_LINK_CONFLICT'?'القيم مختلفة. وحّد القيم أو أفرغ أحد الحقلين قبل الربط.':'اختر حقلًا من النوع نفسه.');}};
    controls.replaceChildren(node('h4',t('الحقل وبياناته')),navigation,valueField,field(t('تكرار البيانات من حقل'),binding),node('p',t(linked?'تعديل البيانات يحدّث جميع الحقول المرتبطة. افصل الحقل لتغيير نوعه.':'اختر حقلًا لتكرار المعلومة نفسها في هذا الموضع.')),field(t('لون الكتابة'),color),field(t('حجم الخط'),font),field(t('اسم جاهز'),preset),field(t('اسم الحقل'),label),field(t('نوع الحقل'),type),field(t('محاذاة الكتابة'),align));
+   const contractSource=choose([['','إدخال يدوي'],...pdfContractSources.map(spec=>[spec.key,spec.label])],pdfContractSourceKey(f));
+   contractSource.onchange=()=>{try{setPdfContractSource(mapping.fields,f,contractSource.value,values);change();draw();editField(f);}catch(error){contractSource.value=pdfContractSourceKey(f);d.status.textContent=t(error.message);}};
+   controls.append(field(t('مصدر التعبئة من العقد'),contractSource),node('p',t('حدد المصدر ثم افتح «تعبئة الحقول من عقد محفوظ» لمراجعة القيم وإدخالها. الربط وحده لا يستبدل البيانات.')));
    const required=input('checkbox','');required.checked=pdfFieldRequired(f);required.onchange=()=>{f.required=required.checked;change();draw();editField(f);};controls.append(field(t('حقل مطلوب'),required));
    if(f.type==='civil_id')controls.append(node('p',t('الرقم المدني: ١٢ رقمًا. التحقق من الصيغة لا يثبت صحة الهوية.')));
    if(f.type==='select'){

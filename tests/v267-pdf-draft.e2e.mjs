@@ -11,6 +11,7 @@ const root=process.cwd(),propertyId='22222222-2222-4222-8222-222222222222',wid='
 const original='33333333-3333-4333-8333-333333333333';
 const baseMapping={version:1,title:'نموذج اختبار معزول',propertyId,fields:[{id:'name',label:'اسم المستأجر',type:'text',page:1,x:.2,y:.2,width:.55,height:.04,fontSize:10,align:'right',color:'#000000'}]};
 let drafts=new Map(),writes=[],loseReply=false,deny=false,templateSaves=0,propertiesEmpty=false;
+let sourceTenant='مستأجر من السجل';
 const approvals=new Map(),changeRequests=new Map(),versions=new Map(),bindings=new Map();
 const targetProperty='20000000-0000-4000-8000-000000000004';let copyMode=false,publishConflict=false;
 const staffUid='10000000-0000-4000-8000-000000000001';
@@ -28,12 +29,14 @@ window.AQARI_SUPABASE={context:{user:{id:uid},workspace:{id:wid},membership:{use
 const {openPdfFieldTemplate}=await import('/src/v267/pages/pdf-field-template.js');document.querySelector('#open').onclick=()=>openPdfFieldTemplate({propertyId:new URLSearchParams(location.search).has('unselected')?null:${JSON.stringify(propertyId)}});document.querySelector('#open').disabled=false;
 </script></body></html>`;
 const overrides={
+ '/src/v267/api/pdf-contract-source.js':`export const createPdfContractSource=()=>({list:async()=>({items:[{external_ref:'lease-ref',contract_no:'0001',unit_no:'101',tenant:'Synthetic tenant'}],has_more:false,next_offset:50}),read:async()=>fetch('/fixture/contract-source').then(r=>r.json())});`,
  '/src/v267/components/template-property-logo.js':`export const createTemplateLogoContext=()=>({listProperties:async()=>fetch('/fixture/properties').then(r=>r.json())});`,
  '/src/v267/components/property-contract-archive.js':`export const readPropertyContractArchive=async()=>new Blob(['%PDF-1.7\\nsynthetic-filled'],{type:'application/pdf'});export const listPropertyContractArchive=async()=>({items:[{id:${JSON.stringify(original)},title:'نموذج تجريبي',metadata:{pdf_field_template:true}}],nextOffset:100,hasMore:false});`,
  '/src/v267/components/original-document-upload.js':`export const originalDocument=async f=>f;export const createOriginalDocumentUpload=()=>async(file,target)=>({id:target.propertyId===${JSON.stringify(targetProperty)}?'copied-template':'template-version'});`,
 };
 const server=http.createServer(async(req,res)=>{try{
  const url=new URL(req.url,'http://127.0.0.1');let text='';if(req.method==='POST')for await(const part of req)text+=part;const body=text?JSON.parse(text):{};
+ if(url.pathname==='/fixture/contract-source')return reply(res,{links:{contractId:'lease-ref',propertyId},values:{tenant_name:sourceTenant,contract_no:'0001',property_name:'عقار تجريبي',unit_no:'101'}});
  if(url.pathname==='/fixture/properties')return reply(res,propertiesEmpty?[]:[{id:propertyId,externalRef:'synthetic',name:'عقار تجريبي'},...(copyMode?[{id:targetProperty,externalRef:'target',name:'العقار الثاني'}]:[])]);
  if(url.pathname==='/fixture/rpc'){
   const staff=req.headers['x-test-role']==='staff',actor=staff?staffUid:uid;
@@ -274,6 +277,24 @@ else{
    await button(page,'فتح النسخة المرتبطة').click();await page.getByRole('link',{name:'تحميل النسخة المرتبطة PDF',exact:true}).waitFor();
    assert.match(await page.getByRole('link',{name:'تحميل النسخة المرتبطة PDF',exact:true}).getAttribute('href'),/^blob:/);
    console.log('PASS '+name+': approved source version, lease selection, explicit manager confirmation, archived artifact binding readback and exact archived download');
+   drafts.clear();mappings.set(original,structuredClone(baseMapping));sourceTenant='مستأجر من السجل';
+   await open(page);await button(page,'فتح النموذج وتعبئته').click();await loaded(page);
+   await entry.fill('قيمة يدوية قديمة');await page.getByLabel('مصدر التعبئة من العقد',{exact:true}).selectOption('tenant_name');
+   await page.getByText('تعبئة الحقول من عقد محفوظ',{exact:true}).click();await button(page,'تحميل عقود التعبئة').click();
+   await page.getByLabel('العقد مصدر التعبئة',{exact:true}).selectOption('lease-ref');await button(page,'معاينة بيانات العقد للتعبئة').click();
+   await page.getByRole('cell',{name:'مستأجر من السجل',exact:true}).waitFor();assert.equal(await entry.inputValue(),'قيمة يدوية قديمة');
+   assert.equal(await button(page,'تعبئة الحقول من البيانات المعروضة').isDisabled(),true);
+   sourceTenant='مستأجر محدث';await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();
+   await page.getByText('تغيرت بيانات العقد. أعد معاينتها قبل التعبئة.',{exact:true}).waitFor();assert.equal(await entry.inputValue(),'قيمة يدوية قديمة');
+   await button(page,'معاينة بيانات العقد للتعبئة').click();await page.getByRole('cell',{name:'مستأجر محدث',exact:true}).waitFor();
+   await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();
+   assert.equal(await entry.inputValue(),'مستأجر محدث');await saved(page);assert.equal(writes.at(-1).snapshot.values.name,'مستأجر محدث');assert.equal(writes.at(-1).snapshot.mapping.fields[0].dataKey,'aqari_source_tenant_name');
+   await page.reload();await button(page,'فتح المحرر التجريبي').click();await button(page,'استعادة المسودة').click();await loaded(page);
+   assert.equal(await entry.inputValue(),'مستأجر محدث');assert.equal(await page.getByLabel('مصدر التعبئة من العقد',{exact:true}).inputValue(),'tenant_name');
+   await page.getByText('تعبئة الحقول من عقد محفوظ',{exact:true}).click();await button(page,'تحميل عقود التعبئة').click();await page.getByLabel('العقد مصدر التعبئة',{exact:true}).selectOption('lease-ref');
+   sourceTenant='';await button(page,'معاينة بيانات العقد للتعبئة').click();await page.getByRole('cell',{name:'غير موجود — سيُفرغ الحقل',exact:true}).waitFor();
+   await page.getByLabel('راجعت القيم وأوافق على تعبئة الحقول المرتبطة',{exact:true}).check();await button(page,'تعبئة الحقول من البيانات المعروضة').click();assert.equal(await entry.inputValue(),'');await saved(page);
+   console.log('PASS '+name+': explicit persisted source binding, value preview, manager confirmation, stale-source rejection, saved autofill and missing-source clearing');
    assert.deepEqual(errors,[]);console.log('PASS '+name+': autosave, reload, preview, two-tab CAS/fork, lost response, close flush, no local PII, revoked access');
   }catch(error){console.error('PDF_DRAFT_UI_FAILURE',name,JSON.stringify({errors,body:await page.locator('body').innerText()}));throw error;}finally{await browser.close();}
  }}finally{server.close();}
