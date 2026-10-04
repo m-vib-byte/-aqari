@@ -17,7 +17,7 @@ from lib.rent_pdf import verified_receipt, render_receipt, money
 ROOT = Path(__file__).resolve().parents[1]
 UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 PDF_LIMIT = 2 * 1024 * 1024
-RENDERER_VERSION = "v267-rent-receipt-pdf-archive-1"
+RENDERER_VERSION = "v267-rent-receipt-pdf-archive-2-amount-words"
 
 
 class NoRedirect(HTTPRedirectHandler):
