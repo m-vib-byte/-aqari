@@ -52,7 +52,7 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "ace17cc49470b9cae00108f8552fca6a8cdf774c3c5a0683225af0fe0ad9608c",
+      "sha256": "e5fbf055eaed004d0b31b7d55301ffa6aa15610f1737bc4eabf3847e61b735b5",
       "size": 11701
     },
     {
