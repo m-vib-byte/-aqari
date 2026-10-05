@@ -16,8 +16,8 @@ function fixture(count=2){
   get textContent(){return String(this._text)+this.children.map(c=>c.textContent).join('');}
  }
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const group=node('label',label);group.append(control);return group;};
- function from(table){assert.equal(table,'aqari_maintenance_requests');const query={filters:{},select(columns){calls.push({kind:'select',columns});assert.doesNotMatch(columns,/aqari_leases|snapshot/);return query;},eq(key,value){query.filters[key]=value;return query;},order(){return query;},update(values){query.values=values;return query;},
-  async range(start,end){calls.push({kind:'list',start,end});if(state.loseSessionOnRead)state.sessionLost=true;if(state.readError)throw state.readError;if(state.failList)throw Error('network unavailable');return clone(rows.slice(start,end+1));},
+ function from(table){assert.equal(table,'aqari_maintenance_requests');const query={filters:{},select(columns){query.columns=columns;calls.push({kind:'select',columns});assert.doesNotMatch(columns,/aqari_leases|snapshot/);return query;},eq(key,value){query.filters[key]=value;return query;},order(){return query;},update(values){query.values=values;return query;},
+  async range(start,end){calls.push({kind:'list',start,end,filters:clone(query.filters)});if(state.categoryError&&query.columns.includes('category_code'))throw state.categoryError;if(state.loseSessionOnRead)state.sessionLost=true;if(state.readError)throw state.readError;if(state.failList)throw Error('network unavailable');return clone(rows.slice(start,end+1));},
   async maybeSingle(){calls.push({kind:'update',filters:clone(query.filters),values:clone(query.values)});assert.equal(query.filters.workspace_id,'fixture-workspace');if(state.updateError)throw state.updateError;const row=rows.find(r=>r.id===query.filters.id&&r.revision===query.filters.revision);if(!row)return null;Object.assign(row,query.values,{revision:row.revision+1});if(state.lostUpdate)throw Error('reply lost');return clone(row);},
   async single(){calls.push({kind:'readback',filters:clone(query.filters)});if(state.readbackError)throw state.readbackError;const row=clone(rows.find(r=>r.id===query.filters.id));if(state.badReadback)row.id='another-request';return row;}
  };return query;}
@@ -139,4 +139,24 @@ test('staff attachment entry passes the exact saved request and scoped private t
 test('only the manager can open the linked work order and the previous private dialog closes first',async()=>{
  const f=fixture();await f.start();await f.button('أمر الشغل المرتبط بالبلاغ',f.cards()[0]).onclick();assert.equal(f.state.workOrderOptions.requestId,'request-0');assert.equal(f.d.closed,true);
  const g=fixture();g.d.session.bound.role='property_manager';await g.start();assert.equal(g.button('أمر الشغل المرتبط بالبلاغ'),undefined);
+});
+
+test('missing category retries only the scoped page and explicitly labels unavailable classification',async()=>{
+ for(const error of [Object.assign(Error('column aqari_maintenance_requests.category_code does not exist'),{code:'42703'}),Object.assign(Error("Could not find the 'category_code' column of 'aqari_maintenance_requests' in the schema cache"),{code:'PGRST204'})]){
+  const f=fixture(51);f.state.categoryError=error;await f.start();
+  assert.equal(f.cards().length,50);assert.match(f.d.body.textContent,/تصنيف نوع العطل غير متاح/);assert.match(f.cards()[0].textContent,/نوع العطل: غير متاح/);
+  assert.equal(f.calls.filter(c=>c.kind==='list').length,2);assert.equal(f.calls.filter(c=>c.kind==='update').length,0);
+  await f.button('التالي').onclick();assert.equal(f.cards().length,1);
+  for(const call of f.calls.filter(c=>c.kind==='list'))assert.equal(call.filters.workspace_id,'fixture-workspace');
+  assert.deepEqual(f.calls.filter(c=>c.kind==='list').slice(-2).map(c=>[c.start,c.end]),[[50,99],[50,99]]);
+  f.state.categoryError=null;await f.refresh();assert.doesNotMatch(f.d.body.textContent,/تصنيف نوع العطل غير متاح/);
+ }
+});
+test('category compatibility never retries permission, network or unrelated missing column errors',async()=>{
+ for(const error of [Object.assign(Error('column aqari_maintenance_requests.description does not exist'),{code:'42703'}),Object.assign(Error('category_code missing from another_table'),{code:'PGRST204'}),Object.assign(Error('aqari_maintenance_requests.category_code'),{code:'42703',status:403}),Object.assign(Error('network'),{status:503})]){
+  const f=fixture();f.state.categoryError=error;await f.start();assert.equal(f.cards().length,0);assert.equal(f.calls.filter(c=>c.kind==='list').length,1);assert.equal(f.state.lastError,error);
+ }
+});
+test('permission denial on compatibility retry clears previously visible data and drafts',async()=>{
+ const f=fixture();await f.start();f.cost(0).value='9';f.state.categoryError=Object.assign(Error('column aqari_maintenance_requests.category_code does not exist'),{code:'42703'});f.state.readError=Object.assign(Error('denied'),{status:403});await f.refresh();assert.equal(f.cards().length,0);assert.doesNotMatch(f.d.body.textContent,/مستأجر اختبار/);
 });

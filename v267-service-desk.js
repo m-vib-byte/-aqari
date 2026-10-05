@@ -29,7 +29,15 @@ export async function openDesk(mode='maintenance'){
  async function load(wanted=page){
   checkReadAccess();remember();
   const table=mode==='maintenance'?'aqari_maintenance_requests':'aqari_notification_outbox';
-  const rows=await read(session.client.from(table).select(mode==='maintenance'?'id,request_no,workspace_id,category_code,description,status,cost,revision,tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)').eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
+  const query=columns=>read(session.client.from(table).select(columns).eq('workspace_id',session.bound.workspace).order(mode==='maintenance'?'request_no':'scheduled_at',{ascending:false}).range(wanted*50,wanted*50+49));
+  const columns=mode==='maintenance'?'id,request_no,workspace_id,category_code,description,status,cost,revision,tenant:aqari_tenants(full_name)':'id,kind,channel,status,scheduled_at,period,lease:aqari_leases(contract_no,snapshot)';
+  let rows,categoryUnavailable=false;
+  try{rows=await query(columns);}catch(error){
+   const code=String(error?.code||''),message=String(error?.message||'');
+   const missingCategory=code==='42703'&&/\baqari_maintenance_requests\.category_code\b/.test(message)||code==='PGRST204'&&/\bcategory_code\b/.test(message)&&/\baqari_maintenance_requests\b/.test(message);
+   if(mode!=='maintenance'||[401,403].includes(error?.status)||!missingCategory)throw error;
+   rows=await query(columns.replace('category_code,',''));categoryUnavailable=true;
+  }
   const locations=new Map(),executors=new Map();
   if(mode==='maintenance'&&rows.length){
    const ids=rows.map(row=>row.id);
@@ -42,6 +50,7 @@ export async function openDesk(mode='maintenance'){
    for(const executor of savedExecutors){if(!rows.some(row=>row.id===executor.request_id)||executors.has(executor.request_id))throw Error('لم تتأكد إعادة القراءة.');if(executor.work_order_id&&(typeof executor.order_no!=='string'||typeof executor.vendor_name!=='string'||typeof executor.work_order_status!=='string'))throw Error('لم تتأكد إعادة القراءة.');executors.set(executor.request_id,executor);}
   }
   const cards=[],nextEditors=new Map();
+  if(categoryUnavailable)cards.push(node('p',t('تصنيف نوع العطل غير متاح حالياً. تظهر الطلبات المحفوظة دون تصنيف.')));
   if(!rows.length)cards.push(node('p',t('لا توجد سجلات محفوظة في هذه الصفحة.')));
   for(const fresh of rows){
    const draft=drafts.get(fresh.id),row=draft?.row||fresh;
@@ -49,7 +58,7 @@ export async function openDesk(mode='maintenance'){
    card.append(node('h3',mode==='maintenance'?message('طلب {number}',{number:row.request_no}):t(row.kind==='rent_reminder'?'تذكير الإيجار':row.kind==='payment_thanks'?'شكر على السداد':'غير معروف')));
    if(mode==='maintenance'){
     const location=locations.get(fresh.id),executor=executors.get(fresh.id);
-    card.append(node('p',message('العقار: {property} • الوحدة: {unit}',{property:location.property_name,unit:location.unit_no})),node('p','نوع العطل: '+(maintenanceCategories[row.category_code]||'غير معروف')));
+    card.append(node('p',message('العقار: {property} • الوحدة: {unit}',{property:location.property_name,unit:location.unit_no})),node('p','نوع العطل: '+(categoryUnavailable?'غير متاح':maintenanceCategories[row.category_code]||'غير معروف')));
     if(executor?.work_order_id){
      card.append(node('p','الجهة المنفذة: '+executor.vendor_name+' • أمر الشغل: '+executor.order_no+' • الحالة: '+(names[executor.work_order_status]||executor.work_order_status)));
      card.append(node('p','اعتماد أمر الشغل: '+maintenanceTime(executor.approved_at)+'\nوقت التكليف: '+maintenanceTime(executor.assigned_at)+'\nبدء العمل: '+maintenanceTime(executor.started_at)+'\nالإنجاز: '+maintenanceTime(executor.completed_at)));
