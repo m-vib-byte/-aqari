@@ -10,7 +10,7 @@ const root = path.resolve(__dirname, '..');
 const runtimePath = path.join(root, 'v202-property-os.js');
 
 function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions = {}) {
-  const original = fs.readFileSync(runtimePath, 'utf8');
+  const original = runtimeOptions.source ?? fs.readFileSync(runtimePath, 'utf8');
   const wrapperEnd = original.lastIndexOf('})();');
   assert.notEqual(wrapperEnd, -1, 'V202 runtime wrapper must be present');
 
@@ -70,6 +70,7 @@ function loadRuntime(db, localContracts = [], runtimeWindow = {}, runtimeOptions
       rentWriteAllowed: typeof rentWriteAllowed === 'function' ? rentWriteAllowed : null,
       secureRentOfficeProperties: typeof secureRentOfficeProperties === 'function' ? secureRentOfficeProperties : null,
       dailyCollectionSummary,
+      dailyKnetPayments: typeof dailyKnetPayments === 'function' ? dailyKnetPayments : null,
       rentOfficeRevision,
       secureRentOfficeData: typeof secureRentOfficeData === 'function' ? secureRentOfficeData : null,
       secureRentOfficeAction: typeof secureRentOfficeAction === 'function' ? secureRentOfficeAction : null,
@@ -3450,4 +3451,65 @@ test('rent source revision detects in-place data edits, legacy contracts and acc
  assert.notEqual(runtime.rentOfficeRevision(),contract);
  win.AQARI_DATA_GATE.scope=null;
  assert.equal(runtime.rentOfficeRevision(),null);
+});
+
+
+test('daily KNET keeps exact amounts, receipt deduplication, date and property boundaries', async () => {
+  const {patchProtectedKnetApi}=await import('../src/v267/support/today-knet-details-patch.js');
+  const source=patchProtectedKnetApi(fs.readFileSync(runtimePath,'utf8'));
+  const db=fixture(), original=db.rentLedgerV202[0];
+  db.rentLedgerV202=[
+    {...original,paid:40.125},
+    {...original,paid:40.125},
+    {...original,id:'second',receiptNo:'R-SECOND',knetTransactionNo:'TX-SECOND',paid:1.001},
+    {...original,id:'pending',receiptNo:'R-PENDING',knetTransactionNo:'TX-PENDING',status:'pending'},
+    {...original,id:'invalid',receiptNo:'R-INVALID',knetTransactionNo:'TX-INVALID',paid:'100invalid'},
+    {...original,id:'wrong-day',receiptNo:'R-DAY',knetTransactionNo:'TX-DAY',paidAt:'2026-08-13'},
+    {...original,id:'bad-date',receiptNo:'R-BAD-DATE',knetTransactionNo:'TX-BAD-DATE',paidAt:'2026-02-30'},
+    {...original,id:'cash',receiptNo:'R-CASH',knetTransactionNo:'',method:'cash',note:''},
+    {...original,id:'other',receiptNo:'R-OTHER',knetTransactionNo:'TX-OTHER',property:'OTHER TEST PROPERTY'},
+  ];
+  const runtime=loadRuntime(db,[],activeRuntimeWindow(),{source});
+  const result=runtime.dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-12');
+  assert.equal(result.knetTotal,41.126);
+  assert.equal(result.count,2);
+  assert.equal(result.receiptCount,2);
+  assert.equal(result.reviewCount,0);
+  assert.deepEqual(Array.from(result.records,row=>row.receiptNo).sort(),['R-A-PAID','R-SECOND']);
+  assert.equal(result.records[0].contractId,'contract-a');
+  assert.equal(Object.isFrozen(result.records),true);
+  assert.equal(runtime.dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-14').count,0);
+});
+
+test('daily KNET rejects conflicting transaction receipts and inaccessible scopes', async () => {
+  const {patchProtectedKnetApi}=await import('../src/v267/support/today-knet-details-patch.js');
+  const source=patchProtectedKnetApi(fs.readFileSync(runtimePath,'utf8'));
+  const db=fixture(), original=db.rentLedgerV202[0];
+  db.rentLedgerV202=[original,{...original,id:'conflict',receiptNo:'R-CONFLICT',paid:41}];
+  const runtime=loadRuntime(db,[],activeRuntimeWindow(),{source});
+  const result=runtime.dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-12');
+  assert.equal(result.knetTotal,0);
+  assert.equal(result.count,0);
+  assert.equal(result.reviewCount,2);
+  for(const [property,day] of [['missing','2026-08-12'],['SYNTHETIC TEST PROPERTY','bad'],['SYNTHETIC TEST PROPERTY','2026-02-30']]){
+    assert.equal(runtime.dailyKnetPayments(property,day),null);
+  }
+  const signedOut=loadRuntime(db,[],{},{source});
+  assert.equal(signedOut.dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-12'),null);
+  const revoked=activeRuntimeWindow();
+  revoked.AQARI_SUPABASE.context.membership.is_active=false;
+  assert.equal(loadRuntime(db,[],revoked,{source}).dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-12'),null);
+  db.properties.push([...db.properties[0]]);
+  assert.equal(loadRuntime(db,[],activeRuntimeWindow(),{source}).dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-12'),null);
+});
+
+test('daily KNET reads the validated ledger without constructing the monthly context', async () => {
+  const {patchProtectedKnetApi}=await import('../src/v267/support/today-knet-details-patch.js');
+  const source=patchProtectedKnetApi(fs.readFileSync(runtimePath,'utf8'))
+    .replace('function contextFor(name){',"function contextFor(name){ throw new Error('monthly context must not run for daily KNET');");
+  const runtime=loadRuntime(fixture(),[],activeRuntimeWindow(),{source});
+  const result=runtime.dailyKnetPayments('SYNTHETIC TEST PROPERTY','2026-08-12');
+  assert.equal(result.knetTotal,40);
+  assert.equal(result.count,1);
+  assert.throws(()=>runtime.contextFor('SYNTHETIC TEST PROPERTY'),/monthly context must not run/);
 });

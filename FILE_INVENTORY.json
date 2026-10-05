@@ -4362,8 +4362,8 @@
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "sha256": "0e86c68b1958fae5210ae6ef1536f14c60af78107229e6cff24656b13250473a",
-      "size": 186824
+      "sha256": "3547763f222faf224b3da0dd9fe55faa30bd21a0db749ad4ea7b5ab8a390ea01",
+      "size": 190820
     },
     {
       "path": "tests/v205-click-routing.test.cjs",

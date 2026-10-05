@@ -11,7 +11,7 @@ test('protected KNET API stays inside V202 access scope and returns linked detai
   const patched=patchProtectedKnetApi(read('v202-property-os.js'));
   assert.match(patched,/function dailyKnetPayments\(name,day\)/);
   assert.match(patched,/if\(!protectedAccessReady\(\)/);
-  assert.match(patched,/const context=contextFor\(name\)/);
+  assert.match(patched,/const property=propertyRecord\(name\)/);
   assert.match(patched,/settledPayment\(entry\?\.status\)/);
   assert.match(patched,/validLedgerPaymentAmount\(entry\)/);
   assert.match(patched,/ledgerPaymentDateKey\(entry\.paidAt\)===dayKey/);
