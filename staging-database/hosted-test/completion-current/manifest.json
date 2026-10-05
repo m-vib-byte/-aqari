@@ -1,0 +1,76 @@
+{
+  "tests": [
+    {
+      "name": "maintenance_workflow",
+      "workspace_id": "76f10000-0000-4000-8000-000000000001",
+      "workspace_slug": "hosted-completion-maintenance-workflow",
+      "source_sha256": "c9b2adfcaf796ebca5e32352868b2309302b8a16a680e1868e55dd4b732751d4",
+      "file": "01-maintenance_workflow.sql",
+      "sha256": "9f90f60586040dff6c56f4dd46b1c288b7844a021f59e8fb9b209a2f05f5eb60"
+    },
+    {
+      "name": "maintenance_attachments",
+      "workspace_id": "76f10000-0000-4000-8000-000000000002",
+      "workspace_slug": "hosted-completion-maintenance-attachments",
+      "source_sha256": "8ac2accc9797085aa0ce029e53cb8e0263fa80ecdad236254d72d9b860a24349",
+      "file": "02-maintenance_attachments.sql",
+      "sha256": "6826bb7a0709171daab26b0e05d876f505688356e935a6249f42acbe4ce10f06"
+    },
+    {
+      "name": "tenant_rating_quarters",
+      "workspace_id": "76f10000-0000-4000-8000-000000000003",
+      "workspace_slug": "hosted-completion-tenant-rating-quarters",
+      "source_sha256": "f6ac3cc21641bfc8934281e5ba474abdeeb8dd12616ca6aa6270964a5ca65908",
+      "file": "03-tenant_rating_quarters.sql",
+      "sha256": "396650d07aaa5406954f3feb908c5a9cac8125ec84c820f13944b982159d3f4a"
+    },
+    {
+      "name": "tenant_contact_unification",
+      "workspace_id": "76f10000-0000-4000-8000-000000000004",
+      "workspace_slug": "hosted-completion-tenant-contact-unification",
+      "source_sha256": "41ec4715312671df36b4dcb17c625b357e6a25b7da05f4e031327d2cb7d18c40",
+      "file": "04-tenant_contact_unification.sql",
+      "sha256": "cb944588f15edabab14f4d03c4f101c292ca15df1fabaae0b147fe6b72a815d2"
+    },
+    {
+      "name": "work_order_request_link",
+      "workspace_id": "76f10000-0000-4000-8000-000000000005",
+      "workspace_slug": "hosted-completion-work-order-request-link",
+      "source_sha256": "a3e7881720b90ae2e07025a68a49400017385fbb17ab502ca07abe5380137e56",
+      "file": "05-work_order_request_link.sql",
+      "sha256": "a05c7b66c914d072997ac9d8cded118b446d58f13d55fd958bfc5ea0779f90cb"
+    },
+    {
+      "name": "commercial_sales",
+      "workspace_id": "76f10000-0000-4000-8000-000000000006",
+      "workspace_slug": "hosted-completion-commercial-sales",
+      "source_sha256": "bb0965e5ba6de2b383b4ba676fdf961f068ca40a043a6a11f0ce3db87e4734d0",
+      "file": "06-commercial_sales.sql",
+      "sha256": "0a3d89759d12f62064dd4a2305130b277a21fd6eece4b870ee6faeb42f34d56d"
+    },
+    {
+      "name": "commercial_sales_vacating",
+      "workspace_id": "76f10000-0000-4000-8000-000000000007",
+      "workspace_slug": "hosted-completion-commercial-sales-vacating",
+      "source_sha256": "1ee91ed1d8c35da9e66c4f84cc44305e17bb08d65ac8b36b840558a1f2c22e46",
+      "file": "07-commercial_sales_vacating.sql",
+      "sha256": "d340ba1181b61eb4a86a25395de541b9acf3c36be4caec5288edaf2821f1f902"
+    },
+    {
+      "name": "collection_account_management",
+      "workspace_id": "76f10000-0000-4000-8000-000000000008",
+      "workspace_slug": "hosted-completion-collection-account-management",
+      "source_sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
+      "file": "08-collection_account_management.sql",
+      "sha256": "85c88e994ccef73baa4e2d2b1a732c628466b47e21b3ba287cfae671b5d5f01b"
+    },
+    {
+      "name": "vendor_optional_identity",
+      "workspace_id": "76f10000-0000-4000-8000-000000000009",
+      "workspace_slug": "hosted-completion-vendor-optional-identity",
+      "source_sha256": "5e235f3b93e139729f5e7459525d10430fdfed63cd3f6d7213625832b219207d",
+      "file": "09-vendor_optional_identity.sql",
+      "sha256": "d51b2d3c23ab925fa1d61f3bac1f1a64efda319f6c32bf1205608d9518d6b8b7"
+    }
+  ]
+}

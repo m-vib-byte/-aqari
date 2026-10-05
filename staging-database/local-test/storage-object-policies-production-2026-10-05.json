@@ -1,0 +1,108 @@
+{
+  "rls": true,
+  "source": "Read-only Production storage.objects policy/ACL snapshot; no objects or bytes",
+  "policies": [
+    {
+      "name": "aqari_hr_storage_insert",
+      "check": "((bucket_id = 'aqari-hr-private'::text) AND private.aqari_hr_storage(name, true))",
+      "roles": [
+        "authenticated"
+      ],
+      "using": null,
+      "command": "INSERT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "aqari_hr_storage_read",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "((bucket_id = 'aqari-hr-private'::text) AND private.aqari_hr_storage(name, false))",
+      "command": "SELECT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "aqari_maintenance_attachment_insert",
+      "check": "((bucket_id = 'aqari-maintenance-private'::text) AND private.aqari_maintenance_attachment_storage(name, true))",
+      "roles": [
+        "authenticated"
+      ],
+      "using": null,
+      "command": "INSERT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "aqari_maintenance_attachment_read",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "((bucket_id = 'aqari-maintenance-private'::text) AND private.aqari_maintenance_attachment_storage(name, false))",
+      "command": "SELECT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "tenant_document_download",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "((bucket_id = 'aqari-documents'::text) AND (EXISTS ( SELECT 1\n   FROM (aqari_documents d\n     JOIN aqari_tenants t ON (((t.workspace_id = d.workspace_id) AND (t.external_ref = d.entity_ref))))\n  WHERE ((d.storage_path = objects.name) AND (d.storage_bucket = objects.bucket_id) AND (d.status = 'uploaded'::text) AND (d.document_type = 'tenant_attachment'::text) AND private.aqari_owns_tenant(t.workspace_id, t.id)))))",
+      "command": "SELECT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "v267_document_read",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "((bucket_id = 'aqari-documents'::text) AND (EXISTS ( SELECT 1\n   FROM aqari_documents d\n  WHERE ((d.storage_path = objects.name) AND (d.storage_bucket = objects.bucket_id) AND private.aqari_can(d.workspace_id, 'documents'::text, 'read'::text) AND private.aqari_document_entity(d.workspace_id, d.entity_type, d.entity_ref, 'read'::text)))))",
+      "command": "SELECT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "v267_document_upload",
+      "check": "((bucket_id = 'aqari-documents'::text) AND (EXISTS ( SELECT 1\n   FROM aqari_documents d\n  WHERE ((d.storage_path = objects.name) AND (d.storage_bucket = objects.bucket_id) AND (d.status = 'draft'::text) AND (d.created_by = auth.uid()) AND private.aqari_can(d.workspace_id, 'documents'::text, 'write'::text) AND private.aqari_document_entity(d.workspace_id, d.entity_type, d.entity_ref, 'write'::text)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "using": null,
+      "command": "INSERT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "v267_maintenance_attachment_delete_draft",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "((bucket_id = 'aqari-documents'::text) AND (EXISTS ( SELECT 1\n   FROM aqari_maintenance_attachments a\n  WHERE ((a.storage_bucket = objects.bucket_id) AND (a.storage_path = objects.name) AND (a.status = 'draft'::text) AND (a.created_by = auth.uid()) AND private.aqari_maintenance_attachment_access(a.workspace_id, a.request_id, 'write'::text)))))",
+      "command": "DELETE",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "v267_maintenance_attachment_read",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "((bucket_id = 'aqari-documents'::text) AND (EXISTS ( SELECT 1\n   FROM aqari_maintenance_attachments a\n  WHERE ((a.storage_bucket = objects.bucket_id) AND (a.storage_path = objects.name) AND (a.status = 'uploaded'::text) AND private.aqari_maintenance_attachment_access(a.workspace_id, a.request_id, 'read'::text)))))",
+      "command": "SELECT",
+      "permissive": "PERMISSIVE"
+    },
+    {
+      "name": "v267_maintenance_attachment_upload",
+      "check": "((bucket_id = 'aqari-documents'::text) AND (EXISTS ( SELECT 1\n   FROM aqari_maintenance_attachments a\n  WHERE ((a.storage_bucket = objects.bucket_id) AND (a.storage_path = objects.name) AND (a.status = 'draft'::text) AND (a.created_by = auth.uid()) AND private.aqari_maintenance_attachment_access(a.workspace_id, a.request_id, 'write'::text)))))",
+      "roles": [
+        "authenticated"
+      ],
+      "using": null,
+      "command": "INSERT",
+      "permissive": "PERMISSIVE"
+    }
+  ],
+  "force_rls": false,
+  "table_acl": "{supabase_storage_admin=a*r*w*d*D*x*t*m*/supabase_storage_admin,service_role=arwdDxtm/supabase_storage_admin,authenticated=arwdDxtm/supabase_storage_admin,anon=arwdDxtm/supabase_storage_admin,postgres=a*r*w*d*D*x*t*m*/supabase_storage_admin}"
+}
