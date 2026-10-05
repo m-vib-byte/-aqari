@@ -2042,13 +2042,13 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "529e74a1678489288697728826976355f3863fe524bcf8ebe47770053a60d8b1",
-      "size": 30624
+      "sha256": "7992abbf04d2700155abf0cd4da804528371e4e6d30de1d7aa11ff33e6383502",
+      "size": 30793
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "sha256": "adeed4517545d40875070890b3ec63d17d2446aea5cdc09975d8dd089354bc0f",
-      "size": 35362
+      "sha256": "260f8debbfded2ba0d64ebf7fd6bf08d3f1e48b68be9cdd4e92103c742ee707a",
+      "size": 35347
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -5057,8 +5057,8 @@
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9",
-      "size": 12136
+      "sha256": "3fb44e0d484c481ba9af04765b2c3d604c568f4b04da530fc57e5f37aa10766d",
+      "size": 13569
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
@@ -5674,6 +5674,16 @@
       "path": "staging-database/reconciliation/commercial-sales-basis/acceptance.sql",
       "size": 24428,
       "sha256": "c8c02bc8a5890639319b0344ed0e31c8d31dcfe9f47234e56390b4780573e406"
+    },
+    {
+      "path": "staging-database/local-test/property-tenant-ledger-acceptance.sql",
+      "sha256": "8ff223809ac32116ee8ed6144e287f470a67c114862064cc04ffe8a97cac4dab",
+      "size": 3936
+    },
+    {
+      "path": "supabase/migrations/20261005225016_v267_property_tenant_ledger.sql",
+      "sha256": "f13204795e3e1882e1b06e243e57a8017ba73bcb52d3cd2e2c233d5da4d0b7d6",
+      "size": 3933
     }
   ],
   "version": "V198"
