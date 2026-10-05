@@ -1,0 +1,2 @@
+// Public anon key for the existing isolated recovery project. Never a service key.
+export const RECOVERY_PUBLIC_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5scXlucG1pbGNkcXp0d3Jydnl1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4NjQxMDEsImV4cCI6MjEwNjQ0MDEwMX0.8LnWBaS662wEqJHPWfuMvPkjCeV4eLqfPj7DzVSwfNc";
