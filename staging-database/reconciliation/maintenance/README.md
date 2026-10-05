@@ -27,8 +27,12 @@ The rehearsal uses synthetic records in local PGlite against the captured applic
 catalog. It tests request/property/unit/revision checks, role isolation, immutable
 links, and historical row preservation. It does not represent hosted Storage,
 physical iPhone/iPad/Desktop use, or a current complete database backup.
-The attachment suite reaches the local Storage stub permission boundary after
-the category fix; that is not evidence of a Production Storage permission defect.
+The local runner optionally restores the ten captured Production Storage SQL
+policies and client DML ACL on its object metadata stub. The attachment suite now
+passes with these exact policies, including same-property tenant isolation, staff
+read scope, revoked tenant denial, and refusal to overwrite/delete originals.
+This fixes a missing local test layer; it changes no hosted permissions. Provider
+triggers, HTTP uploads, file bytes and real devices remain outside this model.
 
 Before installation: refresh catalog fingerprints, verify complete backup/restore,
 rehearse on the isolated hosted database, review security advisors, generate the

@@ -70,6 +70,29 @@ try{
  for(const f of catalog.functions)await acl('function',f.signature,f.acl);
  for(const s of catalog.sequences)await acl('sequence',`${q(s.schema)}.${q(s.name)}`,s.acl);
  for(const t of catalog.triggers)await exec(t,'trigger');
+ // Optional, captured Storage SQL policy layer only. HTTP uploads, object bytes,
+ // provider triggers and service ownership are still outside this local model.
+ const storagePolicyPath=process.env.AQARI_STORAGE_POLICY_CATALOG;
+ if(storagePolicyPath){
+  if(!path.isAbsolute(storagePolicyPath))throw Error('AQARI_STORAGE_POLICY_CATALOG must be an absolute local file path.');
+  const storage=JSON.parse(await fs.readFile(storagePolicyPath,'utf8'));
+  if(storage.rls!==true)throw Error('Expected captured Storage RLS enabled.');
+  await exec('alter table storage.objects enable row level security;','Storage RLS');
+  if(storage.force_rls)await exec('alter table storage.objects force row level security;','Storage force RLS');
+  // Restore captured client DML privileges, not provider owner/admin grants.
+  for(const entry of storage.table_acl.slice(1,-1).split(',')){
+   const [grantee,rest]=entry.split('=');
+   if(!['anon','authenticated','service_role',''].includes(grantee))continue;
+   const perms=[...rest.split('/')[0].replaceAll('*','')].filter(b=>'rawd'.includes(b)).map(b=>privileges[b]);
+   if(perms.length)await exec(`grant ${perms.join(',')} on storage.objects to ${grantee?q(grantee):'public'};`,'Storage captured DML ACL');
+  }
+  for(const p of storage.policies){
+   if(!['ALL','SELECT','INSERT','UPDATE','DELETE'].includes(p.command)||!['PERMISSIVE','RESTRICTIVE'].includes(p.permissive))throw Error('Unsupported Storage policy shape.');
+   const expression=s=>s?.replaceAll('\\n','\n');
+   await exec(`create policy ${q(p.name)} on storage.objects as ${p.permissive} for ${p.command} to ${p.roles.map(q).join(',')}${p.using?' using ('+expression(p.using)+')':''}${p.check?' with check ('+expression(p.check)+')':''};`,'Storage policy '+p.name);
+  }
+  console.log('Captured Storage SQL policies and client DML ACL restored; no hosted object/HTTP verification.');
+ }
  await exec(`insert into public.aqari_workspaces(id,slug,name) values('70000000-0000-4000-8000-000000000001','aqari-v267-staging','Local isolated synthetic workspace');
  insert into public.aqari_app_state(workspace_id,payload) values('70000000-0000-4000-8000-000000000001','{}');`,'synthetic workspace');
  console.log('Schema restored in local memory; no hosted database connection.');

@@ -2472,8 +2472,8 @@
     },
     {
       "path": "staging-database/local-test/run-isolated.mjs",
-      "sha256": "fd658dd546212307ac4656c5860a7eab7ee0fd5e40ff8fc8de01a9e0ce82d195",
-      "size": 7191
+      "sha256": "a6d262e3e369d97baffb15fd0edbdd6ea013f01b69d07aa8e8593ad53d2595dd",
+      "size": 9073
     },
     {
       "path": "staging-database/local-test/run-manager-contract-workflow.sh",
@@ -5572,13 +5572,13 @@
     },
     {
       "path": "scripts/verify-production-maintenance-reconciliation.mjs",
-      "sha256": "2625eb0a107c124a7d95e7639b081b8d21977566b537c9fb9b8de9ea94435fa9",
-      "size": 1462
+      "sha256": "cb80607b481a7718f5ac57902540a4fa03a531eb5ee85cb39aa821076053a87d",
+      "size": 1674
     },
     {
       "path": "staging-database/reconciliation/maintenance/README.md",
-      "sha256": "79e90afe3c3532b2c07497e403b1fd068845ed2760ff811f26d23a73f17b6fdd",
-      "size": 1935
+      "sha256": "2eec023e59821b0eebe44dbcb8adcc529e1e4e20ce7eaafca7d60894eb9023fc",
+      "size": 2255
     },
     {
       "path": "staging-database/reconciliation/maintenance/candidate.sql",
@@ -5599,6 +5599,11 @@
       "path": "staging-database/reconciliation/maintenance/manifest.json",
       "sha256": "921afcb4d545d970194a90b7439057b54918337296dc36273532461528793874",
       "size": 957
+    },
+    {
+      "path": "staging-database/local-test/storage-object-policies-production-2026-10-05.json",
+      "sha256": "293acaedcb6a61534a857405c9b1e88a4baa994aa7cd6fe6f3269a22ae1e410a",
+      "size": 5064
     }
   ],
   "version": "V198"
