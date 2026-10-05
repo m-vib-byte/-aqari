@@ -14,6 +14,6 @@
       "sha256": "1bafec166d2864b33b6a948ab1d083f30e3390f47bb8cbebbf9d806880a12404"
     }
   ],
-  "candidate_sha256": "d7db23dcf74daf8ad383dc2cab1c99be5d1f615c13a9b15552b0728755fae15b",
+  "candidate_sha256": "dba7faf405bb3ef097bbf3d7f4984c0b892cd392edc1bc5c3b3797656470346f",
   "historical_basis": "additional_to_base_rent: the only basis previously implemented; existing financial records are not recalculated"
 }

@@ -16,7 +16,7 @@ set local lock_timeout='5s';
 do $guard$ begin
  if """+guard+"""
  or exists(select 1 from pg_attribute where attrelid='private.aqari_commercial_terms'::regclass and attname='sales_rent_basis' and not attisdropped)
- then raise exception 'PRODUCTION_SALES_BASIS_SOURCE_CHANGED';end if;
+ then raise exception 'COMMERCIAL_SALES_FUNCTION_CHANGED';end if;
 end $guard$;
 """+'\n'.join((root/p).read_text() for p in sources)+'\ncommit;\n'
 (out/'candidate.sql').write_text(sql)

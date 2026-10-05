@@ -5,7 +5,7 @@ do $guard$ begin
  if md5(pg_get_functiondef('public.aqari_compliance_register(uuid,text,text,jsonb)'::regprocedure)) is distinct from 'fb8f84a603c96de86d81318cee93bc95'
  or md5(pg_get_functiondef('private.aqari_commercial_sales_register(uuid,text,jsonb)'::regprocedure)) is distinct from 'cb97e85ab6de0e476adf67eec893292e'
  or exists(select 1 from pg_attribute where attrelid='private.aqari_commercial_terms'::regclass and attname='sales_rent_basis' and not attisdropped)
- then raise exception 'PRODUCTION_SALES_BASIS_SOURCE_CHANGED';end if;
+ then raise exception 'COMMERCIAL_SALES_FUNCTION_CHANGED';end if;
 end $guard$;
 -- AQARI V267 Staging: persist and enforce the commercial percentage-rent basis.
 alter table private.aqari_commercial_terms add column if not exists sales_rent_basis text not null default 'additional_to_base_rent';

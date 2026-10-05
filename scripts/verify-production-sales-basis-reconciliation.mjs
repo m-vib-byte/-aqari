@@ -24,5 +24,5 @@ passes(['../reconciliation/maintenance/candidate.sql','../reconciliation/tenant-
  '../reconciliation/commercial-allocation/commercial_collections.sql',
  '../reconciliation/commercial-allocation/commercial_collections_legacy_compat.sql',
  '../tests/recent_mfa_hosted_acceptance.sql']);
-rejects([candidate,candidate],'PRODUCTION_SALES_BASIS_SOURCE_CHANGED');
+rejects([candidate,candidate],'COMMERCIAL_SALES_FUNCTION_CHANGED');
 console.log('PASS: 13 acceptance suites together; prior sales/ledger/terms and ACL preserved; repeated installation refused. No hosted migration or complete restore proved.');
