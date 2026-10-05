@@ -62,6 +62,8 @@ jobs:
           node scripts/verify-commercial-allocation-reconciliation.mjs | tee /tmp/aqari-verification/sql-commercial-reconciliation.log
       - name: Commercial reconciliation against captured Production application DDL
         run: node scripts/verify-commercial-production-catalog.mjs | tee /tmp/aqari-verification/sql-commercial-production-catalog.log
+      - name: Production commercial sales basis (local only)
+        run: node scripts/verify-production-commercial-sales-basis.mjs | tee /tmp/aqari-verification/sql-commercial-sales-basis.log
       - name: Production tenant rating and contact reconciliation (local only)
         run: |
           python3 scripts/test-tenant-candidate-reproducibility.py

@@ -17,8 +17,8 @@
     },
     {
       "path": ".github/workflows/authenticated-home.yml",
-      "sha256": "179af8084100dc0e9d4539d09a1360e28a0708ac9f9dec5ee49cc00437c46c12",
-      "size": 2160
+      "sha256": "2e267ae9f9da4e4214a5163d0ab3d7e092f2c43da07b40479c7f00ba53827801",
+      "size": 2249
     },
     {
       "path": ".github/workflows/direct-entry.yml",
@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 11912,
-      "sha256": "6e3dc05da7a2bea6518b02ad81bac93a7cdfee246ea9ada2de9fb4364aedd657"
+      "size": 12105,
+      "sha256": "fe17cdb4eb3bb75c0647cf9d2fb4b4b4e944bfb00999a92cab403e2c2b55d59b"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -4417,8 +4417,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "5a2ecf5a54011490a64f97d5b564d2c40f3ccb7f7f3b703649425f4a4cfdc32c",
-      "size": 16340
+      "sha256": "2252cc0bfc92e2cc0983676c6a79d5c5964fd03b79b55ae00f07d44517a2bc3f",
+      "size": 16425
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -5382,8 +5382,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "7d01fdd13901279fdf57c016b39be7283c7aedfb2bdf3ea05645c5e9d957bc50",
-      "size": 286086
+      "sha256": "a14be05003c9516b5fdf6754dc7aad4f1a33ee41ec2a0caf5d8fb4cdff3fa86f",
+      "size": 286240
     },
     {
       "path": "v205-simple.css",

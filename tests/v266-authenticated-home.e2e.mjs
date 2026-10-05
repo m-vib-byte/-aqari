@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { checkV267AuthenticatedPresentation } from './v267-presentation-checks.mjs';
 import {installHomeResponsivenessDiagnostics} from './helpers/home-responsiveness-diagnostics.mjs';
 const diagnostics=process.env.AQARI_HOME_DIAGNOSTICS==='1';
+const diagnosticsOnly=diagnostics&&process.env.AQARI_HOME_FULL_MATRIX!=='1';
 
 // Exercise the actual renderer and pinned SDK. The local HTTP backend also
 // serves requests initiated by service workers, which bypass Playwright route
@@ -106,8 +107,8 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let failed=false;
 try{
   let diagnosticRun=0;
-  for(const [engineName,engine] of (diagnostics?[['webkit',webkit]]:[['chromium',chromium],['webkit',webkit]])){
-    for(const scenario of (diagnostics?['populated','populated','populated']:['empty','populated','manual','timeout','confirmation-timeout'])){
+  for(const [engineName,engine] of (diagnosticsOnly?[['webkit',webkit]]:[['chromium',chromium],['webkit',webkit]])){
+    for(const scenario of (diagnosticsOnly?['populated','populated','populated']:['empty','populated','manual','timeout','confirmation-timeout'])){
       const name=engineName+'-'+scenario+(diagnostics?'-'+(++diagnosticRun):'');
       fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';propertyWritable=true;requests=[];
       const browser=await engine.launch({headless:true});

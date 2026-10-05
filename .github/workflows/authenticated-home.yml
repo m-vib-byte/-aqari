@@ -31,6 +31,9 @@ jobs:
       - name: PDF working-copy autosave and restore on desktop and mobile
         run: node tests/v267-pdf-draft.e2e.mjs
       - name: Real authenticated renderer with synthetic backend
+        env:
+          AQARI_HOME_DIAGNOSTICS: '1'
+          AQARI_HOME_FULL_MATRIX: '1'
         run: node tests/v266-authenticated-home.e2e.mjs
       - name: V267 multilingual control, scanner and operational form flows
         run: node tests/v267-workspace-tools.e2e.mjs
