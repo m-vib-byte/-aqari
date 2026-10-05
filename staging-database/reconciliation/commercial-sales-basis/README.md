@@ -25,3 +25,9 @@ closed periods, MFA and workspace/role restrictions. No hosted connection is use
 This is NOT a Production activation, complete backup, hosted restoration test,
 or iPhone/iPad/Desktop acceptance. Hosted application remains pending the existing
 recovery gate and a fresh schema/precondition check.
+
+The verifier additionally restores the captured Storage SQL policies and runs all
+nine completion suites together after the six reconciliation candidates in one
+in-memory database. This covers maintenance workflow/attachments/work-order links,
+tenant ratings/contact preferences, sales/clearance, collection accounts and vendor
+identity. Actual Storage HTTP transfer and full Auth services are not modeled.
