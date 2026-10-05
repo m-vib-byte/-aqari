@@ -129,6 +129,8 @@ export function openFinancialRegister(){
   if(readDenied)return;
   add.hidden=!canWrite||Boolean(period?.closed_at);add.disabled=Boolean(pendingWrite);overview.replaceChildren();
   overview.append(text('p',translateStatic('الفترة: ')+currentMonth+translateStatic(' • المصروفات المعتمدة لكل العقارات المتاحة: ')+money(summary.approved_expenses??'0')+translateStatic(' د.ك • عددها: ')+Number(summary.count||0)));
+  if(summary.salary_disbursements!==undefined)overview.append(text('p',translateStatic('صافي الرواتب المصروفة المرتبطة: ')+money(summary.salary_disbursements)+translateStatic(' د.ك • عددها: ')+Number(summary.salary_payment_count||0)),node('p',translateStatic('الرواتب أدناه موزعة حسب النسب المثبتة عند الإصدار، وتعرض بتاريخ الصرف. إجماليها منفصل عن المصروفات اليدوية؛ لا تسجلها مرة أخرى.')));
+  if(Number(summary.unlinked_salary_count)>0)overview.append(text('p',translateStatic('رواتب مصروفة غير مرتبطة تحتاج مراجعة تاريخية ولا تدخل في إجمالي الرواتب أعلاه: ')+Number(summary.unlinked_salary_count)));
   if(period?.closed_at)overview.append(text('p',translateStatic('الفترة مقفلة منذ ')+stamp(period.closed_at)+translateStatic(' بواسطة ')+(period.closed_by_name||translateStatic('الإدارة'))+' — '+(period.reason||'')+translateStatic('؛ لا يسمح بإضافة مصروفات أو تعديلها في هذه الفترة.')));
   filters.hidden=false;
   const propertyNames=new Map(properties.map(p=>[p.id,p.name])),terms=searchKey(search.value).split(' ').filter(Boolean),filtered=records.filter(record=>{
@@ -145,6 +147,10 @@ export function openFinancialRegister(){
   resetFilters.hidden=!search.value&&!propertyFilter.value&&stateFilter.value==='all';
   list.replaceChildren();if(!filtered.length)list.append(node('p',records.length?translateStatic('لا توجد مصروفات تطابق البحث والتصفية.'):translateStatic('لا توجد مصروفات محفوظة في هذه الفترة.')));
   for(const record of filtered.slice(start,start+pageSize)){
+   if(record.source==='salary'){
+    const card=node('article');card.append(text('h3',translateStatic('صافي راتب مصروف')+' — '+record.voucher_no),text('p',(propertyNames.get(record.property_id)||translateStatic('العقار'))+' • '+record.expense_date),text('p',translateStatic('المستفيد: ')+record.payee+translateStatic(' • المبلغ: ')+money(record.amount)+translateStatic(' د.ك')),text('p',translateStatic('طريقة الصرف: ')+(record.method==='knet'?'KNET':methods[record.method]||record.method)+translateStatic(' • المرجع: ')+(record.reference||translateStatic('غير مسجل'))),text('p',translateStatic('توزيع مثبت عند إصدار الراتب')+' • '+record.share+'% • '+record.salary_month),text('p',translateStatic('مرتبط بمستند الراتب الموقع؛ مراجعة الأصل والتصحيحات من الموظفين والرواتب. لا يتاح إلغاء الصرف من سجل المصروفات.')));
+    list.append(card);continue;
+   }
    const card=node('article');card.append(text('h3',(record.voucher_no?record.voucher_no+' — ':'')+record.category),text('p',(properties.find(item=>item.id===record.property_id)?.name||translateStatic('العقار'))+' • '+record.expense_date+' • '+(states[record.state]||record.state)),text('p',translateStatic('المستفيد: ')+record.payee+translateStatic(' • المبلغ: ')+money(record.amount)+translateStatic(' د.ك')),text('p',translateStatic('طريقة الصرف: ')+(methods[record.method]||record.method)+translateStatic(' • المرجع: ')+(record.reference||translateStatic('غير مسجل'))),text('p',record.description||''));
    const attachment=documents.find(item=>item.id===record.document_id&&item.property_id===record.property_id);
    card.append(text('p',translateStatic('المستند: ')+(attachment?((attachment.document_no?attachment.document_no+' — ':'')+(attachment.title||translateStatic('مستند محفوظ'))):record.document_id?translateStatic('مرتبط بالسجل وغير متاح في القائمة الحالية'):translateStatic('لم يرفق بعد'))));
@@ -183,7 +189,7 @@ export function openFinancialRegister(){
   if(!Array.isArray(data?.expenses)||!Array.isArray(data.properties)||!Array.isArray(data.documents)||!Array.isArray(data.history)||!data.summary)throw Error('تعذر قراءة سجل المصروفات المحفوظ.');
   const selectedProperty=property.value,selectedDocument=document.value;
   if(nextMonth!==currentMonth)page=1;
-  readDenied=false;records=data.expenses;properties=data.properties;documents=data.documents;history=data.history;period=data.period;summary=data.summary;manager=data.manager===true;canWrite=data.can_write===true;currentMonth=nextMonth;month.value=currentMonth;
+  readDenied=false;records=[...data.expenses,...(Array.isArray(data.salary_expenses)?data.salary_expenses:[])];properties=data.properties;documents=data.documents;history=data.history;period=data.period;summary=data.summary;manager=data.manager===true;canWrite=data.can_write===true;currentMonth=nextMonth;month.value=currentMonth;
   populateProperties(selectedProperty);populateDocuments(selectedDocument);
   const selectedFilter=propertyFilter.value;propertyFilter.replaceChildren();const all=node('option',translateStatic('كل العقارات المتاحة'));all.value='';propertyFilter.append(all);
   for(const p of properties){const option=node('option',p.name);option.value=p.id;propertyFilter.append(option);}
@@ -251,4 +257,3 @@ export function openFinancialRegister(){
  d.onDispose(()=>{clearPrivate();pendingWrite=null;});
  d.run(async()=>{await load();d.status.textContent=translateStatic('تم استرجاع المصروفات وحالة الفترة من قاعدة البيانات.');});
 }
-

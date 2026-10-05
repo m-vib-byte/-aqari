@@ -43,6 +43,8 @@ jobs:
         run: node staging-database/local-test/run-salary-numeric-corrections.mjs | tee /tmp/aqari-verification/sql-salary-corrections.log
       - name: Immutable issued payroll allocation and employee transfer history
         run: node staging-database/local-test/run-hr-payroll-snapshot.mjs | tee /tmp/aqari-verification/sql-hr-snapshot.log
+      - name: Salary expense linkage, reference deduplication and financial period scope
+        run: node staging-database/local-test/run-hr-expense-bridge.mjs | tee /tmp/aqari-verification/sql-hr-expense.log
       - name: Exact-fils payroll cost allocation and report consistency
         run: node staging-database/local-test/run-hr-cost-allocation.mjs | tee /tmp/aqari-verification/sql-hr-allocation.log
       - name: Saved report filters persistence and RLS isolation
