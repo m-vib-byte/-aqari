@@ -1,0 +1,19 @@
+{
+  "production_applied": false,
+  "preflight_function_md5": {
+    "aqari_compliance_register(uuid,text,text,jsonb)": "fb8f84a603c96de86d81318cee93bc95",
+    "private.aqari_commercial_sales_register(uuid,text,jsonb)": "cb97e85ab6de0e476adf67eec893292e"
+  },
+  "sources": [
+    {
+      "path": "staging-database/supabase/migrations/20260912191240_v267_commercial_sales_rent_basis.sql",
+      "sha256": "050fe7f9f4be68c0ad540daa305963ecb20f725d4d67db57a7dd5b15afd152c1"
+    },
+    {
+      "path": "staging-database/sql/commercial-sales-basis-constraint.sql",
+      "sha256": "1bafec166d2864b33b6a948ab1d083f30e3390f47bb8cbebbf9d806880a12404"
+    }
+  ],
+  "candidate_sha256": "dba7faf405bb3ef097bbf3d7f4984c0b892cd392edc1bc5c3b3797656470346f",
+  "historical_basis": "additional_to_base_rent: the only basis previously implemented; existing financial records are not recalculated"
+}

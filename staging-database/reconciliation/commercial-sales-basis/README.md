@@ -42,3 +42,22 @@ found that dailyCollectionSummary unnecessarily built the full monthly context:
 directly. Both results were exactly 27,500 / 110 entries / zero undated entries.
 These timings are local Node measurements, not browser or real-device acceptance.
 All 98 property tests and all 2,410 JavaScript tests passed after the change.
+
+## Additional persistence and history verification — #415
+
+The Production terms-save RPC accepts the basis input but does not persist it.
+The added acceptance copy uses `IS DISTINCT FROM` so a missing returned field
+fails instead of passing as SQL NULL. The guarded candidate now also rejects an
+unexpected pre-existing basis column. Function-drift rejection remains compatible
+with the original verifier. The deterministic builder records source fingerprints.
+
+`node scripts/verify-production-sales-basis-reconciliation.mjs` reproduces the
+missing basis readback, checks unchanged prior sales/adjustments/terms and RPC ACLs,
+and passes 13 suites together. It was also run against fresh post-#413 application
+DDL (171 tables, 384 functions). An absolute `AQARI_SCHEMA_CATALOG` can select that
+fresh application catalog. No real rows or hosted database were changed.
+
+Existing amounts are not recalculated. The default is the only historically
+implemented basis; it does not recover any silently ignored user intent. Contracts
+with intended greater-of terms require a source-led review, without guessed backfill.
+Complete current DB/Auth/Storage backup, hosted restoration and rehearsal remain open.

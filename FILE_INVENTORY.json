@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 12105,
-      "sha256": "fe17cdb4eb3bb75c0647cf9d2fb4b4b4e944bfb00999a92cab403e2c2b55d59b"
+      "size": 12507,
+      "sha256": "5a43c4e331dd774e0d40def6ab9566ece2eaa828e3ce9998b858b74750fac83a"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -5634,6 +5634,46 @@
       "path": "docs/V267-HR-EXPENSE-BRIDGE-2026-10-05.md",
       "size": 2583,
       "sha256": "975164ffaea0668e33abc46ebbbdd0a4bd3add1549bb640ea6a42a3bb095fb92"
+    },
+    {
+      "path": "scripts/build-production-sales-basis-reconciliation.py",
+      "size": 1705,
+      "sha256": "952f26af34060b698a00f45dd7f7d05045cd84197ba79f9ecc5636b298421c0a"
+    },
+    {
+      "path": "scripts/verify-production-sales-basis-reconciliation.mjs",
+      "size": 2583,
+      "sha256": "8d62c8a01f3081726f0e4c6dddca0dadd736f578837ee3ce94ce3e7e90440a3d"
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-sales-basis/history-before.sql",
+      "size": 11643,
+      "sha256": "8a903ce3a40316b1c062d893f0ebe5bd345c658f3ed86faeb59691d94ebb2567"
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-sales-basis/manifest.json",
+      "size": 879,
+      "sha256": "bd233c5cdf5f88293cb86239227d9a860056cfb988ec9fdd160ce7c0a9f5a1bf"
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-sales-basis/history-after.sql",
+      "size": 1000,
+      "sha256": "d7f9f11653ea0afa7ca5ec3be7c65f3076268367ad5a300a3666b5fef3e7d041"
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-sales-basis/README.md",
+      "size": 3924,
+      "sha256": "bf068bc34d34dd6319ec0a5f5567ab83fe9b74818b0b5d0ddc7e5824fa5ec884"
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-sales-basis/candidate.sql",
+      "size": 7320,
+      "sha256": "dba7faf405bb3ef097bbf3d7f4984c0b892cd392edc1bc5c3b3797656470346f"
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-sales-basis/acceptance.sql",
+      "size": 24428,
+      "sha256": "c8c02bc8a5890639319b0344ed0e31c8d31dcfe9f47234e56390b4780573e406"
     }
   ],
   "version": "V198"
