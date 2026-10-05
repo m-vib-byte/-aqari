@@ -1,0 +1,56 @@
+{
+  "production_applied": false,
+  "full_production_clone": false,
+  "sources": [
+    {
+      "path": "staging-database/supabase/migrations/20260912182933_v267_commercial_payment_allocation_and_vacating_balance.sql",
+      "sha256": "13101c1bf0daa1d1a20cbd3b1b86037ceff2191fde4a4d04ee31d71c1b0a1bc4"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912183407_v267_commercial_active_allocation_view.sql",
+      "sha256": "befe702fe35fcbcc8315b30b32ab1db1a541f5fcb1181d239f7255d5085a57e9"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912183421_v267_rent_schedule_commercial_allocation_residual.sql",
+      "sha256": "9401470351de0f5b8d7ab4318becae62260db3fae5daa935bc7355e57fd80610"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912183434_v267_commercial_statement_cancelled_receipt_consistency.sql",
+      "sha256": "5093b10769978c17693703cab361a759bd1e3748de37641aa25b3398757de6fa"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912183448_v267_commercial_clearance_active_payment_consistency.sql",
+      "sha256": "9d79a724627f95a9ec4c307d08ec12a69bbfad46acc1f02d921fdc60c45eb6e3"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912183503_v267_vacating_balance_commercial_payment_consistency.sql",
+      "sha256": "fca5d628c52d53e8de33bc074151b8b43f5579e9ee6afbacc6a5ebb8acb2dcaa"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912184410_v267_commercial_payment_context.sql",
+      "sha256": "937bdf213776d5d704a43d546abdaadf78f7a7059ef0de5fbb38c97e84f0610e"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20260912184456_v267_commercial_payment_context_wrapper_fix.sql",
+      "sha256": "0d54fa42bf55b82cc6991d803a8066f0853a300eba61d866dc384b9fc95c313f"
+    },
+    {
+      "path": "staging-database/sql/commercial-collections.sql",
+      "sha256": "89abb293b97e6c80029e3e738efe4385c209c72c27f224a1b74329a7d6959a91",
+      "section": "do $compat$"
+    },
+    {
+      "path": "staging-database/tests/commercial_collections_legacy_compat.sql",
+      "sha256": "f190552cc2d2c9d83cc1e5da575ed536e36024b7686e90e6f49b4f3f063e91df",
+      "adaptation": "literal payment metadata and synthetic workspace state"
+    },
+    {
+      "path": "staging-database/tests/commercial_collections.sql",
+      "sha256": "41b97369aeb03af437765d0f064e4cf17e84f309e7c138df49a943087ce5016d",
+      "adaptation": "literal payment metadata and synthetic workspace state"
+    }
+  ],
+  "acceptance_source": "staging-database/tests/commercial_sales_payment_allocation.sql",
+  "acceptance_source_sha256": "4fc6a0cef7303afb2d0ca2e96397c79b794fa12759fcec3112cacfcde9317c57",
+  "candidate_sha256": "14d3c483a9bc79605f29fd0bf5141c76c84d062f2589b492c5853ae6597e234b"
+}

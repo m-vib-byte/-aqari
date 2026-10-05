@@ -1,0 +1,21 @@
+{
+  "production_applied": false,
+  "installation_row_update": false,
+  "sources": [
+    {
+      "path": "staging-database/sql/maintenance-request-category.sql",
+      "sha256": "d53718cb0246c0c9a6c151d8f5d02e83a1da7118438fe79a56f6183172660209"
+    },
+    {
+      "path": "staging-database/sql/work-order-request-link.sql",
+      "sha256": "91b2a6e0aadc5605b286379b64e1811a441218d2d7ad34091d50c2a39ed90ab6"
+    }
+  ],
+  "preflight_function_md5": {
+    "aqari_operations_register(uuid,text,text,jsonb)": "5ade1d0aa3a1d81fad0b39db3408b861",
+    "private.aqari_operations_register_core(uuid,text,text,jsonb)": "973280a61fa8d805862b73d7d4776ec7"
+  },
+  "candidate_sha256": "fc662d4f753b8f38760b553ea28279f7579c2e7dc47baac69d0a26762e8e3354",
+  "historical_category": "legacy_unclassified; existing request_type preserved without guessing a mapping",
+  "scope": "Category column required by current UI and guarded request/work-order linkage; no Storage changes"
+}

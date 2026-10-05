@@ -13,7 +13,10 @@ if(process.env.AQARI_TEST_PGCRYPTO==='1'){
 }
 const db=new PGlite({extensions});
 const q=s=>'"'+s.replaceAll('"','""')+'"';
-const catalog=JSON.parse(await fs.readFile(new URL('./schema-catalog-2026-09-09.json',import.meta.url),'utf8'));
+const catalogOverride=process.env.AQARI_SCHEMA_CATALOG;
+if(catalogOverride&&!path.isAbsolute(catalogOverride))throw Error('AQARI_SCHEMA_CATALOG must be an absolute local file path.');
+const catalog=JSON.parse(await fs.readFile(catalogOverride||new URL('./schema-catalog-2026-09-09.json',import.meta.url),'utf8'));
+if(catalog.views?.length)throw Error('Catalog views require explicit restore support; refusing incomplete restoration.');
 async function exec(sql,label){try{await db.exec(sql);}catch(e){throw Error(label+': '+e.message+'\n'+(e.where||''),{cause:e});}}
 try{
  await exec(`create role anon;create role authenticated;create role service_role bypassrls;
@@ -34,7 +37,8 @@ try{
   await exec(`create table ${q(t.schema)}.${q(t.name)} (${cols.join(',')});`,'table '+t.name);
  }
  for(const f of catalog.functions)await exec(f.definition,'function '+f.signature);
- for(const c of [...catalog.constraints].sort((a,b)=>(a.type==='f')-(b.type==='f')))await exec(`alter table ${c.table} add constraint ${q(c.name)} ${c.definition};`,'constraint '+c.name);
+ // Constraint triggers are restored using pg_get_triggerdef below.
+ for(const c of catalog.constraints.filter(c=>c.type!=='t').sort((a,b)=>(a.type==='f')-(b.type==='f')))await exec(`alter table ${c.table} add constraint ${q(c.name)} ${c.definition};`,'constraint '+c.name);
  for(const i of catalog.indexes)await exec(i,'index');
  for(const t of catalog.tables){
   if(t.rls)await exec(`alter table ${q(t.schema)}.${q(t.name)} enable row level security;`,'RLS');
@@ -50,12 +54,45 @@ try{
  for(const t of catalog.tables)await acl('table',`${q(t.schema)}.${q(t.name)}`,t.acl);
  // The schema catalog contains table ACLs only. Restore the existing column grant
  // from 20260907084949_v267_tenant_portal_identity.sql; never grant table-wide UPDATE.
- await exec('grant update(status,cost) on public.aqari_maintenance_requests to authenticated;','maintenance column ACL');
+ if(!catalogOverride)await exec('grant update(status,cost) on public.aqari_maintenance_requests to authenticated;','maintenance column ACL');
  // Existing core membership column grants are also absent from the table ACL catalog.
- await exec('grant select(workspace_id,user_id,role,is_active,created_at) on public.aqari_memberships to authenticated;','membership column ACL');
+ if(!catalogOverride)await exec('grant select(workspace_id,user_id,role,is_active,created_at) on public.aqari_memberships to authenticated;','membership column ACL');
+ for(const c of catalog.column_acl||[]){
+  for(const entry of c.acl.slice(1,-1).split(',')){
+   const [grantee,rest]=entry.split('=');
+   for(const bit of rest.split('/')[0].replaceAll('*','')){
+    const perm=privileges[bit];
+    if(!['select','insert','update','references'].includes(perm))throw Error('Unsupported column privilege '+bit);
+    await exec(`grant ${perm} (${q(c.column)}) on ${c.table} to ${grantee?q(grantee):'public'};`,'column ACL '+c.table);
+   }
+  }
+ }
  for(const f of catalog.functions)await acl('function',f.signature,f.acl);
  for(const s of catalog.sequences)await acl('sequence',`${q(s.schema)}.${q(s.name)}`,s.acl);
  for(const t of catalog.triggers)await exec(t,'trigger');
+ // Optional, captured Storage SQL policy layer only. HTTP uploads, object bytes,
+ // provider triggers and service ownership are still outside this local model.
+ const storagePolicyPath=process.env.AQARI_STORAGE_POLICY_CATALOG;
+ if(storagePolicyPath){
+  if(!path.isAbsolute(storagePolicyPath))throw Error('AQARI_STORAGE_POLICY_CATALOG must be an absolute local file path.');
+  const storage=JSON.parse(await fs.readFile(storagePolicyPath,'utf8'));
+  if(storage.rls!==true)throw Error('Expected captured Storage RLS enabled.');
+  await exec('alter table storage.objects enable row level security;','Storage RLS');
+  if(storage.force_rls)await exec('alter table storage.objects force row level security;','Storage force RLS');
+  // Restore captured client DML privileges, not provider owner/admin grants.
+  for(const entry of storage.table_acl.slice(1,-1).split(',')){
+   const [grantee,rest]=entry.split('=');
+   if(!['anon','authenticated','service_role',''].includes(grantee))continue;
+   const perms=[...rest.split('/')[0].replaceAll('*','')].filter(b=>'rawd'.includes(b)).map(b=>privileges[b]);
+   if(perms.length)await exec(`grant ${perms.join(',')} on storage.objects to ${grantee?q(grantee):'public'};`,'Storage captured DML ACL');
+  }
+  for(const p of storage.policies){
+   if(!['ALL','SELECT','INSERT','UPDATE','DELETE'].includes(p.command)||!['PERMISSIVE','RESTRICTIVE'].includes(p.permissive))throw Error('Unsupported Storage policy shape.');
+   const expression=s=>s?.replaceAll('\\n','\n');
+   await exec(`create policy ${q(p.name)} on storage.objects as ${p.permissive} for ${p.command} to ${p.roles.map(q).join(',')}${p.using?' using ('+expression(p.using)+')':''}${p.check?' with check ('+expression(p.check)+')':''};`,'Storage policy '+p.name);
+  }
+  console.log('Captured Storage SQL policies and client DML ACL restored; no hosted object/HTTP verification.');
+ }
  await exec(`insert into public.aqari_workspaces(id,slug,name) values('70000000-0000-4000-8000-000000000001','aqari-v267-staging','Local isolated synthetic workspace');
  insert into public.aqari_app_state(workspace_id,payload) values('70000000-0000-4000-8000-000000000001','{}');`,'synthetic workspace');
  console.log('Schema restored in local memory; no hosted database connection.');

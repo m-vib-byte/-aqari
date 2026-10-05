@@ -27,8 +27,8 @@
     },
     {
       "path": ".github/workflows/home-diagnostics.yml",
-      "size": 1362,
-      "sha256": "946d582d76f73e8a6174a42d42c25bebb2807ac2a3b490259051e0b674d50249"
+      "sha256": "946d582d76f73e8a6174a42d42c25bebb2807ac2a3b490259051e0b674d50249",
+      "size": 1362
     },
     {
       "path": ".github/workflows/login-speed.yml",
@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 10451,
-      "sha256": "9a5731ae3d813d7141db26af0b7eea599c9c6fcdb15d3c5e174770850f12f190"
+      "size": 11912,
+      "sha256": "6e3dc05da7a2bea6518b02ad81bac93a7cdfee246ea9ada2de9fb4364aedd657"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -236,14 +236,14 @@
       "size": 1389
     },
     {
-      "path": "api/health.js",
-      "sha256": "46d482563a6810467a29f54f844dce9b50f6df32021fde2032579e46edcb39b0",
-      "size": 621
-    },
-    {
       "path": "api/health/deep.js",
       "sha256": "aaba337404429c0b5ce021e95a15d4981670761ab99635d92cf40c936c6fe3bf",
       "size": 1216
+    },
+    {
+      "path": "api/health.js",
+      "sha256": "46d482563a6810467a29f54f844dce9b50f6df32021fde2032579e46edcb39b0",
+      "size": 621
     },
     {
       "path": "api/migration-status.js",
@@ -262,13 +262,13 @@
     },
     {
       "path": "api/owner-assistant.js",
-      "size": 9762,
-      "sha256": "df0de78fae81ddb0d3347c915b7543fc48099e4329089a909979ab6c67e0b351"
+      "sha256": "df0de78fae81ddb0d3347c915b7543fc48099e4329089a909979ab6c67e0b351",
+      "size": 9762
     },
     {
       "path": "api/owner-report-delivery.js",
-      "size": 10467,
-      "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6"
+      "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6",
+      "size": 10467
     },
     {
       "path": "api/pdf-field-template.py",
@@ -362,13 +362,13 @@
     },
     {
       "path": "docs/AQARI-OWNER-IMPLEMENTATION-2026-10-02.md",
-      "size": 9109,
-      "sha256": "3dcb87a9d54b275dcde2ee000628e0461ba9b4487568059422aea0e318e09c39"
+      "sha256": "3dcb87a9d54b275dcde2ee000628e0461ba9b4487568059422aea0e318e09c39",
+      "size": 9109
     },
     {
       "path": "docs/AQARI-OWNER-REQUIREMENTS-2026-10-02.json",
-      "size": 105844,
-      "sha256": "f0fe65fd1af60e6c850625af89c620d3d19a728912726c2d7c897cee39ba0d68"
+      "sha256": "f0fe65fd1af60e6c850625af89c620d3d19a728912726c2d7c897cee39ba0d68",
+      "size": 105844
     },
     {
       "path": "docs/CONTRACT-ADMINISTRATION-2026-09-20.md",
@@ -434,6 +434,11 @@
       "path": "docs/V267-CONTRACT-CYCLE-2026-09-13.md",
       "sha256": "87c39a8a578d7514a3ac72ebf8a65f39ed03fe50d72d4793dbbc67d3121b37e9",
       "size": 19115
+    },
+    {
+      "path": "docs/V267-CURRENT-HOSTED-ACCEPTANCE-2026-10-05.md",
+      "sha256": "f357d7dafbd1e55a3b98e77783fb0a36f4bfcfe6f5d8bff73a4ea3148b55eec0",
+      "size": 6491
     },
     {
       "path": "docs/V267-DATA-CHECKPOINT-AND-ROLLBACK.md",
@@ -539,6 +544,11 @@
       "path": "docs/V267-HOSTED-VACATING-MFA-2026-09-12.md",
       "sha256": "d29ff1db21e26e8b326100cf00e36a61cf2fc90778e350ad1cc9c12cefa2ef64",
       "size": 5565
+    },
+    {
+      "path": "docs/V267-HR-COST-ALLOCATION-2026-10-05.md",
+      "sha256": "95ff545e2cd46bb20ee1cf5a5d2d60cc7591b13901a4b83065ab8f24889eeee3",
+      "size": 2920
     },
     {
       "path": "docs/V267-IMPORTED-TENANT-EDIT.md",
@@ -701,6 +711,16 @@
       "size": 9712
     },
     {
+      "path": "docs/V267-SALARY-NUMERIC-VOUCHERS-2026-10-04.md",
+      "sha256": "4d59324a2d379e710919a738f105b16446bd38411f4fc186609fa2e9e5709432",
+      "size": 2433
+    },
+    {
+      "path": "docs/V267-SAVED-REPORT-FILTERS-2026-10-05.md",
+      "sha256": "ee29f31631abf0a1009b2318aee4ad5ca8bb74d3c251509365a5d1d8d6a260c1",
+      "size": 2146
+    },
+    {
       "path": "docs/V267-SCAN-AND-DOCUMENT-ENTRY-2026-09-12.md",
       "sha256": "010f5ce5fd0eb8dc3238cabcf294b2640ef1d8c3f9d23a83ebb9bbe0261183a5",
       "size": 5376
@@ -767,8 +787,8 @@
     },
     {
       "path": "docs/V267-visible-classification-shell.json",
-      "size": 67889,
-      "sha256": "60e1a3981a08d403abef01b484709163b2fc11e011dc9adbda88714c7ddecd75"
+      "sha256": "60e1a3981a08d403abef01b484709163b2fc11e011dc9adbda88714c7ddecd75",
+      "size": 67889
     },
     {
       "path": "docs/verification/a4-starter-additions-20260921.md",
@@ -777,8 +797,8 @@
     },
     {
       "path": "docs/verification/contract-archive-recovery-20260920.md",
-      "size": 4603,
-      "sha256": "79002167e70beb86e8806a798eab65a06cf3ad0dffe3bcba769b87c9344f2a0d"
+      "sha256": "79002167e70beb86e8806a798eab65a06cf3ad0dffe3bcba769b87c9344f2a0d",
+      "size": 4603
     },
     {
       "path": "docs/verification/contract-visibility-20260921.md",
@@ -842,8 +862,8 @@
     },
     {
       "path": "docs/verification/pr200-closure-run-20260918.md",
-      "size": 6911,
-      "sha256": "e18f1a5c5dcc592f3533dd4a287b42844a0816ec85b3c1f9c456b9679d51238b"
+      "sha256": "e18f1a5c5dcc592f3533dd4a287b42844a0816ec85b3c1f9c456b9679d51238b",
+      "size": 6911
     },
     {
       "path": "docs/verification/pr200-continuation-dialog-templates-20260920.md",
@@ -852,18 +872,18 @@
     },
     {
       "path": "docs/verification/pr200-repair-continuation-20260918.md",
-      "size": 4192,
-      "sha256": "5c43b9442d9d1caff79cedbea6f53d30bb0824b0ea116c9f2e823bfd67ec3980"
+      "sha256": "5c43b9442d9d1caff79cedbea6f53d30bb0824b0ea116c9f2e823bfd67ec3980",
+      "size": 4192
     },
     {
       "path": "docs/verification/pr200-session-and-live-review-20260918.md",
-      "size": 6349,
-      "sha256": "ea510be7e3a88177891c3e55da43f9c4c24b446a243653b6b27ef2eef73086b7"
+      "sha256": "ea510be7e3a88177891c3e55da43f9c4c24b446a243653b6b27ef2eef73086b7",
+      "size": 6349
     },
     {
       "path": "docs/verification/pr200-session-closure-20260918.md",
-      "size": 3404,
-      "sha256": "1ca80beeecce3dc515300c29a557f7ad61d4bd35f9bf9fb08743a3b6c6bc9b87"
+      "sha256": "1ca80beeecce3dc515300c29a557f7ad61d4bd35f9bf9fb08743a3b6c6bc9b87",
+      "size": 3404
     },
     {
       "path": "docs/verification/pr200-sql-and-live-continuation-20260918.md",
@@ -872,8 +892,8 @@
     },
     {
       "path": "docs/verification/pr321-property-runtime-20260925.md",
-      "size": 2684,
-      "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6"
+      "sha256": "df96c0df4d7790d6807f1708fa5f9c03c74387a7ab8c44040f1057cd7b7993d6",
+      "size": 2684
     },
     {
       "path": "docs/verification/property-contract-open-20261002.md",
@@ -887,8 +907,8 @@
     },
     {
       "path": "docs/verification/service-audit-2026-10-01.md",
-      "size": 6376,
-      "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b"
+      "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b",
+      "size": 6376
     },
     {
       "path": "docs/verification/simple-contract-upload-20261002.md",
@@ -1052,8 +1072,8 @@
     },
     {
       "path": "middleware.js",
-      "size": 639,
-      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029"
+      "sha256": "57acbef92567c5f2bf228bc537e4162773c54563717f4f4e67b6c7131d938029",
+      "size": 639
     },
     {
       "path": "package.json",
@@ -1141,6 +1161,11 @@
       "size": 1176
     },
     {
+      "path": "scripts/build-commercial-allocation-reconciliation.py",
+      "sha256": "626e5fddc0eaaeb3558368907026b1116c312f24deb7871097cf65afd4e0a08b",
+      "size": 8330
+    },
+    {
       "path": "scripts/build-hosted-archive-tests.mjs",
       "sha256": "72981da6486ff6fefe4ec4ef6e7bb5567aeb6c7699041cf10b67e912489f0245",
       "size": 2614
@@ -1156,9 +1181,19 @@
       "size": 5293
     },
     {
+      "path": "scripts/build-production-contact-reconciliation.py",
+      "sha256": "bf1aaea5e2982ca35cba862ec8503d204eefc6ebf1b9ed03766836cd7351e7be",
+      "size": 4872
+    },
+    {
+      "path": "scripts/build-production-rating-reconciliation.py",
+      "sha256": "70d4ebacf5d5a4ebe92c254339257f0383250d4f47ebbe5b63e1bbc0254bf8af",
+      "size": 3131
+    },
+    {
       "path": "scripts/build-vercel-preverify-tests.mjs",
-      "size": 807,
-      "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb"
+      "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb",
+      "size": 807
     },
     {
       "path": "scripts/build-vercel.mjs",
@@ -1192,8 +1227,8 @@
     },
     {
       "path": "scripts/install-v267-owner-feedback.mjs",
-      "size": 8955,
-      "sha256": "0b23030085d4cb1f98c1937fb283a6de0537766b14e77a8a797c49312c507152"
+      "sha256": "0b23030085d4cb1f98c1937fb283a6de0537766b14e77a8a797c49312c507152",
+      "size": 8955
     },
     {
       "path": "scripts/install-v267-property-ownership.mjs",
@@ -1241,6 +1276,16 @@
       "size": 828
     },
     {
+      "path": "scripts/verify-commercial-allocation-reconciliation.mjs",
+      "sha256": "9b33b8f0dc1d96ab0f8895b106b6bfb6ba9b679818e5bad3ee37592118ad1b90",
+      "size": 2608
+    },
+    {
+      "path": "scripts/verify-commercial-production-catalog.mjs",
+      "sha256": "de4366fd220ad51e6fe8c6661b33efd1524c85489a9ef9ad88369c8add9b61fd",
+      "size": 1942
+    },
+    {
       "path": "scripts/verify-deployment-target.mjs",
       "sha256": "4a79212602e68255c4c06e7b7b08a8ee59a01b54c1e7dbd41a8a2e325e022ab7",
       "size": 3968
@@ -1256,6 +1301,11 @@
       "size": 2550
     },
     {
+      "path": "scripts/verify-production-tenant-reconciliation.mjs",
+      "sha256": "36357366b653081a12764d13d359e1e74b8789c002c8dec70033caab209caff0",
+      "size": 2182
+    },
+    {
       "path": "scripts/verify-release-source.mjs",
       "sha256": "b31a302497c678db1108bc2b33d35ea558c3ddc16839e4f385b3172dfa33c1a9",
       "size": 1840
@@ -1267,13 +1317,13 @@
     },
     {
       "path": "secure-auth-bridge.js",
-      "size": 40190,
-      "sha256": "1af086ac439060ad88e63c8c28731373fd10a93503887b745d9651d7ede5cdad"
+      "sha256": "1af086ac439060ad88e63c8c28731373fd10a93503887b745d9651d7ede5cdad",
+      "size": 40190
     },
     {
       "path": "src/v267/api/operational-report.js",
-      "size": 2303,
-      "sha256": "1ed358fb337fe265e9f41d3203094aae5613a8efd9c420cd0832684cb17d6ce4"
+      "sha256": "1ed358fb337fe265e9f41d3203094aae5613a8efd9c420cd0832684cb17d6ce4",
+      "size": 2303
     },
     {
       "path": "src/v267/api/partner-session.js",
@@ -1292,8 +1342,8 @@
     },
     {
       "path": "src/v267/api/pdf-field-request.js",
-      "size": 2527,
-      "sha256": "5af4705490323d4d55864770f4ecaa20a077ff3da0f9c4af4a9671d392b24a79"
+      "sha256": "5af4705490323d4d55864770f4ecaa20a077ff3da0f9c4af4a9671d392b24a79",
+      "size": 2527
     },
     {
       "path": "src/v267/api/protected-pdf.js",
@@ -1301,9 +1351,14 @@
       "size": 1577
     },
     {
+      "path": "src/v267/api/report-filters.js",
+      "sha256": "6f68c0fc50c4d7352607d9f3932fe68742d371ac1ee5f1392f02fde8e54ac627",
+      "size": 2015
+    },
+    {
       "path": "src/v267/api/session.js",
-      "size": 18880,
-      "sha256": "51df36864abd3eb1c7e16003982c316f731d75fb18d1c06716193dd2fe025f4a"
+      "sha256": "51df36864abd3eb1c7e16003982c316f731d75fb18d1c06716193dd2fe025f4a",
+      "size": 18880
     },
     {
       "path": "src/v267/app-login-locale.js",
@@ -1322,8 +1377,8 @@
     },
     {
       "path": "src/v267/components/assistant-request.js",
-      "size": 799,
-      "sha256": "c8896a3f2746ef2ac9876e4e1a77c420a999f2b54fc82c94542130c9c4912e9f"
+      "sha256": "c8896a3f2746ef2ac9876e4e1a77c420a999f2b54fc82c94542130c9c4912e9f",
+      "size": 799
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1422,8 +1477,8 @@
     },
     {
       "path": "src/v267/components/legacy-maintenance-locale.js",
-      "size": 750,
-      "sha256": "cd1494f4097cc625b706774de46b6b47015a3d86965a4d8a126690803fcd5dd2"
+      "sha256": "cd1494f4097cc625b706774de46b6b47015a3d86965a4d8a126690803fcd5dd2",
+      "size": 750
     },
     {
       "path": "src/v267/components/live-dashboard-data.js",
@@ -1432,8 +1487,8 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "size": 3356,
-      "sha256": "ea22d2776ff965f3782f9df8ad4e3270fb676100195c2036df64b4a9106f73b1"
+      "sha256": "ea22d2776ff965f3782f9df8ad4e3270fb676100195c2036df64b4a9106f73b1",
+      "size": 3356
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
@@ -1447,13 +1502,18 @@
     },
     {
       "path": "src/v267/components/navigation-import.js",
-      "size": 1085,
-      "sha256": "f5d0e378cce3857b7d41d0c583979ada94e08f09721e708c83d5bf36e3c49d9c"
+      "sha256": "f5d0e378cce3857b7d41d0c583979ada94e08f09721e708c83d5bf36e3c49d9c",
+      "size": 1085
     },
     {
       "path": "src/v267/components/official-form-fields.js",
       "sha256": "175f07008c6d7d6ac29e84e89be8926b1cf950cf8e6b702f55f0b962e6a88655",
       "size": 4647
+    },
+    {
+      "path": "src/v267/components/operational-translations.js",
+      "sha256": "98646b8c0d0c37449226ab1ccea30111388a950e4eb08a18f53cd018f4c5dbb1",
+      "size": 425499
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -1542,13 +1602,23 @@
     },
     {
       "path": "src/v267/components/property-record-navigation.js",
-      "size": 1416,
-      "sha256": "c663508be27561cd6688b0e5e72cde4e65e5be9c9d65b8798ae26af6988f8aec"
+      "sha256": "c663508be27561cd6688b0e5e72cde4e65e5be9c9d65b8798ae26af6988f8aec",
+      "size": 1416
     },
     {
       "path": "src/v267/components/rental-templates.js",
       "sha256": "e1575d25bd5683cf340bf30743ffc411538bdb3029206633b67d854224d48270",
       "size": 97405
+    },
+    {
+      "path": "src/v267/components/report-filter-translations.js",
+      "sha256": "bcd1f26c013f4cfa3553d19febe6d3eae79a80ab4ba254de11c290eb5373fb86",
+      "size": 2993
+    },
+    {
+      "path": "src/v267/components/report-filters.js",
+      "sha256": "44188e58a6685f100d10d5317f84cf93a66eb5175b6a6553a19377de760c0c50",
+      "size": 862
     },
     {
       "path": "src/v267/components/scan-image.js",
@@ -1562,8 +1632,8 @@
     },
     {
       "path": "src/v267/components/search-events.js",
-      "size": 1060,
-      "sha256": "4089767a6a120efe603b9b1b674d70f7c58e0bc5ea7cb9b63a47bae03d5fcbf7"
+      "sha256": "4089767a6a120efe603b9b1b674d70f7c58e0bc5ea7cb9b63a47bae03d5fcbf7",
+      "size": 1060
     },
     {
       "path": "src/v267/components/service-directory.js",
@@ -1577,18 +1647,18 @@
     },
     {
       "path": "src/v267/components/service-readiness.js",
-      "size": 888,
-      "sha256": "3d9ab87f5cf8e81e280a893fc85122716f485513d01852b0e83a662592b466f3"
+      "sha256": "3d9ab87f5cf8e81e280a893fc85122716f485513d01852b0e83a662592b466f3",
+      "size": 888
     },
     {
       "path": "src/v267/components/shell-translations.js",
-      "size": 84586,
-      "sha256": "c887b19a5df2c6a8d99687d5243d61ee502045f6ed43100f3bcd7728cc9725c2"
+      "sha256": "c887b19a5df2c6a8d99687d5243d61ee502045f6ed43100f3bcd7728cc9725c2",
+      "size": 84586
     },
     {
       "path": "src/v267/components/stored-visual-review.js",
-      "size": 6123,
-      "sha256": "28e29bdbb3368be2d7f0cb715a6f9e9923334cf4f915fc1f038a9dfdbb19677e"
+      "sha256": "28e29bdbb3368be2d7f0cb715a6f9e9923334cf4f915fc1f038a9dfdbb19677e",
+      "size": 6123
     },
     {
       "path": "src/v267/components/template-property-logo.js",
@@ -1602,8 +1672,8 @@
     },
     {
       "path": "src/v267/components/touch-navigation.js",
-      "size": 2426,
-      "sha256": "21ce4624eea0e97e99ac4333fdeed888ba5968cb47a2c16ea3aa8a8a66dd5fdf"
+      "sha256": "21ce4624eea0e97e99ac4333fdeed888ba5968cb47a2c16ea3aa8a8a66dd5fdf",
+      "size": 2426
     },
     {
       "path": "src/v267/components/translations.js",
@@ -1632,13 +1702,13 @@
     },
     {
       "path": "src/v267/components/visible-translations-a.js",
-      "size": 175624,
-      "sha256": "fc1c2d53dfa2fd17c2b3f42c14c688a120714da7e8979b47f82221e6aade1dc4"
+      "sha256": "fc1c2d53dfa2fd17c2b3f42c14c688a120714da7e8979b47f82221e6aade1dc4",
+      "size": 175624
     },
     {
       "path": "src/v267/components/visible-translations-b2.js",
-      "size": 96911,
-      "sha256": "5549a9a89f7108497071880bfddcfaf6408ad3a5c27e195548982f2d75a41ca5"
+      "sha256": "5549a9a89f7108497071880bfddcfaf6408ad3a5c27e195548982f2d75a41ca5",
+      "size": 96911
     },
     {
       "path": "src/v267/components/workspace-icons.js",
@@ -1667,8 +1737,8 @@
     },
     {
       "path": "src/v267/domain/hr-lifecycle.js",
-      "size": 3161,
-      "sha256": "f5da2463a5eea61539962526537dfc9f4d6ea82da5484e07d98cc9cd515514c4"
+      "sha256": "f5da2463a5eea61539962526537dfc9f4d6ea82da5484e07d98cc9cd515514c4",
+      "size": 3161
     },
     {
       "path": "src/v267/domain/kuwait-calendar.js",
@@ -1707,8 +1777,8 @@
     },
     {
       "path": "src/v267/domain/pdf-field-values.js",
-      "size": 1439,
-      "sha256": "c38e7362e1087387f1a5a7c0033cb7ba2ed2046857421204656b1930f8961a3f"
+      "sha256": "c38e7362e1087387f1a5a7c0033cb7ba2ed2046857421204656b1930f8961a3f",
+      "size": 1439
     },
     {
       "path": "src/v267/domain/pdf-linked-fields.js",
@@ -1722,8 +1792,8 @@
     },
     {
       "path": "src/v267/domain/property-presentation.js",
-      "size": 4947,
-      "sha256": "521d12d925a7b4f9b090b4c08c37aaf04a6b7d0a47acc202cd7a1f998cf1f6a9"
+      "sha256": "521d12d925a7b4f9b090b4c08c37aaf04a6b7d0a47acc202cd7a1f998cf1f6a9",
+      "size": 4947
     },
     {
       "path": "src/v267/domain/rental-document-cycle.js",
@@ -1737,8 +1807,8 @@
     },
     {
       "path": "src/v267/domain/rental-template-starters.js",
-      "size": 12566,
-      "sha256": "5475715493ff226a0f507419fd858eeeb1487452dbdac10be663a02cc032a598"
+      "sha256": "5475715493ff226a0f507419fd858eeeb1487452dbdac10be663a02cc032a598",
+      "size": 12566
     },
     {
       "path": "src/v267/domain/salary-slip.js",
@@ -1767,8 +1837,8 @@
     },
     {
       "path": "src/v267/domain/tenant-final-release-starter.js",
-      "size": 7690,
-      "sha256": "38e4be810d8515cfefc0979ee8a02239c555cb01eb3b4678bedb8f24b1c450e8"
+      "sha256": "38e4be810d8515cfefc0979ee8a02239c555cb01eb3b4678bedb8f24b1c450e8",
+      "size": 7690
     },
     {
       "path": "src/v267/domain/vacating-review.js",
@@ -1872,8 +1942,8 @@
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
-      "size": 20547,
-      "sha256": "5d814429eb68578a7db1d37f7aec13b7d146bab401d4688d112334d03fa5d6e8"
+      "sha256": "5d814429eb68578a7db1d37f7aec13b7d146bab401d4688d112334d03fa5d6e8",
+      "size": 20547
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -1932,8 +2002,13 @@
     },
     {
       "path": "src/v267/pages/owner-experience-settings.js",
-      "size": 16649,
-      "sha256": "89886004abf828d78b83ae2bfcaa39657647a872402affe0f640dfd409716800"
+      "sha256": "89886004abf828d78b83ae2bfcaa39657647a872402affe0f640dfd409716800",
+      "size": 16649
+    },
+    {
+      "path": "src/v267/pages/owner-report.js",
+      "sha256": "7329650c04af846dba97ffa553376eb49ad261ef168e47fdc9d4d8498c400729",
+      "size": 5270
     },
     {
       "path": "src/v267/pages/partner-access.js",
@@ -1957,13 +2032,13 @@
     },
     {
       "path": "src/v267/pages/property-controls.js",
-      "size": 17647,
-      "sha256": "71daeac3fc37fdd05c75b3a5c25674248245eed3fc2e1b13f053780a84d5b3bc"
+      "sha256": "71daeac3fc37fdd05c75b3a5c25674248245eed3fc2e1b13f053780a84d5b3bc",
+      "size": 17647
     },
     {
       "path": "src/v267/pages/property-cost-allocation.js",
-      "size": 11746,
-      "sha256": "ebf0b8970caa5ca6e36008a9c36b11a4f6a5ada5cb622256f0d1b4352049b1ec"
+      "sha256": "ebf0b8970caa5ca6e36008a9c36b11a4f6a5ada5cb622256f0d1b4352049b1ec",
+      "size": 11746
     },
     {
       "path": "src/v267/pages/property-hub.js",
@@ -1972,8 +2047,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "size": 35362,
-      "sha256": "adeed4517545d40875070890b3ec63d17d2446aea5cdc09975d8dd089354bc0f"
+      "sha256": "adeed4517545d40875070890b3ec63d17d2446aea5cdc09975d8dd089354bc0f",
+      "size": 35362
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -1987,8 +2062,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "size": 22830,
-      "sha256": "fc244779826f65abdf12ed8f52b1e676636a5ef83fb99132b3630d159fb3d766"
+      "sha256": "fc244779826f65abdf12ed8f52b1e676636a5ef83fb99132b3630d159fb3d766",
+      "size": 22830
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -1997,8 +2072,8 @@
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
-      "size": 28396,
-      "sha256": "f27ddd54970d538d433604c881a171392d82606cc1f95091c09b3a4659ae57d9"
+      "sha256": "f27ddd54970d538d433604c881a171392d82606cc1f95091c09b3a4659ae57d9",
+      "size": 28396
     },
     {
       "path": "src/v267/pages/security-center.js",
@@ -2017,8 +2092,8 @@
     },
     {
       "path": "src/v267/pages/unit-entry.js",
-      "size": 1680,
-      "sha256": "d5ac7cec812b1d3cf2ac169431ae6bfd8e8f61ff6cacc203fac2cffdbb02586b"
+      "sha256": "d5ac7cec812b1d3cf2ac169431ae6bfd8e8f61ff6cacc203fac2cffdbb02586b",
+      "size": 1680
     },
     {
       "path": "src/v267/pages/unit-readiness.js",
@@ -2047,8 +2122,8 @@
     },
     {
       "path": "src/v267/platform-locale-runtime.js",
-      "size": 15106,
-      "sha256": "acc37cce03fc21c416fdd7ad8e4da443030e3b30906bc872e908ba28df3d44de"
+      "sha256": "acc37cce03fc21c416fdd7ad8e4da443030e3b30906bc872e908ba28df3d44de",
+      "size": 15106
     },
     {
       "path": "src/v267/premium-navigation-runtime.js",
@@ -2122,8 +2197,8 @@
     },
     {
       "path": "src/v267/unified-layout-runtime.js",
-      "size": 28231,
-      "sha256": "95b1f51dfe3eb260ae42b14548d79703d7f7e772f35b43a33d32bac14f6a81be"
+      "sha256": "95b1f51dfe3eb260ae42b14548d79703d7f7e772f35b43a33d32bac14f6a81be",
+      "size": 28231
     },
     {
       "path": "src/v267/workspace.js",
@@ -2201,6 +2276,66 @@
       "size": 3798
     },
     {
+      "path": "staging-database/hosted-test/completion-current/01-maintenance_workflow.sql",
+      "sha256": "9f90f60586040dff6c56f4dd46b1c288b7844a021f59e8fb9b209a2f05f5eb60",
+      "size": 22546
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/02-maintenance_attachments.sql",
+      "sha256": "6826bb7a0709171daab26b0e05d876f505688356e935a6249f42acbe4ce10f06",
+      "size": 18695
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/03-tenant_rating_quarters.sql",
+      "sha256": "396650d07aaa5406954f3feb908c5a9cac8125ec84c820f13944b982159d3f4a",
+      "size": 126331
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/04-tenant_contact_unification.sql",
+      "sha256": "cb944588f15edabab14f4d03c4f101c292ca15df1fabaae0b147fe6b72a815d2",
+      "size": 16414
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/05-work_order_request_link.sql",
+      "sha256": "a05c7b66c914d072997ac9d8cded118b446d58f13d55fd958bfc5ea0779f90cb",
+      "size": 17657
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/06-commercial_sales.sql",
+      "sha256": "0a3d89759d12f62064dd4a2305130b277a21fd6eece4b870ee6faeb42f34d56d",
+      "size": 24412
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/07-commercial_sales_vacating.sql",
+      "sha256": "d340ba1181b61eb4a86a25395de541b9acf3c36be4caec5288edaf2821f1f902",
+      "size": 13445
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/08-collection_account_management.sql",
+      "sha256": "85c88e994ccef73baa4e2d2b1a732c628466b47e21b3ba287cfae671b5d5f01b",
+      "size": 18046
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/09-vendor_optional_identity.sql",
+      "sha256": "d51b2d3c23ab925fa1d61f3bac1f1a64efda319f6c32bf1205608d9518d6b8b7",
+      "size": 8622
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/README.md",
+      "sha256": "c9e0293329550161ee4d0afdd3b55604ed45d4e525728068eb0025efe6eccd2a",
+      "size": 1908
+    },
+    {
+      "path": "staging-database/hosted-test/completion-current/manifest.json",
+      "sha256": "965515e54bc13ec9b9789a5a9826c6bb83453c25b59689d96a429a2062e5ab1d",
+      "size": 3686
+    },
+    {
+      "path": "staging-database/hosted-test/current-fixtures.py",
+      "sha256": "c5e2d2771ab19e8915646ac86c15fcd10a9805cda16609bba02706a3e902e37a",
+      "size": 6757
+    },
+    {
       "path": "staging-database/hosted-test/final_gap_register.sql",
       "sha256": "b84fa5565f8cd37546e79fb581082cf0d18fbd5e9549e1d498d680b410ee2457",
       "size": 11380
@@ -2251,6 +2386,21 @@
       "size": 3980
     },
     {
+      "path": "staging-database/local-test/application-schema-catalog.sql",
+      "sha256": "dcc1f5e5e1c3bbe13156a8c4ee155a47bb58509685f07aa1016a7736cdde764b",
+      "size": 3661
+    },
+    {
+      "path": "staging-database/local-test/fixtures/commercial-production-gap.sql",
+      "sha256": "974c96551d44879b144595269bd70a73b422f4c8606938e61347de83e98b3b51",
+      "size": 5991
+    },
+    {
+      "path": "staging-database/local-test/fixtures/commercial-source-drift.sql",
+      "sha256": "c6f593aa3e0cc3fce91ee35a5735056b82ca2ebda680d473e5849be0b27345ce",
+      "size": 150
+    },
+    {
       "path": "staging-database/local-test/fixtures/commercial-vacating-existing.sql",
       "sha256": "51ab7d85ca327cf9acd0c7deb686b6308359a2a6657237d577c818c555f80ea7",
       "size": 8330
@@ -2296,6 +2446,16 @@
       "size": 3370
     },
     {
+      "path": "staging-database/local-test/fixtures/salary-upgrade-after.sql",
+      "sha256": "3298cb34cce7cdfa8706c8b5762416adb8ef4cee54b755a81924379caf02fc77",
+      "size": 1087
+    },
+    {
+      "path": "staging-database/local-test/fixtures/salary-upgrade-before.sql",
+      "sha256": "11cd4c9eb5c5d242ac1981f7e397bd7d26a1ac7c0a1a107742ed18245bb5a6b1",
+      "size": 444
+    },
+    {
       "path": "staging-database/local-test/fixtures/unit-readiness-existing.sql",
       "sha256": "41fece661d082fcd43b7d49e4d4d3df4dfa7bee5bc82f28556ec366b06b35ac5",
       "size": 5940
@@ -2306,14 +2466,19 @@
       "size": 10315
     },
     {
+      "path": "staging-database/local-test/run-hr-cost-allocation.mjs",
+      "sha256": "869378207c8a080d1bbad4918f5f149130578d29f4618ac7cb6011c1485f6033",
+      "size": 2321
+    },
+    {
       "path": "staging-database/local-test/run-isolated.mjs",
-      "size": 6266,
-      "sha256": "f434eeb9814e7129f0e9bdee04bc85ec97a861fd60409c534f5907387dc0a593"
+      "sha256": "a6d262e3e369d97baffb15fd0edbdd6ea013f01b69d07aa8e8593ad53d2595dd",
+      "size": 9073
     },
     {
       "path": "staging-database/local-test/run-manager-contract-workflow.sh",
-      "size": 556,
-      "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de"
+      "sha256": "bf7442f8b9ee95314c6a9cf7213c258dab8667161ace4e33cd608e8dfcdce3de",
+      "size": 556
     },
     {
       "path": "staging-database/local-test/run-pdf-contract-bindings.mjs",
@@ -2331,9 +2496,19 @@
       "size": 3145
     },
     {
+      "path": "staging-database/local-test/run-salary-numeric-corrections.mjs",
+      "sha256": "e0776377dabccba41574600c2db7a5d38f7977b7dd13ceef1189057e990f06da",
+      "size": 4058
+    },
+    {
+      "path": "staging-database/local-test/run-salary-numeric-vouchers.mjs",
+      "sha256": "46b4bcae3a98542f79bdff41831ad50360cbe9c8a4973c5a7173c6f870933d24",
+      "size": 2988
+    },
+    {
       "path": "staging-database/local-test/run-service-schema-regression.mjs",
-      "size": 2434,
-      "sha256": "089285769d04874f2878ec1a1e1fbd4600f8b71518a26020700e8cec8b3a22d8"
+      "sha256": "089285769d04874f2878ec1a1e1fbd4600f8b71518a26020700e8cec8b3a22d8",
+      "size": 2434
     },
     {
       "path": "staging-database/local-test/run-template-library.sh",
@@ -2341,9 +2516,84 @@
       "size": 1711
     },
     {
+      "path": "staging-database/local-test/schema-catalog-production-2026-10-05.json",
+      "sha256": "7246f0ce474919570b19dfb2ffed37c2f8e464addcf25714714b53c5b38a9c64",
+      "size": 1834125
+    },
+    {
       "path": "staging-database/local-test/stage-c-backup-selftest.mjs",
       "sha256": "c84642426bcee9532520dfea568bb0a03aca05ccfda30f91da3c24bada9b5659",
       "size": 2366
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/README.md",
+      "sha256": "0ad74bbd5d865c5960d88a2a43d3f9b8c338769c8352dc505d06c91ec191b46c",
+      "size": 7815
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/acceptance.sql",
+      "sha256": "153aed6c67a3cb016095b9346ff028d36795baf5ea6af7bc6d5fb8a22235e0f6",
+      "size": 12605
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/account-status-candidate.sql",
+      "sha256": "d1c28577ce742a65fc645771d7afd634f7ab4332cbf7cd331c5656c143eaf892",
+      "size": 891
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/candidate.sql",
+      "sha256": "14d3c483a9bc79605f29fd0bf5141c76c84d062f2589b492c5853ae6597e234b",
+      "size": 50428
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/commercial_collections.sql",
+      "sha256": "241b9f26692969617adef1e7fb69734245eb797096583caedd6e5b407201d1f0",
+      "size": 36460
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/commercial_collections_legacy_compat.sql",
+      "sha256": "fbad3e2239b07e2c66641b2426e169ad021149b18e923f2028f7239b05bf639a",
+      "size": 16539
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/manifest.json",
+      "sha256": "39afb318d8adc3145a4ea6bd8075ce3afd2f6f527f691a130e506a3348f4cc14",
+      "size": 2788
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/README.md",
+      "sha256": "10d92b219303409171e719bb3f552d0605126618db1ce1845cdc458e5ade4ef5",
+      "size": 3038
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/candidate.sql",
+      "sha256": "580323b9e119110edce2b7da5eb7f43f0d7b0cccbb08fb88b86302a99a62f08e",
+      "size": 21953
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/history-after.sql",
+      "sha256": "514b8d890fdb20abacfb016159199253957ebd8a01639d5c0a6bea73f94cedbb",
+      "size": 1150
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/history-before.sql",
+      "sha256": "b22864ef03c4bafb1fd6f6b7651d3b18a9496aa092b918b738b48be5f153a8a9",
+      "size": 1006
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-contact/manifest.json",
+      "sha256": "d1343dcad888e077a0e6f848bdcf21d77265b1dff25ffa133cfadd77cbba2bc7",
+      "size": 1296
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-rating/candidate.sql",
+      "sha256": "f2fb6f6776a592d6332c8d9d5e080574b40b745163ba394f62056853f9aae2bb",
+      "size": 18360
+    },
+    {
+      "path": "staging-database/reconciliation/tenant-rating/manifest.json",
+      "sha256": "bbadc913ad9d8957ef7c0b6c61c9f9668954593ba030f555fe9ef7d846722701",
+      "size": 574
     },
     {
       "path": "staging-database/sql/collection-account-management.sql",
@@ -2417,8 +2667,8 @@
     },
     {
       "path": "staging-database/sql/finance-owner-controls-b3.sql",
-      "size": 34405,
-      "sha256": "abd655e84a65593fb6d511457460fe867ae9e38281a02c1922d299511310aa57"
+      "sha256": "abd655e84a65593fb6d511457460fe867ae9e38281a02c1922d299511310aa57",
+      "size": 34405
     },
     {
       "path": "staging-database/sql/financial-archive.sql",
@@ -2436,9 +2686,14 @@
       "size": 22972
     },
     {
+      "path": "staging-database/sql/hr-cost-allocation-integrity.sql",
+      "sha256": "a311f72badbda4de2e1dae573ea4297604f5be04234895ab52d3cf4257094bc1",
+      "size": 5654
+    },
+    {
       "path": "staging-database/sql/import-dhahawi-source-units.sql",
-      "size": 4098,
-      "sha256": "cb2234a905c6f2723d587c800bf21100f279780f0c053be539ee3accc27406d6"
+      "sha256": "cb2234a905c6f2723d587c800bf21100f279780f0c053be539ee3accc27406d6",
+      "size": 4098
     },
     {
       "path": "staging-database/sql/imported-tenant-edit.sql",
@@ -2622,8 +2877,8 @@
     },
     {
       "path": "staging-database/sql/pdf-field-inputs.sql",
-      "size": 9325,
-      "sha256": "ee5516b19ddb030300ad02589f0b2f94e30fc1bab8f0c09128bc3f3c717cde51"
+      "sha256": "ee5516b19ddb030300ad02589f0b2f94e30fc1bab8f0c09128bc3f3c717cde51",
+      "size": 9325
     },
     {
       "path": "staging-database/sql/pdf-field-position-lock.sql",
@@ -2652,8 +2907,8 @@
     },
     {
       "path": "staging-database/sql/property-location-channels-candidate.sql",
-      "size": 10188,
-      "sha256": "9c416c86e54d3188eed3e58837f8b1f7537e3f4b3f6814e1fad50d746738bf5e"
+      "sha256": "9c416c86e54d3188eed3e58837f8b1f7537e3f4b3f6814e1fad50d746738bf5e",
+      "size": 10188
     },
     {
       "path": "staging-database/sql/property-location-channels-rpc-rollback.sql",
@@ -2667,13 +2922,13 @@
     },
     {
       "path": "staging-database/sql/property-owner-controls-property-type-fix.sql",
-      "size": 844,
-      "sha256": "336ad7e7fcd219f562fc1adfb16da5b812f185c4572fa122a730d3abe0c586d7"
+      "sha256": "336ad7e7fcd219f562fc1adfb16da5b812f185c4572fa122a730d3abe0c586d7",
+      "size": 844
     },
     {
       "path": "staging-database/sql/property-owner-controls.sql",
-      "size": 32419,
-      "sha256": "f74c45cde69fe29ca26e3e193afe65bdb783e0feabe04e0259908bdbdab2faa0"
+      "sha256": "f74c45cde69fe29ca26e3e193afe65bdb783e0feabe04e0259908bdbdab2faa0",
+      "size": 32419
     },
     {
       "path": "staging-database/sql/reminder-contract-balance.sql",
@@ -2726,9 +2981,24 @@
       "size": 852
     },
     {
+      "path": "staging-database/sql/salary-numeric-corrections.sql",
+      "sha256": "1a9eb5ea0a4230abf29faa0bc98e694bdef899af9bb42046b5035f2fba9e09d2",
+      "size": 926
+    },
+    {
+      "path": "staging-database/sql/salary-numeric-vouchers.sql",
+      "sha256": "fa30554b42b158ecb84c9437675a5e19323d7b8eae91dc50ceb11d37b9dca3d6",
+      "size": 1059
+    },
+    {
       "path": "staging-database/sql/salary-slip-dhahawi.sql",
       "sha256": "eab15fec0c89f9954abe80a82bc512ec0f0cec1ede3502a4b07c65259c5ae053",
       "size": 22171
+    },
+    {
+      "path": "staging-database/sql/saved-report-filters.sql",
+      "sha256": "a87df34221cd8cbfd3037e684348bb5d076078403d422dbf547638c68967002e",
+      "size": 5026
     },
     {
       "path": "staging-database/sql/source-lease-review.sql",
@@ -3247,8 +3517,8 @@
     },
     {
       "path": "staging-database/supabase/migrations/20261001153500_stage_c_storage_restore_finalize.sql",
-      "size": 4336,
-      "sha256": "0596ff8acd3a65559280ec92ca9327e21e53cdb912fc74436312ec25ef825a8e"
+      "sha256": "0596ff8acd3a65559280ec92ca9327e21e53cdb912fc74436312ec25ef825a8e",
+      "size": 4336
     },
     {
       "path": "staging-database/supabase/migrations/20261003165942_v267_pdf_editor_drafts.sql",
@@ -3272,8 +3542,8 @@
     },
     {
       "path": "staging-database/supabase/migrations/20261004062402_v267_pdf_field_inputs.sql",
-      "size": 9325,
-      "sha256": "ee5516b19ddb030300ad02589f0b2f94e30fc1bab8f0c09128bc3f3c717cde51"
+      "sha256": "ee5516b19ddb030300ad02589f0b2f94e30fc1bab8f0c09128bc3f3c717cde51",
+      "size": 9325
     },
     {
       "path": "staging-database/supabase/migrations/20261004065734_v267_pdf_staff_filling.sql",
@@ -3289,6 +3559,26 @@
       "path": "staging-database/supabase/migrations/20261004093424_v267_pdf_contract_bindings.sql",
       "sha256": "f44813952af8727b37edc5f79e5b3f71707f060497c5c05bfdbb85e516c1696c",
       "size": 8940
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004202056_v267_salary_numeric_vouchers.sql",
+      "sha256": "fa30554b42b158ecb84c9437675a5e19323d7b8eae91dc50ceb11d37b9dca3d6",
+      "size": 1059
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004203316_v267_salary_numeric_corrections.sql",
+      "sha256": "1a9eb5ea0a4230abf29faa0bc98e694bdef899af9bb42046b5035f2fba9e09d2",
+      "size": 926
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004210754_v267_hr_cost_allocation_integrity.sql",
+      "sha256": "a311f72badbda4de2e1dae573ea4297604f5be04234895ab52d3cf4257094bc1",
+      "size": 5654
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261004212239_v267_saved_report_filters.sql",
+      "sha256": "a87df34221cd8cbfd3037e684348bb5d076078403d422dbf547638c68967002e",
+      "size": 5026
     },
     {
       "path": "staging-database/tests/collection_account_management.sql",
@@ -3389,6 +3679,11 @@
       "path": "staging-database/tests/financial_register.sql",
       "sha256": "f8f3f54dfa57a8c66741b5a227526d0b45246e3ea708bcd21cda3901ef1c97ed",
       "size": 10386
+    },
+    {
+      "path": "staging-database/tests/hr_cost_allocation_integrity.sql",
+      "sha256": "c742434f2d1685ab477e3548ba03e9327fe6ffdaa0dd6ea2a801078c7bf6f302",
+      "size": 7129
     },
     {
       "path": "staging-database/tests/hr_lifecycle_cycle.sql",
@@ -3522,8 +3817,8 @@
     },
     {
       "path": "staging-database/tests/pdf-staff-filling-hosted.sql",
-      "size": 8240,
-      "sha256": "df6f3ace37151e8b324321cdfa76036648cb93f2f98562176f6e1ad51864b607"
+      "sha256": "df6f3ace37151e8b324321cdfa76036648cb93f2f98562176f6e1ad51864b607",
+      "size": 8240
     },
     {
       "path": "staging-database/tests/pdf-template-versions-hosted.sql",
@@ -3576,9 +3871,19 @@
       "size": 9187
     },
     {
+      "path": "staging-database/tests/salary_numeric_vouchers.sql",
+      "sha256": "fb39b8257df6c518094f43819ff015683695a1e8cf13d70faf49fd380e9f1680",
+      "size": 2569
+    },
+    {
       "path": "staging-database/tests/salary_slip.sql",
       "sha256": "4deb97b9ef7d9d77d0110e3d649b98152c93d343acba8cf198bd8eaef5f985a9",
       "size": 10991
+    },
+    {
+      "path": "staging-database/tests/saved_report_filters.sql",
+      "sha256": "ed5acdd7d4c25d2d09f7403da3dc91783617e1fb5433dfef95126f61d7acb4dc",
+      "size": 6182
     },
     {
       "path": "staging-database/tests/source_lease_review_transaction.sql",
@@ -3602,8 +3907,8 @@
     },
     {
       "path": "staging-database/tests/staff_property_scope.sql",
-      "size": 26946,
-      "sha256": "9c59d27211fe44301c2f2b961012eb709447b5af915d12aa45cf6c3315322b1b"
+      "sha256": "9c59d27211fe44301c2f2b961012eb709447b5af915d12aa45cf6c3315322b1b",
+      "size": 26946
     },
     {
       "path": "staging-database/tests/template_library_archive.sql",
@@ -3731,19 +4036,14 @@
       "size": 1951
     },
     {
-      "path": "supabase-adapter.js",
-      "sha256": "eb0ca88d009577dc4839eadd6e38e5e6f90c25ec610afea8a1f977d402e1b115",
-      "size": 27663
-    },
-    {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 11343,
-      "sha256": "fcc8d57ea470591381f4cc55fc1f389526c21733e9076d2a43e1a1b98c5b4365"
+      "sha256": "fcc8d57ea470591381f4cc55fc1f389526c21733e9076d2a43e1a1b98c5b4365",
+      "size": 11343
     },
     {
       "path": "supabase/functions/stage-c-storage-receiver-20261001/index.ts",
-      "size": 5644,
-      "sha256": "71cb84ac5b860869dbf44945d4f5e670eb7d7f4cd7492b6584377563a6cefe25"
+      "sha256": "71cb84ac5b860869dbf44945d4f5e670eb7d7f4cd7492b6584377563a6cefe25",
+      "size": 5644
     },
     {
       "path": "supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql",
@@ -3796,6 +4096,11 @@
       "size": 4916
     },
     {
+      "path": "supabase-adapter.js",
+      "sha256": "eb0ca88d009577dc4839eadd6e38e5e6f90c25ec610afea8a1f977d402e1b115",
+      "size": 27663
+    },
+    {
       "path": "sw.js",
       "sha256": "469e24f34e5310e52f31c5d2c6c701cba5f4320ef2b883fcdd2d45f250b61889",
       "size": 887
@@ -3812,8 +4117,8 @@
     },
     {
       "path": "tests/assistant-request.test.mjs",
-      "size": 4943,
-      "sha256": "1c951b84635b9fac704e76acb0ddd09b4abd8d32aa306a044857b0afc630f767"
+      "sha256": "1c951b84635b9fac704e76acb0ddd09b4abd8d32aa306a044857b0afc630f767",
+      "size": 4943
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
@@ -3877,8 +4182,8 @@
     },
     {
       "path": "tests/github-preview-unique-url.test.cjs",
-      "size": 1582,
-      "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a"
+      "sha256": "6c675307f5a80bbb2be62da73510f0b27786f3eb362b37bc2cfb99ea6bfee07a",
+      "size": 1582
     },
     {
       "path": "tests/helpers/home-responsiveness-diagnostics.mjs",
@@ -3927,8 +4232,8 @@
     },
     {
       "path": "tests/operational-report-request.test.mjs",
-      "size": 3981,
-      "sha256": "846bf6f50887225263ab4be2d1b44cf5691c984af53b6710873e60438d75bf47"
+      "sha256": "846bf6f50887225263ab4be2d1b44cf5691c984af53b6710873e60438d75bf47",
+      "size": 3981
     },
     {
       "path": "tests/outbound_adapters_test.py",
@@ -3962,13 +4267,13 @@
     },
     {
       "path": "tests/property-record-navigation.test.mjs",
-      "size": 3343,
-      "sha256": "ef135ff50aa8d7bd1269c50a72477ef34c801ac1af69aa6c9e6703d8e0732a78"
+      "sha256": "ef135ff50aa8d7bd1269c50a72477ef34c801ac1af69aa6c9e6703d8e0732a78",
+      "size": 3343
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "size": 12072,
-      "sha256": "760573861eff907a9fa6d64e9c94b7a99615f0d9ae14eaaf793edd42f7aa9129"
+      "sha256": "760573861eff907a9fa6d64e9c94b7a99615f0d9ae14eaaf793edd42f7aa9129",
+      "size": 12072
     },
     {
       "path": "tests/property_statement_test.py",
@@ -4027,8 +4332,8 @@
     },
     {
       "path": "tests/search-events.test.mjs",
-      "size": 3768,
-      "sha256": "f160ffa97d3c10a495283b2bf12f71b7da6ca68aa205757136b98baf2918f1c1"
+      "sha256": "f160ffa97d3c10a495283b2bf12f71b7da6ca68aa205757136b98baf2918f1c1",
+      "size": 3768
     },
     {
       "path": "tests/secure-navigation.test.cjs",
@@ -4052,13 +4357,13 @@
     },
     {
       "path": "tests/touch-navigation.test.mjs",
-      "size": 7825,
-      "sha256": "deef30eb6470b78b7cee300ea635484847f67890bec2df9a0f3e0782c674b137"
+      "sha256": "deef30eb6470b78b7cee300ea635484847f67890bec2df9a0f3e0782c674b137",
+      "size": 7825
     },
     {
       "path": "tests/v202-property-os.test.cjs",
-      "size": 186824,
-      "sha256": "0e86c68b1958fae5210ae6ef1536f14c60af78107229e6cff24656b13250473a"
+      "sha256": "0e86c68b1958fae5210ae6ef1536f14c60af78107229e6cff24656b13250473a",
+      "size": 186824
     },
     {
       "path": "tests/v205-click-routing.test.cjs",
@@ -4092,8 +4397,8 @@
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
-      "size": 8308,
-      "sha256": "ee4597686ed1b07b7d5814265bba99ffa7e5b1298a39ebbb5a64f57dcfe059b9"
+      "sha256": "ee4597686ed1b07b7d5814265bba99ffa7e5b1298a39ebbb5a64f57dcfe059b9",
+      "size": 8308
     },
     {
       "path": "tests/v211-follow-up-center.test.cjs",
@@ -4137,13 +4442,13 @@
     },
     {
       "path": "tests/v267-app-login-locale.test.mjs",
-      "size": 4497,
-      "sha256": "c5bc3a477d5239b0a87eac01fe2c1f23e261778096ad797c2c92fb0f822bcca9"
+      "sha256": "c5bc3a477d5239b0a87eac01fe2c1f23e261778096ad797c2c92fb0f822bcca9",
+      "size": 4497
     },
     {
       "path": "tests/v267-auth-error-classification.test.cjs",
-      "size": 1874,
-      "sha256": "983dd4e2ff331384361d5f5e2efbdb140f6fe5fc7adf54c6bd0d4bcc1af7875a"
+      "sha256": "983dd4e2ff331384361d5f5e2efbdb140f6fe5fc7adf54c6bd0d4bcc1af7875a",
+      "size": 1874
     },
     {
       "path": "tests/v267-auth-repair.test.cjs",
@@ -4212,8 +4517,8 @@
     },
     {
       "path": "tests/v267-contract-entry-routing.test.mjs",
-      "size": 3154,
-      "sha256": "341638d598588f783bd8207d2165b3449aa8c1efa67add8c18798271ce3bbf92"
+      "sha256": "341638d598588f783bd8207d2165b3449aa8c1efa67add8c18798271ce3bbf92",
+      "size": 3154
     },
     {
       "path": "tests/v267-contract-intake.test.mjs",
@@ -4372,8 +4677,8 @@
     },
     {
       "path": "tests/v267-hero-record-search.test.mjs",
-      "size": 4342,
-      "sha256": "1528491f28e7658cfb22ab06f4fcb95d315e588adfff998dd5848757431e288f"
+      "sha256": "1528491f28e7658cfb22ab06f4fcb95d315e588adfff998dd5848757431e288f",
+      "size": 4342
     },
     {
       "path": "tests/v267-hr-lifecycle-source.test.mjs",
@@ -4382,8 +4687,8 @@
     },
     {
       "path": "tests/v267-hr-lifecycle.test.mjs",
-      "size": 2349,
-      "sha256": "355be5823ffcb7fb6d24c6339ec97dcc0ac7754dcb39c3853d189a8e0a8d69e6"
+      "sha256": "355be5823ffcb7fb6d24c6339ec97dcc0ac7754dcb39c3853d189a8e0a8d69e6",
+      "size": 2349
     },
     {
       "path": "tests/v267-integration-center-workflow.test.cjs",
@@ -4392,8 +4697,8 @@
     },
     {
       "path": "tests/v267-iphone-startup-blocker.test.mjs",
-      "size": 3849,
-      "sha256": "4c4720c33d59b5571d5ffa5a4f8a1670d42c8bcb098f3102e2dec62cb4020a1a"
+      "sha256": "4c4720c33d59b5571d5ffa5a4f8a1670d42c8bcb098f3102e2dec62cb4020a1a",
+      "size": 3849
     },
     {
       "path": "tests/v267-kpi-dashboard.test.cjs",
@@ -4422,8 +4727,8 @@
     },
     {
       "path": "tests/v267-legacy-maintenance-locale.test.mjs",
-      "size": 1414,
-      "sha256": "592d84828214de41326274fb2a4f170067ce024d7c792835607492f5b3d69993"
+      "sha256": "592d84828214de41326274fb2a4f170067ce024d7c792835607492f5b3d69993",
+      "size": 1414
     },
     {
       "path": "tests/v267-live-dashboard-data.test.mjs",
@@ -4517,18 +4822,18 @@
     },
     {
       "path": "tests/v267-native-page-heading.test.cjs",
-      "size": 1501,
-      "sha256": "7c84e4e854371b55e8e2f176e53e48a285b02c5cc65f5c92b67f2ebecbd02fc2"
+      "sha256": "7c84e4e854371b55e8e2f176e53e48a285b02c5cc65f5c92b67f2ebecbd02fc2",
+      "size": 1501
     },
     {
       "path": "tests/v267-navigation-import.test.mjs",
-      "size": 2597,
-      "sha256": "b71e6773278d5940b8f6678fb998691fe535ddf63a275bf8118281a5d91b7fa0"
+      "sha256": "b71e6773278d5940b8f6678fb998691fe535ddf63a275bf8118281a5d91b7fa0",
+      "size": 2597
     },
     {
       "path": "tests/v267-navigation-matrix.test.mjs",
-      "size": 6936,
-      "sha256": "f5aa098baa7456801654d4f344f062e7f1e0040b2172895b6bcffdc1bc11b5eb"
+      "sha256": "f5aa098baa7456801654d4f344f062e7f1e0040b2172895b6bcffdc1bc11b5eb",
+      "size": 6936
     },
     {
       "path": "tests/v267-navigation-work.test.cjs",
@@ -4592,8 +4897,8 @@
     },
     {
       "path": "tests/v267-owner-route-race.test.mjs",
-      "size": 1246,
-      "sha256": "0df8b1f5b6263b627b77d48a771353dab1dee4bc6edaf67b3f3b67ceb9e00117"
+      "sha256": "0df8b1f5b6263b627b77d48a771353dab1dee4bc6edaf67b3f3b67ceb9e00117",
+      "size": 1246
     },
     {
       "path": "tests/v267-partner-distribution-view.test.mjs",
@@ -4667,8 +4972,8 @@
     },
     {
       "path": "tests/v267-pdf-field-request.test.mjs",
-      "size": 4611,
-      "sha256": "2b2a1387dc4b9a25a6e6428f113e6f2989bb3ae66c3c6a4c214661c6e3a986aa"
+      "sha256": "2b2a1387dc4b9a25a6e6428f113e6f2989bb3ae66c3c6a4c214661c6e3a986aa",
+      "size": 4611
     },
     {
       "path": "tests/v267-pdf-linked-fields.test.mjs",
@@ -4687,8 +4992,8 @@
     },
     {
       "path": "tests/v267-pdf-viewer.test.mjs",
-      "size": 1241,
-      "sha256": "e065a3880056f152adf77f779c2e04be432bec617f6ae43e2dc3a27ddde51d40"
+      "sha256": "e065a3880056f152adf77f779c2e04be432bec617f6ae43e2dc3a27ddde51d40",
+      "size": 1241
     },
     {
       "path": "tests/v267-pearl-gold-review.test.cjs",
@@ -4737,8 +5042,8 @@
     },
     {
       "path": "tests/v267-property-controls-sql-fix.test.mjs",
-      "size": 1398,
-      "sha256": "eafe854e2cd914adc8265446f70e02a31f68975c6f088694c60cab890e9fde2e"
+      "sha256": "eafe854e2cd914adc8265446f70e02a31f68975c6f088694c60cab890e9fde2e",
+      "size": 1398
     },
     {
       "path": "tests/v267-property-experience.fixture.html",
@@ -4747,13 +5052,13 @@
     },
     {
       "path": "tests/v267-property-maintenance-compat.test.mjs",
-      "size": 5370,
-      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa"
+      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa",
+      "size": 5370
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "size": 12136,
-      "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9"
+      "sha256": "331503301a7025f6644e60ed9f534fe6dcec38db862b8ea1fa826a0f798040e9",
+      "size": 12136
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
@@ -4762,8 +5067,8 @@
     },
     {
       "path": "tests/v267-property-ownership-area.test.mjs",
-      "size": 2392,
-      "sha256": "492091d329d3cf443e6501859a6889b1756950e634d183a449757efa87e56be9"
+      "sha256": "492091d329d3cf443e6501859a6889b1756950e634d183a449757efa87e56be9",
+      "size": 2392
     },
     {
       "path": "tests/v267-property-portfolio-additions.test.mjs",
@@ -4787,8 +5092,8 @@
     },
     {
       "path": "tests/v267-property-workspace-locale.test.mjs",
-      "size": 4574,
-      "sha256": "f7c11df3ecb37dc39aafa642d2462e03d99bb19d5be9d1a24c5119ab294dc97f"
+      "sha256": "f7c11df3ecb37dc39aafa642d2462e03d99bb19d5be9d1a24c5119ab294dc97f",
+      "size": 4574
     },
     {
       "path": "tests/v267-recovery-boundary.test.cjs",
@@ -4837,13 +5142,18 @@
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
-      "size": 7574,
-      "sha256": "e6b15e275f1f206a22ca00340b15d45343a2326a1ec63934aa61fc1d43a09a34"
+      "sha256": "e6b15e275f1f206a22ca00340b15d45343a2326a1ec63934aa61fc1d43a09a34",
+      "size": 7574
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "size": 49500,
-      "sha256": "32250145585424129aab858cbc3f2af7928b80bae239762e4d72dd11c3c0cb84"
+      "sha256": "32250145585424129aab858cbc3f2af7928b80bae239762e4d72dd11c3c0cb84",
+      "size": 49500
+    },
+    {
+      "path": "tests/v267-report-filters.test.mjs",
+      "sha256": "5d8f46e61c0a43bbf65b2a652dec9ee516449d2d994ea87700d4a485788fe4dd",
+      "size": 4189
     },
     {
       "path": "tests/v267-retired-home.test.cjs",
@@ -4882,8 +5192,8 @@
     },
     {
       "path": "tests/v267-service-readiness.test.mjs",
-      "size": 4478,
-      "sha256": "aa57901a7232a3a6bd4d4a2fa764071f1c69a05bac5f0b2d78533acf290afaab"
+      "sha256": "aa57901a7232a3a6bd4d4a2fa764071f1c69a05bac5f0b2d78533acf290afaab",
+      "size": 4478
     },
     {
       "path": "tests/v267-session-activity-routing.test.cjs",
@@ -4892,8 +5202,8 @@
     },
     {
       "path": "tests/v267-session-idle-restore.test.cjs",
-      "size": 6977,
-      "sha256": "1882fbff1c6c1cdf81ef8ca1bd08e134f4c2f166d1f6708f1bb2eacddf30820e"
+      "sha256": "1882fbff1c6c1cdf81ef8ca1bd08e134f4c2f166d1f6708f1bb2eacddf30820e",
+      "size": 6977
     },
     {
       "path": "tests/v267-simple-contract-upload.test.mjs",
@@ -4907,8 +5217,8 @@
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "size": 20685,
-      "sha256": "821739d7cd0be4acc2c5542e2a8aaba0fc278522699fa30b2352e167232f0281"
+      "sha256": "821739d7cd0be4acc2c5542e2a8aaba0fc278522699fa30b2352e167232f0281",
+      "size": 20685
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",
@@ -4967,8 +5277,8 @@
     },
     {
       "path": "tests/v267-unit-create-validation.test.mjs",
-      "size": 3929,
-      "sha256": "5fe258aefc426dd481a844646107aa0491672d2139b9e9ef71855c137d1ee876"
+      "sha256": "5fe258aefc426dd481a844646107aa0491672d2139b9e9ef71855c137d1ee876",
+      "size": 3929
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
@@ -5007,8 +5317,8 @@
     },
     {
       "path": "tests/v267-visible-locale-integration.test.mjs",
-      "size": 2868,
-      "sha256": "d95ab69260c71fb9c2b9d4d5037eca43e6ea0bafa4f92831c8659482d94bf9ce"
+      "sha256": "d95ab69260c71fb9c2b9d4d5037eca43e6ea0bafa4f92831c8659482d94bf9ce",
+      "size": 2868
     },
     {
       "path": "tests/v267-work-order-request-link.test.cjs",
@@ -5027,8 +5337,8 @@
     },
     {
       "path": "tests/v267-workspace-tools.e2e.mjs",
-      "size": 62275,
-      "sha256": "568c280cd1c394c09b9003ada0c38a7b0231a46cb6d995c2ad2c13da1259505f"
+      "sha256": "568c280cd1c394c09b9003ada0c38a7b0231a46cb6d995c2ad2c13da1259505f",
+      "size": 62275
     },
     {
       "path": "tests/verified-upload.test.mjs",
@@ -5072,8 +5382,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "size": 286086,
-      "sha256": "7d01fdd13901279fdf57c016b39be7283c7aedfb2bdf3ea05645c5e9d957bc50"
+      "sha256": "7d01fdd13901279fdf57c016b39be7283c7aedfb2bdf3ea05645c5e9d957bc50",
+      "size": 286086
     },
     {
       "path": "v205-simple.css",
@@ -5127,8 +5437,8 @@
     },
     {
       "path": "v210-daily-command-center.js",
-      "size": 17949,
-      "sha256": "619ae71b35f73f88472254d962117d6bdbada85701ae7675232b5030daa1dc57"
+      "sha256": "619ae71b35f73f88472254d962117d6bdbada85701ae7675232b5030daa1dc57",
+      "size": 17949
     },
     {
       "path": "v211-follow-up-center-core.js",
@@ -5221,129 +5531,9 @@
       "size": 8375
     },
     {
-      "path": "staging-database/sql/salary-numeric-vouchers.sql",
-      "size": 1059,
-      "sha256": "fa30554b42b158ecb84c9437675a5e19323d7b8eae91dc50ceb11d37b9dca3d6"
-    },
-    {
-      "path": "staging-database/supabase/migrations/20261004202056_v267_salary_numeric_vouchers.sql",
-      "size": 1059,
-      "sha256": "fa30554b42b158ecb84c9437675a5e19323d7b8eae91dc50ceb11d37b9dca3d6"
-    },
-    {
-      "path": "staging-database/local-test/run-salary-numeric-vouchers.mjs",
-      "size": 2988,
-      "sha256": "46b4bcae3a98542f79bdff41831ad50360cbe9c8a4973c5a7173c6f870933d24"
-    },
-    {
-      "path": "staging-database/local-test/fixtures/salary-upgrade-before.sql",
-      "size": 444,
-      "sha256": "11cd4c9eb5c5d242ac1981f7e397bd7d26a1ac7c0a1a107742ed18245bb5a6b1"
-    },
-    {
-      "path": "staging-database/local-test/fixtures/salary-upgrade-after.sql",
-      "size": 1087,
-      "sha256": "3298cb34cce7cdfa8706c8b5762416adb8ef4cee54b755a81924379caf02fc77"
-    },
-    {
-      "path": "staging-database/tests/salary_numeric_vouchers.sql",
-      "size": 2569,
-      "sha256": "fb39b8257df6c518094f43819ff015683695a1e8cf13d70faf49fd380e9f1680"
-    },
-    {
-      "path": "docs/V267-SALARY-NUMERIC-VOUCHERS-2026-10-04.md",
-      "size": 2433,
-      "sha256": "4d59324a2d379e710919a738f105b16446bd38411f4fc186609fa2e9e5709432"
-    },
-    {
-      "path": "staging-database/sql/salary-numeric-corrections.sql",
-      "size": 926,
-      "sha256": "1a9eb5ea0a4230abf29faa0bc98e694bdef899af9bb42046b5035f2fba9e09d2"
-    },
-    {
-      "path": "staging-database/supabase/migrations/20261004203316_v267_salary_numeric_corrections.sql",
-      "size": 926,
-      "sha256": "1a9eb5ea0a4230abf29faa0bc98e694bdef899af9bb42046b5035f2fba9e09d2"
-    },
-    {
-      "path": "staging-database/local-test/run-salary-numeric-corrections.mjs",
-      "size": 4058,
-      "sha256": "e0776377dabccba41574600c2db7a5d38f7977b7dd13ceef1189057e990f06da"
-    },
-    {
-      "path": "staging-database/sql/hr-cost-allocation-integrity.sql",
-      "size": 5654,
-      "sha256": "a311f72badbda4de2e1dae573ea4297604f5be04234895ab52d3cf4257094bc1"
-    },
-    {
-      "path": "staging-database/supabase/migrations/20261004210754_v267_hr_cost_allocation_integrity.sql",
-      "size": 5654,
-      "sha256": "a311f72badbda4de2e1dae573ea4297604f5be04234895ab52d3cf4257094bc1"
-    },
-    {
-      "path": "staging-database/tests/hr_cost_allocation_integrity.sql",
-      "size": 7129,
-      "sha256": "c742434f2d1685ab477e3548ba03e9327fe6ffdaa0dd6ea2a801078c7bf6f302"
-    },
-    {
-      "path": "staging-database/local-test/run-hr-cost-allocation.mjs",
-      "size": 2321,
-      "sha256": "869378207c8a080d1bbad4918f5f149130578d29f4618ac7cb6011c1485f6033"
-    },
-    {
-      "path": "docs/V267-HR-COST-ALLOCATION-2026-10-05.md",
-      "size": 2920,
-      "sha256": "95ff545e2cd46bb20ee1cf5a5d2d60cc7591b13901a4b83065ab8f24889eeee3"
-    },
-    {
-      "path": "src/v267/api/report-filters.js",
-      "size": 2015,
-      "sha256": "6f68c0fc50c4d7352607d9f3932fe68742d371ac1ee5f1392f02fde8e54ac627"
-    },
-    {
-      "path": "src/v267/components/report-filters.js",
-      "size": 862,
-      "sha256": "44188e58a6685f100d10d5317f84cf93a66eb5175b6a6553a19377de760c0c50"
-    },
-    {
-      "path": "src/v267/pages/owner-report.js",
-      "size": 5270,
-      "sha256": "7329650c04af846dba97ffa553376eb49ad261ef168e47fdc9d4d8498c400729"
-    },
-    {
-      "path": "tests/v267-report-filters.test.mjs",
-      "size": 4189,
-      "sha256": "5d8f46e61c0a43bbf65b2a652dec9ee516449d2d994ea87700d4a485788fe4dd"
-    },
-    {
-      "path": "staging-database/sql/saved-report-filters.sql",
-      "size": 5026,
-      "sha256": "a87df34221cd8cbfd3037e684348bb5d076078403d422dbf547638c68967002e"
-    },
-    {
-      "path": "staging-database/supabase/migrations/20261004212239_v267_saved_report_filters.sql",
-      "size": 5026,
-      "sha256": "a87df34221cd8cbfd3037e684348bb5d076078403d422dbf547638c68967002e"
-    },
-    {
-      "path": "staging-database/tests/saved_report_filters.sql",
-      "size": 6182,
-      "sha256": "ed5acdd7d4c25d2d09f7403da3dc91783617e1fb5433dfef95126f61d7acb4dc"
-    },
-    {
-      "path": "docs/V267-SAVED-REPORT-FILTERS-2026-10-05.md",
-      "size": 2146,
-      "sha256": "ee29f31631abf0a1009b2318aee4ad5ca8bb74d3c251509365a5d1d8d6a260c1"
-    },
-    {
-      "path": "src/v267/components/operational-translations.js",
-      "size": 425499,
-      "sha256": "98646b8c0d0c37449226ab1ccea30111388a950e4eb08a18f53cd018f4c5dbb1"
-    },
-    {
-      "path": "src/v267/components/report-filter-translations.js",
-      "size": 2993,
-      "sha256": "bcd1f26c013f4cfa3553d19febe6d3eae79a80ab4ba254de11c290eb5373fb86"
+      "path": "scripts/test-tenant-candidate-reproducibility.py",
+      "sha256": "c0a98779ebe820b645054f7aee680c0b21c2aca1fdd247db68e097e33eb3ba04",
+      "size": 996
     },
     {
       "path": "src/v267/components/hr-cost-translations.js",
@@ -5374,6 +5564,46 @@
       "path": "docs/V267-HR-PAYROLL-SNAPSHOT-2026-10-05.md",
       "size": 2737,
       "sha256": "d7129cfa7c1ce25b67a3cc82e6eea6eaf7ffc82c86cf123ed9edbd30f6ead737"
+    },
+    {
+      "path": "scripts/build-production-maintenance-reconciliation.py",
+      "sha256": "f1cab3258469bd3ebbb819c7452d8f83c03688816f236495b18c632b560cd3f5",
+      "size": 3552
+    },
+    {
+      "path": "scripts/verify-production-maintenance-reconciliation.mjs",
+      "sha256": "cb80607b481a7718f5ac57902540a4fa03a531eb5ee85cb39aa821076053a87d",
+      "size": 1674
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance/README.md",
+      "sha256": "2eec023e59821b0eebe44dbcb8adcc529e1e4e20ce7eaafca7d60894eb9023fc",
+      "size": 2255
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance/candidate.sql",
+      "sha256": "fc662d4f753b8f38760b553ea28279f7579c2e7dc47baac69d0a26762e8e3354",
+      "size": 12527
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance/history-after.sql",
+      "sha256": "e9b92274df2c9f8a238df4fdb44e958a40bf912fcf6aac18bf832d7c58d57b52",
+      "size": 1447
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance/history-before.sql",
+      "sha256": "a1bd09ffa0abb0139a2d29faf75ff714b55d85c37abd89edbd2497847937765d",
+      "size": 7256
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance/manifest.json",
+      "sha256": "921afcb4d545d970194a90b7439057b54918337296dc36273532461528793874",
+      "size": 957
+    },
+    {
+      "path": "staging-database/local-test/storage-object-policies-production-2026-10-05.json",
+      "sha256": "293acaedcb6a61534a857405c9b1e88a4baa994aa7cd6fe6f3269a22ae1e410a",
+      "size": 5064
     },
     {
       "path": "staging-database/sql/hr-expense-bridge.sql",
