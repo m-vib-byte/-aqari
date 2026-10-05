@@ -72,6 +72,11 @@ jobs:
           python3 scripts/build-production-maintenance-reconciliation.py
           git diff --exit-code -- staging-database/reconciliation/maintenance
           node scripts/verify-production-maintenance-reconciliation.mjs | tee /tmp/aqari-verification/sql-maintenance-reconciliation.log
+      - name: Sales basis and combined Production reconciliation (local only)
+        run: |
+          python3 scripts/build-production-sales-basis-reconciliation.py
+          git diff --exit-code -- staging-database/reconciliation/commercial-sales-basis
+          node scripts/verify-production-sales-basis-reconciliation.mjs | tee /tmp/aqari-verification/sql-sales-basis-reconciliation.log
       - name: Document handover persistence and access boundaries
         run: |
           node staging-database/local-test/run-isolated.mjs \
