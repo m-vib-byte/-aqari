@@ -32,7 +32,7 @@ function fixture(initial=[],options={}){
    if(state.listError)throw state.listError;
    if(state.failList)throw Error('تعذر اتصال القراءة');
    const rows=records.filter(record=>record.expense_date.startsWith(values.month));const approved=rows.filter(record=>record.state==='approved');
-   return {manager:state.manager,can_write:state.canWrite,properties:clone(properties),documents:clone(documents),expenses:clone(rows).map(row=>state.wrongReadback?{...row,amount:'999.000'}:row),history:clone(history),period:clone(state.period),summary:{approved_expenses:approved.reduce((sum,row)=>sum+Math.round(Number(row.amount)*1000),0)/1000+'',count:approved.length}};
+   return {manager:state.manager,can_write:state.canWrite,properties:clone(properties),documents:clone(documents),expenses:clone(rows).map(row=>state.wrongReadback?{...row,amount:'999.000'}:row),history:clone(history),period:clone(state.period),salary_expenses:clone(state.salaryExpenses||[]),summary:{...state.salarySummary,approved_expenses:approved.reduce((sum,row)=>sum+Math.round(Number(row.amount)*1000),0)/1000+'',count:approved.length}};
   }
   if(state.writeError)throw state.writeError;
   if(args.p_action==='close_period'){
@@ -253,4 +253,13 @@ test('bank reconciliation navigation is bounded before financial dialog handoff'
  const raw=fs.readFileSync('src/v267/pages/financial-register.js','utf8');
  assert.match(raw,/guardPageImport\(\(\)=>import\('\.\/bank-reconciliation\.js'\)\)/);
  assert.match(raw,/guardPageImport[\s\S]*d\.session\.check\(\)[\s\S]*d\.close\(\)[\s\S]*openBankReconciliation/);
+});
+
+test('salary disbursements are searchable read-only allocations with separate totals and legacy warning',async()=>{
+ const salary=expense({id:'salary:payroll:property-one',source:'salary',state:'approved',voucher_no:'1042',amount:'215.000',share:40,salary_month:'2026-09-01',category:'صافي راتب مصروف',payee:'Synthetic salary employee',hr_document_id:'signed-doc'});
+ const f=fixture([],{salaryExpenses:[salary],salarySummary:{salary_disbursements:'215.000',salary_payment_count:1,unlinked_salary_count:2}});await f.d.pending;
+ assert.match(f.d.body.textContent,/215.000/);assert.match(f.d.body.textContent,/40%/);assert.match(f.d.body.textContent,/مستند الراتب الموقع/);assert.match(f.d.body.textContent,/مراجعة تاريخية/);
+ for(const label of ['إلغاء المصروف مع حفظ الأصل','اعتماد المصروف','تعديل مسودة المصروف','عرض سجل المصروف'])assert.equal(f.button(label),undefined);
+ f.control('البحث في مصروفات الفترة').value='1042';f.control('البحث في مصروفات الفترة').oninput();assert.match(f.d.body.textContent,/Synthetic salary employee/);
+ f.state.listError={code:'42501',message:'ACCESS_DENIED'};await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.doesNotMatch(f.d.body.textContent,/Synthetic salary employee|215.000/);
 });

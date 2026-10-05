@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "ace17cc49470b9cae00108f8552fca6a8cdf774c3c5a0683225af0fe0ad9608c",
-      "size": 11701
+      "size": 11912,
+      "sha256": "6e3dc05da7a2bea6518b02ad81bac93a7cdfee246ea9ada2de9fb4364aedd657"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1937,8 +1937,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "sha256": "cfc6805beda052a5e46a5a177a3fb610f60e8771dfe3118a12ce12c00f0525dd",
-      "size": 28432
+      "size": 30350,
+      "sha256": "2133d1e14b2acdb35f359039e277f59d5b9b4082c6f8d35922631a995a4dfc24"
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
@@ -4667,8 +4667,8 @@
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
-      "sha256": "c276471453c37ec863be415be13fd6aaa9b127bd24078402fccb6cd0ceebe598",
-      "size": 33755
+      "size": 35232,
+      "sha256": "424924475adcce8f746ef8a53a7e7936df40836fcea96e81d4b7b168af66010e"
     },
     {
       "path": "tests/v267-full-page-workspace.test.mjs",
@@ -5537,8 +5537,8 @@
     },
     {
       "path": "src/v267/components/hr-cost-translations.js",
-      "size": 1364,
-      "sha256": "c67681cb01b0bec89cf477799e95437c47513ef41c52fb64509f348cd48f59dc"
+      "size": 5862,
+      "sha256": "81c2ccca564bfbc9279ab89e2a794905bf5d9bb11998036732f36d90ed78e2d2"
     },
     {
       "path": "staging-database/sql/hr-payroll-allocation-snapshot.sql",
@@ -5604,6 +5604,36 @@
       "path": "staging-database/local-test/storage-object-policies-production-2026-10-05.json",
       "sha256": "293acaedcb6a61534a857405c9b1e88a4baa994aa7cd6fe6f3269a22ae1e410a",
       "size": 5064
+    },
+    {
+      "path": "staging-database/sql/hr-expense-bridge.sql",
+      "size": 9937,
+      "sha256": "9d11496f1fc03cae3ec22fefe7ef6b7da909e58699b5bf1692dff7ed4b0bb9df"
+    },
+    {
+      "path": "staging-database/supabase/migrations/20261005000509_v267_hr_expense_bridge.sql",
+      "size": 9937,
+      "sha256": "9d11496f1fc03cae3ec22fefe7ef6b7da909e58699b5bf1692dff7ed4b0bb9df"
+    },
+    {
+      "path": "staging-database/tests/hr_expense_bridge.sql",
+      "size": 7047,
+      "sha256": "b6e92877fb2ac1006a996bcbd96feeb69aebf9fadddb4ffcc004b61ea4e23390"
+    },
+    {
+      "path": "staging-database/tests/hr_expense_bridge_before_payment.sql",
+      "size": 1997,
+      "sha256": "cec01713f7bdaf32108ac32fc55b35953b2ad08ca02d8cbaa0ecfa2d7e3bf446"
+    },
+    {
+      "path": "staging-database/local-test/run-hr-expense-bridge.mjs",
+      "size": 4346,
+      "sha256": "cfa7e3551de3858e8cfed1ad396733e57c097a40ab722b6014ad6d6611e55935"
+    },
+    {
+      "path": "docs/V267-HR-EXPENSE-BRIDGE-2026-10-05.md",
+      "size": 2583,
+      "sha256": "975164ffaea0668e33abc46ebbbdd0a4bd3add1549bb640ea6a42a3bb095fb92"
     }
   ],
   "version": "V198"
