@@ -31,3 +31,14 @@ nine completion suites together after the six reconciliation candidates in one
 in-memory database. This covers maintenance workflow/attachments/work-order links,
 tenant ratings/contact preferences, sales/clearance, collection accounts and vendor
 identity. Actual Storage HTTP transfer and full Auth services are not modeled.
+
+## Home regression follow-up
+
+The first combined head failed the unchanged one-second WebKit populated-home
+heartbeat assertion. Full-matrix diagnostics now record the cause without changing
+the acceptance threshold or skipping any scenario. A local 110-row comparison
+found that dailyCollectionSummary unnecessarily built the full monthly context:
+389 ms before versus 7.7 ms after reading the same validated property ledger
+directly. Both results were exactly 27,500 / 110 entries / zero undated entries.
+These timings are local Node measurements, not browser or real-device acceptance.
+All 98 property tests and all 2,410 JavaScript tests passed after the change.

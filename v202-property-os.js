@@ -3549,12 +3549,14 @@
 
   function dailyCollectionSummary(name,day){
         if(!protectedAccessReady()||!/^\d{4}-\d{2}-\d{2}$/.test(String(day))||!validRecordedDate(day))return null;
-        const context=contextFor(name);
-        if(!context)return null;
-        const entries=context.propertyLedger.filter(function(entry){return settledPayment(entry.status)&&validLedgerPaymentAmount(entry)});
+        // Daily totals need the scoped, validated ledger only. Building the full
+        // rent context here repeats contract/directory/monthly accounting work.
+        const property=propertyRecord(name);
+        if(!property)return null;
+        const entries=ledgerFor(name).filter(function(entry){return settledPayment(entry.status)&&validLedgerPaymentAmount(entry)});
         const dated=entries.filter(function(entry){return validRecordedDate(entry.paidAt)});
         const today=dated.filter(function(entry){return ledgerPaymentDateKey(entry.paidAt)===ledgerPaymentDateKey(day)});
-        return Object.freeze({property:String(context.property[0]),day,paid:exactMoneySum(today.map(function(entry){return entry.paid})),count:today.length,undated:entries.length-dated.length});
+        return Object.freeze({property:String(property[0]),day,paid:exactMoneySum(today.map(function(entry){return entry.paid})),count:today.length,undated:entries.length-dated.length});
       }
 
   function secureRentOfficeData(name,period){
