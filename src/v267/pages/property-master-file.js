@@ -45,7 +45,7 @@ export function openPropertyMasterFile(propertyId,options={}){
    catch(error){if(!missingRpc(error))throw error;financialSummary=null;}
   }
   tenantLedger=null;
-  if(!production){
+  {
    try{tenantLedger=await rpc('aqari_property_tenant_ledger',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_as_of:asOf});d.session.check();if(tenantLedger?.workspace_id!==d.session.bound.workspace||tenantLedger?.property_id!==propertyId)throw Error('تعذر تأكيد نطاق المستأجرين واستحقاقات الإيجار.');}
    catch(error){if(!missingRpc(error))throw error;tenantLedger=null;}
   }

@@ -46,6 +46,7 @@ function fixture(options={}) {
     if(name==='aqari_workspace_access')return Promise.resolve({data:{workspace_id:scope.workspace,user_id:scope.user,role:scope.role,permissions:{properties:{write:true},documents:{write:true},finance:{write:options.financeWritable===true}}},status:200});
     if(name==='aqari_property_financial_summary')return Promise.resolve({data:{workspace_id:scope.workspace,property_id:'property-a',available:true,month:{},year:{}},status:200});
     if(name==='aqari_property_cost_allocation')return Promise.resolve({data:{workspace_id:scope.workspace,user_id:scope.user,properties:[{id:'property-a',name:'عقار الاختبار'}],sources:[],manager:true},status:200});
+    if(name==='aqari_property_tenant_ledger'&&options.ledger)return Promise.resolve({data:options.ledger,status:200});
     if(name==='aqari_property_tenant_ledger')return Promise.resolve({error:{code:'PGRST202',message:'Could not find the function public.aqari_property_tenant_ledger'},status:404});
     throw Error('Unexpected RPC: '+name);
    }
@@ -103,18 +104,18 @@ test('missing optional category still renders the property and maintenance witho
 test('a modern schema keeps the stored category and performs a single scoped read',async()=>{
  const f=fixture();try{await f.settled();assert.equal(f.tables().length,1);assert.match(f.text(),/plumbing/);}finally{await f.cleanup();}
 });
-test('production basic property file skips known-missing optional RPC and category column',async()=>{
+test('production basic property file reads optional ledger and skips missing category column',async()=>{
  const f=fixture({releaseStage:'production'});try{
   await f.settled();
   const reads=f.tables();assert.equal(reads.length,1);assert.ok(!reads[0].columns.includes('category_code'));
-  assert.equal(f.rpcs().some(call=>call.name==='aqari_property_tenant_ledger'),false);
+  assert.equal(f.rpcs().some(call=>call.name==='aqari_property_tenant_ledger'),true);
   assert.match(f.text(),/غير متاح/);
  }finally{await f.cleanup();}
 });
 test('production property edit opens directly through the basic file',async()=>{
  const f=fixture({releaseStage:'production',openOptions:{section:'edit'}});try{
   await f.settled();assert.match(f.text(),/تعديل بيانات العقار الرئيسية/);
-  assert.equal(f.rpcs().some(call=>call.name==='aqari_property_tenant_ledger'),false);
+  assert.equal(f.rpcs().some(call=>call.name==='aqari_property_tenant_ledger'),true);
  }finally{await f.cleanup();}
 });
 for(const permissions of [{maintenance:false},{contracts:false}])test('permission-denied details never read the maintenance table: '+JSON.stringify(permissions),async()=>{
@@ -156,4 +157,14 @@ for(const [label,heading] of [
   await assert.doesNotReject(async()=>await f.button('إلغاء').onclick());await f.settled();
   assert.equal(f.status(),'تعذر تحديث الملف للاختبار.');
  }finally{await f.cleanup();}
+});
+
+// The Production route must render stored balances and reject foreign scope.
+test('production ledger renders authoritative amounts without recalculation',async()=>{
+ const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-a',permissions:{contracts:true,tenants:true,collections:true},tenants:[{fullName:'Synthetic tenant',contracts:[{contractNo:'TEST-LEDGER'}]}],rentDues:[{period:'2026-10-01',contractNo:'TEST-LEDGER',unitNo:'A-1',dueAmount:100,paidAmount:64.5,balance:25.5,status:'partial'}]}});
+ try{await f.settled();assert.match(f.text(),/Synthetic tenant/);assert.match(f.text(),/25\.500/);assert.doesNotMatch(f.text(),/35\.500/);const q=f.rpcs().find(x=>x.name==='aqari_property_tenant_ledger');assert.equal(q.args.p_workspace_id,'test-workspace');assert.equal(q.args.p_property_id,'property-a');}finally{await f.cleanup();}
+});
+test('production ledger rejects a different property response',async()=>{
+ const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-b',tenants:[{fullName:'PRIVATE OTHER PROPERTY'}]}});
+ try{await f.settled();assert.match(f.status(),/تعذر تأكيد نطاق/);assert.doesNotMatch(f.text(),/PRIVATE OTHER PROPERTY/);}finally{await f.cleanup();}
 });
