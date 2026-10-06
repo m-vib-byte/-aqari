@@ -1722,8 +1722,8 @@
     },
     {
       "path": "src/v267/domain/contract-foundation.js",
-      "sha256": "7ce3a30902aa1d7ff87643f4f1c1cdc9b52187bb419a720163570e02c740cc1f",
-      "size": 4258
+      "sha256": "94af58448d1004df6d85ad96616b4c450f470b42c6383de8898edc23bf6055b9",
+      "size": 5330
     },
     {
       "path": "src/v267/domain/deposit-ledger.js",
