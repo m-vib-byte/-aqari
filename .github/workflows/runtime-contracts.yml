@@ -76,6 +76,8 @@ jobs:
         run: node --test tests/v267-session-activity-routing.test.cjs tests/v267-session-idle-restore.test.cjs
       - name: Read-only quality scan verifies contract links after complete scoped reads
         run: node --test tests/data-quality.test.mjs tests/v267-data-quality-runtime.test.mjs
+      - name: Deposit ledger preserves verified contract scope on read failure
+        run: node --test tests/v267-deposit-ledger.test.mjs
       - name: Unit search reads scoped identities without a rent ledger
         run: node --test tests/v267-unit-search.test.mjs tests/v209-property-search.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
