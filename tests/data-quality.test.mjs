@@ -59,3 +59,36 @@ test('document observations preserve draft, uploaded and cancelled records and a
  const data={...structuredClone(targets),documents:['draft','uploaded','cancelled'].map((status,i)=>({id:'d'+i,status,entity_type:'lease',entity_ref:'absent'}))},before=structuredClone(data);
  assert.deepEqual(documentFindings(data),[{kind:'document_record_not_in_scan',ids:['d0','d1','d2']}]);assert.deepEqual(data,before);
 });
+
+const paymentFindings=data=>inspectQuality(data).filter(x=>x.kind.startsWith('rent_payment_'));
+const rentPayment={id:'pay',reference:'R-001',lease_id:'lease-id',payment_method:'cash',status:'paid'};
+const rentLease={id:'lease-id',external_ref:'contract-reference',start_date:'2026-01-01',end_date:'2026-12-31'};
+test('rent receipt references, lease identity and payment method are checked without monetary fields',()=>{
+ assert.deepEqual(paymentFindings({leases:[rentLease],rentPayments:[rentPayment]}),[]);
+ const rentPayments=[{...rentPayment,id:'missing',reference:' ',lease_id:null,payment_method:''}];
+ assert.deepEqual(paymentFindings({leases:[rentLease],rentPayments}),[
+  {kind:'rent_payment_without_reference',ids:['missing']},{kind:'rent_payment_without_method',ids:['missing']},{kind:'rent_payment_without_lease',ids:['missing']}
+ ]);
+});
+test('rent payment links use the internal lease ID, not the contract external reference',()=>{
+ assert.deepEqual(paymentFindings({leases:[rentLease],rentPayments:[{...rentPayment,lease_id:'contract-reference'}]}),[{kind:'rent_payment_lease_not_in_scan',ids:['pay']}]);
+});
+test('duplicate receipt references are review candidates across contracts and historical states',()=>{
+ const rentPayments=[rentPayment,{...rentPayment,id:'cancelled',lease_id:'other-lease',status:'cancelled'}];
+ const data={leases:[rentLease,{...rentLease,id:'other-lease'}],rentPayments},before=structuredClone(data);
+ assert.deepEqual(paymentFindings(data),[{kind:'rent_payment_duplicate_reference',ids:['pay','cancelled']}]);assert.deepEqual(data,before);
+});
+test('missing receipt references do not form a duplicate group',()=>{
+ const rentPayments=['a','b'].map(id=>({...rentPayment,id,reference:''}));
+ assert.deepEqual(paymentFindings({leases:[rentLease],rentPayments}),[{kind:'rent_payment_without_reference',ids:['a','b']}]);
+});
+test('distinct receipt references on one lease remain separate legitimate payments',()=>{
+ const rentPayments=[rentPayment,{...rentPayment,id:'second',reference:'R-002'}];assert.deepEqual(paymentFindings({leases:[rentLease],rentPayments}),[]);
+});
+test('omitted payment columns or lease scope cannot imply a verified relationship',()=>{
+ assert.deepEqual(paymentFindings({rentPayments:[rentPayment]}),[{kind:'rent_payment_scope_not_checked',ids:['pay']}]);
+ assert.deepEqual(paymentFindings({leases:[rentLease],rentPayments:[{id:'partial',reference:'R-001'}]}),[{kind:'rent_payment_scope_not_checked',ids:['partial']}]);
+});
+test('completed empty lease scope records a missing target without correcting it',()=>{
+ assert.deepEqual(paymentFindings({leases:[],rentPayments:[rentPayment]}),[{kind:'rent_payment_lease_not_in_scan',ids:['pay']}]);
+});

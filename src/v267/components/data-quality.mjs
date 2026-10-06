@@ -1,6 +1,6 @@
 // Read-only observations; candidates are never corrections or merge instructions.
 export function inspectQuality(data={}) {
- const {properties=[],units=[],tenants=[],leases=[],documents=[]}=data;
+ const {properties=[],units=[],tenants=[],leases=[],documents=[],rentPayments=[]}=data;
  const findings=[];
  const group=(rows,key,kind)=>{const groups=new Map();for(const row of rows){const value=key(row);if(!value)continue;const list=groups.get(value)||[];list.push(row.id);groups.set(value,list);}for(const ids of groups.values())if(ids.length>1)findings.push({kind,ids});};
  group(units,r=>r.property_id&&r.unit_no?.trim()?r.property_id+':'+r.unit_no.trim():null,'duplicate_unit');
@@ -40,5 +40,21 @@ export function inspectQuality(data={}) {
   else {const count=targets.get(doc.entity_type).get(doc.entity_ref)||0;if(!count)observations.document_record_not_in_scan.push(doc.id);else if(count>1)observations.document_ambiguous_record.push(doc.id);}
  }
  for(const [kind,ids]of Object.entries(observations))if(ids.length)findings.push({kind,ids});
+ // This reference is the rent receipt number, not a bank transfer reference.
+ // Only identity metadata is inspected; no amounts or balances are inferred.
+ const paymentObservations={rent_payment_without_reference:[],rent_payment_without_method:[],rent_payment_without_lease:[],rent_payment_lease_not_in_scan:[],rent_payment_scope_not_checked:[]};
+ const completeLeaseScope=Object.hasOwn(data,'leases')&&leases.every(row=>typeof row.id==='string'&&row.id),leaseIds=new Set(leases.map(row=>row.id)),checkedPayments=[];
+ const nonempty=value=>typeof value==='string'&&Boolean(value.trim());
+ for(const payment of rentPayments){
+  if(!['reference','payment_method','lease_id'].every(key=>Object.hasOwn(payment,key))){paymentObservations.rent_payment_scope_not_checked.push(payment.id);continue;}
+  checkedPayments.push(payment);
+  if(!nonempty(payment.reference))paymentObservations.rent_payment_without_reference.push(payment.id);
+  if(!nonempty(payment.payment_method))paymentObservations.rent_payment_without_method.push(payment.id);
+  if(!nonempty(payment.lease_id))paymentObservations.rent_payment_without_lease.push(payment.id);
+  else if(!completeLeaseScope)paymentObservations.rent_payment_scope_not_checked.push(payment.id);
+  else if(!leaseIds.has(payment.lease_id))paymentObservations.rent_payment_lease_not_in_scan.push(payment.id);
+ }
+ for(const [kind,ids]of Object.entries(paymentObservations))if(ids.length)findings.push({kind,ids});
+ group(checkedPayments,row=>nonempty(row.reference)?row.reference:null,'rent_payment_duplicate_reference');
  return findings;
 }

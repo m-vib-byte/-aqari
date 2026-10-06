@@ -5,15 +5,15 @@ import {readFileSync} from 'node:fs';
 import {inspectQuality} from '../src/v267/components/data-quality.mjs';
 
 const source=readFileSync(process.env.AQARI_QUALITY_PAGE||new URL('../src/v267/pages/data-quality.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replace(/^export /gm,'');
-async function fixture({role='general_manager',many=false,limit=false,failTable=null,revoke=false,documents=[],documentLimit=false}={}){
+async function fixture({role='general_manager',many=false,limit=false,failTable=null,revoke=false,documents=[],documentLimit=false,rentPayments=[],paymentLimit=false}={}){
  const nodes=[],calls=[],tasks=[];let failure=failTable,revoked=false,created=0;
  const node=(tag,text)=>{const n={tag,textContent:text||'',children:[],append(...x){this.children.push(...x);},replaceChildren(...x){this.children=x;}};nodes.push(n);return n;};
  const data={aqari_properties:[],aqari_units:many?Array.from({length:251},(_,i)=>({id:'u'+i,property_id:'p',unit_no:String(i)})):[],aqari_tenants:[{id:'t',full_name:'Tenant'}],aqari_leases:[{id:'l',status:'signed',unit_id:many?'u250':null,tenant_id:'t',start_date:'2026-01-01',end_date:'2026-12-31'}]};
- data.aqari_documents=documents;
+ data.aqari_documents=documents;data.aqari_rent_payments=rentPayments;
  const check=()=>{if(revoked)throw Error('session changed');};
  const session={bound:{workspace:'test-workspace'},check,client:{from(table){const q={table,select(columns){this.columns=columns;return this;},eq(key,value){assert.equal(key,'workspace_id');assert.equal(value,'test-workspace');this.scoped=true;return this;},order(key){assert.equal(key,'id');return this;},range(from,to){this.from=from;this.to=to;return this;}};return q;}},async request(q){
   check();assert.equal(q.scoped,true);assert.equal(q.to-q.from,249);calls.push({...q});if(failure===q.table)throw Error('read failed');
-  const rows=((limit&&q.table==='aqari_units')||(documentLimit&&q.table==='aqari_documents'))?Array.from({length:250},(_,i)=>({id:'u'+(q.from+i)})):data[q.table].slice(q.from,q.to+1);
+  const rows=((limit&&q.table==='aqari_units')||(documentLimit&&q.table==='aqari_documents')||(paymentLimit&&q.table==='aqari_rent_payments'))?Array.from({length:250},(_,i)=>({id:'u'+(q.from+i)})):data[q.table].slice(q.from,q.to+1);
   if(revoke&&q.table==='aqari_leases')revoked=true;
   return rows.map(row=>Object.fromEntries(q.columns.split(',').map(k=>[k,row[k]])));
  }};
@@ -47,7 +47,7 @@ test('non-manager cannot open or query the quality scan',async()=>{
 
 test('quality page reads document links and uses archive numbers in review findings',async()=>{
  const f=await fixture({documents:[{id:'d',document_no:'DOC-1',entity_type:'property',entity_ref:null,status:'uploaded'}]});
- assert.equal(f.calls.at(-1).table,'aqari_documents');assert.equal(f.calls.at(-1).columns,'id,document_no,entity_type,entity_ref,status');
+ assert.equal(f.calls.find(c=>c.table==='aqari_documents').columns,'id,document_no,entity_type,entity_ref,status');
  for(const table of ['aqari_properties','aqari_tenants','aqari_leases'])assert.ok(f.calls.find(c=>c.table===table).columns.includes('external_ref'));
  assert.ok(f.texts().some(s=>s.includes('مستندات بلا مرجع سجل')));assert.ok(f.texts().some(s=>s.includes('DOC-1')));
 });
@@ -60,4 +60,20 @@ test('failed document read cannot publish earlier contract findings as a complet
 });
 test('document scan cap also prevents partial findings from appearing complete',async()=>{
  const f=await fixture({documentLimit:true});assert.match(f.status(),/لم يكتمل التقرير/);assert.deepEqual(f.texts(),['']);
+});
+
+test('rent payment scan reads only scoped reference metadata and shows the observation',async()=>{
+ const f=await fixture({rentPayments:[{id:'payment-without-receipt',reference:'',lease_id:'l',payment_method:'cash',status:'paid'}]});
+ const query=f.calls.find(c=>c.table==='aqari_rent_payments');assert.equal(query.columns,'id,lease_id,reference,payment_method,status');
+ assert.ok(f.texts().some(s=>s.includes('تحصيل إيجار بلا رقم وصل')));assert.ok(f.texts().some(s=>s.includes('payment-without-receipt')));assert.match(f.status(),/اكتمل الفحص/);
+});
+test('rent payment observations include the second page without limiting the report to recent receipts',async()=>{
+ const rentPayments=Array.from({length:251},(_,i)=>({id:'p'+i,reference:i===250?'':'R-'+i,lease_id:'l',payment_method:'cash',status:'paid'}));
+ const f=await fixture({rentPayments});assert.deepEqual(f.calls.filter(c=>c.table==='aqari_rent_payments').map(c=>c.from),[0,250]);assert.ok(f.texts().some(s=>s.includes('p250')));
+});
+test('failed rent payment read prevents a false complete report for earlier tables',async()=>{
+ const f=await fixture({failTable:'aqari_rent_payments'});assert.equal(f.status(),'read failed');assert.deepEqual(f.texts(),['']);
+});
+test('rent payment scan cap prevents publishing a partial financial reference report',async()=>{
+ const f=await fixture({paymentLimit:true});assert.match(f.status(),/لم يكتمل التقرير/);assert.deepEqual(f.texts(),['']);
 });
