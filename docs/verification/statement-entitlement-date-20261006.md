@@ -17,3 +17,9 @@ Security advisors were inspected after the change; this is not a claim that the 
 Combined with the 8 date cases, this is 23 SQL calculation cases. This is stronger calculation evidence for the statement portion of R10.03, supporting partial implementation only. It does not prove the public authenticated RPC, PDF rendering, renewal/nonrenewal notices or complete requirement acceptance.
 
 A read-only literal dependency scan found no unresolved private function names in Preview after excluding existing table references. Production still has 6 call sites referring to 4 missing helpers: statement, contact-channel permission, effective contact profile, and rent-period breakdown. Name resolution is not an argument-type or runtime acceptance test. No production schema changes were made.
+
+## PDF/archive follow-up
+
+The real PDF renderer and archive API passed 21 focused Python tests. A new statement-specific test covers three calculation vectors, including the negative opening balance, verifies extracted PDF dates, typed document number and exact monetary strings, rejects leftover template placeholders, and proves subsequent export returns the same archived bytes without rendering again. The transport is simulated in memory; this does not prove hosted archive persistence or browser/device acceptance. No runtime code or database schema changed in this follow-up.
+
+Command: `PYTHONPATH=.:tests python3 -m unittest official_document_pdf_test official_document_archive_test -v` (21 passed, no failures/skips).
