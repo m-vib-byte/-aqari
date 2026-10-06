@@ -20,6 +20,10 @@ AQARI_PGLITE_MODULE=/absolute/path/to/pglite/dist/index.js node staging-database
 
 ## حدود التسليم
 
-SQL مرشح للمراجعة، لم يطبّق في Preview أو Production. لم تُنشأ migration آلية لأن Supabase CLI غير متاح في هذه الجلسة. يلزم فحص التعريف الفعلي في البيئة المعزولة وتطبيق المرشح عبر مسار الهجرات المعتمد ثم قبول الحفظ وإعادة الفتح بحساب مصادق قبل اعتباره مكتملًا. فحوص الرأس f16ab6e لواجهة #434 نجحت (4 نجاح وSupabase Preview متجاوز).
+طُبّق الإصلاح على Preview المستقل ofgmcsmxmdswlovsckqs بالهجرة المسجلة 20261006064302_v267_property_master_cleared_values. المسار المستضاف أتاح تطبيق الهجرة رغم عدم وجود CLI محلي؛ لم تُخترع هوية هجرة. تحقق تعريف الدالة وصلاحياتها بعد التطبيق، وبقي تحويل office_hours إلى officeHours الموجود مسبقًا محفوظًا. لم تُعدّل بيانات الأعمال أو Production. قبول الحفظ وإعادة الفتح من واجهة مصادقة ما زال مفتوحًا. فحوص الرأس f16ab6e لواجهة #434 نجحت (4 نجاح وSupabase Preview متجاوز).
+
+فحص security advisors أظهر ملاحظات عامة في البيئة (سياسات RLS وصلاحيات دوال عامة وحماية كلمات المرور المسربة). لا ندعي خلو البيئة أمنيًا أو أن هذه الملاحظات نشأت عن هذا الإصلاح؛ ACL الدالة الخاصة بقي محصورًا في postgres. لم تُغير إعدادات المصادقة أو الصلاحيات العامة في هذه الدفعة.
+
+روابط المراجعة: https://supabase.com/docs/guides/database/database-linter و https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
 مرجع سلوك CASE: https://www.postgresql.org/docs/current/functions-conditional.html
