@@ -25,3 +25,7 @@ Post-rollback queries confirmed zero `package-test-*` workspaces and identities.
 ## Acceptance still required
 
 A logged-in hosted flow must prepare the package through the API, consume it atomically with the settlement and verify archived tenant/owner PDFs, receipt and first-period balance. Production still requires its schema dependency, restore and owner/device acceptance gates. This change does not authorize production deployment or increase completed requirement counts.
+
+## Applied preview result
+
+Preview migration `20261006040947_v267_execution_package_signing_source` was applied successfully on 6 October 2026. The CLI initially generated local version `20261006040859`; the committed filename was aligned with the actual provider-recorded version. Both zero and 100 KWD cases then passed against the applied function, without injecting a replacement function into the test. Follow-up queries found zero synthetic workspaces and identities. Security advisor categories/counts were unchanged; no grants or policies were broadened. Production was not modified.
