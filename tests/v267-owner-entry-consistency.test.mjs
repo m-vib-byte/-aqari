@@ -24,3 +24,5 @@ test('empty optional master row does not fail native required validation',()=>{c
 test('master rejects a share without an owner name',()=>{const e=editor('master');e.share.value='100';assert.throws(e.read,/اسم المالك/);});
 test('master rejects an owner name without a share',()=>{const e=editor('master');e.name.value='اختبار';assert.throws(e.read,/النسبة/);});
 for(const field of ['email','phone','role'])test('master does not silently discard a partial owner: '+field,()=>{const e=editor('master');e[field].value=field==='email'?'test@example.test':field==='phone'?'123':'شريك';assert.throws(e.read,/اسم المالك/);});
+
+for(const field of ['email','phone','role'])test('onboarding does not silently discard a partial owner: '+field,()=>{const e=editor('onboarding');e[field].value=field==='email'?'test@example.test':field==='phone'?'123':'شريك';assert.throws(e.read,/اسم المالك/);});
