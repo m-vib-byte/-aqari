@@ -1,6 +1,4 @@
--- Known integration blocker: DOCUMENT_RESERVED_NUMBER_REQUIRED at canonical
--- document insertion. Keep as a failing acceptance reproduction until the
--- rental-contract issuance path is integrated with official-document guards.
+-- Full rollback-only atomic execution acceptance.
 -- Storage rows below are synthetic metadata only; no files are uploaded.
 -- Preview/isolated database only. Synthetic identities, no real sessions or data.
 -- All fixture rows and package commits are rolled back. This is SQL acceptance,
@@ -83,9 +81,12 @@ declare t jsonb:=current_setting('aqari.execution_package_test')::jsonb;s jsonb:
  hash text:=encode(sha256(convert_to('%PDF-synthetic-package-fixture','UTF8')),'hex');
 begin
  if (t->>'rent')::numeric>0 then
-  artifacts:=jsonb_build_object('record',jsonb_build_array(t->>'receipt','Synthetic package tenant',(t->>'rent')::numeric),
-   'ledger',jsonb_build_object('receiptNo',t->>'receipt','contractReceiptSequence',t->'sequence','paid',(t->>'rent')::numeric),
-   'receipt',jsonb_build_object('id',t->>'receipt','contractReceiptSequence',t->'sequence','contract',s->'signed_contract_snapshot'));
+  artifacts:=jsonb_build_object(
+   'record',jsonb_build_array(t->>'receipt','Synthetic package tenant',(t->>'rent')::numeric,'مدفوع','Synthetic package property',current_date::text,'PACKAGE-TEST','دفعة الإبرام · تسلسل الوصل داخل العقد: '||(t->>'sequence'),'2026-10','نقدي'),
+   'ledger',jsonb_build_object('id','rent-'||(t->>'receipt'),'receiptNo',t->>'receipt','contractId','package-lease','contractNo','PACKAGE-TEST','property','Synthetic package property','unit','PACKAGE-TEST','tenant','Synthetic package tenant','contractReceiptSequence',t->'sequence','period','2026-10','due',(t->>'rent')::numeric,'paid',(t->>'rent')::numeric,'balance',0,'paidAt',current_date::text,'method','نقدي','transactionNo','SYNTHETIC-EXECUTION','accountant','Synthetic accountant','status','مدفوع','note','دفعة الإبرام · تسلسل الوصل داخل العقد: '||(t->>'sequence'),'source','v267-contract-execution'),
+   'receipt',jsonb_build_object('id',t->>'receipt','contractReceiptSequence',t->'sequence','template','rent-voucher-v267-1','contract',s->'signed_contract_snapshot','tenantId','package-tenant','tenantNameEn','Synthetic package tenant','brand',jsonb_build_object('ar','Synthetic package property','en','AQARI PROPERTY','website','myaqari.com'),'detailsVersion',2,'accountant','Synthetic accountant','transactionNo','SYNTHETIC-EXECUTION','rentPeriodBreakdown',jsonb_build_object('version',1,'period','2026-10','dueOn','2026-10-01','policy','manual_first_period','gross',null,'discount',null,'net',(t->>'rent')::numeric,'manual',true,'freeMonth',false)));
+  artifacts:=jsonb_set(artifacts,'{receipt,record}',artifacts->'record');
+  perform set_config('aqari.execution_test_receipt',artifacts::text,true);
   receipt_pdf:=pdf;receipt_hash:=hash;
  end if;
  r:=public.aqari_contract_execution_package_commit((t->>'package')::uuid,(t->>'manager')::uuid,s,artifacts,pdf,hash,pdf,hash,receipt_pdf,receipt_hash);
@@ -173,11 +174,76 @@ declare t jsonb:=current_setting('aqari.execution_package_test')::jsonb;s jsonb:
 begin
  e:=jsonb_build_object('id',t->>'settlement','contractId','package-lease','contractNo','PACKAGE-TEST','tenantId','package-tenant','property','Synthetic package property','unit','PACKAGE-TEST','onDate',current_date,'method','none','transactionNo','','components',s->'amounts','rentReceiptNo','','contractReceiptSequence',null,'zeroReason','Synthetic zero settlement','contractDocumentId',t->>'document','contractDocumentVersionId',gen_random_uuid(),'contractDocumentEventId',gen_random_uuid(),'status','confirmed','executionPackageId',t->>'package');
  select payload into p from public.aqari_app_state where workspace_id=(t->>'workspace')::uuid;
+ if (t->>'rent')::numeric>0 then
+  e:=e||jsonb_build_object('method','cash','transactionNo','SYNTHETIC-EXECUTION','rentReceiptNo',t->>'receipt','contractReceiptSequence',t->'sequence','zeroReason','');
+  p:=p||jsonb_build_object('collections',jsonb_build_array(current_setting('aqari.execution_test_receipt')::jsonb->'record'),'rentLedgerV202',jsonb_build_array(current_setting('aqari.execution_test_receipt')::jsonb->'ledger'),'rentReceiptsV267',jsonb_build_array(current_setting('aqari.execution_test_receipt')::jsonb->'receipt'));
+ end if;
  p:=p||jsonb_build_object('contractsV202',jsonb_build_array(s->'signed_contract_snapshot'),'contractExecutionSettlementsV267',jsonb_build_array(e));
+ begin
+  update public.aqari_app_state set payload=jsonb_set(p,'{contractExecutionSettlementsV267,0,executionPackageId}',to_jsonb(gen_random_uuid()::text)) where workspace_id=(t->>'workspace')::uuid;
+  raise exception 'TEST_WRONG_PACKAGE_ACCEPTED';
+ exception when check_violation then
+  if sqlerrm<>'EXECUTION_DOCUMENT_MANIFEST_MISMATCH' then raise;end if;
+ end;
+ if (select status from public.aqari_leases where id=(t->>'lease')::uuid)<>'signing' then raise exception 'TEST_FAILED_SIGNING_NOT_ROLLED_BACK';end if;
+ if exists(select 1 from public.aqari_rent_payments where workspace_id=(t->>'workspace')::uuid) then raise exception 'TEST_FAILED_PAYMENT_NOT_ROLLED_BACK';end if;
+ update public.aqari_app_state set payload=p where workspace_id=(t->>'workspace')::uuid;
+ if not found then raise exception 'TEST_STATE_NOT_UPDATED';end if;
+ -- Replaying the identical state must not duplicate financial or document rows.
  update public.aqari_app_state set payload=p where workspace_id=(t->>'workspace')::uuid;
 end $sign$;
 reset role;
-select 'PASS: full signing update' result;
+do $assert$
+declare t jsonb:=current_setting('aqari.execution_package_test')::jsonb;w uuid:=(t->>'workspace')::uuid;
+begin
+ if (select status from public.aqari_leases where id=(t->>'lease')::uuid)<>'signed' then raise exception 'TEST_NOT_SIGNED';end if;
+ if (select count(*) from private.aqari_contract_execution_settlements where workspace_id=w)<>1 then raise exception 'TEST_SETTLEMENT_COUNT';end if;
+ if (select count(*) from private.aqari_official_number_reservations where workspace_id=w)<>3 then raise exception 'TEST_RESERVATION_COUNT';end if;
+ if (select count(*) from private.aqari_official_document_series where workspace_id=w)<>3 then raise exception 'TEST_DOCUMENT_COUNT';end if;
+ if (select count(*) from private.aqari_official_pdf_artifacts where workspace_id=w)<>2 then raise exception 'TEST_PDF_COUNT';end if;
+ if (select count(*) from private.aqari_contract_execution_package_consumptions where workspace_id=w)<>1 then raise exception 'TEST_CONSUMPTION_COUNT';end if;
+ if (select count(*) from public.aqari_rent_payments where workspace_id=w)<>(case when (t->>'rent')::numeric>0 then 1 else 0 end) then raise exception 'TEST_PAYMENT_COUNT';end if;
+ if (select count(*) from private.aqari_rent_receipt_pdf_artifacts where workspace_id=w)<>(case when (t->>'rent')::numeric>0 then 1 else 0 end) then raise exception 'TEST_RECEIPT_PDF_COUNT';end if;
+ if exists(select 1 from private.aqari_rent_due_periods where workspace_id=w and period='2026-10-01' and balance<>0) then raise exception 'TEST_FIRST_PERIOD_UNSETTLED';end if;
+ if (t->>'rent')::numeric>0 and not exists(select 1 from private.aqari_rent_receipt_serial_reservations where workspace_id=w and consumed_at is not null) then raise exception 'TEST_RECEIPT_RESERVATION_NOT_CONSUMED';end if;
+end $assert$;
+
+do $denials$
+declare t jsonb:=current_setting('aqari.execution_package_test')::jsonb;w uuid:=(t->>'workspace')::uuid;
+ s private.aqari_official_document_series;v private.aqari_official_document_versions;p private.aqari_contract_execution_packages;
+ role_name text;
+begin
+ select * into strict s from private.aqari_official_document_series where id=(t->>'document')::uuid;
+ select * into strict v from private.aqari_official_document_versions where series_id=s.id;
+ select * into strict p from private.aqari_contract_execution_packages where id=(t->>'package')::uuid;
+ foreach role_name in array array['anon','authenticated','service_role'] loop
+  if has_function_privilege(role_name,'private.aqari_validate_execution_document(private.aqari_official_document_series,private.aqari_official_document_versions)','execute') then raise exception 'TEST_HELPER_EXPOSED';end if;
+ end loop;
+ begin
+  perform private.aqari_validate_execution_document(s,v);
+  raise exception 'TEST_CONSUMED_PACKAGE_ACCEPTED';
+ exception when check_violation then if sqlerrm<>'EXECUTION_DOCUMENT_PACKAGE_UNAVAILABLE' then raise;end if;end;
+ perform set_config('request.jwt.claim.sub',t->>'viewer',true);
+ begin
+  perform private.aqari_validate_execution_document(s,v);
+  raise exception 'TEST_VIEWER_DOCUMENT_ACCEPTED';
+ exception when insufficient_privilege then if sqlerrm<>'EXECUTION_DOCUMENT_ACCESS_DENIED' then raise;end if;end;
+ perform set_config('request.jwt.claim.sub',t->>'manager',true);
+ -- Privileged synthetic fixture only: clone an already validated package as
+ -- expired. The expected helper exception rolls its insertion back immediately.
+ p.id:=gen_random_uuid();p.settlement_id:=gen_random_uuid();
+ p.prepared_at:=now()-interval '1 hour';p.expires_at:=now()-interval '45 minutes';
+ v.payload:=jsonb_set(v.payload,'{executionSettlementId}',to_jsonb(p.settlement_id::text));
+ begin
+  insert into private.aqari_contract_execution_packages select (p).*;
+  perform private.aqari_validate_execution_document(s,v);
+  raise exception 'TEST_EXPIRED_PACKAGE_ACCEPTED';
+ exception when check_violation then if sqlerrm<>'EXECUTION_DOCUMENT_PACKAGE_UNAVAILABLE' then raise;end if;end;
+ if exists(select 1 from private.aqari_contract_execution_packages where id=p.id) then raise exception 'TEST_EXPIRED_FIXTURE_REMAINED';end if;
+end $denials$;
+
+select 'PASS: atomic signing, payment/zero-rent, reserved documents, archived PDFs, single consumption, wrong-package rollback, idempotent replay, viewer/expired/consumed-package rejection and private-helper ACL' result, (current_setting('aqari.execution_package_test')::jsonb->>'rent')::numeric tested_rent;
 
 rollback;
+
 

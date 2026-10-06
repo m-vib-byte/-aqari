@@ -482,8 +482,13 @@
     },
     {
       "path": "docs/V267-EXECUTION-DOCUMENT-TEXT-2026-10-06.md",
-      "sha256": "7581c239ada7dc849f9998c15d8387ddaae4de5aa053b9aea44eadcb498cba5b",
-      "size": 2720
+      "sha256": "ec6d1b9e58532bc11a805cb03679cd5fa11229a53ac8b1f3809e70239b675746",
+      "size": 3024
+    },
+    {
+      "path": "docs/V267-EXECUTION-OFFICIAL-BINDING-2026-10-06.md",
+      "sha256": "ee68b92bbebde0567265fdf30bab758b10e2d620a796ec7de38fefd212d7d007",
+      "size": 3907
     },
     {
       "path": "docs/V267-EXIT-REVIEW.md",
@@ -2756,6 +2761,11 @@
       "size": 11734
     },
     {
+      "path": "staging-database/sql/contract-execution-official-document-binding.sql",
+      "sha256": "6d08b635adc86896e1bfd28a54e59ed8a0ec8425a83ce3e177476d815f2e890d",
+      "size": 32900
+    },
+    {
       "path": "staging-database/sql/contract-execution-settlement.sql",
       "sha256": "c3477f3a8b1a52106de1696377fe15aac541ce9f4f6b138c210476f2fdafff44",
       "size": 17953
@@ -3746,6 +3756,11 @@
       "size": 13780
     },
     {
+      "path": "staging-database/supabase/migrations/20261006044006_v267_execution_official_document_binding.sql",
+      "sha256": "6d08b635adc86896e1bfd28a54e59ed8a0ec8425a83ce3e177476d815f2e890d",
+      "size": 32900
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -3797,8 +3812,8 @@
     },
     {
       "path": "staging-database/tests/contract_execution_finalize_hosted.sql",
-      "sha256": "7fd9078ea6d8e1e1c70cf4a1abcfa3138c3a462735db68da95d817817fc02f50",
-      "size": 15755
+      "sha256": "bea1ea6c6e9e77e6f1a095a07e9d14e00b760161ac1ef11e090b6a617311feb0",
+      "size": 22782
     },
     {
       "path": "staging-database/tests/deposit_register.sql",

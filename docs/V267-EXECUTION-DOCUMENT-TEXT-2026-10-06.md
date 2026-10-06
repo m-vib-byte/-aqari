@@ -1,3 +1,5 @@
+> Update: the number-reservation/template integration blocker below is now resolved on preview by `20261006044006_v267_execution_official_document_binding`; both zero and paid atomic SQL acceptance pass. See `V267-EXECUTION-OFFICIAL-BINDING-2026-10-06.md`. The following records the earlier diagnosis.
+
 # Execution document text: verified fix and remaining integration blocker
 
 Preview project: `ofgmcsmxmdswlovsckqs`. Production was not changed.
@@ -47,3 +49,4 @@ The failing acceptance test is intentionally preserved as evidence, not counted
 as a passed test. Paid full-transaction acceptance, authenticated hosted API/browser
 testing, and owner/device acceptance remain pending. This work does not close
 the entire execution feature or change the overall partial/complete counts.
+
