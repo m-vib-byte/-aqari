@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ownershipReadbackMatches,ownershipShareBasisPoints} from '../src/v267/pages/property-ownership.js';
+import {ownershipReadbackMatches} from '../src/v267/pages/property-ownership.js';
+import {ownershipShareBasisPoints} from '../src/v267/domain/ownership-shares.js';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
@@ -26,7 +27,7 @@ async function screen(corrupt=false){
  const node=(tag,value)=>new Element(tag,value),field=(label,control)=>{const n=node('label',label);n.append(control);return n;};
  let state={...actual(),workspace_id:'w',property_id:'p',user_id:'u',manager:true,documents:[{id:'doc1'},{id:'doc2'}],history:[]};const calls=[];
  const d={body:node('div'),status:node('p'),session:{bound:{workspace:'w',user:'u'},check(){},async request(p){return p;},client:{async rpc(name,{p_action:action,p_data:data}){calls.push(action);if(action==='save'){state={...state,masterRevision:state.masterRevision+1,ownershipRevision:state.ownershipRevision+1,property:{totalAreaSqm:data.totalAreaSqm},owners:structuredClone(data.owners)};if(corrupt)state.owners[0].name='different';return {masterRevision:state.masterRevision,ownershipRevision:state.ownershipRevision};}return structuredClone(state);}}},run(fn){return this.last=Promise.resolve().then(fn).catch(e=>{this.status.textContent=e.message;});}};
- const scope={node,field,createDialog:()=>d,translateStatic:x=>x,visibleText:x=>x,visibleMessage:(s,v)=>s.replace(/\{(\w+)\}/g,(_,k)=>v[k]),crypto:{randomUUID:()=> 'new-id'}};vm.createContext(scope);
+ const scope={ownershipShareBasisPoints,node,field,createDialog:()=>d,translateStatic:x=>x,visibleText:x=>x,visibleMessage:(s,v)=>s.replace(/\{(\w+)\}/g,(_,k)=>v[k]),crypto:{randomUUID:()=> 'new-id'}};vm.createContext(scope);
  vm.runInContext(readFileSync(new URL('../src/v267/pages/property-ownership.js',import.meta.url),'utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),scope);scope.openPropertyOwnership('p');await d.last;
  d.body.all().find(x=>x.tag==='button'&&x._text==='تعديل الملكية والمساحات').onclick();await d.last;
  return {d,calls,async submit(){d.body.all().find(x=>x.tag==='form').onsubmit({preventDefault(){}});await d.last;}};

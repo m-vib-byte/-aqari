@@ -1,3 +1,4 @@
+import {ownershipShareBasisPoints} from '../domain/ownership-shares.js';
 import {t as visibleText,message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -14,14 +15,6 @@ const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick
 const moneyArea=v=>v==null?'—':Number(v).toFixed(3)+visibleText(' م²');
 function select(rows,value=''){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}x.value=value??'';return x;}
 function section(title){const s=node('section');s.append(node('h3',title));return s;}
-
-export function ownershipShareBasisPoints(value){
- const text=String(value??'').normalize('NFKC').trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace('٫','.').replace(/^\./,'0.');
- const match=/^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(text);
- const bps=match?Number(match[1])*100+Number((match[2]||'').padEnd(2,'0')):0;
- if(!match||bps<1||bps>10000)throw Error('أدخل النسبة بين 0.01 و100 وبمنزلتين عشريتين كحد أقصى، دون تقريب.');
- return bps;
-}
 
 export function ownershipReadbackMatches(actual,expected){
  const area=value=>{const m=/^(\d{1,12})(?:\.(\d{1,3}))?$/.exec(String(value??''));return m?BigInt(m[1])*1000n+BigInt((m[2]||'').padEnd(3,'0')):null;};
