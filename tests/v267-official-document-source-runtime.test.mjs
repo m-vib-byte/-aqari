@@ -4,7 +4,7 @@ import {openOfficialDocumentCenter} from '../src/v267/pages/official-document-ce
 import {OFFICIAL_FORM_TEMPLATES} from '../src/v267/components/document-catalog.js';
 import {officialFields,validateOfficialValues} from '../src/v267/components/official-form-fields.js';
 
-async function fixture({lostReply=false,lostBeforeWrite=false,wrongContext=false,partialReadback=false,rejectOnce=false}={}){
+async function fixture({typed=false,wrongKind=false,lostReply=false,lostBeforeWrite=false,wrongContext=false,partialReadback=false,rejectOnce=false}={}){
  const original={window:globalThis.window,document:globalThis.document};const calls=[],records=new Map(),numbers=new Map();
  class Element{constructor(tag){this.tagName=tag;this.children=[];this.attributes={};this.value='';this.disabled=false;}
   get value(){return this.tagName==='select'&&!this.children.some(x=>x.value===this._value)?'':this._value;}
@@ -18,7 +18,7 @@ async function fixture({lostReply=false,lostBeforeWrite=false,wrongContext=false
  const defaults={sourceId:'payment-1',tenantName:'مستأجر محفوظ',contractNo:'LEASE-1',propertyName:'عقار محفوظ',unitNo:'101',amount:'12.345',period:'2026-09',paymentMethod:'نقداً',paymentReference:'مرجع محفوظ',collectorName:'محصل محفوظ',receivedFrom:'مستأجر محفوظ',reference:'مرجع محفوظ',reason:'إيجار سبتمبر'};
  const client={rpc(name,args){calls.push({name,args:structuredClone(args)});return {abortSignal:async()=>{
   if(name==='aqari_official_document_context')return {data:{workspace_id:wrongContext?'other':w,user_id:user,kind:args.p_kind,entity_type:'lease',entity_id:args.p_entity_id,source_id:args.p_source_id,source_required:['rent_receipt','receipt_voucher'].includes(args.p_kind),entities:[{id:'lease-1',label:'عقد محفوظ'}],sources:[{id:'payment-1',label:'دفعة محفوظة'}],defaults:args.p_source_id?defaults:{}}};
-  if(name==='aqari_official_document_number'){if(!numbers.has(args.p_request_id))numbers.set(args.p_request_id,'AQ-20260912-'+String(numbers.size+1).padStart(8,'0'));return {data:{id:args.p_request_id,workspace_id:w,kind:args.p_kind,entity_id:args.p_entity_id,document_no:numbers.get(args.p_request_id)}};}
+  if(name==='aqari_official_document_number'){if(!numbers.has(args.p_request_id))numbers.set(args.p_request_id,(typed?'AQ-'+(wrongKind?'PAYMENT_VOUCHER':args.p_kind.toUpperCase())+'-20260912-':'AQ-20260912-')+String(numbers.size+1).padStart(8,'0'));return {data:{id:args.p_request_id,workspace_id:w,kind:args.p_kind,entity_id:args.p_entity_id,document_no:numbers.get(args.p_request_id)}};}
   assert.equal(name,'aqari_official_document_register');const p=args.p_data;
   if(args.p_action==='list')return {data:{items:[...records.values()].map(r=>({...r.series,version:r.versions.at(-1)}))}};
   if(args.p_action==='get'){const r=structuredClone(records.get(p.id)||{});if(partialReadback&&r.versions)r.versions[0].payload={amount:'999.000'};return {data:r};}
@@ -67,4 +67,11 @@ test('invalid calendar dates, reversed ranges and non-financial amounts are reje
  const values=Object.fromEntries(officialFields('tenant_statement').map(x=>[x.key,x.type==='date'?'2026-09-12':x.type==='decimal'?'0.000':'اختبار']));
  for(const change of [{fromDate:'2026-02-30'},{fromDate:'2026-10-01'},{payments:'NaN'},{payments:'1.0001'},{payments:'-5'}])assert.throws(()=>validateOfficialValues('tenant_statement',{...values,...change}));
  assert.equal(validateOfficialValues('tenant_statement',{...values,openingBalance:'-5.125'}).openingBalance,'-5.125');
+});
+
+test('typed number survives lost response and reuses its original reservation',async()=>{
+ const f=await fixture({typed:true,lostBeforeWrite:true});try{await f.select();await f.submit();await f.button('التحقق من الحفظ السابق').onclick();assert.equal(f.records.size,1);assert.match(f.status(),/تم الحفظ والتحقق/);assert.equal(f.calls.filter(x=>x.name==='aqari_official_document_number').length,1);assert.match([...f.records.values()][0].series.document_no,/^AQ-RENT_RECEIPT-/);}finally{f.cleanup();}
+});
+test('a typed number for another kind is rejected before issue',async()=>{
+ const f=await fixture({typed:true,wrongKind:true});try{await f.select();await f.submit();assert.equal(f.calls.filter(x=>x.args.p_action==='issue').length,0);assert.match(f.status(),/رقم المستند المحجوز/);}finally{f.cleanup();}
 });
