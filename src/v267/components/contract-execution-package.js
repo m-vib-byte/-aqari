@@ -8,7 +8,17 @@ export async function prepareContractExecutionPackage(session, body) {
    method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+auth.access_token},
    body:JSON.stringify(body),signal,credentials:'same-origin',cache:'no-store',redirect:'error'
   });session.check();
-  if(!response.ok)throw Error('لم يتأكد تجهيز مستندات الإبرام. لم يتم اعتماد العقد؛ تحقّق قبل إعادة المحاولة.');
+  if(!response.ok){
+   const failure=Object.assign(Error('لم يتأكد تجهيز مستندات الإبرام. لم يتم اعتماد العقد؛ تحقّق قبل إعادة المحاولة.'),{status:response.status});
+   if(response.status===403&&(response.headers?.get('Content-Type')||'').includes('application/json')){
+    let text;try{text=await response.text();}catch{session.check();throw failure;}session.check();
+    let error;try{if(text.length<=16384)error=JSON.parse(text);}catch{}
+    // The endpoint exposes these two source-read challenges only before its commit.
+    if(error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.error))
+     throw Object.assign(Error(error.error),{status:403,code:'42501'});
+   }
+   throw failure;
+  }
   if(!(response.headers.get('Content-Type')||'').includes('application/json'))throw Error('استجابة تجهيز العقد غير صالحة.');
   const text=await response.text();session.check();
   if(text.length>16384)throw Error('استجابة تجهيز العقد غير صالحة.');

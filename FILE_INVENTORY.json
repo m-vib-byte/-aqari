@@ -226,6 +226,11 @@
       "size": 524
     },
     {
+      "path": "api/contract-execution-package.py",
+      "sha256": "48061b46c4631318717efc30c4941cd3cdfd8909747a394e3e9810bf98d1ea5c",
+      "size": 5041
+    },
+    {
       "path": "api/contract-template-preview.py",
       "sha256": "ceece5662e912d8fb111ee620e48823348bb0a1fd2928b2a847f54b28b3a8f8c",
       "size": 19876
@@ -484,6 +489,11 @@
       "path": "docs/V267-EXECUTION-DOCUMENT-TEXT-2026-10-06.md",
       "sha256": "ec6d1b9e58532bc11a805cb03679cd5fa11229a53ac8b1f3809e70239b675746",
       "size": 3024
+    },
+    {
+      "path": "docs/V267-EXECUTION-MFA-RECOVERY-2026-10-07.md",
+      "sha256": "20098aea8b10dc29b160a8aace306f00d80e29cf48d1bc3321a6ca1a4f30f1b7",
+      "size": 3997
     },
     {
       "path": "docs/V267-EXECUTION-OFFICIAL-BINDING-2026-10-06.md",
@@ -942,8 +952,8 @@
     },
     {
       "path": "docs/verification/unit-search-20261006.md",
-      "sha256": "22e202bf70942d273a86dc91024db894eb999ee2402b3b59679aec9b621f9f7c",
-      "size": 3190
+      "sha256": "d7a2fc2c891a97f5707abe21057be5ec75268880169d3c9dd3a82e4dca4ce271",
+      "size": 3931
     },
     {
       "path": "final-release-ui.css",
@@ -1466,6 +1476,11 @@
       "size": 4501
     },
     {
+      "path": "src/v267/components/contract-execution-package.js",
+      "sha256": "48f1d0a942696e4e3899575235d5b65c5fcdee818f3bd82232f638637aad28c6",
+      "size": 2245
+    },
+    {
       "path": "src/v267/components/contract-routing.js",
       "sha256": "0175d2015248316fb4799aa87586021b3ffc6374eed2c65b6fe46670bb43e88f",
       "size": 2456
@@ -1944,6 +1959,11 @@
       "path": "src/v267/pages/contract-change-requests.js",
       "sha256": "a71909ae73a4feb18e0bcd05c20e75ea641d4a73e297376fb37a51d3ce525779",
       "size": 1752
+    },
+    {
+      "path": "src/v267/pages/contract-execution.js",
+      "sha256": "f0e111b01bd4e85b12b7484b351a70c7266a89ac87cb66a10ad095ac2ac1fd95",
+      "size": 18822
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
@@ -4247,8 +4267,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "eb0ca88d009577dc4839eadd6e38e5e6f90c25ec610afea8a1f977d402e1b115",
-      "size": 27663
+      "sha256": "e888ee79aa80e6cd35e2d32c188fd7d2fe7e1fcc0e89d7ead53acc95708aec02",
+      "size": 28176
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
@@ -4349,6 +4369,11 @@
       "path": "tests/authenticated-home-heartbeat.test.cjs",
       "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
       "size": 2220
+    },
+    {
+      "path": "tests/contract_execution_package_test.py",
+      "sha256": "ab80e3bd97092dd0b07ed42ff9993550e532ed6262172e63735831f955acb12a",
+      "size": 13374
     },
     {
       "path": "tests/contract_template_pdf_test.py",
@@ -4739,6 +4764,11 @@
       "path": "tests/v267-contract-entry-routing.test.mjs",
       "sha256": "341638d598588f783bd8207d2165b3449aa8c1efa67add8c18798271ce3bbf92",
       "size": 3154
+    },
+    {
+      "path": "tests/v267-contract-execution-package.test.mjs",
+      "sha256": "5b9d1cd13992b4d0dd698610e6333f7b49da08661f292d34e1a064322c2cb756",
+      "size": 14282
     },
     {
       "path": "tests/v267-contract-intake.test.mjs",

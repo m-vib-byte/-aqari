@@ -162,4 +162,45 @@ class ApiBoundaryTests(unittest.TestCase):
    with patch.object(self.api,'prepare',side_effect=error):instance.do_POST()
    self.assertEqual(responses[0][0],status);self.assertNotIn('private',str(responses));self.assertNotIn('secret',str(responses))
 
+class MfaBoundaryTests(unittest.TestCase):
+ setUpClass=classmethod(ApiBoundaryTests.setUpClass.__func__)
+ def invoke(self, *, source_error=None, commit_error=None, challenge_on=1):
+  import json
+  from io import BytesIO
+  from unittest.mock import patch
+  fixture=PackageTests();fixture.setUp();reads=0
+  def read(path,auth,body=None):
+   nonlocal reads
+   if path.endswith('/aqari_contract_execution_package_source'):
+    reads+=1
+    if source_error and reads==challenge_on:raise source_error
+   return fixture.read(path,auth,body)
+  instance=object.__new__(self.api.handler);raw=json.dumps(fixture.data).encode()
+  instance.headers={'Content-Length':str(len(raw)),'Authorization':'Bearer a.b.c'};instance.rfile=BytesIO(raw);responses=[]
+  instance.respond=lambda code,data:responses.append((code,data))
+  with patch.object(self.api.common,'upstream',side_effect=read),patch.object(self.api.common,'render_official_document',side_effect=fixture.render),patch.object(self.api,'commit_package',side_effect=commit_error or fixture.commit) as commit:
+   instance.do_POST()
+  return responses,commit.call_count,fixture.renders
+ def error(self,status=403,code='42501',message='MFA_REQUIRED',raw=None):
+  import json
+  from io import BytesIO
+  from urllib.error import HTTPError
+  return HTTPError('https://private',status,'private details',{'Content-Type':'application/json'},BytesIO(raw if raw is not None else json.dumps({'code':code,'message':message,'details':'secret','hint':'secret'}).encode()))
+ def test_source_mfa_is_preserved_before_any_privileged_write(self):
+  for message in ('MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'):
+   for stage in (1,2):
+    with self.subTest(message=message,stage=stage):
+     responses,commits,renders=self.invoke(source_error=self.error(message=message),challenge_on=stage)
+     self.assertEqual(responses,[(403,{'error':message,'code':'42501'})])
+     self.assertEqual(commits,0)
+     self.assertEqual(len(renders),0 if stage==1 else 2)
+ def test_untrusted_or_expired_errors_never_become_recoverable_mfa(self):
+  for args in ({'status':401},{'status':500},{'code':'P0001'},{'message':'MFA_REQUIRED_extra'},{'raw':b'not json'},{'raw':b'[]'},{'raw':b' '*16385}):
+   with self.subTest(args=str(args)[:80]):
+    responses,commits,_=self.invoke(source_error=self.error(**args))
+    self.assertNotIn('MFA_REQUIRED',str(responses));self.assertNotIn('secret',str(responses));self.assertEqual(commits,0)
+ def test_privileged_commit_error_does_not_allow_mfa_retry(self):
+  responses,commits,_=self.invoke(commit_error=self.error())
+  self.assertEqual(commits,1);self.assertEqual(responses,[(403,{'error':'EXECUTION_PREPARATION_FAILED'})])
+
 if __name__=='__main__':unittest.main()

@@ -12,6 +12,27 @@ spec.loader.exec_module(common)
 from lib.contract_execution_package import prepare
 from lib.rent_pdf import render_receipt, verified_receipt
 
+class SourceMfaChallenge(PermissionError):
+    """An exact user-scoped source rejection, before the privileged commit."""
+
+def read_execution_source(path, auth, body=None):
+    try:
+        return common.upstream(path, auth, body)
+    except HTTPError as exc:
+        message = None
+        if exc.code == 403 and path == '/rest/v1/rpc/aqari_contract_execution_package_source':
+            try:
+                raw = exc.read(16385)
+                error = json.loads(raw) if len(raw) <= 16384 else None
+                if (isinstance(error, dict) and error.get('code') == '42501'
+                        and error.get('message') in ('MFA_REQUIRED', 'MFA_RECENT_REAUTH_REQUIRED')):
+                    message = error['message']
+            except (ValueError, TypeError, OSError):
+                pass
+        if message:
+            raise SourceMfaChallenge(message) from None
+        raise
+
 def commit_package(data):
     # A server-only credential is required for the first render. Never obtain it
     # from a browser, request body or a different Supabase project.
@@ -63,10 +84,12 @@ class handler(BaseHTTPRequestHandler):
             if not 0 < length <= 262144:
                 raise ValueError("INVALID_REQUEST")
             data=json.loads(self.rfile.read(length))
-            result=prepare(data,self.headers.get("Authorization"),read=common.upstream,
+            result=prepare(data,self.headers.get("Authorization"),read=read_execution_source,
                            commit=commit_package,render_document=common.render_official_document,
                            render_receipt=render_receipt,verify_receipt=verified_receipt)
             self.respond(200,result)
+        except SourceMfaChallenge as exc:
+            self.respond(403,{"error":str(exc),"code":"42501"})
         except PermissionError:
             self.respond(403,{"error":"ACCESS_DENIED"})
         except HTTPError as exc:
