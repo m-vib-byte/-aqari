@@ -34,3 +34,28 @@ test('draft and historical contracts retain missing-link observations without be
  assert.deepEqual(result.find(x=>x.kind==='lease_without_tenant')?.ids,['l0','l1','l2']);
  assert.deepEqual(leases.map(l=>l.status),['draft','ended','cancelled']);
 });
+
+const documentFindings=data=>inspectQuality(data).filter(x=>x.kind.startsWith('document_'));
+const targets={properties:[{id:'p',external_ref:'property-ref',metadata:{source_only:true}}],tenants:[{id:'t',external_ref:'tenant-ref',full_name:'Tenant'}],leases:[{id:'l',external_ref:'lease-ref',start_date:'2026-01-01',end_date:'2026-12-31'}]};
+test('document links match exact external references within their declared entity type',()=>{
+ const documents=[['property','property-ref'],['tenant','tenant-ref'],['lease','lease-ref']].map(([entity_type,entity_ref],i)=>({id:'d'+i,entity_type,entity_ref}));
+ assert.deepEqual(documentFindings({...targets,documents}),[]);
+ for(const entity_ref of ['p','tenant-ref','PROPERTY-REF',' property-ref '])assert.deepEqual(documentFindings({...targets,documents:[{id:'bad',entity_type:'property',entity_ref}]}),[{kind:'document_record_not_in_scan',ids:['bad']}]);
+});
+test('missing document links and unexamined entity types are separate observations',()=>{
+ const documents=[{id:'no-ref',entity_type:'property',entity_ref:' '},{id:'no-type',entity_type:'',entity_ref:'x'},{id:'other',entity_type:'other',entity_ref:'x'}];
+ assert.deepEqual(documentFindings({...targets,documents}),[{kind:'document_without_record_link',ids:['no-ref','no-type']},{kind:'document_scope_not_checked',ids:['other']}]);
+});
+test('duplicate external references do not falsely confirm a document link',()=>{
+ const properties=[{id:'p1',external_ref:'shared'},{id:'p2',external_ref:'shared'}];
+ assert.deepEqual(documentFindings({properties,documents:[{id:'d',entity_type:'property',entity_ref:'shared'}]}),[{kind:'document_ambiguous_record',ids:['d']}]);
+});
+test('omitted target data or external reference columns remain unexamined',()=>{
+ const documents=[{id:'d',entity_type:'property',entity_ref:'p'}];
+ for(const data of [{},{properties:[{id:'p'}]}])assert.deepEqual(documentFindings({...data,documents}),[{kind:'document_scope_not_checked',ids:['d']}]);
+ assert.deepEqual(documentFindings({properties:[],documents}),[{kind:'document_record_not_in_scan',ids:['d']}]);
+});
+test('document observations preserve draft, uploaded and cancelled records and all input data',()=>{
+ const data={...structuredClone(targets),documents:['draft','uploaded','cancelled'].map((status,i)=>({id:'d'+i,status,entity_type:'lease',entity_ref:'absent'}))},before=structuredClone(data);
+ assert.deepEqual(documentFindings(data),[{kind:'document_record_not_in_scan',ids:['d0','d1','d2']}]);assert.deepEqual(data,before);
+});

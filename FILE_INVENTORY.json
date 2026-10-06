@@ -1417,8 +1417,8 @@
     },
     {
       "path": "src/v267/components/data-quality.mjs",
-      "sha256": "3e2e93215fd1ddde2ed391baf5ba47f864bcae78e6cbb69768291ba1564e9824",
-      "size": 2187
+      "sha256": "0f4210511404e38356a32e8e1a9ccf9b517b1155af2e263110e72ba2d543f262",
+      "size": 3563
     },
     {
       "path": "src/v267/components/deposit-translations.js",
@@ -1897,8 +1897,8 @@
     },
     {
       "path": "src/v267/pages/data-quality.js",
-      "sha256": "c61923ef51a52150f01192342a63fe0b6260302eb013479da5ee7b2eb08ea99c",
-      "size": 3814
+      "sha256": "c825d96973f8ca86ca797f92bb7d3f56a44d0fef406d1d793b16a706417302e6",
+      "size": 4995
     },
     {
       "path": "src/v267/pages/deposit-ledger.js",
@@ -4142,8 +4142,8 @@
     },
     {
       "path": "tests/data-quality.test.mjs",
-      "sha256": "62ce31db4de6f023daa2e899a211194001e094cc447cfb3a1b764706677c3501",
-      "size": 3224
+      "sha256": "2201a431ce169d788e924a7be91a4ba37c430c6fb6470ec4396078dc193e16b5",
+      "size": 5743
     },
     {
       "path": "tests/demo-v211.test.cjs",
