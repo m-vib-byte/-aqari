@@ -4857,8 +4857,8 @@
     },
     {
       "path": "tests/v267-official-document-source-runtime.test.mjs",
-      "sha256": "1902277d993695a20ed426ac245707dcf89fc80734ec6ee6e080990877051498",
-      "size": 10859
+      "sha256": "279f3713f7cdb7d2c5507632ccb1be978b9cf4f86863e634b991f135af34f1cf",
+      "size": 14091
     },
     {
       "path": "tests/v267-opening-balances-runtime.test.mjs",
