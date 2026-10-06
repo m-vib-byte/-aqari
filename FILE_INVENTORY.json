@@ -1937,8 +1937,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "size": 30350,
-      "sha256": "2133d1e14b2acdb35f359039e277f59d5b9b4082c6f8d35922631a995a4dfc24"
+      "size": 33560,
+      "sha256": "ac246def9702568e1cb48e592547f2768ffdeef5e0e09a898426d3bb568042a7"
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
@@ -4667,8 +4667,8 @@
     },
     {
       "path": "tests/v267-financial-register.test.cjs",
-      "size": 35232,
-      "sha256": "424924475adcce8f746ef8a53a7e7936df40836fcea96e81d4b7b168af66010e"
+      "size": 39368,
+      "sha256": "90dfd467c8994f50413db25c820aed149cd71d3fcfd9e19ed774ffc2e70878b4"
     },
     {
       "path": "tests/v267-full-page-workspace.test.mjs",

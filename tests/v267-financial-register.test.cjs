@@ -60,9 +60,45 @@ function fixture(initial=[],options={}){
  const editor=()=>descendants(d.body).find(element=>element.tag==='form'&&element.children.some(child=>child.tag==='h3'));
  const submit=async form=>{form.onsubmit({preventDefault(){}});await d.pending;};
  const newDraft=()=>{button('إعداد مصروف جديد').onclick();control('العقار').value='property-one';control('العقار').onchange();control('بند المصروف').value='صيانة <مسجلة>';control('المستفيد').value='مقاول <محفوظ>';control('المبلغ بالدينار الكويتي').value='١٢٠٫٠٠٥';control('البيان والتفاصيل').value='تفاصيل <script>';};
- return {d,records,calls,history,state,properties,documents,confirmations,close,button,control,editor,submit,newDraft,descendants};
+ return {d,records,calls,history,state,properties,documents,confirmations,close,button,control,editor,submit,newDraft,descendants,inspect:ctx.expenseReferenceFindings};
 }
 const expense=overrides=>({id:'expense-existing',property_id:'property-one',expense_date:currentMonth()+'-01',category:'صيانة أصلية',payee:'المستفيد الأصلي',amount:'12.005',method:'cash',reference:'',description:'تفاصيل أصلية <script>',document_id:'document-one',state:'draft',revision:1,voucher_no:null,...overrides});
+
+test('expense quality identifies approved reference and document gaps without treating hidden documents as deleted',async()=>{
+ const f=fixture();await f.d.pending;
+ const rows=[expense({state:'approved',method:'bank',reference:'  ',document_id:null}),expense({id:'hidden',state:'approved',voucher_no:'V2',document_id:'not-readable'}),expense({id:'wrong',state:'approved',voucher_no:'V3',document_id:'document-two'}),expense({id:'method',state:'approved',voucher_no:'V4',method:'unknown'})];
+ assert.deepEqual(clone(f.inspect(rows,f.documents)),[{kind:'missing_voucher',id:'expense-existing',voucher:''},{kind:'missing_document',id:'expense-existing',voucher:''},{kind:'missing_reference',id:'expense-existing',voucher:''},{kind:'unavailable_document',id:'hidden',voucher:'V2'},{kind:'wrong_property_document',id:'wrong',voucher:'V3'},{kind:'unknown_method',id:'method',voucher:'V4'}]);
+ assert.ok(f.calls.every(call=>call.p_action==='list'));
+});
+test('expense quality permits cash without reference and excludes drafts cancelled rows and payroll allocations',async()=>{
+ const f=fixture();await f.d.pending;
+ assert.deepEqual(clone(f.inspect([expense({state:'approved',voucher_no:'CASH'}),expense({document_id:null,method:'bank'}),expense({state:'cancelled',document_id:null,method:'bank'}),expense({source:'salary',state:'approved',document_id:null,method:'bank'})],f.documents)),[]);
+});
+test('expense duplicate references use exact saved method and reference across readable properties',async()=>{
+ const f=fixture();await f.d.pending;
+ const row=(id,values={})=>expense({id,state:'approved',voucher_no:id,method:'bank',reference:'REF',...values});
+ const rows=[row('one'),row('two',{property_id:'property-two',document_id:'document-two'}),row('cheque',{method:'cheque'}),row('case',{reference:'ref'}),row('space',{reference:'REF '}),row('draft',{state:'draft'}),row('cancelled',{state:'cancelled'}),row('salary',{source:'salary'})];
+ const before=clone(rows);assert.deepEqual(clone(f.inspect(rows,f.documents)),[{kind:'duplicate_reference',id:'one',voucher:'one'},{kind:'duplicate_reference',id:'two',voucher:'two'}]);assert.deepEqual(rows,before);
+});
+test('expense quality covers rows past pagination and remains scoped to the loaded month despite search',async()=>{
+ const rows=Array.from({length:21},(_,i)=>expense({id:'row-'+i,state:'approved',voucher_no:'V-'+i}));rows[20].method='bank';rows[20].reference='';
+ rows.push(expense({id:'other-month',expense_date:'2001-01-01',state:'approved',document_id:null}));
+ const f=fixture(rows,{manager:false,canWrite:false});await f.d.pending;
+ const quality=()=>f.descendants(f.d.body).find(el=>el.tag==='section');
+ assert.match(quality().textContent,/بلا مرجع — V-20 · row-20/);assert.doesNotMatch(quality().textContent,/other-month/);
+ f.control('البحث في مصروفات الفترة').value='no-match';f.control('البحث في مصروفات الفترة').oninput();
+ assert.match(quality().textContent,/بلا مرجع — V-20 · row-20/);assert.match(f.d.body.textContent,/نتائج التصفية: 0/);assert.equal(f.calls.length,1);
+});
+test('expense quality disappears on failed refresh and access denial and returns only after successful reread',async()=>{
+ for(const error of [Error('network unavailable'),Object.assign(Error('denied'),{code:'42501'})]){
+  const f=fixture([expense({state:'approved',voucher_no:'QUALITY-V',method:'bank'})]);await f.d.pending;
+  assert.match(f.d.body.textContent,/مراجعة مراجع المصروفات المعتمدة/);
+  f.state.listError=error;await f.button('تحديث السجل والتحقق من الحفظ').onclick();
+  assert.doesNotMatch(f.d.body.textContent,/مراجعة مراجع المصروفات المعتمدة|مصروف بنكي أو شيك بلا مرجع|لم يرصد هذا الفحص/);
+  f.state.listError=null;await f.button('تحديث السجل والتحقق من الحفظ').onclick();assert.match(f.d.body.textContent,/مصروف بنكي أو شيك بلا مرجع/);
+  assert.ok(f.calls.every(call=>call.p_action==='list'));
+ }
+});
 
 test('empty financial register loads authoritative period data without creating financial records',async()=>{
  const f=fixture();await f.d.pending;assert.match(f.d.body.textContent,/لا توجد مصروفات محفوظة/);assert.match(f.d.body.textContent,/0\.000 د\.ك/);assert.equal(f.calls.length,1);assert.equal(f.calls[0].p_action,'list');assert.equal(f.records.length,0);
