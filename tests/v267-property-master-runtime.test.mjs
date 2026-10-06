@@ -161,10 +161,15 @@ for(const [label,heading] of [
 
 // The Production route must render stored balances and reject foreign scope.
 test('production ledger renders authoritative amounts without recalculation',async()=>{
- const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-a',permissions:{contracts:true,tenants:true,collections:true},tenants:[{fullName:'Synthetic tenant',contracts:[{contractNo:'TEST-LEDGER'}]}],rentDues:[{period:'2026-10-01',contractNo:'TEST-LEDGER',unitNo:'A-1',dueAmount:100,paidAmount:64.5,balance:25.5,status:'partial'}]}});
- try{await f.settled();assert.match(f.text(),/Synthetic tenant/);assert.match(f.text(),/25\.500/);assert.doesNotMatch(f.text(),/35\.500/);const q=f.rpcs().find(x=>x.name==='aqari_property_tenant_ledger');assert.equal(q.args.p_workspace_id,'test-workspace');assert.equal(q.args.p_property_id,'property-a');}finally{await f.cleanup();}
+ const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-a',permissions:{contracts:true,tenants:true,collections:true},tenants:[{fullName:'Synthetic tenant',contracts:[{contractNo:'TEST-LEDGER'}]}],rentDues:[{period:'2026-10-01',contractNo:'TEST-LEDGER',unitNo:'A-1',dueAmount:100,paidAmount:64.5,creditAmount:10,balance:25.5,status:'partial'}]}});
+ try{await f.settled();assert.match(f.text(),/Synthetic tenant/);assert.match(f.text(),/رصيد دائن 10\.000/);assert.match(f.text(),/25\.500/);assert.doesNotMatch(f.text(),/35\.500/);const q=f.rpcs().find(x=>x.name==='aqari_property_tenant_ledger');assert.equal(q.args.p_workspace_id,'test-workspace');assert.equal(q.args.p_property_id,'property-a');}finally{await f.cleanup();}
 });
 test('production ledger rejects a different property response',async()=>{
  const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-b',tenants:[{fullName:'PRIVATE OTHER PROPERTY'}]}});
  try{await f.settled();assert.match(f.status(),/تعذر تأكيد نطاق/);assert.doesNotMatch(f.text(),/PRIVATE OTHER PROPERTY/);}finally{await f.cleanup();}
+});
+
+test('blank source tenant name is labelled without inventing a person or changing its contract',async()=>{
+ const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-a',permissions:{contracts:true,tenants:true,collections:true},tenants:[{nameAr:'  ',fullName:'',contracts:[{contractNo:'MISSING-NAME-01'}]}],rentDues:[]}});
+ try{await f.settled();assert.match(f.text(),/الاسم غير مكتمل بالمصدر/);assert.match(f.text(),/MISSING-NAME-01/);}finally{await f.cleanup();}
 });
