@@ -13,6 +13,17 @@ const minutes=value=>value==null?'—':visibleMessage("{value0} دقيقة",{val
 const evidenceLabel=value=>value==='before'?translateStatic('قبل التنفيذ'):translateStatic('بعد التنفيذ');
 const stageLabel=value=>value==='response'?translateStatic('تأخر الاستجابة'):translateStatic('تأخر الإنجاز');
 
+// imageDocuments is the scoped, verified-image list returned by the server.
+// Availability of both photo stages is not acceptance of the repair itself.
+export function maintenancePhotoDocumentation(task,evidence,imageDocuments){
+ const images=new Set((Array.isArray(imageDocuments)?imageDocuments:[])
+  .filter(doc=>doc?.id&&['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(doc.mimeType)).map(doc=>doc.id));
+ const stages=new Set((Array.isArray(evidence)?evidence:[])
+  .filter(row=>task?.id&&row?.taskId===task.id&&images.has(row.documentId)).map(row=>row.stage));
+ const missing=['before','after'].filter(stage=>!stages.has(stage));
+ return {documented:missing.length===0,missing};
+}
+
 export function openMaintenanceEvidence(propertyId){
  const d=createDialog(translateStatic('أدلة الصيانة قبل وبعد'));if(!d)return false;
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
@@ -58,10 +69,14 @@ export function openMaintenanceEvidence(propertyId){
   const escalations=Array.isArray(slaCtx.escalations)?slaCtx.escalations:[];if(escalations.length)sla.append(node('p',visibleMessage("التصعيدات المحفوظة: {value0} — سجلات غير قابلة للتعديل أو الحذف.",{value0:(escalations.length.toLocaleString(visibleDateLocale()))})));
   d.body.append(sla);
   const head=section(translateStatic('التوثيق التشغيلي'));head.append(node('p',translateStatic('المهام الجديدة تتطلب صورة قبل بدء التنفيذ وصورة بعد التنفيذ قبل الإقفال. السجلات لا تُحذف ولا تُعدّل.')));d.body.append(head);
+  head.append(node('p',translateStatic('توثيق الصور مبني على الأدلة المتاحة لحسابك. حالة المهمة وتوفر الصور لا يثبتان وحدهما اعتماد نتيجة الإصلاح.')));
   const evidence=Array.isArray(ctx.evidence)?ctx.evidence:[],documents=new Map((ctx.imageDocuments||[]).map(x=>[x.id,x])),slaTasks=new Map((slaCtx.tasks||[]).map(x=>[x.id,x]));const tasks=Array.isArray(ctx.tasks)?ctx.tasks:[];
   if(!tasks.length)d.body.append(node('p',translateStatic('لا توجد مهام صيانة مرتبطة بهذا العقار.')));
   for(const task of tasks){
    const card=section(`${task.taskNo||translateStatic('بدون رقم')} · ${statusLabel(task.status)}`),slaTask=slaTasks.get(task.id);const overdue=Number(task.overdueDays||0);
+   const photoProof=maintenancePhotoDocumentation(task,evidence,ctx.imageDocuments);
+   card.append(node('p',photoProof.documented?translateStatic('توثيق الصور: صور قبل وبعد متاحة'):translateStatic('توثيق الصور: غير موثّق')));
+   for(const stage of photoProof.missing)card.append(node('p',stage==='before'?translateStatic('صورة قبل التنفيذ غير متاحة ضمن المستندات المتحقق منها.'):translateStatic('صورة بعد التنفيذ غير متاحة ضمن المستندات المتحقق منها.')));
    card.append(node('p',task.description||translateStatic('بدون وصف')),node('p',visibleMessage("الاستحقاق: {value0} · التأخير: {value1} يوم{value2}",{value0:(task.dueOn||'—'),value1:(overdue),value2:(task.needsEscalation?translateStatic(' · متأخرة عن الاستحقاق'):'')})),node('p',visibleMessage("زمن الاستجابة: {value0} · زمن التنفيذ: {value1}",{value0:(minutes(task.responseMinutes)),value1:(minutes(task.resolutionMinutes))})));
    if(policy?.active!==false&&policy&&slaTask?.responseBreached)card.append(node('p',visibleMessage("⚠ {value0}: تجاوز حد {value1} وتم إدخاله في مسار التصعيد الآلي.",{value0:(stageLabel('response')),value1:(minutes(policy.responseMinutes))})));
    if(policy?.active!==false&&policy&&slaTask?.resolutionBreached)card.append(node('p',visibleMessage("⚠ {value0}: تجاوز حد {value1} وتم إدخاله في مسار التصعيد الآلي.",{value0:(stageLabel('resolution')),value1:(minutes(policy.resolutionMinutes))})));
@@ -77,4 +92,3 @@ export function openMaintenanceEvidence(propertyId){
  }
  d.run(render);return true;
 }
-
