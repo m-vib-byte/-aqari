@@ -96,11 +96,16 @@ begin
   raise exception 'EXECUTION_PACKAGE_ENTITLEMENT_REQUIRED' using errcode='23514';
  end if;
  first_period:=date_trunc('month',(c#>>'{rentEntitlement,startDate}')::date)::date;
- select d.due_amount,d.credit_amount,private.aqari_rent_due_on(lease.snapshot,lease.start_date,d.period)
- into entitlement_due,credit_amount,due_on
- from private.aqari_rent_due_periods d
- where d.workspace_id=p_workspace_id and d.lease_id=lease.id and d.period=first_period;
- if entitlement_due is null then raise exception 'EXECUTION_PACKAGE_DUE_REQUIRED' using errcode='23514';end if;
+ -- Signing leases intentionally have no posted due schedule yet. Use the same
+ -- authoritative calculation as schedule projection without posting a due early.
+ entitlement_due:=private.aqari_reminder_due(lease.snapshot,lease.monthly_rent,first_period);
+ due_on:=private.aqari_rent_due_on(lease.snapshot,lease.start_date,first_period);
+ select coalesce(sum(a.amount),0)::numeric(15,3) into credit_amount
+ from private.aqari_credit_allocations a
+ where a.workspace_id=p_workspace_id and a.lease_id=lease.id and a.period=first_period;
+ if entitlement_due is null or entitlement_due<0 or due_on is null then
+  raise exception 'EXECUTION_PACKAGE_DUE_REQUIRED' using errcode='23514';
+ end if;
  rent_payable:=greatest(entitlement_due-coalesce(credit_amount,0),0)::numeric(15,3);
  contract_deposit:=coalesce(nullif(c->>'deposit','')::numeric,0);
  select coalesce(sum(case x.kind when 'receipt' then x.amount else -x.amount end),0)::numeric(15,3)
@@ -127,8 +132,8 @@ begin
  clauses:=(select string_agg(btrim(coalesce(x.value->>'title',''))||E'\n'||btrim(coalesce(x.value->>'text','')),E'\n\n' order by x.ordinality)
    from jsonb_array_elements(coalesce(signed_c->'clauses','[]'::jsonb)) with ordinality x(value,ordinality));
  if coalesce(length(btrim(clauses)),0)<5 then raise exception 'EXECUTION_PACKAGE_CONTRACT_CLAUSES_REQUIRED' using errcode='23514';end if;
- canonical_title:='عقد إيجار '||signed_c->>'contract_no';
- canonical_body:='عقد إيجار رقم '||signed_c->>'contract_no'||E'\nالمستأجر: '||coalesce(signed_c->>'tenant','')||E'\nالعقار: '||signed_c->>'property'||' — الوحدة: '||signed_c->>'unit'||E'\nمدة العقد: '||signed_c->>'start_date'||' إلى '||signed_c->>'end_date'||E'\nالإيجار الأصلي: '||coalesce(signed_c->>'contractRent',signed_c->>'rent')||' د.ك — الخصم: '||coalesce(signed_c->>'discount','0')||' د.ك'||E'\nالتأمين: '||coalesce(signed_c->>'deposit','0')||' د.ك — العربون: '||coalesce(signed_c->>'advance','0')||' د.ك — الرسوم: '||coalesce(signed_c->>'cleaningFee','0')||' د.ك'||E'\n\n'||clauses;
+ canonical_title:='عقد إيجار '||(signed_c->>'contract_no');
+ canonical_body:='عقد إيجار رقم '||(signed_c->>'contract_no')||E'\nالمستأجر: '||coalesce(signed_c->>'tenant','')||E'\nالعقار: '||(signed_c->>'property')||' — الوحدة: '||(signed_c->>'unit')||E'\nمدة العقد: '||(signed_c->>'start_date')||' إلى '||(signed_c->>'end_date')||E'\nالإيجار الأصلي: '||coalesce(signed_c->>'contractRent',signed_c->>'rent')||' د.ك — الخصم: '||coalesce(signed_c->>'discount','0')||' د.ك'||E'\nالتأمين: '||coalesce(signed_c->>'deposit','0')||' د.ك — العربون: '||coalesce(signed_c->>'advance','0')||' د.ك — الرسوم: '||coalesce(signed_c->>'cleaningFee','0')||' د.ك'||E'\n\n'||clauses;
  canonical_payload:=jsonb_build_object('contractNo',signed_c->>'contract_no','tenant',signed_c->>'tenant','property',signed_c->>'property','unit',signed_c->>'unit','startDate',signed_c->>'start_date','endDate',signed_c->>'end_date','contractRent',signed_c->>'contractRent','discount',signed_c->>'discount','deposit',signed_c->>'deposit','advance',signed_c->>'advance','fees',signed_c->>'cleaningFee','template',signed_c->'contractTemplate','executionSettlementId',p_settlement_id,'contractSnapshot',signed_c);
  canonical_hash:=encode(extensions.digest(canonical_title||E'\n'||canonical_body||E'\n'||canonical_payload::text,'sha256'),'hex');
  template_version:=coalesce(nullif(signed_c#>>'{contractTemplate,version}','')::integer,1);
