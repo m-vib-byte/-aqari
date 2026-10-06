@@ -13,5 +13,16 @@ export function inspectQuality({properties=[],units=[],tenants=[],leases=[]}) {
  if(draft.length)findings.push({kind:'draft_leases',ids:draft.map(r=>r.id)});
  const missing=leases.filter(r=>!r.start_date||!r.end_date);
  if(missing.length)findings.push({kind:'pending_contract_dates',ids:missing.map(r=>r.id)});
+ // Absence from the completed, scoped scan is a review candidate, not proof
+ // of a deleted record. Older callers that omitted link fields make no claim.
+ for(const [key,records,emptyKind,absentKind]of [
+  ['unit_id',units,'lease_without_unit','lease_unit_not_in_scan'],
+  ['tenant_id',tenants,'lease_without_tenant','lease_tenant_not_in_scan']
+ ]){
+  const ids=new Set(records.map(r=>r.id)),selected=leases.filter(r=>Object.hasOwn(r,key));
+  const empty=selected.filter(r=>!r[key]),absent=selected.filter(r=>r[key]&&!ids.has(r[key]));
+  if(empty.length)findings.push({kind:emptyKind,ids:empty.map(r=>r.id)});
+  if(absent.length)findings.push({kind:absentKind,ids:absent.map(r=>r.id)});
+ }
  return findings;
 }
