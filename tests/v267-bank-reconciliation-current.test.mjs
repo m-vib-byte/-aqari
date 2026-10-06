@@ -29,17 +29,17 @@ test('financial register integration is bounded and fail-closed on moved anchor'
  assert.match(installer,/مطابقة التحويلات البنكية/);
 });
 
-function fixture(initialState='unmatched'){
+function fixture(initialState='unmatched',options={}){
  class Element{constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.value='';}append(...items){this.children.push(...items);}replaceChildren(...items){this.children=[];this.append(...items);}get textContent(){return this._text+this.children.map(x=>x.textContent).join('');}set textContent(value){this._text=value;this.children=[];}}
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const el=node('label');el.label=label;el.append(control);return el;};
  const state={skipPersist:false,corrupt:null,badEnvelope:false,listError:false},calls=[];
- let row={id:'transfer-one',state:initialState,revision:3,paymentId:initialState==='reconciled'?'payment-one':null,amount:'12.125',bankSource:'BANK',externalId:'EXT-1',transferDate:'2026-10-01',bankReference:'REF-1'};
+ let row={id:'transfer-one',state:initialState,revision:3,paymentId:initialState==='reconciled'?'payment-one':null,amount:options.amount??'12.125',bankSource:'BANK',externalId:'EXT-1',transferDate:'2026-10-01',bankReference:'REF-1'};
  const rpc=async(name,args)=>{
   assert.equal(name,'aqari_bank_reconciliation');assert.equal(args.p_workspace_id,'workspace-one');calls.push(structuredClone(args));
   if(args.p_action==='list'){
    if(state.listError&&calls.some(c=>c.p_action!=='list'))throw Error('read unavailable');
    const readRow=state.corrupt&&calls.some(c=>c.p_action!=='list')?{...row,...state.corrupt}:row;
-   return {workspace_id:'workspace-one',user_id:'user-one',canWrite:true,autoMatch:false,transfers:[structuredClone(readRow)],candidates:[{paymentId:'payment-one',amount:'12.125',reference:'PAY-REF'}],events:[]};
+   return {workspace_id:'workspace-one',user_id:'user-one',canWrite:true,autoMatch:false,transfers:[structuredClone(readRow)],candidates:options.candidates??[{paymentId:'payment-one',amount:options.amount??'12.125',reference:'PAY-REF'}],events:[]};
   }
   if(args.p_action==='ingest'){
    if(state.ingestError)throw state.ingestError;
@@ -99,4 +99,21 @@ test('definite validation or MFA rejection unlocks bank input but transport erro
  for(const error of [Object.assign(Error('validation'),{code:'22023'}),Object.assign(Error('MFA_REQUIRED'),{code:'42501',status:403}),Error('transport')]){
   const f=fixture();await f.d.pending;await f.ingest();f.state.ingestError=error;await f.submit();assert.equal(f.button('حفظ كتحويل غير مطابق').disabled,error.message==='transport');assert.equal(f.control('المبلغ').value,'12.125');
  }
+});
+
+test('bank candidate selection distinguishes adjacent fils at large decimal amounts',async()=>{
+ const f=fixture('unmatched',{amount:'99999999999999.999',candidates:[{paymentId:'exact',amount:'99999999999999.999'},{paymentId:'different',amount:'99999999999999.998'}]});await f.d.pending;
+ assert.match(f.d.body.textContent,/99999999999999\.999/);
+ await f.button('مطابقة صريحة').onclick();assert.deepEqual(f.control('الدفعة البنكية المطابقة').children.map(x=>x.value),['','exact']);
+});
+test('bank readback rejects a one-fils change hidden by floating point rounding',async()=>{
+ const f=fixture('unmatched',{amount:'99999999999999.999'});await f.d.pending;f.state.corrupt={amount:'99999999999999.998'};await f.match();assert.match(f.d.status.textContent,/لم تتأكد مطابقة التحويل المحفوظ/);
+});
+test('bank candidate selection rejects invalid or imprecise numeric amounts',async()=>{
+ for(const amount of [null,'invalid',99999999999999.99]){
+  const f=fixture('unmatched',{amount:amount===null?'invalid':amount,candidates:[{paymentId:'bad',amount}]});await f.d.pending;await f.button('مطابقة صريحة').onclick();assert.deepEqual(f.control('الدفعة البنكية المطابقة').children.map(x=>x.value),['']);
+ }
+});
+test('bank matching accepts equivalent exact decimal scales',async()=>{
+ const f=fixture('unmatched',{amount:'12.1'});await f.d.pending;f.state.corrupt={amount:'12.100'};await f.match();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);
 });
