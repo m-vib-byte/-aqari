@@ -15,6 +15,14 @@ const moneyArea=v=>v==null?'—':Number(v).toFixed(3)+visibleText(' م²');
 function select(rows,value=''){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}x.value=value??'';return x;}
 function section(title){const s=node('section');s.append(node('h3',title));return s;}
 
+export function ownershipShareBasisPoints(value){
+ const text=String(value??'').normalize('NFKC').trim().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace('٫','.').replace(/^\./,'0.');
+ const match=/^(\d{1,3})(?:\.(\d{1,2}))?$/.exec(text);
+ const bps=match?Number(match[1])*100+Number((match[2]||'').padEnd(2,'0')):0;
+ if(!match||bps<1||bps>10000)throw Error('أدخل النسبة بين 0.01 و100 وبمنزلتين عشريتين كحد أقصى، دون تقريب.');
+ return bps;
+}
+
 export function ownershipReadbackMatches(actual,expected){
  const area=value=>{const m=/^(\d{1,12})(?:\.(\d{1,3}))?$/.exec(String(value??''));return m?BigInt(m[1])*1000n+BigInt((m[2]||'').padEnd(3,'0')):null;};
  if(area(expected.area)===null||area(actual?.property?.totalAreaSqm)!==area(expected.area)
@@ -42,10 +50,10 @@ export function openPropertyOwnership(propertyId){
  }
  function ownerEditor(target,owners,totalArea){
   const rows=[];const docs=(state.documents||[]).map(x=>[x.id,`${x.no||''} · ${x.title||x.id}`]);
-  const draw=(owner={})=>{const wrap=node('fieldset'),id=owner.id||crypto.randomUUID(),name=input('text',owner.name||''),role=owner.role?input('text',owner.role):setFormDefault(input('text'),'مالك'),share=input('number',Number(owner.bps||0)/100),email=input('email',owner.email||''),phone=input('tel',owner.phone||''),whatsapp=input('tel',owner.whatsapp||''),doc=select([['',visibleText('اختر المستند المؤيد')],...docs],owner.supportingDocumentId||''),area=node('strong'),remove=button(visibleText('إزالة الصف'),()=>{const i=rows.findIndex(x=>x.wrap===wrap);if(i>=0)rows.splice(i,1);wrap.remove();refresh();});name.required=role.required=share.required=doc.required=true;share.min='0.01';share.max='100';share.step='0.01';
-   const refresh=()=>{const t=Number(totalArea.value||0),pct=Number(share.value||0);area.textContent=t>0&&pct>0?visibleMessage("المساحة المقابلة: {v0} م²",{v0:((t*pct/100).toFixed(3))}):visibleText('المساحة المقابلة: —');};share.oninput=refresh;totalArea.addEventListener('input',refresh);refresh();wrap.append(field(translateStatic('الاسم'),name),field(translateStatic('الصفة — مالك / وارث / شريك'),role),field(translateStatic('النسبة %'),share),area,field(translateStatic('المستند المؤيد'),doc),field(translateStatic('البريد'),email),field(translateStatic('الهاتف'),phone),field(translateStatic('واتساب'),whatsapp),remove);target.append(wrap);rows.push({wrap,id,name,role,share,email,phone,whatsapp,doc,refresh});};
+  const draw=(owner={})=>{const wrap=node('fieldset'),id=owner.id||crypto.randomUUID(),name=input('text',owner.name||''),role=owner.role?input('text',owner.role):setFormDefault(input('text'),'مالك'),share=input('text',Number(owner.bps||0)/100),email=input('email',owner.email||''),phone=input('tel',owner.phone||''),whatsapp=input('tel',owner.whatsapp||''),doc=select([['',visibleText('اختر المستند المؤيد')],...docs],owner.supportingDocumentId||''),area=node('strong'),remove=button(visibleText('إزالة الصف'),()=>{const i=rows.findIndex(x=>x.wrap===wrap);if(i>=0)rows.splice(i,1);wrap.remove();refresh();});name.required=role.required=share.required=doc.required=true;share.inputMode='decimal';
+   const refresh=()=>{const t=Number(totalArea.value||0);let pct=0;try{pct=ownershipShareBasisPoints(share.value)/100;}catch{}area.textContent=t>0&&pct>0?visibleMessage("المساحة المقابلة: {v0} م²",{v0:((t*pct/100).toFixed(3))}):visibleText('المساحة المقابلة: —');};share.oninput=refresh;totalArea.addEventListener('input',refresh);refresh();wrap.append(field(translateStatic('الاسم'),name),field(translateStatic('الصفة — مالك / وارث / شريك'),role),field(translateStatic('النسبة %'),share),area,field(translateStatic('المستند المؤيد'),doc),field(translateStatic('البريد'),email),field(translateStatic('الهاتف'),phone),field(translateStatic('واتساب'),whatsapp),remove);target.append(wrap);rows.push({wrap,id,name,role,share,email,phone,whatsapp,doc,refresh});};
   for(const owner of owners||[])draw(owner);if(!owners?.length)draw();target.append(button(visibleText('+ إضافة مالك / وارث'),()=>draw()));
-  return ()=>rows.map(r=>({id:r.id,name:clean(r.name.value),role:clean(formValue(r.role))||'مالك',bps:Math.round(Number(r.share.value)*100),email:clean(r.email.value).toLowerCase(),phone:clean(r.phone.value),whatsapp:clean(r.whatsapp.value),supportingDocumentId:r.doc.value})).filter(r=>r.name||r.bps);
+  return ()=>rows.map(r=>({id:r.id,name:clean(r.name.value),role:clean(formValue(r.role))||'مالك',bps:ownershipShareBasisPoints(r.share.value),email:clean(r.email.value).toLowerCase(),phone:clean(r.phone.value),whatsapp:clean(r.whatsapp.value),supportingDocumentId:r.doc.value})).filter(r=>r.name||r.bps);
  }
  async function edit(){
   await load();if(!state.manager)throw Error('تعديل الملكية والمساحات متاح للمدير العام فقط.');

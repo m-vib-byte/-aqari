@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ownershipReadbackMatches} from '../src/v267/pages/property-ownership.js';
+import {ownershipReadbackMatches,ownershipShareBasisPoints} from '../src/v267/pages/property-ownership.js';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
@@ -33,3 +33,19 @@ async function screen(corrupt=false){
 }
 test('actual ownership screen confirms a matching persisted save',async()=>{const f=await screen();await f.submit();assert.match(f.d.status.textContent,/تم حفظ الملكية/);assert.equal(f.calls.filter(x=>x==='save').length,1);});
 test('actual ownership screen rejects altered readback and blocks blind resubmission',async()=>{const f=await screen(true);await f.submit();assert.match(f.d.status.textContent,/فشل Readback/);await f.submit();assert.match(f.d.status.textContent,/لم يتأكد الحفظ السابق/);assert.equal(f.calls.filter(x=>x==='save').length,1);});
+test('ownership form must reject excess precision rather than silently rounding shares to 100%',async()=>{
+ const f=await screen();const shares=f.d.body.all().filter(x=>x.tag==='label'&&x._text==='النسبة %').map(x=>x.children[0]);
+ shares[0].value='80.884';shares[1].value='19.116';await f.submit();
+ assert.equal(f.calls.filter(x=>x==='save').length,0);assert.match(f.d.status.textContent,/النسبة/);
+});
+test('share parser supports Arabic and Persian digits with exact hundredths',()=>{
+ for(const [value,bps] of [['٨٠٫٨٨',8088],['۱۶',1600],['3.12',312],['.01',1],['100.00',10000]])assert.equal(ownershipShareBasisPoints(value),bps);
+ assert.equal(['٨٠٫٨٨','١٦','٣٫١٢'].reduce((sum,value)=>sum+ownershipShareBasisPoints(value),0),10000);
+});
+test('share parser rejects rounding, exponential notation and out-of-range values',()=>{
+ for(const value of ['',null,'0','-1','100.01','80.884','1e2','1,00','Infinity','NaN'])assert.throws(()=>ownershipShareBasisPoints(value));
+});
+test('Arabic shares are sent exactly after form validation',async()=>{
+ const f=await screen();const shares=f.d.body.all().filter(x=>x.tag==='label'&&x._text==='النسبة %').map(x=>x.children[0]);
+ shares[0].value='٨٠٫٨٨';shares[1].value='١٩٫١٢';await f.submit();assert.match(f.d.status.textContent,/تم حفظ الملكية/);assert.equal(f.calls.filter(x=>x==='save').length,1);
+});
