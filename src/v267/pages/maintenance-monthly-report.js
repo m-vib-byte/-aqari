@@ -3,7 +3,7 @@ import {t,message} from '../components/locale.js';
 import {maintenancePhotoDocumentation} from './maintenance-evidence.js';
 
 const validDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
-const timestamp=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T/.test(value)&&Number.isFinite(Date.parse(value));
+const timestamp=value=>typeof value==='string'&&validDate(value.slice(0,10))&&/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value)&&Number.isFinite(Date.parse(value));
 const fils=value=>{
  if(typeof value!=='string'&&typeof value!=='number')return null;
  const match=/^(\d{1,12})(?:\.(\d{1,3}))?$/.exec(String(value));
@@ -31,11 +31,15 @@ export function buildMonthlyMaintenanceReport(data,context,{workspaceId,property
   const proof=maintenancePhotoDocumentation(task,context.evidence,context.imageDocuments),document=docs.get(task.completion_document_id);
   const photos=Array.isArray(task.photo_document_ids)?task.photo_document_ids:[];
   const completionPhotos=photos.length>0&&photos.every(id=>docs.has(id)&&['image/jpeg','image/png','image/webp','image/heic','image/heif'].includes(docs.get(id).mime_type));
+  const afterLinked=context.evidence.some(e=>e.taskId===task.id&&e.stage==='after'&&photos.includes(e.documentId));
   const missing=[];
   if(!document)missing.push('مستند الإغلاق غير متاح');
   for(const stage of proof.missing)missing.push(stage==='before'?'صورة قبل التنفيذ غير متاحة':'صورة بعد التنفيذ غير متاحة');
   if(!completionPhotos)missing.push('صور الإنجاز المرتبطة بالإغلاق غير متاحة');
+  if(!afterLinked)missing.push('صورة بعد التنفيذ غير مرتبطة باعتماد الإغلاق');
   if(!task.completed_by||!timestamp(task.completed_at))missing.push('اعتماد الإغلاق غير موثّق');
+  if(!timestamp(task.assigned_at)||!timestamp(task.started_at)||!timestamp(task.completed_at)
+   ||Date.parse(task.started_at)<Date.parse(task.assigned_at)||Date.parse(task.completed_at)<Date.parse(task.started_at))missing.push('تسلسل التكليف والتنفيذ والإغلاق غير موثّق');
   const terminal=['completed','cancelled'].includes(task.status);
   const state=task.status==='completed'?(missing.length?'undocumented':'done'):
    ['scheduled','assigned','in_progress','cancelled'].includes(task.status)?'not_done':'undocumented';

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {buildMonthlyMaintenanceReport,mountMonthlyMaintenanceReport} from '../src/v267/pages/maintenance-monthly-report.js';
 
 const options={workspaceId:'w',propertyId:'p',month:'2026-10',today:'2026-10-06'};
-const task={id:'t',workspace_id:'w',property_id:'p',task_no:'MT1',status:'completed',due_on:'2026-10-01',completed_at:'2026-10-03T09:00:00Z',completed_by:'u',assigned_vendor_id:'v',completion_document_id:'doc',photo_document_ids:['after'],cost:'1.001'};
+const task={id:'t',workspace_id:'w',property_id:'p',task_no:'MT1',status:'completed',due_on:'2026-10-01',assigned_at:'2026-10-01T09:00:00Z',started_at:'2026-10-02T09:00:00Z',completed_at:'2026-10-03T09:00:00Z',completed_by:'u',assigned_vendor_id:'v',completion_document_id:'doc',photo_document_ids:['after'],cost:'1.001'};
 function fixture(){return {
  data:{properties:[{id:'p',name:'عقار أول'},{id:'other',name:'عقار ثان'}],tasks:[{...task}],vendors:[{id:'v',name:'شركة الصيانة'}],documents:[{id:'doc',property_id:'p',document_no:'D1',mime_type:'application/pdf'},{id:'before',property_id:'p',mime_type:'image/jpeg'},{id:'after',property_id:'p',mime_type:'image/png'}]},
  context:{workspace_id:'w',propertyId:'p',evidence:[{taskId:'t',stage:'before',documentId:'before'},{taskId:'t',stage:'after',documentId:'after'}],imageDocuments:[{id:'before',mimeType:'image/jpeg'},{id:'after',mimeType:'image/png'}]}
@@ -42,6 +42,15 @@ test('invalid month, impossible task date and foreign context fail closed',()=>{
  f.data.tasks[0].due_on='2026-02-30';assert.throws(()=>report(f),/استحقاق/);f.data.tasks[0].due_on=task.due_on;f.context.propertyId='other';assert.throws(()=>report(f),/نطاق/);
 });
 test('no saved tasks is an empty report rather than inferred completion',()=>{const f=fixture();f.data.tasks=[];assert.equal(report(f).summary.done,0);assert.deepEqual(report(f).rows,[]);});
+
+test('missing or reversed execution timeline cannot count as documented completion',()=>{
+ for(const change of [{assigned_at:null},{started_at:null},{started_at:'2026-09-30T00:00:00Z'},{completed_at:'2026-10-01T12:00:00Z'},{completed_at:'2026-02-30T12:00:00Z'}]){
+  const f=fixture();Object.assign(f.data.tasks[0],change);assert.equal(report(f).rows[0].state,'undocumented');
+ }
+});
+test('an unrelated archived image cannot replace the recorded after image at closure',()=>{
+ const f=fixture();f.data.tasks[0].photo_document_ids=['before'];assert.equal(report(f).rows[0].state,'undocumented');
+});
 
 async function uiFixture(){
  const original=globalThis.document,f=fixture(),calls=[],dispose=[];
