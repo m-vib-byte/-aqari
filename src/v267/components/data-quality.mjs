@@ -1,5 +1,6 @@
 // Read-only observations; candidates are never corrections or merge instructions.
-export function inspectQuality({properties=[],units=[],tenants=[],leases=[]}) {
+export function inspectQuality(data={}) {
+ const {properties=[],units=[],tenants=[],leases=[],documents=[]}=data;
  const findings=[];
  const group=(rows,key,kind)=>{const groups=new Map();for(const row of rows){const value=key(row);if(!value)continue;const list=groups.get(value)||[];list.push(row.id);groups.set(value,list);}for(const ids of groups.values())if(ids.length>1)findings.push({kind,ids});};
  group(units,r=>r.property_id&&r.unit_no?.trim()?r.property_id+':'+r.unit_no.trim():null,'duplicate_unit');
@@ -24,5 +25,20 @@ export function inspectQuality({properties=[],units=[],tenants=[],leases=[]}) {
   if(empty.length)findings.push({kind:emptyKind,ids:empty.map(r=>r.id)});
   if(absent.length)findings.push({kind:absentKind,ids:absent.map(r=>r.id)});
  }
+ // Archive links use external_ref, exactly as the server's entity guard does.
+ // Missing scope/columns must not be treated as a confirmed missing record.
+ const targets=new Map();
+ for(const [type,key,rows]of [['property','properties',properties],['tenant','tenants',tenants],['lease','leases',leases]]){
+  if(!Object.hasOwn(data,key)||!rows.every(row=>Object.hasOwn(row,'external_ref')))continue;
+  const refs=new Map();for(const row of rows)if(typeof row.external_ref==='string'&&row.external_ref)refs.set(row.external_ref,(refs.get(row.external_ref)||0)+1);
+  targets.set(type,refs);
+ }
+ const observations={document_without_record_link:[],document_scope_not_checked:[],document_record_not_in_scan:[],document_ambiguous_record:[]};
+ for(const doc of documents){
+  if(typeof doc.entity_type!=='string'||!doc.entity_type.trim()||typeof doc.entity_ref!=='string'||!doc.entity_ref.trim())observations.document_without_record_link.push(doc.id);
+  else if(!targets.has(doc.entity_type))observations.document_scope_not_checked.push(doc.id);
+  else {const count=targets.get(doc.entity_type).get(doc.entity_ref)||0;if(!count)observations.document_record_not_in_scan.push(doc.id);else if(count>1)observations.document_ambiguous_record.push(doc.id);}
+ }
+ for(const [kind,ids]of Object.entries(observations))if(ids.length)findings.push({kind,ids});
  return findings;
 }
