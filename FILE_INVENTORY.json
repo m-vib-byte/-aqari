@@ -4382,8 +4382,8 @@
     },
     {
       "path": "tests/v209-behavior.test.cjs",
-      "sha256": "58bb4bfcbce14377a6e7cedc91680f831909fd64f30426f168af18287f60f42a",
-      "size": 25526
+      "sha256": "8739e71d1977ed691d8673a7d5991f6c22e6da79e1a1b07ab6046f27b5de14e1",
+      "size": 26648
     },
     {
       "path": "tests/v209-global-search.test.cjs",
@@ -5422,13 +5422,13 @@
     },
     {
       "path": "v209-global-search.css",
-      "sha256": "ce1d3c372cd2c7b1e2b589e0d6e12def234d9f800d04bc7e840a041e6ef68238",
-      "size": 6704
+      "sha256": "a2eb9c1c5423bfeec7d8d9b9d4bdd7ca61574973e10f2be3f7679cfbf076bcf8",
+      "size": 6806
     },
     {
       "path": "v209-global-search.js",
-      "sha256": "9e277bb8e2d24140afd725103132ce846b6ee00d0c8ebf6ead14e9a51d9c2116",
-      "size": 23756
+      "sha256": "c5bd8bdc2201728792d9c590a74f7c7f47ab7f61c2bfe46076591437ce7327f4",
+      "size": 23981
     },
     {
       "path": "v210-daily-command-center.css",

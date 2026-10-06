@@ -198,7 +198,13 @@
   function statusLabel(item){
     if(item.pending>0)return 'قيد المراجعة';
     if(item.balance>0)return 'متبقي '+money(item.balance);
-    return item.paymentStatus||'مسدد';
+    return String(item.paymentStatus||'').trim()||'يحتاج مراجعة';
+  }
+
+  function statusTone(item){
+    if(item.pending>0)return 'is-review';
+    if(item.balance>0)return 'is-due';
+    return ['مسدد','شهر مجاني'].includes(statusLabel(item))?'is-clear':'is-review';
   }
 
   function ensureUi(){
@@ -357,7 +363,7 @@
         '<span class="v209-result-property" dir="auto">'+esc(item.property)+'</span>'+
         '<strong dir="auto">'+esc(item.tenant)+'</strong>'+
         '<small>وحدة <bdi dir="auto">'+esc(item.unit)+'</bdi> • <bdi dir="auto">'+esc(contract)+'</bdi></small>'+
-        '<b class="'+(item.balance>0?'is-due':'is-clear')+'">'+esc(statusLabel(item))+'</b>'+
+        '<b class="'+statusTone(item)+'">'+esc(statusLabel(item))+'</b>'+
       '</button>'+
       '<div class="v209-result-actions">'+
         '<button type="button" data-v209-index="'+index+'" data-v209-action="statement">كشف المستأجر</button>'+
