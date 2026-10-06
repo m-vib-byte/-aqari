@@ -88,8 +88,18 @@ export function openPropertyOnboarding(){
    const full=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)}),revision=Number(full?.property?.revision);if(full?.property?.id!==created.id||!Number.isSafeInteger(revision)||revision<0)throw Error('تعذر إعادة قراءة ملف العقار قبل حفظ البيانات الرئيسية.');
    const data={name:lockedDraft.name,address:lockedDraft.address,description:lockedDraft.description,locationUrl:lockedDraft.locationUrl,propertyAutomaticRef:lockedDraft.propertyAutomaticRef,type:lockedDraft.type,status:lockedDraft.status,statedIncome:lockedDraft.statedIncome,owners:lockedDraft.owners,email:lockedDraft.email,phone:lockedDraft.phone,whatsapp:lockedDraft.whatsapp,tenantVisibility:lockedDraft.tenantVisibility,tenantInfo:lockedDraft.tenantInfo,assets:assets()};
    // A lost response may follow a committed write. Retries only confirm this attempt.
-   masterAttempt={data,revision:revision+1};
-   const saved=await rpc('aqari_property_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_expected_revision:revision,p_data:data,p_reason:lockedDraft.reason});if(saved?.property?.id!==created.id||Number(saved.property.revision)!==masterAttempt.revision)throw Error('لم تتأكد إعادة قراءة بيانات العقار الرئيسية. أعد المحاولة للتحقق دون تكرار الحفظ.');
+   masterAttempt={data,revision:revision+1,sent:false};
+  }
+  if(!masterAttempt.sent){
+   masterAttempt.sent=true;let saved;
+   try{saved=await rpc('aqari_property_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_expected_revision:masterAttempt.revision-1,p_data:masterAttempt.data,p_reason:lockedDraft.reason});}
+   catch(error){
+    // Only an explicit server step-up rejection proves this write did not commit.
+    // Keep its original revision; never adopt concurrent edits on a retry.
+    if(error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)){d.session.check();masterAttempt.sent=false;}
+    throw error;
+   }
+   if(saved?.property?.id!==created.id||Number(saved.property.revision)!==masterAttempt.revision)throw Error('لم تتأكد إعادة قراءة بيانات العقار الرئيسية. أعد المحاولة للتحقق دون تكرار الحفظ.');
   }
   const verify=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)});
   if(verify?.property?.id!==created.id||Number(verify.property.revision)!==masterAttempt.revision||!propertyMasterReadbackMatches(verify.property,masterAttempt.data))throw Error('ملف العقار المعاد قراءته لا يطابق البيانات المحفوظة. أعد المحاولة للتحقق؛ لن يعاد إرسال الحفظ.');
