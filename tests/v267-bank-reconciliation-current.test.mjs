@@ -41,6 +41,12 @@ function fixture(initialState='unmatched'){
    const readRow=state.corrupt&&calls.some(c=>c.p_action!=='list')?{...row,...state.corrupt}:row;
    return {workspace_id:'workspace-one',user_id:'user-one',canWrite:true,autoMatch:false,transfers:[structuredClone(readRow)],candidates:[{paymentId:'payment-one',amount:'12.125',reference:'PAY-REF'}],events:[]};
   }
+  if(args.p_action==='ingest'){
+   if(state.ingestError)throw state.ingestError;
+   const next={...args.p_data,id:'new-transfer',state:'unmatched',paymentId:null,revision:1};
+   if(!state.skipPersist)row=next;if(state.loseReply)throw Error('reply lost');
+   return {workspace_id:state.badEnvelope?'other-workspace':'workspace-one',user_id:'user-one',autoMatched:false,record:{id:next.id,state:'unmatched',payment_id:null,revision:1}};
+  }
   assert.ok(['reconcile','reopen'].includes(args.p_action));
   const next={...row,revision:row.revision+1,state:args.p_action==='reconcile'?'reconciled':'unmatched',paymentId:args.p_action==='reconcile'?args.p_data.paymentId:null};
   if(!state.skipPersist)row=next;
@@ -49,7 +55,8 @@ function fixture(initialState='unmatched'){
  const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-one',user:'user-one'},client:{rpc},request:x=>x,check(){}},run(fn){d.pending=Promise.resolve().then(fn).catch(e=>{d.status.textContent=e.message;});return d.pending;}};
  vm.runInNewContext(page.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nopenBankReconciliation();',{node,field,createDialog:()=>d,translateStatic:x=>x,visibleMessage:(s,v)=>s.replace(/\{(\w+)\}/g,(_,k)=>v[k]),window:{prompt:()=> 'تصحيح موثق'},console});
  const all=e=>[e,...e.children.flatMap(all)],button=label=>all(d.body).find(x=>x.tag==='button'&&x.textContent===label),control=label=>all(d.body).find(x=>x.label===label)?.children[0];
- return {d,state,calls,button,async match(){await button('مطابقة صريحة').onclick();control('الدفعة البنكية المطابقة').value='payment-one';control('سبب المطابقة').value='سبب موثق';all(d.body).find(x=>x.tag==='form').onsubmit({preventDefault(){}});await d.pending;}};
+ const submit=async()=>{all(d.body).find(x=>x.tag==='form').onsubmit({preventDefault(){}});await d.pending;};
+ return {d,state,calls,button,control,submit,async ingest(){await button('+ إدخال تحويل وارد').onclick();for(const [label,value] of [['مصدر/بنك الكشف','BANK'],['المعرف الخارجي للتحويل','EXT-NEW'],['تاريخ التحويل','2026-10-01'],['المبلغ','12.125'],['مرجع البنك','NEW-REF'],['اسم المرسل كما ورد','Sender'],['آخر/جزء آمن من الحساب','1234'],['البيان','Saved memo']])control(label).value=value;},async match(){await button('مطابقة صريحة').onclick();control('الدفعة البنكية المطابقة').value='payment-one';control('سبب المطابقة').value='سبب موثق';await submit();}};
 }
 test('bank matching succeeds only after the exact saved revision and payment are independently read',async()=>{
  const f=fixture();await f.d.pending;await f.match();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);assert.deepEqual(f.calls.map(c=>c.p_action),['list','list','reconcile','list']);assert.match(f.d.body.textContent,/payment-one/);
@@ -68,5 +75,28 @@ test('bank reopening independently verifies the saved unmatched state and cleare
   const f=fixture('reconciled');await f.d.pending;f.state.corrupt=corrupt;await f.button('إعادة إلى غير مطابق').onclick();
   if(corrupt)assert.match(f.d.status.textContent,/لم تتأكد مطابقة التحويل المحفوظ/);else assert.match(f.d.status.textContent,/أعيد التحويل إلى قائمة غير المطابق/);
   assert.deepEqual(f.calls.map(c=>c.p_action),['list','list','reopen','list']);
+ }
+});
+test('bank ingest independently verifies all submitted fields before claiming saved unmatched transfer',async()=>{
+ const f=fixture();await f.d.pending;await f.ingest();await f.submit();assert.match(f.d.status.textContent,/تم حفظ التحويل كغير مطابق/);assert.deepEqual(f.calls.map(c=>c.p_action),['list','list','list','ingest','list']);assert.match(f.d.body.textContent,/EXT-NEW/);
+});
+test('unverified bank ingest keeps its fields and locks repeated writes and back navigation',async()=>{
+ for(const corrupt of [null,{amount:'12.126'},{senderName:'wrong'},{senderAccountHint:'wrong'},{memo:'wrong'},{transferDate:'2026-10-02'},{revision:2},{paymentId:'payment-one'},{id:'different-id'}]){
+  const f=fixture();await f.d.pending;await f.ingest();if(corrupt)f.state.corrupt=corrupt;else f.state.skipPersist=true;await f.submit();assert.match(f.d.status.textContent,/لم تتأكد مطابقة التحويل المحفوظ/);assert.equal(f.control('المعرف الخارجي للتحويل').value,'EXT-NEW');assert.equal(f.button('حفظ كتحويل غير مطابق').disabled,true);
+  await f.submit();await f.button('رجوع').onclick();assert.equal(f.calls.filter(c=>c.p_action==='ingest').length,1);assert.ok(f.control('المعرف الخارجي للتحويل'));
+ }
+});
+test('lost bank ingest response recovers by reading without resending the transfer',async()=>{
+ const f=fixture();await f.d.pending;await f.ingest();f.state.loseReply=true;await f.submit();assert.match(f.d.status.textContent,/reply lost/);await f.button('التحقق من التحويل المحفوظ').onclick();assert.match(f.d.status.textContent,/تم حفظ التحويل كغير مطابق/);assert.equal(f.calls.filter(c=>c.p_action==='ingest').length,1);
+});
+test('failed bank ingest readback stays locked until explicit successful recovery',async()=>{
+ const f=fixture();await f.d.pending;await f.ingest();f.state.listError=true;await f.submit();assert.equal(f.button('حفظ كتحويل غير مطابق').disabled,true);await f.button('التحقق من التحويل المحفوظ').onclick();assert.doesNotMatch(f.d.status.textContent,/تم حفظ التحويل/);f.state.listError=false;await f.button('التحقق من التحويل المحفوظ').onclick();assert.match(f.d.status.textContent,/تم حفظ التحويل/);assert.equal(f.calls.filter(c=>c.p_action==='ingest').length,1);
+});
+test('existing bank source and external ID block duplicate ingest before any write',async()=>{
+ const f=fixture();await f.d.pending;await f.ingest();f.control('المعرف الخارجي للتحويل').value='EXT-1';await f.submit();assert.match(f.d.status.textContent,/يوجد تحويل محفوظ/);assert.equal(f.calls.filter(c=>c.p_action==='ingest').length,0);
+});
+test('definite validation or MFA rejection unlocks bank input but transport errors do not',async()=>{
+ for(const error of [Object.assign(Error('validation'),{code:'22023'}),Object.assign(Error('MFA_REQUIRED'),{code:'42501',status:403}),Error('transport')]){
+  const f=fixture();await f.d.pending;await f.ingest();f.state.ingestError=error;await f.submit();assert.equal(f.button('حفظ كتحويل غير مطابق').disabled,error.message==='transport');assert.equal(f.control('المبلغ').value,'12.125');
  }
 });
