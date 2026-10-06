@@ -17,3 +17,9 @@ Evidence:
 This branch is based on production e68d7790f12f88bfc32fec358fe8b36b3fb4b0ee and is independent of payment-status PR #421. It does not include that separate fix. Both PRs modify the search file and inventory; combined integration must be checked before merging. No production data, database schema, deployment target, or lease status is changed.
 
 Remaining: authenticated hosted Preview acceptance (search 101, open the correct property, and a restricted-role check). Phone/civil-ID and authoritative tenant/contract directory search remain separate open requirements. This does not complete the overall global-search requirement.
+
+## Combined candidate
+
+The draft now also includes the payment-status fix from #421: unknown/blank payment status is never inferred as paid and review/unknown states are not styled as settled. The authoritative unit results remain free of payment labels and actions. The inventory merge conflict was resolved by recomputing hashes from the combined files. Earlier hosted acceptance applies only to 826cdd5d; the new combined SHA requires its own hosted acceptance.
+
+Combined prepared regression suite: 2,431 passed, zero failed/skipped. Read-only membership inventory in the isolated Preview database found one active general_manager and no active restricted-role accounts. No account or permission was created or expanded; restricted-role browser acceptance remains unverified.

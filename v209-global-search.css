@@ -23,6 +23,7 @@ body.aq-v209 .v209-result-main small{grid-column:1/2;font-size:11px;color:#6f604
 body.aq-v209 .v209-result-main b{grid-column:2/3;grid-row:1/4;align-self:center;display:inline-flex;align-items:center;min-height:30px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:900;white-space:nowrap}
 body.aq-v209 .v209-result-main b.is-due{background:#fff1ea;color:#93452f;border:1px solid #efd4c8}
 body.aq-v209 .v209-result-main b.is-clear{background:#edf6ef;color:#427453;border:1px solid #d8e8dc}
+body.aq-v209 .v209-result-main b.is-review{background:#fff5df;color:#805f21;border:1px solid #eadbb7}
 body.aq-v209 .v209-result-actions{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap;max-width:250px}
 body.aq-v209 .v209-result-actions button{min-height:40px;padding:0 10px;border:1px solid #d9c6a6;border-radius:9px;background:#fff;color:#6d522a;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;white-space:nowrap}
 body.aq-v209 .v209-result-actions button.is-primary{background:#6f4d19;border-color:#6f4d19;color:#fff}

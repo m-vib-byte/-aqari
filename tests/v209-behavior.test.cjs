@@ -667,6 +667,28 @@ test('row billable and collectible flags control the exact payment label',()=>{
   assert.match(byTenant('مستأجر قيمة نصية'),/data-v209-action="payment">عرض التحصيل<\/button>/);
 });
 
+test('search never infers paid from a zero balance without an explicit payment status',()=>{
+  for(const paymentStatus of ['',undefined,null,'   ']){
+    const env=createHarness({rentOfficeData(name,period){return office(name,period,[record({paymentStatus})])}});
+    const html=env.search('الهدف');
+    assert.match(html,/>يحتاج مراجعة<\/b>/);
+    assert.doesNotMatch(html,/>مسدد<\/b>|class="is-clear"/);
+  }
+});
+
+test('search preserves explicit payment states and does not mark pending payments clear',()=>{
+  for(const [patch,label,tone] of [
+    [{paymentStatus:'مسدد'},'مسدد','is-clear'],
+    [{paymentStatus:'شهر مجاني'},'شهر مجاني','is-clear'],
+    [{paymentStatus:'يحتاج مراجعة'},'يحتاج مراجعة','is-review'],
+    [{paymentStatus:'',pending:10},'قيد المراجعة','is-review'],
+    [{paymentStatus:'',balance:12.5},'متبقي','is-due']
+  ]){
+    const env=createHarness({rentOfficeData(name,period){return office(name,period,[record(patch)])}});
+    assert.match(env.search('الهدف'),new RegExp('<b class="'+tone+'">'+label));
+  }
+});
+
 test('escapes API text and caps matching results at 30',()=>{
   const property='برج <img src=x onerror=boom>';
   const rows=Array.from({length:35},(_,index)=>record({
