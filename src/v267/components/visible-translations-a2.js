@@ -960,11 +960,11 @@ export const VISIBLE_MESSAGES_A2 = {
   "ur": "کل یونٹ: {value0} • زیر استعمال: {value1} • خالی: {value2} • خالی شرح: {value3}%",
   "ml": "ആകെ യൂണിറ്റുകൾ: {value0} • താമസമുള്ളത്: {value1} • ഒഴിഞ്ഞത്: {value2} • ഒഴിവുനിരക്ക്: {value3}%"
  },
- "المتوقع الشهري حسب العقود النشطة: {value0} د.ك • المحصل فعلياً: {value1} د.ك • النسبة: {value2}٪ • متوسط التأخر: {value3} يوم": {
-  "en": "Monthly expected from active contracts: {value0} KWD • Actually collected: {value1} KWD • Rate: {value2}% • Average delay: {value3} days",
-  "hi": "सक्रिय अनुबंधों से मासिक अपेक्षित: {value0} दीनार • वास्तविक वसूली: {value1} दीनार • दर: {value2}% • औसत देरी: {value3} दिन",
-  "ur": "فعال معاہدوں سے ماہانہ متوقع: {value0} دینار • حقیقی وصولی: {value1} دینار • شرح: {value2}% • اوسط تاخیر: {value3} دن",
-  "ml": "സജീവ കരാറുകളിൽ നിന്ന് പ്രതീക്ഷിത പ്രതിമാസ തുക: {value0} ദിനാർ • യഥാർത്ഥ ശേഖരണം: {value1} ദിനാർ • നിരക്ക്: {value2}% • ശരാശരി വൈകൽ: {value3} ദിവസം"
+ "المستحق خلال الفترة: {value0} د.ك • المسدد من إيجاراتها حتى نهايتها: {value1} د.ك • النسبة: {value2}٪ • متوسط التأخر: {value3} يوم": {
+  "en": "Rent due in period: {value0} KWD • Paid against these rents by period end: {value1} KWD • Rate: {value2}% • Average delay: {value3} days",
+  "hi": "अवधि में देय किराया: {value0} दीनार • अवधि के अंत तक इसका भुगतान: {value1} दीनार • दर: {value2}% • औसत देरी: {value3} दिन",
+  "ur": "مدت کا واجب کرایہ: {value0} دینار • مدت کے اختتام تک اس کی ادائیگی: {value1} دینار • شرح: {value2}% • اوسط تاخیر: {value3} دن",
+  "ml": "കാലയളവിലെ വാടക കുടിശ്ശിക: {value0} ദിനാർ • കാലയളവ് അവസാനിക്കുമ്പോഴുള്ള അതിന്റെ അടവ്: {value1} ദിനാർ • നിരക്ക്: {value2}% • ശരാശരി വൈകൽ: {value3} ദിവസം"
  },
  "صافي الأداء": {
   "en": "Net performance",
