@@ -15,3 +15,15 @@ A regression with a January–December contract released on June 30 failed befor
 - Read-only Production catalog inspection (`djkpkkgoibruaezdrchb`) confirmed the same occupancy range, but its predicate excludes only cancelled contracts. This existing Preview/Production difference was not changed.
 
 No SQL migration, business write, authentication change, production deployment or concurrent-transaction test was performed. Source-level and catalog evidence do not establish complete hosted contract acceptance. The candidate is based on the current draft PR429 chain and requires its own exact-head review and authenticated UI acceptance.
+
+## Isolated constraint execution
+
+`staging-database/local-test/run-lease-overlap-constraint.mjs` executes the exact exclusion definition from the production schema catalog in local in-memory PostgreSQL (PGlite with `btree_gist`). That catalog definition matched the live read-only production result on October 6. It creates only a disposable local fixture table, without hosted connections or authentication stubs.
+
+**18 cases passed, zero failed:** identical, nested and enclosing periods; both inclusive endpoints; adjacent prior/next days; different units/workspaces; cancelled old/new records; expired contracts without release; day after release versus release day; unknown date bounds; operational drafts; changing dates into overlap; and reactivating a cancelled overlapping record. Rejected writes must specifically return SQLSTATE `23P01`.
+
+Run with the already installed local PGlite package, optionally setting `AQARI_PGLITE_MODULE` to its absolute `dist/index.js`, then `node staging-database/local-test/run-lease-overlap-constraint.mjs`.
+
+PGlite is a single-session engine: these results do **not** prove concurrent transaction behavior, authorization, projection triggers or full hosted contract acceptance. They establish the copied exclusion constraint's insert/update behavior only.
+
+The runtime fix head `2e94a1cb1dce18cd2ac98adb8c571e6cf5790a70` passed test/startup-order/paint checks and reached READY at deployment `dpl_5EBreshey9DodUT86VdtBpr3fcBR`; Supabase Preview was skipped. This follow-up adds verification only.
