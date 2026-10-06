@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "910e98f08cb7be024d652a5a2296690cfc1e60338d2d71c27e26f4141777bb37",
-      "size": 9425
+      "sha256": "6ff2d2250a3c45c7efb63a3bffe139624d1b3d4d9eecf2d5b868c2fc85d3171c",
+      "size": 9952
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1852,8 +1852,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "3053e24ac8fc0b111964369132049e88102b16b60fe8a5473c19e6534d1cfab5",
-      "size": 34922
+      "sha256": "b35c94c2dc97567dcec0d89d5f47864811526f987f3373092be0315e55b4a010",
+      "size": 35024
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -4382,8 +4382,8 @@
     },
     {
       "path": "tests/v209-behavior.test.cjs",
-      "sha256": "58bb4bfcbce14377a6e7cedc91680f831909fd64f30426f168af18287f60f42a",
-      "size": 25526
+      "sha256": "bbf78117397d8b42bafd5e7d5225b64463cbea8c8efffb7951b5102a2daa4912",
+      "size": 29701
     },
     {
       "path": "tests/v209-global-search.test.cjs",
@@ -5422,13 +5422,13 @@
     },
     {
       "path": "v209-global-search.css",
-      "sha256": "ce1d3c372cd2c7b1e2b589e0d6e12def234d9f800d04bc7e840a041e6ef68238",
-      "size": 6704
+      "sha256": "a2eb9c1c5423bfeec7d8d9b9d4bdd7ca61574973e10f2be3f7679cfbf076bcf8",
+      "size": 6806
     },
     {
       "path": "v209-global-search.js",
-      "sha256": "9e277bb8e2d24140afd725103132ce846b6ee00d0c8ebf6ead14e9a51d9c2116",
-      "size": 23756
+      "sha256": "bc39afc9925a30bc13e84e6c55d0df10f50628b8dbf176049e83f4cbcec9841a",
+      "size": 26983
     },
     {
       "path": "v210-daily-command-center.css",
@@ -5684,6 +5684,21 @@
       "path": "supabase/migrations/20261005225016_v267_property_tenant_ledger.sql",
       "sha256": "f13204795e3e1882e1b06e243e57a8017ba73bcb52d3cd2e2c233d5da4d0b7d6",
       "size": 3933
+    },
+    {
+      "path": "src/v267/api/unit-search.js",
+      "sha256": "82798ce8bc41fffbc5a1c982968920601a7fc8ebea131f96fe884e5c8396f618",
+      "size": 2296
+    },
+    {
+      "path": "tests/v267-unit-search.test.mjs",
+      "sha256": "cd784e4953fa1307efd659279668549a5603811637abbf5b27f81db4b21bf5d7",
+      "size": 3904
+    },
+    {
+      "path": "docs/verification/unit-search-20261006.md",
+      "sha256": "22e202bf70942d273a86dc91024db894eb999ee2402b3b59679aec9b621f9f7c",
+      "size": 3190
     }
   ],
   "version": "V198"

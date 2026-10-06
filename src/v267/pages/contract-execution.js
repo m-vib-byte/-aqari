@@ -1,3 +1,5 @@
+import {prepareContractExecutionPackage} from '../components/contract-execution-package.js';
+import {assertContractExecutionService} from '../components/contract-execution-readiness.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {executionMethods,executionDue,rentReceiptArtifacts,executionManifest} from '../domain/contract-execution.js';
@@ -57,8 +59,9 @@ export function openContractExecution(contractId,{onDone}={}){
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
+  await assertContractExecutionService(d.session,contractId);d.session.check();
   const due=executionDue(api,contract),signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
-  const ids={settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
+  const ids={package:crypto.randomUUID(),settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
   let receiptNo='',contractReceiptSequence=null;
   if(due.rent>0){
    const reservation=await rpc('aqari_reserve_rent_receipt_serial',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(contract.id),p_operation_ref:ids.settlement,p_year:Number(api.kuwaitDate().slice(0,4))});d.session.check();
@@ -68,6 +71,11 @@ export function openContractExecution(contractId,{onDone}={}){
   let receiptArtifacts=null;
   if(due.rent>0)receiptArtifacts=rentReceiptArtifacts({contract:signed,profile,due,receiptNo,contractReceiptSequence,onDate,method,transactionNo});
   const manifest=executionManifest({contract:signed,due,onDate,method,transactionNo,receiptNo,contractReceiptSequence,zeroReason,ids});
+  manifest.executionPackageId=await prepareContractExecutionPackage(d.session,{
+   workspaceId:d.session.bound.workspace,contractRef:String(contractId),settlementId:ids.settlement,
+   documentId:ids.document,packageId:ids.package,preparedAt:new Date().toISOString(),
+   receiptNo,receiptSequence:contractReceiptSequence,receiptArtifacts
+  });d.session.check();
   const index=(db.contractsV202||[]).findIndex(row=>String(row.id)===String(contractId));db.contractsV202[index]=signed;
   db.contractExecutionSettlementsV267=(db.contractExecutionSettlementsV267||[]).concat([manifest]);
   if(receiptArtifacts){db.collections=(db.collections||[]).concat([receiptArtifacts.record]);db.rentLedgerV202=(db.rentLedgerV202||[]).concat([receiptArtifacts.ledger]);db.rentReceiptsV267=(db.rentReceiptsV267||[]).concat([receiptArtifacts.receipt]);}
