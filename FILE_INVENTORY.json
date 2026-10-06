@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "c279513d20de895bd8eb40d60e2e8e39d285856f9e3ccc8089a6b0c2639a8a16",
-      "size": 10283
+      "sha256": "68931eb52df3ecc729b2600fae1dfd90f621aa22feffe27be930041fc0cbd091",
+      "size": 10422
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1902,8 +1902,8 @@
     },
     {
       "path": "src/v267/pages/deposit-ledger.js",
-      "sha256": "03c3809a0e0991fd0aeeee8f0990f8b5a1a375957fc3dafd35a2590ac4cdd95b",
-      "size": 14685
+      "sha256": "2e7eb509202ffca3c01759bfb4dde804c1882ee4f3c5b068e6fcb849f2d05a51",
+      "size": 15093
     },
     {
       "path": "src/v267/pages/document-scanner.js",
@@ -4567,8 +4567,8 @@
     },
     {
       "path": "tests/v267-deposit-ledger.test.mjs",
-      "sha256": "70ca541005f27681cb2aa05a006c105b7912fcee658e6e1636547340b98f178c",
-      "size": 22155
+      "sha256": "50a6b8e6b3759880f9db41b81a74bf8505877c9e5c04e3acb44f7989e77b90fb",
+      "size": 25528
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
