@@ -27,3 +27,8 @@ AQARI_PGLITE_MODULE=/absolute/path/to/pglite/dist/index.js node staging-database
 روابط المراجعة: https://supabase.com/docs/guides/database/database-linter و https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
 مرجع سلوك CASE: https://www.postgresql.org/docs/current/functions-conditional.html
+
+
+## مزامنة الهجرة المسجلة
+
+قُرئت statements من سجل هجرات Preview للهجرة 20261006064302 وثبتت مطابقتها الحرفية للإصلاح المختبر. حُفظت النسخة نفسها في مساري supabase/migrations وstaging-database/supabase/migrations، وأضيف تأكيد تطابقهما إلى اختبار PostgreSQL المحلي. هذا استرجاع للهجرة المطبقة ذات الهوية المسجلة، وليس إنشاء هجرة جديدة أو إعادة تطبيقها.

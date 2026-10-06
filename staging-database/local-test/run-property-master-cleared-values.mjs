@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const {PGlite}=await import(process.env.AQARI_PGLITE_MODULE?pathToFileURL(process.env.AQARI_PGLITE_MODULE):'@electric-sql/pglite');
 const db=new PGlite(),id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const patch=readFileSync(new URL('../sql/property-master-cleared-values-fix.sql',import.meta.url),'utf8');
+for(const path of ['../../supabase/migrations/20261006064302_v267_property_master_cleared_values.sql','../supabase/migrations/20261006064302_v267_property_master_cleared_values.sql'])assert.equal(readFileSync(new URL(path,import.meta.url),'utf8'),patch,'recorded migration matches tested patch');
 const snapshot=filename=>readFileSync(new URL('../sql/'+filename,import.meta.url),'utf8').match(/create or replace function private\.aqari_property_master_snapshot\([\s\S]*?\$\$;/)[0];
 let passed=0;const check=(actual,expected,label)=>{assert.deepEqual(actual,expected,label);passed++};
 const read=async(w=1,p=2)=>(await db.query('select private.aqari_property_master_snapshot($1,$2) as value',[id(w),id(p)])).rows[0].value;
