@@ -33,7 +33,7 @@ export function openPropertyOnboarding(){
  const d=createDialog(translateStatic('إضافة عقار — ملف متكامل'));if(!d)return false;
  const bound=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
- let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null,masterAttempt=null,creationAttempt=null;
+ let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null,masterAttempt=null,creationAttempt=null,documentUpload=null;
  const form=node('form'),grid=node('div');grid.className='aq267-grid';
  const name=input('text'),address=node('textarea'),description=node('textarea'),locationUrl=input('url'),propertyAutomaticRef=input('text'),type=input('text'),status=input('text','active'),income=input('text'),email=input('email'),phone=input('tel'),whatsapp=input('tel');
  name.required=address.required=type.required=status.required=true;income.inputMode='decimal';address.maxLength=1000;description.maxLength=5000;locationUrl.maxLength=2000;propertyAutomaticRef.maxLength=200;for(const control of [name,type,status,email,phone,whatsapp])control.maxLength=320;
@@ -81,7 +81,7 @@ export function openPropertyOnboarding(){
   if(!property?.id||property.workspace_id!==d.session.bound.workspace||property.name!==lockedDraft.name||property.external_ref!==lockedDraft.name||!sameRecord(record,creationAttempt.row))throw Error('تعذر تأكيد هوية سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط.');return property;
  }
  async function createPreviewImages(){const sources=[];if(manifest.entries.find(x=>x.key==='mainPhoto'))sources.push(manifest.entries.find(x=>x.key==='mainPhoto').file);else if(manifest.entries.find(x=>x.key==='logo'))sources.push(manifest.entries.find(x=>x.key==='logo').file);for(const entry of manifest.entries.filter(x=>x.asset==='photos')){if(sources.length>=4)break;sources.push(entry.file);}const result=[];for(const file of sources){result.push(await compressedPreview(file));d.session.check();}return result;}
- async function uploadDocuments(){const upload=createOriginalDocumentUpload(d.session);for(const entry of manifest.entries){if(uploaded.has(entry.key))continue;d.status.textContent=translateStatic('جارٍ أرشفة ')+entry.title+'…';const row=await upload(entry.file,{type:'property',ref:created.external_ref,category:entry.category,title:entry.title});d.session.check();uploaded.set(entry.key,row);}}
+ async function uploadDocuments(){const upload=documentUpload??=createOriginalDocumentUpload(d.session);for(const entry of manifest.entries){if(uploaded.has(entry.key))continue;d.status.textContent=translateStatic('جارٍ أرشفة ')+entry.title+'…';const row=await upload(entry.file,{type:'property',ref:created.external_ref,category:entry.category,title:entry.title});d.session.check();uploaded.set(entry.key,row);}}
  function assets(){const out={logo:null,mainPhoto:null,photos:[],titleDeed:null,plans:[],licenses:[],certificates:[],insurances:[],documents:[]};for(const entry of manifest.entries){const doc=uploaded.get(entry.key);if(!doc)continue;if(entry.asset==='logo'||entry.asset==='mainPhoto'||entry.asset==='titleDeed')out[entry.asset]=doc.id;else out[entry.asset].push(doc.id);}return out;}
  async function saveMaster(){
   if(!masterAttempt){

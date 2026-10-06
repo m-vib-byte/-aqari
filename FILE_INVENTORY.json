@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "5c1bc9c9be0b156888655719626f6108dd9de71644d0c961578d6d9b521725cb",
-      "size": 10053
+      "sha256": "61fcca64ca45e2e7d133ac890605d49793e7136f823b10a0229fc5ec02b35dfe",
+      "size": 10100
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
