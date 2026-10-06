@@ -43,6 +43,31 @@ test('expired status or an invalid release date cannot silently free the unit',(
  }
 });
 
+test('stable unit identity catches overlap after names change and separates duplicate display labels',()=>{
+ const old={id:'old',propertyId:'property-a',unitId:'unit-a',property:'Old name',unit:'101',start_date:'2026-01-01',end_date:'2026-12-31',status:'signed'};
+ const candidate={...old,id:'new',property:'Renamed property',unit:'Renamed unit'};
+ assert.equal(activeUnitConflict([old],candidate),old,'renaming cannot hide the same unit');
+ assert.equal(activeUnitConflict([old],{...old,id:'new',unitId:'unit-b'}),null,'different unit IDs stay distinct despite identical labels');
+ const typed={...old,unit_id:old.unitId};delete typed.unitId;
+ assert.equal(activeUnitConflict([typed],candidate),typed,'typed and snapshot unit identifiers agree');
+ assert.equal(activeUnitConflict([old],{id:'new',unitId:'unit-a',start_date:'2026-02-01',end_date:'2026-03-01'}),old,'verified IDs do not depend on display labels');
+});
+
+test('legacy unit labels use property identity when available and keep Arabic digit normalization',()=>{
+ const old={id:'old',propertyId:'property-a',property:'Old name',unit:'١٠١',start_date:'2026-01-01',end_date:'2026-12-31',status:'signed'};
+ const candidate={...old,id:'new',property:'Renamed property',unit:'101'};
+ assert.equal(activeUnitConflict([old],candidate),old);
+ assert.equal(activeUnitConflict([old],{...old,id:'new',propertyId:'property-b'}),null);
+ const legacy={...old};delete legacy.propertyId;
+ assert.equal(activeUnitConflict([legacy],{...legacy,id:'new',unit:'101'}),legacy);
+});
+
+test('missing record identifiers do not make two separate contracts look like the same record',()=>{
+ const old={property:'برج أ',unit:'1',start_date:'2026-01-01',end_date:'2026-12-31',status:'signed'};
+ assert.equal(activeUnitConflict([old],{...old}),old);
+ assert.equal(activeUnitConflict([{...old,id:'saved'}],{...old,id:'saved'}),null);
+});
+
 test('new tenant identity requires complete Arabic and English identity',()=>{
  const valid={nameAr:'أحمد محمد',nameEn:'Ahmed Mohammed',civilId:'123456789012',passportNo:'P123',phone:'+96550000000',email:'tenant@example.com',nationality:'كويتي',nationalityEn:'Kuwaiti'};
  assert.equal(completeTenantIdentity(valid),true);

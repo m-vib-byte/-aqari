@@ -27,3 +27,9 @@ Run with the already installed local PGlite package, optionally setting `AQARI_P
 PGlite is a single-session engine: these results do **not** prove concurrent transaction behavior, authorization, projection triggers or full hosted contract acceptance. They establish the copied exclusion constraint's insert/update behavior only.
 
 The runtime fix head `2e94a1cb1dce18cd2ac98adb8c571e6cf5790a70` passed test/startup-order/paint checks and reached READY at deployment `dpl_5EBreshey9DodUT86VdtBpr3fcBR`; Supabase Preview was skipped. This follow-up adds verification only.
+
+## Follow-up: stable unit identity
+
+Three additional regression tests failed on the previous implementation: renaming a property/unit hid an existing overlap; duplicate display labels could block a different saved unit; and two records without IDs were mistaken for the same record. The UI comparison now uses a shared saved unit ID before display labels, including both `unitId` and `unit_id`. Legacy records without unit IDs use saved property IDs when both are available, otherwise normalized property/unit labels. Arabic unit digits remain normalized. Self-exclusion requires a nonempty record ID.
+
+All 35 tests in the foundation, authoritative-prefill and migration-preflight suites passed after the fix. The 18 database-constraint cases above remain earlier independent evidence; they were not counted again or presented as concurrency proof. No database constraint, permission, client binding authorization or business record was changed. Authenticated UI acceptance remains pending.
