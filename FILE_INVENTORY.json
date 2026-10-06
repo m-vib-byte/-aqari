@@ -1707,8 +1707,8 @@
     },
     {
       "path": "src/v267/components/visible-translations-b2.js",
-      "sha256": "5549a9a89f7108497071880bfddcfaf6408ad3a5c27e195548982f2d75a41ca5",
-      "size": 96911
+      "sha256": "13280f486d802aa8ff6af6e36e0c3ba75b59f4482c962ca8e1462700b4bd59ab",
+      "size": 97720
     },
     {
       "path": "src/v267/components/workspace-icons.js",
@@ -2047,8 +2047,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "sha256": "260f8debbfded2ba0d64ebf7fd6bf08d3f1e48b68be9cdd4e92103c742ee707a",
-      "size": 35347
+      "sha256": "17168b74a06fe7f88287eddb469156eb4ff4e3498dd778e425d1e4e2193532a7",
+      "size": 35476
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -5057,8 +5057,8 @@
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "sha256": "3fb44e0d484c481ba9af04765b2c3d604c568f4b04da530fc57e5f37aa10766d",
-      "size": 13569
+      "sha256": "715fbd7ecd9c726433369b6594b94824930f1b6942cc3c3e6a04ede757317c9c",
+      "size": 14186
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
@@ -5677,13 +5677,23 @@
     },
     {
       "path": "staging-database/local-test/property-tenant-ledger-acceptance.sql",
-      "sha256": "8ff223809ac32116ee8ed6144e287f470a67c114862064cc04ffe8a97cac4dab",
-      "size": 3936
+      "sha256": "972b1781e4cf4e47af1ea9144cab73e1b9f2a33f642fcc150988bd360980c5bd",
+      "size": 3986
     },
     {
       "path": "supabase/migrations/20261005225016_v267_property_tenant_ledger.sql",
       "sha256": "f13204795e3e1882e1b06e243e57a8017ba73bcb52d3cd2e2c233d5da4d0b7d6",
       "size": 3933
+    },
+    {
+      "path": "staging-database/sql/property-tenant-ledger.sql",
+      "sha256": "c02117897d191f6de54c607052663edc619bfc53ff38395967c10d993a2a92f2",
+      "size": 3838
+    },
+    {
+      "path": "supabase/migrations/20261005232357_v267_property_tenant_ledger_credit.sql",
+      "sha256": "b1ae568c1f810c5c33554a46d58bc6cd959c1b96dcc4c23bc359612846a9d31f",
+      "size": 4094
     }
   ],
   "version": "V198"
