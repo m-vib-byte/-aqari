@@ -15,6 +15,20 @@ const moneyArea=v=>v==null?'—':Number(v).toFixed(3)+visibleText(' م²');
 function select(rows,value=''){const x=node('select');for(const [v,label]of rows){const o=node('option',label);o.value=v;x.append(o);}x.value=value??'';return x;}
 function section(title){const s=node('section');s.append(node('h3',title));return s;}
 
+export function ownershipReadbackMatches(actual,expected){
+ const area=value=>{const m=/^(\d{1,12})(?:\.(\d{1,3}))?$/.exec(String(value??''));return m?BigInt(m[1])*1000n+BigInt((m[2]||'').padEnd(3,'0')):null;};
+ if(area(expected.area)===null||area(actual?.property?.totalAreaSqm)!==area(expected.area)
+  ||Number(actual?.masterRevision)!==Number(expected.masterRevision)||Number(actual?.ownershipRevision)!==Number(expected.ownershipRevision)
+  ||!Array.isArray(actual?.owners)||actual.owners.length!==expected.owners.length)return false;
+ const owners=new Map(actual.owners.map(owner=>[owner?.id,owner]));
+ if(owners.size!==actual.owners.length||new Set(expected.owners.map(owner=>owner.id)).size!==expected.owners.length)return false;
+ return expected.owners.every(owner=>{
+  const saved=owners.get(owner.id);
+  return !!owner.id&&!!saved&&Number.isInteger(saved.bps)&&saved.bps===owner.bps
+   &&['name','role','email','phone','whatsapp','supportingDocumentId'].every(key=>String(saved[key]??'')===String(owner[key]??''));
+ });
+}
+
 export function openPropertyOwnership(propertyId){
  const d=createDialog(translateStatic('الملكية والمساحات والورثة'));if(!d)return false;
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_property_ownership',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:{propertyId,...data}}));
@@ -37,7 +51,8 @@ export function openPropertyOwnership(propertyId){
   await load();if(!state.manager)throw Error('تعديل الملكية والمساحات متاح للمدير العام فقط.');
   d.body.replaceChildren(node('h3',translateStatic('تعديل الملكية والمساحة الرسمية')),button(visibleText('رجوع'),()=>d.run(render)));
   const form=node('form'),totalArea=input('text',state.property.totalAreaSqm??''),ownersBox=section(visibleText('الملاك / الورثة والحصص')),reason=node('textarea'),save=node('button',translateStatic('حفظ الملكية وإعادة القراءة'));totalArea.required=true;totalArea.inputMode='decimal';reason.required=true;reason.minLength=3;setFormDefault(reason,'تحديث الملكية والمساحة الرسمية');save.type='submit';const readOwners=ownerEditor(ownersBox,state.owners||[],totalArea);form.append(field(translateStatic('إجمالي المساحة الرسمية م²'),totalArea),ownersBox,button(visibleText('رفع مستند مؤيد جديد'),()=>d.run(uploadEvidence)),field(translateStatic('سبب التعديل'),reason),save);d.body.append(form);
-  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{const area=clean(totalArea.value);if(!/^\d{1,12}(\.\d{1,3})?$/.test(area)||Number(area)<=0)throw Error('راجع إجمالي المساحة الرسمية.');const owners=readOwners();if(!owners.length||owners.some(o=>!o.name||!o.supportingDocumentId||o.bps<1||o.bps>10000)||owners.reduce((s,o)=>s+o.bps,0)!==10000)throw Error('أكمل الملاك/الورثة والمستند المؤيد وتأكد أن مجموع الحصص 100%.');const saved=await rpc('save',{expectedMasterRevision:Number(state.masterRevision||0),expectedOwnershipRevision:Number(state.ownershipRevision||0),totalAreaSqm:area,owners,reason:clean(formValue(reason))});d.session.check();if(Number(saved?.ownershipRevision)!==Number(state.ownershipRevision||0)+1||Number(saved?.masterRevision)!==Number(state.masterRevision||0)+1)throw Error('لم تتأكد Revision الملكية بعد الحفظ.');const verify=await load();if(Number(verify.property?.totalAreaSqm)!==Number(area)||verify.owners.length!==owners.length)throw Error('فشل Readback للملكية والمساحة.');await render();d.status.textContent=translateStatic('تم حفظ الملكية والمساحة وحصص الملاك/الورثة وإعادة قراءتها من الخادم.');});};
+  let unconfirmed=false;
+  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{if(unconfirmed)throw Error('لم يتأكد الحفظ السابق. ارجع إلى سجل الملكية وراجعه قبل إعادة التعديل.');const area=clean(totalArea.value);if(!/^\d{1,12}(\.\d{1,3})?$/.test(area)||Number(area)<=0)throw Error('راجع إجمالي المساحة الرسمية.');const owners=readOwners();if(!owners.length||owners.some(o=>!o.name||!o.supportingDocumentId||o.bps<1||o.bps>10000)||owners.reduce((s,o)=>s+o.bps,0)!==10000)throw Error('أكمل الملاك/الورثة والمستند المؤيد وتأكد أن مجموع الحصص 100%.');unconfirmed=true;const saved=await rpc('save',{expectedMasterRevision:Number(state.masterRevision||0),expectedOwnershipRevision:Number(state.ownershipRevision||0),totalAreaSqm:area,owners,reason:clean(formValue(reason))});d.session.check();if(Number(saved?.ownershipRevision)!==Number(state.ownershipRevision||0)+1||Number(saved?.masterRevision)!==Number(state.masterRevision||0)+1)throw Error('لم تتأكد Revision الملكية بعد الحفظ.');const verify=await load();if(!ownershipReadbackMatches(verify,{area,owners,masterRevision:saved.masterRevision,ownershipRevision:saved.ownershipRevision}))throw Error('فشل Readback للملكية والمساحة.');await render();unconfirmed=false;d.status.textContent=translateStatic('تم حفظ الملكية والمساحة وحصص الملاك/الورثة وإعادة قراءتها من الخادم.');});};
  }
  async function render(){
   await load();d.body.replaceChildren();const p=state.property||{},head=section(p.name||visibleText('العقار'));head.append(node('p',translateStatic('إجمالي المساحة الرسمية: ')+moneyArea(p.totalAreaSqm)),node('p',visibleMessage("Revision الملكية: {v0}",{v0:(state.ownershipRevision||0)})));if(state.manager)head.append(button(visibleText('تعديل الملكية والمساحات'),()=>d.run(edit)),button(visibleText('رفع مستند مؤيد'),()=>d.run(uploadEvidence)));d.body.append(head);
@@ -46,4 +61,3 @@ export function openPropertyOwnership(propertyId){
  }
  d.run(render);return true;
 }
-
