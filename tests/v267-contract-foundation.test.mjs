@@ -23,6 +23,26 @@ test('active unit overlap is blocked while cancelled contracts do not block',()=
  assert.equal(activeUnitConflict(contracts,{id:'x',property:'برج أ',unit:'3',start_date:'2027-01-01',end_date:'2027-12-31'}),null);
 });
 
+test('early release frees the next day while retaining the contractual end and inclusive release day',()=>{
+ const original={id:'released',property:'برج أ',unit:'3',start_date:'2026-01-01',end_date:'2026-12-31',status:'expired',vacatedOn:'2026-06-30'};
+ const candidate={id:'new',property:'برج أ',unit:'3',start_date:'2026-07-01',end_date:'2027-06-30'};
+ for(const field of ['vacatedOn','vacated_on']){
+  const old={...original};delete old.vacatedOn;old[field]='2026-06-30';
+  assert.equal(activeUnitConflict([old],candidate),null);
+  assert.equal(activeUnitConflict([old],{...candidate,start_date:'2026-06-30'}),old);
+  assert.equal(activeUnitConflict([old],{...candidate,start_date:'2026-06-01'}),old);
+  assert.equal(old.end_date,'2026-12-31','release must never rewrite the contractual end');
+ }
+});
+
+test('expired status or an invalid release date cannot silently free the unit',()=>{
+ const old={id:'old',property:'برج أ',unit:'3',start_date:'2026-01-01',end_date:'2026-12-31',status:'expired'};
+ const candidate={id:'new',property:'برج أ',unit:'3',start_date:'2026-07-01',end_date:'2027-06-30'};
+ for(const date of [undefined,'','invalid','2026-02-30','2025-12-31','2027-01-01']){
+  const row={...old,vacatedOn:date};assert.equal(activeUnitConflict([row],candidate),row);
+ }
+});
+
 test('new tenant identity requires complete Arabic and English identity',()=>{
  const valid={nameAr:'أحمد محمد',nameEn:'Ahmed Mohammed',civilId:'123456789012',passportNo:'P123',phone:'+96550000000',email:'tenant@example.com',nationality:'كويتي',nationalityEn:'Kuwaiti'};
  assert.equal(completeTenantIdentity(valid),true);

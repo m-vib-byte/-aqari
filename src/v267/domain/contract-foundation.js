@@ -48,8 +48,13 @@ export function activeUnitConflict(contracts,candidate){
  return (contracts||[]).find(old=>{
   if(String(old?.id??old?.contractId??'')===id||old?.status==='cancelled'||(old?.status==='draft'&&old?.source==='statement-import'))return false;
   if(key(old?.property??old?.propertyName)!==property||key(old?.unit??old?.unitName)!==unit)return false;
-  const oldStart=text(old?.start_date??old?.startDate),oldEnd=text(old?.end_date??old?.endDate);
-  return !oldStart||!oldEnd||start<=oldEnd&&end>=oldStart;
+  const oldStart=text(old?.start_date??old?.startDate),oldEnd=text(old?.end_date??old?.endDate),released=text(old?.vacated_on??old?.vacatedOn);
+  // Match the server's inclusive occupancy range without changing contract history.
+  // Invalid or out-of-range release metadata must not bypass the existing conflict.
+  const releasedTime=/^\d{4}-\d{2}-\d{2}$/.test(released)?Date.parse(released+'T00:00:00Z'):NaN;
+  const validRelease=Number.isFinite(releasedTime)&&new Date(releasedTime).toISOString().slice(0,10)===released&&released>=oldStart&&released<=oldEnd;
+  const occupancyEnd=validRelease?released:oldEnd;
+  return !oldStart||!oldEnd||start<=occupancyEnd&&end>=oldStart;
  })||null;
 }
 
