@@ -42,7 +42,14 @@ export function createDialog(title,{localized=true,page=false}={}){
  // covers controls created while loading and leaves FormData values intact.
  async function run(task){if(busy||closed)return;busy=true;const loadingMessage=localized?t('جارٍ الاتصال…'):'جارٍ الاتصال…';status.textContent=loadingMessage;el.setAttribute('aria-busy','true');body.inert=true;
   try{session.check();await session.connect();await task();if(!closed&&status.textContent===loadingMessage)status.textContent='';}
-  catch(e){if(!closed){if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();else status.textContent=localized?t(safeError(e)):safeError(e);}}
+  catch(e){if(!closed){
+   // A server MFA challenge is recoverable in the same authenticated scope.
+   // All other authorization denials still dispose private DOM immediately.
+   const mfa=e?.status!==401&&e?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(e?.message);
+   if(mfa){pendingNavigation=null;try{session.check();status.textContent=localized?t(safeError(e)):safeError(e);}catch{closeDialog();}}
+   else if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();
+   else status.textContent=localized?t(safeError(e)):safeError(e);
+  }}
   finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');body.inert=false;if(pendingNavigation){const next=pendingNavigation;pendingNavigation=null;await run(next);}}}}
  return {el,body,status,session,run,navigate,onDispose,close:closeDialog,requestClose,setBeforeClose(check){beforeClose=check;return ()=>{if(beforeClose===check)beforeClose=null;};},get closed(){return closed;}};
 }

@@ -606,6 +606,11 @@
       "size": 3864
     },
     {
+      "path": "docs/V267-LIVE-MFA-CHALLENGE-2026-10-06.md",
+      "sha256": "929265415f7e486599bc7eeff85a2608c7ff21e69b3115fe071175e77947558a",
+      "size": 1470
+    },
+    {
       "path": "docs/V267-MAINTENANCE-CANCELLATION-HARDENING-2026-09-12.md",
       "sha256": "506933a509b3b0bd866f59aabf8747dc7228b3d719dc0e42f90cc6120a7c956a",
       "size": 8019
@@ -1407,8 +1412,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "51df36864abd3eb1c7e16003982c316f731d75fb18d1c06716193dd2fe025f4a",
-      "size": 18880
+      "sha256": "dbd9b4dcec5ed1e704d1241363085eae119d4ee4f4fe9a5fd4f3b5c40090fac1",
+      "size": 19264
     },
     {
       "path": "src/v267/api/unit-search.js",
@@ -1482,8 +1487,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "e6dbb0ab93bf582a213300fa5a78c322474231287bada33e38cccfac2ba08f17",
-      "size": 4963
+      "sha256": "686d2f863331b2a2e4de7d36589c368ea06ab507ea503d8828d5a5f6c25b888a",
+      "size": 5386
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -4797,8 +4802,8 @@
     },
     {
       "path": "tests/v267-dialog-progress.test.mjs",
-      "sha256": "7f83af33a71fbcf38a5e0a0bd385bdebee98239afd2ea5a5af80c20b9b6d4f13",
-      "size": 6811
+      "sha256": "1e3a8774a0779e660cb0ffbeb4a566d623341a0a33d07a3c2c81049b9a8f4d25",
+      "size": 8791
     },
     {
       "path": "tests/v267-document-catalog-completion.test.cjs",
