@@ -15,6 +15,14 @@
   let authEpoch=0;
   let interactionEpoch=0;
   let renderedScope='';
+  let directoryEpoch=0;
+  let directoryJob=null;
+
+  function cancelDirectory(){
+    directoryEpoch+=1;
+    if(directoryJob)directoryJob.close();
+    directoryJob=null;
+  }
 
   function esc(value){
     return String(value==null?'':value).replace(/[&<>'"]/g,function(char){
@@ -171,10 +179,14 @@
     return 4;
   }
 
-  function searchRows(value){
+  function searchRows(value,directoryRows){
     const needle=normalizeSearch(value);
     if(!needle||(needle.length<2&&!/^\d+$/.test(needle)))return [];
-    return safeRows()
+    const legacy=safeRows();
+    const units=(directoryRows||[]).filter(function(item){
+      return !legacy.some(function(row){return row.kind!=='property'&&normalizeSearch(row.property)===normalizeSearch(item.property)&&normalizeSearch(row.unit)===normalizeSearch(item.unit)});
+    });
+    return legacy.concat(units)
       .filter(function(item){
         return [item.property,item.tenant,item.unit,item.contractNo].some(function(field){
           return normalizeSearch(field).includes(needle);
@@ -312,6 +324,7 @@
   }
 
   function clearSearch(resetInput){
+    cancelDirectory();
     lastResults=[];
     const results=document.getElementById('v209SearchResults');
     if(results)results.replaceChildren();
@@ -347,6 +360,7 @@
   }
 
   function resultMarkup(item,index){
+    if(item.kind==='unit')return '<article class="v209-result"><button type="button" class="v209-result-main" data-v209-index="'+index+'" data-v209-action="unit"><span class="v209-result-property" dir="auto">'+esc(item.property)+'</span><strong dir="auto">وحدة '+esc(item.unit)+'</strong><small>فتح ملف العقار</small></button></article>';
     if(item.kind==='property')return '<article class="v209-result"><button type="button" class="v209-result-main" data-v209-index="'+index+'" data-v209-action="property"><span class="v209-result-property">عقار</span><strong dir="auto">'+esc(item.property)+'</strong><small>فتح ملف العقار</small></button></article>';
     const contract=item.contractNo||'بدون رقم عقد';
     const payment=item.canRecordPayment?'تحصيل':'عرض التحصيل';
@@ -368,6 +382,7 @@
   }
 
   function render(){
+    cancelDirectory();
     const ui=ensureUi();
     if(!ui)return;
     const scope=scopeKey();
@@ -385,14 +400,45 @@
       return;
     }
     lastResults=searchRows(query);
-    if(!lastResults.length){
-      ui.results.innerHTML='<div class="v209-search-empty"><strong>ما لقينا نتيجة</strong><span>جرّب الاسم أو رقم الوحدة أو العقد.</span></div>';
+    const searchDirectory=window.AQARI_OWNER_EXACT?.createUnitSearch;
+    if(typeof searchDirectory==='function'){
+      const epoch=directoryEpoch,selectedPeriod=period,selectedQuery=query;
+      showResults('جاري البحث في سجل الوحدات…');
+      const current=function(){return epoch===directoryEpoch&&scope===scopeKey()&&selectedPeriod===period&&selectedQuery===query};
+      Promise.resolve().then(function(){
+        if(!current())return [];
+        directoryJob=searchDirectory();
+        return directoryJob.read();
+      }).then(function(rows){
+        if(!current())return;
+        directoryJob=null;
+        if(!Array.isArray(rows))throw Error('INVALID_UNIT_SEARCH');
+        const directoryRows=rows.map(function(row){return Object.freeze({kind:'unit',scope:scope,period:selectedPeriod,key:'unit:'+row.unitId,propertyId:row.propertyId,unitId:row.unitId,property:String(row.property||''),unit:String(row.unit||''),tenant:'',contractNo:'',balance:0,canRecordPayment:false})});
+        lastResults=searchRows(selectedQuery,directoryRows);
+        showResults();
+      }).catch(function(){
+        if(!current())return;
+        cancelDirectory();
+        showResults('تعذر التحقق من سجل الوحدات. أعد البحث للمحاولة.');
+      });
       return;
     }
-    ui.results.innerHTML='<div class="v209-search-summary" role="status" aria-atomic="true"><span>'+lastResults.length+' نتيجة</span><small>'+esc(periodLabel())+'</small></div>'+lastResults.map(resultMarkup).join('');
+    showResults();
+  }
+
+  function showResults(notice){
+    const ui=ensureUi();
+    const status=notice?'<div class="v209-search-empty" role="status">'+esc(notice)+'</div>':'';
+    if(!lastResults.length){
+      ui.results.innerHTML=status||'<div class="v209-search-empty"><strong>ما لقينا نتيجة</strong><span>جرّب الاسم أو رقم الوحدة أو العقد.</span></div>';
+      return;
+    }
+    ui.results.innerHTML=status+'<div class="v209-search-summary" role="status" aria-atomic="true"><span>'+lastResults.length+' نتيجة</span><small>'+esc(periodLabel())+'</small></div>'+lastResults.map(resultMarkup).join('');
   }
 
   function scheduleRender(){
+    cancelDirectory();
+    lastResults=[];
     clearTimeout(renderTimer);
     renderTimer=setTimeout(render,100);
   }
@@ -402,7 +448,7 @@
     if(!ui)return false;
     const open=expanded===true;
     if(open)ui.panel.classList.add('on');
-    else ui.panel.classList.remove('on');
+    else {ui.panel.classList.remove('on');cancelDirectory();}
     ui.panel.setAttribute('aria-hidden',String(!open));
     document.querySelectorAll('[data-v199-action="search"]').forEach(function(button){
       button.setAttribute('aria-expanded',String(open));
@@ -431,6 +477,15 @@
 
   function openResult(item,action,trigger){
     const scope=scopeKey();
+    if(item?.kind==='unit'){
+      if(action!=='unit'||!scope||item.scope!==scope||item.period!==period||typeof window.AQARI_OWNER_EXACT?.openSearchUnit!=='function')return false;
+      closePanel();
+      Promise.resolve().then(function(){
+        if(scopeKey()!==scope)return;
+        return window.AQARI_OWNER_EXACT.openSearchUnit(item);
+      }).catch(function(){if(scopeKey()===scope)window.AQARI_OWNER_EXACT?.status?.('تعذر فتح الوحدة. أعد البحث للتحقق من صلاحياتها.',true)});
+      return true;
+    }
     if(item?.kind==='property'){
       if(!scope||item.scope!==scope||item.period!==period||!propertyNames().includes(item.property)||scopeKey()!==scope)return false;
       if(typeof window.AQARI_OWNER_EXACT?.openProperty!=='function')return false;

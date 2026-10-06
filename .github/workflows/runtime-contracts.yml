@@ -74,6 +74,8 @@ jobs:
       - run: node scripts/test-release-regressions.mjs tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
       - name: Session activity survives intercepted navigation and preserves idle locking
         run: node --test tests/v267-session-activity-routing.test.cjs tests/v267-session-idle-restore.test.cjs
+      - name: Unit search reads scoped identities without a rent ledger
+        run: node --test tests/v267-unit-search.test.mjs tests/v209-property-search.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
         run: node --test tests/v267-service-readiness.test.mjs tests/v267-owner-settings-recovery.test.mjs tests/v267-contract-admin-recovery.test.mjs
       - name: Stage C Storage export and isolated restore runtime regression
