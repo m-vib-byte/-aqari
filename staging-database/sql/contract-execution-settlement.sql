@@ -164,6 +164,8 @@ begin
   payload:=jsonb_build_object('contractNo',c->>'contract_no','tenant',c->>'tenant','property',c->>'property','unit',c->>'unit','startDate',c->>'start_date','endDate',c->>'end_date','contractRent',c->>'contractRent','discount',c->>'discount','deposit',c->>'deposit','advance',c->>'advance','fees',c->>'cleaningFee','template',c->'contractTemplate','executionSettlementId',settlement_id,'contractSnapshot',c);
   hash:=pg_catalog.encode(extensions.digest(title||E'\n'||body||E'\n'||payload::text,'sha256'),'hex');
   template_version:=coalesce(nullif(c#>>'{contractTemplate,version}','')::integer,1);
+  insert into private.aqari_official_number_reservations(id,workspace_id,document_no,kind,entity_id,actor_id)
+   values(document_id,new.workspace_id,'CT-'||(c->>'contract_no'),'rental_contract',lease.id,auth.uid());
   insert into private.aqari_official_document_series(id,workspace_id,kind,document_no,entity_type,entity_id,status,current_version,created_by)
    values(document_id,new.workspace_id,'rental_contract','CT-'||(c->>'contract_no'),'lease',lease.id,'issued',1,auth.uid());
   insert into private.aqari_official_document_versions(id,workspace_id,series_id,version,template_version,title,body,payload,content_sha256,issued_by,issued_by_name)

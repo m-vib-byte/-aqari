@@ -121,6 +121,7 @@ jobs:
           node staging-database/local-test/run-pdf-editor-drafts.mjs
           node staging-database/local-test/run-pdf-contract-bindings.mjs
           node staging-database/local-test/run-contract-execution-text.mjs
+          node staging-database/local-test/run-contract-execution-projection.mjs
           node staging-database/local-test/run-property-contract-category.mjs
           npm run test:completion --prefix staging-database/local-test
           npm run test:completion:contracts --prefix staging-database/local-test

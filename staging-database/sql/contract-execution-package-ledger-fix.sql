@@ -53,6 +53,9 @@ begin
   if jsonb_typeof(tenant_doc) is distinct from 'object' or jsonb_typeof(owner_doc) is distinct from 'object' then raise exception 'EXECUTION_PACKAGE_DOCUMENT_REQUIRED' using errcode='23514';end if;
   tenant_id:=extensions.gen_random_uuid();tenant_version:=extensions.gen_random_uuid();tenant_event:=extensions.gen_random_uuid();
   owner_id:=extensions.gen_random_uuid();owner_version:=extensions.gen_random_uuid();owner_event:=extensions.gen_random_uuid();
+  insert into private.aqari_official_number_reservations(id,workspace_id,document_no,kind,entity_id,actor_id)
+   values(tenant_id,new.workspace_id,tenant_doc->>'document_no','rental_contract',lease.id,auth.uid()),
+         (owner_id,new.workspace_id,owner_doc->>'document_no','rental_contract',lease.id,auth.uid());
   insert into private.aqari_official_document_series(id,workspace_id,kind,document_no,entity_type,entity_id,status,current_version,created_by)
    values(tenant_id,new.workspace_id,'rental_contract',tenant_doc->>'document_no','lease',lease.id,'issued',1,auth.uid()),(owner_id,new.workspace_id,'rental_contract',owner_doc->>'document_no','lease',lease.id,'issued',1,auth.uid());
   insert into private.aqari_official_document_versions(id,workspace_id,series_id,version,template_version,title,body,payload,content_sha256,issued_by,issued_by_name,issued_at)
