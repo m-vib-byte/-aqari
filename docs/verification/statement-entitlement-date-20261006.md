@@ -9,3 +9,11 @@ Applied `v267_official_statement_due_date` to isolated Preview only on 2026-10-0
 These tests cover the installed charge query and installed entitlement helpers, not the authenticated full statement/PDF flow. No authenticated session was fabricated and no test account was created. Production is missing the statement prerequisite; this patch deliberately refuses to bootstrap it. Production repair still needs dependency ordering and full review, then exact-candidate acceptance. Overall requirement counts remain unchanged.
 
 Security advisors were inspected after the change; this is not a claim that the whole Preview project is free of unrelated findings.
+
+## Follow-up: complete aggregation query
+
+`official_statement_ledger_readonly.sql` executes the full entries and aggregation query extracted from the installed Preview statement against synthetic CTE rows. All 15 cases passed: paid, cancelled, pending, future, other workspace, other lease, credit/debit adjustments, credit/debit ledger entries, excluded cancellation ledger, allocated credit, commercial collection, commercial reversal, and payment before the reporting period. It compares all four totals (opening, charges, payments, credits), without writing tables or bypassing any account authorization.
+
+Combined with the 8 date cases, this is 23 SQL calculation cases. This is stronger calculation evidence for the statement portion of R10.03, supporting partial implementation only. It does not prove the public authenticated RPC, PDF rendering, renewal/nonrenewal notices or complete requirement acceptance.
+
+A read-only literal dependency scan found no unresolved private function names in Preview after excluding existing table references. Production still has 6 call sites referring to 4 missing helpers: statement, contact-channel permission, effective contact profile, and rent-period breakdown. Name resolution is not an argument-type or runtime acceptance test. No production schema changes were made.
