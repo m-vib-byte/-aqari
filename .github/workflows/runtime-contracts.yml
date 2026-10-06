@@ -95,7 +95,7 @@ jobs:
       - name: Property search, presentation and verified save readback
         run: node --test tests/v267-property-presentation.test.mjs
       - name: Property onboarding and ownership require complete readback without blind retries
-        run: node --test tests/v267-onboarding-readback.test.mjs tests/v267-owner-entry-consistency.test.mjs tests/v267-master-owner-readback.test.mjs tests/v267-ownership-readback.test.mjs tests/v267-property-ownership-area.test.mjs tests/v267-property-onboarding.test.mjs tests/v267-property-master-runtime.test.mjs
+        run: node --test tests/v267-onboarding-creation-recovery.test.mjs tests/v267-onboarding-readback.test.mjs tests/v267-owner-entry-consistency.test.mjs tests/v267-master-owner-readback.test.mjs tests/v267-ownership-readback.test.mjs tests/v267-property-ownership-area.test.mjs tests/v267-property-onboarding.test.mjs tests/v267-property-master-runtime.test.mjs
       - name: Commercial sales and payment reconciliation readback
         run: node --test tests/v267-commercial-sales-workflow.test.mjs tests/v267-commercial-payment-allocations.test.mjs
       - name: Kuwait accounting month boundaries and partner defaults

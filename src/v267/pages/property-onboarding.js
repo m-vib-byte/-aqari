@@ -9,6 +9,8 @@ import {decodeImage} from '../components/scan-image.js';
 import {createOriginalDocumentUpload} from '../components/original-document-upload.js';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
+const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+const sameRecord=(actual,expected)=>JSON.stringify(canonical(actual))===JSON.stringify(canonical(expected));
 const input=(type='text',value='')=>{const el=node('input');el.type=type;el.value=value??'';return el;};
 const clean=value=>String(value??'').normalize('NFKC').trim();
 function button(label,fn){const el=node('button',label);el.type='button';el.onclick=fn;return el;}
@@ -31,7 +33,7 @@ export function openPropertyOnboarding(){
  const d=createDialog(translateStatic('إضافة عقار — ملف متكامل'));if(!d)return false;
  const bound=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
- let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null,masterAttempt=null;
+ let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null,masterAttempt=null,creationAttempt=null;
  const form=node('form'),grid=node('div');grid.className='aq267-grid';
  const name=input('text'),address=node('textarea'),description=node('textarea'),locationUrl=input('url'),propertyAutomaticRef=input('text'),type=input('text'),status=input('text','active'),income=input('text'),email=input('email'),phone=input('tel'),whatsapp=input('tel');
  name.required=address.required=type.required=status.required=true;income.inputMode='decimal';address.maxLength=1000;description.maxLength=5000;locationUrl.maxLength=2000;propertyAutomaticRef.maxLength=200;for(const control of [name,type,status,email,phone,whatsapp])control.maxLength=320;
@@ -60,10 +62,23 @@ export function openPropertyOnboarding(){
   return {draft,entries};
  }
  async function saveLegacyProperty(previews){
-  const current=bound(),cloud=await bridge.loadAppState(current);d.session.check();const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[];if(rows.some(row=>String(row?.[0]||'').normalize('NFKC').trim().toLowerCase()===lockedDraft.name.toLowerCase()))throw Error('اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.');
-  const primaryOwner=lockedDraft.owners[0]?.name||'',row=withPresentation([lockedDraft.name,primaryOwner,'',lockedDraft.statedIncome??''],{location:lockedDraft.address,price:'',purpose:'rent',phone:lockedDraft.phone||lockedDraft.whatsapp,photos:previews});rows.push(row);state.properties=rows;state.audit=(state.audit||[]).concat([[d.session.bound.user,'إنشاء عقار من شاشة الملف المتكامل',lockedDraft.name,new Date().toISOString()]]);
-  await bridge.saveAppState(payload,Number(cloud.revision),current);d.session.check();const confirmed=await bridge.loadAppState(current);d.session.check();if(!api.primary(confirmed.payload).properties?.some(saved=>saved?.[0]===lockedDraft.name))throw Error('لم تؤكد إعادة القراءة إنشاء العقار في السحابة.');
-  const result=await d.session.request(d.session.client.from('aqari_properties').select('id,name,external_ref').eq('workspace_id',d.session.bound.workspace).eq('name',lockedDraft.name).limit(2));if(!Array.isArray(result)||result.length!==1)throw Error('تعذر تأكيد السجل الخادمي للعقار بعد الحفظ.');return result[0];
+  const current=bound(),findProperty=()=>d.session.request(d.session.client.from('aqari_properties').select('id,workspace_id,name,external_ref,metadata').eq('workspace_id',d.session.bound.workspace).eq('external_ref',lockedDraft.name).limit(2));
+  if(!creationAttempt){
+   const cloud=await bridge.loadAppState(current);d.session.check();const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[],revision=Number(cloud.revision);
+   if(!Array.isArray(rows)||!Number.isSafeInteger(revision)||revision<0)throw Error('تعذر تثبيت مراجعة بيانات العقارات قبل الإنشاء.');
+   if(rows.some(row=>String(row?.[0]||'').normalize('NFKC').trim().toLowerCase()===lockedDraft.name.toLowerCase()))throw Error('اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.');
+   const existing=await findProperty();d.session.check();if(!Array.isArray(existing))throw Error('تعذر التحقق من هوية العقار قبل الإنشاء.');if(existing.length)throw Error('العقار مسجل مسبقاً في السجلات الخادمة. افتح ملفه الموجود.');
+   const primaryOwner=lockedDraft.owners[0]?.name||'',row=withPresentation([lockedDraft.name,primaryOwner,'',lockedDraft.statedIncome??''],{location:lockedDraft.address,price:'',purpose:'rent',phone:lockedDraft.phone||lockedDraft.whatsapp,photos:previews});
+   row.find(value=>value?.aqariPropertyPresentation===1).onboardingRequestId=crypto.randomUUID();
+   rows.push(row);state.properties=rows;state.audit=(state.audit||[]).concat([[d.session.bound.user,'إنشاء عقار من شاشة الملف المتكامل',lockedDraft.name,new Date().toISOString()]]);
+   // Keep a correlation marker before sending: a lost response must never cause a second create.
+   creationAttempt={row:clone(row),revision};for(const control of form.querySelectorAll('input,textarea,select,button'))if(control!==save)control.disabled=true;save.textContent=translateStatic('التحقق ومتابعة الملف');
+   await bridge.saveAppState(payload,revision,current);d.session.check();
+  }
+  const confirmed=await bridge.loadAppState(current);d.session.check();const rows=api.primary(confirmed.payload).properties,matches=Array.isArray(rows)?rows.filter(row=>row?.[0]===lockedDraft.name):[];
+  if(!Number.isSafeInteger(Number(confirmed.revision))||Number(confirmed.revision)<=creationAttempt.revision||matches.length!==1||!sameRecord(matches[0],creationAttempt.row))throw Error('لم يتأكد سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط؛ لن ينشأ سجل ثانٍ.');
+  const result=await findProperty();d.session.check();const property=Array.isArray(result)&&result.length===1?result[0]:null,record=Array.isArray(property?.metadata)?property.metadata:property?.metadata?.source_record;
+  if(!property?.id||property.workspace_id!==d.session.bound.workspace||property.name!==lockedDraft.name||property.external_ref!==lockedDraft.name||!sameRecord(record,creationAttempt.row))throw Error('تعذر تأكيد هوية سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط.');return property;
  }
  async function createPreviewImages(){const sources=[];if(manifest.entries.find(x=>x.key==='mainPhoto'))sources.push(manifest.entries.find(x=>x.key==='mainPhoto').file);else if(manifest.entries.find(x=>x.key==='logo'))sources.push(manifest.entries.find(x=>x.key==='logo').file);for(const entry of manifest.entries.filter(x=>x.asset==='photos')){if(sources.length>=4)break;sources.push(entry.file);}const result=[];for(const file of sources){result.push(await compressedPreview(file));d.session.check();}return result;}
  async function uploadDocuments(){const upload=createOriginalDocumentUpload(d.session);for(const entry of manifest.entries){if(uploaded.has(entry.key))continue;d.status.textContent=translateStatic('جارٍ أرشفة ')+entry.title+'…';const row=await upload(entry.file,{type:'property',ref:created.external_ref,category:entry.category,title:entry.title});d.session.check();uploaded.set(entry.key,row);}}
@@ -83,7 +98,8 @@ export function openPropertyOnboarding(){
  }
  async function execute(){
   if(!access){access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');}
-  if(!manifest){if(!form.reportValidity())throw Error('أكمل الحقول المطلوبة.');manifest=freezeDraft();lockedDraft=manifest.draft;const previews=await createPreviewImages();d.status.textContent=translateStatic('جارٍ إنشاء سجل العقار…');created=await saveLegacyProperty(previews);for(const control of form.querySelectorAll('input,textarea,select'))control.disabled=true;save.disabled=false;}
+  if(!manifest){if(!form.reportValidity())throw Error('أكمل الحقول المطلوبة.');manifest=freezeDraft();lockedDraft=manifest.draft;}
+  if(!created){try{const previews=creationAttempt?null:await createPreviewImages();d.status.textContent=translateStatic(creationAttempt?'جارٍ التحقق من محاولة الإنشاء السابقة…':'جارٍ إنشاء سجل العقار…');created=await saveLegacyProperty(previews);}catch(error){if(!creationAttempt){manifest=null;lockedDraft=null;}throw error;}}
   if(!created)throw Error('تعذر تثبيت هوية العقار.');await uploadDocuments();d.status.textContent=translateStatic('جارٍ حفظ Master Data وربط الأرشيف…');const {complete}=await saveMaster();window.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:lockedDraft.name,propertyId:created.id}}));d.status.textContent=translateMessage("تم إنشاء {v0} وأرشفة {v1} ملف/صورة. اكتمال الملف {v2}%.",{v0:(lockedDraft.name),v1:(uploaded.size),v2:(complete.score)});d.close();const module=await import('./property-hub.js');return module.openPropertyHub(created.id);
  }
  form.onsubmit=event=>{event.preventDefault();d.run(execute).catch(()=>{});};
