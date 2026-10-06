@@ -6,3 +6,18 @@ export function ownershipShareBasisPoints(value){
  return bps;
 }
 
+
+// Master-file rows have no stable owner IDs. Compare a multiset, preserving duplicates.
+export function masterOwnersMatch(actual,expected){
+ const canonical=rows=>{
+  if(!Array.isArray(rows))return null;
+  const result=[];
+  for(const row of rows){
+   if(!row||!Number.isInteger(row.bps)||row.bps<1||row.bps>10000)return null;
+   result.push(JSON.stringify([row.bps,...['name','role','email','phone','whatsapp'].map(key=>String(row[key]??''))]));
+  }
+  return JSON.stringify(result.sort());
+ };
+ const wanted=canonical(expected);
+ return wanted!==null&&canonical(actual)===wanted;
+}
