@@ -8,12 +8,34 @@ const statusLabels={active:'نشط / Active',leave:'في إجازة / On leave',
 const employeeSearchKey=value=>String(value??'').normalize('NFKC').toLowerCase().replace(/[٠-٩]/g,c=>String(c.charCodeAt(0)-1632)).replace(/[۰-۹]/g,c=>String(c.charCodeAt(0)-1776)).replace(/[\u064b-\u065f\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/\s+/g,' ').trim();
 function input(type='text',value=''){const x=node('input');x.type=type;x.value=value??'';return x;}
 function select(options,value){const x=node('select');for(const [v,label]of Object.entries(options)){const o=node('option',label);o.value=v;x.append(o);}if(value!==undefined)x.value=value;return x;}
+export function payrollReferenceFindings(employeeId,payroll,documents){
+ if(payroll.some(p=>p?.employee_id!==employeeId))throw Error('لم يتأكد نطاق الموظف في سجلات الرواتب؛ لم يُعرض تقرير جودة.');
+ const findings=[],references=new Map(),vouchers=new Map();
+ const add=(kind,p)=>findings.push({kind,id:p.id,voucher:p.voucher_no||''});
+ for(const p of payroll){
+  if(p.state!=='paid')continue;
+  if(!String(p.voucher_no??'').trim())add('missing_voucher',p);
+  else{const group=vouchers.get(p.voucher_no)||[];group.push(p);vouchers.set(p.voucher_no,group);}
+  if(!['cash','cheque','transfer','knet'].includes(p.method))add('unknown_method',p);
+  if(['cheque','transfer','knet'].includes(p.method)){
+   if(!String(p.reference??'').trim())add('missing_reference',p);
+   else{const key=JSON.stringify([p.method,p.reference]),group=references.get(key)||[];group.push(p);references.set(key,group);}
+  }
+  // Metadata only: attestations record a review, not proof of the signature or stored file contents.
+  if(!documents.some(doc=>doc.employee_id===employeeId&&doc.payroll_id===p.id&&doc.kind==='signed_salary'&&doc.status==='ready'&&['signature','fingerprint','stamp'].every(key=>doc.attestations?.[key]===true)))add('signed_document_not_confirmed',p);
+ }
+ for(const rows of vouchers.values())if(rows.length>1)for(const p of rows)add('duplicate_voucher',p);
+ // A batch transfer may legitimately share a reference; this is a review candidate, never proof of duplicate payment.
+ for(const rows of references.values())if(rows.length>1)for(const p of rows)add('shared_reference',p);
+ return findings;
+}
+
 export function openEmployees(){
  const d=createDialog(translateStatic('الموظفون والرواتب / Employees and payroll'));if(!d)return;
- const urls=createPrivateUrls(d);let directory={employees:[],properties:[]};
- const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_hr',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));
+ const urls=createPrivateUrls(d);let directory={employees:[],properties:[]},qualityOutput=null;
+ const rpc=(action,data={})=>{qualityOutput?.replaceChildren();return d.session.request(d.session.client.rpc('aqari_hr',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:data}));};
  const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=()=>d.run(fn);return b;};
- function clear(title){d.setBeforeClose?.(null);urls.clear();d.body.replaceChildren(node('h3',title));}
+ function clear(title){d.setBeforeClose?.(null);urls.clear();qualityOutput=null;d.body.replaceChildren(node('h3',title));}
  function grid(){const el=node('div');el.className='aq267-grid';return el;}
  function propertyChoices(values=[]){const wrap=node('fieldset'),available=new Set(directory.properties.map(p=>p.id));wrap.append(node('legend',translateStatic('العقارات المصرح بها / Assigned properties')));for(const p of [...directory.properties,...values.filter(id=>!available.has(id)).map(id=>({id,name:translateStatic('عقار غير متاح حالياً — ألغِ اختياره قبل الحفظ')}))]){const c=input('checkbox');c.value=p.id;c.checked=values.includes(p.id);if(!available.has(p.id))c.onchange=()=>{if(!c.checked)c.disabled=true;};wrap.append(field(p.name,c));}const selected=()=>[...wrap.querySelectorAll('input:checked')].map(x=>x.value);return {el:wrap,values:selected,validate:()=>{if(selected().some(id=>!available.has(id)))throw Error('يوجد عقار مرتبط غير متاح حالياً. ألغِ اختياره صراحة قبل الحفظ أو ارجع بعد استعادة إتاحته.');}};}
  function audit(rows){const box=node('details');box.append(node('summary',translateStatic('سجل التعديلات — آخر 100 / Audit log')));for(const r of rows){const item=node('details');item.append(node('summary',`${r.actor_name} · ${kuwaitTime(r.at)} · ${r.operation} · ${r.entity}`),node('pre',JSON.stringify({before:r.before_value,after:r.after_value},null,2)));box.append(item);}d.body.append(box);}
@@ -71,6 +93,16 @@ export function openEmployees(){
   if(section!=='salary'){
   const profile=node('dl');for(const [key,label]of PROFILE_FIELDS)profile.append(node('dt',translateStatic(label)),node('dd',e.profile[key]));profile.append(node('dt',translateStatic('التعيين والحالة / Hire date and status')),node('dd',e.hired_on+' · '+translateStatic(statusLabels[e.status])),node('dt',translateStatic('العقارات / Properties')),node('dd',directory.properties.filter(p=>e.property_ids.includes(p.id)).map(p=>p.name).join('، ')),node('dt',translateStatic('الأساسي والبدلات — د.ك / Basic and allowances')),node('dd',`${e.basic} + ${e.allowances}`),node('dt',translateStatic('رصيد السلف المتبقي — د.ك / Outstanding advances')),node('dd',r.advance_balance));d.body.append(profile);
   }
+  const review=node('section');qualityOutput=review;
+  d.body.append(button(translateStatic('مراجعة مراجع الرواتب المصروفة'),async()=>{
+   review.replaceChildren();const fresh=await rpc('get',{employee_id:id});
+   if(fresh?.employee?.id!==id||!Array.isArray(fresh.payroll)||!Array.isArray(fresh.documents))throw Error('لم يكتمل نطاق قراءة مراجع الرواتب؛ لم يُعرض تقرير جودة.');
+   if(d.closed||qualityOutput!==review)return;
+   const findings=payrollReferenceFindings(id,fresh.payroll,fresh.documents),labels={missing_voucher:'راتب مصروف بلا رقم سند',unknown_method:'طريقة صرف راتب غير معروفة',missing_reference:'راتب مصروف بغير النقد بلا مرجع',signed_document_not_confirmed:'لا تظهر نسخة راتب موقعة محفوظة لهذا الموظف مع تأكيد التوقيع والبصمة والختم؛ يحتاج مراجعة',duplicate_voucher:'رقم سند مشترك بين رواتب مصروفة — يحتاج مراجعة',shared_reference:'مرجع صرف مشترك بالطريقة نفسها — لا يثبت تكرار الصرف'};
+   review.append(node('h3',translateStatic('نتيجة مراجعة مراجع الرواتب')),node('p',translateStatic('فحص للقراءة فقط لرواتب هذا الموظف المصروفة ضمن السجلات المقروءة، عبر الأشهر المتاحة. لا يشمل الموظفين الآخرين أو المسودات والرواتب غير المصروفة، ولا يعتمد المبالغ أو صحة التوقيع ومحتوى الملفات. عدم ظهور مستند لا يثبت حذفه.')));
+   for(const finding of findings)review.append(node('p',translateStatic(labels[finding.kind])+' — '+(finding.voucher?finding.voucher+' · ':'')+finding.id));
+   if(!findings.length)review.append(node('p',translateStatic('لم يرصد هذا الفحص المحدود ملاحظات على مراجع الرواتب؛ لا يمثل اعتماداً شاملاً للبيانات.')));
+  }),review);
   const month=input('month',currentMonth());d.body.append(field(translateStatic('شهر الراتب / Payroll month'),month));if(r.permissions.add)d.body.append(button(translateStatic('تجهيز راتب الشهر / Prepare monthly salary'),async()=>{if(!month.value)throw Error('اختر شهر الراتب.');const fresh=await rpc('prepare',{employee_id:id,month:month.value+'-01'});const p=fresh.payroll.find(p=>p.month.startsWith(month.value));if(!p)throw Error('لم يتأكد تجهيز الراتب.');await showPayroll(id,p.id);d.status.textContent=translateStatic('تم تجهيز مسودة الراتب وحفظها. تكرار الطلب لا ينشئ راتباً ثانياً للشهر نفسه.');}));
   d.body.append(node('h3',translateStatic('الرواتب الشهرية / Monthly payroll')));for(const p of r.payroll)d.body.append(button(visibleMessage("{p0} · {p1} · {p2} د.ك",{p0:(p.month.slice(0,7)),p1:(translateStatic(STATES[p.state])),p2:(Number(p.net).toFixed(3))}),()=>showPayroll(id,p.id)));if(!r.payroll.length)d.body.append(node('p',translateStatic('لا توجد رواتب محفوظة.')));
   if(section==='salary'){d.status.textContent=translateStatic('تم فتح الرواتب المحفوظة. اختر راتب الشهر لعرض السند وطباعته.');return;}
@@ -134,4 +166,3 @@ export function openEmployees(){
 
  d.onDispose(()=>{directory={employees:[],properties:[]};d.body.replaceChildren();});d.run(home);
 }
-
