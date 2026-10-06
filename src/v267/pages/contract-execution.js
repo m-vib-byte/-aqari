@@ -1,3 +1,4 @@
+import {assertContractExecutionService} from '../components/contract-execution-readiness.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
 import {executionMethods,executionDue,rentReceiptArtifacts,executionManifest} from '../domain/contract-execution.js';
@@ -57,6 +58,7 @@ export function openContractExecution(contractId,{onDone}={}){
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
+  await assertContractExecutionService(d.session,contractId);d.session.check();
   const due=executionDue(api,contract),signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
   const ids={settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
   let receiptNo='',contractReceiptSequence=null;
