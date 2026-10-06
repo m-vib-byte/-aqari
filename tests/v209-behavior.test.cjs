@@ -382,6 +382,7 @@ function createHarness(options={}){
     }
   };
   const window={
+    AQARI_OWNER_EXACT:options.ownerApi,
     AQARI_SUPABASE:supabase,
     AQARI_V202:v202,
     AQARI_DATA_GATE:{scope:gateScope},
@@ -666,6 +667,28 @@ test('row billable and collectible flags control the exact payment label',()=>{
   assert.match(byTenant('مستأجر قيمة نصية'),/data-v209-action="payment">عرض التحصيل<\/button>/);
 });
 
+test('search never infers paid from a zero balance without an explicit payment status',()=>{
+  for(const paymentStatus of ['',undefined,null,'   ']){
+    const env=createHarness({rentOfficeData(name,period){return office(name,period,[record({paymentStatus})])}});
+    const html=env.search('الهدف');
+    assert.match(html,/>يحتاج مراجعة<\/b>/);
+    assert.doesNotMatch(html,/>مسدد<\/b>|class="is-clear"/);
+  }
+});
+
+test('search preserves explicit payment states and does not mark pending payments clear',()=>{
+  for(const [patch,label,tone] of [
+    [{paymentStatus:'مسدد'},'مسدد','is-clear'],
+    [{paymentStatus:'شهر مجاني'},'شهر مجاني','is-clear'],
+    [{paymentStatus:'يحتاج مراجعة'},'يحتاج مراجعة','is-review'],
+    [{paymentStatus:'',pending:10},'قيد المراجعة','is-review'],
+    [{paymentStatus:'',balance:12.5},'متبقي','is-due']
+  ]){
+    const env=createHarness({rentOfficeData(name,period){return office(name,period,[record(patch)])}});
+    assert.match(env.search('الهدف'),new RegExp('<b class="'+tone+'">'+label));
+  }
+});
+
 test('escapes API text and caps matching results at 30',()=>{
   const property='برج <img src=x onerror=boom>';
   const rows=Array.from({length:35},(_,index)=>record({
@@ -703,4 +726,52 @@ test('an invalid month restores the internal valid period without querying it',(
   env.search('الهدف');
   assert.equal(env.calls.data.at(-1)[1],'2031-07');
   assert.equal(env.calls.data.some(([,period])=>period==='2031-13'),false);
+});
+
+async function settleDirectory(){for(let i=0;i<12;i++)await Promise.resolve();}
+const directoryUnit={propertyId:'p-1',unitId:'u-101',property:'برج الأمان',unit:'101'};
+test('authoritative unit 101 remains searchable without any legacy rent records',async()=>{
+  const opened=[];
+  const h=createHarness({rentOfficeData:(name,period)=>office(name,period,[]),ownerApi:{
+    createUnitSearch:()=>({read:async()=>[directoryUnit],close(){}}),
+    openSearchUnit:async item=>{opened.push(item);return true;}
+  }});
+  h.search('١٠١');await settleDirectory();
+  const html=h.document.getElementById('v209SearchResults').innerHTML;
+  assert.equal(resultArticles(html).length,1);
+  assert.match(html,/101/);assert.match(html,/فتح ملف العقار/);
+  assert.doesNotMatch(html,/مسدد|data-v209-action="payment"|كشف المستأجر/);
+  h.clickResult(0,'unit');await settleDirectory();
+  assert.equal(opened[0].unitId,'u-101');assert.equal(h.calls.action.length,0);
+});
+
+test('unit search loading and failures never claim that there are no results',async()=>{
+  let rejectRead;
+  const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{createUnitSearch:()=>({read:()=>new Promise((_,reject)=>{rejectRead=reject}),close(){}})}});
+  assert.match(h.search('101'),/جاري البحث/);await settleDirectory();
+  rejectRead(Error('unavailable'));await settleDirectory();
+  const html=h.document.getElementById('v209SearchResults').innerHTML;
+  assert.match(html,/تعذر التحقق/);assert.doesNotMatch(html,/ما لقينا نتيجة/);
+});
+
+test('late unit results cannot replace newer queries or survive an auth seal',async()=>{
+  const pending=[];let closed=0;
+  const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{createUnitSearch:()=>({read:()=>new Promise(resolve=>pending.push(resolve)),close(){closed++}})}});
+  h.search('101');await settleDirectory();
+  h.search('202');await settleDirectory();
+  pending[0]([directoryUnit]);await settleDirectory();
+  assert.doesNotMatch(h.document.getElementById('v209SearchResults').innerHTML,/وحدة 101/);
+  h.window.AQARI_V209.seal();pending[1]([{...directoryUnit,unit:'202'}]);await settleDirectory();
+  assert.equal(h.document.getElementById('v209SearchResults').innerHTML,'');assert.ok(closed>=2);
+});
+
+test('unit results escape labels and reject financial actions and changed scopes',async()=>{
+  let opened=0;
+  const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{createUnitSearch:()=>({read:async()=>[{...directoryUnit,property:'<img src=x>',unit:'101<script>'}],close(){}}),openSearchUnit:()=>{opened++;return true}}});
+  h.search('101');await settleDirectory();
+  const html=h.document.getElementById('v209SearchResults').innerHTML;
+  assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<script>|<img/);
+  h.clickResult(0,'payment');assert.equal(opened,0);
+  h.supabase.context=activeContext('b','other');h.clickResult(0,'unit');await settleDirectory();
+  assert.equal(opened,0);
 });
