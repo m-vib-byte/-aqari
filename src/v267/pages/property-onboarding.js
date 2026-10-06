@@ -1,4 +1,5 @@
 import {ownershipShareBasisPoints} from '../domain/ownership-shares.js';
+import {propertyMasterReadbackMatches} from '../domain/property-master-readback.js';
 import {uiError} from '../components/ui-error.js';
 import '../../../v267-rental-records.js';
 import {t as translateStatic,message as translateMessage} from '../components/locale.js';
@@ -30,7 +31,7 @@ export function openPropertyOnboarding(){
  const d=createDialog(translateStatic('إضافة عقار — ملف متكامل'));if(!d)return false;
  const bound=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
- let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null;
+ let created=null,manifest=null,uploaded=new Map(),lockedDraft=null,access=null,masterAttempt=null;
  const form=node('form'),grid=node('div');grid.className='aq267-grid';
  const name=input('text'),address=node('textarea'),description=node('textarea'),locationUrl=input('url'),propertyAutomaticRef=input('text'),type=input('text'),status=input('text','active'),income=input('text'),email=input('email'),phone=input('tel'),whatsapp=input('tel');
  name.required=address.required=type.required=status.required=true;income.inputMode='decimal';address.maxLength=1000;description.maxLength=5000;locationUrl.maxLength=2000;propertyAutomaticRef.maxLength=200;for(const control of [name,type,status,email,phone,whatsapp])control.maxLength=320;
@@ -68,10 +69,17 @@ export function openPropertyOnboarding(){
  async function uploadDocuments(){const upload=createOriginalDocumentUpload(d.session);for(const entry of manifest.entries){if(uploaded.has(entry.key))continue;d.status.textContent=translateStatic('جارٍ أرشفة ')+entry.title+'…';const row=await upload(entry.file,{type:'property',ref:created.external_ref,category:entry.category,title:entry.title});d.session.check();uploaded.set(entry.key,row);}}
  function assets(){const out={logo:null,mainPhoto:null,photos:[],titleDeed:null,plans:[],licenses:[],certificates:[],insurances:[],documents:[]};for(const entry of manifest.entries){const doc=uploaded.get(entry.key);if(!doc)continue;if(entry.asset==='logo'||entry.asset==='mainPhoto'||entry.asset==='titleDeed')out[entry.asset]=doc.id;else out[entry.asset].push(doc.id);}return out;}
  async function saveMaster(){
-  const full=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)}),revision=Number(full?.property?.revision||0);if(full?.property?.id!==created.id)throw Error('تعذر إعادة قراءة ملف العقار قبل حفظ البيانات الرئيسية.');
-  const data={name:lockedDraft.name,address:lockedDraft.address,description:lockedDraft.description,locationUrl:lockedDraft.locationUrl,propertyAutomaticRef:lockedDraft.propertyAutomaticRef,type:lockedDraft.type,status:lockedDraft.status,statedIncome:lockedDraft.statedIncome,owners:lockedDraft.owners,email:lockedDraft.email,phone:lockedDraft.phone,whatsapp:lockedDraft.whatsapp,tenantVisibility:lockedDraft.tenantVisibility,tenantInfo:lockedDraft.tenantInfo,assets:assets()};
-  const saved=await rpc('aqari_property_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_expected_revision:revision,p_data:data,p_reason:lockedDraft.reason});if(saved?.property?.id!==created.id||Number(saved.property.revision)!==revision+1)throw Error('لم تتأكد إعادة قراءة بيانات العقار الرئيسية.');
-  const verify=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)}),complete=await rpc('aqari_property_completeness',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id});const ids=new Set((verify.documents||[]).map(x=>x.id));for(const row of uploaded.values())if(!ids.has(row.id))throw Error('مستند مرفوع لم يظهر في الملف الكامل بعد إعادة القراءة.');if(verify.property?.name!==lockedDraft.name||verify.property?.address!==lockedDraft.address||verify.property?.description!==lockedDraft.description)throw Error('ملف العقار المعاد قراءته لا يطابق البيانات المحفوظة.');if(complete?.property_id!==created.id)throw Error('تعذر حساب اكتمال ملف العقار.');return {verify,complete};
+  if(!masterAttempt){
+   const full=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)}),revision=Number(full?.property?.revision);if(full?.property?.id!==created.id||!Number.isSafeInteger(revision)||revision<0)throw Error('تعذر إعادة قراءة ملف العقار قبل حفظ البيانات الرئيسية.');
+   const data={name:lockedDraft.name,address:lockedDraft.address,description:lockedDraft.description,locationUrl:lockedDraft.locationUrl,propertyAutomaticRef:lockedDraft.propertyAutomaticRef,type:lockedDraft.type,status:lockedDraft.status,statedIncome:lockedDraft.statedIncome,owners:lockedDraft.owners,email:lockedDraft.email,phone:lockedDraft.phone,whatsapp:lockedDraft.whatsapp,tenantVisibility:lockedDraft.tenantVisibility,tenantInfo:lockedDraft.tenantInfo,assets:assets()};
+   // A lost response may follow a committed write. Retries only confirm this attempt.
+   masterAttempt={data,revision:revision+1};
+   const saved=await rpc('aqari_property_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_expected_revision:revision,p_data:data,p_reason:lockedDraft.reason});if(saved?.property?.id!==created.id||Number(saved.property.revision)!==masterAttempt.revision)throw Error('لم تتأكد إعادة قراءة بيانات العقار الرئيسية. أعد المحاولة للتحقق دون تكرار الحفظ.');
+  }
+  const verify=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)});
+  if(verify?.property?.id!==created.id||Number(verify.property.revision)!==masterAttempt.revision||!propertyMasterReadbackMatches(verify.property,masterAttempt.data))throw Error('ملف العقار المعاد قراءته لا يطابق البيانات المحفوظة. أعد المحاولة للتحقق؛ لن يعاد إرسال الحفظ.');
+  const ids=new Set((verify.documents||[]).map(x=>x.id));for(const row of uploaded.values())if(!ids.has(row.id))throw Error('مستند مرفوع لم يظهر في الملف الكامل بعد إعادة القراءة.');
+  const complete=await rpc('aqari_property_completeness',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id});if(complete?.property_id!==created.id)throw Error('تعذر حساب اكتمال ملف العقار.');return {verify,complete};
  }
  async function execute(){
   if(!access){access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');}
