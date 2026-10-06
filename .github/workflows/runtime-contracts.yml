@@ -78,6 +78,8 @@ jobs:
         run: node --test tests/v267-unit-search.test.mjs tests/v209-property-search.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
         run: node --test tests/v267-service-readiness.test.mjs tests/v267-owner-settings-recovery.test.mjs tests/v267-contract-admin-recovery.test.mjs
+      - name: Contract execution package and verified property save
+        run: node --test tests/v267-contract-execution-package.test.mjs tests/v267-contract-execution-readiness.test.mjs tests/v267-contract-execution-pdf.test.mjs tests/v267-property-completeness.test.mjs
       - name: Stage C Storage export and isolated restore runtime regression
         run: node --test tests/v267-stage-c-storage-backup.test.mjs
       - name: Document scanner upload and multipage PDF
@@ -130,6 +132,7 @@ jobs:
         run: |
           python -m pip install -r requirements.txt pypdf==6.10.0
           python -m unittest discover -s tests -p pdf_field_template_test.py -v
+          python -m unittest discover -s tests -p contract_execution_package_test.py -v
           python -m unittest discover -s tests -p rent_pdf_test.py -v
           python -m unittest discover -s tests -p property_statement_test.py -v
           python -m unittest discover -s tests -p official_document_pdf_test.py -v
