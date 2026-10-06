@@ -1957,8 +1957,8 @@
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
-      "sha256": "681f2d626881ae321816985a37c7b0e8386c596d38426253758da11071eba7ab",
-      "size": 4206
+      "sha256": "dca15740c2d5107cf4af729d4d56d8072d79cf6a198cf672d96f170c311860c4",
+      "size": 4554
     },
     {
       "path": "src/v267/pages/lease-expiry-report.js",

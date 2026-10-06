@@ -4,7 +4,7 @@ import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountKpiDashboard} from '../src/v267/pages/kpi-dashboard.js';
 
-async function fixture(){
+async function fixture({legacy=false,wrongPeriod=false}={}){
  const original={window:globalThis.window,document:globalThis.document};let bad=false,denied=false;const calls=[];
  class Element{
   constructor(tag,text=''){this.tagName=tag;this.children=[];this.attributes={};this.dataset={};this.value='';this.disabled=false;this.hidden=false;this.style={};this.textContent=String(text??'');}
@@ -23,7 +23,7 @@ async function fixture(){
  const client={from:()=>new Query(),rpc(name,args){calls.push({name,args});return {abortSignal:async()=>{
   if(denied)return {error:{message:'ACCESS_DENIED',code:'42501'},status:403};
   if(name==='aqari_workspace_access')return {data:{user_id:'u',workspace_id:'w',role:'general_manager',features:{kpi_dashboard:true},permissions:Object.fromEntries(['finance','contracts','properties','tenants','maintenance'].map(k=>[k,{read:true}]))}};
-  return {data:{units:{total:42,occupied:39,vacant:3,vacancy_rate:7.14},collections:{expected_monthly_snapshot:'8900',actual:'7550.125',rate:84.83,average_days:2},profit:{actual_income:'7550.125',approved_expenses:'250',actual_net:'7300.125',projected_net:'8650'},sources:['synthetic'],generated_at:'2026-09-12T21:05:00Z'}};
+  return {data:{period:{from:wrongPeriod?'1900-01-01':args.p_from,to:args.p_to},units:{total:42,occupied:39,vacant:3,vacancy_rate:7.14},collections:{...(legacy?{}:{basis:'contract_due_dates_cash_as_of_end_v1',expected_period:'8900',period_paid:'7550.125'}),expected_monthly_snapshot:'8900',actual:'7550.125',rate:84.83,average_days:2},profit:{actual_income:'7550.125',approved_expenses:'250',actual_net:'7300.125',projected_net:'8650'},sources:['synthetic'],generated_at:'2026-09-12T21:05:00Z'}};
  }}}};
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),documentElement:{lang:'ar',classList:{contains:()=>true}}};
@@ -44,4 +44,11 @@ test('server permission revocation disposes the integrated KPI report',async()=>
 });
 test('invalid reporting range removes the old report without starting a new request',async()=>{
  const f=await fixture();try{const dates=f.elements().filter(x=>x.tagName==='input');dates[0].value='2026-09-14';dates[1].value='2026-09-13';const before=f.calls.length;await f.d.run(f.view.load);assert.equal(f.calls.length,before);assert.equal(f.counts().length,0);assert.match(f.d.status.textContent,/تاريخ/);}finally{f.cleanup();}
+});
+
+test('old monthly basis cannot be displayed as a period collection rate',async()=>{
+ const f=await fixture({legacy:true});try{assert.equal(f.counts().length,0);assert.match(f.d.status.textContent,/أساس نسبة التحصيل/);}finally{f.cleanup();}
+});
+test('a response for another period cannot render trusted KPI numbers',async()=>{
+ const f=await fixture({wrongPeriod:true});try{assert.equal(f.counts().length,0);assert.match(f.d.status.textContent,/أساس نسبة التحصيل/);}finally{f.cleanup();}
 });
