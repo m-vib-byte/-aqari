@@ -36,3 +36,15 @@ test('master readback checks carried attachments and extended fields',()=>{
  for(const key of ['locationUrl','propertyAutomaticRef','tenantVisibility','tenantInfo','assets'])assert.equal(propertyMasterReadbackMatches({...expected,[key]:null},expected),false,key);
  assert.equal(propertyMasterReadbackMatches({...expected,assets:{photos:['a']}},expected),false);
 });
+test('tenant visibility compares the server office-hours alias without hiding conflicts',()=>{
+ const property=tenantVisibility=>({owners:[],tenantVisibility});
+ for(const enabled of [false,true]){
+  const expected=property({phone:false,officeHours:enabled});
+  assert.equal(propertyMasterReadbackMatches(property({officeHours:enabled,office_hours:enabled,phone:false}),expected),true);
+  assert.equal(propertyMasterReadbackMatches(property({office_hours:enabled,phone:false}),expected),true);
+  assert.equal(propertyMasterReadbackMatches(property({officeHours:enabled,office_hours:!enabled,phone:false}),expected),false);
+  assert.equal(propertyMasterReadbackMatches(property({officeHours:!enabled,phone:false}),expected),false);
+  assert.equal(propertyMasterReadbackMatches(property({officeHours:enabled,phone:false,email:true}),expected),false);
+  assert.equal(propertyMasterReadbackMatches(expected,property({officeHours:enabled,office_hours:!enabled,phone:false})),false);
+ }
+});
