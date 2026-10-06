@@ -1,6 +1,9 @@
 -- AQARI V267: permission-scoped tenants and authoritative rent-due ledger for Complete Property File.
--- Preview/Staging only. Apply after rent-due-schedule.sql and staff/property scope permissions.
+-- Read-only ledger presentation: include the stored applied credit; no balance recalculation.
 begin;
+do $$begin
+ if md5(pg_get_functiondef('public.aqari_property_tenant_ledger(uuid,uuid,date)'::regprocedure)) not in ('486e33874c22bb574bfbb19c4890242b','0c24fac489d8da4770fe67b3e62e6355') then raise exception 'PROPERTY_LEDGER_BASELINE_CHANGED';end if;
+end$$;
 
 create or replace function public.aqari_property_tenant_ledger(
   p_workspace_id uuid,
