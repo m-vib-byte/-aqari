@@ -4222,8 +4222,8 @@
     },
     {
       "path": "tests/official_document_pdf_test.py",
-      "sha256": "abfa8e4701ac94108449c7d30a977855b35b270574d58efabd29e20646247001",
-      "size": 4125
+      "sha256": "3b8b90a6333084a9e7c1759d19bac941306051ec61738ad8c52de1887ed1037f",
+      "size": 5266
     },
     {
       "path": "tests/operational-readiness.test.cjs",

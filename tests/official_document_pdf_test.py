@@ -47,6 +47,21 @@ class OfficialDocumentPdfTest(unittest.TestCase):
         self.assertIn('-5.125',shaped('الرصيد -5.125'))
         self.assertEqual(issued_date('2026-09-12T08:45:00Z'),'2026/09/12 11:45')
 
+    def test_rent_receipt_pdf_preserves_exact_three_decimal_archived_amounts(self):
+        for amount in ['0.001','350.010','999999999999.999']:
+            with self.subTest(amount=amount):
+                data=fixture();data['series']['kind']='rent_receipt'
+                version=data['versions'][0];spec=CATALOG['templates']['rent_receipt']
+                version['title']=spec['title']
+                version['payload']={key:'اختبار' for key in spec['required']}
+                version['payload'].update(amount=amount,documentNo='AQ-RENT_RECEIPT-20261006-00000001',issuedAt='2026-10-06',period='2026-09',unitNo='101',contractNo='TEST-RENT-1')
+                version['body']='وصل اختبار دقة الفلس'
+                before=dict(version['payload'])
+                pdf=PdfReader(BytesIO(render_official_document(data['series'],version)))
+                text=''.join(page.extract_text(extraction_mode='layout') for page in pdf.pages).replace('\u200e','')
+                self.assertIn(amount,text)
+                self.assertEqual(version['payload'],before,'rendering must not round or alter archived values')
+
     def test_long_unbroken_reference_wraps_without_horizontal_clipping(self):
         data=fixture();data['versions'][0]['body']='A'*5000
         pdf=PdfReader(BytesIO(render_official_document(data['series'],data['versions'][0])))
