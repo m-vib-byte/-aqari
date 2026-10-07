@@ -65,7 +65,7 @@ busy = Boolean(value);setControls();}function setPreparing(value){
 preparing = Boolean(value);setControls();}function withTimeout(promise, milliseconds, stage){
 return new Promise(function(resolve,reject){
 var settled = false;var timer = setTimeout(function(){
-if(settled) return;settled = true;var error = new Error('انتهت مهلة ' + (stage || 'الاتصال'));error.code = 'AQARI_TIMEOUT';reject(error);},milliseconds);Promise.resolve(promise).then(function(value){
+if(settled) return;settled = true;var error = new Error('انتهت مهلة ' + (stage || 'الاتصال'));error.code = 'AQARI_TIMEOUT';error.stage = stage;reject(error);},milliseconds);Promise.resolve(promise).then(function(value){
 if(settled) return;settled = true;clearTimeout(timer);resolve(value);},function(error){
 if(settled) return;settled = true;clearTimeout(timer);reject(error);});});}function resetTimedOutCore(error){
 if(!error || error.code !== 'AQARI_TIMEOUT') return;corePromise = null;}function loadScript(src, id, milliseconds, integrity){
@@ -83,6 +83,9 @@ return Promise.all(registrations.map(function(registration){ return registration
 var userId = String(context && context.user && context.user.id || '');var workspaceId = String(context && context.workspace && context.workspace.id || '');var membership = context && context.membership;return Boolean(userId && workspaceId && membership && membership.is_active === true &&
 String(membership.user_id || '') === userId &&
 String(membership.workspace_id || '') === workspaceId);}function friendlyError(error){
+if(error && error.code === 'AQARI_TIMEOUT'){
+if(error.stage === 'التحقق من الحساب') return 'انتهت مهلة التحقق من الحساب والصلاحيات. لم يتأكد اكتمال الدخول.';
+return 'انتهت مهلة الطلب. لم يتأكد اكتماله.';}
 var raw = String(error && error.message || error || 'خطأ غير معروف');if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';if(/email not confirmed/i.test(raw)) return 'أكد البريد الإلكتروني أولاً ثم حاول الدخول.';if(/not authorized|membership|workspace|AQARI_ACCESS_DENIED/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';if(/failed to fetch|network|load|مهلة|timeout/i.test(raw)) return 'تعذر الاتصال الآن. اضغط «إعادة محاولة الاتصال».';return 'تعذر إكمال الطلب. أعد المحاولة.';}async function loadCore(forceDirect, reportStages){
 if(!window.AQARI_PUBLIC_CONFIG){
 if(reportStages) setStatus('تحميل إعدادات الدخول (1/4)…','');await loadScript('/public-config.js','aqari-login-config',4000);}if(!window.supabase || !window.supabase.createClient){

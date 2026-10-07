@@ -96,11 +96,16 @@ begin
   raise exception 'EXECUTION_PACKAGE_ENTITLEMENT_REQUIRED' using errcode='23514';
  end if;
  first_period:=date_trunc('month',(c#>>'{rentEntitlement,startDate}')::date)::date;
- select d.due_amount,d.credit_amount,private.aqari_rent_due_on(lease.snapshot,lease.start_date,d.period)
- into entitlement_due,credit_amount,due_on
- from private.aqari_rent_due_periods d
- where d.workspace_id=p_workspace_id and d.lease_id=lease.id and d.period=first_period;
- if entitlement_due is null then raise exception 'EXECUTION_PACKAGE_DUE_REQUIRED' using errcode='23514';end if;
+ -- Signing leases intentionally have no posted due schedule yet. Use the same
+ -- authoritative calculation as schedule projection without posting a due early.
+ entitlement_due:=private.aqari_reminder_due(lease.snapshot,lease.monthly_rent,first_period);
+ due_on:=private.aqari_rent_due_on(lease.snapshot,lease.start_date,first_period);
+ select coalesce(sum(a.amount),0)::numeric(15,3) into credit_amount
+ from private.aqari_credit_allocations a
+ where a.workspace_id=p_workspace_id and a.lease_id=lease.id and a.period=first_period;
+ if entitlement_due is null or entitlement_due<0 or due_on is null then
+  raise exception 'EXECUTION_PACKAGE_DUE_REQUIRED' using errcode='23514';
+ end if;
  rent_payable:=greatest(entitlement_due-coalesce(credit_amount,0),0)::numeric(15,3);
  contract_deposit:=coalesce(nullif(c->>'deposit','')::numeric,0);
  select coalesce(sum(case x.kind when 'receipt' then x.amount else -x.amount end),0)::numeric(15,3)
