@@ -127,8 +127,8 @@ begin
  clauses:=(select string_agg(btrim(coalesce(x.value->>'title',''))||E'\n'||btrim(coalesce(x.value->>'text','')),E'\n\n' order by x.ordinality)
    from jsonb_array_elements(coalesce(signed_c->'clauses','[]'::jsonb)) with ordinality x(value,ordinality));
  if coalesce(length(btrim(clauses)),0)<5 then raise exception 'EXECUTION_PACKAGE_CONTRACT_CLAUSES_REQUIRED' using errcode='23514';end if;
- canonical_title:='عقد إيجار '||signed_c->>'contract_no';
- canonical_body:='عقد إيجار رقم '||signed_c->>'contract_no'||E'\nالمستأجر: '||coalesce(signed_c->>'tenant','')||E'\nالعقار: '||signed_c->>'property'||' — الوحدة: '||signed_c->>'unit'||E'\nمدة العقد: '||signed_c->>'start_date'||' إلى '||signed_c->>'end_date'||E'\nالإيجار الأصلي: '||coalesce(signed_c->>'contractRent',signed_c->>'rent')||' د.ك — الخصم: '||coalesce(signed_c->>'discount','0')||' د.ك'||E'\nالتأمين: '||coalesce(signed_c->>'deposit','0')||' د.ك — العربون: '||coalesce(signed_c->>'advance','0')||' د.ك — الرسوم: '||coalesce(signed_c->>'cleaningFee','0')||' د.ك'||E'\n\n'||clauses;
+ canonical_title:='عقد إيجار '||(signed_c->>'contract_no');
+ canonical_body:='عقد إيجار رقم '||(signed_c->>'contract_no')||E'\nالمستأجر: '||coalesce(signed_c->>'tenant','')||E'\nالعقار: '||(signed_c->>'property')||' — الوحدة: '||(signed_c->>'unit')||E'\nمدة العقد: '||(signed_c->>'start_date')||' إلى '||(signed_c->>'end_date')||E'\nالإيجار الأصلي: '||coalesce(signed_c->>'contractRent',signed_c->>'rent')||' د.ك — الخصم: '||coalesce(signed_c->>'discount','0')||' د.ك'||E'\nالتأمين: '||coalesce(signed_c->>'deposit','0')||' د.ك — العربون: '||coalesce(signed_c->>'advance','0')||' د.ك — الرسوم: '||coalesce(signed_c->>'cleaningFee','0')||' د.ك'||E'\n\n'||clauses;
  canonical_payload:=jsonb_build_object('contractNo',signed_c->>'contract_no','tenant',signed_c->>'tenant','property',signed_c->>'property','unit',signed_c->>'unit','startDate',signed_c->>'start_date','endDate',signed_c->>'end_date','contractRent',signed_c->>'contractRent','discount',signed_c->>'discount','deposit',signed_c->>'deposit','advance',signed_c->>'advance','fees',signed_c->>'cleaningFee','template',signed_c->'contractTemplate','executionSettlementId',p_settlement_id,'contractSnapshot',signed_c);
  canonical_hash:=encode(extensions.digest(canonical_title||E'\n'||canonical_body||E'\n'||canonical_payload::text,'sha256'),'hex');
  template_version:=coalesce(nullif(signed_c#>>'{contractTemplate,version}','')::integer,1);
@@ -285,6 +285,9 @@ begin
   if jsonb_typeof(tenant_doc) is distinct from 'object' or jsonb_typeof(owner_doc) is distinct from 'object' then raise exception 'EXECUTION_PACKAGE_DOCUMENT_REQUIRED' using errcode='23514';end if;
   tenant_id:=extensions.gen_random_uuid();tenant_version:=extensions.gen_random_uuid();tenant_event:=extensions.gen_random_uuid();
   owner_id:=extensions.gen_random_uuid();owner_version:=extensions.gen_random_uuid();owner_event:=extensions.gen_random_uuid();
+  insert into private.aqari_official_number_reservations(id,workspace_id,document_no,kind,entity_id,actor_id)
+   values(tenant_id,new.workspace_id,tenant_doc->>'document_no','rental_contract',lease.id,auth.uid()),
+         (owner_id,new.workspace_id,owner_doc->>'document_no','rental_contract',lease.id,auth.uid());
   insert into private.aqari_official_document_series(id,workspace_id,kind,document_no,entity_type,entity_id,status,current_version,created_by)
    values(tenant_id,new.workspace_id,'rental_contract',tenant_doc->>'document_no','lease',lease.id,'issued',1,auth.uid()),(owner_id,new.workspace_id,'rental_contract',owner_doc->>'document_no','lease',lease.id,'issued',1,auth.uid());
   insert into private.aqari_official_document_versions(id,workspace_id,series_id,version,template_version,title,body,payload,content_sha256,issued_by,issued_by_name,issued_at)

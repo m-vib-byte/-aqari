@@ -159,13 +159,15 @@ begin
 
   clauses:=(select string_agg(btrim(coalesce(x.value->>'title',''))||E'\n'||btrim(coalesce(x.value->>'text','')),E'\n\n' order by x.ordinality) from jsonb_array_elements(coalesce(c->'clauses','[]'::jsonb)) with ordinality x(value,ordinality));
   if coalesce(length(btrim(clauses)),0)<5 then raise exception 'EXECUTION_CONTRACT_CLAUSES_REQUIRED' using errcode='23514';end if;
-  title:='عقد إيجار '||c->>'contract_no';
-  body:='عقد إيجار رقم '||c->>'contract_no'||E'\nالمستأجر: '||coalesce(c->>'tenant','')||E'\nالعقار: '||c->>'property'||' — الوحدة: '||c->>'unit'||E'\nمدة العقد: '||c->>'start_date'||' إلى '||c->>'end_date'||E'\nالإيجار الأصلي: '||coalesce(c->>'contractRent',c->>'rent')||' د.ك — الخصم: '||coalesce(c->>'discount','0')||' د.ك'||E'\nالتأمين: '||coalesce(c->>'deposit','0')||' د.ك — العربون: '||coalesce(c->>'advance','0')||' د.ك — الرسوم: '||coalesce(c->>'cleaningFee','0')||' د.ك'||E'\n\n'||clauses;
+  title:='عقد إيجار '||(c->>'contract_no');
+  body:='عقد إيجار رقم '||(c->>'contract_no')||E'\nالمستأجر: '||coalesce(c->>'tenant','')||E'\nالعقار: '||(c->>'property')||' — الوحدة: '||(c->>'unit')||E'\nمدة العقد: '||(c->>'start_date')||' إلى '||(c->>'end_date')||E'\nالإيجار الأصلي: '||coalesce(c->>'contractRent',c->>'rent')||' د.ك — الخصم: '||coalesce(c->>'discount','0')||' د.ك'||E'\nالتأمين: '||coalesce(c->>'deposit','0')||' د.ك — العربون: '||coalesce(c->>'advance','0')||' د.ك — الرسوم: '||coalesce(c->>'cleaningFee','0')||' د.ك'||E'\n\n'||clauses;
   payload:=jsonb_build_object('contractNo',c->>'contract_no','tenant',c->>'tenant','property',c->>'property','unit',c->>'unit','startDate',c->>'start_date','endDate',c->>'end_date','contractRent',c->>'contractRent','discount',c->>'discount','deposit',c->>'deposit','advance',c->>'advance','fees',c->>'cleaningFee','template',c->'contractTemplate','executionSettlementId',settlement_id,'contractSnapshot',c);
   hash:=pg_catalog.encode(extensions.digest(title||E'\n'||body||E'\n'||payload::text,'sha256'),'hex');
   template_version:=coalesce(nullif(c#>>'{contractTemplate,version}','')::integer,1);
+  insert into private.aqari_official_number_reservations(id,workspace_id,document_no,kind,entity_id,actor_id)
+   values(document_id,new.workspace_id,'CT-'||(c->>'contract_no'),'rental_contract',lease.id,auth.uid());
   insert into private.aqari_official_document_series(id,workspace_id,kind,document_no,entity_type,entity_id,status,current_version,created_by)
-   values(document_id,new.workspace_id,'rental_contract','CT-'||c->>'contract_no','lease',lease.id,'issued',1,auth.uid());
+   values(document_id,new.workspace_id,'rental_contract','CT-'||(c->>'contract_no'),'lease',lease.id,'issued',1,auth.uid());
   insert into private.aqari_official_document_versions(id,workspace_id,series_id,version,template_version,title,body,payload,content_sha256,issued_by,issued_by_name)
    values(version_id,new.workspace_id,document_id,1,template_version,title,body,payload,hash,auth.uid(),actor);
   insert into private.aqari_official_document_events(id,workspace_id,series_id,action,reason,actor_id,details)

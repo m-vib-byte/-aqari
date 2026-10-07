@@ -4,7 +4,7 @@ import {openOfficialDocumentCenter} from '../src/v267/pages/official-document-ce
 import {OFFICIAL_FORM_TEMPLATES} from '../src/v267/components/document-catalog.js';
 import {officialFields,validateOfficialValues} from '../src/v267/components/official-form-fields.js';
 
-async function fixture({lostReply=false,lostBeforeWrite=false,wrongContext=false,partialReadback=false,rejectOnce=false}={}){
+async function fixture({typed=false,wrongKind=false,lostReply=false,lostBeforeWrite=false,wrongContext=false,partialReadback=false,rejectOnce=false,mfaAt=null,mfaMessage='MFA_REQUIRED'}={}){
  const original={window:globalThis.window,document:globalThis.document};const calls=[],records=new Map(),numbers=new Map();
  class Element{constructor(tag){this.tagName=tag;this.children=[];this.attributes={};this.value='';this.disabled=false;}
   get value(){return this.tagName==='select'&&!this.children.some(x=>x.value===this._value)?'':this._value;}
@@ -17,8 +17,9 @@ async function fixture({lostReply=false,lostBeforeWrite=false,wrongContext=false
  const w='fixture-workspace',user='fixture-user';
  const defaults={sourceId:'payment-1',tenantName:'مستأجر محفوظ',contractNo:'LEASE-1',propertyName:'عقار محفوظ',unitNo:'101',amount:'12.345',period:'2026-09',paymentMethod:'نقداً',paymentReference:'مرجع محفوظ',collectorName:'محصل محفوظ',receivedFrom:'مستأجر محفوظ',reference:'مرجع محفوظ',reason:'إيجار سبتمبر'};
  const client={rpc(name,args){calls.push({name,args:structuredClone(args)});return {abortSignal:async()=>{
+  if((mfaAt==='number'&&name==='aqari_official_document_number')||(mfaAt==='issue'&&args.p_action==='issue')){mfaAt=null;return {status:403,error:{code:'42501',message:mfaMessage}};}
   if(name==='aqari_official_document_context')return {data:{workspace_id:wrongContext?'other':w,user_id:user,kind:args.p_kind,entity_type:'lease',entity_id:args.p_entity_id,source_id:args.p_source_id,source_required:['rent_receipt','receipt_voucher'].includes(args.p_kind),entities:[{id:'lease-1',label:'عقد محفوظ'}],sources:[{id:'payment-1',label:'دفعة محفوظة'}],defaults:args.p_source_id?defaults:{}}};
-  if(name==='aqari_official_document_number'){if(!numbers.has(args.p_request_id))numbers.set(args.p_request_id,'AQ-20260912-'+String(numbers.size+1).padStart(8,'0'));return {data:{id:args.p_request_id,workspace_id:w,kind:args.p_kind,entity_id:args.p_entity_id,document_no:numbers.get(args.p_request_id)}};}
+  if(name==='aqari_official_document_number'){if(!numbers.has(args.p_request_id))numbers.set(args.p_request_id,(typed?'AQ-'+(wrongKind?'PAYMENT_VOUCHER':args.p_kind.toUpperCase())+'-20260912-':'AQ-20260912-')+String(numbers.size+1).padStart(8,'0'));return {data:{id:args.p_request_id,workspace_id:w,kind:args.p_kind,entity_id:args.p_entity_id,document_no:numbers.get(args.p_request_id)}};}
   assert.equal(name,'aqari_official_document_register');const p=args.p_data;
   if(args.p_action==='list')return {data:{items:[...records.values()].map(r=>({...r.series,version:r.versions.at(-1)}))}};
   if(args.p_action==='get'){const r=structuredClone(records.get(p.id)||{});if(partialReadback&&r.versions)r.versions[0].payload={amount:'999.000'};return {data:r};}
@@ -35,7 +36,7 @@ async function fixture({lostReply=false,lostBeforeWrite=false,wrongContext=false
  openOfficialDocumentCenter();await new Promise(setImmediate);const dialog=body.children[0],elements=()=>dialog.querySelectorAll();
  const control=label=>{const group=elements().find(x=>x.children?.[0]?.tagName==='label'&&x.children[0].textContent===label);assert.ok(group,label);return group.children[1];};
  const named=key=>elements().find(x=>x.name===key),button=text=>elements().find(x=>x.tagName==='button'&&x.textContent===text);
- return {calls,records,elements,control,named,button,status:()=>elements().find(x=>x.attributes.role==='status')?.textContent,
+ return {calls,records,numbers,elements,control,named,button,connected:()=>dialog.isConnected,status:()=>elements().find(x=>x.attributes.role==='status')?.textContent,
   async select(){control('السجل المرتبط').value='lease-1';await control('السجل المرتبط').onchange();control('الحركة المحفوظة').value='payment-1';await control('الحركة المحفوظة').onchange();named('documentNo').value='TEST-DOC-1';control('سبب الإصدار أو التصحيح').value='اختبار إصدار مرتبط';},
   submit:()=>elements().find(x=>x.tagName==='form').onsubmit({preventDefault(){}}),cleanup(){dialog.children[0].onclick();Object.assign(globalThis,original);}};
 }
@@ -68,3 +69,41 @@ test('invalid calendar dates, reversed ranges and non-financial amounts are reje
  for(const change of [{fromDate:'2026-02-30'},{fromDate:'2026-10-01'},{payments:'NaN'},{payments:'1.0001'},{payments:'-5'}])assert.throws(()=>validateOfficialValues('tenant_statement',{...values,...change}));
  assert.equal(validateOfficialValues('tenant_statement',{...values,openingBalance:'-5.125'}).openingBalance,'-5.125');
 });
+
+test('typed number survives lost response and reuses its original reservation',async()=>{
+ const f=await fixture({typed:true,lostBeforeWrite:true});try{await f.select();await f.submit();await f.button('التحقق من الحفظ السابق').onclick();assert.equal(f.records.size,1);assert.match(f.status(),/تم الحفظ والتحقق/);assert.equal(f.calls.filter(x=>x.name==='aqari_official_document_number').length,1);assert.match([...f.records.values()][0].series.document_no,/^AQ-RENT_RECEIPT-/);}finally{f.cleanup();}
+});
+test('a typed number for another kind is rejected before issue',async()=>{
+ const f=await fixture({typed:true,wrongKind:true});try{await f.select();await f.submit();assert.equal(f.calls.filter(x=>x.args.p_action==='issue').length,0);assert.match(f.status(),/رقم المستند المحجوز/);}finally{f.cleanup();}
+});
+
+for(const mfaAt of ['number','issue'])for(const mfaMessage of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED']){
+ test(`${mfaMessage} at ${mfaAt} preserves the official draft and retries one reservation`,async()=>{
+  const f=await fixture({typed:true,mfaAt,mfaMessage});
+  try{
+   await f.select();const reason=f.control('سبب الإصدار أو التصحيح').value;
+   await f.submit();
+   assert.equal(f.connected(),true,'MFA rejection keeps the real document form attached');
+   assert.equal(f.records.size,0,'a rejected write cannot be reported as archived');
+   assert.equal(f.numbers.size,mfaAt==='number'?0:1,'only the successful allocator may reserve a serial');
+   assert.equal(f.control('سبب الإصدار أو التصحيح').value,reason);
+   assert.equal(f.named('amount').value,'12.345');
+   assert.equal(f.button('إصدار وحفظ').disabled,false);
+   assert.equal(f.button('التحقق من الحفظ السابق').hidden,true,'known rejection is not an uncertain write');
+   assert.match(f.status(),/التحقق الثنائي/);
+   assert.equal(f.calls.filter(x=>x.name==='aqari_official_document_number').length,1,'no automatic retry');
+   assert.equal(f.calls.filter(x=>x.args.p_action==='issue').length,mfaAt==='number'?0:1);
+   // The fixture accepts the explicit next attempt, representing completed step-up.
+   // This is local transport simulation, not proof of hosted MFA acceptance.
+   await f.submit();
+   assert.equal(f.records.size,1);assert.equal(f.numbers.size,1);
+   assert.match(f.status(),/تم الحفظ والتحقق/);
+   const requests=f.calls.filter(x=>x.name==='aqari_official_document_number');
+   assert.equal(requests.length,2);assert.deepEqual(requests[0].args,requests[1].args);
+   const stored=[...f.records.values()][0];
+   assert.equal(stored.series.id,requests[0].args.p_request_id);
+   assert.equal(stored.versions.length,1);
+   assert.equal(stored.series.document_no,[...f.numbers.values()][0]);
+  }finally{f.cleanup();}
+ });
+}
