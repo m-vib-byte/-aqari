@@ -245,8 +245,10 @@ async function verifyLocalizedForms(page,locale,name,viewport){
  await fit('leases');await close();
  await page.getByRole('button',{name:navLabel('data_quality',locale),exact:true}).click();
  await page.getByText(tr('اكتمل الفحص للقراءة فقط. التعارضات المصدرية المعروفة تبقى معلقة دون تغيير.'),{exact:true}).waitFor();
- assert.equal(await dialog.getByText(fmt('تمت قراءة {units} وحدة و{tenants} ملف مستأجر و{leases} عقداً من مساحة العمل الحالية.',{units:2,tenants:1,leases:1}),{exact:true}).count(),1);
+ assert.equal(await dialog.getByText(fmt('تمت قراءة {units} وحدة و{tenants} ملف مستأجر و{leases} عقداً و{documents} مستندًا و{payments} حركة تحصيل إيجار من مساحة العمل الحالية.',{units:2,tenants:1,leases:1,documents:1,payments:4}),{exact:true}).count(),1);
  assert.equal(await dialog.locator('summary').filter({hasText:tr('رقم وحدة مكرر داخل العقار — يحتاج مراجعة')}).count(),1);
+ assert.equal(await dialog.locator('summary').filter({hasText:tr('مستندات بلا مرجع سجل مكتمل — تحتاج مراجعة')}).count(),1,'unlinked archive document remains visible for review');
+ assert.equal(await dialog.locator('summary').filter({hasText:tr('حركات تحصيل إيجار لم يكتمل نطاق فحص ربطها')}).count(),1,'incomplete payment metadata is reported without financial approval');
  await fit('quality');assert.equal(entryWrites,before+1);assert.equal(reviewWrites,0);
  await close();
 }
