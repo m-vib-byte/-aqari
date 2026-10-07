@@ -6,7 +6,7 @@ const text=(tag,value)=>node(tag,String(value??''));
 function codeInput(){const input=node('input');input.type='text';input.inputMode='numeric';input.autocomplete='one-time-code';input.pattern='[0-9]{6}';input.maxLength=6;input.required=true;return input;}
 function result(value){
  if(value?.error){
-  const messages={mfa_factor_name_conflict:'يوجد تسجيل مصادقة سابق بهذا الاسم. أغلق النافذة وافتح مركز الأمان لاستكماله أو إلغاء التسجيل غير المكتمل.',mfa_verification_failed:'رمز التحقق غير صحيح أو انتهت صلاحيته. أدخل الرمز الحالي من تطبيق المصادقة المرتبط بهذا التسجيل.'};
+  const messages={insufficient_aal:'يلزم التحقق بالجهاز المسجل قبل إضافة جهاز مصادقة جديد. إذا فقدت تطبيق المصادقة، يلزم استعادة الوصول عبر مسؤول الحساب؛ لا يمكن استخراج الرمز القديم أو تجاوز التحقق.',mfa_factor_name_conflict:'يوجد تسجيل مصادقة سابق بهذا الاسم. أغلق النافذة وافتح مركز الأمان لاستكماله أو إلغاء التسجيل غير المكتمل.',mfa_verification_failed:'رمز التحقق غير صحيح أو انتهت صلاحيته. أدخل الرمز الحالي من تطبيق المصادقة المرتبط بهذا التسجيل.'};
   if(messages[value.error.code])throw Error(messages[value.error.code]);
   throw value.error;
  }
