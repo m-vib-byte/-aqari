@@ -157,3 +157,17 @@ test('malformed stored marker fails closed before banking actions appear',async(
 test('successful matching and definite rejection clear the reload marker',async()=>{
  for(const rejected of [false,true]){const f=fixture();await f.d.pending;if(rejected)f.state.matchError=Object.assign(Error('validation'),{code:'22023'});await f.match();assert.equal(f.storage.size,0);}
 });
+
+test('lost reopen response recovers in the current dialog without repeating the write',async()=>{
+ const f=fixture('reconciled');await f.d.pending;f.state.loseMatchReply=true;await f.button('إعادة إلى غير مطابق').onclick();assert.equal(f.storage.size,1);assert.equal(f.button('إعادة إلى غير مطابق'),undefined);await f.button('التحقق من المطابقة السابقة').onclick();assert.match(f.d.status.textContent,/تم التحقق من المطابقة السابقة/);assert.equal(f.calls.filter(c=>c.p_action==='reopen').length,1);assert.equal(f.storage.size,0);
+});
+test('reopen verification survives same-tab dialog recreation',async()=>{
+ const f=fixture('reconciled');await f.d.pending;f.state.loseMatchReply=true;await f.button('إعادة إلى غير مطابق').onclick();const g=fixture('unmatched',{storage:f.storage,row:f.saved()});await g.d.pending;await g.button('التحقق من المطابقة السابقة').onclick();assert.match(g.d.status.textContent,/تم التحقق من المطابقة السابقة/);assert.ok(g.calls.every(c=>c.p_action==='list'));
+});
+test('reopen recovery rejects a still-linked or later-revision transfer',async()=>{
+ for(const changed of [{paymentId:'payment-one'},{revision:5}]){const f=fixture('reconciled');await f.d.pending;f.state.loseMatchReply=true;await f.button('إعادة إلى غير مطابق').onclick();const g=fixture('unmatched',{storage:f.storage,row:{...f.saved(),...changed}});await g.d.pending;await g.button('التحقق من المطابقة السابقة').onclick();assert.match(g.d.status.textContent,/لم تتأكد المطابقة السابقة/);assert.equal(g.storage.size,1);}
+});
+test('reopen storage failure prevents sending and definite rejection clears marker',async()=>{
+ const f=fixture('reconciled',{storageError:true});await f.d.pending;await f.button('إعادة إلى غير مطابق').onclick();assert.equal(f.calls.filter(c=>c.p_action==='reopen').length,0);
+ const g=fixture('reconciled');await g.d.pending;g.state.matchError=Object.assign(Error('validation'),{code:'22023'});await g.button('إعادة إلى غير مطابق').onclick();assert.equal(g.storage.size,0);assert.ok(g.button('إعادة إلى غير مطابق'));
+});
