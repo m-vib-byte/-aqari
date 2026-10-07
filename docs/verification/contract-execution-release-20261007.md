@@ -56,6 +56,11 @@ failures or skips. Release inventory/freeze verification also passed.
   Production (`INVALID_TEMPLATE_CONTENT`). Only its standalone arithmetic
   vectors are reused; its obsolete workflow is not reported as passing.
 
+The retained downstream projection fixture was also reconciled with the new
+authoritative source: it now supplies explicit first-period terms and a real
+synthetic credit allocation, instead of relying on a preposted due row. All
+three projection cases pass, including rent 100 less allocated credit 25.
+
 SQL PDF sentinels test atomic archive linkage. Python tests verify real PDF
 rendering separately. These tests are not a signed-in hosted HTTP acceptance
 or physical-device acceptance.

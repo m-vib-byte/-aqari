@@ -847,8 +847,8 @@
     },
     {
       "path": "docs/verification/contract-execution-release-20261007.md",
-      "sha256": "1fbfa635e29de902a345a63a00e08de359a60c7f23a3fec636e64f45bbb76470",
-      "size": 4687
+      "sha256": "ca73bd9a3190e8069820937e9e569a65ccb09d251fed0c46694bb2bd7e4f1f20",
+      "size": 4991
     },
     {
       "path": "docs/verification/contract-visibility-20260921.md",
