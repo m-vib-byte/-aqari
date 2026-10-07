@@ -1,3 +1,4 @@
+import {prepareContractExecutionPackage} from '../components/contract-execution-package.js';
 import {assertContractExecutionService} from '../components/contract-execution-readiness.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -8,6 +9,7 @@ const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value
 const money=value=>Number(value||0).toFixed(3)+translateStatic(' د.ك');
 function select(rows,value=''){const el=node('select');for(const [key,label]of rows){const option=node('option',label);option.value=key;el.append(option);}el.value=value??'';return el;}
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+export const isExecutionMfaChallenge=error=>error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message);
 
 export async function readContractExecutionPdf(session,path,body){
  session.check();
@@ -39,7 +41,7 @@ export function openContractExecution(contractId,{onDone}={}){
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  const urls=new Set();d.onDispose(()=>{for(const url of urls)URL.revokeObjectURL(url);urls.clear();});
- let currentContract=null,currentProfile=null,currentDue=null;
+ let currentContract=null,currentProfile=null,currentDue=null,settlementSent=false;
 
  async function load(){
   const cloud=await window.AQARI_SUPABASE.loadAppState(scope());d.session.check();
@@ -60,7 +62,7 @@ export function openContractExecution(contractId,{onDone}={}){
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
   await assertContractExecutionService(d.session,contractId);d.session.check();
   const due=executionDue(api,contract),signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
-  const ids={settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
+  const ids={package:crypto.randomUUID(),settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
   let receiptNo='',contractReceiptSequence=null;
   if(due.rent>0){
    const reservation=await rpc('aqari_reserve_rent_receipt_serial',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(contract.id),p_operation_ref:ids.settlement,p_year:Number(api.kuwaitDate().slice(0,4))});d.session.check();
@@ -70,6 +72,11 @@ export function openContractExecution(contractId,{onDone}={}){
   let receiptArtifacts=null;
   if(due.rent>0)receiptArtifacts=rentReceiptArtifacts({contract:signed,profile,due,receiptNo,contractReceiptSequence,onDate,method,transactionNo});
   const manifest=executionManifest({contract:signed,due,onDate,method,transactionNo,receiptNo,contractReceiptSequence,zeroReason,ids});
+  manifest.executionPackageId=await prepareContractExecutionPackage(d.session,{
+   workspaceId:d.session.bound.workspace,contractRef:String(contractId),settlementId:ids.settlement,
+   documentId:ids.document,packageId:ids.package,preparedAt:new Date().toISOString(),
+   receiptNo,receiptSequence:contractReceiptSequence,receiptArtifacts
+  });d.session.check();
   const index=(db.contractsV202||[]).findIndex(row=>String(row.id)===String(contractId));db.contractsV202[index]=signed;
   db.contractExecutionSettlementsV267=(db.contractExecutionSettlementsV267||[]).concat([manifest]);
   if(receiptArtifacts){db.collections=(db.collections||[]).concat([receiptArtifacts.record]);db.rentLedgerV202=(db.rentLedgerV202||[]).concat([receiptArtifacts.ledger]);db.rentReceiptsV267=(db.rentReceiptsV267||[]).concat([receiptArtifacts.receipt]);}
@@ -77,7 +84,10 @@ export function openContractExecution(contractId,{onDone}={}){
   const directoryRow={...(directoryIndex>=0?directory[directoryIndex]:{}),property:signed.property,unit:signed.unit,...api.directoryFields(signed,profile),nationalityEn:profile.nationalityEn||'',contractNo:signed.contract_no,source:'v267-cloud',verified:true,tenantProfileId:profile.id};
   if(directoryIndex>=0)directory[directoryIndex]=directoryRow;else directory.push(directoryRow);db.tenantDirectoryV202=directory;
   db.audit=(db.audit||[]).concat([[d.session.bound.user,'اعتماد تسوية إبرام العقد',signed.contract_no,new Date().toISOString()]]);
-  await window.AQARI_SUPABASE.saveAppState(payload,Number(cloud.revision),bound);d.session.check();
+  settlementSent=true;
+  try{await window.AQARI_SUPABASE.saveAppState(payload,Number(cloud.revision),bound);}
+  catch(error){if(isExecutionMfaChallenge(error)&&error.aqariStateWriteRejected===true)settlementSent=false;throw error;}
+  d.session.check();
 
   const verified=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();const confirmed=api.primary(verified.payload);
   const confirmedContract=(confirmed.contractsV202||[]).find(row=>String(row.id)===String(contractId)),confirmedManifest=(confirmed.contractExecutionSettlementsV267||[]).find(row=>row.id===manifest.id);
@@ -104,9 +114,20 @@ export function openContractExecution(contractId,{onDone}={}){
   if(currentDue.total>0){transaction.required=true;form.append(field(translateStatic('طريقة الدفع'),method),field(translateStatic('رقم العملية / المرجع — إلزامي لكل طرق الدفع'),transaction));}
   else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=translateStatic(canonicalZeroReason);form.append(field(translateStatic('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي'),zeroReason));}
   form.append(field(translateStatic('تاريخ العملية'),onDate),field(translateStatic('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد'),confirm),submit);d.body.append(form);
-  form.onsubmit=event=>{event.preventDefault();if(!form.reportValidity())return;d.run(async()=>{
+  form.onsubmit=event=>{event.preventDefault();if(submit.disabled||!form.reportValidity())return;d.run(async()=>{
    submit.disabled=true;d.status.textContent=translateStatic('جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…');
-   const result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});
+   let result;
+   try{result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});}
+   catch(error){
+    // Only a definite rejection before settlement permits a manual retry.
+    // Timeouts and post-save read failures remain locked until verified.
+    if(isExecutionMfaChallenge(error)){
+     try{d.session.check();}catch{d.close();throw error;}
+     if(!settlementSent)submit.disabled=false;
+     else throw Error('أُرسلت تسوية الإبرام. أكمل التحقق الثنائي ثم راجع حالة العقد والمستندات؛ لا تعِد الاعتماد أو الدفع قبل التحقق.');
+    }
+    throw error;
+   }
    d.body.replaceChildren(node('h3',translateStatic('تم إبرام العقد وتأكيد السجل')),node('p',translateStatic('العقد ')+result.contract.contract_no+translateStatic(' أصبح موقّعًا، وتسوية الإبرام محفوظة وغير قابلة للحذف.')));
    if(result.receiptNo)d.body.append(node('p',translateStatic('وصل الإيجار الرسمي: ')+result.receiptNo+translateStatic(' · تسلسله داخل هذا العقد: ')+result.contractReceiptSequence));
    const documentBox=node('section');documentBox.append(node('h3',translateStatic('المستندات الرسمية')));d.body.append(documentBox);let documentErrors=[];
