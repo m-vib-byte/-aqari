@@ -96,6 +96,8 @@ jobs:
         run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs tests/v267-rental-records.test.cjs tests/imported-tenant-editor.test.mjs tests/v267-payroll.test.mjs
       - name: Verify complete Staging runtime against release inventory
         run: node scripts/verify-staging-runtime.mjs
+      - name: Monthly maintenance report, evidence and verified detail readback
+        run: node --test tests/v267-maintenance-monthly-report.test.mjs tests/v267-maintenance-monthly-details.test.mjs tests/v267-maintenance-photo-proof.test.mjs tests/v267-maintenance-workflow.test.cjs tests/v267-maintenance-plans.test.cjs
       - name: Property search, presentation and verified save readback
         run: node --test tests/v267-property-presentation.test.mjs
       - name: Property onboarding and ownership require complete readback without blind retries
@@ -124,6 +126,7 @@ jobs:
           node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
           node staging-database/local-test/run-service-schema-regression.mjs
+          AQARI_SCHEMA_CATALOG="$PWD/staging-database/local-test/schema-catalog-production-2026-10-05.json" node staging-database/local-test/run-isolated.mjs staging-database/sql/maintenance-task-lifecycle-guard.sql staging-database/sql/maintenance-monthly-details.sql staging-database/sql/maintenance-monthly-schedule.sql staging-database/tests/maintenance_monthly_details.sql
           node staging-database/local-test/run-pdf-editor-drafts.mjs
           node staging-database/local-test/run-pdf-contract-bindings.mjs
           node staging-database/local-test/run-contract-execution-text.mjs

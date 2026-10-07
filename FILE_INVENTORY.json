@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "242971c124e264855f4217b77c05e34b181d75f3ff847a594f18c1f0a9d59d5a",
-      "size": 10578
+      "sha256": "70df7cca223c6748daa0dea5866e1ad4b61c6de27d26624da708cfda6a601096",
+      "size": 11279
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -861,6 +861,11 @@
       "size": 2753
     },
     {
+      "path": "docs/verification/maintenance-monthly-details-20261007.md",
+      "size": 4231,
+      "sha256": "7ee8a219b14c457f4c2e1b3dd4b84b84fba7cd9be10f5709b55d1d5cc9ce71ec"
+    },
+    {
       "path": "docs/verification/official-archive-acceptance-2026-10-01.md",
       "sha256": "61f9d660b3b637ef2e00eaf2f6c75bdd97cc7a1bba5caa5dc6a60a7b4bffc792",
       "size": 3197
@@ -1352,8 +1357,8 @@
     },
     {
       "path": "scripts/verify-staging-runtime.mjs",
-      "sha256": "cad8b91f0cd51adcd08c3fe3eaf0704ec9b1c0cf20c5d335b2559f460648c316",
-      "size": 3341
+      "sha256": "f067673423685c9c9a750d2a10b8259e23ecad0cb9719ace059712c0bc12b264",
+      "size": 3485
     },
     {
       "path": "secure-auth-bridge.js",
@@ -2019,6 +2024,21 @@
       "path": "src/v267/pages/lease-review.js",
       "sha256": "df5d9af613d70934bb0ca8f6e1941a10195542a12d244beb24cb6c97efe4bc65",
       "size": 6221
+    },
+    {
+      "path": "src/v267/pages/maintenance-monthly-details.js",
+      "size": 6797,
+      "sha256": "66cf4e558fa4b70f13bc9ce2d3c72de7bfeb7be6e5f8b97a6067b96a290c675b"
+    },
+    {
+      "path": "src/v267/pages/maintenance-monthly-report.js",
+      "size": 16377,
+      "sha256": "9860509a4b25466509d108e0c17e9b91b4144d17929e13f4dcfef86c840c12a2"
+    },
+    {
+      "path": "src/v267/pages/maintenance-monthly-schedule.js",
+      "size": 3097,
+      "sha256": "479775d422fe364aa959c2c183db921b2f8d66d18ffba8edb0c6bb2ca33f6bda"
     },
     {
       "path": "src/v267/pages/maintenance-plans.js",
@@ -2879,6 +2899,16 @@
       "path": "staging-database/sql/maintenance-locations.sql",
       "sha256": "36ba19b2f4b364d18b9b202ec706ae68e4a32e8f6b1b8e53f0dd57014a5aa856",
       "size": 2766
+    },
+    {
+      "path": "staging-database/sql/maintenance-monthly-details.sql",
+      "size": 11400,
+      "sha256": "cfbf8aee6616e88d22efcd62d3e004d6a32e98cead69935d87522b4767af9371"
+    },
+    {
+      "path": "staging-database/sql/maintenance-monthly-schedule.sql",
+      "size": 11810,
+      "sha256": "80eb0c88db985c27a839debf5e12e2fc9ce251fc4aa703d9d2e2dcf4b1372cee"
     },
     {
       "path": "staging-database/sql/maintenance-report-discovery.sql",
@@ -3894,6 +3924,11 @@
       "path": "staging-database/tests/maintenance_locations.sql",
       "sha256": "e2ac8c483255bf795fdc800d8db96c40a42c66d9647e12e86b86845123228c72",
       "size": 10353
+    },
+    {
+      "path": "staging-database/tests/maintenance_monthly_details.sql",
+      "size": 16104,
+      "sha256": "2096b2e673e401a69b6bd98714c448ea4b74272d9ca9a9115de7cbf2958b5662"
     },
     {
       "path": "staging-database/tests/maintenance_status_cost_time_report.sql",
@@ -4949,6 +4984,16 @@
       "path": "tests/v267-maintenance-cancel-runtime.test.mjs",
       "sha256": "a63d8cf0f6b619af543049dd2fabb27ce2fc211b3c557a11bf89d58c68846e5b",
       "size": 4386
+    },
+    {
+      "path": "tests/v267-maintenance-monthly-details.test.mjs",
+      "size": 4819,
+      "sha256": "219cbc96478f3e560d55b935176b34b81710dd18330b3819342c1f9ad242cd10"
+    },
+    {
+      "path": "tests/v267-maintenance-monthly-report.test.mjs",
+      "size": 10977,
+      "sha256": "3d5d9528497e43705af6a4d5034e026e5df8554e47809cb9f6f20b781e657486"
     },
     {
       "path": "tests/v267-maintenance-plans.test.cjs",
