@@ -49,7 +49,8 @@ function fixture(initialState='unmatched',options={}){
   }
   assert.ok(['reconcile','reopen'].includes(args.p_action));
   const next={...row,revision:row.revision+1,state:args.p_action==='reconcile'?'reconciled':'unmatched',paymentId:args.p_action==='reconcile'?args.p_data.paymentId:null};
-  if(!state.skipPersist)row=next;
+  if(state.matchError)throw state.matchError;
+  if(!state.skipPersist)row=next;if(state.loseMatchReply)throw Error('match reply lost');
   return {workspace_id:state.badEnvelope?'other-workspace':'workspace-one',user_id:'user-one',autoMatched:false,record:{id:next.id,state:next.state,payment_id:next.paymentId,revision:next.revision}};
  };
  const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-one',user:'user-one'},client:{rpc},request:x=>x,check(){}},run(fn){d.pending=Promise.resolve().then(fn).catch(e=>{d.status.textContent=e.message;});return d.pending;}};
@@ -116,4 +117,23 @@ test('bank candidate selection rejects invalid or imprecise numeric amounts',asy
 });
 test('bank matching accepts equivalent exact decimal scales',async()=>{
  const f=fixture('unmatched',{amount:'12.1'});await f.d.pending;f.state.corrupt={amount:'12.100'};await f.match();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);
+});
+
+test('uncertain matching blocks another write and recovers by read only',async()=>{
+ const f=fixture();await f.d.pending;f.state.loseMatchReply=true;await f.match();assert.match(f.d.status.textContent,/match reply lost/);assert.equal(f.button('اعتماد المطابقة الصريحة').disabled,true);
+ await f.submit();await f.button('رجوع').onclick();assert.ok(f.control('الدفعة البنكية المطابقة'));assert.equal(f.calls.filter(c=>c.p_action==='reconcile').length,1);
+ await f.button('التحقق من المطابقة المحفوظة').onclick();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);assert.equal(f.calls.filter(c=>c.p_action==='reconcile').length,1);
+});
+test('matching recovery keeps the submitted payment even if the control changes',async()=>{
+ const f=fixture();await f.d.pending;f.state.loseMatchReply=true;await f.match();f.control('الدفعة البنكية المطابقة').value='other';await f.button('التحقق من المطابقة المحفوظة').onclick();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);
+});
+test('contradictory matching recovery remains locked without claiming success',async()=>{
+ const f=fixture();await f.d.pending;f.state.corrupt={paymentId:'other'};await f.match();await f.button('التحقق من المطابقة المحفوظة').onclick();assert.match(f.d.status.textContent,/لم تتأكد مطابقة التحويل المحفوظ/);await f.submit();assert.equal(f.calls.filter(c=>c.p_action==='reconcile').length,1);
+});
+test('definite matching rejection unlocks inputs while transport failure retains the lock',async()=>{
+ for(const error of [Object.assign(Error('validation'),{code:'22023'}),Object.assign(Error('MFA_REQUIRED'),{code:'42501',status:403}),Error('transport')]){
+ const f=fixture();await f.d.pending;f.state.matchError=error;await f.match();assert.equal(f.button('اعتماد المطابقة الصريحة').disabled,error.message==='transport');}
+});
+test('matching failed readback recovers after read service returns without another write',async()=>{
+ const f=fixture();await f.d.pending;f.state.listError=true;await f.match();await f.button('التحقق من المطابقة المحفوظة').onclick();assert.doesNotMatch(f.d.status.textContent,/تمت المطابقة الصريحة/);f.state.listError=false;await f.button('التحقق من المطابقة المحفوظة').onclick();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);assert.equal(f.calls.filter(c=>c.p_action==='reconcile').length,1);
 });
