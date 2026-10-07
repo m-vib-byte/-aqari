@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {webcrypto} from 'node:crypto';
 
 const page=readFileSync(new URL('../src/v267/pages/bank-reconciliation.js',import.meta.url),'utf8');
 const installer=readFileSync(new URL('../scripts/install-v267-bank-reconciliation.mjs',import.meta.url),'utf8');
@@ -32,8 +33,10 @@ test('financial register integration is bounded and fail-closed on moved anchor'
 function fixture(initialState='unmatched',options={}){
  class Element{constructor(tag,text=''){this.tag=tag;this.children=[];this._text=text;this.value='';}append(...items){this.children.push(...items);}replaceChildren(...items){this.children=[];this.append(...items);}get textContent(){return this._text+this.children.map(x=>x.textContent).join('');}set textContent(value){this._text=value;this.children=[];}}
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const el=node('label');el.label=label;el.append(control);return el;};
+ const storage=options.storage??new Map();const sessionStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>{if(options.storageError)throw Error('storage unavailable');storage.set(k,v);},removeItem:k=>storage.delete(k)};
  const state={skipPersist:false,corrupt:null,badEnvelope:false,listError:false},calls=[];
  let row={id:'transfer-one',state:initialState,revision:3,paymentId:initialState==='reconciled'?'payment-one':null,amount:options.amount??'12.125',bankSource:'BANK',externalId:'EXT-1',transferDate:'2026-10-01',bankReference:'REF-1'};
+ if(options.row)row=structuredClone(options.row);
  const rpc=async(name,args)=>{
   assert.equal(name,'aqari_bank_reconciliation');assert.equal(args.p_workspace_id,'workspace-one');calls.push(structuredClone(args));
   if(args.p_action==='list'){
@@ -54,10 +57,10 @@ function fixture(initialState='unmatched',options={}){
   return {workspace_id:state.badEnvelope?'other-workspace':'workspace-one',user_id:'user-one',autoMatched:false,record:{id:next.id,state:next.state,payment_id:next.paymentId,revision:next.revision}};
  };
  const d={body:node('div'),status:node('p'),session:{bound:{workspace:'workspace-one',user:'user-one'},client:{rpc},request:x=>x,check(){}},run(fn){d.pending=Promise.resolve().then(fn).catch(e=>{d.status.textContent=e.message;});return d.pending;}};
- vm.runInNewContext(page.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nopenBankReconciliation();',{node,field,createDialog:()=>d,translateStatic:x=>x,visibleMessage:(s,v)=>s.replace(/\{(\w+)\}/g,(_,k)=>v[k]),window:{prompt:()=> 'تصحيح موثق'},console});
+ vm.runInNewContext(page.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nopenBankReconciliation();',{crypto:webcrypto,TextEncoder,sessionStorage,node,field,createDialog:()=>d,translateStatic:x=>x,visibleMessage:(s,v)=>s.replace(/\{(\w+)\}/g,(_,k)=>v[k]),window:{prompt:()=> 'تصحيح موثق'},console});
  const all=e=>[e,...e.children.flatMap(all)],button=label=>all(d.body).find(x=>x.tag==='button'&&x.textContent===label),control=label=>all(d.body).find(x=>x.label===label)?.children[0];
  const submit=async()=>{all(d.body).find(x=>x.tag==='form').onsubmit({preventDefault(){}});await d.pending;};
- return {d,state,calls,button,control,submit,async ingest(){await button('+ إدخال تحويل وارد').onclick();for(const [label,value] of [['مصدر/بنك الكشف','BANK'],['المعرف الخارجي للتحويل','EXT-NEW'],['تاريخ التحويل','2026-10-01'],['المبلغ','12.125'],['مرجع البنك','NEW-REF'],['اسم المرسل كما ورد','Sender'],['آخر/جزء آمن من الحساب','1234'],['البيان','Saved memo']])control(label).value=value;},async match(){await button('مطابقة صريحة').onclick();control('الدفعة البنكية المطابقة').value='payment-one';control('سبب المطابقة').value='سبب موثق';await submit();}};
+ return {d,state,calls,button,control,submit,storage,saved:()=>structuredClone(row),async ingest(){await button('+ إدخال تحويل وارد').onclick();for(const [label,value] of [['مصدر/بنك الكشف','BANK'],['المعرف الخارجي للتحويل','EXT-NEW'],['تاريخ التحويل','2026-10-01'],['المبلغ','12.125'],['مرجع البنك','NEW-REF'],['اسم المرسل كما ورد','Sender'],['آخر/جزء آمن من الحساب','1234'],['البيان','Saved memo']])control(label).value=value;},async match(){await button('مطابقة صريحة').onclick();control('الدفعة البنكية المطابقة').value='payment-one';control('سبب المطابقة').value='سبب موثق';await submit();}};
 }
 test('bank matching succeeds only after the exact saved revision and payment are independently read',async()=>{
  const f=fixture();await f.d.pending;await f.match();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);assert.deepEqual(f.calls.map(c=>c.p_action),['list','list','reconcile','list']);assert.match(f.d.body.textContent,/payment-one/);
@@ -136,4 +139,21 @@ test('definite matching rejection unlocks inputs while transport failure retains
 });
 test('matching failed readback recovers after read service returns without another write',async()=>{
  const f=fixture();await f.d.pending;f.state.listError=true;await f.match();await f.button('التحقق من المطابقة المحفوظة').onclick();assert.doesNotMatch(f.d.status.textContent,/تمت المطابقة الصريحة/);f.state.listError=false;await f.button('التحقق من المطابقة المحفوظة').onclick();assert.match(f.d.status.textContent,/تمت المطابقة الصريحة/);assert.equal(f.calls.filter(c=>c.p_action==='reconcile').length,1);
+});
+
+test('matching marker survives dialog recreation and recovers without a write',async()=>{
+ const f=fixture();await f.d.pending;f.state.loseMatchReply=true;await f.match();assert.equal(f.storage.size,1);const marker=JSON.parse([...f.storage.values()][0]);assert.deepEqual(Object.keys(marker).sort(),['digest','id','version']);
+ const g=fixture('unmatched',{storage:f.storage,row:f.saved()});await g.d.pending;assert.equal(g.button('+ إدخال تحويل وارد'),undefined);await g.button('التحقق من المطابقة السابقة').onclick();assert.match(g.d.status.textContent,/تم التحقق من المطابقة السابقة/);assert.equal(g.storage.size,0);assert.ok(g.calls.every(c=>c.p_action==='list'));
+});
+test('reload recovery rejects a contradictory saved payment and stays blocked',async()=>{
+ const f=fixture();await f.d.pending;f.state.loseMatchReply=true;await f.match();const g=fixture('unmatched',{storage:f.storage,row:{...f.saved(),paymentId:'wrong'}});await g.d.pending;await g.button('التحقق من المطابقة السابقة').onclick();assert.match(g.d.status.textContent,/لم تتأكد المطابقة السابقة/);assert.equal(g.storage.size,1);assert.equal(g.button('+ إدخال تحويل وارد'),undefined);
+});
+test('unavailable marker storage prevents matching before any write',async()=>{
+ const f=fixture('unmatched',{storageError:true});await f.d.pending;await f.match();assert.match(f.d.status.textContent,/storage unavailable/);assert.equal(f.calls.filter(c=>c.p_action==='reconcile').length,0);
+});
+test('malformed stored marker fails closed before banking actions appear',async()=>{
+ const storage=new Map([['aqari:v267:bank-match-pending:'+JSON.stringify(['workspace-one','user-one']),'{broken']]);const f=fixture('unmatched',{storage});await f.d.pending;assert.equal(f.button('+ إدخال تحويل وارد'),undefined);assert.equal(f.calls.length,0);
+});
+test('successful matching and definite rejection clear the reload marker',async()=>{
+ for(const rejected of [false,true]){const f=fixture();await f.d.pending;if(rejected)f.state.matchError=Object.assign(Error('validation'),{code:'22023'});await f.match();assert.equal(f.storage.size,0);}
 });
