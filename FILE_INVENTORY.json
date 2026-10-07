@@ -1592,8 +1592,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "98646b8c0d0c37449226ab1ccea30111388a950e4eb08a18f53cd018f4c5dbb1",
-      "size": 425499
+      "sha256": "f102cd1fa19bf9ea2c4bf0886d754e6777f7c50cc994805e463ad653f5959fb9",
+      "size": 430527
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2152,8 +2152,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "1967e25cc170625cfee2c8db96767e283060929cce58ed65df3432c2381d90a0",
-      "size": 61133
+      "sha256": "1169cf609be064e2de62d0615e1f9ae246adbeed749fce91154f3eae52bf9b90",
+      "size": 61828
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -4857,8 +4857,8 @@
     },
     {
       "path": "tests/v267-document-upload-pages.test.mjs",
-      "sha256": "3af2c78157d40f1f20f1eca93c03551a4cffbb6b78920901128d8ff9ed2cc5e0",
-      "size": 10602
+      "sha256": "d0b35cfab713c59de4231dcdf222bdabdb48f424b23afff0d8de1d1e7182feb7",
+      "size": 11607
     },
     {
       "path": "tests/v267-evidence-matrix.test.mjs",
@@ -5784,6 +5784,21 @@
       "path": "vercel.json",
       "sha256": "30d1b41481bb74baa59fad215f7fedf376f253b3b79cf690a3d0fabb4efae5a9",
       "size": 8375
+    },
+    {
+      "path": "src/v267/pages/contract-execution-archive.js",
+      "sha256": "716112b994de4dd134f909ff8a3a701499f88600bdb796647ae5aebc093507da",
+      "size": 4444
+    },
+    {
+      "path": "tests/v267-contract-execution-archive.test.mjs",
+      "sha256": "399a99336cdb0e13f60852b7ae445721c5b2ca5eb05c030511e5678b141a4211",
+      "size": 9074
+    },
+    {
+      "path": "docs/V267-EXECUTION-ARCHIVE-REOPEN-2026-10-07.md",
+      "sha256": "8ea22ceb7f32336814b42597747958fccdd93b7cbf15121647e886cbcbfb7558",
+      "size": 2733
     }
   ],
   "version": "V198"
