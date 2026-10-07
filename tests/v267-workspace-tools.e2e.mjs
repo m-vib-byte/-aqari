@@ -414,11 +414,14 @@ try{
     const png=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=600;canvas.height=900;const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,600,900);ctx.fillStyle='black';ctx.font='40px sans-serif';ctx.fillText('AQARI scan fixture',40,80);return canvas.toDataURL('image/png').split(',')[1];});
     await page.getByLabel('اختيار ملف أو صور من الجهاز',{exact:true}).setInputFiles([{name:'scan-1.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')},{name:'scan-2.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')}]);
     await page.getByText('راجع وضوح الصورة والعنوان والسجل، ثم ارفع النسخة.',{exact:true}).waitFor();
+    const exitWarned=()=>page.evaluate(()=>{const event=new Event('beforeunload',{cancelable:true});window.dispatchEvent(event);return event.defaultPrevented;});
+    assert.equal(await exitWarned(),true,'unarchived scanner pages warn on page exit');
     await page.getByRole('button',{name:'تدوير الصورة',exact:true}).click();
     storageFailBefore=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
     await page.getByText('تعذر تأكيد تخزين الملف. حدّث السجلات قبل إعادة الرفع.',{exact:true}).waitFor();
     assert.equal(docs.length,1);assert.equal(storageUploads,0);assert.equal(storageAttempts,1);assert.equal(docs[0].status,'draft');
+    assert.equal(await exitWarned(),true,'uncertain upload continues to warn without resending');
     storageReadUnavailable=true;
     await page.getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).click();
     await page.getByRole('dialog').getByRole('button',{name:'رفع نسخة جديدة والتحقق منها',exact:true}).waitFor({state:'visible'});
@@ -431,6 +434,7 @@ try{
     await storedReview.getByRole('checkbox',{name:'راجعت النسخة المرفوعة فعلياً وجميع صفحاتها وأؤكد وضوح النصوص والصور وعدم فقدان الجودة.',exact:true}).check();
     await storedReview.getByRole('button',{name:'اعتماد النسخة المرفوعة وإقفال المستند',exact:true}).click();
     await page.getByText('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.',{exact:true}).waitFor();
+    assert.equal(await exitWarned(),false,'verified archive clears the page-exit warning');
     assert.equal(storageAttempts,2,'a missing upload reuses the same reservation; a lost stored reply is recovered by reading');
     assert.equal(docs.length,1);assert.equal(storageUploads,1);assert.equal(docs[0].status,'uploaded');assert.equal(docs[0].entity_ref,'52670000-0000-4000-8000-000000000001');assert.equal(docs[0].size_bytes,storageBytes.length);
     assert.equal(docs[0].metadata.document_category,'ownership_deed','selected category survives upload and canonical readback');
