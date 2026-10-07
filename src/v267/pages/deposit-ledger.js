@@ -34,16 +34,19 @@ export function openDepositLedger(){
    if(!lost&&!isDepositDenied(error))render();
   }
  });}
- async function read({reconcile=true}={}){
+ async function read({reconcile=true,leaseId=selectedId}={}){
   let result;
   if(reconcile&&writer.pending){
    result=await writer.reconcile();absent=result.state==='absent';
-   if(result.state==='saved'){selectedId=result.entry.snapshot.lease_id;draft=freshDraft();output=null;}
+   if(result.state==='saved'){leaseId=result.entry.snapshot.lease_id;draft=freshDraft();output=null;}
   }
-  if(writer.pending){selectedId=writer.pending.lease_id;mode=writer.pending.action;if(writer.retained)draft={...writer.retained};}
-  const data=await rpc('list',selectedId?{lease_id:selectedId}:{});d.session.check();
+  if(writer.pending){leaseId=writer.pending.lease_id;mode=writer.pending.action;if(writer.retained)draft={...writer.retained};}
+  const data=await rpc('list',leaseId?{lease_id:leaseId}:{});d.session.check();
   if(!Array.isArray(data?.leases)||!Array.isArray(data?.entries))throw Error('تعذر قراءة دفتر التأمين. حدّث السجل.');
-  leases=data.leases;entries=data.entries;loaded=true;
+  if(data.entries.some(entry=>!leaseId||entry?.lease_id!==leaseId||entry?.snapshot?.lease_id!==leaseId)||data.entries.length&&!data.leases.some(lease=>lease.id===leaseId))throw Error('تعذر قراءة دفتر التأمين. حدّث السجل.');
+  // Commit selection and its rows together. A failed read must never relabel the previous ledger.
+  if(leaseId!==selectedId){if(!writer.pending)draft=freshDraft();output=null;urls.clear();}
+  selectedId=leaseId;leases=data.leases;entries=data.entries;loaded=true;
   if(selectedId&&!leases.some(lease=>lease.id===selectedId)){selectedId='';entries=[];}
   render();
   if(result?.state==='saved')say(t('تم حفظ حركة التأمين والتحقق من الوصل والرصيد.'));
@@ -73,7 +76,7 @@ export function openDepositLedger(){
   d.body.replaceChildren(text('p',t('دفتر التأمين مستقل عن تحصيل الإيجار. قيمة التأمين في العقد لا تعني أنه مقبوض.')),text('p',t('القبض والرد يسجلان حركة منفذة. لا ترسل هذه الشاشة أموالاً أو تنفذ تحويلاً خارجياً.')));
   const toolbar=node('div'),picker=node('select'),empty=text('option',t('اختر عقداً محفوظاً.'));empty.value='';picker.append(empty);
   for(const lease of leases){const option=node('option',[lease.contract_no,lease.tenant_name,lease.property_name,lease.unit_no].filter(Boolean).join(' · '));option.value=lease.id;picker.append(option);}
-  picker.value=selectedId;picker.disabled=!!writer?.pending;picker.onchange=()=>work(async()=>{selectedId=picker.value;draft=freshDraft();output=null;urls.clear();await read({reconcile:false});});
+  picker.value=selectedId;picker.disabled=!!writer?.pending;picker.onchange=()=>work(()=>read({reconcile:false,leaseId:picker.value}));
   toolbar.append(field(t('العقد المحفوظ'),picker),button(t('تحديث السجل والتحقق من العملية'),()=>work(()=>read())));d.body.append(toolbar);
   if(!loaded)return;
   if(!leases.length){d.body.append(text('p',t('لا توجد عقود متاحة لدفتر التأمين حسب صلاحيتك.')));return;}
@@ -121,4 +124,3 @@ export function openDepositLedger(){
  d.onDispose(()=>{forgetView();writer=null;});
  return work(async()=>{writer=createDepositWriter({rpc,scope:d.session.bound,check:d.session.check});await read();});
 }
-

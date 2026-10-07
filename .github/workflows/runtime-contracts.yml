@@ -74,6 +74,10 @@ jobs:
       - run: node scripts/test-release-regressions.mjs tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
       - name: Session activity survives intercepted navigation and preserves idle locking
         run: node --test tests/v267-session-activity-routing.test.cjs tests/v267-session-idle-restore.test.cjs
+      - name: Read-only quality scan verifies contract links after complete scoped reads
+        run: node --test tests/data-quality.test.mjs tests/v267-data-quality-runtime.test.mjs
+      - name: Deposit ledger preserves verified contract scope on read failure
+        run: node --test tests/v267-deposit-ledger.test.mjs
       - name: Unit search reads scoped identities without a rent ledger
         run: node --test tests/v267-unit-search.test.mjs tests/v209-property-search.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
@@ -92,8 +96,12 @@ jobs:
         run: node --test tests/v267-workspace-controls.test.cjs tests/v267-locale.test.mjs tests/payment-proof.test.mjs tests/property-statements-navigation.test.mjs tests/v267-dialog-boundary.test.mjs tests/v267-tenant-portal.test.cjs tests/v267-admin-receipt-download.test.cjs tests/v267-login-locale.test.cjs tests/v267-recovery-boundary.test.cjs tests/v267-partner-session.test.mjs tests/v267-password-recovery.test.mjs tests/v267-private-files.test.mjs tests/v267-rental-records.test.cjs tests/imported-tenant-editor.test.mjs tests/v267-payroll.test.mjs
       - name: Verify complete Staging runtime against release inventory
         run: node scripts/verify-staging-runtime.mjs
+      - name: Monthly maintenance report, evidence and verified detail readback
+        run: node --test tests/v267-maintenance-monthly-report.test.mjs tests/v267-maintenance-monthly-details.test.mjs tests/v267-maintenance-photo-proof.test.mjs tests/v267-maintenance-workflow.test.cjs tests/v267-maintenance-plans.test.cjs
       - name: Property search, presentation and verified save readback
         run: node --test tests/v267-property-presentation.test.mjs
+      - name: Property onboarding and ownership require complete readback without blind retries
+        run: node --test tests/v267-onboarding-upload-recovery.test.mjs tests/v267-onboarding-creation-recovery.test.mjs tests/v267-onboarding-readback.test.mjs tests/v267-owner-entry-consistency.test.mjs tests/v267-master-owner-readback.test.mjs tests/v267-ownership-readback.test.mjs tests/v267-property-ownership-area.test.mjs tests/v267-property-onboarding.test.mjs tests/v267-property-master-runtime.test.mjs
       - name: Commercial sales and payment reconciliation readback
         run: node --test tests/v267-commercial-sales-workflow.test.mjs tests/v267-commercial-payment-allocations.test.mjs
       - name: Kuwait accounting month boundaries and partner defaults
@@ -118,8 +126,11 @@ jobs:
           node --test tests/v267-deposit*.test.mjs tests/v267-vacating*.test.mjs tests/v267-exit-review*.test.mjs tests/v267-original-documents.test.mjs
           npm ci --prefix staging-database/local-test --ignore-scripts
           node staging-database/local-test/run-service-schema-regression.mjs
+          AQARI_SCHEMA_CATALOG="$PWD/staging-database/local-test/schema-catalog-production-2026-10-05.json" node staging-database/local-test/run-isolated.mjs staging-database/sql/maintenance-task-lifecycle-guard.sql staging-database/sql/maintenance-monthly-details.sql staging-database/sql/maintenance-monthly-schedule.sql staging-database/tests/maintenance_monthly_details.sql
           node staging-database/local-test/run-pdf-editor-drafts.mjs
           node staging-database/local-test/run-pdf-contract-bindings.mjs
+          node staging-database/local-test/run-contract-execution-text.mjs
+          node staging-database/local-test/run-contract-execution-projection.mjs
           node staging-database/local-test/run-property-contract-category.mjs
           npm run test:completion --prefix staging-database/local-test
           npm run test:completion:contracts --prefix staging-database/local-test

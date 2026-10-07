@@ -1,0 +1,9 @@
+# Bank matching recovery across dialog close and same-tab reload
+
+The explicit matching form previously lost its pending state when the dialog closed or the page reloaded. Before sending reconcile, the page now persists a scoped sessionStorage marker containing only a version, opaque transfer ID and SHA-256 digest of the expected saved state. It does not persist the amount, payment ID, bank reference, sender, account, or reason as plaintext.
+
+When reopened in the same tab/session, banking actions are replaced by a read-only recovery control. It verifies the independently read transfer against the expected digest, including next revision, selected payment, exact fils and bank identity. Contradictory or absent state stays blocked; no automatic resend or marker discard is offered. Successful verification or a recognized definite rejection clears the marker. Unavailable storage prevents sending; malformed markers fail closed. Scope includes workspace and user. Hashing is a privacy minimization measure, not encryption or an authorization boundary.
+
+Validation: 60 bank/financial tests pass, including five new cases for recreated dialog recovery, contradictory saved payment, storage failure before sending, malformed marker, and cleanup on verified success/definite rejection. Runtime and diff checks pass. Tests use mocked DOM/RPC and shared storage across instances; no hosted browser reload acceptance is claimed.
+
+Limitations: sessionStorage is scoped to the current tab. Closing the browser tab, clearing storage, switching browsers/devices or an unresolved operation subsequently modified elsewhere is not solved. Ingest and reopen durable recovery remain open. No database migration, real financial operation or production deployment. R12.09 stays partial; counts remain 16/106/152.

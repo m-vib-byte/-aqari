@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {readPropertyCompleteness} from '../src/v267/components/property-completeness.js';
+import {propertyMasterReadbackMatches} from '../src/v267/domain/property-master-readback.js';
 
 const missing={code:'PGRST202',status:404,message:'Could not find the function public.aqari_property_completeness(p_property_id, p_workspace_id) in the schema cache'};
 function session(result,error) {
@@ -46,13 +47,13 @@ function masterFixture({badField=false,missingDocument=false}={}) {
  const source=readFileSync(new URL('../src/v267/pages/property-onboarding.js',import.meta.url),'utf8');
  const start=source.indexOf('async function saveMaster(){'),end=source.indexOf('async function execute(){',start);
  const calls=[],s=session(null,missing);
- const context={created:{id:'property'},d:{session:s},lockedDraft:{name:'Saved property',address:'Address',description:'Description'},
+ const context={masterAttempt:null,propertyMasterReadbackMatches,created:{id:'property'},d:{session:s},lockedDraft:{name:'Saved property',address:'Address',description:'Description',statedIncome:null,owners:[],tenantVisibility:{name:true}},
  uploaded:new Map([['document',{id:'document'}]]),assets:()=>({}),readPropertyCompleteness,Date,
  rpc:async(name,args)=>{
  calls.push(name);
  if(name==='aqari_property_master_save')return {property:{id:'property',revision:2}};
  const afterSave=calls.includes('aqari_property_master_save');
- return {property:{id:'property',revision:1,name:badField&&afterSave?'Wrong':'Saved property',address:'Address',description:'Description'},
+ return {property:{...context.lockedDraft,assets:{},id:'property',revision:afterSave?2:1,name:badField&&afterSave?'Wrong':'Saved property'},
  documents:missingDocument&&afterSave?[]:[{id:'document'}]};
  }};
  vm.createContext(context);vm.runInContext(source.slice(start,end)+'\nthis.save=saveMaster;',context);
