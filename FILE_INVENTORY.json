@@ -492,8 +492,8 @@
     },
     {
       "path": "docs/V267-EXECUTION-MFA-RECOVERY-2026-10-07.md",
-      "sha256": "20098aea8b10dc29b160a8aace306f00d80e29cf48d1bc3321a6ca1a4f30f1b7",
-      "size": 3997
+      "sha256": "4234dca6fe8fa95a6b3fa2cf79d3f62338b8e432c98b88569fba502974b9d246",
+      "size": 5284
     },
     {
       "path": "docs/V267-EXECUTION-OFFICIAL-BINDING-2026-10-06.md",
@@ -1102,8 +1102,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "5f1d3101165e30faf3b3afdab9a6d6a5149660cf42e5d272092e9fb5a6272990",
-      "size": 17716
+      "sha256": "a327762139928db016114f39c8c0ac69e1ce9adb184e0ce4371da7768dc5da97",
+      "size": 18035
     },
     {
       "path": "manifest.webmanifest",
@@ -4997,8 +4997,8 @@
     },
     {
       "path": "tests/v267-login-locale.test.cjs",
-      "sha256": "bff2d336e2e969d3a347c08eb47cf250e76eaca9e72a0e1975b60a8088e365f7",
-      "size": 4462
+      "sha256": "1d7d7cfa34dd308264b2cdeb3995cf055eff412896e65f409386ed9693369b66",
+      "size": 6277
     },
     {
       "path": "tests/v267-luxury-warm-beige.test.mjs",
@@ -5727,8 +5727,8 @@
     },
     {
       "path": "v267-login-locale.js",
-      "sha256": "f101af14f38c698d1ee5671c9c63660d22f35bf9ce6b2613f9211eae57beef22",
-      "size": 26624
+      "sha256": "d03821eef3b7d77247e8a565f05249167956db0ba602ffa7919246652330d0bf",
+      "size": 28123
     },
     {
       "path": "v267-partner-portal.js",

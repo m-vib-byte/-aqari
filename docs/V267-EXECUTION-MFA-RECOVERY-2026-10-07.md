@@ -70,3 +70,12 @@ permission denials and expired sessions never receive the marker. Tests execute
 the actual adapter for update, insert and staff RPC paths, including successful
 write followed by failed reauthorization. The added auth/startup regressions
 bring local evidence to 100 passing cases (81 JS + 19 Python).
+
+
+## Login follow-up
+
+Secure browser authentication submitted the form, but the page displayed the generic connection failure. No successful authenticated contract acceptance is claimed. Preview public config points to ofgmcsmxmdswlovsckqs. Available edge logs for 2026-10-06 23:45–23:53 UTC contained only two successful guest-mode requests, with no recorded authentication request; absence is not proof of the failure cause. Native credential protection prevented browser error-log inspection even after explicit origin navigation.
+
+The login UI previously collapsed its own verification timeout into a network error. It now identifies the account/permissions deadline using an allowlisted stage, and uses a generic unconfirmed-completion message for other deadlines. Provider details and unknown stages remain hidden. This is a diagnostic clarity fix, not a demonstrated repair of the hosted connection problem. No automatic retries, timeout extensions, authentication-policy or database changes.
+
+Validation: 59 local login/navigation/bootstrap/translation cases passed, including the actual form deadline with a hanging sign-in, password clearing, enabled controls, no automatic repeat, translation, and unknown-stage sanitization. Hosted login and device acceptance remain open.
