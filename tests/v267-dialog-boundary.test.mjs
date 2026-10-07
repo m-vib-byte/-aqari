@@ -111,6 +111,12 @@ test('temporary server outages preserve the open dialog, private URLs and unsave
  let d;
  try{
   d=createDialog('Draft contract');const draft=node('textarea');draft.value='unsaved contract fixture';d.body.append(draft);
+  for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED']){
+   await d.run(()=>d.session.request({abortSignal:async()=>({status:403,error:{message,code:'42501'}})}));
+   assert.equal(d.closed,false,'step-up authentication must not silently discard the draft');
+   assert.equal(draft.value,'unsaved contract fixture');assert.equal(d.body.inert,false);
+   assert.match(d.status.textContent,/التحقق الثنائي/);
+  }
   const revoked=[],urls=createPrivateUrls(d,{createObjectURL:()=> 'blob:pending-fixture',revokeObjectURL:url=>revoked.push(url)});urls.create(new Blob(['pending document']));
   await d.run(()=>d.session.request({abortSignal:async()=>({status:503,error:{message:'temporarily unavailable'}})}));
   assert.equal(d.closed,false);assert.equal(body.children.length,1);assert.equal(draft.value,'unsaved contract fixture');assert.equal(draft.disabled,false);assert.deepEqual(revoked,[]);

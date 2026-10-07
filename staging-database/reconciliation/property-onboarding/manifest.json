@@ -1,0 +1,87 @@
+{
+  "production_applied": true,
+  "project_ref": "djkpkkgoibruaezdrchb",
+  "migration_version": "20261007005444",
+  "migration_name": "v267_production_property_onboarding_compat",
+  "business_values_preserved": true,
+  "before": [
+    {
+      "relation": "property_master",
+      "row_count": 2,
+      "digest": "ca77f686c6a181661b723ba9ed058f61"
+    },
+    {
+      "relation": "properties",
+      "row_count": 4,
+      "digest": "5fde9977b38b6b5c62fa3685a5e5f99d"
+    },
+    {
+      "relation": "property_master_audit",
+      "row_count": 6,
+      "digest": null
+    }
+  ],
+  "after": [
+    {
+      "relation": "property_master",
+      "row_count": 2,
+      "digest": "ca77f686c6a181661b723ba9ed058f61"
+    },
+    {
+      "relation": "properties",
+      "row_count": 4,
+      "digest": "5fde9977b38b6b5c62fa3685a5e5f99d"
+    },
+    {
+      "relation": "property_master_audit",
+      "row_count": 6,
+      "digest": null
+    }
+  ],
+  "catalog_verification": {
+    "rls": true,
+    "columns": [
+      "description",
+      "tenant_public_info",
+      "tenant_visibility"
+    ],
+    "migration": [
+      {
+        "name": "v267_production_property_onboarding_compat",
+        "version": "20261007005444"
+      }
+    ],
+    "anonymous_execute": false,
+    "authenticated_execute": true,
+    "private_snapshot_exposed": false
+  },
+  "function_definitions": [
+    {
+      "proname": "aqari_property_master_snapshot",
+      "definition_md5": "193f256c40c62e35ceadd0a1b7b75bb0",
+      "acl": "{postgres=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    },
+    {
+      "proname": "aqari_property_master_save",
+      "definition_md5": "14f51849e71e45e892beeb2bc809667d",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    },
+    {
+      "proname": "aqari_property_completeness",
+      "definition_md5": "7f03a65b885281ef00721bba366a1e18",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    }
+  ],
+  "local_acceptance": "PASS: extended save/full-file readback, older callers, officeHours normalization, 3-decimal income, normalized owner identity, explicit clear, audit, revision conflicts, invalid inputs, URL guard, workspace isolation, ACL/RLS",
+  "hosted_authenticated_acceptance": false,
+  "initial_guard_refusal": "Production snapshot had received the cleared-value repair in parallel; retained the repair, recaptured the exact definition and reran local acceptance before successful application."
+}

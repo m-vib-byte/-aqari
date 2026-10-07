@@ -128,7 +128,7 @@ function uiFixture({locale='ar',role='general_manager',store=storage(),shared=nu
   assert.equal(name,'aqari_deposit_register');assert.equal(args.p_workspace_id,workspace);calls.push(structuredClone(args));
   if(state.denied)throw Object.assign(Error('ACCESS_DENIED'),{code:'42501'});
   const {p_action:action,p_data:data}=args;
-  if(action==='list')return {manager:role==='general_manager',leases:[lease()],entries:data.lease_id?structuredClone(records):[]};
+  if(action==='list'){if(state.listError)throw state.listError;return state.badList||{manager:role==='general_manager',leases:[lease(),...(state.extraLeases||[])],entries:data.lease_id?structuredClone(records.filter(r=>r.lease_id===data.lease_id)):[]};}
   if(action==='get'){if(state.getError)throw state.getError;const entry=state.badGet||structuredClone(records.find(r=>r.id===data.id)||null);return {entry,lease:entry?lease():null};}
   if(state.serverReject)throw state.serverReject;
   if(!state.noCommit&&!records.some(r=>r.id===data.id)){
@@ -197,6 +197,28 @@ test('printing reads original saved snapshot and permission revocation clears ro
 test('forged receipt readback cannot create a printable file for another contract',async()=>{
  const f=uiFixture({shared:[saved(values())]});await f.start();await f.select();f.state.badGet={...f.records[0],snapshot:{...f.records[0].snapshot,lease_id:'other'}};
  await f.button('تجهيز الوصل المحفوظ للطباعة').onclick();assert.equal(f.urls.length,0);assert.match(f.d.status.textContent,/تعذر التحقق/);
+});
+const secondLeaseId='30000000-0000-4000-8000-000000000002';
+const secondLease=()=>({id:secondLeaseId,contract_no:'C-SECOND',tenant_name:'Second tenant',property_name:'Second property',unit_no:'202',contract_deposit:'200.000',received:'0.000',refunded:'0.000',balance:'0.000',can_receive:true,can_refund:false});
+test('failed contract switch keeps the previous deposit rows, selected contract and unsaved draft together',async()=>{
+ const f=uiFixture({shared:[saved(values())]});f.state.extraLeases=[secondLease()];await f.start();await f.select();f.fill('المبلغ بالدينار الكويتي','17.125');f.fill('بيان القبض — اختياري','draft for first contract');
+ f.state.listError=Error('network unavailable');const picker=f.control('العقد المحفوظ');picker.value=secondLeaseId;await picker.onchange();
+ assert.equal(f.control('العقد المحفوظ').value,leaseId);assert.equal(f.control('المبلغ بالدينار الكويتي').value,'17.125');assert.equal(f.control('بيان القبض — اختياري').value,'draft for first contract');
+ assert.match(f.d.body.textContent,/DP-20260110-00000001/);assert.equal(f.calls.at(-1).p_data.lease_id,secondLeaseId);assert.equal(f.calls.filter(c=>!['list','get'].includes(c.p_action)).length,0);
+});
+test('successful contract switch commits new scope and clears the old draft and prepared receipt',async()=>{
+ const f=uiFixture({shared:[saved(values())]});f.state.extraLeases=[secondLease()];await f.start();await f.select();await f.button('تجهيز الوصل المحفوظ للطباعة').onclick();f.fill('المبلغ بالدينار الكويتي','17.125');
+ const picker=f.control('العقد المحفوظ');picker.value=secondLeaseId;await picker.onchange();assert.equal(f.control('العقد المحفوظ').value,secondLeaseId);assert.equal(f.control('المبلغ بالدينار الكويتي').value,'');assert.doesNotMatch(f.d.body.textContent,/DP-20260110-00000001/);assert.equal(f.urls.length,0);assert.equal(f.revoked.length,1);
+});
+test('foreign or inconsistent deposit list rows cannot replace the verified contract view',async()=>{
+ const f=uiFixture({shared:[saved(values())]});f.state.extraLeases=[secondLease()];await f.start();await f.select();
+ for(const row of [saved(values()),{...saved(values()),lease_id:secondLeaseId},{...saved(values()),snapshot:{lease_id:secondLeaseId}}]){
+  f.state.badList={leases:[secondLease()],entries:[{...row,voucher_no:'FOREIGN-VOUCHER'}]};const picker=f.control('العقد المحفوظ');picker.value=secondLeaseId;await picker.onchange();
+  assert.equal(f.control('العقد المحفوظ').value,leaseId);assert.doesNotMatch(f.d.body.textContent,/FOREIGN-VOUCHER/);assert.match(f.d.status.textContent,/تعذر قراءة دفتر التأمين/);
+ }
+});
+test('denied contract switch clears deposit data instead of restoring the previous private scope',async()=>{
+ const f=uiFixture({shared:[saved(values())]});f.state.extraLeases=[secondLease()];await f.start();await f.select();f.state.denied=true;const picker=f.control('العقد المحفوظ');picker.value=secondLeaseId;await picker.onchange();assert.equal(f.d.body.textContent,'');assert.equal(f.urls.length,0);
 });
 test('dialog disposal removes private financial data and revokes prepared receipts',async()=>{
  const f=uiFixture({shared:[saved(values())]});await f.start();await f.select();await f.button('تجهيز الوصل المحفوظ للطباعة').onclick();f.close();assert.equal(f.d.body.textContent,'');assert.equal(f.urls.length,0);

@@ -1,0 +1,11 @@
+# KPI period basis — candidate only
+
+The deployed KPI function divides receipts across a selected date range by one monthly rent snapshot. Two fully paid months at KWD 350 therefore produce 200%, not 100%.
+
+`staging-database/sql/kpi-period-basis.sql` is a reviewed candidate replacement, not an applied migration. It retains the existing authorization boundary and grants. It generates contractual due periods using the existing entitlement/free-month helpers, matches payments to those periods as of the reporting end date, excludes cancelled receipts and unconfirmed payment states, and separates cash received during the period from payment of its dues. Credit allocations are not new cash receipts and are not added to this cash-only ratio. Payments above dues can exceed 100%; there is no artificial clamp.
+
+The UI requires the new explicit calculation basis and exact returned reporting period before displaying the ratio. Old backends fail visibly rather than presenting the old monthly calculation. Labels in all five supported interface languages distinguish period dues from cash received. Expected net subtracts approved expenses from the same period's dues.
+
+Validation: nine read-only PostgreSQL fixture cases executed on isolated Preview, generated from the exact candidate aggregation query by `python3 tests/kpi_period_basis_sql_fixture.py`. Single month 100%; two months 100%; partial 75%; approved free month 100%; cancelled receipt 50%; later payment 0%; another month's receipt 0%; zero dues NULL; mid-month start excludes earlier due dates. No persisted fixture rows, account grants, external messages, or production writes. Twelve focused JavaScript/locale tests passed, including rejection of an old calculation basis and mismatched response dates.
+
+Remaining: apply the candidate SQL through the migration workflow to isolated Preview, verify the complete authenticated RPC and UI together, and obtain the required exact-candidate acceptance before production. Read-only SQL fixtures exercise the aggregation and installed helpers; they are not proof of full RPC deployment or owner acceptance. The official-document shared counter issue remains open and is not changed here. No existing document number is touched.

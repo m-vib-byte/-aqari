@@ -1,3 +1,4 @@
+import {validOfficialDocumentNumber} from '../components/official-document-number.js';
 import {message as visibleMessage} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -77,7 +78,7 @@ export function openOfficialDocumentCenter(){
   const payload={...context.defaults,...values};if(source.value)payload.sourceId=source.value;
   preparing=true;controls();try{
   numberRequest||={id:uuid(),kind:kind.value,entityId:entity.value};
-  if(!replacement){const r=await d.session.request(d.session.client.rpc('aqari_official_document_number',{p_workspace_id:d.session.bound.workspace,p_request_id:numberRequest.id,p_kind:kind.value,p_entity_id:entity.value}));if(r?.id!==numberRequest.id||r.workspace_id!==d.session.bound.workspace||r.kind!==kind.value||r.entity_id!==entity.value||!/^AQ-\d{8}-\d{8,}$/.test(r.document_no||''))throw Error('تعذر تأكيد رقم المستند المحجوز.');payload.documentNo=r.document_no;fields.get('documentNo').value=r.document_no;}
+  if(!replacement){const r=await d.session.request(d.session.client.rpc('aqari_official_document_number',{p_workspace_id:d.session.bound.workspace,p_request_id:numberRequest.id,p_kind:kind.value,p_entity_id:entity.value}));if(r?.id!==numberRequest.id||r.workspace_id!==d.session.bound.workspace||r.kind!==kind.value||r.entity_id!==entity.value||!validOfficialDocumentNumber(r.document_no,kind.value))throw Error('تعذر تأكيد رقم المستند المحجوز.');payload.documentNo=r.document_no;fields.get('documentNo').value=r.document_no;}
   const rendered=renderOfficialForm(kind.value,payload),id=replacement?.id||numberRequest.id,versionId=uuid();
   const snapshot={kind:rendered.kind,title:rendered.title,documentNo:rendered.documentNo,version:rendered.version,issuedAt:rendered.issuedAt,body:rendered.body,payload:rendered.snapshot};
   const action=replacement?'supersede':'issue',request={id,version_id:versionId,event_id:uuid(),...(replacement?{expected_version:replacement.current_version}:{}),kind:rendered.kind,document_no:rendered.documentNo,entity_type:context.entity_type,entity_id:entity.value,title:rendered.title,body:rendered.body,payload:rendered.snapshot,template_version:rendered.version,reason:reason.value.trim()};

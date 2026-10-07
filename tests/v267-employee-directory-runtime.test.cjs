@@ -14,11 +14,61 @@ function fixture(employees,options={}){
  }
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const group=node('div');group.label=label;group.append(control);return group;};
  const d={body:node('div'),status:node('p'),closed:false,onDispose:fn=>callbacks.push(fn),setBeforeClose(check){d.beforeClose=check;},session:{bound:{workspace:'w'},client:{rpc(name,args){assert.equal(name,'aqari_hr');calls.push(args);return structuredClone(options.rpc?options.rpc(args):args.p_action==='get'?{employee:employee({id:args.p_data.employee_id,revision:1,property_ids:[],profile:{name_ar:'محفوظ',name_en:'Saved'}}),permissions:{},payroll:[],events:[],documents:[],audit:[]}:{employees,properties:[],manager:false});}},request:query=>query},run(work){if(d.closed)return;d.pending=Promise.resolve().then(work).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
- vm.runInNewContext(source+'\nopenEmployees();',{translateStatic:locale.t,visibleMessage:locale.message,createDialog:()=>d,node,field,createPrivateUrls:()=>({clear(){}}),console,window:{confirm:()=>options.confirm!==false},crypto:{randomUUID:()=> 'new-employee'},PROFILE_FIELDS:[['name_ar','الاسم']],money:Number,currentMonth:()=> '2026-09'});
+ const context={translateStatic:locale.t,visibleMessage:locale.message,createDialog:()=>d,node,field,createPrivateUrls:()=>({clear(){}}),console,window:{confirm:()=>options.confirm!==false},crypto:{randomUUID:()=> 'new-employee'},PROFILE_FIELDS:[['name_ar','الاسم']],STATES:{paid:'مصروف',draft:'مسودة',issued:'صادر'},money:Number,currentMonth:()=> '2026-09'};
+ vm.runInNewContext(source+'\nopenEmployees();',context);
  const descendants=el=>[el,...el.children.flatMap(descendants)];
- return {d,calls,confirm:value=>{options.confirm=value;},find:label=>descendants(d.body).find(x=>x.label===locale.t(label))?.children[0],button:label=>descendants(d.body).find(x=>x.tag==='button'&&x.textContent===locale.t(label)),all:()=>descendants(d.body),search:()=>descendants(d.body).find(x=>x.tag==='input'&&x.type==='search'),cards:()=>descendants(d.body).filter(x=>x.tag==='article'),dispose(){d.closed=true;callbacks.forEach(fn=>fn());}};
+ return {d,calls,inspect:context.payrollReferenceFindings,confirm:value=>{options.confirm=value;},find:label=>descendants(d.body).find(x=>x.label===locale.t(label))?.children[0],button:label=>descendants(d.body).find(x=>x.tag==='button'&&x.textContent===locale.t(label)),all:()=>descendants(d.body),search:()=>descendants(d.body).find(x=>x.tag==='input'&&x.type==='search'),cards:()=>descendants(d.body).filter(x=>x.tag==='article'),dispose(){d.closed=true;callbacks.forEach(fn=>fn());}};
 }
 const employee=overrides=>({id:'employee-one',status:'active',profile:{name_ar:'أحْمَد سالم',name_en:'Ahmed Salem',phone:'00965 5555-1234',job_ar:'محاسب'},...overrides});
+const payroll=overrides=>({id:'salary-one',employee_id:'employee-one',state:'paid',voucher_no:'SAL-1',method:'cash',reference:'',month:'2026-09-01',net:'150.000',...overrides});
+const signedDocument=overrides=>({id:'signed-one',employee_id:'employee-one',payroll_id:'salary-one',kind:'signed_salary',status:'ready',attestations:{signature:true,fingerprint:true,stamp:true},...overrides});
+test('payroll quality permits cash without reference and ignores draft or issued salaries',async()=>{
+ const f=fixture([]);await f.d.pending;
+ assert.deepEqual(structuredClone(f.inspect('employee-one',[payroll(),payroll({id:'draft',state:'draft',voucher_no:null,method:'transfer'}),payroll({id:'issued',state:'issued',voucher_no:null,method:'cheque'})],[signedDocument()])),[]);
+});
+test('payroll quality detects missing vouchers and references for each supported noncash method',async()=>{
+ const f=fixture([]);await f.d.pending;
+ for(const method of ['transfer','cheque','knet'])assert.deepEqual(structuredClone(f.inspect('employee-one',[payroll({voucher_no:null,reference:'  ',method})],[signedDocument()])),[{kind:'missing_voucher',id:'salary-one',voucher:''},{kind:'missing_reference',id:'salary-one',voucher:''}]);
+ assert.equal(f.inspect('employee-one',[payroll({method:'other'})],[signedDocument()])[0].kind,'unknown_method');
+});
+test('only ready signed documents for the same employee and salary with boolean attestations satisfy metadata review',async()=>{
+ const f=fixture([]);await f.d.pending;
+ for(const override of [{employee_id:'other'},{payroll_id:'other'},{kind:'employment_contract'},{status:'reserved'},{attestations:{signature:true,fingerprint:true}},{attestations:{signature:'true',fingerprint:true,stamp:true}}]){
+  const findings=f.inspect('employee-one',[payroll()],[signedDocument(override)]);assert.equal(findings.length,1);assert.equal(findings[0].kind,'signed_document_not_confirmed');
+ }
+ assert.equal(f.inspect('employee-one',[payroll()],[signedDocument({status:'reserved'}),signedDocument({id:'good'})]).length,0);
+});
+test('payroll quality reports shared exact references as review candidates and separates payment methods',async()=>{
+ const f=fixture([]);await f.d.pending;
+ const rows=[payroll({method:'transfer',reference:'BATCH'}),payroll({id:'salary-two',voucher_no:'SAL-1',method:'transfer',reference:'BATCH'}),payroll({id:'cheque',voucher_no:'C1',method:'cheque',reference:'BATCH'}),payroll({id:'case',voucher_no:'C2',method:'transfer',reference:'batch'})];
+ const docs=rows.map(p=>signedDocument({payroll_id:p.id})),before=structuredClone(rows);
+ assert.deepEqual(structuredClone(f.inspect('employee-one',rows,docs)).map(x=>[x.kind,x.id]),[['duplicate_voucher','salary-one'],['duplicate_voucher','salary-two'],['shared_reference','salary-one'],['shared_reference','salary-two']]);assert.deepEqual(rows,before);
+ assert.throws(()=>f.inspect('employee-one',[payroll({employee_id:'another'})],docs),/نطاق الموظف/);
+});
+async function payrollReview(){
+ const saved=employee({property_ids:[]}),state={error:null,result:{employee:saved,permissions:{},payroll:[payroll({method:'transfer'})],documents:[],events:[],audit:[]}};
+ const f=fixture([saved],{rpc:args=>{if(args.p_action==='list')return {employees:[saved],properties:[]};if(state.error)throw state.error;return state.result;}});await f.d.pending;await f.button('فتح ملف أحْمَد سالم').onclick();return {f,state};
+}
+test('payroll review rereads only the selected employee and visibly limits its scope without financial writes',async()=>{
+ const {f}=await payrollReview();await f.button('مراجعة مراجع الرواتب المصروفة').onclick();
+ assert.match(f.d.body.textContent,/راتب مصروف بغير النقد بلا مرجع — SAL-1/);assert.match(f.d.body.textContent,/لا يشمل الموظفين الآخرين/);assert.match(f.d.body.textContent,/عدم ظهور مستند لا يثبت حذفه/);
+ assert.deepEqual(f.calls.map(c=>c.p_action),['list','get','get']);assert.ok(f.calls.filter(c=>c.p_action==='get').every(c=>c.p_data.employee_id==='employee-one'));
+});
+test('failed payroll review and file refresh remove previous findings before any successful reread',async()=>{
+ for(const error of [Error('network'),Object.assign(Error('denied'),{code:'42501'})]){
+  const {f,state}=await payrollReview();await f.button('مراجعة مراجع الرواتب المصروفة').onclick();state.error=error;
+  await f.button('مراجعة مراجع الرواتب المصروفة').onclick();assert.doesNotMatch(f.d.body.textContent,/نتيجة مراجعة مراجع الرواتب|لم يرصد هذا الفحص/);
+  state.error=null;await f.button('مراجعة مراجع الرواتب المصروفة').onclick();assert.match(f.d.body.textContent,/نتيجة مراجعة/);
+  state.error=error;await f.button('تحديث الملف / Reload employee').onclick();assert.doesNotMatch(f.d.body.textContent,/نتيجة مراجعة مراجع الرواتب/);
+ }
+});
+test('incomplete or wrong-employee payroll responses cannot produce a clean quality report',async()=>{
+ const {f,state}=await payrollReview();const initial=structuredClone(state.result);
+ for(const override of [{documents:undefined},{payroll:undefined},{employee:{id:'another'}},{payroll:[payroll({employee_id:'another'})]}]){
+  state.result={...initial,...override};await f.button('مراجعة مراجع الرواتب المصروفة').onclick();assert.match(f.d.status.textContent,/لم يُعرض تقرير جودة/);assert.doesNotMatch(f.d.body.textContent,/نتيجة مراجعة مراجع الرواتب|لم يرصد هذا الفحص/);
+ }
+ state.result={...initial,payroll:[],documents:[]};await f.button('مراجعة مراجع الرواتب المصروفة').onclick();assert.match(f.d.body.textContent,/لم يرصد هذا الفحص المحدود/);f.dispose();assert.equal(f.d.body.textContent,'');
+});
 test('employee search accepts Arabic digits, diacritics and formatted phone fragments without extra requests',async()=>{
  const f=fixture([employee(),employee({id:'two',profile:{name_ar:'سالم',name_en:'Salem',phone:'12340000',job_ar:'حارس'}})]);await f.d.pending;
  f.search().value='احمد';f.search().oninput();assert.equal(f.cards().length,1);assert.match(f.cards()[0].textContent,/Ahmed Salem/);

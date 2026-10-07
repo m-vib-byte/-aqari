@@ -13,6 +13,7 @@ export function openMaintenancePlans(){
  let data=null,pending=false,uncertain=false,editing=null;
  const toolbar=node('div'),reload=node('button',translateStatic('تحديث السجل')),prepare=node('button',translateStatic('تجهيز تنبيهات اليوم')),summary=node('section'),editor=node('section'),plans=node('section'),tasks=node('section'),alerts=node('section');
  reload.type=prepare.type='button';toolbar.append(reload,prepare);d.body.append(text('p',translateStatic('اختر خطة، كلّف الجهة المنفذة، ثم وثّق الإنجاز. تُجهز التنبيهات في سجل داخلي فقط؛ لا تُعرض كرسائل مُرسلة حتى يؤكد المزود التسليم.')),toolbar,summary,editor,plans,tasks,alerts);
+ toolbar.append(button(translateStatic('التقرير الشهري حسب العقار'),()=>d.run(async()=>{const report=await import('./maintenance-monthly-report.js');d.session.check();d.close();report.openMonthlyMaintenanceReport();})));
  const rpc=(action,payload={})=>d.session.request(d.session.client.rpc('aqari_maintenance_plans',{p_workspace_id:d.session.bound.workspace,p_action:action,p_data:payload}));
  async function load(proof){const fresh=await rpc('list');if(!Array.isArray(fresh?.plans)||!Array.isArray(fresh.tasks)||!Array.isArray(fresh.alerts)||!Array.isArray(fresh.properties)||!Array.isArray(fresh.documents)||(fresh.workflow_version===2&&(!Array.isArray(fresh.vendors)||!Array.isArray(fresh.contracts))))throw Error('تعذر استرجاع سجل الصيانة الدورية.');data=fresh;if(proof&&!proof(fresh))throw Error('تعذر مطابقة العملية بعد إعادة القراءة؛ لا تكررها قبل المراجعة.');render();}
  async function write(action,payload,proof){

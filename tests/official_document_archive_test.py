@@ -10,6 +10,9 @@ import importlib.util
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from io import BytesIO
+from pypdf import PdfReader
+from lib.official_document_pdf import CATALOG
 from official_document_pdf_test import fixture, DOC, WS
 
 spec = importlib.util.spec_from_file_location('official_api', Path(__file__).parents[1] / 'api/official-document.py')
@@ -59,6 +62,33 @@ class Transport:
         return api.export_archive(REQUEST, AUTH, self.read, self.commit, **kwargs)
 
 class OfficialDocumentArchiveTest(unittest.TestCase):
+    def test_statement_totals_dates_and_credit_sign_survive_real_pdf_archive(self):
+        # Calculation vectors correspond to the separately executed SQL cases.
+        # Transport is simulated; renderer and archive API are production code.
+        for opening, charges, payments, credits, closing in (
+            ('0.000','33.000','0.000','0.000','33.000'),
+            ('-50.000','90.000','0.000','0.000','40.000'),
+            ('0.000','90.000','0.000','12.000','78.000'),
+        ):
+            with self.subTest(opening=opening, closing=closing):
+                t=Transport(); series=t.document['series']; version=t.document['versions'][0]
+                series.update(kind='tenant_statement',document_no='AQ-TENANT_STATEMENT-20261006-00000001')
+                values=dict(documentNo=series['document_no'],issuedAt='2026-10-06',
+                    tenantName='مستأجر اختبار',contractNo='STMT-TEST-007',fromDate='2025-09-01',toDate='2025-09-30',
+                    openingBalance=opening,charges=charges,payments=payments,credits=credits,closingBalance=closing)
+                template=CATALOG['templates']['tenant_statement']; body=template['body']
+                for key,value in values.items(): body=body.replace('{{'+key+'}}',value)
+                version.update(title=template['title'],body=body,payload=values)
+                first,_=t.export()
+                text=''.join(p.extract_text(extraction_mode='layout') for p in PdfReader(BytesIO(first)).pages).replace('\u200e','')
+                for value in (series['document_no'],'STMT-TEST-007','2025-09-01','2025-09-30',opening,charges,payments,credits,closing):
+                    self.assertIn(value,text)
+                self.assertNotIn('{{',text)
+                archived=base64.b64decode(t.artifact['pdf_base64'])
+                self.assertEqual(first,archived)
+                self.assertEqual(t.export(render=lambda *_: self.fail('must return the archived original'))[0],first)
+                self.assertEqual(t.commits,1)
+
     def test_real_pdf_persisted_then_exact_bytes_read_without_rerender(self):
         t = Transport()
         first, status = t.export()

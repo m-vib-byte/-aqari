@@ -27,13 +27,34 @@ function today(){
 function validMonth(value){return /^\d{4}-(0[1-9]|1[0-2])$/.test(value)&&value.slice(0,4)>='1900';}
 const searchKey=value=>digits(value).normalize('NFKC').toLowerCase().replace(/[\u064b-\u065f\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/\s+/g,' ').trim();
 
+export function expenseReferenceFindings(records,documents){
+ const findings=[],references=new Map(),docs=new Map(documents.map(row=>[row.id,row]));
+ const add=(kind,row)=>findings.push({kind,id:row.id,voucher:row.voucher_no||''});
+ for(const row of records){
+  // Payroll allocations use their own signed documents. Drafts and cancellations are not live expenses.
+  if(row.source==='salary'||row.state!=='approved')continue;
+  if(!String(row.voucher_no??'').trim())add('missing_voucher',row);
+  if(!row.document_id)add('missing_document',row);
+  else if(!docs.has(row.document_id))add('unavailable_document',row);
+  else if(docs.get(row.document_id).property_id!==row.property_id)add('wrong_property_document',row);
+  if(!['cash','bank','cheque'].includes(row.method))add('unknown_method',row);
+  if(row.method!=='bank'&&row.method!=='cheque')continue;
+  if(!String(row.reference??'').trim()){add('missing_reference',row);continue;}
+  // Match the database's live (method, reference) identity; do not normalize saved references.
+  const key=JSON.stringify([row.method,row.reference]),group=references.get(key)||[];group.push(row);references.set(key,group);
+ }
+ for(const rows of references.values())if(rows.length>1)for(const row of rows)add('duplicate_reference',row);
+ return findings;
+}
+
 export function openFinancialRegister(){
  const d=createDialog(translateStatic('سجل المصروفات وإقفال الفترة المالية'));if(!d)return;
  let currentMonth=today().slice(0,7),records=[],properties=[],documents=[],history=[],period=null,summary={},manager=false,canWrite=false;
  let editing=null,requestId=crypto.randomUUID(),baseline='',pendingWrite=null,readDenied=false;
  const reasons=new Map();
  const toolbar=node('div'),month=node('input'),reload=node('button',translateStatic('تحديث السجل والتحقق من الحفظ')),add=node('button',translateStatic('إعداد مصروف جديد'));
- const overview=node('div'),list=node('div'),editor=node('form'),audit=node('div'),closing=node('div');
+ const overview=node('div'),quality=node('section'),list=node('div'),editor=node('form'),audit=node('div'),closing=node('div');
+ let qualityReady=false;
  const filters=node('div'),search=node('input'),propertyFilter=node('select'),stateFilter=node('select'),resetFilters=node('button',translateStatic('مسح البحث والتصفية')),results=node('p'),pager=node('div');
  let page=1;const pageSize=20;
  filters.className='aq267-financial-filters';pager.className='aq267-financial-pager';search.type='search';search.maxLength=200;search.placeholder=translateStatic('المستفيد، البند، رقم السند أو المرجع');
@@ -61,6 +82,7 @@ export function openFinancialRegister(){
  const allowDiscard=()=>!dirty()||window.confirm(translateStatic('توجد تعديلات غير محفوظة في مسودة المصروف. هل تريد تركها؟'));
  function closeEditor(){editing=null;requestId=crypto.randomUUID();editor.reset();editor.hidden=true;baseline='';}
  function clearPrivate(){
+  qualityReady=false;quality.replaceChildren();
   readDenied=true;records=[];properties=[];documents=[];history=[];period=null;summary={};manager=false;canWrite=false;reasons.clear();
   // Keep only a lock, never financial values, until an explicit authorized reread.
   pendingWrite=pendingWrite?{redacted:true}:null;
@@ -132,6 +154,15 @@ export function openFinancialRegister(){
   if(summary.salary_disbursements!==undefined)overview.append(text('p',translateStatic('صافي الرواتب المصروفة المرتبطة: ')+money(summary.salary_disbursements)+translateStatic(' د.ك • عددها: ')+Number(summary.salary_payment_count||0)),node('p',translateStatic('الرواتب أدناه موزعة حسب النسب المثبتة عند الإصدار، وتعرض بتاريخ الصرف. إجماليها منفصل عن المصروفات اليدوية؛ لا تسجلها مرة أخرى.')));
   if(Number(summary.unlinked_salary_count)>0)overview.append(text('p',translateStatic('رواتب مصروفة غير مرتبطة تحتاج مراجعة تاريخية ولا تدخل في إجمالي الرواتب أعلاه: ')+Number(summary.unlinked_salary_count)));
   if(period?.closed_at)overview.append(text('p',translateStatic('الفترة مقفلة منذ ')+stamp(period.closed_at)+translateStatic(' بواسطة ')+(period.closed_by_name||translateStatic('الإدارة'))+' — '+(period.reason||'')+translateStatic('؛ لا يسمح بإضافة مصروفات أو تعديلها في هذه الفترة.')));
+  quality.replaceChildren();
+  if(qualityReady){
+   const labels={missing_voucher:'مصروف معتمد بلا رقم سند',missing_document:'مصروف معتمد بلا مستند مؤيد',unavailable_document:'المستند المرتبط غير متاح في القائمة المقروءة؛ لا يثبت حذفه',wrong_property_document:'المستند المرتبط يعود إلى عقار آخر',unknown_method:'طريقة الصرف غير معروفة',missing_reference:'مصروف بنكي أو شيك بلا مرجع',duplicate_reference:'مرجع مكرر بين مصروفات معتمدة بالطريقة نفسها'};
+   const findings=expenseReferenceFindings(records,documents);
+   quality.append(node('h3',translateStatic('مراجعة مراجع المصروفات المعتمدة')),text('p',translateStatic('فحص للقراءة فقط للفترة: ')+currentMonth),node('p',translateStatic('يشمل المصروفات اليدوية المعتمدة المقروءة لكل العقارات المتاحة قبل البحث وتقسيم الصفحات. لا يشمل المسودات والملغاة والرواتب أو الأشهر الأخرى، ولا يعتمد المبالغ أو محتوى المستندات. الصلاحيات قد تحجب سجلات أو مستندات.')));
+   for(const finding of findings)quality.append(text('p',translateStatic(labels[finding.kind])+' — '+(finding.voucher?finding.voucher+' · ':'')+finding.id));
+   if(!findings.length)quality.append(node('p',translateStatic('لم يرصد هذا الفحص المحدود ملاحظات على مراجع المصروفات؛ لا يمثل اعتماداً شاملاً للبيانات.')));
+   overview.append(quality);
+  }
   filters.hidden=false;
   const propertyNames=new Map(properties.map(p=>[p.id,p.name])),terms=searchKey(search.value).split(' ').filter(Boolean),filtered=records.filter(record=>{
    if(propertyFilter.value&&record.property_id!==propertyFilter.value||stateFilter.value!=='all'&&record.state!==stateFilter.value)return false;
@@ -183,6 +214,7 @@ export function openFinancialRegister(){
  }
  const financialValues=record=>Object.fromEntries(['property_id','expense_date','category','payee','amount','method','reference','description','document_id'].map(key=>[key,record[key]??null]));
  async function load(nextMonth=currentMonth,{reconcile=false}={}){
+  qualityReady=false;quality.replaceChildren();
   let data;
   try{data=await rpc('list',{month:nextMonth});}
   catch(error){if([401,403].includes(error?.status)||error?.code==='42501'||error?.message==='ACCESS_DENIED')clearPrivate();throw error;}
@@ -200,7 +232,7 @@ export function openFinancialRegister(){
    else d.status.textContent=translateStatic('السجل المحفوظ لا يطابق العملية المطلوبة. احتُفظ بمدخلات المسودة؛ راجع السجل قبل إعادة الحفظ.');
    pendingWrite=null;
   }
-  render();
+  qualityReady=true;render();
  }
  async function write(action,values,proof){
   if(pendingWrite)throw Error('حدّث السجل للتحقق من العملية السابقة أولاً.');
