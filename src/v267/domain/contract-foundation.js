@@ -70,3 +70,8 @@ export function completeTenantIdentity(profile){
  const p=profile||{};
  return Boolean(text(p.nameAr)&&text(p.nameEn)&&/^\d{12}$/.test(digits(p.civilId))&&text(p.passportNo)&&/^\+?\d{8,15}$/.test(digits(p.phone).replace(/[ ()-]/g,''))&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text(p.email))&&text(p.nationality)&&text(p.nationalityEn));
 }
+
+export function foundationPaymentCycle(value){
+ if(!['1','3','6','12'].includes(String(value??'')))throw Error('اختر دورية السداد: شهري أو ربع سنوي أو نصف سنوي أو سنوي.');
+ return Number(value);
+}
