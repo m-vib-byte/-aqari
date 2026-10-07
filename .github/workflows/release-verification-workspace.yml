@@ -37,6 +37,17 @@ jobs:
           node scripts/test-release-regressions.mjs | tee /tmp/aqari-verification/node-tests.log
       - name: Install locked isolated SQL runtime
         run: npm ci --prefix staging-database/local-test --ignore-scripts --no-audit --no-fund
+      - name: Production property onboarding compatibility and access boundaries
+        env:
+          AQARI_SCHEMA_CATALOG: ${{ github.workspace }}/staging-database/local-test/schema-catalog-production-2026-10-05.json
+        run: |
+          python3 scripts/build-production-property-onboarding.py
+          git diff --exit-code -- staging-database/reconciliation/property-onboarding
+          cmp staging-database/reconciliation/property-onboarding/candidate.sql supabase/migrations/20261007005444_v267_production_property_onboarding_compat.sql
+          node staging-database/local-test/run-isolated.mjs \
+            staging-database/reconciliation/property-onboarding/functions-before.sql \
+            staging-database/reconciliation/property-onboarding/candidate.sql \
+            staging-database/reconciliation/property-onboarding/acceptance.sql | tee /tmp/aqari-verification/sql-property-onboarding.log
       - name: Salary voucher numbering and immutable history
         run: node staging-database/local-test/run-salary-numeric-vouchers.mjs | tee /tmp/aqari-verification/sql-salary-numbers.log
       - name: Corrected salary numbering and version linkage
@@ -168,4 +179,3 @@ jobs:
             git commit -m 'Record verified cancellation repair and restore full 155-item release policy'
             git push origin HEAD:fix/v267-release-verification
           fi
-
