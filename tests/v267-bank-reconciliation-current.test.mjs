@@ -42,7 +42,7 @@ function fixture(initialState='unmatched',options={}){
   if(args.p_action==='list'){
    if(state.listError&&calls.some(c=>c.p_action!=='list'))throw Error('read unavailable');
    const readRow=state.corrupt&&calls.some(c=>c.p_action!=='list')?{...row,...state.corrupt}:row;
-   return {workspace_id:'workspace-one',user_id:'user-one',canWrite:true,autoMatch:false,transfers:[structuredClone(readRow)],candidates:options.candidates??[{paymentId:'payment-one',amount:options.amount??'12.125',reference:'PAY-REF'}],events:[]};
+   return {workspace_id:'workspace-one',user_id:'user-one',canWrite:true,autoMatch:false,transfers:options.rows??[structuredClone(readRow)],candidates:options.candidates??[{paymentId:'payment-one',amount:options.amount??'12.125',reference:'PAY-REF'}],events:[]};
   }
   if(args.p_action==='ingest'){
    if(state.ingestError)throw state.ingestError;
@@ -170,4 +170,19 @@ test('reopen recovery rejects a still-linked or later-revision transfer',async()
 test('reopen storage failure prevents sending and definite rejection clears marker',async()=>{
  const f=fixture('reconciled',{storageError:true});await f.d.pending;await f.button('إعادة إلى غير مطابق').onclick();assert.equal(f.calls.filter(c=>c.p_action==='reopen').length,0);
  const g=fixture('reconciled');await g.d.pending;g.state.matchError=Object.assign(Error('validation'),{code:'22023'});await g.button('إعادة إلى غير مطابق').onclick();assert.equal(g.storage.size,0);assert.ok(g.button('إعادة إلى غير مطابق'));
+});
+
+test('lost ingest reply recovers after dialog recreation using digests without plaintext payload',async()=>{
+ const f=fixture();await f.d.pending;await f.ingest();f.state.loseReply=true;await f.submit();const raw=[...f.storage.values()][0];assert.equal(f.storage.size,1);for(const value of ['BANK','EXT-NEW','Sender','Saved memo','12.125'])assert.ok(!raw.includes(value));
+ const g=fixture('unmatched',{storage:f.storage,row:f.saved()});await g.d.pending;assert.equal(g.button('+ إدخال تحويل وارد'),undefined);await g.button('التحقق من التحويل السابق').onclick();assert.match(g.d.status.textContent,/تم التحقق من التحويل السابق/);assert.equal(g.storage.size,0);assert.ok(g.calls.every(c=>c.p_action==='list'));
+});
+test('ingest reload recovery rejects changed payload, duplicate identity and absent transfer',async()=>{
+ for(const mode of ['changed','duplicate','absent']){const f=fixture();await f.d.pending;await f.ingest();f.state.loseReply=true;await f.submit();const row=f.saved(),rows=mode==='changed'?[{...row,memo:'different'}]:mode==='duplicate'?[row,{...row,id:'other'}]:[];const g=fixture('unmatched',{storage:f.storage,rows});await g.d.pending;await g.button('التحقق من التحويل السابق').onclick();assert.match(g.d.status.textContent,/لم يتأكد التحويل السابق/);assert.equal(g.storage.size,1);assert.ok(g.calls.every(c=>c.p_action==='list'));}
+});
+test('ingest storage failure prevents write and successful verification clears marker',async()=>{
+ const f=fixture('unmatched',{storageError:true});await f.d.pending;await f.ingest();await f.submit();assert.equal(f.calls.filter(c=>c.p_action==='ingest').length,0);
+ const g=fixture();await g.d.pending;await g.ingest();await g.submit();assert.equal(g.storage.size,0);
+});
+test('acknowledged ingest ID remains authoritative after reload',async()=>{
+ const f=fixture();await f.d.pending;await f.ingest();f.state.listError=true;await f.submit();const g=fixture('unmatched',{storage:f.storage,row:{...f.saved(),id:'other'}});await g.d.pending;await g.button('التحقق من التحويل السابق').onclick();assert.match(g.d.status.textContent,/لم يتأكد التحويل السابق/);assert.equal(g.storage.size,1);
 });
