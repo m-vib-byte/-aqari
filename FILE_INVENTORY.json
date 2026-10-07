@@ -4217,8 +4217,8 @@
     },
     {
       "path": "tests/official_document_archive_test.py",
-      "sha256": "bd2f4b8ef2f7a5d685d4962b4769aba17d59280e39df358112da4e158cf2480c",
-      "size": 7646
+      "sha256": "d30c4f3f201867c04359d2f3dbae96bfe0082580a16c25bd4b6df4158c0c521d",
+      "size": 9764
     },
     {
       "path": "tests/official_document_pdf_test.py",
@@ -4572,8 +4572,8 @@
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
-      "sha256": "15b4a251669c9abfe88fb26b024e57ab105737ec8324868468c81487c1fc711e",
-      "size": 10794
+      "sha256": "32b273829db8b89c09e3766858d9ed3c942e7fab81c1b19563777bffe0ec5b1a",
+      "size": 11229
     },
     {
       "path": "tests/v267-dialog-progress.browser.mjs",
