@@ -25,6 +25,10 @@ export function createDialog(title,{localized=true,page=false}={}){
  const trigger=document.activeElement,cleanups=new Set();
  function onDispose(cleanup){if(closed){cleanup();return ()=>{};}cleanups.add(cleanup);return ()=>cleanups.delete(cleanup);}
  function dispose(){if(closed)return;closed=true;pendingNavigation=null;session.close();for(const cleanup of cleanups){try{cleanup();}catch{}}cleanups.clear();window.removeEventListener('aqari:auth-boundary',boundary);el.remove();if(page)document.body.classList.remove('aq267-page-open');active=null;if(trigger?.isConnected)trigger.focus({preventScroll:true});}
+ let unloadCheck=null;
+ const warnUnload=event=>{let pending=false;try{pending=Boolean(unloadCheck?.());}catch{pending=true;}if(pending){event.preventDefault();event.returnValue='';}};
+ function setBeforeUnload(check){window.removeEventListener('beforeunload',warnUnload);unloadCheck=typeof check==='function'?check:null;if(unloadCheck&&!closed)window.addEventListener('beforeunload',warnUnload);}
+ onDispose(()=>setBeforeUnload(null));
  function closeDialog(){if(!page)el.close();dispose();}
  async function requestClose(){if(closed||leaving)return;leaving=true;try{if(beforeClose&&await beforeClose()===false)return;if(!closed)closeDialog();}catch(e){if(!closed)status.textContent=localized?t(safeError(e)):safeError(e);}finally{leaving=false;}}
  const boundary=()=>{try{session.check();}catch{closeDialog();}};
@@ -50,5 +54,5 @@ export function createDialog(title,{localized=true,page=false}={}){
    }else if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();else status.textContent=localized?t(safeError(e)):safeError(e);
   }}
   finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');body.inert=false;if(pendingNavigation){const next=pendingNavigation;pendingNavigation=null;await run(next);}}}}
- return {el,body,status,session,run,navigate,onDispose,close:closeDialog,requestClose,setBeforeClose(check){beforeClose=check;return ()=>{if(beforeClose===check)beforeClose=null;};},get closed(){return closed;}};
+ return {el,body,status,session,run,navigate,onDispose,setBeforeUnload,close:closeDialog,requestClose,setBeforeClose(check){beforeClose=check;return ()=>{if(beforeClose===check)beforeClose=null;};},get closed(){return closed;}};
 }

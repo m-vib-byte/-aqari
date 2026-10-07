@@ -4,6 +4,33 @@ import {createDialog,node} from '../src/v267/components/dialog.js';
 import {createPrivateUrls} from '../src/v267/components/private-urls.js';
 import {readProtectedPDF} from '../src/v267/api/protected-pdf.js';
 
+test('page exit warns only for pending edits and releases its guard on access loss',()=>{
+ const listeners=new Map(),originalWindow=globalThis.window,originalDocument=globalThis.document;
+ class Element{
+  constructor(){this.children=[];this.events=new Map();}
+  append(...nodes){this.children.push(...nodes);}
+  setAttribute(){} remove(){} showModal(){} close(){}
+  addEventListener(name,fn){this.events.set(name,fn);}
+ }
+ globalThis.document={body:new Element(),activeElement:null,createElement:()=>new Element(),documentElement:{classList:{contains:()=>true}}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',role:'general_manager',is_active:true}}},addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);}};
+ let d;
+ try{
+  d=createDialog('Draft');assert.equal(listeners.has('beforeunload'),false,'read-only dialogs do not register a page exit guard');
+  let pending=false;
+  d.setBeforeUnload(()=>pending);
+  const exit=()=>{const event={prevented:false,preventDefault(){this.prevented=true;}};listeners.get('beforeunload')?.(event);return event;};
+  assert.equal(exit().prevented,false);
+  pending=true;assert.equal(exit().prevented,true);assert.equal(exit().returnValue,'');
+  pending=false;assert.equal(exit().prevented,false,'confirmed save stops the warning');
+  d.setBeforeUnload(()=>{throw Error('cannot determine draft state');});assert.equal(exit().prevented,true,'unknown draft state is protected');
+  d.setBeforeUnload(null);assert.equal(listeners.has('beforeunload'),false);
+  d.setBeforeUnload(()=>true);window.AQARI_DATA_GATE.scope=null;listeners.get('aqari:auth-boundary')();
+  assert.equal(d.closed,true,'guard cannot prevent access revocation');assert.equal(listeners.has('beforeunload'),false);
+  d.setBeforeUnload(()=>true);assert.equal(listeners.has('beforeunload'),false,'disposed dialogs cannot restore a listener');
+ }finally{d?.close();globalThis.window=originalWindow;globalThis.document=originalDocument;}
+});
+
 // Model the native queued close event: a closed dialog can still have DOM children.
 // No browser, service, credentials or business records are used by this unit test.
 test('auth boundaries remove private DOM and abort requests before the queued close event',async()=>{

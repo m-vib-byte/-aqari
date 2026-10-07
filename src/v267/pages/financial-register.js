@@ -286,6 +286,7 @@ export function openFinancialRegister(){
   };
   d.el.addEventListener('cancel',event=>{if(!allowDiscard()){event.preventDefault();event.stopImmediatePropagation();}},true);
  }
+ d.setBeforeUnload?.(()=>Boolean(pendingWrite)||dirty());
  d.onDispose(()=>{clearPrivate();pendingWrite=null;});
  d.run(async()=>{await load();d.status.textContent=translateStatic('تم استرجاع المصروفات وحالة الفترة من قاعدة البيانات.');});
 }

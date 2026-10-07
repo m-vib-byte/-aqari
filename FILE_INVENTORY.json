@@ -1477,8 +1477,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "408c48f2d9e2a71bb50a2ae57ebc82bf19b4d8984b2b2db94cc148c57bf88a4c",
-      "size": 5603
+      "sha256": "308095cecb6e6c6b1f8139ae3427feb67ef2e76798b594e69dbe36a9020671a5",
+      "size": 6056
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1662,8 +1662,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "e1575d25bd5683cf340bf30743ffc411538bdb3029206633b67d854224d48270",
-      "size": 97405
+      "sha256": "52f0c030f2e000288cb54ce35f8bd37debdbec76d4a1d150a4647c69d2a6afd2",
+      "size": 97454
     },
     {
       "path": "src/v267/components/report-filter-translations.js",
@@ -1962,13 +1962,13 @@
     },
     {
       "path": "src/v267/pages/document-scanner.js",
-      "sha256": "bae98250b4c9cfab314433d13291758bbe27fd4f475b590aff0e62c8dab9aa6e",
-      "size": 20131
+      "sha256": "c6a5afa326547dd9dfb998d5582cc38434f67ef4143df1e5a7180319561b9e64",
+      "size": 20200
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "0976273e803ace559ef3ab4bb4d8ff2f9e95d8f6cc6ebd84f3923dfc0aba2c14",
-      "size": 40706
+      "sha256": "06ce5a7b7e0ed4b84a9f1d2d442c6b27e719edc18d4bc9eeeee249f107db9f1b",
+      "size": 40835
     },
     {
       "path": "src/v267/pages/exit-review.js",
@@ -1992,8 +1992,8 @@
     },
     {
       "path": "src/v267/pages/financial-register.js",
-      "size": 33560,
-      "sha256": "ac246def9702568e1cb48e592547f2768ffdeef5e0e09a898426d3bb568042a7"
+      "size": 33618,
+      "sha256": "fdcea0b0811424619d0ee9235256b6ca89ab87edaffe075029129ad65f8c0428"
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
@@ -2152,8 +2152,8 @@
     },
     {
       "path": "src/v267/pages/staff-access.js",
-      "sha256": "5fab559c6f7ea8f04200097025e78a00b6defae99bc397df641c9f8dc4877162",
-      "size": 16919
+      "sha256": "df3d377957f069a9c5920c5a650985397e1d46aef7e1f30903498f81e9c92691",
+      "size": 17036
     },
     {
       "path": "src/v267/pages/staff-circulars.js",
@@ -4782,8 +4782,8 @@
     },
     {
       "path": "tests/v267-dialog-boundary.test.mjs",
-      "sha256": "32b273829db8b89c09e3766858d9ed3c942e7fab81c1b19563777bffe0ec5b1a",
-      "size": 11229
+      "sha256": "ed54cf9719a48c2ed1d3fa98b5fb0c1710be487825acb92a351e5b9642e9dae6",
+      "size": 13452
     },
     {
       "path": "tests/v267-dialog-progress.browser.mjs",

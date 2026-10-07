@@ -165,6 +165,7 @@ export async function openDocumentScanner(initial={}){
   blob=null;img=null;pending=null;reviewed.checked=false;pages.length=0;drawPages();uploadMime='';uploadName='';file.value=camera.value='';preview.hidden=true;rotate.disabled=true;cropBox.hidden=true;page=0;await loadDocuments();status.textContent=t('تم حفظ النسخة بعد استرجاعها من التخزين ومراجعة جودتها ومطابقة بصمتها وتصنيفها وارتباطها بالسجل.');
  });
  next.onclick=()=>run(async()=>{page++;await loadDocuments();status.textContent=t('المستندات الأقدم.');});previous.onclick=()=>run(async()=>{if(page>0)page--;await loadDocuments();status.textContent=t('المستندات الأحدث.');});
+ dialog.setBeforeUnload?.(()=>Boolean(pending||blob||pages.length));
  dialog.setBeforeClose(()=>pending?window.confirm(t('لم يتأكد إقفال المستند المرفوع. هل تريد إغلاق الماسح؟ تحقق من المستندات المحفوظة عند العودة قبل إعادة الرفع.')):blob||pages.length?window.confirm(t('توجد صورة أو صفحات أو ملف لم يُحفظ بعد. هل تريد تجاهله وإغلاق الماسح؟')):true);
  dialog.onDispose(()=>{renderId++;img=null;blob=null;pending=null;pages.length=0;file.value=camera.value='';pagesList.replaceChildren();preview.removeAttribute('src');previewUrl=null;});
  rotate.disabled=addPage.disabled=true;cropBox.hidden=true;refreshCategories();await run(loadRecords);

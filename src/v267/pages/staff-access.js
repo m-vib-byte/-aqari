@@ -102,6 +102,7 @@ export function openStaffAccess(){
   pendingSave=null;directory=verified;render();d.status.textContent=values.is_active?visibleText('تم حفظ الصلاحيات والتحقق من الدور والعقارات بإعادة القراءة.'):visibleText('تم إيقاف الوصول والتحقق من حفظ الإيقاف وسجل التعديل.');
  });};
  prepareAccount.onclick=()=>d.run(async()=>{if(!accountPreparations){accountPreparations=createStaffAccountPreparations(d);preparationPanel.append(accountPreparations.el);}await accountPreparations.load();preparationPanel.scrollIntoView?.({block:'start'});});
+ d.setBeforeUnload?.(()=>Boolean(pendingSave||accountPreparations?.uncertain||accountPreparations?.dirty)||dirty());
  d.setBeforeClose?.(()=>pendingSave||accountPreparations?.uncertain?window.confirm(visibleText('لم يتأكد حفظ تعديل الصلاحيات بعد. هل تريد إغلاق النافذة؟ عند العودة حدّث السجل وتحقق من العملية قبل إعادة الحفظ.')):accountPreparations?.dirty?window.confirm(visibleText('توجد بيانات تجهيز حساب غير محفوظة. هل تريد تركها وإغلاق النافذة؟'))&&canDiscard():canDiscard());
  d.onDispose(clear);d.run(load);
 }
