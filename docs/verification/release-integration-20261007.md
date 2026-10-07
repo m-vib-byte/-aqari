@@ -1,0 +1,11 @@
+# Consolidated release candidate — 2026-10-07
+
+The owner explicitly requested completion, direct verification and release. The accumulated candidate through PR455 was based on an older main and did not yet include published PR420/422/423 fixes. Main at inspection: 3bb3cae3fcf8a1145c39ac8992fee78685ec2064 (Vercel production READY).
+
+This merge preserves the accumulated candidate while incorporating current main. Two conflicts were resolved: release inventory and property onboarding. Onboarding retains locked creation/upload/master readback recovery and now uses main's advisory completeness helper. Only absence of the exact optional completeness RPC is tolerated; authorization, network, wrong scope and incomplete master readback remain blocking. Test fixtures were reconciled with the combined full-readback contract. Published contract execution readiness guards and ledger-credit migration are preserved.
+
+Validation: `node scripts/test-release-regressions.mjs` executed all 2,688 discovered JS release tests against a disposable prepared copy: 2,688 passed, zero failed/skipped. The focused onboarding/completeness/readiness/master suites passed 105 tests. Runtime inventory verification and diff checks passed. No test count is treated as requirement completion or hosted acceptance.
+
+Hosted evidence: PR455 app login reached the AQARI sign-in page after successful Vercel authentication. AQARI sign-in displayed the mapped secure connection load error, and a subsequent target-page navigation returned the sign-in page. A session was not proven. Native credential protection prevented additional browser diagnostics; manual handoff was offered. Independently, PR455 `/api/supabase-status` returned HTTP200, connected=true and connectionVerified=true from the read-only server health probe at 2026-10-07T00:40:57.633Z. This proves server-to-database health, not browser authentication.
+
+Release limits: no production merge/deploy or schema execution in this batch. The integrated candidate still needs hosted authenticated acceptance and migration compatibility review. It does not incorporate unrelated changes from other active draft branches automatically. Requirement counts remain 16 complete, 106 partial, 152 requiring verification. Full platform completion and device acceptance remain unproven.

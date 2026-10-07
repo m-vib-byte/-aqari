@@ -30,7 +30,7 @@ select set_config('request.jwt.claim.sub','76800000-0000-4000-8000-000000000001'
 set local role authenticated;
 do $$declare x jsonb;begin
  x:=public.aqari_property_tenant_ledger('70000000-0000-4000-8000-000000000001','76800000-0000-4000-8000-000000000101',current_date);
- if jsonb_array_length(x->'rentDues')<>1 or (x#>>'{rentDues,0,balance}')::numeric<>25.5 or x#>>'{rentDues,0,sourceHash}'<>'synthetic-a' then raise exception 'AUTHORITATIVE_BALANCE_OR_SCOPE_FAILED';end if;
+ if jsonb_array_length(x->'rentDues')<>1 or (x#>>'{rentDues,0,creditAmount}')::numeric<>10 or (x#>>'{rentDues,0,balance}')::numeric<>25.5 or x#>>'{rentDues,0,sourceHash}'<>'synthetic-a' then raise exception 'AUTHORITATIVE_BALANCE_OR_SCOPE_FAILED';end if;
  if has_function_privilege('anon','public.aqari_property_tenant_ledger(uuid,uuid,date)','EXECUTE') then raise exception 'ANON_EXECUTE';end if;
 end$$;
 reset role;

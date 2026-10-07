@@ -1,3 +1,4 @@
+import {readPropertyCompleteness} from '../components/property-completeness.js';
 import {ownershipShareBasisPoints} from '../domain/ownership-shares.js';
 import {propertyMasterReadbackMatches} from '../domain/property-master-readback.js';
 import {uiError} from '../components/ui-error.js';
@@ -104,7 +105,7 @@ export function openPropertyOnboarding(){
   const verify=await rpc('aqari_property_full_file',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id,p_as_of:new Date().toISOString().slice(0,10)});
   if(verify?.property?.id!==created.id||Number(verify.property.revision)!==masterAttempt.revision||!propertyMasterReadbackMatches(verify.property,masterAttempt.data))throw Error('ملف العقار المعاد قراءته لا يطابق البيانات المحفوظة. أعد المحاولة للتحقق؛ لن يعاد إرسال الحفظ.');
   const ids=new Set((verify.documents||[]).map(x=>x.id));for(const row of uploaded.values())if(!ids.has(row.id))throw Error('مستند مرفوع لم يظهر في الملف الكامل بعد إعادة القراءة.');
-  const complete=await rpc('aqari_property_completeness',{p_workspace_id:d.session.bound.workspace,p_property_id:created.id});if(complete?.property_id!==created.id)throw Error('تعذر حساب اكتمال ملف العقار.');return {verify,complete};
+  const complete=await readPropertyCompleteness(d.session,created.id);return {verify,complete};
  }
  async function execute(){
   if(!access){access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');}
@@ -113,7 +114,7 @@ export function openPropertyOnboarding(){
   if(!created)throw Error('تعذر تثبيت هوية العقار.');await uploadDocuments();d.status.textContent=translateStatic('جارٍ حفظ Master Data وربط الأرشيف…');const {complete}=await saveMaster();
   let module;try{module=await import('./property-hub.js');if(typeof module.openPropertyHub!=='function')throw Error('PROPERTY_HUB_UNAVAILABLE');}
   catch{d.session.check();throw Error('تم حفظ العقار، لكن تعذر تحميل صفحة ملفه. أعد المحاولة لفتح الملف دون إنشاء عقار جديد.');}
-  d.session.check();window.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:lockedDraft.name,propertyId:created.id}}));d.status.textContent=translateMessage("تم إنشاء {v0} وأرشفة {v1} ملف/صورة. اكتمال الملف {v2}%.",{v0:(lockedDraft.name),v1:(uploaded.size),v2:(complete.score)});d.close();return module.openPropertyHub(created.id);
+  d.session.check();window.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:lockedDraft.name,propertyId:created.id}}));d.status.textContent=complete?translateMessage("تم إنشاء {v0} وأرشفة {v1} ملف/صورة. اكتمال الملف {v2}%.",{v0:(lockedDraft.name),v1:(uploaded.size),v2:(complete.score)}):translateStatic('تم الحفظ.');d.close();return module.openPropertyHub(created.id);
  }
  form.onsubmit=event=>{event.preventDefault();d.run(execute).catch(()=>{});};
  d.run(async()=>{access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');if(access?.permissions?.documents?.write!==true)files.append(node('p',translateStatic('ملاحظة: رفع الملفات غير متاح لهذه الصلاحية؛ يمكن إنشاء العقار بدون مرفقات.')));d.status.textContent=translateStatic('أكمل الملف في شاشة واحدة ثم اضغط حفظ.');name.focus();});

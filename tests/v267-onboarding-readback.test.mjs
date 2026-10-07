@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
+import {readPropertyCompleteness} from '../src/v267/components/property-completeness.js';
 import {readFileSync} from 'node:fs';
 import {propertyMasterReadbackMatches} from '../src/v267/domain/property-master-readback.js';
 
@@ -26,9 +27,10 @@ function fixture({change,loseResponse=false,uncommitted=false,loseRead=false,wri
    if(reads>1&&change)change(file);
    return file;
   }
-  if(name==='aqari_property_completeness')return {property_id:'p',score:75};
+  if(name==='aqari_property_completeness')return {workspace_id:'w',property_id:'p',score:75};
   throw Error('unexpected RPC '+name);
  }};
+ scope.readPropertyCompleteness=readPropertyCompleteness;scope.d.session.request=p=>p;scope.d.session.client={rpc:scope.rpc};
  vm.createContext(scope);vm.runInContext(saveSource,scope);
  return {save:()=>scope.saveMaster(),writes:()=>writes,calls,sent};
 }
