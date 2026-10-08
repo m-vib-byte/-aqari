@@ -314,6 +314,12 @@ export function openRentalContracts(initial={}){
  }
  async function show(id,{attach=false}={}){clear(translateStatic('العقود المحفوظة / Saved contracts'));d.body.append(backButton(),button(translateStatic('إعادة المحاولة'),()=>show(id,{attach})));await load();const {contract:c,binding}=boundContract(id);selectedUnitId=binding.unitId;clear(translateStatic('عقد ')+c.contract_no);d.body.append(backButton(),node('p',translateStatic(states[c.status]||c.status)+' · '+binding.property.name+' · '+binding.unit.unit_no));
   const attachmentTarget=node('section');if(attach)d.body.append(attachmentTarget);
+  if(c.source==='v267-cloud'&&['signed','expired'].includes(c.status))d.body.append(button(translateStatic('مستندات الإبرام المؤرشفة'),async()=>{
+   const module=await guardPageImport(()=>import('./contract-execution-archive.js'));d.session.check();
+   if(typeof module.openContractExecutionArchive!=='function')throw Error('تعذر فتح مستندات الإبرام المؤرشفة.');
+   const options={contractRef:String(c.id),contractNo:c.contract_no,workspaceId:d.session.bound.workspace,userId:d.session.bound.user,onBack:()=>openRentalContracts({propertyId:selectedPropertyId,id:c.id})};
+   d.close();return module.openContractExecutionArchive(options);
+  }));
   const boundCopies=node('section');d.body.append(button(translateStatic('نسخ PDF المرتبطة'),async()=>{boundCopies.replaceChildren();await mountBoundContractPdfs(d,boundCopies,{property:{id:selectedPropertyId,externalRef:binding.property.external_ref||binding.property.externalRef},contractRef:c.id});}),boundCopies);
   if(d.session.bound.role==='general_manager')d.body.append(button(translateStatic('مستندات هذا العقد — استلام، وصل، إخلاء، براءة ذمة'),()=>documentCycle(c.id)));
   d.body.append(button(translateStatic('كشوف العقارات المحفوظة'),()=>openContractStatements(d,{...c,propertyId:selectedPropertyId,property:propertyRecord().name})));

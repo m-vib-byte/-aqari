@@ -84,3 +84,39 @@ test('readback can enable an existing action and validation can disable it',asyn
   assert.equal(f.enabled.disabled,true,'invalid or revoked actions must stay disabled after loading');
  }finally{f.cleanup();}
 });
+
+test('server MFA challenges retain unsaved input without retrying the write',async()=>{
+ for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED']){
+  const f=fixture();try{f.enabled.value='synthetic unsaved unit';let calls=0,visits=0;
+   await f.d.run(async()=>{calls++;f.d.navigate(async()=>{visits++;});return f.d.session.request({abortSignal:async()=>({status:403,error:{code:'42501',message}})});});
+   assert.equal(calls,1);assert.equal(visits,0);assert.equal(f.d.closed,false);
+   assert.equal(f.enabled.value,'synthetic unsaved unit');assert.equal(f.d.body.inert,false);
+   assert.match(f.d.status.textContent,/التحقق الثنائي/);
+   if(message==='MFA_RECENT_REAUTH_REQUIRED')assert.match(f.d.status.textContent,/15/);
+   let result;await f.d.run(async()=>{result=await f.d.session.request({abortSignal:async()=>({status:200,data:{saved:true}})});});
+   assert.equal(result.saved,true);assert.equal(f.d.status.textContent,'');
+  }finally{f.cleanup();}
+ }
+});
+test('MFA text cannot override an expired session or a changed scope',async()=>{
+ for(const change of ['expired','workspace','role']){
+  const f=fixture();try{
+   await f.d.run(async()=>{
+    if(change==='workspace')window.AQARI_DATA_GATE.scope.workspaceId='other';
+    if(change==='role')window.AQARI_SUPABASE.context.membership.role='viewer';
+    throw Object.assign(Error('MFA_REQUIRED'),{status:change==='expired'?401:403,code:'42501'});
+   });
+   assert.equal(f.d.closed,true);
+  }finally{f.cleanup();}
+ }
+});
+test('other authorization denials still remove the dialog',async()=>{
+ for(const error of [
+  Object.assign(Error('ACCESS_DENIED'),{status:403,code:'42501'}),
+  Object.assign(Error('MFA_REQUIRED_extra'),{status:403,code:'42501'}),
+  Object.assign(Error('MFA_REQUIRED'),{status:403}),
+  Object.assign(Error('unknown privilege error'),{code:'42501'})
+ ]){
+  const f=fixture();try{await f.d.run(async()=>{throw error;});assert.equal(f.d.closed,true);}finally{f.cleanup();}
+ }
+});

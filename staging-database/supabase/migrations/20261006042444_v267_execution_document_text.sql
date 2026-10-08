@@ -1,69 +1,11 @@
--- V267 isolated staging: atomic contract execution settlement.
--- A V267 contract may transition to signed only with one immutable execution
--- settlement in the same app-state transaction. Zero-due contracts record an
--- explicit reason and create no fake payment or rent receipt.
-begin;
-
-create table private.aqari_contract_execution_settlements(
- id uuid primary key,
- workspace_id uuid not null references public.aqari_workspaces(id),
- lease_id uuid not null,
- contract_ref text not null,
- contract_no text not null,
- on_date date not null,
- method text not null check(method in ('none','cash','knet','bank','cheque')),
- transaction_reference text not null default '',
- rent_amount numeric(15,3) not null check(rent_amount>=0),
- deposit_amount numeric(15,3) not null check(deposit_amount>=0),
- advance_amount numeric(15,3) not null check(advance_amount>=0),
- fees_amount numeric(15,3) not null check(fees_amount>=0),
- total_amount numeric(15,3) not null check(total_amount=rent_amount+deposit_amount+advance_amount+fees_amount),
- rent_receipt_no text not null default '',
- zero_reason text not null default '',
- contract_document_id uuid not null,
- created_by uuid not null,
- created_by_name text not null,
- created_at timestamptz not null default now(),
- snapshot jsonb not null check(jsonb_typeof(snapshot)='object'),
- unique(workspace_id,id),
- unique(workspace_id,lease_id),
- unique(workspace_id,contract_document_id),
- foreign key(workspace_id,lease_id) references public.aqari_leases(workspace_id,id),
- check((total_amount=0 and method='none' and transaction_reference='' and rent_receipt_no='' and length(btrim(zero_reason)) between 3 and 500)
-    or (total_amount>0 and method<>'none' and length(btrim(transaction_reference)) between 3 and 150)),
- check((rent_amount=0 and rent_receipt_no='') or (rent_amount>0 and length(btrim(rent_receipt_no)) between 3 and 150))
-);
-create unique index aqari_contract_execution_transaction_unique
- on private.aqari_contract_execution_settlements(workspace_id,lower(transaction_reference))
- where total_amount>0;
-create index aqari_contract_execution_contract_history
- on private.aqari_contract_execution_settlements(workspace_id,contract_ref,created_at,id);
-alter table private.aqari_contract_execution_settlements enable row level security;
-revoke all on private.aqari_contract_execution_settlements from public,anon,authenticated;
-create trigger aqari_contract_execution_immutable before update or delete on private.aqari_contract_execution_settlements
- for each row execute function private.aqari_reject_immutable_change();
-
--- Preparation drafts follow contract permissions. Final execution manifests
--- follow collections permissions; the final signing guard below additionally
--- requires the general manager.
-create or replace function private.aqari_state_section(k text) returns text
-language sql immutable set search_path='' as $$
- select case
- when k in ('properties','units','propertyFilesV202','propertyBankAccountsV267') then 'properties'
- when k in ('tenants','tenantProfilesV267') then 'tenants'
- when k in ('leases','contractsV202','contractTemplatesV202','tenantDirectoryV202','contractPreparationDraftsV267') then 'contracts'
- when k in ('collections','rentLedgerV202','rentReceiptsV267','depositReceiptsV267','depositRefundsV267','contractExecutionSettlementsV267') then 'collections'
- when k in ('maintenance','maintenanceContracts','maintenanceRequestsV267') then 'maintenance'
- when k in ('expenses','services','invoices','accounts','bankAccounts','journalEntries','openingBalancesV267') then 'finance'
- when k in ('employees','payroll') then 'employees'
- when k in ('propertySharesV267','propertyPartnersV267','partnerDistributionsV267','partnerAdjustmentsV267','partnerReservesV267') then 'partners'
- when k in ('documents','documentsV267','documentArchiveV267') then 'documents'
- when k in ('notifications','reminders','notificationSettingsV267') then 'notifications'
- else 'administration' end
-$$;
-
-create function private.aqari_project_contract_execution() returns trigger
-language plpgsql security definer set search_path='' as $$
+-- Preview-only fix: extract JSON text before concatenating canonical document fields.
+-- No table, permission, financial rule, or status guard changes.
+CREATE OR REPLACE FUNCTION private.aqari_project_contract_execution()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
 declare
  old_d jsonb:=private.aqari_unwrap(old.payload); new_d jsonb:=private.aqari_unwrap(new.payload);
  old_rows jsonb; new_rows jsonb; e jsonb; c jsonb; old_c jsonb;
@@ -78,15 +20,11 @@ begin
  new_rows:=coalesce(new_d->'contractExecutionSettlementsV267','[]'::jsonb);
  if jsonb_typeof(old_rows)<>'array' or jsonb_typeof(new_rows)<>'array' then raise exception 'EXECUTION_SETTLEMENT_ARRAY_REQUIRED' using errcode='22023';end if;
  if jsonb_array_length(new_rows)>5000 then raise exception 'EXECUTION_SETTLEMENT_LIMIT' using errcode='22023';end if;
- if exists(select 1 from jsonb_array_elements(old_rows) o where not exists(select 1 from jsonb_array_elements(new_rows) n where n=o)) then
-  raise exception 'EXECUTION_SETTLEMENT_IMMUTABLE' using errcode='23514';
+ if exists(select 1 from jsonb_array_elements(old_rows) o where not exists(select 1 from jsonb_array_elements(new_rows) n where n=o)) then raise exception 'EXECUTION_SETTLEMENT_IMMUTABLE' using errcode='23514';
  end if;
- if exists(select x->>'id' from jsonb_array_elements(new_rows) x group by x->>'id' having count(*)>1) then
-  raise exception 'EXECUTION_SETTLEMENT_DUPLICATE_ID' using errcode='23505';
+ if exists(select x->>'id' from jsonb_array_elements(new_rows) x group by x->>'id' having count(*)>1) then raise exception 'EXECUTION_SETTLEMENT_DUPLICATE_ID' using errcode='23505';
  end if;
 
- -- No V267 contract can newly become signed without a settlement created in
- -- this exact state revision.
  for c in select value from jsonb_array_elements(coalesce(new_d->'contractsV202','[]'::jsonb)) loop
   if c->>'source'='v267-cloud' and c->>'status'='signed' then
    select value into old_c from jsonb_array_elements(coalesce(old_d->'contractsV202','[]'::jsonb)) where value->>'id'=c->>'id' limit 1;
@@ -164,8 +102,6 @@ begin
   payload:=jsonb_build_object('contractNo',c->>'contract_no','tenant',c->>'tenant','property',c->>'property','unit',c->>'unit','startDate',c->>'start_date','endDate',c->>'end_date','contractRent',c->>'contractRent','discount',c->>'discount','deposit',c->>'deposit','advance',c->>'advance','fees',c->>'cleaningFee','template',c->'contractTemplate','executionSettlementId',settlement_id,'contractSnapshot',c);
   hash:=pg_catalog.encode(extensions.digest(title||E'\n'||body||E'\n'||payload::text,'sha256'),'hex');
   template_version:=coalesce(nullif(c#>>'{contractTemplate,version}','')::integer,1);
-  insert into private.aqari_official_number_reservations(id,workspace_id,document_no,kind,entity_id,actor_id)
-   values(document_id,new.workspace_id,'CT-'||(c->>'contract_no'),'rental_contract',lease.id,auth.uid());
   insert into private.aqari_official_document_series(id,workspace_id,kind,document_no,entity_type,entity_id,status,current_version,created_by)
    values(document_id,new.workspace_id,'rental_contract','CT-'||(c->>'contract_no'),'lease',lease.id,'issued',1,auth.uid());
   insert into private.aqari_official_document_versions(id,workspace_id,series_id,version,template_version,title,body,payload,content_sha256,issued_by,issued_by_name)
@@ -180,10 +116,5 @@ begin
    values(new.workspace_id,property_id,settlement_id::text,'contract_execution_confirmed',auth.uid(),actor,case when total_amount=0 then zero_reason else 'تسوية إبرام عقد مع مرجع حركة '||tx end,e);
  end loop;
  return null;
-end $$;
-revoke all on function private.aqari_project_contract_execution() from public,anon,authenticated;
-create trigger zzz_v267_contract_execution after update of payload on public.aqari_app_state
- for each row execute function private.aqari_project_contract_execution();
-
-commit;
-
+end $function$
+;

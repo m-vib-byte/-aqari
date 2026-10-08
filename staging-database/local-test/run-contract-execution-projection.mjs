@@ -16,8 +16,11 @@ try {
  assert.equal(legacy.split(marker).length,2,'unambiguous artifact-only source section');
  const artifactOnly='begin;\n'+legacy.slice(legacy.indexOf(marker));
  assert.ok(!artifactOnly.includes('create or replace function public.aqari_reserve_'),'must preserve Production allocators');
- const due=read('rent-entitlement-start.sql').match(/create or replace function private\.aqari_rent_due_on\([\s\S]*?revoke all on function private\.aqari_rent_due_on\(jsonb,date,date\) from public,anon,authenticated;/)?.[0];
- assert.ok(due,'exact rent due date source, without unrelated entitlement migrations');
+ const entitlement=read('rent-entitlement-start.sql');
+ const due=['aqari_validate_rent_entitlement','aqari_contract_due','aqari_rent_due_on'].map(name=>{
+  const sql=entitlement.match(new RegExp('create or replace function private\\.'+name+'\\([\\s\\S]*?revoke all on function private\\.'+name+'\\([^;]*;'))?.[0];
+  assert.ok(sql,'exact entitlement calculation source: '+name);return sql;
+ }).join('\n');
  const snapshot=`create temporary table execution_allocator_before as select oid,md5(pg_get_functiondef(oid)) as hash from pg_proc where proname in ('aqari_reserve_contract_serial','aqari_reserve_rent_receipt_serial');`;
  const verify=`do $$ begin if exists(select 1 from execution_allocator_before where hash<>md5(pg_get_functiondef(oid))) then raise exception 'ALLOCATOR_DEFINITION_CHANGED';end if;end $$;`;
  const files=[['before.sql',snapshot],['artifacts.sql',artifactOnly],['due-date.sql',due],['after.sql',verify]];
