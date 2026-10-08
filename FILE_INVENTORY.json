@@ -1777,8 +1777,8 @@
     },
     {
       "path": "src/v267/domain/contract-foundation.js",
-      "sha256": "94af58448d1004df6d85ad96616b4c450f470b42c6383de8898edc23bf6055b9",
-      "size": 5330
+      "sha256": "6505ede9feb139b16009dfeb69db9342a059bf8431bbae32f492a22d53ddbafe",
+      "size": 5571
     },
     {
       "path": "src/v267/domain/deposit-ledger.js",
@@ -1937,8 +1937,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "sha256": "0482b63fd1dba60f5ea93185e33b312d242263d300996182d9eb85c8f37f1b5a",
-      "size": 37773
+      "sha256": "fbc1ebaee421a9bcb94f14ea76920fe153fb413ae7502d404ae46c87a1ab2645",
+      "size": 38439
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -2147,8 +2147,8 @@
     },
     {
       "path": "src/v267/pages/security-center.js",
-      "sha256": "ae41f58e435b7436e118e688381bf35f7c3ce127fec813792242162e49facbc1",
-      "size": 9179
+      "sha256": "f0a7b7f072f3eef0fa9793584c87f11aa1bd3f5d98d5fe29eed12fb895d5976c",
+      "size": 9497
     },
     {
       "path": "src/v267/pages/staff-access.js",

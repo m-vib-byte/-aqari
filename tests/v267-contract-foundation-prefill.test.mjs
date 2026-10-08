@@ -106,3 +106,26 @@ test('authoritative property binding rejects foreign workspace, user, unit and p
   response={...f.templateMaster,...patch};await assert.rejects(f.binding('property-a','unit-a'),/تأكيد ربط/);
  }
 });
+
+test('payment cycle selection accepts only explicit server-supported intervals',async()=>{
+ const {foundationPaymentCycle}=await import('../src/v267/domain/contract-foundation.js');
+ for(const n of [1,3,6,12])assert.equal(foundationPaymentCycle(String(n)),n);
+ for(const n of ['',null,undefined,0,2,'01','monthly'])assert.throws(()=>foundationPaymentCycle(n),/دورية السداد/);
+});
+
+test('foundation promotion preserves each payment cycle through the real rental record engine',async()=>{
+ const engine={module:{exports:{}},structuredClone};
+ vm.runInNewContext(readFileSync(new URL('../v267-rental-records.js',import.meta.url),'utf8'),engine);
+ for(const paymentCycleMonths of [1,3,6,12]){
+  const f=fixture(),current=structuredClone(f.state);
+  Object.assign(current.tenantProfilesV267[0],{nameEn:'Test tenant',passportNo:'TEST-ONLY',phone:'55555555',email:'test@example.invalid',nationalityEn:'Test'});
+  current.properties=[['Same building name']];current.contractPreparationDraftsV267=[{...f.preparation}];
+  Object.assign(f,{completeTenantIdentity:()=>true,templateForContract:()=>({clauses:[{title:'Test',text:'Synthetic only'}]}),activeUnitConflict:()=>null,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),changeState:async mutate=>mutate(current)});
+  f.api={...engine.module.exports,kuwaitDate:()=> '2026-10-08'};
+  vm.runInContext(source.slice(source.indexOf(' async function promoteContract('),source.indexOf(' async function start(){'))+';this.promote=promoteContract;',f);
+  const result=await f.promote({paymentCycleMonths,contractRent:'100',discount:'0',deposit:'0',advance:'0',cleaningFee:'0',floor:'1',accountant:'Synthetic test',start_date:'2030-01-01',end_date:'2030-12-31',freeMonthApproved:false,freeMonthPeriod:'',rentEntitlement:{version:1,startDate:'2030-01-01',firstPeriodPolicy:'full_month',manualFirstPeriodAmount:null}}, {},{},f.templateMaster);
+  assert.equal(result.paymentCycleMonths,paymentCycleMonths);assert.equal(result.rent,100);assert.equal(result.status,'draft');
+  assert.equal(current.contractsV202[0].paymentCycleMonths,paymentCycleMonths);assert.equal(current.contractPreparationDraftsV267[0].status,'promoted');
+  assert.equal(current.collections,undefined);
+ }
+});
