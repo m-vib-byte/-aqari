@@ -106,6 +106,19 @@ Including dialog and session regressions, the focused run passed 69 tests with
 zero failures or skips. The fixes still require a hosted replay on their new
 deployment.
 
+### Integration follow-up after hosted testing
+
+Merged main `51e39659eeb421073b67ffb6a13fc1511f8e6f45` into the candidate,
+preserving imported-tenant page-exit protection and the published foundation,
+MFA recovery and maintenance-category changes. The overlapping foundation
+conflict retained the new serialized autosave. The direct-entry test fixture
+now implements the existing dialog disposal lifecycle; it still proves that
+opening foundation creates no draft or business write.
+
+`node scripts/test-release-regressions.mjs` passed **2,769 tests**, zero failures
+or skips, on this merged source. Release freeze verification passed. Hosted
+archive acceptance and owner-device acceptance remain unclaimed.
+
 ### Hosted PDF preparation and remaining archive acceptance
 
 The normal signing UI generated one execution package at

@@ -5,7 +5,7 @@ const fields=()=>[['nameAr',translateStatic('الاسم بالعربية')],['na
 const contactOptions=()=>[['both',translateStatic('البريد والواتساب')],['whatsapp',translateStatic('واتساب فقط')],['email',translateStatic('البريد الإلكتروني فقط')],['sms',translateStatic('رسالة نصية فقط')],['push',translateStatic('إشعار التطبيق فقط')],['phone',translateStatic('اتصال هاتفي يدوي')],['none',translateStatic('لا رسائل آلية')]];
 export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  const d=createDialog(translateStatic('تعديل المستأجر المستورد'));if(!d)return;
- const {body,status,session,run}=d,inputs={};let current=null,uncertain=false;
+ const {body,status,session,run}=d,inputs={};let current=null,uncertain=false,baseline=null;
  const portfolio=node('section');portfolio.className='aq267-property-master-section';
  body.append(node('p',translateStatic('التعديل يحدّث ملف المستأجر ودليل الاتصال ويحفظ المصدر والتاريخ. لا يغيّر العقود أو الوصول السابقة. يمكن ترك البيانات غير المتوفرة فارغة؛ يلزم اسم واحد على الأقل.')));
  body.append(portfolio);
@@ -16,7 +16,7 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  for(const button of [save,draftButton,reload])button.type='button';
  body.append(field(translateStatic('سبب التعديل أو مرجع التصحيح (اختياري)'),reason),save,draftButton,reload,node('h3',translateStatic('آخر التعديلات الموثقة')),history);
  function show(value,initial=false){
-  current=value;for(const [key]of fields())inputs[key].value=String((initial&&draft?draft:value.profile)?.[key]||'');preferredContact.value=String((initial&&draft?draft:value.profile)?.preferredContact||'both');
+  current=value;for(const [key]of fields())inputs[key].value=String((initial&&draft?draft:value.profile)?.[key]||'');preferredContact.value=String((initial&&draft?draft:value.profile)?.preferredContact||'both');reason.value='';baseline=snapshot();
   history.replaceChildren();
   for(const entry of value.history||[]){const block=node('section');block.append(node('p',entry.created_at+' — '+entry.reason));
    for(const [key,label]of [...fields(),['preferredContact',translateStatic('وسيلة التواصل المفضلة')]])if(entry.before_profile?.[key]!==entry.after_profile?.[key])block.append(node('p',label+': '+(entry.before_profile?.[key]||translateStatic('فارغ'))+' ← '+(entry.after_profile?.[key]||translateStatic('فارغ'))));
@@ -26,14 +26,14 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  }
  const read=()=>session.request(session.client.rpc('aqari_imported_tenant_read',{p_workspace_id:session.bound.workspace,p_ref:ref}));
  const readPortfolio=()=>session.request(session.client.rpc('aqari_tenant_portfolio_context',{p_workspace_id:session.bound.workspace,p_tenant_ref:ref}));
- const scan=async initial=>{d.close();const page=await import('./document-scanner.js');return page.openDocumentScanner({...initial,referenceKey:'id'});};
+ const scan=async initial=>{if(!canLeave())return;d.close();const page=await import('./document-scanner.js');return page.openDocumentScanner({...initial,referenceKey:'id'});};
  function showPortfolio(value){
   portfolio.replaceChildren(node('h3','العقود والمستندات والوصولات'));
   if(!value?.tenantId){portfolio.append(node('p','تعذر ربط هذا الملف بسجل المستأجر المحفوظ.'));return;}
   for(const property of value.properties||[]){
    const card=node('article'),full=node('button','عرض الملف الكامل — '+property.name),camera=node('button','مسح/تصوير مستند'),upload=node('button','رفع ملف');
    for(const button of [full,camera,upload])button.type='button';
-   full.onclick=()=>{d.close();openTenantCompleteFile(property.id,value.tenantId);};
+   full.onclick=()=>{if(!canLeave())return;d.close();openTenantCompleteFile(property.id,value.tenantId);};
    camera.onclick=()=>scan({type:'tenant',ref:value.tenantId});upload.onclick=()=>scan({type:'tenant',ref:value.tenantId});
    card.append(node('strong',property.name),node('p','العقود: '+property.leaseCount+' · الوصولات: '+property.receiptCount),full,camera,upload);portfolio.append(card);
   }
@@ -41,10 +41,15 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
  }
  const execute=fn=>run(fn).then(()=>{if(!d.closed){save.disabled=uncertain||!current;draftButton.disabled=uncertain||!current;}});
  const collect=()=>{const patch={id:ref};for(const [key]of fields())patch[key]=inputs[key].value;patch.preferredContact=preferredContact.value;return patch;};
- reload.onclick=()=>execute(async()=>{const [record,context]=await Promise.all([read(),readPortfolio()]);show(record);showPortfolio(context);uncertain=false;status.textContent=translateStatic('تم تحديث الملف. راجع القيم قبل الحفظ.');});
+ const snapshot=()=>JSON.stringify({...collect(),reason:reason.value});
+ const dirty=()=>baseline!==null&&snapshot()!==baseline;
+ const canLeave=()=>!(uncertain||dirty())||window.confirm(translateStatic(uncertain?'لم يتأكد حفظ تعديل المستأجر. تحقق من الملف قبل إعادة الحفظ. هل تريد المتابعة؟':'توجد تعديلات مستأجر غير محفوظة. هل تريد تركها والمتابعة؟'));
+ d.setBeforeUnload?.(()=>uncertain||dirty());
+ d.setBeforeClose?.(canLeave);
+ reload.onclick=()=>{if(!canLeave())return;return execute(async()=>{const [record,context]=await Promise.all([read(),readPortfolio()]);show(record);showPortfolio(context);uncertain=false;status.textContent=translateStatic('تم تحديث الملف. راجع القيم قبل الحفظ.');});};
  draftButton.onclick=()=>execute(async()=>{
   if(uncertain||!current)throw Error('حدّث الملف أولاً.');
-  uncertain=true;await onDraft(collect());session.check();current=await read();uncertain=false;status.textContent=translateStatic('تم حفظ المسودة. لم تتغير بيانات المصدر أو العقود.');
+  const savedDraft=JSON.stringify({...collect(),reason:''});uncertain=true;await onDraft(collect());session.check();current=await read();baseline=savedDraft;uncertain=false;status.textContent=translateStatic('تم حفظ المسودة. لم تتغير بيانات المصدر أو العقود.');
  });
  save.onclick=()=>execute(async()=>{
   if(uncertain||!current)throw Error('حدّث الملف للتحقق من الحفظ السابق.');

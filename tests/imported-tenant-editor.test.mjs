@@ -5,9 +5,10 @@ import fs from 'node:fs';
 const source=fs.readFileSync(new URL('../src/v267/pages/imported-tenant.js',import.meta.url),'utf8');
 let serial=0;
 async function fixture(){
+ globalThis.window={confirm:()=>true};
  const nodes=[],fields={},calls=[];let state={profile:{id:'imported',nameEn:'Source name',passportNo:'SOURCE-PASS',preferredContact:'both',sourceValues:{untouched:true}},revision:1,history:[]},failRead=false,failSave=false;
  const node=(tag,text)=>{const n={tag,textContent:text||'',value:'',children:[],append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items}};nodes.push(n);return n;};
- const d={body:node('div'),status:node('p'),closed:false,session:{bound:{workspace:'fixture-workspace'},check(){},client:{rpc:(name,args)=>({name,args})},async request(call){calls.push(call);if(call.name.endsWith('_save')){if(failSave)throw Error('connection lost');assert.equal(call.args.p_expected_revision,state.revision);state={...state,profile:{...state.profile,...call.args.p_patch},revision:state.revision+1};return structuredClone(state);}if(failRead)throw Error('read failed');return structuredClone(state);}},async run(fn){try{await fn();}catch(e){d.status.textContent=e.message;}}};
+ const d={body:node('div'),status:node('p'),closed:false,setBeforeUnload(fn){this.unload=fn;},setBeforeClose(fn){this.canLeave=fn;},session:{bound:{workspace:'fixture-workspace'},check(){},client:{rpc:(name,args)=>({name,args})},async request(call){calls.push(call);if(call.name==='aqari_tenant_portfolio_context')return {tenantId:'tenant-1',properties:[{id:'property-1',name:'عقار',leaseCount:1,receiptCount:0}]};if(call.name.endsWith('_save')){if(failSave)throw Error('connection lost');assert.equal(call.args.p_expected_revision,state.revision);state={...state,profile:{...state.profile,...call.args.p_patch},revision:state.revision+1};return structuredClone(state);}if(failRead)throw Error('read failed');return structuredClone(state);}},async run(fn){try{await fn();}catch(e){d.status.textContent=e.message;}}};
  globalThis.__importEditorTest={translateStatic,createDialog:()=>d,node,field:(label,input)=>{fields[label]=input;return input;}};
  const module=await import('data:text/javascript;base64,'+Buffer.from("const {createDialog,node,field,translateStatic}=globalThis.__importEditorTest;\n// fixture "+(++serial)+"\n"+source.replace(/^import .*;$/gm,'')).toString('base64'));
  delete globalThis.__importEditorTest;
@@ -29,4 +30,32 @@ test('failed save locks repeat submission until authoritative reload',async()=>{
  const f=await fixture();f.fields['سبب التعديل أو مرجع التصحيح (اختياري)'].value='سبب موثق';f.failSave();
  await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
  await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.calls.filter(c=>c.name.endsWith('_save')).length,1);assert.equal(f.refreshed(),0);
+});
+
+test('unsaved tenant changes guard exit and cancelled reload preserves the form',async()=>{
+ const f=await fixture();assert.equal(f.d.unload(),false);
+ f.fields['الاسم بالعربية'].value='تعديل غير محفوظ';assert.equal(f.d.unload(),true);
+ window.confirm=()=>false;assert.equal(f.d.canLeave(),false);
+ const count=f.calls.length;await f.button('تحديث الملف من السحابة').onclick();
+ assert.equal(f.calls.length,count);assert.equal(f.fields['الاسم بالعربية'].value,'تعديل غير محفوظ');
+ window.confirm=()=>true;await f.button('تحديث الملف من السحابة').onclick();assert.equal(f.d.unload(),false);
+});
+test('confirmed save clears exit warning but lost response retains it',async()=>{
+ const f=await fixture();f.fields['الاسم بالعربية'].value='اسم';
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.d.unload(),false);
+ f.failSave();await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.d.unload(),true);
+ window.confirm=()=>false;assert.equal(f.d.canLeave(),false);
+});
+test('saved draft clears profile warning but does not discard an unsaved reason',async()=>{
+ const f=await fixture();f.fields['الاسم بالعربية'].value='مسودة';
+ await f.button('حفظ مسودة واستكمال لاحقاً').onclick();assert.equal(f.d.unload(),false);
+ f.fields['سبب التعديل أو مرجع التصحيح (اختياري)'].value='سبب لم يدخل في المسودة';
+ await f.button('حفظ مسودة واستكمال لاحقاً').onclick();assert.equal(f.d.unload(),true);
+});
+
+test('cancelled portfolio navigation leaves tenant edits open',async()=>{
+ const f=await fixture();f.fields['الاسم بالعربية'].value='مسودة';window.confirm=()=>false;
+ await f.button('عرض الملف الكامل — عقار').onclick();
+ await f.button('مسح/تصوير مستند').onclick();await f.button('رفع ملف').onclick();
+ assert.equal(f.d.closed,false);assert.equal(f.d.unload(),true);
 });

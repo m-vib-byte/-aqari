@@ -847,8 +847,8 @@
     },
     {
       "path": "docs/verification/contract-execution-release-20261007.md",
-      "sha256": "e40a7e51bff966ccd56e0ca4eca0ed102b2a6b6486ddab757f85fb41ca06111e",
-      "size": 8804
+      "sha256": "05656fe36bf22637971c105f0338443a20aa3e913c75ae8f04be3e15d24d5410",
+      "size": 9512
     },
     {
       "path": "docs/verification/contract-visibility-20260921.md",
@@ -2062,8 +2062,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "2348a8e2f498cad28c0c54942a48e632b253e379f1e15dc300ec9c4192ff4e29",
-      "size": 7699
+      "sha256": "afe77d29aaa2d8affa9eb9c36a3b5ca0359c7e5e8d7e9a5c5dc5ee965fd62043",
+      "size": 8444
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -4532,8 +4532,8 @@
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "sha256": "d4177c3e25c0862d083c968a386b7c6bdb71bba1360b854c61b4da6d9a54b047",
-      "size": 3668
+      "sha256": "6f654462b378b43f6bac0b221e8158c83e233df5bc5285b1821540036e9223af",
+      "size": 6022
     },
     {
       "path": "tests/login-navigation.test.cjs",
@@ -5904,6 +5904,46 @@
       "path": "tests/v267-foundation-autosave.test.mjs",
       "sha256": "96fc991c9c23776f654e8e26e0a6151588ace183872fadd80b0097b8529ecaed",
       "size": 2243
+    },
+    {
+      "path": "docs/verification/foundation-security-release-20261008.md",
+      "sha256": "20b1c22c1dadae81c36e1139b099ff27a4ebf0f64336043947f0f7be92710421",
+      "size": 1911
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance-category/fixture-before.sql",
+      "sha256": "22952d358adffe588a475416ef79f53de68fe7e25b70abcc55da353fcbd7059e",
+      "size": 3579
+    },
+    {
+      "path": "tests/v267-contract-foundation-prefill.test.mjs",
+      "sha256": "ec9b0fcb4de236e9153c5e999ebbce2edc806ae8ef1e1320fd5ab5dd55d3b1fc",
+      "size": 13395
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance-category/capability-candidate.sql",
+      "sha256": "0b9109f8ed175ec836477e336ed88e4d0c3db7a349a8066a5e0b36798fb59049",
+      "size": 3158
+    },
+    {
+      "path": "tests/v267-security-center-lifecycle.test.mjs",
+      "sha256": "4a3f14c51a7164cbc7a00f5e6a2c0a60d0e9cb8f769ac95a6167671b51ea91a1",
+      "size": 10816
+    },
+    {
+      "path": "tests/v267-property-onboarding.test.mjs",
+      "sha256": "0f50d143dca70444e8ddf5ea4d01fd7abacb53a75846d04ae3b0b1df1f49c134",
+      "size": 8854
+    },
+    {
+      "path": "docs/verification/maintenance-category-production-20261008.md",
+      "sha256": "641665d0378ad837e6c16b35ee3d43a459ec60b37b5ad997154c5be3f01c88ae",
+      "size": 2976
+    },
+    {
+      "path": "staging-database/reconciliation/maintenance-category/acceptance.sql",
+      "sha256": "81e6b5340b8a4d4510ad87ee686bf2d067412a6bd927e258ca0b126c24bedc7b",
+      "size": 5442
     }
   ],
   "version": "V198"
