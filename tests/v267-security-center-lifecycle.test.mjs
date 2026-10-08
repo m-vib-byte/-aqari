@@ -101,3 +101,15 @@ test('invalid TOTP leaves the form available and reports a useful error',async()
  try{await f.button('التحقق بهذا الجهاز').onclick();const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';await form.onsubmit({preventDefault(){}});assert.match(f.status(),/رمز التحقق غير صحيح/);assert.ok(form.isConnected);}
  finally{f.cleanup();}
 });
+
+
+test('enrollment requiring higher assurance explains recovery without dismissing security center',async()=>{
+ const f=await fixture({enroll:async()=>({error:{status:403,code:'insufficient_aal',message:'AAL2 required'}})});
+ try{await f.button('إضافة تطبيق مصادقة').onclick();assert.ok(f.dialog.isConnected);assert.match(f.status(),/استعادة الوصول عبر مسؤول الحساب/);assert.ok(f.button('التحقق بهذا الجهاز'));assert.equal(f.calls.some(x=>['verify','unenroll'].includes(x.method)),false);assert.equal(f.elements().some(x=>x.tagName==='img'),false);}
+ finally{f.cleanup();}
+});
+test('unrecognized enrollment authorization denial still disposes security center',async()=>{
+ const f=await fixture({enroll:async()=>({error:{status:403,code:'unexpected_denial',message:'denied'}})});
+ try{await f.button('إضافة تطبيق مصادقة').onclick();assert.equal(f.dialog.isConnected,false);}
+ finally{f.cleanup();}
+});
