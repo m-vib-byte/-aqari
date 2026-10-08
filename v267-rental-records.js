@@ -117,7 +117,18 @@ function primary(payload){
 }
 function createStore(options){
  let busy=false,uncertain=false;
- return {async change(keys,mutate,verify,{compare=keys}={}){
+ return {
+ adoptConfirmed(keys,before,confirmed,bound){
+  // Synchronize only this writer's confirmed sections. Never discard local
+  // edits, cross-account data, or an unresolved in-flight store operation.
+  if(busy||uncertain||!bound||!same(bound,options.scope())||!Array.isArray(keys))return false;
+  const local=options.local();
+  if(keys.some(k=>!Object.prototype.hasOwnProperty.call(confirmed,k)||
+   (!same(local[k]||[],before[k]||[])&&!same(local[k]||[],confirmed[k]||[]))))return false;
+  for(const k of keys)local[k]=copy(confirmed[k]);
+  try{options.cache()}catch(_){}return true;
+ },
+ async change(keys,mutate,verify,{compare=keys}={}){
   if(busy||uncertain)fail(uncertain?'تحديث الصفحة مطلوب للتحقق من نتيجة الحفظ السابقة.':'انتظر اكتمال الحفظ الحالي.');
   const scope=options.scope();if(!scope)fail('صلاحية الكتابة غير متاحة.');
   const check=()=>{if(!same(scope,options.scope()))fail('تغيّرت جلسة الدخول. لم يتم عرض بيانات الحساب السابق.');};
@@ -149,6 +160,7 @@ function scope(){
 }
 async function bounded(task){let timer;try{return await Promise.race([task(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('انتهت مهلة الاتصال.')),20000)})])}finally{clearTimeout(timer)}}
 const store=createStore({scope,local:data,load:s=>bounded(()=>root.AQARI_SUPABASE.loadAppState(s)),save:(p,r,s)=>bounded(()=>root.AQARI_SUPABASE.saveAppState(p,r,s)),cache:()=>{if(typeof persist==='function')persist()}});
+api.adoptConfirmedWrite=(keys,before,confirmed,bound)=>store.adoptConfirmed(keys,before,confirmed,bound);
 const esc=x=>text(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const byId=id=>document.getElementById(id);
 const profileRef=row=>Array.isArray(row)?row.find(x=>x&&typeof x==='object'&&x.aqariTenantProfileV267)?.aqariTenantProfileV267||row[4]:null;

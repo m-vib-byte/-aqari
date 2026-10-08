@@ -158,3 +158,31 @@ test('saving a lease uses authoritative identity data while ignoring read-only l
  assert.deepEqual(saved.properties,originalProperties);assert.deepEqual(saved.tenantProfilesV267,originalProfiles);
  assert.equal(saved.audit.length,1);
 });
+
+test('confirmed foundation writes synchronize only unchanged local sections for the next lease transition',async()=>{
+ const bound={userId:'manager',workspaceId:'test'},before={contractsV202:[],audit:[],unrelated:['keep']},confirmed={...clone(before),contractsV202:[{id:'new',status:'draft'}],audit:[['foundation']],unrelated:['remote']};
+ const local=clone(before);let cloud=clone(confirmed),writes=0;
+ const store=api.createStore({scope:()=>bound,local:()=>local,load:async()=>({payload:clone(cloud),revision:1}),save:async p=>{cloud=clone(p);writes++;},cache(){}});
+ assert.equal(store.adoptConfirmed(['contractsV202','audit'],before,confirmed,bound),true);
+ assert.deepEqual(local.unrelated,['keep']);
+ await store.change(['contractsV202','audit'],data=>{data.contractsV202[0].status='ready';return data.contractsV202[0];},(data,c)=>data.contractsV202[0].status===c.status);
+ assert.equal(writes,1);assert.equal(local.contractsV202[0].status,'ready');
+});
+
+test('foundation cache synchronization preserves local edits atomically and rejects changed identity',()=>{
+ const bound={userId:'manager',workspaceId:'test'},before={contractsV202:[],audit:[]},confirmed={contractsV202:[{id:'new'}],audit:[['foundation']]};
+ for(const conflict of ['local','scope']){
+  const local=clone(before);if(conflict==='local')local.audit=[['unsaved local audit']];const snapshot=clone(local);
+  const store=api.createStore({scope:()=>bound,local:()=>local,cache(){throw Error('must not cache');}});
+  assert.equal(store.adoptConfirmed(['contractsV202','audit'],before,confirmed,conflict==='scope'?{...bound,userId:'other'}:bound),false);
+  assert.deepEqual(local,snapshot);
+ }
+});
+
+test('foundation cache synchronization cannot clear an uncertain write lock',async()=>{
+ const bound={userId:'manager',workspaceId:'test'},local={contractsV202:[]};
+ const store=api.createStore({scope:()=>bound,local:()=>local,load:async()=>({payload:{contractsV202:[]},revision:1}),save:async()=>{throw Error('timeout');},cache(){}});
+ await assert.rejects(store.change(['contractsV202'],data=>{data.contractsV202.push({id:'new'});},()=>true),/تأكيد/);
+ assert.equal(store.adoptConfirmed(['contractsV202'],{contractsV202:[]},{contractsV202:[{id:'new'}]},bound),false);
+ assert.deepEqual(local,{contractsV202:[]});
+});
