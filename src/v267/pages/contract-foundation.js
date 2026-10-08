@@ -7,6 +7,7 @@ import {leaseEndFromMonths} from '../domain/lease-dates.js';
 import {rentalTemplateKinds,validTemplate,templateForContract,templateKindName,mountTemplateFields} from '../components/rental-templates.js';
 import {executionAmount,activeUnitConflict,completeTenantIdentity,foundationPaymentCycle,isFoundationContractTemplate,foundationTemplateValues} from '../domain/contract-foundation.js';
 import {linkedDocumentFieldKeys} from '../domain/rental-document-cycle.js';
+import {createDraftAutosave} from '../components/draft-autosave.js';
 
 const copy=value=>JSON.parse(JSON.stringify(value));
 function same(a,b){
@@ -26,8 +27,9 @@ export function openContractFoundation(options={}){
  const bridge=window.AQARI_SUPABASE;if(!bridge?.loadAppState||!bridge?.saveAppState)throw Error('تعذر تحميل جسر السحابة.');
  const d=createDialog(translateStatic('عقد جديد — التأسيس من البداية للنهاية'));if(!d)return false;
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
- let state=null,properties=[],units=[],templates=[],preparation=null;
- const button=(label,fn)=>{const el=node('button',label);el.type='button';el.onclick=()=>d.run(fn);return el;};
+ let state=null,properties=[],units=[],templates=[],preparation=null,autosave=null;
+ d.onDispose(()=>autosave?.dispose());
+ const button=(label,fn)=>{const el=node('button',label);el.type='button';el.onclick=()=>d.run(async()=>{await autosave?.flush();d.session.check();return fn();});return el;};
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  const clear=title=>d.body.replaceChildren(node('h3',title));
 
@@ -63,11 +65,13 @@ export function openContractFoundation(options={}){
 
  async function changeState(mutate,verify){
   const bound=scope(),cloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
-  const payload=copy(cloud.payload),data=api.primary(payload),expected=mutate(data);
+  const payload=copy(cloud.payload),data=api.primary(payload),before=copy(data),expected=mutate(data);
+  const changed=Object.keys(data).filter(key=>!same(before[key],data[key]));
   await window.AQARI_SUPABASE.saveAppState(payload,Number(cloud.revision),bound);d.session.check();
   const confirmedCloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
   const confirmed=api.primary(confirmedCloud.payload);
   if(!verify(confirmed,expected))throw Error('لم تؤكد إعادة القراءة حفظ العملية. حدّث الصفحة قبل إعادة المحاولة.');
+  api.adoptConfirmedWrite?.(changed,before,confirmed,bound);
   state=confirmed;return expected;
  }
 
@@ -150,6 +154,7 @@ export function openContractFoundation(options={}){
  }
 
  async function start(){
+  autosave?.dispose();autosave=null;
   await load();clear(translateStatic('ابدأ عقدًا جديدًا'));
   if(options.propertyId&&options.unitId)d.body.append(node('p',translateStatic('بدأت من ملف وحدة محددة. سيعيد النظام التحقق من العقار والوحدة والدور قبل حفظ العقد.')));
   d.body.append(node('p',translateStatic('اختر نوع العقد أولاً. عند الاختيار يحجز الخادم رقم عقد فريدًا على مستوى المنصة وينشئ مسودة تأسيس محفوظة فورًا؛ لا يتم إنشاء دفعة أو وصل وهمي.')));
@@ -160,6 +165,7 @@ export function openContractFoundation(options={}){
  }
 
  async function editPreparation(reload=true){
+  autosave?.dispose();autosave=null;
   if(reload)await load();preparation=(state.contractPreparationDraftsV267||[]).find(row=>row.id===preparation.id)||preparation;if(preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
   clear(translateStatic('تأسيس ')+preparation.contractNo);d.el.classList.add('aq267-contract-foundation');const cancelDraft=button(translateStatic('إلغاء'),cancelPreparation);cancelDraft.className='danger';const workspace=node('section');workspace.className='aq267-contract-foundation-workspace';const header=node('header');header.className='aq267-contract-foundation-header';header.append(node('div',translateStatic('مسودة محفوظة تلقائيًا')),node('strong',preparation.contractNo),node('p',translateStatic('أدخل البيانات بحرية؛ التحقق الكامل يتم فقط عند تثبيت العقد.')));workspace.append(header,node('div'));d.body.append(button(translateStatic('رجوع'),start),cancelDraft,workspace);
   const profiles=state.tenantProfilesV267||[],tenantChoice=select([['',translateStatic('مستأجر جديد')],...profiles.map(p=>[p.id,(p.nameAr||p.nameEn)+' / '+(p.nameEn||'')])],preparation.tenantId||'');
@@ -209,8 +215,9 @@ export function openContractFoundation(options={}){
   startDate.onchange=duration.oninput=()=>{recalcEnd();refreshTemplateFields();};
   for(const control of [floor,endDate,rent,deposit,advance,fees,accountant])control.oninput=refreshTemplateFields;
   const autosaveStatus=node('p',translateStatic('الحفظ التلقائي جاهز'));autosaveStatus.className='aq267-contract-autosave';autosaveStatus.setAttribute('role','status');autosaveStatus.setAttribute('aria-live','polite');
-  const currentDraftPatch=()=>({paymentCycleMonths:paymentCycle.value?Number(paymentCycle.value):null,start_date:startDate.value,end_date:endDate.value,durationMonths:Number(duration.value)||null,entitlementStart:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,fees:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',templateId:templateSelect.value});let autosaveTimer=null,autosaveRun=Promise.resolve();
-  const scheduleAutosave=()=>{clearTimeout(autosaveTimer);autosaveStatus.textContent=translateStatic('سيُحفظ تلقائيًا…');autosaveTimer=setTimeout(()=>{const patch=currentDraftPatch();autosaveRun=autosaveRun.catch(()=>{}).then(async()=>{await patchPreparation(patch,'حفظ تلقائي لمسودة تأسيس العقد');autosaveStatus.textContent=translateStatic('حُفظت المسودة تلقائيًا');}).catch(error=>{autosaveStatus.textContent=translateStatic('تعذر الحفظ التلقائي؛ بياناتك ما زالت في الشاشة.');d.status.textContent=error.message;});},500);};
+  const currentDraftPatch=()=>({paymentCycleMonths:paymentCycle.value?Number(paymentCycle.value):null,start_date:startDate.value,end_date:endDate.value,durationMonths:Number(duration.value)||null,entitlementStart:entitlementStart.value,firstPeriodPolicy:firstPolicy.value,manualFirstPeriodAmount:firstPolicy.value==='manual_first_period'?manualFirst.value:null,contractRent:rent.value,discount:discount.value,deposit:deposit.value,advance:advance.value,fees:fees.value,accountant:accountant.value,freeMonthApproved:free.checked,freeMonthPeriod:free.checked?freePeriod.value:'',templateId:templateSelect.value});
+  autosave=createDraftAutosave({snapshot:currentDraftPatch,save:patch=>patchPreparation(patch,'حفظ تلقائي لمسودة تأسيس العقد'),onPending:()=>{autosaveStatus.textContent=translateStatic('سيُحفظ تلقائيًا…');},onSaved:()=>{autosaveStatus.textContent=translateStatic('حُفظت المسودة تلقائيًا');},onError:error=>{autosaveStatus.textContent=translateStatic('تعذر الحفظ التلقائي؛ بياناتك ما زالت في الشاشة.');d.status.textContent=error.message;}});
+  const scheduleAutosave=()=>autosave.schedule();
   for(const control of [paymentCycle,startDate,duration,endDate,entitlementStart,firstPolicy,manualFirst,rent,discount,deposit,advance,fees,accountant,free,freePeriod,templateSelect])control.addEventListener('input',scheduleAutosave),control.addEventListener('change',scheduleAutosave);
   form.append(grid,field(translateStatic('قالب العقد المنشور'),templateSelect),templateFieldsBox,autosaveStatus);
   const review=node('section'),reviewButton=button(translateStatic('مراجعة المبلغ المستحق عند الإبرام'),async()=>{
@@ -227,6 +234,7 @@ export function openContractFoundation(options={}){
   form.append(reviewButton,review);
   const save=node('button',translateStatic('تثبيت العقد كمسودة تشغيلية'));save.type='submit';form.append(save);workspace.append(form);
   form.onsubmit=event=>{event.preventDefault();d.run(async()=>{
+   await autosave?.flush();d.session.check();
    if(!preparation.tenantId||!preparation.property||!preparation.unit||!preparation.propertyId||!preparation.unitId)throw Error('أكمل ربط المستأجر والعقار والوحدة من السجل الخادمي أولاً.');
    assertSelectedBinding();const paymentCycleMonths=foundationPaymentCycle(paymentCycle.value);const fresh=await verifyBinding(floor.value);floor.value=fresh.unit.floor||'';templateMaster=fresh;refreshTemplateFields();
    const selectedTemplate=templates.find(t=>t.id===templateSelect.value&&t.kind===preparation.kind);if(!selectedTemplate)throw Error('اختر نسخة قالب منشورة لنوع العقد.');

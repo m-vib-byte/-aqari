@@ -109,7 +109,7 @@ test('contract foundation uses a responsive workspace and queues draft autosaves
  assert.match(source,/aq267-contract-foundation-workspace/);
  assert.match(source,/form\.noValidate=true/);
  assert.match(source,/const scheduleAutosave=/);
- assert.match(source,/await patchPreparation\(patch,'حفظ تلقائي لمسودة تأسيس العقد'\)/);
+ assert.match(source,/save:patch=>patchPreparation\(patch,'حفظ تلقائي لمسودة تأسيس العقد'\)/);
  assert.match(source,/await verifyBinding\(floor\.value\)/);
  assert.match(source,/if\(!preparation\.tenantId/);
 });

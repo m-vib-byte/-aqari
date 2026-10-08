@@ -847,8 +847,8 @@
     },
     {
       "path": "docs/verification/contract-execution-release-20261007.md",
-      "sha256": "ca73bd9a3190e8069820937e9e569a65ccb09d251fed0c46694bb2bd7e4f1f20",
-      "size": 4991
+      "sha256": "e40a7e51bff966ccd56e0ca4eca0ed102b2a6b6486ddab757f85fb41ca06111e",
+      "size": 8804
     },
     {
       "path": "docs/verification/contract-visibility-20260921.md",
@@ -1447,8 +1447,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "dbd9b4dcec5ed1e704d1241363085eae119d4ee4f4fe9a5fd4f3b5c40090fac1",
-      "size": 19264
+      "sha256": "0fad5f29c4a6a6dee57fa55529c842b0baac5bda88e5d82edf915cab946b25a2",
+      "size": 19522
     },
     {
       "path": "src/v267/api/unit-search.js",
@@ -1997,8 +1997,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "sha256": "fbc1ebaee421a9bcb94f14ea76920fe153fb413ae7502d404ae46c87a1ab2645",
-      "size": 38439
+      "sha256": "33862f66574087f6be9746f2882e5777bcb636f74198d8f84b1d7c709a3b0226",
+      "size": 38812
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -5492,8 +5492,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "0e9962c0d55ca168c18d3cac509ab398f02a8e2dbd0ab213030c770c6a755e6c",
-      "size": 14712
+      "sha256": "c8b6ed12ea046dd3b4d084821c8e0c2835e8943b8ea21fc2f33f4424d96d0409",
+      "size": 17004
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
@@ -5852,8 +5852,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "244c201c927fcc9ac077899ed121213193ebb5da4fa6d219662229d257c787e3",
-      "size": 46539
+      "sha256": "d1f2e4e71f77330b5006637e836b6612c38a7ec8a7c92188e421408a2655a5ac",
+      "size": 47234
     },
     {
       "path": "v267-requirements.html",
@@ -5889,6 +5889,21 @@
       "path": "vercel.json",
       "sha256": "30d1b41481bb74baa59fad215f7fedf376f253b3b79cf690a3d0fabb4efae5a9",
       "size": 8375
+    },
+    {
+      "path": "src/v267/components/draft-autosave.js",
+      "sha256": "b93e01499b7b7847bdcc078381edd9eb23730164faa107f3baa4ccc60ad183aa",
+      "size": 1077
+    },
+    {
+      "path": "tests/v267-contract-foundation.test.mjs",
+      "sha256": "5038ef722e929778362d6c9148c6273d8578b103a988b683c1d5e1e6cd039ac7",
+      "size": 8061
+    },
+    {
+      "path": "tests/v267-foundation-autosave.test.mjs",
+      "sha256": "96fc991c9c23776f654e8e26e0a6151588ace183872fadd80b0097b8529ecaed",
+      "size": 2243
     }
   ],
   "version": "V198"
