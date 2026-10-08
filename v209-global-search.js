@@ -134,7 +134,7 @@
     return data;
   }
 
-  function safeRows(){
+  function safeRows(value){
     const scope=scopeKey();
     if(!scope)return [];
     const rows=[];
@@ -155,6 +155,7 @@
           tenant:String(record?.tenant||'—'),
           unit:String(record?.unit||'—'),
           contractNo:String(record?.contractNo||''),
+          contactMatch:matchesContact(record,value),
           hasContract:Boolean(record?.hasContract),
           receiptNo:String(record?.receiptNo||''),
           paymentStatus:String(record?.paymentStatus||''),
@@ -167,12 +168,25 @@
     return scopeKey()===scope?rows:[];
   }
 
+  function identityDigits(value){
+    const normalized=normalizeSearch(value).replace(/[\s()+.-]/g,'');
+    return /^\d+$/.test(normalized)?normalized:'';
+  }
+
+  function matchesContact(item,value){
+    const digits=identityDigits(value);
+    if(digits.length<8)return false;
+    const phone=identityDigits(item.phone);
+    const civil=identityDigits(item.civilId);
+    return (phone.length>=8&&phone.includes(digits))||(digits.length===12&&civil===digits);
+  }
+
   function relevance(item,needle){
     const property=normalizeSearch(item.property);
     const tenant=normalizeSearch(item.tenant);
     const unit=normalizeSearch(item.unit);
     const contract=normalizeSearch(item.contractNo);
-    if(contract===needle||unit===needle)return 0;
+    if(contract===needle||unit===needle||item.contactMatch===true)return 0;
     if(tenant===needle)return 1;
     if(tenant.startsWith(needle)||contract.startsWith(needle)||property.startsWith(needle))return 2;
     if(unit.startsWith(needle))return 3;
@@ -182,13 +196,13 @@
   function searchRows(value,directoryRows){
     const needle=normalizeSearch(value);
     if(!needle||(needle.length<2&&!/^\d+$/.test(needle)))return [];
-    const legacy=safeRows();
+    const legacy=safeRows(value);
     const units=(directoryRows||[]).filter(function(item){
       return !legacy.some(function(row){return row.kind!=='property'&&normalizeSearch(row.property)===normalizeSearch(item.property)&&normalizeSearch(row.unit)===normalizeSearch(item.unit)});
     });
     return legacy.concat(units)
       .filter(function(item){
-        return [item.property,item.tenant,item.unit,item.contractNo].some(function(field){
+        return item.contactMatch===true||[item.property,item.tenant,item.unit,item.contractNo].some(function(field){
           return normalizeSearch(field).includes(needle);
         });
       })
