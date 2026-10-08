@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "70df7cca223c6748daa0dea5866e1ad4b61c6de27d26624da708cfda6a601096",
-      "size": 11279
+      "sha256": "a8ba83dd1c767320a0b6e0f03df164c0ad0f4635f04bf2647dcb94f8a80d7207",
+      "size": 11342
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -926,6 +926,11 @@
       "sha256": "d1005bbf407b1f5ac8439abc106e5403b90c6326e39ee0c9c670f7913de6ec16"
     },
     {
+      "path": "docs/verification/search-directory-20261008.md",
+      "sha256": "0b1af546eec784af865f310f020ab739a612b697007989cb4bd667dd3c286584",
+      "size": 2697
+    },
+    {
       "path": "docs/verification/service-audit-2026-10-01.md",
       "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b",
       "size": 6376
@@ -1399,6 +1404,11 @@
       "path": "src/v267/api/protected-pdf.js",
       "sha256": "a3dc7202eb27184178397e21ad8b90b0484adeab5ace4afbe83cbe2f990ca3de",
       "size": 1577
+    },
+    {
+      "path": "src/v267/api/record-search.js",
+      "sha256": "ec5cd3ecb1c16bb6c0d1cff2c03c6b233aa0d471d9aeb7950ba83c58a77c03d1",
+      "size": 5418
     },
     {
       "path": "src/v267/api/report-filters.js",
@@ -1912,8 +1922,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "b35c94c2dc97567dcec0d89d5f47864811526f987f3373092be0315e55b4a010",
-      "size": 35024
+      "sha256": "3e76139d81e581a556a5be2c00787ca80210dba67caa31eb8fb074760d636ef3",
+      "size": 35136
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -2164,6 +2174,11 @@
       "path": "src/v267/pages/staff-circulars.js",
       "sha256": "3e7124fe44ecea4ac7c66e877f08ffa009105f57e1def86bd38f87484af56464",
       "size": 14939
+    },
+    {
+      "path": "src/v267/pages/tenant-timeline.js",
+      "sha256": "b67c9a02d08aac914a65f86499797ea345fd21c3e06e2463a0baf5112afe98f9",
+      "size": 8821
     },
     {
       "path": "src/v267/pages/unit-entry.js",
@@ -4597,8 +4612,8 @@
     },
     {
       "path": "tests/v209-behavior.test.cjs",
-      "sha256": "bbf78117397d8b42bafd5e7d5225b64463cbea8c8efffb7951b5102a2daa4912",
-      "size": 29701
+      "sha256": "92ddc4b6e7e416c5083817505f2029b13bb21db5b2a99d3564e179fe1d6ef76b",
+      "size": 33612
     },
     {
       "path": "tests/v209-global-search.test.cjs",
@@ -5326,6 +5341,11 @@
       "size": 4574
     },
     {
+      "path": "tests/v267-record-search.test.mjs",
+      "sha256": "7a4ac98417cf3d6ae71fcd824f90f02e826ef27be0c55e9f03acac2543c90526",
+      "size": 7439
+    },
+    {
       "path": "tests/v267-recovery-boundary.test.cjs",
       "sha256": "5e27f1754210f8df2f45277e6e21f27ed01cd168a77ae5d66cbfd8a45be8a7bf",
       "size": 1948
@@ -5662,8 +5682,8 @@
     },
     {
       "path": "v209-global-search.js",
-      "sha256": "e6475b8e0571e189bbb78d20f0c933a1de373a2f18f760f34486524269beda63",
-      "size": 27561
+      "sha256": "bbbba397ba9143bcf1d5f5928a509e6d7b24ad930c458a512c7f76c3687c7d65",
+      "size": 30594
     },
     {
       "path": "v210-daily-command-center.css",

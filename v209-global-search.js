@@ -196,16 +196,15 @@
   function searchRows(value,directoryRows){
     const needle=normalizeSearch(value);
     if(!needle||(needle.length<2&&!/^\d+$/.test(needle)))return [];
-    const legacy=safeRows(value);
-    const units=(directoryRows||[]).filter(function(item){
-      return !legacy.some(function(row){return row.kind!=='property'&&normalizeSearch(row.property)===normalizeSearch(item.property)&&normalizeSearch(row.unit)===normalizeSearch(item.unit)});
+    const matches=function(item){return item.contactMatch===true||item.directoryMatch===true||[item.property,item.tenant,item.unit,item.contractNo].some(function(field){return normalizeSearch(field).includes(needle)})};
+    const legacy=safeRows(value).filter(matches);
+    const directory=(directoryRows||[]).filter(function(item){
+      if(item.kind==='unit')return !legacy.some(function(row){return row.kind!=='property'&&normalizeSearch(row.property)===normalizeSearch(item.property)&&normalizeSearch(row.unit)===normalizeSearch(item.unit)});
+      if(item.kind==='directory-contract'&&item.contractNo)return !legacy.some(function(row){return row.contractNo&&normalizeSearch(row.contractNo)===normalizeSearch(item.contractNo)&&normalizeSearch(row.property)===normalizeSearch(item.property)&&normalizeSearch(row.unit)===normalizeSearch(item.unit)});
+      return true;
     });
-    return legacy.concat(units)
-      .filter(function(item){
-        return item.contactMatch===true||[item.property,item.tenant,item.unit,item.contractNo].some(function(field){
-          return normalizeSearch(field).includes(needle);
-        });
-      })
+    return legacy.concat(directory)
+      .filter(matches)
       .sort(function(left,right){
         const score=relevance(left,needle)-relevance(right,needle);
         if(score)return score;
@@ -282,7 +281,7 @@
     panel.setAttribute('lang','ar');
     const label=panel.querySelector('label[for="v199SearchInput"]');
     if(label&&label.textContent!=='البحث الشامل')label.textContent='البحث الشامل';
-    input.placeholder='اسم المستأجر، الوحدة، العقد أو العقار…';
+    input.placeholder='اسم المستأجر، الهاتف، المدني، الوحدة أو العقد…';
     input.setAttribute('dir','auto');
     input.setAttribute('aria-controls','v209SearchResults');
     input.setAttribute('aria-describedby','v209SearchHint');
@@ -292,7 +291,7 @@
       controls=document.createElement('div');
       controls.id='v209SearchControls';
       controls.className='v209-search-controls';
-      controls.innerHTML='<label for="v209SearchPeriod"><span>الفترة</span><input id="v209SearchPeriod" type="month" value="'+esc(period)+'"></label><small id="v209SearchHint">بحث آمن داخل العقارات المرتبطة بحسابك فقط</small>';
+      controls.innerHTML='<label for="v209SearchPeriod"><span>شهر التحصيل</span><input id="v209SearchPeriod" type="month" value="'+esc(period)+'"></label><small id="v209SearchHint">العقود والمستأجرون لجميع الفترات؛ التحصيل للشهر المختار، ضمن صلاحيات حسابك</small>';
       panel.appendChild(controls);
     }
 
@@ -380,6 +379,7 @@
   }
 
   function resultMarkup(item,index){
+    if(item.kind==='directory-tenant'||item.kind==='directory-contract')return '<article class="v209-result"><button type="button" class="v209-result-main" data-v209-index="'+index+'" data-v209-action="record"><span class="v209-result-property" dir="auto">'+esc(item.property||'ملف مستأجر')+'</span><strong dir="auto">'+esc(item.tenant)+'</strong>'+(item.kind==='directory-contract'?'<small>وحدة <bdi dir="auto">'+esc(item.unit)+'</bdi> • <bdi dir="auto">'+esc(item.contractNo||'بدون رقم عقد')+'</bdi></small>':'')+'<small>فتح السجل الزمني للمستأجر</small></button></article>';
     if(item.kind==='unit')return '<article class="v209-result"><button type="button" class="v209-result-main" data-v209-index="'+index+'" data-v209-action="unit"><span class="v209-result-property" dir="auto">'+esc(item.property)+'</span><strong dir="auto">وحدة '+esc(item.unit)+'</strong><small>فتح ملف العقار</small></button></article>';
     if(item.kind==='property')return '<article class="v209-result"><button type="button" class="v209-result-main" data-v209-index="'+index+'" data-v209-action="property"><span class="v209-result-property">عقار</span><strong dir="auto">'+esc(item.property)+'</strong><small>فتح ملف العقار</small></button></article>';
     const contract=item.contractNo||'بدون رقم عقد';
@@ -416,30 +416,37 @@
     const needle=normalizeSearch(query);
     if(!needle||(needle.length<2&&!/^\d+$/.test(needle))){
       lastResults=[];
-      ui.results.innerHTML='<div class="v209-search-empty"><strong>ابحث بسرعة</strong><span>اكتب اسم المستأجر أو رقم الوحدة أو العقد أو العقار.</span><small>'+esc(periodLabel())+'</small></div>';
+      ui.results.innerHTML='<div class="v209-search-empty"><strong>ابحث بسرعة</strong><span>اكتب اسم المستأجر أو الهاتف أو المدني أو رقم الوحدة أو العقد أو العقار.</span><small>'+esc(periodLabel())+'</small></div>';
       return;
     }
     lastResults=searchRows(query);
     const searchDirectory=window.AQARI_OWNER_EXACT?.createUnitSearch;
-    if(typeof searchDirectory==='function'){
-      const epoch=directoryEpoch,selectedPeriod=period,selectedQuery=query;
-      showResults('جاري البحث في سجل الوحدات…');
+    const searchRecords=window.AQARI_OWNER_EXACT?.createRecordSearch;
+    const readers=[{factory:searchDirectory,kind:'unit'},{factory:searchRecords,kind:'record'}].filter(function(reader){return typeof reader.factory==='function'});
+    if(readers.length){
+      const epoch=directoryEpoch,selectedPeriod=period,selectedQuery=query,jobs=[];
+      showResults('جاري البحث في سجل الوحدات والمستأجرين والعقود…');
       const current=function(){return epoch===directoryEpoch&&scope===scopeKey()&&selectedPeriod===period&&selectedQuery===query};
-      Promise.resolve().then(function(){
+      directoryJob={close:function(){jobs.forEach(function(job){job.close()})}};
+      Promise.allSettled(readers.map(function(reader){return Promise.resolve().then(function(){
         if(!current())return [];
-        directoryJob=searchDirectory();
-        return directoryJob.read();
-      }).then(function(rows){
+        const job=reader.factory();jobs.push(job);
+        return Promise.resolve(job.read(selectedQuery)).then(function(rows){
+          if(!Array.isArray(rows))throw Error('INVALID_SEARCH_DIRECTORY');
+          return rows.map(function(row){
+            if(reader.kind==='unit')return Object.freeze({kind:'unit',scope:scope,period:selectedPeriod,key:'unit:'+row.unitId,propertyId:row.propertyId,unitId:row.unitId,property:String(row.property||''),unit:String(row.unit||''),tenant:'',contractNo:'',balance:0,canRecordPayment:false});
+            if(!['directory-tenant','directory-contract'].includes(row.kind)||!row.tenantId)throw Error('INVALID_RECORD_SEARCH');
+            return Object.freeze({kind:row.kind,scope:scope,period:selectedPeriod,key:'directory:'+(row.leaseId||row.tenantId),tenantId:row.tenantId,leaseId:row.leaseId,propertyId:row.propertyId,unitId:row.unitId,property:String(row.property||''),unit:String(row.unit||''),tenant:String(row.tenant||''),contractNo:String(row.contractNo||''),directoryMatch:true,canRecordPayment:false});
+          });
+        });
+      })})).then(function(results){
         if(!current())return;
         directoryJob=null;
-        if(!Array.isArray(rows))throw Error('INVALID_UNIT_SEARCH');
-        const directoryRows=rows.map(function(row){return Object.freeze({kind:'unit',scope:scope,period:selectedPeriod,key:'unit:'+row.unitId,propertyId:row.propertyId,unitId:row.unitId,property:String(row.property||''),unit:String(row.unit||''),tenant:'',contractNo:'',balance:0,canRecordPayment:false})});
-        lastResults=searchRows(selectedQuery,directoryRows);
-        showResults();
+        lastResults=searchRows(selectedQuery,results.flatMap(function(result){return result.status==='fulfilled'?result.value:[]}));
+        showResults(results.some(function(result){return result.status==='rejected'})?'تعذر التحقق من بعض سجلات البحث. النتائج المعروضة غير مكتملة؛ أعد البحث للمحاولة.':undefined);
       }).catch(function(){
         if(!current())return;
-        cancelDirectory();
-        showResults('تعذر التحقق من سجل الوحدات. أعد البحث للمحاولة.');
+        cancelDirectory();showResults('تعذر التحقق من سجلات البحث. أعد البحث للمحاولة.');
       });
       return;
     }
@@ -497,6 +504,12 @@
 
   function openResult(item,action,trigger){
     const scope=scopeKey();
+    if(item?.kind==='directory-tenant'||item?.kind==='directory-contract'){
+      if(action!=='record'||!scope||item.scope!==scope||item.period!==period||typeof window.AQARI_OWNER_EXACT?.openSearchRecord!=='function')return false;
+      closePanel();
+      Promise.resolve().then(function(){if(scopeKey()!==scope)return;return window.AQARI_OWNER_EXACT.openSearchRecord(item)}).catch(function(){if(scopeKey()===scope)window.AQARI_OWNER_EXACT?.status?.('تعذر فتح سجل المستأجر. أعد البحث للتحقق من صلاحياته.',true)});
+      return true;
+    }
     if(item?.kind==='unit'){
       if(action!=='unit'||!scope||item.scope!==scope||item.period!==period||typeof window.AQARI_OWNER_EXACT?.openSearchUnit!=='function')return false;
       closePanel();

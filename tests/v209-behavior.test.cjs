@@ -775,3 +775,47 @@ test('unit results escape labels and reject financial actions and changed scopes
   h.supabase.context=activeContext('b','other');h.clickResult(0,'unit');await settleDirectory();
   assert.equal(opened,0);
 });
+
+const directoryTenant={kind:'directory-contract',tenantId:'t-independent',leaseId:'l-independent',propertyId:'p-1',unitId:'u-204',property:'برج الأمان',unit:'204',tenant:'مستأجر خارج الكشف',contractNo:'OLD-2030'};
+test('independent contact match survives month changes and opens the guarded timeline only',async()=>{
+ const opened=[],queries=[];
+ const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{
+  createRecordSearch:()=>({read:async q=>{queries.push(q);return [directoryTenant]},close(){}}),openSearchRecord:async row=>opened.push(row)
+ }});
+ h.search('55551234');await settleDirectory();
+ let html=h.document.getElementById('v209SearchResults').innerHTML;
+ assert.match(html,/مستأجر خارج الكشف/);assert.match(html,/OLD-2030/);
+ assert.doesNotMatch(html,/55551234|data-v209-action="payment"|متبقي|مسدد/);
+ h.changePeriod('2032-07');await settleDirectory();
+ html=h.document.getElementById('v209SearchResults').innerHTML;assert.match(html,/مستأجر خارج الكشف/);
+ h.clickResult(0,'payment');await settleDirectory();assert.equal(opened.length,0);
+ h.clickResult(0,'record');await settleDirectory();assert.equal(opened[0].tenantId,'t-independent');assert.ok(queries.every(q=>q==='55551234'));
+});
+test('unit and tenant readers have independent failures without claiming complete results',async()=>{
+ const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{
+  createUnitSearch:()=>({read:async()=>[directoryUnit],close(){}}),
+  createRecordSearch:()=>({read:async()=>{throw Error('permission denied')},close(){}})
+ }});
+ h.search('101');await settleDirectory();const html=h.document.getElementById('v209SearchResults').innerHTML;
+ assert.match(html,/وحدة 101/);assert.match(html,/غير مكتملة/);assert.doesNotMatch(html,/permission denied|ما لقينا نتيجة/);
+});
+test('new query and auth seal cancel both readers and discard late tenant identities',async()=>{
+ const pending=[];let closes=0;
+ const reader=()=>({read:()=>new Promise(resolve=>pending.push(resolve)),close(){closes++}});
+ const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{createUnitSearch:reader,createRecordSearch:reader}});
+ h.search('قديم');await settleDirectory();h.search('جديد');await settleDirectory();
+ pending[0]([]);pending[1]([directoryTenant]);await settleDirectory();assert.doesNotMatch(h.document.getElementById('v209SearchResults').innerHTML,/OLD-2030/);
+ h.window.AQARI_V209.seal();pending[2]([]);pending[3]([directoryTenant]);await settleDirectory();
+ assert.equal(h.document.getElementById('v209SearchResults').innerHTML,'');assert.ok(closes>=4);
+});
+test('independent results escape all labels and reject a changed account',async()=>{
+ let opens=0;const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[]),ownerApi:{createRecordSearch:()=>({read:async()=>[{...directoryTenant,tenant:'<img src=x>',contractNo:'<script>bad</script>'}],close(){}}),openSearchRecord:()=>opens++}});
+ h.search('55551234');await settleDirectory();const html=h.document.getElementById('v209SearchResults').innerHTML;
+ assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img|<script>/);
+ h.supabase.context=activeContext('b','other');h.clickResult(0,'record');await settleDirectory();assert.equal(opens,0);
+});
+test('same contract in monthly results keeps its existing financial actions without a duplicate',async()=>{
+ const h=createHarness({rentOfficeData:(p,m)=>office(p,m,[record({tenant:directoryTenant.tenant,unit:'204',contractNo:'OLD-2030'})]),ownerApi:{createRecordSearch:()=>({read:async()=>[directoryTenant],close(){}})}});
+ h.search('OLD-2030');await settleDirectory();const html=h.document.getElementById('v209SearchResults').innerHTML;
+ assert.equal(resultArticles(html).length,1);assert.match(html,/data-v209-action="payment"/);assert.doesNotMatch(html,/data-v209-action="record"/);
+});

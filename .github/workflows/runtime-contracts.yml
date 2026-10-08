@@ -79,7 +79,7 @@ jobs:
       - name: Deposit ledger preserves verified contract scope on read failure
         run: node --test tests/v267-deposit-ledger.test.mjs
       - name: Unit search reads scoped identities without a rent ledger
-        run: node --test tests/v267-unit-search.test.mjs tests/v209-property-search.test.cjs
+        run: node --test tests/v267-unit-search.test.mjs tests/v267-record-search.test.mjs tests/v209-property-search.test.cjs tests/v209-behavior.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
         run: node --test tests/v267-service-readiness.test.mjs tests/v267-owner-settings-recovery.test.mjs tests/v267-contract-admin-recovery.test.mjs
       - name: Stage C Storage export and isolated restore runtime regression
