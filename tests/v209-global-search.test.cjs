@@ -86,7 +86,12 @@ test('V209 upgrades the existing search surface without bypassing V206.3 securit
   assert.doesNotMatch(search,/querySelectorAll\('\[data-v201-property\]'\)/);
   assert.doesNotMatch(search,/record\?\.email/);
   assert.doesNotMatch(search,/record\?\.phone/);
-  assert.doesNotMatch(search,/civilId/);
+  // Match identifiers transiently; the retained results contain only a boolean.
+  const safeRows=search.split('function safeRows(value){')[1].split('function identityDigits')[0];
+  assert.doesNotMatch(safeRows,/\b(?:phone|civilId)\s*:/);
+  assert.match(safeRows,/contactMatch:matchesContact\(record,value\)/);
+  const markup=search.split('function resultMarkup')[1].split('function render')[0];
+  assert.doesNotMatch(markup,/\.(?:phone|civilId)\b/);
 
   assert.match(css,/v209-search-panel/);
   assert.match(css,/v209-search-results/);
