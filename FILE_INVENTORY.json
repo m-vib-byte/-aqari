@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "1e20649da009e991d8bf1c14553e8135555bd719bbed24bbbb622db5a0a54251",
-      "size": 11730
+      "sha256": "1126ffad853986d9f95b2aacbf684bcfe0ffefbcabba0c8919554d11624bf598",
+      "size": 11793
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1962,8 +1962,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "b35c94c2dc97567dcec0d89d5f47864811526f987f3373092be0315e55b4a010",
-      "size": 35024
+      "sha256": "3e76139d81e581a556a5be2c00787ca80210dba67caa31eb8fb074760d636ef3",
+      "size": 35136
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -4722,8 +4722,8 @@
     },
     {
       "path": "tests/v209-behavior.test.cjs",
-      "sha256": "bbf78117397d8b42bafd5e7d5225b64463cbea8c8efffb7951b5102a2daa4912",
-      "size": 29701
+      "sha256": "92ddc4b6e7e416c5083817505f2029b13bb21db5b2a99d3564e179fe1d6ef76b",
+      "size": 33612
     },
     {
       "path": "tests/v209-global-search.test.cjs",
@@ -5797,8 +5797,8 @@
     },
     {
       "path": "v209-global-search.js",
-      "sha256": "e6475b8e0571e189bbb78d20f0c933a1de373a2f18f760f34486524269beda63",
-      "size": 27561
+      "sha256": "bbbba397ba9143bcf1d5f5928a509e6d7b24ad930c458a512c7f76c3687c7d65",
+      "size": 30594
     },
     {
       "path": "v210-daily-command-center.css",
@@ -5999,6 +5999,31 @@
       "path": "supabase/functions/aqari-execution-archive/package.json",
       "size": 172,
       "sha256": "b85836f54835a0543b0a7549c6ef0f2a10eab4404cb9f1df6e4bf6767b9e830b"
+    },
+    {
+      "path": "docs/verification/search-directory-20261008.md",
+      "sha256": "0b1af546eec784af865f310f020ab739a612b697007989cb4bd667dd3c286584",
+      "size": 2697
+    },
+    {
+      "path": "src/v267/api/record-search.js",
+      "sha256": "ec5cd3ecb1c16bb6c0d1cff2c03c6b233aa0d471d9aeb7950ba83c58a77c03d1",
+      "size": 5418
+    },
+    {
+      "path": "src/v267/pages/tenant-timeline.js",
+      "sha256": "b67c9a02d08aac914a65f86499797ea345fd21c3e06e2463a0baf5112afe98f9",
+      "size": 8821
+    },
+    {
+      "path": "tests/v267-record-search.test.mjs",
+      "sha256": "7a4ac98417cf3d6ae71fcd824f90f02e826ef27be0c55e9f03acac2543c90526",
+      "size": 7439
+    },
+    {
+      "path": "docs/verification/archive-search-integration-20261008.md",
+      "sha256": "f07f89d0a0e3ee3d6de88f462e6f2350bed3e49a7308ca54aba4a062926d3469",
+      "size": 2376
     }
   ],
   "version": "V198"
