@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.request import Request, build_opener
 from urllib.error import HTTPError
-import base64, importlib.util, json, os, sys
+import base64, importlib.util, json, os, re, sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 spec = importlib.util.spec_from_file_location("execution_official_common", ROOT / "api/official-document.py")
@@ -33,10 +33,24 @@ def read_execution_source(path, auth, body=None):
             raise SourceMfaChallenge(message) from None
         raise
 
-def renderer_config():
+def renderer_config(oidc_token=None):
     # A server-only credential is required for the first render. Never obtain it
     # from a browser, request body or a different Supabase project.
     url, _ = common.config()
+    transport = os.environ.get('AQARI_PDF_ARCHIVE_TRANSPORT', 'service_key')
+    if transport == 'oidc_gateway':
+        environments = {'https://djkpkkgoibruaezdrchb.supabase.co': 'production',
+                        'https://ofgmcsmxmdswlovsckqs.supabase.co': 'preview'}
+        if (environments.get(url) != os.environ.get('VERCEL_ENV')
+                or url not in environments or not isinstance(oidc_token, str)
+                or len(oidc_token) > 16384 or not re.fullmatch(r'[\w-]+\.[\w-]+\.[\w-]+', oidc_token)):
+            raise RuntimeError('PDF_ARCHIVE_NOT_CONFIGURED')
+        # This token comes from the Vercel runtime request header, never a build
+        # environment variable or a client body. The gateway verifies it fully.
+        return url, {'Authorization': 'Bearer ' + oidc_token,
+                     'Content-Type': 'application/json', 'Accept': 'application/json'}
+    if transport != 'service_key':
+        raise RuntimeError('PDF_ARCHIVE_NOT_CONFIGURED')
     key = os.environ.get('AQARI_PDF_ARCHIVE_SERVICE_KEY', '')
     target = os.environ.get('AQARI_PDF_ARCHIVE_SUPABASE_URL', '')
     if target != url or not key or len(key) > 8192:
@@ -57,17 +71,34 @@ def renderer_config():
     headers.update({'Content-Type': 'application/json', 'Accept': 'application/json'})
     return url, headers
 
-def commit_package(data):
-    url, headers = renderer_config()
-    request = Request(url + '/rest/v1/rpc/aqari_contract_execution_package_commit',
+def archive_gateway(data, oidc_token, user_auth=None):
+    url, headers = renderer_config(oidc_token)
+    if user_auth is not None:
+        if not isinstance(user_auth, str) or len(user_auth) > 16391 or not re.fullmatch(r'Bearer [\w-]+\.[\w-]+\.[\w-]+', user_auth):
+            raise PermissionError('ACCESS_DENIED')
+        headers['X-Aqari-User-Authorization'] = user_auth
+    request = Request(url + '/functions/v1/aqari-execution-archive',
                       data=json.dumps(data, separators=(',', ':')).encode(), headers=headers, method='POST')
-    with build_opener(common.NoRedirect).open(request, timeout=8) as response:
+    with build_opener(common.NoRedirect).open(request, timeout=30) as response:
         raw = response.read(16385)
         if len(raw) > 16384: raise ValueError('INVALID_ARCHIVE_RESPONSE')
-        result = json.loads(raw)
-        if not isinstance(result, dict) or not result.get('package_id'):
-            raise ValueError('ARCHIVE_WRITE_NOT_CONFIRMED')
-        return result
+        return json.loads(raw)
+
+def commit_package(data, oidc_token=None, user_auth=None):
+    if os.environ.get('AQARI_PDF_ARCHIVE_TRANSPORT') == 'oidc_gateway':
+        if user_auth is None: raise PermissionError('ACCESS_DENIED')
+        result = archive_gateway({'operation': 'commit', 'payload': data}, oidc_token, user_auth)
+    else:
+        url, headers = renderer_config()
+        request = Request(url + '/rest/v1/rpc/aqari_contract_execution_package_commit',
+                          data=json.dumps(data, separators=(',', ':')).encode(), headers=headers, method='POST')
+        with build_opener(common.NoRedirect).open(request, timeout=8) as response:
+            raw = response.read(16385)
+            if len(raw) > 16384: raise ValueError('INVALID_ARCHIVE_RESPONSE')
+            result = json.loads(raw)
+    if not isinstance(result, dict) or not result.get('package_id'):
+        raise ValueError('ARCHIVE_WRITE_NOT_CONFIRMED')
+    return result
 
 
 class handler(BaseHTTPRequestHandler):
@@ -86,7 +117,11 @@ class handler(BaseHTTPRequestHandler):
         # Configuration only: never claims database or signing acceptance.
         # Return no project identifiers, credentials or document metadata.
         try:
-            renderer_config()
+            if os.environ.get('AQARI_PDF_ARCHIVE_TRANSPORT') == 'oidc_gateway':
+                result = archive_gateway({'operation': 'check'}, self.headers.get('x-vercel-oidc-token'))
+                if result != {'configured': True}: raise RuntimeError('PDF_ARCHIVE_NOT_CONFIGURED')
+            else:
+                renderer_config()
             self.respond(200, {"configured": True})
         except Exception:
             self.respond(503, {"configured": False})
@@ -96,8 +131,11 @@ class handler(BaseHTTPRequestHandler):
             if not 0 < length <= 262144:
                 raise ValueError("INVALID_REQUEST")
             data=json.loads(self.rfile.read(length))
+            commit = commit_package
+            if os.environ.get('AQARI_PDF_ARCHIVE_TRANSPORT') == 'oidc_gateway':
+                commit = lambda payload: commit_package(payload, self.headers.get('x-vercel-oidc-token'), self.headers.get('Authorization'))
             result=prepare(data,self.headers.get("Authorization"),read=read_execution_source,
-                           commit=commit_package,render_document=common.render_official_document,
+                           commit=commit,render_document=common.render_official_document,
                            render_receipt=render_receipt,verify_receipt=verified_receipt)
             self.respond(200,result)
         except SourceMfaChallenge as exc:

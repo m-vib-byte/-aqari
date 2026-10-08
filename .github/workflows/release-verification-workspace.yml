@@ -101,6 +101,10 @@ jobs:
         run: |
           python -m pip install -r requirements.txt pypdf==6.10.0
           python -m unittest discover -s tests -p '*_test.py' -v 2>&1 | tee /tmp/aqari-verification/python-tests.log
+      - name: Execution archive workload and user authorization
+        run: |
+          npm ci --prefix supabase/functions/aqari-execution-archive --ignore-scripts --no-audit --no-fund
+          npm test --prefix supabase/functions/aqari-execution-archive | tee /tmp/aqari-verification/archive-gateway-tests.log
       - name: Install browser test runtime
         run: |
           npm ci --ignore-scripts --no-audit --no-fund

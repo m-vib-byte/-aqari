@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 12507,
-      "sha256": "5a43c4e331dd774e0d40def6ab9566ece2eaa828e3ce9998b858b74750fac83a"
+      "size": 12820,
+      "sha256": "91a287051e1a48d2ed817ac0fc56898141f93fcde3027b3cb78ada4889b663ca"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -227,8 +227,8 @@
     },
     {
       "path": "api/contract-execution-package.py",
-      "sha256": "cb327fb6222b37cf1f6c9f1eb074915bfe570795d71289c45650726aee6ccbba",
-      "size": 5472
+      "sha256": "5f7ea7039c79813690dffdc5b2661fe72cc6da185eaa6e0acc6adc9bb5fab4f0",
+      "size": 8105
     },
     {
       "path": "api/contract-template-preview.py",
@@ -4462,8 +4462,8 @@
     },
     {
       "path": "tests/contract_execution_package_test.py",
-      "sha256": "3c3cf39713b4a902a66f160907a2902fd4f902c220c8bc4ab6c69e16b6dc2e5b",
-      "size": 13960
+      "sha256": "d9797a732f789e1a8dc10535b4cae00c13f9bbf0b8843b220556c7a47c2d9d3f",
+      "size": 17894
     },
     {
       "path": "tests/contract_template_pdf_test.py",
@@ -5944,6 +5944,51 @@
       "path": "staging-database/reconciliation/maintenance-category/acceptance.sql",
       "sha256": "81e6b5340b8a4d4510ad87ee686bf2d067412a6bd927e258ca0b126c24bedc7b",
       "size": 5442
+    },
+    {
+      "path": "docs/verification/execution-archive-oidc-20261008.md",
+      "size": 2743,
+      "sha256": "2de2a42d5f4854af35b5d64d721c2c88dc757623321bf99f1270e21d199031bf"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/index.ts",
+      "size": 363,
+      "sha256": "129e30173de402053970a6fb043e282558cc091280783502f00035c5b4ff0fcc"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/gateway.test.mjs",
+      "size": 10237,
+      "sha256": "b6f19eb7883437e5e4aab2c38343f0d97a1bc4ad6c59338cc11912052796d36b"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/gateway.mjs",
+      "size": 7140,
+      "sha256": "105ed0a1765d0250acfe1493d62d618a599a025178ec9a1bdc0c267dec024363"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/.gitignore",
+      "size": 14,
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/deno.json",
+      "size": 39,
+      "sha256": "f362a29d3755c0a6a7b64886272c688b1beedaf0c4400970e36eb7c711728404"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/package-lock.json",
+      "size": 571,
+      "sha256": "644a6c5b81ca7d2f60a183e6b1bbff24bb3725ab4d7f4f8b10afbce673cd4a50"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/auth.mjs",
+      "size": 1735,
+      "sha256": "773ff8b4dc039ca3492a4ae82ada0b03bd856d11678322d310a20eb84f62b128"
+    },
+    {
+      "path": "supabase/functions/aqari-execution-archive/package.json",
+      "size": 172,
+      "sha256": "b85836f54835a0543b0a7549c6ef0f2a10eab4404cb9f1df6e4bf6767b9e830b"
     }
   ],
   "version": "V198"

@@ -213,4 +213,56 @@ class MfaBoundaryTests(unittest.TestCase):
   responses,commits,_=self.invoke(commit_error=self.error())
   self.assertEqual(commits,1);self.assertEqual(responses,[(403,{'error':'EXECUTION_PREPARATION_FAILED'})])
 
+class OidcTransportTests(unittest.TestCase):
+ setUpClass=classmethod(ApiBoundaryTests.setUpClass.__func__)
+ def setUp(self):
+  self.url='https://ofgmcsmxmdswlovsckqs.supabase.co'
+  self.env={'AQARI_PDF_ARCHIVE_TRANSPORT':'oidc_gateway','VERCEL_ENV':'preview'}
+ def transport(self, body=b'{"package_id":"package"}'):
+  from unittest.mock import MagicMock
+  transport=MagicMock();response=MagicMock();response.read.return_value=body
+  transport.return_value.open.return_value.__enter__.return_value=response
+  return transport
+ def test_runtime_identity_and_real_user_use_fixed_gateway(self):
+  from unittest.mock import patch
+  import json
+  transport=self.transport()
+  with patch.dict(self.api.os.environ,self.env,clear=True),patch.object(self.api.common,'config',return_value=(self.url,'public')),patch.object(self.api,'build_opener',transport):
+   self.api.commit_package({'p_package_id':'package'},'workload.runtime.token','Bearer user.session.token')
+  request=transport.return_value.open.call_args.args[0]
+  self.assertEqual(request.full_url,self.url+'/functions/v1/aqari-execution-archive')
+  self.assertEqual(request.get_header('Authorization'),'Bearer workload.runtime.token')
+  self.assertEqual(request.get_header('X-aqari-user-authorization'),'Bearer user.session.token')
+  self.assertEqual(json.loads(request.data),{'operation':'commit','payload':{'p_package_id':'package'}})
+  transport.assert_called_once_with(self.api.common.NoRedirect)
+ def test_missing_runtime_token_cannot_fall_back_to_build_token_or_service_key(self):
+  from unittest.mock import patch
+  env={**self.env,'VERCEL_OIDC_TOKEN':'build.token.value','AQARI_PDF_ARCHIVE_SERVICE_KEY':'sb_secret_test'}
+  with patch.dict(self.api.os.environ,env,clear=True),patch.object(self.api.common,'config',return_value=(self.url,'public')),patch.object(self.api,'build_opener') as transport:
+   for token in (None,'invalid','x'*16385):
+    with self.assertRaises(RuntimeError):self.api.commit_package({},token,'Bearer user.session.token')
+   transport.assert_not_called()
+ def test_environment_project_and_user_mismatch_fail_before_network(self):
+  from unittest.mock import patch
+  for url,env,user in [(self.url,{**self.env,'VERCEL_ENV':'production'},'Bearer user.session.token'),
+    ('https://other.supabase.co',self.env,'Bearer user.session.token'),(self.url,self.env,None),(self.url,self.env,'bad')]:
+   with patch.dict(self.api.os.environ,env,clear=True),patch.object(self.api.common,'config',return_value=(url,'public')),patch.object(self.api,'build_opener') as transport:
+    with self.assertRaises((RuntimeError,PermissionError)):self.api.commit_package({},'workload.runtime.token',user)
+    transport.assert_not_called()
+ def test_readiness_is_verified_live_and_discloses_only_boolean(self):
+  from unittest.mock import patch
+  from urllib.error import HTTPError
+  for result,error,expected in [({'configured':True},None,200),({'configured':False},None,503),
+    ({'configured':True,'secret':'private'},None,503),(None,HTTPError('https://private',401,'private',{},None),503)]:
+   instance=object.__new__(self.api.handler);instance.headers={'x-vercel-oidc-token':'workload.runtime.token'};responses=[]
+   instance.respond=lambda status,body:responses.append((status,body))
+   with patch.dict(self.api.os.environ,self.env,clear=True),patch.object(self.api,'archive_gateway',return_value=result,side_effect=error) as gateway:
+    instance.do_GET()
+   self.assertEqual(responses,[(expected,{'configured':expected==200})]);self.assertNotIn('private',str(responses))
+   gateway.assert_called_once_with({'operation':'check'},'workload.runtime.token')
+ def test_unknown_transport_is_rejected(self):
+  from unittest.mock import patch
+  with patch.dict(self.api.os.environ,{'AQARI_PDF_ARCHIVE_TRANSPORT':'client'},clear=True),patch.object(self.api.common,'config',return_value=(self.url,'public')):
+   with self.assertRaises(RuntimeError):self.api.renderer_config()
+
 if __name__=='__main__':unittest.main()
