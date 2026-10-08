@@ -961,6 +961,11 @@
       "size": 4688
     },
     {
+      "path": "docs/verification/search-contact-20261008.md",
+      "size": 1151,
+      "sha256": "d1005bbf407b1f5ac8439abc106e5403b90c6326e39ee0c9c670f7913de6ec16"
+    },
+    {
       "path": "docs/verification/service-audit-2026-10-01.md",
       "sha256": "2d7531db6a555b1e22312ad15263b8e2e8dda7ac3fa5f41fa457725b49dba25b",
       "size": 6376
@@ -4722,13 +4727,18 @@
     },
     {
       "path": "tests/v209-global-search.test.cjs",
-      "sha256": "e2267b14d715f1c979b295deca275f8a484d9f41c361855a9e8c9ce232165378",
-      "size": 8601
+      "sha256": "88708dfaaff5ab1bfdcc9a2c83da4cbd18b6dc6b61cf01a622799fb315d943c7",
+      "size": 9011
     },
     {
       "path": "tests/v209-loader.test.cjs",
       "sha256": "fe240f81df58fd5b7130b8580cb9e30ad6346fbce7eff2e882eab6fc9d87a507",
       "size": 7429
+    },
+    {
+      "path": "tests/v209-property-search.test.cjs",
+      "size": 17331,
+      "sha256": "b2d7aefad7e80659defdde32fdd76ffc23f835647cde8ad5a1a6a94528669190"
     },
     {
       "path": "tests/v210-daily-command-center.test.cjs",
@@ -5787,8 +5797,8 @@
     },
     {
       "path": "v209-global-search.js",
-      "sha256": "bc39afc9925a30bc13e84e6c55d0df10f50628b8dbf176049e83f4cbcec9841a",
-      "size": 26983
+      "sha256": "e6475b8e0571e189bbb78d20f0c933a1de373a2f18f760f34486524269beda63",
+      "size": 27561
     },
     {
       "path": "v210-daily-command-center.css",

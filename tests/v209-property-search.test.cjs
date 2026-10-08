@@ -472,3 +472,21 @@ test('existing tenant and contract results retain their original actions',()=>{
  assert.ok(close); assert.equal(close.getAttribute('aria-label'),'إغلاق البحث');
  close.dispatchEvent({type:'click',stopPropagation(){}}); assert.equal(env.panel.classList.contains('on'),false);
  });
+
+
+test('contact search matches authorized phone formatting and complete civil ID without displaying them',()=>{
+ const h=createHarness({rentOfficeData:(name,period)=>office(name,period,[record({phone:'+965 5555-1234',civilId:'289092312345'})])});
+ for(const query of ['55551234','+٩٦٥ ٥٥٥٥-١٢٣٤','۲۸۹۰۹۲۳۱۲۳۴۵']){
+  const html=h.search(query);
+  assert.match(html,/مستأجر الهدف/);
+  assert.doesNotMatch(html,/289092312345|5555-1234/);
+ }
+ for(const query of ['5555','28909231','289092312346'])assert.doesNotMatch(h.search(query),/مستأجر الهدف/);
+});
+
+test('contact search cannot reuse another account directory',()=>{
+ const h=createHarness({rentOfficeData:(name,period)=>office(name,period,[record({phone:'55551234',civilId:'289092312345',billable:false,collectible:false})])});
+ assert.match(h.search('55551234'),/مستأجر الهدف/);
+ h.supabase.context.user.id='different-user';
+ assert.doesNotMatch(h.search('289092312345'),/مستأجر الهدف/);
+});
