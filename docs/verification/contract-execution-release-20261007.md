@@ -158,3 +158,10 @@ repeat the guarded schema preflight, apply the coordinated capability and
 verify authenticated package preparation → atomic settlement → reopen both
 original PDFs and receipt on the deployment SHA. Preserve existing records.
 Owner phone/tablet acceptance remains separately identifiable.
+
+
+## 2026-10-08 mobile contract navigation follow-up
+
+Owner screenshots show low contrast on property contract cards and a native file input escaping its intended hidden dropzone. Contract-page CSS now pins card background and child text against owner-theme overrides, contains the hidden file input without disabling its picker, adds keyboard focus indication, and wraps long navigation identifiers. PDF/A4 rendering and print rules are unchanged.
+
+Validation: 40 tests passed across v267-property-contract-open, v267-simple-contract-upload, v267-contract-view and v267-contract-scanner-entry. Local visual verification was attempted but Chromium download failed; this is not a claimed iPhone/browser acceptance result. Authenticated final archive acceptance remains outstanding. No Production data or schema changes.

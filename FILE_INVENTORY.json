@@ -847,8 +847,8 @@
     },
     {
       "path": "docs/verification/contract-execution-release-20261007.md",
-      "sha256": "05656fe36bf22637971c105f0338443a20aa3e913c75ae8f04be3e15d24d5410",
-      "size": 9512
+      "sha256": "31d2f27876bd14209f38f62666362ba08eb12ce36ab2a9b9fb3f6c935f39ca74",
+      "size": 10331
     },
     {
       "path": "docs/verification/contract-visibility-20260921.md",
@@ -2267,8 +2267,8 @@
     },
     {
       "path": "src/v267/styles/contract-pages.css",
-      "sha256": "9fdbb237fcc5f11c19e191da7b8c01a629d9f893f50ffb183d10881daf875d72",
-      "size": 6904
+      "sha256": "f6a9c7cb9ce874513f17f5ab955b6f9817713fcc622ab96beab3220b66a3f311",
+      "size": 8296
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
