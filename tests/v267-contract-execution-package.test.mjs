@@ -54,12 +54,13 @@ function finalization(prepare,{saveError,postSaveError,rendererError}={}){
  const session={bound:{workspace:'workspace',user:'user'},check(){},request:async x=>x,
  client:{from:()=>({select(){return this;},eq(){return this;},single:async()=>({id:'lease',contract_no:'CT-1',status:'signed'})})}};
  const context={scope:()=>({}),d:{session},contractId:'contract',copy:structuredClone,crypto:{randomUUID:()=>String(++n)},settlementSent:false,isExecutionMfaChallenge,
+ currentContract:structuredClone(initial.contractsV202[0]),currentProfile:structuredClone(initial.tenantProfilesV267[0]),currentDue:{rent:0},
  api:{primary:x=>x,directoryFields:()=>({})},assertContractExecutionService:async()=>{},assertContractExecutionRenderer:async()=>{if(rendererError)throw rendererError;},executionDue:()=>({rent:0}),
  executionManifest:({ids})=>({id:ids.settlement}),prepareContractExecutionPackage:prepare,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),
  window:{AQARI_SUPABASE:{loadAppState:async()=>({payload:saved||initial,revision:1}),saveAppState:async x=>{if(saveError)throw saveError;saved=x;}}},
  rpc:async name=>{if(postSaveError)throw postSaveError;return name==='aqari_contract_execution_artifacts'?{settlement_id:saved.contractExecutionSettlementsV267[0].id,contract_no:'CT-1',tenant_document_id:'tenant-doc',owner_document_id:'owner-doc'}:{periods:[]};}};
  vm.createContext(context);vm.runInContext(source.slice(start,end)+'\nthis.finalize=finalize;',context);
- return {run:()=>context.finalize({}),saved:()=>saved,sent:()=>context.settlementSent,initial};
+ return {run:()=>context.finalize({}),saved:()=>saved,sent:()=>context.settlementSent,initial,context};
 }
 test('actual finalization performs no business write when package preparation fails',async()=>{
  const f=finalization(async()=>{throw Error('PDF unavailable');});
@@ -180,4 +181,19 @@ test('renderer configuration response is bounded and does not claim a signing re
  }
  const f=fixture();globalThis.fetch=async(url,options)=>{assert.equal(options.method,'GET');assert.equal(options.redirect,'error');return new Response('{"configured":true}',{headers:{'Content-Type':'application/json'}});};
  await assertContractExecutionRenderer(f.session);
+});
+
+ test('changed contract or tenant after review blocks before package, reservation or settlement',async()=>{
+ for(const change of [f=>{f.initial.contractsV202[0].rent=200;},f=>{f.initial.contractsV202[0].unit='202';},f=>{f.initial.tenantProfilesV267[0].nameAr='Changed tenant';}]){
+  let prepared=0,reserved=0;const f=finalization(async()=>{prepared++;return 'package';});
+  f.context.rpc=async()=>{reserved++;};change(f);
+  await assert.rejects(f.run(),/تغيرت بيانات العقد أو المستأجر/);
+  assert.equal(prepared,0);assert.equal(reserved,0);assert.equal(f.saved(),null);assert.equal(f.sent(),false);
+ }
+});
+test('changed calculated amount after review cannot silently replace the approved summary',async()=>{
+ let prepared=0,reserved=0;const f=finalization(async()=>{prepared++;return 'package';});
+ f.context.executionDue=()=>({rent:100});f.context.rpc=async()=>{reserved++;};
+ await assert.rejects(f.run(),/تغير المبلغ المستحق/);
+ assert.equal(prepared,0);assert.equal(reserved,0);assert.equal(f.saved(),null);assert.equal(f.sent(),false);
 });

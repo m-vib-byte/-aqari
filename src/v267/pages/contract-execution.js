@@ -49,7 +49,7 @@ export function openContractExecution(contractId,{onDone}={}){
   if(!contract)throw Error('العقد غير موجود.');if(contract.status!=='signing')throw Error('يجب أن يكون العقد في حالة بانتظار التوقيع قبل اعتماد الإبرام.');
   if(d.session.bound.role!=='general_manager')throw Error('اعتماد الإبرام النهائي متاح للمدير العام فقط.');
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
-  currentContract=contract;currentProfile=profile;currentDue=executionDue(api,contract);return {cloud,db};
+  currentContract=copy(contract);currentProfile=copy(profile);currentDue=copy(executionDue(api,contract));return {cloud,db};
  }
 
  const pdf=(path,body)=>readContractExecutionPdf(d.session,path,body);
@@ -60,9 +60,12 @@ export function openContractExecution(contractId,{onDone}={}){
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
+  if(!same(contract,currentContract)||!same(profile,currentProfile))throw Error('تغيرت بيانات العقد أو المستأجر بعد المراجعة. أغلق النافذة وافتحها مجددًا لمراجعة البيانات قبل الاعتماد.');
   await assertContractExecutionService(d.session,contractId);d.session.check();
   await assertContractExecutionRenderer(d.session);d.session.check();
-  const due=executionDue(api,contract),signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
+  const due=executionDue(api,contract);
+  if(!same(due,currentDue))throw Error('تغير المبلغ المستحق بعد المراجعة. أغلق النافذة وافتحها مجددًا لمراجعة المبلغ قبل الاعتماد.');
+  const signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
   const ids={package:crypto.randomUUID(),settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
   let receiptNo='',contractReceiptSequence=null;
   if(due.rent>0){
