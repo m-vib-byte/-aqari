@@ -40,7 +40,7 @@ test('direct contract foundation loads its engine and renders choices without cr
  const writes=[],calls=[],filters=[],cleanups=[],published={id:'template',kind:'investment',kind_label:'استثماري',title:'نموذج منشور',version:1,clauses:[{title:'بند',text:'نص'}]};
  const node=(tag,text='')=>({tag,textContent:text,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;}});
  const query={select(){return this;},eq(){return this;},or(value){filters.push(value);return this;},order(){return [];}};
- const d={onDispose(cleanup){cleanups.push(cleanup);},body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace',role:'general_manager'},check(){},client:{from(name){calls.push(name);return query;},rpc(name){calls.push(name);return name==='aqari_rental_templates'?{workspace_id:'workspace',user_id:'user',items:[published,{...published,id:'receipt',kind:'rent_receipt',kind_label:'وصل إيجار'}]}:{items:[]};}},request:async value=>value},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
+ const d={setBeforeClose(check){this.beforeClose=check;},setBeforeUnload(check){this.beforeUnload=check;},onDispose(cleanup){cleanups.push(cleanup);},body:node('section'),status:node('p'),session:{bound:{user:'user',workspace:'workspace',role:'general_manager'},check(){},client:{from(name){calls.push(name);return query;},rpc(name){calls.push(name);return name==='aqari_rental_templates'?{workspace_id:'workspace',user_id:'user',items:[published,{...published,id:'receipt',kind:'rent_receipt',kind_label:'وصل إيجار'}]}:{items:[]};}},request:async value=>value},run(work){this.pending=Promise.resolve().then(work);return this.pending;}};
  const context={window:{AQARI_SUPABASE:{loadAppState:async()=>({payload:{}}),saveAppState:()=>writes.push('save')}},node,createDialog:()=>d,translateStatic:x=>x,rentalTemplateKinds:[['investment','استثماري']],validTemplate:()=>true,isFoundationContractTemplate,templateKindName:r=>r.kind_label,mountTemplateFields:()=>({values:()=>({})})};
  vm.createContext(context);vm.runInContext(readFileSync(new URL('../v267-rental-records.js',import.meta.url),'utf8'),context);
  vm.runInContext(source.replace(/^import .*;$/gm,'').replace(/\bexport /g,'')+'\nopenContractFoundation();',context);
@@ -50,6 +50,7 @@ test('direct contract foundation loads its engine and renders choices without cr
  assert.equal(d.body.children.at(-1).children.length,1,'receipt templates must not become new-contract types');
  assert.deepEqual(calls,['aqari_properties','aqari_units','aqari_rental_templates']);assert.deepEqual(writes,[]);
  assert.deepEqual(filters,['metadata->>source_only.is.null,metadata->>source_only.neq.true']);
+ assert.equal(d.beforeUnload(),false);assert.equal(await d.beforeClose(),true);assert.deepEqual(writes,[],'opening and closing an unchanged foundation must not write');
  assert.equal(cleanups.length,1,'foundation registers autosave disposal with the dialog lifecycle');cleanups[0]();
 });
 
