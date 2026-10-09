@@ -911,6 +911,11 @@
       "size": 988
     },
     {
+      "path": "docs/verification/foundation-close-save-20261009.md",
+      "size": 1624,
+      "sha256": "0d563277a975d5a80ca700fe747a09dc97319077fd95787fa303666e87fae6a4"
+    },
+    {
       "path": "docs/verification/kuwait-month-boundary-2026-10-01.md",
       "sha256": "59b7f3b9ecef3ebb03dc20485af74a567a28bd6f84e0ba5e8796bd1c22b74d2c",
       "size": 2753
@@ -2017,8 +2022,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "sha256": "33862f66574087f6be9746f2882e5777bcb636f74198d8f84b1d7c709a3b0226",
-      "size": 38812
+      "size": 38980,
+      "sha256": "4add6ae9877008bc2e565db6528c305dc99699355b38eab9e35b98c9128fddd5"
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -5917,8 +5922,8 @@
     },
     {
       "path": "src/v267/components/draft-autosave.js",
-      "sha256": "b93e01499b7b7847bdcc078381edd9eb23730164faa107f3baa4ccc60ad183aa",
-      "size": 1077
+      "size": 1431,
+      "sha256": "8617c2234334fefb3250c2e9091182cb329e4580491edc3d123983c3174f7e6f"
     },
     {
       "path": "tests/v267-contract-foundation.test.mjs",
@@ -5927,8 +5932,8 @@
     },
     {
       "path": "tests/v267-foundation-autosave.test.mjs",
-      "sha256": "96fc991c9c23776f654e8e26e0a6151588ace183872fadd80b0097b8529ecaed",
-      "size": 2243
+      "size": 4471,
+      "sha256": "e9eed5d7000d0d4b079e9c05a8b4b6204cfb8d520888e61225d093db02720a73"
     },
     {
       "path": "docs/verification/foundation-security-release-20261008.md",
@@ -5957,8 +5962,8 @@
     },
     {
       "path": "tests/v267-property-onboarding.test.mjs",
-      "sha256": "0f50d143dca70444e8ddf5ea4d01fd7abacb53a75846d04ae3b0b1df1f49c134",
-      "size": 8854
+      "size": 9119,
+      "sha256": "365c8996ca181091be34f444b3578485f2367ebf86dc6d5fd23cbd9af791ab2e"
     },
     {
       "path": "docs/verification/maintenance-category-production-20261008.md",

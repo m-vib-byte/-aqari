@@ -29,6 +29,8 @@ export function openContractFoundation(options={}){
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  let state=null,properties=[],units=[],templates=[],preparation=null,autosave=null;
  d.onDispose(()=>autosave?.dispose());
+ d.setBeforeClose(async()=>{d.session.check();await autosave?.flush();d.session.check();return true;});
+ d.setBeforeUnload(()=>Boolean(autosave?.hasUnsavedChanges()));
  const button=(label,fn)=>{const el=node('button',label);el.type='button';el.onclick=()=>d.run(async()=>{await autosave?.flush();d.session.check();return fn();});return el;};
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  const clear=title=>d.body.replaceChildren(node('h3',title));
