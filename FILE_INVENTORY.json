@@ -1947,8 +1947,8 @@
     },
     {
       "path": "src/v267/owner-feedback-runtime.js",
-      "sha256": "3e76139d81e581a556a5be2c00787ca80210dba67caa31eb8fb074760d636ef3",
-      "size": 35136
+      "sha256": "42c303404b5b5873940549d488c602beb7d76790334626151bb21f77cc1725c5",
+      "size": 35708
     },
     {
       "path": "src/v267/pages/automation-status.js",
@@ -5829,6 +5829,16 @@
       "path": "vercel.json",
       "sha256": "30d1b41481bb74baa59fad215f7fedf376f253b3b79cf690a3d0fabb4efae5a9",
       "size": 8375
+    },
+    {
+      "path": "src/v267/components/assistant-voice.js",
+      "sha256": "207c3a95e792507bcb4e5c69c7dc0fc5717a3424e615c488e48727fbb082ecb7",
+      "size": 6236
+    },
+    {
+      "path": "tests/assistant-voice.test.mjs",
+      "sha256": "df1f3e7ef9c4126a83b5ed8f00439e54622f3be6e1b3134ff87375a1bfd68e08",
+      "size": 3301
     }
   ],
   "version": "V198"

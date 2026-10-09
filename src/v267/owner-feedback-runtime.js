@@ -1,3 +1,4 @@
+import {mountAssistantVoice} from './components/assistant-voice.js';
 import {runAssistantTask} from './components/assistant-request.js';
 import {startBotProtection} from './bot-protection.js';
 import {installSearchEvents} from './components/search-events.js';
@@ -178,20 +179,20 @@ function handleExactClick(event){
  return runNavigationAction({scope,action:()=>dispatchExactClick(event),report:setStatus});
 }
 
-async function openAssistant(question=''){checkAssistantBoundary();const s=scope();if(!s)return false;let dialog=document.getElementById('aqExactAssistant');if(!dialog){dialog=document.createElement('dialog');dialog.id='aqExactAssistant';dialog.className='aq-exact-assistant';dialog.innerHTML=`<form method="dialog" class="aq-exact-modal-head"><div>${svg('spark')}<span><strong>${t('المساعد الذكي التوليدي')}</strong><small>${t('مرتبط بصلاحيات حسابك، والعمليات الحساسة تبقى داخل صفحاتها الأصلية.')}</small></span></div><button value="close">×</button></form><div class="aq-exact-chat"><div id="aqExactChatLog" class="aq-exact-chat-log"><p>${t('اكتب سؤالك أو اطلب شرح قسم. المساعد للقراءة والإرشاد ولا ينفذ حفظاً أو اعتماداً نيابةً عنك.')}</p></div><form id="aqExactChatForm"><input id="aqExactChatInput" maxlength="1200" placeholder="${escapeText(t('مثال: ما الذي يحتاج متابعتي في التحصيل؟'))}"><button>${t('إرسال')}</button></form></div>`;dialog.dataset.scope=assistantIdentity(s);dialog.addEventListener('close',cancelAssistant);dialog.addEventListener('cancel',cancelAssistant);document.body.append(dialog);dialog.querySelector('form#aqExactChatForm').onsubmit=sendAssistant;}dialog.lang=getLocale();dialog.dir=direction();dialog.showModal?.();if(typeof question==='string'&&question.trim()){dialog.querySelector('#aqExactChatInput').value=question.trim().slice(0,1200);dialog.querySelector('#aqExactChatForm').requestSubmit();}setTimeout(()=>dialog.querySelector('#aqExactChatInput')?.focus(),0);return true;}
-let assistantRequest=null;
+async function openAssistant(question=''){checkAssistantBoundary();const s=scope();if(!s)return false;let dialog=document.getElementById('aqExactAssistant');if(!dialog){dialog=document.createElement('dialog');dialog.id='aqExactAssistant';dialog.className='aq-exact-assistant';dialog.innerHTML=`<form method="dialog" class="aq-exact-modal-head"><div>${svg('spark')}<span><strong>${t('المساعد الذكي التوليدي')}</strong><small>${t('مرتبط بصلاحيات حسابك، والعمليات الحساسة تبقى داخل صفحاتها الأصلية.')}</small></span></div><button value="close">×</button></form><div class="aq-exact-chat"><div id="aqExactChatLog" class="aq-exact-chat-log"><p>${t('اكتب سؤالك أو اطلب شرح قسم. المساعد للقراءة والإرشاد ولا ينفذ حفظاً أو اعتماداً نيابةً عنك.')}</p></div><form id="aqExactChatForm"><input id="aqExactChatInput" maxlength="1200" placeholder="${escapeText(t('مثال: ما الذي يحتاج متابعتي في التحصيل؟'))}"><button>${t('إرسال')}</button></form></div>`;dialog.dataset.scope=assistantIdentity(s);dialog.addEventListener('close',cancelAssistant);dialog.addEventListener('cancel',cancelAssistant);document.body.append(dialog);dialog.querySelector('form#aqExactChatForm').onsubmit=sendAssistant;assistantVoice=mountAssistantVoice({dialog,form:dialog.querySelector('#aqExactChatForm'),input:dialog.querySelector('#aqExactChatInput'),host:window,identity:()=>assistantIdentity(scope()),language:()=>({ar:'ar-KW',en:'en-US',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'}[getLocale()]||'ar-KW'),busy:()=>Boolean(assistantRequest)});}dialog.lang=getLocale();dialog.dir=direction();dialog.showModal?.();if(typeof question==='string'&&question.trim()){dialog.querySelector('#aqExactChatInput').value=question.trim().slice(0,1200);dialog.querySelector('#aqExactChatForm').requestSubmit();}setTimeout(()=>dialog.querySelector('#aqExactChatInput')?.focus(),0);return true;}
+let assistantRequest=null,assistantVoice=null;
 const assistantIdentity=s=>s?JSON.stringify([s.user,s.workspace,s.role]):'';
-function cancelAssistant(){assistantRequest?.controller.abort();}
+function cancelAssistant(){assistantRequest?.controller.abort();assistantVoice?.clear();}
 function checkAssistantBoundary(){
  const dialog=document.getElementById('aqExactAssistant');
- if(dialog&&dialog.dataset.scope!==assistantIdentity(scope())){cancelAssistant();dialog.close();dialog.remove();}
+ if(dialog&&dialog.dataset.scope!==assistantIdentity(scope())){cancelAssistant();assistantVoice?.destroy();assistantVoice=null;dialog.close();dialog.remove();}
 }
 async function sendAssistant(event){
  event.preventDefault();
  const input=document.getElementById('aqExactChatInput'),log=document.getElementById('aqExactChatLog'),dialog=document.getElementById('aqExactAssistant'),question=input?.value.trim(),s=scope();
  if(!question||!s||assistantRequest||!dialog?.open)return;
  const request={controller:new AbortController(),identity:assistantIdentity(s)};
- assistantRequest=request;
+ assistantRequest=request;assistantVoice?.requestStarted();
  const button=document.getElementById('aqExactChatForm')?.querySelector('button');
  if(button)button.disabled=true;
  const mine=document.createElement('p');mine.className='me';mine.dataset.aqRecord='';mine.textContent=question;log.append(mine);input.value='';
@@ -208,8 +209,9 @@ async function sendAssistant(event){
    if(typeof data?.answer!=='string'||!data.answer.trim())throw Error('ASSISTANT_EMPTY_RESPONSE');
    return data;
   },request.controller);
-  check();pending.dataset.aqRecord='';pending.textContent=data.answer;
+  check();pending.dataset.aqRecord='';pending.textContent=data.answer;assistantVoice?.answer(data.answer);
  }catch(error){
+  assistantVoice?.failed();
   if(pending.isConnected&&assistantIdentity(scope())===request.identity){pending.textContent=isUiError(error)?error.message:t('تعذر الحصول على رد آمن من المساعد.');pending.classList.add('bad');}
  }finally{
   if(assistantRequest===request){assistantRequest=null;if(button?.isConnected)button.disabled=false;}
@@ -221,7 +223,3 @@ function refresh(){if(!scope())return;mountShell();if(document.body.classList.co
 function isExactSourceMutation(record){const target=record.target?.nodeType===3?record.target.parentElement:record.target;return !target?.closest?.('#aqOwnerExactShell,#aqOwnerExactHome,.aq-exact-section-head');}
 function boot(){void startBotProtection().catch(()=>{});installTouchNavigation(window);installSearchEvents(window,{ready:scope,submit:event=>runNavigationAction({scope,action:()=>searchFromHero(event),report:setStatus}),shortcut:()=>runNavigationAction({scope,action:()=>openRecordSearch(),report:setStatus})});installExactNavigationEvents(window,handleExactClick);ensureCss();document.addEventListener('click',interceptLegacy,true);refresh();setTimeout(refresh,450);setTimeout(refresh,1400);const observer=new MutationObserver(records=>{if(!records.some(isExactSourceMutation))return;clearTimeout(window.__aqExactRefresh);window.__aqExactRefresh=setTimeout(refresh,80);});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','hidden','aria-hidden']});window.addEventListener('aqari:auth-boundary',event=>{checkAssistantBoundary();if(event?.detail?.state==='ready')setTimeout(refresh,0);});window.AQARI_OWNER_EXACT=Object.freeze({version:'V267-owner-feedback-1',navigate:navigateRoute,status:setStatus,openProperty:openPropertyAction,createUnitSearch,openSearchUnit,createRecordSearch,openSearchRecord,assistant:openAssistant,refresh});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-
-
-
-
