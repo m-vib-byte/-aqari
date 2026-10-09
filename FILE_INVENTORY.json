@@ -841,6 +841,11 @@
       "size": 3516
     },
     {
+      "path": "docs/verification/archive-production-sync-20261009.md",
+      "size": 1113,
+      "sha256": "cee8945196367d5f7c22b3f77b06075fbd826278a7e7e2b540e9b9cd09410420"
+    },
+    {
       "path": "docs/verification/contract-archive-recovery-20260920.md",
       "sha256": "79002167e70beb86e8806a798eab65a06cf3ad0dffe3bcba769b87c9344f2a0d",
       "size": 4603
@@ -849,6 +854,16 @@
       "path": "docs/verification/contract-execution-release-20261007.md",
       "sha256": "05656fe36bf22637971c105f0338443a20aa3e913c75ae8f04be3e15d24d5410",
       "size": 9512
+    },
+    {
+      "path": "docs/verification/contract-mobile-layout-20261009.md",
+      "size": 1204,
+      "sha256": "729c53d5d3ced7d00fe7b0337a4f74f7129ace43424188504b3ff6b8c60ece0e"
+    },
+    {
+      "path": "docs/verification/contract-save-order-20261008.md",
+      "size": 1776,
+      "sha256": "bb8b1438c93dfc6cdcf65e58eb6d591f094767d0799e4781efb20d3390c22aa6"
     },
     {
       "path": "docs/verification/contract-visibility-20260921.md",
