@@ -811,6 +811,11 @@
       "size": 4603
     },
     {
+      "path": "docs/verification/contract-mobile-layout-20261009.md",
+      "size": 1204,
+      "sha256": "729c53d5d3ced7d00fe7b0337a4f74f7129ace43424188504b3ff6b8c60ece0e"
+    },
+    {
       "path": "docs/verification/contract-save-order-20261008.md",
       "size": 1776,
       "sha256": "bb8b1438c93dfc6cdcf65e58eb6d591f094767d0799e4781efb20d3390c22aa6"
@@ -2237,8 +2242,8 @@
     },
     {
       "path": "src/v267/styles/contract-pages.css",
-      "sha256": "9fdbb237fcc5f11c19e191da7b8c01a629d9f893f50ffb183d10881daf875d72",
-      "size": 6904
+      "size": 8296,
+      "sha256": "f6a9c7cb9ce874513f17f5ab955b6f9817713fcc622ab96beab3220b66a3f311"
     },
     {
       "path": "src/v267/styles/contract-template-studio.css",
