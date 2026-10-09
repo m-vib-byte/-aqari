@@ -34,7 +34,7 @@ test('the actual finalization path blocks before reservation or business writes'
  const start=source.indexOf('async function finalize('),end=source.indexOf('async function start(',start);
  for(const error of [{code:'PGRST202',message:'missing execution service'},{code:'42501',message:'ACCESS_DENIED'}]){
  const f=fixture(error),writes=[],reads=[],payload={contractsV202:[{id:'contract',status:'signing',tenantId:'tenant'}],tenantProfilesV267:[{id:'tenant'}]};
- const context={scope:()=>({}),d:{session:f.session},contractId:'contract',copy:x=>structuredClone(x),api:{primary:x=>x},assertContractExecutionService,
+ const context={scope:()=>({}),d:{session:f.session},contractId:'contract',copy:x=>structuredClone(x),api:{primary:x=>x},assertContractExecutionService,currentContract:structuredClone(payload.contractsV202[0]),currentProfile:structuredClone(payload.tenantProfilesV267[0]),same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),
  window:{AQARI_SUPABASE:{loadAppState:async()=>{reads.push('read');return {payload,revision:1};},saveAppState:async()=>writes.push('save')}},
  rpc:async()=>writes.push('reserve'),executionDue:()=>{throw Error('must not calculate settlement before readiness');}};
  vm.createContext(context);vm.runInContext(source.slice(start,end)+'\nthis.finalize=finalize;',context);
