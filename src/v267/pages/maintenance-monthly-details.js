@@ -39,8 +39,17 @@ export function mountMonthlyDetails(d,{task,context,onSaved}){
   const values=Object.fromEntries(detailKeys.map(k=>[k,k==='urgent'?Boolean(controls[k].checked):controls[k].value.trim()||(['technician_name','invoice_number','result_details'].includes(k)?'':null)]));
   values.verify_result=Boolean(verify.checked);values.reason=reason.value.trim();if(values.reason.length<3)throw Error('أدخل سبب التسجيل أو التعديل.');
   pendingValues=values;uncertain=true;save.disabled=true;retry.hidden=false;
-  try{await rpc('save',{...values,task_id:task.id,task_revision:task.revision,revision});d.session.check();await confirm(values);status.textContent=t('تم الحفظ والتحقق من التفاصيل.');}
-  catch(error){status.textContent=t('لم يتأكد الحفظ. البيانات المدخلة محفوظة في هذه الشاشة؛ استخدم التحقق من آخر حفظ.');throw error;}
+  let acknowledged=false;
+  try{await rpc('save',{...values,task_id:task.id,task_revision:task.revision,revision});acknowledged=true;d.session.check();await confirm(values);status.textContent=t('تم الحفظ والتحقق من التفاصيل.');}
+  catch(error){
+   // Only the write's explicit step-up rejection proves that nothing committed.
+   // Preserve the original revision; readback failures still require reconciliation.
+   if(!acknowledged&&error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)){
+    d.session.check();uncertain=false;pendingValues=null;save.disabled=false;retry.hidden=true;
+    status.textContent=t('لم تُحفظ التفاصيل. أكمل التحقق الثنائي ثم أعد الحفظ؛ بقيت البيانات المدخلة هنا.');
+   }else status.textContent=t('لم يتأكد الحفظ. البيانات المدخلة محفوظة في هذه الشاشة؛ استخدم التحقق من آخر حفظ.');
+   throw error;
+  }
  });};
  retry.onclick=()=>d.run(async()=>{if(!pendingValues)return;const fresh=await reread(),row=fresh.details.find(x=>x.task_id===task.id);if(row?.revision===revision+1&&row.recorded_by===d.session.bound.user&&detailMatches(row,pendingValues)){await onSaved();section.remove?.();return;}if((row?.revision||0)!==revision)throw Error('تغيرت التفاصيل المحفوظة. أعد فتح التقرير لمراجعتها.');uncertain=false;save.disabled=false;retry.hidden=true;status.textContent=t('لم يظهر حفظ جديد. يمكنك إعادة المحاولة؛ يمنع رقم النسخة تسجيل حفظ مكرر.');});
  cancel.onclick=()=>section.remove?.();

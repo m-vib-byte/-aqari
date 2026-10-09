@@ -881,6 +881,11 @@
       "sha256": "7ee8a219b14c457f4c2e1b3dd4b84b84fba7cd9be10f5709b55d1d5cc9ce71ec"
     },
     {
+      "path": "docs/verification/maintenance-stepup-retry-20261009.md",
+      "sha256": "d84ab21dc097ca2d8f835e91e4b9bf54bbd21b223540e8e4b8391bc5c406e6ac",
+      "size": 1923
+    },
+    {
       "path": "docs/verification/official-archive-acceptance-2026-10-01.md",
       "sha256": "61f9d660b3b637ef2e00eaf2f6c75bdd97cc7a1bba5caa5dc6a60a7b4bffc792",
       "size": 3197
@@ -2062,8 +2067,8 @@
     },
     {
       "path": "src/v267/pages/maintenance-monthly-details.js",
-      "size": 6797,
-      "sha256": "66cf4e558fa4b70f13bc9ce2d3c72de7bfeb7be6e5f8b97a6067b96a290c675b"
+      "sha256": "e0ea3545cac1e1111053a08eee92702bd3e82883995e56da7b39e3dcae66a2b8",
+      "size": 7433
     },
     {
       "path": "src/v267/pages/maintenance-monthly-report.js",
@@ -2072,8 +2077,8 @@
     },
     {
       "path": "src/v267/pages/maintenance-monthly-schedule.js",
-      "size": 3097,
-      "sha256": "479775d422fe364aa959c2c183db921b2f8d66d18ffba8edb0c6bb2ca33f6bda"
+      "sha256": "3b65a293197e8e833936b4b49cd267d874c4daae3641b077e3e69dcc497939d0",
+      "size": 3552
     },
     {
       "path": "src/v267/pages/maintenance-plans.js",
@@ -5064,6 +5069,11 @@
       "path": "tests/v267-maintenance-reservation-cancel.test.mjs",
       "sha256": "390d63e7780f715bbcbdc1289d6a6ec89af9d77351f4087d69ac352993541e69",
       "size": 4775
+    },
+    {
+      "path": "tests/v267-maintenance-stepup-retry.test.mjs",
+      "sha256": "522359739db61a8b0f69ce791dffc7e58b1791a0bf8e6a793fe4a5953e0823f1",
+      "size": 6421
     },
     {
       "path": "tests/v267-maintenance-storage-session.test.mjs",
