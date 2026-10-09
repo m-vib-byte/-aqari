@@ -4,17 +4,17 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const source=fs.readFileSync(new URL('../src/v267/pages/imported-tenant.js',import.meta.url),'utf8');
 let serial=0;
-async function fixture(){
+async function fixture({saveError=null,readError=null,scopeError=null}={}){
  globalThis.window={confirm:()=>true};
  const nodes=[],fields={},calls=[];let state={profile:{id:'imported',nameEn:'Source name',passportNo:'SOURCE-PASS',preferredContact:'both',sourceValues:{untouched:true}},revision:1,history:[]},failRead=false,failSave=false;
  const node=(tag,text)=>{const n={tag,textContent:text||'',value:'',children:[],append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items}};nodes.push(n);return n;};
- const d={body:node('div'),status:node('p'),closed:false,setBeforeUnload(fn){this.unload=fn;},setBeforeClose(fn){this.canLeave=fn;},session:{bound:{workspace:'fixture-workspace'},check(){},client:{rpc:(name,args)=>({name,args})},async request(call){calls.push(call);if(call.name==='aqari_tenant_portfolio_context')return {tenantId:'tenant-1',properties:[{id:'property-1',name:'عقار',leaseCount:1,receiptCount:0}]};if(call.name.endsWith('_save')){if(failSave)throw Error('connection lost');assert.equal(call.args.p_expected_revision,state.revision);state={...state,profile:{...state.profile,...call.args.p_patch},revision:state.revision+1};return structuredClone(state);}if(failRead)throw Error('read failed');return structuredClone(state);}},async run(fn){try{await fn();}catch(e){d.status.textContent=e.message;}}};
+ const d={body:node('div'),status:node('p'),closed:false,setBeforeUnload(fn){this.unload=fn;},setBeforeClose(fn){this.canLeave=fn;},session:{bound:{workspace:'fixture-workspace'},check(){if(scopeError)throw scopeError;},client:{rpc:(name,args)=>({name,args})},async request(call){calls.push(call);if(call.name==='aqari_tenant_portfolio_context')return {tenantId:'tenant-1',properties:[{id:'property-1',name:'عقار',leaseCount:1,receiptCount:0}]};if(call.name.endsWith('_save')){if(saveError)throw saveError;if(failSave)throw Error('connection lost');assert.equal(call.args.p_expected_revision,state.revision);state={...state,profile:{...state.profile,...call.args.p_patch},revision:state.revision+1};return structuredClone(state);}if(failRead)throw (readError||Error('read failed'));return structuredClone(state);}},async run(fn){try{await fn();}catch(e){d.status.textContent=e.message;}}};
  globalThis.__importEditorTest={translateStatic,createDialog:()=>d,node,field:(label,input)=>{fields[label]=input;return input;}};
  const module=await import('data:text/javascript;base64,'+Buffer.from("const {createDialog,node,field,translateStatic}=globalThis.__importEditorTest;\n// fixture "+(++serial)+"\n"+source.replace(/^import .*;$/gm,'')).toString('base64'));
  delete globalThis.__importEditorTest;
  let refreshed=0;
  await module.openImportedTenant({ref:'imported',onDraft:async()=>{state.revision++;},onSaved:async()=>{refreshed++;}});
- return {d,fields,calls,nodes,refreshed:()=>refreshed,failRead:()=>{failRead=true;},failSave:()=>{failSave=true;},button:label=>nodes.find(n=>n.tag==='button'&&n.textContent===label)};
+ return {d,fields,calls,nodes,refreshed:()=>refreshed,allowSave:()=>{saveError=null;},failRead:()=>{failRead=true;},failSave:()=>{failSave=true;},button:label=>nodes.find(n=>n.tag==='button'&&n.textContent===label)};
 }
 test('imported editor refreshes revision and saves passport plus preferred contact',async()=>{
  const f=await fixture();f.fields['الاسم بالعربية'].value='اسم مصحح';f.fields['رقم الجواز'].value='NEW-PASSPORT';f.fields['وسيلة التواصل المفضلة'].value='whatsapp';
@@ -58,4 +58,27 @@ test('cancelled portfolio navigation leaves tenant edits open',async()=>{
  await f.button('عرض الملف الكامل — عقار').onclick();
  await f.button('مسح/تصوير مستند').onclick();await f.button('رفع ملف').onclick();
  assert.equal(f.d.closed,false);assert.equal(f.d.unload(),true);
+});
+
+for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'])test('explicit save rejection preserves inputs and permits manual retry: '+message,async()=>{
+ const f=await fixture({saveError:{status:403,code:'42501',message}});
+ f.fields['الاسم بالعربية'].value='اسم محفوظ في النموذج';f.fields['سبب التعديل أو مرجع التصحيح (اختياري)'].value='سبب التصحيح';
+ await f.button('حفظ التعديل والتحقق').onclick();
+ assert.equal(f.button('حفظ التعديل والتحقق').disabled,false);assert.equal(f.refreshed(),0);
+ assert.equal(f.calls.filter(c=>c.name.endsWith('_save')).length,1);assert.equal(f.d.unload(),true);
+ assert.equal(f.fields['الاسم بالعربية'].value,'اسم محفوظ في النموذج');assert.equal(f.fields['سبب التعديل أو مرجع التصحيح (اختياري)'].value,'سبب التصحيح');
+ f.allowSave();await f.button('حفظ التعديل والتحقق').onclick();
+ assert.deepEqual(f.calls.filter(c=>c.name.endsWith('_save')).map(c=>c.args.p_expected_revision),[1,1]);assert.equal(f.refreshed(),1);
+});
+test('MFA readback failure after acknowledged save keeps submission locked',async()=>{
+ const f=await fixture({readError:{status:403,code:'42501',message:'MFA_REQUIRED'}});f.failRead();
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.calls.filter(c=>c.name.endsWith('_save')).length,1);
+});
+for(const error of [{status:403,code:'42501',message:'ACCESS_DENIED'},{status:500,code:'42501',message:'MFA_REQUIRED'},{status:403,code:'other',message:'MFA_REQUIRED'}])test('unrecognized save denial remains uncertain '+JSON.stringify(error),async()=>{
+ const f=await fixture({saveError:error});await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
+});
+test('changed account during explicit rejection cannot unlock save',async()=>{
+ const f=await fixture({saveError:{status:403,code:'42501',message:'MFA_REQUIRED'},scopeError:Error('scope changed')});
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);assert.equal(f.refreshed(),0);
 });

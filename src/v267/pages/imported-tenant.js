@@ -56,7 +56,17 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
   const saveReason=reason.value.trim()||'تحديث بيانات المستأجر';
   const patch=collect();delete patch.id;
   uncertain=true;
-  const saved=await session.request(session.client.rpc('aqari_imported_tenant_save',{p_workspace_id:session.bound.workspace,p_ref:ref,p_patch:patch,p_expected_revision:current.revision,p_reason:saveReason}));
+  let saved;
+  try{
+   saved=await session.request(session.client.rpc('aqari_imported_tenant_save',{p_workspace_id:session.bound.workspace,p_ref:ref,p_patch:patch,p_expected_revision:current.revision,p_reason:saveReason}));
+  }catch(error){
+   // Only a definitive rejection of this write permits a deliberate retry.
+   // Readback failures after an acknowledged write remain uncertain.
+   if(error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)){
+    session.check();uncertain=false;
+   }
+   throw error;
+  }
   const confirmed=await read();
   if(JSON.stringify(saved.profile)!==JSON.stringify(confirmed.profile)||saved.revision!==confirmed.revision)throw Error('حدّث الملف للتحقق من نتيجة الحفظ السابق؛ لا تكرر الإرسال.');
   await onSaved();session.check();show(confirmed);reason.value='';uncertain=false;status.textContent=translateStatic('تم حفظ التعديل وإعادة قراءته وتوثيق تاريخه. المصدر والعقود السابقة محفوظة.');
