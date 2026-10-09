@@ -113,3 +113,45 @@ test('unrecognized enrollment authorization denial still disposes security cente
  try{await f.button('إضافة تطبيق مصادقة').onclick();assert.equal(f.dialog.isConnected,false);}
  finally{f.cleanup();}
 });
+
+test('TOTP submission and retry replace the challenge created when opening the form',async()=>{
+ let next=0,attempt=0;
+ const f=await fixture({challenge:async()=>({data:{id:`challenge-${++next}`}}),verify:async()=>++attempt===1?{error:{code:'mfa_verification_failed'}}:{data:{}}});
+ try{
+  await f.button('التحقق بهذا الجهاز').onclick();
+  const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';
+  await form.onsubmit({preventDefault(){}});
+  assert.ok(form.isConnected);assert.match(f.status(),/رمز التحقق غير صحيح/);
+  await form.onsubmit({preventDefault(){}});
+  assert.deepEqual(f.calls.filter(x=>x.method==='verify').map(x=>x.args[0].challengeId),['challenge-2','challenge-3']);
+  assert.equal(form.isConnected,false);
+ }finally{f.cleanup();}
+});
+
+test('phone verification uses its original challenge without sending a replacement code',async()=>{
+ const f=await fixture({listFactors:async()=>({data:{all:[{id:'phone-a',status:'verified',factor_type:'phone'}]}})});
+ try{
+  await f.button('التحقق بهذا الجهاز').onclick();const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';
+  await form.onsubmit({preventDefault(){}});
+  assert.equal(f.calls.filter(x=>x.method==='challenge').length,1);
+  assert.deepEqual(f.calls.find(x=>x.method==='verify').args[0],{factorId:'phone-a',challengeId:'challenge-a',code:'123456'});
+ }finally{f.cleanup();}
+});
+
+test('failed fresh TOTP challenge does not verify using the previous challenge',async()=>{
+ let count=0;const f=await fixture({challenge:async()=>++count===1?{data:{id:'old'}}:{error:Error('challenge unavailable')}});
+ try{
+  await f.button('التحقق بهذا الجهاز').onclick();const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';
+  await form.onsubmit({preventDefault(){}});
+  assert.equal(f.calls.some(x=>x.method==='verify'),false);assert.ok(form.isConnected);assert.match(f.status(),/تعذر إكمال العملية/);
+ }finally{f.cleanup();}
+});
+
+test('account change during a fresh TOTP challenge prevents verification',async()=>{
+ const pending=deferred();let count=0;const f=await fixture({challenge:()=>++count===1?Promise.resolve({data:{id:'old'}}):pending.promise});
+ try{
+  await f.button('التحقق بهذا الجهاز').onclick();const form=f.elements().find(x=>x.tagName==='form');form.querySelectorAll('input')[0].value='123456';
+  const run=form.onsubmit({preventDefault(){}});await tick();f.switchAccount();pending.resolve({data:{id:'fresh'}});await run;
+  assert.equal(f.calls.some(x=>x.method==='verify'),false);assert.match(f.status(),/تغيرت جلسة الدخول/);
+ }finally{pending.resolve({data:{}});f.cleanup();}
+});
