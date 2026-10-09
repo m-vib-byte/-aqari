@@ -2237,8 +2237,8 @@
     },
     {
       "path": "src/v267/pages/security-center.js",
-      "sha256": "f0a7b7f072f3eef0fa9793584c87f11aa1bd3f5d98d5fe29eed12fb895d5976c",
-      "size": 9497
+      "sha256": "3ed1548f54a76f7a5bcbc9f615a557d79505af124fd69dc0f7ab5df22c83bc38",
+      "size": 10004
     },
     {
       "path": "src/v267/pages/staff-access.js",
@@ -5967,8 +5967,8 @@
     },
     {
       "path": "tests/v267-security-center-lifecycle.test.mjs",
-      "sha256": "4a3f14c51a7164cbc7a00f5e6a2c0a60d0e9cb8f769ac95a6167671b51ea91a1",
-      "size": 10816
+      "sha256": "65746104318d81a089a06f0c58f3b4561b35f7d9d81539d44ef6a4d1b646a0b7",
+      "size": 13624
     },
     {
       "path": "tests/v267-property-onboarding.test.mjs",
