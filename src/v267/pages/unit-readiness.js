@@ -17,7 +17,7 @@ export async function mountAvailableUnitReadiness(d,options={}){
 export function mountUnitReadiness(d,options={}){
  const property=node('select'),unit=node('select'),number=node('input'),state=node('select'),date=node('input'),source=node('input'),reason=node('textarea');
  const loadButton=node('button',t('تحميل جاهزية الوحدات')),save=node('button',t('حفظ المعاينة والتحقق منها')),form=node('form'),history=node('section');
- let data,pending,requestId=crypto.randomUUID();
+ let data,pending,requestId=crypto.randomUUID(),selectedProperty='',selectedUnit='';
  const numberField=field(t('رقم الوحدة الجديدة'),number);
  number.maxLength=80;source.maxLength=reason.maxLength=500;date.type='date';date.required=source.required=reason.required=true;
  for(const [value,label]of Object.entries(states))state.append(option(value,t(label)));state.value='review_required';
@@ -28,6 +28,7 @@ export function mountUnitReadiness(d,options={}){
  const setOptions=(control,items)=>{const old=control.value;control.replaceChildren(...items.map(x=>option(x.id,x.label)));control.value=items.some(x=>x.id===old)?old:items[0]?.id||'';};
  function showUnit(){
   const p=data.properties.find(x=>x.id===property.value),u=data.units.find(x=>x.id===unit.value&&x.property_id===p?.id);
+  selectedProperty=property.value;selectedUnit=unit.value;
   numberField.hidden=unit.value!=='new';number.required=!numberField.hidden;
   save.disabled=!p?.can_write;state.value=u?.state||'review_required';date.value=source.value=reason.value='';
   history.replaceChildren(node('h3',t('سجل المعاينات المحفوظة')));
@@ -42,13 +43,18 @@ export function mountUnitReadiness(d,options={}){
   if(p?.can_create)options.push({id:'new',label:t('إضافة وحدة ومعاينتها')});
   setOptions(unit,options);showUnit();
  }
- async function load(){
+ async function read(){
   const fresh=await call('list');
   if(!Array.isArray(fresh?.properties)||!Array.isArray(fresh?.units)||!Array.isArray(fresh?.history))throw Error('تعذر تحميل سجل جاهزية الوحدات.');
-  data=fresh;form.hidden=false;setOptions(property,data.properties.map(x=>({id:x.id,label:x.name})));const preferred=data.properties.find(x=>String(x.id)===String(options.propertyId||''))||data.properties.find(x=>options.propertyName&&x.name===options.propertyName);if(preferred)property.value=preferred.id;showProperty();if(options.unitNo){const found=data.units.find(x=>x.property_id===property.value&&String(x.unit_no)===String(options.unitNo));if(found){unit.value=found.id;showUnit();}}
+  return fresh;
  }
- loadButton.onclick=()=>d.run(async()=>{await load();if(pending)d.status.textContent=t('لم تتأكد العملية السابقة بعد. اضغط الحفظ للتحقق من العملية نفسها.');});
- property.onchange=()=>{if(!pending)showProperty();};unit.onchange=()=>{if(!pending)showUnit();};
+ function render(fresh,savedUnit){
+  data=fresh;form.hidden=false;setOptions(property,data.properties.map(x=>({id:x.id,label:x.name})));const preferred=data.properties.find(x=>String(x.id)===String(savedUnit?.property_id||options.propertyId||''))||data.properties.find(x=>options.propertyName&&x.name===options.propertyName);if(preferred)property.value=preferred.id;showProperty();const found=savedUnit||data.units.find(x=>options.unitNo&&x.property_id===property.value&&String(x.unit_no)===String(options.unitNo));if(found){unit.value=found.id;showUnit();}
+ }
+ function pendingNotice(){d.status.textContent=t('لم تتأكد العملية السابقة بعد. اضغط الحفظ للتحقق من العملية نفسها.');}
+ async function load(){if(pending){pendingNotice();return;}render(await read());}
+ loadButton.onclick=()=>d.run(load);
+ property.onchange=()=>{if(pending){property.value=selectedProperty;pendingNotice();}else showProperty();};unit.onchange=()=>{if(pending){unit.value=selectedUnit;pendingNotice();}else showUnit();};
  form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
   if(!data)throw Error('حمّل سجل جاهزية الوحدات أولاً.');
   if(!pending){
@@ -63,10 +69,10 @@ export function mountUnitReadiness(d,options={}){
    if(['22023','23514','23505','22007','22008','40001'].includes(error?.code)){pending=null;requestId=crypto.randomUUID();}
    throw error;
   }
-  await load();
-  const u=data.units.find(x=>x.property_id===p.property_id&&x.unit_no===p.unit_no),r=data.history.find(x=>x.id===p.id);
+  // Do not replace the entered inspection until its independent readback matches.
+  const fresh=await read(),u=fresh.units.find(x=>x.property_id===p.property_id&&x.unit_no===p.unit_no),r=fresh.history.find(x=>x.id===p.id);
   if(!u||!r||r.workspace_id!==d.session.bound.workspace||r.unit_id!==u.id||Number(r.revision)!==Number(p.expected_revision)+1||['state','inspected_on','source_ref','reason'].some(k=>r[k]!==p[k]))throw Error('لم تتأكد مطابقة المعاينة المحفوظة. أعد المحاولة للتحقق من العملية نفسها.');
-  pending=null;requestId=crypto.randomUUID();unit.value=u.id;showUnit();
+  pending=null;requestId=crypto.randomUUID();render(fresh,u);
   d.status.textContent=t(Number(u.revision)>Number(r.revision)?'تم حفظ المعاينة وإعادة قراءتها. توجد معاينة أحدث؛ راجع الحالة الحالية.':'تم حفظ المعاينة وإعادة قراءتها من قاعدة البيانات.');
  });};
  return {load};
