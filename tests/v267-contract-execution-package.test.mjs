@@ -115,7 +115,7 @@ test('session change while reading an MFA body rejects the stale response',async
  await assert.rejects(prepareContractExecutionPackage(f.session,body),/session revoked/);
 });
 
-async function submissionFixture(error){
+async function submissionFixture(error,{zeroPayment=false}={}){
  const original={window:globalThis.window,document:globalThis.document,fetch:globalThis.fetch};
  class Element{
   constructor(tag,text=''){this.tagName=tag;this.children=[];this.attrs={};this.textContent=text;this.disabled=false;this.value='';}
@@ -134,15 +134,36 @@ async function submissionFixture(error){
  const source=readFileSync(new URL('../src/v267/pages/contract-execution.js',import.meta.url),'utf8');
  const begin=source.indexOf('async function start()'),end=source.indexOf('\n d.run(start);',begin);
  const context={d,node,field,load:async()=>{},translateStatic:x=>x,money:String,settlementSent:false,isExecutionMfaChallenge,assertExecutionPaymentInput,
-  input:(type,value='')=>Object.assign(node('input'),{type,value}),select:()=>Object.assign(node('select'),{value:'cash'}),
+  input:(type,value='')=>Object.assign(node('input'),{type,value}),select:(_rows,value='cash')=>Object.assign(node('select'),{value}),
   currentContract:{contract_no:'CT-TEST',property:'Test',unit:'1'},currentProfile:{nameAr:'اختبار',nameEn:'Test'},
-  currentDue:{rent:1,total:1,deposit:0,advance:0,fees:0,breakdown:{}},api:{kuwaitDate:()=> '2026-10-07'},executionMethods:[],
+  currentDue:{rent:zeroPayment?0:1,total:zeroPayment?0:1,deposit:0,advance:0,fees:0,breakdown:{}},api:{kuwaitDate:()=> '2026-10-07'},executionMethods:[],
   finalize:async()=>{calls++;if(typeof error==='function')return error(d,context);throw error;}};
  vm.createContext(context);vm.runInContext(source.slice(begin,end)+'\nthis.start=start;',context);
  await d.run(context.start);
- const form=d.body.children.at(-1),submit=form.children.at(-1),reference=form.children[1].children.at(-1);reference.value='KEEP-REFERENCE';
- return {d,submit,reference,calls:()=>calls,async run(){form.onsubmit({preventDefault(){}});await pending;},cleanup(){d.close();Object.assign(globalThis,original);}};
+ const form=d.body.children.at(-1),submit=form.children.at(-1),reference=zeroPayment?null:form.children[1].children.at(-1),zeroReason=zeroPayment?form.children[0].children.at(-1):null;if(reference)reference.value='KEEP-REFERENCE';
+ return {d,submit,reference,zeroReason,calls:()=>calls,async run(){form.onsubmit({preventDefault(){}});await pending;},cleanup(){d.close();Object.assign(globalThis,original);}};
 }
+test('invalid zero-payment reason leaves the form editable until a deliberate corrected submission',async()=>{
+ const f=await submissionFixture(Object.assign(Error('MFA_REQUIRED'),{status:403,code:'42501'}),{zeroPayment:true});
+ try{
+  for(const reason of ['   ',' Ａ ','ﷺ'.repeat(30)]){
+   f.zeroReason.value=reason;await f.run();
+   assert.equal(f.calls(),0,'invalid reason must not start finalization');
+   assert.equal(f.submit.disabled,false);assert.equal(f.zeroReason.value,reason);assert.equal(f.d.closed,false);
+   assert.match(f.d.status.textContent,/وثّق سبب عدم وجود دفعة/);
+  }
+  f.zeroReason.value='فترة مجانية معتمدة';await f.run();assert.equal(f.calls(),1);assert.equal(f.submit.disabled,false);
+ }finally{f.cleanup();}
+});
+test('zero-payment input is validated before cloud reads or document preparation',async()=>{
+ for(const zeroReason of ['   ',' Ａ ','ﷺ'.repeat(30)]){
+  const f=finalization(async()=>{throw Error('package must not run');});let reads=0;
+  f.context.currentDue={rent:0,total:0};
+  f.context.window.AQARI_SUPABASE.loadAppState=async()=>{reads++;throw Error('cloud read attempted');};
+  await assert.rejects(f.context.finalize({method:'none',transactionNo:'',zeroReason}),/وثّق سبب عدم وجود دفعة/);
+  assert.equal(reads,0);assert.equal(f.saved(),null);assert.equal(f.sent(),false);
+ }
+});
 test('invalid reference leaves the form editable and a corrected reference can be deliberately submitted',async()=>{
  const f=await submissionFixture(Object.assign(Error('MFA_REQUIRED'),{status:403,code:'42501'}));
  try{
@@ -156,7 +177,9 @@ test('invalid reference leaves the form editable and a corrected reference can b
 });
 test('payment input normalization preserves valid references and zero-payment handling',()=>{
  assert.equal(assertExecutionPaymentInput({total:100,method:'cash',transactionNo:' ＡＢＣ-123 '}),'ABC-123');
- assert.equal(assertExecutionPaymentInput({total:0,method:'none',transactionNo:''}),'');
+ assert.equal(assertExecutionPaymentInput({total:0,method:'none',transactionNo:'',zeroReason:'فترة مجانية معتمدة'}),'');
+ assert.equal(assertExecutionPaymentInput({total:0,method:'none',transactionNo:'',zeroReason:'Ａ'.repeat(500)}),'');
+ for(const overrides of [{method:'cash'},{transactionNo:'REF-123'},{zeroReason:'x'.repeat(501)}])assert.throws(()=>assertExecutionPaymentInput({total:0,method:'none',transactionNo:'',zeroReason:'فترة مجانية معتمدة',...overrides}),/وثّق سبب عدم وجود دفعة/);
 });
 test('actual contract submit remains usable after exact MFA denial and keeps payment input',async()=>{
  for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED']){
