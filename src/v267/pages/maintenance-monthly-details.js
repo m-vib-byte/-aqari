@@ -1,6 +1,27 @@
 import {node,field} from '../components/dialog.js';
 import {t} from '../components/locale.js';
 
+// A report may have several open task editors; every draft must guard departure.
+const detailDrafts=new WeakMap();
+function registerDraft(d,entry){
+ let group=detailDrafts.get(d);
+ if(!group){
+  const entries=new Set();
+  const canDiscard=(items=entries)=>{
+   if([...items].some(x=>x.pending())){d.status.textContent=t('انتظر اكتمال التحقق من الحفظ قبل إغلاق تفاصيل الصيانة.');return false;}
+   return ![...items].some(x=>x.dirty())||window.confirm(t('توجد تفاصيل صيانة غير محفوظة أو لم يتأكد حفظها. هل تريد تركها والمتابعة؟'));
+  };
+  const releaseClose=d.setBeforeClose?.(()=>canDiscard());
+  d.setBeforeUnload?.(()=>[...entries].some(x=>x.pending()||x.dirty()));
+  group={entries,canDiscard,releaseClose};detailDrafts.set(d,group);
+ }
+ group.entries.add(entry);
+ return {canDiscard:()=>group.canDiscard([entry]),remove(){
+  group.entries.delete(entry);
+  if(!group.entries.size&&detailDrafts.get(d)===group){group.releaseClose?.();d.setBeforeUnload?.(null);detailDrafts.delete(d);}
+ }};
+}
+
 export const inspectionKinds={fire_system:'الحريق',elevator:'المصاعد',air_conditioning:'التكييف',water_tank:'خزانات المياه',sprinklers:'الرشاشات',other:'أخرى'};
 export const detailKeys=['inspection_kind','technician_name','inspected_on','invoice_number','invoice_document_id','result_details','responsible_user_id','planned_close_on','urgent'];
 export function detailMatches(row,values){return !!row&&detailKeys.every(k=>(row[k]??null)===(values[k]??null))&&Boolean(row.verified_by)===values.verify_result;}
@@ -30,16 +51,20 @@ export function mountMonthlyDetails(d,{task,context,onSaved}){
  const save=node('button',t('حفظ التفاصيل والتحقق')),retry=node('button',t('التحقق من آخر حفظ')),cancel=node('button',t('إغلاق التفاصيل')),status=node('p');
  save.type='submit';retry.type=cancel.type='button';retry.hidden=true;form.append(save,retry,cancel,status);
  section.append(node('h3',task.task_no||t('تفاصيل الصيانة')),node('p',t('المعلومة غير المسجلة تبقى غير موثّقة. إرفاق فاتورة هنا لا ينشئ مصروفًا أو دفعة مالية.')),form);d.body.append(section);section.scrollIntoView?.({block:'nearest'});
- let uncertain=false,pendingValues=null;
+ let uncertain=false,pendingValues=null,inFlight=false,disposed=false;
+ const snapshot=()=>JSON.stringify([...detailKeys.map(k=>controls[k].type==='checkbox'?Boolean(controls[k].checked):controls[k].value),Boolean(verify.checked),reason.value]);
+ const baseline=snapshot(),guard=registerDraft(d,{pending:()=>inFlight,dirty:()=>uncertain||snapshot()!==baseline});
+ const finish=()=>{disposed=true;guard.remove();section.remove?.();};
  const rpc=(action,data={})=>d.session.request(d.session.client.rpc('aqari_maintenance_report_details',{p_workspace_id:d.session.bound.workspace,p_property_id:task.property_id,p_action:action,p_data:data}));
  const reread=async()=>{const fresh=await rpc('context');d.session.check();return checkDetailsScope(fresh,d.session,task.property_id);};
- const confirm=async values=>{const fresh=await reread(),row=fresh.details.find(x=>x.task_id===task.id);if(row?.revision!==revision+1||row.recorded_by!==d.session.bound.user||!detailMatches(row,values))throw Error('لم تتأكد مطابقة التفاصيل المحفوظة. تحقق من آخر حفظ قبل أي محاولة جديدة.');await onSaved();section.remove?.();return row;};
+ const confirm=async values=>{const fresh=await reread(),row=fresh.details.find(x=>x.task_id===task.id);if(row?.revision!==revision+1||row.recorded_by!==d.session.bound.user||!detailMatches(row,values))throw Error('لم تتأكد مطابقة التفاصيل المحفوظة. تحقق من آخر حفظ قبل أي محاولة جديدة.');await onSaved();finish();return row;};
  form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
+  if(disposed)return;
   if(uncertain)throw Error('تحقق من آخر حفظ أولًا.');
   const values=Object.fromEntries(detailKeys.map(k=>[k,k==='urgent'?Boolean(controls[k].checked):controls[k].value.trim()||(['technician_name','invoice_number','result_details'].includes(k)?'':null)]));
   values.verify_result=Boolean(verify.checked);values.reason=reason.value.trim();if(values.reason.length<3)throw Error('أدخل سبب التسجيل أو التعديل.');
   pendingValues=values;uncertain=true;save.disabled=true;retry.hidden=false;
-  let acknowledged=false;
+  let acknowledged=false;inFlight=true;
   try{await rpc('save',{...values,task_id:task.id,task_revision:task.revision,revision});acknowledged=true;d.session.check();await confirm(values);status.textContent=t('تم الحفظ والتحقق من التفاصيل.');}
   catch(error){
    // Only the write's explicit step-up rejection proves that nothing committed.
@@ -49,10 +74,10 @@ export function mountMonthlyDetails(d,{task,context,onSaved}){
     status.textContent=t('لم تُحفظ التفاصيل. أكمل التحقق الثنائي ثم أعد الحفظ؛ بقيت البيانات المدخلة هنا.');
    }else status.textContent=t('لم يتأكد الحفظ. البيانات المدخلة محفوظة في هذه الشاشة؛ استخدم التحقق من آخر حفظ.');
    throw error;
-  }
+  }finally{inFlight=false;}
  });};
- retry.onclick=()=>d.run(async()=>{if(!pendingValues)return;const fresh=await reread(),row=fresh.details.find(x=>x.task_id===task.id);if(row?.revision===revision+1&&row.recorded_by===d.session.bound.user&&detailMatches(row,pendingValues)){await onSaved();section.remove?.();return;}if((row?.revision||0)!==revision)throw Error('تغيرت التفاصيل المحفوظة. أعد فتح التقرير لمراجعتها.');uncertain=false;save.disabled=false;retry.hidden=true;status.textContent=t('لم يظهر حفظ جديد. يمكنك إعادة المحاولة؛ يمنع رقم النسخة تسجيل حفظ مكرر.');});
- cancel.onclick=()=>section.remove?.();
- d.onDispose(()=>{pendingValues=null;for(const control of Object.values(controls))control.value='';reason.value='';section.replaceChildren();});
+ retry.onclick=()=>d.run(async()=>{if(disposed||!pendingValues)return;inFlight=true;try{const fresh=await reread(),row=fresh.details.find(x=>x.task_id===task.id);if(row?.revision===revision+1&&row.recorded_by===d.session.bound.user&&detailMatches(row,pendingValues)){await onSaved();finish();return;}if((row?.revision||0)!==revision)throw Error('تغيرت التفاصيل المحفوظة. أعد فتح التقرير لمراجعتها.');uncertain=false;save.disabled=false;retry.hidden=true;status.textContent=t('لم يظهر حفظ جديد. يمكنك إعادة المحاولة؛ يمنع رقم النسخة تسجيل حفظ مكرر.');}finally{inFlight=false;}});
+ cancel.onclick=()=>{if(!disposed&&guard.canDiscard())finish();};
+ d.onDispose(()=>{disposed=true;guard.remove();pendingValues=null;for(const control of Object.values(controls))control.value='';reason.value='';section.replaceChildren();});
  return {form,controls,verify,reason,save,retry,status};
 }

@@ -1607,8 +1607,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "b305620914bd42e285735934de8878998a65b75d70affeb93eddef13f00ce75e",
-      "size": 428863
+      "sha256": "6cc665f02e5a08671589c5d78a5366947cbfd00c788969f734d3ab26bd05e35b",
+      "size": 430690
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2067,8 +2067,8 @@
     },
     {
       "path": "src/v267/pages/maintenance-monthly-details.js",
-      "sha256": "e0ea3545cac1e1111053a08eee92702bd3e82883995e56da7b39e3dcae66a2b8",
-      "size": 7433
+      "sha256": "1d391f8358b3554cce53d31abedaad83613ab0ddf5f0760651aefffb75bbf11a",
+      "size": 9072
     },
     {
       "path": "src/v267/pages/maintenance-monthly-report.js",
@@ -5047,8 +5047,8 @@
     },
     {
       "path": "tests/v267-maintenance-monthly-details.test.mjs",
-      "size": 4819,
-      "sha256": "219cbc96478f3e560d55b935176b34b81710dd18330b3819342c1f9ad242cd10"
+      "size": 7967,
+      "sha256": "046cc7573917eba94147692d013490001a9eee5a1415b26554fa490b14dfb16c"
     },
     {
       "path": "tests/v267-maintenance-monthly-report.test.mjs",
