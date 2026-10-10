@@ -1077,8 +1077,8 @@
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "92dc8071bce87e8e30147043c6c527bf631192d64ed99dbf12d8eda3e2ae22f1",
-      "size": 23712
+      "sha256": "e51aef8f106cb99b2bf5f5a452469b0587d3b67eec6e9f9378a63144c9a97a01",
+      "size": 24171
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -4652,8 +4652,8 @@
     },
     {
       "path": "tests/contract_template_pdf_test.py",
-      "sha256": "948a51ed8e7cb36276a730e898fda94b3a424f1e27aa6c8284170e471f337b7f",
-      "size": 4499
+      "sha256": "7a611a77abc8db2a9bf2addf415c15de7283c251fedfb5862e6e9be1cb7ac4b5",
+      "size": 5670
     },
     {
       "path": "tests/contract_template_preview_test.py",
