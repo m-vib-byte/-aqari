@@ -2167,8 +2167,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "7992abbf04d2700155abf0cd4da804528371e4e6d30de1d7aa11ff33e6383502",
-      "size": 30793
+      "size": 31648,
+      "sha256": "a91b705793a51a46e4a878eb5d4eed4ecaeec048d471027b1452f0b2c144d638"
     },
     {
       "path": "src/v267/pages/property-lifecycle.js",
@@ -5889,6 +5889,11 @@
       "path": "vercel.json",
       "sha256": "78abe62e642cda899509c6357c5c212f76e13b016e188f73eac78106a31eeb97",
       "size": 8627
+    },
+    {
+      "path": "tests/v267-property-hub-lifecycle.test.mjs",
+      "size": 5170,
+      "sha256": "af741fb9481cf7d58eb1e7d35bfed60d7d982e221e06e2c41f949947cd56b088"
     }
   ],
   "version": "V198"
