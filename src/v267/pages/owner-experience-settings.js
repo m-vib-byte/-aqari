@@ -100,12 +100,17 @@ export function openOwnerExperienceSettings(){
   if(!ready||uncertain)throw Error('أعد قراءة الإعدادات المحفوظة وراجعها قبل محاولة الحفظ.');
   const rows=collectTargets();validateTargets(rows);if(report.checked&&!rows.some(x=>x.enabled))throw Error('فعّل مستلم تقرير واحدًا على الأقل قبل تشغيل الإرسال التلقائي.');
   const globalPayload={guest_enabled:guest.checked,assistant_enabled:assistant.checked,report_enabled:report.checked,report_channel:'whatsapp',report_schedule:'monthly',report_hour:8,report_recipient:'managed-by-report-targets-v3',expected_revision:settingsRevision};
-  let targetValue,settingsValue;
+  let targetValue,settingsValue,acknowledged=0;
   try{
-  if(report.checked){targetValue=await targetsRpc('save',{targets:rows,expected_revision:targetRevision});settingsValue=await settingsRpc('save',globalPayload);}else{settingsValue=await settingsRpc('save',globalPayload);targetValue=await targetsRpc('save',{targets:rows,expected_revision:targetRevision});}
+  if(report.checked){targetValue=await targetsRpc('save',{targets:rows,expected_revision:targetRevision});acknowledged++;settingsValue=await settingsRpc('save',globalPayload);}else{settingsValue=await settingsRpc('save',globalPayload);acknowledged++;targetValue=await targetsRpc('save',{targets:rows,expected_revision:targetRevision});}
   d.session.check();validateRead(settingsValue,targetValue);if(settingsValue?.workspace_id!==d.session.bound.workspace||targetValue?.workspace_id!==d.session.bound.workspace||Number(settingsValue.revision)!==settingsRevision+1||Number(targetValue.revision)!==targetRevision+1)throw Error('لم تتأكد إعادة قراءة الإعدادات.');
   applySettings(settingsValue);applyTargets(targetValue);window.dispatchEvent(new CustomEvent('aqari:owner-experience-settings',{detail:{guest_enabled:settingsValue.guest_enabled,assistant_enabled:settingsValue.assistant_enabled,report_enabled:settingsValue.report_enabled}}));d.status.textContent=translateStatic('تم حفظ الإعدادات ونطاقات الملاك وقنوات التقارير وإعادة قراءتها من قاعدة البيانات.');
-  }catch(error){uncertain=true;save.disabled=true;if(error?.code==='42501'||[401,403].includes(error?.status))throw error;throw Error('لم يتأكد حفظ الإعدادات كاملًا؛ قد يكون جزء منها قد حُفظ. أعد قراءة الإعدادات المحفوظة وراجعها قبل المحاولة مجددًا.');}
+  }catch(error){uncertain=true;save.disabled=true;
+   // The second write may be rejected after the first has already committed.
+   if(acknowledged===0&&error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)){
+    d.session.check();uncertain=false;save.disabled=false;
+   }
+   if(error?.code==='42501'||[401,403].includes(error?.status))throw error;throw Error('لم يتأكد حفظ الإعدادات كاملًا؛ قد يكون جزء منها قد حُفظ. أعد قراءة الإعدادات المحفوظة وراجعها قبل المحاولة مجددًا.');}
  });
  d.run(load);return true;
 }
