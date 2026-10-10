@@ -1,0 +1,7 @@
+{
+  "name": "aqari-execution-archive",
+  "private": true,
+  "type": "module",
+  "scripts": {"test": "node --test gateway.test.mjs"},
+  "dependencies": {"jose": "6.2.12"}
+}

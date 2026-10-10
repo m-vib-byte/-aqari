@@ -336,6 +336,12 @@ def render_contract_template(template, values=None, logo_bytes=None):
     if meta_text.strip():
         add_text(meta_text,9,15,'center','#765b43',5*mm)
     for clause in resolved['clauses']:
+        # Reserve the heading and the first body line as one block. Otherwise
+        # a heading can be stranded at the foot of a page or above a reserved field.
+        title_lines = sum(len(logical_lines(paragraph, content_width, 12))
+                          for paragraph in clause['title'].split('\n'))
+        body_leading = typography['font_pt']*typography['line_height'] if typography else 17
+        available(title_lines*19 + 2*mm + body_leading)
         add_text(clause['title'],12,19,color='#56391f',gap=2*mm)
         if typography:
             add_text(clause['text'],typography['font_pt'],typography['font_pt']*typography['line_height'],typography['alignment'],gap=4*mm)

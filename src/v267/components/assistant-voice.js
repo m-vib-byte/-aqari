@@ -25,12 +25,12 @@ export function createAssistantVoice({host,allowed,language,onText,onState,busy=
   stop();if(!Recognition){state('unsupported');return false;}
   const token=epoch;let delivered=false;
   try{
-   const current=new Recognition();recognition=current;autoRead=true;
+   const current=new Recognition();recognition=current;autoRead=false;
    current.lang=language();current.continuous=false;current.interimResults=false;current.maxAlternatives=1;
    current.onresult=event=>{
     if(token!==epoch||!allowed()||busy()||delivered)return;
     const text=Array.from(event.results||[]).filter(r=>r.isFinal!==false).map(r=>r[0]?.transcript||'').join(' ').trim().slice(0,1200);
-    if(!text)return;delivered=true;clearTimer();recognition=null;try{current.abort();}catch{}
+    if(!text)return;delivered=true;autoRead=true;clearTimer();recognition=null;try{current.abort();}catch{}
     state('thinking');onText(text);
    };
    current.onerror=event=>{if(token!==epoch||delivered)return;epoch++;clearTimer();recognition=null;autoRead=false;try{current.abort();}catch{}state(event.error==='not-allowed'||event.error==='service-not-allowed'?'permission-denied':event.error==='no-speech'?'no-speech':'recognition-error');};
@@ -40,7 +40,7 @@ export function createAssistantVoice({host,allowed,language,onText,onState,busy=
    return true;
   }catch{stop();state('recognition-error');return false;}
  }
- return {start,stop,clear(){stop();lastAnswer='';},requestStarted(){clearTimer();const old=recognition;recognition=null;epoch++;try{old?.abort();}catch{}try{host.speechSynthesis?.cancel();}catch{}state('thinking');},answer(text){if(!allowed())return;lastAnswer=text;if(autoRead)speak(text);else state('idle');},failed(){autoRead=false;state('idle');},read(){return speak(lastAnswer);},supported:Boolean(Recognition)};
+ return {start,stop,clear(){stop();lastAnswer='';},requestStarted(){clearTimer();const old=recognition;recognition=null;epoch++;try{old?.abort();}catch{}try{host.speechSynthesis?.cancel();}catch{}state('thinking');},answer(text){const shouldRead=autoRead;autoRead=false;if(!allowed())return;lastAnswer=text;if(shouldRead)speak(text);else state('idle');},failed(){autoRead=false;state('idle');},read(){return speak(lastAnswer);},supported:Boolean(Recognition)};
 }
 
 export function mountAssistantVoice({dialog,form,input,host,identity,language,busy}){

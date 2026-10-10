@@ -186,3 +186,4 @@ create trigger zzz_v267_contract_execution after update of payload on public.aqa
  for each row execute function private.aqari_project_contract_execution();
 
 commit;
+
