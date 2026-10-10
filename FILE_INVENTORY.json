@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "a8ba83dd1c767320a0b6e0f03df164c0ad0f4635f04bf2647dcb94f8a80d7207",
-      "size": 11342
+      "sha256": "636d42246902f359b7ba67334f9ca702bae62d24d48bd9f2357a65bc60e2f78c",
+      "size": 11426
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1512,8 +1512,8 @@
     },
     {
       "path": "src/v267/components/dialog.js",
-      "sha256": "308095cecb6e6c6b1f8139ae3427feb67ef2e76798b594e69dbe36a9020671a5",
-      "size": 6056
+      "sha256": "72e5610c32534b81246452bad649ddce81d2d5901fe209b3dae90bf02f688043",
+      "size": 6041
     },
     {
       "path": "src/v267/components/document-catalog.js",
@@ -1607,8 +1607,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "98646b8c0d0c37449226ab1ccea30111388a950e4eb08a18f53cd018f4c5dbb1",
-      "size": 425499
+      "sha256": "f3584f3ab29afc9c9a3fa516cdf99237608e530e191aa7257a901337c1a0da31",
+      "size": 427335
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2082,8 +2082,8 @@
     },
     {
       "path": "src/v267/pages/maintenance-plans.js",
-      "sha256": "18fe04848ce795ceefd6d68c69c253509363bf57785f07fff122aabc6003b9d2",
-      "size": 18542
+      "sha256": "a8ed42153b960da1b897419c7327adc43c8516be0c7fefded885f87c6c461252",
+      "size": 18814
     },
     {
       "path": "src/v267/pages/maintenance-report.js",
@@ -2112,8 +2112,8 @@
     },
     {
       "path": "src/v267/pages/owner-experience-settings.js",
-      "sha256": "89886004abf828d78b83ae2bfcaa39657647a872402affe0f640dfd409716800",
-      "size": 16649
+      "sha256": "ed179ddabb05b7ee2c6f595975748d8e4cddb2f798132390432f1c42b4cfb0c8",
+      "size": 16981
     },
     {
       "path": "src/v267/pages/owner-report.js",
@@ -2122,8 +2122,8 @@
     },
     {
       "path": "src/v267/pages/partner-access.js",
-      "sha256": "ec63b84a287ca70e4bfeb2d217933afe72a9cefa4cb078fe98d47c9cc3cea604",
-      "size": 3620
+      "sha256": "cddbce02e157c7c8ffcfaf7d8a8650d972cd24d7dcf20f837aeb9574d71bd857",
+      "size": 3916
     },
     {
       "path": "src/v267/pages/partner-distributions.js",
@@ -5057,8 +5057,8 @@
     },
     {
       "path": "tests/v267-maintenance-plans.test.cjs",
-      "sha256": "bc7e6573acb3915e1697be825b0f2c7712e436a094e9a372e5abd86c76b3a7c3",
-      "size": 1081
+      "sha256": "f8fd5962b741102c2ed4b0a6682e5cff4aeea9cabe2ff4f7753275e4f0c0f9ac",
+      "size": 1099
     },
     {
       "path": "tests/v267-maintenance-report-runtime.test.mjs",
@@ -5839,6 +5839,21 @@
       "path": "tests/assistant-voice.test.mjs",
       "sha256": "df1f3e7ef9c4126a83b5ed8f00439e54622f3be6e1b3134ff87375a1bfd68e08",
       "size": 3301
+    },
+    {
+      "path": "tests/v267-maintenance-plan-draft.test.mjs",
+      "sha256": "82f4d9d3aa429a6024127e53a84dff4237e018f1e0e97909053cbcd1b94fdad4",
+      "size": 7685
+    },
+    {
+      "path": "tests/v267-owner-settings-recovery.test.mjs",
+      "sha256": "ba0f9f39ef732203d672cf0e3332cf93b8789aa025569ada95df4faf60ab3efd",
+      "size": 10880
+    },
+    {
+      "path": "tests/v267-partner-access-retry.test.mjs",
+      "sha256": "a7c9ba11c85a8bb0e1e0668c1b6187f2e9667e626dc7a9f5b880a372d69bc3bf",
+      "size": 6598
     }
   ],
   "version": "V198"

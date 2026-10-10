@@ -48,9 +48,9 @@ export function createDialog(title,{localized=true,page=false}={}){
   try{session.check();await session.connect();await task();if(!closed&&status.textContent===loadingMessage)status.textContent='';}
   catch(e){if(!closed){
    if(e?.status===403&&e?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(e?.message)){
-    // A rejected write requiring step-up is not a logout or revoked read access.
-    // Keep the draft only while its original user, workspace and role still match.
-    try{session.check();const message='يلزم تأكيد حديث بالتحقق الثنائي. افتح الأمان والتوثيق الثنائي في صفحة أخرى، ثم عد وأعد المحاولة. لم تنفذ العملية وبقيت بياناتك هنا.';status.textContent=localized?t(message):message;}catch{closeDialog();}
+    // A step-up challenge is not a logout or revoked read access.
+    // Keep the bound draft without assuming earlier writes were rejected.
+    try{session.check();const message='يلزم تأكيد حديث بالتحقق الثنائي. افتح الأمان والتوثيق الثنائي في صفحة أخرى، ثم عد. بقيت بياناتك هنا؛ راجع حالة الحفظ قبل إعادة المحاولة.';status.textContent=localized?t(message):message;}catch{closeDialog();}
    }else if([401,403].includes(e?.status)||e?.code==='42501'||e?.message==='ACCESS_DENIED')closeDialog();else status.textContent=localized?t(safeError(e)):safeError(e);
   }}
   finally{busy=false;if(!closed){el.setAttribute('aria-busy','false');body.inert=false;if(pendingNavigation){const next=pendingNavigation;pendingNavigation=null;await run(next);}}}}

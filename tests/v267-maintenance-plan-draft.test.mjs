@@ -4,7 +4,7 @@ import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
 import {openMaintenancePlans} from '../src/v267/pages/maintenance-plans.js';
 
 const tick=()=>new Promise(setImmediate);
-async function fixture({rejectSave=false,commitBeforeError=false}={}){
+async function fixture({rejectSave=false,commitBeforeError=false,saveError=null,readError=null,changeScope=false}={}){
  const original={window:globalThis.window,document:globalThis.document},calls=[];
  const data={workflow_version:2,can_write:true,manager:true,can_complete:true,plans:[],tasks:[],alerts:[],properties:[{id:'p1',name:'عقار تجريبي'}],documents:[],vendors:[],contracts:[]};
  class Element{
@@ -18,8 +18,9 @@ async function fixture({rejectSave=false,commitBeforeError=false}={}){
  }
  const client={rpc(name,args){assert.equal(name,'aqari_maintenance_plans');return {abortSignal:async()=>{
   calls.push(structuredClone(args));
-  if(args.p_action==='list')return {data:structuredClone(data)};
+  if(args.p_action==='list'){if(readError&&calls.some(c=>c.p_action==='save'))return readError;return {data:structuredClone(data)};}
   if(args.p_action==='save'){
+   if(saveError){if(changeScope)window.AQARI_DATA_GATE.scope.workspaceId='other';return saveError;}
    if(!rejectSave||commitBeforeError)data.plans.push({...structuredClone(args.p_data),revision:args.p_data.revision+1});
    return rejectSave?{error:{message:'تعذر تأكيد حفظ الخطة.'}}:{data:{ok:true}};
   }
@@ -32,7 +33,7 @@ async function fixture({rejectSave=false,commitBeforeError=false}={}){
  const dialog=body.children.find(x=>x.tagName==='dialog'),elements=()=>dialog.querySelectorAll();
  const button=label=>elements().find(x=>x.tagName==='button'&&x.textContent===label),control=label=>elements().find(x=>x.children?.[0]?.tagName==='label'&&x.children[0].textContent===label)?.children[1];
  const enter=()=>{control('العقار').value='p1';control('عنوان الخطة').value='فحص المصعد مع الحفاظ على الملاحظات';control('التكرار بالأيام').value='45';control('موعد الصيانة القادمة').value='2026-10-30';};
- return {data,calls,button,control,elements,enter,status:()=>dialog.children[2].textContent,save:()=>elements().find(x=>x.tagName==='form').onsubmit({preventDefault(){}}),cleanup(){if(dialog.isConnected)dialog.children[0].onclick();Object.assign(globalThis,original);}};
+ return {data,calls,button,control,elements,enter,allowSave(){saveError=null;},connected:()=>dialog.isConnected,status:()=>dialog.children[2].textContent,save:()=>elements().find(x=>x.tagName==='form').onsubmit({preventDefault(){}}),cleanup(){if(dialog.isConnected)dialog.children[0].onclick();Object.assign(globalThis,original);}};
 }
 
 test('failed maintenance-plan save preserves every entered value for review',async()=>{
@@ -50,5 +51,21 @@ test('uncertain maintenance save cannot duplicate a committed plan and explicit 
 test('proved maintenance save still resets the new-plan form and shows the saved card',async()=>{
  const f=await fixture();
  try{f.enter();await f.save();assert.equal(f.data.plans.length,1);assert.equal(f.control('عنوان الخطة').value,'');assert.ok(f.elements().some(x=>x.tagName==='h3'&&x.textContent==='فحص المصعد مع الحفاظ على الملاحظات'));assert.match(f.status(),/تم الحفظ والتحقق/);}
+ finally{f.cleanup();}
+});
+
+for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'])test('maintenance MFA rejection retains draft and allows deliberate retry: '+message,async()=>{
+ const f=await fixture({saveError:{status:403,error:{code:'42501',message}}});
+ try{f.enter();const title=f.control('عنوان الخطة');await f.save();assert.equal(f.button('حفظ الخطة').disabled,false);assert.equal(f.control('عنوان الخطة'),title);assert.equal(title.value,'فحص المصعد مع الحفاظ على الملاحظات');assert.equal(f.calls.filter(x=>x.p_action==='save').length,1);assert.equal(f.data.plans.length,0);f.allowSave();await f.save();assert.equal(f.data.plans.length,1);assert.deepEqual(f.calls.filter(x=>x.p_action==='save').map(x=>x.p_data.revision),[0,0]);assert.match(f.status(),/تم الحفظ والتحقق/);}
+ finally{f.cleanup();}
+});
+test('maintenance acknowledged write followed by MFA read failure cannot be resent',async()=>{
+ const f=await fixture({readError:{status:403,error:{code:'42501',message:'MFA_REQUIRED'}}});
+ try{f.enter();const form=f.elements().find(x=>x.tagName==='form');await f.save();assert.doesNotMatch(f.status(),/لم تنفذ العملية/);assert.equal(f.button('حفظ الخطة').disabled,true);await form.onsubmit({preventDefault(){}});assert.equal(f.calls.filter(x=>x.p_action==='save').length,1);assert.equal(f.data.plans.length,1);assert.doesNotMatch(f.status(),/لم تنفذ العملية/);}
+ finally{f.cleanup();}
+});
+test('maintenance account change during MFA rejection cannot unlock the draft',async()=>{
+ const f=await fixture({saveError:{status:403,error:{code:'42501',message:'MFA_REQUIRED'}},changeScope:true});
+ try{f.enter();await f.save();assert.equal(f.button('حفظ الخطة').disabled,true);assert.equal(f.data.plans.length,0);}
  finally{f.cleanup();}
 });
