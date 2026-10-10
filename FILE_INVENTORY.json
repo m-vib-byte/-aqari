@@ -262,8 +262,8 @@
     },
     {
       "path": "api/owner-assistant.js",
-      "sha256": "df0de78fae81ddb0d3347c915b7543fc48099e4329089a909979ab6c67e0b351",
-      "size": 9762
+      "sha256": "ecc12ec7cd6b73d79934ddc5044a1dcb03f9bdbb7e19c4902d2b3fa9c3031eec",
+      "size": 10856
     },
     {
       "path": "api/owner-report-delivery.js",
