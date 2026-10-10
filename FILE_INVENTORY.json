@@ -1702,8 +1702,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "52f0c030f2e000288cb54ce35f8bd37debdbec76d4a1d150a4647c69d2a6afd2",
-      "size": 97454
+      "sha256": "55dfb7b5f4e4b33d9e32e19fdaa4d1acb849383271be94e49189fdd6ea62aa8b",
+      "size": 97658
     },
     {
       "path": "src/v267/components/report-filter-translations.js",
@@ -5442,8 +5442,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "32250145585424129aab858cbc3f2af7928b80bae239762e4d72dd11c3c0cb84",
-      "size": 49500
+      "sha256": "7d4d9c380d904ea450a3b6a922e49062bb7a48b07179710f03a8a0d3d69c9748",
+      "size": 51039
     },
     {
       "path": "tests/v267-report-filters.test.mjs",
