@@ -2137,8 +2137,8 @@
     },
     {
       "path": "src/v267/pages/property-channels.js",
-      "sha256": "c3ed3f1ce0c1ffa49b203767301048f5f205be639fa57ffeed1a1c687f4db7cc",
-      "size": 6152
+      "sha256": "4778480a05a30219a5c72de07131db4bd22eabf961bcb0ce53186a1a58ed6a6c",
+      "size": 6594
     },
     {
       "path": "src/v267/pages/property-controls.js",
@@ -5312,8 +5312,8 @@
     },
     {
       "path": "tests/v267-property-contact-links.test.mjs",
-      "sha256": "201de70bae0f44fb5a91d5441b5d71fd0ed9956f7bf26695b62188936479eec0",
-      "size": 10582
+      "sha256": "99786e0dc6f18606399a93e21c2b064b0d33bae850d2d3cedb475e05802b0b12",
+      "size": 14274
     },
     {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",

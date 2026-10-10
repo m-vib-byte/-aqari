@@ -27,12 +27,20 @@ export function openPropertyChannels(propertyId){
    if(saveAttempted)throw Error('سبق إرسال الحفظ. ارجع للقائمة للتحقق قبل أي تعديل جديد.');
    const wanted={id:current?.id||null,revision:Number(current?.revision||0),kind:kind.value,label:label.value.trim(),url:propertyContactUrl(url.value,kind.value),tenantVisible:visible.checked&&status.value==='active',status:status.value,sortOrder:current?.sortOrder??100,managementReference:current?.managementReference||'',reason:reason.value.trim()};
    saveAttempted=true;saving=true;save.disabled=true;
+   let acknowledged=false;
    try{
-   const result=await rpc('save',wanted);d.session.check();if(!result?.record?.id)throw Error('لم يتأكد حفظ القناة.');
+   const result=await rpc('save',wanted);acknowledged=true;d.session.check();if(!result?.record?.id)throw Error('لم يتأكد حفظ القناة.');
    await read();const saved=state.items.find(x=>x.id===result.record.id);
    if(!saved||saved.revision!==wanted.revision+1||['kind','label','url','tenantVisible','status'].some(k=>saved[k]!==wanted[k]))throw Error('لم تتطابق القناة بعد إعادة القراءة. لا تكرر الحفظ قبل تحديث القائمة.');
    baseline=snapshot();confirmed=true;
    await render();d.status.textContent='تم حفظ القناة والتحقق منها لهذا العقار.';
+   }catch(error){
+    // Only an explicit pre-write step-up rejection is safe to retry. A failed
+    // readback or uncertain response must never re-enable another write.
+    if(!acknowledged&&error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)){
+     d.session.check();saveAttempted=false;save.disabled=false;
+    }
+    throw error;
    }finally{saving=false;}
   });};
  }
