@@ -1,5 +1,17 @@
 // Static interface messages only; never stored record values.
 export const OPERATIONAL_MESSAGES = {
+ "انتظر اكتمال التحقق من الحفظ قبل مغادرة إعداد التكامل.": {
+  "en": "Wait for save verification to finish before leaving the integration settings.",
+  "hi": "एकीकरण सेटिंग छोड़ने से पहले सहेजने का सत्यापन पूरा होने दें।",
+  "ur": "انضمام کی ترتیبات چھوڑنے سے پہلے محفوظ ہونے کی تصدیق مکمل ہونے کا انتظار کریں۔",
+  "ml": "ഇന്റഗ്രേഷൻ ക്രമീകരണത്തിൽ നിന്ന് പോകുന്നതിന് മുമ്പ് സേവ് സ്ഥിരീകരണം പൂർത്തിയാകുന്നതുവരെ കാത്തിരിക്കുക."
+ },
+ "توجد تعديلات تكامل غير محفوظة. هل تريد تركها والمتابعة؟": {
+  "en": "There are unsaved integration changes. Discard them and continue?",
+  "hi": "एकीकरण के बदलाव सहेजे नहीं गए हैं। क्या उन्हें छोड़कर आगे बढ़ना है?",
+  "ur": "انضمام کی تبدیلیاں محفوظ نہیں ہوئی ہیں۔ کیا انہیں چھوڑ کر آگے بڑھنا ہے؟",
+  "ml": "ഇന്റഗ്രേഷൻ മാറ്റങ്ങൾ സേവ് ചെയ്തിട്ടില്ല. അവ ഉപേക്ഷിച്ച് തുടരണമോ?"
+ },
  "يلزم تأكيد حديث بالتحقق الثنائي. افتح الأمان والتوثيق الثنائي في صفحة أخرى، ثم عد. بقيت بياناتك هنا؛ راجع حالة الحفظ قبل إعادة المحاولة.": {
   "en": "Recent two-factor verification is required. Open Security and two-factor authentication in another page, then return. Your entries are still here; check the save status before retrying.",
   "hi": "हाल का दो-कारक सत्यापन आवश्यक है। दूसरे पृष्ठ में सुरक्षा और दो-कारक प्रमाणीकरण खोलें, फिर लौटें। आपकी प्रविष्टियाँ यहाँ बनी हुई हैं; दोबारा प्रयास करने से पहले सहेजने की स्थिति जाँचें।",

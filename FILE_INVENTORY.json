@@ -1607,8 +1607,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "f3584f3ab29afc9c9a3fa516cdf99237608e530e191aa7257a901337c1a0da31",
-      "size": 427335
+      "sha256": "b305620914bd42e285735934de8878998a65b75d70affeb93eddef13f00ce75e",
+      "size": 428863
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2047,8 +2047,8 @@
     },
     {
       "path": "src/v267/pages/integration-center.js",
-      "sha256": "6144264f6d1cffc8dac16eb90473abacef44a5d6bae497eeb8e4634491a408fc",
-      "size": 7155
+      "sha256": "d9df297fcd5aa35be13f7bd8094a589a1de713aa7b3ee66def2d834bb1769d6e",
+      "size": 7833
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
@@ -4962,8 +4962,8 @@
     },
     {
       "path": "tests/v267-integration-center-workflow.test.cjs",
-      "sha256": "628468b8e614d479bee2f2ecbf84d936ad98ee3ad16105fe278fe70e5cde38ed",
-      "size": 7373
+      "sha256": "28ba4ca3a1d86bffa1e1b4c1173663ddfad971712a63eee33a20e6fbfdd24332",
+      "size": 9850
     },
     {
       "path": "tests/v267-iphone-startup-blocker.test.mjs",
