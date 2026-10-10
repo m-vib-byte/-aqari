@@ -1647,8 +1647,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "82a1d0513b0d9b877f6434fc3aa9cb93e66e507a8223fb53a03b4fa1c693b90d",
-      "size": 435003
+      "sha256": "d50446b0f0e3f134793ec875bda138a1c27613669750c354e44f7f69e2e23f59",
+      "size": 436830
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2117,8 +2117,8 @@
     },
     {
       "path": "src/v267/pages/maintenance-monthly-details.js",
-      "sha256": "e0ea3545cac1e1111053a08eee92702bd3e82883995e56da7b39e3dcae66a2b8",
-      "size": 7433
+      "sha256": "1d391f8358b3554cce53d31abedaad83613ab0ddf5f0760651aefffb75bbf11a",
+      "size": 9072
     },
     {
       "path": "src/v267/pages/maintenance-monthly-report.js",
@@ -2187,8 +2187,8 @@
     },
     {
       "path": "src/v267/pages/property-channels.js",
-      "sha256": "c3ed3f1ce0c1ffa49b203767301048f5f205be639fa57ffeed1a1c687f4db7cc",
-      "size": 6152
+      "sha256": "4778480a05a30219a5c72de07131db4bd22eabf961bcb0ce53186a1a58ed6a6c",
+      "size": 6594
     },
     {
       "path": "src/v267/pages/property-controls.js",
@@ -5157,8 +5157,8 @@
     },
     {
       "path": "tests/v267-maintenance-monthly-details.test.mjs",
-      "size": 4819,
-      "sha256": "219cbc96478f3e560d55b935176b34b81710dd18330b3819342c1f9ad242cd10"
+      "size": 7967,
+      "sha256": "046cc7573917eba94147692d013490001a9eee5a1415b26554fa490b14dfb16c"
     },
     {
       "path": "tests/v267-maintenance-monthly-report.test.mjs",
@@ -5422,8 +5422,8 @@
     },
     {
       "path": "tests/v267-property-contact-links.test.mjs",
-      "sha256": "201de70bae0f44fb5a91d5441b5d71fd0ed9956f7bf26695b62188936479eec0",
-      "size": 10582
+      "sha256": "99786e0dc6f18606399a93e21c2b064b0d33bae850d2d3cedb475e05802b0b12",
+      "size": 14274
     },
     {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
