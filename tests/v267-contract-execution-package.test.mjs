@@ -172,6 +172,38 @@ test('unknown outcome stays locked and expired or changed scope disposes private
   try{await f.run();assert.equal(f.submit.disabled,true,kind);assert.equal(f.calls(),1);assert.equal(f.d.closed,!['timeout','after-save'].includes(kind),kind);await f.run();assert.equal(f.calls(),1,'locked submission must not repeat');}finally{f.cleanup();}
  }
 });
+test('server access loss during any final document read closes the private view and stops later reads',async()=>{
+ for(const status of [401,403])for(const deniedAt of [0,1,2]){
+  const reads=[];
+  const f=await submissionFixture((d,context)=>{
+   context.settlementSent=true;
+   context.pdf=async(path,body)=>{reads.push({path,body});if(reads.length-1===deniedAt)throw Object.assign(Error('access revoked'),{status});return {blob:new Blob(['%PDF-test'])};};
+   context.downloadLink=label=>node('a',label);
+   return {contract:{contract_no:'CT-TEST'},receiptNo:'AQ-R-2026-00000001',contractReceiptSequence:1,officialArtifacts:{tenant_document_id:'tenant-doc',owner_document_id:'owner-doc'}};
+  });
+  try{
+   await f.run();
+   assert.equal(f.d.closed,true,`HTTP ${status} on artifact ${deniedAt} must close the private view`);
+   assert.equal(document.body.children.includes(f.d.el),false,'private document names and download links are removed from the page');
+   assert.equal(reads.length,deniedAt+1,'no later document request after access was denied');
+   assert.equal(f.submit.disabled,true);await f.run();assert.equal(f.calls(),1,'saved settlement cannot be repeated');
+  }finally{f.cleanup();}
+ }
+});
+test('temporary final PDF failure preserves the saved settlement and checks remaining documents',async()=>{
+ const reads=[];
+ const f=await submissionFixture((d,context)=>{
+  context.settlementSent=true;
+  context.pdf=async(path,body)=>{reads.push({path,body});if(reads.length===1)throw Object.assign(Error('temporarily unavailable'),{status:503});return {blob:new Blob(['%PDF-test'])};};
+  context.downloadLink=label=>node('a',label);
+  return {contract:{contract_no:'CT-TEST'},receiptNo:'AQ-R-2026-00000001',contractReceiptSequence:1,officialArtifacts:{tenant_document_id:'tenant-doc',owner_document_id:'owner-doc'}};
+ });
+ try{
+  await f.run();assert.equal(f.d.closed,false);assert.equal(reads.length,3);
+  assert.match(f.d.status.textContent,/بقي التحقق/);assert.equal(f.submit.disabled,true);
+  await f.run();assert.equal(f.calls(),1,'a temporary PDF outage cannot repeat the saved settlement');
+ }finally{f.cleanup();}
+});
 test('actual finalization distinguishes rejected settlement from timeout and post-save MFA',async()=>{
  const mfa=()=>Object.assign(Error('MFA_REQUIRED'),{status:403,code:'42501'});
  for(const [options,expectedSent,expectedSaved] of [[{saveError:Object.assign(mfa(),{aqariStateWriteRejected:true})},false,false],[{saveError:mfa()},true,false],[{saveError:Error('timeout')},true,false],[{postSaveError:mfa()},true,true]]){
