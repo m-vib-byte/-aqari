@@ -1912,8 +1912,8 @@
     },
     {
       "path": "src/v267/components/workspace-translations.js",
-      "sha256": "3d87e8aeb7f639582572f8c651c8c25f96e5311250e56d32a55bfda7f767af1a",
-      "size": 71800
+      "sha256": "fc30a863dc5df5e6b1af173689fe1d54479d90ed3190a5312d171b328dc9edae",
+      "size": 72916
     },
     {
       "path": "src/v267/domain/contract-foundation.js",
@@ -2292,8 +2292,8 @@
     },
     {
       "path": "src/v267/pages/property-statements.js",
-      "sha256": "fc244779826f65abdf12ed8f52b1e676636a5ef83fb99132b3630d159fb3d766",
-      "size": 22830
+      "sha256": "bbc8c9d6bd15705c3532a1e91c8ab8c7fc70b833c246b540c54a8ab73504d706",
+      "size": 23068
     },
     {
       "path": "src/v267/pages/property-unit-create.js",
@@ -2702,8 +2702,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "bfa9f21b273f8943fcc3e3681744000e9d774d993ca785d2380aeebebe63f8ba",
-      "size": 10568
+      "sha256": "98a0c9dbce8988109fa9fa68556ea8c91bd635b3bfc99e2af0e2b1826b6f485a",
+      "size": 10760
     },
     {
       "path": "staging-database/local-test/property-tenant-ledger-acceptance.sql",
@@ -3406,6 +3406,11 @@
       "size": 28550
     },
     {
+      "path": "staging-database/sql/statement-shared-phone.sql",
+      "sha256": "5f595411cd561ec7fb0bd95296151951f1f04db40ad643efe3632d2e8d6b1f44",
+      "size": 1592
+    },
+    {
       "path": "staging-database/sql/tenant-contact-preference.sql",
       "sha256": "2bab0f8bb1fa6a47188a6d74b712894f303e8af6fcccf3aa111eaf2e4bbc621d",
       "size": 7079
@@ -4011,6 +4016,11 @@
       "size": 839
     },
     {
+      "path": "staging-database/supabase/migrations/20261010233840_v267_statement_shared_phone.sql",
+      "sha256": "5f595411cd561ec7fb0bd95296151951f1f04db40ad643efe3632d2e8d6b1f44",
+      "size": 1592
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -4379,6 +4389,11 @@
       "path": "staging-database/tests/staff_property_scope.sql",
       "sha256": "9c59d27211fe44301c2f2b961012eb709447b5af915d12aa45cf6c3315322b1b",
       "size": 26946
+    },
+    {
+      "path": "staging-database/tests/statement_shared_phone.sql",
+      "sha256": "03e2a60122c8dbffb2484c110d82d37c8b3ba692a881afe20fb26b67c130b1e8",
+      "size": 6369
     },
     {
       "path": "staging-database/tests/template_library_archive.sql",
@@ -4807,8 +4822,8 @@
     },
     {
       "path": "tests/property-statements-navigation.test.mjs",
-      "sha256": "760573861eff907a9fa6d64e9c94b7a99615f0d9ae14eaaf793edd42f7aa9129",
-      "size": 12072
+      "sha256": "e46ea87284f78cb57245cfab202f47bd7ea8613009c361cf461c30e9217ab5c3",
+      "size": 12598
     },
     {
       "path": "tests/property_statement_test.py",
