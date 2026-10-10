@@ -5507,8 +5507,8 @@
     },
     {
       "path": "tests/v267-payment-method-reference.test.cjs",
-      "sha256": "8a7fb1119e4a3d53b43e31556ecf1ac387407b345592eb634f74ee948b0bc196",
-      "size": 6102
+      "sha256": "e0bd2037c36922d6ccdbced59e455c451f283583c5d7f2322a39aa99b0a911c7",
+      "size": 7253
     },
     {
       "path": "tests/v267-payroll.test.mjs",
@@ -5992,8 +5992,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "a14be05003c9516b5fdf6754dc7aad4f1a33ee41ec2a0caf5d8fb4cdff3fa86f",
-      "size": 286240
+      "sha256": "af8a5dc9ecbc80d872bb0c51ce098f0cca280263e9634a2cc98eff30ca79bcf4",
+      "size": 286249
     },
     {
       "path": "v205-simple.css",
