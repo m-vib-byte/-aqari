@@ -1032,8 +1032,8 @@
     },
     {
       "path": "docs/verification/unit-create-draft-20261010.md",
-      "sha256": "a965537b03d2f48bfa544c78785742c29bc447a9ef7c50b6dddd0eabb1808044",
-      "size": 1162
+      "sha256": "499e39a9c3d6df0c958c85852ca6cb9ab2076a0d45b4edc515e02f017714d286",
+      "size": 3198
     },
     {
       "path": "docs/verification/unit-search-20261006.md",
@@ -2292,8 +2292,8 @@
     },
     {
       "path": "src/v267/pages/property-unit-create.js",
-      "sha256": "12c11c29520ab3c3658001e67b11ee190999a89ccf452e1c3066f747334fdfd1",
-      "size": 7419
+      "sha256": "5ed9ac149bc7b87e34a3752966dda780ecc2b65d65b4788f0e5e79f53de53e9c",
+      "size": 9950
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
@@ -5882,8 +5882,8 @@
     },
     {
       "path": "tests/v267-unit-create-validation.test.mjs",
-      "sha256": "dba21e15cae84ad248c81180417fe956a13a11dd980b0785158f8f2b196f3a09",
-      "size": 6704
+      "sha256": "a262a7b9d5d62457756329fb9a000df3e66744560f2d2092a7894838749f4d95",
+      "size": 11928
     },
     {
       "path": "tests/v267-unit-meter-runtime.test.mjs",
