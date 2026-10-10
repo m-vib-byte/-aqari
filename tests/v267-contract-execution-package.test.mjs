@@ -81,6 +81,19 @@ test('actual finalization persists confirmed package with settlement and verifie
  assert.equal(f.saved().contractsV202[0].status,'signed');assert.equal(request.receiptArtifacts,null);
  assert.equal(f.saved().contractExecutionSettlementsV267.length,1);
 });
+test('one archived document cannot confirm both official contract copies after settlement',async()=>{
+ const f=finalization(async(session,body)=>body.packageId);
+ const originalRpc=f.context.rpc;
+ f.context.rpc=async name=>{
+  const result=await originalRpc(name);
+  if(name==='aqari_contract_execution_artifacts')result.owner_document_id=result.tenant_document_id;
+  return result;
+ };
+ await assert.rejects(f.run(),/لم تتأكد إعادة قراءة نسختي العقد الرسميتين/);
+ assert.equal(f.sent(),true,'a rejected readback must not authorize resubmission');
+ assert.equal(f.saved().contractsV202[0].status,'signed','the saved settlement must remain recorded');
+ assert.equal(f.saved().contractExecutionSettlementsV267.length,1);
+});
 
 test('exact source MFA rejection reaches the dialog contract without an automatic retry',async()=>{
  for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED']){

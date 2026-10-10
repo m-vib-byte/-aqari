@@ -107,7 +107,7 @@ export function openContractExecution(contractId,{onDone}={}){
   if(receiptArtifacts&&(!(confirmed.rentLedgerV202||[]).some(row=>same(row,receiptArtifacts.ledger))||!(confirmed.rentReceiptsV267||[]).some(row=>same(row,receiptArtifacts.receipt))))throw Error('العقد محفوظ لكن لم تتأكد قراءة الوصل. لا تعِد الدفع.');
 
   const officialArtifacts=await rpc('aqari_contract_execution_artifacts',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(contractId)});d.session.check();
-  if(officialArtifacts?.settlement_id!==manifest.id||officialArtifacts?.contract_no!==signed.contract_no||!officialArtifacts?.tenant_document_id||!officialArtifacts?.owner_document_id||String(officialArtifacts?.rent_receipt_no||'')!==receiptNo||(receiptNo&&Number(officialArtifacts?.contract_receipt_sequence)!==contractReceiptSequence))throw Error('لم تتأكد إعادة قراءة نسختي العقد الرسميتين وربط الوصل.');
+  if(officialArtifacts?.settlement_id!==manifest.id||officialArtifacts?.contract_no!==signed.contract_no||!officialArtifacts?.tenant_document_id||!officialArtifacts?.owner_document_id||officialArtifacts.tenant_document_id===officialArtifacts.owner_document_id||String(officialArtifacts?.rent_receipt_no||'')!==receiptNo||(receiptNo&&Number(officialArtifacts?.contract_receipt_sequence)!==contractReceiptSequence))throw Error('لم تتأكد إعادة قراءة نسختي العقد الرسميتين وربط الوصل.');
 
   const lease=await d.session.request(d.session.client.from('aqari_leases').select('id,external_ref,contract_no,status').eq('workspace_id',d.session.bound.workspace).eq('external_ref',String(contractId)).single());d.session.check();
   if(lease?.contract_no!==signed.contract_no||lease?.status!=='signed')throw Error('لم تتأكد حالة العقد التشغيلية بعد الإبرام.');
