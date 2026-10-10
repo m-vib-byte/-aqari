@@ -11,6 +11,13 @@ function select(rows,value=''){const el=node('select');for(const [key,label]of r
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 export const isExecutionMfaChallenge=error=>error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message);
 
+// Validate editable payment input before any receipt allocation or package work.
+export function assertExecutionPaymentInput({total,method,transactionNo}){
+ const reference=String(transactionNo??'').normalize('NFKC').trim();
+ if(total>0&&(!executionMethods.some(([code])=>code===method)||reference.length<3||reference.length>150))throw Error('طريقة الدفع ورقم العملية مطلوبان.');
+ return reference;
+}
+
 export async function readContractExecutionPdf(session,path,body){
  session.check();
  if(!['/api/official-document','/api/rent-receipt'].includes(path)||body?.workspaceId!==session.bound.workspace)throw Error('تعذر تأكيد نطاق المستند.');
@@ -56,6 +63,7 @@ export function openContractExecution(contractId,{onDone}={}){
  function downloadLink(label,blob,name){d.session.check();const url=URL.createObjectURL(blob);urls.add(url);const a=node('a',label);a.href=url;a.download=name;a.rel='noopener';a.className='is-primary';return a;}
 
  async function finalize({method,transactionNo,onDate,zeroReason}){
+  transactionNo=assertExecutionPaymentInput({total:currentDue.total,method,transactionNo});
   const bound=scope(),cloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
@@ -114,11 +122,12 @@ export function openContractExecution(contractId,{onDone}={}){
   const summary=node('section');summary.append(node('h3',translateStatic('المستحق عند الإبرام')),node('p',translateStatic('العقد: ')+currentContract.contract_no),node('p',translateStatic('المستأجر: ')+currentProfile.nameAr+' / '+currentProfile.nameEn),node('p',translateStatic('العقار / الوحدة: ')+currentContract.property+' / '+currentContract.unit),node('p',translateStatic('إيجار أول فترة: ')+money(currentDue.rent)),node('p',translateStatic('التأمين: ')+money(currentDue.deposit)),node('p',translateStatic('العربون: ')+money(currentDue.advance)),node('p',translateStatic('الرسوم: ')+money(currentDue.fees)),node('strong',translateStatic('الإجمالي: ')+money(currentDue.total)));d.body.append(summary);
   const form=node('form'),onDate=input('date',api.kuwaitDate()),method=currentDue.total>0?select([['',translateStatic('اختر طريقة الدفع')],...executionMethods.map(([key,label])=>[key,translateStatic(label)])]):select([['none',translateStatic('لا توجد دفعة')]], 'none'),transaction=input('text'),zeroReason=node('textarea'),confirm=input('checkbox'),submit=node('button',translateStatic('اعتماد الإبرام وإصدار المستندات'));
   const canonicalZeroReason=currentDue.breakdown.freeMonth?'لا توجد دفعة عند الإبرام بسبب الفترة المجانية المعتمدة.':'صافي المستحق عند الإبرام يساوي صفراً حسب شروط العقد المعتمدة.';
-  onDate.required=true;method.required=true;transaction.maxLength=150;zeroReason.maxLength=500;confirm.type='checkbox';confirm.required=true;submit.type='submit';
+  onDate.required=true;method.required=true;transaction.minLength=3;transaction.maxLength=150;zeroReason.maxLength=500;confirm.type='checkbox';confirm.required=true;submit.type='submit';
   if(currentDue.total>0){transaction.required=true;form.append(field(translateStatic('طريقة الدفع'),method),field(translateStatic('رقم العملية / المرجع — إلزامي لكل طرق الدفع'),transaction));}
   else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=translateStatic(canonicalZeroReason);form.append(field(translateStatic('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي'),zeroReason));}
   form.append(field(translateStatic('تاريخ العملية'),onDate),field(translateStatic('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد'),confirm),submit);d.body.append(form);
   form.onsubmit=event=>{event.preventDefault();if(submit.disabled||!form.reportValidity())return;d.run(async()=>{
+   assertExecutionPaymentInput({total:currentDue.total,method:method.value,transactionNo:transaction.value});
    submit.disabled=true;d.status.textContent=translateStatic('جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…');
    let result;
    try{result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});}
