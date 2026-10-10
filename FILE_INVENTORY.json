@@ -1612,8 +1612,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "6cc665f02e5a08671589c5d78a5366947cbfd00c788969f734d3ab26bd05e35b",
-      "size": 430690
+      "sha256": "846d874f5442d9671c078532c17d6eac31e9e5c49e34e7fa0009436741b2556d",
+      "size": 433388
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2232,8 +2232,8 @@
     },
     {
       "path": "src/v267/pages/unit-readiness.js",
-      "sha256": "7a6cf2272167aaea96187b30f31dffed1d55b3a0eb64b48d9c0c27d5e4a9664a",
-      "size": 7833
+      "sha256": "07a29b4db3159cc55d6031cbe2dfa0ae706bbb5ae989c69eb7a2218035fc5377",
+      "size": 8787
     },
     {
       "path": "src/v267/pages/user-guide.js",
@@ -5642,8 +5642,8 @@
     },
     {
       "path": "tests/v267-unit-readiness-runtime.test.mjs",
-      "sha256": "4a19beacea855488450fa871de98af1073a0a1faa49413989c31ef7b2c2e8263",
-      "size": 11159
+      "sha256": "d90625419ea3a4e067d1334b93ae6333ce6c7414cbd5698d781bf75c00ca1fc0",
+      "size": 15484
     },
     {
       "path": "tests/v267-unit-search.test.mjs",
