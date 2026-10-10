@@ -3,20 +3,23 @@ import {createDialog,node,field} from '../components/dialog.js';
 import {openTenantCompleteFile} from './property-portfolio-additions.js';
 const fields=()=>[['nameAr',translateStatic('الاسم بالعربية')],['nameEn',translateStatic('الاسم بالإنجليزية')],['civilId',translateStatic('الرقم المدني')],['passportNo',translateStatic('رقم الجواز')],['phone',translateStatic('الهاتف')],['email',translateStatic('البريد الإلكتروني')],['nationality',translateStatic('الجنسية')],['address',translateStatic('العنوان')]];
 const contactOptions=()=>[['both',translateStatic('البريد والواتساب')],['whatsapp',translateStatic('واتساب فقط')],['email',translateStatic('البريد الإلكتروني فقط')],['sms',translateStatic('رسالة نصية فقط')],['push',translateStatic('إشعار التطبيق فقط')],['phone',translateStatic('اتصال هاتفي يدوي')],['none',translateStatic('لا رسائل آلية')]];
-export async function openImportedTenant({ref,draft,onDraft,onSaved}){
+export async function openImportedTenant({ref,draft,onDraft,onSaved,phoneWarning=()=>''}){
  const d=createDialog(translateStatic('تعديل المستأجر المستورد'));if(!d)return;
  const {body,status,session,run}=d,inputs={};let current=null,uncertain=false,baseline=null;
  const portfolio=node('section');portfolio.className='aq267-property-master-section';
  body.append(node('p',translateStatic('التعديل يحدّث ملف المستأجر ودليل الاتصال ويحفظ المصدر والتاريخ. لا يغيّر العقود أو الوصول السابقة. يمكن ترك البيانات غير المتوفرة فارغة؛ يلزم اسم واحد على الأقل.')));
  body.append(portfolio);
  for(const [key,label]of fields()){const input=node('input');input.maxLength=300;input.type=key==='email'?'email':'text';if(key==='civilId'||key==='phone')input.inputMode='tel';inputs[key]=input;body.append(field(label,input));}
+ const phoneNotice=node('p');phoneNotice.role='status';phoneNotice.ariaLive='polite';body.append(phoneNotice);
+ const updatePhoneWarning=()=>{phoneNotice.textContent=translateStatic(phoneWarning({id:ref,phone:inputs.phone.value}));};
+ inputs.phone.oninput=updatePhoneWarning;
  const preferredContact=node('select');for(const [value,label]of contactOptions()){const option=node('option',label);option.value=value;preferredContact.append(option);}inputs.preferredContact=preferredContact;body.append(field(translateStatic('وسيلة التواصل المفضلة'),preferredContact));
  const reason=node('textarea');reason.maxLength=500;
  const save=node('button',translateStatic('حفظ التعديل والتحقق')),draftButton=node('button',translateStatic('حفظ مسودة واستكمال لاحقاً')),reload=node('button',translateStatic('تحديث الملف من السحابة')),history=node('div');
  for(const button of [save,draftButton,reload])button.type='button';
  body.append(field(translateStatic('سبب التعديل أو مرجع التصحيح (اختياري)'),reason),save,draftButton,reload,node('h3',translateStatic('آخر التعديلات الموثقة')),history);
  function show(value,initial=false){
-  current=value;for(const [key]of fields())inputs[key].value=String((initial&&draft?draft:value.profile)?.[key]||'');preferredContact.value=String((initial&&draft?draft:value.profile)?.preferredContact||'both');reason.value='';baseline=snapshot();
+  current=value;for(const [key]of fields())inputs[key].value=String((initial&&draft?draft:value.profile)?.[key]||'');preferredContact.value=String((initial&&draft?draft:value.profile)?.preferredContact||'both');reason.value='';baseline=snapshot();updatePhoneWarning();
   history.replaceChildren();
   for(const entry of value.history||[]){const block=node('section');block.append(node('p',entry.created_at+' — '+entry.reason));
    for(const [key,label]of [...fields(),['preferredContact',translateStatic('وسيلة التواصل المفضلة')]])if(entry.before_profile?.[key]!==entry.after_profile?.[key])block.append(node('p',label+': '+(entry.before_profile?.[key]||translateStatic('فارغ'))+' ← '+(entry.after_profile?.[key]||translateStatic('فارغ'))));

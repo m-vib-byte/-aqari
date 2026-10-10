@@ -2,14 +2,14 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const clone=value=>structuredClone(value);
 const source=fs.readFileSync('v267-rental-records.js','utf8');
 const tenant={nameAr:'مستأجر اختبار',nameEn:'Synthetic Tenant',civilId:'123456789012',phone:'55555555',nationality:'اختبار',email:'',passportNo:'TEST-P123',address:''};
-async function fixture({loseFinalizeKind=null,roundtrip=clone}={}){
+async function fixture({loseFinalizeKind=null,roundtrip=clone,profiles=[]}={}){
  const tenantAttachmentModule=await import('../src/v267/components/tenant-attachment-upload.js');
  // Only module loading is supplied by the fixture; the form and upload code run unchanged.
  const importCall="import('./src/v267/components/tenant-attachment-upload.js')";
  assert.equal(source.split(importCall).length,2);
  const runtime=source.replace(importCall,'Promise.resolve(tenantAttachmentModule)');
  const elements=new Map(),calls=[],docs=[],objects=new Map(),bound={userId:'user-form',workspaceId:'workspace-form'};
- let saved={tenants:[],tenantProfilesV267:[],tenantDirectoryV202:[],tenantPreparationDraftsV267:[],audit:[]},revision=0,lost=false;
+ let saved={tenants:[],tenantProfilesV267:clone(profiles),tenantDirectoryV202:[],tenantPreparationDraftsV267:[],audit:[]},revision=0,lost=false;
  class Element{
   constructor(){this.children=[];this.value='';this.files=[];this.textContent='';this.innerHTML='';this.disabled=false;const classes=new Set();this.classList={add:value=>classes.add(value),remove:value=>classes.delete(value),contains:value=>classes.has(value)};}
   append(...children){this.children.push(...children);}
@@ -100,4 +100,11 @@ test('a lost response for the second attachment does not resend the first or all
  assert.equal(confirmations.filter(call=>call.args.p_document_id===f.docs[0].id).length,1);
  assert.equal(confirmations.filter(call=>call.args.p_document_id===f.docs[1].id).length,2);
  assert.equal(f.$('modal').classList.contains('on'),false);
+});
+
+test('tenant form displays shared-phone warning and saves two separate profiles',async()=>{
+ const f=await fixture({profiles:[{...tenant,id:'existing',civilId:'223456789012'}]});
+ f.$('v267Tenant_phone').oninput();assert.match(f.$('v267TenantPhoneWarning').textContent,/يمكن الحفظ/);
+ await f.save();assert.equal(f.saved().tenantProfilesV267.length,2);assert.equal(new Set(f.saved().tenantProfilesV267.map(p=>p.id)).size,2);assert.equal(f.$('modal').classList.contains('on'),false);
+ f.$('v267Tenant_phone').value='12345678';f.$('v267Tenant_phone').oninput();assert.equal(f.$('v267TenantPhoneWarning').textContent,'');
 });

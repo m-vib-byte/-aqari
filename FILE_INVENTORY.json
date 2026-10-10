@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "4253d425ffd0378bd640ae7f219d09a30272b0509d7bfabe4397a66dbe26ac6f",
-      "size": 11877
+      "sha256": "7e47d7870eebe8f87a53620f5cf028793673d7938727d6f4701cde6710d62060",
+      "size": 12334
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -1182,8 +1182,8 @@
     },
     {
       "path": "lib/v267/migration-preflight.js",
-      "sha256": "0d4663406503650dbe3b0a31dcf93c9ac87f99fa218fdbfae77bd3ec26204b97",
-      "size": 5801
+      "sha256": "6501c901a64fa379898c0fbf4b588a65ebb221743202e3000eb505e4b206570a",
+      "size": 6169
     },
     {
       "path": "lib/v267/operations-policy.js",
@@ -1797,8 +1797,8 @@
     },
     {
       "path": "src/v267/components/rental-templates.js",
-      "sha256": "52f0c030f2e000288cb54ce35f8bd37debdbec76d4a1d150a4647c69d2a6afd2",
-      "size": 97454
+      "sha256": "55dfb7b5f4e4b33d9e32e19fdaa4d1acb849383271be94e49189fdd6ea62aa8b",
+      "size": 97658
     },
     {
       "path": "src/v267/components/report-filter-translations.js",
@@ -1912,8 +1912,8 @@
     },
     {
       "path": "src/v267/components/workspace-translations.js",
-      "sha256": "22d936b7d0a8203f815c6dc8603a045d40d45f41f31b4cbc0626b706390401c1",
-      "size": 70982
+      "sha256": "3d87e8aeb7f639582572f8c651c8c25f96e5311250e56d32a55bfda7f767af1a",
+      "size": 71800
     },
     {
       "path": "src/v267/domain/contract-foundation.js",
@@ -2157,8 +2157,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "fab57dc1bca71b4a3915ad60a27fb8595c8390e8c928e6ba15159572ae50b171",
-      "size": 9054
+      "sha256": "94d2d615d5178dc1f713a5ac5bfa399a1e886d9eb7da65891a552bcf122404f7",
+      "size": 9371
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -2702,8 +2702,8 @@
     },
     {
       "path": "staging-database/local-test/package.json",
-      "sha256": "e954907fc55d3a309f8b18465ea4bcc69ddff8518448b0e7945aaa4c5d33c4ab",
-      "size": 10315
+      "sha256": "bfa9f21b273f8943fcc3e3681744000e9d774d993ca785d2380aeebebe63f8ba",
+      "size": 10568
     },
     {
       "path": "staging-database/local-test/property-tenant-ledger-acceptance.sql",
@@ -3421,6 +3421,11 @@
       "size": 6873
     },
     {
+      "path": "staging-database/sql/tenant-shared-phone.sql",
+      "sha256": "97a7ea99a8ccef6b0fa1ddc578da4762a3ab55a51407b565d1dd124ca71a5d64",
+      "size": 839
+    },
+    {
       "path": "staging-database/sql/unit-meter-readings.sql",
       "sha256": "5c81a864e065e02b910018b4136192de6c282793344d6a5fc3e8d21b2871dc55",
       "size": 9908
@@ -4001,6 +4006,11 @@
       "size": 9720
     },
     {
+      "path": "staging-database/supabase/migrations/20261010231626_v267_tenant_shared_phone.sql",
+      "sha256": "97a7ea99a8ccef6b0fa1ddc578da4762a3ab55a51407b565d1dd124ca71a5d64",
+      "size": 839
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -4416,6 +4426,11 @@
       "size": 18196
     },
     {
+      "path": "staging-database/tests/tenant_shared_phone.sql",
+      "sha256": "ebed7bea72808c0f42f5bcbb559e0fc7564c8e526ed3dafcd2c01921d880c2ea",
+      "size": 6680
+    },
+    {
       "path": "staging-database/tests/unit_meter_readings.sql",
       "sha256": "d06a8498b12c2e5b143b03751e03b3292135e88f114c4f986dd402bd230a3c51",
       "size": 9140
@@ -4717,8 +4732,8 @@
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "sha256": "62735334c5a3b022660559697e8f4606f2dd92afb90caf5b36737d6d2283def1",
-      "size": 10903
+      "sha256": "1f20d8f5aa6656008d5f107244d8838e774924e3bcde15b9f540056554763438",
+      "size": 11774
     },
     {
       "path": "tests/login-navigation.test.cjs",
@@ -5382,8 +5397,8 @@
     },
     {
       "path": "tests/v267-migration-preflight.test.cjs",
-      "sha256": "5ea7d3c02d5c9c74f30c2d911b9e44f2c62137674116d7f6d5658f4e23511b35",
-      "size": 4916
+      "sha256": "d22cdb47f00bd5f0362f0022f35835e8f69edb620d300a50a7dc4cda1c651433",
+      "size": 5784
     },
     {
       "path": "tests/v267-more-navigation.test.mjs",
@@ -5747,8 +5762,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "c8b6ed12ea046dd3b4d084821c8e0c2835e8943b8ea21fc2f33f4424d96d0409",
-      "size": 17004
+      "sha256": "4b8568a1e58b7b0d7f3cdb35e2ed7371c7a0b320fb2013b1acd98f4a4023ac86",
+      "size": 17571
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
@@ -5757,8 +5772,8 @@
     },
     {
       "path": "tests/v267-rental-templates.test.mjs",
-      "sha256": "32250145585424129aab858cbc3f2af7928b80bae239762e4d72dd11c3c0cb84",
-      "size": 49500
+      "sha256": "7d4d9c380d904ea450a3b6a922e49062bb7a48b07179710f03a8a0d3d69c9748",
+      "size": 51039
     },
     {
       "path": "tests/v267-report-filters.test.mjs",
@@ -5877,8 +5892,8 @@
     },
     {
       "path": "tests/v267-tenant-attachment-form.test.cjs",
-      "sha256": "05246ef4cef7eac0516c893dd520626ebb34d3e6f92bbfb71bedb7422441db7e",
-      "size": 9700
+      "sha256": "838cf7b66e777274102c6bd3d4a67a29d57adefa99808a7de3dc44e264006efd",
+      "size": 10358
     },
     {
       "path": "tests/v267-tenant-portal.e2e.mjs",
@@ -6112,8 +6127,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "d1f2e4e71f77330b5006637e836b6612c38a7ec8a7c92188e421408a2655a5ac",
-      "size": 47234
+      "sha256": "1e3cde060b8036003c36cd2566fa9d6617b954322ca66084535e3adce7201e60",
+      "size": 47976
     },
     {
       "path": "v267-requirements.html",

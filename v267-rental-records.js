@@ -20,6 +20,10 @@ function same(a,b){
 }
 function date(value){const s=text(value);if(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s).toISOString().slice(0,10)!==s)fail('أدخل تاريخاً صحيحاً.');return s}
 function amount(value){const s=digits(value).replace('٫','.');if(!/^\d+(\.\d{1,3})?$/.test(s)||!Number.isSafeInteger(Math.round(Number(s)*1000)))fail('أدخل مبلغاً صحيحاً بدقة ثلاثة منازل كحد أقصى.');return Number(s)}
+function sharedPhoneWarning(input,others=[]){
+ const phone=digits(input.phone).replace(/[ ()-]/g,'');
+ return phone&&others.some(p=>p.id!==input.id&&digits(p.phone).replace(/[ ()-]/g,'')===phone)?'الهاتف مستخدم في ملف مستأجر آخر. يمكن الحفظ بعد مراجعة الرقم المدني.':'';
+}
 function profile(input,others=[]){
  const p={};for(const field of ['id','nameAr','nameEn','civilId','passportNo','phone','email','nationality','address'])p[field]=text(input[field]);
  p.civilId=digits(p.civilId);p.phone=digits(p.phone).replace(/[ ()-]/g,'');
@@ -146,7 +150,7 @@ function createStore(options){
   finally{busy=false}
  },get busy(){return busy}};
 }
-const api={profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields,effectiveRent,entitlement,entitlementDueOn,entitlementBreakdown};
+const api={sharedPhoneWarning,profile,tenantDraft,lease,primary,createStore,date,amount,key,receivedAt,kuwaitDate,directoryFields,effectiveRent,entitlement,entitlementDueOn,entitlementBreakdown};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
 root.AQARI_RENTAL_RECORDS=api;
 if(!root.document)return;
@@ -225,14 +229,16 @@ function openTenant(index,draftId){
  const savedDraft=(data().tenantPreparationDraftsV267||[]).find(x=>x.id===(existing?.id||draftId));
  const p={...copy(existing||{id:crypto.randomUUID(),nameAr:row?.[0]||'',attachments:[]}),...copy(savedDraft||{})};
  if(existing?.source==='statement-import'){
-  import('./src/v267/pages/imported-tenant.js').then(m=>m.openImportedTenant({ref:p.id,draft:savedDraft,
+  import('./src/v267/pages/imported-tenant.js').then(m=>m.openImportedTenant({ref:p.id,draft:savedDraft,phoneWarning:values=>sharedPhoneWarning(values,data().tenantProfilesV267||[]),
    onDraft:async values=>{const pending=tenantDraft(values);await store.change(['tenantPreparationDraftsV267','audit'],cloud=>{cloud.tenantPreparationDraftsV267=(cloud.tenantPreparationDraftsV267||[]).filter(x=>x.id!==pending.id).concat([pending]);cloud.audit=(cloud.audit||[]).concat([[scope().userId,'حفظ مسودة بيانات مستأجر',pending.id,new Date().toISOString()]]);return pending;},(cloud,saved)=>(cloud.tenantPreparationDraftsV267||[]).some(x=>same(x,saved)));},
    onSaved:async()=>{const bound=scope();if(!bound)fail('انتهت الجلسة.');const cloud=await bounded(()=>root.AQARI_SUPABASE.loadAppState(bound));if(!same(bound,scope()))fail('تغيّرت الجلسة.');const confirmed=primary(cloud.payload);for(const key of ['tenants','tenantProfilesV267','tenantDirectoryV202','tenantPreparationDraftsV267'])data()[key]=copy(confirmed[key]||[]);if(typeof render==='function')render();}
   })).catch(()=>window.alert('تعذر فتح ملف المستأجر المستورد. حدّث الصفحة وأعد المحاولة.'));
   return true;
  }
  const modal=byId('modal');byId('mt').textContent='ملف المستأجر • AQARI V267';
- byId('fields').innerHTML='<div class="v267-tenant-form">'+fields.map(([k,label,type])=>'<label>'+label+'<input id="v267Tenant_'+k+'" type="'+type+'" value="'+esc(p[k])+'" '+(k==='civilId'?'inputmode="numeric" maxlength="12"':'')+' autocomplete="off"></label>').join('')+attachmentKinds.map(([k,label])=>'<label>'+label+'<input id="v267File_'+k+'" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" '+(k==='extra'?'multiple':'')+'></label>').join('')+'<div id="v267TenantAttachments"></div><p id="v267TenantStatus" role="status" aria-live="polite"></p></div>';
+ byId('fields').innerHTML='<div class="v267-tenant-form">'+fields.map(([k,label,type])=>'<label>'+label+'<input id="v267Tenant_'+k+'" type="'+type+'" value="'+esc(p[k])+'" '+(k==='civilId'?'inputmode="numeric" maxlength="12"':'')+' autocomplete="off"></label>').join('')+attachmentKinds.map(([k,label])=>'<label>'+label+'<input id="v267File_'+k+'" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" '+(k==='extra'?'multiple':'')+'></label>').join('')+'<div id="v267TenantAttachments"></div><p id="v267TenantPhoneWarning" role="status" aria-live="polite"></p><p id="v267TenantStatus" role="status" aria-live="polite"></p></div>';
+ const updatePhoneWarning=()=>{byId('v267TenantPhoneWarning').textContent=sharedPhoneWarning({id:p.id,phone:byId('v267Tenant_phone').value},data().tenantProfilesV267||[]);};
+ byId('v267Tenant_phone').oninput=updatePhoneWarning;updatePhoneWarning();
  const list=byId('v267TenantAttachments');
  for(const a of p.attachments){const b=document.createElement('button');b.type='button';b.textContent='عرض '+a.name;b.onclick=async()=>{try{const s=scope();if(!s||!a.path.startsWith(s.workspaceId+'/'))return;const client=await root.AQARI_SUPABASE.getClient();const r=await bounded(()=>client.storage.from(a.bucket).createSignedUrl(a.path,60));if(r.error)throw r.error;if(same(s,scope())&&r.data?.signedUrl){const link=document.createElement('a');link.href=r.data.signedUrl;link.target='_blank';link.rel='noopener';link.textContent='فتح '+a.name;byId('v267TenantStatus').replaceChildren(link)}}catch(_){byId('v267TenantStatus').textContent='تعذر فتح المرفق.'}};list.appendChild(b)}
  let saving=false,uploadAttachment;const uploadedFiles=new WeakMap();

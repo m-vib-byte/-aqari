@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const source=fs.readFileSync(new URL('../src/v267/pages/imported-tenant.js',import.meta.url),'utf8');
 let serial=0;
-async function fixture({saveError=null,readError=null,scopeError=null}={}){
+async function fixture({saveError=null,readError=null,scopeError=null,phoneWarning=()=>''}={}){
  globalThis.window={confirm:()=>true};
  const nodes=[],fields={},calls=[];let state={profile:{id:'imported',nameEn:'Source name',passportNo:'SOURCE-PASS',preferredContact:'both',sourceValues:{untouched:true}},revision:1,history:[]},failRead=false,failSave=false;
  const node=(tag,text)=>{const n={tag,textContent:text||'',value:'',children:[],append(...items){this.children.push(...items)},replaceChildren(...items){this.children=items}};nodes.push(n);return n;};
@@ -13,7 +13,7 @@ async function fixture({saveError=null,readError=null,scopeError=null}={}){
  const module=await import('data:text/javascript;base64,'+Buffer.from("const {createDialog,node,field,translateStatic}=globalThis.__importEditorTest;\n// fixture "+(++serial)+"\n"+source.replace(/^import .*;$/gm,'')).toString('base64'));
  delete globalThis.__importEditorTest;
  let refreshed=0;
- await module.openImportedTenant({ref:'imported',onDraft:async()=>{state.revision++;},onSaved:async()=>{refreshed++;}});
+ await module.openImportedTenant({ref:'imported',phoneWarning,onDraft:async()=>{state.revision++;},onSaved:async()=>{refreshed++;}});
  return {d,fields,calls,nodes,refreshed:()=>refreshed,allowSave:()=>{saveError=null;},failRead:()=>{failRead=true;},failSave:()=>{failSave=true;},button:label=>nodes.find(n=>n.tag==='button'&&n.textContent===label)};
 }
 test('imported editor refreshes revision and saves passport plus preferred contact',async()=>{
@@ -83,6 +83,14 @@ test('changed account during explicit rejection cannot unlock save',async()=>{
  await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);assert.equal(f.refreshed(),0);
 });
 
+test('imported tenant editor shows advisory shared phone and preserves independent save identity',async()=>{
+ const warning='الهاتف مستخدم في ملف مستأجر آخر. يمكن الحفظ بعد مراجعة الرقم المدني.',seen=[];
+ const f=await fixture({phoneWarning:p=>{seen.push({...p});return p.phone==='55555555'?warning:'';}});
+ f.fields['الهاتف'].value='55555555';f.fields['الهاتف'].oninput();
+ assert.ok(f.nodes.some(n=>n.textContent===warning));assert.equal(seen.at(-1).id,'imported');
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.refreshed(),1);assert.equal(f.calls.find(c=>c.name.endsWith('_save')).args.p_ref,'imported');
+ f.fields['الهاتف'].value='';f.fields['الهاتف'].oninput();assert.ok(!f.nodes.some(n=>n.textContent===warning));
+});
 for(const constraint of ['aqari_tenants_workspace_id_phone_key','aqari_tenants_workspace_id_civil_id_key'])test('rejected duplicate can be corrected without losing tenant edits: '+constraint,async()=>{
  const error={status:409,code:'23505',message:'duplicate key value violates unique constraint "'+constraint+'"'};
  const f=await fixture({saveError:error});f.fields['الاسم بالعربية'].value='اسم مصحح';f.fields['الهاتف'].value='55550000';

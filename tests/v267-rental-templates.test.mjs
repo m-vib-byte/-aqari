@@ -26,6 +26,25 @@ const all=e=>[e,...e.children.flatMap(all)];
 const clone=x=>JSON.parse(JSON.stringify(x));
 const template={id:'76610000-0000-4000-8000-000000000011',kind:'apartment',kind_label:'عقد شقة',version:1,title:'قالب اختبار',fields:[],clauses:[{title:'اختبار',text:'نص محفوظ <untrusted>'}],content_sha256:'a'.repeat(64),published_at:'2026-09-13T00:00:00.000000Z'};
 
+test('cached template print invokes the viewer within the click task',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);
+ manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});
+ await button(manager.form,'معاينة النسخة النهائية').onclick();
+ let prints=0;const frame=all(manager.form).find(el=>el.tag==='iframe');frame.contentWindow={focus(){},print(){prints++;}};
+ const pending=button(manager.form,'طباعة PDF').onclick();
+ assert.equal(prints,1,'cached PDF printing must not yield before calling the native viewer');await pending;
+ assert.equal(f.state.calls.some(x=>x.p_action==='publish'||x.p_action==='save_draft'),false);manager.current.saver.dispose();
+});
+
+test('silent native PDF print retains a visible manual printing path',async()=>{
+ const f=setup({manager:true,items:[]}),manager=await mountRentalTemplateManager(f.d,f.target);
+ manager.openEditor({title:'نموذج',clauses:[{title:'بند',text:'نص'}]});await button(manager.form,'معاينة النسخة النهائية').onclick();
+ const frame=all(manager.form).find(el=>el.tag==='iframe');frame.contentWindow={focus(){},print(){}};
+ await button(manager.form,'طباعة PDF').onclick();assert.match(f.d.status.textContent,/فتح جميع صفحات PDF في تبويب مستقل/);
+ assert.ok(all(manager.form).some(el=>el.tag==='a'&&el.textContent==='فتح جميع صفحات PDF في تبويب مستقل'));
+ manager.current.saver.dispose();
+});
+
 function setup({manager=false,items=[template],drafts=[]}={}){
  const created=[];globalThis.document={createElement:tag=>{const el=new El(tag);created.push(el);return el;}};
  globalThis.window={AQARI_SUPABASE:{getSession:async()=>({access_token:'a.b.c'})}};
