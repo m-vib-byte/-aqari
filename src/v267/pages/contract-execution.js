@@ -12,9 +12,11 @@ function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
 export const isExecutionMfaChallenge=error=>error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message);
 
 // Validate editable payment input before any receipt allocation or package work.
-export function assertExecutionPaymentInput({total,method,transactionNo}){
+export function assertExecutionPaymentInput({total,method,transactionNo,zeroReason}){
  const reference=String(transactionNo??'').normalize('NFKC').trim();
  if(total>0&&(!executionMethods.some(([code])=>code===method)||reference.length<3||reference.length>150))throw Error('طريقة الدفع ورقم العملية مطلوبان.');
+ const reason=String(zeroReason??'').normalize('NFKC').trim();
+ if(total===0&&(method!=='none'||reference||reason.length<3||reason.length>500))throw Error('وثّق سبب عدم وجود دفعة ولا تنشئ وصلاً وهميًا.');
  return reference;
 }
 
@@ -63,7 +65,7 @@ export function openContractExecution(contractId,{onDone}={}){
  function downloadLink(label,blob,name){d.session.check();const url=URL.createObjectURL(blob);urls.add(url);const a=node('a',label);a.href=url;a.download=name;a.rel='noopener';a.className='is-primary';return a;}
 
  async function finalize({method,transactionNo,onDate,zeroReason}){
-  transactionNo=assertExecutionPaymentInput({total:currentDue.total,method,transactionNo});
+  transactionNo=assertExecutionPaymentInput({total:currentDue.total,method,transactionNo,zeroReason});
   const bound=scope(),cloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
@@ -127,7 +129,7 @@ export function openContractExecution(contractId,{onDone}={}){
   else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=translateStatic(canonicalZeroReason);form.append(field(translateStatic('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي'),zeroReason));}
   form.append(field(translateStatic('تاريخ العملية'),onDate),field(translateStatic('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد'),confirm),submit);d.body.append(form);
   form.onsubmit=event=>{event.preventDefault();if(submit.disabled||!form.reportValidity())return;d.run(async()=>{
-   assertExecutionPaymentInput({total:currentDue.total,method:method.value,transactionNo:transaction.value});
+   assertExecutionPaymentInput({total:currentDue.total,method:method.value,transactionNo:transaction.value,zeroReason:zeroReason.value});
    submit.disabled=true;d.status.textContent=translateStatic('جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…');
    let result;
    try{result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});}
