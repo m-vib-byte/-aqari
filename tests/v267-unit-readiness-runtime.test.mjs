@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {createDialog} from '../src/v267/components/dialog.js';
 import {mountUnitReadiness,mountAvailableUnitReadiness} from '../src/v267/pages/unit-readiness.js';
 
-async function fixture({incomplete=false,rejectOnce=false,canWrite=true,canCreate=true,discovery,listFailOnce=false,otherProperty=false}={}){
- const original={window:globalThis.window,document:globalThis.document};const calls=[];
+async function fixture({incomplete=false,rejectOnce=false,canWrite=true,canCreate=true,discovery,listFailOnce=false,otherProperty=false,pauseRecord}={}){
+ const original={window:globalThis.window,document:globalThis.document};const calls=[],confirmations=[],listeners=new Map();let discard=false;
  class Element{
   constructor(tag){this.tagName=tag;this.children=[];this.attributes={};this.value='';this.disabled=false;this.style={};}
   get isConnected(){return this.parent?this.parent.isConnected:this.connected===true;}
@@ -22,6 +22,7 @@ async function fixture({incomplete=false,rejectOnce=false,canWrite=true,canCreat
   return {abortSignal:async()=>{
    if(args.p_action==='list'&&listFailOnce&&data.history.length){listFailOnce=false;return {error:{code:'NETWORK_ERROR',message:'READBACK_UNAVAILABLE'}};}
    if(args.p_action==='record'){
+    await pauseRecord?.();
     if(rejectOnce){rejectOnce=false;return {error:{code:'23514',message:'INVALID_READINESS_RECORD'}};}
     const p=structuredClone(args.p_data);let unit=data.units.find(x=>x.property_id===p.property_id&&x.unit_no===p.unit_no);
     if(!unit){unit={id:'new-unit',property_id:p.property_id,unit_no:p.unit_no};data.units.push(unit);}
@@ -33,13 +34,13 @@ async function fixture({incomplete=false,rejectOnce=false,canWrite=true,canCreat
  }};
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:t=>new Element(t),documentElement:{lang:'ar',classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:'general_manager'}}},confirm(message){confirmations.push(message);return discard;},addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name,fn){if(listeners.get(name)===fn)listeners.delete(name);}};
  const d=createDialog('اختبار الجاهزية');
  if(discovery!==undefined)await d.run(()=>mountAvailableUnitReadiness(d));else mountUnitReadiness(d);
  const elements=()=>d.el.querySelectorAll();
  const control=label=>{const group=elements().find(x=>x.children?.[0]?.tagName==='label'&&x.children[0].textContent===label);assert.ok(group,label);return group.children[1];};
  const load=elements().find(x=>x.textContent==='تحميل جاهزية الوحدات');if(load)await load.onclick();
- return {data,calls,control,elements,reload:()=>load.onclick(),submit:()=>elements().find(x=>x.tagName==='form').onsubmit({preventDefault(){}}),status:()=>d.status.textContent,fill(){control('نتيجة المعاينة').value='ready';control('تاريخ المعاينة').value='2026-01-01';control('مرجع محضر المعاينة').value='محضر فحص اصطناعي';control('سبب اعتماد الجاهزية أو رفضها').value='اجتازت الوحدة الفحص';},cleanup(){d.el.children[0].onclick();Object.assign(globalThis,original);}};
+ return {data,calls,control,elements,confirmations,allowDiscard(value=true){discard=value;},close:()=>d.requestClose(),closed:()=>d.closed,unload(){let prevented=false;listeners.get('beforeunload')?.({preventDefault(){prevented=true;}});return prevented;},reload:()=>load.onclick(),submit:()=>elements().find(x=>x.tagName==='form').onsubmit({preventDefault(){}}),status:()=>d.status.textContent,fill(){control('نتيجة المعاينة').value='ready';control('تاريخ المعاينة').value='2026-01-01';control('مرجع محضر المعاينة').value='محضر فحص اصطناعي';control('سبب اعتماد الجاهزية أو رفضها').value='اجتازت الوحدة الفحص';},cleanup(){d.close();Object.assign(globalThis,original);}};
 }
 test('actual readiness form records a review and confirms matching independent history readback',async()=>{
  const f=await fixture();try{f.fill();await f.submit();const p=f.calls.find(x=>x.p_action==='record').p_data;assert.equal(p.unit_no,'101');assert.equal(p.expected_revision,0);assert.equal(p.state,'ready');assert.match(f.status(),/تم حفظ المعاينة/);assert.ok(f.elements().some(x=>x.textContent==='اجتازت الوحدة الفحص'));}finally{f.cleanup();}
@@ -96,4 +97,41 @@ test('new-unit confirmation retry preserves its property and entered number with
   await f.submit();assert.match(f.status(),/تم حفظ/);assert.equal(f.control('العقار').value,'p2');assert.equal(f.control('الوحدة').value,'new-unit');assert.equal(f.data.units.length,3);assert.equal(f.data.history.length,1);
   const writes=f.calls.filter(x=>x.p_action==='record');assert.deepEqual(writes[0],writes[1]);assert.equal(writes[1].p_data.property_id,'p2');assert.equal(writes[1].p_data.unit_no,'303');
  }finally{f.cleanup();}
+});
+
+test('cancelled property, unit and reload navigation keeps unsaved inspection evidence',async()=>{
+ for(const action of ['property','unit','reload']){
+  const f=await fixture({otherProperty:true});try{f.fill();const before=f.calls.length;
+   if(action==='reload')await f.reload();else{const c=f.control(action==='property'?'العقار':'الوحدة');c.value=action==='property'?'p2':'new';c.onchange();}
+   assert.equal(f.control('العقار').value,'p1',action);assert.equal(f.control('الوحدة').value,'u1',action);
+   assert.equal(f.control('تاريخ المعاينة').value,'2026-01-01',action);assert.equal(f.control('مرجع محضر المعاينة').value,'محضر فحص اصطناعي',action);
+   assert.equal(f.calls.length,before,action);assert.equal(f.confirmations.length,1,action);
+  }finally{f.cleanup();}
+ }
+});
+test('unsaved inspection warns on reload and cancel close keeps the dialog and draft',async()=>{
+ const f=await fixture();try{assert.equal(f.unload(),false);f.fill();assert.equal(f.unload(),true);await f.close();assert.equal(f.closed(),false);assert.equal(f.control('سبب اعتماد الجاهزية أو رفضها').value,'اجتازت الوحدة الفحص');f.allowDiscard();await f.close();assert.equal(f.closed(),true);assert.equal(f.unload(),false);}finally{f.cleanup();}
+});
+test('deliberate discard clears the previous new-unit number and evidence without writing',async()=>{
+ const f=await fixture({otherProperty:true});try{
+  f.control('الوحدة').value='new';f.control('الوحدة').onchange();assert.equal(f.confirmations.length,0);
+  f.control('رقم الوحدة الجديدة').value='٣٠٣';f.fill();f.allowDiscard();f.control('العقار').value='p2';f.control('العقار').onchange();
+  assert.equal(f.control('العقار').value,'p2');assert.equal(f.control('تاريخ المعاينة').value,'');assert.equal(f.control('رقم الوحدة الجديدة').value,'');
+  assert.equal(f.confirmations.length,1);assert.equal(f.unload(),false);assert.equal(f.calls.filter(x=>x.p_action==='record').length,0);
+ }finally{f.cleanup();}
+});
+test('confirmed inspection clears departure warnings while failed readback keeps them',async()=>{
+ for(const incomplete of [false,true]){
+  const f=await fixture({incomplete});try{f.fill();await f.submit();assert.equal(f.unload(),incomplete);await f.close();assert.equal(f.closed(),!incomplete);assert.equal(f.confirmations.length,incomplete?1:0);if(incomplete)assert.match(f.confirmations[0],/لم يتأكد حفظ المعاينة/);}finally{f.cleanup();}
+ }
+});
+test('close waits for an in-flight inspection write and verified readback even if discard was allowed',async()=>{
+ let started,release;const began=new Promise(resolve=>started=resolve),hold=new Promise(resolve=>release=resolve);
+ const f=await fixture({pauseRecord:()=>{started();return hold;}});try{f.fill();f.allowDiscard();const saving=f.submit();await began;
+  assert.equal(f.unload(),true);await f.close();assert.equal(f.closed(),false);assert.equal(f.confirmations.length,0);assert.match(f.status(),/انتظر اكتمال التحقق/);
+  release();await saving;assert.equal(f.unload(),false);await f.close();assert.equal(f.closed(),true);assert.equal(f.data.history.length,1);
+ }finally{release();f.cleanup();}
+});
+test('a validation rejection keeps editable evidence protected and confirmed reload discards without a second write',async()=>{
+ const f=await fixture({rejectOnce:true});try{f.fill();await f.submit();assert.equal(f.unload(),true);await f.close();assert.equal(f.closed(),false);assert.match(f.confirmations.at(-1),/غير محفوظة/);f.allowDiscard();await f.reload();assert.equal(f.unload(),false);assert.equal(f.control('مرجع محضر المعاينة').value,'');assert.equal(f.calls.filter(x=>x.p_action==='record').length,1);}finally{f.cleanup();}
 });
