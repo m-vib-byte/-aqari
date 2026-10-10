@@ -39,6 +39,10 @@ jobs:
         run: npm ci --prefix staging-database/local-test --ignore-scripts --no-audit --no-fund
       - name: Salary voucher numbering and immutable history
         run: node staging-database/local-test/run-salary-numeric-vouchers.mjs | tee /tmp/aqari-verification/sql-salary-numbers.log
+      - name: Reversible property archive, preserved links and new activity guard
+        env:
+          AQARI_SCHEMA_CATALOG: ${{ github.workspace }}/staging-database/local-test/schema-catalog-production-2026-10-05.json
+        run: node staging-database/local-test/run-isolated.mjs staging-database/sql/property-lifecycle.sql staging-database/sql/property-lifecycle.sql staging-database/tests/property_lifecycle.sql | tee /tmp/aqari-verification/sql-property-lifecycle.log
       - name: Corrected salary numbering and version linkage
         run: node staging-database/local-test/run-salary-numeric-corrections.mjs | tee /tmp/aqari-verification/sql-salary-corrections.log
       - name: Immutable issued payroll allocation and employee transfer history
@@ -113,6 +117,10 @@ jobs:
         env:
           AQARI_BROWSER_EVIDENCE: /tmp/aqari-verification/browser
         run: node tests/v267-dialog-progress.browser.mjs | tee /tmp/aqari-verification/browser-tests.log
+      - name: Property archive and restore native browser flows
+        env:
+          AQARI_PROPERTY_BROWSER_EVIDENCE: /tmp/aqari-verification/property-browser
+        run: node tests/v267-property-lifecycle.browser.mjs | tee /tmp/aqari-verification/property-browser-tests.log
       - name: Export tracked source and local SQL runtime
         run: |
           node scripts/verify-release-source.mjs /tmp/aqari-verification/source-provenance.json
