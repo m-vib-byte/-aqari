@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "size": 12507,
-      "sha256": "5a43c4e331dd774e0d40def6ab9566ece2eaa828e3ce9998b858b74750fac83a"
+      "sha256": "5cf0b8f188b9fd4b4f1622f1ebd53107930d8580b3471bca8502cbef571e6c0b",
+      "size": 12982
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -1437,8 +1437,8 @@
     },
     {
       "path": "src/v267/api/session.js",
-      "sha256": "51df36864abd3eb1c7e16003982c316f731d75fb18d1c06716193dd2fe025f4a",
-      "size": 18880
+      "sha256": "f8869023652716f6a1cb0ffb69c48c121af2cc1758e0d73a0d91e476e0001d41",
+      "size": 19265
     },
     {
       "path": "src/v267/api/unit-search.js",
@@ -1464,6 +1464,11 @@
       "path": "src/v267/components/assistant-request.js",
       "sha256": "c8896a3f2746ef2ac9876e4e1a77c420a999f2b54fc82c94542130c9c4912e9f",
       "size": 799
+    },
+    {
+      "path": "src/v267/components/assistant-voice.js",
+      "sha256": "207c3a95e792507bcb4e5c69c7dc0fc5717a3424e615c488e48727fbb082ecb7",
+      "size": 6236
     },
     {
       "path": "src/v267/components/catalog.js",
@@ -1582,8 +1587,8 @@
     },
     {
       "path": "src/v267/components/locale.js",
-      "sha256": "ea22d2776ff965f3782f9df8ad4e3270fb676100195c2036df64b4a9106f73b1",
-      "size": 3356
+      "sha256": "053b0c53079a0aa45530ef96aecb468847f6367bdfaa6ac11a3c208c6d4a503c",
+      "size": 3466
     },
     {
       "path": "src/v267/components/maintenance-attachment-panel.js",
@@ -1696,6 +1701,11 @@
       "size": 5599
     },
     {
+      "path": "src/v267/components/property-lifecycle-translations.js",
+      "sha256": "cf234d361044f4177b36f041dc66d3c0ac852d0810bdf6767c826e8cb45cd55a",
+      "size": 15705
+    },
+    {
       "path": "src/v267/components/property-record-navigation.js",
       "sha256": "c663508be27561cd6688b0e5e72cde4e65e5be9c9d65b8798ae26af6988f8aec",
       "size": 1416
@@ -1799,6 +1809,11 @@
       "path": "src/v267/components/visible-translations-a.js",
       "sha256": "fc1c2d53dfa2fd17c2b3f42c14c688a120714da7e8979b47f82221e6aade1dc4",
       "size": 175624
+    },
+    {
+      "path": "src/v267/components/visible-translations-a2.js",
+      "sha256": "30249b7e0d6f9c5d938df56addbdba9818867fccc3bbe3e685a007511636d499",
+      "size": 171495
     },
     {
       "path": "src/v267/components/visible-translations-b2.js",
@@ -1977,8 +1992,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "size": 38980,
-      "sha256": "4add6ae9877008bc2e565db6528c305dc99699355b38eab9e35b98c9128fddd5"
+      "sha256": "54f5df756dca5edf5ccba89a01fd3fd7f8119086e3c0c0a8a3c6a0a80fdc5d25",
+      "size": 39127
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -2156,9 +2171,14 @@
       "size": 30793
     },
     {
+      "path": "src/v267/pages/property-lifecycle.js",
+      "sha256": "525c1973f6d524495dc5f2ee5d625aa2e05a7af000d3361033e6453fb6275bf1",
+      "size": 5064
+    },
+    {
       "path": "src/v267/pages/property-master-file.js",
-      "sha256": "86091750a6b7bf43b15e46759f76df1e18ab3ad48b4ffde0a92297d707b7a637",
-      "size": 36486
+      "sha256": "f987b2eba05018ab381e1631b82d164161d4727f0513f2c946ee24e3f916a913",
+      "size": 37358
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -3116,6 +3136,11 @@
       "size": 1042
     },
     {
+      "path": "staging-database/sql/property-lifecycle.sql",
+      "sha256": "90eff750c051fc5d78054d2bf4e583f0b5545f2585e306871cbb00e9a36af24b",
+      "size": 9720
+    },
+    {
       "path": "staging-database/sql/property-location-channels-candidate.sql",
       "sha256": "9c416c86e54d3188eed3e58837f8b1f7537e3f4b3f6814e1fad50d746738bf5e",
       "size": 10188
@@ -3806,6 +3831,11 @@
       "sha256": "9d11496f1fc03cae3ec22fefe7ef6b7da909e58699b5bf1692dff7ed4b0bb9df"
     },
     {
+      "path": "staging-database/supabase/migrations/20261010135836_property_lifecycle.sql",
+      "sha256": "90eff750c051fc5d78054d2bf4e583f0b5545f2585e306871cbb00e9a36af24b",
+      "size": 9720
+    },
+    {
       "path": "staging-database/tests/collection_account_management.sql",
       "sha256": "c0affb6f15fb39f10a23dd8b4137241d88ac29e1e3fa21cb353d8dea8a976b2c",
       "size": 15941
@@ -4069,6 +4099,11 @@
       "path": "staging-database/tests/pdf-template-versions-hosted.sql",
       "sha256": "b968813644ab687d0b393aa463de47bdddfa73ac75cd224e280efe4fac7da955",
       "size": 13747
+    },
+    {
+      "path": "staging-database/tests/property_lifecycle.sql",
+      "sha256": "a4fa8faa97670b629ab29b06d7f450a5f3040d4b99db4de5416672b567556d9e",
+      "size": 9998
     },
     {
       "path": "staging-database/tests/property_notices.sql",
@@ -4374,6 +4409,11 @@
       "path": "tests/assistant-request.test.mjs",
       "sha256": "1c951b84635b9fac704e76acb0ddd09b4abd8d32aa306a044857b0afc630f767",
       "size": 4943
+    },
+    {
+      "path": "tests/assistant-voice.test.mjs",
+      "sha256": "df1f3e7ef9c4126a83b5ed8f00439e54622f3be6e1b3134ff87375a1bfd68e08",
+      "size": 3301
     },
     {
       "path": "tests/auth-data-gate.test.cjs",
@@ -5056,6 +5096,11 @@
       "sha256": "3d5d9528497e43705af6a4d5034e026e5df8554e47809cb9f6f20b781e657486"
     },
     {
+      "path": "tests/v267-maintenance-plan-draft.test.mjs",
+      "sha256": "82f4d9d3aa429a6024127e53a84dff4237e018f1e0e97909053cbcd1b94fdad4",
+      "size": 7685
+    },
+    {
       "path": "tests/v267-maintenance-plans.test.cjs",
       "sha256": "f8fd5962b741102c2ed4b0a6682e5cff4aeea9cabe2ff4f7753275e4f0c0f9ac",
       "size": 1099
@@ -5184,6 +5229,16 @@
       "path": "tests/v267-owner-route-race.test.mjs",
       "sha256": "0df8b1f5b6263b627b77d48a771353dab1dee4bc6edaf67b3f3b67ceb9e00117",
       "size": 1246
+    },
+    {
+      "path": "tests/v267-owner-settings-recovery.test.mjs",
+      "sha256": "ba0f9f39ef732203d672cf0e3332cf93b8789aa025569ada95df4faf60ab3efd",
+      "size": 10880
+    },
+    {
+      "path": "tests/v267-partner-access-retry.test.mjs",
+      "sha256": "a7c9ba11c85a8bb0e1e0668c1b6187f2e9667e626dc7a9f5b880a372d69bc3bf",
+      "size": 6598
     },
     {
       "path": "tests/v267-partner-distribution-view.test.mjs",
@@ -5336,14 +5391,19 @@
       "size": 4576
     },
     {
+      "path": "tests/v267-property-lifecycle.test.mjs",
+      "sha256": "4d7ad2b647e0c2cf66ab5cb48d02b6a087a6aefcc43b4594cc2fcfd7e919e0c8",
+      "size": 9064
+    },
+    {
       "path": "tests/v267-property-maintenance-compat.test.mjs",
       "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa",
       "size": 5370
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "sha256": "715fbd7ecd9c726433369b6594b94824930f1b6942cc3c3e6a04ede757317c9c",
-      "size": 14186
+      "sha256": "6cbcb63611171fe88d65a727dd668bb1e82a7a23b2eda87a49c0e4eaa334b701",
+      "size": 15310
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
@@ -5829,36 +5889,6 @@
       "path": "vercel.json",
       "sha256": "78abe62e642cda899509c6357c5c212f76e13b016e188f73eac78106a31eeb97",
       "size": 8627
-    },
-    {
-      "path": "src/v267/components/assistant-voice.js",
-      "sha256": "207c3a95e792507bcb4e5c69c7dc0fc5717a3424e615c488e48727fbb082ecb7",
-      "size": 6236
-    },
-    {
-      "path": "tests/assistant-voice.test.mjs",
-      "sha256": "df1f3e7ef9c4126a83b5ed8f00439e54622f3be6e1b3134ff87375a1bfd68e08",
-      "size": 3301
-    },
-    {
-      "path": "tests/v267-maintenance-plan-draft.test.mjs",
-      "sha256": "82f4d9d3aa429a6024127e53a84dff4237e018f1e0e97909053cbcd1b94fdad4",
-      "size": 7685
-    },
-    {
-      "path": "tests/v267-owner-settings-recovery.test.mjs",
-      "sha256": "ba0f9f39ef732203d672cf0e3332cf93b8789aa025569ada95df4faf60ab3efd",
-      "size": 10880
-    },
-    {
-      "path": "tests/v267-partner-access-retry.test.mjs",
-      "sha256": "a7c9ba11c85a8bb0e1e0668c1b6187f2e9667e626dc7a9f5b880a372d69bc3bf",
-      "size": 6598
-    },
-    {
-      "path": "src/v267/components/visible-translations-a2.js",
-      "sha256": "30249b7e0d6f9c5d938df56addbdba9818867fccc3bbe3e685a007511636d499",
-      "size": 171495
     }
   ],
   "version": "V198"
