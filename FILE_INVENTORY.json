@@ -1647,8 +1647,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "ee52440a66e3be82ebc0871ce4f66d58bc06cdf40a83a6d967aa83f7812af170",
-      "size": 439528
+      "sha256": "c6c759c76e77d051b14fb645aa31e3558f4f917b6318de6eabec90197e616e18",
+      "size": 442241
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2157,8 +2157,8 @@
     },
     {
       "path": "src/v267/pages/original-documents.js",
-      "sha256": "63ab91342af21e6c3cb25007094f0da43a2594f41fd52fbc41e321edeed33e60",
-      "size": 5252
+      "sha256": "cf0ec19490e55398d68a73b650e9bf5ffeec85c46ac685e0c8db0ce4ac28f313",
+      "size": 6656
     },
     {
       "path": "src/v267/pages/owner-experience-settings.js",
