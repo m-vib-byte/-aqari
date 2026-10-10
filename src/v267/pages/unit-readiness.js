@@ -17,7 +17,12 @@ export async function mountAvailableUnitReadiness(d,options={}){
 export function mountUnitReadiness(d,options={}){
  const property=node('select'),unit=node('select'),number=node('input'),state=node('select'),date=node('input'),source=node('input'),reason=node('textarea');
  const loadButton=node('button',t('تحميل جاهزية الوحدات')),save=node('button',t('حفظ المعاينة والتحقق منها')),form=node('form'),history=node('section');
- let data,pending,requestId=crypto.randomUUID(),selectedProperty='',selectedUnit='';
+ let data,pending,requestId=crypto.randomUUID(),selectedProperty='',selectedUnit='',baseline='';
+ const snapshot=()=>JSON.stringify([selectedUnit==='new'?number.value:'',state.value,date.value,source.value,reason.value]);
+ const hasDraft=()=>Boolean(pending)||Boolean(data&&snapshot()!==baseline);
+ const canDiscard=()=>!hasDraft()||window.confirm(t(pending?'لم يتأكد حفظ المعاينة. هل تريد المغادرة؟ تحقق من سجل الوحدة قبل تسجيل معاينة جديدة.':'توجد بيانات معاينة غير محفوظة. هل تريد تركها والمتابعة؟'));
+ d.setBeforeUnload(()=>d.body.inert||hasDraft());
+ d.setBeforeClose(()=>{if(d.body.inert){d.status.textContent=t('انتظر اكتمال التحقق قبل مغادرة سجل المعاينات.');return false;}return canDiscard();});
  const numberField=field(t('رقم الوحدة الجديدة'),number);
  number.maxLength=80;source.maxLength=reason.maxLength=500;date.type='date';date.required=source.required=reason.required=true;
  for(const [value,label]of Object.entries(states))state.append(option(value,t(label)));state.value='review_required';
@@ -30,7 +35,7 @@ export function mountUnitReadiness(d,options={}){
   const p=data.properties.find(x=>x.id===property.value),u=data.units.find(x=>x.id===unit.value&&x.property_id===p?.id);
   selectedProperty=property.value;selectedUnit=unit.value;
   numberField.hidden=unit.value!=='new';number.required=!numberField.hidden;
-  save.disabled=!p?.can_write;state.value=u?.state||'review_required';date.value=source.value=reason.value='';
+  save.disabled=!p?.can_write;state.value=u?.state||'review_required';number.value=date.value=source.value=reason.value='';baseline=snapshot();
   history.replaceChildren(node('h3',t('سجل المعاينات المحفوظة')));
   if(u)history.append(node('p',t('الحالة الحالية')+': '+t(states[u.state])+' — '+t('رقم المراجعة')+': '+u.revision));
   for(const r of data.history.filter(x=>x.unit_id===u?.id)){
@@ -52,9 +57,10 @@ export function mountUnitReadiness(d,options={}){
   data=fresh;form.hidden=false;setOptions(property,data.properties.map(x=>({id:x.id,label:x.name})));const preferred=data.properties.find(x=>String(x.id)===String(savedUnit?.property_id||options.propertyId||''))||data.properties.find(x=>options.propertyName&&x.name===options.propertyName);if(preferred)property.value=preferred.id;showProperty();const found=savedUnit||data.units.find(x=>options.unitNo&&x.property_id===property.value&&String(x.unit_no)===String(options.unitNo));if(found){unit.value=found.id;showUnit();}
  }
  function pendingNotice(){d.status.textContent=t('لم تتأكد العملية السابقة بعد. اضغط الحفظ للتحقق من العملية نفسها.');}
- async function load(){if(pending){pendingNotice();return;}render(await read());}
+ async function load(){if(pending){pendingNotice();return;}if(!canDiscard())return;render(await read());}
  loadButton.onclick=()=>d.run(load);
- property.onchange=()=>{if(pending){property.value=selectedProperty;pendingNotice();}else showProperty();};unit.onchange=()=>{if(pending){unit.value=selectedUnit;pendingNotice();}else showUnit();};
+ property.onchange=()=>{const next=property.value;property.value=selectedProperty;if(pending){pendingNotice();return;}if(canDiscard()){property.value=next;showProperty();}};
+ unit.onchange=()=>{const next=unit.value;unit.value=selectedUnit;if(pending){pendingNotice();return;}if(canDiscard()){unit.value=next;showUnit();}};
  form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
   if(!data)throw Error('حمّل سجل جاهزية الوحدات أولاً.');
   if(!pending){
