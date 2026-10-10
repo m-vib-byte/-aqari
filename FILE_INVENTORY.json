@@ -2137,8 +2137,8 @@
     },
     {
       "path": "src/v267/pages/property-channels.js",
-      "sha256": "35084f88f2db4b381464ed08a312e8747e55061b0398ce11e55723cd13a502ce",
-      "size": 5319
+      "sha256": "c3ed3f1ce0c1ffa49b203767301048f5f205be639fa57ffeed1a1c687f4db7cc",
+      "size": 6152
     },
     {
       "path": "src/v267/pages/property-controls.js",
@@ -5312,8 +5312,8 @@
     },
     {
       "path": "tests/v267-property-contact-links.test.mjs",
-      "sha256": "3b8740e593565db5a8154314ba5b61db5d56f96a5da679e420ea92167172df74",
-      "size": 5898
+      "sha256": "201de70bae0f44fb5a91d5441b5d71fd0ed9956f7bf26695b62188936479eec0",
+      "size": 10582
     },
     {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
@@ -5854,6 +5854,11 @@
       "path": "tests/v267-partner-access-retry.test.mjs",
       "sha256": "a7c9ba11c85a8bb0e1e0668c1b6187f2e9667e626dc7a9f5b880a372d69bc3bf",
       "size": 6598
+    },
+    {
+      "path": "src/v267/components/visible-translations-a2.js",
+      "sha256": "30249b7e0d6f9c5d938df56addbdba9818867fccc3bbe3e685a007511636d499",
+      "size": 171495
     }
   ],
   "version": "V198"
