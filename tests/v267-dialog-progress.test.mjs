@@ -92,7 +92,7 @@ test('server MFA challenges retain unsaved input without retrying the write',asy
    assert.equal(calls,1);assert.equal(visits,0);assert.equal(f.d.closed,false);
    assert.equal(f.enabled.value,'synthetic unsaved unit');assert.equal(f.d.body.inert,false);
    assert.match(f.d.status.textContent,/التحقق الثنائي/);
-   if(message==='MFA_RECENT_REAUTH_REQUIRED')assert.match(f.d.status.textContent,/15/);
+   assert.match(f.d.status.textContent,/صفحة أخرى/);assert.match(f.d.status.textContent,/راجع حالة الحفظ/);
    let result;await f.d.run(async()=>{result=await f.d.session.request({abortSignal:async()=>({status:200,data:{saved:true}})});});
    assert.equal(result.saved,true);assert.equal(f.d.status.textContent,'');
   }finally{f.cleanup();}

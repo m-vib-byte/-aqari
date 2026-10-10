@@ -40,3 +40,8 @@ test('delivery hardening keeps the app route and does not clear data, cookies or
  for(const rule of config.headers)for(const header of rule.headers)assert.ok(!['clear-site-data','refresh','set-cookie','location'].includes(header.key.toLowerCase()),header.key);
  assert.equal(config.redirects.some(rule=>sourcePattern(rule.source).test('/src/v267/pages/rental-contracts.js')),false);
 });
+
+test('microphone access is scoped to application documents',()=>{
+ for(const route of ['/app','/app?release=V267','/index.html'])assert.equal(headersFor(route)['permissions-policy'],'camera=(), microphone=(self), geolocation=()',route);
+ for(const route of ['/','/login','/login.html','/api/owner-assistant','/vendor/supabase-js-2.116.0.js'])assert.equal(headersFor(route)['permissions-policy'],'camera=(), microphone=(), geolocation=()',route);
+});
