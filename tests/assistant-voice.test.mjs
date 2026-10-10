@@ -16,3 +16,13 @@ test('permission errors and timeout leave a usable retry state',()=>{const f=set
 test('busy requests and unsupported browsers never start a microphone',()=>{const f=setup();f.busy();assert.equal(f.voice.start(),false);const states=[];const voice=createAssistantVoice({host:{},allowed:()=>true,language:()=> 'ar-KW',onText:()=>assert.fail(),onState:s=>states.push(s)});assert.equal(voice.start(),false);assert.equal(states.at(-1),'unsupported');});
 test('typed replies stay silent until explicitly requested and playback errors are visible',()=>{const f=setup();f.voice.answer('نص');assert.equal(f.spoken.length,0);f.voice.read();f.spoken[0].onerror();assert.equal(f.states.at(-1),'playback-error');});
 test('late results after permission rejection or an empty end cannot send',()=>{for(const event of ['error','end']){const f=setup();f.voice.start();const r=f.rec();event==='error'?r.onerror({error:'not-allowed'}):r.onend();r.onresult(f.result('متأخر'));assert.equal(f.texts.length,0);}});
+test('a completed voice turn does not opt subsequent typed questions into speech',()=>{
+ const f=setup();f.voice.start();f.rec().onresult(f.result('سؤال صوتي'));f.voice.requestStarted();f.voice.answer('رد صوتي');f.spoken[0].onend();
+ f.voice.requestStarted();f.voice.answer('رد على سؤال مكتوب');assert.equal(f.spoken.length,1);
+ f.voice.read();assert.equal(f.spoken.length,2);assert.equal(f.spoken[1].text,'رد على سؤال مكتوب');
+ f.voice.start();f.rec().onresult(f.result('سؤال صوتي جديد'));f.voice.requestStarted();f.voice.answer('رد صوتي جديد');assert.equal(f.spoken.length,3);
+});
+test('typing while the microphone is listening does not request spoken playback',()=>{
+ const f=setup();f.voice.start();const r=f.rec();f.voice.requestStarted();r.onresult(f.result('نتيجة قديمة'));f.voice.answer('رد مكتوب');
+ assert.equal(r.aborted,true);assert.deepEqual(f.texts,[]);assert.equal(f.spoken.length,0);
+});

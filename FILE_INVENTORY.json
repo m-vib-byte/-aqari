@@ -5832,13 +5832,13 @@
     },
     {
       "path": "src/v267/components/assistant-voice.js",
-      "sha256": "207c3a95e792507bcb4e5c69c7dc0fc5717a3424e615c488e48727fbb082ecb7",
-      "size": 6236
+      "sha256": "5647d75ed75bf254ad738d0b9333a33c1a092791a04812349a290fb75f755067",
+      "size": 6294
     },
     {
       "path": "tests/assistant-voice.test.mjs",
-      "sha256": "df1f3e7ef9c4126a83b5ed8f00439e54622f3be6e1b3134ff87375a1bfd68e08",
-      "size": 3301
+      "sha256": "6ef329c97789e66a1f70b5256c1a858b6198831ab6782ea32cc9b0ea3ede9646",
+      "size": 4286
     },
     {
       "path": "tests/v267-maintenance-plan-draft.test.mjs",
