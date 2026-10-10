@@ -65,6 +65,11 @@ export async function openImportedTenant({ref,draft,onDraft,onSaved}){
    if(error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)){
     session.check();uncertain=false;
    }
+   // A PostgreSQL uniqueness rejection rolls back this RPC. Keep the edits
+   // available for correction; never apply this to a later readback failure.
+   if(error?.status===409&&error?.code==='23505'){
+    session.check();uncertain=false;
+   }
    throw error;
   }
   const confirmed=await read();

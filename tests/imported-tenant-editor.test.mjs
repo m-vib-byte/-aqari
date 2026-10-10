@@ -82,3 +82,26 @@ test('changed account during explicit rejection cannot unlock save',async()=>{
  const f=await fixture({saveError:{status:403,code:'42501',message:'MFA_REQUIRED'},scopeError:Error('scope changed')});
  await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);assert.equal(f.refreshed(),0);
 });
+
+for(const constraint of ['aqari_tenants_workspace_id_phone_key','aqari_tenants_workspace_id_civil_id_key'])test('rejected duplicate can be corrected without losing tenant edits: '+constraint,async()=>{
+ const error={status:409,code:'23505',message:'duplicate key value violates unique constraint "'+constraint+'"'};
+ const f=await fixture({saveError:error});f.fields['الاسم بالعربية'].value='اسم مصحح';f.fields['الهاتف'].value='55550000';
+ await f.button('حفظ التعديل والتحقق').onclick();
+ assert.equal(f.button('حفظ التعديل والتحقق').disabled,false);assert.equal(f.fields['الاسم بالعربية'].value,'اسم مصحح');assert.equal(f.d.unload(),true);
+ assert.equal(f.calls.filter(c=>c.name.endsWith('_save')).length,1);
+ f.fields['الهاتف'].value='55550001';f.allowSave();await f.button('حفظ التعديل والتحقق').onclick();
+ assert.equal(f.refreshed(),1);assert.deepEqual(f.calls.filter(c=>c.name.endsWith('_save')).map(c=>c.args.p_expected_revision),[1,1]);
+ assert.equal(f.calls.filter(c=>c.name.endsWith('_save'))[1].args.p_patch.phone,'55550001');
+});
+test('duplicate readback failure after accepted write must not unlock another save',async()=>{
+ const f=await fixture({readError:{status:409,code:'23505',message:'duplicate'}});f.failRead();
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.calls.filter(c=>c.name.endsWith('_save')).length,1);
+});
+for(const error of [{status:500,code:'23505'},{status:409,code:'other'}])test('generic conflict does not permit replay '+JSON.stringify(error),async()=>{
+ const f=await fixture({saveError:error});await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
+});
+test('scope change during duplicate rejection keeps save locked',async()=>{
+ const f=await fixture({saveError:{status:409,code:'23505'},scopeError:Error('scope changed')});
+ await f.button('حفظ التعديل والتحقق').onclick();assert.equal(f.button('حفظ التعديل والتحقق').disabled,true);
+});

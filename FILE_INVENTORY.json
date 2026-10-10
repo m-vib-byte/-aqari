@@ -2157,8 +2157,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "623a17e0a0e36bea21183ba7c06b06e23a88b59f251fbb77bd7fb140edfbc01b",
-      "size": 8807
+      "sha256": "fab57dc1bca71b4a3915ad60a27fb8595c8390e8c928e6ba15159572ae50b171",
+      "size": 9054
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -4717,8 +4717,8 @@
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "sha256": "036c74307785bb722c6a485d1424cd5a91a97326ab8468b2f02e1751130ddaba",
-      "size": 8619
+      "sha256": "62735334c5a3b022660559697e8f4606f2dd92afb90caf5b36737d6d2283def1",
+      "size": 10903
     },
     {
       "path": "tests/login-navigation.test.cjs",
