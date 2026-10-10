@@ -17,7 +17,7 @@ test('channel response must match user workspace and property',()=>{
  assert.equal(confirmPropertyChannel(data,scope),data);
  for(const key of ['workspace_id','user_id','propertyId'])assert.throws(()=>confirmPropertyChannel({...data,[key]:'other'},scope));
 });
-async function fixture({manager=true,corrupt=false,missing=false,saveError=null,pauseSave=null,failAfterConfirmed=false}={}){
+async function fixture({manager=true,corrupt=false,missing=false,saveError=null,pauseSave=null,failAfterConfirmed=false,readbackError=null}={}){
  const original={window:globalThis.window,document:globalThis.document},calls=[],listeners=new Map(),confirmations=[];let items=[],allowDiscard=true,savedReads=0;
  class Element{
   constructor(tag,text=''){this.tagName=tag;this.textContent=String(text??'');this.children=[];this.attributes={};this.dataset={};this.style={};this.value='';this.classList={add(){},remove(){}};}
@@ -30,10 +30,10 @@ async function fixture({manager=true,corrupt=false,missing=false,saveError=null,
  }
  const body=new Element('body');body.connected=true;
  globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),createTextNode:text=>new Element('#text',text),documentElement:{lang:'ar',classList:{contains:()=>true}}};
- const execute=async(name,args)=>{calls.push({name,args});if(missing)return {error:{code:'PGRST202',message:'aqari_property_channel_settings not found'}};if(args.p_action==='save'){if(pauseSave)await pauseSave;if(saveError)return {error:saveError};const d=args.p_data;items=[{...d,id:'c',revision:d.revision+1,...(corrupt?{url:'https://wrong.example/'}:{})}];return {data:{record:{id:'c'}}};}if(failAfterConfirmed&&items.length&&++savedReads===2)return {error:{message:'list refresh unavailable'}};return {data:{workspace_id:'w',user_id:'u',propertyId:'p',manager,items}};};const client={rpc:(name,args)=>({abortSignal:()=>execute(name,args)})};
+ const execute=async(name,args)=>{calls.push({name,args});if(missing)return {error:{code:'PGRST202',message:'aqari_property_channel_settings not found'}};if(args.p_action==='save'){if(pauseSave)await pauseSave;if(saveError)return {error:saveError};const d=args.p_data;items=[{...d,id:'c',revision:d.revision+1,...(corrupt?{url:'https://wrong.example/'}:{})}];return {data:{record:{id:'c'}}};}if(readbackError&&items.length)return {error:readbackError};if(failAfterConfirmed&&items.length&&++savedReads===2)return {error:{message:'list refresh unavailable'}};return {data:{workspace_id:'w',user_id:'u',propertyId:'p',manager,items}};};const client={rpc:(name,args)=>({abortSignal:()=>execute(name,args)})};
  globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url},AQARI_DATA_GATE:{scope:{userId:'u',workspaceId:'w'}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:'u'},workspace:{id:'w'},membership:{user_id:'u',workspace_id:'w',is_active:true,role:manager?'general_manager':'staff'}}},confirm:message=>{confirmations.push(message);return allowDiscard;},addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name,fn){if(listeners.get(name)===fn)listeners.delete(name);}};
  openPropertyChannels('p');await new Promise(setImmediate);const dialog=body.children.find(n=>n.tagName==='dialog'),all=()=>dialog.querySelectorAll(),button=label=>all().find(n=>n.tagName==='button'&&n.textContent===label);
- return {calls,all,button,confirmations,chooseDiscard(value){allowDiscard=value;},close:()=>dialog.children[0].onclick(),connected:()=>dialog.isConnected,unload(){let prevented=false;const event={preventDefault(){prevented=true;}};listeners.get('beforeunload')?.(event);return prevented;},revoke(){window.AQARI_DATA_GATE.scope.userId='other';listeners.get('aqari:auth-boundary')?.();},status:()=>dialog.children[2].textContent,cleanup(){window.AQARI_DATA_GATE.scope.userId='other';listeners.get('aqari:auth-boundary')?.();Object.assign(globalThis,original);}};
+ return {calls,all,button,confirmations,setSaveError(error){saveError=error;},chooseDiscard(value){allowDiscard=value;},close:()=>dialog.children[0].onclick(),connected:()=>dialog.isConnected,unload(){let prevented=false;const event={preventDefault(){prevented=true;}};listeners.get('beforeunload')?.(event);return prevented;},revoke(){window.AQARI_DATA_GATE.scope.userId='other';listeners.get('aqari:auth-boundary')?.();},status:()=>dialog.children[2].textContent,cleanup(){window.AQARI_DATA_GATE.scope.userId='other';listeners.get('aqari:auth-boundary')?.();Object.assign(globalThis,original);}};
 }
 test('channel save re-reads the exact property and verifies saved URL',async()=>{
  const f=await fixture();try{await f.button('إضافة قناة تواصل').onclick();const form=f.all().find(n=>n.tagName==='form'),inputs=form.querySelectorAll('input');inputs[0].value='حساب العقار';inputs[1].value='https://instagram.com/property';await form.onsubmit({preventDefault(){}});assert.match(f.status(),/تم حفظ/);const writes=f.calls.filter(x=>x.args.p_action==='save');assert.equal(writes.length,1);assert.equal(writes[0].args.p_data.propertyId,'p');assert.equal(writes[0].args.p_data.tenantVisible,false);assert.ok(f.calls.slice(f.calls.indexOf(writes[0])+1).some(x=>x.args.p_action==='context'));}finally{f.cleanup();}
@@ -82,5 +82,34 @@ test('confirmed save remains locked if the following list refresh fails',async()
   await f.button('إضافة قناة تواصل').onclick();const form=f.all().find(n=>n.tagName==='form');form.querySelectorAll('input')[1].value='https://instagram.com/property';await form.onsubmit({preventDefault(){}});
   assert.equal(f.unload(),false);assert.doesNotMatch(f.status(),/تم حفظ القناة/);await form.onsubmit({preventDefault(){}});assert.equal(f.calls.filter(x=>x.args.p_action==='save').length,1);
   await f.close();assert.equal(f.connected(),false);assert.equal(f.confirmations.length,0);
+ }finally{f.cleanup();}
+});
+
+for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'])test(`channel: explicit ${message} preserves draft and permits only a deliberate retry`,async()=>{
+ const f=await fixture({saveError:{status:403,code:'42501',message}});try{
+  await f.button('إضافة قناة تواصل').onclick();const form=f.all().find(n=>n.tagName==='form'),inputs=form.querySelectorAll('input');inputs[0].value='قناة العقار';inputs[1].value='https://instagram.com/property';inputs[3].value='سبب التعديل المحفوظ';
+  await form.onsubmit({preventDefault(){}});assert.equal(f.connected(),true);assert.match(f.status(),/التحقق الثنائي/);assert.equal(f.button('حفظ القناة').disabled,false);
+  assert.equal(inputs[0].value,'قناة العقار');assert.equal(inputs[3].value,'سبب التعديل المحفوظ');assert.equal(f.unload(),true);
+  f.chooseDiscard(false);await f.button('رجوع').onclick();assert.ok(f.all().includes(form));assert.match(f.confirmations.at(-1),/غير محفوظة/);
+  f.setSaveError(null);assert.equal(f.calls.filter(x=>x.args.p_action==='save').length,1,'no automatic write after verification');
+  await form.onsubmit({preventDefault(){}});const writes=f.calls.filter(x=>x.args.p_action==='save');assert.equal(writes.length,2);assert.deepEqual(writes[1].args.p_data,writes[0].args.p_data);assert.match(f.status(),/تم حفظ القناة/);assert.equal(f.unload(),false);
+ }finally{f.cleanup();}
+});
+for(const error of [{message:'MFA_REQUIRED'},{status:500,code:'42501',message:'MFA_REQUIRED'},{status:403,code:'OTHER',message:'MFA_REQUIRED'},{status:403,code:'42501',message:'ACCESS_DENIED'},{message:'network unavailable'}])test(`channel: ambiguous or unrelated rejection never unlocks a second write (${error.status}/${error.code}/${error.message})`,async()=>{
+ const f=await fixture({saveError:error});try{
+  await f.button('إضافة قناة تواصل').onclick();const form=f.all().find(n=>n.tagName==='form');form.querySelectorAll('input')[1].value='https://instagram.com/property';await form.onsubmit({preventDefault(){}});
+  f.setSaveError(null);await form.onsubmit({preventDefault(){}});assert.equal(f.calls.filter(x=>x.args.p_action==='save').length,1);assert.doesNotMatch(f.status(),/تم حفظ القناة/);
+ }finally{f.cleanup();}
+});
+test('channel: MFA during readback never unlocks an acknowledged save',async()=>{
+ const f=await fixture({readbackError:{status:403,code:'42501',message:'MFA_REQUIRED'}});try{
+  await f.button('إضافة قناة تواصل').onclick();const form=f.all().find(n=>n.tagName==='form');form.querySelectorAll('input')[1].value='https://instagram.com/property';await form.onsubmit({preventDefault(){}});
+  assert.equal(f.button('حفظ القناة').disabled,true);assert.equal(f.unload(),true);await form.onsubmit({preventDefault(){}});assert.equal(f.calls.filter(x=>x.args.p_action==='save').length,1);
+ }finally{f.cleanup();}
+});
+test('channel: session revocation after MFA rejection cannot retry the saved draft',async()=>{
+ const f=await fixture({saveError:{status:403,code:'42501',message:'MFA_REQUIRED'}});try{
+  await f.button('إضافة قناة تواصل').onclick();const form=f.all().find(n=>n.tagName==='form');form.querySelectorAll('input')[1].value='https://instagram.com/property';await form.onsubmit({preventDefault(){}});f.revoke();f.setSaveError(null);
+  await form.onsubmit({preventDefault(){}});assert.equal(f.connected(),false);assert.equal(f.calls.filter(x=>x.args.p_action==='save').length,1);
  }finally{f.cleanup();}
 });
