@@ -113,6 +113,10 @@ jobs:
         env:
           AQARI_BROWSER_EVIDENCE: /tmp/aqari-verification/browser
         run: node tests/v267-dialog-progress.browser.mjs | tee /tmp/aqari-verification/browser-tests.log
+      - name: Property archive and restore native browser flows
+        env:
+          AQARI_PROPERTY_BROWSER_EVIDENCE: /tmp/aqari-verification/property-browser
+        run: node tests/v267-property-lifecycle.browser.mjs | tee /tmp/aqari-verification/property-browser-tests.log
       - name: Export tracked source and local SQL runtime
         run: |
           node scripts/verify-release-source.mjs /tmp/aqari-verification/source-provenance.json

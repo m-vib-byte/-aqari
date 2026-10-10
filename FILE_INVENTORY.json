@@ -52,8 +52,8 @@
     },
     {
       "path": ".github/workflows/release-verification-workspace.yml",
-      "sha256": "5cf0b8f188b9fd4b4f1622f1ebd53107930d8580b3471bca8502cbef571e6c0b",
-      "size": 12982
+      "size": 13260,
+      "sha256": "bcc8357c331336e1273be358f493bc41c5637d1d7d2df67920e018f96635e924"
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
@@ -5894,6 +5894,11 @@
       "path": "tests/v267-property-hub-lifecycle.test.mjs",
       "size": 5170,
       "sha256": "af741fb9481cf7d58eb1e7d35bfed60d7d982e221e06e2c41f949947cd56b088"
+    },
+    {
+      "path": "tests/v267-property-lifecycle.browser.mjs",
+      "size": 12649,
+      "sha256": "44ce711cedf21c63eee3b5d13419d9b0b814340c0749ed9c202856b6a10b2d33"
     }
   ],
   "version": "V198"
