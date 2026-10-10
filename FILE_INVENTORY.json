@@ -1912,8 +1912,8 @@
     },
     {
       "path": "src/v267/components/workspace-translations.js",
-      "sha256": "fc30a863dc5df5e6b1af173689fe1d54479d90ed3190a5312d171b328dc9edae",
-      "size": 72916
+      "sha256": "fcd89585d22f54db9f87c00b2bbbfce5d2c1db9c84a752f4eac825a0ab2e72c8",
+      "size": 73669
     },
     {
       "path": "src/v267/domain/contract-foundation.js",
@@ -2157,8 +2157,8 @@
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
-      "sha256": "94d2d615d5178dc1f713a5ac5bfa399a1e886d9eb7da65891a552bcf122404f7",
-      "size": 9371
+      "sha256": "0964acc52cff88afd2ac07c28c26140d46740e7c7270e534125c231776549759",
+      "size": 9621
     },
     {
       "path": "src/v267/pages/integration-center.js",
@@ -4747,8 +4747,8 @@
     },
     {
       "path": "tests/imported-tenant-editor.test.mjs",
-      "sha256": "1f20d8f5aa6656008d5f107244d8838e774924e3bcde15b9f540056554763438",
-      "size": 11774
+      "sha256": "d46224c3e0946e6360c0ac9b8d14e703216a8812ccb439a26f2f0f04d2543638",
+      "size": 13414
     },
     {
       "path": "tests/login-navigation.test.cjs",
