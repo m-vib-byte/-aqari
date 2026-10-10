@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 import {prepareContractExecutionPackage,assertContractExecutionRenderer} from '../src/v267/components/contract-execution-package.js';
 import {createDialog,node,field} from '../src/v267/components/dialog.js';
 import {SUPABASE_PUBLIC_CONFIG} from '../lib/release-config.js';
-import {isExecutionMfaChallenge} from '../src/v267/pages/contract-execution.js';
+import {isExecutionMfaChallenge,assertExecutionPaymentInput} from '../src/v267/pages/contract-execution.js';
 const body={workspaceId:'workspace',contractRef:'contract',settlementId:'settlement',packageId:'package'};
 function fixture(overrides={}){
  const calls=[];const result={...body,expiresAt:new Date(Date.now()+600000).toISOString(),...overrides};
@@ -53,7 +53,7 @@ function finalization(prepare,{saveError,postSaveError,rendererError}={}){
  let saved=null,n=0;const initial={contractsV202:[{id:'contract',status:'signing',tenantId:'tenant',contract_no:'CT-1'}],tenantProfilesV267:[{id:'tenant'}]};
  const session={bound:{workspace:'workspace',user:'user'},check(){},request:async x=>x,
  client:{from:()=>({select(){return this;},eq(){return this;},single:async()=>({id:'lease',contract_no:'CT-1',status:'signed'})})}};
- const context={scope:()=>({}),d:{session},contractId:'contract',copy:structuredClone,crypto:{randomUUID:()=>String(++n)},settlementSent:false,isExecutionMfaChallenge,
+ const context={scope:()=>({}),d:{session},contractId:'contract',copy:structuredClone,crypto:{randomUUID:()=>String(++n)},settlementSent:false,isExecutionMfaChallenge,assertExecutionPaymentInput,
  currentContract:structuredClone(initial.contractsV202[0]),currentProfile:structuredClone(initial.tenantProfilesV267[0]),currentDue:{rent:0},
  api:{primary:x=>x,directoryFields:()=>({})},assertContractExecutionService:async()=>{},assertContractExecutionRenderer:async()=>{if(rendererError)throw rendererError;},executionDue:()=>({rent:0}),
  executionManifest:({ids})=>({id:ids.settlement}),prepareContractExecutionPackage:prepare,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),
@@ -62,6 +62,15 @@ function finalization(prepare,{saveError,postSaveError,rendererError}={}){
  vm.createContext(context);vm.runInContext(source.slice(start,end)+'\nthis.finalize=finalize;',context);
  return {run:()=>context.finalize({}),saved:()=>saved,sent:()=>context.settlementSent,initial,context};
 }
+test('invalid payment input cannot reserve a receipt, prepare documents or write a settlement',async()=>{
+ for(const payment of [{method:'cash',transactionNo:'x'},{method:'cash',transactionNo:'   '},{method:'cash',transactionNo:' Ａ '},{method:'cash',transactionNo:'x'.repeat(151)},{method:'unknown',transactionNo:'REF-123'}]){
+  const f=finalization(async()=>{throw Error('package must not run');});let reservations=0;
+  f.context.currentDue={rent:100,total:100};f.context.executionDue=()=>({rent:100,total:100});
+  f.context.api.kuwaitDate=()=> '2026-10-10';f.context.rpc=async()=>{reservations++;throw Error('reservation attempted');};
+  await assert.rejects(f.context.finalize(payment),/طريقة الدفع ورقم العملية مطلوبان/);
+  assert.equal(reservations,0);assert.equal(f.saved(),null);assert.equal(f.sent(),false);
+ }
+});
 test('actual finalization performs no business write when package preparation fails',async()=>{
  const f=finalization(async()=>{throw Error('PDF unavailable');});
  await assert.rejects(f.run(),/PDF unavailable/);assert.equal(f.saved(),null);assert.equal(f.initial.contractsV202[0].status,'signing');
@@ -111,8 +120,8 @@ async function submissionFixture(error){
  const actualRun=d.run;d.run=task=>(pending=actualRun(task));
  const source=readFileSync(new URL('../src/v267/pages/contract-execution.js',import.meta.url),'utf8');
  const begin=source.indexOf('async function start()'),end=source.indexOf('\n d.run(start);',begin);
- const context={d,node,field,load:async()=>{},translateStatic:x=>x,money:String,settlementSent:false,isExecutionMfaChallenge,
-  input:(type,value='')=>Object.assign(node('input'),{type,value}),select:()=>node('select'),
+ const context={d,node,field,load:async()=>{},translateStatic:x=>x,money:String,settlementSent:false,isExecutionMfaChallenge,assertExecutionPaymentInput,
+  input:(type,value='')=>Object.assign(node('input'),{type,value}),select:()=>Object.assign(node('select'),{value:'cash'}),
   currentContract:{contract_no:'CT-TEST',property:'Test',unit:'1'},currentProfile:{nameAr:'اختبار',nameEn:'Test'},
   currentDue:{rent:1,total:1,deposit:0,advance:0,fees:0,breakdown:{}},api:{kuwaitDate:()=> '2026-10-07'},executionMethods:[],
   finalize:async()=>{calls++;if(typeof error==='function')return error(d,context);throw error;}};
@@ -121,6 +130,21 @@ async function submissionFixture(error){
  const form=d.body.children.at(-1),submit=form.children.at(-1),reference=form.children[1].children.at(-1);reference.value='KEEP-REFERENCE';
  return {d,submit,reference,calls:()=>calls,async run(){form.onsubmit({preventDefault(){}});await pending;},cleanup(){d.close();Object.assign(globalThis,original);}};
 }
+test('invalid reference leaves the form editable and a corrected reference can be deliberately submitted',async()=>{
+ const f=await submissionFixture(Object.assign(Error('MFA_REQUIRED'),{status:403,code:'42501'}));
+ try{
+  for(const reference of ['x','   ',' Ａ ','x'.repeat(151)]){
+   f.reference.value=reference;await f.run();
+   assert.equal(f.calls(),0);assert.equal(f.submit.disabled,false);assert.equal(f.reference.value,reference);assert.equal(f.d.closed,false);
+   assert.match(f.d.status.textContent,/طريقة الدفع ورقم العملية مطلوبان/);
+  }
+  f.reference.value='CORRECTED-REFERENCE';await f.run();assert.equal(f.calls(),1);assert.equal(f.submit.disabled,false);
+ }finally{f.cleanup();}
+});
+test('payment input normalization preserves valid references and zero-payment handling',()=>{
+ assert.equal(assertExecutionPaymentInput({total:100,method:'cash',transactionNo:' ＡＢＣ-123 '}),'ABC-123');
+ assert.equal(assertExecutionPaymentInput({total:0,method:'none',transactionNo:''}),'');
+});
 test('actual contract submit remains usable after exact MFA denial and keeps payment input',async()=>{
  for(const message of ['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED']){
   const f=await submissionFixture(Object.assign(Error(message),{status:403,code:'42501'}));
