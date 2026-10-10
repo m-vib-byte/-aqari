@@ -4,18 +4,20 @@ import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
 const raw=readFileSync(new URL('../src/v267/pages/property-unit-create.js',import.meta.url),'utf8');
-function fixture(){
+function fixture(options={}){
  const controls=new Map(),calls=[];
  const node=(tag,text='')=>({tag,textContent:text,value:'',children:[],append(...items){this.children.push(...items);}});
- const d={body:node('section'),status:node('p'),session:{bound:{workspace:'workspace'},check(){},client:{rpc(name,args){calls.push({name,args});return {name,args};}},async request(q){
+ const d={beforeClose:()=>true,beforeUnload:()=>false,setBeforeClose(fn){this.beforeClose=fn;},setBeforeUnload(fn){this.beforeUnload=fn;},body:node('section'),status:node('p'),session:{bound:{workspace:'workspace'},check(){},client:{rpc(name,args){calls.push({name,args});return {name,args};}},async request(q){
+  if(options.request)return options.request(q);
   if(q.name==='aqari_unit_readiness_register')return {id:q.args.p_data.id,unit_id:'unit',revision:1};
   return {unit:{id:'unit',propertyId:'property',unitNo:q.args.p_data.unitNo,floor:q.args.p_data.floor,revision:1}};
- }},close(){},run(work){this.pending=Promise.resolve().then(work).catch(e=>{this.error=e;});return this.pending;}};
+ }},close(){this.closed=true;},run(work){this.body.inert=true;this.pending=Promise.resolve().then(work).catch(e=>{this.error=e;}).finally(()=>{this.body.inert=false;});return this.pending;}};
  const source=raw.replace(/^import .*;$/gm,'').replace(/\bexport /g,'').replace("const hub=await import('./property-hub.js');return hub.openPropertyHub(propertyId);","return true;");
- const context={node,field(label,c){controls.set(label,c);return c;},createDialog:()=>d,translateStatic:v=>v,visibleText:v=>v,Intl,Date,crypto:{randomUUID:()=> 'request'}};
+ const prompts=[];let discard=false;
+ const context={window:{confirm(message){prompts.push(message);return discard;}},node,field(label,c){controls.set(label,c);return c;},createDialog:()=>d,translateStatic:v=>v,visibleText:v=>v,Intl,Date,crypto:{randomUUID:()=> 'request'}};
  vm.createContext(context);vm.runInContext(source+'\nopenPropertyUnitCreate("property");',context);
  controls.get('رقم الوحدة').value='١٠١';controls.get('الدور').value='1';controls.get('نوع الوحدة').value='apartment';controls.get('مرجع المعاينة').value='inspection';
- return {calls,controls,d,async submit(){d.body.children[0].onsubmit({preventDefault(){}});await d.pending;}};
+ return {calls,controls,d,prompts,allowDiscard(value){discard=value;},async submit(){d.body.children[0].onsubmit({preventDefault(){}});await d.pending;}};
 }
 test('Arabic and Persian decimals reach both saved unit fields without losing fils',async()=>{
  const f=fixture();f.controls.get('المساحة م²').value='۱۲۵٫۵';f.controls.get('الإيجار المعلن').value='٣٥٠٫١٢٥';await f.submit();
@@ -43,4 +45,39 @@ test('add-unit chooser bounds the property editor module load before closing its
  const source=readFileSync(new URL('../src/v267/pages/unit-entry.js',import.meta.url),'utf8');
  assert.match(source,/guardPageImport\(\(\)=>import\('\.\/property-unit-create\.js'\)\)/);
  assert.match(source,/guardPageImport[\s\S]*d\.session\.check\(\)[\s\S]*d\.close\(\)[\s\S]*openPropertyUnitCreate/);
+});
+
+test('pristine unit form closes without warning; editing every field warns before departure',()=>{
+ const f=fixture();
+ // Fixture pre-fills three required fields after the real form takes its baseline.
+ for(const label of ['رقم الوحدة','الدور','نوع الوحدة','مرجع المعاينة'])f.controls.get(label).value='';
+ assert.equal(f.d.beforeUnload(),false);assert.equal(f.d.beforeClose(),true);assert.equal(f.prompts.length,0);
+ for(const control of f.controls.values()){
+  const original=control.value;control.value='changed';
+  assert.equal(f.d.beforeUnload(),true);assert.equal(f.d.beforeClose(),false);
+  assert.equal(control.value,'changed');control.value=original;
+ }
+ assert.equal(f.d.beforeUnload(),false);
+});
+test('cancelled departure keeps entered unit values; explicit discard permits closing',()=>{
+ const f=fixture();assert.equal(f.d.beforeClose(),false);assert.equal(f.controls.get('رقم الوحدة').value,'١٠١');
+ f.allowDiscard(true);assert.equal(f.d.beforeClose(),true);assert.equal(f.calls.length,0);
+});
+test('unit save blocks ordinary departure while the first request is in flight',async()=>{
+ let finish;const f=fixture({request:()=>new Promise(resolve=>{finish=resolve;})});
+ const pending=f.submit();await new Promise(setImmediate);
+ f.allowDiscard(true);assert.equal(f.d.beforeClose(),false);assert.equal(f.d.beforeUnload(),true);assert.equal(f.prompts.length,0);
+ finish({id:'wrong'});await pending;
+ assert.equal(f.d.closed,undefined);assert.equal(f.d.beforeUnload(),true);
+});
+test('failed save retains values and warns about checking existing records before leaving',async()=>{
+ const f=fixture({request:async()=>{throw Error('network unavailable');}});
+ await f.submit();assert.equal(f.d.beforeClose(),false);assert.match(f.prompts.at(-1),/راجع ملف العقار/);
+ assert.equal(f.controls.get('رقم الوحدة').value,'١٠١');assert.equal(f.d.beforeUnload(),true);
+ // Actual session disposal bypasses user departure checks.
+ f.d.close();assert.equal(f.d.closed,true);
+});
+test('verified unit save clears departure warning and closes without asking to discard',async()=>{
+ const f=fixture();await f.submit();assert.equal(f.d.error,undefined);assert.equal(f.d.closed,true);
+ assert.equal(f.d.beforeUnload(),false);assert.equal(f.d.beforeClose(),true);assert.equal(f.prompts.length,0);
 });

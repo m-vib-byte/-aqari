@@ -26,12 +26,24 @@ export function openPropertyUnitCreate(propertyId){
  const form=node('form'),unitNo=input('text'),floor=input('text'),type=input('text'),status=select([['available',visibleText('شاغرة')],['ready',visibleText('جاهزة للتأجير')],['reserved',visibleText('محجوزة')],['cleaning',visibleText('تحتاج تنظيف')],['maintenance',visibleText('تحتاج صيانة')],['renovation',visibleText('تحتاج تجديد')]],'available'),area=input('text'),rent=input('text'),auto=input('text'),serial=input('text'),parking=input('text'),storage=input('text'),services=input('text'),readiness=select([['review_required',visibleText('تحتاج معاينة')],['ready',visibleText('جاهزة للتأجير')],['not_ready',visibleText('غير جاهزة للتأجير')]],'review_required'),inspected=input('date',today()),source=input('text'),reason=node('textarea');
  for(const c of [unitNo,floor,type,readiness,inspected,source,reason])c.required=true;area.inputMode=rent.inputMode='decimal';source.minLength=reason.minLength=3;setFormDefault(reason,'إضافة وحدة من الملف الكامل');services.placeholder='elevator, water, internet';
  for(const [label,c]of [[visibleText('رقم الوحدة'),unitNo],[visibleText('الدور'),floor],[visibleText('نوع الوحدة'),type],[visibleText('الحالة التشغيلية'),status],[visibleText('المساحة م²'),area],[visibleText('الإيجار المعلن'),rent],[visibleText('الرقم الآلي للعين المؤجرة'),auto],[visibleText('الرقم التسلسلي الداخلي'),serial],[visibleText('الموقف'),parking],[visibleText('المخزن'),storage],[visibleText('الخدمات — مفصولة بفاصلة'),services],[visibleText('حالة الجاهزية'),readiness],[visibleText('تاريخ المعاينة'),inspected],[visibleText('مرجع المعاينة'),source],[visibleText('السبب/النتيجة'),reason]])form.append(field(label,c));const save=node('button',translateStatic('حفظ الوحدة وربطها بالعقار'));save.type='submit';form.append(save);d.body.append(form);
+ const controls=[unitNo,floor,type,status,area,rent,auto,serial,parking,storage,services,readiness,inspected,source,reason];
+ const snapshot=()=>JSON.stringify(controls.map(c=>c.value));
+ const baseline=snapshot();let saving=false,unconfirmed=false,confirmed=false;
+ const hasDraft=()=>!confirmed&&(unconfirmed||snapshot()!==baseline);
+ d.setBeforeUnload(()=>saving||hasDraft());
+ d.setBeforeClose(()=>{
+  if(saving||d.body.inert){d.status.textContent=translateStatic('انتظر اكتمال التحقق من حفظ الوحدة قبل المغادرة.');return false;}
+  return !hasDraft()||window.confirm(translateStatic(unconfirmed?'لم يتأكد حفظ الوحدة. هل تريد المغادرة؟ راجع ملف العقار قبل إنشاء وحدة جديدة.':'توجد بيانات وحدة غير محفوظة. هل تريد تركها والمتابعة؟'));
+ });
  form.onsubmit=e=>{e.preventDefault();d.run(async()=>{
   const number=normalizeUnitNo(unitNo.value);if(!number||number.length>80||/[<>\x00-\x1f]/.test(number))throw Error('راجع رقم الوحدة.');
   const areaValue=unitDecimal(area.value,'area'),rentValue=unitDecimal(rent.value,'rent');
   const serviceKeys=text(services.value).split(/[,،]/).map(x=>x.trim().toLowerCase()).filter(Boolean);if(serviceKeys.some(k=>!/^[a-z][a-z0-9_.-]{0,49}$/.test(k)))throw Error('مفاتيح الخدمات تستخدم أحرفًا إنجليزية مثل elevator أو water.');
+  saving=true;unconfirmed=true;
+  try{
   const requestId=crypto.randomUUID(),row=await rpc('aqari_unit_readiness_register',{p_workspace_id:d.session.bound.workspace,p_action:'record',p_data:{id:requestId,property_id:propertyId,unit_no:number,expected_revision:0,state:readiness.value,inspected_on:inspected.value,source_ref:text(source.value),reason:text(formValue(reason))}});d.session.check();if(row?.id!==requestId||!row.unit_id||Number(row.revision)!==1)throw Error('لم يتأكد إنشاء هوية الوحدة وسجل الجاهزية.');
   const saved=await rpc('aqari_unit_master_save',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_unit_id:row.unit_id,p_expected_revision:0,p_data:{unitNo:number,floor:text(floor.value),type:text(type.value),status:status.value,areaSqm:areaValue,statedRent:rentValue,leasedAssetAutomaticRef:text(auto.value),internalSerial:text(serial.value),parking:text(parking.value),storage:text(storage.value),services:Object.fromEntries(serviceKeys.map(k=>[k,true]))},p_reason:'إنشاء الوحدة من الملف الكامل: '+text(formValue(reason))});d.session.check();if(saved?.unit?.id!==row.unit_id||saved.unit.propertyId!==propertyId||saved.unit.unitNo!==number||saved.unit.floor!==text(floor.value)||Number(saved.unit.revision)!==1)throw Error('لم تتأكد إعادة قراءة الوحدة والدور والحقول الرسمية.');
-  d.status.textContent=translateStatic('تم إنشاء الوحدة وتثبيت الدور والبيانات وسجل الجاهزية.');d.close();const hub=await import('./property-hub.js');return hub.openPropertyHub(propertyId);
+  d.status.textContent=translateStatic('تم إنشاء الوحدة وتثبيت الدور والبيانات وسجل الجاهزية.');confirmed=true;unconfirmed=false;d.close();const hub=await import('./property-hub.js');return hub.openPropertyHub(propertyId);
+  }finally{saving=false;}
  });};return true;
 }
