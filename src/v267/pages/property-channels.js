@@ -1,4 +1,5 @@
 import {createDialog,node,field} from '../components/dialog.js';
+import {t} from '../components/locale.js';
 import {propertyChannelKinds,propertyContactUrl,confirmPropertyChannel} from '../domain/property-contact-links.js';
 
 export function openPropertyChannels(propertyId){
@@ -16,20 +17,27 @@ export function openPropertyChannels(propertyId){
   kind.value=current?.kind||'instagram';label.value=current?.label||'';label.maxLength=200;url.value=current?.url||'';url.required=true;url.dir='ltr';url.maxLength=2000;url.placeholder='https://';visible.type='checkbox';visible.checked=current?.tenantVisible===true;
   for(const [value,title] of [['active','مفعّل'],['hidden','مخفي'],['archived','مؤرشف']]){const option=node('option',title);option.value=value;status.append(option);}status.value=current?.status||'active';reason.value=current?'تعديل قناة العقار':'إضافة قناة العقار';reason.required=true;reason.minLength=3;reason.maxLength=1000;
   form.append(field('نوع القناة',kind),field('اسم القناة',label),field('الرابط أو رقم التواصل',url),field('يظهر للمستأجر',visible),field('الحالة',status),field('سبب التعديل',reason));const save=node('button','حفظ القناة');save.type='submit';form.append(save);
-  d.body.replaceChildren(button('رجوع',render),form);
-  let saveAttempted=false;
+  const snapshot=()=>JSON.stringify([kind.value,label.value,url.value,visible.checked,status.value,reason.value]);
+  let saveAttempted=false,confirmed=false,saving=false,baseline=snapshot();
+  const hasDraft=()=>saveAttempted&&!confirmed||snapshot()!==baseline;
+  const canLeave=()=>!saving&&(!hasDraft()||window.confirm(t(saveAttempted&&!confirmed?'لم يتأكد حفظ القناة. هل تريد المغادرة؟ تحقق من القائمة قبل إعادة الحفظ.':'توجد تعديلات قناة تواصل غير محفوظة. هل تريد تركها؟')));
+  d.setBeforeUnload(()=>saving||hasDraft());d.setBeforeClose(canLeave);
+  d.body.replaceChildren(button('رجوع',async()=>{if(canLeave())await render();}),form);
   form.onsubmit=e=>{e.preventDefault();return d.run(async()=>{
    if(saveAttempted)throw Error('سبق إرسال الحفظ. ارجع للقائمة للتحقق قبل أي تعديل جديد.');
    const wanted={id:current?.id||null,revision:Number(current?.revision||0),kind:kind.value,label:label.value.trim(),url:propertyContactUrl(url.value,kind.value),tenantVisible:visible.checked&&status.value==='active',status:status.value,sortOrder:current?.sortOrder??100,managementReference:current?.managementReference||'',reason:reason.value.trim()};
-   saveAttempted=true;save.disabled=true;
+   saveAttempted=true;saving=true;save.disabled=true;
+   try{
    const result=await rpc('save',wanted);d.session.check();if(!result?.record?.id)throw Error('لم يتأكد حفظ القناة.');
    await read();const saved=state.items.find(x=>x.id===result.record.id);
    if(!saved||saved.revision!==wanted.revision+1||['kind','label','url','tenantVisible','status'].some(k=>saved[k]!==wanted[k]))throw Error('لم تتطابق القناة بعد إعادة القراءة. لا تكرر الحفظ قبل تحديث القائمة.');
+   baseline=snapshot();confirmed=true;
    await render();d.status.textContent='تم حفظ القناة والتحقق منها لهذا العقار.';
+   }finally{saving=false;}
   });};
  }
  async function render(){
-  await read();d.body.replaceChildren(node('p','قنوات هذا العقار فقط. ظهور القناة للمستأجر يحتاج اختيارك الصريح.'));
+  await read();d.setBeforeUnload(null);d.setBeforeClose(null);d.body.replaceChildren(node('p','قنوات هذا العقار فقط. ظهور القناة للمستأجر يحتاج اختيارك الصريح.'));
   if(state.manager===true)d.body.append(button('إضافة قناة تواصل',()=>edit()));
   for(const item of state.items){const card=node('article');card.className='aq267-property-master-section';card.append(node('h3',item.label||propertyChannelKinds[item.kind]||'قناة'));
    try{const link=node('a','فتح '+(propertyChannelKinds[item.kind]||'القناة'));link.href=propertyContactUrl(item.url,item.kind);link.target='_blank';link.rel='noopener noreferrer';card.append(link);}catch{card.append(node('p','الرابط المحفوظ يحتاج تصحيحًا.'));}

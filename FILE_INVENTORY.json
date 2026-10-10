@@ -1647,8 +1647,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "c479feaca1327529fa17f90f82cad01090f8d68493cc4c3edfd168d9b77e4f9c",
-      "size": 433475
+      "sha256": "82a1d0513b0d9b877f6434fc3aa9cb93e66e507a8223fb53a03b4fa1c693b90d",
+      "size": 435003
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2097,8 +2097,8 @@
     },
     {
       "path": "src/v267/pages/integration-center.js",
-      "sha256": "6144264f6d1cffc8dac16eb90473abacef44a5d6bae497eeb8e4634491a408fc",
-      "size": 7155
+      "sha256": "d9df297fcd5aa35be13f7bd8094a589a1de713aa7b3ee66def2d834bb1769d6e",
+      "size": 7833
     },
     {
       "path": "src/v267/pages/kpi-dashboard.js",
@@ -2187,8 +2187,8 @@
     },
     {
       "path": "src/v267/pages/property-channels.js",
-      "sha256": "35084f88f2db4b381464ed08a312e8747e55061b0398ce11e55723cd13a502ce",
-      "size": 5319
+      "sha256": "c3ed3f1ce0c1ffa49b203767301048f5f205be639fa57ffeed1a1c687f4db7cc",
+      "size": 6152
     },
     {
       "path": "src/v267/pages/property-controls.js",
@@ -5072,8 +5072,8 @@
     },
     {
       "path": "tests/v267-integration-center-workflow.test.cjs",
-      "sha256": "628468b8e614d479bee2f2ecbf84d936ad98ee3ad16105fe278fe70e5cde38ed",
-      "size": 7373
+      "sha256": "28ba4ca3a1d86bffa1e1b4c1173663ddfad971712a63eee33a20e6fbfdd24332",
+      "size": 9850
     },
     {
       "path": "tests/v267-iphone-startup-blocker.test.mjs",
@@ -5422,8 +5422,8 @@
     },
     {
       "path": "tests/v267-property-contact-links.test.mjs",
-      "sha256": "3b8740e593565db5a8154314ba5b61db5d56f96a5da679e420ea92167172df74",
-      "size": 5898
+      "sha256": "201de70bae0f44fb5a91d5441b5d71fd0ed9956f7bf26695b62188936479eec0",
+      "size": 10582
     },
     {
       "path": "tests/v267-property-contract-archive-ui.test.mjs",
@@ -6084,6 +6084,11 @@
       "path": "docs/verification/archive-production-sync-20261010.md",
       "sha256": "5e989d2b443d2d68b9382fb5675f69974e58ee0939e3a728119ade0072e67333",
       "size": 1675
+    },
+    {
+      "path": "src/v267/components/visible-translations-a2.js",
+      "sha256": "30249b7e0d6f9c5d938df56addbdba9818867fccc3bbe3e685a007511636d499",
+      "size": 171495
     }
   ],
   "version": "V198"

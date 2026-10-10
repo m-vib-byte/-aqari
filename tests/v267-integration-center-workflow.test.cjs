@@ -8,7 +8,7 @@ const vm=require('node:vm');
 const initial={id:'config-001',revision:1,provider:'knet',purpose:'rent',mode:'sandbox',endpoint_origin:'https://payments.example.invalid',secret_reference:'vault/knet/sandbox',public_metadata:{currency:'KWD',region:'KW'}};
 
 function fixture(configs=[]){
- const state={configs:structuredClone(configs),outbox:[],webhooks:[],lostResponse:false,corruptRead:false},calls=[];let serial=0;
+ const state={configs:structuredClone(configs),outbox:[],webhooks:[],lostResponse:false,corruptRead:false,holdSave:null},calls=[];let serial=0;
  class Element{
   constructor(tag,text=''){this.tag=tag;this._text=text;this.children=[];this.value='';this.hidden=false;}
   append(...children){this.children.push(...children);if(this.tag==='select'&&!this.value)this.value=children[0]?.value||'';}
@@ -25,6 +25,7 @@ function fixture(configs=[]){
    return result;
   }
   if(args.p_action==='save'){
+   if(state.holdSave)await state.holdSave;
    const input=args.p_data,existing=state.configs.find(c=>c.id===input.id);
    if(existing&&existing.revision!==input.revision)throw Error('REVISION_CONFLICT');
    if(!existing&&state.configs.some(c=>c.provider===input.provider&&c.purpose===input.purpose))throw Error('DUPLICATE_CONFIG');
@@ -35,17 +36,17 @@ function fixture(configs=[]){
   }
   throw Error('UNEXPECTED_ACTION');
  }}};
- let busy=false;const cleanups=[];
- const d={body:node('div'),status:node('p'),session,closed:false,onDispose(fn){cleanups.push(fn);},close(){d.closed=true;for(const fn of cleanups)fn();},run(fn){
+ let busy=false;const cleanups=[],prompts=[];let answer=false;let beforeClose=null,beforeUnload=null;
+ const d={body:node('div'),status:node('p'),session,closed:false,setBeforeClose(fn){beforeClose=fn;},setBeforeUnload(fn){beforeUnload=fn;},onDispose(fn){cleanups.push(fn);},close(){d.closed=true;for(const fn of cleanups)fn();},run(fn){
   if(busy||d.closed)return;busy=true;d.status.textContent='جارٍ الاتصال…';
   d.last=Promise.resolve().then(fn).catch(error=>{d.status.textContent=error.message;}).finally(()=>{busy=false;});return d.last;
  }};
- const context=vm.createContext({...localeBindings,node,field,createDialog:()=>d,crypto:{randomUUID:()=>`draft-${++serial}`}});
+ const context=vm.createContext({...localeBindings,node,field,createDialog:()=>d,window:{confirm(message){prompts.push(message);return answer;}},crypto:{randomUUID:()=>`draft-${++serial}`}});
  vm.runInContext(fs.readFileSync('src/v267/pages/integration-center.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,''),context);
  const walk=element=>[element,...element.children.flatMap(walk)];
  const button=text=>walk(d.body).find(e=>e.tag==='button'&&e.textContent===text);
  const control=text=>walk(d.body).find(e=>e.tag==='label'&&e._text===text).children[0];
- return {d,state,calls,button,control,async start(){context.openIntegrationCenter();await d.last;},async submit(){await walk(d.body).find(e=>e.tag==='form').onsubmit({preventDefault(){}});}};
+ return {d,state,calls,button,control,prompts,answer(value){answer=value;},canClose:()=>beforeClose?beforeClose():true,shouldWarn:()=>beforeUnload?beforeUnload():false,async start(){context.openIntegrationCenter();await d.last;},async submit(){await walk(d.body).find(e=>e.tag==='form').onsubmit({preventDefault(){}});}};
 }
 
 test('a saved integration can be edited and disabled using the existing ID and revision',async()=>{
@@ -80,4 +81,29 @@ test('cancel and refresh never save a configuration, and non-object metadata is 
  assert.equal(f.control('الغرض').value,'');await f.button('تحديث حالة التكاملات').onclick();assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
  for(const value of ['null','[]','"text"']){f.control('بيانات عامة JSON — يمنع تضمين الأسرار والرموز والبيانات المدنية حتى داخل الحقول المتداخلة').value=value;await f.submit();assert.match(f.d.status.textContent,/كائن JSON/);}
  assert.equal(f.calls.filter(call=>call.p_action==='save').length,0);
+});
+
+
+test('unsaved integration input blocks close and record replacement unless explicitly discarded',async()=>{
+ const f=fixture([initial]);await f.start();assert.equal(f.shouldWarn(),false);
+ f.control('الغرض').value='UNSAVED';assert.equal(f.shouldWarn(),true);assert.equal(f.canClose(),false);
+ f.button('تعديل الإعداد أو إيقافه').onclick();assert.equal(f.control('الغرض').value,'UNSAVED');
+ f.answer(true);f.button('تعديل الإعداد أو إيقافه').onclick();assert.equal(f.control('الغرض').value,'rent');assert.equal(f.shouldWarn(),false);
+ f.control('الغرض').value='EDIT';f.answer(false);f.button('إلغاء التعديل').onclick();assert.equal(f.control('الغرض').value,'EDIT');
+ f.answer(true);f.button('إلغاء التعديل').onclick();assert.equal(f.control('الغرض').value,'');assert.equal(f.shouldWarn(),false);
+ assert.equal(f.calls.filter(c=>c.p_action==='save').length,0);
+});
+
+test('verified integration save clears dirty state while failed verification preserves it',async()=>{
+ const f=fixture();await f.start();f.control('الغرض').value='rent';f.state.corruptRead=true;await f.submit();
+ assert.equal(f.shouldWarn(),true);assert.equal(f.canClose(),false);
+ f.state.corruptRead=false;await f.submit();assert.equal(f.shouldWarn(),false);assert.equal(f.canClose(),true);
+});
+
+test('pending integration write cannot close or replace the draft even with discard confirmation',async()=>{
+ const f=fixture([initial]);await f.start();let release;f.state.holdSave=new Promise(r=>{release=r;});
+ f.control('الغرض').value='another-purpose';const saving=f.submit();await Promise.resolve();await Promise.resolve();
+ assert.equal(f.calls.at(-1).p_action,'save');f.answer(true);assert.equal(f.shouldWarn(),true);assert.equal(f.canClose(),false);
+ f.button('تعديل الإعداد أو إيقافه').onclick();assert.equal(f.control('الغرض').value,'another-purpose');assert.equal(f.prompts.length,0);
+ release();await saving;assert.equal(f.shouldWarn(),false);assert.equal(f.canClose(),true);
 });
