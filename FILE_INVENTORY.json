@@ -1697,8 +1697,8 @@
     },
     {
       "path": "src/v267/components/operational-translations.js",
-      "sha256": "d7dbe377688b91f5d48274b26e8d651aab12988556cb853b6f74a58c79da1588",
-      "size": 445904
+      "sha256": "8de868e2afcd1a911ed2e4d92e6f9e32508d8599300b47d254b766359184e250",
+      "size": 448260
     },
     {
       "path": "src/v267/components/original-document-upload.js",
@@ -2054,6 +2054,11 @@
       "path": "src/v267/pages/automation-status.js",
       "sha256": "9a915543099e9107a8e5de91282ae5d0fab53f3c98924e27b05cae872caa9820",
       "size": 1755
+    },
+    {
+      "path": "src/v267/pages/bank-reconciliation.js",
+      "sha256": "b5703bc5ca55b1898f533633bfed6e629f9efbfd2a66647507fe128652f08890",
+      "size": 20633
     },
     {
       "path": "src/v267/pages/commercial-sales.js",
@@ -4974,6 +4979,11 @@
       "path": "tests/v267-auth-repair.test.cjs",
       "sha256": "67d68d8752cdb1d4812e1e614dac090b1b8208093bf23806bbd915a976fd9e46",
       "size": 5202
+    },
+    {
+      "path": "tests/v267-bank-reconciliation-current.test.mjs",
+      "sha256": "d14852b1c880fc7d9606e34fb72d1af21037eb48f5fe8d11c67f766b80d645ec",
+      "size": 25432
     },
     {
       "path": "tests/v267-collection-account-manager.test.cjs",
