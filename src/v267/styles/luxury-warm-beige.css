@@ -275,3 +275,29 @@ body.aq-owner-exact-ready .aq-exact-bottom button.active,body.aq-unified-experie
  body:has(>main>#partnerAuth) main>header,body:has(>main>#auth) main>header,body:has(>main>#partnerAuth) main>section,body:has(>main>#auth) main>section{padding:16px!important;margin:10px 0!important;border-radius:15px!important}
 }
 @media print{.aq-exact-rail,.aq-exact-top,.aq-exact-bottom,.aq-unified-mobile-nav{display:none!important}}
+
+/* Keep legacy dashboard panels and assistant content in the final light palette. */
+@media screen {
+ body.aq-owner-reference :is(.v199-panel,#v210DailyCommandCenter,.v205-section) {
+  background:var(--aq-lx-ivory)!important;color:var(--aq-lx-ink)!important;
+  border-color:var(--aq-lx-line)!important;
+ }
+ body.aq-owner-reference .v205-section-head h2 {color:var(--aq-lx-brown)!important}
+ body.aq-owner-reference .v205-section-head span {color:var(--aq-lx-muted)!important}
+ body :is(.aq-exact-assistant,.aq-exact-chat-log) {
+  background:var(--aq-lx-ivory)!important;color:var(--aq-lx-ink)!important;color-scheme:light;
+ }
+ body .aq-exact-chat-log p {
+  background:var(--aq-lx-ivory-2)!important;color:var(--aq-lx-ink)!important;border-color:var(--aq-lx-line)!important;
+ }
+ body .aq-exact-chat-log p.me {background:var(--aq-lx-gold-soft)!important}
+ body .aq-exact-chat-log p.bad {background:var(--aq-lx-danger-bg)!important;color:var(--aq-lx-danger)!important}
+ body .aq-exact-modal-head>button,body #aqExactVoiceControls button {
+  background:var(--aq-lx-ivory-2)!important;color:var(--aq-lx-brown)!important;
+  border:1px solid var(--aq-lx-line)!important;border-radius:10px;font:inherit;
+ }
+ body #aqExactVoiceControls button:disabled {color:var(--aq-lx-muted)!important;opacity:.6}
+ body #aqExactVoiceControls button:focus-visible,body .aq-exact-modal-head>button:focus-visible {
+  outline:2px solid var(--aq-lx-gold-deep);outline-offset:2px;
+ }
+}
