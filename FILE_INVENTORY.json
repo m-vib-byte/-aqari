@@ -7,8 +7,8 @@
     },
     {
       "path": ".github/workflows/app-first-paint.yml",
-      "sha256": "835a823c9fe5ca0998af0d6a7a8e9bdb1751448deae4e48897114529fb8fc8d9",
-      "size": 1173
+      "sha256": "4861e92dbc15c5647c6037072b10e43fbaa0f1ca60ee0f8d348ab98e3d53a8a4",
+      "size": 1774
     },
     {
       "path": ".github/workflows/archive-integrity.yml",
@@ -2272,8 +2272,8 @@
     },
     {
       "path": "src/v267/styles/luxury-warm-beige.css",
-      "sha256": "8aabe4200384031f5d4910c4711871449904e2c21010ac9a0dcc8fec9f265757",
-      "size": 31335
+      "sha256": "9a4110f565e000b01357b454fe145c3de7d14d82e791029f77582b428af65a49",
+      "size": 32793
     },
     {
       "path": "src/v267/styles/pdf-field-template.css",
@@ -4677,8 +4677,8 @@
     },
     {
       "path": "tests/v266-authenticated-home.e2e.mjs",
-      "sha256": "2252cc0bfc92e2cc0983676c6a79d5c5964fd03b79b55ae00f07d44517a2bc3f",
-      "size": 16425
+      "sha256": "4722d697b1a71c29c03caefaaabdc2e5c2591433f9d962e194fc8eae27013995",
+      "size": 17962
     },
     {
       "path": "tests/v266-login-bootstrap.test.cjs",
@@ -5859,6 +5859,36 @@
       "path": "src/v267/components/visible-translations-a2.js",
       "sha256": "30249b7e0d6f9c5d938df56addbdba9818867fccc3bbe3e685a007511636d499",
       "size": 171495
+    },
+    {
+      "path": "scripts/install-v267-home-presentation.mjs",
+      "sha256": "8591cc199a29d864de656bad39cc2f996d5775100df9d7aee433ea0be92e1add",
+      "size": 1054
+    },
+    {
+      "path": "scripts/install-v267-live-stability.mjs",
+      "sha256": "846d2ca70ec0e0648d736b2b3028b003e24b6035d482919c2ee35dfad1a12153",
+      "size": 1364
+    },
+    {
+      "path": "src/v267/home-presentation.js",
+      "sha256": "9ee2246b82805b01527d0568b48dac62b345f57e1d6fd89236268ba5cb7477b4",
+      "size": 4503
+    },
+    {
+      "path": "src/v267/styles/home-presentation.css",
+      "sha256": "78ec9683751e89b3560a41089ec6aafc430ea8246c947594af0af60003ff82f3",
+      "size": 1060
+    },
+    {
+      "path": "tests/home-presentation.e2e.mjs",
+      "sha256": "05f662ea148a77dfe079be12b9623334267893b6bad5014722452b765de16b39",
+      "size": 6698
+    },
+    {
+      "path": "tests/home-presentation.test.cjs",
+      "sha256": "ae4e9083ec8e68eb5ff6635f77461af5040bc54435dec2bfb1927aeb84f97e51",
+      "size": 5170
     }
   ],
   "version": "V198"

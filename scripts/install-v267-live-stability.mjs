@@ -13,3 +13,5 @@ for(const path of ['src/v267/live-stability-runtime.js','final-release-ui.js'])e
 execFileSync(process.execPath,['--test','tests/v267-live-stability.test.mjs','tests/v267-live-dashboard-data.test.mjs','tests/v267-dashboard-actions.test.mjs'],{stdio:'inherit'});
 console.log('Verified Work1 canonical shell, real-data dashboard augmentation and iPhone/iPad/Desktop stability rules.');
 
+await import('./install-v267-home-presentation.mjs');
+
