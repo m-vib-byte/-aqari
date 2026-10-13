@@ -8,6 +8,7 @@ import { checkV267AuthenticatedPresentation } from './v267-presentation-checks.m
 import {installHomeResponsivenessDiagnostics} from './helpers/home-responsiveness-diagnostics.mjs';
 const diagnostics=process.env.AQARI_HOME_DIAGNOSTICS==='1';
 const diagnosticsOnly=diagnostics&&process.env.AQARI_HOME_FULL_MATRIX!=='1';
+const presentationOnly=process.env.AQARI_HOME_PRESENTATION_ONLY==='1';
 
 // Exercise the actual renderer and pinned SDK. The local HTTP backend also
 // serves requests initiated by service workers, which bypass Playwright route
@@ -108,13 +109,26 @@ let failed=false;
 try{
   let diagnosticRun=0;
   for(const [engineName,engine] of (diagnosticsOnly?[['webkit',webkit]]:[['chromium',chromium],['webkit',webkit]])){
-    for(const scenario of (diagnosticsOnly?['populated','populated','populated']:['empty','populated','manual','timeout','confirmation-timeout'])){
+    for(const scenario of (presentationOnly?['populated']:diagnosticsOnly?['populated','populated','populated']:['empty','populated','manual','timeout','confirmation-timeout'])){
       const name=engineName+'-'+scenario+(diagnostics?'-'+(++diagnosticRun):'');
       fixture=scenario==='empty'?{}:populated;hangCloud=scenario==='timeout';hangConfirmation=scenario==='confirmation-timeout';propertyWritable=true;requests=[];
       const browser=await engine.launch({headless:true});
       const errors=[];let page,before;
       try{
-        const context=await browser.newContext({viewport:{width:1473,height:850}});
+        const context=await browser.newContext({viewport:presentationOnly?{width:393,height:852}:{width:1473,height:850}});
+        if(presentationOnly)await context.addInitScript(()=>{
+          window.__intermediateHomeFrames=0;
+          function sample(){
+            const root=document.documentElement;
+            if(root?.classList.contains('aqari-home-presented'))return;
+            if(root?.classList.contains('aqari-auth-unlocked')){
+              const screen=document.getElementById('aqHomePresentation'),main=document.querySelector('main.w');
+              if(!screen||getComputedStyle(screen).display==='none'||main&&getComputedStyle(main).opacity!=='0')window.__intermediateHomeFrames++;
+            }
+            requestAnimationFrame(sample);
+          }
+          requestAnimationFrame(sample);
+        });
         await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
         if(diagnostics)await context.addInitScript(installHomeResponsivenessDiagnostics);
         await context.addInitScript(value=>{
@@ -174,12 +188,20 @@ try{
           const beats=await page.evaluate(()=>window.__homeHeartbeats);
           await delay(1000);
           assert.ok(await page.evaluate(()=>window.__homeHeartbeats)>beats,'the completed UI must remain responsive');
-          for(const [route,target] of [['properties','list'],['tenants','list'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']]){
+          if(presentationOnly){
+            await page.waitForFunction(()=>document.documentElement.classList.contains('aqari-home-presented'),{},{timeout:18000});
+            assert.equal(await page.evaluate(()=>window.__intermediateHomeFrames),0,'no intermediate home or blank frame after authorization');
+            assert.ok(await page.locator('#aqLiveStability').isVisible());
+            assert.ok(await page.locator('#aqOwnerExactBottom').isVisible());
+            assert.equal(await page.locator('#aqHomePresentation').isVisible(),false);
+            assert.equal(await page.locator('main.w').evaluate(node=>node.inert),false);
+          }
+          for(const [route,target] of (presentationOnly?[]:[['properties','list'],['tenants','list'],['collectionProPage','collectionProPage'],['maintenanceProPage','maintenanceProPage'],['home','home']])){
             await page.evaluate(route=>window.go(route),route);
             assert.ok(await page.locator('#'+target).isVisible(),'visible full-platform section: '+route);
           }
           assert.ok(await page.locator('#home').isVisible());
-          if(scenario==='empty'||scenario==='populated')await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated',artifactPath:path.join(out,name+'-iphone-layout.png'),setPropertyWrite:value=>{propertyWritable=value;}});
+          if(!presentationOnly&&(scenario==='empty'||scenario==='populated'))await checkV267AuthenticatedPresentation(page,{populated:scenario==='populated',artifactPath:path.join(out,name+'-iphone-layout.png'),setPropertyWrite:value=>{propertyWritable=value;}});
         }
         assert.deepEqual(await page.evaluate(()=>window.__earlyAuthenticatedScripts),[], 'authenticated UI must wait for verified membership and BOTH workspace data scopes');
         const state=await page.evaluate(()=>({phase:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-phase'),stage:document.getElementById('aqariCloudGateV168')?.getAttribute('data-auth-stage'),unlocked:document.documentElement.classList.contains('aqari-auth-unlocked'),heartbeat:window.__homeHeartbeats}));

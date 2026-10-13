@@ -25,9 +25,21 @@ jobs:
       - name: Verify browser image matches the locked Playwright version
         run: node -e "if (require('playwright/package.json').version !== '1.63.0') throw new Error('Update the Playwright container tag to match package-lock.json')"
       - run: node tests/app-first-paint.e2e.mjs
+      - name: Home presentation under slow or failed stylesheets
+        run: node --test tests/home-presentation.test.cjs && node tests/home-presentation.e2e.mjs
+      - name: Complete owner home after the real authentication boundary (synthetic backend)
+        env:
+          AQARI_HOME_PRESENTATION_ONLY: '1'
+        run: |
+          node scripts/install-v267-owner-reference-package.mjs
+          node scripts/install-v267-owner-feedback.mjs
+          node tests/v266-authenticated-home.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: app-first-paint-results
-          path: test-results/app-first-paint
+          path: |
+            test-results/app-first-paint
+            test-results/home-presentation
+            test-results/authenticated-home
           retention-days: 2
