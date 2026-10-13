@@ -1001,6 +1001,11 @@
       "size": 2684
     },
     {
+      "path": "docs/verification/production-service-activation-20261013.md",
+      "size": 1546,
+      "sha256": "ca15f35b06cb0609a9aea6ce323d9a048f80b05966f90d0f7bc3ccfdb0424fff"
+    },
+    {
       "path": "docs/verification/property-contract-open-20261002.md",
       "sha256": "f93590155cc24293a699c4317d88a260dda5a52851f78f23715779b9e3a4ccda",
       "size": 1591
@@ -2831,6 +2836,11 @@
       "size": 891
     },
     {
+      "path": "staging-database/reconciliation/commercial-allocation/candidate-after-execution.sql",
+      "size": 50652,
+      "sha256": "2ba8e851862cdf02373a457b14d65725395faa1362cd6d28c7ad4b8e8f83ae55"
+    },
+    {
       "path": "staging-database/reconciliation/commercial-allocation/candidate.sql",
       "sha256": "14d3c483a9bc79605f29fd0bf5141c76c84d062f2589b492c5853ae6597e234b",
       "size": 50428
@@ -2844,6 +2854,11 @@
       "path": "staging-database/reconciliation/commercial-allocation/commercial_collections_legacy_compat.sql",
       "sha256": "fbad3e2239b07e2c66641b2426e169ad021149b18e923f2028f7239b05bf639a",
       "size": 16539
+    },
+    {
+      "path": "staging-database/reconciliation/commercial-allocation/execution-entitlement-acceptance.sql",
+      "size": 5947,
+      "sha256": "4a2a6eb7ee1af2cf17acf7c21b0758b46718aef802d59ec834c9c73f1059db3b"
     },
     {
       "path": "staging-database/reconciliation/commercial-allocation/manifest.json",
