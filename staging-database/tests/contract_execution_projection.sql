@@ -13,7 +13,7 @@ declare
  p uuid:=gen_random_uuid(); tenant uuid:=gen_random_uuid(); u uuid; l uuid;
  sid uuid; did uuid; rid uuid; rno text; ref text; c jsonb; e jsonb; before_data jsonb; after_data jsonb; actual jsonb;
  rent numeric; deposit numeric; credit numeric; balance numeric; expected_no text; n integer; before_count integer;
- pid uuid; package_source jsonb; signed_c jsonb; ledger jsonb; receipt jsonb; test_pdf bytea:=convert_to('%PDF-1.4 synthetic local fixture','UTF8');
+ pid uuid; credit_id uuid; package_source jsonb; signed_c jsonb; ledger jsonb; receipt jsonb; test_pdf bytea:=convert_to('%PDF-1.4 synthetic local fixture','UTF8');
 begin
  insert into private.aqari_allowed_users(email,display_name,role,workspace_slug) values('execution-probe@example.invalid','Synthetic execution manager','general_manager','aqari-v267-staging');
  insert into auth.users(id,email,email_confirmed_at) values(actor,'execution-probe@example.invalid',now());
@@ -32,6 +32,16 @@ begin
   insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot)
    values(l,w,ref,tenant,u,expected_no,date_trunc('month',current_date)::date,(date_trunc('month',current_date)+interval '1 month - 1 day')::date,100,deposit,'signing','{}');
   c:=jsonb_build_object('id',ref,'source','v267-cloud','status','signing','contract_no',expected_no,'tenantId',tenant::text,'tenant','Synthetic tenant','property','Synthetic execution property','unit','TEST-'||n,'start_date',current_date::text,'end_date',(current_date+30)::text,'rent','100','contractRent','100','deposit',deposit::text,'advance','0','cleaningFee','0','rentEntitlement',jsonb_build_object('startDate',current_date::text),'clauses',jsonb_build_array(jsonb_build_object('title','Synthetic clause','text','Local test text only')));
+  -- The source now calculates from the signing lease rather than posted dues.
+  c:=c||jsonb_build_object('rentalTermsVersion',1,'rentAdjustments','[]'::jsonb,'freeMonthApproved',false,
+   'rentEntitlement',jsonb_build_object('version',1,'startDate',current_date::text,'firstPeriodPolicy','manual_first_period','manualFirstPeriodAmount',rent+credit));
+  if credit>0 then
+   credit_id:=gen_random_uuid();
+   insert into private.aqari_tenant_ledger_entries(id,workspace_id,tenant_id,lease_id,direction,kind,amount,occurred_on,reason,source_type,source_id,actor_id)
+    values(credit_id,w,tenant,l,'credit','opening_credit',credit,current_date,'Synthetic credit fixture','execution-projection-test',credit_id::text,actor);
+   insert into private.aqari_credit_allocations(id,workspace_id,credit_entry_id,lease_id,period,amount,actor_id)
+    values(gen_random_uuid(),w,credit_id,l,date_trunc('month',current_date),credit,actor);
+  end if;
   rno:='';
   ledger:=jsonb_build_object('transactionNo','TEST-TX-'||n,'method','نقدي');
   receipt:=jsonb_build_object('transactionNo','TEST-TX-'||n,'record',jsonb_build_array('','','','','','','','','','نقدي'));

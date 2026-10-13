@@ -8,7 +8,7 @@ import * as payroll from '../src/v267/domain/payroll.js';
 import {groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding} from '../src/v267/domain/rental-document-cycle.js';
 
 const file=()=>new File(['%PDF-1.4\nfixture-A'],'signed.pdf',{type:'application/pdf'});
-function fixture(mode){
+function fixture(mode,leaseOverrides={}){
  const all=e=>[e,...e.children.flatMap(all)];
  class Element{
   constructor(tag,text=''){this.tag=tag;this.dataset={};this.style={};this.attributes={};this.children=[];this._text=text;this.value='';this.checked=false;const classes=new Set();this.classList={add:(...names)=>names.forEach(name=>classes.add(name)),contains:name=>classes.has(name)};}
@@ -23,7 +23,7 @@ function fixture(mode){
  const node=(tag,text)=>new Element(tag,text),field=(label,control)=>{const e=node('label',label);e.append(control);return e;};
  const docs=[],objects=new Map(),calls=[],state={corrupt:false,lostReply:false,readDenied:false,readbackMissing:false};
  const employee={id:'employee-1',profile:{name_ar:'موظف اختبار',name_en:'Fixture',phone:'0000',job_ar:'صيانة'},status:'active',property_ids:[],basic:0,allowances:0};
- const lease={id:123,contract_no:'C-123',tenant:'مستأجر اختبار',tenantId:'tenant-1',property:'عقار اختبار',unit:'101',status:'signing'};
+ const lease={id:123,contract_no:'C-123',tenant:'مستأجر اختبار',tenantId:'tenant-1',property:'عقار اختبار',unit:'101',status:'signing',...leaseOverrides};
  const getEmployee=()=>({employee,permissions:{read:true,add:true,edit:false},payroll:[],events:[],documents:state.readbackMissing?[]:structuredClone(docs),audit:[],advance_balance:0});
  function reserve(args,hr){
   const id=hr?args.id:'doc-'+(docs.length+1),existing=docs.find(x=>x.id===id);if(existing)return structuredClone(existing);
@@ -57,12 +57,13 @@ function fixture(mode){
  }};
  const d={el:node('dialog'),body:node('div'),status:node('p'),session,disposers:[],onDispose(fn){this.disposers.push(fn);},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  const api={primary:x=>x,contractMarkup:()=>'<p>Saved fixture contract</p>'};
- const context={groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding,mountContractChangeRequest:()=>{},mountSignatureReview:async()=>{},translateStatic,visibleText,visibleMessage,dateLocale,...payroll,node,field,createDialog:()=>d,createPage:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
+ const archiveOpens=[];d.close=()=>{d.closed=true;};
+ const context={guardPageImport:async()=>({openContractExecutionArchive:options=>{archiveOpens.push(options);return true;}}),groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding,mountContractChangeRequest:()=>{},mountSignatureReview:async()=>{},translateStatic,visibleText,visibleMessage,dateLocale,...payroll,node,field,createDialog:()=>d,createPage:()=>d,createVerifiedUpload,createPrivateUrls:()=>({clear(){},create(){return 'blob:fixture';}}),window:{AQARI_RENTAL_RECORDS:api},crypto,Blob};
  vm.createContext(context);const source=fs.readFileSync('src/v267/pages/'+(mode==='hr'?'employees':'rental-contracts')+'.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');vm.runInContext(source,context);
  const find=(tag,label)=>all(d.body).find(e=>e.tag===tag&&e.textContent===label);
  const uploadForm=()=>all(d.body).find(e=>e.tag==='form'&&all(e).some(c=>c.type==='file'));
  const input=type=>all(uploadForm()).find(e=>e.type===type);
- return {d,state,calls,docs,objects,uploadForm,input,
+ return {d,state,calls,docs,objects,uploadForm,input,find,archiveOpens,
   async start(chosen=file()){if(mode==='hr'){context.openEmployees();await d.pending;const button=find('button','فتح ملف موظف اختبار');assert.ok(button,d.status.textContent);await button.onclick();await d.pending;}else{context.openRentalContracts({propertyId:'property-1',id:123});await d.pending;}assert.ok(uploadForm(),d.status.textContent);input('file').files=[chosen];input('file').onchange();if(mode==='contract')input('checkbox').checked=true;},
   async save(){uploadForm().onsubmit({preventDefault(){}});await d.pending;},
   finalized:()=>calls.filter(c=>c.name==='aqari_finalize_document'||c.name==='aqari_hr'&&c.args.p_action==='finalize'),
@@ -109,4 +110,14 @@ test('signed contract form uploads a valid PDF above 10 MiB with verified readba
  assert.equal(f.reservations().length,1);assert.equal(f.finalized().length,1);
  assert.equal(f.finalized()[0].args.p_size_bytes,chosen.size);
  assert.match(f.d.status.textContent,/حُفظت النسخة الموقعة/);
+});
+
+test('reopened signed contract can open its execution archive without another signature or payment',async()=>{
+ const f=fixture('contract',{status:'signed',source:'v267-cloud'});await f.start();
+ const open=f.find('button','مستندات الإبرام المؤرشفة');assert.ok(open,'saved contract needs a direct execution archive entry');
+ await open.onclick();
+ assert.equal(f.d.closed,true);assert.equal(f.archiveOpens.length,1);
+ const options=f.archiveOpens[0];assert.equal(options.contractRef,'123');assert.equal(options.contractNo,'C-123');
+ assert.equal(options.workspaceId,'w');assert.equal(options.userId,'u');assert.equal(typeof options.onBack,'function');
+ assert.equal(f.reservations().length,0);assert.equal(f.finalized().length,0);assert.equal(f.objects.size,0);
 });

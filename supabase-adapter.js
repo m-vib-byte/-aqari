@@ -593,6 +593,11 @@
   }
 
   async function saveAppState(payload, expectedRevision, expectedAccess){
+    // Only a rejected write response proves that this transaction did not commit.
+    // Never attach this marker to a later authorization/readback failure.
+    const writeError = (error, status) => status === 403 && error?.code === '42501' &&
+      ['MFA_REQUIRED', 'MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message)
+      ? Object.assign(new Error(error.message), error, { status, aqariStateWriteRejected:true }) : error;
     const boundAccess = await bindAccess(expectedAccess, { write:true });
     const current = await loadAppState(boundAccess);
     const expected = Number(expectedRevision);
@@ -600,10 +605,10 @@
     if(boundAccess.role !== 'general_manager'){
       if(!current || !Number.isInteger(expected) || expected !== Number(current.revision)) throw revisionConflict(current?.revision);
       await recheckBoundAccess(boundAccess, { write:true });
-      const { data, error } = await state.client.rpc('aqari_save_state_v267', {
+      const { data, error, status } = await state.client.rpc('aqari_save_state_v267', {
         p_workspace_id:boundAccess.workspaceId, p_payload:payload, p_expected_revision:expected
       });
-      if(error) throw error;
+      if(error) throw writeError(error, status);
       if(!data || data.workspace_id !== boundAccess.workspaceId) throw accessError();
       await recheckBoundAccess(boundAccess, { write:true });
       return data;
@@ -617,14 +622,14 @@
       await recheckBoundAccess(boundAccess, { write:true });
       const client = state.client;
       if(!client) throw accessError();
-      const { data, error } = await client
+      const { data, error, status } = await client
         .from('aqari_app_state')
         .update({ payload })
         .eq('workspace_id', boundAccess.workspaceId)
         .eq('revision', expected)
         .select('workspace_id, payload, revision, updated_by, updated_at')
         .maybeSingle();
-      if(error) throw error;
+      if(error) throw writeError(error, status);
       if(!data) throw revisionConflict(currentRevision);
       if(data.workspace_id !== boundAccess.workspaceId) throw accessError('Saved cloud state workspace does not match authenticated access');
       await recheckBoundAccess(boundAccess, { write:true });
@@ -635,13 +640,13 @@
     await recheckBoundAccess(boundAccess, { write:true });
     const client = state.client;
     if(!client) throw accessError();
-    const { data, error } = await client
+    const { data, error, status } = await client
       .from('aqari_app_state')
       .insert({ workspace_id:boundAccess.workspaceId, payload })
       .select('workspace_id, payload, revision, updated_by, updated_at')
       .single();
     if(error?.code === '23505') throw revisionConflict(null);
-    if(error) throw error;
+    if(error) throw writeError(error, status);
     if(!data || data.workspace_id !== boundAccess.workspaceId) throw accessError('Saved cloud state workspace does not match authenticated access');
     await recheckBoundAccess(boundAccess, { write:true });
     return data;

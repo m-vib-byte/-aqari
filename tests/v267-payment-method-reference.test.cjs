@@ -53,3 +53,19 @@ test('voucher prints the saved movement reference and does not invent one for ol
  const before=JSON.stringify(f.data),printed=f.api.savedVoucher(record);assert.match(printed,/نقدي \/ CASH-SLIP-123/);assert.equal(JSON.stringify(f.data),before);
  delete saved.transactionNo;const historical=JSON.stringify(f.data);assert.match(f.api.savedVoucher(record),/نقدي \/ غير مدون/);assert.doesNotMatch(f.api.savedVoucher(record),/نقدي \/ RECEIPT-TEST/);assert.equal(JSON.stringify(f.data),historical);
 });
+
+test('version-two historical vouchers never substitute cash for an absent transaction reference',()=>{
+ for(const method of ['كي نت','تحويل بنكي','نقدي']){
+  const f=fixture(),record=['OLD-RECEIPT',f.contract.tenant,10,'جزئي',f.contract.property,'2026-09-10','1','','2026-09',method];
+  const saved={id:'OLD-RECEIPT',record,contract:f.contract,brand:{ar:'عقاري'},detailsVersion:2};
+  f.data.rentReceiptsV267.push(saved);
+  f.data.collections.push(record);
+  f.data.rentLedgerV202.push({id:'rent-OLD-RECEIPT',receiptNo:'OLD-RECEIPT',contractId:f.contract.id,contractNo:f.contract.contract_no,property:f.contract.property,tenant:f.contract.tenant,unit:'1',paid:10,due:100,period:'2026-09',paidAt:'2026-09-10',method,status:'جزئي',source:'v202-entry'});
+  const before=JSON.stringify(f.data);
+  const html=f.api.savedVoucher(record);
+  assert.match(html,/<strong>غير مدون<\/strong><small lang="en">Transaction<\/small>/);
+  assert.equal(JSON.stringify(f.data),before);
+  saved.transactionNo='000123';
+  assert.match(f.api.savedVoucher(record),/<strong>000123<\/strong><small lang="en">Transaction<\/small>/);
+ }
+});

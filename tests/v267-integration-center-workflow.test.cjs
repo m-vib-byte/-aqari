@@ -107,3 +107,30 @@ test('pending integration write cannot close or replace the draft even with disc
  f.button('تعديل الإعداد أو إيقافه').onclick();assert.equal(f.control('الغرض').value,'another-purpose');assert.equal(f.prompts.length,0);
  release();await saving;assert.equal(f.shouldWarn(),false);assert.equal(f.canClose(),true);
 });
+
+test('an unconfirmed integration save stays guarded after inputs return to their initial values',async()=>{
+ const f=fixture([initial]);await f.start();f.button('تعديل الإعداد أو إيقافه').onclick();
+ f.control('الوضع').value='disabled';f.state.corruptRead=true;await f.submit();
+ assert.equal(f.state.configs[0].mode,'disabled');
+ f.control('الوضع').value='sandbox';
+ assert.equal(f.shouldWarn(),true);assert.equal(f.canClose(),false);
+ assert.match(f.prompts.at(-1),/لم يتأكد حفظ إعداد التكامل/);
+ f.button('إلغاء التعديل').onclick();assert.equal(f.control('الغرض').value,'rent');
+ assert.equal(f.calls.filter(c=>c.p_action==='save').length,1);
+});
+
+test('explicitly discarding an uncertain integration clears the guard without another write',async()=>{
+ const f=fixture([initial]);await f.start();f.button('تعديل الإعداد أو إيقافه').onclick();
+ f.state.corruptRead=true;await f.submit();
+ assert.equal(f.shouldWarn(),true);assert.equal(f.canClose(),false);
+ f.answer(true);f.button('إلغاء التعديل').onclick();
+ assert.equal(f.shouldWarn(),false);assert.equal(f.control('الغرض').value,'');
+ assert.equal(f.calls.filter(c=>c.p_action==='save').length,1);
+});
+
+test('invalid integration metadata never marks an unchanged form as an uncertain write',async()=>{
+ const f=fixture([{...initial,public_metadata:{api_key:'TEST-ONLY'}}]);await f.start();
+ f.button('تعديل الإعداد أو إيقافه').onclick();await f.submit();
+ assert.equal(f.calls.filter(c=>c.p_action==='save').length,0);
+ assert.equal(f.shouldWarn(),false);assert.equal(f.canClose(),true);
+});

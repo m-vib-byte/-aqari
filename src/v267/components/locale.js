@@ -1,4 +1,5 @@
 import {HR_COST_MESSAGES} from './hr-cost-translations.js';
+import {PROPERTY_LIFECYCLE_MESSAGES} from './property-lifecycle-translations.js';
 import {REPORT_FILTER_MESSAGES} from './report-filter-translations.js';
 import {MESSAGES} from './translations.js';
 import {WORKSPACE_MESSAGES} from './workspace-translations.js';
@@ -11,7 +12,7 @@ import {VISIBLE_MESSAGES_GUIDE} from './visible-translations-guide.js';
 import {PORTAL_MESSAGES} from './portal-translations.js';
 import {SHELL_MESSAGES} from './shell-translations.js';
 import {ARABIC_UI_ALIASES} from './arabic-ui-aliases.js';
-const CATALOGS=[HR_COST_MESSAGES,REPORT_FILTER_MESSAGES,MESSAGES,WORKSPACE_MESSAGES,OPERATIONAL_MESSAGES,VISIBLE_MESSAGES_A,VISIBLE_MESSAGES_A2,VISIBLE_MESSAGES_B,VISIBLE_MESSAGES_B2,VISIBLE_MESSAGES_GUIDE,PORTAL_MESSAGES,SHELL_MESSAGES];
+const CATALOGS=[PROPERTY_LIFECYCLE_MESSAGES,HR_COST_MESSAGES,REPORT_FILTER_MESSAGES,MESSAGES,WORKSPACE_MESSAGES,OPERATIONAL_MESSAGES,VISIBLE_MESSAGES_A,VISIBLE_MESSAGES_A2,VISIBLE_MESSAGES_B,VISIBLE_MESSAGES_B2,VISIBLE_MESSAGES_GUIDE,PORTAL_MESSAGES,SHELL_MESSAGES];
 
 export const LANGUAGES = Object.freeze({ar:'العربية',en:'English',hi:'हिन्दी',ur:'اردو',ml:'മലയാളം'});
 const DATE_LOCALES = {ar:'ar-KW',en:'en-KW',hi:'hi-IN',ur:'ur-PK',ml:'ml-IN'};

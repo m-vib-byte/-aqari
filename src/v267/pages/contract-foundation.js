@@ -52,6 +52,7 @@ export function openContractFoundation(options={}){
  async function readBinding(propertyId,unitId){
   const result=await rpc('aqari_property_contract_context',{p_workspace_id:d.session.bound.workspace,p_property_id:propertyId,p_unit_id:unitId});d.session.check();
   if(result?.workspace_id!==d.session.bound.workspace||result?.user_id!==d.session.bound.user||result?.property?.id!==propertyId||result?.unit?.id!==unitId||result.unit.propertyId!==propertyId)throw Error('تعذر تأكيد ربط الوحدة بالعقار.');
+  if(result.property.lifecycle?.state==='archived')throw Error('العقار مؤرشف. أعد تفعيله قبل إنشاء عقد جديد.');
   return result;
  }
  async function verifyBinding(expectedFloor=''){

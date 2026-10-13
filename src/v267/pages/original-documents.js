@@ -12,6 +12,14 @@ export function openOriginalDocuments(){
  const button=(label,fn)=>{const b=node('button',label);b.type='button';b.onclick=fn;return b;};
  for(const [v,label]of [['property',visibleText('العقار — المالك والمؤجر')],['tenant',visibleText('المستأجر')],['lease',visibleText('العقد والإخلاء')]]){const o=node('option',label);o.value=v;type.append(o);}type.value='property';
  query.maxLength=100;title.maxLength=180;file.type='file';file.accept='application/pdf,image/jpeg,image/png,image/webp';
+ let selectedType=type.value,selectedRecord='',cleanTitle='',uploading=false,unconfirmed=false;
+ const hasDraft=()=>unconfirmed||Boolean(file.files?.length)||title.value!==cleanTitle;
+ function canDiscard(){
+  if(uploading){d.status.textContent=translateStatic('انتظر اكتمال التحقق من رفع المستند قبل المغادرة.');return false;}
+  return !hasDraft()||window.confirm(translateStatic(unconfirmed?'لم يتأكد حفظ المستند. هل تريد المغادرة؟ راجع المستندات المحفوظة قبل رفع نسخة جديدة.':'توجد بيانات مستند غير محفوظة. هل تريد تركها والمتابعة؟'));
+ }
+ function discardDraft(){file.value='';title.value='';cleanTitle='';unconfirmed=false;upload=createOriginalDocumentUpload(d.session);}
+ d.setBeforeClose(canDiscard);d.setBeforeUnload(()=>uploading||hasDraft());
  function categories(){category.replaceChildren();for(const [value,s]of Object.entries(DOCUMENT_CATEGORIES))if(s.entities.includes(type.value)){const o=node('option',s.label);o.value=value;category.append(o);}}
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,{p_workspace_id:d.session.bound.workspace,...args}));
  let page=0;
@@ -20,11 +28,15 @@ export function openOriginalDocuments(){
   for(const [i,r] of rows.entries())if(r.status==='uploaded')mountDocumentHandovers(d,list.children[i],r.id);
   if(!rows.length)list.append(node('p',translateStatic('لا توجد مستندات في هذه الصفحة.')));previous.disabled=page===0;next.disabled=rows.length<20;
  }
- async function search(){records.replaceChildren();const o=node('option',translateStatic('اختر السجل'));o.value='';records.append(o);const rows=await rpc('aqari_document_entities',{p_type:type.value,p_query:query.value.trim()});for(const r of rows){const o=node('option',r.title);o.value=r.entity_ref;records.append(o);}page=0;await load();}
- type.onchange=()=>d.run(async()=>{categories();await search();});records.onchange=()=>d.run(async()=>{page=0;await load();});
+ async function search(){selectedRecord='';records.replaceChildren();const o=node('option',translateStatic('اختر السجل'));o.value='';records.append(o);const rows=await rpc('aqari_document_entities',{p_type:type.value,p_query:query.value.trim()});for(const r of rows){const o=node('option',r.title);o.value=r.entity_ref;records.append(o);}page=0;await load();}
+ type.onchange=()=>{if(type.value===selectedType)return;if(!canDiscard()){type.value=selectedType;return;}discardDraft();selectedType=type.value;return d.run(async()=>{categories();await search();});};
+ records.onchange=()=>{if(records.value===selectedRecord)return;if(!canDiscard()){records.value=selectedRecord;return;}discardDraft();selectedRecord=records.value;return d.run(async()=>{page=0;await load();});};
+ function searchRecords(){if(!canDiscard())return;discardDraft();return d.run(search);}
  const previous=button(visibleText('المستندات الأحدث'),()=>d.run(async()=>{if(page>0)page--;await load();})),next=button(visibleText('المستندات الأقدم'),()=>d.run(async()=>{page++;await load();}));
- d.body.append(node('p',translateStatic('يرتبط كل ملف بالسجل المختار، وتحفظ بايتات الملف الأصلي دون ضغط أو استبدال النسخ السابقة. رفع مستند لا يثبت صحة توقيعه أو سداد قيمته تلقائياً.')),field(translateStatic('نوع السجل'),type),field(translateStatic('بحث بالاسم أو رقم العقد'),query),button(visibleText('بحث السجلات'),()=>d.run(search)),field(translateStatic('السجل المرتبط'),records),field(translateStatic('تصنيف المستند'),category),field(translateStatic('عنوان المستند'),title),field(translateStatic('الملف الأصلي — صورة أو PDF'),file),button(visibleText('رفع الملف الأصلي والتحقق منه'),()=>d.run(async()=>{
-  if(!file.files?.[0])throw Error('اختر الملف الأصلي.');const saved=await upload(file.files[0],{type:type.value,ref:records.value,category:category.value,title:title.value});d.session.check();if(!saved?.id)throw Error('لم يتأكد حفظ المستند.');file.value='';upload=createOriginalDocumentUpload(d.session);await load();d.status.textContent=translateStatic('تم حفظ الأصل والتحقق من الملف وتصنيفه وربطه بالسجل.');
+ d.body.append(node('p',translateStatic('يرتبط كل ملف بالسجل المختار، وتحفظ بايتات الملف الأصلي دون ضغط أو استبدال النسخ السابقة. رفع مستند لا يثبت صحة توقيعه أو سداد قيمته تلقائياً.')),field(translateStatic('نوع السجل'),type),field(translateStatic('بحث بالاسم أو رقم العقد'),query),button(visibleText('بحث السجلات'),searchRecords),field(translateStatic('السجل المرتبط'),records),field(translateStatic('تصنيف المستند'),category),field(translateStatic('عنوان المستند'),title),field(translateStatic('الملف الأصلي — صورة أو PDF'),file),button(visibleText('رفع الملف الأصلي والتحقق منه'),()=>d.run(async()=>{
+  if(!file.files?.[0])throw Error('اختر الملف الأصلي.');uploading=true;unconfirmed=true;
+  try{const saved=await upload(file.files[0],{type:type.value,ref:records.value,category:category.value,title:title.value});d.session.check();if(!saved?.id)throw Error('لم يتأكد حفظ المستند.');file.value='';cleanTitle=title.value;unconfirmed=false;upload=createOriginalDocumentUpload(d.session);await load();d.status.textContent=translateStatic('تم حفظ الأصل والتحقق من الملف وتصنيفه وربطه بالسجل.');}
+  finally{uploading=false;}
  })),button(visibleText('تحديث المستندات'),()=>d.run(load)),list,previous,next);
  d.onDispose(()=>{file.value='';title.value='';query.value='';records.replaceChildren();list.replaceChildren();upload=null;});
  categories();return d.run(async()=>{upload=createOriginalDocumentUpload(d.session);await search();});

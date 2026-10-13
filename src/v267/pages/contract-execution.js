@@ -1,3 +1,4 @@
+import {prepareContractExecutionPackage,assertContractExecutionRenderer} from '../components/contract-execution-package.js';
 import {assertContractExecutionService} from '../components/contract-execution-readiness.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -8,6 +9,16 @@ const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value
 const money=value=>Number(value||0).toFixed(3)+translateStatic(' د.ك');
 function select(rows,value=''){const el=node('select');for(const [key,label]of rows){const option=node('option',label);option.value=key;el.append(option);}el.value=value??'';return el;}
 function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+export const isExecutionMfaChallenge=error=>error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message);
+
+// Validate editable payment input before any receipt allocation or package work.
+export function assertExecutionPaymentInput({total,method,transactionNo,zeroReason}){
+ const reference=String(transactionNo??'').normalize('NFKC').trim();
+ if(total>0&&(!executionMethods.some(([code])=>code===method)||reference.length<3||reference.length>150))throw Error('طريقة الدفع ورقم العملية مطلوبان.');
+ const reason=String(zeroReason??'').normalize('NFKC').trim();
+ if(total===0&&(method!=='none'||reference||reason.length<3||reason.length>500))throw Error('وثّق سبب عدم وجود دفعة ولا تنشئ وصلاً وهميًا.');
+ return reference;
+}
 
 export async function readContractExecutionPdf(session,path,body){
  session.check();
@@ -39,7 +50,7 @@ export function openContractExecution(contractId,{onDone}={}){
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
  const rpc=(name,args)=>d.session.request(d.session.client.rpc(name,args));
  const urls=new Set();d.onDispose(()=>{for(const url of urls)URL.revokeObjectURL(url);urls.clear();});
- let currentContract=null,currentProfile=null,currentDue=null;
+ let currentContract=null,currentProfile=null,currentDue=null,settlementSent=false;
 
  async function load(){
   const cloud=await window.AQARI_SUPABASE.loadAppState(scope());d.session.check();
@@ -47,20 +58,25 @@ export function openContractExecution(contractId,{onDone}={}){
   if(!contract)throw Error('العقد غير موجود.');if(contract.status!=='signing')throw Error('يجب أن يكون العقد في حالة بانتظار التوقيع قبل اعتماد الإبرام.');
   if(d.session.bound.role!=='general_manager')throw Error('اعتماد الإبرام النهائي متاح للمدير العام فقط.');
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
-  currentContract=contract;currentProfile=profile;currentDue=executionDue(api,contract);return {cloud,db};
+  currentContract=copy(contract);currentProfile=copy(profile);currentDue=copy(executionDue(api,contract));return {cloud,db};
  }
 
  const pdf=(path,body)=>readContractExecutionPdf(d.session,path,body);
  function downloadLink(label,blob,name){d.session.check();const url=URL.createObjectURL(blob);urls.add(url);const a=node('a',label);a.href=url;a.download=name;a.rel='noopener';a.className='is-primary';return a;}
 
  async function finalize({method,transactionNo,onDate,zeroReason}){
+  transactionNo=assertExecutionPaymentInput({total:currentDue.total,method,transactionNo,zeroReason});
   const bound=scope(),cloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
   const profile=(db.tenantProfilesV267||[]).find(row=>row.id===contract.tenantId);if(!profile)throw Error('ملف المستأجر غير موجود.');
+  if(!same(contract,currentContract)||!same(profile,currentProfile))throw Error('تغيرت بيانات العقد أو المستأجر بعد المراجعة. أغلق النافذة وافتحها مجددًا لمراجعة البيانات قبل الاعتماد.');
   await assertContractExecutionService(d.session,contractId);d.session.check();
-  const due=executionDue(api,contract),signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
-  const ids={settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
+  await assertContractExecutionRenderer(d.session);d.session.check();
+  const due=executionDue(api,contract);
+  if(!same(due,currentDue))throw Error('تغير المبلغ المستحق بعد المراجعة. أغلق النافذة وافتحها مجددًا لمراجعة المبلغ قبل الاعتماد.');
+  const signed={...contract,status:'signed',changeReason:'اعتماد تسوية الإبرام وإتمام توقيع العقد'};
+  const ids={package:crypto.randomUUID(),settlement:crypto.randomUUID(),document:crypto.randomUUID(),version:crypto.randomUUID(),event:crypto.randomUUID()};
   let receiptNo='',contractReceiptSequence=null;
   if(due.rent>0){
    const reservation=await rpc('aqari_reserve_rent_receipt_serial',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(contract.id),p_operation_ref:ids.settlement,p_year:Number(api.kuwaitDate().slice(0,4))});d.session.check();
@@ -70,6 +86,11 @@ export function openContractExecution(contractId,{onDone}={}){
   let receiptArtifacts=null;
   if(due.rent>0)receiptArtifacts=rentReceiptArtifacts({contract:signed,profile,due,receiptNo,contractReceiptSequence,onDate,method,transactionNo});
   const manifest=executionManifest({contract:signed,due,onDate,method,transactionNo,receiptNo,contractReceiptSequence,zeroReason,ids});
+  manifest.executionPackageId=await prepareContractExecutionPackage(d.session,{
+   workspaceId:d.session.bound.workspace,contractRef:String(contractId),settlementId:ids.settlement,
+   documentId:ids.document,packageId:ids.package,preparedAt:new Date().toISOString(),
+   receiptNo,receiptSequence:contractReceiptSequence,receiptArtifacts
+  });d.session.check();
   const index=(db.contractsV202||[]).findIndex(row=>String(row.id)===String(contractId));db.contractsV202[index]=signed;
   db.contractExecutionSettlementsV267=(db.contractExecutionSettlementsV267||[]).concat([manifest]);
   if(receiptArtifacts){db.collections=(db.collections||[]).concat([receiptArtifacts.record]);db.rentLedgerV202=(db.rentLedgerV202||[]).concat([receiptArtifacts.ledger]);db.rentReceiptsV267=(db.rentReceiptsV267||[]).concat([receiptArtifacts.receipt]);}
@@ -77,7 +98,10 @@ export function openContractExecution(contractId,{onDone}={}){
   const directoryRow={...(directoryIndex>=0?directory[directoryIndex]:{}),property:signed.property,unit:signed.unit,...api.directoryFields(signed,profile),nationalityEn:profile.nationalityEn||'',contractNo:signed.contract_no,source:'v267-cloud',verified:true,tenantProfileId:profile.id};
   if(directoryIndex>=0)directory[directoryIndex]=directoryRow;else directory.push(directoryRow);db.tenantDirectoryV202=directory;
   db.audit=(db.audit||[]).concat([[d.session.bound.user,'اعتماد تسوية إبرام العقد',signed.contract_no,new Date().toISOString()]]);
-  await window.AQARI_SUPABASE.saveAppState(payload,Number(cloud.revision),bound);d.session.check();
+  settlementSent=true;
+  try{await window.AQARI_SUPABASE.saveAppState(payload,Number(cloud.revision),bound);}
+  catch(error){if(isExecutionMfaChallenge(error)&&error.aqariStateWriteRejected===true)settlementSent=false;throw error;}
+  d.session.check();
 
   const verified=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();const confirmed=api.primary(verified.payload);
   const confirmedContract=(confirmed.contractsV202||[]).find(row=>String(row.id)===String(contractId)),confirmedManifest=(confirmed.contractExecutionSettlementsV267||[]).find(row=>row.id===manifest.id);
@@ -85,7 +109,7 @@ export function openContractExecution(contractId,{onDone}={}){
   if(receiptArtifacts&&(!(confirmed.rentLedgerV202||[]).some(row=>same(row,receiptArtifacts.ledger))||!(confirmed.rentReceiptsV267||[]).some(row=>same(row,receiptArtifacts.receipt))))throw Error('العقد محفوظ لكن لم تتأكد قراءة الوصل. لا تعِد الدفع.');
 
   const officialArtifacts=await rpc('aqari_contract_execution_artifacts',{p_workspace_id:d.session.bound.workspace,p_contract_ref:String(contractId)});d.session.check();
-  if(officialArtifacts?.settlement_id!==manifest.id||officialArtifacts?.contract_no!==signed.contract_no||!officialArtifacts?.tenant_document_id||!officialArtifacts?.owner_document_id||String(officialArtifacts?.rent_receipt_no||'')!==receiptNo||(receiptNo&&Number(officialArtifacts?.contract_receipt_sequence)!==contractReceiptSequence))throw Error('لم تتأكد إعادة قراءة نسختي العقد الرسميتين وربط الوصل.');
+  if(officialArtifacts?.settlement_id!==manifest.id||officialArtifacts?.contract_no!==signed.contract_no||!officialArtifacts?.tenant_document_id||!officialArtifacts?.owner_document_id||officialArtifacts.tenant_document_id===officialArtifacts.owner_document_id||String(officialArtifacts?.rent_receipt_no||'')!==receiptNo||(receiptNo&&Number(officialArtifacts?.contract_receipt_sequence)!==contractReceiptSequence))throw Error('لم تتأكد إعادة قراءة نسختي العقد الرسميتين وربط الوصل.');
 
   const lease=await d.session.request(d.session.client.from('aqari_leases').select('id,external_ref,contract_no,status').eq('workspace_id',d.session.bound.workspace).eq('external_ref',String(contractId)).single());d.session.check();
   if(lease?.contract_no!==signed.contract_no||lease?.status!=='signed')throw Error('لم تتأكد حالة العقد التشغيلية بعد الإبرام.');
@@ -100,19 +124,31 @@ export function openContractExecution(contractId,{onDone}={}){
   const summary=node('section');summary.append(node('h3',translateStatic('المستحق عند الإبرام')),node('p',translateStatic('العقد: ')+currentContract.contract_no),node('p',translateStatic('المستأجر: ')+currentProfile.nameAr+' / '+currentProfile.nameEn),node('p',translateStatic('العقار / الوحدة: ')+currentContract.property+' / '+currentContract.unit),node('p',translateStatic('إيجار أول فترة: ')+money(currentDue.rent)),node('p',translateStatic('التأمين: ')+money(currentDue.deposit)),node('p',translateStatic('العربون: ')+money(currentDue.advance)),node('p',translateStatic('الرسوم: ')+money(currentDue.fees)),node('strong',translateStatic('الإجمالي: ')+money(currentDue.total)));d.body.append(summary);
   const form=node('form'),onDate=input('date',api.kuwaitDate()),method=currentDue.total>0?select([['',translateStatic('اختر طريقة الدفع')],...executionMethods.map(([key,label])=>[key,translateStatic(label)])]):select([['none',translateStatic('لا توجد دفعة')]], 'none'),transaction=input('text'),zeroReason=node('textarea'),confirm=input('checkbox'),submit=node('button',translateStatic('اعتماد الإبرام وإصدار المستندات'));
   const canonicalZeroReason=currentDue.breakdown.freeMonth?'لا توجد دفعة عند الإبرام بسبب الفترة المجانية المعتمدة.':'صافي المستحق عند الإبرام يساوي صفراً حسب شروط العقد المعتمدة.';
-  onDate.required=true;method.required=true;transaction.maxLength=150;zeroReason.maxLength=500;confirm.type='checkbox';confirm.required=true;submit.type='submit';
+  onDate.required=true;method.required=true;transaction.minLength=3;transaction.maxLength=150;zeroReason.maxLength=500;confirm.type='checkbox';confirm.required=true;submit.type='submit';
   if(currentDue.total>0){transaction.required=true;form.append(field(translateStatic('طريقة الدفع'),method),field(translateStatic('رقم العملية / المرجع — إلزامي لكل طرق الدفع'),transaction));}
   else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=translateStatic(canonicalZeroReason);form.append(field(translateStatic('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي'),zeroReason));}
   form.append(field(translateStatic('تاريخ العملية'),onDate),field(translateStatic('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد'),confirm),submit);d.body.append(form);
-  form.onsubmit=event=>{event.preventDefault();if(!form.reportValidity())return;d.run(async()=>{
+  form.onsubmit=event=>{event.preventDefault();if(submit.disabled||!form.reportValidity())return;d.run(async()=>{
+   assertExecutionPaymentInput({total:currentDue.total,method:method.value,transactionNo:transaction.value,zeroReason:zeroReason.value});
    submit.disabled=true;d.status.textContent=translateStatic('جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…');
-   const result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});
+   let result;
+   try{result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});}
+   catch(error){
+    // Only a definite rejection before settlement permits a manual retry.
+    // Timeouts and post-save read failures remain locked until verified.
+    if(isExecutionMfaChallenge(error)){
+     try{d.session.check();}catch{d.close();throw error;}
+     if(!settlementSent)submit.disabled=false;
+     else throw Error('أُرسلت تسوية الإبرام. أكمل التحقق الثنائي ثم راجع حالة العقد والمستندات؛ لا تعِد الاعتماد أو الدفع قبل التحقق.');
+    }
+    throw error;
+   }
    d.body.replaceChildren(node('h3',translateStatic('تم إبرام العقد وتأكيد السجل')),node('p',translateStatic('العقد ')+result.contract.contract_no+translateStatic(' أصبح موقّعًا، وتسوية الإبرام محفوظة وغير قابلة للحذف.')));
    if(result.receiptNo)d.body.append(node('p',translateStatic('وصل الإيجار الرسمي: ')+result.receiptNo+translateStatic(' · تسلسله داخل هذا العقد: ')+result.contractReceiptSequence));
    const documentBox=node('section');documentBox.append(node('h3',translateStatic('المستندات الرسمية')));d.body.append(documentBox);let documentErrors=[];
-   try{const tenantPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.tenant_document_id,version:1});documentBox.append(downloadLink(translateStatic('نسخة المستأجر — PDF رسمي مؤرشف'),tenantPdf.blob,'contract-'+result.contract.contract_no+'-tenant.pdf'));}catch(error){d.session.check();documentErrors.push(translateStatic('نسخة المستأجر PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المستأجر، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
-   try{const ownerPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.owner_document_id,version:1});documentBox.append(downloadLink(translateStatic('نسخة المالك / الإدارة — PDF رسمي مؤرشف'),ownerPdf.blob,'contract-'+result.contract.contract_no+'-owner.pdf'));}catch(error){d.session.check();documentErrors.push(translateStatic('نسخة المالك PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المالك / الإدارة، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
-   if(result.receiptNo){try{const receiptPdf=await pdf('/api/rent-receipt',{workspaceId:d.session.bound.workspace,receiptNo:result.receiptNo});documentBox.append(downloadLink(translateStatic('وصل الإيجار الرسمي رقم ')+result.receiptNo,receiptPdf.blob,'rent-receipt-'+result.receiptNo+'.pdf'));}catch(error){d.session.check();documentErrors.push(translateStatic('وصل الإيجار PDF'));documentBox.append(node('p',translateStatic('وصل الإيجار محفوظ ومربوط بالحركة، لكن لم يتأكد تصدير PDF في هذه الجلسة.')));}}
+   try{const tenantPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.tenant_document_id,version:1});documentBox.append(downloadLink(translateStatic('نسخة المستأجر — PDF رسمي مؤرشف'),tenantPdf.blob,'contract-'+result.contract.contract_no+'-tenant.pdf'));}catch(error){d.session.check();if([401,403].includes(error?.status))throw error;documentErrors.push(translateStatic('نسخة المستأجر PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المستأجر، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
+   try{const ownerPdf=await pdf('/api/official-document',{workspaceId:d.session.bound.workspace,documentId:result.officialArtifacts.owner_document_id,version:1});documentBox.append(downloadLink(translateStatic('نسخة المالك / الإدارة — PDF رسمي مؤرشف'),ownerPdf.blob,'contract-'+result.contract.contract_no+'-owner.pdf'));}catch(error){d.session.check();if([401,403].includes(error?.status))throw error;documentErrors.push(translateStatic('نسخة المالك PDF'));documentBox.append(node('p',translateStatic('تم إنشاء سجل نسخة المالك / الإدارة، لكن لم يتأكد أرشيف PDF في هذه الجلسة.')));}
+   if(result.receiptNo){try{const receiptPdf=await pdf('/api/rent-receipt',{workspaceId:d.session.bound.workspace,receiptNo:result.receiptNo});documentBox.append(downloadLink(translateStatic('وصل الإيجار الرسمي رقم ')+result.receiptNo,receiptPdf.blob,'rent-receipt-'+result.receiptNo+'.pdf'));}catch(error){d.session.check();if([401,403].includes(error?.status))throw error;documentErrors.push(translateStatic('وصل الإيجار PDF'));documentBox.append(node('p',translateStatic('وصل الإيجار محفوظ ومربوط بالحركة، لكن لم يتأكد تصدير PDF في هذه الجلسة.')));}}
    else documentBox.append(node('p',translateStatic('لا يوجد وصل إيجار لأن مبلغ الإيجار عند الإبرام صفر؛ لم يُنشأ أي وصل أو دفعة وهمية.')));
    d.status.textContent=documentErrors.length?translateStatic('تم الإبرام وتحديث الاستحقاقات، وبقي التحقق المستضاف من: ')+documentErrors.join(translateStatic(' و ')):translateStatic('تم الإبرام، وتأكد تحديث الاستحقاقات ونسختا العقد الرسميتان والوصل عند وجوده.');
    const done=node('button',translateStatic('العودة إلى العقد'));done.type='button';done.onclick=()=>{d.close();if(typeof onDone==='function')onDone(result.contract);};d.body.append(done);

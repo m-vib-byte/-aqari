@@ -1,7 +1,25 @@
 import unittest
+from io import BytesIO
+from pypdf import PdfReader
 from lib.contract_template_pdf import render_contract_template, render_document_template
 
 class ContractTemplatePdfTest(unittest.TestCase):
+    def test_clause_heading_stays_with_first_body_line_at_page_boundary(self):
+        for filler_count in (35, 36):
+            with self.subTest(filler_count=filler_count):
+                template = self.template()
+                template.update(title='Pagination test', kind_label='Test', fields=[])
+                template['clauses'] = [
+                    {'title': 'Intro', 'text': '\n'.join(['Filler line'] * filler_count)},
+                    {'title': 'CLAUSE HEADING', 'text': 'CLAUSE BODY first line'},
+                ]
+                pages = [page.extract_text() for page in PdfReader(BytesIO(render_contract_template(template))).pages]
+                heading_page = next(index for index, text in enumerate(pages) if 'CLAUSE HEADING' in text)
+                body_page = next(index for index, text in enumerate(pages) if 'CLAUSE BODY first line' in text)
+                self.assertEqual(heading_page, body_page)
+                self.assertEqual(sum(text.count('CLAUSE HEADING') for text in pages), 1)
+                self.assertEqual(sum(text.count('CLAUSE BODY first line') for text in pages), 1)
+
     def template(self):
         return {'id':'76610000-0000-4000-8000-000000000099','revision':1,'kind':'custom-shop','kind_label':'عقد محل خاص','title':'نموذج محل للاختبار','fields':[{'key':'tenant_name','label':'اسم المستأجر','type':'text','required':True}],'clauses':[{'title':'البند الأول','text':'يقر {{tenant_name}} بأن هذا نص اختبار.'}]}
 

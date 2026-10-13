@@ -7,6 +7,10 @@ export function currentScope() {
 }
 const messages={PARTNER_STAFF_CONFLICT:'لا يمكن ربط حساب موظف عام بصلاحية شريك محدودة. استخدم بريداً مستقلاً للشريك.',INVALID_PARTNER_ACCESS:'راجع البريد والاسم والعقار وسبب التعديل.',SOURCE_FIELDS_PENDING:'الاسم أو تواريخ العقد أو بيانات المصدر ما زالت معلقة.',VERIFIED_LEASE_DOCUMENT_REQUIRED:'يلزم عقد موقّع محفوظ ومربوط بالعقد الصحيح.',DOCUMENTED_DEPOSIT_REQUIRED:'أدخل التأمين المثبت بالمستند دون قيمة افتراضية.',APPROVED_DOCUMENT_REQUIRED:'تأكيد التوقيع يتطلب نفس المستند والتأمين المعتمدين.',INVALID_REVIEW_TRANSITION:'تغيرت مرحلة العقد؛ حدّث السجلات.',REVIEW_DETAILS_REQUIRED:'وثّق مرجع المراجعة وسبب الاعتماد.',REVISION_CONFLICT:'تغيرت الإعدادات. حدّث السجلات قبل الحفظ.',ACCESS_DENIED:'لا تملك صلاحية هذه العملية.',SECTION_WRITE_DENIED:'القسم متوقف أو صلاحية الحفظ غير متاحة.',INVALID_LABEL:'راجع المسمى؛ النص يجب ألا يحتوي رموز HTML.',DOCUMENT_ENTITY_NOT_FOUND:'احفظ السجل الصحيح أولاً قبل رفع المستند.',STORED_FILE_NOT_CONFIRMED:'لم يتأكد الملف في التخزين. حدّث السجلات قبل إعادة الرفع.',DOCUMENT_IMMUTABLE:'النسخة الأصلية محفوظة ولا يمكن استبدالها.'};
 Object.assign(messages,{
+ UNIT_NOT_READY:'الوحدة غير جاهزة للتأجير. افتح جاهزية الوحدات واحفظ معاينة موثقة قبل تثبيت العقد.',
+ PAYMENT_CYCLE_REQUIRED:'اختر دورية السداد قبل تثبيت العقد.',
+ MFA_REQUIRED:'أكمل التحقق الثنائي ثم أعد محاولة الحفظ. بقيت البيانات المدخلة في هذه النافذة.',
+ MFA_RECENT_REAUTH_REQUIRED:'جدّد التحقق الثنائي ثم أعد محاولة الحفظ؛ يلزم تحقق خلال آخر 15 دقيقة. بقيت البيانات المدخلة في هذه النافذة.',
  INVALID_REPORT_FILTERS:'راجع العقار والفترة المحددة قبل حفظ فلاتر التقرير.',
  REPORT_FILTERS_CHANGED:'تغيرت فلاتر التقرير من جلسة أخرى؛ أعد فتح التقرير للتحقق من الاختيارات المحفوظة.',
  HR_COST_ALLOCATION_REQUIRED:'أكمل توزيع تكلفة الموظفين على عقاراتهم بنسبة إجمالية 100% قبل عرض الكشف أو اعتماد الشهر.',
@@ -22,6 +26,9 @@ Object.assign(messages,{
  HANDOVER_NOT_FOUND:'تعذر العثور على قيد التسليم في المستند المحدد.',
  HANDOVER_IMMUTABLE:'قيد التسليم محفوظ؛ استخدم الإلغاء الموثق ثم أضف قيدًا صحيحًا.',
  UNIT_NOT_READY:'الوحدة غير جاهزة للتأجير. سجّل معاينة معتمدة في جاهزية الوحدات قبل إنشاء العقد أو تمديده.',
+ PROPERTY_ARCHIVED_NEW_ACTIVITY_FORBIDDEN:'العقار مؤرشف. أعد تفعيله قبل إنشاء وحدة أو عقد جديد.',
+ PROPERTY_LIFECYCLE_REVISION_CONFLICT:'تغيرت حالة العقار. حدّث الحالة قبل إعادة المحاولة.',
+ PROPERTY_LIFECYCLE_NO_CHANGE:'الحالة المطلوبة محفوظة مسبقًا. حدّث الحالة.',
  INVALID_READINESS_RECORD:'أكمل بيانات معاينة الوحدة بالقيم الصحيحة.',
  INVALID_READINESS_DATE:'لا يمكن تسجيل معاينة بتاريخ مستقبلي.',
  READINESS_IDEMPOTENCY_CONFLICT:'معرف المعاينة محفوظ بمحتوى مختلف. حدّث السجل وتحقق قبل إعادة المحاولة.',

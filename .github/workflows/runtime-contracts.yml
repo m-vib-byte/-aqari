@@ -72,6 +72,12 @@ jobs:
           done
           echo 'AQARI_V266_INVENTORY_END'
       - run: node scripts/test-release-regressions.mjs tests/runtime-contracts.test.cjs tests/operational-readiness.test.cjs tests/v202-property-os.test.cjs tests/v208-portfolio-collections.test.cjs tests/auth-data-gate.test.cjs tests/login-navigation.test.cjs tests/v266-login-bootstrap.test.cjs tests/v209-behavior.test.cjs tests/v209-global-search.test.cjs tests/v209-loader.test.cjs tests/v210-daily-command-center.test.cjs tests/v211-follow-up-center.test.cjs tests/v211-follow-up-cloud.test.cjs tests/v211-follow-up-cloud-integration.test.cjs tests/v266-scheduler-control.test.cjs tests/v267-auth-repair.test.cjs
+      - name: Shared tenant phone warning and identity regression
+        run: node --test tests/v267-migration-preflight.test.cjs tests/v267-rental-records.test.cjs tests/v267-tenant-attachment-form.test.cjs tests/imported-tenant-editor.test.mjs
+      - name: Isolated shared-phone SQL acceptance
+        run: |
+          npm ci --ignore-scripts --prefix staging-database/local-test
+          npm run test:shared-phone --prefix staging-database/local-test
       - name: Session activity survives intercepted navigation and preserves idle locking
         run: node --test tests/v267-session-activity-routing.test.cjs tests/v267-session-idle-restore.test.cjs
       - name: Read-only quality scan verifies contract links after complete scoped reads
@@ -82,6 +88,8 @@ jobs:
         run: node --test tests/v267-unit-search.test.mjs tests/v267-record-search.test.mjs tests/v209-property-search.test.cjs tests/v209-behavior.test.cjs
       - name: Service setup errors preserve authorization and allow explicit recovery
         run: node --test tests/v267-service-readiness.test.mjs tests/v267-owner-settings-recovery.test.mjs tests/v267-partner-access-retry.test.mjs tests/v267-maintenance-plan-draft.test.mjs tests/v267-contract-admin-recovery.test.mjs
+      - name: Contract execution package and verified property save
+        run: node --test tests/v267-contract-execution-package.test.mjs tests/v267-contract-execution-readiness.test.mjs tests/v267-contract-execution-pdf.test.mjs tests/v267-property-completeness.test.mjs
       - name: Stage C Storage export and isolated restore runtime regression
         run: node --test tests/v267-stage-c-storage-backup.test.mjs
       - name: Document scanner upload and multipage PDF
@@ -131,6 +139,7 @@ jobs:
           node staging-database/local-test/run-pdf-contract-bindings.mjs
           node staging-database/local-test/run-contract-execution-text.mjs
           node staging-database/local-test/run-contract-execution-projection.mjs
+          node staging-database/local-test/run-contract-execution-current-production.mjs
           node staging-database/local-test/run-property-contract-category.mjs
           npm run test:completion --prefix staging-database/local-test
           npm run test:completion:contracts --prefix staging-database/local-test
@@ -141,6 +150,7 @@ jobs:
         run: |
           python -m pip install -r requirements.txt pypdf==6.10.0
           python -m unittest discover -s tests -p pdf_field_template_test.py -v
+          python -m unittest discover -s tests -p contract_execution_package_test.py -v
           python -m unittest discover -s tests -p rent_pdf_test.py -v
           python -m unittest discover -s tests -p property_statement_test.py -v
           python -m unittest discover -s tests -p official_document_pdf_test.py -v

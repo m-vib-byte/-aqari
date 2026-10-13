@@ -16,7 +16,7 @@ function fixture(options={}) {
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);}
  }
  const body=new Element('body'),calls=[],scope={user:'test-user',workspace:'test-workspace',role:'general_manager'};
- const record={workspace_id:scope.workspace,property:{id:'property-a',name:'عقار الاختبار'},permissions:{collections:false,finance:false,employees:false,...options.permissions},contracts:options.contracts??[{id:'lease-a'},{id:'lease-b'}],units:[]};
+ const record={workspace_id:scope.workspace,property:{id:'property-a',name:'عقار الاختبار',lifecycle:options.lifecycle},permissions:{collections:false,finance:false,employees:false,...options.permissions},contracts:options.contracts??[{id:'lease-a'},{id:'lease-b'}],units:options.units??[]};
  const row={id:'request-a',request_no:21,lease_id:'lease-a',description:'صيانة الاختبار',status:'open',cost:12,category_code:'plumbing'};
  let maintenanceReads=0;
  let nextReadError=null;
@@ -66,6 +66,7 @@ function fixture(options={}) {
   rpcs:()=>calls.filter(c=>c.kind==='rpc'),
   button:label=>descendants(dialog).find(el=>el.tagName==='button'&&el.textContent===label),
   failNextRead(error){nextReadError=error;},
+  archive(){record.property.lifecycle={state:'archived',revision:1};},
   async settled(){for(let i=0;i<10&&dialog.attrs['aria-busy']==='true';i++)await new Promise(setImmediate);assert.equal(dialog.attrs['aria-busy'],'false');},
   async cleanup(){for(const el of [...body.children])if(el.tagName==='dialog')await el.children[0].onclick();Object.assign(globalThis,original);}
  };
@@ -172,4 +173,17 @@ test('production ledger rejects a different property response',async()=>{
 test('blank source tenant name is labelled without inventing a person or changing its contract',async()=>{
  const f=fixture({releaseStage:'production',ledger:{available:true,workspace_id:'test-workspace',property_id:'property-a',permissions:{contracts:true,tenants:true,collections:true},tenants:[{nameAr:'  ',fullName:'',contracts:[{contractNo:'MISSING-NAME-01'}]}],rentDues:[]}});
  try{await f.settled();assert.match(f.text(),/الاسم غير مكتمل بالمصدر/);assert.match(f.text(),/MISSING-NAME-01/);}finally{await f.cleanup();}
+});
+
+test('archived property keeps its history visible and hides new unit and contract controls',async()=>{
+ const f=fixture({lifecycle:{state:'archived',revision:1},units:[{id:'unit-a',unitNo:'1'}]});try{
+  await f.settled();assert.match(f.text(),/العقار مؤرشف/);assert.ok(f.button('أرشفة العقار وإعادة تفعيله'));
+  assert.equal(f.button('+ إضافة وحدة وربط الدور'),undefined);assert.equal(f.button('إبرام عقد من هذه الوحدة'),undefined);assert.ok(f.button('تعديل بيانات الوحدة'));
+ }finally{await f.cleanup();}
+});
+test('a property archived after opening cannot start the stale add-unit form',async()=>{
+ const f=fixture();try{
+  await f.settled();const add=f.button('+ إضافة وحدة وربط الدور');assert.ok(add);f.archive();await add.onclick();assert.match(f.status(),/العقار مؤرشف/);
+  assert.equal(f.calls.some(x=>x.name==='aqari_unit_readiness_register'),false);
+ }finally{await f.cleanup();}
 });

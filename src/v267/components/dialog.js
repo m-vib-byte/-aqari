@@ -48,6 +48,7 @@ export function createDialog(title,{localized=true,page=false}={}){
   try{session.check();await session.connect();await task();if(!closed&&status.textContent===loadingMessage)status.textContent='';}
   catch(e){if(!closed){
    if(e?.status===403&&e?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(e?.message)){
+    pendingNavigation=null;
     // A step-up challenge is not a logout or revoked read access.
     // Keep the bound draft without assuming earlier writes were rejected.
     try{session.check();const message='يلزم تأكيد حديث بالتحقق الثنائي. افتح الأمان والتوثيق الثنائي في صفحة أخرى، ثم عد. بقيت بياناتك هنا؛ راجع حالة الحفظ قبل إعادة المحاولة.';status.textContent=localized?t(message):message;}catch{closeDialog();}

@@ -186,3 +186,12 @@ test('foundation cache synchronization cannot clear an uncertain write lock',asy
  assert.equal(store.adoptConfirmed(['contractsV202'],{contractsV202:[]},{contractsV202:[{id:'new'}]},bound),false);
  assert.deepEqual(local,{contractsV202:[]});
 });
+
+test('shared tenant phone warns by profile identity without rejecting another civil ID',()=>{
+ const other={...tenant,id:'other',civilId:'223456789012',phone:'٥٥٥٥-٥٥٥٥'};
+ assert.match(api.sharedPhoneWarning(tenant,[other]),/يمكن الحفظ/);
+ assert.equal(api.profile(tenant,[other]).id,tenant.id);
+ assert.equal(api.sharedPhoneWarning(tenant,[tenant]),'');
+ assert.equal(api.sharedPhoneWarning({...tenant,phone:''},[{...other,phone:''}]),'');
+ assert.throws(()=>api.profile(tenant,[{...other,civilId:tenant.civilId}]),/الرقم المدني/);
+});
