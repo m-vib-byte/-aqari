@@ -2,7 +2,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 import {receiverHandler} from '../_shared/storage-restore-v2.js';
 // Deployment is intentionally disabled until an isolated source AND target are approved.
 const env=(name:string)=>Deno.env.get(name)||'';
-const source=env('AQARI_RESTORE_SOURCE_URL'),sourceKey=env('AQARI_RESTORE_SOURCE_PUBLIC_KEY');
+// Accept surrounding paste whitespace and one root slash; the exact project allowlist below still applies.
+const source=env('AQARI_RESTORE_SOURCE_URL').trim().replace(/\/$/,''),sourceKey=env('AQARI_RESTORE_SOURCE_PUBLIC_KEY');
 const workspace=env('AQARI_RESTORE_WORKSPACE'),bucket=env('AQARI_RESTORE_BUCKET');
 const target=env('SUPABASE_URL');
 const enabled=env('AQARI_STORAGE_RESTORE_V2_ENABLED')==='true';
