@@ -74,7 +74,12 @@ export function openPropertyOnboarding(){
    rows.push(row);state.properties=rows;state.audit=(state.audit||[]).concat([[d.session.bound.user,'إنشاء عقار من شاشة الملف المتكامل',lockedDraft.name,new Date().toISOString()]]);
    // Keep a correlation marker before sending: a lost response must never cause a second create.
    creationAttempt={row:clone(row),revision};for(const control of form.querySelectorAll('input,textarea,select,button'))if(control!==save)control.disabled=true;save.textContent=translateStatic('التحقق ومتابعة الملف');
-   await bridge.saveAppState(payload,revision,current);d.session.check();
+   try{await bridge.saveAppState(payload,revision,current);d.session.check();}
+   catch(error){
+    // These markers are emitted only by the write boundary before any commit.
+    if(error?.code==='AQARI_REVISION_CONFLICT'||error?.aqariStateWriteRejected===true){creationAttempt=null;for(const control of form.querySelectorAll('input,textarea,select,button'))control.disabled=false;save.textContent=translateStatic('حفظ العقار والملف الكامل');}
+    throw error;
+   }
   }
   const confirmed=await bridge.loadAppState(current);d.session.check();const rows=api.primary(confirmed.payload).properties,matches=Array.isArray(rows)?rows.filter(row=>row?.[0]===lockedDraft.name):[];
   if(!Number.isSafeInteger(Number(confirmed.revision))||Number(confirmed.revision)<=creationAttempt.revision||matches.length!==1||!sameRecord(matches[0],creationAttempt.row))throw Error('لم يتأكد سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط؛ لن ينشأ سجل ثانٍ.');
