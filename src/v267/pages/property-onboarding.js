@@ -65,11 +65,16 @@ export function openPropertyOnboarding(){
  async function saveLegacyProperty(previews){
   const current=bound(),findProperty=()=>d.session.request(d.session.client.from('aqari_properties').select('id,workspace_id,name,external_ref,metadata').eq('workspace_id',d.session.bound.workspace).eq('external_ref',lockedDraft.name).limit(2));
   if(!creationAttempt){
-   const cloud=await bridge.loadAppState(current);d.session.check();
-   // A verified empty workspace has no state row yet. Start from an empty
-   // payload, never a local snapshot that may belong to another workspace.
-   // The cloud writer still checks authorization and revision zero atomically.
-   const payload=cloud===null?{}:clone(cloud.payload),state=api.primary(payload),rows=state.properties||[],revision=cloud===null?0:Number(cloud.revision);
+   let cloud=await bridge.loadAppState(current);d.session.check();
+   // Relational projection runs on UPDATE, not INSERT. Bootstrap only an
+   // empty state; the property itself must pass the normal guarded update.
+   // A lost bootstrap response is safe to retry after another cloud read.
+   if(cloud===null){
+    await bridge.saveAppState({},0,current);d.session.check();
+    cloud=await bridge.loadAppState(current);d.session.check();
+    if(!cloud)throw Error('تعذر تأكيد تهيئة مساحة العمل. أعد المحاولة للتحقق قبل إنشاء العقار.');
+   }
+   const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[],revision=Number(cloud.revision);
    if(!Array.isArray(rows)||!Number.isSafeInteger(revision)||revision<0)throw Error('تعذر تثبيت مراجعة بيانات العقارات قبل الإنشاء.');
    if(rows.some(row=>String(row?.[0]||'').normalize('NFKC').trim().toLowerCase()===lockedDraft.name.toLowerCase()))throw Error('اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.');
    const existing=await findProperty();d.session.check();if(!Array.isArray(existing))throw Error('تعذر التحقق من هوية العقار قبل الإنشاء.');if(existing.length)throw Error('العقار مسجل مسبقاً في السجلات الخادمة. افتح ملفه الموجود.');
