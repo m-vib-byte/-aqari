@@ -1,7 +1,8 @@
--- PREVIEW ONLY: synthetic schema regression; preserves original function OIDs/ACLs.
+-- PREVIEW ONLY. Dedicated QA schema, no users or business records; original helper functions remain unchanged.
 begin;
-alter function private.aqari_official_statement(uuid,uuid,date,date) rename to aqari_qa_statement_before_restore;
-alter function private.aqari_contact_channel_allowed(jsonb,text) rename to aqari_qa_contact_before_restore;
+create schema if not exists aqari_qa_helper_bootstrap;
+revoke all on schema aqari_qa_helper_bootstrap from public,anon,authenticated;
+-- Reviewed helper restoration candidate. Preview test first; production approval is separate.
 do $guard$
 declare dependency text;
 begin
@@ -14,8 +15,8 @@ begin
 end $guard$;
 do $restore$
 begin
- if to_regprocedure('private.aqari_official_statement(uuid,uuid,date,date)') is null then
-  execute $definition$CREATE OR REPLACE FUNCTION private.aqari_official_statement(w uuid, lid uuid, from_date date, to_date date)
+ if to_regprocedure('aqari_qa_helper_bootstrap.aqari_official_statement(uuid,uuid,date,date)') is null then
+  execute $definition$CREATE OR REPLACE FUNCTION aqari_qa_helper_bootstrap.aqari_official_statement(w uuid, lid uuid, from_date date, to_date date)
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
@@ -44,44 +45,38 @@ begin
  return jsonb_build_object('fromDate',from_date::text,'toDate',to_date::text,'openingBalance',opening::numeric(18,3)::text,'charges',charges::numeric(18,3)::text,'payments',payments::numeric(18,3)::text,'credits',credits::numeric(18,3)::text,'closingBalance',(opening+charges-payments-credits)::numeric(18,3)::text,'commercialIncluded',exists(select 1 from private.aqari_commercial_terms c where c.workspace_id=w and c.lease_id=lid),'camIncluded',exists(select 1 from private.aqari_tenant_adjustments a where a.workspace_id=w and a.lease_id=lid and a.kind='common_charge' and a.occurred_on<=to_date),'commercialCollectionsIncluded',exists(select 1 from private.aqari_commercial_collections c where c.workspace_id=w and c.lease_id=lid and c.occurred_on<=to_date));
 end $function$
 $definition$;
- elsif md5(pg_get_functiondef('private.aqari_official_statement(uuid,uuid,date,date)'::regprocedure)) <> '46d0c68f84f24ea5c7426c3e6f3d6ed7' then raise exception 'REVIEWED_STATEMENT_CHANGED';end if;
- if to_regprocedure('private.aqari_contact_channel_allowed(jsonb,text)') is null then
-  execute $definition$CREATE OR REPLACE FUNCTION private.aqari_contact_channel_allowed(profile jsonb, channel text)
+ elsif md5(replace(pg_get_functiondef('aqari_qa_helper_bootstrap.aqari_official_statement(uuid,uuid,date,date)'::regprocedure),'aqari_qa_helper_bootstrap.','private.')) <> '46d0c68f84f24ea5c7426c3e6f3d6ed7' then raise exception 'REVIEWED_STATEMENT_CHANGED';end if;
+ if to_regprocedure('aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(jsonb,text)') is null then
+  execute $definition$CREATE OR REPLACE FUNCTION aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(profile jsonb, channel text)
  RETURNS boolean
  LANGUAGE sql
  IMMUTABLE
  SET search_path TO ''
 AS $function$ select case lower(coalesce(nullif(btrim(profile->>'preferredContact'),''),'both')) when 'both' then channel in ('email','whatsapp') when 'email' then channel='email' when 'whatsapp' then channel='whatsapp' when 'phone' then false when 'none' then false else false end $function$
 $definition$;
- elsif md5(pg_get_functiondef('private.aqari_contact_channel_allowed(jsonb,text)'::regprocedure)) <> 'a4d4b055a9315961d00b3d802b31ff00' then raise exception 'REVIEWED_CONTACT_CHANGED';end if;
+ elsif md5(replace(pg_get_functiondef('aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(jsonb,text)'::regprocedure),'aqari_qa_helper_bootstrap.','private.')) <> 'a4d4b055a9315961d00b3d802b31ff00' then raise exception 'REVIEWED_CONTACT_CHANGED';end if;
 end $restore$;
-revoke all on function private.aqari_official_statement(uuid,uuid,date,date) from public,anon,authenticated;
-revoke all on function private.aqari_contact_channel_allowed(jsonb,text) from public,anon,authenticated;
+revoke all on function aqari_qa_helper_bootstrap.aqari_official_statement(uuid,uuid,date,date) from public,anon,authenticated;
+revoke all on function aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(jsonb,text) from public,anon,authenticated;
 
 do $test$
 declare p text;c text;actual boolean;expected boolean;
 begin
- if md5(pg_get_functiondef('private.aqari_official_statement(uuid,uuid,date,date)'::regprocedure))<>'46d0c68f84f24ea5c7426c3e6f3d6ed7' then raise exception 'BOOTSTRAP_STATEMENT_MISMATCH';end if;
- if md5(pg_get_functiondef('private.aqari_contact_channel_allowed(jsonb,text)'::regprocedure))<>'a4d4b055a9315961d00b3d802b31ff00' then raise exception 'BOOTSTRAP_CONTACT_MISMATCH';end if;
  begin
-  perform private.aqari_official_statement('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000002','2026-01-01','2026-01-02');
+  perform aqari_qa_helper_bootstrap.aqari_official_statement('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000002','2026-01-01','2026-01-02');
   raise exception 'UNAUTHENTICATED_STATEMENT_ACCEPTED';
  exception when insufficient_privilege then null;end;
  foreach p in array array['both','email','whatsapp','phone','none','invalid'] loop
   foreach c in array array['email','whatsapp'] loop
    expected:=p='both' or p=c;
-   actual:=private.aqari_contact_channel_allowed(jsonb_build_object('preferredContact',p),c);
+   actual:=aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(jsonb_build_object('preferredContact',p),c);
    if actual is distinct from expected then raise exception 'CONTACT_CASE_FAILED:%:%',p,c;end if;
   end loop;
  end loop;
- if has_function_privilege('anon','private.aqari_official_statement(uuid,uuid,date,date)','execute')
- or has_function_privilege('authenticated','private.aqari_official_statement(uuid,uuid,date,date)','execute')
- or has_function_privilege('anon','private.aqari_contact_channel_allowed(jsonb,text)','execute')
- or has_function_privilege('authenticated','private.aqari_contact_channel_allowed(jsonb,text)','execute')
+ if has_function_privilege('anon','aqari_qa_helper_bootstrap.aqari_official_statement(uuid,uuid,date,date)','execute')
+ or has_function_privilege('authenticated','aqari_qa_helper_bootstrap.aqari_official_statement(uuid,uuid,date,date)','execute')
+ or has_function_privilege('anon','aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(jsonb,text)','execute')
+ or has_function_privilege('authenticated','aqari_qa_helper_bootstrap.aqari_contact_channel_allowed(jsonb,text)','execute')
  then raise exception 'PRIVATE_HELPER_EXPOSED';end if;
 end $test$;
-drop function private.aqari_official_statement(uuid,uuid,date,date);
-drop function private.aqari_contact_channel_allowed(jsonb,text);
-alter function private.aqari_qa_statement_before_restore(uuid,uuid,date,date) rename to aqari_official_statement;
-alter function private.aqari_qa_contact_before_restore(jsonb,text) rename to aqari_contact_channel_allowed;
 commit;
