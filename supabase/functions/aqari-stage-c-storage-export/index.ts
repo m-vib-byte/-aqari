@@ -9,6 +9,9 @@ const MAX_OBJECTS=5000;
 const MAX_BYTES=64*1024*1024;
 const MAX_CATALOG_ENTRIES=10000;
 const ALLOWED_ORIGINS=new Set(["https://myaqari.com","https://www.myaqari.com"]);
+// Accept only the explicitly configured preview from this existing Vercel team.
+const previewOrigin=Deno.env.get("AQARI_RESTORE_ALLOWED_ORIGIN")||"";
+if(/^https:\/\/aqari-[a-z0-9-]+-m-vib-5421\.vercel\.app$/.test(previewOrigin))ALLOWED_ORIGINS.add(previewOrigin);
 // Explicit deployment configuration: never send the caller JWT to an arbitrary URL.
 const RESTORE_TARGET="https://nlqynpmilcdqztwrrvyu.supabase.co/functions/v1/aqari-storage-restore-v2";
 

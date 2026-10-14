@@ -842,8 +842,8 @@
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/README.md",
-      "sha256": "957a3208e01b195549a5858fb94e9b472607c75168a85b4552f40656d7b30ec8",
-      "size": 15606
+      "size": 16210,
+      "sha256": "b02399ff98e62e65dfae3339c3d390f75ee614bc9bd4c9b960ed56ea082556a2"
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/backup-authorization.txt",
@@ -2562,8 +2562,8 @@
     },
     {
       "path": "staging-database/hosted-test/completion-current/04-tenant_contact_unification.sql",
-      "sha256": "2f4c7f11e9e876ff752c8de6d35ecfee1b12e0e5a1f877c55c05eac2758b23cd",
-      "size": 16470
+      "size": 16470,
+      "sha256": "2f4c7f11e9e876ff752c8de6d35ecfee1b12e0e5a1f877c55c05eac2758b23cd"
     },
     {
       "path": "staging-database/hosted-test/completion-current/05-work_order_request_link.sql",
@@ -2597,8 +2597,8 @@
     },
     {
       "path": "staging-database/hosted-test/completion-current/manifest.json",
-      "sha256": "11cb5adff26dadd607d7899e5822257a45e00012ae71784d9ad76a63f11013af",
-      "size": 3686
+      "size": 3686,
+      "sha256": "11cb5adff26dadd607d7899e5822257a45e00012ae71784d9ad76a63f11013af"
     },
     {
       "path": "staging-database/hosted-test/completion/01-maintenance_workflow.sql",
@@ -2617,8 +2617,8 @@
     },
     {
       "path": "staging-database/hosted-test/completion/04-tenant_contact_unification.sql",
-      "sha256": "31555b36314275e70fd28b4e6cc0db3d0d68c3f3a55c0a569e5f468e8214daed",
-      "size": 16296
+      "size": 16296,
+      "sha256": "31555b36314275e70fd28b4e6cc0db3d0d68c3f3a55c0a569e5f468e8214daed"
     },
     {
       "path": "staging-database/hosted-test/completion/05-work_order_request_link.sql",
@@ -2652,8 +2652,8 @@
     },
     {
       "path": "staging-database/hosted-test/completion/manifest.json",
-      "sha256": "b40a6230a16ef162471b4e4cc12267398d8eb4ae1bfd4ede5d504cdd0e357751",
-      "size": 3798
+      "size": 3798,
+      "sha256": "b40a6230a16ef162471b4e4cc12267398d8eb4ae1bfd4ede5d504cdd0e357751"
     },
     {
       "path": "staging-database/hosted-test/current-fixtures.py",
@@ -4722,8 +4722,8 @@
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "sha256": "f7730706d4b1eda0df928d74b3a7672252a58563ea60aa0d712c132b5a6cdcf1",
-      "size": 10341
+      "size": 10606,
+      "sha256": "2c4fef853f7319359c10e76fbc38acf092cf90dd068c5ef7935cd94a82fa5dbc"
     },
     {
       "path": "supabase/functions/aqari-storage-restore-v2/index.ts",
@@ -6047,8 +6047,8 @@
     },
     {
       "path": "tests/v267-stage-c-storage-backup.test.mjs",
-      "sha256": "c5566c1d3613df563bb06cd3bf4a7190febf1b424c0c938d6c36390fc27602ef",
-      "size": 17861
+      "size": 19131,
+      "sha256": "f1155ce9103b835107114479b284e3d78ea8b997d81b49a4d51be148205e999a"
     },
     {
       "path": "tests/v267-staging-isolation.test.cjs",

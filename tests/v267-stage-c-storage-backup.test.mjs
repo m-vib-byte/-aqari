@@ -122,7 +122,7 @@ function storageHandler(catalogPage,options={}) {
   const query={select(){return this},in(){return this},like(){return this},order(){return this},range:async()=>({error:{code:'PGRST106',message:'Invalid schema: storage'}})};
   const ctx={userClaims:{id:caller},jwtClaims:{aal:'aal2'},supabase:{rpc:async()=>({data:{workspace_id:workspace,user_id:caller,role:'general_manager'}})},supabaseAdmin:{schema:()=>{schemaCalls++;return {from:()=>query}},storage:{from:bucket=>({list:(prefix,params)=>catalogPage({bucket,prefix,...params}),download:options.download|| (async()=>({data:new Blob(['x'])}))})}}};
   options.configureContext?.(ctx);
-  const sandbox={snapshot,transferSnapshot,URL,Request,Response,Headers,Blob,Uint8Array,crypto,btoa,AbortSignal,fetch:options.fetch||(()=>{throw new Error('Unexpected outbound fetch')}),Deno:{env:{get:name=>name==='AQARI_STORAGE_RESTORE_V2_ENABLED'?'true':'https://ofgmcsmxmdswlovsckqs.supabase.co'}},withSupabase:(_,handler)=>req=>handler(req,ctx),strToU8:s=>new TextEncoder().encode(s),zipSync:files=>{zipCalls++;zipFiles=files;return new Uint8Array([1])}};
+  const sandbox={snapshot,transferSnapshot,URL,Request,Response,Headers,Blob,Uint8Array,crypto,btoa,AbortSignal,fetch:options.fetch||(()=>{throw new Error('Unexpected outbound fetch')}),Deno:{env:{get:name=>name==='AQARI_RESTORE_ALLOWED_ORIGIN'?(options.previewOrigin||''):name==='AQARI_STORAGE_RESTORE_V2_ENABLED'?'true':'https://ofgmcsmxmdswlovsckqs.supabase.co'}},withSupabase:(_,handler)=>req=>handler(req,ctx),strToU8:s=>new TextEncoder().encode(s),zipSync:files=>{zipCalls++;zipFiles=files;return new Uint8Array([1])}};
   vm.runInNewContext(source,sandbox);
   return {run:(body={},headers={})=>sandbox.edgeModule.fetch(new Request('https://synthetic.test',{method:'POST',headers,body:JSON.stringify({workspaceId:workspace,...body})})),zipCalls:()=>zipCalls,zipFiles:()=>zipFiles,schemaCalls:()=>schemaCalls,workspace};
 }
@@ -287,4 +287,19 @@ for(const [name,configureContext,authorization] of [
 ])test('export rejects '+name+' before restoration',async()=>{
  const app=storageHandler(documents([file('contract.pdf')]),{configureContext});
  const response=await app.run({restoreToIsolated:true},{authorization});assert.equal(response.status,403);assert.equal(app.zipCalls(),0);
+});
+
+const configuredPreview='https://aqari-17744528p-m-vib-5421.vercel.app';
+test('explicit configured preview gets matching CORS without changing authentication',async()=>{
+ const app=storageHandler(documents([]),{previewOrigin:configuredPreview});
+ const response=await app.run({}, {origin:configuredPreview});
+ assert.equal(response.status,200);assert.equal(response.headers.get('access-control-allow-origin'),configuredPreview);
+});
+for(const origin of ['https://evil.invalid','https://aqari-17744528p-other-team.vercel.app',configuredPreview+'/',configuredPreview+'?token=x'])test('restore refuses to reflect an unapproved configured origin '+origin,async()=>{
+ const app=storageHandler(documents([]),{previewOrigin:origin});const response=await app.run({}, {origin});
+ assert.notEqual(response.headers.get('access-control-allow-origin'),origin);
+});
+test('a different preview cannot inherit the configured preview permission',async()=>{
+ const app=storageHandler(documents([]),{previewOrigin:configuredPreview});const response=await app.run({}, {origin:'https://aqari-unconfigured-m-vib-5421.vercel.app'});
+ assert.equal(response.headers.get('access-control-allow-origin'),'https://myaqari.com');
 });
