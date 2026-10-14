@@ -15,7 +15,7 @@ test('cost allocations must be unique, in scope and total exactly 100',()=>{
  assert.deepEqual(validateAllocations([{property_id:'a',share:'40'},{property_id:'b',share:'60'}],['a','b']),[{property_id:'a',share:'40.00'},{property_id:'b',share:'60.00'}]);
  assert.throws(()=>validateAllocations([{property_id:'a',share:90}],['a']),/100/);
  assert.throws(()=>validateAllocations([{property_id:'x',share:100}],['a']),/PROPERTY/);
- for(const share of [NaN,Infinity,-1,0,100.01,'',null,'NaN','1e2',{},'40.005'])assert.throws(()=>validateAllocations([{property_id:'a',share},{property_id:'b',share:60}],['a','b']),/INVALID_ALLOCATION_SHARE/);
+ for(const share of [NaN,Infinity,-1,100.01,'NaN','1e2',{},'40.005'])assert.throws(()=>validateAllocations([{property_id:'a',share},{property_id:'b',share:60}],['a','b']),/INVALID_ALLOCATION_SHARE/);
  assert.throws(()=>validateAllocations([{property_id:'a',share:40.005},{property_id:'b',share:59.995}],['a','b']),/INVALID_ALLOCATION_SHARE/);
  assert.throws(()=>validateAllocations([{property_id:'a',share:50},{property_id:'a',share:50}],['a']),/PROPERTY/);
  assert.deepEqual(validateAllocations([{property_id:'a',share:'33.33'},{property_id:'b',share:'66.67'}],['a','b']).map(x=>x.share),['33.33','66.67']);
@@ -25,3 +25,6 @@ test('employee self-service exposes request kinds only and CSV escapes cells',()
  assert.deepEqual(SELF_SERVICE_KINDS,['leave_request','advance_request','salary_certificate','document_update','general_request']);
  const text=csv([{month:'2026-09',employee_name:'A, "B"',property_name:'Tower',state:'paid',net:10,share:100,allocated_cost:10}]);assert.ok(text.startsWith('\uFEFFmonth'));assert.ok(text.includes('"A, ""B"""'));
 });
+
+test('zero and blank allocations are omitted while positive shares total 100',()=>{for(const share of [0,'',null])assert.deepEqual(validateAllocations([{property_id:'a',share},{property_id:'b',share:100}],['a','b']),[{property_id:'b',share:'100.00'}]);assert.throws(()=>validateAllocations([{property_id:'a',share:0}],['a']),/100/);});
+test('CSV neutralizes spreadsheet expressions and preserves Arabic and decimals',()=>{for(const name of ['=1+2','+cmd','-cmd','@SUM(A1)',' \t=1','\t1'])assert.ok(csv([{employee_name:name}]).includes('"\''+name+'"'));assert.ok(csv([{employee_name:'ماجد',net:'10.125'}]).includes('"ماجد"'));assert.ok(csv([{net:'10.125'}]).includes('"10.125"'));});

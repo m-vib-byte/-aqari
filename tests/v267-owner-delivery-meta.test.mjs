@@ -23,7 +23,7 @@ test('direct Meta WhatsApp Cloud API and independent Email delivery are permissi
    arrears:{count:1,remaining:25},alerts:{leases_expiring_30:1,maintenance_open:2,unpaid_current:1},
    period_activity:{collections:50,approved_expenses:5,net:45}
   });
-  if(href.includes('/rest/v1/rpc/aqari_owner_report_delivery_claim'))return response({send:true});
+  if(href.includes('/rest/v1/rpc/aqari_owner_report_delivery_claim'))return response({send:true,protocol:'no-uncertain-retry-v1'});
   if(href.includes('/rest/v1/rpc/aqari_owner_report_delivery_complete'))return response({ok:true});
   if(href.startsWith('https://graph.facebook.com/'))return response({messages:[{id:'wamid.test'}]});
   if(href==='https://email.example.invalid/send')return response({id:'mail-test'});
@@ -49,7 +49,7 @@ test('selected external channel fails closed when its server secret is absent',a
   const href=String(url);
   if(href.includes('aqari_owner_report_delivery_targets_v3'))return response([{target_id:'11111111-1111-4111-8111-111111111111',workspace_id:'22222222-2222-4222-8222-222222222222',owner_name:'مالك',property_ids:['44444444-4444-4444-8444-444444444444'],property_names:['عقار'],channels:['whatsapp'],whatsapp:'+96550000000',report_schedule:'daily',report_hour:8}]);
   if(href.includes('aqari_owner_report_service_v3'))return response({from:'2026-09-17',to:'2026-09-17',properties:[],collection:{},tenants:[],arrears:{},alerts:{},period_activity:{}});
-  if(href.includes('aqari_owner_report_delivery_claim'))return response({send:true});
+  if(href.includes('aqari_owner_report_delivery_claim'))return response({send:true,protocol:'no-uncertain-retry-v1'});
   if(href.includes('aqari_owner_report_delivery_complete'))return response({ok:true});
   throw Error('unexpected');
  };
