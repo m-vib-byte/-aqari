@@ -1,0 +1,4 @@
+Schema restored in local memory; no hosted database connection.
+PASS staging-database/reconciliation/acceptance-20261014/restore-captured-functions.sql
+PASS staging-database/reconciliation/acceptance-20261014/candidate.sql
+PASS staging-database/reconciliation/acceptance-20261014/isolated-acceptance.sql

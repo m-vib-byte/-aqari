@@ -32,15 +32,16 @@ function due(setting,parts){
  if(setting.report_schedule==='monthly')return parts.day==='01';
  return false;
 }
+export function reportPeriod(schedule,iso){if(schedule==='monthly'){const end=new Date(iso+'T00:00:00Z');end.setUTCDate(0);const start=new Date(end);start.setUTCDate(1);return {from:start.toISOString().slice(0,10),to:end.toISOString().slice(0,10)};}return {from:startFor(schedule,iso),to:iso};}
 function startFor(schedule,iso){const date=new Date(iso+'T00:00:00Z');if(schedule==='daily')return iso;if(schedule==='weekly'){date.setUTCDate(date.getUTCDate()-6);return date.toISOString().slice(0,10);}date.setUTCDate(1);return date.toISOString().slice(0,10);}
 async function json(response){const text=await response.text();if(text.length>524288)throw Error('RESPONSE_TOO_LARGE');return text?JSON.parse(text):null;}
 const money=value=>Number(value||0).toLocaleString('ar-KW',{minimumFractionDigits:3,maximumFractionDigits:3})+' د.ك';
 const compact=(value,max=500)=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim().slice(0,max);
 const listNames=(rows,state)=>rows.filter(x=>x.state===state).slice(0,12).map(x=>`${compact(x.tenant_name,80)} (${compact(x.unit_no,30)})`).join('، ')||'لا يوجد';
-function reportText(setting,snapshot){
+export function reportText(setting,snapshot){
  const c=snapshot?.collection||{},alerts=snapshot?.alerts||{},period=snapshot?.period_activity||{};
  const props=(snapshot?.properties||[]).map(x=>x.name).join('، ')||'العقارات المحددة';
- const paid=listNames(snapshot?.tenants||[],'paid'),unpaid=[...snapshot?.tenants||[]].filter(x=>x.state!=='paid').slice(0,12).map(x=>`${compact(x.tenant_name,80)} (${compact(x.unit_no,30)}) — متبقي ${money(x.remaining)}`).join('، ')||'لا يوجد';
+ const paid=listNames(snapshot?.tenants||[],'paid'),unpaid=[...snapshot?.tenants||[]].filter(x=>Number.isFinite(Number(x.remaining))&&Number(x.remaining)>0).slice(0,12).map(x=>`${compact(x.tenant_name,80)} (${compact(x.unit_no,30)}) — متبقي ${money(x.remaining)}`).join('، ')||'لا يوجد';
  return `تقرير عقاري للمالك: ${compact(setting.owner_name,120)}
 العقارات: ${props}
 الفترة: ${snapshot.from} إلى ${snapshot.to}
@@ -53,10 +54,10 @@ function reportText(setting,snapshot){
 تنبيهات: عقود تنتهي خلال 30 يوم ${Number(alerts.leases_expiring_30||0)}، صيانة مفتوحة ${Number(alerts.maintenance_open||0)}، حالات غير مسددة ${Number(alerts.unpaid_current||0)}
 حركة الفترة: تحصيلات ${money(period.collections)}، مصروفات معتمدة ${money(period.approved_expenses)}، صافي ${money(period.net)}.`;
 }
-function metaParameters(setting,snapshot){
+export function metaParameters(setting,snapshot){
  const c=snapshot?.collection||{},alerts=snapshot?.alerts||{};
  const props=(snapshot?.properties||[]).map(x=>x.name).join('، ')||'العقارات المحددة';
- const paid=listNames(snapshot?.tenants||[],'paid'),unpaid=[...snapshot?.tenants||[]].filter(x=>x.state!=='paid').slice(0,8).map(x=>`${compact(x.tenant_name,60)} (${compact(x.unit_no,24)})`).join('، ')||'لا يوجد';
+ const paid=listNames(snapshot?.tenants||[],'paid'),unpaid=[...snapshot?.tenants||[]].filter(x=>Number.isFinite(Number(x.remaining))&&Number(x.remaining)>0).slice(0,8).map(x=>`${compact(x.tenant_name,60)} (${compact(x.unit_no,24)})`).join('، ')||'لا يوجد';
  return [
   compact(setting.owner_name,120),compact(props,500),`${snapshot.from} — ${snapshot.to}`,
   money(c.due),money(c.collected),money(c.remaining),money(snapshot?.arrears?.remaining),
@@ -86,22 +87,24 @@ export function createOwnerReportDeliveryHandler({fetchImpl=globalThis.fetch,env
    const settings=await sb('/rest/v1/rpc/aqari_owner_report_delivery_targets_v3',{}),parts=kuwaitParts(now()),sent=[],failed=[],meta=metaConfig(env),email=emailConfig(env);
    for(const setting of Array.isArray(settings)?settings:[]){
     if(!UUID.test(String(setting.workspace_id||''))||!UUID.test(String(setting.target_id||''))||!due(setting,parts)||!Array.isArray(setting.property_ids)||!setting.property_ids.length)continue;
-    const from=startFor(setting.report_schedule,parts.iso),snapshot=await sb('/rest/v1/rpc/aqari_owner_report_service_v3',{p_workspace_id:setting.workspace_id,p_property_ids:setting.property_ids,p_from:from,p_to:parts.iso});
+    const {from,to}=reportPeriod(setting.report_schedule,parts.iso),snapshot=await sb('/rest/v1/rpc/aqari_owner_report_service_v3',{p_workspace_id:setting.workspace_id,p_property_ids:setting.property_ids,p_from:from,p_to:to});
     for(const channel of Array.isArray(setting.channels)?setting.channels:[]){
      if(!['whatsapp','email'].includes(channel))continue;
      const dispatchKey=`${setting.report_schedule}:${parts.iso}`,claim=await sb('/rest/v1/rpc/aqari_owner_report_delivery_claim',{p_target_id:setting.target_id,p_channel:channel,p_dispatch_key:dispatchKey});
      if(claim?.send!==true)continue;
+     if(claim?.protocol!=='no-uncertain-retry-v1')throw Error('DELIVERY_PROTOCOL_UPGRADE_REQUIRED');
      const idempotency=`owner-report:${setting.target_id}:${channel}:${dispatchKey}`;
+     let providerId=null,attempted=false;
      try{
-      let providerId;
-      if(channel==='whatsapp'){if(!meta)throw Error('META_WHATSAPP_NOT_CONFIGURED');providerId=await sendMeta(fetchImpl,meta,setting,snapshot);}
-      else{if(!email)throw Error('EMAIL_NOT_CONFIGURED');providerId=await sendEmail(fetchImpl,email,setting,snapshot,idempotency);}
+      if(channel==='whatsapp'){if(!meta)throw Error('META_WHATSAPP_NOT_CONFIGURED');attempted=true;providerId=await sendMeta(fetchImpl,meta,setting,snapshot);}
+      else{if(!email)throw Error('EMAIL_NOT_CONFIGURED');attempted=true;providerId=await sendEmail(fetchImpl,email,setting,snapshot,idempotency);}
       await sb('/rest/v1/rpc/aqari_owner_report_delivery_complete',{p_target_id:setting.target_id,p_channel:channel,p_dispatch_key:dispatchKey,p_success:true,p_provider_id:providerId,p_error_code:null});
-      sent.push({target_id:setting.target_id,channel,property_ids:setting.property_ids,period:{from,to:parts.iso}});
+      sent.push({target_id:setting.target_id,channel,property_ids:setting.property_ids,period:{from,to}});
      }catch(error){
       const code=compact(error?.message||'DELIVERY_FAILED',120);
-      await sb('/rest/v1/rpc/aqari_owner_report_delivery_complete',{p_target_id:setting.target_id,p_channel:channel,p_dispatch_key:dispatchKey,p_success:false,p_provider_id:null,p_error_code:code});
-      failed.push({target_id:setting.target_id,channel,error:code});
+      try{await sb('/rest/v1/rpc/aqari_owner_report_delivery_complete',{p_target_id:setting.target_id,p_channel:channel,p_dispatch_key:dispatchKey,p_success:!!providerId,p_provider_id:providerId,p_error_code:attempted?'DELIVERY_RESULT_UNCERTAIN':code});}catch{failed.push({target_id:setting.target_id,channel,error:'DELIVERY_RESULT_UNCERTAIN',provider_id:providerId});continue;}
+      if(providerId)sent.push({target_id:setting.target_id,channel,property_ids:setting.property_ids,period:{from,to}});
+      else failed.push({target_id:setting.target_id,channel,error:code});
      }
     }
    }

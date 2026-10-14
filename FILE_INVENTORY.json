@@ -272,8 +272,8 @@
     },
     {
       "path": "api/owner-report-delivery.js",
-      "sha256": "5833c603804a9524af0a5be0f54f4addd046a2f1ea1343d6a757cc43608c4fb6",
-      "size": 10467
+      "sha256": "795f48299d5b13acddc1a6cda74770344a11348beba5454fd77a78771471efc2",
+      "size": 11311
     },
     {
       "path": "api/pdf-field-template.py",
@@ -1582,8 +1582,8 @@
     },
     {
       "path": "src/v267/components/contract-administration.js",
-      "sha256": "8efd560f6d3ed7dc37501c675e304f3f2d41d80722efa39f6a241bddc4511f1c",
-      "size": 4501
+      "sha256": "b7b818f87732397f93c4239f2729f37dc9df4cba159aadd9465c69494c9f2a2d",
+      "size": 5384
     },
     {
       "path": "src/v267/components/contract-execution-package.js",
@@ -1942,8 +1942,8 @@
     },
     {
       "path": "src/v267/domain/hr-lifecycle.js",
-      "sha256": "f5da2463a5eea61539962526537dfc9f4d6ea82da5484e07d98cc9cd515514c4",
-      "size": 3161
+      "sha256": "2de85651be5706edb80a4fbb3204fd04f4e325dfa30b93067e2ae3217f015dce",
+      "size": 3281
     },
     {
       "path": "src/v267/domain/kuwait-calendar.js",
@@ -2167,8 +2167,8 @@
     },
     {
       "path": "src/v267/pages/hr-lifecycle.js",
-      "sha256": "5d814429eb68578a7db1d37f7aec13b7d146bab401d4688d112334d03fa5d6e8",
-      "size": 20547
+      "sha256": "35a644d7f761351817a4d71835149ef8458111191a83d7bdca10b26e7032d36d",
+      "size": 22911
     },
     {
       "path": "src/v267/pages/imported-tenant.js",
@@ -5097,8 +5097,8 @@
     },
     {
       "path": "tests/v267-contract-administration.test.mjs",
-      "sha256": "b93ddf0d5849312d4fa81c15a9a95bc3a1bba8dba9a487d74613973a3e4bc845",
-      "size": 3238
+      "sha256": "f3c8083f6abf535f9272165d677dde229310da1fcc11cfbcc20e35253e7bb8aa",
+      "size": 5304
     },
     {
       "path": "tests/v267-contract-archive.test.mjs",
@@ -5302,8 +5302,8 @@
     },
     {
       "path": "tests/v267-hr-lifecycle.test.mjs",
-      "sha256": "355be5823ffcb7fb6d24c6339ec97dcc0ac7754dcb39c3853d189a8e0a8d69e6",
-      "size": 2349
+      "sha256": "b856a36a56205c9fccea5b41d72dc09c2e10cdf7802927e4ce19fc346b802b2a",
+      "size": 3031
     },
     {
       "path": "tests/v267-integration-center-workflow.test.cjs",
