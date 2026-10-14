@@ -101,17 +101,19 @@ def prepare_print(data, auth, *, read, render=render_contract_template):
                 'clauses':[{'title':notice,'text':details}]})
     if saved() != contract:
         raise SourceChanged('CONTRACT_SOURCE_CHANGED')
-    if data['mode'] == 'draft':
-        for page in writer.pages:
-            overlay=BytesIO()
-            width,height=float(page.mediabox.width),float(page.mediabox.height)
-            stamp=canvas.Canvas(overlay,pagesize=(width,height))
+    for index,page in enumerate(writer.pages,1):
+        overlay=BytesIO()
+        width,height=float(page.mediabox.width),float(page.mediabox.height)
+        stamp=canvas.Canvas(overlay,pagesize=(width,height))
+        stamp.setFillColorRGB(.35,.28,.2);stamp.setFont('Helvetica',8)
+        stamp.drawString(51,14,f'PDF page {index} / {len(writer.pages)}')
+        if data['mode'] == 'draft':
             stamp.setFillColorRGB(.65,.1,.1);stamp.setFillAlpha(.22)
             stamp.translate(width/2,height/2);stamp.rotate(45)
             stamp.setFont('Helvetica-Bold',22)
             stamp.drawCentredString(0,0,'DRAFT - NOT FOR SIGNATURE')
-            stamp.save()
-            page.merge_page(PdfReader(BytesIO(overlay.getvalue())).pages[0])
+        stamp.save()
+        page.merge_page(PdfReader(BytesIO(overlay.getvalue())).pages[0])
     stream=BytesIO();writer.write(stream);pdf=stream.getvalue()
     if len(pdf)>10*1024*1024:
         raise ValueError('PDF_TOO_LARGE')
