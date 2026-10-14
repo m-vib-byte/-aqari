@@ -4,12 +4,12 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const source=fs.readFileSync(require('node:path').join(__dirname,'..','supabase-adapter.js'),'utf8');
 const bound={userId:'user-a',workspaceId:'space-a',role:'general_manager'};
-function runtime(hook, timers={setTimeout,clearTimeout}){
+function runtime(hook, timers={setTimeout,clearTimeout}, config={}){
   let session={user:{id:'user-a'},access_token:'synthetic-token'}, rpcCount=0;
   const calls=[];
   const snapshot=()=>({user_id:'user-a',membership:{user_id:'user-a',workspace_id:'space-a',role:'general_manager',is_active:true},workspace:{id:'space-a'},profile:{user_id:'user-a'},app_state:{workspace_id:'space-a',payload:{synthetic:true},revision:1}});
   const client={auth:{async getSession(){return {data:{session},error:null}},stopAutoRefresh(){}},from(){throw Error('startup must not reacquire SDK locks for table queries')}};
-  const window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://fixture.invalid',supabasePublishableKey:'public-test'},supabase:{createClient(){return client}},localStorage:{length:0,getItem(){return null},removeItem(){}},async fetch(url,options){
+  const window={AQARI_PUBLIC_CONFIG:{supabaseUrl:'https://fixture.invalid',supabasePublishableKey:'public-test',...config},supabase:{createClient(){return client}},localStorage:{length:0,getItem(){return null},removeItem(){}},async fetch(url,options){
     const body=options.body?JSON.parse(options.body):null;
     calls.push({path:new URL(url,'https://app.invalid').pathname,options,body});
     const data=body?snapshot():{id:'user-a'};
@@ -127,4 +127,26 @@ test('protected preview allows JWT confirmation without exposing cookies to Supa
     assert.equal(c.options.headers.Authorization,'Bearer synthetic-token');
     assert.equal(c.options.redirect,'error');
   }
+});
+
+const acceptanceId='21e2e083-4f8f-4197-9f93-86bd89ad9cda';
+const acceptanceConfig={releaseStage:'preview',supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co',acceptanceWorkspaceId:acceptanceId};
+test('acceptance startup requests exact workspace and rejects a different valid membership',async()=>{
+ const r=runtime(null,undefined,acceptanceConfig);
+ await assert.rejects(r.api.refreshContext(),e=>e.code==='AQARI_ACCESS_CHANGED');
+ assert.equal(r.calls.find(c=>c.body)?.body.p_workspace_id,acceptanceId);
+ assert.equal(r.api.context.workspace,null);
+});
+test('acceptance startup accepts only matching workspace and preserves scoped confirmation',async()=>{
+ const r=runtime(({body,data,response})=>{if(body){data.workspace.id=acceptanceId;data.membership.workspace_id=acceptanceId;if(data.app_state)data.app_state.workspace_id=acceptanceId;}return response},undefined,acceptanceConfig);
+ await r.api.refreshContext();
+ const access={...bound,workspaceId:acceptanceId};
+ const row=await r.api.loadAppState(access,{reuseVerifiedContext:true});
+ assert.equal(row.workspace_id,acceptanceId);
+ assert.equal(r.calls.filter(c=>c.body).every(c=>c.body.p_workspace_id===acceptanceId),true);
+ await assert.rejects(r.api.loadAppState(bound),e=>e.code==='AQARI_ACCESS_CHANGED');
+});
+for(const override of [{releaseStage:'production'},{supabaseUrl:'https://other.supabase.co'},{acceptanceWorkspaceId:'invalid'}])test('invalid acceptance scope fails before network '+JSON.stringify(override),async()=>{
+ const r=runtime(null,undefined,{...acceptanceConfig,...override});
+ await assert.rejects(r.api.refreshContext(),e=>e.code==='AQARI_ACCESS_CHANGED');assert.equal(r.calls.length,0);
 });

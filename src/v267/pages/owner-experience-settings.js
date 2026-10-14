@@ -32,6 +32,7 @@ export function openOwnerExperienceSettings(){
   d.session.check();
   if(!response.ok){
    let code='';try{code=String((await response.clone().json())?.error||'')}catch{}
+   if(code==='RESTORE_CONFIGURATION_PENDING'||code==='RESTORE_TARGET_NOT_ISOLATED')throw Error('خدمة الاستعادة المعزولة قيد التطبيق والاختبار.');
    if(code==='MFA_REQUIRED')throw Error('يلزم التوثيق الثنائي AAL2 قبل تنزيل النسخة الاحتياطية.');
    if(code==='ACCESS_DENIED')throw Error('لا تملك صلاحية هذه العملية.');
    throw Error('تعذر تنزيل النسخة الاحتياطية للملفات.');
@@ -84,7 +85,7 @@ export function openOwnerExperienceSettings(){
  function syncNote(){note.textContent=report.checked?visibleText('التقرير التلقائي مفعّل منطقيًا. الإرسال يحتاج Secrets الخادم لـMeta WhatsApp و/أو مزود Email، وتنفذ الجدولة كل ساعة ثم تطابق توقيت الكويت لكل مستلم.'):visibleText('التقرير التلقائي متوقف. يمكنك إنشاء تقرير المالك يدويًا بدون إرسال خارجي.');}
  report.onchange=syncNote;addTarget.onclick=()=>{targets=collectTargets();targets.push(blankTarget());renderTargets();};storageBackup.onclick=()=>d.run(downloadStorageBackup);
  function validateRead(settingsValue,targetValue){if(settingsValue?.workspace_id!==d.session.bound.workspace||targetValue?.workspace_id!==d.session.bound.workspace||!Number.isSafeInteger(settingsValue.revision)||settingsValue.revision<0||!Number.isSafeInteger(targetValue.revision)||targetValue.revision<0||!['guest_enabled','assistant_enabled','report_enabled'].every(key=>typeof settingsValue[key]==='boolean')||!['properties','owners','targets'].every(key=>Array.isArray(targetValue[key])))throw Error('تعذر التحقق من إعدادات تجربة المالك.');}
- async function load(){const [settingsValue,targetValue]=await Promise.all([settingsRpc('read'),targetsRpc('read')]);validateRead(settingsValue,targetValue);applySettings(settingsValue);applyTargets(targetValue);ready=true;uncertain=false;save.disabled=false;storageBackup.disabled=d.session.bound.role!=='general_manager';d.status.textContent=translateStatic('تمت قراءة إعدادات المدير العام ومستلمي التقارير.');}
+ async function load(){const [settingsValue,targetValue]=await Promise.all([settingsRpc('read'),targetsRpc('read')]);validateRead(settingsValue,targetValue);applySettings(settingsValue);applyTargets(targetValue);ready=true;uncertain=false;save.disabled=false;storageBackup.disabled=d.session.bound.role!=='general_manager'||window.AQARI_PUBLIC_CONFIG?.storageRestoreV2Accepted!==true;storageBackup.title=storageBackup.disabled?'الاستعادة المعزولة قيد التطبيق والاختبار؛ لم تُعتمد بعد.':'';d.status.textContent=translateStatic('تمت قراءة إعدادات المدير العام ومستلمي التقارير.');}
  function validateTargets(rows){
   if(rows.length>40)throw Error('الحد الأقصى 40 مستلمًا.');
   for(const row of rows){

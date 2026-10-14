@@ -28,9 +28,9 @@
       "name": "tenant_contact_unification",
       "workspace_id": "76f10000-0000-4000-8000-000000000004",
       "workspace_slug": "hosted-completion-tenant-contact-unification",
-      "source_sha256": "41ec4715312671df36b4dcb17c625b357e6a25b7da05f4e031327d2cb7d18c40",
+      "source_sha256": "c34aabd53c9e784fd9071dba98b3756536082cad78946f683c61cc0dbcfcf686",
       "file": "04-tenant_contact_unification.sql",
-      "sha256": "bb9bcc0527759864707f9af808768c21d766a300dc570116e55120597378ef6f"
+      "sha256": "31555b36314275e70fd28b4e6cc0db3d0d68c3f3a55c0a569e5f468e8214daed"
     },
     {
       "name": "work_order_request_link",
