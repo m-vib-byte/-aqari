@@ -4757,8 +4757,8 @@
     },
     {
       "path": "supabase/functions/aqari-storage-restore-v2/index.ts",
-      "size": 4321,
-      "sha256": "f906294ce55a864f9fbcb23df7409418a725509c9e4d0e63126a00d8f6985119"
+      "size": 5529,
+      "sha256": "aaeae564c713ae4ad9359f7954819ff2385379182dfe4f3bd50eb50c08a3992a"
     },
     {
       "path": "supabase/functions/stage-c-storage-receiver-20261001/index.ts",
@@ -6092,8 +6092,8 @@
     },
     {
       "path": "tests/v267-storage-restore-auth.test.mjs",
-      "size": 4162,
-      "sha256": "da374cd7625678a801ff0d53343fbe71d8903a11bd4e020ee3a71fd77b4f3b51"
+      "size": 6056,
+      "sha256": "d2543436ca6146acdf02649b5531b140c5d4e1b6db2611d747f130142f10432c"
     },
     {
       "path": "tests/v267-storage-restore-v2.test.mjs",
@@ -6409,6 +6409,11 @@
       "path": "vercel.json",
       "sha256": "78abe62e642cda899509c6357c5c212f76e13b016e188f73eac78106a31eeb97",
       "size": 8627
+    },
+    {
+      "path": "docs/acceptance/2026-10-14/unified/restore-config-diagnosis-20261015.md",
+      "size": 1655,
+      "sha256": "c204f4bd036bd7f8645b87f7d73b716e63ed05a3e961a7c0dc81c0946047f99a"
     }
   ],
   "version": "V198"
