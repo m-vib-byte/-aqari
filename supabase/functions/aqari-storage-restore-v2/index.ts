@@ -17,9 +17,21 @@ const configurationIssues=[
  ...(!bucket?['AQARI_RESTORE_BUCKET']:[]),
  ...(target!=='https://nlqynpmilcdqztwrrvyu.supabase.co'?['SUPABASE_URL']:[])
 ];
+function sourceUrlIssue(){
+ if(!source)return 'missing';
+ try{
+  const parsed=new URL(source);
+  if(parsed.protocol!=='https:')return 'https_required';
+  if(parsed.hostname!=='ofgmcsmxmdswlovsckqs.supabase.co')return 'wrong_project';
+  if(parsed.username||parsed.password)return 'credentials_not_allowed';
+  if(parsed.port)return 'port_not_allowed';
+  if(parsed.pathname!=='/'||parsed.search||parsed.hash)return 'root_url_required';
+  return source==='https://ofgmcsmxmdswlovsckqs.supabase.co'?null:'noncanonical_url';
+ }catch{return 'malformed_url';}
+}
 function claims(token:string){try{return JSON.parse(atob(token.split('.')[1].replaceAll('-','+').replaceAll('_','/')))}catch{return null}}
 Deno.serve(async(req:Request)=>{
- if(configurationIssues.length)return Response.json({ok:false,error:'RESTORE_CONFIGURATION_PENDING',configuration_issues:configurationIssues},{status:503});
+ if(configurationIssues.length)return Response.json({ok:false,error:'RESTORE_CONFIGURATION_PENDING',configuration_issues:configurationIssues,source_url_issue:sourceUrlIssue()},{status:503});
  const admin=createClient(target,env('SUPABASE_SERVICE_ROLE_KEY'),{auth:{persistSession:false,autoRefreshToken:false}});
  const rpc=async(action:string,data:any)=>{
   const {data:result,error}=await admin.rpc('aqari_storage_restore_v2',{p_action:action,p_data:{...data,workspace,sourceProject:new URL(source).hostname.split('.')[0]}});
