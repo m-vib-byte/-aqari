@@ -842,8 +842,8 @@
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/README.md",
-      "sha256": "8d820631d8bab07c8915873ac0b5bf8be7381ef44252ec8b7c78ae4a912052f4",
-      "size": 11846
+      "size": 12478,
+      "sha256": "7ef1db1aca1a76e960141b717d80e559ee33d81cfad42a329e7731a6056bedb2"
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/backup-authorization.txt",
@@ -871,6 +871,16 @@
       "size": 315
     },
     {
+      "path": "docs/acceptance/2026-10-14/unified/hosted-deployments.json",
+      "size": 1246,
+      "sha256": "d4e93b8f254d90500eeab88cb319cf134256553d6c86a60d5e7ee2e8478be8e4"
+    },
+    {
+      "path": "docs/acceptance/2026-10-14/unified/hosted-edge-probes.json",
+      "size": 1291,
+      "sha256": "7485fd645ab768693dd6935c28cf51828ca153972cfb4eec1771dbfa810af08e"
+    },
+    {
       "path": "docs/acceptance/2026-10-14/unified/javascript.txt",
       "sha256": "f4c14de2c50c96c520f004a7cf1f079d4af5346aae31b5802f2ee66c27ec391d",
       "size": 278209
@@ -884,6 +894,21 @@
       "path": "docs/acceptance/2026-10-14/unified/preview-sql-and-rollback.txt",
       "sha256": "76c56e42122618b1697f8e66254ce506be81d3f07a2290302768b2551a989b2f",
       "size": 377
+    },
+    {
+      "path": "docs/acceptance/2026-10-14/unified/restore-config-diagnostic.json",
+      "size": 437,
+      "sha256": "74c61da52675180d85025a6f41cc6bcb4cf3c8a1cad4194d779fbf413bd88835"
+    },
+    {
+      "path": "docs/acceptance/2026-10-14/unified/runtime-blockers.json",
+      "size": 950,
+      "sha256": "46452c33c8efd6286eee217ec585c4c47587cee44ff5d5762912ac8119413dd0"
+    },
+    {
+      "path": "docs/acceptance/2026-10-14/unified/storage-deployment-checks.txt",
+      "size": 5895,
+      "sha256": "27d8226867a885b054352da26235253f8af7d45805c8946e039765d3602e251f"
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/storage-size-adapter.txt",
@@ -4727,13 +4752,13 @@
     },
     {
       "path": "supabase/functions/aqari-stage-c-storage-export/index.ts",
-      "size": 10606,
-      "sha256": "2c4fef853f7319359c10e76fbc38acf092cf90dd068c5ef7935cd94a82fa5dbc"
+      "size": 10612,
+      "sha256": "2dbda6cf9af35560dd757949fce39df8fed3daff4e1de948a3bdaeb327a83564"
     },
     {
       "path": "supabase/functions/aqari-storage-restore-v2/index.ts",
-      "sha256": "0f0a293bcfa1c087753fb15337342e1a87bf1c83cc63cc7154dcb0ffeef2795f",
-      "size": 3848
+      "size": 4321,
+      "sha256": "f906294ce55a864f9fbcb23df7409418a725509c9e4d0e63126a00d8f6985119"
     },
     {
       "path": "supabase/functions/stage-c-storage-receiver-20261001/index.ts",
@@ -5244,6 +5269,11 @@
       "path": "tests/v267-contract-admin-recovery.test.mjs",
       "sha256": "0cba0ec989d0a6d3a8c8b3fb06cd685c7ae047c9a9947993482aff638c791303",
       "size": 2128
+    },
+    {
+      "path": "tests/v267-contract-administration.browser.mjs",
+      "size": 9910,
+      "sha256": "5e961b4ac6e641e31f2a54130ca7556cd841daf7c9e7eb6941a4d4b66991f6d5"
     },
     {
       "path": "tests/v267-contract-administration.test.mjs",
@@ -6062,8 +6092,8 @@
     },
     {
       "path": "tests/v267-storage-restore-auth.test.mjs",
-      "sha256": "3420e48ebe025f5cdd41f306b3ff2a975303cc73805d12d7cc18b31a4644c5ba",
-      "size": 3641
+      "size": 4162,
+      "sha256": "da374cd7625678a801ff0d53343fbe71d8903a11bd4e020ee3a71fd77b4f3b51"
     },
     {
       "path": "tests/v267-storage-restore-v2.test.mjs",
