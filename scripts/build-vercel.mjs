@@ -8,7 +8,7 @@ import {PRE_VERIFY_TEST_COMMANDS} from './build-vercel-preverify-tests.mjs';
 for(const tests of PRE_VERIFY_TEST_COMMANDS){
   execFileSync(process.execPath,['--test',...tests],{stdio:'inherit'});
 }
-execFileSync(process.execPath,['--test','tests/v267-contract-print.test.cjs','tests/v267-contract-print-request.test.mjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['--test','tests/v267-contract-print.test.cjs','tests/v267-contract-print-request.test.mjs','tests/v267-foundation-readback-recovery.test.mjs'],{stdio:'inherit'});
 if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
   if(trial?.enabled===true && process.env.AQARI_ENABLE_DOMAIN_TRIAL==='1'){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
