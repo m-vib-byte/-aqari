@@ -1332,8 +1332,8 @@
     },
     {
       "path": "public-config.js",
-      "sha256": "d4be5ee7f6591cbc30437602ee110b4ddddb2bd0619d985db200d5a7e83e3a36",
-      "size": 489
+      "sha256": "f57beb8008fdf9da08a58b40222ad3eca6c210761eaec91a4096e97f8c3dc13c",
+      "size": 556
     },
     {
       "path": "recovery.html",
@@ -4702,8 +4702,8 @@
     },
     {
       "path": "supabase-adapter.js",
-      "sha256": "e888ee79aa80e6cd35e2d32c188fd7d2fe7e1fcc0e89d7ead53acc95708aec02",
-      "size": 28176
+      "sha256": "192d3b72faceb3f8ccacd554652e1a48907d8a4668d81d42f5468c99a6337785",
+      "size": 29018
     },
     {
       "path": "supabase/functions/_shared/storage-restore-v2.js",
@@ -5187,8 +5187,8 @@
     },
     {
       "path": "tests/v266-startup-snapshot.test.cjs",
-      "sha256": "29bd76dc34262dd9f81a60335c39d98fb54b87ee11dd3d74af37eae426228ea0",
-      "size": 8337
+      "sha256": "5578bc6c3938fdba6513436ad496060718ae5708e501445bdc1d7f8e9adc3b54",
+      "size": 10036
     },
     {
       "path": "tests/v267-admin-receipt-download.test.cjs",
@@ -6414,6 +6414,11 @@
       "path": "docs/acceptance/2026-10-14/unified/restore-config-diagnosis-20261015.md",
       "size": 1655,
       "sha256": "c204f4bd036bd7f8645b87f7d73b716e63ed05a3e961a7c0dc81c0946047f99a"
+    },
+    {
+      "path": "docs/acceptance/2026-10-15/workspace-selection.md",
+      "size": 1342,
+      "sha256": "b188a346d6f2f3a3510ddc8622c1051d204ec71cdb55e0954b7dce3f772ccf2e"
     }
   ],
   "version": "V198"

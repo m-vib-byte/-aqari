@@ -5,6 +5,17 @@
   const AUTH_STORAGE_KEY = String(
     cfg.supabaseAuthStorageKey || cfg.supabaseStorageKey || 'aqari-supabase-auth-v198'
   ).trim() || 'aqari-supabase-auth-v198';
+  // A preview acceptance run must never fall back to another membership.
+  function requiredWorkspaceId(){
+    const id = String(cfg.acceptanceWorkspaceId || '').trim();
+    if(!id) return null;
+    if(cfg.releaseStage !== 'preview' ||
+       cfg.supabaseUrl !== 'https://ofgmcsmxmdswlovsckqs.supabase.co' ||
+       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){
+      throw accessError('Invalid isolated acceptance workspace configuration');
+    }
+    return id;
+  }
   const WRITE_ROLES = new Set(['general_manager', 'property_manager', 'accountant']);
   const state = { client:null, user:null, membership:null, workspace:null, profile:null };
   let clientPromise = null;
@@ -132,7 +143,7 @@
     startupProgress('workspace-snapshot');
     const snapshotDeadlineAt = Date.now() + 10000;
     const snapshot = await startupJson('/rest/v1/rpc/aqari_startup_snapshot_v266', session, snapshotDeadlineAt,
-      {p_workspace_id:null,p_expected_role:null,p_include_payload:true});
+      {p_workspace_id:requiredWorkspaceId(),p_expected_role:null,p_include_payload:true});
     assertContextEpoch(refreshEpoch);
     const next = snapshotContext(client, user, snapshot, {userId:user.id});
     startupProgress('verify-session-final');
@@ -225,6 +236,8 @@
 
   function requireExactAccess(context, expectedAccess, { write = false } = {}){
     const live = contextAccess(context);
+    const required = requiredWorkspaceId();
+    if(required && live?.workspaceId !== required) throw accessError();
     if(!live?.userId || !live?.workspaceId || !live?.role ||
        context?.membership?.user_id !== live.userId ||
        context?.membership?.workspace_id !== live.workspaceId ||
@@ -331,6 +344,8 @@
   }
 
   async function loadContextAt(expected, refreshEpoch){
+    const required = requiredWorkspaceId();
+    if(required && expected?.workspaceId && expected.workspaceId !== required) throw accessError();
     const client = await getClient();
     assertContextEpoch(refreshEpoch);
     const { data:sessionData, error:sessionError } = await client.auth.getSession();
@@ -347,6 +362,7 @@
     if(!expected && startupFetch && sessionData.session?.access_token){
       return fastStartupContext(client, sessionData.session, refreshEpoch);
     }
+    if(required) expected = {...expected, workspaceId:required};
     startupSnapshot = null;
     const { data:userData, error:userError } = await client.auth.getUser();
     assertContextEpoch(refreshEpoch);
