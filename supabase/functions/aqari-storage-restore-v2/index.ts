@@ -6,9 +6,19 @@ const source=env('AQARI_RESTORE_SOURCE_URL'),sourceKey=env('AQARI_RESTORE_SOURCE
 const workspace=env('AQARI_RESTORE_WORKSPACE'),bucket=env('AQARI_RESTORE_BUCKET');
 const target=env('SUPABASE_URL');
 const enabled=env('AQARI_STORAGE_RESTORE_V2_ENABLED')==='true';
+// Report configuration names only, never values or credentials. This lets an
+// operator identify the blocked setup without exporting the secret inventory.
+const configurationIssues=[
+ ...(!enabled?['AQARI_STORAGE_RESTORE_V2_ENABLED']:[]),
+ ...(source!=='https://ofgmcsmxmdswlovsckqs.supabase.co'?['AQARI_RESTORE_SOURCE_URL']:[]),
+ ...(!sourceKey?['AQARI_RESTORE_SOURCE_PUBLIC_KEY']:[]),
+ ...(!workspace?['AQARI_RESTORE_WORKSPACE']:[]),
+ ...(!bucket?['AQARI_RESTORE_BUCKET']:[]),
+ ...(target!=='https://nlqynpmilcdqztwrrvyu.supabase.co'?['SUPABASE_URL']:[])
+];
 function claims(token:string){try{return JSON.parse(atob(token.split('.')[1].replaceAll('-','+').replaceAll('_','/')))}catch{return null}}
 Deno.serve(async(req:Request)=>{
- if(!enabled||!source||!workspace||!bucket||!sourceKey||source!=='https://ofgmcsmxmdswlovsckqs.supabase.co'||target!=='https://nlqynpmilcdqztwrrvyu.supabase.co')return Response.json({ok:false,error:'RESTORE_CONFIGURATION_PENDING'},{status:503});
+ if(configurationIssues.length)return Response.json({ok:false,error:'RESTORE_CONFIGURATION_PENDING',configuration_issues:configurationIssues},{status:503});
  const admin=createClient(target,env('SUPABASE_SERVICE_ROLE_KEY'),{auth:{persistSession:false,autoRefreshToken:false}});
  const rpc=async(action:string,data:any)=>{
   const {data:result,error}=await admin.rpc('aqari_storage_restore_v2',{p_action:action,p_data:{...data,workspace,sourceProject:new URL(source).hostname.split('.')[0]}});

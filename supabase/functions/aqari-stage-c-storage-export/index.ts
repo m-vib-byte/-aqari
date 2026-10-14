@@ -1,6 +1,6 @@
 import {snapshot,transferSnapshot} from "../_shared/storage-restore-v2.js";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "npm:@supabase/server";
+import { withSupabase } from "npm:@supabase/server@1.9.2";
 import { zipSync, strToU8 } from "npm:fflate@0.8.2";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;

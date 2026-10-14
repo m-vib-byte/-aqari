@@ -11,6 +11,12 @@ function app({aal='aal2',userStatus=200,role='general_manager',wrongUser=false,w
 }
 for(const options of [{aal:'aal1'},{userStatus:401},{role:'employee'},{wrongUser:true},{wrongWorkspace:true}])test('real adapter refuses '+JSON.stringify(options)+' before database writes',async()=>{const a=app(options);assert.equal((await a.run()).status,403);assert.equal(a.writes(),0);});
 for(const options of [{enabled:false},{target:'https://djkpkkgoibruaezdrchb.supabase.co'}])test('real adapter refuses disabled or production receiver '+JSON.stringify(options),async()=>{const a=app(options);assert.equal((await a.run()).status,503);assert.equal(a.urls.length,0);assert.equal(a.writes(),0);});
+test('configuration diagnostics expose names only without credentials, workspace or network access',async()=>{
+ const a=app({enabled:false,target:'https://djkpkkgoibruaezdrchb.supabase.co'}),r=await a.run(),body=await r.json();
+ assert.equal(r.status,503);assert.deepEqual(body.configuration_issues,['AQARI_STORAGE_RESTORE_V2_ENABLED','SUPABASE_URL']);
+ assert.doesNotMatch(JSON.stringify(body),/synthetic-publishable|11111111|djkpkkgoibruaezdrchb|Bearer/);
+ assert.equal(a.urls.length,0);assert.equal(a.writes(),0);
+});
 
 const MiB=1024*1024;
 async function begin(a,sizes){
