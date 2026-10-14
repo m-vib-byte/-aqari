@@ -842,8 +842,8 @@
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/README.md",
-      "sha256": "a90ae67bd7203aca6c7cbe7b1d45d9af9ddf3eb5368ff4f67813e1b3db60fa96",
-      "size": 14629
+      "sha256": "957a3208e01b195549a5858fb94e9b472607c75168a85b4552f40656d7b30ec8",
+      "size": 15606
     },
     {
       "path": "docs/acceptance/2026-10-14/unified/backup-authorization.txt",
@@ -2562,8 +2562,8 @@
     },
     {
       "path": "staging-database/hosted-test/completion-current/04-tenant_contact_unification.sql",
-      "sha256": "cb944588f15edabab14f4d03c4f101c292ca15df1fabaae0b147fe6b72a815d2",
-      "size": 16414
+      "sha256": "2f4c7f11e9e876ff752c8de6d35ecfee1b12e0e5a1f877c55c05eac2758b23cd",
+      "size": 16470
     },
     {
       "path": "staging-database/hosted-test/completion-current/05-work_order_request_link.sql",
@@ -2597,7 +2597,7 @@
     },
     {
       "path": "staging-database/hosted-test/completion-current/manifest.json",
-      "sha256": "965515e54bc13ec9b9789a5a9826c6bb83453c25b59689d96a429a2062e5ab1d",
+      "sha256": "11cb5adff26dadd607d7899e5822257a45e00012ae71784d9ad76a63f11013af",
       "size": 3686
     },
     {
@@ -2617,8 +2617,8 @@
     },
     {
       "path": "staging-database/hosted-test/completion/04-tenant_contact_unification.sql",
-      "sha256": "bb9bcc0527759864707f9af808768c21d766a300dc570116e55120597378ef6f",
-      "size": 16240
+      "sha256": "31555b36314275e70fd28b4e6cc0db3d0d68c3f3a55c0a569e5f468e8214daed",
+      "size": 16296
     },
     {
       "path": "staging-database/hosted-test/completion/05-work_order_request_link.sql",
@@ -2652,7 +2652,7 @@
     },
     {
       "path": "staging-database/hosted-test/completion/manifest.json",
-      "sha256": "7862e353bacf2b4cf6ed8c642fd5f7f79df47fc32d67a52b64cde6be1e0a4d30",
+      "sha256": "b40a6230a16ef162471b4e4cc12267398d8eb4ae1bfd4ede5d504cdd0e357751",
       "size": 3798
     },
     {
