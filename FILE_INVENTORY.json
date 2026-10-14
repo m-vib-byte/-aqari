@@ -1347,8 +1347,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "bf3d7451e3d39f14234e1bff662f7e05cd980399e421107c9efccc8d4ab2ddb2",
-      "size": 10968
+      "sha256": "25add0f03b4f451a9bbd77c1c4f300582dce84c14a506324b2fa51ec6cb840c7",
+      "size": 11143
     },
     {
       "path": "scripts/check.mjs",
