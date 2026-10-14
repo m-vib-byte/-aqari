@@ -231,6 +231,11 @@
       "size": 8105
     },
     {
+      "path": "api/contract-print.py",
+      "sha256": "d6c48a142bddccc15d6a0f820134b8d2f8e23a6742095646ded071a52224226d",
+      "size": 1969
+    },
+    {
       "path": "api/contract-template-preview.py",
       "sha256": "ceece5662e912d8fb111ee620e48823348bb0a1fd2928b2a847f54b28b3a8f8c",
       "size": 19876
@@ -1076,6 +1081,11 @@
       "size": 6581
     },
     {
+      "path": "lib/contract_print_pdf.py",
+      "sha256": "748e6ab851171dfd14e9aee54a51ef66e011ab0f951cf6de592957e62e0d20ec",
+      "size": 7608
+    },
+    {
       "path": "lib/contract_template_pdf.py",
       "sha256": "e51aef8f106cb99b2bf5f5a452469b0587d3b67eec6e9f9378a63144c9a97a01",
       "size": 24171
@@ -1484,6 +1494,11 @@
       "path": "secure-auth-bridge.js",
       "sha256": "1af086ac439060ad88e63c8c28731373fd10a93503887b745d9651d7ede5cdad",
       "size": 40190
+    },
+    {
+      "path": "src/v267/api/contract-print-request.js",
+      "sha256": "ed0066f54d68456fc809d9bdf9fe0f79aa9bb21ad6d8a1349e5e55ebba35d3ef",
+      "size": 1608
     },
     {
       "path": "src/v267/api/operational-report.js",
@@ -2317,8 +2332,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "1169cf609be064e2de62d0615e1f9ae246adbeed749fce91154f3eae52bf9b90",
-      "size": 61828
+      "sha256": "3bb11b7baf94d8bc9789ae1c93005d537f1bfe18929e7b3b66fce93a0e58f2ca",
+      "size": 61602
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -4701,6 +4716,11 @@
       "size": 17894
     },
     {
+      "path": "tests/contract_print_pdf_test.py",
+      "sha256": "a2c2690d45a17063396cb3747ba1f3bbe07fe2130ad756892629d55b93884534",
+      "size": 4906
+    },
+    {
       "path": "tests/contract_template_pdf_test.py",
       "sha256": "7a611a77abc8db2a9bf2addf415c15de7283c251fedfb5862e6e9be1cb7ac4b5",
       "size": 5670
@@ -5141,9 +5161,14 @@
       "size": 2192
     },
     {
+      "path": "tests/v267-contract-print-request.test.mjs",
+      "sha256": "a8cfae453a04b20c6a1f602c8b80dc7e05b5f987582bb34f03d4978f33a5a7a0",
+      "size": 1785
+    },
+    {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "fb3a0e68cbcb2ed9494485ea83004c1d175136ab4752fc2c7b63692af8db3e10",
-      "size": 12031
+      "sha256": "f91715c74c6cc19d04751266b16b2306174a878ec8b5c9d4e7c85f3613d3d9d7",
+      "size": 12346
     },
     {
       "path": "tests/v267-contract-scanner-entry.test.cjs",
