@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
-import {receiverHandler,MAX_BYTES} from '../_shared/storage-restore-v2.js';
+import {receiverHandler} from '../_shared/storage-restore-v2.js';
 // Deployment is intentionally disabled until an isolated source AND target are approved.
 const env=(name:string)=>Deno.env.get(name)||'';
 const source=env('AQARI_RESTORE_SOURCE_URL'),sourceKey=env('AQARI_RESTORE_SOURCE_PUBLIC_KEY');
@@ -29,7 +29,10 @@ Deno.serve(async(req:Request)=>{
   store:{
    begin:async(plan:any)=>{
     const {data,error}=await admin.storage.getBucket(bucket);
-    if(error||!data||data.public||Number(data.file_size_limit??data.fileSizeLimit??0)<MAX_BYTES)throw Error('RESTORE_BUCKET_CONFIGURATION_PENDING');
+    // Bucket limits apply per object, while the protocol caps the whole snapshot.
+    const limit=Number(data?.file_size_limit??data?.fileSizeLimit??0);
+    if(error||!data||data.public||!Number.isSafeInteger(limit)||limit<=0)throw Error('RESTORE_BUCKET_CONFIGURATION_PENDING');
+    if(plan.objects.some((object:any)=>object.bytes>limit))throw Error('BACKUP_SIZE_LIMIT');
     return rpc('begin',plan);
    },
    check:(runId:string,object:any)=>rpc('check',{runId,object}),
