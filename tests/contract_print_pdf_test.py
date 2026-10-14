@@ -31,6 +31,7 @@ class PrintTests(unittest.TestCase):
             return render_contract_template(template,values)
         pdf,count=prepare_print(self.request,AUTH,read=self.read,render=render);reader=PdfReader(BytesIO(pdf))
         self.assertEqual(count,len(reader.pages));self.assertEqual(count,6)
+        for index,page in enumerate(reader.pages,1):self.assertIn(f'PDF page {index} / 6',page.extract_text())
         text='\n'.join(p.extract_text() for p in reader.pages)
         self.assertEqual(text.count('TEST ONLY - ORIGINAL RENT 100'),2)
         self.assertIn('نسخة المستأجر',rendered[0]['title']);self.assertIn('نسخة المالك',rendered[3]['title'])
