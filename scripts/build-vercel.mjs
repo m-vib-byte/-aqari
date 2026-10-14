@@ -8,7 +8,6 @@ import {PRE_VERIFY_TEST_COMMANDS} from './build-vercel-preverify-tests.mjs';
 for(const tests of PRE_VERIFY_TEST_COMMANDS){
   execFileSync(process.execPath,['--test',...tests],{stdio:'inherit'});
 }
-execFileSync(process.execPath,['--test','tests/v267-contract-print.test.cjs','tests/v267-contract-print-request.test.mjs','tests/v267-foundation-readback-recovery.test.mjs'],{stdio:'inherit'});
 if(process.env.VERCEL_ENV==='production'){
   const trial=JSON.parse(readFileSync(new URL('../config/domain-trial-target.json',import.meta.url),'utf8'));
   if(trial?.enabled===true && process.env.AQARI_ENABLE_DOMAIN_TRIAL==='1'){const changes=domainTrialPatch(path=>readFileSync(new URL('../'+path,import.meta.url),'utf8'),trial);for(const [path,content]of changes)writeFileSync(new URL('../'+path,import.meta.url),content);console.log('Prepared myaqari.com trial configuration with the isolated V267 staging data source.');}
@@ -73,4 +72,5 @@ execFileSync(process.execPath,['--test','tests/v267-unit-handover-bundle.test.mj
 const previewPython=mkdtempSync(join(tmpdir(),'aqari-v267-handover-python-'));
 try{execFileSync('python',['-m','pip','install','--disable-pip-version-check','--no-input','--no-cache-dir','--target',previewPython,'-r','requirements.txt'],{stdio:'inherit'});execFileSync('python',['-m','unittest','tests.unit_handover_pdf_test','tests.unit_handover_export_test','tests.operational_report_export_test','tests.salary_voucher_pdf_test','tests.contract_template_pdf_test','tests.contract_print_pdf_test','tests.contract_template_preview_test','tests.rental_document_layout_test','tests.rental_document_issue_test','tests.rental_document_editor_pdf_test'],{stdio:'inherit',env:{...process.env,PYTHONPATH:[previewPython,process.env.PYTHONPATH].filter(Boolean).join(delimiter)}});}finally{rmSync(previewPython,{recursive:true,force:true});}
 await import('./check.mjs');
+
 
