@@ -27,7 +27,7 @@ export function openContractFoundation(options={}){
  const bridge=window.AQARI_SUPABASE;if(!bridge?.loadAppState||!bridge?.saveAppState)throw Error('تعذر تحميل جسر السحابة.');
  const d=createDialog(translateStatic('عقد جديد — التأسيس من البداية للنهاية'));if(!d)return false;
  const scope=()=>({userId:d.session.bound.user,workspaceId:d.session.bound.workspace});
- let state=null,properties=[],units=[],templates=[],preparation=null,autosave=null;
+ let state=null,properties=[],units=[],templates=[],preparation=null,autosave=null,unconfirmedPreparation=null;
  d.onDispose(()=>autosave?.dispose());
  d.setBeforeClose(async()=>{d.session.check();await autosave?.flush();d.session.check();return true;});
  d.setBeforeUnload(()=>Boolean(autosave?.hasUnsavedChanges()));
@@ -99,11 +99,17 @@ export function openContractFoundation(options={}){
   const id=preparation.id,now=new Date().toISOString();
   preparation=await changeState(data=>{
    const drafts=data.contractPreparationDraftsV267||[],index=drafts.findIndex(row=>row.id===id);if(index<0)throw Error('مسودة التأسيس غير موجودة.');
-   if(drafts[index].status!=='preparation'||!same(drafts[index],preparation))throw Error('تغيرت مسودة التأسيس أو أغلقت في جلسة أخرى. أعد فتحها قبل المتابعة.');
-   const next={...drafts[index],...copy(patch),updatedAt:now};drafts[index]=next;data.contractPreparationDraftsV267=drafts;
+   if(drafts[index].status!=='preparation')throw Error('تغيرت مسودة التأسيس أو أغلقت في جلسة أخرى. أعد فتحها قبل المتابعة.');
+   // A write may have committed before readback failed. Reconcile only our exact
+   // pending record; a different session's changes must still be rejected.
+   if(!same(drafts[index],preparation)){
+    if(unconfirmedPreparation?.id===id&&same(drafts[index],unconfirmedPreparation.expected))preparation=copy(drafts[index]);
+    else throw Error('تغيرت مسودة التأسيس أو أغلقت في جلسة أخرى. أعد فتحها قبل المتابعة.');
+   }
+   const next={...drafts[index],...copy(patch),updatedAt:now};unconfirmedPreparation={id,expected:copy(next)};drafts[index]=next;data.contractPreparationDraftsV267=drafts;
    data.audit=(data.audit||[]).concat([[d.session.bound.user,action,next.contractNo,now]]);return next;
   },(data,record)=>(data.contractPreparationDraftsV267||[]).some(row=>same(row,record)));
-  return preparation;
+  unconfirmedPreparation=null;return preparation;
  }
 
  async function cancelPreparation(){
@@ -168,6 +174,7 @@ export function openContractFoundation(options={}){
  }
 
  async function editPreparation(reload=true){
+  unconfirmedPreparation=null;
   autosave?.dispose();autosave=null;
   if(reload)await load();preparation=(state.contractPreparationDraftsV267||[]).find(row=>row.id===preparation.id)||preparation;if(preparation.status!=='preparation')throw Error('هذه المسودة لم تعد مفتوحة للتأسيس.');
   clear(translateStatic('تأسيس ')+preparation.contractNo);d.el.classList.add('aq267-contract-foundation');const cancelDraft=button(translateStatic('إلغاء'),cancelPreparation);cancelDraft.className='danger';const workspace=node('section');workspace.className='aq267-contract-foundation-workspace';const header=node('header');header.className='aq267-contract-foundation-header';header.append(node('div',translateStatic('مسودة محفوظة تلقائيًا')),node('strong',preparation.contractNo),node('p',translateStatic('أدخل البيانات بحرية؛ التحقق الكامل يتم فقط عند تثبيت العقد.')));workspace.append(header,node('div'));d.body.append(button(translateStatic('رجوع'),start),cancelDraft,workspace);

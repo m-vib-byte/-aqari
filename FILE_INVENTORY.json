@@ -231,6 +231,11 @@
       "size": 8105
     },
     {
+      "path": "api/contract-print.py",
+      "sha256": "d6c48a142bddccc15d6a0f820134b8d2f8e23a6742095646ded071a52224226d",
+      "size": 1969
+    },
+    {
       "path": "api/contract-template-preview.py",
       "sha256": "ceece5662e912d8fb111ee620e48823348bb0a1fd2928b2a847f54b28b3a8f8c",
       "size": 19876
@@ -1076,6 +1081,11 @@
       "size": 6581
     },
     {
+      "path": "lib/contract_print_pdf.py",
+      "sha256": "8df202308d518c1af6d5c704c962676837bc88ec44db40c797a7e4bb793c553f",
+      "size": 7752
+    },
+    {
       "path": "lib/contract_template_pdf.py",
       "sha256": "e51aef8f106cb99b2bf5f5a452469b0587d3b67eec6e9f9378a63144c9a97a01",
       "size": 24171
@@ -1337,8 +1347,8 @@
     },
     {
       "path": "scripts/build-vercel.mjs",
-      "sha256": "bf3d7451e3d39f14234e1bff662f7e05cd980399e421107c9efccc8d4ab2ddb2",
-      "size": 10968
+      "sha256": "872f72a5dcc8d7330bcecaa1c78d52ccedaad7d363375d742d81b258e4c9bd20",
+      "size": 11194
     },
     {
       "path": "scripts/check.mjs",
@@ -1484,6 +1494,11 @@
       "path": "secure-auth-bridge.js",
       "sha256": "1af086ac439060ad88e63c8c28731373fd10a93503887b745d9651d7ede5cdad",
       "size": 40190
+    },
+    {
+      "path": "src/v267/api/contract-print-request.js",
+      "sha256": "ed0066f54d68456fc809d9bdf9fe0f79aa9bb21ad6d8a1349e5e55ebba35d3ef",
+      "size": 1608
     },
     {
       "path": "src/v267/api/operational-report.js",
@@ -2107,8 +2122,8 @@
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
-      "sha256": "54f5df756dca5edf5ccba89a01fd3fd7f8119086e3c0c0a8a3c6a0a80fdc5d25",
-      "size": 39127
+      "sha256": "59551a39f4d6724affb357f11099cff252174486eb43d60d9e512d94611e8f57",
+      "size": 39702
     },
     {
       "path": "src/v267/pages/contract-templates.js",
@@ -2317,8 +2332,8 @@
     },
     {
       "path": "src/v267/pages/rental-contracts.js",
-      "sha256": "1169cf609be064e2de62d0615e1f9ae246adbeed749fce91154f3eae52bf9b90",
-      "size": 61828
+      "sha256": "3bb11b7baf94d8bc9789ae1c93005d537f1bfe18929e7b3b66fce93a0e58f2ca",
+      "size": 61602
     },
     {
       "path": "src/v267/pages/rental-document-cycle.js",
@@ -3174,6 +3189,11 @@
       "path": "staging-database/sql/mfa-enforcement.sql",
       "sha256": "5f7b658026ab02d2c18a591114bc94950a6da47b1bb1d9189bf6c59f22ac49ab",
       "size": 2332
+    },
+    {
+      "path": "staging-database/sql/missing-statement-contact-helpers.sql",
+      "size": 7592,
+      "sha256": "4307f53890f7048c86e4eeda82fee80981b791ed97f8496e3d51c8d749f02592"
     },
     {
       "path": "staging-database/sql/official-document-access-hardening.sql",
@@ -4241,6 +4261,11 @@
       "size": 11845
     },
     {
+      "path": "staging-database/tests/missing-helper-bootstrap.sql",
+      "size": 9386,
+      "sha256": "3664ff652b38709b8493a9c13cef1c4f7337186e251ec20369f96e0e9b54bf72"
+    },
+    {
       "path": "staging-database/tests/official_document_pdf_archive.sql",
       "sha256": "31a0479059584de1096d6b76ff78f6906d5952b39131fac9beecd305a5b857b5",
       "size": 12341
@@ -4452,8 +4477,8 @@
     },
     {
       "path": "staging-database/tests/tenant_contact_unification.sql",
-      "sha256": "41ec4715312671df36b4dcb17c625b357e6a25b7da05f4e031327d2cb7d18c40",
-      "size": 15453
+      "sha256": "c34aabd53c9e784fd9071dba98b3756536082cad78946f683c61cc0dbcfcf686",
+      "size": 15509
     },
     {
       "path": "staging-database/tests/tenant_rating_quarters.sql",
@@ -4699,6 +4724,11 @@
       "path": "tests/contract_execution_package_test.py",
       "sha256": "d9797a732f789e1a8dc10535b4cae00c13f9bbf0b8843b220556c7a47c2d9d3f",
       "size": 17894
+    },
+    {
+      "path": "tests/contract_print_pdf_test.py",
+      "sha256": "4114f684961b68c0ef39e175c929e10aa1b9083ae96b830d2b9576a192f1f115",
+      "size": 5017
     },
     {
       "path": "tests/contract_template_pdf_test.py",
@@ -5122,8 +5152,8 @@
     },
     {
       "path": "tests/v267-contract-foundation-prefill.test.mjs",
-      "sha256": "ec9b0fcb4de236e9153c5e999ebbce2edc806ae8ef1e1320fd5ab5dd55d3b1fc",
-      "size": 13395
+      "sha256": "84fa45d9f555babad840abcccf7502f984e967ab0ae0681045a921ba14514afc",
+      "size": 13451
     },
     {
       "path": "tests/v267-contract-foundation.test.mjs",
@@ -5141,9 +5171,14 @@
       "size": 2192
     },
     {
+      "path": "tests/v267-contract-print-request.test.mjs",
+      "sha256": "a8cfae453a04b20c6a1f602c8b80dc7e05b5f987582bb34f03d4978f33a5a7a0",
+      "size": 1785
+    },
+    {
       "path": "tests/v267-contract-print.test.cjs",
-      "sha256": "fb3a0e68cbcb2ed9494485ea83004c1d175136ab4752fc2c7b63692af8db3e10",
-      "size": 12031
+      "sha256": "f91715c74c6cc19d04751266b16b2306174a878ec8b5c9d4e7c85f3613d3d9d7",
+      "size": 12346
     },
     {
       "path": "tests/v267-contract-scanner-entry.test.cjs",
@@ -5284,6 +5319,11 @@
       "path": "tests/v267-foundation-autosave.test.mjs",
       "sha256": "e9eed5d7000d0d4b079e9c05a8b4b6204cfb8d520888e61225d093db02720a73",
       "size": 4471
+    },
+    {
+      "path": "tests/v267-foundation-readback-recovery.test.mjs",
+      "size": 2945,
+      "sha256": "c565f8e5b3bda9e1f2360a57252bd923edeabfc6928bdc9b28d51e04fb54304f"
     },
     {
       "path": "tests/v267-full-page-workspace.test.mjs",

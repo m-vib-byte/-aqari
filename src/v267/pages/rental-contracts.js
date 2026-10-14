@@ -1,4 +1,5 @@
 import {mountBoundContractPdfs} from '../components/pdf-contract-binding.js';
+import {fetchContractPrint} from '../api/contract-print-request.js';
 import {appendPdfViewer} from '../components/pdf-viewer.js';
 import {readStoredOriginal} from '../components/stored-original.js';
 import {resolveRentalDocumentContext,linkedDocumentFieldKeys,groupRentalContractsByProperty,assertContractProperty,resolveContractPropertyBinding} from '../domain/rental-document-cycle.js';
@@ -101,9 +102,9 @@ function printControls(d,api,urls,id,choices){
  async function prepare(count,mode){
   output.replaceChildren();if(previousUrl){urls.release(previousUrl);previousUrl=null;}
   const prepared=await api.prepareContractPrint(id,count,mode);d.session.check();
-  previousUrl=urls.create(new Blob([prepared.html],{type:'text/html;charset=utf-8'}));
-  const preview=node('iframe');preview.title=translateStatic('معاينة العقد والملاحق داخل عقاري');preview.setAttribute('sandbox','');preview.src=previousUrl;preview.style.cssText='width:100%;height:75vh;border:1px solid #d8c8ae';output.append(preview);
-  const download=node('a',translateStatic('تنزيل نسخة العقد والملاحق'));download.href=previousUrl;download.download='contract-'+id+'.html';output.append(download);
+  const pdf=await fetchContractPrint(d,prepared);d.session.check();
+  previousUrl=urls.create(pdf);
+  appendPdfViewer(output,previousUrl,{title:translateStatic('معاينة العقد والملاحق داخل عقاري'),filename:'contract-'+id+'.pdf'});
   d.status.textContent=mode==='official'?translateStatic('تم التحقق من اعتماد العقد المحفوظ قبل إصدار النسخة.'):translateStatic('مسودة للمراجعة فقط، غير صالحة للتوقيع.');
  }
  for(const [count,mode,label]of choices){const b=node('button',label);b.type='button';b.onclick=()=>d.run(()=>prepare(count,mode));d.body.append(b);}
