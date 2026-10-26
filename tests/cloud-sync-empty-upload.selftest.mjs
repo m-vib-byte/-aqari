@@ -25,6 +25,11 @@ cloudPayload = {properties:[{id:'restored-only'}]};
 const conflict = await sandbox.window.AQARI_CLOUD_SYNC.restoreCloudToLocal();
 assert.equal(conflict.conflicts[0],'aqari_v30','restore must warn before overwriting existing records');
 assert.equal(sandbox.window.AQARI_DATA_GATE.read().properties[0].id,'test-only');
+// Simulate staging activation from an empty cloud seed: existing local records survive.
+sandbox.window.AQARI_PUBLIC_CONFIG = {supabaseUrl:'https://ofgmcsmxmdswlovsckqs.supabase.co'};
+const activated = sandbox.window.AQARI_DATA_GATE.activate(context, {});
+assert.equal(activated.properties[0].id,'test-only','empty staging seed must not replace local records');
+assert.equal(sandbox.window.AQARI_DATA_GATE.read().properties[0].id,'test-only');
 sandbox.window.AQARI_DATA_GATE.seal();
 await assert.rejects(()=>sandbox.window.AQARI_CLOUD_SYNC.uploadLocal(),error=>error?.code==='AQARI_DATA_SCOPE_REQUIRED');
 assert.equal(writes,1,'unauthenticated upload must not write');
