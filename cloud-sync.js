@@ -214,6 +214,11 @@
     const scope = requireScope();
     if(!window.AQARI_SUPABASE) throw new Error('Supabase adapter unavailable');
     const payload = primaryLocalState(scope);
+    if(!Object.keys(payload).length){
+      const error = new Error('No local AQARI records to upload; refusing an empty cloud write');
+      error.code = 'AQARI_NO_LOCAL_DATA';
+      throw error;
+    }
     const cloud = await readCloud(scope);
     if(payloadHasData(cloud?.payload)){
       const error = new Error('Cloud state already contains data; restore it before any replacement');
