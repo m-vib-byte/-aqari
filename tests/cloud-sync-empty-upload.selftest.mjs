@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const context = {user:{id:'user-1'},workspace:{id:'isolated-1'},membership:{is_active:true,user_id:'user-1',workspace_id:'isolated-1'}};
+const state = new Map();
+const storage = {getItem:key=>state.has(key)?state.get(key):null,setItem:(key,value)=>state.set(key,String(value))};
+let writes=0, reads=0;
+const supabase = {context,loadAppState:async()=>{reads++;return {workspace_id:'isolated-1',revision:0,payload:null};},saveAppState:async()=>{writes++;return {workspace_id:'isolated-1',revision:1};}};
+const scope = {userId:'user-1',workspaceId:'isolated-1'};
+const sandbox={window:{AQARI_SUPABASE:supabase},localStorage:storage,location:{origin:'https://preview.test',pathname:'/'}};
+vm.runInNewContext(fs.readFileSync('cloud-sync.js','utf8'),sandbox,{filename:'cloud-sync.js'});
+sandbox.window.AQARI_DATA_GATE.activate(context);
+await assert.rejects(()=>sandbox.window.AQARI_CLOUD_SYNC.uploadLocal(), error=>error?.code==='AQARI_NO_LOCAL_DATA');
+assert.equal(reads,0,'must reject empty data before even reading cloud');
+assert.equal(writes,0,'must never write empty state');
+sandbox.window.AQARI_DATA_GATE.write({properties:[{id:'test-only'}]});
+await sandbox.window.AQARI_CLOUD_SYNC.uploadLocal();
+assert.equal(writes,1,'nonempty fixture should preserve existing upload behavior');
+sandbox.window.AQARI_DATA_GATE.seal();
+await assert.rejects(()=>sandbox.window.AQARI_CLOUD_SYNC.uploadLocal(),error=>error?.code==='AQARI_DATA_SCOPE_REQUIRED');
+assert.equal(writes,1,'unauthenticated upload must not write');
+console.log('PASS: blank-state blocked, populated-state upload preserved, sealed scope blocked (mocked only)');
