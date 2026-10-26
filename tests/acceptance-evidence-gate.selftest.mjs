@@ -20,7 +20,7 @@ const script = path.resolve('scripts/acceptance-evidence-gate.mjs');
 const valid = () => ({
   candidate_sha: sha, environment:'isolated-preview', production_deployed:false,
   checks: Object.fromEntries(keys.map(key => [key, {
-    passed:true, candidate_sha:sha, evidence_url:'https://github.com/example/example/issues/1#' + key
+    passed:true, candidate_sha:sha, evidence_url:'https://github.com/m-vib-byte/-aqari/issues/197#' + key
   }]))
 });
 function run(doc, expectedSha=sha) {
