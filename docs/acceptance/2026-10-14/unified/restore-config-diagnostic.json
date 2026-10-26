@@ -1,0 +1,16 @@
+{
+  "tested_at": "2026-10-14T02:24:30.941721+00:00",
+  "status": 503,
+  "response": {
+    "ok": false,
+    "error": "RESTORE_CONFIGURATION_PENDING",
+    "configuration_issues": [
+      "AQARI_STORAGE_RESTORE_V2_ENABLED",
+      "AQARI_RESTORE_SOURCE_URL",
+      "AQARI_RESTORE_SOURCE_PUBLIC_KEY",
+      "AQARI_RESTORE_WORKSPACE",
+      "AQARI_RESTORE_BUCKET"
+    ]
+  },
+  "scope": "No credentials sent. No writes or transfer requested."
+}

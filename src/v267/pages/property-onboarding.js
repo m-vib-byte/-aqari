@@ -65,7 +65,18 @@ export function openPropertyOnboarding(){
  async function saveLegacyProperty(previews){
   const current=bound(),findProperty=()=>d.session.request(d.session.client.from('aqari_properties').select('id,workspace_id,name,external_ref,metadata').eq('workspace_id',d.session.bound.workspace).eq('external_ref',lockedDraft.name).limit(2));
   if(!creationAttempt){
-   const cloud=await bridge.loadAppState(current);d.session.check();const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[],revision=Number(cloud.revision);
+   let cloud=await bridge.loadAppState(current);d.session.check();
+   // Relational projection runs on UPDATE, not INSERT. Bootstrap only an
+   // empty state; the property itself must pass the normal guarded update.
+   // A lost bootstrap response is safe to retry after another cloud read.
+   if(cloud===null){
+    await bridge.saveAppState({},0,current);d.session.check();
+    cloud=await bridge.loadAppState(current);d.session.check();
+    if(!cloud)throw Error('تعذر تأكيد تهيئة مساحة العمل. أعد المحاولة للتحقق قبل إنشاء العقار.');
+   }
+   // Reject an incomplete cloud read instead of guessing an empty workspace or writing over data.
+   if(!cloud?.payload||typeof cloud.payload!=='object'||Array.isArray(cloud.payload))throw Error('تعذر قراءة حالة مساحة العمل كاملة. أعد المحاولة بعد التحقق؛ لم تُحفظ بيانات جديدة.');
+   const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[],revision=Number(cloud.revision);
    if(!Array.isArray(rows)||!Number.isSafeInteger(revision)||revision<0)throw Error('تعذر تثبيت مراجعة بيانات العقارات قبل الإنشاء.');
    if(rows.some(row=>String(row?.[0]||'').normalize('NFKC').trim().toLowerCase()===lockedDraft.name.toLowerCase()))throw Error('اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.');
    const existing=await findProperty();d.session.check();if(!Array.isArray(existing))throw Error('تعذر التحقق من هوية العقار قبل الإنشاء.');if(existing.length)throw Error('العقار مسجل مسبقاً في السجلات الخادمة. افتح ملفه الموجود.');
@@ -74,9 +85,18 @@ export function openPropertyOnboarding(){
    rows.push(row);state.properties=rows;state.audit=(state.audit||[]).concat([[d.session.bound.user,'إنشاء عقار من شاشة الملف المتكامل',lockedDraft.name,new Date().toISOString()]]);
    // Keep a correlation marker before sending: a lost response must never cause a second create.
    creationAttempt={row:clone(row),revision};for(const control of form.querySelectorAll('input,textarea,select,button'))if(control!==save)control.disabled=true;save.textContent=translateStatic('التحقق ومتابعة الملف');
-   await bridge.saveAppState(payload,revision,current);d.session.check();
+   try{await bridge.saveAppState(payload,revision,current);d.session.check();}
+   catch(error){
+    // These markers are emitted only by the write boundary before any commit.
+    if(error?.code==='AQARI_REVISION_CONFLICT'||error?.aqariStateWriteRejected===true){creationAttempt=null;for(const control of form.querySelectorAll('input,textarea,select,button'))control.disabled=false;save.textContent=translateStatic('حفظ العقار والملف الكامل');}
+    throw error;
+   }
   }
-  const confirmed=await bridge.loadAppState(current);d.session.check();const rows=api.primary(confirmed.payload).properties,matches=Array.isArray(rows)?rows.filter(row=>row?.[0]===lockedDraft.name):[];
+  const confirmed=await bridge.loadAppState(current);d.session.check();
+  // A lost or incomplete readback is not proof that the committed create failed.
+  // Keep creationAttempt locked and verify again on retry; never submit a second create.
+  if(!confirmed||!confirmed.payload||typeof confirmed.payload!=='object'||Array.isArray(confirmed.payload))throw Error('تعذر قراءة تأكيد إنشاء العقار. أعد المحاولة للتحقق فقط؛ لن ينشأ سجل ثانٍ.');
+  const rows=api.primary(confirmed.payload).properties,matches=Array.isArray(rows)?rows.filter(row=>row?.[0]===lockedDraft.name):[];
   if(!Number.isSafeInteger(Number(confirmed.revision))||Number(confirmed.revision)<=creationAttempt.revision||matches.length!==1||!sameRecord(matches[0],creationAttempt.row))throw Error('لم يتأكد سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط؛ لن ينشأ سجل ثانٍ.');
   const result=await findProperty();d.session.check();const property=Array.isArray(result)&&result.length===1?result[0]:null,record=Array.isArray(property?.metadata)?property.metadata:property?.metadata?.source_record;
   if(!property?.id||property.workspace_id!==d.session.bound.workspace||property.name!==lockedDraft.name||property.external_ref!==lockedDraft.name||!sameRecord(record,creationAttempt.row))throw Error('تعذر تأكيد هوية سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط.');return property;

@@ -1,0 +1,8 @@
+PASS browser roles cannot call restore helper
+PASS begin is idempotent; incomplete snapshot cannot finalize
+PASS duplicate acknowledgements safe; changed bytes/run identity rejected
+PASS finalize/readback completion idempotent
+PASS source deletion makes independent run and preserves old verified proof
+PASS cross-workspace run denied
+PASS empty snapshot verified explicitly
+PASS exactly three snapshots; no duplicate run or object records

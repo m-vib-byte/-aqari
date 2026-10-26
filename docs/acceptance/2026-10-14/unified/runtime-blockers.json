@@ -1,0 +1,21 @@
+{
+  "recorded_at": "2026-10-14T02:26:05.019390+00:00",
+  "hosted_browser": {
+    "attempts": 2,
+    "second_attempt": "after tool-suggested JS runtime reset",
+    "result": "blocked",
+    "message": "Browser observation is unavailable because native credential state cannot be safely resumed. Start a new browser runtime to continue."
+  },
+  "local_ui_harness": {
+    "script": "tests/v267-contract-administration.browser.mjs",
+    "result": "not_run",
+    "reason": "No installed Chromium/WebKit runtime; official Playwright browser download returned HTTP 200 text/html Site Unavailable (195 bytes), not a ZIP",
+    "scope": "Prepared for localhost and synthetic RPC only; no external browser requests or credentials",
+    "checks_passed": 0
+  },
+  "release_gate": {
+    "rent_statement_reconciliation": "owner-managed; not a release blocker",
+    "functional_entry_edit_save_dedup": "still required",
+    "production_deploy": "not authorized"
+  }
+}

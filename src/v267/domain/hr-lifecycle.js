@@ -25,14 +25,14 @@ export function validateAllocations(rows,allowed){
  if(!Array.isArray(rows)||!rows.length)throw Error('ALLOCATIONS_REQUIRED');const ids=new Set(),scope=new Set(allowed||[]);let total=0;
  for(const row of rows){
   if(!row||!scope.has(row.property_id)||ids.has(row.property_id))throw Error('INVALID_ALLOCATION_PROPERTY');
-  const text=String(row.share??'').trim(),share=Number(text);
-  if(!/^\d+(?:\.\d{1,2})?$/.test(text)||!Number.isFinite(share)||share<=0||share>100)throw Error('INVALID_ALLOCATION_SHARE');
+  const text=String(row.share??'').trim()||'0',share=Number(text);
+  if(!/^\d+(?:\.\d{1,2})?$/.test(text)||!Number.isFinite(share)||share<0||share>100)throw Error('INVALID_ALLOCATION_SHARE');
   ids.add(row.property_id);total+=Math.round(share*100);
  }
- if(total!==10000)throw Error('ALLOCATIONS_MUST_TOTAL_100');return rows.map(row=>({property_id:row.property_id,share:Number(row.share).toFixed(2)}));
+ if(total!==10000)throw Error('ALLOCATIONS_MUST_TOTAL_100');return rows.filter(row=>Number(row.share)>0).map(row=>({property_id:row.property_id,share:Number(row.share).toFixed(2)}));
 }
 export function csv(rows){
  const keys=['month','employee_name','property_name','state','net','share','allocated_cost','cost_basis'];
- const cell=value=>'"'+String(value??'').replaceAll('"','""')+'"';
+ const cell=value=>{let text=String(value??'');if(/^[\s\uFEFF]*[=+@-]|^[\t\r\n]/.test(text))text="'"+text;return '"'+text.replaceAll('"','""')+'"';};
  return '\uFEFF'+[keys.join(','),...(rows||[]).map(row=>keys.map(k=>cell(row[k])).join(','))].join('\r\n');
 }
