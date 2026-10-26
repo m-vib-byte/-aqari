@@ -250,6 +250,11 @@
     const cloud = await readCloud(scope);
     const decoded = decodeCloudPayload(cloud?.payload);
     if(!decoded) throw new Error('Cloud payload does not contain compatible AQARI data');
+    if(!Object.keys(prepareState(decoded.primary)).length){
+      const error = new Error('Cloud state contains no AQARI records; refusing empty restore');
+      error.code = 'AQARI_EMPTY_CLOUD_RESTORE';
+      throw error;
+    }
     const existing = readWorkspaceState(scope);
     if(Object.keys(existing).length && !overwrite){
       return { restored:[], conflicts:[PRIMARY_DATA_KEY], revision:cloud.revision, updatedAt:cloud.updated_at };
