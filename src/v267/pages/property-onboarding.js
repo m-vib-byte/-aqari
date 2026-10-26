@@ -90,7 +90,11 @@ export function openPropertyOnboarding(){
     throw error;
    }
   }
-  const confirmed=await bridge.loadAppState(current);d.session.check();const rows=api.primary(confirmed.payload).properties,matches=Array.isArray(rows)?rows.filter(row=>row?.[0]===lockedDraft.name):[];
+  const confirmed=await bridge.loadAppState(current);d.session.check();
+  // A lost or incomplete readback is not proof that the committed create failed.
+  // Keep creationAttempt locked and verify again on retry; never submit a second create.
+  if(!confirmed||!confirmed.payload||typeof confirmed.payload!=='object'||Array.isArray(confirmed.payload))throw Error('تعذر قراءة تأكيد إنشاء العقار. أعد المحاولة للتحقق فقط؛ لن ينشأ سجل ثانٍ.');
+  const rows=api.primary(confirmed.payload).properties,matches=Array.isArray(rows)?rows.filter(row=>row?.[0]===lockedDraft.name):[];
   if(!Number.isSafeInteger(Number(confirmed.revision))||Number(confirmed.revision)<=creationAttempt.revision||matches.length!==1||!sameRecord(matches[0],creationAttempt.row))throw Error('لم يتأكد سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط؛ لن ينشأ سجل ثانٍ.');
   const result=await findProperty();d.session.check();const property=Array.isArray(result)&&result.length===1?result[0]:null,record=Array.isArray(property?.metadata)?property.metadata:property?.metadata?.source_record;
   if(!property?.id||property.workspace_id!==d.session.bound.workspace||property.name!==lockedDraft.name||property.external_ref!==lockedDraft.name||!sameRecord(record,creationAttempt.row))throw Error('تعذر تأكيد هوية سجل محاولة الإنشاء الحالية. أعد المحاولة للتحقق فقط.');return property;
