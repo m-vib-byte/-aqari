@@ -112,6 +112,9 @@
       const decoded = decodeCloudPayload(cloudSeed);
       if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl === 'https://ofgmcsmxmdswlovsckqs.supabase.co' && decoded){
         const cloud = prepareState(decoded.primary);
+        // Do not erase a populated workspace when a staging seed is empty.
+        // An empty seed is not evidence of a deliberate data deletion.
+        if(!Object.keys(cloud).length && Object.keys(local).length) return local;
         if(Object.keys(local).length && JSON.stringify(local) !== JSON.stringify(cloud)){
           const backupKey = workspaceDataKey(next) + ':before-cloud-activation';
           if(localStorage.getItem(backupKey) === null) localStorage.setItem(backupKey, JSON.stringify(local));
