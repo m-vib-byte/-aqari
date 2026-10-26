@@ -74,6 +74,8 @@ export function openPropertyOnboarding(){
     cloud=await bridge.loadAppState(current);d.session.check();
     if(!cloud)throw Error('تعذر تأكيد تهيئة مساحة العمل. أعد المحاولة للتحقق قبل إنشاء العقار.');
    }
+   // Reject an incomplete cloud read instead of guessing an empty workspace or writing over data.
+   if(!cloud?.payload||typeof cloud.payload!=='object'||Array.isArray(cloud.payload))throw Error('تعذر قراءة حالة مساحة العمل كاملة. أعد المحاولة بعد التحقق؛ لم تُحفظ بيانات جديدة.');
    const payload=clone(cloud.payload),state=api.primary(payload),rows=state.properties||[],revision=Number(cloud.revision);
    if(!Array.isArray(rows)||!Number.isSafeInteger(revision)||revision<0)throw Error('تعذر تثبيت مراجعة بيانات العقارات قبل الإنشاء.');
    if(rows.some(row=>String(row?.[0]||'').normalize('NFKC').trim().toLowerCase()===lockedDraft.name.toLowerCase()))throw Error('اسم العقار مسجل مسبقاً. افتح الملف الموجود بدلاً من إنشاء سجل ثانٍ.');
