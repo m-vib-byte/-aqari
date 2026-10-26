@@ -347,8 +347,8 @@
     },
     {
       "path": "cloud-sync.js",
-      "sha256": "5571a4ad809cba7ea8f1d75ecbaf891e1cf4fbb89958fcd9c5fd5c8d44973d5d",
-      "size": 10631
+      "sha256": "ad78e0d8020e9bd6f3f90e7c3d6c56b80736cd335888459ffbe521b4d9dfdc1f",
+      "size": 11293
     },
     {
       "path": "config/production-target.json",
