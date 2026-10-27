@@ -1767,8 +1767,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "4581b2099a5843ca35db8bc7d42e20af5e321aca80a7f9658bf945bb48cfdb0d",
-      "size": 5960
+      "sha256": "a60d1c89eec5a6e0567b95af8293b3dbe5aed0e6863d800a22ee2071ca2632a2",
+      "size": 6587
     },
     {
       "path": "src/v267/components/page.js",
@@ -2354,6 +2354,11 @@
       "path": "src/v267/pages/property-notices.js",
       "sha256": "ed6565ba3e70138259d6a9cf0cdff82b57db282e78040ecf0fbf0af7b58bc41d",
       "size": 11067
+    },
+    {
+      "path": "src/v267/pages/property-onboarding.js",
+      "size": 26057,
+      "sha256": "d896e3e51dfbca6b159527abeb8f8ea48775a5cabf09d35daecd026772555180"
     },
     {
       "path": "src/v267/pages/property-portfolio-additions.js",
@@ -5859,6 +5864,11 @@
       "path": "tests/v267-property-action-locale.test.cjs",
       "sha256": "8b864e834a7c2ab5a5dd452a390dfa57871a66266559e7ded10282bef1b3fb76",
       "size": 1668
+    },
+    {
+      "path": "tests/v267-property-attachment-preflight.test.mjs",
+      "size": 1629,
+      "sha256": "54c69af796be658b03a8c938d0b7e95b11a863b449e453888fe2b0c4f37c1fb2"
     },
     {
       "path": "tests/v267-property-contact-links.test.mjs",
