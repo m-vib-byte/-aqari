@@ -1321,6 +1321,11 @@
       "size": 1436
     },
     {
+      "path": "scripts/acceptance-evidence-gate.mjs",
+      "sha256": "2ac714f4bfd0e2665ae16947a5e207caf9a0b49951e034752f60929db62cd932",
+      "size": 2695
+    },
+    {
       "path": "scripts/audit-v267-evidence.mjs",
       "sha256": "dd26251a273caac617b8e6e4b99de98850c571eb716ec71945c44969f342ca8b",
       "size": 5690
@@ -4811,6 +4816,11 @@
       "size": 6308
     },
     {
+      "path": "tests/acceptance-evidence-gate.selftest.mjs",
+      "sha256": "1e05574360fc79a7cef3f4f320ed6c6b6902aa49cbbf34d38b49e9cabdde14cc",
+      "size": 2720
+    },
+    {
       "path": "tests/app-first-paint.e2e.mjs",
       "sha256": "f912130cc9836952ba02e415d63ff066dec21772d47bc6b19d0827d57de6210b",
       "size": 4224
@@ -4834,6 +4844,16 @@
       "path": "tests/authenticated-home-heartbeat.test.cjs",
       "sha256": "4b1f87439dc94dde710eb2a7293f9df57a59eb29ebd99cf3662bd4b27aec48c1",
       "size": 2220
+    },
+    {
+      "path": "tests/cloud-release-safety.test.mjs",
+      "sha256": "1b33df2e3d7140521a7767f197d92347e0610a17a0691567957964b7342faeac",
+      "size": 274
+    },
+    {
+      "path": "tests/cloud-sync-empty-upload.selftest.mjs",
+      "sha256": "1c568a4931c41a9c8a0edc1efcd17045c1e89060a9b9ba26379cda851d8407f9",
+      "size": 3480
     },
     {
       "path": "tests/contract_execution_package_test.py",
