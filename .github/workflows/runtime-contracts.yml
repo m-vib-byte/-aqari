@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Fail-closed cloud sync and archive migration parity
+        run: node --test tests/cloud-release-safety.test.mjs tests/v267-rental-archive-migration-parity.test.mjs
       - name: V266 release inventory diagnostics
         shell: bash
         run: |
