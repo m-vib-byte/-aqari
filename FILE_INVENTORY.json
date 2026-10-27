@@ -57,8 +57,8 @@
     },
     {
       "path": ".github/workflows/runtime-contracts.yml",
-      "sha256": "fa622cfc82a817abe6c5f9ea314d3f93a234e300b7436d2e696cc2f7eee430ef",
-      "size": 12513
+      "sha256": "aacad7e11dec7c1060779f63d6360b9b2c53d91f1bf8025165e67bb9b79c3a46",
+      "size": 12565
     },
     {
       "path": ".github/workflows/startup-ui-order.yml",
@@ -6094,6 +6094,11 @@
       "path": "tests/v267-storage-restore-auth.test.mjs",
       "size": 6056,
       "sha256": "d2543436ca6146acdf02649b5531b140c5d4e1b6db2611d747f130142f10432c"
+    },
+    {
+      "path": "tests/v267-storage-restore-protocol-safety.test.mjs",
+      "size": 2719,
+      "sha256": "777b2595ce23f97ea9e90887b396ffdac5a76eacaa0302a1ac3cb9c523d15053"
     },
     {
       "path": "tests/v267-storage-restore-v2.test.mjs",
