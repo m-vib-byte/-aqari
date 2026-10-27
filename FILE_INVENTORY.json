@@ -1062,13 +1062,13 @@
     },
     {
       "path": "lib/contract_print_pdf.py",
-      "sha256": "8df202308d518c1af6d5c704c962676837bc88ec44db40c797a7e4bb793c553f",
-      "size": 7752
+      "sha256": "a0af733ec3139949f3a67c3fe90a87f65f7521c02ff760ce6604904a3708f576",
+      "size": 7958
     },
     {
       "path": "lib/contract_template_pdf.py",
-      "sha256": "e51aef8f106cb99b2bf5f5a452469b0587d3b67eec6e9f9378a63144c9a97a01",
-      "size": 24171
+      "sha256": "d2a104a25479621ba7f45e9f8fdb8d09de75538420a9d20c32463fd0304e52f0",
+      "size": 24350
     },
     {
       "path": "lib/official_document_pdf.py",
@@ -1147,8 +1147,8 @@
     },
     {
       "path": "lib/rental_document_editor_pdf.py",
-      "sha256": "04e74a4ee1f58b5f7c885224f0571f247de3ddb65e09af8e6d9a906cfad84dbb",
-      "size": 15651
+      "sha256": "1d923abca9c0e3b19182874eb0c1a09bd4aac5ec434eebe21e4477bb4b299464",
+      "size": 15726
     },
     {
       "path": "lib/rental_document_editor.py",
@@ -1767,8 +1767,8 @@
     },
     {
       "path": "src/v267/components/original-document-upload.js",
-      "sha256": "a60d1c89eec5a6e0567b95af8293b3dbe5aed0e6863d800a22ee2071ca2632a2",
-      "size": 6587
+      "sha256": "772bf0d6efaae7cef3a524325220b8adb2903b3f7a0bd79f1f6feae38cbd5680",
+      "size": 6245
     },
     {
       "path": "src/v267/components/page.js",
@@ -2192,8 +2192,8 @@
     },
     {
       "path": "src/v267/pages/employees.js",
-      "sha256": "06ce5a7b7e0ed4b84a9f1d2d442c6b27e719edc18d4bc9eeeee249f107db9f1b",
-      "size": 40835
+      "sha256": "b21030062ada604eeffa840295ba26a19a21fd2019c1a8057d3a3a6d9a5789e8",
+      "size": 41555
     },
     {
       "path": "src/v267/pages/exit-review.js",
@@ -2267,8 +2267,8 @@
     },
     {
       "path": "src/v267/pages/maintenance-plans.js",
-      "sha256": "a8ed42153b960da1b897419c7327adc43c8516be0c7fefded885f87c6c461252",
-      "size": 18814
+      "sha256": "8bd6ddf1c7735dd71db6bc35c3b43b0805363989820eb86bcae36d32fbadeb14",
+      "size": 18964
     },
     {
       "path": "src/v267/pages/maintenance-report.js",
@@ -2337,8 +2337,8 @@
     },
     {
       "path": "src/v267/pages/property-hub.js",
-      "sha256": "a91b705793a51a46e4a878eb5d4eed4ecaeec048d471027b1452f0b2c144d638",
-      "size": 31648
+      "sha256": "b08a7634fccfa85539d3b18715c09a66a0bf613dd93648e9b10fb4ed396b4df1",
+      "size": 31591
     },
     {
       "path": "src/v267/pages/property-lifecycle.js",
@@ -4867,8 +4867,8 @@
     },
     {
       "path": "tests/contract_print_pdf_test.py",
-      "sha256": "4114f684961b68c0ef39e175c929e10aa1b9083ae96b830d2b9576a192f1f115",
-      "size": 5017
+      "sha256": "c4f67286ff77ccdcb9f6aed147c8302ce7a24ddccf3036a68ae6014a86a9d72a",
+      "size": 6787
     },
     {
       "path": "tests/contract_template_pdf_test.py",

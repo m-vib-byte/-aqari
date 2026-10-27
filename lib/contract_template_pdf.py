@@ -197,6 +197,7 @@ LABELS = {
     'draft': ('معاينة غير معتمدة', 'Unapproved preview'),
     'footer': ('معاينة فقط؛ لا تثبت دفعاً أو توقيعاً أو اعتماداً.', 'Preview only; no payment, signature or approval is recorded.'),
     'page': ('صفحة', 'Page'),
+    'section_page': ('صفحة القسم', 'Section page'),
 }
 
 
@@ -260,12 +261,12 @@ def sanitized_logo(raw, mime_type=None):
         raise ValueError('INVALID_PROPERTY_LOGO') from exc
 
 
-def render_contract_template(template, values=None, logo_bytes=None):
+def render_contract_template(template, values=None, logo_bytes=None, *, section_page_numbers=False):
     resolved = render_document_template(template, values)
     presentation = resolved['presentation']
     if presentation and 'editor' in presentation:
         from lib.rental_document_editor_pdf import render_editor_pdf
-        return render_editor_pdf(template,resolved,sanitized_logo(logo_bytes) if presentation['logo']['enabled'] else None)
+        return render_editor_pdf(template,resolved,sanitized_logo(logo_bytes) if presentation['logo']['enabled'] else None, section_page_numbers=section_page_numbers)
     language = presentation['language'] if presentation else 'ar'
     typography = presentation.get('typography') if presentation else None
     logo = sanitized_logo(logo_bytes) if presentation and presentation['logo']['enabled'] else None
@@ -417,7 +418,7 @@ def render_contract_template(template, values=None, logo_bytes=None):
                     pdf.drawText(text)
                 else:pdf.drawString(x,height-top,visual)
         pdf.setFillColor(colors.HexColor('#765b43'));pdf.setFont(FONT,8)
-        pdf.drawCentredString(width/2,5*mm,_visual(localized('page',language)+' '+str(page)+' / '+str(count)+' - A4'))
+        pdf.drawCentredString(width/2,5*mm,_visual(localized('section_page' if section_page_numbers else 'page',language)+' '+str(page)+' / '+str(count)+' - A4'))
         pdf.showPage()
     pdf.save()
     return output.getvalue()
