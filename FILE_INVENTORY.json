@@ -2157,8 +2157,8 @@
     },
     {
       "path": "src/v267/pages/contract-execution.js",
-      "sha256": "4f18ce22fc669cd963ffb5da1fc0e0a735dda2a9644800c57fb60244ea46660f",
-      "size": 20607
+      "sha256": "40fc46e6c00e5c00934af5d07e59a8d23057914ef5cb0c30940217569e16e36d",
+      "size": 20963
     },
     {
       "path": "src/v267/pages/contract-foundation.js",
@@ -5324,6 +5324,11 @@
       "path": "tests/v267-contract-print.test.cjs",
       "sha256": "f91715c74c6cc19d04751266b16b2306174a878ec8b5c9d4e7c85f3613d3d9d7",
       "size": 12346
+    },
+    {
+      "path": "tests/v267-contract-readback-canonical.test.mjs",
+      "size": 1642,
+      "sha256": "99126f62079d8754326190452da07e50e92f734a82373a2b1d0c00a27aa60ee3"
     },
     {
       "path": "tests/v267-contract-scanner-entry.test.cjs",
