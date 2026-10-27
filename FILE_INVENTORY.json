@@ -4471,6 +4471,11 @@
       "size": 17021
     },
     {
+      "path": "staging-database/tests/rental_archive_guard_smoke.sql",
+      "sha256": "015e7d4ebae6871c882a986f3591caa5c3c33d4506c17032369ecb3a48679edd",
+      "size": 1943
+    },
+    {
       "path": "staging-database/tests/rental_contract_provisions.sql",
       "sha256": "643ef283e6fe24c279aabfd8e54971a52b831593307002e2ce4802162e97aa69",
       "size": 5186
