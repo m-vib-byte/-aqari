@@ -8,7 +8,12 @@ const copy=value=>JSON.parse(JSON.stringify(value));
 const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value??'';return el;};
 const money=value=>Number(value||0).toFixed(3)+translateStatic(' د.ك');
 function select(rows,value=''){const el=node('select');for(const [key,label]of rows){const option=node('option',label);option.value=key;el.append(option);}el.value=value??'';return el;}
-function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+// JSONB may reorder object keys; preserve array order and exact values on readback.
+export function sameExecutionReadback(a,b){
+ const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+ return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
+}
+const same=sameExecutionReadback;
 export const isExecutionMfaChallenge=error=>error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message);
 
 // Validate editable payment input before any receipt allocation or package work.
