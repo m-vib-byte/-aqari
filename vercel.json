@@ -356,5 +356,10 @@
       "path": "/api/owner-report-delivery",
       "schedule": "0 * * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "fix/storage-download-only-20261028": false
+    }
+  }
 }
