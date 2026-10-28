@@ -6,7 +6,7 @@ export function installPropertyExperience({readable,writable}){
  const style=node('link');style.rel='stylesheet';style.href='/src/v267/styles/property-experience.css?release=V267';document.head.append(style);
  const region=node('section'),title=node('h2','ابحث عن عقارك'),search=node('input'),clear=node('button','مسح'),add=node('button','+ إضافة عقار'),manage=node('button','إدارة خصائص العقارات'),bar=node('div'),results=node('div'),status=node('p'),more=node('button','عرض المزيد');
  region.id='aq267-property-finder';region.className='aq267-property-finder';region.setAttribute('aria-labelledby','aq267-property-search-title');title.id='aq267-property-search-title';search.type='search';search.placeholder='اسم العقار، المنطقة أو المالك';search.setAttribute('aria-label','البحث عن عقار بالاسم أو المنطقة أو المالك');search.setAttribute('aria-controls','aq267-property-results');search.autocomplete='off';clear.type=add.type=manage.type=more.type='button';clear.setAttribute('aria-label','مسح البحث');add.className='aq267-property-add';manage.className='aq267-property-manage';bar.className='aq267-property-search-bar';results.id='aq267-property-results';results.className='aq267-property-results';status.setAttribute('role','status');status.setAttribute('aria-live','polite');more.className='aq267-property-more';bar.append(search,clear,add,manage);region.append(title,bar,status,results,more);
- let limit=12,viewScope='',serverRows=[],hydratedScope='',hydrating=false;
+ let limit=12,viewScope='',serverRows=new Map(),hydratedScope='',hydrating=false,readEpoch=0;const confirmedProperties=new Map();
  const rowKey=value=>String(value??'').normalize('NFKC').trim().toLocaleLowerCase('ar');
  function serverRow(record){
   const metadata=record?.metadata;
@@ -19,21 +19,36 @@ export function installPropertyExperience({readable,writable}){
  }
  const rows=()=>{
   if(!readable())return [];
-  const legacy=window.AQARI_V202?.propertyRecords?.()||[],merged=new Map();
-  for(const row of [...legacy,...serverRows])if(Array.isArray(row)&&row[0]&&!merged.has(rowKey(row[0])))merged.set(rowKey(row[0]),row);
-  return [...merged.values()];
+  const legacy=window.AQARI_V202?.propertyRecords?.()||[],byId=new Map(serverRows),claimedNames=new Set();
+  // Server presentation belongs to an ID. Never inherit another record's
+  // images, owner or price from a matching current or historical name.
+  for(const row of serverRows.values())claimedNames.add(rowKey(row[0]));
+  for(const property of confirmedProperties.values()){
+   const row=structuredClone(byId.get(property.id)||[property.name,'','','']);
+   claimedNames.add(rowKey(property.name));
+   for(const name of property.previousNames)claimedNames.add(rowKey(name));
+   row[0]=property.name;
+   let meta=row.find(value=>value?.aqariPropertyPresentation===1);
+   if(!meta){meta={aqariPropertyPresentation:1,photos:[]};row.push(meta);}
+   meta.location=property.address??'';byId.set(property.id,row);
+  }
+  const unmatchedLegacy=new Map();
+  for(const row of legacy)if(Array.isArray(row)&&row[0]&&!claimedNames.has(rowKey(row[0]))&&!unmatchedLegacy.has(rowKey(row[0])))unmatchedLegacy.set(rowKey(row[0]),row);
+  return [...unmatchedLegacy.values(),...byId.values()];
  };
  async function hydrateServerRows(){
   if(!readable())return;const bridge=window.AQARI_SUPABASE,workspace=bridge?.context?.workspace?.id,user=bridge?.context?.user?.id,scope=workspace&&user?workspace+':'+user:'';
   if(!scope||hydrating||hydratedScope===scope||typeof bridge?.getClient!=='function')return;
-  hydrating=true;
+  hydrating=true;const epoch=readEpoch;
   try{
-   const client=await bridge.getClient(),response=await client.from('aqari_properties').select('id,name,metadata').eq('workspace_id',workspace).order('name');
+   const client=await bridge.getClient();
+   if(epoch!==readEpoch||window.AQARI_SUPABASE?.context?.workspace?.id!==workspace||window.AQARI_SUPABASE?.context?.user?.id!==user||!readable())return;
+   const response=await client.from('aqari_properties').select('id,name,metadata').eq('workspace_id',workspace).order('name');
    if(response.error)throw response.error;
-   const current=window.AQARI_SUPABASE?.context;if(current?.workspace?.id!==workspace||current?.user?.id!==user||!readable())return;
-   serverRows=(response.data||[]).map(serverRow);hydratedScope=scope;refresh();
-  }catch(error){status.textContent=String(error?.message||'تعذر قراءة قائمة العقارات الخادمة.');}
-  finally{hydrating=false;}
+   const current=window.AQARI_SUPABASE?.context;if(epoch!==readEpoch||current?.workspace?.id!==workspace||current?.user?.id!==user||!readable())return;
+   serverRows=new Map((response.data||[]).filter(record=>record?.id).map(record=>[record.id,serverRow(record)]));hydratedScope=scope;refresh();
+  }catch(error){const current=window.AQARI_SUPABASE?.context;if(epoch===readEpoch&&current?.workspace?.id===workspace&&current?.user?.id===user&&readable())status.textContent=String(error?.message||'تعذر قراءة قائمة العقارات الخادمة.');}
+  finally{hydrating=false;if(epoch!==readEpoch&&readable())void hydrateServerRows();}
  }
  const manager=()=>{const ctx=window.AQARI_SUPABASE?.context,role=ctx?.membership?.role||ctx?.role||ctx?.workspaceRole||'';return role==='general_manager';};
  async function openOnboarding(){
@@ -78,7 +93,7 @@ export function installPropertyExperience({readable,writable}){
   if(onPropertyPage){const head=propertyPage.querySelector('.aq-exact-section-head');if(head&&head.nextElementSibling!==region)head.after(region);}
   else if(host&&host.firstChild!==region)host.prepend(region);
   const allowed=readable();region.hidden=!allowed;add.hidden=!writable();manage.hidden=!allowed||!manager();results.replaceChildren();
-  if(!allowed){search.value='';status.textContent='';more.hidden=true;viewScope='';serverRows=[];hydratedScope='';return;}
+  if(!allowed){search.value='';status.textContent='';more.hidden=true;viewScope='';serverRows=new Map();hydratedScope='';confirmedProperties.clear();return;}
   void hydrateServerRows();
   const scope=JSON.stringify([window.AQARI_SUPABASE?.context?.user?.id,window.AQARI_SUPABASE?.context?.workspace?.id]);if(viewScope&&scope!==viewScope){search.value='';limit=12;}viewScope=scope;
   const all=rows(),matches=searchProperties(all,search.value);clear.hidden=!search.value;more.hidden=matches.length<=limit;
@@ -96,7 +111,16 @@ export function installPropertyExperience({readable,writable}){
  const onLegacyPropertyAction=event=>{const trigger=event.target?.closest?.('[data-v201-property-action="profile"],[data-v201-property-action="statement"]');if(!trigger)return;const name=document.getElementById('v201PropertyTitle')?.textContent?.trim();if(!name||!readable())return;event.preventDefault();event.stopImmediatePropagation();trigger.disabled=true;const task=trigger.dataset.v201PropertyAction==='statement'?openAuthoritativeStatement(name):openCompleteFileByName(name);Promise.resolve(task).catch(error=>{status.textContent=String(error?.message||'تعذر فتح بيانات العقار.');}).finally(()=>{if(trigger.isConnected)trigger.disabled=false;});};
  document.addEventListener('click',onLegacyQuickCreate,true);document.addEventListener('click',onLegacyPropertyAction,true);
  let propertyApi;
- const onBoundary=()=>{viewScope='';search.value='';limit=12;refresh();queueMicrotask(()=>{window.AQARI_PROPERTY_EXPERIENCE=propertyApi;refresh();});};window.addEventListener('aqari:auth-boundary',onBoundary);window.addEventListener('aqari:property-saved',event=>{const name=event.detail?.name;search.value=typeof name==='string'&&rows().some(row=>row[0]===name)?name:'';limit=12;refresh();if(search.value)status.textContent='تم حفظ العقار — '+name;});
+ const onBoundary=()=>{readEpoch++;serverRows=new Map();hydratedScope='';confirmedProperties.clear();viewScope='';search.value='';limit=12;refresh();queueMicrotask(()=>{window.AQARI_PROPERTY_EXPERIENCE=propertyApi;refresh();});};window.addEventListener('aqari:auth-boundary',onBoundary);window.addEventListener('aqari:property-saved',event=>{
+  if(!readable())return;const detail=event.detail||{},context=window.AQARI_SUPABASE?.context;
+  if(detail.workspaceId&&detail.workspaceId!==context?.workspace?.id||detail.userId&&detail.userId!==context?.user?.id)return;
+  const property=detail.property;
+  if(detail.workspaceId===context?.workspace?.id&&detail.userId===context?.user?.id&&property?.id===detail.propertyId&&typeof property?.name==='string'){
+   const previous=confirmedProperties.get(property.id);
+   confirmedProperties.set(property.id,{id:property.id,name:property.name,address:property.address,previousNames:[...new Set([...(previous?.previousNames||[]),previous?.name,detail.previousName].filter(name=>typeof name==='string'&&name))]});
+  }
+  readEpoch++;hydratedScope='';limit=12;refresh();
+ });
  const render=window.render;if(typeof render==='function')window.render=function(...args){const result=render.apply(this,args);refresh();return result;};
  document.addEventListener('click',e=>{if(e.target.closest?.('[data-v199-go="home"],[data-v205-route="home"],[data-exact-key="properties"]'))queueMicrotask(refresh);});
  const routeRoot=document.getElementById('list');let routeState='';const syncRoute=()=>{const next=(routeRoot?.classList.contains('on')?'1':'0')+':'+(document.getElementById('v201PageTitle-list')?.textContent?.trim()||'');if(next===routeState)return;routeState=next;queueMicrotask(()=>{window.AQARI_PROPERTY_EXPERIENCE=propertyApi;refresh();});};if(routeRoot)new MutationObserver(syncRoute).observe(routeRoot,{attributes:true,attributeFilter:['class'],childList:true,characterData:true,subtree:true});syncRoute();
