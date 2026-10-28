@@ -97,3 +97,12 @@ for(const reporting of [false,true])test('second owner-settings write rejected b
 test('owner-settings scope change during MFA rejection cannot unlock the draft',async()=>{
  const f=await fixture();try{f.failNext({name:'aqari_owner_experience_settings',action:'save',changeScope:true,response:{status:403,error:{code:'42501',message:'MFA_REQUIRED'}}});await f.save();assert.equal(f.button('حفظ الإعدادات').disabled,true);assert.equal(f.events.length,0);}finally{f.cleanup();}
 });
+
+test('manager can access download-only while isolated restoration remains unaccepted',async()=>{
+ const f=await fixture();
+ try{
+  assert.equal(f.button('تنزيل نسخة الملفات فقط — بدون استعادة').disabled,false);
+  assert.equal(f.button('تنزيل نسخة احتياطية للملفات الأصلية').disabled,true);
+  assert.equal(f.calls.some(x=>x.p_action!=='read'),false);
+ }finally{f.cleanup();}
+});
