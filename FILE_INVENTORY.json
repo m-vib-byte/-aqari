@@ -1902,8 +1902,8 @@
     },
     {
       "path": "src/v267/components/visible-translations-a.js",
-      "sha256": "fc1c2d53dfa2fd17c2b3f42c14c688a120714da7e8979b47f82221e6aade1dc4",
-      "size": 175624
+      "sha256": "ee70e303ec19da9beaade9c60057beb9dbca9e7e073ce07bf8f150bc0ffa119a",
+      "size": 176968
     },
     {
       "path": "src/v267/components/visible-translations-a2.js",
@@ -2242,8 +2242,8 @@
     },
     {
       "path": "src/v267/pages/owner-experience-settings.js",
-      "sha256": "ed179ddabb05b7ee2c6f595975748d8e4cddb2f798132390432f1c42b4cfb0c8",
-      "size": 16981
+      "sha256": "21962fbf193369e08793713ab9df036c8cd15ae2a9875f8b51c899c99bfcbd3c",
+      "size": 17974
     },
     {
       "path": "src/v267/pages/owner-report.js",
@@ -5537,8 +5537,8 @@
     },
     {
       "path": "tests/v267-owner-settings-recovery.test.mjs",
-      "sha256": "ba0f9f39ef732203d672cf0e3332cf93b8789aa025569ada95df4faf60ab3efd",
-      "size": 10880
+      "sha256": "8c7a973a4ddfe42d10924e1bdf8616bc62c068cb670082dc8c16654cbb86b6c5",
+      "size": 11197
     },
     {
       "path": "tests/v267-partner-access-retry.test.mjs",
@@ -6207,8 +6207,18 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "78abe62e642cda899509c6357c5c212f76e13b016e188f73eac78106a31eeb97",
-      "size": 8627
+      "sha256": "bcbba79ad0ba496e1c76e22e9661a2363ee477f6b55c15b0165a5444d7978492",
+      "size": 8731
+    },
+    {
+      "path": "src/v267/components/storage-backup-download.js",
+      "sha256": "17245c3f5db83d748a25fa7b4f8db506e1cef7a8d7f268069c7d0d8e6a95c670",
+      "size": 2287
+    },
+    {
+      "path": "tests/v267-storage-download-only.test.mjs",
+      "sha256": "3c840b2f5d126ef79a9c014c95162c4a43cb64e80df37734c42cb9348a1d2674",
+      "size": 2625
     }
   ],
   "version": "V198"
