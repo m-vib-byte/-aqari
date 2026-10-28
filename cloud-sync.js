@@ -112,6 +112,9 @@
       const decoded = decodeCloudPayload(cloudSeed);
       if(window.AQARI_PUBLIC_CONFIG?.supabaseUrl === 'https://ofgmcsmxmdswlovsckqs.supabase.co' && decoded){
         const cloud = prepareState(decoded.primary);
+        // Do not erase a populated workspace when a staging seed is empty.
+        // An empty seed is not evidence of a deliberate data deletion.
+        if(!Object.keys(cloud).length && Object.keys(local).length) return local;
         if(Object.keys(local).length && JSON.stringify(local) !== JSON.stringify(cloud)){
           const backupKey = workspaceDataKey(next) + ':before-cloud-activation';
           if(localStorage.getItem(backupKey) === null) localStorage.setItem(backupKey, JSON.stringify(local));
@@ -214,6 +217,11 @@
     const scope = requireScope();
     if(!window.AQARI_SUPABASE) throw new Error('Supabase adapter unavailable');
     const payload = primaryLocalState(scope);
+    if(!Object.keys(payload).length){
+      const error = new Error('No local AQARI records to upload; refusing an empty cloud write');
+      error.code = 'AQARI_NO_LOCAL_DATA';
+      throw error;
+    }
     const cloud = await readCloud(scope);
     if(payloadHasData(cloud?.payload)){
       const error = new Error('Cloud state already contains data; restore it before any replacement');
@@ -245,6 +253,11 @@
     const cloud = await readCloud(scope);
     const decoded = decodeCloudPayload(cloud?.payload);
     if(!decoded) throw new Error('Cloud payload does not contain compatible AQARI data');
+    if(!Object.keys(prepareState(decoded.primary)).length){
+      const error = new Error('Cloud state contains no AQARI records; refusing empty restore');
+      error.code = 'AQARI_EMPTY_CLOUD_RESTORE';
+      throw error;
+    }
     const existing = readWorkspaceState(scope);
     if(Object.keys(existing).length && !overwrite){
       return { restored:[], conflicts:[PRIMARY_DATA_KEY], revision:cloud.revision, updatedAt:cloud.updated_at };

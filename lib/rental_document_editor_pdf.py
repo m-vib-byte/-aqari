@@ -99,7 +99,7 @@ def _source_atoms(raw,field_values,ranges,base,start=0,end=None):
     return atoms
 
 
-def render_editor_pdf(template,resolved,logo):
+def render_editor_pdf(template,resolved,logo, *, section_page_numbers=False):
     from lib.contract_template_pdf import localized,PARTS
     presentation=resolved['presentation'];editor=presentation['editor'];language=presentation['language']
     typography=presentation.get('typography',{'font_pt':12,'line_height':1.85,'alignment':'start','margin_mm':18})
@@ -239,7 +239,7 @@ def render_editor_pdf(template,resolved,logo):
                     pdf.setLineWidth(max(.45,size/20));pdf.line(cursor,height-top-2,cursor+run_width,height-top-2)
                 cursor+=run_width
         pdf.setFillColor(colors.HexColor('#765b43'));pdf.setFont(FONT,8)
-        footer=localized('page',language)+' '+str(page_number)+' / '+str(count)+' - A4'
+        footer=localized('section_page' if section_page_numbers else 'page',language)+' '+str(page_number)+' / '+str(count)+' - A4'
         from lib.contract_template_pdf import _visual
         pdf.drawCentredString(width/2,5*mm,_visual(footer));pdf.showPage()
     pdf.save();return output.getvalue()

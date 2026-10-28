@@ -84,7 +84,10 @@ test('legacy property edit and add actions delegate to the authoritative propert
 test('property cards hydrate from canonical server rows and mount on the properties page',()=>{
  const experience=read('src/v267/components/property-experience.js');
  assert.match(experience,/from\('aqari_properties'\)\.select\('id,name,metadata'\)\.eq\('workspace_id',workspace\)\.order\('name'\)/);
- assert.match(experience,/\.\.\.legacy,\.\.\.serverRows/);
+ assert.match(experience,/const legacy=window\.AQARI_V202\?\.propertyRecords\?\.\(\)\|\|\[\],byId=new Map\(serverRows\),claimedNames=new Set\(\)/);
+ assert.match(experience,/for\(const property of confirmedProperties\.values\(\)\)/);
+ assert.match(experience,/!claimedNames\.has\(rowKey\(row\[0\]\)\)/);
+ assert.match(experience,/return \[\.\.\.unmatchedLegacy\.values\(\),\.\.\.byId\.values\(\)\]/);
  assert.match(experience,/propertyTitle\?\.textContent\?\.trim\(\)==='العقارات'/);
  assert.match(experience,/head\.after\(region\)/);
  assert.match(experience,/\[data-exact-key="properties"\]/);

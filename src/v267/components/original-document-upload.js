@@ -23,14 +23,19 @@ export async function originalDocument(file){
  if(!mime)throw Error('صيغة الملف غير مدعومة. اختر صورة JPEG أو PNG أو WebP أو ملف PDF.');
  return file.slice(0,file.size,mime);
 }
+// Preflight attachments before a property record is created; recheck at upload.
+export async function validateOriginalDocument(file,target){
+ const spec=uploadCategory(target.category,target.type);
+ if(!target.title?.trim()||target.title.length>180)throw Error('حدد السجل وعنوان المستند.');
+ const blob=await originalDocument(file);
+ if(['property_logo','property_main_photo','property_photo'].includes(target.category)&&!['image/jpeg','image/png','image/webp'].includes(blob.type))throw Error('شعار وصور العقار يجب أن تكون صور JPEG أو PNG أو WebP.');
+ return {spec,blob};
+}
 export function createOriginalDocumentUpload(session){
  let pending=null;
  return async(file,target)=>{
-  const spec=uploadCategory(target.category,target.type);if(!target.ref||!target.title?.trim()||target.title.length>180)throw Error('حدد السجل وعنوان المستند.');
-  const blob=await originalDocument(file),hash=await checksum(blob);session.check();
-  if(['property_logo','property_main_photo','property_photo'].includes(target.category)){
-   if(!['image/jpeg','image/png','image/webp'].includes(blob.type))throw Error('شعار وصور العقار يجب أن تكون صور JPEG أو PNG أو WebP.');
-  }
+  if(!target.ref)throw Error('حدد السجل وعنوان المستند.');
+  const {spec,blob}=await validateOriginalDocument(file,target),hash=await checksum(blob);session.check();
   const propertyId=target.propertyId===undefined?null:String(target.propertyId||'').trim();
   if(target.category==='property_contract'&&!propertyId)throw Error('حدد معرّف العقار قبل رفع العقد.');
   // The reserve RPC accepts property_other for property PDFs. Keep the
