@@ -1292,8 +1292,8 @@
     },
     {
       "path": "login.html",
-      "sha256": "a327762139928db016114f39c8c0ac69e1ce9adb184e0ce4371da7768dc5da97",
-      "size": 18035
+      "sha256": "2edbb335214f8f36743eb35fe4ad0995f82996f9e6ffed63ee1810d9ac117904",
+      "size": 18603
     },
     {
       "path": "manifest.webmanifest",
@@ -6429,6 +6429,11 @@
       "path": "vercel.json",
       "sha256": "4bd4135e7700a9bb4da2cc0a556f98b543624575f74895233930ab06b5b21571",
       "size": 8781
+    },
+    {
+      "path": "tests/login-error-classification.test.mjs",
+      "size": 2236,
+      "sha256": "f94ed6fb87acbeec38fbd35e6a06cdcf8c54446b69541720114b9100cd32d5cc"
     }
   ],
   "version": "V198"
