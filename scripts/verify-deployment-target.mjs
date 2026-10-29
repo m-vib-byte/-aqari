@@ -43,6 +43,9 @@ export function deploymentTargetErrors(environment, browser, backend, trial = nu
     return errors;
   }
 
+  if (String(browser.acceptanceWorkspaceId || '').trim()) {
+    errors.push('Production cannot retain a preview acceptance workspace.');
+  }
   if (browser.releaseStage !== 'production' || backend.RELEASE_STAGE !== 'production') {
     errors.push('Production cannot deploy a V267 preview configuration without the explicit isolated domain-trial target.');
   }

@@ -1497,8 +1497,8 @@
     },
     {
       "path": "scripts/prepare-v267-production.mjs",
-      "sha256": "5b194ab67b2854845278fc22f4b032787b9648b252ab534376ad6ae2d502cd76",
-      "size": 9427
+      "sha256": "c3534a7f18c493d61ce6eb541f5fed2dbac3bf8bb7fe09d30c277864d04bb040",
+      "size": 9557
     },
     {
       "path": "scripts/preview-e2e-selftest.mjs",
@@ -1542,8 +1542,8 @@
     },
     {
       "path": "scripts/verify-deployment-target.mjs",
-      "sha256": "4a79212602e68255c4c06e7b7b08a8ee59a01b54c1e7dbd41a8a2e325e022ab7",
-      "size": 3968
+      "sha256": "d7730dd71c8cdd0b3a6b427a3e6bc9ab6d8cf04bbd5d9be8aa96f425638d4aa8",
+      "size": 4109
     },
     {
       "path": "scripts/verify-deployment.mjs",
@@ -5867,8 +5867,8 @@
     },
     {
       "path": "tests/v267-production-preparation.test.mjs",
-      "sha256": "b6d298a96ab0a3239a48b477f8917abdbf8239f652d1e66f5ab91bcc983aa4d7",
-      "size": 11901
+      "sha256": "31ce0308a7f976c368843bd2e081dda054b6ccff881ea7a7bfca13b8e9927d0b",
+      "size": 12734
     },
     {
       "path": "tests/v267-property-action-locale.test.cjs",

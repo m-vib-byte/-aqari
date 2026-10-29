@@ -99,6 +99,8 @@ export function productionPatch(read,{projectRef,publishableKey}){
   const browser={...original,releaseStage:'production',supabaseUrl:`https://${PRODUCTION_PROJECT}.supabase.co`,
     supabasePublishableKey:publishableKey,supabaseAuthStorageKey:`sb-${PRODUCTION_PROJECT}-auth-token`,
     supabaseAuthRedirectUrl:PRODUCTION_REDIRECT};
+  // Isolated acceptance selection is preview-only; production uses verified memberships.
+  delete browser.acceptanceWorkspaceId;
   patch.set('public-config.js','window.AQARI_PUBLIC_CONFIG = Object.freeze('+JSON.stringify(browser,null,2)+');\n');
   let backend=replaceExact(read('lib/release-config.js'),PREVIEW_PROJECT,PRODUCTION_PROJECT,1,'lib/release-config.js');
   backend=replaceExact(backend,"export const RELEASE_STAGE = 'preview'","export const RELEASE_STAGE = 'production'",1,'lib/release-config.js');

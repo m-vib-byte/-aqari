@@ -134,3 +134,14 @@ test('unavailable new original-document uploads cannot open or send a request in
   assert.ok(patch.get('src/v267/workspace.js').includes('originals.hidden=true;originals.disabled=true;'));
   assert.equal(patch.has('src/v267/pages/document-scanner.js'),false,'existing compatible scanner remains available');
 });
+
+
+test('production strips preview-only workspace selection and rejects contaminated artifacts',()=>{
+  const cfg=browserConfig();
+  assert.equal(Object.hasOwn(cfg,'acceptanceWorkspaceId'),false);
+  const backend={PRODUCT_VERSION:'V267',RELEASE_STAGE:'production',SUPABASE_PUBLIC_CONFIG:{url:cfg.supabaseUrl,publishableKey:cfg.supabasePublishableKey}};
+  assert.ok(deploymentTargetErrors('production',{...cfg,acceptanceWorkspaceId:'21e2e083-4f8f-4197-9f93-86bd89ad9cda'},backend).some(error=>/acceptance workspace/i.test(error)));
+  const preview={window:{}};vm.runInNewContext(read('public-config.js'),preview);
+  assert.equal(preview.window.AQARI_PUBLIC_CONFIG.acceptanceWorkspaceId,'21e2e083-4f8f-4197-9f93-86bd89ad9cda');
+  assert.match(patch.get('supabase-adapter.js'),/Invalid isolated acceptance workspace configuration/);
+});
