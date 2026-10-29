@@ -1,0 +1,41 @@
+{
+  "scope": "Unauthenticated HTTP probes only; no data transfers or writes",
+  "checks": [
+    {
+      "project": "ofgmcsmxmdswlovsckqs",
+      "function": "aqari-stage-c-storage-export",
+      "method": "OPTIONS",
+      "status": 204,
+      "body": "",
+      "allow_origin": "*",
+      "tested_at": "2026-10-14T02:20:02.412955+00:00"
+    },
+    {
+      "project": "ofgmcsmxmdswlovsckqs",
+      "function": "aqari-stage-c-storage-export",
+      "method": "POST",
+      "status": 401,
+      "body": "{\"code\":\"UNAUTHORIZED_NO_AUTH_HEADER\",\"message\":\"Missing authorization header\"}",
+      "allow_origin": "*",
+      "tested_at": "2026-10-14T02:20:09.619609+00:00"
+    },
+    {
+      "project": "nlqynpmilcdqztwrrvyu",
+      "function": "aqari-storage-restore-v2",
+      "method": "OPTIONS",
+      "status": 503,
+      "body": "{\"ok\":false,\"error\":\"RESTORE_CONFIGURATION_PENDING\"}",
+      "allow_origin": null,
+      "tested_at": "2026-10-14T02:20:17.194276+00:00"
+    },
+    {
+      "project": "nlqynpmilcdqztwrrvyu",
+      "function": "aqari-storage-restore-v2",
+      "method": "POST",
+      "status": 503,
+      "body": "{\"ok\":false,\"error\":\"RESTORE_CONFIGURATION_PENDING\"}",
+      "allow_origin": null,
+      "tested_at": "2026-10-14T02:20:24.429204+00:00"
+    }
+  ]
+}

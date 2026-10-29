@@ -1,0 +1,5 @@
+Schema restored in local memory; no hosted database connection.
+PASS staging-database/reconciliation/unified-20261014/preview-test-bootstrap.sql
+PASS staging-database/reconciliation/unified-20261014/preview-candidate.sql
+PASS staging-database/reconciliation/acceptance-20261014/isolated-acceptance.sql
+PASS staging-database/reconciliation/unified-20261014/preview-rollback.sql

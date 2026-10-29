@@ -1,0 +1,4 @@
+Schema restored in local memory; no hosted database connection.
+PASS staging-database/reconciliation/contract-execution/capability-candidate.sql
+PASS staging-database/reconciliation/commercial-allocation/candidate-after-execution.sql
+PASS staging-database/reconciliation/commercial-allocation/execution-entitlement-acceptance.sql
