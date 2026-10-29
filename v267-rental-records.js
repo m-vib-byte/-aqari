@@ -140,12 +140,16 @@ function createStore(options){
   try{
    const cloud=await options.load(scope);check();const payload=copy(cloud.payload),data=primary(payload),local=options.local();
    for(const k of compare)if(!same(data[k]||[],local[k]||[]))fail('تغيّرت البيانات أو توجد تعديلات محلية. حدّث الصفحة قبل الحفظ.');
-   const expected=mutate(data);check();sent=true;
+   const expected=mutate(data);check();
+   // Snapshot the displayed sections before the first network write. Comparing
+   // object identity alone misses in-place edits made while the save is pending.
+   const localBefore=Object.fromEntries(keys.map(k=>[k,copy(local[k]||[])]));
+   sent=true;
    await options.save(payload,Number(cloud.revision),scope);check();
    const confirmed=primary((await options.load(scope)).payload);check();
    if(!verify(confirmed,expected))fail('لم تؤكد إعادة القراءة وجود السجل.');
    const currentLocal=options.local();
-   if(currentLocal!==local&&keys.some(k=>!same(currentLocal[k]||[],local[k]||[])&&!same(currentLocal[k]||[],confirmed[k]||[])))fail('تغيّرت البيانات المحلية أثناء الحفظ. حدّث الصفحة للتحقق.');
+   if(keys.some(k=>!same(currentLocal[k]||[],localBefore[k])&&!same(currentLocal[k]||[],confirmed[k]||[])))fail('تغيّرت البيانات المحلية أثناء الحفظ. حدّث الصفحة للتحقق.');
    for(const k of keys)currentLocal[k]=copy(confirmed[k]||[]);
    try{options.cache()}catch(_){}return expected;
   }catch(e){if(sent){uncertain=true;throw new Error('لم يكتمل تأكيد الحفظ؛ قد يكون السجل وصل. حدّث الصفحة وتحقق قبل إعادة الإضافة.')}throw e}

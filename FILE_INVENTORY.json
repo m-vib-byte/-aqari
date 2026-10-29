@@ -2012,8 +2012,8 @@
     },
     {
       "path": "src/v267/components/visible-translations-a.js",
-      "sha256": "ee70e303ec19da9beaade9c60057beb9dbca9e7e073ce07bf8f150bc0ffa119a",
-      "size": 176968
+      "sha256": "aee61806ee9f65ffbce2d885937005880284b4d804ba946b399f6900720165e0",
+      "size": 177177
     },
     {
       "path": "src/v267/components/visible-translations-a2.js",
@@ -2352,8 +2352,8 @@
     },
     {
       "path": "src/v267/pages/owner-experience-settings.js",
-      "sha256": "eb9e55c4aba80cced4490321d72b4c12f20c02b9adf36dde028be7fd4e3180a3",
-      "size": 18374
+      "sha256": "ddf9774a2c49dcf6dfecd18d597d547e9caaf7361460f50e544db5f780458d18",
+      "size": 18722
     },
     {
       "path": "src/v267/pages/owner-report.js",
@@ -5742,8 +5742,8 @@
     },
     {
       "path": "tests/v267-owner-settings-recovery.test.mjs",
-      "sha256": "8c7a973a4ddfe42d10924e1bdf8616bc62c068cb670082dc8c16654cbb86b6c5",
-      "size": 11197
+      "sha256": "191d39806f30a09b6e86233d26a68564fe34e160ebb9cd868ae20cd5370c439a",
+      "size": 13028
     },
     {
       "path": "tests/v267-partner-access-retry.test.mjs",
@@ -6012,8 +6012,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "813277eb861252768437f40fad8eee96721aa8d4461d7b28c7c0fa0e467de392",
-      "size": 17988
+      "sha256": "55b863df523ac23cc544de2402a5c164ba3f73816820f9a781d7defd53abb62e",
+      "size": 18614
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
@@ -6392,8 +6392,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "877eb0f0bc1e4e34dd05bb26d85ed937f4e9ef09d91f558ef9f8748526741525",
-      "size": 48262
+      "sha256": "f0575be24b8a0b0216ee29d8daca901de05f5b6208b6c3fdbfccdb088a659d74",
+      "size": 48486
     },
     {
       "path": "v267-requirements.html",
@@ -6427,8 +6427,8 @@
     },
     {
       "path": "vercel.json",
-      "sha256": "4bd4135e7700a9bb4da2cc0a556f98b543624575f74895233930ab06b5b21571",
-      "size": 8781
+      "sha256": "aa6d3b204619e67b31a4f640dff00a624724b0c3c1276448a02e653a8678db1e",
+      "size": 8834
     }
   ],
   "version": "V198"
