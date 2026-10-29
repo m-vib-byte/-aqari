@@ -1,6 +1,13 @@
 // Reviewed static user-interface copy; stored record values are not translated.
 export const VISIBLE_MESSAGES_A = {
 
+ "حفظ ملف ZIP": {
+  "en": "Save ZIP file",
+  "hi": "ZIP फ़ाइल सहेजें",
+  "ur": "ZIP فائل محفوظ کریں",
+  "ml": "ZIP ഫയൽ സംരക്ഷിക്കുക"
+ },
+
  "تنزيل نسخة الملفات فقط — بدون استعادة": {
   "en": "Download files backup only — no restore",
   "hi": "केवल फ़ाइलों का बैकअप डाउनलोड करें — पुनर्स्थापना नहीं",

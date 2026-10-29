@@ -19,14 +19,19 @@ export function openOwnerExperienceSettings(){
  global.append(field(translateStatic('وضع الضيف الاختياري — مغلق افتراضيًا وبدون بيانات حقيقية'),guest),field(translateStatic('مساعد OpenAI التوليدي — قراءة فقط'),assistant),field(translateStatic('إرسال تقرير المالك تلقائيًا'),report),save,reload,note);
  const backupSection=node('section');backupSection.className='aq-owner-settings-grid';backupSection.append(node('h3',translateStatic('نسخة احتياطية لملفات Storage')),node('p',translateStatic('ينزّل المدير العام نسخة ZIP من الملفات الأصلية في Storage مع manifest وبصمات SHA-256، ثم يعيد نفس البايتات إلى بيئة الاستعادة المعزولة ويتحقق منها. يلزم التوثيق الثنائي AAL2 ولا يتم تعديل ملفات الإنتاج.')),storageBackup);
  const downloadOnly=node('button',translateStatic('تنزيل نسخة الملفات فقط — بدون استعادة'));downloadOnly.type='button';
- downloadOnly.disabled=d.session.bound.role!=='general_manager';backupSection.append(downloadOnly);
+ const downloadLink=node('a',translateStatic('حفظ ملف ZIP'));downloadLink.hidden=true;downloadLink.rel='noopener';
+ let preparedUrl=null;
+ const clearPrepared=()=>{downloadLink.hidden=true;downloadLink.removeAttribute('href');if(preparedUrl)URL.revokeObjectURL(preparedUrl);preparedUrl=null;};
+ d.onDispose(clearPrepared);
+ downloadLink.onclick=event=>{try{d.session.check();}catch{event.preventDefault();clearPrepared();d.close();}};
+ downloadOnly.disabled=d.session.bound.role!=='general_manager';backupSection.append(downloadOnly,downloadLink);
  downloadOnly.onclick=()=>d.run(async()=>{
   d.session.check();
   const auth=await window.AQARI_SUPABASE.getSession();
   const result=await fetchStorageBackup({session:d.session,auth,config:window.AQARI_PUBLIC_CONFIG||{}});
   d.session.check();
-  const href=URL.createObjectURL(result.blob),link=document.createElement('a');
-  link.href=href;link.download=result.name;link.rel='noopener';link.hidden=true;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),30000);
+  clearPrepared();preparedUrl=URL.createObjectURL(result.blob);
+  downloadLink.href=preparedUrl;downloadLink.download=result.name;downloadLink.hidden=false;
   d.status.textContent=translateStatic('تم تجهيز نسخة الملفات والتحقق من بصمتها. لم تُنفّذ استعادة.');
  });
  d.body.append(node('p',translateStatic('المدير العام فقط يدير هذه الخيارات. تقارير الملاك تحترم نطاق العقارات المحفوظ، وإذا ربطت المستلم بحساب مالك فعلي فلن يتجاوز التقرير العقارات المصرح بها لذلك الحساب.')),global,backupSection,node('h3',translateStatic('ملاك ومستلمو التقارير')),node('p',translateStatic('WhatsApp عبر Meta Cloud API هو المسار الأساسي، ويمكن إضافة Email بصورة مستقلة. اختر عقارًا واحدًا أو مجموعة عقارات لكل مستلم.')),targetsHost,addTarget);
