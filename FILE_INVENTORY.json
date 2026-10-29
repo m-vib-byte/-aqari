@@ -6012,8 +6012,8 @@
     },
     {
       "path": "tests/v267-rental-records.test.cjs",
-      "sha256": "813277eb861252768437f40fad8eee96721aa8d4461d7b28c7c0fa0e467de392",
-      "size": 17988
+      "sha256": "55b863df523ac23cc544de2402a5c164ba3f73816820f9a781d7defd53abb62e",
+      "size": 18614
     },
     {
       "path": "tests/v267-rental-template-starters.test.mjs",
@@ -6392,8 +6392,8 @@
     },
     {
       "path": "v267-rental-records.js",
-      "sha256": "877eb0f0bc1e4e34dd05bb26d85ed937f4e9ef09d91f558ef9f8748526741525",
-      "size": 48262
+      "sha256": "f0575be24b8a0b0216ee29d8daca901de05f5b6208b6c3fdbfccdb088a659d74",
+      "size": 48486
     },
     {
       "path": "v267-requirements.html",
