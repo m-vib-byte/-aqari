@@ -144,7 +144,9 @@ function createStore(options){
    await options.save(payload,Number(cloud.revision),scope);check();
    const confirmed=primary((await options.load(scope)).payload);check();
    if(!verify(confirmed,expected))fail('لم تؤكد إعادة القراءة وجود السجل.');
-   for(const k of keys)local[k]=copy(confirmed[k]||[]);
+   const currentLocal=options.local();
+   if(currentLocal!==local&&keys.some(k=>!same(currentLocal[k]||[],local[k]||[])&&!same(currentLocal[k]||[],confirmed[k]||[])))fail('تغيّرت البيانات المحلية أثناء الحفظ. حدّث الصفحة للتحقق.');
+   for(const k of keys)currentLocal[k]=copy(confirmed[k]||[]);
    try{options.cache()}catch(_){}return expected;
   }catch(e){if(sent){uncertain=true;throw new Error('لم يكتمل تأكيد الحفظ؛ قد يكون السجل وصل. حدّث الصفحة وتحقق قبل إعادة الإضافة.')}throw e}
   finally{busy=false}

@@ -1,5 +1,6 @@
+import {snapshot,transferSnapshot} from "../_shared/storage-restore-v2.js";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { withSupabase } from "npm:@supabase/server";
+import { withSupabase } from "npm:@supabase/server@1.9.2";
 import { zipSync, strToU8 } from "npm:fflate@0.8.2";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -8,8 +9,12 @@ const MAX_OBJECTS=5000;
 const MAX_BYTES=64*1024*1024;
 const MAX_CATALOG_ENTRIES=10000;
 const ALLOWED_ORIGINS=new Set(["https://myaqari.com","https://www.myaqari.com"]);
-const RESTORE_TARGET="https://ofgmcsmxmdswlovsckqs.supabase.co/functions/v1/stage-c-storage-receiver-20261001";
-const RESTORE_RUN_ID="08ea462d-64b7-4901-a817-d9f827571035";
+// Accept only the explicitly configured preview from this existing Vercel team.
+const previewOrigin=Deno.env.get("AQARI_RESTORE_ALLOWED_ORIGIN")||"";
+if(/^https:\/\/aqari-[a-z0-9-]+-m-vib-5421\.vercel\.app$/.test(previewOrigin))ALLOWED_ORIGINS.add(previewOrigin);
+// Explicit deployment configuration: never send the caller JWT to an arbitrary URL.
+const RESTORE_TARGET="https://nlqynpmilcdqztwrrvyu.supabase.co/functions/v1/aqari-storage-restore-v2";
+
 
 function originHeaders(req:Request){
   const origin=req.headers.get("origin")||"";
@@ -90,39 +95,6 @@ function catalogFailure(req:Request,error:any){
   const conflicts=["INVALID_STORAGE_PATH","STORAGE_CATALOG_CHANGED","BACKUP_OBJECT_LIMIT","BACKUP_CATALOG_LIMIT"];
   return json(req,conflicts.includes(reason)?409:500,{ok:false,error:conflicts.includes(reason)?reason:"STORAGE_CATALOG_FAILED"});
 }
-function b64encode(bytes:Uint8Array){
-  let raw="";const chunk=0x8000;
-  for(let i=0;i<bytes.length;i+=chunk)raw+=String.fromCharCode(...bytes.subarray(i,i+chunk));
-  return btoa(raw);
-}
-async function restoreObject(authorization:string,item:any,bytes:Uint8Array){
-  const response=await fetch(RESTORE_TARGET,{
-    method:"POST",
-    headers:{"content-type":"application/json",authorization},
-    body:JSON.stringify({
-      runId:RESTORE_RUN_ID,action:"object",bucket:item.bucket,name:item.name,bytes:item.bytes,
-      sha256:item.sha256,etag:item.etag,mime:item.content_type,base64:b64encode(bytes)
-    }),
-    redirect:"error",signal:AbortSignal.timeout(60000)
-  });
-  const result=await response.json().catch(()=>null);
-  if(response.status!==200||result?.ok!==true||result?.sha256!==item.sha256)throw Error("ISOLATED_STORAGE_RESTORE_FAILED");
-}
-async function finalizeRestore(authorization:string,count:number,bytes:number){
-  const response=await fetch(RESTORE_TARGET,{
-    method:"POST",
-    headers:{"content-type":"application/json",authorization},
-    body:JSON.stringify({runId:RESTORE_RUN_ID,action:"finalize",expectedCount:count,expectedBytes:bytes}),
-    redirect:"error",signal:AbortSignal.timeout(30000)
-  });
-  const result=await response.json().catch(()=>null);
-  if(response.status!==200||result?.ok!==true||result?.summary?.verified!==true||
-     Number(result?.summary?.count)!==count||Number(result?.summary?.bytes)!==bytes){
-    throw Error("ISOLATED_STORAGE_FINALIZE_FAILED");
-  }
-  return result.summary;
-}
-
 const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:originHeaders(req)});
   if(req.method!=="POST")return json(req,405,{ok:false,error:"METHOD_NOT_ALLOWED"});
@@ -133,6 +105,8 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   let body:any;try{body=await req.json()}catch{return json(req,400,{ok:false,error:"INVALID_REQUEST"})}
   const workspaceId=String(body?.workspaceId||"");
   const restoreToIsolated=body?.restoreToIsolated===true;
+  if(restoreToIsolated&&Deno.env.get("AQARI_STORAGE_RESTORE_V2_ENABLED")!=="true")return json(req,503,{ok:false,error:"RESTORE_CONFIGURATION_PENDING"});
+  if(restoreToIsolated&&new URL(Deno.env.get("SUPABASE_URL")||"https://invalid.local").hostname===new URL(RESTORE_TARGET).hostname)return json(req,409,{ok:false,error:"RESTORE_TARGET_NOT_ISOLATED"});
   if(!UUID.test(workspaceId))return json(req,400,{ok:false,error:"INVALID_WORKSPACE"});
   const authorization=String(req.headers.get("authorization")||"");
   if(restoreToIsolated&&!authorization.startsWith("Bearer "))return json(req,403,{ok:false,error:"ACCESS_DENIED"});
@@ -170,10 +144,7 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
       created_at:row?.created_at||null,updated_at:row?.updated_at||null
     };
     manifestObjects.push(manifestItem);
-    if(restoreToIsolated){
-      try{await restoreObject(authorization,manifestItem,bytes)}
-      catch{return json(req,502,{ok:false,error:"ISOLATED_STORAGE_RESTORE_FAILED",bucket,name})}
-    }
+
   }
   // Do not finalize or label the ZIP complete if objects were added, removed,
   // replaced or changed while reading the original bytes.
@@ -183,8 +154,10 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
   }catch(error){return catalogFailure(req,error)}
   let restoreSummary:any=null;
   if(restoreToIsolated){
-    try{restoreSummary=await finalizeRestore(authorization,manifestObjects.length,totalBytes)}
-    catch{return json(req,502,{ok:false,error:"ISOLATED_STORAGE_FINALIZE_FAILED"})}
+    try{
+      const plan=await snapshot(workspaceId,new URL(Deno.env.get("SUPABASE_URL")||"https://invalid.local").hostname.split(".")[0],manifestObjects);
+      restoreSummary=await transferSnapshot(fetch,RESTORE_TARGET,authorization,plan,(item:any)=>files["storage/"+item.bucket+"/"+item.name]);
+    }catch{return json(req,502,{ok:false,error:"ISOLATED_STORAGE_RESTORE_UNCONFIRMED"})}
   }
   const createdAt=new Date().toISOString();
   const manifest={
@@ -192,7 +165,7 @@ const handleRequest=withSupabase({auth:"user"},async(req:any,ctx:any)=>{
     project_ref:new URL(Deno.env.get("SUPABASE_URL")||"https://invalid.local").hostname.split(".")[0],
     workspace_id:workspaceId,created_at:createdAt,
     object_count:manifestObjects.length,total_bytes:totalBytes,objects:manifestObjects,
-    isolated_restore:restoreToIsolated?{run_id:RESTORE_RUN_ID,verified:true,count:restoreSummary.count,bytes:restoreSummary.bytes}:null
+    isolated_restore:restoreToIsolated?{run_id:restoreSummary.runId,snapshot_sha256:restoreSummary.snapshotHash,scope:"storage_only",verified:true,count:restoreSummary.count,bytes:restoreSummary.bytes}:null
   };
   files["manifest.json"]=strToU8(JSON.stringify(manifest,null,2));
   const zip=zipSync(files,{level:0});

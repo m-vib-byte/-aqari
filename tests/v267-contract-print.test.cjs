@@ -86,15 +86,15 @@ function pageFixture(){
  class Element{constructor(tag,text=''){this.tag=tag;this.style={};this.children=[];this.textContent=text;}setAttribute(name,value){this[name]=value;}append(...children){this.children.push(...children);}replaceChildren(...children){this.children=children;}}
  const node=(tag,text)=>new Element(tag,text),created=[],released=[],calls=[];let closed=false;
  const state={fail:false,pending:null};
- const api={async prepareContractPrint(...args){calls.push(args);if(state.pending)await state.pending;if(state.fail)throw Error('اعتماد المدير العام مطلوب');return {html:'<html>saved synthetic contract</html>'};}};
+ const api={async prepareContractPrint(...args){calls.push(args);if(state.pending)await state.pending;if(state.fail)throw Error('اعتماد المدير العام مطلوب');return {contractId:'123',count:2,mode:'official',revision:7};}};
  const urls={create(blob){if(closed)throw Error('closed');created.push(blob);return 'blob:fixture-'+created.length;},release(url){released.push(url);}};
  const d={body:node('div'),status:node('p'),session:{check(){if(closed)throw Error('closed');}},run(task){d.pending=Promise.resolve().then(task).catch(error=>{d.status.textContent=error.message;});return d.pending;}};
  const page=fs.readFileSync('src/v267/pages/rental-contracts.js','utf8').replace(/^import .*;$/gm,'').replace(/\bexport /g,'');
- const context={...localeBindings,node,createDialog:()=>d,createPage:()=>d,createPrivateUrls:()=>urls,window:{AQARI_RENTAL_RECORDS:api},Blob};vm.createContext(context);vm.runInContext(page,context);
+ const context={...localeBindings,node,createDialog:()=>d,createPage:()=>d,createPrivateUrls:()=>urls,window:{AQARI_RENTAL_RECORDS:api},Blob,fetchContractPrint:async()=>new Blob(['%PDF-saved synthetic contract'],{type:'application/pdf'}),appendPdfViewer:(target,url,options)=>{const a=node('a');a.href=url;a.download=options.filename;target.append(a);}};vm.createContext(context);vm.runInContext(page,context);
  return {d,state,calls,created,released,open:()=>context.openContractPrint(123,2,'official'),links:()=>descendants(d.body).filter(e=>e.tag==='a'),retry:()=>descendants(d.body).find(e=>e.tag==='button').onclick(),close:()=>{closed=true;}};
 }
 test('print dialog creates no file until verified and clears an old file before a denied retry',async()=>{
- const f=pageFixture();f.open();assert.equal(f.created.length,0);await f.d.pending;assert.deepEqual(f.calls,[[123,2,'official']]);assert.equal(f.links().length,1);assert.match(await f.created[0].text(),/saved synthetic/);
+ const f=pageFixture();f.open();assert.equal(f.created.length,0);await f.d.pending;assert.deepEqual(f.calls,[[123,2,'official']]);assert.equal(f.links().length,1);assert.match(await f.created[0].text(),/^%PDF-/);assert.equal(f.created[0].type,'application/pdf');assert.equal(f.links()[0].download,'contract-123.pdf');
  f.state.fail=true;await f.retry();assert.deepEqual(f.released,['blob:fixture-1']);assert.equal(f.links().length,0);assert.equal(f.created.length,1);assert.match(f.d.status.textContent,/اعتماد المدير العام/);
 });
 test('closing during preparation prevents creation of a late private file',async()=>{

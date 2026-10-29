@@ -1,0 +1,17 @@
+(node:13) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ real adapter refuses {"aal":"aal1"} before database writes (4.983553ms)
+✔ real adapter refuses {"userStatus":401} before database writes (1.402995ms)
+✔ real adapter refuses {"role":"employee"} before database writes (1.848427ms)
+✔ real adapter refuses {"wrongUser":true} before database writes (2.16868ms)
+✔ real adapter refuses {"wrongWorkspace":true} before database writes (1.907185ms)
+✔ real adapter refuses disabled or production receiver {"enabled":false} (0.797652ms)
+✔ real adapter refuses disabled or production receiver {"target":"https://djkpkkgoibruaezdrchb.supabase.co"} (1.395333ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 177.896756

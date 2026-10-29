@@ -15,7 +15,7 @@ async function fixture(initialFailure=null){
   append(...nodes){for(const n of nodes){n.remove?.();this.children.push(n);n.parent=this;}}
   replaceChildren(...nodes){for(const child of this.children)child.parent=null;this.children=[];this.textContent='';this.append(...nodes);}
   querySelectorAll(selector){const all=this.children.flatMap(n=>[n,...n.querySelectorAll()]);return !selector?all:all.filter(n=>selector.startsWith('.')?n.className===selector.slice(1):selector.split(',').includes(n.tagName));}
-  setAttribute(k,v){this.attributes[k]=v;}addEventListener(){}showModal(){}close(){}focus(){}
+  setAttribute(k,v){this.attributes[k]=v;}removeAttribute(k){delete this.attributes[k];delete this[k];}addEventListener(){}showModal(){}close(){}focus(){}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(x=>x!==this);this.parent=null;}
  }
  const client={rpc(name,args){return {abortSignal:async()=>{
@@ -96,4 +96,35 @@ for(const reporting of [false,true])test('second owner-settings write rejected b
 });
 test('owner-settings scope change during MFA rejection cannot unlock the draft',async()=>{
  const f=await fixture();try{f.failNext({name:'aqari_owner_experience_settings',action:'save',changeScope:true,response:{status:403,error:{code:'42501',message:'MFA_REQUIRED'}}});await f.save();assert.equal(f.button('حفظ الإعدادات').disabled,true);assert.equal(f.events.length,0);}finally{f.cleanup();}
+});
+
+test('manager can access download-only without starting a restoration',async()=>{
+ const f=await fixture();
+ try{
+  assert.equal(f.button('تنزيل نسخة الملفات فقط — بدون استعادة').disabled,false);
+  assert.equal(f.calls.some(x=>x.p_action!=='read'),false);
+ }finally{f.cleanup();}
+});
+
+test('verified backup stays available for explicit saving and is revoked on replacement or scope change',async()=>{
+ const f=await fixture(),originalFetch=globalThis.fetch,originalRevoke=URL.revokeObjectURL,revoked=[];
+ try{
+  const bytes=new Uint8Array([80,75,3,4,1]);
+  const hash=Buffer.from(await crypto.subtle.digest('SHA-256',bytes)).toString('hex');
+  window.AQARI_PUBLIC_CONFIG.supabasePublishableKey='synthetic-public';
+  window.AQARI_SUPABASE.getSession=async()=>({access_token:'synthetic',user:{id:'u'}});
+  let exports=0;
+  globalThis.fetch=async(_url,init)=>{exports++;assert.equal(JSON.parse(init.body).restoreToIsolated,false);return new Response(bytes,{headers:{'content-type':'application/zip','x-aqari-backup-sha256':hash}});};
+  URL.revokeObjectURL=url=>{revoked.push(url);originalRevoke(url);};
+  const prepare=f.button('تنزيل نسخة الملفات فقط — بدون استعادة');
+  await prepare.onclick();
+  const link=document.body.querySelectorAll('a')[0];
+  assert.equal(link.hidden,false);assert.match(link.href,/^blob:/);assert.equal(link.download,'aqari-storage-backup.zip');
+  const first=link.href;let prevented=false;
+  link.onclick({preventDefault(){prevented=true;}});link.onclick({preventDefault(){prevented=true;}});
+  assert.equal(prevented,false);assert.equal(exports,1);assert.deepEqual(revoked,[]);
+  await prepare.onclick();assert.deepEqual(revoked,[first]);const second=link.href;
+  window.AQARI_DATA_GATE.scope.workspaceId='other';link.onclick({preventDefault(){prevented=true;}});
+  assert.equal(prevented,true);assert.equal(link.hidden,true);assert.deepEqual(revoked,[first,second]);assert.equal(f.connected(),false);
+ }finally{f.cleanup();globalThis.fetch=originalFetch;URL.revokeObjectURL=originalRevoke;}
 });

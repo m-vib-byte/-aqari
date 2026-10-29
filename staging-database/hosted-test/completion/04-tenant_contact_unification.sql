@@ -36,8 +36,8 @@ do $$declare unit record;begin
  end loop;
 end$$;
 insert into public.aqari_leases(id,workspace_id,external_ref,tenant_id,unit_id,contract_no,start_date,end_date,monthly_rent,deposit,status,snapshot,import_source) values
- ('c0710000-0000-4000-8000-000000000030',current_setting('contact.w')::uuid,'CONTACT-LEASE','c0710000-0000-4000-8000-000000000020','c0710000-0000-4000-8000-000000000011','CONTACT-LEASE','2026-01-01','2026-12-31',100,0,'signed','{"id":"CONTACT-LEASE","sourceReference":"keep-contract-original"}','{"fixture":true}'),
- ('c0710000-0000-4000-8000-000000000031',current_setting('contact.w')::uuid,'CONTACT-OTHER-LEASE','c0710000-0000-4000-8000-000000000021','c0710000-0000-4000-8000-000000000012','CONTACT-OTHER-LEASE','2026-01-01','2026-12-31',100,0,'signed','{"id":"CONTACT-OTHER-LEASE"}','{"fixture":true}');
+ ('c0710000-0000-4000-8000-000000000030',current_setting('contact.w')::uuid,'CONTACT-LEASE','c0710000-0000-4000-8000-000000000020','c0710000-0000-4000-8000-000000000011','CONTACT-LEASE','2026-01-01','2026-12-31',100,0,'signed','{"id":"CONTACT-LEASE","source":"statement-import","sourceReference":"keep-contract-original"}','{"fixture":true}'),
+ ('c0710000-0000-4000-8000-000000000031',current_setting('contact.w')::uuid,'CONTACT-OTHER-LEASE','c0710000-0000-4000-8000-000000000021','c0710000-0000-4000-8000-000000000012','CONTACT-OTHER-LEASE','2026-01-01','2026-12-31',100,0,'signed','{"id":"CONTACT-OTHER-LEASE","source":"statement-import"}','{"fixture":true}');
 update public.aqari_app_state s set payload=jsonb_build_object(
  'tenantProfilesV267',(select jsonb_agg(profile order by id) from public.aqari_tenants where workspace_id=s.workspace_id),
  'contractsV202',(select jsonb_agg(snapshot order by id) from public.aqari_leases where workspace_id=s.workspace_id)) where s.workspace_id=current_setting('contact.w')::uuid and workspace_id=current_setting('hosted.test.workspace')::uuid;

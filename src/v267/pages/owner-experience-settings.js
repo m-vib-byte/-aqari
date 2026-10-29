@@ -1,3 +1,4 @@
+import {fetchStorageBackup} from '../components/storage-backup-download.js';
 import {t as visibleText} from '../components/locale.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
@@ -17,6 +18,22 @@ export function openOwnerExperienceSettings(){
  const global=node('section');global.className='aq-owner-settings-grid';
  global.append(field(translateStatic('وضع الضيف الاختياري — مغلق افتراضيًا وبدون بيانات حقيقية'),guest),field(translateStatic('مساعد OpenAI التوليدي — قراءة فقط'),assistant),field(translateStatic('إرسال تقرير المالك تلقائيًا'),report),save,reload,note);
  const backupSection=node('section');backupSection.className='aq-owner-settings-grid';backupSection.append(node('h3',translateStatic('نسخة احتياطية لملفات Storage')),node('p',translateStatic('ينزّل المدير العام نسخة ZIP من الملفات الأصلية في Storage مع manifest وبصمات SHA-256، ثم يعيد نفس البايتات إلى بيئة الاستعادة المعزولة ويتحقق منها. يلزم التوثيق الثنائي AAL2 ولا يتم تعديل ملفات الإنتاج.')),storageBackup);
+ const downloadOnly=node('button',translateStatic('تنزيل نسخة الملفات فقط — بدون استعادة'));downloadOnly.type='button';
+ const downloadLink=node('a',translateStatic('حفظ ملف ZIP'));downloadLink.hidden=true;downloadLink.rel='noopener';
+ let preparedUrl=null;
+ const clearPrepared=()=>{downloadLink.hidden=true;downloadLink.removeAttribute('href');if(preparedUrl)URL.revokeObjectURL(preparedUrl);preparedUrl=null;};
+ d.onDispose(clearPrepared);
+ downloadLink.onclick=event=>{try{d.session.check();}catch{event.preventDefault();clearPrepared();d.close();}};
+ downloadOnly.disabled=d.session.bound.role!=='general_manager';backupSection.append(downloadOnly,downloadLink);
+ downloadOnly.onclick=()=>d.run(async()=>{
+  d.session.check();
+  const auth=await window.AQARI_SUPABASE.getSession();
+  const result=await fetchStorageBackup({session:d.session,auth,config:window.AQARI_PUBLIC_CONFIG||{}});
+  d.session.check();
+  clearPrepared();preparedUrl=URL.createObjectURL(result.blob);
+  downloadLink.href=preparedUrl;downloadLink.download=result.name;downloadLink.hidden=false;
+  d.status.textContent=translateStatic('تم تجهيز نسخة الملفات والتحقق من بصمتها. لم تُنفّذ استعادة.');
+ });
  d.body.append(node('p',translateStatic('المدير العام فقط يدير هذه الخيارات. تقارير الملاك تحترم نطاق العقارات المحفوظ، وإذا ربطت المستلم بحساب مالك فعلي فلن يتجاوز التقرير العقارات المصرح بها لذلك الحساب.')),global,backupSection,node('h3',translateStatic('ملاك ومستلمو التقارير')),node('p',translateStatic('WhatsApp عبر Meta Cloud API هو المسار الأساسي، ويمكن إضافة Email بصورة مستقلة. اختر عقارًا واحدًا أو مجموعة عقارات لكل مستلم.')),targetsHost,addTarget);
 
  let settingsRevision=0,targetRevision=0,properties=[],owners=[],targets=[],ready=false,uncertain=false;
@@ -32,6 +49,7 @@ export function openOwnerExperienceSettings(){
   d.session.check();
   if(!response.ok){
    let code='';try{code=String((await response.clone().json())?.error||'')}catch{}
+   if(code==='RESTORE_CONFIGURATION_PENDING'||code==='RESTORE_TARGET_NOT_ISOLATED')throw Error('خدمة الاستعادة المعزولة قيد التطبيق والاختبار.');
    if(code==='MFA_REQUIRED')throw Error('يلزم التوثيق الثنائي AAL2 قبل تنزيل النسخة الاحتياطية.');
    if(code==='ACCESS_DENIED')throw Error('لا تملك صلاحية هذه العملية.');
    throw Error('تعذر تنزيل النسخة الاحتياطية للملفات.');
@@ -84,7 +102,7 @@ export function openOwnerExperienceSettings(){
  function syncNote(){note.textContent=report.checked?visibleText('التقرير التلقائي مفعّل منطقيًا. الإرسال يحتاج Secrets الخادم لـMeta WhatsApp و/أو مزود Email، وتنفذ الجدولة كل ساعة ثم تطابق توقيت الكويت لكل مستلم.'):visibleText('التقرير التلقائي متوقف. يمكنك إنشاء تقرير المالك يدويًا بدون إرسال خارجي.');}
  report.onchange=syncNote;addTarget.onclick=()=>{targets=collectTargets();targets.push(blankTarget());renderTargets();};storageBackup.onclick=()=>d.run(downloadStorageBackup);
  function validateRead(settingsValue,targetValue){if(settingsValue?.workspace_id!==d.session.bound.workspace||targetValue?.workspace_id!==d.session.bound.workspace||!Number.isSafeInteger(settingsValue.revision)||settingsValue.revision<0||!Number.isSafeInteger(targetValue.revision)||targetValue.revision<0||!['guest_enabled','assistant_enabled','report_enabled'].every(key=>typeof settingsValue[key]==='boolean')||!['properties','owners','targets'].every(key=>Array.isArray(targetValue[key])))throw Error('تعذر التحقق من إعدادات تجربة المالك.');}
- async function load(){const [settingsValue,targetValue]=await Promise.all([settingsRpc('read'),targetsRpc('read')]);validateRead(settingsValue,targetValue);applySettings(settingsValue);applyTargets(targetValue);ready=true;uncertain=false;save.disabled=false;storageBackup.disabled=d.session.bound.role!=='general_manager';d.status.textContent=translateStatic('تمت قراءة إعدادات المدير العام ومستلمي التقارير.');}
+ async function load(){const [settingsValue,targetValue]=await Promise.all([settingsRpc('read'),targetsRpc('read')]);validateRead(settingsValue,targetValue);applySettings(settingsValue);applyTargets(targetValue);ready=true;uncertain=false;save.disabled=false;storageBackup.disabled=d.session.bound.role!=='general_manager'||window.AQARI_PUBLIC_CONFIG?.storageRestoreV2Accepted!==true;storageBackup.title=storageBackup.disabled?'الاستعادة المعزولة قيد التطبيق والاختبار؛ لم تُعتمد بعد.':'';d.status.textContent=translateStatic('تمت قراءة إعدادات المدير العام ومستلمي التقارير.');}
  function validateTargets(rows){
   if(rows.length>40)throw Error('الحد الأقصى 40 مستلمًا.');
   for(const row of rows){
