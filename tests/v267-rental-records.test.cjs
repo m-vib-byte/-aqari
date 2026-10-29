@@ -51,6 +51,13 @@ function fixture(mode='direct'){
  return {options,store:api.createStore(options),read:()=>clone(payload),reload:()=>{local=clone(api.primary(payload));return local},switchScope:()=>{current=null}};
 }
 const saveTenant=store=>store.change(['tenantProfilesV267'],db=>{const p=api.profile(tenant,db.tenantProfilesV267);db.tenantProfilesV267.push(p);return p},(db,p)=>db.tenantProfilesV267.some(x=>x.id===p.id));
+test('confirmed save updates the current view when hydration replaces its state object',async()=>{
+ const f=fixture(),originalLoad=f.options.load;let active=f.options.local(),reads=0;
+ f.options.local=()=>active;
+ f.options.load=async()=>{const result=await originalLoad();if(++reads===2)active=clone(active);return result;};
+ await saveTenant(f.store);
+ assert.equal(active.tenantProfilesV267[0]?.id,tenant.id);
+});
 for(const format of ['direct','envelope','snapshot'])test('tenant → lease → status survives authoritative reload in '+format,async()=>{
  const f=fixture(format);await saveTenant(f.store);assert.equal(f.reload().tenantProfilesV267.length,1);
  const add=c=>f.store.change(['contractsV202','tenantProfilesV267','properties'],db=>{const saved=api.lease(c,db.contractsV202,db.tenantProfilesV267,db.properties);db.contractsV202=db.contractsV202.filter(x=>x.id!==saved.id).concat([saved]);return saved},(db,c)=>db.contractsV202.some(x=>JSON.stringify(x)===JSON.stringify(c)));
