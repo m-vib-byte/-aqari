@@ -1,0 +1,29 @@
+{
+  "scope": "isolated branch and restore test project only",
+  "functions": [
+    {
+      "function": "aqari-stage-c-storage-export",
+      "project": "ofgmcsmxmdswlovsckqs",
+      "version": 1,
+      "bundle_sha256": "29f32bca1a9055537a7006712731d8f77d33c095874b0f6d34e8e778426f99e6",
+      "downloaded_source_matches_upload": true,
+      "files": {
+        "supabase/functions/aqari-stage-c-storage-export/index.ts": "2dbda6cf9af35560dd757949fce39df8fed3daff4e1de948a3bdaeb327a83564",
+        "supabase/functions/_shared/storage-restore-v2.js": "2985d8c1498fb5e055b27e914e1dbcbd928a0033cbcfcf205119bbb90b1b9458"
+      }
+    },
+    {
+      "function": "aqari-storage-restore-v2",
+      "project": "nlqynpmilcdqztwrrvyu",
+      "version": 4,
+      "bundle_sha256": "0d6b50d04d1c6038c5a93f20676c172125fac76e1eff5d6698a0570d580b70a8",
+      "downloaded_source_matches_upload": true,
+      "files": {
+        "supabase/functions/aqari-storage-restore-v2/index.ts": "f906294ce55a864f9fbcb23df7409418a725509c9e4d0e63126a00d8f6985119",
+        "supabase/functions/_shared/storage-restore-v2.js": "2985d8c1498fb5e055b27e914e1dbcbd928a0033cbcfcf205119bbb90b1b9458"
+      }
+    }
+  ],
+  "production_changed": false,
+  "storage_transfer_verified": false
+}

@@ -83,7 +83,7 @@ test('stale preparation cannot resurrect cancellation, overwrite a contract or r
 test('preparation edits and cancellation reject closed or newer drafts without touching saved data',async()=>{
  for(const action of ['patch','cancel'])for(const alter of [row=>row.status='cancelled',row=>row.status='promoted',row=>row.tenantId='tenant-b',row=>row.unitId='unit-b',row=>row.updatedAt='newer']){
   const f=fixture(),current={contractPreparationDraftsV267:[structuredClone(f.preparation)],audit:[['Existing audit']]};alter(current.contractPreparationDraftsV267[0]);const before=structuredClone(current);
-  Object.assign(f,{copy:structuredClone,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),window:{confirm:()=>true},changeState:async mutate=>mutate(current),start:async()=>{throw Error('Must not navigate after rejection');}});
+  Object.assign(f,{unconfirmedPreparation:null,copy:structuredClone,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),window:{confirm:()=>true},changeState:async mutate=>mutate(current),start:async()=>{throw Error('Must not navigate after rejection');}});
   vm.runInContext(source.slice(source.indexOf(' async function patchPreparation('),source.indexOf(' async function saveTenant('))+';this.patch=patchPreparation;this.cancel=cancelPreparation;',f);
   await assert.rejects(action==='patch'?f.patch({tenantId:'tenant-a'}):f.cancel(),/تغيرت مسودة/);assert.deepEqual(current,before);
  }
@@ -91,7 +91,7 @@ test('preparation edits and cancellation reject closed or newer drafts without t
 
 test('unchanged preparation still saves an explicit edit and retains an audited cancelled record',async()=>{
  const f=fixture(),current={contractPreparationDraftsV267:[structuredClone(f.preparation)]};let navigated=0;
- Object.assign(f,{copy:structuredClone,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),window:{confirm:()=>true},changeState:async mutate=>mutate(current),start:async()=>{navigated++;}});
+ Object.assign(f,{unconfirmedPreparation:null,copy:structuredClone,same:(a,b)=>JSON.stringify(a)===JSON.stringify(b),window:{confirm:()=>true},changeState:async mutate=>mutate(current),start:async()=>{navigated++;}});
  vm.runInContext(source.slice(source.indexOf(' async function patchPreparation('),source.indexOf(' async function saveTenant('))+';this.patch=patchPreparation;this.cancel=cancelPreparation;',f);
  await f.patch({floor:'3'});assert.equal(current.contractPreparationDraftsV267[0].floor,'3');assert.equal(current.contractPreparationDraftsV267[0].status,'preparation');assert.equal(current.audit.length,1);
  await f.cancel();assert.equal(current.contractPreparationDraftsV267.length,1);assert.equal(current.contractPreparationDraftsV267[0].status,'cancelled');assert.equal(current.audit.length,2);assert.equal(navigated,1);

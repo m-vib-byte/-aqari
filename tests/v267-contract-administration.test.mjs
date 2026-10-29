@@ -40,3 +40,19 @@ test('staff change request records a pending request and verifies readback witho
  await all(d.body).find(x=>x.tag==='form').onsubmit({preventDefault(){}});
  assert.deepEqual(calls.map(x=>x.p_action),['request_change','requests']);assert.equal(calls[0].p_data.contract_ref,'contract');assert.match(d.status.textContent,/لم يتغير العقد/);
 });
+test('editing additional signers preserves unsaved signature selections',async()=>{
+ const {d}=fixture();await mountSignatureReview(d,d.body,'doc');const form=all(d.body).find(x=>x.tag==='form'),required=all(d.body).find(x=>x.tag==='textarea');
+ all(form).find(x=>x.tag==='input').checked=true;required.value='شاهد';required.oninput();
+ const checks=all(form).filter(x=>x.tag==='input');assert.equal(checks[0].checked,true);assert.equal(checks[2].checked,false);
+});
+test('confirmed signer rejection unlocks correction; lost response retains original operation',async()=>{
+ for(const uncertain of [false,true]){const {d,calls}=fixture();await mountSignatureReview(d,d.body,'doc');const orig=d.session.client.rpc;let once=true;
+ d.session.client.rpc=async(n,a)=>{if(a.p_action==='review_signatures'&&once){once=false;calls.push(a);throw uncertain?Error('network'):Object.assign(Error('SIGNERS_INVALID'),{code:'22023',status:400});}return orig(n,a);};
+ const form=all(d.body).find(x=>x.tag==='form'),required=all(d.body).find(x=>x.tag==='textarea');await assert.rejects(form.onsubmit({preventDefault(){}}));assert.equal(required.disabled,uncertain);
+ await form.onsubmit({preventDefault(){}});const writes=calls.filter(x=>x.p_action==='review_signatures');assert.equal(writes[0].p_data.id===writes[1].p_data.id,uncertain);
+ }
+});
+test('invalid reason is locally correctable and confirmed rejection unlocks without clearing text',async()=>{
+ const {d,calls}=fixture('staff');mountContractChangeRequest(d,d.body,'contract');const form=all(d.body).find(x=>x.tag==='form'),reason=all(d.body).find(x=>x.tag==='textarea');reason.value='  ا  ';await assert.rejects(form.onsubmit({preventDefault(){}}));assert.equal(calls.length,0);assert.notEqual(reason.disabled,true);
+ reason.value='سبب التصحيح';d.session.client.rpc=async()=>{throw Object.assign(Error('CHANGE_REASON_REQUIRED'),{code:'22023',status:400});};await assert.rejects(form.onsubmit({preventDefault(){}}));assert.equal(reason.disabled,false);assert.equal(reason.value,'سبب التصحيح');
+});
