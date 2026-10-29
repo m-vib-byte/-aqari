@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {createPrivateUrls} from '../src/v267/components/private-urls.js';
 
 const source=readFileSync(new URL('../src/v267/pages/property-master-file.js',import.meta.url),'utf8')
  .replace(/^import .*;\n/gm,'').replace(/^export /gm,'');
@@ -29,8 +30,8 @@ function fixture({failure,secondFailure,category='plumbing',changeScope=false,pe
    if(calls.length===1&&failure){expired=changeScope;throw failure;}
    if(calls.length===2&&secondFailure)throw secondFailure;
    return [{...row,...(q.columns.includes('category_code')?{category_code:category}:{})}];
-  }},run(fn){this.pending=fn();}};
- const box={node,field:(_,control)=>control,createDialog:()=>d,translateStatic:x=>x,
+  }},onDispose(fn){this.dispose=fn;},run(fn){this.pending=fn();}};
+ const box={node,field:(_,control)=>control,createDialog:()=>d,createPrivateUrls,translateStatic:x=>x,
   translateMessage:(s,args)=>s.replace(/\{(\w+)\}/g,(_,key)=>args[key]),document:{createTextNode:t=>String(t)},Intl,Date};
  vm.runInNewContext(source,box);box.openPropertyMasterFile('property-1');return {d,calls};
 }

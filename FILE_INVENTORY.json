@@ -1432,8 +1432,8 @@
     },
     {
       "path": "scripts/build-vercel-preverify-tests.mjs",
-      "sha256": "5da700e7f74bf6c48de64335fbd8c18833a532d11a5ca57e7f30183f0a90b6eb",
-      "size": 807
+      "sha256": "1e2d788be8a596c03535584763bd25bbbb57ead6d1751e779bf308a31008ad92",
+      "size": 895
     },
     {
       "path": "scripts/build-vercel.mjs",
@@ -5927,8 +5927,8 @@
     },
     {
       "path": "tests/v267-property-maintenance-compat.test.mjs",
-      "sha256": "71912faddc5ee006516acf57544f14a840d9950159b3bb145cf7f05cd8f7dffa",
-      "size": 5370
+      "sha256": "f218970cc1dc802d95d22ad80bf58e0b017b14e41e9f36d77e8efdbfd634dcb5",
+      "size": 5494
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
