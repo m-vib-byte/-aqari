@@ -12,11 +12,12 @@ function fixture(options={}) {
   append(...nodes){for(const n of nodes){this.children.push(n);n.parent=this;}}
   replaceChildren(...nodes){this.children=[];this.append(...nodes);}
   setAttribute(k,v){this.attrs[k]=v;}
+  removeAttribute(k){delete this.attrs[k];delete this[k];}
   addEventListener(){} showModal(){} close(){}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);}
  }
  const body=new Element('body'),calls=[],scope={user:'test-user',workspace:'test-workspace',role:'general_manager'};
- const record={workspace_id:scope.workspace,property:{id:'property-a',name:'عقار الاختبار',lifecycle:options.lifecycle},permissions:{collections:false,finance:false,employees:false,...options.permissions},contracts:options.contracts??[{id:'lease-a'},{id:'lease-b'}],units:options.units??[]};
+ const record={documents:options.documents||[],workspace_id:scope.workspace,property:{id:'property-a',name:'عقار الاختبار',lifecycle:options.lifecycle},permissions:{collections:false,finance:false,employees:false,...options.permissions},contracts:options.contracts??[{id:'lease-a'},{id:'lease-b'}],units:options.units??[]};
  const row={id:'request-a',request_no:21,lease_id:'lease-a',description:'صيانة الاختبار',status:'open',cost:12,category_code:'plumbing'};
  let maintenanceReads=0;
  let nextReadError=null;
@@ -186,4 +187,13 @@ test('a property archived after opening cannot start the stale add-unit form',as
   await f.settled();const add=f.button('+ إضافة وحدة وربط الدور');assert.ok(add);f.archive();await add.onclick();assert.match(f.status(),/العقار مؤرشف/);
   assert.equal(f.calls.some(x=>x.name==='aqari_unit_readiness_register'),false);
  }finally{await f.cleanup();}
+});
+
+
+test('uploaded property documents expose download controls only with document read permission',async()=>{
+ for(const permitted of [true,false]){
+  const f=fixture({permissions:{documents:permitted},documents:[{id:'doc-a',no:'DOC-A',title:'ملف محفوظ',status:'uploaded'},{id:'doc-b',no:'DOC-B',status:'reserved'}]});
+  try{await f.settled();assert.equal(Boolean(f.button('تحميل الملف المحفوظ')),permitted);if(permitted)assert.equal(f.descendants(f.dialog).filter(x=>x.tagName==='button'&&x.textContent==='تحميل الملف المحفوظ').length,1);}
+  finally{await f.cleanup();}
+ }
 });

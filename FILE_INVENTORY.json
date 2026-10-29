@@ -1891,6 +1891,11 @@
       "size": 13501
     },
     {
+      "path": "src/v267/components/property-document-download.js",
+      "size": 1688,
+      "sha256": "0ecb8b7ff2c6989bc2d960282afb906768a6a14f82b5a6fbe57a02a58d8c033b"
+    },
+    {
       "path": "src/v267/components/property-experience.js",
       "sha256": "2a0518ac470cfe773e37da89349eb9abaceb95f8018aedcc24c064dd023c2f63",
       "size": 12691
@@ -2402,8 +2407,8 @@
     },
     {
       "path": "src/v267/pages/property-master-file.js",
-      "sha256": "f987b2eba05018ab381e1631b82d164161d4727f0513f2c946ee24e3f916a913",
-      "size": 37358
+      "sha256": "d0831863c023f0112775a7ddfe4aec3f024746c49eedd9ee9bcdf26c4d9bd327",
+      "size": 38342
     },
     {
       "path": "src/v267/pages/property-notices.js",
@@ -5896,6 +5901,11 @@
       "size": 1398
     },
     {
+      "path": "tests/v267-property-document-download.test.mjs",
+      "size": 2895,
+      "sha256": "5a0c351e745eb7772ef5ba0c3b5fbda86f8598d2f0ab94ee345969e70c4c389a"
+    },
+    {
       "path": "tests/v267-property-experience.fixture.html",
       "sha256": "49f55ea3c627dd5415b911c72f3e6bba9973fbff117edcb1b825dec98cc4c7b0",
       "size": 4576
@@ -5922,8 +5932,8 @@
     },
     {
       "path": "tests/v267-property-master-runtime.test.mjs",
-      "sha256": "6cbcb63611171fe88d65a727dd668bb1e82a7a23b2eda87a49c0e4eaa334b701",
-      "size": 15310
+      "sha256": "b4c44ed38c94121a138157302697beae5359dc1019ec2fd836f720a178aec261",
+      "size": 16019
     },
     {
       "path": "tests/v267-property-notices.test.cjs",
