@@ -86,7 +86,15 @@ String(membership.workspace_id || '') === workspaceId);}function friendlyError(e
 if(error && error.code === 'AQARI_TIMEOUT'){
 if(error.stage === 'التحقق من الحساب') return 'انتهت مهلة التحقق من الحساب والصلاحيات. لم يتأكد اكتمال الدخول.';
 return 'انتهت مهلة الطلب. لم يتأكد اكتماله.';}
-var raw = String(error && error.message || error || 'خطأ غير معروف');if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';if(/email not confirmed/i.test(raw)) return 'أكد البريد الإلكتروني أولاً ثم حاول الدخول.';if(/not authorized|membership|workspace|AQARI_ACCESS_DENIED/i.test(raw)) return 'هذا الحساب غير مفعل في مساحة عمل عقاري.';if(/failed to fetch|network|load|مهلة|timeout/i.test(raw)) return 'تعذر الاتصال الآن. اضغط «إعادة محاولة الاتصال».';return 'تعذر إكمال الطلب. أعد المحاولة.';}async function loadCore(forceDirect, reportStages){
+var raw = String(error && error.message || error || 'خطأ غير معروف');
+var code = String(error && error.code || '');
+if(/invalid login credentials/i.test(raw)) return 'البريد أو كلمة المرور غير صحيحة.';
+if(/email not confirmed/i.test(raw)) return 'أكد البريد الإلكتروني أولاً ثم حاول الدخول.';
+if(['session_not_found','session_expired','refresh_token_not_found','refresh_token_already_used','bad_jwt'].includes(code)) return 'انتهت جلسة الدخول. سجل الدخول من جديد.';
+if(error && error.reason === 'AQARI_CONTEXT_SUPERSEDED') return 'تغيرت محاولة التحقق من الجلسة. أعد محاولة الدخول.';
+if(code === 'AQARI_STARTUP_TIMEOUT' || /failed to fetch|network|load|مهلة|timeout/i.test(raw)) return 'تعذر الاتصال الآن. اضغط «إعادة محاولة الاتصال».';
+if(code === 'AQARI_ACCESS_CHANGED' || code === 'AQARI_ACCESS_DENIED' || /not authorized|membership|workspace|AQARI_ACCESS_DENIED/i.test(raw)) return 'تعذر تأكيد صلاحية الوصول لهذا الحساب. لم يتأكد أن الحساب غير مفعّل.';
+return 'تعذر إكمال الطلب. أعد المحاولة.';}async function loadCore(forceDirect, reportStages){
 if(!window.AQARI_PUBLIC_CONFIG){
 if(reportStages) setStatus('تحميل إعدادات الدخول (1/4)…','');await loadScript('/public-config.js','aqari-login-config',4000);}if(!window.supabase || !window.supabase.createClient){
 if(reportStages) setStatus('تحميل مكتبة الدخول (2/4)…','');if(forceDirect){
@@ -133,3 +141,4 @@ retireLegacyReleaseState().then(function(){
 })();</script>
 </body>
 </html>
+
