@@ -60,7 +60,7 @@
   }
   async function executeReminder(selection,button){
     const current=liveRecord(selection);if(!current||number(current.record?.balance)<=0||typeof navigator?.clipboard?.writeText!=='function')return false;
-    try{await navigator.clipboard.writeText(reminderText(selection,current));await cloudAppend(selection,current,'reminder_copied');const old=button.textContent;button.textContent='تم النسخ';setTimeout(()=>{if(button?.isConnected)button.textContent=old},1400);hydrateTimeline(selection.row,selection,current);return true}catch(_){return false}
+    try{await navigator.clipboard.writeText(reminderText(selection,current));const saved=await cloudAppend(selection,current,'reminder_copied');const old=button.textContent;button.textContent=saved?'تم النسخ':'تم النسخ؛ تعذر حفظ المتابعة';setTimeout(()=>{if(button?.isConnected)button.textContent=old},saved?1400:5000);hydrateTimeline(selection.row,selection,current);return true}catch(_){return false}
   }
   function executeAction(selection,action,trigger){
     const access=accessScope();if(!selection||!access||access.key!==selection.scope||!ACTIONS.has(action)||typeof window.AQARI_V202?.openProperty!=='function'||typeof window.AQARI_V202?.rentOfficeAction!=='function')return false;
@@ -83,9 +83,10 @@
   }
   async function hydrateTimeline(row,selection,current){
     const token=timelineEpoch,access=accessScope();if(!row?.isConnected||!selection||!current||!access||access.key!==selection.scope||typeof window.AQARI_FOLLOW_UP_CLOUD?.list!=='function')return false;
-    let events=[];try{events=await window.AQARI_FOLLOW_UP_CLOUD.list({recordKey:text(current.record?.key),period:selection.period,limit:1},access)}catch(_){events=[]}
+    let events=[],failed=false;try{events=await window.AQARI_FOLLOW_UP_CLOUD.list({recordKey:text(current.record?.key),period:selection.period,limit:1},access)}catch(_){failed=true}
     if(token!==timelineEpoch||!row.isConnected||accessScope()?.key!==selection.scope)return false;
     let target=row.querySelector('[data-v211-cloud-timeline]');if(!target){target=document.createElement('small');target.setAttribute('data-v211-cloud-timeline','');target.style.display='block';target.style.marginTop='4px';target.style.opacity='.7';row.querySelector('.v211-state')?.appendChild(target)}
+    if(failed){target.textContent='تعذر تحميل سجل المتابعة. أعد المحاولة.';return false}
     const event=Array.isArray(events)?events[0]:null;if(!event){target.textContent='لا توجد متابعة سحابية مسجلة';return true}
     const stamp=new Date(event.createdAt);target.textContent=(TIMELINE_LABEL[event.actionKind]||'متابعة مسجلة')+(Number.isNaN(stamp.getTime())?'':' • '+stamp.toLocaleString('ar-KW',{dateStyle:'short',timeStyle:'short'}));return true;
   }

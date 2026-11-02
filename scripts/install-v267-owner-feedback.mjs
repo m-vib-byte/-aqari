@@ -1,3 +1,4 @@
+import {normalizeOwnerCssReference} from './normalize-owner-css-reference.mjs';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 
@@ -11,7 +12,7 @@ if(!release.includes(marker)){
 }
 const runtimePath=new URL('../src/v267/owner-feedback-runtime.js',import.meta.url);
 let runtime=readFileSync(runtimePath,'utf8');
-runtime=runtime.replaceAll('CSS?.escape?.','globalThis.CSS?.escape?.');
+runtime=normalizeOwnerCssReference(runtime);
 const oldShortcut="window.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();openAssistant();}});";
 const newShortcut="document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='k'&&scope()){event.preventDefault();event.stopImmediatePropagation();openAssistant();}},true);";
 if(runtime.includes(oldShortcut))runtime=runtime.replace(oldShortcut,newShortcut);

@@ -45,7 +45,7 @@ function fixture(mode,count=3){
   }};
  const entries=Array.from({length:count},(_,i)=>({key:'document:'+i,asset:'documents',category:'property_other',title:'Attachment '+i,file:new File(['%PDF-1.7\noriginal '+i],'file-'+i+'.pdf')}));
  const scope={createOriginalDocumentUpload,d:{session,status:{},close(){closed++;}},translateStatic:s=>s,translateMessage:s=>s,
-  window:{dispatchEvent(){}},CustomEvent:class{},openHub(){opened++;},saveMaster:async()=>{masters++;return {complete:{score:100}};},entries};
+  window:{dispatchEvent(){}},CustomEvent:class{},openHub(){opened++;},saveMaster:async()=>{masters++;return {verify:{property:{id:'p'}},complete:{score:100}};},entries};
  vm.createContext(scope);vm.runInContext(state+uploads+execute+"\nmanifest={entries,draft:{name:'Test'}};lockedDraft=manifest.draft;created={id:'p',external_ref:'Test'};access={};globalThis.run=execute;globalThis.links=()=>[...uploaded.values()].map(x=>x.id);globalThis.assets=assets;",scope);
  return {run:()=>scope.run(),recover(){armed=false;active=true;},links:()=>Array.from(scope.links()),assets:()=>scope.assets(),calls,rows,stats:()=>({masters,closed,opened})};
 }

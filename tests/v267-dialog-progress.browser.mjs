@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {chromium,webkit} from 'playwright';
+import {browserTargets,launchBrowser} from './browser-targets.mjs';
 const out=path.resolve(process.env.AQARI_BROWSER_EVIDENCE||'dialog-browser-evidence');fs.mkdirSync(out,{recursive:true});
 const html=`<!doctype html><html lang="ar" dir="rtl" class="aqari-auth-unlocked"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>فحص حالة الاتصال — بيانات اصطناعية</title><link rel="stylesheet" href="/src/v267/styles/workspace.css"><body class="aq-v267 aq-unified-experience"><h1>فحص حالة الاتصال</h1><button id="open">فتح نافذة الاختبار</button><script type="module">
 import {createDialog,node} from '/src/v267/components/dialog.js';
@@ -21,8 +21,8 @@ const server=createServer((req,res)=>{const p=new URL(req.url,'http://localhost'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`,results=[];
 let browser;
 try{
- for(const [engine,type]of [['chromium',chromium],['webkit',webkit]]){
-  browser=await type.launch();
+ for(const [engine,type]of browserTargets){
+  browser=await launchBrowser(type);
   for(const [device,width,height,mobile]of [['desktop',1440,1000,false],['phone',390,844,true],['tablet',820,1180,true]]){
    const ctx=await browser.newContext({viewport:{width,height},isMobile:mobile,hasTouch:mobile});await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());const page=await ctx.newPage();page.setDefaultTimeout(10000);const errors=[],resourceErrors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')resourceErrors.push(m.text());});page.on('response',r=>{if(r.status()>=400)resourceErrors.push(`${r.status()} ${new URL(r.url()).pathname}`);});
    const pass=name=>{results.push({engine,device,name,passed:true});console.log(`PASS ${engine}/${device}: ${name}`);};
@@ -50,5 +50,5 @@ try{
   }
   await browser.close();browser=null;
  }
- assert.equal(results.length,66);fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({scope:'Synthetic local UI; no live account or physical iOS device',passed:results.length,results},null,2));
+ assert.equal(results.length,33*browserTargets.length);fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({scope:'Synthetic local UI; no live account or physical iOS device',passed:results.length,results},null,2));
 }finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}

@@ -7,7 +7,7 @@ import {t as translateStatic,message as translateMessage} from '../components/lo
 import {createDialog,node,field} from '../components/dialog.js';
 import {withPresentation,contactPhone} from '../domain/property-presentation.js';
 import {decodeImage} from '../components/scan-image.js';
-import {createOriginalDocumentUpload} from '../components/original-document-upload.js';
+import {createOriginalDocumentUpload,validateOriginalDocument} from '../components/original-document-upload.js';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
@@ -129,12 +129,21 @@ export function openPropertyOnboarding(){
  }
  async function execute(){
   if(!access){access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');}
-  if(!manifest){if(!form.reportValidity())throw Error('أكمل الحقول المطلوبة.');manifest=freezeDraft();lockedDraft=manifest.draft;}
+  if(!manifest){
+   if(!form.reportValidity())throw Error('أكمل الحقول المطلوبة.');
+   const candidate=freezeDraft();
+   // Reject invalid attachments before creating the property; never reserve/upload here.
+   for(const entry of candidate.entries){
+    await validateOriginalDocument(entry.file,{type:'property',category:entry.category,title:entry.title});
+    d.session.check();
+   }
+   manifest=candidate;lockedDraft=manifest.draft;
+  }
   if(!created){try{const previews=creationAttempt?null:await createPreviewImages();d.status.textContent=translateStatic(creationAttempt?'جارٍ التحقق من محاولة الإنشاء السابقة…':'جارٍ إنشاء سجل العقار…');created=await saveLegacyProperty(previews);}catch(error){if(!creationAttempt){manifest=null;lockedDraft=null;}throw error;}}
-  if(!created)throw Error('تعذر تثبيت هوية العقار.');await uploadDocuments();d.status.textContent=translateStatic('جارٍ حفظ Master Data وربط الأرشيف…');const {complete}=await saveMaster();
+  if(!created)throw Error('تعذر تثبيت هوية العقار.');await uploadDocuments();d.status.textContent=translateStatic('جارٍ حفظ Master Data وربط الأرشيف…');const {verify,complete}=await saveMaster();
   let module;try{module=await import('./property-hub.js');if(typeof module.openPropertyHub!=='function')throw Error('PROPERTY_HUB_UNAVAILABLE');}
   catch{d.session.check();throw Error('تم حفظ العقار، لكن تعذر تحميل صفحة ملفه. أعد المحاولة لفتح الملف دون إنشاء عقار جديد.');}
-  d.session.check();window.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:lockedDraft.name,propertyId:created.id}}));d.status.textContent=complete?translateMessage("تم إنشاء {v0} وأرشفة {v1} ملف/صورة. اكتمال الملف {v2}%.",{v0:(lockedDraft.name),v1:(uploaded.size),v2:(complete.score)}):translateStatic('تم الحفظ.');d.close();return module.openPropertyHub(created.id);
+  d.session.check();window.dispatchEvent(new CustomEvent('aqari:property-saved',{detail:{name:lockedDraft.name,propertyId:created.id,workspaceId:d.session.bound.workspace,userId:d.session.bound.user,property:verify.property}}));d.status.textContent=complete?translateMessage("تم إنشاء {v0} وأرشفة {v1} ملف/صورة. اكتمال الملف {v2}%.",{v0:(lockedDraft.name),v1:(uploaded.size),v2:(complete.score)}):translateStatic('تم الحفظ.');d.close();return module.openPropertyHub(created.id);
  }
  form.onsubmit=event=>{event.preventDefault();d.run(execute).catch(()=>{});};
  d.run(async()=>{access=await rpc('aqari_workspace_access',{p_workspace_id:d.session.bound.workspace});if(access?.user_id!==d.session.bound.user||access?.workspace_id!==d.session.bound.workspace||access?.permissions?.properties?.write!==true)throw Error('إضافة العقارات غير متاحة لصلاحية حسابك.');if(access?.permissions?.documents?.write!==true)files.append(node('p',translateStatic('ملاحظة: رفع الملفات غير متاح لهذه الصلاحية؛ يمكن إنشاء العقار بدون مرفقات.')));d.status.textContent=translateStatic('أكمل الملف في شاشة واحدة ثم اضغط حفظ.');name.focus();});

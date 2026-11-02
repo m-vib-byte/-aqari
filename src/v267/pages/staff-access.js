@@ -20,7 +20,7 @@ const sameDraft=(a,b)=>a.user_id===b.user_id&&a.operational_role===b.operational
 const rejectedBeforeSave=error=>[400,404,409,422].includes(Number(error?.status))||['P0001','40001','22023'].includes(error?.code);
 
 export function openStaffAccess(){
- const d=createDialog(translateStatic('صلاحيات حسابات الموظفين والعقارات'));if(!d)return;
+ const d=createDialog(translateStatic('صلاحيات حسابات الموظفين والعقارات'));if(!d)return;d.el?.classList?.add('aq267-staff-access');
  let directory={properties:[],members:[],assignments:[],audit:[]},revision=0,pendingSave=null,selectedUser='',baseline='',accountPreparations=null;
  const reload=node('button',translateStatic('تحديث الصلاحيات من قاعدة البيانات')),form=node('form'),user=node('select'),role=node('select'),active=node('input'),properties=node('fieldset'),reason=node('textarea'),description=node('p'),save=node('button',translateStatic('حفظ الصلاحيات والتحقق منها')),list=node('section'),audit=node('section');
  reload.type='button';save.type='submit';active.type='checkbox';user.required=role.required=reason.required=true;reason.minLength=3;reason.maxLength=500;reason.rows=3;form.hidden=true;

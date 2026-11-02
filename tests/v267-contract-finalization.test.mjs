@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {rentReceiptArtifacts,executionManifest} from '../src/v267/domain/contract-execution.js';
+import {rentReceiptArtifacts,executionManifest,executionPaymentProvider} from '../src/v267/domain/contract-execution.js';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
@@ -54,4 +54,24 @@ test('zero-rent execution cannot carry a fake receipt sequence',()=>{
  const contract={id:'contract-2',status:'signed',tenantId:'tenant-2',property:'برج',unit:'4',contract_no:'AQ-C-2026-000002'};
  const due={rent:0,deposit:0,advance:0,fees:0,total:0};
  assert.throws(()=>executionManifest({contract,due,onDate:'2026-09-14',method:'none',transactionNo:'',receiptNo:'',contractReceiptSequence:1,zeroReason:'فترة مجانية',ids:{settlement:'1',document:'2',version:'3',event:'4'}}),/وصلاً وهميًا|تسلسل وصل/);
+});
+
+test('execution stores the required provider consistently for all payment methods',()=>{
+ const contract={id:'contract',status:'signed',tenant:'Synthetic tenant',tenantId:'tenant',property:'Synthetic property',unit:'1',contract_no:'CT-1',accountant:'Synthetic accountant'};
+ const base={contract,profile:{id:'tenant'},due:{rent:100,deposit:0,advance:0,fees:0,total:100,period:'2026-10',breakdown:{}},receiptNo:'AQ-R-2026-00000001',contractReceiptSequence:1,onDate:'2026-11-01',transactionNo:'TEST-123',ids:{settlement:'1',document:'2',version:'3',event:'4'}};
+ for(const [method,input,expected] of [['cash','Previous bank',undefined],['knet','', 'KNET'],['bank','  بنك الاختبار  ','بنك الاختبار'],['cheque',' Ｔｅｓｔ Ｂａｎｋ ','Test Bank']]){
+  const options={...base,method,paymentProvider:input};
+  const artifacts=rentReceiptArtifacts(options),manifest=executionManifest(options);
+  assert.equal(artifacts.ledger.paymentProvider,expected,method);
+  assert.equal(artifacts.receipt.paymentProvider,expected,method);
+  assert.equal(manifest.paymentProvider,expected,method);
+ }
+});
+
+test('bank and cheque providers reject empty, hidden, placeholder and oversized values',()=>{
+ for(const method of ['bank','cheque'])for(const value of [undefined,'','   ','\u00a0\u2007','A','none','لا يوجد','Test\u061cBank','Test\u200bBank','Test\nBank','x'.repeat(121)]){
+  assert.throws(()=>executionPaymentProvider(method,value),/اسم البنك أو مزوّد الدفع/);
+ }
+ assert.equal(executionPaymentProvider('knet','old bank'),'KNET');
+ assert.equal(executionPaymentProvider('cash','old bank'),'');
 });

@@ -1,4 +1,5 @@
 import importlib.util
+from copy import deepcopy
 import re
 from pathlib import Path
 import unittest
@@ -35,6 +36,28 @@ class SalaryVoucherTest(unittest.TestCase):
   for value in ['Tower <b>name','Street &lt;A&gt; & B','Employee <b>literal</b>',
                 'Job <i>draft','Passport <font>','PAY <b>draft &lt;1&gt;','Voucher <i>number']:
    with self.subTest(value=value):self.assertIn(value,text)
+ def test_saved_arabic_names_and_job_reach_pdf_as_connected_visual_text(self):
+  payload=self.payload();before=deepcopy(payload);texts=[];paragraph=renderer.Paragraph
+  def capture(*args,**kwargs):
+   result=paragraph(*args,**kwargs);texts.append(result.getPlainText());return result
+  with patch.object(renderer,'Paragraph',side_effect=capture):
+   pdf=API.render_salary_voucher(payload,self.registry())
+  text=' '.join(texts)
+  for value in ['ﺔﺨﻴﺷ ﺝﺮﺑ','ﺔﻴﻤﻟﺎﺴﻟﺍ','ﺭﺎﺒﺘﺧﺍ ﻒﻇﻮﻣ','ﺐﺳﺎﺤﻣ','Test Employee','Accountant','REF-1','AQ-202609-1']:
+   with self.subTest(value=value):self.assertIn(value,text)
+  for unshaped in ['برج شيخة','السالمية','موظف اختبار','محاسب']:
+   with self.subTest(value=unshaped):self.assertNotIn(unshaped,text)
+  self.assertEqual(payload,before)
+  self.assertEqual(len(re.findall(rb'/Type\s*/Page\b',pdf)),1)
+ def test_arabic_field_markup_stays_literal_after_bidi_shaping(self):
+  payload=self.payload();payload['reference']='شارع <b>اختبار</b> & مرجع 12'
+  texts=[];paragraph=renderer.Paragraph
+  def capture(*args,**kwargs):
+   result=paragraph(*args,**kwargs);texts.append(result.getPlainText());return result
+  with patch.object(renderer,'Paragraph',side_effect=capture):
+   pdf=API.render_salary_voucher(payload,self.registry())
+  self.assertIn('ﻉﺭﺎﺷ <b>ﺭﺎﺒﺘﺧﺍ</b> & 12 ﻊﺟﺮﻣ',texts)
+  self.assertTrue(pdf.startswith(b'%PDF-'))
  def test_endpoint_uses_authorized_registry_scope(self):
   data={'workspaceId':self.registry()['workspace_id'],'employeeId':self.registry()['employee_id'],'payrollId':self.registry()['payroll_id']}
   def read(body,auth):return {'registry':{k:v for k,v in self.registry().items() if k!='verification_token'},'verification_token':self.registry()['verification_token'],'payload':self.payload()}

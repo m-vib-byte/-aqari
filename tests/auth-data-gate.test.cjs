@@ -942,7 +942,8 @@ test('first paint stays closed until the login shell exists and only unlock reve
   assert.ok(gateIndex > bodyIndex && readyIndex > gateIndex && legacyGateIndex > readyIndex && publicConfigIndex > legacyGateIndex && bridgeIndex > publicConfigIndex);
   assert.match(html, /html:not\(\.aqari-shell-ready\) body\{visibility:hidden!important\}/);
   assert.match(html, /html\.aqari-shell-ready:not\(\.aqari-auth-unlocked\) #aqariCloudGateV168\{visibility:visible!important;display:flex!important\}/);
-  assert.equal((html.match(/<script defer src="\//g) || []).length, 10);
+  const deferred = [...html.matchAll(/<script defer src="([^"]+)"/g)].map(match => match[1]);
+  assert.deepEqual(deferred, ['/public-config.js','/supabase-adapter.js','/cloud-sync.js','/first-run-migration.js','/safe-autosync.js','/safe-autosync-ui.js','/production-status.js','/pre-migration-backup.js','/final-release-ui.js','/production-lockdown.js','/src/v267/home-presentation.js?release=V267']);
   assert.match(html, /<script defer id="aqari-v198-secure-cloud-js" src="\/secure-auth-bridge\.js"><\/script>/);
   assert.match(bridge, /function showGate[\s\S]*?classList\.remove\('aqari-auth-unlocked'\)/);
   assert.match(bridge, /function safelySeal\(action\)\{[\s\S]*?try\{ action\(\); \}catch/);

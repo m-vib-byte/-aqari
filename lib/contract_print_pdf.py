@@ -19,7 +19,11 @@ def primary(payload):
         return payload.get('values', {}).get('aqari_v30', {})
     return payload
 
-def prepare_print(data, auth, *, read, render=render_contract_template):
+def render_print_component(template, values):
+    """Distinguish component pages from the assembled document page counter."""
+    return render_contract_template(template, values, section_page_numbers=True)
+
+def prepare_print(data, auth, *, read, render=render_print_component):
     if not isinstance(data, dict) or set(data) != {'workspaceId','contractRef','count','mode','expectedRevision'}:
         raise ValueError('INVALID_REQUEST')
     if (not isinstance(data['workspaceId'], str) or not UUID.fullmatch(data['workspaceId'])

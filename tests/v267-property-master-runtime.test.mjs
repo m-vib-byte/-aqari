@@ -16,7 +16,7 @@ function fixture(options={}) {
   addEventListener(){} showModal(){} close(){}
   remove(){if(this.parent)this.parent.children=this.parent.children.filter(n=>n!==this);}
  }
- const body=new Element('body'),calls=[],scope={user:'test-user',workspace:'test-workspace',role:'general_manager'};
+ const body=new Element('body'),calls=[],events=[],scope={user:'test-user',workspace:'test-workspace',role:'general_manager'};
  const record={documents:options.documents||[],workspace_id:scope.workspace,property:{id:'property-a',name:'عقار الاختبار',lifecycle:options.lifecycle},permissions:{collections:false,finance:false,employees:false,...options.permissions},contracts:options.contracts??[{id:'lease-a'},{id:'lease-b'}],units:options.units??[]};
  const row={id:'request-a',request_no:21,lease_id:'lease-a',description:'صيانة الاختبار',status:'open',cost:12,category_code:'plumbing'};
  let maintenanceReads=0;
@@ -41,6 +41,14 @@ function fixture(options={}) {
      const selected={...row};if(!call.columns.includes('category_code'))delete selected.category_code;
      return Promise.resolve({data:[selected],status:200});
     }
+    if(name==='aqari_property_master_save'){
+     if(options.saveError)return Promise.resolve({error:options.saveError,status:400});
+     record.property={...record.property,...args.p_data,revision:args.p_expected_revision+1};
+     const saved=structuredClone(record.property);
+     if(options.mismatch)record.property.address='different server value';
+     if(options.changeAfterSave)window.AQARI_DATA_GATE.scope.userId='other-user';
+     return Promise.resolve({data:{workspace_id:scope.workspace,property:saved},status:200});
+    }
     if(name==='aqari_property_full_file'){
      return Promise.resolve(nextReadError?{error:nextReadError,status:400}:{data:record,status:200});
     }
@@ -55,12 +63,12 @@ function fixture(options={}) {
  }
  const client={rpc:(name,args)=>query('rpc',name,args),from:name=>query('table',name)};
  globalThis.document={body,activeElement:null,createElement:tag=>new Element(tag),createTextNode:text=>new Element('#text',text),documentElement:{classList:{contains:()=>true}}};
- globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url,releaseStage:options.releaseStage||'preview'},AQARI_DATA_GATE:{scope:{userId:scope.user,workspaceId:scope.workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:scope.user},workspace:{id:scope.workspace},membership:{user_id:scope.user,workspace_id:scope.workspace,role:scope.role,is_active:true}}},addEventListener(){},removeEventListener(){}};
+ globalThis.window={AQARI_PUBLIC_CONFIG:{supabaseUrl:SUPABASE_PUBLIC_CONFIG.url,releaseStage:options.releaseStage||'preview'},AQARI_DATA_GATE:{scope:{userId:scope.user,workspaceId:scope.workspace}},AQARI_SUPABASE:{getClient:async()=>client,context:{user:{id:scope.user},workspace:{id:scope.workspace},membership:{user_id:scope.user,workspace_id:scope.workspace,role:scope.role,is_active:true}}},dispatchEvent(event){events.push({type:event.type,detail:event.detail});return true;},addEventListener(){},removeEventListener(){}};
  assert.equal(openPropertyMasterFile('property-a',options.openOptions||{}),true);
  const dialog=body.children[0];
  const descendants=el=>[el,...el.children.flatMap(descendants)];
  return {
-  calls,dialog,body,descendants,
+  calls,dialog,body,descendants,events,
   status:()=>dialog.children[2].textContent,
   text:()=>descendants(dialog).map(el=>el.textContent).join('\n'),
   tables:()=>calls.filter(c=>c.kind==='table'),
@@ -196,4 +204,22 @@ test('uploaded property documents expose download controls only with document re
   try{await f.settled();assert.equal(Boolean(f.button('تحميل الملف المحفوظ')),permitted);if(permitted)assert.equal(f.descendants(f.dialog).filter(x=>x.tagName==='button'&&x.textContent==='تحميل الملف المحفوظ').length,1);}
   finally{await f.cleanup();}
  }
+});
+
+for(const [label,options,expected] of [
+ ['confirmed readback',{},1],
+ ['server rejected save',{saveError:{message:'SAVE_REJECTED'}},0],
+ ['mismatched readback',{mismatch:true},0],
+ ['session changed during save',{changeAfterSave:true},0]
+])test('master save publishes list invalidation only after '+label,async()=>{
+ const f=fixture({contracts:[],...options});try{
+  await f.settled();await f.button('تعديل بيانات العقار').onclick();await f.settled();
+  const form=f.descendants(f.dialog).find(el=>el.tagName==='form');
+  const control=label=>f.descendants(form).find(el=>el.tagName==='label'&&el.textContent===label).parent.children[1];
+  control('العنوان').value='عنوان تحقق اصطناعي جديد';control('سبب التعديل').value='Synthetic regression test';
+  form.onsubmit({preventDefault(){}});await f.settled();
+  assert.equal(f.rpcs().filter(c=>c.name==='aqari_property_master_save').length,1);
+  assert.equal(f.events.length,expected);
+  if(expected)assert.deepEqual(f.events[0],{type:'aqari:property-saved',detail:{propertyId:'property-a',name:'عقار الاختبار',previousName:'عقار الاختبار',property:{id:'property-a',name:'عقار الاختبار',address:'عنوان تحقق اصطناعي جديد'},workspaceId:'test-workspace',userId:'test-user'}});
+ }finally{await f.cleanup();}
 });

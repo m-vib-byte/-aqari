@@ -2,7 +2,7 @@ import unittest
 from copy import deepcopy
 from io import BytesIO
 from pypdf import PdfReader
-from lib.contract_print_pdf import prepare_print, SourceChanged
+from lib.contract_print_pdf import prepare_print, SourceChanged, render_print_component
 from lib.contract_template_pdf import render_contract_template
 
 W='00000000-0000-4000-8000-000000000001'
@@ -28,7 +28,7 @@ class PrintTests(unittest.TestCase):
         original=deepcopy(self.state);rendered=[]
         def render(template,values):
             rendered.append(deepcopy(template))
-            return render_contract_template(template,values)
+            return render_print_component(template,values)
         pdf,count=prepare_print(self.request,AUTH,read=self.read,render=render);reader=PdfReader(BytesIO(pdf))
         self.assertEqual(count,len(reader.pages));self.assertEqual(count,6)
         for index,page in enumerate(reader.pages,1):self.assertIn(f'PDF page {index} / 6',page.extract_text())
@@ -41,6 +41,37 @@ class PrintTests(unittest.TestCase):
             self.assertNotIn('الإيجار الأصلي: 80',rendered[index]['clauses'][0]['text'])
         self.assertEqual(self.state,original);self.assertEqual(self.reads,2)
         self.assertTrue(all('read_state' in p or 'rental_templates' in p or p=='/auth/v1/user' for p,_ in self.calls))
+    def test_component_footer_scope_and_global_count(self):
+        from unittest.mock import patch
+        from reportlab.pdfgen import canvas
+        from lib.rent_pdf import shaped
+        original = canvas.Canvas.drawCentredString
+        footers = []
+        def capture(pdf, x, y, text, *args, **kwargs):
+            footers.append(text)
+            return original(pdf, x, y, text, *args, **kwargs)
+        with patch.object(canvas.Canvas, 'drawCentredString', capture):
+            pdf, count = self.make()
+        self.assertEqual(count, 6)
+        self.assertEqual(footers.count(shaped('صفحة القسم 1 / 1 - A4')), 6)
+        self.assertNotIn(shaped('صفحة 1 / 1 - A4'), footers)
+        for index, page in enumerate(PdfReader(BytesIO(pdf)).pages, 1):
+            self.assertIn(f'PDF page {index} / 6', page.extract_text())
+
+    def test_editor_footer_scope_and_standalone_default(self):
+        from tests.rental_document_editor_pdf_test import template
+        source = template()
+        plain = PdfReader(BytesIO(render_contract_template(source, None)))
+        section = PdfReader(BytesIO(render_print_component(source, None)))
+        self.assertEqual(len(plain.pages), len(section.pages))
+        for index, (before, after) in enumerate(zip(plain.pages, section.pages), 1):
+            label = f'Page {index} / {len(plain.pages)} - A4'
+            self.assertIn(label, before.extract_text())
+            self.assertNotIn('Section page', before.extract_text())
+            self.assertIn(label.replace('Page', 'Section page'), after.extract_text())
+            self.assertEqual(before.extract_text().replace(label, ''),
+                             after.extract_text().replace(label.replace('Page', 'Section page'), ''))
+
     def test_authorization_and_status_guards(self):
         for key,value in [('workspace_id',U),('user_id',W),('can_publish',False)]:
             original=self.context[key];self.context[key]=value

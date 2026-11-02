@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import json
+import os
 from io import BytesIO
 from pathlib import Path
 import re
@@ -17,6 +18,7 @@ from tests.rental_document_layout_test import presentation
 from tests.contract_template_preview_test import fixture,api,W,AUTH
 
 ROOT=Path(__file__).resolve().parents[1]
+FRONTEND_ROOT=Path(os.environ.get('AQARI_FRONTEND_ROOT',ROOT))
 
 
 def template(text='FIRST_MARK\nSECOND_MARK'):
@@ -57,7 +59,7 @@ class RentalDocumentEditorPdfTest(unittest.TestCase):
         values={'tenant_name':'Test Tenant','civil_id':'123456789012','owner_name':'Test Owner','monthly_rent':'350.125','deposit_amount':'0','contract_start_date':'2026-09-01','representative_name':'Authorized Agent','representative_civil_id':'111111111111','representative_nationality':'Kuwaiti','nationality':'Test nationality'}
         resolved=render_document_template(value,values)
         script="""import fs from 'node:fs';import {createHash} from 'node:crypto';import {renderDocumentTemplate,rentalDocumentDigestPayload} from './src/v267/domain/rental-document-cycle.js';const f=JSON.parse(fs.readFileSync(0,'utf8'));const r=renderDocumentTemplate(f.template,f.values);process.stdout.write(JSON.stringify({presentation:r.presentation,digest:createHash('sha256').update(JSON.stringify(rentalDocumentDigestPayload(f.template,r))).digest('hex')}));"""
-        browser=json.loads(subprocess.run(['node','--input-type=module','-e',script],cwd=ROOT,input=json.dumps({'template':value,'values':values}),capture_output=True,text=True,check=True).stdout)
+        browser=json.loads(subprocess.run(['node','--input-type=module','-e',script],cwd=FRONTEND_ROOT,input=json.dumps({'template':value,'values':values}),capture_output=True,text=True,check=True).stdout)
         self.assertEqual(browser['presentation'],resolved['presentation'])
         self.assertEqual(browser['digest'],api.document_digest(resolved))
         self.assertEqual([s['role'] for s in resolved['signatures']],['tenant','owner'])

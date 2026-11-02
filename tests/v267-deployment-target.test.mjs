@@ -42,9 +42,10 @@ test('the Vercel build prepares its target before invoking the package check', (
     'node scripts/build-vercel.mjs',
     'node scripts/install-v267-owner-reference-package.mjs',
     'node scripts/install-v267-owner-feedback.mjs',
-    'node scripts/install-botid-client.mjs'
+    'node scripts/install-botid-client.mjs',
+    'node scripts/prepare-public-output.mjs'
   ]);
-  assert.equal(config.outputDirectory,'.');
+  assert.equal(config.outputDirectory,'public-build');
   const build=readFileSync(new URL('../scripts/build-vercel.mjs',import.meta.url),'utf8');
   assert.match(build,/VERCEL_ENV==='production'/);
   assert.match(build,/await import\('\.\/check\.mjs'\)/);

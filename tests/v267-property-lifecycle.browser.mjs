@@ -3,7 +3,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {createHash} from 'node:crypto';
-import {chromium,webkit} from 'playwright';
+import {browserTargets,launchBrowser} from './browser-targets.mjs';
 const root=path.resolve(import.meta.dirname,'..');
 const out=path.resolve(process.env.AQARI_PROPERTY_BROWSER_EVIDENCE||'property-browser-evidence');fs.mkdirSync(out,{recursive:true});
 const html=`<!doctype html><html lang="ar" dir="rtl" class="aqari-auth-unlocked"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>اختبار الأرشفة — بيانات تجريبية</title><link rel="stylesheet" href="/src/v267/styles/workspace.css"><body class="aq-v267 aq-unified-experience"><h1>فحص معزول — عقار تجريبي</h1><button id="open">فتح الأرشفة</button><script type="module">
@@ -28,8 +28,8 @@ const server=createServer((req,res)=>{const p=new URL(req.url,'http://localhost'
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
 const results=[],screens=[];let browser;
 try{
- for(const [engine,type] of [['Chromium',chromium],['WebKit',webkit]]){
-  browser=await type.launch();
+ for(const [engine,type] of browserTargets){
+  browser=await launchBrowser(type);
   for(const [device,width,height,mobile] of [['Desktop',1440,1000,false],['Phone',390,844,true],['Tablet',820,1180,true]]){
    const ctx=await browser.newContext({viewport:{width,height},isMobile:mobile,hasTouch:mobile});
    await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
@@ -57,11 +57,11 @@ try{
   }
   await browser.close();browser=null;
  }
- assert.equal(results.length,54);
- const files=['src/v267/pages/property-lifecycle.js','src/v267/components/dialog.js','src/v267/api/session.js'];
+ assert.equal(results.length,27*browserTargets.length);
+ const files=['src/v267/pages/property-lifecycle.js','src/v267/components/dialog.js','src/v267/api/session.js','src/v267/styles/workspace.css','src/v267/styles/ultra-luxury.css'];
  const report={date:new Date().toISOString(),sha:process.env.AQARI_EXPECTED_SHA||'local-working-tree',scope:'Local browser execution with synthetic RPC only. No live account, hosted writes, or physical devices.',passed:results.length,results,hashes:Object.fromEntries(files.map(p=>[p,createHash('sha256').update(fs.readFileSync(path.join(root,p))).digest('hex')]))};
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(report,null,2));
  const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
- fs.writeFileSync(path.join(out,'AQARI-Property-Archive-Browser-Check-2026-10-10.html'),`<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>عقاري — فحص واجهة أرشفة العقار</title><style>body{margin:24px auto;max-width:1000px;padding:16px;font-family:Arial;line-height:1.7;background:#faf7f0;color:#30291e}article{padding:18px;border:1px solid #ba9b65;border-radius:12px;margin:16px 0;background:white}img{max-width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left}</style><h1>فحص واجهة أرشفة العقار وإعادة تفعيله</h1><p>10 أكتوبر 2026 — نسخة ${report.sha.slice(0,8)}</p><article><strong>نجح ${results.length} فحصًا</strong><p>متصفحا Chromium وWebKit، بمقاسات 1440×1000 و390×844 و820×1180. هذه محاكاة لمقاسات الكمبيوتر والهاتف واللوحي على المتصفح؛ ليست اختبارًا على iPhone أو iPad فعلي.</p><p>شُغلت واجهة المنصة الفعلية مع جلسة وخادم بيانات اصطناعيين على الجهاز المحلي، ومُنعت الاتصالات الخارجية. لم يتغير عقار أو مستند أو حساب حقيقي. لا تثبت هذه النتيجة تنفيذ الأرشفة من حساب المالك على الخادم، ولا تمثل نشرًا أو تسليمًا نهائيًا.</p></article><table><tr><th>المتصفح</th><th>المقاس</th><th>الفحص الناجح</th></tr>${results.map(r=>`<tr><td>${r.engine}</td><td>${r.device}</td><td>${esc(r.name)}</td></tr>`).join('')}</table>${screens.map(s=>`<article><h2>${s.engine} — ${s.device}</h2><img alt="تأكيد إعادة تفعيل العقار التجريبي" src="data:image/png;base64,${fs.readFileSync(s.file).toString('base64')}"></article>`).join('')}<details><summary>الدليل التقني وبصمات الملفات</summary><pre>${esc(JSON.stringify(report,null,2))}</pre></details><details><summary>برنامج الفحص القابل لإعادة التشغيل</summary><pre>${esc(fs.readFileSync(import.meta.filename,'utf8'))}</pre></details></html>`);
+ fs.writeFileSync(path.join(out,'AQARI-Property-Archive-Browser-Check-2026-10-10.html'),`<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>عقاري — فحص واجهة أرشفة العقار</title><style>body{margin:24px auto;max-width:1000px;padding:16px;font-family:Arial;line-height:1.7;background:#faf7f0;color:#30291e}article{padding:18px;border:1px solid #ba9b65;border-radius:12px;margin:16px 0;background:white}img{max-width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left}</style><h1>فحص واجهة أرشفة العقار وإعادة تفعيله</h1><p>${report.date.slice(0,10)} — نسخة ${report.sha.slice(0,8)}</p><article><strong>نجح ${results.length} فحصًا</strong><p>${browserTargets.map(([name])=>name).join(' و ')}، بمقاسات 1440×1000 و390×844 و820×1180. هذه محاكاة لمقاسات الكمبيوتر والهاتف واللوحي على المتصفح؛ ليست اختبارًا على iPhone أو iPad فعلي.</p><p>شُغلت واجهة المنصة الفعلية مع جلسة وخادم بيانات اصطناعيين على الجهاز المحلي، ومُنعت الاتصالات الخارجية. لم يتغير عقار أو مستند أو حساب حقيقي. لا تثبت هذه النتيجة تنفيذ الأرشفة من حساب المالك على الخادم، ولا تمثل نشرًا أو تسليمًا نهائيًا.</p></article><table><tr><th>المتصفح</th><th>المقاس</th><th>الفحص الناجح</th></tr>${results.map(r=>`<tr><td>${r.engine}</td><td>${r.device}</td><td>${esc(r.name)}</td></tr>`).join('')}</table>${screens.map(s=>`<article><h2>${s.engine} — ${s.device}</h2><img alt="تأكيد إعادة تفعيل العقار التجريبي" src="data:image/png;base64,${fs.readFileSync(s.file).toString('base64')}"></article>`).join('')}<details><summary>الدليل التقني وبصمات الملفات</summary><pre>${esc(JSON.stringify(report,null,2))}</pre></details><details><summary>برنامج الفحص القابل لإعادة التشغيل</summary><pre>${esc(fs.readFileSync(import.meta.filename,'utf8'))}</pre></details></html>`);
  console.log(`TOTAL ${results.length} passed`);
 }finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}

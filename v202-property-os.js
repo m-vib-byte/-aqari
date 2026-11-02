@@ -444,22 +444,27 @@
     return {rows:result,changed};
   }
 
+  // v267MultiSourceProtectedHydration
   function mergeImportedProperty(localRows,remoteRows,allowedNames){
     const result=Array.isArray(localRows)?localRows.slice():[];
     let changed=false;
     const allowed=new Set(Array.from(allowedNames||[]).map(propertyKey).filter(Boolean));
-    if(allowed.size!==1)return {rows:result,changed};
+    if(!allowed.size)return {rows:result,changed};
     const remote=Array.isArray(remoteRows)?remoteRows.filter(function(row){
       return Array.isArray(row)&&allowed.has(propertyKey(row[0]));
     }):[];
-    if(remote.length!==1)return {rows:result,changed};
-    const candidate=remote[0].slice(0,4).map(function(value){
-      return value==null||['string','number','boolean'].includes(typeof value)?value:'';
-    });
-    const matches=[];
-    result.forEach(function(row,index){if(Array.isArray(row)&&propertyKey(row[0])===propertyKey(candidate[0]))matches.push(index)});
-    if(matches.length===0){result.push(candidate);changed=true}
-    else if(matches.length===1){
+    const seen=new Set();
+    for(const candidateRow of remote){
+      const candidate=candidateRow.slice(0,4).map(function(value){
+        return value==null||['string','number','boolean'].includes(typeof value)?value:'';
+      });
+      const key=propertyKey(candidate[0]);
+      if(!key||seen.has(key))continue;
+      seen.add(key);
+      const matches=[];
+      result.forEach(function(row,index){if(Array.isArray(row)&&propertyKey(row[0])===key)matches.push(index)});
+      if(matches.length===0){result.push(candidate);changed=true;continue}
+      if(matches.length!==1)continue;
       const existing=result[matches[0]];
       const replacement=existing.slice();
       candidate.forEach(function(value,index){if(value!=null&&String(value).trim()!=='')replacement[index]=value});
@@ -589,25 +594,26 @@
           remoteRows.forEach(function(record){
             if(!record||typeof record!=='object'||Array.isArray(record)||normalized(record.source)!==V202_IMPORT_SOURCE)return;
             const displayName=identityText(record.property);
-            const key=propertyKey(record.property);
-            if(displayName&&key&&!importedPropertyNames.has(key))importedPropertyNames.set(key,displayName);
+            const propertyIdentity=propertyKey(record.property);
+            if(displayName&&propertyIdentity&&!importedPropertyNames.has(propertyIdentity))importedPropertyNames.set(propertyIdentity,displayName);
           });
         });
-        if(importedPropertyNames.size!==1)return denyProtectedHydration(generation);
-        const importedPropertyKey=Array.from(importedPropertyNames.keys())[0];
+        if(!importedPropertyNames.size)return denyProtectedHydration(generation);
+        const importedPropertyKeys=new Set(importedPropertyNames.keys());
         const nextCache=Object.create(null);
         Object.keys(PROTECTED_FIELDS).forEach(function(key){
           const remoteRows=Array.isArray(primary[key])?primary[key]:[];
-          if(!remoteRows.some(function(record){return normalized(record?.source)===V202_IMPORT_SOURCE}))return;
-          nextCache[key]=remoteRows.filter(function(record){
-            return record&&typeof record==='object'&&!Array.isArray(record)&&normalized(record.source)===V202_IMPORT_SOURCE&&propertyKey(record.property)===importedPropertyKey;
-          }).map(function(record){return pickedRecord(record,PROTECTED_FIELDS[key])});
+          const scoped=remoteRows.filter(function(record){
+            return record&&typeof record==='object'&&!Array.isArray(record)&&
+              normalized(record.source)===V202_IMPORT_SOURCE&&importedPropertyKeys.has(propertyKey(record.property));
+          });
+          if(scoped.length)nextCache[key]=scoped.map(function(record){return pickedRecord(record,PROTECTED_FIELDS[key])});
         });
         nextCache.properties=Array.isArray(primary.properties)?primary.properties.filter(function(row){
-          return Array.isArray(row)&&propertyKey(row[0])===importedPropertyKey;
+          return Array.isArray(row)&&importedPropertyKeys.has(propertyKey(row[0]));
         }).map(function(row){return row.slice(0,4)}):[];
         protectedImportCache=nextCache;
-        protectedPropertyNames=new Set([importedPropertyKey]);
+        protectedPropertyNames=importedPropertyKeys;
         protectedImportScope=currentScope;
         protectedImportValidated=true;
         purgePersistedProtectedRows();
@@ -3559,6 +3565,55 @@
         return Object.freeze({property:String(property[0]),day,paid:exactMoneySum(today.map(function(entry){return entry.paid})),count:today.length,undated:entries.length-dated.length});
       }
 
+  // v267DailyKnetPayments
+  function v267KnetLedgerEntry(entry){
+    const explicit=referenceText(entry?.knetTransactionNo);
+    const hint=String(entry?.method||'')+' '+String(entry?.note||'');
+    return Boolean(explicit||/(?:k\s*net|knet|كي\s*نت)/i.test(hint));
+  }
+
+  function dailyKnetPayments(name,day){
+    if(!protectedAccessReady()||!/^\d{4}-\d{2}-\d{2}$/.test(String(day))||!validRecordedDate(day))return null;
+    // Read the same scoped ledger without rebuilding monthly rent accounting.
+    const property=propertyRecord(name);
+    if(!property)return null;
+    const dayKey=ledgerPaymentDateKey(day);
+    const candidates=ledgerFor(name).filter(function(entry){
+      return settledPayment(entry?.status)&&validLedgerPaymentAmount(entry)&&validRecordedDate(entry?.paidAt)&&ledgerPaymentDateKey(entry.paidAt)===dayKey&&v267KnetLedgerEntry(entry);
+    }).map(function(entry){
+      const transactionNo=ledgerTransactionNo(entry);
+      const internalReceiptNo=referenceText(entry?.receiptNo);
+      const externalReceiptNo=referenceText(entry?.voucherNo);
+      const receiptNo=ledgerReference(entry);
+      const amount=strictMoney(entry?.paid);
+      const tokens=[transactionNo&&'transaction:'+normalizedReference(transactionNo),internalReceiptNo&&'receipt:'+normalizedReference(internalReceiptNo),externalReceiptNo&&'voucher:'+normalizedReference(externalReceiptNo)].filter(Boolean);
+      const signature=JSON.stringify([normalizedReference(transactionNo),normalizedReference(internalReceiptNo),normalizedReference(externalReceiptNo),identitySignature(entry?.unit),identitySignature(entry?.tenant),String(amount),signatureScalar(entry?.paidAt),signatureScalar(entry?.period),signatureScalar(entry?.accountant)]);
+      return {entry,transactionNo,internalReceiptNo,externalReceiptNo,receiptNo,amount,tokens,signature};
+    });
+    const parent=candidates.map(function(_,index){return index});
+    function root(index){while(parent[index]!==index){parent[index]=parent[parent[index]];index=parent[index]}return index}
+    function join(left,right){const a=root(left),b=root(right);if(a!==b)parent[b]=a}
+    const owner=new Map();
+    candidates.forEach(function(item,index){item.tokens.forEach(function(token){const previous=owner.get(token);if(previous==null)owner.set(token,index);else join(index,previous)})});
+    const groups=new Map();
+    candidates.forEach(function(item,index){const key=root(index);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item)});
+    const records=[];
+    let reviewCount=0;
+    groups.forEach(function(group){
+      if(group.some(function(item){return item.tokens.length===0})){reviewCount+=group.length;return}
+      const signatures=new Set(group.map(function(item){return item.signature}));
+      if(signatures.size!==1){reviewCount+=group.length;return}
+      const item=group[0],entry=item.entry;
+      records.push(Object.freeze({
+        property:String(property[0]),unit:String(entry?.unit||''),tenant:String(entry?.tenant||''),contractId:String(entry?.contractId||entry?.contract_id||''),contractNo:String(entry?.contractNo||entry?.contract_no||''),
+        amount:item.amount,paidAt:String(entry?.paidAt||''),period:String(entry?.period||''),method:String(entry?.method||''),transactionNo:String(item.transactionNo||''),receiptNo:String(item.receiptNo||''),internalReceiptNo:String(item.internalReceiptNo||''),externalReceiptNo:String(item.externalReceiptNo||''),accountant:String(entry?.accountant||'')
+      }));
+    });
+    records.sort(function(left,right){const a=ledgerPaymentDateKey(left.paidAt),b=ledgerPaymentDateKey(right.paidAt);if(a!==b)return b-a;return String(right.paidAt).localeCompare(String(left.paidAt))});
+    const receiptCount=new Set(records.map(function(row){return normalizedReference(row.receiptNo)}).filter(Boolean)).size;
+    return Object.freeze({property:String(property[0]),day:String(day),knetTotal:exactMoneySum(records.map(function(row){return row.amount})),count:records.length,receiptCount:receiptCount,reviewCount:reviewCount,records:Object.freeze(records)});
+  }
+
   function secureRentOfficeData(name,period){
     if(!protectedAccessReady())return null;
     const property=accessIdentity(name);
@@ -4086,6 +4141,7 @@
       rentOfficeProperties:function(){return secureRentOfficeProperties()},
       rentOfficeData:function(name,period){return secureRentOfficeData(name,period)},
       dailyCollectionSummary:dailyCollectionSummary,
+      dailyKnetPayments:dailyKnetPayments,
       rentOfficeAction:function(name,key,period,action,trigger){return secureRentOfficeAction(name,key,period,action,trigger)},
       propertyContext:function(name){
         if(!protectedAccessReady())return null;

@@ -79,6 +79,7 @@
   body.aq-v267 .aq267-dialog>p[role='status'] {min-height:0;margin:0 0 12px;color:#705526;font-size:.9rem}
   body.aq-v267 .aq267-dialog-body {display:grid;gap:16px}
   body.aq-v267 .aq267-field {display:grid;gap:7px}
+  body.aq-v267 .aq267-field[hidden] {display:none!important}
   body.aq-v267 .aq267-field>label {font-size:.82rem;font-weight:750;color:#61594d}
   body.aq-v267 .aq267-field :is(input,select,textarea) {width:100%;min-height:48px;padding:10px 12px;border:1px solid #d9cdb9;border-radius:12px;background:#fff;color:#2f2a22;font:inherit;}
   body.aq-v267 .aq267-field textarea {min-height:88px;resize:vertical}
@@ -486,4 +487,39 @@
   body.aq-unified-experience .aq267-dialog-body button {
     width:100%!important;
   }
+}
+
+/* AQARI V267 — fixed-domain interaction polish */
+@media screen {
+  body.aq-v267 :is(button,a,summary,input,select,textarea){-webkit-tap-highlight-color:transparent}
+  body.aq-v267 :is(button,a,summary,input,select,textarea):focus-visible{outline:3px solid rgba(159,115,43,.34)!important;outline-offset:2px!important;box-shadow:0 0 0 2px #fff,0 0 0 5px rgba(159,115,43,.16)!important}
+  body.aq-v267 .aq267-dialog-body{display:grid;gap:14px;align-content:start}
+  body.aq-v267 .aq267-dialog-body :is(form,section,article,details){scroll-margin-block-start:18px}
+  body.aq-v267 .aq267-field{display:grid;gap:6px;min-width:0}
+  body.aq-v267 .aq267-field>label{font-weight:720;color:#504535;line-height:1.45}
+  body.aq-v267 .aq267-field :is(input,select,textarea){box-sizing:border-box;width:100%;min-height:48px;padding:10px 12px;border:1px solid #ddd0bb;border-radius:12px;background:#fff;color:#2f2a22;box-shadow:inset 0 1px 2px rgba(75,51,16,.025)}
+  body.aq-v267 .aq267-field textarea{min-height:112px;resize:vertical;line-height:1.65}
+  body.aq-v267 .aq267-field :is(input,select,textarea):focus{border-color:#a77b34!important;background:#fffdf8!important}
+  body.aq-v267 :is(.aq267-dialog button:not(.aq267-close),.aq267-service-links button,.v199-nav-button,.v199-bottom-button){touch-action:manipulation}
+  body.aq-v267 :is(.aq267-dialog button:not(.aq267-close),.aq267-service-links button,.v199-nav-button,.v199-bottom-button):not(:disabled):active{transform:translateY(1px)}
+  body.aq-v267 .aq267-service-group>summary{cursor:pointer;user-select:none;touch-action:manipulation}
+  body.aq-v267 .aq267-service-links button{justify-content:flex-start!important;text-align:start!important;line-height:1.5!important;position:relative;overflow:hidden}
+  body.aq-v267 .aq267-dialog :is(button,input,select,textarea){font-family:inherit}
+  body.aq-v267 .aq267-dialog button:not(.aq267-close){min-height:44px}
+}
+@media screen and (min-width:700px) and (max-width:1179px){
+  body.aq-v267 .aq267-dialog{width:min(920px,calc(100vw - 36px));max-height:calc(100dvh - 36px)}
+  body.aq-v267 .aq267-dialog-body{gap:16px}
+  body.aq-v267 .aq267-service-links button{min-height:68px!important;padding:14px!important}
+  body.aq-v267 .aq267-manager-hero{gap:18px}
+}
+@media screen and (max-width:699px){
+  body.aq-v267 .aq267-field :is(input,select,textarea){font-size:16px!important;min-height:50px}
+  body.aq-v267 .aq267-dialog-body{gap:12px}
+  body.aq-v267 .aq267-service-links{grid-template-columns:1fr!important}
+  body.aq-v267 .aq267-service-links button{min-height:64px!important;padding:13px 12px!important}
+  body.aq-v267 .aq267-service-group>summary{touch-action:manipulation}
+}
+@media (prefers-reduced-motion:reduce){
+  body.aq-v267 *,body.aq-v267 *::before,body.aq-v267 *::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
 }

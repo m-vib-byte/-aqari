@@ -2,9 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
-const {chromium,webkit}=createRequire(import.meta.url)('playwright');
+import {browserTargets,launchBrowser} from './browser-targets.mjs';
 const root=path.resolve(import.meta.dirname,'..');
 const out=path.resolve(process.env.AQARI_CONTRACT_BROWSER_EVIDENCE||'docs/acceptance/2026-10-14/unified/contract-ui');
 fs.mkdirSync(out,{recursive:true});
@@ -44,8 +43,8 @@ const server=createServer((req,res)=>{
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const origin=`http://127.0.0.1:${server.address().port}`,results=[];let browser;
 try{
- for(const [engine,type] of [['Chromium',chromium],['WebKit',webkit]]){
-  browser=await type.launch();
+ for(const [engine,type] of browserTargets){
+  browser=await launchBrowser(type);
   for(const [device,width,height,mobile] of [['Desktop',1440,1000,false],['Phone',390,844,true],['Tablet',820,1180,true]]){
    const ctx=await browser.newContext({viewport:{width,height},isMobile:mobile,hasTouch:mobile});
    await ctx.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
@@ -70,7 +69,7 @@ try{
   }
   await browser.close();browser=null;
  }
- const tested=['src/v267/components/contract-administration.js','src/v267/components/dialog.js','src/v267/api/session.js'];
+ const tested=['src/v267/components/contract-administration.js','src/v267/components/dialog.js','src/v267/api/session.js','src/v267/styles/workspace.css','src/v267/styles/ultra-luxury.css'];
  const evidence={date:new Date().toISOString(),scope:'Real UI modules on localhost, synthetic RPC, external requests blocked. No hosted account or physical device acceptance.',codeBase:process.env.AQARI_EXPECTED_SHA||'e69e8993ce317a52a06551bef8d95c1f7f6d2287',hashes:Object.fromEntries(tested.map(f=>[f,createHash('sha256').update(fs.readFileSync(path.join(root,f))).digest('hex')])),results};
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(evidence,null,2));console.log(`TOTAL ${results.length} passed`);
 }finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}

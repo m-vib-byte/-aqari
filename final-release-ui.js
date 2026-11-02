@@ -443,6 +443,18 @@
     }else{
       continueExistingScript('aqari-v199-ui-js',installV201Experience);
     }
+
+    // Owner-approved visual/workflow package. It is an additive module only: the
+    // existing auth/data boundaries and every original page remain authoritative.
+    window.AQARI_REGISTER_AUTH_UI(function(){
+    if(!document.getElementById('aqari-v267-owner-reference-js')){
+      const ownerReference=document.createElement('script');
+      ownerReference.id='aqari-v267-owner-reference-js';
+      ownerReference.type='module';
+      ownerReference.src=releaseAsset('/src/v267/owner-reference-runtime.js');
+      document.body.appendChild(ownerReference);
+    }
+    });
   }
 
   syncReleaseIdentity();
@@ -451,4 +463,67 @@
   }else{
     installV199Preview();
   }
+})();
+
+/* AQARI V267 owner feedback exact-reference loader */
+;(function(){
+  function loadOwnerFeedback(){
+    if(document.getElementById('aqari-v267-owner-feedback-js'))return;
+    const script=document.createElement('script');
+    script.id='aqari-v267-owner-feedback-js';script.type='module';
+    script.src='/src/v267/owner-feedback-runtime.js?release=V267';
+    document.body.appendChild(script);
+  }
+  window.AQARI_REGISTER_AUTH_UI(loadOwnerFeedback);
+})();
+
+/* AQARI V267 final beige owner-test loader */
+;(function(){
+  function loadOwnerFinal(){
+    if(document.getElementById('aqari-v267-owner-final-js'))return;
+    const script=document.createElement('script');script.id='aqari-v267-owner-final-js';script.type='module';
+    script.src='/src/v267/owner-final-runtime.js?release=V267';document.body.appendChild(script);
+  }
+  window.AQARI_REGISTER_AUTH_UI(loadOwnerFinal);
+})();
+
+/* AQARI V267 unified structural layout loader */
+;(function(){
+ function loadUnifiedLayout(){
+  if(!document.getElementById('aqari-v267-unified-layout-css')){const link=document.createElement('link');link.id='aqari-v267-unified-layout-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout.css?release=V267';document.head.appendChild(link);}
+  if(!document.getElementById('aqari-v267-unified-virtual-css')){const link=document.createElement('link');link.id='aqari-v267-unified-virtual-css';link.rel='stylesheet';link.href='/src/v267/styles/unified-layout-virtual.css?release=V267';document.head.appendChild(link);}
+  if(document.getElementById('aqari-v267-unified-layout-js'))return;
+  const script=document.createElement('script');script.id='aqari-v267-unified-layout-js';script.type='module';script.src='/src/v267/unified-layout-runtime.js?release=V267';document.body.appendChild(script);
+ }
+ window.AQARI_REGISTER_AUTH_UI(loadUnifiedLayout);
+})();
+
+/* AQARI V267 premium refinement loader */
+;(function(){
+ function loadPremiumRefinement(){
+  if(!document.getElementById('aqari-v267-premium-refinement-css')){const link=document.createElement('link');link.id='aqari-v267-premium-refinement-css';link.rel='stylesheet';link.href='/src/v267/styles/premium-refinement.css?release=V267';document.head.appendChild(link);}
+  if(document.getElementById('aqari-v267-premium-navigation-js'))return;
+  const script=document.createElement('script');script.id='aqari-v267-premium-navigation-js';script.type='module';script.src='/src/v267/premium-navigation-runtime.js?release=V267';document.body.appendChild(script);
+ }
+ window.AQARI_REGISTER_AUTH_UI(loadPremiumRefinement);
+})();
+
+/* AQARI V267 luxury warm beige final visual loader */
+;(function(){
+ function loadLuxuryWarmBeige(){
+  let link=document.getElementById('aqari-v267-luxury-warm-css');
+  if(!link){link=document.createElement('link');link.id='aqari-v267-luxury-warm-css';link.rel='stylesheet';link.href='/src/v267/styles/luxury-warm-beige.css?release=V267';}
+  if(document.head&&document.head.lastElementChild!==link)document.head.appendChild(link);
+ }
+ window.AQARI_REGISTER_AUTH_UI(loadLuxuryWarmBeige);
+})();
+
+/* AQARI V267 Work1 live stability loader */
+;(function(){
+ function loadLiveStability(){
+  if(document.getElementById('aqari-v267-live-stability-js'))return;
+  const script=document.createElement('script');script.id='aqari-v267-live-stability-js';script.type='module';
+  script.src='/src/v267/live-stability-runtime.js?release=V267';document.body.appendChild(script);
+ }
+ window.AQARI_REGISTER_AUTH_UI(loadLiveStability);
 })();

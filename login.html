@@ -35,6 +35,10 @@ button:disabled{cursor:wait;opacity:.58}.secondary{display:grid;grid-template-co
 body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36px;box-shadow:0 16px 70px #65502008}body.v267-login-page .login-brand{border:0;margin-bottom:30px;padding:0}body.v267-login-page .login-monogram{display:grid;place-items:center;width:52px;height:52px;background:#f6efdf;border-radius:16px;font-size:32px!important}body.v267-login-page h1{font-size:30px;margin-bottom:12px}body.v267-login-page .subtitle{margin-bottom:30px}body.v267-login-page input{min-height:56px;border-radius:14px;background:#fff}body.v267-login-page button.primary{min-height:56px;border-radius:14px}body.v267-login-page .status{background:#faf6ec;color:#6b5735}@media(max-width:460px){body.v267-login-page{align-items:start;padding-top:max(36px,env(safe-area-inset-top))}body.v267-login-page main{padding:26px 22px}body.v267-login-page .secondary{grid-template-columns:1fr 1fr}body.v267-login-page .secondary button{font-size:12px;padding:8px;min-height:52px}}
 }
 </style>
+<link id="aqari-v267-owner-login-css" rel="stylesheet" href="/src/v267/styles/owner-reference-login.css?release=V267">
+<link id="aqari-v267-unified-portal-css" rel="stylesheet" href="/src/v267/styles/unified-portal.css?release=V267">
+<link id="aqari-v267-premium-portal-css" rel="stylesheet" href="/src/v267/styles/premium-portal-refinement.css?release=V267">
+<link id="aqari-v267-owner-final-login-css" rel="stylesheet" href="/src/v267/styles/owner-final-login.css?release=V267">
 </head>
 <body class="v267-login-page">
 <main aria-labelledby="title">
@@ -131,5 +135,6 @@ retireLegacyReleaseState().then(function(){
  warmCore();
 },function(){ warmCore(); });
 })();</script>
+<script id="aqari-v267-owner-login-js" defer src="/src/v267/login-owner-reference.js?release=V267"></script>
 </body>
 </html>

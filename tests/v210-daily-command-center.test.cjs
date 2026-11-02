@@ -35,7 +35,7 @@ test('V210 revalidates scope around every protected snapshot',()=>{
 });
 
 test('V210 exposes the daily and monthly execution indicators',()=>{
-  for(const label of ['المستحق','تحصيل اليوم','تحصيل الشهر','متأخرون','بانتظار المراجعة','مستندات جاهزة','مهام حرجة'])assert.ok(js.includes(label),label);
+  for(const label of ['المستحق','دفعات اليوم','تحصيل الشهر','متأخرون','بانتظار المراجعة','مستندات جاهزة','مهام حرجة'])assert.ok(js.includes(label),label);
 });
 
 test('V210 aggregate calculates daily KPIs and priorities deterministically',()=>{
@@ -129,6 +129,7 @@ test('summary reuses only an unchanged authorized source and refreshes edits, mo
  const context={window,document,MutationObserver:class{observe(){}},Intl:{DateTimeFormat:function(){return {format:()=>day}}},Date,console};
  vm.runInNewContext(source.replace('  const observer=new MutationObserver(schedule);','  window.testSnapshot=snapshot;window.testPeriod=value=>{period=value};\n  const observer=new MutationObserver(schedule);'),context);
  const read=window.testSnapshot;
+ window.testPeriod('2026-10');
  assert.equal(read().summary.collected,40);
  if(source!==js)assert.ok(Object.hasOwn(read(),'knet'),'cached build result retains KNET details');
  for(let i=0;i<20;i++)assert.equal(read().summary.collected,40);

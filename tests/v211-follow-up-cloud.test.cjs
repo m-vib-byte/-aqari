@@ -41,3 +41,15 @@ test('timeline uses opaque hash and returns only whitelisted fields',async()=>{
 test('SQL draft keeps audit private and has no identifying RPC parameter',()=>{
   const sql=fs.readFileSync('supabase/migrations/20260904205555_v211_1_secure_follow_up_cloud_rpc.sql','utf8');assert.match(sql,/create schema if not exists aqari_internal/);assert.match(sql,/security definer/);assert.match(sql,/security invoker/);assert.match(sql,/set search_path = ''/);assert.match(sql,/revoke all on function public\.aqari_record_follow_up_event/);assert.match(sql,/grant execute on function public\.aqari_record_follow_up_event/);assert.doesNotMatch(sql,/grant\s+insert\s+on\s+(?:table\s+)?public\.aqari_access_audit/i);assert.match(sql,/p_record_hash !~ '\^\[0-9a-f\]\{64\}\$'/);assert.match(sql,/p_expected_revision/);assert.match(sql,/auth\.uid\(\)/);assert.match(sql,/a\.metadata->>'state' in \(/);assert.doesNotMatch(sql,/p_property|p_tenant|p_email|p_phone|p_civil/i);
 });
+
+test('timeline distinguishes a confirmed empty result from malformed or failed reads',async()=>{
+  const rt=runtime();
+  rt.setRpc(async()=>({data:[],error:null}));
+  assert.equal((await rt.window.AQARI_FOLLOW_UP_CLOUD.list({recordKey:baseEvent.recordKey,period:'2026-09'})).length,0);
+  for(const data of [null,{},[null],[{action_kind:'reviewed',state:'due',period:'2026-08'}],[{action_kind:'unknown',state:'due',period:'2026-09'}]]){
+    rt.setRpc(async()=>({data,error:null}));
+    await assert.rejects(rt.window.AQARI_FOLLOW_UP_CLOUD.list({recordKey:baseEvent.recordKey,period:'2026-09'}),e=>e.code==='AQARI_FOLLOW_UP_RPC_INVALID');
+  }
+  rt.setRpc(async()=>({data:null,error:{code:'PGRST202'}}));
+  await assert.rejects(rt.window.AQARI_FOLLOW_UP_CLOUD.list({recordKey:baseEvent.recordKey,period:'2026-09'}),e=>e.code==='AQARI_FOLLOW_UP_SCHEMA_UNAVAILABLE');
+});

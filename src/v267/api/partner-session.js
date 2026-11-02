@@ -5,8 +5,22 @@ export function createPartnerSession(client,onBoundary=()=>{},timeoutMs=20000){
  const subscription=client.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'||event==='PASSWORD_RECOVERY'||(user&&session?.user?.id!==user))invalidate();
  });
+ function validateOwnerFields(data){
+  if(!Array.isArray(data.items))throw Error('PARTNER_OWNER_FIELDS_INVALID');
+  const allowedTypes=new Set(['boolean','percentage','money','text','document']),allowedKeys=new Set(['label_ar','label_en','type','value']);
+  for(const row of data.items){
+   if(!row||typeof row!=='object'||Array.isArray(row)||Object.keys(row).some(key=>!allowedKeys.has(key))||typeof row.label_ar!=='string'||row.label_ar.length<1||row.label_ar.length>200||typeof row.label_en!=='string'||row.label_en.length>200||!allowedTypes.has(row.type))throw Error('PARTNER_OWNER_FIELDS_INVALID');
+   const value=row.value;if(value===null)continue;
+   if(row.type==='boolean'&&typeof value!=='boolean')throw Error('PARTNER_OWNER_FIELDS_INVALID');
+   if(row.type==='document'&&typeof value!=='boolean')throw Error('PARTNER_OWNER_FIELDS_INVALID');
+   if(row.type==='text'&&(typeof value!=='string'||value.length>5000))throw Error('PARTNER_OWNER_FIELDS_INVALID');
+   if(row.type==='percentage'){const raw=String(value);if(!/^\d{1,3}(\.\d{1,3})?$/.test(raw)||Number(raw)<0||Number(raw)>100)throw Error('PARTNER_OWNER_FIELDS_INVALID');}
+   if(row.type==='money'){const raw=String(value);if(!/^\d{1,12}(\.\d{1,3})?$/.test(raw)||Number(raw)<0)throw Error('PARTNER_OWNER_FIELDS_INVALID');}
+  }
+ }
  async function read({propertyId=null,workspaceId=null,month=null,kind='summary'}={}){
-  if(!['summary','distributions'].includes(kind)||kind==='distributions'&&(!propertyId||!workspaceId||!/^\d{4}-(0[1-9]|1[0-2])-01$/.test(month||'')))throw Error('PARTNER_INVALID_SELECTION');
+  if(!['summary','distributions','owner_fields','finance'].includes(kind)||kind==='distributions'&&(!propertyId||!workspaceId||!/^\d{4}-(0[1-9]|1[0-2])-01$/.test(month||''))||kind==='owner_fields'&&(!propertyId||!workspaceId)
+   ||kind==='finance'&&(!propertyId||!workspaceId||!/^\d{4}-(0[1-9]|1[0-2])-01$/.test(month||'')))throw Error('PARTNER_INVALID_SELECTION');
   for(const job of jobs)job.abort();const turn=++version,scope=epoch,controller=new AbortController();jobs.add(controller);
   let timer,rejectAbort;const check=()=>{if(closed||scope!==epoch||turn!==version||controller.signal.aborted)throw Error('PARTNER_SESSION_CHANGED');};
   const aborted=new Promise((_,reject)=>{rejectAbort=()=>reject(Error('PARTNER_READ_ABORTED'));controller.signal.addEventListener('abort',rejectAbort,{once:true});});
@@ -16,13 +30,23 @@ export function createPartnerSession(client,onBoundary=()=>{},timeoutMs=20000){
    const id=auth.data?.session?.user?.id;
    if(auth.error||!id)throw Error('PARTNER_SIGN_IN_REQUIRED');
    if(user&&user!==id){invalidate();throw Error('PARTNER_SESSION_CHANGED');}user=id;
-   const response=await client.rpc(kind==='distributions'?'aqari_partner_distribution_statement':'aqari_partner_summary',{p_property_id:propertyId,p_month:month}).abortSignal(controller.signal);check();
+   const rpcName=kind==='distributions'?'aqari_partner_distribution_statement':kind==='owner_fields'?'aqari_partner_owner_fields':kind==='finance'?'aqari_partner_property_finance':'aqari_partner_summary';
+   const rpcArgs=kind==='owner_fields'?{p_property_id:propertyId}:{p_property_id:propertyId,p_month:month};
+   const response=await client.rpc(rpcName,rpcArgs).abortSignal(controller.signal);check();
    if(response.error){if(kind==='distributions'&&response.error.code==='PGRST202')throw Error('PARTNER_DISTRIBUTIONS_UNAVAILABLE');throw Error('PARTNER_ACCESS_DENIED');}
    const data=response.data;
    if(!data||data.user_id!==id)throw Error('PARTNER_SCOPE_MISMATCH');
    if(propertyId){
-    if(data.property_id!==propertyId||data.workspace_id!==workspaceId||data.month!==month)throw Error('PARTNER_SCOPE_MISMATCH');
+    if(data.property_id!==propertyId||data.workspace_id!==workspaceId)throw Error('PARTNER_SCOPE_MISMATCH');
+    if(kind==='finance'&&data.period!==month||kind!=='finance'&&kind!=='owner_fields'&&data.month!==month)throw Error('PARTNER_SCOPE_MISMATCH');
    }else if(!Array.isArray(data.properties)||data.properties.some(p=>!p?.id||!p.workspace_id||typeof p.name!=='string'))throw Error('PARTNER_SCOPE_MISMATCH');
+   if(kind==='owner_fields')validateOwnerFields(data);
+   if(kind==='finance'){
+    const integer=value=>typeof value==='string'&&/^-?(0|[1-9]\d{0,17})$/.test(value);
+    if(data.currency!=='KWD'||typeof data.available!=='boolean'||!/^\d{4}-\d{2}-01$/.test(data.period||''))throw Error('PARTNER_FINANCE_INVALID');
+    if(!data.available){if(data.reason!=='FUTURE_MONTH')throw Error('PARTNER_FINANCE_INVALID');}
+    else{if(typeof data.complete!=='boolean'||!integer(data.arrears_fils)||!['','UNALLOCATED_SHARED_PAYROLL'].includes(data.warning)||!data.month||!data.year)throw Error('PARTNER_FINANCE_INVALID');for(const bucket of [data.month,data.year])for(const key of ['income_fils','expected_income_fils','expenses_fils','net_fils','collection_variance_fils'])if(!integer(bucket[key]))throw Error('PARTNER_FINANCE_INVALID');if(data.complete&&data.warning!==''||!data.complete&&data.warning!=='UNALLOCATED_SHARED_PAYROLL')throw Error('PARTNER_FINANCE_INVALID');}
+   }
    if(kind==='distributions'){
     const integer=value=>typeof value==='string'&&/^-?(0|[1-9]\d{0,17})$/.test(value);
     if(data.currency!=='KWD'||!Array.isArray(data.entries)||!integer(data.balance_fils))throw Error('PARTNER_DISTRIBUTION_INVALID');

@@ -5,6 +5,18 @@ import {PARTNER_MESSAGES} from './partner-translations.js';
 import {DEPOSIT_MESSAGES} from './deposit-translations.js';
 import {EXIT_MESSAGES} from './exit-translations.js';
 export const MESSAGES = {
+ "اسم البنك أو مزوّد الدفع": {
+  "en": "Bank or payment provider name",
+  "hi": "बैंक या भुगतान प्रदाता का नाम",
+  "ur": "بینک یا ادائیگی فراہم کنندہ کا نام",
+  "ml": "ബാങ്ക് അല്ലെങ്കിൽ പേയ്‌മെന്റ് ദാതാവിന്റെ പേര്"
+ },
+ "أدخل اسم البنك أو مزوّد الدفع من 2 إلى 120 حرفاً.": {
+  "en": "Enter a bank or payment provider name between 2 and 120 characters.",
+  "hi": "बैंक या भुगतान प्रदाता का नाम 2 से 120 अक्षरों में दर्ज करें।",
+  "ur": "بینک یا ادائیگی فراہم کنندہ کا نام 2 سے 120 حروف میں درج کریں۔",
+  "ml": "ബാങ്ക് അല്ലെങ്കിൽ പേയ്‌മെന്റ് ദാതാവിന്റെ പേര് 2 മുതൽ 120 വരെ അക്ഷരങ്ങളിൽ നൽകുക."
+ },
  ...LEASE_EXPIRY_MESSAGES,
  ...SERVICE_LABEL_MESSAGES,
  ...DEPOSIT_MESSAGES,

@@ -71,6 +71,15 @@ test('invalid payment input cannot reserve a receipt, prepare documents or write
   assert.equal(reservations,0);assert.equal(f.saved(),null);assert.equal(f.sent(),false);
  }
 });
+test('missing bank or cheque provider blocks before any cloud read or receipt reservation',async()=>{
+ for(const method of ['bank','cheque']){
+  const f=finalization(async()=>{throw Error('package must not run');});let reads=0;
+  f.context.currentDue={rent:100,total:100};
+  f.context.window.AQARI_SUPABASE.loadAppState=async()=>{reads++;throw Error('cloud read attempted');};
+  await assert.rejects(f.context.finalize({method,transactionNo:'VALID-123',paymentProvider:'   '}),/اسم البنك أو مزوّد الدفع/);
+  assert.equal(reads,0);assert.equal(f.saved(),null);assert.equal(f.sent(),false);
+ }
+});
 test('actual finalization performs no business write when package preparation fails',async()=>{
  const f=finalization(async()=>{throw Error('PDF unavailable');});
  await assert.rejects(f.run(),/PDF unavailable/);assert.equal(f.saved(),null);assert.equal(f.initial.contractsV202[0].status,'signing');
@@ -141,8 +150,24 @@ async function submissionFixture(error,{zeroPayment=false}={}){
  vm.createContext(context);vm.runInContext(source.slice(begin,end)+'\nthis.start=start;',context);
  await d.run(context.start);
  const form=d.body.children.at(-1),submit=form.children.at(-1),reference=zeroPayment?null:form.children[1].children.at(-1),zeroReason=zeroPayment?form.children[0].children.at(-1):null;if(reference)reference.value='KEEP-REFERENCE';
- return {d,submit,reference,zeroReason,calls:()=>calls,async run(){form.onsubmit({preventDefault(){}});await pending;},cleanup(){d.close();Object.assign(globalThis,original);}};
+ return {d,form,submit,reference,zeroReason,calls:()=>calls,async run(){form.onsubmit({preventDefault(){}});await pending;},cleanup(){d.close();Object.assign(globalThis,original);}};
 }
+test('execution form requires a bank, fixes KNET and clears it when switching to cash',async()=>{
+ const f=await submissionFixture(Object.assign(Error('MFA_REQUIRED'),{status:403,code:'42501'}));
+ try{
+  const method=f.form.children[0].children.at(-1),providerField=f.form.children[2],provider=providerField.children.at(-1);
+  assert.equal(providerField.hidden,true);assert.equal(provider.disabled,true);
+  for(const code of ['bank','cheque']){
+   method.value=code;method.onchange();provider.value='';
+   assert.equal(providerField.hidden,false);assert.equal(provider.required,true);assert.equal(provider.disabled,false);
+   await f.run();assert.equal(f.calls(),0);assert.equal(f.submit.disabled,false);
+  }
+  provider.value='Synthetic Bank';await f.run();assert.equal(f.calls(),1);
+  method.value='knet';method.onchange();assert.equal(provider.value,'KNET');assert.equal(provider.disabled,true);assert.equal(provider.required,false);
+  method.value='bank';method.onchange();assert.equal(provider.value,'');assert.equal(provider.required,true);
+  method.value='cash';method.onchange();assert.equal(provider.value,'');assert.equal(providerField.hidden,true);assert.equal(provider.required,false);
+ }finally{f.cleanup();}
+});
 test('invalid zero-payment reason leaves the form editable until a deliberate corrected submission',async()=>{
  const f=await submissionFixture(Object.assign(Error('MFA_REQUIRED'),{status:403,code:'42501'}),{zeroPayment:true});
  try{

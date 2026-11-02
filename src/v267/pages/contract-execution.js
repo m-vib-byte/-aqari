@@ -2,21 +2,27 @@ import {prepareContractExecutionPackage,assertContractExecutionRenderer} from '.
 import {assertContractExecutionService} from '../components/contract-execution-readiness.js';
 import {t as translateStatic} from '../components/locale.js';
 import {createDialog,node,field} from '../components/dialog.js';
-import {executionMethods,executionDue,rentReceiptArtifacts,executionManifest} from '../domain/contract-execution.js';
+import {executionMethods,executionDue,rentReceiptArtifacts,executionManifest,executionPaymentProvider} from '../domain/contract-execution.js';
 
 const copy=value=>JSON.parse(JSON.stringify(value));
 const input=(type,value='')=>{const el=node('input');el.type=type;el.value=value??'';return el;};
 const money=value=>Number(value||0).toFixed(3)+translateStatic(' د.ك');
 function select(rows,value=''){const el=node('select');for(const [key,label]of rows){const option=node('option',label);option.value=key;el.append(option);}el.value=value??'';return el;}
-function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+// JSONB may reorder object keys; preserve array order and exact values on readback.
+export function sameExecutionReadback(a,b){
+ const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+ return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
+}
+const same=sameExecutionReadback;
 export const isExecutionMfaChallenge=error=>error?.status===403&&error?.code==='42501'&&['MFA_REQUIRED','MFA_RECENT_REAUTH_REQUIRED'].includes(error?.message);
 
 // Validate editable payment input before any receipt allocation or package work.
-export function assertExecutionPaymentInput({total,method,transactionNo,zeroReason}){
+export function assertExecutionPaymentInput({total,method,transactionNo,zeroReason,paymentProvider}){
  const reference=String(transactionNo??'').normalize('NFKC').trim();
  if(total>0&&(!executionMethods.some(([code])=>code===method)||reference.length<3||reference.length>150))throw Error('طريقة الدفع ورقم العملية مطلوبان.');
  const reason=String(zeroReason??'').normalize('NFKC').trim();
  if(total===0&&(method!=='none'||reference||reason.length<3||reason.length>500))throw Error('وثّق سبب عدم وجود دفعة ولا تنشئ وصلاً وهميًا.');
+ if(total>0)executionPaymentProvider(method,paymentProvider);
  return reference;
 }
 
@@ -64,8 +70,8 @@ export function openContractExecution(contractId,{onDone}={}){
  const pdf=(path,body)=>readContractExecutionPdf(d.session,path,body);
  function downloadLink(label,blob,name){d.session.check();const url=URL.createObjectURL(blob);urls.add(url);const a=node('a',label);a.href=url;a.download=name;a.rel='noopener';a.className='is-primary';return a;}
 
- async function finalize({method,transactionNo,onDate,zeroReason}){
-  transactionNo=assertExecutionPaymentInput({total:currentDue.total,method,transactionNo,zeroReason});
+ async function finalize({method,transactionNo,onDate,zeroReason,paymentProvider}){
+  transactionNo=assertExecutionPaymentInput({total:currentDue.total,method,transactionNo,zeroReason,paymentProvider});
   const bound=scope(),cloud=await window.AQARI_SUPABASE.loadAppState(bound);d.session.check();
   const payload=copy(cloud.payload),db=api.primary(payload),contract=(db.contractsV202||[]).find(row=>String(row.id)===String(contractId));
   if(!contract||contract.status!=='signing')throw Error('تغيرت حالة العقد. حدّث السجل قبل المتابعة.');
@@ -84,8 +90,8 @@ export function openContractExecution(contractId,{onDone}={}){
    if(!/^AQ-R-\d{4}-\d{8,}$/.test(receiptNo)||!Number.isSafeInteger(contractReceiptSequence)||contractReceiptSequence<1)throw Error('تعذر تأكيد الرقم الرسمي المتسلسل لوصل الإيجار من الخادم.');
   }
   let receiptArtifacts=null;
-  if(due.rent>0)receiptArtifacts=rentReceiptArtifacts({contract:signed,profile,due,receiptNo,contractReceiptSequence,onDate,method,transactionNo});
-  const manifest=executionManifest({contract:signed,due,onDate,method,transactionNo,receiptNo,contractReceiptSequence,zeroReason,ids});
+  if(due.rent>0)receiptArtifacts=rentReceiptArtifacts({contract:signed,profile,due,receiptNo,contractReceiptSequence,onDate,method,transactionNo,paymentProvider});
+  const manifest=executionManifest({contract:signed,due,onDate,method,transactionNo,paymentProvider,receiptNo,contractReceiptSequence,zeroReason,ids});
   manifest.executionPackageId=await prepareContractExecutionPackage(d.session,{
    workspaceId:d.session.bound.workspace,contractRef:String(contractId),settlementId:ids.settlement,
    documentId:ids.document,packageId:ids.package,preparedAt:new Date().toISOString(),
@@ -122,17 +128,23 @@ export function openContractExecution(contractId,{onDone}={}){
  async function start(){
   await load();d.body.replaceChildren(node('p',translateStatic('هذه الخطوة نهائية: تثبت العقد كتوقيع معتمد وتسوية الإبرام في عملية واحدة غير قابلة للحذف. رقم الوصل، عند وجود إيجار فعلي، يُحجز من الخادم وله رقم عام وتسلسل داخل العقد.')));
   const summary=node('section');summary.append(node('h3',translateStatic('المستحق عند الإبرام')),node('p',translateStatic('العقد: ')+currentContract.contract_no),node('p',translateStatic('المستأجر: ')+currentProfile.nameAr+' / '+currentProfile.nameEn),node('p',translateStatic('العقار / الوحدة: ')+currentContract.property+' / '+currentContract.unit),node('p',translateStatic('إيجار أول فترة: ')+money(currentDue.rent)),node('p',translateStatic('التأمين: ')+money(currentDue.deposit)),node('p',translateStatic('العربون: ')+money(currentDue.advance)),node('p',translateStatic('الرسوم: ')+money(currentDue.fees)),node('strong',translateStatic('الإجمالي: ')+money(currentDue.total)));d.body.append(summary);
-  const form=node('form'),onDate=input('date',api.kuwaitDate()),method=currentDue.total>0?select([['',translateStatic('اختر طريقة الدفع')],...executionMethods.map(([key,label])=>[key,translateStatic(label)])]):select([['none',translateStatic('لا توجد دفعة')]], 'none'),transaction=input('text'),zeroReason=node('textarea'),confirm=input('checkbox'),submit=node('button',translateStatic('اعتماد الإبرام وإصدار المستندات'));
+  const form=node('form'),onDate=input('date',api.kuwaitDate()),method=currentDue.total>0?select([['',translateStatic('اختر طريقة الدفع')],...executionMethods.map(([key,label])=>[key,translateStatic(label)])]):select([['none',translateStatic('لا توجد دفعة')]], 'none'),transaction=input('text'),provider=input('text'),zeroReason=node('textarea'),confirm=input('checkbox'),submit=node('button',translateStatic('اعتماد الإبرام وإصدار المستندات'));
   const canonicalZeroReason=currentDue.breakdown.freeMonth?'لا توجد دفعة عند الإبرام بسبب الفترة المجانية المعتمدة.':'صافي المستحق عند الإبرام يساوي صفراً حسب شروط العقد المعتمدة.';
   onDate.required=true;method.required=true;transaction.minLength=3;transaction.maxLength=150;zeroReason.maxLength=500;confirm.type='checkbox';confirm.required=true;submit.type='submit';
   if(currentDue.total>0){transaction.required=true;form.append(field(translateStatic('طريقة الدفع'),method),field(translateStatic('رقم العملية / المرجع — إلزامي لكل طرق الدفع'),transaction));}
   else{zeroReason.required=true;zeroReason.minLength=3;zeroReason.value=translateStatic(canonicalZeroReason);form.append(field(translateStatic('توثيق سبب عدم وجود دفعة — لن يصدر وصل إيجار وهمي'),zeroReason));}
+  if(currentDue.total>0){
+   provider.minLength=2;provider.maxLength=120;
+   const providerField=field(translateStatic('اسم البنك أو مزوّد الدفع'),provider);
+   const updateProvider=()=>{const needsBank=['bank','cheque'].includes(method.value);providerField.hidden=!needsBank&&method.value!=='knet';if(needsBank&&provider.disabled)provider.value='';provider.disabled=!needsBank;provider.required=needsBank;if(!needsBank)provider.value=method.value==='knet'?'KNET':'';};
+   method.onchange=updateProvider;updateProvider();form.append(providerField);
+  }
   form.append(field(translateStatic('تاريخ العملية'),onDate),field(translateStatic('راجعت المبلغ وهو يطابق الدفعة الفعلية، وأعتمد إتمام العقد'),confirm),submit);d.body.append(form);
   form.onsubmit=event=>{event.preventDefault();if(submit.disabled||!form.reportValidity())return;d.run(async()=>{
-   assertExecutionPaymentInput({total:currentDue.total,method:method.value,transactionNo:transaction.value,zeroReason:zeroReason.value});
+   assertExecutionPaymentInput({total:currentDue.total,method:method.value,transactionNo:transaction.value,zeroReason:zeroReason.value,paymentProvider:provider.value});
    submit.disabled=true;d.status.textContent=translateStatic('جاري تثبيت العقد والتسوية والتحقق من السجل والاستحقاقات…');
    let result;
-   try{result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});}
+   try{result=await finalize({method:currentDue.total>0?method.value:'none',transactionNo:currentDue.total>0?transaction.value.trim():'',paymentProvider:currentDue.total>0?provider.value:'',onDate:onDate.value,zeroReason:currentDue.total===0?(zeroReason.value.trim()===translateStatic(canonicalZeroReason)?canonicalZeroReason:zeroReason.value.trim()):''});}
    catch(error){
     // Only a definite rejection before settlement permits a manual retry.
     // Timeouts and post-save read failures remain locked until verified.

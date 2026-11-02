@@ -109,8 +109,9 @@
     const response=await client.rpc('aqari_list_follow_up_events',{p_workspace_id:access.workspaceId,p_record_hash:recordHash,p_period:period,p_limit:limit});
     if(response?.error)throw normalizeRpcError(response.error);
     await bindAccess(access);
-    const rows=Array.isArray(response?.data)?response.data:[];
-    return Object.freeze(rows.map(row=>Object.freeze({id:row?.event_id??row?.id??null,actionKind:String(row?.action_kind||''),state:String(row?.state||''),period:String(row?.period||''),appStateRevision:Number(row?.app_state_revision||0)||null,createdAt:String(row?.created_at||'')})).filter(row=>ACTIONS.has(row.actionKind)&&STATES.has(row.state)&&row.period===period));
+    const rows=response?.data;
+    if(!Array.isArray(rows)||rows.some(row=>!row||!ACTIONS.has(row.action_kind)||!STATES.has(row.state)||row.period!==period))throw aqariError('AQARI_FOLLOW_UP_RPC_INVALID','Follow-up RPC returned an invalid timeline');
+    return Object.freeze(rows.map(row=>Object.freeze({id:row.event_id??row.id??null,actionKind:row.action_kind,state:row.state,period:row.period,appStateRevision:Number(row.app_state_revision||0)||null,createdAt:String(row.created_at||'')})));
   }
   window.AQARI_FOLLOW_UP_CLOUD=Object.freeze({version:DESIGN,append,list,hashRecordKey,testing:Object.freeze({validateEvent,cleanAccess,sameAccess,normalizeRpcError})});
 })();

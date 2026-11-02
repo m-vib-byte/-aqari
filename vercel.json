@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs && node scripts/install-botid-client.mjs",
-  "outputDirectory": ".",
+  "buildCommand": "node scripts/build-vercel.mjs && node scripts/install-v267-owner-reference-package.mjs && node scripts/install-v267-owner-feedback.mjs && node scripts/install-botid-client.mjs && node scripts/prepare-public-output.mjs",
+  "outputDirectory": "public-build",
   "rewrites": [
     {
       "source": "/149e9513-01fa-4fb0-aad4-566afd725d1b/2d206a39-8ed7-437e-a3be-862e0f06eea3/a-4-a/c.js",
@@ -362,6 +362,11 @@
       "fix/production-backup-download-20261028": false,
       "fix/combined-save-review-20261029": false,
       "fix/unified-production-save-20261029": false
+    }
+  },
+  "functions": {
+    "api/*.py": {
+      "excludeFiles": "{public-build/**,.vercel_python_packages/**,tests/**,scripts/**,docs/**,staging-database/**,supabase/**,.github/**,src/**}"
     }
   }
 }

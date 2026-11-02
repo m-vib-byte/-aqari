@@ -3270,7 +3270,19 @@ body.v267-login-page main{border:1px solid #e9e4da;border-radius:28px;padding:36
  body.aq-v267 .aq267-contract-paper {transform-origin:top center}
 }
 
-</style></head><body>
+</style><style id="aqHomePresentationStyle">
+/* Keep layout measurable while the final home is assembled behind one loading surface. */
+#aqHomePresentation{display:none}
+html.aqari-auth-unlocked:not(.aqari-home-presented) body > :not(#aqHomePresentation){opacity:0!important;pointer-events:none!important}
+html.aqari-auth-unlocked:not(.aqari-home-presented) #aqHomePresentation{display:grid!important;position:fixed;inset:0;z-index:2147483647;place-items:center;box-sizing:border-box;padding:24px;background:#faf8f3;color:#493a29;direction:rtl;font-family:system-ui,-apple-system,Tahoma,sans-serif;text-align:center;overflow:auto}
+#aqHomePresentation .aq-home-loading-card{width:min(100%,420px);padding:32px 24px;border:1px solid #dfcfae;border-radius:24px;background:#fffdf8;box-sizing:border-box}
+#aqHomePresentation strong{color:#96702f;font-size:24px}
+#aqHomePresentation p{line-height:1.8}
+#aqHomePresentation button{padding:12px 24px;border:1px solid #a17c3e;border-radius:12px;background:#f0dfb7;color:#493a29;font:inherit;cursor:pointer}
+#aqHomePresentation button[hidden]{display:none!important}
+
+</style>
+</head><body>
 <style id="aqari-v198-cloud-css">
 .aq-v168-gate{position:fixed;inset:0;z-index:90000;display:none;align-items:center;justify-content:center;padding:18px;background:radial-gradient(circle at top,#4a391a 0,#17130d 58%,#090806 100%)}.aq-v168-gate.on{display:flex}.aq-v168-login{width:min(440px,96vw);background:#fff;border:1px solid #d9bd7d;border-radius:24px;padding:24px;box-shadow:0 28px 90px #000a}.aq-v168-logo{text-align:center}.aq-v168-logo h1{margin:0;color:#a77920;font-size:34px}.aq-v168-logo p{margin:7px 0 18px;color:#746b5d}.aq-v168-login label,.aq-v168-dialog label{display:block;margin-top:10px;font-weight:700}.aq-v168-login input,.aq-v168-dialog input{width:100%;margin-top:6px}.aq-v168-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.aq-v168-actions button{flex:1;min-width:125px}.aq-v168-note{font-size:12px;line-height:1.7;color:#6d6456;background:#fbf5e9;border:1px solid #ead9b6;border-radius:12px;padding:10px;margin-top:12px}.aq-v168-msg{padding:10px;border-radius:11px;background:#f7f6f2;margin-top:10px;white-space:pre-wrap;font-size:12px;line-height:1.6}.aq-v168-msg.ready{background:#e7f7ed;color:#17673a}.aq-v168-msg.bad{background:#fde8e8;color:#922828}.aq-v168-msg.wait{background:#fff5d9;color:#725400}.aq-v168-cloud{border:1px solid #d8bd80;background:linear-gradient(145deg,#fff,#fbf5e9);border-radius:18px;padding:15px;margin:12px 0}.aq-v168-head,.aq-v168-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.aq-v168-badge,.aq-v168-state{display:inline-flex;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800}.aq-v168-badge{background:#1f2937;color:#f4cf77}.aq-v168-state.ready{background:#e4f6eb;color:#17673a}.aq-v168-state.wait{background:#fff2cc;color:#805d00}.aq-v168-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}.aq-v168-card{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:12px}.aq-v168-modal{display:none;position:fixed;inset:0;background:#0009;z-index:91000;align-items:center;justify-content:center;padding:15px}.aq-v168-modal.on{display:flex}.aq-v168-dialog{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;padding:17px}@media(max-width:760px){.aq-v168-grid{grid-template-columns:1fr 1fr}.aq-v168-actions button{min-width:100%}}
 </style>
@@ -18688,5 +18700,7 @@ table{
 <script defer src="/pre-migration-backup.js"></script>
 <script defer src="/final-release-ui.js"></script>
 <script defer src="/production-lockdown.js"></script>
+<section id="aqHomePresentation" aria-hidden="true"><div class="aq-home-loading-card"><strong>عقاري</strong><p role="status" aria-live="polite">جارٍ تجهيز الصفحة الرئيسية…</p><button type="button" hidden>إعادة المحاولة</button></div></section>
+<script defer src="/src/v267/home-presentation.js?release=V267"></script>
 <script defer id="aqari-v198-secure-cloud-js" src="/secure-auth-bridge.js"></script>
 </body></html>

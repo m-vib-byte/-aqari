@@ -28,8 +28,13 @@ def _ar(value):
     return get_display(arabic_reshaper.reshape(str(value or "—")), base_dir="R")
 
 def _text(value):
-    """Keep stored field values literal inside ReportLab paragraph markup."""
-    return escape(str(value if value is not None else "—"), quote=False)
+    """Shape stored Arabic values, then keep them literal in paragraph markup."""
+    text = str(value if value is not None else "—")
+    if re.search(r"[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]", text):
+        # Values share cells with Latin names and identifiers. An LTR base keeps
+        # their punctuation intact while shaping each Arabic run for PDF output.
+        text = get_display(arabic_reshaper.reshape(text), base_dir="L")
+    return escape(text, quote=False)
 
 def _money(value):
     try: return f"{float(value or 0):,.3f}"
