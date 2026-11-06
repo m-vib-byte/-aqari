@@ -1,0 +1,21 @@
+name: Property delete linked guard
+on:
+  pull_request:
+    paths:
+      - 'staging-database/sql/property-delete-linked-guard.sql'
+      - 'staging-database/local-test/run-property-delete-linked-guard.mjs'
+      - '.github/workflows/property-delete-linked-guard.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: staging-database/local-test
+      - run: node staging-database/local-test/run-property-delete-linked-guard.mjs
