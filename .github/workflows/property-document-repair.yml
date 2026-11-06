@@ -1,0 +1,25 @@
+name: Property document repair
+on:
+  pull_request:
+    paths:
+      - 'staging-database/sql/document-reserve-client-parity*.sql'
+      - 'staging-database/local-test/run-document-reserve-parity.mjs'
+      - 'staging-database/local-test/fixtures/reserve-document-production-20261106.sql'
+      - 'tests/property-production-entry.test.mjs'
+      - 'v202-property-os.js'
+      - '.github/workflows/property-document-repair.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: staging-database/local-test
+      - run: node staging-database/local-test/run-document-reserve-parity.mjs
+      - run: node --test tests/property-production-entry.test.mjs tests/property-canonical-client.test.mjs tests/property-record-navigation.test.mjs
