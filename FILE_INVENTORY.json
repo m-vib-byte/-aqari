@@ -6282,8 +6282,8 @@
     },
     {
       "path": "v202-property-os.js",
-      "sha256": "ee84a1a0f2dc4369488846dceed93d037cd2890322fdc35c606f2542b265f686",
-      "size": 290522
+      "sha256": "b940cbd95463f0f6df1fd5146812bb0b63c260c18178810066c621670afbfd56",
+      "size": 291202
     },
     {
       "path": "v205-simple.css",
@@ -8399,6 +8399,11 @@
       "path": "tests/v267-contract-payment-form.browser.mjs",
       "sha256": "8b6cfde72ccb96fced22d2ea0add6367ba79e0ad2375cca0301c97a6223e3783",
       "size": 8417
+    },
+    {
+      "path": "tests/property-production-entry.test.mjs",
+      "sha256": "84cfd6778d8e74585e6ef552725aabbf42dac5a191947a0c428b016fb01549c7",
+      "size": 2995
     }
   ],
   "version": "V198"
