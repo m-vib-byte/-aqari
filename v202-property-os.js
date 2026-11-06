@@ -2057,6 +2057,13 @@
 
   function openWorkspace(name,trigger,selectedPeriod){
     if(!protectedAccessReady())return false;
+    // Production must read the canonical property, not imported display rows.
+    if(window.AQARI_PUBLIC_CONFIG?.releaseStage==='production'){
+      return openAuthoritativePropertyFile(name).catch(function(){
+        window.alert('تعذر فتح سجل العقار من الخادم. أعد المحاولة؛ لم تُعرض بيانات قديمة.');
+        return false;
+      });
+    }
     const record=propertyRecord(name);
     if(!record){reportPropertyAmbiguity(name);return false}
     ensureWorkspace();
@@ -2112,14 +2119,21 @@
     if(!protectedAccessReady())return false;
     const bridge=window.AQARI_SUPABASE;
     const workspace=bridge?.context?.workspace?.id;
+    const user=bridge?.context?.user?.id;
     const propertyName=String(name||'').trim();
-    if(!workspace||!propertyName||typeof bridge?.getClient!=='function')return false;
+    if(!workspace||!user||!propertyName||typeof bridge?.getClient!=='function')return false;
+    const checkScope=function(){
+      const current=window.AQARI_SUPABASE?.context;
+      if(!protectedAccessReady()||current?.workspace?.id!==workspace||current?.user?.id!==user)throw Error('PROPERTY_SCOPE_CHANGED');
+    };
     const client=await bridge.getClient();
+    checkScope();
     const {data,error}=await client.from('aqari_properties').select('id,name').eq('workspace_id',workspace).eq('name',propertyName).limit(2);
+    checkScope();
     if(error)throw error;
     if(!Array.isArray(data)||data.length!==1)throw Error(data?.length?'اسم العقار غير فريد.':'لم يتم ربط العقار بالسجل الخادمي.');
     const page=await import('./src/v267/pages/property-hub.js');
-    if(!protectedAccessReady())return false;
+    checkScope();
     return page.openPropertyHub(data[0].id);
   }
 
